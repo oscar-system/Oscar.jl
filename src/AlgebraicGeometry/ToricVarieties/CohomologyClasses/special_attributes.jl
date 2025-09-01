@@ -1,5 +1,5 @@
 @doc raw"""
-    cohomology_ring(v::NormalToricVarietyType; completeness_check::Bool = true)
+    cohomology_ring(v::NormalToricVarietyType)
 
 !!! note "Simplicial and complete toric varieties"
     This function assumes that the toric variety is both **simplicial** and **complete**.
@@ -13,7 +13,18 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-@attr Any function cohomology_ring(v::NormalToricVarietyType; completeness_check::Bool = true)
+@attr MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function cohomology_ring(v::NormalToricVarietyType; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :cohomology_ring)
+      completeness_check = check
+    else
+       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
   @req is_simplicial(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
   if completeness_check
     @req is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
@@ -102,7 +113,7 @@ end
 
 
 @doc raw"""
-    chern_class(v::NormalToricVariety, k::Int; completeness_check::Bool = true)
+    chern_class(v::NormalToricVariety)
 
 Compute the `k`-th Chern class of the tangent bundle of a normal toric variety.  
 The algorithm is based on Proposition 13.1.2 in [CLS11](@cite).
@@ -126,7 +137,19 @@ julia> integrate(chern_class(F3, 2), completeness_check = false)
 4
 ```
 """
-function chern_class(v::NormalToricVariety, k::Int; completeness_check::Bool = true)
+function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      completeness_check = check
+    else
+       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+
   # Consistency checks
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(v) "Chern class index must not exceed dimension of the toric variety"
@@ -189,7 +212,7 @@ end
 
 
 @doc raw"""
-    chern_classes(v::NormalToricVariety; completeness_check::Bool = true)
+    chern_classes(v::NormalToricVariety)
 
 Compute all Chern classes of the tangent bundle of a normal toric variety.
 The algorithm is based on Proposition 13.1.2 in [CLS11](@cite).
@@ -215,7 +238,18 @@ julia> integrate(cs[2])
 4
 ```
 """
-function chern_classes(v::NormalToricVariety; completeness_check::Bool = true)
+function chern_classes(v::NormalToricVariety; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      completeness_check = check
+    else
+       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
   @req is_smooth(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
   if completeness_check
     @req is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
@@ -228,7 +262,7 @@ end
 
 
 @doc raw"""
-    basis_of_h4(v::NormalToricVariety; completeness_check::Bool = true)
+    basis_of_h4(v::NormalToricVariety)
 
 Compute a monomial basis of the cohomology group $H^4(X, \mathbb{Q})$. The algorithm,
 based on Theorem 12.4.1 in [CLS11](@cite), truncates the cohomology ring to degree 2.
@@ -261,7 +295,18 @@ julia> betti_number(Y, 4) == length(h4_basis)
 true
 ```
 """
-@attr Vector{CohomologyClass} function basis_of_h4(v::NormalToricVariety; completeness_check::Bool = true)
+@attr Vector{CohomologyClass} function basis_of_h4(v::NormalToricVariety; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      completeness_check = check
+    else
+       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
   @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
   if completeness_check
     @req is_complete(v) "Computation of basis of H4(X, Q) is currently only supported for complete toric varieties"

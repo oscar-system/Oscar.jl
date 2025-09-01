@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Bool = true)
+    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 
 Construct the toric cohomology class on the toric variety `v` corresponding to the polynomial `p`.  
 The polynomial `p` must lie in the cohomology ring of `v`.
@@ -36,11 +36,24 @@ julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
 ```
 """
-cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Bool = true) = CohomologyClass(v, p, completeness_check)
+function cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+  if quick isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      completeness_check = !quick
+    else
+       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  return CohomologyClass(v, p, completeness_check)
+end
 
 
 @doc raw"""
-    cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
+    cohomology_class(d::ToricDivisor)
 
 Construct the toric cohomology class corresponding to the toric divisor `d`.
 
@@ -61,7 +74,18 @@ julia> cohomology_class(d)
 Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3
 ```
 """
-function cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
+function cohomology_class(d::ToricDivisor; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+  if quick isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      completeness_check = !quick
+    else
+       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
   R = cohomology_ring(toric_variety(d); completeness_check)
   indets = gens(base_ring(R))
   coeff_ring = coefficient_ring(toric_variety(d))
@@ -70,8 +94,9 @@ function cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
 end
 
 
+
 @doc raw"""
-    cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true)
+    cohomology_class(d::ToricDivisorClass)
 
 Construct the toric cohomology class corresponding to the toric divisor class `c`.
 
@@ -92,11 +117,24 @@ julia> cohomology_class(tdc)
 Cohomology class on a normal toric variety given by 2*x1
 ```
 """
-cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true) = cohomology_class(toric_divisor(c), completeness_check = completeness_check)
+function cohomology_class(d::ToricDivisorClass; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+  if quick isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      completeness_check = !quick
+    else
+       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  return cohomology_class(toric_divisor(d); completeness_check=completeness_check)
+end
 
 
 @doc raw"""
-    cohomology_class(l::ToricLineBundle; completeness_check::Bool = true)
+    cohomology_class(l::ToricLineBundle)
 
 Construct the toric cohomology class corresponding to the toric line bundle `l`.
 
@@ -117,7 +155,20 @@ julia> polynomial(cohomology_class(l))
 2*x1
 ```
 """
-cohomology_class(l::ToricLineBundle; completeness_check::Bool = true) = cohomology_class(toric_divisor(l), completeness_check = completeness_check)
+function cohomology_class(l::ToricLineBundle; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+  if quick isa Bool
+    if completeness_check === nothing
+      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      completeness_check = !quick
+    else
+       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
+     end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  return cohomology_class(toric_divisor(l); completeness_check=completeness_check)
+end
 
 
 #################################

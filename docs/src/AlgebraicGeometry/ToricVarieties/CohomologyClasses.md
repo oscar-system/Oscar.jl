@@ -25,10 +25,10 @@ computations) are already costly. To speed up computations, you may disable this
 Use this option only if completeness is already known or guaranteed, and faster computations are preferred.
 
 ```@docs
-cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Bool = true)
-cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
-cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true)
-cohomology_class(l::ToricLineBundle; completeness_check::Bool = true)
+cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
+cohomology_class(d::ToricDivisor)
+cohomology_class(c::ToricDivisorClass)
+cohomology_class(l::ToricLineBundle)
 ```
 
 ### Addition, subtraction and scalar multiplication
@@ -76,10 +76,10 @@ integrate(c::CohomologyClass; completeness_check::Bool = true)
 ## Special attributes of toric varieties
 
 ```@docs
-cohomology_ring(v::NormalToricVarietyType; completeness_check::Bool = true)
+cohomology_ring(v::NormalToricVarietyType)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
-chern_class(v::NormalToricVariety, k::Int; completeness_check::Bool = true)
-chern_classes(v::NormalToricVariety; completeness_check::Bool = true)
-basis_of_h4(v::NormalToricVariety; completeness_check::Bool = true)
+chern_class(v::NormalToricVariety, k::Int)
+chern_classes(v::NormalToricVariety)
+basis_of_h4(v::NormalToricVariety)
 ```
