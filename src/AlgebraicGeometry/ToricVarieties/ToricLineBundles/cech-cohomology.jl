@@ -36,9 +36,9 @@ function _toric_cech_complex(tl::ToricLineBundle)
   # For the other regions, we don't get their signs for free and have to calculate them
   for p in other_polys
     if dim(p) == 0
-      sign_list = ZZ.(sign.(matrix(QQ, rays(X)) * vertices(p)[1] + a_plane)[:,1])
+      sign_list = ZZ.(sign.(matrix(ZZ, rays(X)) * vertices(p)[1] + a_plane)[:,1])
     else
-      sign_list = ZZ.(sign.(matrix(QQ, rays(X)) * 1//n_vertices(p) * sum(vertices(p)) + a_plane)[:,1])
+      sign_list = ZZ.(sign.(matrix(ZZ, rays(X))  * sum(vertices(p)) * 1//n_vertices(p) + a_plane)[:,1])
     end
     sign_of_chamber[sign_list] = interior_lattice_points(p)
   end
@@ -48,7 +48,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Now iterate over the Cech complex
-  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, n_maximal_cones(X) + 1)
+  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, n_maximal_cones(X))
   cech_complex_maps = Vector{Any}(undef, dim(X))
   comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
   d_k = 0
@@ -108,7 +108,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
 
   #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
   if dim(X) > 2
-    for k in dim(X)+1:n_maximal_cones(X)
+    for k in dim(X)+1:n_maximal_cones(X)-1
 
       # Find the contributing lattice points
       polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
