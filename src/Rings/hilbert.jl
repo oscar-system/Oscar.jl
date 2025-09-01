@@ -187,7 +187,7 @@ end
 
 
 function Base.show(io::IO, t::PP)
-  if !isone(t)
+  if isone(t)
     print(io, "1")
     return
   end
