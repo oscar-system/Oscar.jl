@@ -310,7 +310,7 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
 ```
 
 !!! note
-The strategy behind the `groebner_basis` function and the strategy behind the function `groebner_basis_with_transformation_matrix` differ. As a consequence, the computed generators may differ. Even if `complete_reduction` is set to `true`, the generators might still only agree up to multiplication by units.
+    The strategy behind the `groebner_basis` function and the strategy behind the function `groebner_basis_with_transformation_matrix` differ. As a consequence, the computed generators may differ. Even if `complete_reduction` is set to `true`, the generators might still only agree up to multiplication by units.
 
 ### Gröbner Basis Conversion Algorithms
 
