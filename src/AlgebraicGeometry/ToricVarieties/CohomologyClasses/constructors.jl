@@ -96,7 +96,7 @@ cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true) = cohomo
 
 
 @doc raw"""
-    cohomology_class(l::ToricLineBundle; completeness_check::Bool = false)
+    cohomology_class(l::ToricLineBundle; completeness_check::Bool = true)
 
 Construct the toric cohomology class corresponding to the toric line bundle `l`.
 

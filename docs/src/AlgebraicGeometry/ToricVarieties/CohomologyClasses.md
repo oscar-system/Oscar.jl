@@ -28,7 +28,7 @@ Use this option only if completeness is already known or guaranteed, and faster 
 cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Bool = true)
 cohomology_class(d::ToricDivisor; completeness_check::Bool = true)
 cohomology_class(c::ToricDivisorClass; completeness_check::Bool = true)
-cohomology_class(l::ToricLineBundle; completeness_check::Bool = false)
+cohomology_class(l::ToricLineBundle; completeness_check::Bool = true)
 ```
 
 ### Addition, subtraction and scalar multiplication
