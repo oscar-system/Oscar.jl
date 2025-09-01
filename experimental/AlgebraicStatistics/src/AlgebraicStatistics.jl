@@ -1,5 +1,12 @@
 using Distributed: pmap
 
+# there will be more specific types of Dict that will
+# be coming in another AlgebraicStatisitics merge request
+# we should agrogate them and bring them into src where
+# they can be easily found and added to if necessary
+# leaving here for now
+include("DictTypes.jl")
+
 include("MultigradedImplicitization.jl")
 include("CI.jl")
 include("Markov.jl")

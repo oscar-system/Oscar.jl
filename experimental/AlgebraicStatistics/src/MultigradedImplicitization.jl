@@ -242,9 +242,11 @@ defined by
   x[1, 2] -> s[2]*t[1]
   x[2, 2] -> s[2]*t[2]
 
-julia> components_of_kernel(2, phi)
-Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}} with 1 entry:
-  [1 1 1 1] => MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]]
+julia> d = components_of_kernel(2, phi);
+
+julia> d[1, 1, 1, 1]
+1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
 function components_of_kernel(d::Int, phi::MPolyAnyMap;
