@@ -26,6 +26,12 @@ is_partially_resolved(m::AbstractFTheoryModel)
 
 ## Blowups
 
+A **blowup** is a birational modification of an algebraic variety or scheme that replaces a chosen subvariety (or subscheme), called
+the *center* of the blowup, with an exceptional divisor. This process provides a tool for resolving singularities in a controlled way.
+
+In the **weighted case**, the exceptional divisor is introduced with a grading by positive integers. This allows for finer control
+over the resolution process.
+
 ### Manually Applying Individual Blowups
 
 You can execute individual blowups, whether toric or not, using the following methods:
@@ -36,18 +42,50 @@ blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
 blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 ```
 
+### Data Format for Resolutions
+
+Typically, a resolution requires a sequence of blowups.
+
+The resolution metadata functions store information about sections in terms of their *homogeneous coordinates* after a given sequence of blowups.  
+
+Our framework is tailored towards toric blowups.
+
+- A **resolution entry** consists of two parts:
+  1. The sequence of blowup centers (each a list of coordinate names).
+  2. The list of new exceptional coordinate names introduced at each step.
+- The zero and generating sections are then tracked through these blowups and recorded in terms of the homogeneous factors that describe their proper transforms.
+
+For example, a sequence of blowups might look like
+
+```julia
+[
+  [["x","y","w"], ["y","e1"], ["x","e4"], ["y","e2"], ["x","y"]],
+  ["e1","e4","e2","e3","s"]
+]
+```
+
+This represents the blowup sequence:
+
+```text
+(x,y,w  | e1)
+(y,e1   | e4)
+(x,e4   | e2)
+(y,e2   | e3)
+(x,y    | s)
+```
+
+Each tuple ``(g_1, ..., g_n | e)`` means we blow up the locus ``g_1 = ... = g_n = 0`` and replace it with a new exceptional coordinate ``e``.
+
 ### [Registering And Extracting Known Resolution Sequences](@id working_with_resolution_sequences)
 
-Typically, a full resolution requires a sequence of blowups. The known (weighted) blowup resolution
-sequences, can be accessed with the following methods.
+The known (weighted) blowup resolution sequences, can be accessed with the following methods.
 
 ```@docs
 resolutions(::AbstractFTheoryModel)
 weighted_resolutions(::AbstractFTheoryModel)
 ```
 
-If beyond this, a resolution sequence is known, it is advantageous to
-register it with the model:
+If beyond this, a resolution sequence is known, it is advantageous to register it with the model:
 
 ```@docs
 add_resolution!(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
@@ -64,7 +102,7 @@ resolve(m::AbstractFTheoryModel, index::Int)
 
 ## [Resolution Metadata Functions](@id resolution_meta_data)
 
-These methods retrieve known resolution associated section data.
+The following methods retrieve known resolution associated section data.
 
 ```@docs
 resolution_zero_sections(::AbstractFTheoryModel)
