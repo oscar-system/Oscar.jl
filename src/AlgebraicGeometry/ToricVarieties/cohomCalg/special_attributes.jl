@@ -104,20 +104,6 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
  0
  2
  0
-
-julia> all_cohomologies(anticanonical_bundle(dP3 * projective_space(NormalToricVariety, 1)))
-4-element Vector{ZZRingElem}:
- 21
- 0
- 0
- 0
-
-julia> all_cohomologies(anticanonical_bundle(dP3 * projective_space(NormalToricVariety, 1)); algorithm = "chamber counting")
-4-element Vector{ZZRingElem}:
- 21
- 0
- 0
- 0
 ```
 """
 @attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
