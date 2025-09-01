@@ -179,8 +179,48 @@ end
 
 @deprecate vector_space_dimension vector_space_dim
 
-#@deprecate integrate(c::CohomologyClass; check::Bool = true) integrate(c, completeness_check = check)
-#@deprecate cohomology_ring(v::NormalToricVarietyType; check::Bool = true) cohomology_ring(v, completeness_check = check)
-#@deprecate chern_class(v::NormalToricVariety, k::Int; check::Bool = true) chern_classes(v, k, completeness_check = check)
-#@deprecate chern_classes(v::NormalToricVariety; check::Bool = true) chern_classes(v, completeness_check = check)
-#@deprecate basis_of_h4(v::NormalToricVariety; check::Bool = true) basis_of_h4(v, completeness_check = check)
+# deprecated for 1.6
+function cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; quick::Bool = false)
+  Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+  return cohomology_class(v, p; completeness_check = !quick)
+end
+
+function cohomology_class(d::ToricDivisor; quick::Bool = false)
+  Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+  return cohomology_class(d; completeness_check = !quick)
+end
+
+function cohomology_class(c::ToricDivisorClass; quick::Bool = false)
+  Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+  return cohomology_class(c; completeness_check = !quick)
+end
+
+function cohomology_class(l::ToricLineBundle; quick::Bool = false)
+  Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+  return cohomology_class(l; completeness_check = !quick)
+end
+
+function integrate(c::CohomologyClass; check::Bool = true)
+  Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :integrate)
+  return integrate(c; completeness_check = check)
+end
+
+function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
+  Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :cohomology_ring)
+  return cohomology_ring(v; completeness_check = check)
+end
+
+function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+  Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+  return chern_class(v, k; completeness_check = check)
+end
+
+function chern_classes(v::NormalToricVariety; check::Bool = true)
+  Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_classes)
+  return chern_class(v; completeness_check = check)
+end
+
+function basis_of_h4(v::NormalToricVariety; check::Bool = true)
+  Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :basis_of_h4)
+  return basis_of_h4(v; completeness_check = check)
+end
