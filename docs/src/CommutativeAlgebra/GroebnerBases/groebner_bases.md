@@ -80,11 +80,6 @@ julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
 
-Expert users may temporarily choose a different default ordering for a given ring.
-```@docs
-with_ordering
-```
-
 ## [Monomials, Terms, and More](@id monomials_terms_more)
 
 Here are examples which indicate how to recover monomials, terms, and
@@ -417,3 +412,9 @@ We refer to the section on [modules](@ref modules_multivariate) for more on syzy
 syzygy_generators(G::Vector{<:MPolyRingElem})
 ```
 
+## Changing Default Orderings
+
+Expert users may temporarily choose a different default ordering for a given ring.
+```@docs
+with_ordering
+```
