@@ -243,7 +243,7 @@ mat_rat = matrix_rational(fg)
 end
 
 g4 = random_flux_instance(fg)
-g4_2 = random_flux(qsm_model, completeness_check = false, consistency_check = false)
+g4_2 = random_flux(qsm_model, completeness_check = false)
 fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 
 @testset "FTheoryToolsPaper Section 5.1 Part 3" begin
