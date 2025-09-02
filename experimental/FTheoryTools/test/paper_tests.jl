@@ -233,7 +233,7 @@ g4_gens = chosen_g4_flux_gens(qsm_model)
   @test parent(polynomial(cohomology_class(g4_gens[1]))) == cohomology_ring(ambient_space(qsm_model))
 end
 
-fg = special_flux_family(qsm_model, check = false)
+fg = special_flux_family(qsm_model, completeness_check = false)
 mat_int = matrix_integral(fg)
 mat_rat = matrix_rational(fg)
 
@@ -243,8 +243,8 @@ mat_rat = matrix_rational(fg)
 end
 
 g4 = random_flux_instance(fg)
-g4_2 = random_flux(qsm_model, check = false)
-fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, check = false)
+g4_2 = random_flux(qsm_model, completeness_check = false, consistency_check = false)
+fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 
 @testset "FTheoryToolsPaper Section 5.1 Part 3" begin
   @test size(matrix_integral(fg_not_breaking)) == (25,1)
@@ -268,7 +268,7 @@ u = cohomology_class(divs[11])
 v = cohomology_class(divs[8])
 pb_Kbar = cohomology_class(sum(divs[1:7]))
 g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
-g4_sample2 = g4_flux(qsm_model, g4_class, check = false)
+g4_sample2 = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 cohomology_class(g4_sample2)
 
 @testset "FTheoryToolsPaper Section 5.1 Part 5" begin
@@ -294,9 +294,9 @@ t = literature_model(arxiv_id = "1511.03209")
 t_res = resolve(t, 1)
 amb = ambient_space(t_res)
 cohomology_ring(amb, completeness_check = false)
-g4_amb_candidates = chosen_g4_flux_gens(t_res, check = false)
-fg_quant = special_flux_family(t_res, check = false)
-fg_quant_no_break = special_flux_family(t_res, not_breaking = true, check = false)
+g4_amb_candidates = chosen_g4_flux_gens(t_res, completeness_check = false)
+fg_quant = special_flux_family(t_res, completeness_check = false)
+fg_quant_no_break = special_flux_family(t_res, not_breaking = true, completeness_check = false)
 
 @testset "FTheoryToolsPaper Section 5.2" begin
   @test betti_number(amb, 4) == 1109

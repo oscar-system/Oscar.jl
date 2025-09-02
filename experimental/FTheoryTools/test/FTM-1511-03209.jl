@@ -5,10 +5,10 @@
 @testset "Test Downloading Artifact and elementary properties" begin
   t = literature_model(arxiv_id = "1511.03209")
   fully_resolved_big_model = resolve(t, 1)
-  f1 = special_flux_family(fully_resolved_big_model, check = false)
-  g1 = random_flux_instance(f1, check = false)
-  f2 = special_flux_family(fully_resolved_big_model, not_breaking = true, check = false)
-  g2 = random_flux_instance(f2, check = false)
+  f1 = special_flux_family(fully_resolved_big_model, completeness_check = false)
+  g1 = random_flux_instance(f1, completeness_check = false, consistency_check = false)
+  f2 = special_flux_family(fully_resolved_big_model, not_breaking = true, completeness_check = false)
+  g2 = random_flux_instance(f2, completeness_check = false, consistency_check = false)
   @test n_rays(ambient_space(t)) == 104
   @test n_rays(ambient_space(fully_resolved_big_model)) == 313
   @test typeof(get_attribute(fully_resolved_big_model, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
