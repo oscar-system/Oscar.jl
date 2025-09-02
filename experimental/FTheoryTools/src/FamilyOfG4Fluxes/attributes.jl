@@ -22,7 +22,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -56,7 +56,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -90,7 +90,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -124,7 +124,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -142,7 +142,7 @@ offset(gf::FamilyOfG4Fluxes) = gf.offset
 #####################################################
 
 @doc raw"""
-    d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    d3_tadpole_constraint(fgs::FamilyOfG4Fluxes)
 
 Return the D3-tadpole constraint polynomial for a family of ``G_4``-fluxes.
 
@@ -158,14 +158,18 @@ method returns the quadratic polynomial in these coefficients that encodes the
 ``D3``-tadpole constraint. To evaluate the constraint for a specific flux, substitute
 the numerical coefficient values into this polynomial.
 
-The optional keyword argument `check` enables or disables internal consistency checks.
+!!! note "Completeness check"
+  The implemented algorithm is guaranteed to work only for toric ambient spaces
+  that are smooth and **complete**. Verifying completeness can be very time 
+  consuming. To skip this check, pass the optional keyword argument 
+  `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> fgs = special_flux_family(qsm_model, check = false)
+julia> fgs = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -174,7 +178,7 @@ Family of G4 fluxes:
 julia> d3_tadpole_constraint(fgs);
 ```
 """
-@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
 
   # Entry checks
   m = model(fgs)
@@ -182,9 +186,9 @@ julia> d3_tadpole_constraint(fgs);
   @req dim(ambient_space(m)) == 5 "Computation of D3-tadpole constraint only supported for 5-dimensional toric ambient spaces"
   @req all(==(0), offset(fgs)) "Currently, the D3-tadpole can only be computed for flux families with trivial offset"
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
-  if check
+  @req is_smooth(ambient_space(m)) "Computation of D3-tadpole constraint only supported for smooth toric ambient space"
+  if completeness_check
     @req is_complete(ambient_space(m)) "Computation of D3-tadpole constraint only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of D3-tadpole constraint only supported for simplicial toric ambient space"
   end
 
   # Are intersection numbers known?
@@ -222,8 +226,8 @@ julia> d3_tadpole_constraint(fgs);
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = gens_of_h22_hypersurface(m, check = check)
-  basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
+  basis = gens_of_h22_hypersurface(m; completeness_check)
+  basis_indices = gens_of_h22_hypersurface_indices(m; completeness_check)
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
   C = MPolyBuildCtx(amb_ring)
@@ -259,7 +263,7 @@ julia> d3_tadpole_constraint(fgs);
             change = sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
           else
             change = get!(inter_dict, my_tuple) do
-              return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); completeness_check = check))
+              return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); completeness_check))
             end
           end
 
@@ -282,7 +286,7 @@ julia> d3_tadpole_constraint(fgs);
     end
   end
   tadpole_constraint_polynomial = finish(C)
-  tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m, check = check)
+  tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m; completeness_check)
 
   # Update the computed intersection numbers
   set_attribute!(m, :inter_dict, inter_dict)

@@ -1,5 +1,5 @@
 @doc raw"""
-    special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
+    special_flux_family(m::AbstractFTheoryModel)
 
 Compute a family of ``G_4``-fluxes for the F-theory model `m`, defined as a hypersurface
 in a simplicial, complete toric ambient space. The returned fluxes satisfy necessary
@@ -7,7 +7,7 @@ quantization and transversality checks.
 
 Optional keyword arguments:
 - `not_breaking`: if `true`, restricts to fluxes preserving the non-abelian gauge group.
-- `check`: if `false`, skips computational checks of completeness and simplicity of the ambient toric variety for improved performance.
+- `completeness_check`: if `false`, skips completeness check of the ambient toric variety for improved performance.
 - `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = "special"` activates a faster variant described in [BMT25](@cite BMT25).
 
 # Examples
@@ -15,26 +15,26 @@ Optional keyword arguments:
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> fg = special_flux_family(qsm_model, check = false)
+julia> fg = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> fg = special_flux_family(qsm_model, not_breaking = true, check = false)
+julia> fg = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: unbroken
 
-julia> g4_tester = random_flux_instance(fg, check = false)
+julia> g4_tester = random_flux_instance(fg, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: unbroken
   - Tadpole cancellation check: not computed
 
-julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
+julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), completeness_check = false, consistency_check = false);
 
 julia> is_well_quantized(g4_tester_double)
 true
@@ -46,25 +46,25 @@ julia> breaks_non_abelian_gauge_group(g4_tester_double)
 false
 ```
 """
-function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true, algorithm::String = "default")
+function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, algorithm::String = "default")
 
   # (1) Is result known?
   if !not_breaking
     if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse) && has_attribute(m, :offset_quant_transverse)
-      fgs_m_int = matrix_integral_quant_transverse(m, check = check)
-      fgs_m_rat = matrix_rational_quant_transverse(m, check = check)
-      fgs_offset = offset_quant_transverse(m, check = check)
-      fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset)
+      fgs_m_int = matrix_integral_quant_transverse(m; completeness_check)
+      fgs_m_rat = matrix_rational_quant_transverse(m; completeness_check)
+      fgs_offset = offset_quant_transverse(m; completeness_check)
+      fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
       return fgs
     end
   else
     if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak) && has_attribute(m, :offset_quant_transverse_nobreak)
-      fgs_m_int = matrix_integral_quant_transverse_nobreak(m, check = check)
-      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m, check = check)
-      fgs_offset = offset_quant_transverse_nobreak(m, check = check)
-      fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset)
+      fgs_m_int = matrix_integral_quant_transverse_nobreak(m; completeness_check)
+      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m; completeness_check)
+      fgs_offset = offset_quant_transverse_nobreak(m; completeness_check)
+      fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
       set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
@@ -78,18 +78,18 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   end
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized and transversal G4-fluxes only supported for toric base and ambient spaces"
   @req dim(ambient_space(m)) == 5 "Computation of well-quantized and transversal G4-fluxes only supported for 5-dimensional toric ambient spaces"
-  if check
+  @req is_smooth(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for smooth toric ambient space"
+  if completeness_check
     @req is_complete(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for complete toric ambient spaces"
-    @req is_simplicial(ambient_space(m)) "Computation of well-quantized and transversal G4-fluxes only supported for simplicial toric ambient space"
   end  
   
   # (3) Result not known, compute it!
   final_shift = Vector{QQFieldElem}()
   res = Vector{ZZMatrix}()
   if algorithm == "special"
-    final_shift, res = special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking = not_breaking, check = check)
+    final_shift, res = special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking, completeness_check)
   else
-    final_shift, res = special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking = not_breaking, check = check)
+    final_shift, res = special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking, completeness_check)
   end
 
   # (4) Set attributes accordingly, and return result
@@ -111,7 +111,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
 end
 
 
-function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)  
+function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true)  
   
   # (1) Are intersection numbers known?
   # These instructions appear twice, once in the default and once in the special algorithnm. Code duplication? Improve it!
@@ -124,9 +124,9 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
 
 
   # (2) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m; completeness_check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m; completeness_check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
   S = coordinate_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
@@ -199,7 +199,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))
   # TODO: We currently do not remember any intersection numbers computed from this operation. Improve.
-  offset = 1//2 * chern_class(m, 2, check = check)
+  offset = 1//2 * chern_class(m, 2; completeness_check)
   for j in 1:length(list_of_divisor_pairs_to_be_considered)
     class = offset * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
     push!(offset_vector, QQ(integrate(class)))
@@ -236,7 +236,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
 end
 
 
-function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, check::Bool = true)
+function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true)
   
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
   S = coordinate_ring(ambient_space(m))
@@ -264,9 +264,9 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m, check = check)
+  ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m; completeness_check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m, check = check)
+  ambient_space_flux_candidates_basis_indices = gens_of_h22_hypersurface_indices(m; completeness_check)
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
    # TODO: This line is a bit fragile. Fix it!
   exceptional_divisor_positions = exceptional_divisor_indices(m)
@@ -321,7 +321,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
     push!(quant_constraint_matrix, condition)
   end
   C = transpose(matrix(ZZ, quant_constraint_matrix))
-  c2 = lift(polynomial(chern_class(m, 2, check = check)))
+  c2 = lift(polynomial(chern_class(m, 2; completeness_check)))
   coeffs = collect(coefficients(c2))
   M = collect(exponents(lift(c2)))
   non_zero_exponents = Vector{Tuple{Int64, Int64}}()
