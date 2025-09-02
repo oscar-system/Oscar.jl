@@ -5,6 +5,7 @@ function solve_mixed(
   C::ZZMatrix,
   d::ZZMatrix;
   permit_unbounded=false,
+  check::Bool=true
 )
   @req ncols(A) == ncols(C) "solve_mixed(A,b,C,d): A and C must have the same number of columns."
   @req nrows(A) == nrows(b) "solve_mixed(A,b,C,d): A and b must have the same number of rows."
@@ -13,7 +14,7 @@ function solve_mixed(
   @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
   P = polyhedron((-C, _vec(-d)), (A, _vec(b)))
   if !permit_unbounded
-    return lattice_points(P)
+    return lattice_points(P; check)
   else
     sol = pm_object(P).LATTICE_POINTS_GENERATORS
     return sol[1][:, 2:end]
@@ -27,8 +28,9 @@ function solve_mixed(
   C::ZZMatrix,
   d::ZZMatrix;
   permit_unbounded=false,
+  check::Bool=true
 )
-  LP = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d; permit_unbounded)
+  LP = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d; permit_unbounded, check)
   return matrix(ZZ, LP)
 end
 
@@ -130,10 +132,11 @@ julia> for x in it
 ```
 """
 solve_mixed(
-  as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false
-) where {T} = solve_mixed(T, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded)
-solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false) =
-  solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded)
+  as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false, check::Bool=true
+) where {T} = solve_mixed(T, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded, check)
+
+solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false, check::Bool=true) =
+  solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded, check)
 
 @doc raw"""
     solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}

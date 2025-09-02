@@ -684,11 +684,8 @@ function get_lattice_points(A::Any, Q::BitVector, m::Vector{Int}, n::Int)
   P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,m + A*Q))#First tuples is an affine halfspace that specifies that all exponents are non-negative
   #Second tuple is a hyperplane that specifies that the degree of the corresponding rationome is m
   points = Vector{Vector{Int}}()
-  list = try 
-    collect(lattice_points(P))#It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
-  catch
-    Vector{Vector{Int}}()
-  end
+  # TODO: Is there a way to see beforehand whether or not the polyhedron is bounded?
+  list = pm_object(P).BOUNDED == true ? Vector{Int}[x for x in lattice_points(P; check=false)] : Vector{Vector{Int}}() #It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
   for point in list
     point = Vector{Int}(point)
     point[minus_indices] = -(point[minus_indices] .+ 1)
