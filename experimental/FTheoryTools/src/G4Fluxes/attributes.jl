@@ -118,11 +118,17 @@ end
 #####################################################
 
 @doc raw"""
-    g4_flux_family(gf::G4Flux; check::Bool = true)
+    g4_flux_family(gf::G4Flux)
 
 Return the family of ``G_4``-fluxes sharing the following properties
 with the given ``G_4``-flux: transversality and breaking of the
 non-abelian gauge group.
+
+!!! note "Completeness check"
+  The implemented algorithm is guaranteed to work only for toric ambient spaces
+  that are smooth and **complete**. Verifying completeness can be very time 
+  consuming. To skip this check, pass the optional keyword argument 
+  `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -136,16 +142,16 @@ G4-flux candidate
   - Non-abelian gauge group: unbroken
   - Tadpole cancellation check: not computed
 
-julia> g4_flux_family(g4, check = false)
+julia> g4_flux_family(g4, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: unbroken
 ```
 """
-@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; check::Bool = true)
+@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; completeness_check::Bool = true)
   nb = breaks_non_abelian_gauge_group(gf)
-  gfs = special_flux_family(model(gf), not_breaking = !nb, check = check)
+  gfs = special_flux_family(model(gf), not_breaking = !nb, completeness_check = completeness_check)
   return gfs
 end
 
