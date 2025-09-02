@@ -567,7 +567,8 @@ Quotient
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
-  S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [Symbol(String(x)*"_") for x in coordinate_names_of_torus(v)]); cached=false)
+  nams = coordinate_names_of_torus(v)
+  S, _ = polynomial_ring(coefficient_ring(v), nams, [Symbol(x, "_") for x in nams]; cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 
