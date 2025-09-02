@@ -22,6 +22,12 @@ restricts to ``c_2(\widehat{Y}_4)`` on the hypersurface.
 
 If all these integrals evaluate to integers, this method returns `true`; otherwise, it returns `false`.
 
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are smooth and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
+
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -47,25 +53,26 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function is_well_quantized(g4::G4Flux)
+@attr Bool function is_well_quantized(g4::G4Flux; completeness_check::Bool = true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization checks for  G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Elementary quantization checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks for G4-flux currently supported only for toric ambient space"
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
 
   # Now check quantization condition G4 + 1/2 c2 is integral.
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))]
 
   # explicitly switched off an expensive test in the following line
-  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; completeness_check = false))
+  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; completeness_check))
 
   # now execute elementary checks of the quantization condition
   for i in 1:length(c_ds)
     for j in i:length(c_ds)
-      numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); completeness_check = false)
+      class_to_be_integrated = cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy; completeness_check)
+      numb = integrate(class_to_be_integrated; completeness_check)
       !is_integer(numb) && return false
     end
   end
@@ -78,6 +85,12 @@ end
 
 Check whether the ``G_4``-flux satisfies the transversality conditions
 (cf. [Wei18](@cite)). Return `true` if all conditions are met, otherwise `false`.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are simplicial and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -110,7 +123,7 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function passes_transversality_checks(g4::G4Flux)
+@attr Bool function passes_transversality_checks(g4::G4Flux; completeness_check::Bool = true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
@@ -118,20 +131,22 @@ G4-flux candidate
   @req has_attribute(m, :zero_section_class) "Transversality checks require zero section class"
   
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
    
   n = ngens(coordinate_ring(base_space(m)))
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
+  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
   zero_sec = zero_section_class(m)
 
   # now execute checks to verify if the transversality conditions are satisfied
   for i in 1:n
-    numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy) * zero_sec; completeness_check = false)
+    class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy; completeness_check)
+    numb = integrate(class_to_be_integrated * zero_sec; completeness_check)
     numb!=0 && return false
   end
   for i in 1:n
     for j in i:n
-      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy); completeness_check = false)
+      class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy; completeness_check)
+      numb = integrate(class_to_be_integrated; completeness_check)
       numb!=0 && return false
     end
   end
@@ -148,6 +163,12 @@ amounts to verifying that
 $\frac{\chi(\widehat{Y}_4)}{24} - \frac{1}{2} \int_{\widehat{Y}_4} G_4 \wedge G_4$
 
 is a non-negative integer.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are smooth and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -180,12 +201,12 @@ G4-flux candidate
   - Tadpole cancellation check: satisfied
 ```
 """
-@attr Bool function passes_tadpole_cancellation_check(g4::G4Flux)
+@attr Bool function passes_tadpole_cancellation_check(g4::G4Flux; completeness_check::Bool = true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
-  numb = d3_tadpole_constraint(g4, completeness_check = false)
+  numb = d3_tadpole_constraint(g4; completeness_check)
   return numb >= 0 && is_integer(numb)
 end
 
@@ -195,6 +216,12 @@ end
 
 Check whether the given ``G_4``-flux candidate breaks any non-abelian gauge
 symmetries. Return `true` if any breaking occurs, and `false` otherwise.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are simplicial and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -227,29 +254,30 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux)
+@attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux; completeness_check::Bool = true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Checks for breaking non-abelian gauge group factors only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric ambient space"
   
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
 
   # Identify the cohomology classes of all base divisors
   n = ngens(coordinate_ring(base_space(m)))
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
+  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
 
   # Identify the cohomology classes of all exceptional divisors
   gS = gens(coordinate_ring(ambient_space(m)))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
-  c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]
+  c_ei = [polynomial(cohomology_class(d; completeness_check)) for d in exceptional_divisors]
 
   # now execute the checks if any non-abelian gauge group factor is broken
   for i in 1:n
     for j in 1:length(exceptional_divisors)
-      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy); completeness_check = false)
+      class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy; completeness_check)
+      numb = integrate(class_to_be_integrated; completeness_check)
       numb!=0 && return true
     end
   end
