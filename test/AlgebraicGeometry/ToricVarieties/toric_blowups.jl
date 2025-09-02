@@ -31,9 +31,7 @@
   # The coordinates below correspond to the ideal `ideal([x, y, x1]`
   coords = [1, 0, 0, 0, 1, 1, 0]
 
-  bd1 = blow_up_along_minimal_supercone_coordinates(
-    amb, coords; coordinate_name = "e1"
-  )
+  bd1 = blow_up_along_minimal_supercone_coordinates(amb, coords; coordinate_name = :e1)
   amb1 = domain(bd1)
   
   @testset "Trigger issue of PR3006" begin

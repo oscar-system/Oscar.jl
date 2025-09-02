@@ -36,7 +36,7 @@
     @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_cartier_divisor_group(P2)
     @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_weil_divisor_group(P2)
     @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(P2)) == matrix(ZZ, [[1], [1], [1]])
-    @test coordinate_names(P2) == ["x1", "x2", "x3"]
+    @test coordinate_names(P2) == [:x1, :x2, :x3]
   end
   
   @testset "Weighted projective space" begin

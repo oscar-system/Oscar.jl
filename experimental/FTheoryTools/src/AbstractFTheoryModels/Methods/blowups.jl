@@ -266,9 +266,7 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I)
   if !isnothing(coords)
     # Apply toric method
-    bd = blow_up_along_minimal_supercone_coordinates(
-      ambient_space(m), coords; coordinate_name=coordinate_name
-    )
+    bd = blow_up_along_minimal_supercone_coordinates(ambient_space(m), coords; coordinate_name=Symbol(coordinate_name))
   else
     # Reroute to scheme theory
     bd = blow_up(I)

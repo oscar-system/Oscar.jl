@@ -267,8 +267,7 @@ end
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix)
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
-  ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
-  coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
+  coordinate_ring_ambient_space, _ = polynomial_ring(QQ, base_vars, coordinate_names(fiber_ambient_space); cached=false)
   w = Matrix{Int64}(reduce(vcat, [k.coeff for k in coordinate_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
   D_block = hcat([[Int(fiber_twist_divisor_classes[k,l]) for k in 1:nrows(fiber_twist_divisor_classes)] for l in 1:ncols(fiber_twist_divisor_classes)]...)

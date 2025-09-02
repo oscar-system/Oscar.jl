@@ -39,7 +39,7 @@ The blowup along the $n$-th (nonzero) cone in the fan of the variety $X$
 is the morphism induced by the star subdivision along the barycenter of
 the cone (the primitive generator of the sum of its rays):
 ```@docs
-blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
+blow_up(X::NormalToricVarietyType, n::Int)
 ```
 
 
