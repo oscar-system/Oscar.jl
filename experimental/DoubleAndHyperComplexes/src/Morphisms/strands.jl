@@ -84,7 +84,13 @@ function (fac::StrandInclusionMorphismFactory)(self::AbsHyperComplexMorphism, i:
   dom = strand[i]
   cod = orig[i]
   R = base_ring(cod)
-  to = hom(dom, cod, elem_type(cod)[prod(x^k for (x, k) in zip(gens(R), e); init=one(R))*cod[i] for (e, i) in all_exponents(cod, degree(strand); check=fac.check)])
+  kk = coefficient_ring(R)
+  cfac = chain_factory(strand)
+  img_gens = Vector{elem_type(cod)}(undef, ngens(dom))
+  for ((e, i), k) in cfac.mapping_dicts[i]
+    img_gens[k] = R([one(kk)], [e])*cod[i]
+  end
+  to = hom(dom, cod, img_gens)
   return to
 end
 
