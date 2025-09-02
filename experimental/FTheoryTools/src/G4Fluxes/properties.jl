@@ -27,7 +27,7 @@ If all these integrals evaluate to integers, this method returns `true`; otherwi
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), quick = true)^2;
+julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -65,7 +65,7 @@ G4-flux candidate
   # now execute elementary checks of the quantization condition
   for i in 1:length(c_ds)
     for j in i:length(c_ds)
-      numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); check = false)
+      numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); completeness_check = false)
       !is_integer(numb) && return false
     end
   end
@@ -126,12 +126,12 @@ G4-flux candidate
 
   # now execute checks to verify if the transversality conditions are satisfied
   for i in 1:n
-    numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy) * zero_sec; check = false)
+    numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy) * zero_sec; completeness_check = false)
     numb!=0 && return false
   end
   for i in 1:n
     for j in i:n
-      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy); check = false)
+      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy); completeness_check = false)
       numb!=0 && return false
     end
   end
@@ -249,7 +249,7 @@ G4-flux candidate
   # now execute the checks if any non-abelian gauge group factor is broken
   for i in 1:n
     for j in 1:length(exceptional_divisors)
-      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy); check = false)
+      numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy); completeness_check = false)
       numb!=0 && return true
     end
   end

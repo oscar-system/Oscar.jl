@@ -6,7 +6,7 @@
   for k in 1:5000
     qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k)) catch e continue end
     h22_converter_dict = converter_dict_h22_ambient(qsm_model, check = false)
-    coh_ring = cohomology_ring(ambient_space(qsm_model), check = false)
+    coh_ring = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
     coh_ring_gens = gens(coh_ring)
     for (key, value) in h22_converter_dict
       obj1 = coh_ring_gens[key[1]] * coh_ring_gens[key[2]]
@@ -39,7 +39,7 @@
     @test is_integer(solution[1])
     reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end,:])
     @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
-    coho_R = cohomology_ring(ambient_space(qsm_model), check = false)
+    coho_R = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
     gs = [gg.f for gg in gens(coho_R)]
     known_intersections = qsm_model.__attrs[:inter_dict]
     kbar_poly = polynomial(cohomology_class(anticanonical_bundle(ambient_space(qsm_model)))).f
@@ -51,7 +51,7 @@
     end
     for (k,v) in sampled_dict
       desired_class = CohomologyClass(ambient_space(qsm_model), coho_R(gs[k[1]] * gs[k[2]] * gs[k[3]] * gs[k[4]] * kbar_poly), true)
-      @test v == integrate(desired_class, check = false)
+      @test v == integrate(desired_class, completeness_check = false)
     end
   end
 end
