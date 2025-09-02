@@ -50,7 +50,7 @@
   end
 
   @testset "< 1.4.0 Upgrade" begin
-    test_1_4_0_upgrade(; exclude=[
+    test_upgrade_folder("version_1_3_0"; exclude=[
       # upgrading the following is tested in experimental/LieAlgebras/test/Serialization-upgrade-test.jl
       "AbstractLieAlgebra", "AbstractLieAlgebraElem",
       "DirectSumLieAlgebra", "DirectSumLieAlgebraElem",
@@ -58,5 +58,9 @@
       "LinearLieAlgebra", "LinearLieAlgebraElem",
       "Vector" => 49:97,
     ])
+  end
+
+  @testset "< 1.5.0 Upgrade" begin
+    test_upgrade_folder("version_1_5_0")
   end
 end
