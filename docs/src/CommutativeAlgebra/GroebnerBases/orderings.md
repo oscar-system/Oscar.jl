@@ -444,3 +444,44 @@ induced_ring_ordering(ord::ModuleOrdering)
 ```
 
 The comparison function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
+
+## Default Orderings
+
+!!! note
+    The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
+    Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
+    positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
+    `default_ordering` is `default_ordering(R)*lex(gens(F))`.
+
+```@docs
+default_ordering(::MPolyRing)
+```
+
+Here are some illustrating OSCAR examples:
+
+##### Examples
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> default_ordering(R)
+degrevlex([x, y, z])
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over R
+
+julia> default_ordering(F)
+degrevlex([x, y, z])*lex([gen(1), gen(2)])
+
+julia> S, _ = grade(R, [1, 2, 3])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> default_ordering(S)
+wdegrevlex([x, y, z], [1, 2, 3])
+```
+
+Expert users may temporarily choose a different default ordering for a given ring.
+```@docs
+with_ordering
+```

@@ -44,42 +44,6 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
     Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
-## Default Orderings
-
-!!! note
-    The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
-    Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-    positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
-    `default_ordering` is `default_ordering(R)*lex(gens(F))`.
-
-```@docs
-default_ordering(::MPolyRing)
-```
-
-Here are some illustrating OSCAR examples:
-
-##### Examples
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> default_ordering(R)
-degrevlex([x, y, z])
-
-julia> F = free_module(R, 2)
-Free module of rank 2 over R
-
-julia> default_ordering(F)
-degrevlex([x, y, z])*lex([gen(1), gen(2)])
-
-julia> S, _ = grade(R, [1, 2, 3])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
-
-julia> default_ordering(S)
-wdegrevlex([x, y, z], [1, 2, 3])
-```
-
 ## [Monomials, Terms, and More](@id monomials_terms_more)
 
 Here are examples which indicate how to recover monomials, terms, and
@@ -410,11 +374,4 @@ We refer to the section on [modules](@ref modules_multivariate) for more on syzy
 
 ```@docs
 syzygy_generators(G::Vector{<:MPolyRingElem})
-```
-
-## Changing Default Orderings
-
-Expert users may temporarily choose a different default ordering for a given ring.
-```@docs
-with_ordering
 ```
