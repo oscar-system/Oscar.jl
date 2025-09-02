@@ -228,7 +228,7 @@ g4_gens = chosen_g4_flux_gens(qsm_model)
 @testset "FTheoryToolsPaper Section 5.1 Part 1" begin
   @test ngens(stanley_reisner_ideal(ambient_space(qsm_model))) == 20
   @test betti_number(ambient_space(qsm_model), 4) == 25
-  @test length(basis_of_h22_ambient(qsm_model, check = false)) == 25
+  @test length(basis_of_h22_ambient(qsm_model, completeness_check = false)) == 25
   @test length(g4_gens) == 25
   @test parent(polynomial(cohomology_class(g4_gens[1]))) == cohomology_ring(ambient_space(qsm_model))
 end
