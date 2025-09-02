@@ -3,10 +3,15 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
+    global_tate_model(base::NormalToricVariety)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -14,14 +19,19 @@ julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completene
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check)
 
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+    global_tate_model(base::NormalToricVariety, ais::Vector{T}) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -44,7 +54,7 @@ Global Tate model over a concrete base
 """
 function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
   @req length(ais) == 5 "All the Tate sections a1, a2, a3, a4, a6 must be provided"
-  return global_tate_model(base, Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5]), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+  return global_tate_model(base, Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5]), Dict{String, MPolyRingElem}(); completeness_check)
 end
 
 function global_tate_model(base::NormalToricVariety,

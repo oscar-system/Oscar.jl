@@ -8,6 +8,11 @@
 Construct a Weierstrass model over a given toric base space. The Weierstrass sections
 ``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
 
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
+
 # Examples
 ```jldoctest
 julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
@@ -16,7 +21,7 @@ Weierstrass model over a concrete base
 """
 function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
   (f, g) = _weierstrass_sections(base)
-  return weierstrass_model(base, f, g; completeness_check = completeness_check)
+  return weierstrass_model(base, f, g; completeness_check)
 end
 
 
@@ -25,6 +30,11 @@ end
 
 Construct a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -40,7 +50,7 @@ Weierstrass model over a concrete base
 ```
 """
 function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check)
 end
 
 function weierstrass_model(base::NormalToricVariety,

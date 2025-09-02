@@ -111,10 +111,10 @@ This number is of ample importance to the F-theory QSMs introduced in [CHLLT19](
 These methods allow the user to modify tunable sections or instantiate a model over a concrete base.
 
 ```@docs
-put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
-tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
-tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any})
+tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem})
+tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any})
+tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any})
 ```
 
 ---
