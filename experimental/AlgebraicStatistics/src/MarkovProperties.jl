@@ -25,8 +25,8 @@ julia> pairwise_markov(G)
 ```
 """
 function pairwise_markov(G::Graph{Undirected})::Vector{CIStmt}
-  V = vertices(G)
-  [ci_stmt([i], [j], setdiff(V, [i,j])) for i in 1:length(V) for j in (i+1):length(V)
+  n = n_vertices(G)
+  [ci_stmt([i], [j], setdiff(V, [i,j])) for i in 1:n for j in (i+1):n
     if !has_edge(G, i, j)]
 end
 
@@ -61,8 +61,8 @@ julia> local_markov(G)
 ```
 """
 function local_markov(G::Graph{Undirected})::Vector{CIStmt}
-  V = vertices(G)
-  unique([ci_stmt([i], [j], neighbors(G, i)) for i in 1:length(V) for j in 1:length(V)
+  n = n_vertices(G)
+  unique([ci_stmt([i], [j], neighbors(G, i)) for i in 1:n for j in 1:n
           if i != j && !has_edge(G, i, j)])
 end
 
@@ -289,9 +289,9 @@ end
 function moralization(G::Graph{Directed}, A::Vector{Int})
   @req is_ancestral(G, A) "the moralization set must be ancestral"
   V = vertices(G)
-  # XXX: Since Oscar's graphs can only have vertex sets of the form 1:m,
-  # we have to very carefully relabel the edges so that vertex i in the
-  # moralization corresponds to vertex A[i] in the original graph.
+  # Since Oscar's graphs can only have vertex sets of the form 1:m,
+  # we have to very carefully relabel the edges so that vertex i in
+  # the moralization corresponds to vertex A[i] in the original graph.
   M = Graph{Undirected}(length(A))
   for i in 1:length(A)
     for j in 1:length(A)

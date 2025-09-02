@@ -183,12 +183,12 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
 end
 
 @doc raw"""
-    ci_structure(M::DiscreteGraphicalModel{Undirected, L})
+    ci_structure(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Return the set of elementary CI statements which are satisfied by every distribution in the
 graphical model. This is the same as the `global_markov` property of the underlying graph.
 """
-function ci_structure(M::DiscreteGraphicalModel{Undirected, L}) where L
+function ci_structure(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
   global_markov(graph(M))
 end
 
@@ -303,11 +303,11 @@ p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 # end
 
 @doc raw"""
-    ci_structure(M::DiscreteGraphicalModel{Directed, L})
+    ci_structure(M::DiscreteGraphicalModel{Graph{Directed}, L})
 
 Return the set of elementary CI statements which are satisfied by every distribution in the
 graphical model. This is the same as the `global_markov` property of the underlying graph.
 """
-function ci_structure(M::DiscreteGraphicalModel{Directed, L}) where L
+function ci_structure(M::DiscreteGraphicalModel{Graph{Directed}, L}) where L
   global_markov(graph(M))
 end
