@@ -15,8 +15,8 @@ function det(
     c::AbsHyperComplex{T};
     lower_bound::Union{Int, Nothing}=has_lower_bound(c, 1) ? lower_bound(c, 1) : nothing,
     upper_bound::Union{Int, Nothing}=has_upper_bound(c, 1) ? upper_bound(c, 1) : nothing,
-    direction::Symbol=:from_left_to_right
-  ) where {CET<:FieldElem, RET<:MPolyRingElem{CET}, T<:ModuleFP{RET}}
+    direction::Symbol= isnothing(lower_bound) ? :from_right_to_left : :from_left_to_right
+  ) where {T <: ModuleFP}
   @assert is_one(dim(c)) "complex must be 1-dimensional"
   # We have a `direction` of the complex, depending on whether this is a chain, or a 
   # cochain complex. In addition, we have a direction for the computations to be 
@@ -36,6 +36,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}}, ::Type{Val{:
   while !can_compute_index(c, ind) || is_zero(c[ind]) 
     ind += 1
   end
+  c[ind]::FreeMod
   R = base_ring(c[ind])::MPolyRing{<:FieldElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
@@ -51,6 +52,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}}, ::Type{Val{:
       p = det(A[I, data(J)])
       is_zero(p) && continue
       J0 = J
+      break
     end
 
     result = is_odd(ind) ? result*p : result//p
@@ -66,6 +68,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}}, ::Type{Val{:
   while !can_compute_index(c, ind) || is_zero(c[ind]) 
     ind += 1
   end
+  c[ind]::FreeMod
   R = base_ring(c[ind])::MPolyRing{<:FieldElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
@@ -81,6 +84,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}}, ::Type{Val{:
       p = det(A[data(J), I])
       is_zero(p) && continue
       J0 = J
+      break
     end
 
     result = is_even(ind) ? result*p : result//p
@@ -96,6 +100,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}}, ::Type{Val{:
   while !can_compute_index(c, ind) || is_zero(c[ind]) 
     ind -= 1
   end
+  c[ind]::FreeMod
   R = base_ring(c[ind])::MPolyRing{<:FieldElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
@@ -111,6 +116,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}}, ::Type{Val{:
       p = det(A[data(J), I])
       is_zero(p) && continue
       J0 = J
+      break
     end
 
     result = is_even(ind) ? result*p : result//p
@@ -126,6 +132,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}}, ::Type{Val{:
   while !can_compute_index(c, ind) || is_zero(c[ind]) 
     ind -= 1
   end
+  c[ind]::FreeMod
   R = base_ring(c[ind])::MPolyRing{<:FieldElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
@@ -141,6 +148,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}}, ::Type{Val{:
       p = det(A[I, data(J)])
       is_zero(p) && continue
       J0 = J
+      break
     end
 
     result = is_odd(ind) ? result*p : result//p
