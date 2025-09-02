@@ -448,7 +448,9 @@ The comparison function `cmp` as well as the tests `is_global`, `is_local`, and 
 ## Default Orderings
 
 !!! note
-    The OSCAR functions discussed in the following sections depend on a monomial
+    The OSCAR functions discussed in the sections 
+    [Gröbner/Standard Bases Over Fields](@ref gb_fields) and 
+    [Gröbner/Standard Bases Over $\mathbb Z$](@ref gb_integers) depend on a monomial
     `ordering` which is entered as a keyword argument.  Given a polynomial ring $R$,
     the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb
     Z$-graded with positive weights. Then the corresponding `wdegrevlex` ordering is

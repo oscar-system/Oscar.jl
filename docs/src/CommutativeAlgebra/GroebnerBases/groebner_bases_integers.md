@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Gröbner/Standard Bases Over $\mathbb Z$
+# [Gröbner/Standard Bases Over $\mathbb Z$](@id gb_integers)
 
 In this section, we consider a polynomial ring
 $\mathbb Z[x] = \mathbb Z[x_1, \dots, x_n]$ over the integers. As in the previous section
