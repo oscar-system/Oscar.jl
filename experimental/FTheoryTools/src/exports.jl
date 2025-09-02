@@ -176,7 +176,3 @@ export weights
 export zero_section
 export zero_section_class
 export zero_section_index
-
-@deprecate chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) chosen_g4_flux_gens(m, check = check)
-@deprecate basis_of_h22_hypersurface(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface(m, check = check)
-@deprecate basis_of_h22_hypersurface_indices(m::AbstractFTheoryModel; check::Bool = true) gens_of_h22_hypersurface_indices(m, check = check)
