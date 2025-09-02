@@ -129,14 +129,16 @@ base field (e.g., `QQ` for rational numbers).
       pt = phylogenetic_tree(QQFieldElem, G)
       return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
     end
+
+    #TODO
+    # turn G into a network
+    # and this below should be in the constructor
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
     graph_maps = NamedTuple(_graph_maps(G))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    #TODO
-    # turn G into a network
     return new{
       Graph{Directed},
       typeof(first(trans_matrix_structure)), 
