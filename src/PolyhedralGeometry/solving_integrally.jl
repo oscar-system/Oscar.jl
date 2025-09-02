@@ -12,13 +12,11 @@ function solve_mixed(
   @req nrows(C) == nrows(d) "solve_mixed(A,b,C,d): C and d must have the same number of rows."
   @req ncols(b) == 1 "solve_mixed(A,b,C,d): b must be a matrix with a single column."
   @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
-  P = polyhedron((-C, _vec(-d)), (A, _vec(b)))
-  if !permit_unbounded
-    return lattice_points(P; check)
-  else
-    sol = pm_object(P).LATTICE_POINTS_GENERATORS
-    return sol[1][:, 2:end]
-  end
+
+  permit_unbounded && return (pm_object(polyhedron((-C, _vec(-d)), (A, _vec(b)))).LATTICE_POINTS_GENERATORS)[1][:, 2:end]
+
+  P = polyhedron((-C, _vec(-d)), (A, _vec(b)); is_bounded=true)
+  return lattice_points(P; check)
 end
 
 function solve_mixed(
