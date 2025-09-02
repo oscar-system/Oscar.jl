@@ -70,7 +70,7 @@ Return the monomial ordering that is used for computations with ideals in `R`
 if no other ordering is specified -- either directly by the user or by
 requirements of a specific algorithm.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
