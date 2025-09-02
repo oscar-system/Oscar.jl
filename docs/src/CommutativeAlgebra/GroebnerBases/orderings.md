@@ -445,7 +445,7 @@ induced_ring_ordering(ord::ModuleOrdering)
 
 The comparison function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
 
-## Default Orderings
+## Default Orderings in OSCAR
 
 !!! note
     The OSCAR functions discussed in the sections 
