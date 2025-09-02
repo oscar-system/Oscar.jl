@@ -448,10 +448,12 @@ The comparison function `cmp` as well as the tests `is_global`, `is_local`, and 
 ## Default Orderings
 
 !!! note
-    The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
-    Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-    positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
-    `default_ordering` is `default_ordering(R)*lex(gens(F))`.
+    The OSCAR functions discussed in the following sections depend on a monomial
+    `ordering` which is entered as a keyword argument.  Given a polynomial ring $R$,
+    the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb
+    Z$-graded with positive weights. Then the corresponding `wdegrevlex` ordering is
+    used. Given a free $R$-module $F$, the `default_ordering` is
+    `default_ordering(R)*lex(gens(F))`.
 
 ```@docs
 default_ordering(::MPolyRing)
