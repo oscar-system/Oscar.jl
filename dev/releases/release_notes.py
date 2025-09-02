@@ -302,7 +302,7 @@ def main(new_version: str) -> None:
             "git",
             "merge-base",
             basetag,
-            "master"
+            "HEAD"
         ], shell=False, check=True, capture_output=True).stdout.decode().strip()
         timestamp = subprocess.run([
             "git",
