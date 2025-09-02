@@ -185,7 +185,7 @@ G4-flux candidate
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
-  numb = d3_tadpole_constraint(g4, check = false)
+  numb = d3_tadpole_constraint(g4, completeness_check = false)
   return numb >= 0 && is_integer(numb)
 end
 
