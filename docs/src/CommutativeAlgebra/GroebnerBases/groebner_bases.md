@@ -45,8 +45,8 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
 !!! note
-    See the previous section on "Monomial Orderings" for details on how to implement monomial
-    orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
+    See the previous section on [Monomial Orderings](@ref monomial_orderings) for details on how to
+    implement monomial orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
 
 ## [Monomials, Terms, and More](@id monomials_terms_more)
 
