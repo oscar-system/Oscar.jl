@@ -3,7 +3,9 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  return FreeMod(kk, length(all_exponents(fac.orig[i], fac.d; check=fac.check)))
+  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d; check=fac.check)))
+  fac.mapping_dicts[i] = cod_dict
+  return FreeMod(kk, length(cod_dict))
 end
 
 function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
@@ -24,7 +26,7 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d; check=fac.check)))
+  cod_dict = chain_factory(c).mapping_dicts[next] #Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d; check=fac.check)))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
@@ -39,7 +41,7 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
     w = zero(cod)
     for (i, b) in coordinates(v)
       #g = orig_cod[i]
-      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
+      w += sum(c*cod[cod_dict[(n, i)]] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
     end
     push!(img_gens_res, w)
   end

@@ -15,12 +15,13 @@
 struct StrandChainFactory{ChainType<:ModuleFP} <: HyperComplexChainFactory{ChainType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
+  mapping_dicts::Dict{Tuple, Dict}
   check::Bool
 
   function StrandChainFactory(
       orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}, check::Bool
     ) where {ChainType<:ModuleFP}
-    return new{FreeMod}(orig, d, check) # TODO: Specify the chain type better
+    return new{FreeMod}(orig, d, Dict{Tuple, Dict}(), check) # TODO: Specify the chain type better
   end
 end
 
@@ -28,12 +29,10 @@ end
 struct StrandMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMapFactory{MorphismType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
-  monomial_mappings::Dict{<:Tuple{<:Tuple, Int}, <:Map}
   check::Bool
 
   function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem}, check)
-    monomial_mappings = Dict{Tuple{Tuple, Int}, Map}()
-    return new{FreeModuleHom}(orig, d, monomial_mappings, check)
+    return new{FreeModuleHom}(orig, d, check)
   end
 end
 
