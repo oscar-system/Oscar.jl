@@ -37,10 +37,12 @@ function chern_class(m::AbstractFTheoryModel, k::Int; completeness_check::Bool =
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
-
-  # Consistency checks
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
+  @req is_smooth(ambient_space(m)) "Chern classes require a smooth and complete ambient space"
+  if completeness_check
+    @req is_complete(ambient_space(m)) "Chern classes require a smooth and complete ambient space"
+  end
 
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
   coho_R = cohomology_ring(ambient_space(m); completeness_check)
@@ -62,13 +64,7 @@ function chern_class(m::AbstractFTheoryModel, k::Int; completeness_check::Bool =
   if haskey(cs, k)
     return cs[k]
   end
-
-  # Check if we can compute the Chern classes for the toric ambient space
-  @req is_smooth(ambient_space(m)) "Chern classes require a smooth and complete ambient space"
-  if completeness_check
-    @req is_complete(ambient_space(m)) "Chern classes require a smooth and complete ambient space"
-  end
-
+  
   # Chern class is not known, so compute and return it...
   tdc = toric_divisor_class(ambient_space(m), degree(leading_term(hypersurface_equation(m))))
   cy = cohomology_class(tdc; completeness_check)
