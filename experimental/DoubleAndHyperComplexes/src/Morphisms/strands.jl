@@ -15,11 +15,12 @@
 struct StrandChainFactory{ChainType<:ModuleFP} <: HyperComplexChainFactory{ChainType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
+  check::Bool
 
   function StrandChainFactory(
-      orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}
+      orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}, check::Bool
     ) where {ChainType<:ModuleFP}
-    return new{FreeMod}(orig, d) # TODO: Specify the chain type better
+    return new{FreeMod}(orig, d, check) # TODO: Specify the chain type better
   end
 end
 
@@ -28,10 +29,11 @@ struct StrandMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMapFactor
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
   monomial_mappings::Dict{<:Tuple{<:Tuple, Int}, <:Map}
+  check::Bool
 
-  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem})
+  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem}, check)
     monomial_mappings = Dict{Tuple{Tuple, Int}, Map}()
-    return new{FreeModuleHom}(orig, d, monomial_mappings)
+    return new{FreeModuleHom}(orig, d, monomial_mappings, check)
   end
 end
 
@@ -44,10 +46,11 @@ end
   projection_map::AbsHyperComplexMorphism
 
   function StrandComplex(
-      orig::AbsHyperComplex{ChainType, MorphismType}, d::Union{Int, FinGenAbGroupElem}
+      orig::AbsHyperComplex{ChainType, MorphismType}, d::Union{Int, FinGenAbGroupElem}; 
+      check::Bool=true
     ) where {ChainType <: ModuleFP, MorphismType <: ModuleFPHom}
-    chain_fac = StrandChainFactory(orig, d)
-    map_fac = StrandMorphismFactory(orig, d)
+    chain_fac = StrandChainFactory(orig, d, check)
+    map_fac = StrandMorphismFactory(orig, d, check)
 
     internal_complex = HyperComplex(dim(orig), 
                                     chain_fac, map_fac, Symbol[direction(orig, i) for i in 1:dim(orig)],
@@ -82,7 +85,7 @@ function (fac::StrandInclusionMorphismFactory)(self::AbsHyperComplexMorphism, i:
   dom = strand[i]
   cod = orig[i]
   R = base_ring(cod)
-  to = hom(dom, cod, elem_type(cod)[prod(x^k for (x, k) in zip(gens(R), e); init=one(R))*cod[i] for (e, i) in all_exponents(cod, degree(strand))])
+  to = hom(dom, cod, elem_type(cod)[prod(x^k for (x, k) in zip(gens(R), e); init=one(R))*cod[i] for (e, i) in all_exponents(cod, degree(strand); check=fac.check)])
   return to
 end
 

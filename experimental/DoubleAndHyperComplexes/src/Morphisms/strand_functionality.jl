@@ -3,7 +3,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  return FreeMod(kk, length(all_exponents(fac.orig[i], fac.d)))
+  return FreeMod(kk, length(all_exponents(fac.orig[i], fac.d; check=fac.check)))
 end
 
 function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
@@ -24,12 +24,12 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d)))
+  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d; check=fac.check)))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
   vv = gens(R)
-  for (e, i) in all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
+  for (e, i) in all_exponents(orig_dom, fac.d; check=fac.check) # iterate through the generators of `dom`
     m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i]
     v = orig_map(m) # map the monomial
     # take preimage of the result using the previously built dictionary.
@@ -51,8 +51,8 @@ function can_compute(fac::StrandMorphismFactory, c::AbsHyperComplex, p::Int, i::
 end
 
 ### User facing constructor
-function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:ModuleFP}
-  result = StrandComplex(c, d)
+function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:ModuleFP}
+  result = StrandComplex(c, d; check)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc
   pr = StrandProjectionMorphism(result)
@@ -62,9 +62,9 @@ end
 
 
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
-function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
+function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
   D = W.D
-  is_free(D) || error("Grading group must be free")
+  @check is_free(D) "Grading group must be free"
   h = hom(free_abelian_group(ngens(W)), D, W.d)
   fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
@@ -75,7 +75,7 @@ function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
      #Ax = b, Cx >= 0
      C = identity_matrix(ZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)
+     k = solve_mixed(transpose(A), transpose(d.coeff), C; check)
      B = Vector{Int}[k[ee, :] for ee in 1:nrows(k)]
   end
   return B
