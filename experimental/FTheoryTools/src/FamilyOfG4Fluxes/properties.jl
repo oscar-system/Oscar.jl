@@ -3,7 +3,7 @@
 #####################################################
 
 @doc raw"""
-    is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    is_well_quantized(fgs::FamilyOfG4Fluxes)
 
 Performs elementary necessary (but not sufficient) tests to check if the 
 family of ``G_4``-fluxes is well-quantized.
@@ -11,6 +11,12 @@ family of ``G_4``-fluxes is well-quantized.
 If any test fails, the family is definitely not well-quantized and the method 
 returns `false`. If all tests pass, it returns `true`, indicating the fluxes 
 appear well-quantized based on current knowledge, but without guaranteeing it.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are smooth and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -36,11 +42,11 @@ Family of G4 fluxes:
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> is_well_quantized(gf2, check = false)
+julia> is_well_quantized(gf2, completeness_check = false)
 true
 ```
 """
-@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
@@ -50,7 +56,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_gens(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs); completeness_check)
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
@@ -68,10 +74,10 @@ true
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; check = false))
+    twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; completeness_check))
     for i in 1:length(c_ds)
       for j in i:length(c_ds)
-        numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); check = false)
+        numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); completeness_check)
         if !is_zero(numb)
           return false    
         end
@@ -85,10 +91,16 @@ end
 
 
 @doc raw"""
-    passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    passes_transversality_checks(fgs::FamilyOfG4Fluxes)
 
 Check if the given family of ``G_4``-fluxes passes the transversality conditions.
 Return `true` if the checks pass, and `false` otherwise.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are simplicial and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -101,7 +113,7 @@ Family of G4 fluxes:
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> passes_transversality_checks(gf, check = false)
+julia> passes_transversality_checks(gf, completeness_check = false)
 true
 
 julia> m1 = matrix_integral(gf);
@@ -118,7 +130,7 @@ julia> passes_transversality_checks(gf3)
 true
 ```
 """
-@attr Bool function passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function passes_transversality_checks(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
@@ -128,7 +140,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_gens(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs); completeness_check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
@@ -151,10 +163,16 @@ end
 
 
 @doc raw"""
-    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
+    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
 
 Check if the given family of ``G_4``-fluxes breaks the non-abelian gauge group.
 Return `true` if it does, and `false` otherwise.
+
+!!! note "Completeness check"
+  The implemented algorithm is guaranteed to work only for toric ambient spaces
+  that are simplicial and **complete**. Verifying completeness can be very time 
+  consuming. To skip this check, pass the optional keyword argument 
+  `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -189,11 +207,11 @@ Family of G4 fluxes:
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> breaks_non_abelian_gauge_group(gf4, check = false)
+julia> breaks_non_abelian_gauge_group(gf4, completeness_check = false)
 false
 ```
 """
-@attr Bool function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
@@ -203,7 +221,7 @@ false
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_gens(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs); completeness_check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group
