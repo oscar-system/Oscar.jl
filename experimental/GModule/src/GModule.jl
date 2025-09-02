@@ -2063,7 +2063,6 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
   end
 end
 
-
 function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   @assert base_ring(C) == base_ring(D)
   @assert group(C) == group(D)
@@ -2072,11 +2071,18 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
     return hom_base_perm_module(C, D)
   end
 
+  global all_base
+
+
   p = Hecke.p_start
   p = 2^10
   p = 127
   m_in = map(matrix, C.ac)
-  m_out = map(matrix, D.ac)
+  if C === D
+    m_out = m_in
+  else
+    m_out = map(matrix, D.ac)
+  end
   local T
   pp = ZZRingElem(1)
   k = base_ring(C)

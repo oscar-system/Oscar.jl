@@ -2,7 +2,7 @@ module MeatAxe
 using Oscar
 using Oscar.GModuleFromGap
 import Oscar: GAPGroup
-import Oscar.GModuleFromGap: is_regular_gmodule
+import Oscar.GModuleFromGap: is_regular_gmodule, restrict_endo
 
 
 function gmodule_new(chi::Oscar.GAPGroupClassFunction)
@@ -20,8 +20,12 @@ function gmodule_new(chi::Oscar.GAPGroupClassFunction)
   error("no plan yet")
 end
 
-function _do_one!(res, t, M)
-  _t = split_into_homogenous(M)
+function _do_one!(res, t, M; is_irr::Bool = false)
+  if !is_irr
+    _t = split_into_homogenous(M)
+  else
+    _t = [hom(M, M, hom(M.M, M.M, gens(M.M)))]
+  end
   for _x = _t
     x = domain(_x)
     _c = map(iszero, coordinates(character(x)))
@@ -149,26 +153,31 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
             dim_C = scalar_product(restrict(chi_G, K), trivial_character(K))
             if dim_C <= limit
               #test if K makes sense
-              @show t 
-              @show [is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i = 1:length(t)]
-              if all(i->!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))), 1:length(t))
+              tt = [!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(t)]
+              if all(tt)
                 @show "condense would give no info"
                 continue
               end
-              push!(good_K, (K, dim_C))
+              push!(good_K, (K, dim_C, tt))
             end
           end
-          sort!(good_K, lt = (a,b) -> a[2] < b[2])
-          randG = [rand(G) for i=1:20]
-          @show good_K
-          for _K = good_K[1:1]
-            K = _K[1]
+          if length(good_K) == 0
+            continue
+          end
+          for ii = findall(!, reduce(.&, [x[3] for x = good_K]))
+            t[ii] || continue #due to orbits
+            @show "aiming for $i"
+            for_i = [x for x = good_K if !x[3][ii]]
+            sort!(for_i, lt = (a,b) -> a[2] < b[2])
+            rand_G = [rand(G) for i=1:20]
+            @show for_i
+            K = for_i[1][1]
             if !have_V
               V = induce(v, embedding(i, G))[1]
               have_V = true
             end
             @show "condense", V, K
-            c, mc = condense(V, K)
+            c, mc, phi = condense(V, K)
             @assert dim(c) <= limit
             sp = split_into_homogenous(c)
             @show "split done"
@@ -180,16 +189,39 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
             #      module to have traces and to avoid problems from
             #      condensing Q[G] wrongly. Not sure if this is the correct
             #      way...
+            char = galois_orbit_sum(X[ii])
+            tr = [trace_condensed(char, K, g) for g = rand_G]
             for _t = sp
-              d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit)
-              if dim(d) > limit || d == V
-                @show "spin too large", d, limit
+              ttr = Any[]
+              for g = rand_G
+                _c = trace_condensed(V, _t.module_map*mc, phi, g)
+                if isnothing(_c)
+                  @show "rand_G too small..."
+                  break
+                end
+                push!(ttr, _c)
+                if ttr[end] != tr[length(ttr)]
+                  @show "stop as trace is wrong"
+                  break
+                end
               end
-              dim(d) > limit && continue
-              @assert dim(d) < dim(V)
-              @show dim(d), dim(V), coordinates(character(d))
-              if dim(d) <= limit
-                _do_one!(res, t, d) && return res
+              @show ttr
+              if tr == ttr
+                @show "bingo!!"
+                d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit = Int(degree(char)))
+                if dim(d) > degree(char) || d == V
+                  @show coordinates(character(d))
+                  @show coordinates(char)
+                  @show "spin too large", d, limit
+                  error("should not happen")
+                end
+                @assert dim(d) < dim(V)
+                @show dim(d), dim(V), coordinates(character(d))
+                if dim(d) <= limit
+                  _do_one!(res, t, d; is_irr = true) && return res
+                end
+              else
+                @show "wrong module lifted"
               end
               if !any(cc .& t)
                 @show "OK, leaving this level"
@@ -213,6 +245,17 @@ end
 function dim_condensed(C::GModule, K::Oscar.GAPGroup)
   #Allan, Cor. 3.5.5.
   return Int(scalar_product(restrict(character(C), K), trivial_character(K)))
+end
+
+function trace_condensed(chi::Oscar.GAPGroupClassFunction, K::Oscar.GAPGroup, g::GAPGroupElem)
+  return QQ(ZZ(1), order(K))*sum(chi(g*k) for k = K)
+end
+
+function trace_condensed(C::GModule, ms::Map, phi, g::GAPGroupElem)
+  s = domain(ms)
+  has, pre = has_preimage_with_preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))
+  has || return nothing
+  return trace(hom(s, s, pre))
 end
 
 function idempotent(C::GModule, iKG::Map, v::AbstractAlgebra.FPModuleElem)
@@ -239,7 +282,19 @@ function idempotent(C::GModule, iKG::Map)
   return QQ(1, order(domain(iKG)))*sum([action(C, iKG(k)) for k = domain(iKG)])
 end
 
-function condense(C::GModule, K::Oscar.GAPGroup)
+function _simplify(ms::Map) #embedding map s -> M
+  s = domain(ms)
+  M = codomain(ms)
+  x = matrix(ms)
+  n = numerator(x)
+  @show maximum(nbits, n)
+  n = saturate(n)
+  n = lll(n)
+  @show maximum(nbits, n)
+  return hom(s, M, matrix(QQ, n))
+end
+ 
+function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   #K should be a subgroup of G for the G-Module C
   G = group(C)
   iKG = embedding(K, G)
@@ -270,16 +325,14 @@ function condense(C::GModule, K::Oscar.GAPGroup)
     s, ms = sub(C.M, ge)
   end
   #try to reduce/ improve
-  x = matrix(ms)
-  n = numerator(x)
-  @show maximum(nbits, n)
-  n = saturate(n)
-  n = lll(n)
-  @show maximum(nbits, n)
-  ms = hom(s, C.M, matrix(QQ, n))
+  ms = _simplify(ms)
   #action and preimage allows vectors
-  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))) for g = gens(G)]), ms
-#  return gmodule(nothing, [hom(s, s, preimage(ms, idempotent(C, iKG, action(C, g, map(ms, gens(s)))))) for g = gens(G)]), ms
+  #the "condense" problem for Q[G]: we don't know how many 
+  # (and which) elements of G generate phi(QQ[G]).
+  # Not having enough will meant preimage will fail to work
+  # in the trace_condense...(where we try to compute more action)
+  rG = vcat(gens(G), [rand(G) for i=1:extra])
+  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))) for g = rG]), ms, phi
 end
 
 function spin(C::GModule, v::Vector)
@@ -370,6 +423,8 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
   end
   v = [C.M(collect(view(s, i, :))) for i=1:r]
   ss, mss = sub(C.M, v)
+  mss = _simplify(mss)
+  v = map(mss, gens(ss))
   #preimage can handle vectors of elements, this means only one rref
   #possibly eventually homs should use the solve_ctx?
   #similarly, action can handle vectors, removing identical group theory
@@ -620,7 +675,7 @@ end
 function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p28: HomogeneousComponents(M)
   #Careful: the list in the end contains homogenous components - but
-  randG = [rand(G) for i=1:20]
+
   #         with lots of repetition
   #TODO: write and use CentreOfEndomorphismRing
   #      have a sane overall strategy
@@ -689,6 +744,30 @@ end
   if we search for elements with maximal degree minpoly, then indeed the 
       resulting kernels are irr.
   but the search might be longer...
+
+
+G = transitive_group(11, 6)
+s = subgroup_reps(G)
+
+Xs = character_table(s[end-2])
+Oscar.MeatAxe.gmodule_new(Xs[4])
+v = ans[1]
+V = induce(v, embedding(group(v), G))[1]
+
+[ Oscar.MeatAxe.dim_condensed(V, u) for u = s if order(u) < 20]
+
+
+c = Oscar.MeatAxe.condense(V, s[11])
+Oscar.MeatAxe.trace_condensed(V, c[2], c[3], G[1])
+Oscar.MeatAxe.trace_condensed(V, c[2], c[3], G[2])
+z = [rand(G) for i=1:10]
+
+[Oscar.MeatAxe.trace_condensed(X[3]+X[4], s[11], g) for g = z]
+vv = Oscar.MeatAxe.split_into_homogenous(c[1])
+Oscar.MeatAxe.trace_condensed(V, vv[1].module_map*c[2], c[3], G[1])
+Oscar.MeatAxe.spin2(V, map(vv[1].module_map*c[2], gens(domain(vv[1]).M)))
+coordinates(character(ans))
+
 
 =#  
 
