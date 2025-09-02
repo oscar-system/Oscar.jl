@@ -159,5 +159,5 @@ julia> h = euler_characteristic(qsm_model; completeness_check = false)
   cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
   # Compute the Euler characteristic
-  return Int(integrate(chern_class(m, 4; check) * cy; completeness_check))
+  return Int(integrate(chern_class(m, 4; completeness_check) * cy; completeness_check))
 end
