@@ -59,7 +59,7 @@ chern_classes(m::AbstractFTheoryModel)
 These classes allow for a consistency check on the Calabi–Yau condition:
 
 ```@docs
-is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
+is_calabi_yau(m::AbstractFTheoryModel)
 ```
 
 The Euler characteristic is obtained by integrating the top Chern class:
@@ -88,7 +88,7 @@ Once algorithmic computation is implemented, these same functions will trigger i
 If Hodge numbers are available, they can be used to verify the Euler characteristic independently:
 
 ```@docs
-verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel)
 ```
 
 ---
