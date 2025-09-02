@@ -35,8 +35,6 @@ export associated_literature_models
 export base_space
 export basis_of_h22_ambient
 export basis_of_h22_ambient_indices
-export basis_of_h22_hypersurface
-export basis_of_h22_hypersurface_indices
 export gens_of_h22_hypersurface
 export gens_of_h22_hypersurface_indices
 export birational_literature_models
@@ -45,7 +43,6 @@ export breaks_non_abelian_gauge_group
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
-export chosen_g4_flux_basis
 export chosen_g4_flux_gens
 export classes_of_model_sections
 export classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes
