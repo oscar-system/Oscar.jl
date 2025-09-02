@@ -44,6 +44,10 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
     Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
+!!! note
+    See the previous section on "Monomial Orderings" for details on how to implement monomial
+    orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
+
 ## [Monomials, Terms, and More](@id monomials_terms_more)
 
 Here are examples which indicate how to recover monomials, terms, and

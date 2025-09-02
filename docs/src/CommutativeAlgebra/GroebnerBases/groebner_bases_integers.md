@@ -14,6 +14,10 @@ $f \in \mathbb Z[x]_>$, the notions *leading term*, *leading monomial*, *leading
 *leading coefficient*, and *tail*  of $f$ are defined as before.
 
 !!! note
+    See the previous section on "Monomial Orderings" for details on how to implement monomial
+    orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
+
+!!! note
     Over $\mathbb Z$, the basic idea of multivariate polynomial division with remainder in OSCAR is as follows:
     If $ax^\alpha$ is the leading term of the intermediate dividend, $f_i$
     is *some* divisor whose leading monomial equals $x^\alpha$, say
