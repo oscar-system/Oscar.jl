@@ -52,8 +52,8 @@ The Chern classes of the variety can be computed—or retrieved if precomputed (
 [Literature Models](@ref literature_models))—using:
 
 ```@docs
-chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
-chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+chern_class(m::AbstractFTheoryModel, k::Int)
+chern_classes(m::AbstractFTheoryModel)
 ```
 
 These classes allow for a consistency check on the Calabi–Yau condition:
@@ -65,7 +65,7 @@ is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
 The Euler characteristic is obtained by integrating the top Chern class:
 
 ```@docs
-euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+euler_characteristic(m::AbstractFTheoryModel)
 ```
 
 ---
