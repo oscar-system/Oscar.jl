@@ -137,6 +137,21 @@ using Oscar: _integer_variables
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
+
+      P = dodecahedron()
+      F = coefficient_field(P)
+      a = gen(number_field(F))
+      LP1 = linear_program(P, F.([3, -2, 4]);k=2,convention = :min)
+      LP2 = linear_program(P, F.([-1, a - 2, a + 5]);k=2,convention = :min)
+      ov1 = optimal_value(LP1)
+      ov2 = optimal_value(LP2)
+      test_save_load_roundtrip(path, [LP1, LP2]) do (loaded1, loaded2)
+        @test objective_function(LP1) == objective_function(loaded1)
+        @test feasible_region(LP1) == feasible_region(loaded1)
+        @test ov1 == optimal_value(loaded1)
+        @test ov2 == optimal_value(loaded2)
+        @test feasible_region(LP1) == feasible_region(LP2)
+      end
     end
 
     @testset "MixedIntegerLinearProgram" begin
@@ -152,6 +167,34 @@ using Oscar: _integer_variables
         @test objective_function(MILP) == objective_function(loaded)
         @test feasible_region(MILP) == feasible_region(loaded)
         @test Oscar._integer_variables(MILP) == Oscar._integer_variables(loaded)
+      end
+
+      P = dodecahedron()
+      F = coefficient_field(P)
+      a = gen(number_field(F))
+
+      MILP1 = mixed_integer_linear_program(
+        P,
+        [3,-2, a];
+        k=2,
+        convention = :min,
+        integer_variables=[1, 2]
+      )
+
+      MILP2 = mixed_integer_linear_program(
+        P,
+        [-3 * a,-2, 3];
+        k=2,
+        convention = :max,
+        integer_variables=[1, 2]
+      )
+
+      test_save_load_roundtrip(path, [MILP1, MILP2]) do (loaded1, loaded2)
+        @test objective_function(MILP1) == objective_function(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded2)
+        @test Oscar._integer_variables(MILP1) == Oscar._integer_variables(loaded1)
+        @test Oscar._integer_variables(MILP2) == Oscar._integer_variables(loaded2)
       end
     end
 

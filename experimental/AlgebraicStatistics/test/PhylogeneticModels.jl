@@ -290,7 +290,6 @@
       PM = PhylogeneticModel(tree, M, p)
       parameter_ring(PM)
       entry_transition_matrix(PM, 1, 3, 4, 1)
-
     end
   end
 end
