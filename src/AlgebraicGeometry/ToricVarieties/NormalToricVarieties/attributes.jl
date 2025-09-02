@@ -117,20 +117,20 @@ julia> antv = affine_normal_toric_variety(C);
 julia> set_coordinate_names(antv, [:u])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "u"
+1-element Vector{Symbol}:
+ :u
 
 julia> set_coordinate_names(antv, ["v"])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "v"
+1-element Vector{Symbol}:
+ :v
 
 julia> set_coordinate_names(antv, ['w'])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "w"
+1-element Vector{Symbol}:
+ :w
 ```
 """
 function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -154,9 +154,9 @@ julia> F3 = hirzebruch_surface(NormalToricVariety, 3);
 julia> set_coordinate_names_of_torus(F3, ["u", "v"])
 
 julia> coordinate_names_of_torus(F3)
-2-element Vector{String}:
- "u"
- "v"
+2-element Vector{Symbol}:
+ :u
+ :v
 ```
 """
 function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -205,8 +205,8 @@ julia> C = Oscar.positive_hull([1 0]);
 julia> antv = affine_normal_toric_variety(C);
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "x1"
+1-element Vector{Symbol}:
+ :x1
 ```
 """
 @attr Vector{Symbol} function coordinate_names(v::NormalToricVarietyType)
@@ -592,7 +592,7 @@ x2^2*x1_
 ```
 """
 function character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names_of_torus(v), [Symbol(x,"_") for x in coordinate_names_of_torus(v)]; cached=false)
     return character_to_rational_function(S, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 end
 character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])

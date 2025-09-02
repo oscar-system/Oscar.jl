@@ -85,7 +85,7 @@ function blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, 
 end
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, Nothing} = nothing)
+    blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, String, Nothing} = nothing)
     -> ToricBlowupMorphism
 
 Blow up the toric variety $X$ with polyhedral fan $\Sigma$ by star
@@ -123,17 +123,15 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, Nothing} = nothing)
+function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, String, Nothing} = nothing)
   # minimal supercone coordinates
   coords = zeros(QQ, n_rays(X))
   for i in 1:number_of_rays(X)
     cones(X)[n, i] && (coords[i] = QQ(1))
   end
   exceptional_ray_scaled = standard_coordinates(polyhedral_fan(X), coords)
-  exceptional_ray, scaling_factor = primitive_generator_with_scaling_factor(
-    exceptional_ray_scaled
-  )
+  exceptional_ray, scaling_factor = primitive_generator_with_scaling_factor(exceptional_ray_scaled)
   coords = scaling_factor * coords
-
-  return blow_up_along_minimal_supercone_coordinates(X, coords; coordinate_name=coordinate_name)
+  cname = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
+  return blow_up_along_minimal_supercone_coordinates(X, coords; coordinate_name=cname)
 end
