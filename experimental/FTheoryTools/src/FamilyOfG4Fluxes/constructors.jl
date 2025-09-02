@@ -3,7 +3,7 @@
 ################
 
 @doc raw"""
-    family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
+    family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix)
 
 Given an F-theory model with a toric ambient space, we can 
 identify ambient space candidates of G4-fluxes. In terms of these
@@ -13,6 +13,12 @@ candidates, we can define a family of G4-fluxes as:
 - a shift—resembling the appearance of ``\frac{1}{2} \cdot c_2`` in the flux quantization condition—provided by a vector ``\text{offset}``.
 
 For convenience we also allow to only provide ``\text{mat}_{\text{int}}``or ``\text{mat}_{\text{rat}}``. In this case, the shift is taken to be zero.
+
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are simplicial and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -36,19 +42,19 @@ Family of G4 fluxes:
   - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
-function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}; check::Bool = true)
+function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}; completeness_check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Family of G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
   @req nrows(mat_int) == length(offset) "Number of rows of integral matrix and length offset must coincide"
-  n_gens = length(chosen_g4_flux_gens(m, check = check))
+  n_gens = length(chosen_g4_flux_gens(m; completeness_check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
   return FamilyOfG4Fluxes(m, mat_int, mat_rat, offset)
 end
 
-function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
-  return family_of_g4_fluxes(m, mat_int, mat_rat, fill(QQ(0), nrows(mat_int)), check = check)
+function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; completeness_check::Bool = true)
+  return family_of_g4_fluxes(m, mat_int, mat_rat, fill(QQ(0), nrows(mat_int)); completeness_check)
 end
 
 
