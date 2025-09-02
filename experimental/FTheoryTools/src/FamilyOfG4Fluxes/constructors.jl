@@ -35,7 +35,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed

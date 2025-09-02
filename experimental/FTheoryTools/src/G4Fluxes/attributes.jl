@@ -38,7 +38,7 @@ Hypersurface model over a concrete base
 
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
-julia> g4f = g4_flux(qsm_model, g4_class, check = false)
+julia> g4f = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -95,7 +95,7 @@ julia> d3_tadpole_constraint(g4, completeness_check = false)
   end
   # Opt for (potentially?) quicker algorithm when possible
   if has_attribute(gf, :int_combination) && has_attribute(gf, :rat_combination)
-    gfs = g4_flux_family(gf, check = false)
+    gfs = g4_flux_family(gf; completeness_check)
     if has_attribute(gfs, :d3_tadpole_constraint)
       values_to_evaluate_at = vcat(matrix(QQ, get_attribute(gf, :int_combination)), get_attribute(gf, :rat_combination))
       values_to_evaluate_at = values_to_evaluate_at[:, 1]
@@ -259,13 +259,13 @@ Return the integral coefficients of a ``G_4``-flux.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -292,13 +292,13 @@ Return the rational coefficients of a ``G_4``-flux.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -325,13 +325,13 @@ Return the offset of a ``G_4``-flux.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, check = false)
+julia> gfs = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

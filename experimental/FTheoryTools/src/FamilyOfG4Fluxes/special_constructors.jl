@@ -15,7 +15,7 @@ Optional keyword arguments:
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> fg = special_flux_family(qsm_model, check = false)
+julia> fg = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

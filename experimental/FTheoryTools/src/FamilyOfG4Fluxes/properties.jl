@@ -23,7 +23,7 @@ appear well-quantized based on current knowledge, but without guaranteeing it.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -36,7 +36,7 @@ julia> m1 = matrix_integral(gf);
 
 julia> m2 = matrix_rational(gf);
 
-julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -107,7 +107,7 @@ Return `true` if the checks pass, and `false` otherwise.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -120,7 +120,7 @@ julia> m1 = matrix_integral(gf);
 
 julia> m2 = matrix_rational(gf);
 
-julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -179,7 +179,7 @@ Return `true` if it does, and `false` otherwise.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -188,7 +188,7 @@ Family of G4 fluxes:
 julia> breaks_non_abelian_gauge_group(gf)
 true
 
-julia> gf3 = special_flux_family(qsm_model, not_breaking = true, check = false)
+julia> gf3 = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -201,7 +201,7 @@ julia> m1 = matrix_integral(gf3);
 
 julia> m2 = matrix_rational(gf3);
 
-julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed

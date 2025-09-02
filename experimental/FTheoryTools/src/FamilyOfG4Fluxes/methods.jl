@@ -192,7 +192,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -256,6 +256,6 @@ G4-flux candidate
 ```
 """
 function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, consistency_check::Bool = true)
-  family = special_flux_family(m, not_breaking = not_breaking, check = completeness_check)
+  family = special_flux_family(m; not_breaking, completeness_check)
   return random_flux_instance(family; completeness_check, consistency_check)
 end

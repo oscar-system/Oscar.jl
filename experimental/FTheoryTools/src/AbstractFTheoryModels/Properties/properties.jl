@@ -74,7 +74,7 @@ raises an error.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> verify_euler_characteristic_from_hodge_numbers(qsm_model; check = false)
+julia> verify_euler_characteristic_from_hodge_numbers(qsm_model; completeness_check = false)
 true
 ```
 """
@@ -123,7 +123,7 @@ toric ambient space is smooth and complete.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> is_calabi_yau(qsm_model, check = false)
+julia> is_calabi_yau(qsm_model, completeness_check = false)
 true
 ```
 """

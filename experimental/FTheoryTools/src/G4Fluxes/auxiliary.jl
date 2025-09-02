@@ -430,7 +430,7 @@ For mathematical background shared across related methods see [Advanced Methods]
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
 Hypersurface model over a concrete base
 
-julia> length(gens_of_h22_hypersurface_indices(qsm_model, check = false))
+julia> length(gens_of_h22_hypersurface_indices(qsm_model, completeness_check = false))
 25
 ```
 """

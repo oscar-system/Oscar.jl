@@ -22,7 +22,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -56,7 +56,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -90,7 +90,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -124,7 +124,7 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -169,7 +169,7 @@ the numerical coefficient values into this polynomial.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> fgs = special_flux_family(qsm_model, check = false)
+julia> fgs = special_flux_family(qsm_model, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

@@ -26,7 +26,7 @@ Hypersurface model over a concrete base
 
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
-julia> g4f = g4_flux(qsm_model, g4_class, check = false)
+julia> g4f = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed

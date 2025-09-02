@@ -29,7 +29,7 @@ Hypersurface model over a concrete base
 
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
 
-julia> g4 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4 = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -60,7 +60,7 @@ G4-flux candidate
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
 
   # explicitly switched off an expensive test in the following line
-  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; check = false))
+  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; completeness_check = false))
 
   # now execute elementary checks of the quantization condition
   for i in 1:length(c_ds)
@@ -92,7 +92,7 @@ julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = c
 
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
-julia> g4 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4 = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -162,7 +162,7 @@ julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = c
 
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
-julia> g4 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4 = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -209,7 +209,7 @@ julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = c
 
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
-julia> g4 = g4_flux(qsm_model, g4_class, check = false)
+julia> g4 = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
