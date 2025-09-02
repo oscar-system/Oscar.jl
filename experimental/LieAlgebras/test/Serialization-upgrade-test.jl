@@ -1,6 +1,6 @@
 @testset "Serialization.Upgrades" begin
   @testset "< 1.4.0 Upgrade" begin
-    test_1_4_0_upgrade(;
+    test_upgrade_folder("version_1_4_0";
       only=[
         "AbstractLieAlgebra",
         "AbstractLieAlgebraElem",
