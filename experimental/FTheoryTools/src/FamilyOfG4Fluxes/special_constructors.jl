@@ -51,9 +51,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   # (1) Is result known?
   if !not_breaking
     if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse) && has_attribute(m, :offset_quant_transverse)
-      fgs_m_int = matrix_integral_quant_transverse(m, check = completeness_check)
-      fgs_m_rat = matrix_rational_quant_transverse(m, check = completeness_check)
-      fgs_offset = offset_quant_transverse(m, check = completeness_check)
+      fgs_m_int = matrix_integral_quant_transverse(m; completeness_check)
+      fgs_m_rat = matrix_rational_quant_transverse(m; completeness_check)
+      fgs_offset = offset_quant_transverse(m; completeness_check)
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
@@ -61,9 +61,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
     end
   else
     if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak) && has_attribute(m, :offset_quant_transverse_nobreak)
-      fgs_m_int = matrix_integral_quant_transverse_nobreak(m, check = completeness_check)
-      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m, check = completeness_check)
-      fgs_offset = offset_quant_transverse_nobreak(m, check = completeness_check)
+      fgs_m_int = matrix_integral_quant_transverse_nobreak(m; completeness_check)
+      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m; completeness_check)
+      fgs_offset = offset_quant_transverse_nobreak(m; completeness_check)
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
