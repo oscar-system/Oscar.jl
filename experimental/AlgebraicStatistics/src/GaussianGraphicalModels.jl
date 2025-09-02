@@ -282,6 +282,16 @@ function parametrization(M::GaussianGraphicalModel{<: AbstractGraph{T}, L}) wher
   return hom(S, R, gens_map)
 end
 
+@doc raw"""
+    ci_structure(M::GaussianGraphicalModel{Graph{Directed}, L})
+
+Return the set of elementary CI statements which are satisfied by every distribution in the
+graphical model. This is the same as the `global_markov` property of the underlying graph.
+"""
+function ci_structure(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
+  global_markov(graph(M))
+end
+
 ###################################################################################
 #
 #       Undirected parametrization
@@ -366,6 +376,16 @@ function parametrization(M::GaussianGraphicalModel{Graph{Undirected}, T}) where 
   Rloc, iota = localization(R, powers_of_element(det(K)))
   adj = adjugate(K)
   hom(S, Rloc, reduce(vcat, [[iota(adj[i,j])/iota(det(K)) for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
+end
+
+@doc raw"""
+    ci_structure(M::GaussianGraphicalModel{Graph{Undirected}, T})
+
+Return the set of elementary CI statements which are satisfied by every distribution in the
+graphical model. This is the same as the `global_markov` property of the underlying graph.
+"""
+function ci_structure(M::GaussianGraphicalModel{Graph{Undirected}, T}) where T
+  global_markov(graph(M))
 end
 
 ###################################################################################
