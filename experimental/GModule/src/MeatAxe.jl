@@ -101,7 +101,7 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
   if t !== nothing
     @assert length(t) == length(X)
   else
-    t = [true for x = X]
+    t = [degree(x) <= limit for x = X]
   end
   res = GModule[]
   #permutation gmodules are good as the endomorphism ring
@@ -127,12 +127,18 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
         @show :too_large, degree_of_character_field(chi), degree(chi), index(G, i)
         continue
       end
-      chi_G = induce(chi, G)
+      chi_G = induce(chi, G) #could be irreducible...
       cc = map(iszero, coordinates(chi_G)) .& t
       if cc != t
         @show "could help"
         v = gmodule_new(chi)
+        global last_chi = chi
         @assert length(v) == 1
+        if is_irreducible(chi_G)
+          V = induce(v[1], embedding(i, G))[1]
+          _do_one!(res, t, V; is_irr = true) && return res
+          continue
+        end
         v = v[1]
         if deg <= limit
           @show "direct induce"
@@ -166,12 +172,21 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
           end
           for ii = findall(!, reduce(.&, [x[3] for x = good_K]))
             t[ii] || continue #due to orbits
+            char = galois_orbit_sum(X[ii])
+            if degree(char) > limit
+              @show "too large, abandoning"
+              continue
+            end
             @show "aiming for $i"
             for_i = [x for x = good_K if !x[3][ii]]
             sort!(for_i, lt = (a,b) -> a[2] < b[2])
             rand_G = [rand(G) for i=1:20]
             @show for_i
             K = for_i[1][1]
+            if for_i[1][2] == 0
+              @show "oh shit"
+              continue
+            end
             if !have_V
               V = induce(v, embedding(i, G))[1]
               have_V = true
@@ -189,7 +204,6 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
             #      module to have traces and to avoid problems from
             #      condensing Q[G] wrongly. Not sure if this is the correct
             #      way...
-            char = galois_orbit_sum(X[ii])
             tr = [trace_condensed(char, K, g) for g = rand_G]
             for _t = sp
               ttr = Any[]
@@ -207,12 +221,15 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
               end
               @show ttr
               if tr == ttr
-                @show "bingo!!"
+                @show "bingo!!", degree(char)
                 d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit = Int(degree(char)))
                 if dim(d) > degree(char) || d == V
                   @show coordinates(character(d))
                   @show coordinates(char)
-                  @show "spin too large", d, limit
+                  @show coordinates(character(V))
+                  @show "spin too large", d, dim(d), limit, dim(V)
+                  #OK: rand_G is too small
+                  break
                   error("should not happen")
                 end
                 @assert dim(d) < dim(V)
@@ -326,6 +343,7 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   end
   #try to reduce/ improve
   ms = _simplify(ms)
+  
   #action and preimage allows vectors
   #the "condense" problem for Q[G]: we don't know how many 
   # (and which) elements of G generate phi(QQ[G]).
@@ -414,6 +432,7 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
         return C
       end
       r += 1
+      @show size(s)
 #      _x = rref(s)
 #      @show x[2] - s
 #      @assert _x[1] == r

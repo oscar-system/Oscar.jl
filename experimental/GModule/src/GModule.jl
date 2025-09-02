@@ -1045,6 +1045,44 @@ function natural_gmodule(G::PermGroup, R::Ring)
 #      without storing a matrix?
 end
 
+struct PermMat{T <: RingElement} <: AbstractAlgebra.MatElem{T}
+  R
+  p::PermGroupElem
+end
+
+function Base.show(io::IO, ::MIME{Symbol("text/plain")}, M::PermMat)
+  println(io, "permutation by $(M.p)")
+end
+
+Oscar.base_ring(M::PermMat) = M.R
+Oscar.ncols(M::PermMat) = degree(M.p)
+Oscar.nrows(M::PermMat) = degree(M.p)
+
+import Base: *
+function *(M::PermMat{T}, N::PermMat{T}) where T
+  @assert M.R == N.R
+  @assert parent(M.p) == parent(N.p)
+  return PermMat{T}(M.R, M.p*N.p)
+end
+
+function *(A::Matrix{T}, M::PermMat{T}) where T
+  @assert base_ring(A) == base_ring(M)
+  #permute columns by p
+  return A*matrix(M)
+end
+
+function Oscar.matrix(M::PermMat)
+  return permutation_matrix(M.R, M.p)
+end
+
+function Base.getindex(M::PermMat, i::Int, j::Int)
+  if M.p(i) == j
+    return one(M.R)
+  else
+    return zero(M.R)
+  end
+end
+
 function show_permutation_gmodule(io::IO, C::GModule)
   io = pretty(io)
   io = IOContext(io, :compact => true)
@@ -1056,7 +1094,8 @@ function permutation_gmodule(G::Group, U::Group, R::Ring)
   rc = right_cosets(G, U)
   h = action_homomorphism(rc)
   F = free_module(R, Int(divexact(order(G), order(U))))
-  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
+  C = gmodule(G, [hom(F, F, PermMat{elem_type(R)}(R, h(g))) for g = gens(G)])
+#  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
   set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule)
   return C
 end
