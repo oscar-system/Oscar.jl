@@ -937,7 +937,7 @@ function HSNum_abbott(PmodI::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol 
   I = modulus(PmodI)
   P = base_ring(I)
   is_graded(P) || error("Ring must be quotient of graded ring")
-  grading_dim = ngens(parent(degree(gen(P,1))))  # is there a better way???
+  grading_dim = ngens(grading_group(P))
   weights = degree.(gens(P))
   W = [[Int(d[j]) for d in weights] for j in 1:grading_dim]
   LTs = gens(leading_ideal(I))

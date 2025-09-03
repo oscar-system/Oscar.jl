@@ -629,7 +629,8 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
       @req desired_value in cox_gens "Specified zero section is invalid"
       index = findfirst(==(desired_value), cox_gens)
       set_attribute!(model, :zero_section_index => index::Int)
-      set_attribute!(model, :zero_section_class => cohomology_class(divs[index]))
+      # For performance, do not execute completeness_check when creating zero section
+      set_attribute!(model, :zero_section_class => cohomology_class(divs[index], completeness_check = false))
     end
 
     if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety

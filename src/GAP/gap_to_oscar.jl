@@ -2,39 +2,10 @@
 ## (extends the conversions from GAP.jl's `src/gap_to_julia.jl` and
 ## `src/constructors.jl`, where low level Julia objects are treated)
 
-##
-## GAP integer to `ZZRingElem`
-##
-function ZZRingElem(obj::GapObj)
-    GAP.GAP_IS_INT(obj) || throw(GAP.ConversionError(obj, ZZRingElem))
-    result = GC.@preserve obj ZZRingElem(GAP.ADDR_OBJ(obj), div(GAP.SIZE_OBJ(obj), sizeof(Int)))
-    obj < 0 && Nemo.neg!(result, result)
-    return result
-end
-
-GAP.gap_to_julia(::Type{ZZRingElem}, obj::GapInt; recursive::Bool = true) = ZZRingElem(obj)
-(::ZZRing)(obj::GapObj) = ZZRingElem(obj)
-
-##
-## large GAP rational or integer to `QQFieldElem`
-##
-function QQFieldElem(obj::GapObj)
-    GAP.GAP_IS_INT(obj) && return QQFieldElem(ZZRingElem(obj))
-    GAP.GAP_IS_RAT(obj) || throw(GAP.ConversionError(obj, QQFieldElem))
-    return QQFieldElem(ZZRingElem(GAPWrap.NumeratorRat(obj)), ZZRingElem(GAPWrap.DenominatorRat(obj)))
-end
-
-GAP.gap_to_julia(::Type{QQFieldElem}, obj::GapInt; recursive::Bool = true) = QQFieldElem(obj)
-(::QQField)(obj::GapObj) = QQFieldElem(obj)
 
 ###
 ### GAP finite field elements to Oscar (generically)
 ###
-
-# TODO: the following could be made faster for GAP.FFE by extracting the
-# characteristic directly from the GAP FFE
-characteristic(x::GAP.FFE) = ZZRingElem(GAPWrap.CHAR_FFE_DEFAULT(x))
-characteristic(x::GapObj) = ZZRingElem(GAPWrap.Characteristic(x))
 
 # test code for producing an FFE:  `GAP.Globals.Z(5)`
 function (F::FinField)(x::GAP.FFE)
@@ -70,70 +41,6 @@ function (F::FinField)(x::GapObj)
     return preimage(iso, x)
 end
 
-##
-## matrix conversion
-##
-
-function __ensure_gap_matrix(obj::GapObj)
-    @req GAPWrap.IsMatrixOrMatrixObj(obj) "<obj> is not a GAP matrix"
-end
-
-##
-## matrix of GAP integers to `ZZMatrix`
-##
-function ZZMatrix(obj::GapObj)
-    __ensure_gap_matrix(obj)
-    nrows = GAPWrap.NrRows(obj)
-    ncols = GAPWrap.NrCols(obj)
-    m = zero_matrix(ZZ, nrows, ncols)
-    for i in 1:nrows, j in 1:ncols
-        x = obj[i,j]
-        @inbounds m[i,j] = x isa Int ? x : ZZRingElem(x::GapObj)
-    end
-    return m
-end
-
-GAP.gap_to_julia(::Type{ZZMatrix}, obj::GapObj; recursive::Bool = true) = ZZMatrix(obj) # TODO: deprecate/remove this
-
-##
-## matrix of GAP rationals or integers to `QQMatrix`
-##
-function QQMatrix(obj::GapObj)
-    __ensure_gap_matrix(obj)
-    nrows = GAPWrap.NrRows(obj)
-    ncols = GAPWrap.NrCols(obj)
-    m = zero_matrix(QQ, nrows, ncols)
-    for i in 1:nrows, j in 1:ncols
-        x = obj[i,j]
-        @inbounds m[i,j] = x isa Int ? x : QQFieldElem(x::GapObj)
-    end
-    return m
-end
-
-GAP.gap_to_julia(::Type{QQMatrix}, obj::GapObj; recursive::Bool = true) = QQMatrix(obj) # TODO: deprecate/remove this
-
-##
-## generic matrix() method for GAP matrices which converts each element on its
-## own: this is inefficient but almost always works, so we use it as our base
-## case
-##
-function matrix(R::Ring, obj::GapObj)
-    # TODO: add special code for compressed matrices, resp. MatrixObj, so that
-    # we can perform the characteristic check once, instead of nrows*ncols
-    # times
-    __ensure_gap_matrix(obj)
-    nrows = GAPWrap.NrRows(obj)
-    ncols = GAPWrap.NrCols(obj)
-    m = zero_matrix(R, nrows, ncols)
-    for i in 1:nrows, j in 1:ncols
-        x = obj[i,j]::Union{Int,GapObj,GAP.FFE} # type annotation so Julia generates better code
-        @inbounds m[i,j] = x isa Int ? x : R(x)
-    end
-    return m
-end
-
-# also allow map_entries to make Claus happy ;-)
-map_entries(R::Ring, obj::GapObj) = matrix(R, obj)
 
 # TODO: cache conversion tables
 
@@ -160,9 +67,17 @@ function QQAbFieldElem(a::GapInt)
   return z
 end
 
-GAP.gap_to_julia(::Type{QQAbFieldElem}, a::GapInt; recursive::Bool = true) = QQAbFieldElem(a)
+GAP.gap_to_julia_internal(::Type{QQAbFieldElem}, obj::GapInt, ::GAP.JuliaCacheDict, ::Val{recursive}) where recursive = QQAbFieldElem(obj)
 
 (::QQAbField)(a::GapObj) = QQAbFieldElem(a)
+
+##
+## matrix conversion
+##
+
+function __ensure_gap_matrix(obj::GapObj)
+    @req GAPWrap.IsMatrixOrMatrixObj(obj) "<obj> is not a GAP matrix"
+end
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)
