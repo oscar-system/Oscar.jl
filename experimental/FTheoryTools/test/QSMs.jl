@@ -20,7 +20,7 @@ cy = cohomology_class(toric_divisor_class(as, degree(hypersurface_equation(qsm_m
 c2_B = cohomology_class(as, 4*x4*x6 + 8*x5*x6 + 14*x6*x7 + 5*x7^2)
 Kbar = cohomology_class(ambient_space(qsm_model), x1+x2+x3+x4+x5+x6+x7)
 Kbar3 = kbar3(qsm_model)
-fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, check = false)
+fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "Test properties of the QSM" begin
@@ -32,8 +32,8 @@ end
 
 @testset "Advanced intersection theory and QSM-fluxes" begin
   qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-  h22_converter_dict = converter_dict_h22_ambient(qsm_model, check = false)
-  coh_ring = cohomology_ring(ambient_space(qsm_model), check = false)
+  h22_converter_dict = converter_dict_h22_ambient(qsm_model, completeness_check = false)
+  coh_ring = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
   coh_ring_gens = gens(coh_ring)
   for (key, value) in h22_converter_dict
     obj1 = coh_ring_gens[key[1]] * coh_ring_gens[key[2]]
@@ -41,7 +41,7 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
-  h22_basis = gens_of_h22_hypersurface_indices(qsm_model, check = false)
+  h22_basis = gens_of_h22_hypersurface_indices(qsm_model, completeness_check = false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
   flux_poly = Oscar.eval_poly(flux_poly_str, ring)
@@ -54,7 +54,7 @@ end
     flux_vector[idx] = coeffs[i]
   end
   flux_vector = transpose(matrix(QQ, [flux_vector]))
-  fg = special_flux_family(qsm_model; not_breaking = true, check = false, algorithm = "special")
+  fg = special_flux_family(qsm_model; not_breaking = true, completeness_check = false, algorithm = "special")
   @test ncols(matrix_integral(fg)) == 1
   @test nrows(matrix_integral(fg)) == nrows(matrix_rational(fg))
   @test unique(offset(fg)) == [0]

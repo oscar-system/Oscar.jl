@@ -42,6 +42,7 @@ def is_existing_tag(tag: str) -> bool:
             f""".[] | select(.name | contains("{tag.strip()}"))"""
         ],
         shell=False,
+        check=False, # this subprocess is allowed to fail
         capture_output=True
     )
     return res.stdout.decode() != ""
@@ -130,6 +131,7 @@ def get_tag_date(tag: str) -> str:
                 "--json=createdAt"
             ],
             shell=False,
+            check=True,
             capture_output=True
         )
         res = json.loads(res.stdout.decode())
@@ -300,15 +302,15 @@ def main(new_version: str) -> None:
             "git",
             "merge-base",
             basetag,
-            "master"
-        ], shell=False, capture_output=True).stdout.decode().strip()
+            "HEAD"
+        ], shell=False, check=True, capture_output=True).stdout.decode().strip()
         timestamp = subprocess.run([
             "git",
             "show",
             "-s",
             "--format=\"%cI\"",
             shared_commit
-        ], shell=False, capture_output=True).stdout.decode().strip().replace('"', '')
+        ], shell=False, check=True, capture_output=True).stdout.decode().strip().replace('"', '')
         # date is first 10 characters of timestamp
         startdate = timestamp[0:10]
     print("Base tag is", basetag)
@@ -338,6 +340,7 @@ if __name__ == "__main__":
                 ".[] | select(.isLatest == true)"
             ],
             shell=False,
+            check=True,
             capture_output=True
         )
         itag = json.loads(itag.stdout.decode())["name"][1:]

@@ -16,13 +16,52 @@ julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
 
 julia> toric_variety(cc)
 Normal, simplicial, complete toric variety
 ```
 """
 toric_variety(c::CohomologyClass) = c.v
+
+
+@doc raw"""
+    simplify!(c::CohomologyClass)
+
+Simplify the defining polynomial of the cohomology class `c`.
+
+Since the polynomial resides in a quotient ring, simplification can be computationally expensive.
+Use this method with care.
+
+Note that [`polynomial(c::CohomologyClass)`](@ref) does **not** call `simplify!`; it simply returns
+the currently stored representation.
+
+In contrast, for convenience, [`coefficients(c::CohomologyClass)`](@ref) and [`exponents(c::CohomologyClass)`](@ref)
+automatically simplify and then return the coefficients or exponents of the simplified polynomial.
+
+# Examples
+```jldoctest
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
+Torus-invariant, non-prime divisor on a normal toric variety
+
+julia> cc = cohomology_class(d)
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> polynomial(cc)
+x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> simplify!(cc);
+
+julia> polynomial(cc)
+6*x3 + e1 + 7*e2
+```
+"""
+function simplify!(c::CohomologyClass)
+  c.p = simplify(c.p)
+end
 
 
 @doc raw"""
@@ -39,7 +78,10 @@ julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> simplify!(cc)
+6*x3 + e1 + 7*e2
 
 julia> coefficients(cc)
 3-element Vector{QQFieldElem}:
@@ -48,7 +90,10 @@ julia> coefficients(cc)
  7
 ```
 """
-coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in AbstractAlgebra.coefficients(polynomial(c).f)]
+function coefficients(c::CohomologyClass) 
+  simplify!(c)
+  return collect(coefficients(lift(polynomial(c))))
+end
 
 
 @doc raw"""
@@ -65,22 +110,23 @@ julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> simplify!(cc)
+6*x3 + e1 + 7*e2
 
 julia> exponents(cc)
-[0   0   1   0   0]
-[0   0   0   1   0]
-[0   0   0   0   1]
+3-element Vector{Vector{Int64}}:
+ [0, 0, 1, 0, 0]
+ [0, 0, 0, 1, 0]
+ [0, 0, 0, 0, 1]
 ```
 """
 function exponents(c::CohomologyClass) 
   simplify!(c)
-  matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
+  return collect(exponents(lift(polynomial(c))))
 end
 
-function simplify!(c::CohomologyClass)
-  c.p = simplify(c.p)
-end
 
 @doc raw"""
     polynomial(c::CohomologyClass)
@@ -97,7 +143,10 @@ julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> simplify!(cc)
+6*x3 + e1 + 7*e2
 
 julia> polynomial(cc)
 6*x3 + e1 + 7*e2
@@ -121,7 +170,10 @@ julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = cohomology_class(d)
-Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
+Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
+
+julia> simplify!(cc)
+6*x3 + e1 + 7*e2
 
 julia> R, _ = polynomial_ring(QQ, 5)
 (Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x1, x2, x3, x4, x5])

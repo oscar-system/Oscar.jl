@@ -621,7 +621,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if base_space(model) isa NormalToricVariety && ambient_space(model) isa NormalToricVariety
     
     divs = torusinvariant_prime_divisors(ambient_space(model))
-    cohomology_ring(ambient_space(model); check=false)
+    cohomology_ring(ambient_space(model), completeness_check = false)
     cox_gens = symbols(coordinate_ring(ambient_space(model)))
 
     if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
@@ -629,7 +629,8 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
       @req desired_value in cox_gens "Specified zero section is invalid"
       index = findfirst(==(desired_value), cox_gens)
       set_attribute!(model, :zero_section_index => index::Int)
-      set_attribute!(model, :zero_section_class => cohomology_class(divs[index]))
+      # For performance, do not execute completeness_check when creating zero section
+      set_attribute!(model, :zero_section_class => cohomology_class(divs[index], completeness_check = false))
     end
 
     if haskey(model_dict["model_data"], "exceptional_classes") && base_space(model) isa NormalToricVariety

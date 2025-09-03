@@ -1,5 +1,5 @@
 @doc raw"""
-    tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(w::WeierstrassModel, input_sections::Dict{String, <:Any})
 
 Takes a Weierstrass model `w` and returns a new model in which the tunable
 sections have been fixed to specific values provided by the user.
@@ -12,6 +12,11 @@ Importantly, even if a section is tuned to zero, it is **not removed** from the
 model’s metadata (such as `explicit_model_sections` or `classes_of_model_sections`).
 This ensures the ability to later reintroduce non-trivial values for those sections,
 preserving model flexibility and reversibility.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -164,7 +169,7 @@ end
 
 
 @doc raw"""
-    tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(t::GlobalTateModel, input_sections::Dict{String, <:Any})
 
 Tunes a global Tate model by specifying values for some of its defining sections.
 
@@ -173,6 +178,11 @@ to engineer enhanced singularities. Note that trivial (zero) sections are retain
 rather than deleted from attributes like `explicit_model_sections` or `classes_of_model_sections`.
 This design choice enables users to later reintroduce nontrivial values for such sections
 without loss of structure.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -329,7 +339,7 @@ end
 
 
 @doc raw"""
-    tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any})
 
 Tune a hypersurface model by fixing a special choice for the model sections.
 Note that it is in particular possible to set a section to zero. We anticipate
@@ -337,6 +347,11 @@ that people might want to be able to come back from this by assigning a non-triv
 value to a section that was previously tuned to zero. This is why we keep such
 trivial sections and do not delete them, say from `explicit_model_sections`
 or `classes_of_model_sections`.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -405,6 +420,9 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   secs_names = tunable_sections(h)
   tuned_secs_names = collect(keys(input_sections))
   @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
+  if completeness_check
+    @req is_complete(base_space(h)) "Base space must be complete"
+  end
 
   # 1. Tune model sections
   explicit_secs = deepcopy(explicit_model_sections(h))
