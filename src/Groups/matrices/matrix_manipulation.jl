@@ -107,16 +107,18 @@ julia> permutation_matrix(QQ, s)
 
 ```
 """
-function permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion})
-  @assert Set(Q) == Set(1:length(Q)) "Invalid input"
+function permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion}; check::Bool = true)
+  if check
+    @assert Set(Q) == Set(1:length(Q)) "$Q must be a permutation"
+  end
   Z = zero_matrix(R, length(Q), length(Q))
   for i in 1:length(Q)
-    Z[i, Q[i]] = 1
+    Z[i, Q[i]] = one(R)
   end
   return Z
 end
 
-permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p))
+permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p), check = false)
 
 ########################################################################
 #
