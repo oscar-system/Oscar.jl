@@ -1,7 +1,7 @@
 #=
- Reference Clemens here
-
-
+  Julia interface to the f4ncgb C library for computing noncommutative Groebner bases.
+  Reference: https://arxiv.org/abs/2505.19304, https://gitlab.sai.jku.at/f4ncgb/f4ncgb
+  Original Authors: Max Heisinger and Clemens Hofstadler
 =#
 function f4ncgb_version()
     ret_c = @ccall libf4ncgb.f4ncgb_version()::Cstring
@@ -35,7 +35,7 @@ function f4ncgb_add(handle::Ptr{Cvoid}, polynomial::FreeAssociativeAlgebraElem)
     c = coeff(m, 1)
     d = denominator(c)
     n = numerator(c)
-    f4ncgb_add(handle, Int(n), Int(d), UInt32.(m.exps[1]))
+    f4ncgb_add(handle, Int(n), Int(d), reverse(UInt32.(m.exps[1])))
   end
   f4ncgb_end_poly(handle)
 end
@@ -102,12 +102,12 @@ function f4ncgb_set_tracer(handle::Ptr{Cvoid}, trace::Bool)
 end
 
 mutable struct f4ncgb_polys_helper
-  gens::Vector{FreeAssociativeAlgebraElem{QQFieldElem}}
-  current_poly::FreeAssociativeAlgebraElem{QQFieldElem}
+  gens::Vector{AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}}
+  current_poly::AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}
   parent::FreeAssociativeAlgebra{QQFieldElem}
   function f4ncgb_polys_helper(ring::FreeAssociativeAlgebra{QQFieldElem})
     r = new()
-    r.gens = FreeAssociativeAlgebraElem{QQFieldElem}[]
+    r.gens = AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}[]
     r.parent = ring
     r.current_poly = zero(r.parent)
     return r
@@ -139,7 +139,7 @@ function add_cb(pa::Ptr{Nothing},
   denominator = unsafe_load(pdenominator)
   monomial = P(QQ(numerator,denominator))
   for i in vars
-    monomial *= P[Int(i)]
+    monomial *= P[nvars(P)-Int(i)+1]
   end
   a.current_poly += monomial
   return nothing
@@ -169,7 +169,7 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
 end
 
 function f4ncgb_groebner(x::Vector{<:FreeAssociativeAlgebraElem{QQFieldElem}})
-  @req length(x) > 0 "Fix your shit"
+  @req length(x) > 0 "Vector must not be empty"
   r = parent(first(x))
   handle = f4ncgb_init()
   f4ncgb_set_nvars(handle, UInt32(ngens(r)))
@@ -182,7 +182,3 @@ function f4ncgb_groebner(x::Vector{<:FreeAssociativeAlgebraElem{QQFieldElem}})
   return userdata.gens
 end
 
-#=
-S1 = quantum_symmetric_group(4);
-Oscar.f4ncgb_groebner(gens(S1))
-=#
