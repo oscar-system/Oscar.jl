@@ -583,11 +583,11 @@ julia> total_chern_class(E)
 pushforward(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.codomain, f.pushforward(chern_character(F) * todd_class(f))) # Grothendieck-Hirzebruch-Riemann-Roch
 
 @doc raw"""
-    id_hom(X::AbstractVariety)
+    identity_map(X::AbstractVariety)
 
 Return the identity map on `X`.
 """
-function id_hom(X::AbstractVariety)
+function identity_map(X::AbstractVariety)
   AbstractVarietyMap(X, X, gens(X.ring), MapFromFunc(X.ring, X.ring, identity))
 end
 
@@ -1311,7 +1311,7 @@ hilbert_polynomial(X::AbstractVariety) = hilbert_polynomial(trivial_line_bundle(
 
 # find canonically defined morphism from X to Y
 function _map(X::AbstractVariety, Y::AbstractVariety)
-  X == Y && return id_hom(X)
+  X == Y && return identity_map(X)
   # first handle the case where X is a (fibered) product
   projs = get_attribute(X, :projections)
   if projs !== nothing

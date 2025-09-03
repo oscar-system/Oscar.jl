@@ -51,7 +51,7 @@ function (fac::VerticalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOfMo
   cod_ind = (i, j + (fac.C2.typ == :chain ? -1 : +1))
   cod = dc[cod_ind]
   (iszero(dom) || iszero(cod)) && return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
-  return tensor_product(dom, cod, [id_hom(fac.C1[i]), map(fac.C2, j)])
+  return tensor_product(dom, cod, [identity_map(fac.C1[i]), map(fac.C2, j)])
 end
 
 function can_compute(fac::VerticalTensorMapFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -75,7 +75,7 @@ function (fac::HorizontalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOf
   cod_ind = (i + (fac.C1.typ == :chain ? -1 : +1), j)
   cod = dc[cod_ind]
   (iszero(dom) || iszero(cod)) && return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
-  return tensor_product(dom, cod, [map(fac.C1, i), id_hom(fac.C2[j])])
+  return tensor_product(dom, cod, [map(fac.C1, i), identity_map(fac.C2[j])])
 end
 
 function can_compute(fac::HorizontalTensorMapFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -169,9 +169,9 @@ function (fac::TensorProductMapFactory{T})(HC::AbsHyperComplex, p::Int, i::Tuple
   v[p] = (direction(HC, p) == :chain ? v[p] - 1 : v[p] + 1)
   j = Tuple(v)
   if all(k->i[k] in range(fac.list[k]), 1:d) && all(k->j[k] in range(fac.list[k]), 1:d)
-    map_vec = T[id_hom(fac.list[k][i[k]]) for k in 1:p-1]
+    map_vec = T[identity_map(fac.list[k][i[k]]) for k in 1:p-1]
     push!(map_vec, map(fac.list[p], i[p]))
-    map_vec = vcat(map_vec, T[id_hom(fac.list[k][i[k]]) for k in p+1:d])
+    map_vec = vcat(map_vec, T[identity_map(fac.list[k][i[k]]) for k in p+1:d])
     return hom_tensor(HC[i], HC[j], map_vec)
   end
   dom = HC[i]
@@ -309,9 +309,9 @@ function (fac::HCTensorProductMapFactory{MorphismType})(c::AbsHyperComplex, p::I
   k = findfirst(k->sum(d[1:k]; init=0) >= p, 1:length(j))
   k === nothing && error("direction out of bounds")
   q = p - sum(d[1:k-1]; init = 0)
-  maps = MorphismType[id_hom(fac.factors[l][Tuple(j[l])]) for l in 1:k-1]
+  maps = MorphismType[identity_map(fac.factors[l][Tuple(j[l])]) for l in 1:k-1]
   push!(maps, map(fac.factors[k], q, Tuple(j[k]))) 
-  maps = vcat(maps, MorphismType[id_hom(fac.factors[l][Tuple(j[l])]) for l in k+1:length(j)])
+  maps = vcat(maps, MorphismType[identity_map(fac.factors[l][Tuple(j[l])]) for l in k+1:length(j)])
   return tensor_product(c[I], c[J], maps)
 end
 

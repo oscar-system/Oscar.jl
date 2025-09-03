@@ -311,7 +311,7 @@ end
 
 function (fac::HomComplexMorphismFactory)(self::AbsHyperComplexMorphism, I::Tuple)
   if fac.domain_morphism === nothing && fac.codomain_morphism === nothing
-    return id_hom(domain(self)[I])
+    return identity_map(domain(self)[I])
   end
 
   i = collect(I)
