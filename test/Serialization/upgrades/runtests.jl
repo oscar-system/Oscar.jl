@@ -1,5 +1,5 @@
 @testset "Serialization.Upgrades" begin
-  @testset "< 0.11.3 Upgrade" begin
+  @testset "load containers serialized with 0.11.3" begin
     # test loading
     path = joinpath(Main.serialization_upgrade_test_path, "version_0_11_0", "QQPolyRingElem.mrdi")
     @test load(path) isa QQPolyRingElem
@@ -16,7 +16,7 @@
     @test loaded_container1 == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
   end
 
-  @testset "< 0.12.0 Upgrade" begin
+  @testset "load polynomial serialized with 0.11.3" begin
     # test loading
     path = joinpath(Main.serialization_upgrade_test_path, "version_0_11_3", "fqPolyRepPolyRingElem.mrdi")
     @test load(path) isa fqPolyRepPolyRingElem
@@ -29,14 +29,14 @@
     @test p == loaded_p
   end
 
-  @testset "< 1.2.0 Upgrade" begin
+  @testset "load files serialized with 1.1.0" begin
     # test loading
     loaded = load(joinpath(Main.serialization_upgrade_test_path, "version_1_1_0", "Dict.mrdi"))
     @test loaded isa Dict
     @test length(loaded) == 7
   end
 
-  @testset "< 1.3.0 Upgrade" begin
+  @testset "load files serialized with 1.2.0" begin
     loaded = load(joinpath(Main.serialization_upgrade_test_path, "version_1_2_0", "FqField-1.mrdi"))
     @test loaded isa FqField
     @test order(loaded) == 2
@@ -49,7 +49,7 @@
     @test loaded isa FqMPolyRingElem
   end
 
-  @testset "< 1.4.0 Upgrade" begin
+  @testset "load files serialized with 1.3.0" begin
     test_upgrade_folder("version_1_3_0"; exclude=[
       # upgrading the following is tested in experimental/LieAlgebras/test/Serialization-upgrade-test.jl
       "AbstractLieAlgebra", "AbstractLieAlgebraElem",
@@ -60,7 +60,7 @@
     ])
   end
 
-  @testset "< 1.5.0 Upgrade" begin
+  @testset "load files serialized with 1.5.0" begin
     test_upgrade_folder("version_1_5_0")
   end
 end
