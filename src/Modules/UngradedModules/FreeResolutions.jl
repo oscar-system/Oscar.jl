@@ -694,9 +694,9 @@ RL1^1 <---- RL1^4 <---- RL1^3 <---- 0
 0           1           2           3
 
 julia> minimize(FM1)
-
-RL1^1
-0
+Free resolution of M1
+RL1^1 <---- RL1^4 <---- RL1^3 <---- 0
+0           1           2           3
 
 julia> U2 = complement_of_point_ideal(R, vcat([1], zeros(Int, 11)));
 
@@ -712,9 +712,9 @@ RL2^1 <---- RL2^4 <---- RL2^3 <---- 0
 0           1           2           3
 
 julia> minimize(FM2)
-
-RL2^1
-0
+Free resolution of M2
+RL2^1 <---- RL2^3 <---- RL2^2 <---- 0
+0           1           2           3
 
 ```
 
