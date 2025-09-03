@@ -430,18 +430,16 @@ degree: 0  1  2  3
  total: 2  7  8  3
 
 julia> FMmin = minimize(FM)
-Free resolution of M
-R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
-0         1         2         3         4
+
+R^1
+0
 
 julia> betti(FMmin)
-degree: 0  1  2  3
-------------------
-     0: 1  -  -  -
-     1: -  3  -  -
-     2: -  -  4  2
-------------------
- total: 1  3  4  2
+degree: 0
+---------
+     0: 1
+---------
+ total: 1
 
 julia> FM2 = free_resolution(M, length = 2)
 Free resolution of M
@@ -459,17 +457,16 @@ degree: 0  1  2
  total: 2  7  8
 
 julia> FM2min = minimize(FM2)
-Free resolution of M
-R^1 <---- R^3
-0         1
+
+R^1
+0
 
 julia> betti_table(FM2min)
-degree: 0  1
-------------
-     0: 1  -
-     1: -  3
-------------
- total: 1  3
+degree: 0
+---------
+     0: 1
+---------
+ total: 1
 
 ```
 """
