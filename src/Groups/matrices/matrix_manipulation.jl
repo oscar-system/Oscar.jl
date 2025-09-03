@@ -16,7 +16,7 @@
 ########################################################################
 
 
-"""
+@doc raw"""
     matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem})
 
 Return the matrix whose rows are the vectors in `A`.
@@ -33,7 +33,7 @@ function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <:
    return X
 end
 
-"""
+@doc raw"""
     conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 
 If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
@@ -56,7 +56,7 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 end
 
 
-"""
+@doc raw"""
     complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 
 Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is
@@ -88,7 +88,7 @@ function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra
    return sub(V,_gens)
 end
 
-"""
+@doc raw"""
     permutation_matrix(R::NCRing, Q::AbstractVector{T}) where T <: Int
     permutation_matrix(R::NCRing, p::PermGroupElem)
 
@@ -124,7 +124,7 @@ permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p
 
 # TODO: Move to AbstractAlgebra
 
-"""
+@doc raw"""
     is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
