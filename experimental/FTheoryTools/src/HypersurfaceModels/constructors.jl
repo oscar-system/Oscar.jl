@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem)
 
 Construct a hypersurface model where fiber coordinates transform as sections of line bundles over the base.
 
@@ -13,6 +13,11 @@ Construct a hypersurface model where fiber coordinates transform as sections of 
 The hypersurface equation `p` defines a section of the anti-canonical bundle of the total ambient space and may also be passed as a string for convenience.
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -31,23 +36,23 @@ Hypersurface model over a concrete base
 ```
 """
 function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)  
-  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, string(p); completeness_check = completeness_check)
+  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, string(p); completeness_check)
 end
 
 function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   @req all(toric_variety(c) == bs for c in fiber_twist_divisor_classes) "All fiber divisor classes must belong to be base space"
   if length(fiber_twist_divisor_classes) == n_rays(fiber_ambient_space)
-    return _build_hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, p; completeness_check = completeness_check)
+    return _build_hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, p; completeness_check)
   end
   @req length(fiber_twist_divisor_classes) == 2 "Exactly two fiber twist divisor classes must be provided"
   @req n_rays(fiber_ambient_space) >= 2 "The fiber ambient space must have at least 2 rays"
   new_fiber_twist_divisor_classes = vcat(fiber_twist_divisor_classes, [trivial_divisor_class(bs) for k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))])
-  return _build_hypersurface_model(bs, fiber_ambient_space, new_fiber_twist_divisor_classes, p; completeness_check = completeness_check)
+  return _build_hypersurface_model(bs, fiber_ambient_space, new_fiber_twist_divisor_classes, p; completeness_check)
 end
 
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem)
 
 Construct a hypersurface model where the two fiber coordinates at the given
 `indices` transform as sections of the line bundles associated to the specified
@@ -56,6 +61,11 @@ base divisor classes.
 The polynomial `p`, which encodes the hypersurface equation, can also be passed as a string.
 
 For a full explanation of hypersurface models, see [Hypersurface Models](@ref hypersurface_models).
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
@@ -74,7 +84,7 @@ Hypersurface model over a concrete base
 ```
 """
 function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
-  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, indices, string(p); completeness_check = completeness_check)
+  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, indices, string(p); completeness_check)
 end
 
 function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::String; completeness_check::Bool = true)

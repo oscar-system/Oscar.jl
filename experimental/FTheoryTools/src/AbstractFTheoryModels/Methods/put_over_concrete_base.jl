@@ -1,9 +1,14 @@
 @doc raw"""
-    put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
+    put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any})
 
 Put an F-theory model defined over a family of spaces over a concrete base.
 
 Currently, this functionality is limited to Tate and Weierstrass models.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest

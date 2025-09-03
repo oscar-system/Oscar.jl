@@ -125,26 +125,26 @@ end
 ### Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################
 
-@attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_integral(special_flux_family(m, check = check))
+@attr QQMatrix function matrix_integral_quant_transverse(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return matrix_integral(special_flux_family(m, completeness_check))
 end
 
-@attr QQMatrix function matrix_rational_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_rational(special_flux_family(m, check = check))
+@attr QQMatrix function matrix_rational_quant_transverse(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return matrix_rational(special_flux_family(m, completeness_check))
 end
 
-@attr Vector{QQFieldElem} function offset_quant_transverse(m::AbstractFTheoryModel; check::Bool = true)
-  return offset(special_flux_family(m, check = check))
+@attr Vector{QQFieldElem} function offset_quant_transverse(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return offset(special_flux_family(m, completeness_check))
 end
 
-@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_integral(special_flux_family(m, not_breaking = true; check = check))
+@attr QQMatrix function matrix_integral_quant_transverse_nobreak(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return matrix_integral(special_flux_family(m, not_breaking = true; completeness_check))
 end
 
-@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
-  return matrix_rational(special_flux_family(m, not_breaking = true; check = check))
+@attr QQMatrix function matrix_rational_quant_transverse_nobreak(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return matrix_rational(special_flux_family(m, not_breaking = true; completeness_check))
 end
 
-@attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(m::AbstractFTheoryModel; check::Bool = true)
-  return offset(special_flux_family(m, not_breaking = true; check = check))
+@attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(m::AbstractFTheoryModel; completeness_check::Bool = true)
+  return offset(special_flux_family(m, not_breaking = true; completeness_check))
 end
