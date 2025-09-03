@@ -341,16 +341,38 @@ end
 =#
 function simplify(c::FreeResolution{T}) where T
   M = c[-1] # the module to be resolved
-  res, aug = free_resolution(SimpleFreeResolution, M)
-  simp = simplify(res)
-  to = map_to_original_complex(simp)
-  new_aug = compose(to[0], aug[0])
+  sub_comp = c.C[0:1] # the two-term complex for the presentation
+  sub_simp = simplify(SimpleComplexWrapper(sub_comp))
+  to = map_to_original_complex(sub_simp)
+  from = map_from_original_complex(sub_simp)
+  new_aug = compose(to[0], map(c, 0))
   C = ComplexOfMorphisms(T, FreeModuleHom[new_aug]; typ=:chain, seed=-1, check=false)
+  set_attribute!(C, :zip_map=>from[0])#compose(from[1], map(sub_simp, 1)))
   C.fill = function(C::ComplexOfMorphisms, k::Int)
     k0 = first(chain_range(C))
-    for i in k0+1:k
-      pushfirst!(C.maps, map(simp, i))
+    k0 < k-1 && C[k-1] # Make sure the complex is filled
+    if is_zero(c[k])
+      Z = c[k]
+      cod = domain(first(C.maps))
+      pushfirst!(C.maps, hom(Z, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(Z)]))
+      set_attribute!(C, :zip_map => nothing)
+      set_attribute!(C, :complete => true)
+      C.complete = true
+      return first(C.maps)
     end
+    zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+    @assert domain(zip_map) === c[k-1]
+    @assert codomain(zip_map) === C[k-1]
+    tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
+    @assert tmp[k-1] === domain(zip_map) === c[k-1]
+    @assert tmp[k] === c[k]
+    @assert tmp[k+1] === c[k+1]
+    @assert C[k-1] === codomain(zip_map)
+    tmp_simp = simplify(SimpleComplexWrapper(tmp))
+    new_map = compose(compose(map(tmp_simp, k), map_to_original_complex(tmp_simp)[k-1]), zip_map)
+    @assert codomain(new_map) === C[k-1]
+    pushfirst!(C.maps, new_map)
+    set_attribute!(C, :zip_map=>map_from_original_complex(tmp_simp)[k])
     C.complete = is_zero(domain(first(C.maps)))
     return first(C.maps)
   end
