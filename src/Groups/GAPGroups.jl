@@ -968,11 +968,12 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), bound::T = ZZRingElem(-1)) where T <: IntegerUnion
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where (T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}
 
 Return a vector of all conjugacy classes of subgroups of `G` or,
 if `order` is positive, the classes of subgroups of this order, or,
-if `bound` is positive, the classes of subgroups of order up to `bound`.
+if `order_bound` is an integer,
+the classes of subgroups of order up to `order_bound`.
 
 # Examples
 ```jldoctest
@@ -990,16 +991,16 @@ julia> subgroup_classes(G, order = ZZRingElem(2))
 1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
 
-julia> subgroup_classes(G, bound = 3)
+julia> subgroup_classes(G, order_bound = 3)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
  Conjugacy class of Alt(3) in G
 ```
 """
-function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), bound::S = ZZRingElem(-1)) where {T <: IntegerUnion, S <: IntegerUnion}
-  if bound != -1
-    gapbound = GAP.Obj(bound)
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where {T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}}
+  if order_bound != inf
+    gapbound = GAP.Obj(order_bound)
     l = GAP.Globals.LatticeByCyclicExtension(GapObj(G),
             GapObj(x -> Oscar.GAPWrap.Size(x) <= gapbound))
   else
