@@ -340,53 +340,21 @@ end
 # differently.
 =#
 function simplify(c::FreeResolution{T}) where T
-  if is_complete(c)
-    cut_off = length(c)+1
-  else
-    cut_off = length(c)
-  end
-  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
-  phi = map_to_original_complex(simp)
-  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
-  # fill the cache from behind (usually faster)
-  for i in cut_off:-1:0
-    simp[i]
-  end
-
-  # treat the augmentation map
-  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
-
-  # Fill in the remaining maps.
-  # If the resulting resolution is already complete, 
-  # preserve that information. The minimization might 
-  # also become complete, even though the original resolution 
-  # was not. In case we end up with a non-complete minimal 
-  # resolution, avoid storing the last map, as it can not be 
-  # properly minimized, yet. 
-  for j in 1:cut_off-1
-    psi = map(simp, j)
-    pushfirst!(result.maps, psi)
-    if is_zero(domain(psi))
-      result.complete = true
-      break
+  M = c[-1] # the module to be resolved
+  res, aug = free_resolution(SimpleFreeResolution, M)
+  simp = simplify(res)
+  to = map_to_original_complex(simp)
+  new_aug = compose(to[0], aug[0])
+  C = ComplexOfMorphisms(T, FreeModuleHom[new_aug]; typ=:chain, seed=-1, check=false)
+  C.fill = function(C::ComplexOfMorphisms, k::Int)
+    k0 = first(chain_range(C))
+    for i in k0+1:k
+      pushfirst!(C.maps, map(simp, i))
     end
+    return first(C.maps)
   end
-
-  # the last map needs special treatment
-  psi = map(simp, cut_off)
-  if is_zero(domain(psi))
-    pushfirst!(result.maps, psi)
-    result.complete = true
-  end
-  set_attribute!(result, 
-                 :show=>Hecke.pres_show, 
-                 :free_res=>get_attribute(c.C, :free_res)
-                )
-  result.fill = c.C.fill
-  if result.fill == _extend_free_resolution
-    set_attribute!(result, :algorithm => :mres)
-  end
-  return FreeResolution(result)
+  set_attribute!(C, :minimal => true)
+  return FreeResolution(C)
 end
 
 # An alias to cater for the common phrasing of the CA community:
