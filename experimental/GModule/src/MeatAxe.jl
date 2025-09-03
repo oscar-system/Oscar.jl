@@ -90,7 +90,7 @@ function _try_perm_character!(res::Vector{GModule}, t::Vector{Bool}, G::GAPGroup
 end
 
 
-function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}} = nothing)
+function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
   if is_abelian(G)
     return Oscar.GModuleFromGap._irred_abelian(G)
   end
@@ -181,7 +181,7 @@ function gmodule_new(G::Group; limit::Int = 100, t::Union{Nothing, Vector{Bool}}
             for_i = [x for x = good_K if !x[3][ii]]
             sort!(for_i, lt = (a,b) -> a[2] < b[2])
             rand_G = [rand(G) for i=1:20]
-            @show for_i
+            @show length(for_i)
             K = for_i[1][1]
             if for_i[1][2] == 0
               @show "oh shit"
@@ -349,10 +349,13 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   # (and which) elements of G generate phi(QQ[G]).
   # Not having enough will meant preimage will fail to work
   # in the trace_condense...(where we try to compute more action)
+  #TODO: sanity: for everything in rG, the traces will be "for free"
+  #      as the action is already computed. so use it?
   rG = vcat(gens(G), [rand(G) for i=1:extra])
   return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))) for g = rG]), ms, phi
 end
 
+#plain, vanilla spin, slow
 function spin(C::GModule, v::Vector)
   s, ms = sub(C.M, v)
   v = map(ms, gens(s))
@@ -376,6 +379,10 @@ end
 
 #same as above, but bypass modules and work with matrices directly
 function spin2(C::GModule, v::Vector; limit::Int = 50)
+  #TODO: not use action(C, g, ...) but C.ac[1] in some form
+  #      this might also work for non groups!
+  #TODO: use similar for condensation?
+  G = group(C)
   s = vcat([x.v for x = v]...)
   r = rref!(s)  
   piv = Int[]
@@ -386,59 +393,61 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
     end
     push!(piv, i)
   end
+  new = []
+  if base_ring(C) == QQ
+    for i = 1:r
+      t = s[i:i, :]
+      mul!(t, inv(content(t)))
+      st = maximum(nbits, t)
+      for g = gens(G)
+        push!(new, (t, g, st))
+      end
+    end
+  end
 
-  done = false
   x = zero_matrix(QQ, 1, ncols(s))
-  while !done
-    done = true
-    for m = 1:r, g = gens(group(C))
-      #(bad) strategy: for each basis element (row in s) test if the image
-      #is also in.
-      #non-trivial part: use reduce_mod! as a membership test 
-      #  ... and insert the reduced vector into the correct row
-      #  of s - to not redo the rref
-      #possibly not test the same row/ gen combination over and over?
-      #might be tricky as elements change due to reduction to the top
-      #maybe not do this? (the reduce_mod! below). For the spin we don't need
-      #it, for the upper reduce_mod! (membership) neither ...
-      mul!(x, view(s, m:m, :), matrix(action(C, g)))  #if action is matrix free...
-      reduce_mod!(x, view(s, 1:r, :))
-      if is_zero(x)
-        continue
-      end
-      done = false
-      i = 1
-      while is_zero_entry(x, 1, i)
-        i += 1
-      end
-      mul!(x, inv(x[1, i]))
-      ta = searchsorted(piv, i)
-      @assert length(ta) == 0
-      if first(ta) == 1
-        pushfirst!(piv, i)
-        s = vcat(x, view(s, 1:r, :))
-      elseif first(ta) <= r
-        insert!(piv, first(ta), i)
-        _s = view(s, 1:first(ta)-1, :)
-        reduce_mod!(_s, x)
-        s = vcat(_s, x, view(s, first(ta):r, :))
-      else
-        push!(piv, i)
-        _s = view(s, 1:r, :)
-        reduce_mod!(_s, x)
-        s = vcat(_s, x)
-      end
-      if nrows(s) > limit
-        return C
-      end
-      r += 1
-      @show size(s)
+  while length(new) > 0
+    sort!(new, lt = (a,b) -> a[3] > b[3])
+    m, g, sm = pop!(new) #order matters! try to use small elements...
+    mul!(x, m, matrix(action(C, g)))  #if action is matrix free...
+    reduce_mod!(x, view(s, 1:r, :))
+    if is_zero(x)
+      continue
+    end
+    i = 1
+    while is_zero_entry(x, 1, i)
+      i += 1
+    end
+    mul!(x, inv(x[1, i]))
+    ta = searchsorted(piv, i)
+    @assert length(ta) == 0
+    if first(ta) == 1
+      pushfirst!(piv, i)
+      s = vcat(x, view(s, 1:r, :))
+    elseif first(ta) <= r
+      insert!(piv, first(ta), i)
+      _s = view(s, 1:first(ta)-1, :)
+      reduce_mod!(_s, x)
+      s = vcat(_s, x, view(s, first(ta):r, :))
+    else
+      push!(piv, i)
+      _s = view(s, 1:r, :)
+      reduce_mod!(_s, x)
+      s = vcat(_s, x)
+    end
+    if nrows(s) > limit
+      return C
+    end
+    xx = x * inv(content(x))
+    sx = maximum(nbits, xx)
+    for g = gens(G)
+      push!(new, (xx, g, sx))
+    end
+    r += 1
 #      _x = rref(s)
 #      @show x[2] - s
 #      @assert _x[1] == r
 #      @assert _x[2] == s
-      break
-    end
   end
   v = [C.M(collect(view(s, i, :))) for i=1:r]
   ss, mss = sub(C.M, v)
