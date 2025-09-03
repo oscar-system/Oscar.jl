@@ -162,13 +162,29 @@ julia> length(moved_points(gen(s, 1)))
 """
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
 
-"""
-    fixed_points(G::PermGroup)
+@doc raw"""
+    fixed_points(G::PermGroup) -> Vector{Int}
 
-Return the list of fixed points of the permutation group `G`.
+Return the list of fixed points of the permutation group `G`.  
 A fixed point is an integer in `1:degree(G)` that is not moved by any element of `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> fixed_points(s)
+Int64[]
+
+julia> fixed_points(one(s))
+4-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+
 """
-fixed_points(G::PermGroup) = setdiff!(1:degree(G), moved_points(G))
+fixed_points(G::PermGroup) = setdiff!(collect(1:degree(G)), moved_points(G))
+
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int

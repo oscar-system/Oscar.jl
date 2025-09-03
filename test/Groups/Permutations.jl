@@ -430,7 +430,7 @@ end
 
 @testset "fixed_points" begin
   # Trivial group (only identity) -- all points fixed
-  G = group((), 1:5)
+  G = group(@perm(()), 1:5)
   @test sort(fixed_points(G)) == [1, 2, 3, 4, 5]
 
   # Full symmetric group -- no points fixed
