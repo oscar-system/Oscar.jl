@@ -430,9 +430,9 @@ degree: 0  1  2  3
  total: 2  7  8  3
 
 julia> FMmin = minimize(FM)
-
-R^1 <---- R^3 <---- R^4 <---- R^2
-0         1         2         3
+Free resolution of M
+R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
+0         1         2         3         4
 
 julia> betti(FMmin)
 degree: 0  1  2  3
@@ -459,7 +459,7 @@ degree: 0  1  2
  total: 2  7  8
 
 julia> FM2min = minimize(FM2)
-
+Free resolution of M
 R^1 <---- R^3
 0         1
 
@@ -485,6 +485,16 @@ function minimize(c::FreeResolution; check::Bool=true)
   cm = simplify(c)
   set_attribute!(cm.C, :minimal=>true)
   cm[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
+  set_attribute!(cm.C,
+                 :show=>Hecke.pres_show,
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  k0 = first(chain_range(c))
+  if is_zero(c[k0])
+    cod = cm[k0-1]
+    pushfirst!(cm.C.maps, hom(c[k0], cod, elem_type(cod)[zero(cod) for _ in 1:ngens(c[k0])]))
+    cm.C.complete=true
+  end
   return cm
 end
 
