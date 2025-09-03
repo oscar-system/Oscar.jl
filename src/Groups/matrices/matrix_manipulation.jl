@@ -113,7 +113,7 @@ function permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion}; check:
   end
   Z = zero_matrix(R, length(Q), length(Q))
   for i in 1:length(Q)
-    Z[i, Q[i]] = one(R)
+    Z[i, Q[i]] = 1
   end
   return Z
 end
