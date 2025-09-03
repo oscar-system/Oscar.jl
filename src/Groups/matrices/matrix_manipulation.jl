@@ -97,10 +97,10 @@ If `Q` is a sequence, then `Q` must contain exactly once every integer from 1 to
 
 # Examples
 ```jldoctest
-julia> s = perm([3,1,2])
+julia> s = perm([3, 1, 2])
 (1,3,2)
 
-julia> permutation_matrix(QQ,s)
+julia> permutation_matrix(QQ, s)
 [0   0   1]
 [1   0   0]
 [0   1   0]
@@ -108,10 +108,12 @@ julia> permutation_matrix(QQ,s)
 ```
 """
 function permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion})
-   @assert Set(Q)==Set(1:length(Q)) "Invalid input"
-   Z = zero_matrix(R,length(Q),length(Q))
-   for i in 1:length(Q) Z[i,Q[i]] = 1 end
-   return Z
+  @assert Set(Q) == Set(1:length(Q)) "Invalid input"
+  Z = zero_matrix(R, length(Q), length(Q))
+  for i in 1:length(Q)
+    Z[i, Q[i]] = 1
+  end
+  return Z
 end
 
 permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p))
