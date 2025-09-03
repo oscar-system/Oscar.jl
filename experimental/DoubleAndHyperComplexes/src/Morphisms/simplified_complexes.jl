@@ -377,6 +377,7 @@ function simplify(c::FreeResolution{T}) where T
     return first(C.maps)
   end
   set_attribute!(C, :minimal => true)
+  C[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
   C.complete = is_zero(domain(first(C.maps)))
   return FreeResolution(C)
 end
@@ -431,15 +432,17 @@ degree: 0  1  2  3
 
 julia> FMmin = minimize(FM)
 
-R^1
-0
+R^1 <---- R^3 <---- R^4 <---- R^2
+0         1         2         3
 
 julia> betti(FMmin)
-degree: 0
----------
-     0: 1
----------
- total: 1
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
 
 julia> FM2 = free_resolution(M, length = 2)
 Free resolution of M
@@ -458,15 +461,16 @@ degree: 0  1  2
 
 julia> FM2min = minimize(FM2)
 
-R^1
-0
+R^1 <---- R^3
+0         1
 
 julia> betti_table(FM2min)
-degree: 0
----------
-     0: 1
----------
- total: 1
+degree: 0  1
+------------
+     0: 1  -
+     1: -  3
+------------
+ total: 1  3
 
 ```
 """
