@@ -1,5 +1,5 @@
 @testset "Serialization.Upgrades" begin
-  @testset "< 1.4.0 Upgrade" begin
+  @testset "load Lie Algebra files serialized wtih 1.3.0" begin
     test_upgrade_folder("version_1_3_0";
       only=[
         "AbstractLieAlgebra",
