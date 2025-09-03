@@ -181,8 +181,7 @@ julia> fixed_points(one(s))
  2
  3
  4
- ```
-
+```
 """
 fixed_points(G::PermGroup) = setdiff!(collect(1:degree(G)), moved_points(G))
 
