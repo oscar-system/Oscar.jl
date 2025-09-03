@@ -55,9 +55,6 @@ function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
   print(io, " with states ", string(M.states))
 end
 
-# TODO: Allow the ground field to be specified!
-# TODO: Should this return MarkovRing instead which manages the MPolyRing
-# together with its generators and any special form they may have.
 @doc raw"""
      model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
@@ -88,10 +85,9 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
   random_variables = 1:n_states(M)
   state_spaces = [1:s for s in states(M)]
   varindices = collect(Iterators.product(state_spaces...))
-  gen_names = [["$(varnames(M)[:p])[$(join(i, ", "))]" for i in varindices]...]
 
-  # the base ring should come from the model, leaving as QQ for now
-  return model_ring(QQ, gen_names)
+  # TODO: the base ring should come from the model, leaving as QQ for now
+  return model_ring(QQ, varnames(M)[:p] => varindices)
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
@@ -155,14 +151,14 @@ Ring homomorphism
   from multivariate polynomial ring in 8 variables over QQ
   to multivariate polynomial ring in 8 variables over QQ
 defined by
-  p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
-  p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
-  p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
-  p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
-  p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
-  p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
-  p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
-  p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+  p[1,1,1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
+  p[2,1,1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
+  p[1,2,1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
+  p[2,2,1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
+  p[1,1,2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
+  p[2,1,2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
+  p[1,2,2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
+  p[2,2,2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 ```
 """
 
@@ -170,13 +166,9 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
   G = graph(M)
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
-  # TODO: At this point it would be nice to have the MarkovRing available
-  # (e.g., returned from model_ring instead of the inner MPolyRing) so that
-  # we could ask what the index s of a given generator "p[s]" is. Right now,
-  # we fall back to computing this index.
   images = []
-  for p in gens(S)
-    s = findfirst(q -> q == p, pd)
+  for p in gens(_ring(S))
+    s = S[p] # get label of the variable
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[k[1]]))
   end
   hom(S, R, images)
