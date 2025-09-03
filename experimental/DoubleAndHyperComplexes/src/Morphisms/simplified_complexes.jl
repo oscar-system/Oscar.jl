@@ -377,7 +377,6 @@ function simplify(c::FreeResolution{T}) where T
     return first(C.maps)
   end
   set_attribute!(C, :minimal => true)
-  C[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
   C.complete = is_zero(domain(first(C.maps)))
   return FreeResolution(C)
 end
@@ -485,6 +484,7 @@ function minimize(c::FreeResolution; check::Bool=true)
   end
   cm = simplify(c)
   set_attribute!(cm.C, :minimal=>true)
+  cm[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
   return cm
 end
 
