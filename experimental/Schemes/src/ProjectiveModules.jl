@@ -37,7 +37,7 @@ function is_projective(M::SubquoModule; check::Bool=true)
 end
 
 function is_projective(M::FreeMod; check::Bool=true)
-  return true, id_hom(M), id_hom(M)
+  return true, identity_map(M), identity_map(M)
 end
 ###
 # Given a presentation matrix A for a module M over a ring R,

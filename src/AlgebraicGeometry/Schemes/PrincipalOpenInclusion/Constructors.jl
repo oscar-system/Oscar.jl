@@ -4,7 +4,7 @@ function complement(X::AbsAffineScheme, h::Vector)
   U = PrincipalOpenSubset(X, h)
   f = morphism(U, X, gens(OO(X)), check=false)
   inc = PrincipalOpenEmbedding(f, h)
-  inc.inverse_on_image = id_hom(U)
+  inc.inverse_on_image = identity_map(U)
   inc.image = U
   return U, inc
 end

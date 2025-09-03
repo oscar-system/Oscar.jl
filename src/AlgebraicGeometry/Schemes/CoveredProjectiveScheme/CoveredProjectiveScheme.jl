@@ -153,8 +153,8 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   tr = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing}()
   #W = AffineSchemeOpenSubscheme(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
-  #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, id_hom(W), id_hom(W)),
-                                 #inc, inc, id_hom(PW), id_hom(PW))
+  #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, identity_map(W), identity_map(W)),
+                                 #inc, inc, identity_map(PW), identity_map(PW))
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 

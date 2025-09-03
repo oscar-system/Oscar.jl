@@ -465,7 +465,7 @@ function ZF_basis(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
 
   #initialize
   N = Np
-  h_N = id_hom(N)
+  h_N = identity_map(N)
   B = Vector{T}() # empty vector of k[ZF]-basis 
 
   for g in gens(Np)
@@ -767,7 +767,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
   Mi = M # current module in resolution
 
   #initialize
-  gi = id_hom(Mi)
+  gi = identity_map(Mi)
   irreducible_sums = Vector{InjMod}()
   cochain_maps = Vector{SubQuoHom}()
 

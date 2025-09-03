@@ -264,7 +264,7 @@ julia> inclusion_morphisms(pr_mor)
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
   if is_empty(X)
-    return (X, id_hom(X), typeof(id_hom(X))[])
+    return (X, identity_map(X), typeof(identity_map(X))[])
   end
   irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
   inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]), irred_comps_sheaf[i])

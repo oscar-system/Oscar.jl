@@ -3,7 +3,7 @@
 ########################################################################
 
 @doc raw"""
-    id_hom(C::Covering) -> CoveringMorphism
+    identity_map(C::Covering) -> CoveringMorphism
 
 Given a covering `C`, return the covering morphism given as the identity
 on each patch of `C`.
@@ -27,7 +27,7 @@ Covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> id_hom(C)
+julia> identity_map(C)
 Covering morphism
   from covering with 3 patches
     1a: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
@@ -51,10 +51,10 @@ given by the pullback functions
     (y//z) -> (y//z)
 ```
 """
-function id_hom(C::Covering)
+function identity_map(C::Covering)
   map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
-    map_dict[U] = id_hom(U)
+    map_dict[U] = identity_map(U)
   end
   return CoveringMorphism(C, C, map_dict, check=false)
 end

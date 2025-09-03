@@ -319,15 +319,15 @@ cases are implemented; see the source code for details.
 """
 function common_refinement(C::Covering, D::Covering)
   if C === D
-    phi = id_hom(C)
+    phi = identity_map(C)
     return C, phi, phi
   end
 
   success, phi = is_refinement(C, D)
-  success && return C, id_hom(C), phi
+  success && return C, identity_map(C), phi
 
   success, phi = is_refinement(D, C)
-  success && return D, phi, id_hom(D)
+  success && return D, phi, identity_map(D)
 
   error("case not implemented")
   # We still need to adjust the code below.
@@ -340,14 +340,14 @@ function common_refinement(C::Covering, D::Covering)
     if has_ancestor_in(patches(D), U)
       f, _ = _find_chart(U, D)
       map_dict_D[U] = f
-      map_dict_C[U] = id_hom(U)
+      map_dict_C[U] = identity_map(U)
     end
   end
   for U in dirty_D
     if has_ancestor_in(patches(C), U)
       f, _ = _find_chart(U, C)
       map_dict_C[U] = f
-      map_dict_D[U] = id_hom(U)
+      map_dict_D[U] = identity_map(U)
     end
   end
 

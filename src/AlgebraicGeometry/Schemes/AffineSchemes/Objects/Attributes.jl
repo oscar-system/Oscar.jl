@@ -535,7 +535,7 @@ julia> reduced_scheme(Y)
 """
 @attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
-    return X, id_hom(X)
+    return X, identity_map(X)
   end
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
@@ -547,7 +547,7 @@ end
 
 @attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
-    return X, id_hom(X)
+    return X, identity_map(X)
   end
   J = radical(modulus(OO(X)))
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)

@@ -242,7 +242,7 @@ function produce_restriction_map(F::SheafOfModules, V::PrincipalOpenSubset, U::P
   MD = F.ID
   MG = F.MG
   X = scheme(F)
-  V === U && return id_hom(F(U))
+  V === U && return identity_map(F(U))
 
   if V === ambient_scheme(U)
     return hom(F(V), F(U), gens(F(U)), OO(X)(V, U)) # If this had been more complicated, it would have been cached.
@@ -427,7 +427,7 @@ function produce_restriction_map(F::SheafOfModules, V::SimplifiedAffineScheme, U
   MD = F.ID
   MG = F.MG
   X = scheme(F)
-  V === U && return id_hom(F(U))
+  V === U && return identity_map(F(U))
 
   if V === original(U)
     return hom(F(V), F(U), gens(F(U)), OO(X)(V, U)) # If this had been more complicated, it would have been cached.

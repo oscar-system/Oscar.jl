@@ -102,7 +102,7 @@ information on the decomposition of the new scheme into disjoint components.
       check::Bool=true
     )
     @check is_normal(X) "not a normalization morphism"
-    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,[id_hom(X)])
+    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,[identity_map(X)])
     return ret_value    
   end
 

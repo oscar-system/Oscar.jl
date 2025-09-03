@@ -140,7 +140,7 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
                             )
 end
 
-id_hom(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
+identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         hom(homogeneous_coordinate_ring(P),
                                                             homogeneous_coordinate_ring(P),
                                                             gens(homogeneous_coordinate_ring(P)),

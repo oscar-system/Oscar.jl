@@ -5,7 +5,7 @@
 ### This type has no external constructors.
 
 @doc raw"""
-    id_hom(X::AbsCoveredScheme) -> AbsCoveredSchemeMorphism
+    identity_map(X::AbsCoveredScheme) -> AbsCoveredSchemeMorphism
 
 Given a covered scheme `X`, return the identity map of `X` seen as a
 covered scheme morphism.
@@ -28,7 +28,7 @@ with default covering
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
-julia> id_hom(Xcov)
+julia> identity_map(Xcov)
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
     1a: [(x//z), (y//z)]   scheme((y//z), (x//z))
@@ -40,9 +40,9 @@ given by the pullback function
     (y//z) -> 0
 ```
 """
-@attr AbsCoveredSchemeMorphism function id_hom(X::AbsCoveredScheme)
+@attr AbsCoveredSchemeMorphism function identity_map(X::AbsCoveredScheme)
   C = default_covering(X)
-  id_cov = id_hom(C)
+  id_cov = identity_map(C)
   result = CoveredSchemeMorphism(X, X, id_cov)
   set_attribute!(result, :inverse, result)
   return result

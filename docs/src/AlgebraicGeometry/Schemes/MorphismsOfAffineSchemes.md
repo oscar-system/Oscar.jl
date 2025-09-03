@@ -19,7 +19,7 @@ morphism(X::AbsAffineScheme, Y::AbsAffineScheme, f::Vector{<:RingElem}; check::B
 ### Special constructors 
 
 ```@docs
-id_hom(X::AbsAffineScheme{<:Any, <:MPolyRing})
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing})
 inclusion_morphism(X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
 compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
 restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme)
