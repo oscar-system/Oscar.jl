@@ -15,7 +15,7 @@ function solve_mixed(
 
   permit_unbounded && return (pm_object(polyhedron((-C, _vec(-d)), (A, _vec(b)))).LATTICE_POINTS_GENERATORS)[1][:, 2:end]
 
-  P = polyhedron((-C, _vec(-d)), (A, _vec(b)); is_bounded=true)
+  P = polyhedron((-C, _vec(-d)), (A, _vec(b)); is_bounded= check ? nothing : true)
   return lattice_points(P; check)
 end
 
