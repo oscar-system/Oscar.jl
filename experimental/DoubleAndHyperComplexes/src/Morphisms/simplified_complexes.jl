@@ -351,9 +351,11 @@ function simplify(c::FreeResolution{T}) where T
     for i in k0+1:k
       pushfirst!(C.maps, map(simp, i))
     end
+    C.complete = is_zero(domain(first(C.maps)))
     return first(C.maps)
   end
   set_attribute!(C, :minimal => true)
+  C.complete = is_zero(domain(first(C.maps)))
   return FreeResolution(C)
 end
 
