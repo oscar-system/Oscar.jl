@@ -131,6 +131,16 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
 end
 
 @doc raw"""
+    vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L} where L
+
+The vanishing ideal is toric of an undirected discrete graphical model
+is toric. Therefore its `vanishing_ideal` method defaults to `algorithm=:markov`.
+"""
+function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
+  vanishing_ideal(M; algorithm=:markov)
+end
+
+@doc raw"""
   parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the
