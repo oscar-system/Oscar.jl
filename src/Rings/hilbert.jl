@@ -117,33 +117,36 @@ end
 
 function lcm(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  return PP(maximum.(zip(t1.expv,t2.expv)))
+  expv = [@inbounds max(t1[i], t2[i]) for i in 1:length(t1)]
+  return PP(expv)
 end
 
 function gcd(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  return PP(minimum.(zip(t1.expv,t2.expv)))
+  expv = [@inbounds min(t1[i], t2[i]) for i in 1:length(t1)]
+  return PP(expv)
 end
 
 function gcd3(t1::PP, t2::PP, t3::PP)
   # ASSUMES: length(t1) == length(t2) == length(t3)
-  return PP(minimum.(zip(t1.expv,t2.expv,t3.expv)))
+  expv = [@inbounds min(t1[i], t2[i], t3[i]) for i in 1:length(t1)]
+  return PP(expv)
 end
 
 
 # Computes t1/gcd(t1,t2)
 function colon(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  colon_exp = (exp1,exp2)::Tuple{Int,Int} -> (exp1 <= exp2) ? 0 : (exp1-exp2)
-  return PP(colon_exp.(zip(t1.expv,t2.expv)))
+  expv = [@inbounds max(0, t1[i]-t2[i]) for i in 1:length(t1)]
+  return PP(expv)
 end
 
 
 # Computes t1/gcd(t1,t2^infty)
 function saturatePP(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  saturate_exp = (exp1,exp2)::Tuple{Int,Int} -> (exp2 > 0) ? 0 : exp1
-  return PP(saturate_exp.(zip(t1.expv,t2.expv)))
+  expv = [@inbounds t2[i] == 0 ? t1[i] : 0 for i in 1:length(t1)]
+  return PP(expv)
 end
 
 # Computes radical = product of vars which divide t
