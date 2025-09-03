@@ -26,7 +26,7 @@ julia> pairwise_markov(G)
 """
 function pairwise_markov(G::Graph{Undirected})::Vector{CIStmt}
   n = n_vertices(G)
-  [ci_stmt([i], [j], setdiff(V, [i,j])) for i in 1:n for j in (i+1):n
+  [ci_stmt(i, j, setdiff(1:n, [i,j])) for i in 1:n for j in (i+1):n
     if !has_edge(G, i, j)]
 end
 
@@ -62,7 +62,7 @@ julia> local_markov(G)
 """
 function local_markov(G::Graph{Undirected})::Vector{CIStmt}
   n = n_vertices(G)
-  unique([ci_stmt([i], [j], neighbors(G, i)) for i in 1:n for j in 1:n
+  unique([ci_stmt(i, j, neighbors(G, i)) for i in 1:n for j in 1:n
           if i != j && !has_edge(G, i, j)])
 end
 
@@ -184,6 +184,19 @@ function is_acyclic(G::Graph{Directed})::Bool
   return true
 end
 
+function topological_sort(G::Graph{Directed})::Vector{Int}
+  @req is_acyclic(G) "the digraph must be acyclic"
+  degrees = indegree(G)
+  todo = findall(i -> degrees[i] == 0, vertices(G))
+  ordering = Int[]
+  while !isempty(todo)
+    v = popfirst!(todo)
+    push!(ordering, v)
+    append!(todo, [c for c in children(G, v) if all(w -> w in ordering, parents(G, c))])
+  end
+  return ordering
+end
+
 function descendants(G::Graph{Directed}, i::Int)::Set{Int}
   V = vertices(G)
   d = Set{Int}(i)
@@ -227,7 +240,7 @@ function pairwise_markov(G::Graph{Directed})::Vector{CIStmt}
   for i in V
     nd = nondescendants(G, i)
     B = setdiff(nd, parents(G, i))
-    append!(stmts, [ci_stmt([i], [j], setdiff(nd, j)) for j in B])
+    append!(stmts, [ci_stmt(i, j, setdiff(nd, j)) for j in B])
   end
   unique(stmts)
 end
@@ -258,7 +271,7 @@ function local_markov(G::Graph{Directed})::Vector{CIStmt}
   for i in V
     pa = parents(G, i)
     B = setdiff(nondescendants(G, i), pa)
-    append!(stmts, [ci_stmt([i], [j], pa) for j in B])
+    append!(stmts, [ci_stmt(i, j, pa) for j in B])
   end
   unique(stmts)
 end

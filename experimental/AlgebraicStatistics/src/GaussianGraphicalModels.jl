@@ -242,6 +242,36 @@ function error_covariance_matrix(M::GaussianGraphicalModel{MixedGraph, L}) where
   return W
 end
 
+function principal_minor(A::Generic.MatSpaceElem, K::Vector{Int})::MPolyRingElem
+  det(A[K,K])
+end
+
+@doc raw"""
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L} where L
+
+By a theorem of Boege, Kubjas, Misra and Solus, the vanishing ideal of a directed
+acyclic Gaussian graphical model can be computed by saturating the conditional
+independence ideal of its ordered pairwise Markov property at the principal minors
+corresponding to all parent sets in the graph. This saturation-based approach
+usually outperforms the elimination-based default for generic graphical models.
+"""
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
+  @req is_acyclic(graph(M)) "the digraph must be acyclic"
+  G = graph(M)
+  S, _ = model_ring(M)
+  A = covariance_matrix(M)
+  U = foldr(product,
+            [powers_of_element(principal_minor(A, parents(G, v))) for v in vertices(G)];
+            init=powers_of_element(S(1)))
+  # An especially small Markov property
+  T = topological_sort(G)
+  J = ideal(S, [ci_polynomial(A, ci_stmt(T[i], T[j], parents(G, T[j])))
+                for i in 1:length(T) for j in (i+1):length(T)
+                if !has_edge(G, T[i], T[j])])
+  loc, iota = localization(S, U)
+  saturated_ideal(iota(J))
+end
+
 @doc raw"""
     parametrization(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
 
@@ -339,6 +369,24 @@ function concentration_matrix(M::GaussianGraphicalModel{Graph{Undirected}, T}) w
     K[src(e), dst(e)] = k[e]
   end
   return K
+end
+
+@doc raw"""
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, L} where L
+
+It is a well-known theorem that the vanishing ideal is the unique prime ideal
+above the pairwise conditional independence ideal which does not contain the
+determinant of the covariance matrix. This translates into a saturation problem
+which can usually be solved faster than the generic elimination-based approach.
+"""
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, L}) where L
+  G = graph(M)
+  S, _ = model_ring(M)
+  A = covariance_matrix(M)
+  U = powers_of_element(det(A))
+  J = ideal(S, [ci_polynomial(A, stmt) for stmt in pairwise_markov(G)])
+  loc, iota = localization(S, U)
+  saturated_ideal(iota(J))
 end
 
 @doc raw"""
