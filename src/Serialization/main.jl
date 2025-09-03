@@ -16,7 +16,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
