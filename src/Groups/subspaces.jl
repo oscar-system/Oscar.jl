@@ -10,8 +10,7 @@ Return an iterator of the matrices that are echelonized bases of the
 
 # Examples
 ```jldoctest
-julia> V = vector_space(GF(2), 3)
-Vector space of dimension 3 over F
+julia> V = vector_space(GF(2), 3);
 
 julia> for b in Oscar.bases_of_subspaces(V, 2) println(b); end
 [1 0 0; 0 1 0]
