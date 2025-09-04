@@ -607,7 +607,8 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     function pr_func(x)
       @assert parent(x) === G
       r.generators_map_to_generators === true && return FreeModElem(coordinates(simplify!(x)), F)
-      c = coordinates(repres(simplify!(x)), image_module)
+      #c = coordinates(repres(simplify!(x)), image_module)
+      c = coordinates(repres(x), image_module)
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
