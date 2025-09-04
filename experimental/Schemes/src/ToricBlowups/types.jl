@@ -10,8 +10,8 @@
   index_of_exceptional_ray::Integer
   exceptional_prime_divisor::ToricDivisor
 
-  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::Union{Symbol, String})
-    coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
+  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::VarName)
+    internal_coordinate_name = Symbol(coordinate_name)
     # Construct the new variety
     Y = normal_toric_variety(star_subdivision(X, primitive_vector))
 
@@ -25,7 +25,7 @@
 
     # Set variable names of Y
     var_names_X = symbols(cox_ring(X))
-    @req !(coordinate_name in var_names_X) "The name for the blowup coordinate is already taken"
+    @req !(internal_coordinate_name in var_names_X) "The name for the blowup coordinate is already taken"
     var_names_Y = Vector{Symbol}(undef, n_rays(Y))
     rays_X = matrix(ZZ, rays(X))
     indices_X = Dict{AbstractVector, Int64}([rays_X[i,:]=>i for i in 1:n_rays(X)])
@@ -33,12 +33,12 @@
       if haskey(indices_X, rays_Y[i,:])
         var_names_Y[i] = var_names_X[indices_X[rays_Y[i,:]]]
       else
-        var_names_Y[i] = coordinate_name
+        var_names_Y[i] = internal_coordinate_name
       end
     end
     set_attribute!(Y, :coordinate_names, var_names_Y)
     if n_rays(Y) > n_rays(X)
-      @req coordinate_name in coordinate_names(Y) "Desired blowup variable name was not assigned"
+      @req internal_coordinate_name in coordinate_names(Y) "Desired blowup variable name was not assigned"
     end
 
     # Construct the toric morphism
