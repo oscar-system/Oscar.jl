@@ -90,7 +90,7 @@ function _try_perm_character!(res::Vector{GModule}, t::Vector{Bool}, G::GAPGroup
 end
 
 
-function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
+function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
   if is_abelian(G)
     return Oscar.GModuleFromGap._irred_abelian(G)
   end
@@ -257,6 +257,59 @@ function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} 
   end
   return res
   error("no plan yet")
+end
+
+function galois_orbit(C::GModule)
+  k = base_ring(C)
+  if k == QQ
+    return [C]
+  end
+  a = automorphism_list(k) #can go wrong for Schur index
+                           #if the field is not normal over Q
+  z = Any[]
+  cz = []
+  for x = a
+    t = C^x
+    @assert Oscar.GrpCoh.is_consistent(t)
+    ct = character(t)
+    if ct in cz
+      continue
+    else
+      push!(z, t)
+      push!(cz, ct)
+    end
+  end
+  return z
+end
+
+function abs_irred(C::GModule)
+  if is_irreducible(character(C))
+    return C
+  end
+  s = split_homogeneous(C)
+  if length(s) == 0
+    s = [C]
+  else
+    global last_x = C
+    s = [domain(x) for x = s]
+  end
+  for y = s #add the Galois orbits...
+    if is_irreducible(character(y))
+      return y
+    else
+      t = split_homogeneous2(y)
+      return t
+    end
+  end
+end
+
+function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
+  z = gmodule_irred_rational(G; limit, t)
+  zz = []
+  for x = z
+    append!(zz, galois_orbit(abs_irred(x)))
+  end
+  return zz
 end
 
 function dim_condensed(C::GModule, K::Oscar.GAPGroup)
@@ -530,7 +583,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
 
     if m == 1
       @show :is_irr
-      return [M]
+      return [hom(M, M, id_hom(M.M))]
     end
   end
 
@@ -538,8 +591,13 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
   B = lll_basis(Z_M)
   @assert all(!iszero, B)
   seen = Set{elem_type(E)}()
-  
+ 
+  cnt = 0
   for b = elem_gen_ctx(B)
+    cnt += 1
+    if cnt > length(B)^2 #TODO: have a sane stopping condition
+      break
+    end
     x = b.elem_in_algebra
     if x in seen
       continue
@@ -626,8 +684,15 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
   first = true
   local best_f::QQPolyRingElem
   local best_i::elem_type(E)
+  local last_cnt::Int
+
+  cnt = 0
 
   for _i=elem_gen_ctx(lll_basis(Z_M))
+    cnt += 1
+    if !first && cnt - last_cnt > degree(Z_M)
+      break
+    end
     i = _i.elem_in_algebra
     f = minpoly(i)
     lf = factor(f)
@@ -636,11 +701,13 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
         best_f = f
         best_i = i
         first = false
+        last_cnt = cnt
       else
         if length(string(f)) < length(best_f) ||
           discriminant(f) < discriminant(best_f)
           best_f = f
           best_i = i
+          last_cnt = cnt
         end
       end
     end

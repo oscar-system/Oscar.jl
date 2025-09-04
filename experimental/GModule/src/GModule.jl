@@ -1045,9 +1045,15 @@ function natural_gmodule(G::PermGroup, R::Ring)
 #      without storing a matrix?
 end
 
-struct PermMat{T <: RingElement} <: AbstractAlgebra.MatElem{T}
+mutable struct PermMat{T <: RingElement} <: AbstractAlgebra.MatElem{T}
   R
   p::PermGroupElem
+  one::T
+  zero::T
+  M
+  function PermMat(R::Ring, p::PermGroupElem)
+    return new{elem_type(R)}(R, p, one(R), zero(R), nothing)
+  end
 end
 
 function Base.show(io::IO, ::MIME{Symbol("text/plain")}, M::PermMat)
@@ -1062,24 +1068,68 @@ import Base: *
 function *(M::PermMat{T}, N::PermMat{T}) where T
   @assert M.R == N.R
   @assert parent(M.p) == parent(N.p)
-  return PermMat{T}(M.R, M.p*N.p)
+  return PermMat(M.R, M.p*N.p)
 end
 
-function *(A::Matrix{T}, M::PermMat{T}) where T
-  @assert base_ring(A) == base_ring(M)
+function swap!(A::QQMatrix, pi::PermGroupElem)
+  st = A.stride
+  n = nrows(A)
+  m = ncols(A)
+  B = zero_matrix(QQ, n, m)
+  Ap = reinterpret(Ptr{Int}, A.entries)
+
+  tmp = zeros(Int, 2*n)
+
+  for C = cycles(pi)
+    length(C) == 1 && continue
+    j = C[end] - 1
+    for i=0:n-1
+      p = 2*(i*st+j) + 1
+      tmp[2*i+1] = unsafe_load(Ap, p)
+      tmp[2*i+2] = unsafe_load(Ap, p+1)
+    end
+    for j = length(C)-1:-1:1
+      for i=0:n-1
+        p = 2*(i*st+C[j]-1) + 1
+        q = 2*(i*st+C[j+1]-1) + 1
+        a = unsafe_load(Ap, p)
+        b = unsafe_load(Ap, p+1)
+        
+        unsafe_store!(Ap, a, q)
+        unsafe_store!(Ap, b, q+1)
+      end
+    end
+    j = C[1]-1
+
+    for i=0:n-1
+      p = 2*(i*st+j) + 1
+      unsafe_store!(Ap, tmp[2*i+1], p)
+      unsafe_store!(Ap, tmp[2*i+2], p+1)
+    end
+  end
+end
+
+function *(A::QQMatrix, M::PermMat{QQFieldElem})
   #permute columns by p
-  return A*matrix(M)
+  B = deepcopy(A)
+  swap!(B, M.p)
+#  global last_mul = (A, M)
+#  @assert B == A*permutation_matrix(QQ, M.p)
+  return B
 end
 
 function Oscar.matrix(M::PermMat)
-  return permutation_matrix(M.R, M.p)
+  if isnothing(M.M)
+    M.M = permutation_matrix(M.R, M.p)
+  end
+  return M.M
 end
 
 function Base.getindex(M::PermMat, i::Int, j::Int)
   if M.p(i) == j
-    return one(M.R)
+    return M.one
   else
-    return zero(M.R)
+    return M.zero
   end
 end
 
@@ -1094,7 +1144,7 @@ function permutation_gmodule(G::Group, U::Group, R::Ring)
   rc = right_cosets(G, U)
   h = action_homomorphism(rc)
   F = free_module(R, Int(divexact(order(G), order(U))))
-  C = gmodule(G, [hom(F, F, PermMat{elem_type(R)}(R, h(g))) for g = gens(G)])
+  C = gmodule(G, [hom(F, F, PermMat(R, h(g))) for g = gens(G)])
 #  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
   set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule)
   return C
@@ -1246,7 +1296,7 @@ end
 # Compute the restriction of the `M.G`-action from `M.M`
 # to the submodule given by the embedding `f`.
 function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
-  @assert codomain(f) == M.M
+  @assert codomain(f) === M.M
   S = domain(f)
   Sac = [hom(S, S, elem_type(S)[preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
   D = gmodule(S, M.G, Sac)
@@ -1254,7 +1304,7 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
 end
 
 function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
-  @assert codomain(f) == M.M
+  @assert codomain(f) === M.M
   S = domain(f)
   Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
   D = gmodule(S, M.G, Sac)
@@ -2192,10 +2242,10 @@ function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, 
   if is_regular_gmodule(M)
     b = map(matrix, M.ac)
     E  = matrix_algebra(base_ring(M), b)
-    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   else
     E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
-    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x))), y->E(matrix(y.module_map)))
+    mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   end
   set_attribute!(M, :endo => mE)
   return E, mE
