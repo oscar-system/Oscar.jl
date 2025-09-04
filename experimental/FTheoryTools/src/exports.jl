@@ -6,7 +6,6 @@ export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
 export WeierstrassModel
-export _is_nontrivial
 export add_associated_literature_model!
 export add_generating_section!
 export add_journal_report_number!
