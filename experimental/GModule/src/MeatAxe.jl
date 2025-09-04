@@ -5,6 +5,7 @@ import Oscar: GAPGroup
 import Oscar.GModuleFromGap: is_regular_gmodule, restrict_endo
 
 
+#very basic...
 function gmodule_new(chi::Oscar.GAPGroupClassFunction)
   G = group(chi)
   s = [representative(x) for x = subgroup_classes(group(chi))]
@@ -20,6 +21,9 @@ function gmodule_new(chi::Oscar.GAPGroupClassFunction)
   error("no plan yet")
 end
 
+#tests if any component of M gives a new representation
+# res is the list of known reps
+# t[i] is true if the rep is nor known. Index as in the character table
 function _do_one!(res, t, M; is_irr::Bool = false)
   if !is_irr
     _t = split_into_homogenous(M)
@@ -30,10 +34,10 @@ function _do_one!(res, t, M; is_irr::Bool = false)
     x = domain(_x)
     _c = map(iszero, coordinates(character(x)))
     if t .& _c == t
-      @show :bad, "module known", _c
+#      @show :bad, "module known", _c
       continue
     end
-    @show "found", _c
+#    @show "found", _c
     t .&= map(iszero, coordinates(character(x)))
     push!(res, x)
     if !any(t)
@@ -43,6 +47,10 @@ function _do_one!(res, t, M; is_irr::Bool = false)
   return false
 end
 
+#for tensor products where the combined degree is bounded my limit
+#try to decompose...
+#as usual: do it with characters first
+#TODO: if they are not G-modules...
 function _try_tensor_products!(res::Vector{GModule}, t::Vector{Bool}; limit::Int = 100)
   for i = 1:length(res)
     for j = 2:length(res)
@@ -50,7 +58,7 @@ function _try_tensor_products!(res::Vector{GModule}, t::Vector{Bool}; limit::Int
         c = coordinates(tensor_product(character(res[i]), character(res[j])))
         cc = map(iszero, c) .& t
         if cc != t
-          @show :bingo
+#          @show :bingo
           M = tensor_product(res[i], res[j]; task = :none)
           _do_one!(res, t, M) && return true
         end
@@ -82,7 +90,7 @@ function _try_perm_character!(res::Vector{GModule}, t::Vector{Bool}, G::GAPGroup
   c = coordinates(permutation_character(G, U))
   cc = map(iszero, c) .& t
   if cc != t #will give new rep.
-    @show :bingo
+#    @show :bingo
     M = permutation_gmodule(G, U, QQ)
     _do_one!(res, t, M) && return true
   end
@@ -90,10 +98,16 @@ function _try_perm_character!(res::Vector{GModule}, t::Vector{Bool}, G::GAPGroup
 end
 
 
+#"main" function: try to find all irreducible rationals representations of G
+# limit "limits" the size of the modules constructed on the way
+#   (endomorphism rings are too expensive)
 function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
   if is_abelian(G)
     return Oscar.GModuleFromGap._irred_abelian(G)
   end
+  #linear characters are handled elsewhere. Here the expectation is
+  #that in "t" the linear characters are marked as known
+  #the code works for linear characters, it's just unneccessarily slow)
   X = character_table(G)
   s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
   s = [x for x = s if order(x) < order(G)]
@@ -110,7 +124,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   for i = s
     _try_perm_character!(res, t, G, i) && return res
   end
-  @show "after permutation modules", t
+#  @show "after permutation modules", t
 
   _try_tensor_products!(res, t; limit) && return res
   _try_squares!(res, t; limit) && return res
@@ -118,21 +132,20 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   all_K = [x for x = subgroup_reps(G) if order(x) <= 20] #how to do this?
 
   for i=s
-    @show "order $(order(i))"
+#    @show "order $(order(i))"
     XX = character_table(i)
     for chi = XX
       #careful with multiplicity
       deg = degree_of_character_field(chi)*degree(chi)*index(G, i) 
       if deg > limit^2
-        @show :too_large, degree_of_character_field(chi), degree(chi), index(G, i)
+#        @show :too_large, degree_of_character_field(chi), degree(chi), index(G, i)
         continue
       end
       chi_G = induce(chi, G) #could be irreducible...
       cc = map(iszero, coordinates(chi_G)) .& t
       if cc != t
-        @show "could help"
+#        @show "could help"
         v = gmodule_new(chi)
-        global last_chi = chi
         @assert length(v) == 1
         if is_irreducible(chi_G)
           V = induce(v[1], embedding(i, G))[1]
@@ -141,10 +154,10 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
         end
         v = v[1]
         if deg <= limit
-          @show "direct induce"
+#          @show "direct induce"
           for j=1:length(t)
             if cc[j] != t[j] 
-              @show :induce
+#              @show :induce
               V = induce(v, embedding(i, G))[1]
               _do_one!(res, t, V) && return res
             else
@@ -161,7 +174,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
               #test if K makes sense
               tt = [!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(t)]
               if all(tt)
-                @show "condense would give no info"
+#                @show "condense would give no info"
                 continue
               end
               push!(good_K, (K, dim_C, tt))
@@ -174,28 +187,28 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
             t[ii] || continue #due to orbits
             char = galois_orbit_sum(X[ii])
             if degree(char) > limit
-              @show "too large, abandoning"
+#              @show "too large, abandoning"
               continue
             end
-            @show "aiming for $i"
+#            @show "aiming for $i"
             for_i = [x for x = good_K if !x[3][ii]]
             sort!(for_i, lt = (a,b) -> a[2] < b[2])
             rand_G = [rand(G) for i=1:20]
-            @show length(for_i)
+#            @show length(for_i)
             K = for_i[1][1]
             if for_i[1][2] == 0
-              @show "oh shit"
+#              @show "oh shit"
               continue
             end
             if !have_V
               V = induce(v, embedding(i, G))[1]
               have_V = true
             end
-            @show "condense", V, K
+#            @show "condense", V, K
             c, mc, phi = condense(V, K)
             @assert dim(c) <= limit
             sp = split_into_homogenous(c)
-            @show "split done"
+#            @show "split done"
             #TODO: use the traces in some form to decide which element in
             #      sp needs spinning - generically, there should be only one
             #      this is via Allan's trace vectors
@@ -215,33 +228,33 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
                 end
                 push!(ttr, _c)
                 if ttr[end] != tr[length(ttr)]
-                  @show "stop as trace is wrong"
+#                  @show "stop as trace is wrong"
                   break
                 end
               end
               @show ttr
               if tr == ttr
-                @show "bingo!!", degree(char)
+#                @show "bingo!!", degree(char)
                 d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit = Int(degree(char)))
                 if dim(d) > degree(char) || d == V
-                  @show coordinates(character(d))
-                  @show coordinates(char)
-                  @show coordinates(character(V))
-                  @show "spin too large", d, dim(d), limit, dim(V)
+#                  @show coordinates(character(d))
+#                  @show coordinates(char)
+#                  @show coordinates(character(V))
+#                  @show "spin too large", d, dim(d), limit, dim(V)
                   #OK: rand_G is too small
                   break
                   error("should not happen")
                 end
                 @assert dim(d) < dim(V)
-                @show dim(d), dim(V), coordinates(character(d))
+#                @show dim(d), dim(V), coordinates(character(d))
                 if dim(d) <= limit
                   _do_one!(res, t, d; is_irr = true) && return res
                 end
               else
-                @show "wrong module lifted"
+#                @show "wrong module lifted"
               end
               if !any(cc .& t)
-                @show "OK, leaving this level"
+#                @show "OK, leaving this level"
                 #can't get any more out of V
                 break
               end
@@ -259,6 +272,8 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   error("no plan yet")
 end
 
+#a GModule over a (normal) number field, find the inequivalent 
+#conjugate modules (should give a Galois-orbit if the characters)
 function galois_orbit(C::GModule)
   k = base_ring(C)
   if k == QQ
@@ -282,6 +297,8 @@ function galois_orbit(C::GModule)
   return z
 end
 
+#C should be irreducible, rational. Find a unique
+#abs. irred. in there - the others should be Galois conjugate
 function abs_irred(C::GModule)
   if is_irreducible(character(C))
     return C
@@ -290,7 +307,6 @@ function abs_irred(C::GModule)
   if length(s) == 0
     s = [C]
   else
-    global last_x = C
     s = [domain(x) for x = s]
   end
   for y = s #add the Galois orbits...
@@ -304,14 +320,32 @@ function abs_irred(C::GModule)
 end
 
 function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
-  z = gmodule_irred_rational(G; limit, t)
+  X = character_table(G)
+  if is_abelian(G)
+    return [gmodule(AbsSimpleNumField, x) for x = Oscar.GModuleFromGap._abs_irred_abelian(G)]
+  end
+  #linear characters come from the max. ab. quot.
+  Gab, mGab = maximal_abelian_quotient(G)
   zz = []
+  z = Oscar.GModuleFromGap._abs_irred_abelian(Gab)
+  for x = z
+    push!(zz, inflate(gmodule(AbsSimpleNumField, x), mGab))
+  end
+
+  if isnothing(t)
+    t = [degree(x) > 1 for x = X]
+  else
+    t .&= [degree(x) > 1 for x = X]
+  end
+
+  z = gmodule_irred_rational(G; limit, t)
   for x = z
     append!(zz, galois_orbit(abs_irred(x)))
   end
   return zz
 end
 
+#if the Q[G]-module C is fixpoint condensed with K, the dim will be:
 function dim_condensed(C::GModule, K::Oscar.GAPGroup)
   #Allan, Cor. 3.5.5.
   return Int(scalar_product(restrict(character(C), K), trivial_character(K)))
@@ -352,6 +386,12 @@ function idempotent(C::GModule, iKG::Map)
   return QQ(1, order(domain(iKG)))*sum([action(C, iKG(k)) for k = domain(iKG)])
 end
 
+#ms: S -> M Q-modules
+#try to find a nicer version by
+#  - making it integral (clear denominators)
+#  - saturating
+#  - LLL-reducing.
+#the hope is that the action matrices will be nice
 function _simplify(ms::Map) #embedding map s -> M
   s = domain(ms)
   M = codomain(ms)
@@ -363,7 +403,12 @@ function _simplify(ms::Map) #embedding map s -> M
   @show maximum(nbits, n)
   return hom(s, M, matrix(QQ, n))
 end
- 
+
+#condese the Q[G]-module C for the subgroup K
+#returns 
+# the A-module (without a group!!!, A = condensed Q[G])
+# the vector-space embedding
+# the idempotent
 function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   #K should be a subgroup of G for the G-Module C
   G = group(C)
@@ -498,7 +543,6 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
     end
     r += 1
 #      _x = rref(s)
-#      @show x[2] - s
 #      @assert _x[1] == r
 #      @assert _x[2] == s
   end
@@ -510,17 +554,18 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
   #possibly eventually homs should use the solve_ctx?
   #similarly, action can handle vectors, removing identical group theory
   return gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v))) for g = gens(group(C))])
-#  return gmodule(group(C), [hom(ss, ss, [preimage(mss, action(C, g, m)) for m = v]) for g = gens(group(C))])
 end
 
-
-
-
+#b is an endomorphism of M
+# the kernel of a factor of the minpoly will give a submodule
+# - if the minpoly splits non-trivially
+# the quotient by the kernel would also work, but as this is
+# also used with spinning, we need submodules.
 function split_via_endo(b, M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   H = []
   iszero(b) && error("b is zero")
   f = minpoly(b)
-  @show lf = factor(f)
+  lf = factor(f)
   if length(lf) == 1
     return []
   end
@@ -570,6 +615,7 @@ function Oscar.lll_basis(I::Hecke.AlgAssAbsOrdIdl{MatAlgebra{QQFieldElem, QQMatr
   return [M(A(m[i, :])) for i=1:nrows(m)]
 end
 
+#tries to split the homogeous module M without changing the field
 function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p31: MaximalOrderBasisSearch
   #            well, Step 1
@@ -582,7 +628,7 @@ function split_homogeneous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldE
     chi, k, m = galois_representative_and_multiplicity(chi)
 
     if m == 1
-      @show :is_irr
+#      @show :is_irr
       return [hom(M, M, id_hom(M.M))]
     end
   end
@@ -793,9 +839,9 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
       end
       continue
     end
-    @show lf, length(basis(C))
+#    @show lf, length(basis(C))
     if degree(f) < length(basis(C))
-      @show :try_again
+#      @show :try_again
       continue
     end
     #Q: under this conditions is the following true:

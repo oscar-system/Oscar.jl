@@ -421,6 +421,9 @@ function trivial_gmodule(G::Oscar.GAPGroup, M::Union{FinGenAbGroup, AbstractAlge
 end
 
 function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+  if ngens(group(M)) == 0 || degree(base_ring(M)) == 1
+    return M
+  end
   k, mk = Hecke.subfield(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
   if k != base_ring(M)
     F = free_module(k, dim(M))
@@ -780,7 +783,7 @@ function _abs_irred_abelian(G::Oscar.GAPGroup)
   end
   for r = R
     f = mR(r)
-    push!(all, gmodule(G, [hom(F, F, [F([conv(f(mA(g)))])]) for g = gens(G)]))
+    push!(all, gmodule(F, G, [hom(F, F, [F([conv(f(mA(g)))])]) for g = gens(G)]))
   end
   return all
 end
@@ -866,10 +869,16 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   @assert isa(base_ring(C), QQAbField)
   d = dim(C)
   if d == 0
-    K = cyclotomic_field(C, 1)[1]
+    K = cyclotomic_field(base_ring(C), 1)[1]
     F = free_module(K, dim(C))
     h = hom(F, F, elem_type(F)[])
     return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
+  end
+  if ngens(group(C)) == 0
+    K = cyclotomic_field(base_ring(C), 1)[1]
+    F = free_module(K, dim(C))
+    h = hom(F, F, gens(F))
+    return gmodule(F, group(C), typeof(h)[])
   end
   M = map_entries(CyclotomicField, map(matrix, action(C)))
   K = base_ring(M[1])
@@ -2190,7 +2199,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
       z2 = gmodule(base_ring(z1), D)
     end
 
-    @time t = hom_base(z1, z2)
+    t = hom_base(z1, z2)
 
     isempty(t) && return QQMatrix[]
     _rref!(t)
