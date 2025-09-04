@@ -27,9 +27,9 @@ is_partially_resolved(m::AbstractFTheoryModel)
 ## Blowups
 
 A **blowup** is a birational modification of an algebraic variety or scheme that replaces a chosen subvariety (or subscheme), called
-the *center* of the blowup, with an exceptional divisor. This process provides a tool for resolving singularities in a controlled way.
+the **center** of the blowup, with an exceptional divisor. This process provides a tool for resolving singularities in a controlled way.
 
-In the **weighted case**, the exceptional divisor is introduced with a grading by positive integers. This allows for finer control
+In the **weighted** case, the exceptional divisor is introduced with a grading by positive integers. This allows for finer control
 over the resolution process.
 
 ### Manually Applying Individual Blowups
@@ -67,14 +67,26 @@ For example, a sequence of blowups might look like
 This represents the blowup sequence:
 
 ```text
-(x,y,w  | e1)
-(y,e1   | e4)
-(x,e4   | e2)
-(y,e2   | e3)
-(x,y    | s)
+(x, y, w | e1)
+(y, e1   | e4)
+(x, e4   | e2)
+(y, e2   | e3)
+(x, y    | s)
 ```
 
-Each tuple ``(g_1, ..., g_n | e)`` means we blow up the locus ``g_1 = ... = g_n = 0`` and replace it with a new exceptional coordinate ``e``.
+Each tuple ``(g_1, \dotsc, g_n | e)`` indicates that we blow up the locus ``g_1 = \dotsb = g_n = 0`` by replacing it with a new exceptional locus ``e = 0``. This is done by replacing ``g_i \mapsto e g_i`` and introducing a new homogeneous factor ``[g_1 : \dotsb : g_n]``. Thus, in the case of the above example blowup sequence, the map from the coordinates of the original to the resolved space is
+```math
+x \mapsto e_1 e_2^2 e_3^2 e_4 s x \\
+y \mapsto e_1 e_2^2 e_3^3 e_4^2 s y \\
+w \mapsto e_1 e_2 e_3 e_4 w
+```
+with all other coordinates being unchanged, and the new homogeneous factors (along with the original ambient weighted projective factor) are
+```math
+[e_1 e_2^2 e_3^2 e_4 s x : e_1 e_2^2 e_3^3 e_4^2 s y : z] [e_2 e_3 s x : e_2 e_3^2 e_4 s y : w] [e_3 s y : e_1] [s x : e_4] [s y : e_2] [x : y]\,.
+```
+Each blowup ``(g_1, \dotsc, g_n | e)`` has an associated rescaling ``(g_1, \dotsc, g_n, e) \sim (\lambda g_1, \dotsc, \lambda g_n, \lambda^{-1} e)``, under which the products ``e g_i`` are invariant.
+
+For a weighted blowup, along with a center and exceptional coordinate ``(g_1, \dotsc, g_n | e)``, a grading vector ``\mu = (\mu_1, \dotsc, \mu_n)`` is specified, and the blowup is carried out by the replacement ``g_i \mapsto e^{\mu_i} g_i``. The associated rescaling is then ``(g_1, \dotsc, g_n, e) \sim (\lambda^{\mu_1} g_1, \dotsc, \lambda^{\mu_n} g_n, \lambda^{-1} e)``, under which the products ``e^{\mu_i} g_i`` are invariant.
 
 ### [Registering And Extracting Known Resolution Sequences](@id working_with_resolution_sequences)
 
@@ -111,7 +123,7 @@ weighted_resolution_zero_sections(::AbstractFTheoryModel)
 weighted_resolution_generating_sections(::AbstractFTheoryModel)
 ```
 
-You can also add to this information, if more generating sections or zero sections are known.
+You can also add to this information, if more resolution generating sections or zero sections are known.
 
 ```@docs
 add_resolution_zero_section!(m::AbstractFTheoryModel, addition::Vector{Vector{String}})
