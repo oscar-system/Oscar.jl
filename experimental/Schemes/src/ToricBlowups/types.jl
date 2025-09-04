@@ -10,7 +10,8 @@
   index_of_exceptional_ray::Integer
   exceptional_prime_divisor::ToricDivisor
 
-  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::Symbol)
+  function ToricBlowupMorphism(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}, coordinate_name::Union{Symbol, String})
+    coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
     # Construct the new variety
     Y = normal_toric_variety(star_subdivision(X, primitive_vector))
 
