@@ -1,5 +1,6 @@
 function _find_blowup_coordinate_name(X::NormalToricVarietyType, coordinate_name::Union{Symbol, String, Nothing} = nothing)
-  coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
+function _find_blowup_coordinate_name(X::NormalToricVarietyType, _coordinate_name::Union{VarName, Nothing} = nothing)
+  coordinate_name = Symbol(_coordinate_name)
   if coordinate_name !== nothing
     @req !(coordinate_name in coordinate_names(X)) "Coordinate name already exists"
     return coordinate_name
