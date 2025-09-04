@@ -4,9 +4,9 @@
   Original Authors: Max Heisinger and Clemens Hofstadler
 =#
 function f4ncgb_version()
-    ret_c = @ccall libf4ncgb.f4ncgb_version()::Cstring
-    ret = unsafe_string(ret_c)
-    return  ret
+  ret_c = @ccall libf4ncgb.f4ncgb_version()::Cstring
+  ret = unsafe_string(ret_c)
+  return ret
 end
 
 function f4ncgb_set_msg_printing(on::Bool)
@@ -22,12 +22,12 @@ function f4ncgb_add(handle::Ptr{Cvoid},
                     numerator::Int,
                     denominator::Int,
                     vars::Vector{UInt32})
-    return @ccall libf4ncgb.f4ncgb_add(
-      handle::Ptr{Cvoid},
-      numerator::Clong,
-      denominator::Clong,
-      length(vars)::Csize_t,
-      vars::Ptr{UInt32})::Cstring
+  return @ccall libf4ncgb.f4ncgb_add(
+    handle::Ptr{Cvoid},
+    numerator::Clong,
+    denominator::Clong,
+    length(vars)::Csize_t,
+    vars::Ptr{UInt32})::Cstring
 end
 
 function f4ncgb_add(handle::Ptr{Cvoid}, polynomial::FreeAssociativeAlgebraElem)
@@ -47,10 +47,10 @@ end
 f4ncgb_end_poly(handle::Ptr{Cvoid}) = @ccall libf4ncgb.f4ncgb_end_poly(handle::Ptr{Cvoid})::Cstring
 
 function f4ncgb_set_blocks(handle::Ptr{Cvoid}, block_lengths::Vector{UInt32})
-    return @ccall libf4ncgb.f4ncgb_set_blocks(
-      handle::Ptr{Cvoid},
-      length(block_lengths)::Csize_t,
-      block_lengths::Ptr{UInt32})::Cstring
+  return @ccall libf4ncgb.f4ncgb_set_blocks(
+    handle::Ptr{Cvoid},
+    length(block_lengths)::Csize_t,
+    block_lengths::Ptr{UInt32})::Cstring
 end
 
 function f4ncgb_set_nvars(handle::Ptr{Cvoid}, nvars::UInt32) 
@@ -171,18 +171,3 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
     add_cb_c::Ptr{Cvoid},
     end_poly_cb_c::Ptr{Cvoid})::Cint
 end
-
-function f4ncgb_groebner(x::Vector{<:FreeAssociativeAlgebraElem{QQFieldElem}})
-  @req length(x) > 0 "Vector must not be empty"
-  r = parent(first(x))
-  handle = f4ncgb_init()
-  f4ncgb_set_nvars(handle, UInt32(ngens(r)))
-  f4ncgb_set_blocks(handle, UInt32[ngens(r)])
-  f4ncgb_set_threads(handle, UInt32(1))
-  f4ncgb_add.(Ref(handle), x)
-  userdata = f4ncgb_polys_helper(r)
-  f4ncgb_solve(handle, userdata)
-  f4ncgb_free(handle)
-  return userdata.gens
-end
-
