@@ -300,7 +300,7 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
   h = last(gens(R))
   images = []
   for p in gens(_ring(S))
-    s = [S[p]...] # get label of the variable but as a vector for type reasons
+    s = collect(S[p]) # get label of the variable but as a vector for type reasons
     push!(images, prod(qd[(i, s[i], s[parents(G, i)])] for i in 1:n))
   end
   # There are linear constraints to enforce on the `images`. Instead of
@@ -317,7 +317,7 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
     end
   end
   I = ideal(condprob)
-  return hom(S, R, map(f -> reduce(f, gens(I)), images))
+  return hom(S, R, map(Base.Fix2(reduce, gens(I)), images))
 end
 
 @doc raw"""
