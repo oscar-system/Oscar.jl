@@ -249,14 +249,18 @@ end
 @doc raw"""
     vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L} where L
 
-By a theorem of Boege, Kubjas, Misra and Solus, the vanishing ideal of a directed
-acyclic Gaussian graphical model can be computed by saturating the conditional
-independence ideal of its ordered pairwise Markov property at the principal minors
-corresponding to all parent sets in the graph. This saturation-based approach
-usually outperforms the elimination-based default for generic graphical models.
+The vanishing ideal of a directed acyclic Gaussian graphical model can be computed
+by saturating the conditional independence ideal of its ordered pairwise Markov
+property at the principal minors corresponding to all parent sets in the graph.
+This saturation-based approach usually outperforms the elimination-based default
+for general graphical models.
+
+If the graph is cyclic, we fall back to elimination.
 """
 function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
-  @req is_acyclic(graph(M)) "the digraph must be acyclic"
+  if !is_acyclic(graph(M))
+    return vanishing_ideal(M; algorithm=:eliminate)
+  end
   G = graph(M)
   S, _ = model_ring(M)
   A = covariance_matrix(M)
