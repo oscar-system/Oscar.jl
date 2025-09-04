@@ -443,6 +443,12 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task::S
   return sparse_row(sol)
 end
 
+@doc raw"""
+    coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symbol = :auto)
+
+Compute coordinates of the element `a` with respect to the generating set of `M`. Returns a sparse row representation of the coordinates. Throws an error if the element is not contained or the operation is not implemented for the given ring type.
+`task` can be used to specify the method of computation.
+"""
 function coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symbol = :auto)
   error("The function coordinates_atomic is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
 end
