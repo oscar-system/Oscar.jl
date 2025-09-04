@@ -91,7 +91,7 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
-  return length(C) == 1 ? states(M)[C[1]] : Iterators.product([1:states(M)[i] for i in C]...)
+  return length(C) == 1 ? (1:states(M)[C[1]]) : Iterators.product([1:states(M)[i] for i in C]...)
 end
 
 @doc raw"""
