@@ -11,7 +11,7 @@ function _find_blowup_coordinate_name(vs::Vector{Symbol})
   i = 1
   coordinate_name = :e
   while coordinate_name in vs
-    coordinate_name = Symbol(string("e", i))
+    coordinate_name = Symbol(:e, i)
     i = i+1
   end
   return coordinate_name

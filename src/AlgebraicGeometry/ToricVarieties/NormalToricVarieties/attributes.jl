@@ -530,7 +530,7 @@ Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
 @attr Vector{Symbol} function coordinate_names_of_torus(v::NormalToricVarietyType)
-  return [Symbol("x$(i)") for i in 1:ambient_dim(v)]
+  return [Symbol(:x, i) for i in 1:ambient_dim(v)]
 end
 
 
@@ -568,7 +568,7 @@ Quotient
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
   nams = coordinate_names_of_torus(v)
-  S, _ = polynomial_ring(coefficient_ring(v), nams, [Symbol(x, "_") for x in nams]; cached=false)
+  S, _ = polynomial_ring(coefficient_ring(v), nams, [Symbol(x, '_') for x in nams]; cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 
@@ -592,7 +592,7 @@ x2^2*x1_
 ```
 """
 function character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
-    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names_of_torus(v), [Symbol(x,"_") for x in coordinate_names_of_torus(v)]; cached=false)
+    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names_of_torus(v), [Symbol(x, '_') for x in coordinate_names_of_torus(v)]; cached=false)
     return character_to_rational_function(S, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 end
 character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
