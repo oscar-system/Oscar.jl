@@ -6,8 +6,6 @@ export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
 export WeierstrassModel
-export _blowup_global
-export _blowup_global_sequence
 export _is_nontrivial
 export add_associated_literature_model!
 export add_generating_section!
