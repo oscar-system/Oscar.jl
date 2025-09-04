@@ -1,9 +1,8 @@
-function _find_blowup_coordinate_name(X::NormalToricVarietyType, coordinate_name::Union{Symbol, String, Nothing} = nothing)
-function _find_blowup_coordinate_name(X::NormalToricVarietyType, _coordinate_name::Union{VarName, Nothing} = nothing)
-  coordinate_name = Symbol(_coordinate_name)
+function _find_blowup_coordinate_name(X::NormalToricVarietyType, coordinate_name::Union{VarName, Nothing} = nothing)
   if coordinate_name !== nothing
-    @req !(coordinate_name in coordinate_names(X)) "Coordinate name already exists"
-    return coordinate_name
+    internal_coordinate_name = Symbol(coordinate_name)
+    @req !(internal_coordinate_name in coordinate_names(X)) "Coordinate name already exists"
+    return internal_coordinate_name
   else
     return _find_blowup_coordinate_name(coordinate_names(X))
   end
@@ -21,8 +20,7 @@ end
 
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{Symbol, String, Nothing} = nothing)
-    -> ToricBlowupMorphism
+    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion})
 
 Star subdivide the fan $\Sigma$ of the toric variety $X$ along the
 primitive vector `r` in the support of $\Sigma$ (Section
@@ -54,15 +52,12 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [0 -1]
 ```
 """
-function blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{Symbol, Nothing} = nothing)
-  coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
-  coordinate_name = _find_blowup_coordinate_name(X, coordinate_name)
-  return ToricBlowupMorphism(X, r, coordinate_name)
+function blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{VarName, Nothing} = nothing)
+  return ToricBlowupMorphism(X, r, _find_blowup_coordinate_name(X, coordinate_name))
 end
 
 @doc raw"""
-    blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{Symbol, String, Nothing} = nothing)
-    -> ToricBlowupMorphism
+    blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion})
 
 This method first constructs the primitive vector $r$ by calling
 `standard_coordinates`, then blows up $X$ along $r$ using `blow_up`.
@@ -77,20 +72,18 @@ julia> phi = blow_up_along_minimal_supercone_coordinates(X, [2, 3, 0])
 Toric blowup morphism
 ```
 """
-function blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{Symbol, String, Nothing} = nothing)
-  coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
+function blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{VarName, Nothing} = nothing)
   coords = Vector{QQFieldElem}(minimal_supercone_coords)
   r_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(X), coords))
   r = primitive_generator(r_QQ)
   @req r == r_QQ "The argument `minimal_supercone_coords` must correspond to a primitive vector"
-  phi = blow_up(X, r; coordinate_name=coordinate_name)
+  phi = blow_up(X, r; coordinate_name)
   set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
   return phi
 end
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, String, Nothing} = nothing)
-    -> ToricBlowupMorphism
+    blow_up(X::NormalToricVarietyType, n::Int)
 
 Blow up the toric variety $X$ with polyhedral fan $\Sigma$ by star
 subdivision along the barycenter of the $n$-th cone $\sigma$ in the list
@@ -127,8 +120,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{Symbol, String, Nothing} = nothing)
-  coordinate_name = coordinate_name isa String ? Symbol(coordinate_name) : coordinate_name
+function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{VarName, Nothing} = nothing)
   coords = zeros(QQ, n_rays(X))
   for i in 1:number_of_rays(X)
     cones(X)[n, i] && (coords[i] = QQ(1))

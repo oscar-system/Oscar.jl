@@ -29,11 +29,11 @@ The main constructor returns the toric blowup induced by the star
 subdivision of the polyhedral fan along a primitive vector in the
 support of the fan (see 11.1 Star Subdivisions in [CLS11](@cite)):
 ```@docs
-blow_up(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+blow_up(X::NormalToricVarietyType, primitive_vector::AbstractVector{<:IntegerUnion})
 ```
 The ray can alternatively be given using minimal supercone coordinates:
 ```@docs
-blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion})
 ```
 The blowup along the $n$-th (nonzero) cone in the fan of the variety $X$
 is the morphism induced by the star subdivision along the barycenter of
