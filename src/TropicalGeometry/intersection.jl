@@ -8,72 +8,134 @@
     stable_intersection(TropV1::TropicalVariety, TropV2::TropicalVariety)
 
 Return the stable intersection of `TropV1` and `TropV2`.
+
+# Examples
+```jldoctest
+julia> R,(x,y) = tropical_semiring()[:x,:y];
+
+julia> f1 = x+y+0;
+
+julia> TropH1 = tropical_hypersurface(f1) # tropical line with apex (0,0)
+Min tropical hypersurface
+
+julia> f2 = x^2+2*y^2+2;
+
+julia> TropH2 = tropical_hypersurface(f2) # tropical double line with apex (1,0)
+Min tropical hypersurface
+
+julia> TropV = stable_intersection(TropH1, TropH2)
+Min tropical variety
+
+julia> dim(TropV)
+0
+
+julia> vertices(TropV)
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0]
+
+julia> multiplicities(TropV)
+1-element Vector{ZZRingElem}:
+ 2
+```
 """
-function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, TropV2::TropicalVarietySupertype{minOrMax,true},
-                             perturbation::Union{Vector{Int},Nothing}=nothing) where minOrMax
+function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, TropV2::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
 
-    @req ambient_dim(TropV1)==ambient_dim(TropV2) "different ambient dimensions of tropical varieties"
-    if isnothing(perturbation)
-        perturbation = rand(Int,ambient_dim(TropV1))
-    end
+    @req ambient_dim(TropV1)==ambient_dim(TropV2) "tropical varieties must have the same ambient dimension"
 
-    n = ambient_dim(TropV1)
+    ###
+    # Compute intersection and intersection multiplicities of all maximal
+    # polyhedra which intersect after a generic perturbation.  To avoid the
+    # need for genericity, we will use a lexicographic perturbation (see below)
+    ###
     Sigma12 = Polyhedron{QQFieldElem}[]
     mults12 = ZZRingElem[]
-
-    # todo: check that perturbation is actually generic
     for (sigma1,m1) in maximal_polyhedra_and_multiplicities(TropV1)
         for (sigma2,m2) in maximal_polyhedra_and_multiplicities(TropV2)
-            if dim(sigma1+sigma2)==n && intersect_after_perturbation(sigma1,sigma2,perturbation)
-                sigma12 = intersect(sigma1, sigma2)
+            intersectAfterLexPerturbation, sigma12 = intersect_after_lex_perturbation_with_intersection(sigma1,sigma2)
+            if intersectAfterLexPerturbation
+                mult12 = m1*m2*tropical_intersection_multiplicity(sigma1,sigma2)
                 i = findfirst(isequal(sigma12), Sigma12)
                 if isnothing(i)
                     push!(Sigma12, sigma12)
-                    push!(mults12, m1*m2*tropical_intersection_multiplicity(sigma1,sigma2))
+                    push!(mults12, mult12)
                 else
-                    mults12[i] += m1*m2*tropical_intersection_multiplicity(sigma1,sigma2)
+                    mults12[i] += mult12
                 end
             end
         end
     end
 
+    # construct the correct polyhedral complex
     if isempty(Sigma12)
-        # return empty tropical variety
-        Sigma = polyhedral_complex(IncidenceMatrix(),zero_matrix(QQ,0,ambient_dim(TropV1)))
-        mults = ZZRingElem[]
-        return tropical_variety(Sigma,mults,convention(TropV1))
+        # empty polyhedral complex in the correct ambient dimension
+        Sigma12 = polyhedral_complex(IncidenceMatrix(),zero_matrix(QQ,0,ambient_dim(TropV1)))
+    else
+        # polyhedral complex from maximal polyhedra
+        Sigma12 = polyhedral_complex(Sigma12; non_redundant=true)
     end
 
     return tropical_variety(Sigma12,mults12,convention(TropV1))
 end
 
-function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::Polyhedron{QQFieldElem}, perturbation::Vector{Int})
 
-    if dim(intersect(sigma1,sigma2))<0
-        return false
+# Input: sigma1 and sigma2, two lowerdimensional polyhedra in the same ambient
+#   space RR^n (not checked!!!)
+# Output: (true, sigma1 \cap sigma2) if sigma1 intersects sigma2 +
+#   ε¹·e₁+...+εⁿ·eₙ for ε>0 sufficiently small and where e₁,...,eₙ is the basis
+#   of RR^n, (false, sigma1 \cap sigma2) otherwise.
+function intersect_after_lex_perturbation_with_intersection(sigma1::Polyhedron{QQFieldElem},sigma2::Polyhedron{QQFieldElem})
+
+    # Quick test 1: return false if sigma1 and sigma2 do not intersect in the first place
+    sigma12 = intersect(sigma1,sigma2)
+    if dim(sigma12) < 0
+        return false, sigma12
     end
 
-    # construct sigma1Prime = sigma1 x RR in RR^(n+1)
-    M = affine_inequality_matrix(facets(sigma1))
-    M = hcat(M, zero_matrix(QQ, nrows(M), 1))
-    N = affine_equation_matrix(affine_hull(sigma1))
-    N = hcat(N, zero_matrix(QQ, nrows(N), 1))
-    sigma1Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...]))
+    # Quick test 2: return false if the affine hulls of sigma1 and sigma2 do not
+    #   span the entire space
+    n = ambient_dim(sigma1)
+    if n > dim(sigma1)+dim(sigma2)-dim(sigma12)
+        return false, sigma12
+    end
 
-    # construct sigma2Prime = (sigma2 x {0}) + RR_{>=0} * (perturbation,1)
-    M = affine_inequality_matrix(facets(sigma2))
-    M = hcat(M, zero_matrix(QQ, nrows(M), 1))
-    N = affine_equation_matrix(affine_hull(sigma2))
-    N = hcat(N, zero_matrix(QQ, nrows(N), 1))
-    v = zero_matrix(QQ, 1, ncols(N))
-    v[1,end] = 1 # v = last unit vector
-    N = vcat(N, v)
-    sigma2Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
+    # Quick test 3: compute relative interior point of sigma12 (also
+    #   necessary for later) and return true, if it lies in the interior of
+    #   sigma1 and sigma2 (the correctness of this test requires sigma1 and
+    #   sigma2 spannig the entire space)
+    p = relative_interior_point(sigma12)
+    # if contains_in_interior(sigma1, p) && contains_in_interior(sigma2, p)
+    #     return true, sigma12
+    # end
 
-    sigma12Prime = intersect(sigma1Prime, sigma2Prime)
-    # @req codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
+    ###
+    # Actual test: check that u := ε¹·e₁+...+εⁿ·eₙ is in the tangent cone
+    #   C_0(sigma1-sigma2) = C_p(sigma1)-C_p(sigma2) for p some relative
+    #   interior point of sigma12.
+    ###
+    V1, L1 = minimal_faces(sigma1)
+    V2, L2 = minimal_faces(sigma2)
+    R1, _ = rays_modulo_lineality(sigma1)
+    R2, _ = rays_modulo_lineality(sigma2)
+    V1p = Ref(p) .- V1
+    V2p = Ref(p) .- V2
+    Cp12 = positive_hull(vcat(V1p,-V2p,R1,-R2), vcat(L1,L2))
 
-    return dim(sigma12Prime)>0 && last(relative_interior_point(sigma12Prime))>0
+    # and check whether u is contained in C_0(sigma1-sigma2) by checking that it
+    # is full-dimensional and that the sign of the first nonzero entry of its
+    # inequalities is positive.
+    if dim(Cp12) < n
+        return false, sigma12
+    end
+
+    F12 = linear_inequality_matrix(facets(Cp12))
+    for i in 1:nrows(F12)
+        j = findfirst(!iszero, F12[i, :])
+        if is_positive(F12[i, j])
+            return false, sigma12
+        end
+    end
+
+    return true, sigma12
 end
 
 
