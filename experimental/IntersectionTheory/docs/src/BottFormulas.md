@@ -75,10 +75,6 @@ dim(X::TnVariety)
 ```
 
 ```@docs
-fixed_points(X::TnVariety)
-```
-
-```@docs
 tangent_bundle(X::TnVariety)
 ```
 
