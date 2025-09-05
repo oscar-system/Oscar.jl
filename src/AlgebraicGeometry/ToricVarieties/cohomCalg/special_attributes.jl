@@ -71,9 +71,10 @@ end
     all_cohomologies(l::ToricLineBundle)
 
 Compute the dimension of all sheaf cohomologies of the 
-toric line bundle `l` by use of the cohomCalg algorithm 
+toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
-[Jow11](@cite) and [BJRR12](@cite)).
+[Jow11](@cite) and [BJRR12](@cite)). It is also possible to specify algorithm = "chamber counting"
+in which case the chamber counting algorithm will be used [CLS11](@cite) p.398 .
 
 # Examples
 ```jldoctest
@@ -85,9 +86,28 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
  0
  16
  0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = "chamber counting")
+3-element Vector{ZZRingElem}:
+ 0
+ 16
+ 0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]))
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "chamber counting")
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
 ```
 """
-@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle)
+@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
+  if occursin("cohomcalg", lowercase(algorithm))
     # check if we can apply cohomCalg
     v = toric_variety(l)
     if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
@@ -190,8 +210,10 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
     
     # return result
     return result
+  elseif occursin("chamber", lowercase(algorithm))
+    return _all_cohomologies_via_cech(l)
+  end
 end
-
 
 @doc raw"""
     cohomology(l::ToricLineBundle, i::Int)
@@ -210,13 +232,17 @@ julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12
 ```
 """
-function cohomology(l::ToricLineBundle, i::Int)
-    v = toric_variety(l)
-    if has_attribute(v, :vanishing_sets)
-        tvs = vanishing_sets(v)[i+1]
-        if contains(tvs, l)
-            return 0
-        end
+function cohomology(l::ToricLineBundle, i::Int; algorithm::String = "cohomCalg")
+  v = toric_variety(l)
+  if has_attribute(v, :vanishing_sets)
+    tvs = vanishing_sets(v)[i+1]
+    if contains(tvs, l)
+      return 0
     end
-    return all_cohomologies(l)[i+1]
+  end
+  if occursin("cohomcalg", lowercase(algorithm))
+    return all_cohomologies(l; algorithm = "cohomCalg")[i+1]
+  elseif occursin("chamber", lowercase(algorithm))
+    return _all_cohomologies_via_cech(l)[i+1]
+  end
 end
