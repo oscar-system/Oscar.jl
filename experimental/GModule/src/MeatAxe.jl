@@ -322,14 +322,14 @@ end
 function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
   X = character_table(G)
   if is_abelian(G)
-    return [gmodule(AbsSimpleNumField, x) for x = Oscar.GModuleFromGap._abs_irred_abelian(G)]
+    return Oscar.GModuleFromGap._abs_irred_abelian(G; cyclo = true)
   end
   #linear characters come from the max. ab. quot.
   Gab, mGab = maximal_abelian_quotient(G)
   zz = []
-  z = Oscar.GModuleFromGap._abs_irred_abelian(Gab)
+  z = Oscar.GModuleFromGap._abs_irred_abelian(Gab; cyclo = true)
   for x = z
-    push!(zz, inflate(gmodule(AbsSimpleNumField, x), mGab))
+    push!(zz, inflate(x, mGab))
   end
 
   if isnothing(t)
@@ -812,7 +812,7 @@ function Base.iterate(a::elem_gen_ctx, st::Tuple{Int, Int})
   end
   return sum(rand(a.bas) for i = 1:lev), (lev, len-1)
 end
-
+last_M = []
 function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   #Steel, p28: HomogeneousComponents(M)
   #Careful: the list in the end contains homogenous components - but
@@ -823,7 +823,7 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
   #TODO: center_of_endo for sub and quo modules
   #      irreducibles for abelian groups
   if is_regular_gmodule(M) || has_attribute(M, :center_endo)
-    C, mC = center_of_endo(M)
+    C, mC = Oscar.GModuleFromGap.center_of_endo(M)
   else
     E, mE = endo(M)
     C, mC = center(E)
