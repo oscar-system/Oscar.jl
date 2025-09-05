@@ -130,6 +130,7 @@ GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
 GAP.@wrap Grp(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool
 GAP.@wrap HasClassParameters(x::GapObj)::Bool
+GAP.@wrap HasConjugacyClassesSubgroups(x::GapObj)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap HasGrp(x::GapObj)::Bool
 GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
@@ -286,6 +287,7 @@ GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap KernelRecogNode(x::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
+GAP.@wrap LatticeByCyclicExtension(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LeadingExponent(x::GapObj)::GapInt
 GAP.@wrap LeadingExponentOfPcElement(x::GapObj, y::GapObj)::GapInt
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
