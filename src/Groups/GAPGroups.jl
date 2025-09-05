@@ -995,7 +995,7 @@ julia> subgroup_classes(G, order_bound = 3)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
- Conjugacy class of Alt(3) in G
+ Conjugacy class of permutation group in G
 ```
 """
 function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where {T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}}
