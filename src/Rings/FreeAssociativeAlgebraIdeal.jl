@@ -224,7 +224,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   R = parent(g[1])
 
   if algorithm == :default
-    if (ordering == :deglex && R.base_ring == QQ)
+    if (ordering == :deglex && base_ring(R) == QQ)
       algorithm = :f4
     elseif deg_bound == -1 
       algorithm = :buchberger
@@ -240,7 +240,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
 
   if algorithm == :f4
     @req ordering == :deglex "f4 only supports :deglex ordering"
-    @req R.base_ring == QQ "only rational coefficients are supported"
+    @req base_ring(R) == QQ "only rational coefficients are supported"
     f4ncgb_set_msg_printing(protocol)
 
     handle = f4ncgb_init()
