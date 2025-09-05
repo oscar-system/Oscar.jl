@@ -387,7 +387,7 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
-  V = SimpleModuleData(L, WeightLatticeElem(root_system(L), highest_weight))
+  V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
@@ -569,4 +569,14 @@ function basis_coordinate_ring_kodaira_ffl(
   return basis_coordinate_ring_kodaira_compute(
     V, degree, operators, monomial_ordering
   )
+end
+
+function basis_lie_demazure(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_asc_height(L))
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
