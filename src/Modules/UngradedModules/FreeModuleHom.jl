@@ -452,7 +452,7 @@ represented as subquotient with no relations -> F)
 
 ```
 """
-function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+@attr Tuple{SubquoModule{T}, SubQuoHom{SubquoModule{T}, FreeMod{T}}} function kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}) where T
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return kernel_atomic(h)  # explicitly call kernel_atomic
@@ -477,6 +477,8 @@ end
 end
 
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+    @show ngens(domain(h)), ngens(codomain(h))
+    @show maximum(total_degree.(numerator.(matrix(h))))
   K = kernel(kernel_ctx(h); side=:left)
   F = domain(h)
   v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
