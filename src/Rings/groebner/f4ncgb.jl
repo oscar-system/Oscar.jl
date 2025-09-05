@@ -10,7 +10,6 @@ function f4ncgb_version()
 end
 
 function f4ncgb_set_msg_printing(on::Bool)
-  println("Setting message printing to ", on)
   @ccall libf4ncgb.f4ncgb_set_msg_printing(on::Cuchar)::Cvoid
 end
 
@@ -36,7 +35,6 @@ function f4ncgb_add(handle::Ptr{Cvoid}, polynomial::FreeAssociativeAlgebraElem)
     c = coeff(m, 1)
     d = denominator(c)
     n = numerator(c)
-    println("Adding monomial with coeff $n/$d and exponents ", m.exps[1])
     inverse_exps = UInt32[N - i + 1 for i in m.exps[1]]
 
     f4ncgb_add(handle, Int(n), Int(d), inverse_exps)

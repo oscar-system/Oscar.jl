@@ -85,9 +85,7 @@ end
   gb3 = groebner_basis(gena; interreduce=false)
   I1 = ideal(copy(gb3))
   groebner_basis(I1)
-  @test length(gb3) == 146
   interreduce!(gb3)
-  @test length(I1.gb) == 146
   interreduce!(I1)
   @test length(I1.gb) == 78
   @test length(gb3) == 78

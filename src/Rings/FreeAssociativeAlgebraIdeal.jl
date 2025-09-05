@@ -194,7 +194,7 @@ function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   deg_bound::Int=-1;
   protocol::Bool=false,
   interreduce::Bool=false,
-  algorithm::Symbol=:f4
+  algorithm::Symbol=:default
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
   I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm)
@@ -206,7 +206,7 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   ordering::Symbol=:deglex,
   protocol::Bool=false,
   interreduce::Bool=false,
-  algorithm::Symbol=:f4
+  algorithm::Symbol=:default
   )
   gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce,algorithm=algorithm)
   gb = Generic.FreeAssociativeAlgebraElem{QQFieldElem}[x for x in gb]
@@ -218,10 +218,21 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   ordering::Symbol=:deglex,
   protocol::Bool=false,
   interreduce::Bool=false,
-  algorithm::Symbol=:f4)
+  algorithm::Symbol=:default)
 
   @req length(g) > 0 "Vector must not be empty"
   R = parent(g[1])
+
+  if algorithm == :default
+    if (ordering == :deglex && R.base_ring == QQ)
+      algorithm = :f4
+    elseif deg_bound == -1 
+      algorithm = :buchberger
+    else
+      algorithm = :letterplace
+    end
+  end
+
   @req all(x -> parent(x) == R, g) "parent mismatch"
   #@req deg_bound >= 0 || !protocol "computing with a protocol requires a degree bound"
   @req ordering == :deglex || deg_bound > 0 "only :deglex ordering is supported for no degree bound"
@@ -247,7 +258,11 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
     finally
       f4ncgb_free(handle)
     end
+    gb = userdata.gens
+    interreduce && return interreduce!(gb)
+
     return userdata.gens
+
   end
 
   if algorithm == :buchberger
