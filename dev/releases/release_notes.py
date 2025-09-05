@@ -270,6 +270,23 @@ which we think might affect some users directly.
             for pr in prs_to_be_added:
                 relnotes_file.write(pr_to_md(pr))
             relnotes_file.write("\n")
+        if len(prs_with_use_title) > 0:
+            relnotes_file.write(
+                "### **TODO** insufficient labels for automatic classification\n\n"
+                "The following PRs only have a topic label assigned to them, not a PR type. Either "
+                "assign a type label to them (e.g., `enhancement`), or manually move them to the "
+                "general section of the topic section in the changelog.\n\n")
+            for pr in prs_with_use_title:
+                for topic in topics:
+                    matches = [pr for pr in prs_with_use_title if has_label(pr, topic[0])]
+                    if len(matches) == 0:
+                        continue
+                    relnotes_file.write(f'#### {topic[1]}\n\n')
+                    for match in matches:
+                        relnotes_file.write(pr_to_md(match))
+                        prs_with_use_title.remove(match)
+                    relnotes_file.write('\n')
+            relnotes_file.write('\n')
 
         # remove PRs already handled earlier
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
