@@ -340,53 +340,45 @@ end
 # differently.
 =#
 function simplify(c::FreeResolution{T}) where T
-  if is_complete(c)
-    cut_off = length(c)+1
-  else
-    cut_off = length(c)
-  end
-  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
-  phi = map_to_original_complex(simp)
-  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
-  # fill the cache from behind (usually faster)
-  for i in cut_off:-1:0
-    simp[i]
-  end
-
-  # treat the augmentation map
-  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
-
-  # Fill in the remaining maps.
-  # If the resulting resolution is already complete, 
-  # preserve that information. The minimization might 
-  # also become complete, even though the original resolution 
-  # was not. In case we end up with a non-complete minimal 
-  # resolution, avoid storing the last map, as it can not be 
-  # properly minimized, yet. 
-  for j in 1:cut_off-1
-    psi = map(simp, j)
-    pushfirst!(result.maps, psi)
-    if is_zero(domain(psi))
-      result.complete = true
-      break
+  M = c[-1] # the module to be resolved
+  sub_comp = c.C[0:1] # the two-term complex for the presentation
+  sub_simp = simplify(SimpleComplexWrapper(sub_comp))
+  to = map_to_original_complex(sub_simp)
+  from = map_from_original_complex(sub_simp)
+  new_aug = compose(to[0], map(c, 0))
+  C = ComplexOfMorphisms(T, FreeModuleHom[new_aug]; typ=:chain, seed=-1, check=false)
+  set_attribute!(C, :zip_map=>from[0])#compose(from[1], map(sub_simp, 1)))
+  C.fill = function(C::ComplexOfMorphisms, k::Int)
+    k0 = first(chain_range(C))
+    k0 < k-1 && C[k-1] # Make sure the complex is filled
+    if is_zero(c[k])
+      Z = c[k]
+      cod = domain(first(C.maps))
+      pushfirst!(C.maps, hom(Z, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(Z)]))
+      set_attribute!(C, :zip_map => nothing)
+      set_attribute!(C, :complete => true)
+      C.complete = true
+      return first(C.maps)
     end
+    zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+    @assert domain(zip_map) === c[k-1]
+    @assert codomain(zip_map) === C[k-1]
+    tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
+    @assert tmp[k-1] === domain(zip_map) === c[k-1]
+    @assert tmp[k] === c[k]
+    @assert tmp[k+1] === c[k+1]
+    @assert C[k-1] === codomain(zip_map)
+    tmp_simp = simplify(SimpleComplexWrapper(tmp))
+    new_map = compose(compose(map(tmp_simp, k), map_to_original_complex(tmp_simp)[k-1]), zip_map)
+    @assert codomain(new_map) === C[k-1]
+    pushfirst!(C.maps, new_map)
+    set_attribute!(C, :zip_map=>map_from_original_complex(tmp_simp)[k])
+    C.complete = is_zero(domain(first(C.maps)))
+    return first(C.maps)
   end
-
-  # the last map needs special treatment
-  psi = map(simp, cut_off)
-  if is_zero(domain(psi))
-    pushfirst!(result.maps, psi)
-    result.complete = true
-  end
-  set_attribute!(result, 
-                 :show=>Hecke.pres_show, 
-                 :free_res=>get_attribute(c.C, :free_res)
-                )
-  result.fill = c.C.fill
-  if result.fill == _extend_free_resolution
-    set_attribute!(result, :algorithm => :mres)
-  end
-  return FreeResolution(result)
+  set_attribute!(C, :minimal => true)
+  C.complete = is_zero(domain(first(C.maps)))
+  return FreeResolution(C)
 end
 
 # An alias to cater for the common phrasing of the CA community:
@@ -397,9 +389,6 @@ end
 If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
 
 If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
-
-!!! note
-    If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
 
 # Examples
 ```jldoctest
@@ -495,6 +484,17 @@ function minimize(c::FreeResolution; check::Bool=true)
   end
   cm = simplify(c)
   set_attribute!(cm.C, :minimal=>true)
+  cm[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
+  set_attribute!(cm.C,
+                 :show=>Hecke.pres_show,
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  k0 = first(chain_range(c))
+  if is_zero(c[k0])
+    cod = cm[k0-1]
+    pushfirst!(cm.C.maps, hom(c[k0], cod, elem_type(cod)[zero(cod) for _ in 1:ngens(c[k0])]))
+    cm.C.complete=true
+  end
   return cm
 end
 
