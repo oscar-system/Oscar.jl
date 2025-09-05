@@ -769,21 +769,33 @@ end
 
 #TODO: add characters as well, should be fast given that we have
 #      the dual explicitly here!
-function _abs_irred_abelian(G::Oscar.GAPGroup)
+function _abs_irred_abelian(G::Oscar.GAPGroup; cyclo::Bool = false)
   @assert is_abelian(G)
   mA = isomorphism(Hecke.FinGenAbGroup, G) # G -> A
   A = codomain(mA)
   R, mR = dual(A)
   C, z = abelian_closure(QQ)
   F = free_module(C, 1)
-  all = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{QQAbFieldElem{AbsSimpleNumFieldElem}}}[]
+  if cyclo
+    all = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{AbsSimpleNumFieldElem}}[]
+  else
+    all = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{QQAbFieldElem{AbsSimpleNumFieldElem}}}[]
+  end
   function conv(r)
     e = r.elt  #in QQ mod ZZ, rep as a/b with b>a should be mapped to z(b)^a
     return z(Int(denominator(e)))^Int(numerator(e))
   end
   for r = R
     f = mR(r)
-    push!(all, gmodule(F, G, [hom(F, F, [F([conv(f(mA(g)))])]) for g = gens(G)]))
+    im =[conv(f(mA(g))) for g = gens(G)]
+    if cyclo
+      o = reduce(lcm, [denominator(f(mA(g)).elt) for g = gens(G)]; init = ZZ(1))
+      D = parent(z(Int(o)).data)
+      FF = free_module(D, 1)
+      push!(all, gmodule(FF, G, [hom(FF, FF, [FF([x.data])]) for x = im]))
+    else
+      push!(all, gmodule(F, G, [hom(F, F, [F([conv(f(mA(g)))])]) for g = gens(G)]))
+    end
   end
   return all
 end
@@ -1028,7 +1040,15 @@ end
 # we only require that M has the correct rank is free
 function _regular_gmodule(G::Group, M)
   ge = collect(G)
-  ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
+  H = symmetric_group(Int(order(G)))
+  if isa(M, GModule{<:Any, <:AbstractAlgebra.FPModule}) ||
+     isa(M, GModule{<:Any, Hecke.GrpAbElem})
+    gns  = [H([findfirst(isequal(ge[i]*g), ge) for i=1:length(ge)]) for g = gens(G)]
+    ZG = gmodule(G, [hom(M, M, PermMat(base_ring(M), g)) for g = gns])
+  else #for arbitrary modules using matrices to define maps
+       #is not guaranteed
+    ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
+  end
   set_attribute!(ZG, :is_regular => ge)
   return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))),
     MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
@@ -1053,6 +1073,20 @@ function natural_gmodule(G::PermGroup, R::Ring)
 #      What is the appropriate way to construct a module homomorphism
 #      without storing a matrix?
 end
+
+######################################################################
+#
+# Permutation matrices - without the matrix
+#
+######################################################################
+#
+#TODO
+# - move the generic part to AA - if we want to support this
+# - implement more fast versions:
+#   - for Nemo types using pointers
+#   - for generic matrices using broadcast?
+# - if desired add solve, can solve, ...
+#
 
 mutable struct PermMat{T <: RingElement} <: AbstractAlgebra.MatElem{T}
   R
@@ -1080,13 +1114,66 @@ function *(M::PermMat{T}, N::PermMat{T}) where T
   return PermMat(M.R, M.p*N.p)
 end
 
-function swap!(A::QQMatrix, pi::PermGroupElem)
+function swap_rows!(A::Matrix, pi::PermGroupElem)
+  n = nrows(A)
+  m = ncols(A)
+
+  tmp = [A[1,1] for i = 1:m]
+
+  for C = cycles(pi)
+    length(C) == 1 && continue
+    j = C[end] 
+    for i=1:m
+      tmp[i] = A[i, j]
+    end
+    for j = length(C)-1:-1:1
+      Cj = C[j]
+      Cj1 = C[j+1]
+      for i=1:m
+        A[Cj, i] = A[Cj1, i]
+      end
+    end
+    j = C[1]
+
+    for i=1:m
+      A[j, i] = tmp[i]
+    end
+  end
+end
+
+function swap_cols!(A::Matrix, pi::PermGroupElem)
+  n = nrows(A)
+  m = ncols(A)
+
+  tmp = [A[1,1] for i = 1:n]
+
+  for C = cycles(pi)
+    length(C) == 1 && continue
+    j = C[end] 
+    for i=1:n
+      tmp[i] = A[i, j]
+    end
+    for j = length(C)-1:-1:1
+      Cj = C[j]
+      Cj1 = C[j+1]
+      for i=1:n
+        A[i, Cj] = A[i, Cj1]
+      end
+    end
+    j = C[1]
+
+    for i=1:n
+      A[i, j] = tmp[i]
+    end
+  end
+end
+
+function swap_cols!(A::QQMatrix, pi::PermGroupElem)
   st = A.stride
   n = nrows(A)
   m = ncols(A)
-  B = zero_matrix(QQ, n, m)
-  Ap = reinterpret(Ptr{Int}, A.entries)
 
+  Ap = reinterpret(Ptr{Int}, A.entries)
   tmp = zeros(Int, 2*n)
 
   for C = cycles(pi)
@@ -1118,13 +1205,65 @@ function swap!(A::QQMatrix, pi::PermGroupElem)
   end
 end
 
+function swap_rows!(A::QQMatrix, pi::PermGroupElem)
+  st = A.stride
+  n = nrows(A)
+  m = ncols(A)
+  Ap = reinterpret(Ptr{Int}, A.entries)
+
+  tmp = zeros(Int, 2*m)
+
+  for C = cycles(pi)
+    length(C) == 1 && continue
+    i = C[end] - 1
+    for j=0:m-1
+      p = 2*(i*st+j) + 1
+      tmp[2*j+1] = unsafe_load(Ap, p)
+      tmp[2*j+2] = unsafe_load(Ap, p+1)
+    end
+    for i = length(C)-1:-1:1
+      for j=0:m-1
+        p = 2*((C[i]-1)*st+j) + 1
+        q = 2*((C[i+1]-1)*st+j) + 1
+        a = unsafe_load(Ap, p)
+        b = unsafe_load(Ap, p+1)
+        
+        unsafe_store!(Ap, a, q)
+        unsafe_store!(Ap, b, q+1)
+      end
+    end
+    i = C[1]-1
+
+    for j=0:m-1
+      p = 2*(i*st+j) + 1
+      unsafe_store!(Ap, tmp[2*j+1], p)
+      unsafe_store!(Ap, tmp[2*j+2], p+1)
+    end
+  end
+end
+
 function *(A::QQMatrix, M::PermMat{QQFieldElem})
   #permute columns by p
   B = deepcopy(A)
-  swap!(B, M.p)
-#  global last_mul = (A, M)
+  swap_cols!(B, M.p)
 #  @assert B == A*permutation_matrix(QQ, M.p)
   return B
+end
+
+function *(M::PermMat{QQFieldElem}, A::QQMatrix)
+  #permute columns by p
+  B = deepcopy(A)
+  swap_rows!(B, inv(M.p))
+#  @assert B == permutation_matrix(QQ, M.p)*A
+  return B
+end
+
+function Base.inv(M::PermMat)
+  return PermMat(M.R, inv(M.p))
+end
+
+function Base.transpose(M::PermMat)
+  return PermMat(M.R, inv(M.p))
 end
 
 function Oscar.matrix(M::PermMat)
@@ -1142,6 +1281,9 @@ function Base.getindex(M::PermMat, i::Int, j::Int)
   end
 end
 
+##########################################
+# main use (so far): permutation gmodules: action without matrices
+
 function show_permutation_gmodule(io::IO, C::GModule)
   io = pretty(io)
   io = IOContext(io, :compact => true)
@@ -1150,6 +1292,9 @@ function show_permutation_gmodule(io::IO, C::GModule)
 end
 
 function permutation_gmodule(G::Group, U::Group, R::Ring)
+  if order(U) == 1
+    return regular_gmodule(G, R)[1]
+  end
   rc = right_cosets(G, U)
   h = action_homomorphism(rc)
   F = free_module(R, Int(divexact(order(G), order(U))))
@@ -1179,7 +1324,7 @@ function hom_base_perm_module(C::GModule, D::GModule)
   rD = get_attribute(D, :right_cosets)
   @assert rC !== nothing && rD !== nothing
   J = rC.subgroup
-  H = rD.subgroup
+  H = rD.subgroup#
   #hom: basis for C is given by the transversal in rC
   all = dense_matrix_type(base_ring(C))[]
 #  all = []
@@ -2169,9 +2314,6 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
     return hom_base_perm_module(C, D)
   end
 
-  global all_base
-
-
   p = Hecke.p_start
   p = 2^10
   p = 127
@@ -2331,8 +2473,10 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
     G = group(M)
     C = conjugacy_classes(G) 
     #TODO: speed this up! (reuse sub-words, ...)
+    #https://ysharifi.wordpress.com/2011/02/08/center-of-group-algebras/
     base = [sum(matrix(action(M, g)) for g = c) for c = C]
-    E = matrix_algebra(base_ring(M), base)
+    E = matrix_algebra(base_ring(M), base; isbasis = true)
+    @assert length(base) == dim(E)
   else
     E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
   end
