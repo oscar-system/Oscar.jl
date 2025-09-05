@@ -139,7 +139,8 @@ def get_tag_date(tag: str) -> str:
 
 
 def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
-    query = f'merged:>={date} -label:"release notes: not needed" -label:"release notes: added" base:master {extra}'
+    #query = f'merged:>={date} -label:"release notes: not needed" -label:"release notes: added" base:master {extra}'
+    query = '5271'
     print("query: ", query)
     res = subprocess.run(
         [
@@ -149,9 +150,9 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
             "--search",
             query,
             "--json",
-            "number,title,closedAt,labels,mergedAt",
+            "number,title,closedAt,labels,mergedAt,body",
             "--limit",
-            "200",
+            "1",
         ],
         check=True,
         capture_output=True,
@@ -166,7 +167,20 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
+    mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
+    if has_label(pr,'release notes: use body'):
+        body = pr['body']
+        index1 = body.lower().find("## release notes")
+        if index1 == -1:
+            ## not found
+            ## complain and return fallback
+            print(f"Release notes section not found in PR number {pr['number']}!!")
+            return mdstring
+        index2 = body.find('---', index1)
+        # there are 17 characters from index 1 until the next line
+        mdstring = body[index1+17:index2]
+        mdstring = mdstring.replace("- ", f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ")
+    return mdstring
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
