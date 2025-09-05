@@ -157,6 +157,7 @@ end
 _to_lpring(a::FreeAssociativeAlgebra, deg_bound::Int; ordering::Symbol=:deglex) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound; ordering=ordering)
 
 @doc raw"""
+    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4)
     groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4)
 
 Compute the Groebner basis for a vector of generators `g` in a free associative algebra.
