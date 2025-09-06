@@ -335,7 +335,7 @@ end
 
   # The classical case of two maps
   prod1, p1, p2 = fiber_product(there, there)
-  id_V = identity_map(V)
+  id_V = id_hom(V)
   h = Oscar.induced_map_to_fiber_product(id_V, id_V, there, there, fiber_product=(prod1, p1, p2))
   @test codomain(h) === prod1
   @test is_isomorphism(h)

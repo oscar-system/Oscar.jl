@@ -18,11 +18,11 @@
 # in an extra file.
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return R, identity_map(R), identity_map(R)
+  return R, id_hom(R), id_hom(R)
 end
 
 function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return Q, identity_map(Q), identity_map(Q)
+  return Q, id_hom(Q), id_hom(Q)
 end
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}}

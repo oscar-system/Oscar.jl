@@ -17,7 +17,7 @@ map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusi
 ```
 
 ```@docs
-identity_map(X::AbstractVariety)
+id_hom(X::AbstractVariety)
 ```
 
 ## Underlying Data of an Abstract Variety Map

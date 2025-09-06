@@ -118,7 +118,7 @@ function multi_hilbert_series(
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
   denom = _hilbert_series_denominator(parent, W)
   numer = HSNum_module(SubM, parent, backend)
-  return (numer, denom), (G, identity_map(G))
+  return (numer, denom), (G, id_hom(G))
 end
 
 function multi_hilbert_series(

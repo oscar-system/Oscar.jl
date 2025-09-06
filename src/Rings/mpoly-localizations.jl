@@ -961,7 +961,7 @@ function localization(
     W::MPolyLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  issubset(S, inverted_set(W)) && return W, identity_map(W)
+  issubset(S, inverted_set(W)) && return W, id_hom(W)
   U = S*inverted_set(W)
   L, _ = localization(U)
   #return L, MapFromFunc(W, L, (x->(L(numerator(x), denominator(x), check=false))))
@@ -2472,8 +2472,8 @@ defined by
 restricted_map(PHI::MPolyLocalizedRingHom) = PHI.res
 
 ### implementing the Oscar map interface
-function identity_map(W::T) where {T<:MPolyLocRing} 
-  MPolyLocalizedRingHom(W, W, identity_map(base_ring(W)), check=false)
+function id_hom(W::T) where {T<:MPolyLocRing} 
+  MPolyLocalizedRingHom(W, W, id_hom(base_ring(W)), check=false)
 end
 
 function compose(

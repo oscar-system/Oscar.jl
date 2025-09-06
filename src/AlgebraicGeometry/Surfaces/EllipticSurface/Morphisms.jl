@@ -634,7 +634,7 @@ function morphism_from_section(
 
   # For the zero section we can not use the Weierstrass chart
   if is_infinite(P)
-    return identity_map(X)
+    return id_hom(X)
   end
   @assert !is_one(II(U))
 
@@ -670,7 +670,7 @@ function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint)
   E = generic_fiber(X)
   @assert parent(P) === E "point does not lay on the underlying elliptic curve"
   U = weierstrass_chart_on_minimal_model(X)
-  is_zero(P) && return identity_map(X)
+  is_zero(P) && return id_hom(X)
 
   # We construct the translation by P as a morphism of rational functions
   kT = base_field(E)

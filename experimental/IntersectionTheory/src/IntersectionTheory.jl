@@ -4,7 +4,7 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
+import ..Oscar: pullback, pushforward, base, OO, product, compose, id_hom, map
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
@@ -47,7 +47,7 @@ export fixed_points
 export gromov_witten_invariant
 export graph
 export hom
-export identity_map
+export id_hom
 export instanton_number
 export intersection_matrix
 export kontsevich_moduli_space
@@ -146,7 +146,7 @@ export fixed_points
 export graph
 export gromov_witten_invariant
 export hom
-export identity_map
+export id_hom
 export instanton_number
 export intersection_matrix
 export kontsevich_moduli_space

@@ -39,7 +39,7 @@ function intersect_in_covering(U::AbsAffineScheme, V::AbsAffineScheme, C::Coveri
     error("affine refinements of coverings not implemented at the moment")
 #    X = C[i]
 #    if X === U === V
-#      iso = identity_map(X)
+#      iso = id_hom(X)
 #      return iso, iso, iso, iso
 #    end
 #    f = one(ambient_coordinate_ring(X)) # For the case where U is already a basic patch
@@ -51,7 +51,7 @@ function intersect_in_covering(U::AbsAffineScheme, V::AbsAffineScheme, C::Coveri
 #      g = gens(affine_refinements(C)[X][m][1])[n]
 #    end
 #    W = PrincipalOpenSubset(X, [f*g])
-#    isoW = identity_map(W)
+#    isoW = id_hom(W)
 #    incWtoU = inclusion_morphism(W, U, check=false)
 #    incWtoV = inclusion_morphism(W, V, check=false)
 #    return isoW, isoW, incWtoU, incWtoV
@@ -253,7 +253,7 @@ end
     result = Covering(Y)
     set_decomposition_info!(result, Y, elem_type(OO(Y))[])
     pU = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
-    pU[Y] = identity_map(Y)
+    pU[Y] = id_hom(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
     _dehomogenization_cache(X)[Y] = _dehomogenization_map(X, Y, 1)
@@ -391,17 +391,17 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #"""
 #function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
 #  # shortcut for the trivial cases
-#  C1 == C2 && return (C1, identity_map(C1), identity_map(C1))
+#  C1 == C2 && return (C1, id_hom(C1), id_hom(C1))
 #
 #  # find the minimal common root using the refinement graph
 #  r, p1, p2 = find_common_root(refinement_graph(X), X[C1], X[C2])
 #
 #  # if one covering sits strictly on top of the other, take the shortcut
 #  if length(p1) == 0
-#    return (C2, identity_map(C1), _compose_along_path(X, p2))
+#    return (C2, id_hom(C1), _compose_along_path(X, p2))
 #  end
 #  if length(p2) == 0
-#    return (C1, _compose_along_path(X, p1), identity_map(C2))
+#    return (C1, _compose_along_path(X, p1), id_hom(C2))
 #  end
 #
 #  # now we may assume that neither one of the coverings is contained in the other
@@ -423,7 +423,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #    while length(V_candidates) > 0
 #      V = pop!(V_candidates)
 #      if is_subscheme(U, V)
-#        inc1[U] = identity_map(U)
+#        inc1[U] = id_hom(U)
 #        inc2[U] = inclusion_morphism(U, V)
 #        inc0[U] = f[U]
 #        push!(new_patches, U)

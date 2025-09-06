@@ -22,12 +22,12 @@
   end
 
   function Oscar.produce_restriction_map(F::ZZConstantSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-    return identity_map(ZZ)
+    return id_hom(ZZ)
   end
 
   und = PreSheafOnScheme(X, 
                          OpenType=AbsAffineScheme, OutputType=typeof(ZZ),
-                         RestrictionType=typeof(identity_map(ZZ)),
+                         RestrictionType=typeof(id_hom(ZZ)),
                          is_open_func=is_open_embedding
                         )
   const_sheaf_ZZ = ZZConstantSheaf(und)
@@ -38,7 +38,7 @@
   V = hypersurface_complement(U, [x[2]])
   @test G === const_sheaf_ZZ(V)
   rho = const_sheaf_ZZ(U, V)
-  @test rho==identity_map(ZZ)
+  @test rho==id_hom(ZZ)
   @test domain(rho) === const_sheaf_ZZ(U)
   @test codomain(rho) === const_sheaf_ZZ(V)
 end

@@ -270,8 +270,8 @@ end
   @test !(base_scheme(IP2_WW) === WW)
 
   IP2_QQ = projective_space(QQ, 2)
-  id = identity_map(IP2_QQ)
-  @test id == identity_map(IP2_QQ)
+  id = id_hom(IP2_QQ)
+  @test id == id_hom(IP2_QQ)
 end
 
 @testset "properties of projective schemes" begin

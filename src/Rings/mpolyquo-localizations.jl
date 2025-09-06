@@ -1079,8 +1079,8 @@ function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where 
 end
 
 ### implementing the Oscar map interface
-function identity_map(W::T) where {T<:MPolyQuoLocRing} 
-  MPolyQuoLocalizedRingHom(W, W, identity_map(base_ring(W)))
+function id_hom(W::T) where {T<:MPolyQuoLocRing} 
+  MPolyQuoLocalizedRingHom(W, W, id_hom(base_ring(W)))
 end
 
 function simplify(a::MPolyQuoLocRingElem)
@@ -1604,13 +1604,13 @@ end
 # when the coefficient ring is not a field. Hence, unless that is the case, 
 # we refrain from doing anything here. 
 function simplify(L::MPolyQuoRing)
-  return L, identity_map(L), identity_map(L)
+  return L, id_hom(L), id_hom(L)
 end
 
 function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   J = modulus(L)
   R = base_ring(L)
-  is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
+  is_zero(ngens(R)) && return L, id_hom(L), id_hom(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)
 
@@ -2745,7 +2745,7 @@ end
 
 
 function _as_localized_quotient(W::MPolyQuoLocRing)
-  return W, identity_map(W), identity_map(W)
+  return W, id_hom(W), id_hom(W)
 end
 
 # Problems arise with comparison for non-trivial coefficient maps 

@@ -586,8 +586,8 @@ end
   @test is_welldefined(p2)
   @test is_bijective(i2)
   @test is_bijective(p2)
-  @test i2*p2 == identity_map(M2)
-  @test p2*i2 == identity_map(M1)
+  @test i2*p2 == id_hom(M2)
+  @test p2*i2 == id_hom(M1)
 
   A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
   B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
@@ -776,7 +776,7 @@ end
   End_M = hom(M1,M1)[1]
   R_as_module = FreeMod(R,1)
   phi = multiplication_induced_morphism(R_as_module, End_M)
-  @test element_to_homomorphism(phi(R_as_module[1])) == identity_map(M1)
+  @test element_to_homomorphism(phi(R_as_module[1])) == id_hom(M1)
   @test image(element_to_homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
 
   # test if hom(zero-module, ...) is zero
@@ -829,7 +829,7 @@ end
     M2 = SubquoModule(F3,A2,B2)
 
     M,pure_M = tensor_product(M1,M2, task=:map)
-    phi = hom_tensor(M,M,[identity_map(M1),identity_map(M2)])
+    phi = hom_tensor(M,M,[id_hom(M1),id_hom(M2)])
 
     for _=1:3
       v = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M)])), M)

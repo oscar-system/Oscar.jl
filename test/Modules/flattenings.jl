@@ -18,8 +18,8 @@
   a = get_attribute(b, :inverse)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
-  @test compose(a, b) == identity_map(domain(a))
-  @test compose(b, a) == identity_map(domain(b))
+  @test compose(a, b) == id_hom(domain(a))
+  @test compose(b, a) == id_hom(domain(b))
 end
 
 @testset "flattenings of modules II" begin
@@ -39,6 +39,6 @@ end
   a = get_attribute(b, :inverse)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
-  @test compose(a, b) == identity_map(domain(a))
-  @test compose(b, a) == identity_map(domain(b))
+  @test compose(a, b) == id_hom(domain(a))
+  @test compose(b, a) == id_hom(domain(b))
 end

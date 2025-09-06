@@ -662,7 +662,7 @@ end
 # of a row reduced matrix via `on_echelon_form_mats`
 function stabilizer(G::MatrixGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
   (actfun === on_echelon_form_mats) || return _stabilizer_generic(G, pnt, actfun)
-  nrows(pnt) == 0 && return (G, identity_map(G))
+  nrows(pnt) == 0 && return (G, id_hom(G))
   iso = _ring_iso(G)
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
     map_entries(iso, pnt),

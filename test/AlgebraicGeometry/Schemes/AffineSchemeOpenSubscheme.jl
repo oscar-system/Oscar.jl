@@ -105,8 +105,8 @@ end
   q = compose(phi_res, psi)
   phi1 = restrict(phi,domain(phi),codomain(phi))
   @test phi == phi1
-  @test restrict(p, domain(p), domain(p)) == identity_map(domain(p))
-  @test restrict(q, domain(q), domain(q)) == identity_map(domain(q))
+  @test restrict(p, domain(p), domain(p)) == id_hom(domain(p))
+  @test restrict(q, domain(q), domain(q)) == id_hom(domain(q))
 end
 
 @testset "restriction_maps" begin

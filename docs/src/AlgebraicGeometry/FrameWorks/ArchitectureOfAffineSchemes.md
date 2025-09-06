@@ -135,7 +135,7 @@ AffineSchemeMor{DomainType<:AbsAffineScheme,
 ```
 This basic functionality consists of
 - `compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,
-- `identity_map(X::AbsAffineScheme)`,
+- `id_hom(X::AbsAffineScheme)`,
 - `restrict(f::AbsAffineSchemeMor, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)`,
 - `==(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,
 - `preimage(f::AbsAffineSchemeMor, Z::AbsAffineScheme)`.

@@ -242,7 +242,7 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:
     # Workaround, normalization for rings buggy if already normal
     Xnorm_k = X
     X_k = X
-    F_k = identity_map(X)
+    F_k = id_hom(X)
     K_k = total_ring_of_fractions(X_k)
     A_k = OO(Xnorm_k)
     A_k_to_K_k = hom(A_k, K_k, K_k.(gens(A_k)); check=false)
@@ -256,7 +256,7 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:
     if length(A_norm) == 1
       # X = X_k is integral
       X_k = X
-      inc_k = identity_map(X)
+      inc_k = id_hom(X)
     else
       I = kernel(pullback(F_k))
       X_k, inc_k = sub(X, I) # the component of X lying over Xnorm_k

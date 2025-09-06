@@ -789,7 +789,7 @@ end
     M2 = SubquoModule(F3,A2,B2)
     M, pure_M = tensor_product(M1,M2, task=:map)
     @test is_graded(M)
-    phi = hom_tensor(M, M, [identity_map(M1), identity_map(M2)])
+    phi = hom_tensor(M, M, [id_hom(M1), id_hom(M2)])
     @test is_homogeneous(phi)
     v = M[1]
     @test phi(v) == v

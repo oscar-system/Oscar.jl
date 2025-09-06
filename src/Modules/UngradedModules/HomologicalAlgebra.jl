@@ -178,7 +178,7 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
     j = Hecke.map_range(C)[i]
     @assert domain(map(C, j)) === A_fac[2]
     @assert codomain(map(C, j)) === B_fac[2]
-    push!(tensor_chain, hom_tensor(A,B,[identity_map(A_fac[1]), map(C,j)]))
+    push!(tensor_chain, hom_tensor(A,B,[id_hom(A_fac[1]), map(C,j)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
@@ -207,7 +207,7 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
     B = tensor_modules[i+1]
 
     j = chain_range[i]
-    push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
+    push!(tensor_chain, hom_tensor(A,B,[map(C,j), id_hom(P)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
@@ -272,7 +272,7 @@ function tor(M::ModuleFP, N::ModuleFP, i::Int)
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
-simplify_light(F::FreeMod) = (F, identity_map(F), identity_map(F))
+simplify_light(F::FreeMod) = (F, id_hom(F), id_hom(F))
 
 #TODO, mF
 #  (hom lift) => hom and tensor functor
