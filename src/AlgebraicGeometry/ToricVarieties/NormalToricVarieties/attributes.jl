@@ -213,7 +213,7 @@ julia> coordinate_names(antv)
   if has_attribute(v, :cox_ring)
     return symbols(cox_ring(v))
   end
-  return [Symbol("x$(i)") for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
+  return [Symbol(:x, i) for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
