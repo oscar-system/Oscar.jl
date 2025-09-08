@@ -1,4 +1,7 @@
-qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+using Random
+our_rng = Random.Xoshiro(1234)
+
+qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = our_rng)
 as = ambient_space(qsm_model)
 x1, x2, x3, x4, x5, x6, x7, v, e3, e2, u, e4, e1, w = gens(cohomology_ring(as))
 X1 = cohomology_class(as, x1)
@@ -31,7 +34,7 @@ g4_exp = flux_instance(fg_not_breaking, [3], [])
 end
 
 @testset "Advanced intersection theory and QSM-fluxes" begin
-  qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+  qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = our_rng)
   h22_converter_dict = converter_dict_h22_ambient(qsm_model, completeness_check = false)
   coh_ring = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
   coh_ring_gens = gens(coh_ring)

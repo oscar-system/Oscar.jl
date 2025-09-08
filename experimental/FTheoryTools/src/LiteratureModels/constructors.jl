@@ -3,7 +3,7 @@
 #######################################################
 
 @doc raw"""
-    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 Return a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
 Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
@@ -25,6 +25,7 @@ Some literature models require additional input to be uniquely determined and co
 * `defining_classes`: A dictionary specifying divisor classes necessary to fully define the geometry.
 * `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
+* `rng`: Set the random source used to create generic sections.
 
 See the [Literature Models](@ref literature_models) documentation page for a deeper discussion of these fields.
 
@@ -33,7 +34,9 @@ over an unspecified base:
 
 # Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> coordinate_ring(ambient_space(t))
@@ -52,13 +55,15 @@ Certainly, this is also possible over a concrete base, provided that the definin
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 
@@ -66,16 +71,16 @@ Certainly, this can be mimiced for Weierstrass models, e.g. [Morrison, Park 2012
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
-
-julia> using Random;
 
 julia> length(singular_loci(w; rng = Random.Xoshiro(1234)))
 1
@@ -87,13 +92,15 @@ Here is how this can be used to create the model [Morrison, Park 2012](@cite MP1
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
 julia> using Random;
@@ -108,7 +115,9 @@ hypersurface model. This works as follows:
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+julia> using Random;
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
@@ -125,24 +134,24 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check, rng = rng)
 end
 
-function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
   model_dict = _find_model(k)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check, rng = rng)
 end
 
-function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String, Any}(), defining_classes::Dict{String, <:Any} = Dict{String, Any}(), completeness_check::Bool = true)
+function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String, Any}(), defining_classes::Dict{String, <:Any} = Dict{String, Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
@@ -218,7 +227,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     end
 
     # Construct the model
-    model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
+    model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check, rng)
     @vprint :FTheoryModelPrinter 1 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   else
@@ -289,7 +298,7 @@ end
 #######################################################
 
 # Construct literature model over concrete base
-function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, defining_classes::Dict{String, <:Any}, completeness_check::Bool)
+function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, defining_classes::Dict{String, <:Any}, completeness_check::Bool, rng::AbstractRNG = Random.default_rng())
 
   # Make list and dict of the defining divisor classes
   defng_cls = string.(model_dict["model_data"]["defining_classes"])
@@ -320,10 +329,10 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
       if torsion_free_rank(class_group_with_map(base_space)[1]) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
         model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
       else
-        model_sections[key] = generic_section(toric_line_bundle(value))
+        model_sections[key] = generic_section(toric_line_bundle(value); rng)
       end
     else
-      model_sections[key] = generic_section(toric_line_bundle(value))
+      model_sections[key] = generic_section(toric_line_bundle(value); rng)
     end
   end
 

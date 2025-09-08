@@ -47,7 +47,7 @@ end
 end
 
 Kbar = anticanonical_divisor(B3)
-foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false, rng = our_rng)
 
 @testset "Saving and loading hypersurface literature model and some of their attributes" begin
   mktempdir() do path
@@ -70,12 +70,12 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b), rng = our_rng)
 
 # Currently, none of the hypersurface models in our database has corresponding Weierstrass/Tate models.
 # This code thus only tests if the code works, but the assignment is mathematically speaking wrong.
-w_model = weierstrass_model_over_projective_space(2)
-gt_model = global_tate_model_over_projective_space(2)
+w_model = weierstrass_model_over_projective_space(2, rng = our_rng)
+gt_model = global_tate_model_over_projective_space(2, rng = our_rng)
 set_weierstrass_model(h3, w_model)
 set_global_tate_model(h3, gt_model)
 
@@ -127,7 +127,7 @@ end
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, [D1, D2, D3], p)
 end
 
-h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = our_rng)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
   @test parent(hypersurface_equation(h5)) == coordinate_ring(ambient_space(h5))

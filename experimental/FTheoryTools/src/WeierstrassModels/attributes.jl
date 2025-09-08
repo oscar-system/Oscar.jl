@@ -5,7 +5,9 @@ Return the Weierstrass section ``f`` of the Weierstrass model.
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
@@ -21,7 +23,9 @@ Return the Weierstrass section ``g`` of the Weierstrass model.
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
@@ -39,7 +43,9 @@ Alias: [`hypersurface_equation(w::WeierstrassModel)`](@ref).
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w) == hypersurface_equation(w)
@@ -80,7 +86,9 @@ locally by an ideal sheaf on each affine patch rather than by a global hypersurf
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(2)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> weierstrass_ideal_sheaf(w)
@@ -119,7 +127,9 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model.
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> discriminant(w);
@@ -161,7 +171,9 @@ Advanced technical details are available in [BMT25](@cite BMT25).
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> using Random;

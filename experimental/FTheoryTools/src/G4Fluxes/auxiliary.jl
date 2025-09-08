@@ -22,7 +22,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> cdh22 = converter_dict_h22_ambient(qsm_model, completeness_check = false);
@@ -351,7 +353,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> bhi = basis_of_h22_ambient_indices(qsm_model, completeness_check = false);
@@ -383,7 +387,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(basis_of_h22_ambient(qsm_model, completeness_check = false)) == betti_number(ambient_space(qsm_model), 4)
@@ -427,7 +433,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(gens_of_h22_hypersurface_indices(qsm_model, completeness_check = false))
@@ -503,7 +511,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(gens_of_h22_hypersurface(qsm_model, completeness_check = false))
@@ -542,7 +552,9 @@ For mathematical background shared across related methods see [Advanced Methods]
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> cdh22 = converter_dict_h22_hypersurface(qsm_model, completeness_check = false);
@@ -591,13 +603,15 @@ returned by this method.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir))), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar), rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> g4_basis = chosen_g4_flux_gens(t);
@@ -618,7 +632,7 @@ Cohomology class on a normal toric variety given by y^2
 julia> cohomology_class(g4_basis[2])
 Cohomology class on a normal toric variety given by z^2
 
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> g4_basis = chosen_g4_flux_gens(qsm_model, completeness_check = false);

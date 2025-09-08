@@ -2,8 +2,11 @@
 # Tests for the model from 1511.03209
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 @testset "Test Downloading Artifact and elementary properties" begin
-  t = literature_model(arxiv_id = "1511.03209")
+  t = literature_model(arxiv_id = "1511.03209", rng = our_rng)
   fully_resolved_big_model = resolve(t, 1)
   f1 = special_flux_family(fully_resolved_big_model, completeness_check = false)
   g1 = random_flux_instance(f1, completeness_check = false, consistency_check = false)

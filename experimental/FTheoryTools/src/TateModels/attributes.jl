@@ -5,7 +5,9 @@ Return the Tate section ``a_1``.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(tate_section_a1(t))
@@ -22,7 +24,9 @@ Return the Tate section ``a_2``.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(tate_section_a2(t))
@@ -39,7 +43,9 @@ Return the Tate section ``a_3``.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(tate_section_a3(t))
@@ -56,7 +62,9 @@ Return the Tate section ``a_4``.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(tate_section_a4(t))
@@ -73,7 +81,9 @@ Return the Tate section ``a_6``.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(tate_section_a6(t))
@@ -92,7 +102,9 @@ Alias: [`hypersurface_equation(t::GlobalTateModel)`](@ref).
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> tate_polynomial(t) == hypersurface_equation(t)
@@ -133,7 +145,9 @@ locally by an ideal sheaf on each affine patch rather than by a global hypersurf
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> tate_ideal_sheaf(t)
@@ -172,7 +186,9 @@ Return the Weierstrass model which is equivalent to the given global Tate model.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> weierstrass_model(t)
@@ -280,7 +296,9 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2`` of the Weierstrass model equ
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model_over_projective_space(2)
+julia> using Random;
+
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> degree(discriminant(t))
