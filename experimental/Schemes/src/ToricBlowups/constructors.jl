@@ -20,7 +20,7 @@ end
 
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion})
+    blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; coordinate_name::Union{VarName, Nothing} = nothing)
 
 Star subdivide the fan $\Sigma$ of the toric variety $X$ along the
 primitive vector `r` in the support of $\Sigma$ (Section
@@ -57,7 +57,7 @@ function blow_up(X::NormalToricVarietyType, r::AbstractVector{<:IntegerUnion}; c
 end
 
 @doc raw"""
-    blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion})
+    blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{VarName, Nothing} = nothing)
 
 This method first constructs the primitive vector $r$ by calling
 `standard_coordinates`, then blows up $X$ along $r$ using `blow_up`.
@@ -83,7 +83,7 @@ function blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, 
 end
 
 @doc raw"""
-    blow_up(X::NormalToricVarietyType, n::Int)
+    blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{VarName, Nothing} = nothing)
 
 Blow up the toric variety $X$ with polyhedral fan $\Sigma$ by star
 subdivision along the barycenter of the $n$-th cone $\sigma$ in the list
@@ -97,7 +97,7 @@ $\sigma$ (Definition 3.3.17 of [CLS11](@cite)).
 This function returns the corresponding morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
-the exceptional prime divisor. As third optional argument one can supply
+the exceptional prime divisor. As optional argument one can supply
 a custom variable name.
 
 # Examples
