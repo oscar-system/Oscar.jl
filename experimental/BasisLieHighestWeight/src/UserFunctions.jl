@@ -587,7 +587,9 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 `monomial_ordering` describes the monomial ordering used for the basis.
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
-warning!!! The demazure module is twisted and the results need to be interpreted accordingly.
+!!! warning
+    The demazure module is implemented as a submodule of a twisted highest weight module.
+    The results of this function need to be interpreted accordingly.
 
 # Examples
 ```jldoctest
