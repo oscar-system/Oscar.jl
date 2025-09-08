@@ -65,7 +65,7 @@ function groebner_basis_f4(
       AR = base_ring(I)
     else
       vars = symbols(base_ring(I))[eliminate+1:end]
-      AR,  = polynomial_ring(coefficient_ring(I), vars)
+      AR,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
     end
     ord  = degrevlex(AR)
     if length(AI.gens) == 0
