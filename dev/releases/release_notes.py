@@ -153,7 +153,7 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
             "--json",
             "number,title,closedAt,labels,mergedAt,body",
             "--limit",
-            "1",
+            "200",
         ],
         check=True,
         capture_output=True,
