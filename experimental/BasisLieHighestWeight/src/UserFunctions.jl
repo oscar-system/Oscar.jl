@@ -661,6 +661,10 @@ Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\
 
 The monomial ordering is fixed to `wdegrevlex` (weighted degree reverse lexicographic order).
 
+!!! warning
+    The demazure module is implemented as a submodule of a twisted highest weight module.
+    The results of this function need to be interpreted accordingly.
+
 # Examples
 coming soon
 """
@@ -687,6 +691,10 @@ Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}
 
 The monomial ordering is fixed to `neglex` (negative lexicographic order).      
 
+!!! warning
+    The demazure module is implemented as a submodule of a twisted highest weight module.
+    The results of this function need to be interpreted accordingly.
+
 # Examples
 Coming soon
 """
@@ -709,7 +717,11 @@ for a simple Lie algebra of type `type_rank`.
 
 Then the birational sequence used consists of all operators in descening height of the corresponding root.
 
-The monomial ordering is fixed to `degrevlex`.      
+The monomial ordering is fixed to `degrevlex`.  
+
+!!! warning
+    The demazure module is implemented as a submodule of a twisted highest weight module.
+    The results of this function need to be interpreted accordingly.
       
 # Examples
 Coming soon
@@ -735,7 +747,11 @@ Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest e
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
 Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
 
-The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).      
+The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).     
+
+!!! warning
+    The demazure module is implemented as a submodule of a twisted highest weight module.
+    The results of this function need to be interpreted accordingly.
 
 # Examples
 Coming soon
