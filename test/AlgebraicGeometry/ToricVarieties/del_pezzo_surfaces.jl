@@ -39,7 +39,7 @@
     @test gorenstein_index(dP1) == 1
     @test picard_index(dP1) == 1
     @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP1)) == matrix(ZZ, [[1, 1], [1, 1], [1, 0], [0, -1]])
-    @test coordinate_names(dP1) == ["x1", "x2", "x3", "e1"]
+    @test coordinate_names(dP1) == [:x1, :x2, :x3, :e1]
   end
   
   @testset "Basic attributes of dP2" begin
@@ -60,7 +60,7 @@
     @test gorenstein_index(dP2) == 1
     @test picard_index(dP2) == 1
     @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP2)) == matrix(ZZ, [[1, 1, 1], [1, 1, 0], [1, 0, 1], [0, -1, 0], [0, 0, -1]])
-    @test coordinate_names(dP2) == ["x1", "x2", "x3", "e1", "e2"]
+    @test coordinate_names(dP2) == [:x1, :x2, :x3, :e1, :e2]
   end
   
   @testset "Basic attributes of dP3" begin
@@ -81,7 +81,7 @@
     @test gorenstein_index(dP3) == 1
     @test picard_index(dP3) == 1
     @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP3)) == matrix(ZZ, [[1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 1, 1], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
-    @test coordinate_names(dP3) == ["x1", "x2", "x3", "e1", "e2", "e3"]
+    @test coordinate_names(dP3) == [:x1, :x2, :x3, :e1, :e2, :e3]
   end
 
   @testset "nef cone" begin

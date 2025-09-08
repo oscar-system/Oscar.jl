@@ -117,20 +117,20 @@ julia> antv = affine_normal_toric_variety(C);
 julia> set_coordinate_names(antv, [:u])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "u"
+1-element Vector{Symbol}:
+ :u
 
 julia> set_coordinate_names(antv, ["v"])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "v"
+1-element Vector{Symbol}:
+ :v
 
 julia> set_coordinate_names(antv, ['w'])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "w"
+1-element Vector{Symbol}:
+ :w
 ```
 """
 function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -138,7 +138,7 @@ function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Abstr
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
-    set_attribute!(v, :coordinate_names, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names, Symbol.(coordinate_names))
 end
 
 
@@ -154,9 +154,9 @@ julia> F3 = hirzebruch_surface(NormalToricVariety, 3);
 julia> set_coordinate_names_of_torus(F3, ["u", "v"])
 
 julia> coordinate_names_of_torus(F3)
-2-element Vector{String}:
- "u"
- "v"
+2-element Vector{Symbol}:
+ :u
+ :v
 ```
 """
 function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -164,7 +164,7 @@ function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_nam
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
-    set_attribute!(v, :coordinate_names_of_torus, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names_of_torus, Symbol.(coordinate_names))
 end
 
 
@@ -205,15 +205,15 @@ julia> C = Oscar.positive_hull([1 0]);
 julia> antv = affine_normal_toric_variety(C);
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "x1"
+1-element Vector{Symbol}:
+ :x1
 ```
 """
-@attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
+@attr Vector{Symbol} function coordinate_names(v::NormalToricVarietyType)
   if has_attribute(v, :cox_ring)
-    return string.(symbols(cox_ring(v)))
+    return symbols(cox_ring(v))
   end
-  return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
+  return [Symbol(:x, i) for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -529,8 +529,8 @@ end
 Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
-@attr Vector{String} function coordinate_names_of_torus(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:ambient_dim(v)]
+@attr Vector{Symbol} function coordinate_names_of_torus(v::NormalToricVarietyType)
+  return [Symbol(:x, i) for i in 1:ambient_dim(v)]
 end
 
 
@@ -567,7 +567,8 @@ Quotient
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+  nams = coordinate_names_of_torus(v)
+  S, _ = polynomial_ring(coefficient_ring(v), nams, [Symbol(x, '_') for x in nams]; cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 
@@ -591,7 +592,7 @@ x2^2*x1_
 ```
 """
 function character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names_of_torus(v), [Symbol(x, '_') for x in coordinate_names_of_torus(v)]; cached=false)
     return character_to_rational_function(S, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 end
 character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
