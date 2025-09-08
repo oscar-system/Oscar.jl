@@ -63,6 +63,43 @@ function halfspace_matrix_pair(
   end
 end
 
+function halfspace_matrix_pair(
+  R::ZZRing,
+  iter::SubObjectIterator{
+    <:Union{
+      Halfspace{QQFieldElem},
+      Hyperplane{QQFieldElem},
+      Polyhedron{QQFieldElem},
+      Cone{QQFieldElem},
+      Pair{Matrix{QQFieldElem},QQFieldElem},
+    }
+  };
+  integral_bias::Bool=true,
+)
+  if integral_bias
+    try
+      h = Polymake.common.primitive(affine_matrix_for_polymake(iter))
+      return (A=matrix(ZZ, h[:, 2:end]), b=[ZZ(x) for x in -h[:, 1]])
+    catch e
+      throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+    end
+  else
+    try
+      h = affine_matrix_for_polymake(iter)
+      hm = Polymake.common.primitive(h[:, 2:end])
+      bv = Vector{QQFieldElem}(undef, size(hm, 1))
+      for i in 1:size(hm, 1)
+        j = findfirst(!is_zero, hm[i, :])
+        r = hm[i, j]//h[i, j + 1]
+        bv[i] = -QQ(h[i, 1] * r)
+      end
+      return (A=matrix(ZZ, hm), b=bv)
+    catch e
+      throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+    end
+  end
+end
+
 for fun in (cones, faces, facets, maximal_cones, maximal_polyhedra, rays, vertices)
   F = Symbol(fun)
   @eval $F(::Type{IncidenceMatrix}, x...) = IncidenceMatrix($F(x...))
