@@ -13,6 +13,8 @@
 
 import json
 import os
+import re
+import copy
 import subprocess
 import sys
 from datetime import datetime
@@ -139,8 +141,7 @@ def get_tag_date(tag: str) -> str:
 
 
 def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
-    #query = f'merged:>={date} -label:"release notes: not needed" -label:"release notes: added" base:master {extra}'
-    query = '5271'
+    query = f'merged:>={date} -label:"release notes: not needed" -label:"release notes: added" base:master {extra}'
     print("query: ", query)
     res = subprocess.run(
         [
@@ -169,17 +170,21 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     title = pr["title"]
     mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
     if has_label(pr,'release notes: use body'):
-        body = pr['body']
-        index1 = body.lower().find("## release notes")
-        if index1 == -1:
-            ## not found
-            ## complain and return fallback
-            print(f"Release notes section not found in PR number {pr['number']}!!")
-            return mdstring
-        index2 = body.find('---', index1)
-        # there are 17 characters from index 1 until the next line
-        mdstring = body[index1+17:index2]
+        mdstring = body_to_release_notes(pr)
         mdstring = mdstring.replace("- ", f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ")
+    return mdstring
+
+def body_to_release_notes(pr):
+    body = pr['body']
+    index1 = body.lower().find("## release notes")
+    if index1 == -1:
+        ## not found
+        ## complain and return fallback
+        print(f"Release notes section not found in PR number {pr['number']}!!")
+        return mdstring
+    index2 = body.find('---', index1)
+    # there are 17 characters from index 1 until the next line
+    mdstring = body[index1+17:index2]
     return mdstring
 
 
@@ -328,6 +333,27 @@ which we think might affect some users directly.
         # finally copy over this new file to changelog.md
         os.rename(newfile, finalfile)
 
+def split_pr_into_changelog(prs: List):
+    childprlist = []
+    for pr in prs:
+        if has_label(pr, 'release notes: use body'):
+            mdstring = body_to_release_notes(pr).strip()
+            mdlines = mdstring.split('\r\n')
+            pattern = r'\{package: .*\}'
+            for line in mdlines:
+                if not '{package: ' in line:
+                    continue
+                mans = re.search(pattern, line)
+                packagestring = mans.group()[1:-1]
+                cpr = copy.deepcopy(pr)
+                mindex = line.find('{package:')
+                line = line[0:mindex]
+                cpr['labels'].append({'name': packagestring})
+                cpr['body'] = f'---\r\n## Release Notes\r\n{line}\r\n---'
+                childprlist.append(cpr)
+        prs.remove(pr)    
+    prs.extend(childprlist)
+    return prs
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
@@ -372,6 +398,7 @@ def main(new_version: str) -> None:
 
     print("Downloading filtered PR list")
     prs = get_pr_list(timestamp, extra)
+    prs = split_pr_into_changelog(prs)
     # print(json.dumps(prs, sort_keys=True, indent=4))
 
     # reset changelog file to state tracked in git
