@@ -267,7 +267,7 @@ end
 @doc raw"""
     id_hom(L::LieAlgebra) -> LieAlgebraHom
 
-Construct the identity map on `L`.
+Construct the identity morphism on `L`.
 
 # Examples
 ```jldoctest
