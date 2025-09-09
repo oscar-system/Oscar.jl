@@ -1241,7 +1241,6 @@ export morphism_on_torusinvariant_cartier_divisor_group
 export morphism_on_torusinvariant_weil_divisor_group
 export morphism_type
 export moved_points, has_moved_points, set_moved_points
-export fixed_points
 export mpoly_dec_ring_type
 export mpoly_dec_type
 export mpoly_ring_type
