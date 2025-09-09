@@ -235,6 +235,10 @@ function hom(L::MPolyQuoLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; ch
   return MPolyQuoLocalizedRingHom(L, P, phi; check)
 end
 
+identity_map(R::MPolyLocRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(R::MPolyQuoLocRing) = AbstractAlgebra.identity_map(R)
+
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"

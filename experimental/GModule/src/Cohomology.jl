@@ -1921,7 +1921,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   if refine
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = collect(factor(h[i,i]).fac)
+      lf = collect(factor(h[i,i]))
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1

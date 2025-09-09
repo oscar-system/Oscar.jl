@@ -834,7 +834,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(keys(factor(discriminant(zk)).fac))...)
+  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(prime_divisors(discriminant(zk)))...)
   for i=1:length(sf)
     l = factor(prod(s)*zf[i])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
