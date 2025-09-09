@@ -24,7 +24,9 @@ this very cohomology class ``h``, otherwise it raises an error.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> h = chern_class(qsm_model, 4; completeness_check = false);
@@ -98,7 +100,9 @@ such as in the example below.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> h = chern_classes(qsm_model; completeness_check = false);
@@ -140,7 +144,9 @@ error.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> h = euler_characteristic(qsm_model; completeness_check = false)

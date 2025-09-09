@@ -117,13 +117,15 @@ Resolve an F-theory model by blowing up a locus in the ambient space.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
@@ -133,13 +135,15 @@ Here is an example for a Weierstrass model.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
 julia> blow_up(w, ["x", "y", "x1"]; coordinate_name = "e1")
@@ -160,13 +164,15 @@ Resolve an F-theory model by blowing up a locus in the ambient space.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> x1, x2, x3, x4, x, y, z = gens(coordinate_ring(ambient_space(t)))
@@ -215,13 +221,15 @@ For this method, the blowup center is encoded by an ideal sheaf.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> x1, x2, x3, x4, x, y, z = gens(coordinate_ring(ambient_space(t)))
@@ -353,13 +361,15 @@ Resolve a model with the index-th resolution that is known.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> t2 = resolve(t, 1)
@@ -383,7 +393,7 @@ Multivariate polynomial ring in 12 variables over QQ graded by
 julia> w2 = 2 * torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w2), completeness_check = false)
+julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w2), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> t4 = resolve(t3, 1)

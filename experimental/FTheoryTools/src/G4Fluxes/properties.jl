@@ -30,7 +30,9 @@ If all these integrals evaluate to integers, this method returns `true`; otherwi
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)), completeness_check = false)^2;
@@ -94,7 +96,9 @@ Check whether the ``G_4``-flux satisfies the transversality conditions
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
@@ -172,7 +176,9 @@ is a non-negative integer.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
@@ -225,7 +231,9 @@ symmetries. Return `true` if any breaking occurs, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));

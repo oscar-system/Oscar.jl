@@ -122,8 +122,8 @@ used in the F-theory literature, but it is guaranteed to be compatible with the 
 Users can construct Weierstrass models over such concrete toric bases with the following constructors:
 
 ```@docs
-weierstrass_model(base::NormalToricVariety)
-weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem)
+weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
+weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
 For convenience—ideal for quick experiments and educational use—we also support constructors for Weierstrass

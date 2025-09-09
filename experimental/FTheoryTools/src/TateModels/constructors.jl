@@ -3,10 +3,11 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety)
+    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
+The random source used in their creation can be set with the optional argument `rng`.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -15,15 +16,17 @@ This method constructs a global Tate model over a given toric base
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false)
+julia> using Random;
+
+julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check)
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng()) = global_tate_model(base, _tate_sections(base; rng); completeness_check)
 
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety, ais::Vector{T}) where {T<:MPolyRingElem}
+    global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -98,51 +101,60 @@ end
 
 
 @doc raw"""
-    global_tate_model_over_projective_space(d::Int)
+    global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a global Tate model over the ``d``-dimensional projective space,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> global_tate_model_over_projective_space(3)
+julia> using Random;
+
+julia> global_tate_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_space(NormalToricVariety, d); completeness_check = false)
+global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(projective_space(NormalToricVariety, d); completeness_check = false, rng = rng)
 
 
 @doc raw"""
-    global_tate_model_over_hirzebruch_surface(r::Int)
+    global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a global Tate model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> global_tate_model_over_hirzebruch_surface(1)
+julia> using Random;
+
+julia> global_tate_model_over_hirzebruch_surface(1, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false, rng = rng)
 
 
 @doc raw"""
-    global_tate_model_over_del_pezzo_surface(b::Int)
+    global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> global_tate_model_over_del_pezzo_surface(3)
+julia> using Random;
+
+julia> global_tate_model_over_del_pezzo_surface(3, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 ```
 """
-global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
+global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false, rng = rng)
 
 
 ################################################

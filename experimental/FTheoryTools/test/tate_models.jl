@@ -7,14 +7,14 @@ our_rng = Random.Xoshiro(1234)
 
 # Base space and Tate sections
 P3 = projective_space(NormalToricVariety, 3)
-section_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety, 3)))
-section_a2 = generic_section(anticanonical_bundle(P3)^2)
-section_a3 = generic_section(anticanonical_bundle(P3)^3)
-section_a4 = generic_section(anticanonical_bundle(P3)^4)
-section_a6 = generic_section(anticanonical_bundle(P3)^6)
+section_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety, 3)); rng = our_rng)
+section_a2 = generic_section(anticanonical_bundle(P3)^2; rng = our_rng)
+section_a3 = generic_section(anticanonical_bundle(P3)^3; rng = our_rng)
+section_a4 = generic_section(anticanonical_bundle(P3)^4; rng = our_rng)
+section_a6 = generic_section(anticanonical_bundle(P3)^6; rng = our_rng)
 
 # Global Tate model over P3
-tate_P3 = global_tate_model(P3; completeness_check = false)
+tate_P3 = global_tate_model(P3; completeness_check = false, rng = our_rng)
 
 @testset "Attributes of global Tate models over concrete base space" begin
   @test parent(tate_section_a1(tate_P3)) == coordinate_ring(base_space(tate_P3))
@@ -42,13 +42,7 @@ end
   P3b = projective_space(NormalToricVariety, 3)
   divisor_w = torusinvariant_prime_divisors(P3b)[1]
 
-  literature_tate_P3 = literature_model(
-    arxiv_id = "1109.3454",
-    equation = "3.1",
-    base_space = P3b,
-    defining_classes = Dict("w" => divisor_w),
-    completeness_check = false,
-  )
+  literature_tate_P3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = P3b, defining_classes = Dict("w" => divisor_w), completeness_check = false, rng = our_rng)
 
   @testset "Saving and loading global Tate model over concrete base space" begin
     mktempdir() do path
@@ -71,7 +65,7 @@ end
     end
   end
 
-  another_tate_P3 = global_tate_model(P3; completeness_check = false)
+  another_tate_P3 = global_tate_model(P3; completeness_check = false, rng = our_rng)
 
   @testset "Saving and loading another global Tate model over concrete base space" begin
     mktempdir() do path

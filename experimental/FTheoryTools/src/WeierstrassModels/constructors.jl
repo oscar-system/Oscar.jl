@@ -3,10 +3,11 @@
 #####################################################################
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
+    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 Construct a Weierstrass model over a given toric base space. The Weierstrass sections
-``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
+``f`` and ``g`` are automatically generated with (pseudo)random coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -15,12 +16,14 @@ Construct a Weierstrass model over a given toric base space. The Weierstrass sec
 
 # Examples
 ```jldoctest
-julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false)
+julia> using Random;
+
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 ```
 """
-function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
-  (f, g) = _weierstrass_sections(base)
+function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+  (f, g) = _weierstrass_sections(base; rng)
   return weierstrass_model(base, f, g; completeness_check)
 end
 
@@ -90,51 +93,60 @@ end
 
 
 @doc raw"""
-    weierstrass_model_over_projective_space(d::Int)
+    weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a Weierstrass model over the ``d``-dimensional projective space,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 ```
 """
-weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
+weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false, rng = rng)
 
 
 @doc raw"""
-    weierstrass_model_over_hirzebruch_surface(r::Int)
+    weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a Weierstrass model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> weierstrass_model_over_hirzebruch_surface(1)
+julia> using Random;
+
+julia> weierstrass_model_over_hirzebruch_surface(1, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 ```
 """
-weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false, rng = rng)
 
 
 @doc raw"""
-    weierstrass_model_over_del_pezzo_surface(b::Int)
+    weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
 
 Construct a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients.
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest
-julia> weierstrass_model_over_del_pezzo_surface(3)
+julia> using Random;
+
+julia> weierstrass_model_over_del_pezzo_surface(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 ```
 """
-weierstrass_model_over_del_pezzo_surface(b::Int) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
+weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false, rng = rng)
 
 
 #####################################################################

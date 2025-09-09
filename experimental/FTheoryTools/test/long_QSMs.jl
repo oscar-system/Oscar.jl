@@ -4,7 +4,7 @@
 
 @testset "Advanced intersection theory and QSM-fluxes" begin
   for k in 1:5000
-    qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k)) catch e continue end
+    qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k), rng = our_rng) catch e continue end
     h22_converter_dict = converter_dict_h22_ambient(qsm_model, completeness_check = false)
     coh_ring = cohomology_ring(ambient_space(qsm_model), completeness_check = false)
     coh_ring_gens = gens(coh_ring)

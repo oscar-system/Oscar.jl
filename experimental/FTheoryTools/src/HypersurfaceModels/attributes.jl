@@ -32,7 +32,9 @@ Return the parametrization of the hypersurface equation by the model sections.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+julia> using Random;
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
@@ -54,6 +56,10 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
     weierstrass_model(h::HypersurfaceModel)
 
 Return the Weierstrass model corresponding to the given hypersurface model, if known.
+
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -89,7 +95,7 @@ julia> weierstrass_model(h) === w
 true
 ```
 """
-function weierstrass_model(h::HypersurfaceModel)
+function weierstrass_model(h::HypersurfaceModel; rng::AbstractRNG = Random.default_rng())
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   w = get_attribute(h, :weierstrass_model)
   if w isa WeierstrassModel
@@ -99,9 +105,9 @@ function weierstrass_model(h::HypersurfaceModel)
   directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   if is_base_space_fully_specified(h)
-    w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+    w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false, rng = rng)
   else
-    w_model = literature_model(parse(Int, model_indices[w]))
+    w_model = literature_model(parse(Int, model_indices[w]), rng = rng)
   end
   set_weierstrass_model(h, w_model)
   return w_model
@@ -112,6 +118,10 @@ end
     global_tate_model(h::HypersurfaceModel)
 
 Return the global Tate model corresponding to the given hypersurface model, if known.
+
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding global
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -153,7 +163,7 @@ julia> global_tate_model(h) === t
 true
 ```
 """
-function global_tate_model(h::HypersurfaceModel)
+function global_tate_model(h::HypersurfaceModel; rng::AbstractRNG = Random.default_rng())
   @req has_attribute(h, :global_tate_model) "No corresponding global Tate model is known"
   t = get_attribute(h, :global_tate_model)
   if t isa GlobalTateModel
@@ -163,9 +173,9 @@ function global_tate_model(h::HypersurfaceModel)
   directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   if is_base_space_fully_specified(h)
-    t_model = literature_model(parse(Int, model_indices[t]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+    t_model = literature_model(parse(Int, model_indices[t]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false, rng = rng)
   else
-    t_model = literature_model(parse(Int, model_indices[t]))
+    t_model = literature_model(parse(Int, model_indices[t]), rng = rng)
   end
   set_global_tate_model(h, t_model)
   return t_model

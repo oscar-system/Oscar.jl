@@ -20,7 +20,9 @@ appear well-quantized based on current knowledge, but without guaranteeing it.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, completeness_check = false)
@@ -104,7 +106,9 @@ Return `true` if the checks pass, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, completeness_check = false)
@@ -176,7 +180,9 @@ Return `true` if it does, and `false` otherwise.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> gf = special_flux_family(qsm_model, completeness_check = false)

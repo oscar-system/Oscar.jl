@@ -1,3 +1,6 @@
+using Random
+our_rng = Random.Xoshiro(1234)
+
 #@testset "Blowups of global Tate models" begin
   #id_i5_s = ideal([tate_polynomial(t_i5_s)]);
   #tas = ambient_space(t_i5_s);
@@ -14,7 +17,7 @@
 
 B3 = projective_space(NormalToricVariety, 3)
 W = toric_line_bundle(2 * torusinvariant_prime_divisors(B3)[1])
-w = generic_section(W)
+w = generic_section(W; rng = our_rng)
 Kbar = anticanonical_bundle(B3)
 a10=sum(rand(Int)*b for b in basis_of_global_sections(Kbar))
 a21=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^2*W^(-1)))

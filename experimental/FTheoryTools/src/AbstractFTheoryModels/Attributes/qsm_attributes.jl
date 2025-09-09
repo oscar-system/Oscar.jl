@@ -5,7 +5,9 @@
 @define_model_attribute_getter((vertices, Vector{Vector{QQFieldElem}}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> vertices(qsm_model)
@@ -21,7 +23,9 @@ julia> vertices(qsm_model)
 @define_model_attribute_getter((polytope_index, Int),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> polytope_index(qsm_model)
@@ -33,7 +37,9 @@ julia> polytope_index(qsm_model)
 @define_model_attribute_getter((has_quick_triangulation, Bool),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> has_quick_triangulation(qsm_model)
@@ -45,7 +51,9 @@ true
 @define_model_attribute_getter((max_lattice_pts_in_facet, Int),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> max_lattice_pts_in_facet(qsm_model)
@@ -57,7 +65,9 @@ julia> max_lattice_pts_in_facet(qsm_model)
 @define_model_attribute_getter((estimated_number_of_triangulations, Int),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> estimated_number_of_triangulations(qsm_model)
@@ -73,7 +83,9 @@ julia> estimated_number_of_triangulations(qsm_model)
 @define_model_attribute_getter((genera_of_ci_curves, Dict{MPolyDecRingElem, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(genera_of_ci_curves(qsm_model))
@@ -85,7 +97,9 @@ Dict{MPolyDecRingElem, Int64}
 @define_model_attribute_getter((degrees_of_kbar_restrictions_to_ci_curves, Dict{MPolyDecRingElem, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(degrees_of_kbar_restrictions_to_ci_curves(qsm_model))
@@ -97,7 +111,9 @@ Dict{MPolyDecRingElem, Int64}
 @define_model_attribute_getter((topological_intersection_numbers_among_ci_curves, Matrix{Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> size(topological_intersection_numbers_among_ci_curves(qsm_model))
@@ -109,7 +125,9 @@ julia> size(topological_intersection_numbers_among_ci_curves(qsm_model))
 @define_model_attribute_getter((indices_of_trivial_ci_curves, Vector{Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> indices_of_trivial_ci_curves(qsm_model)
@@ -131,7 +149,9 @@ julia> indices_of_trivial_ci_curves(qsm_model)
 @define_model_attribute_getter((topological_intersection_numbers_among_nontrivial_ci_curves, Matrix{Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> size(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model))
@@ -147,7 +167,9 @@ julia> size(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_mode
 @define_model_attribute_getter((dual_graph, Graph{Undirected}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> dual_graph(qsm_model)
@@ -160,7 +182,9 @@ Undirected graph with 21 nodes and the following edges:
 @define_model_attribute_getter((components_of_dual_graph, Vector{String}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(components_of_dual_graph(qsm_model))
@@ -172,7 +196,9 @@ julia> length(components_of_dual_graph(qsm_model))
 @define_model_attribute_getter((degrees_of_kbar_restrictions_to_components_of_dual_graph, Dict{String, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model))
@@ -184,7 +210,9 @@ Dict{String, Int64}
 @define_model_attribute_getter((genera_of_components_of_dual_graph, Dict{String, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(genera_of_components_of_dual_graph(qsm_model))
@@ -200,7 +228,9 @@ Dict{String, Int64}
 @define_model_attribute_getter((simplified_dual_graph, Graph{Undirected}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> simplified_dual_graph(qsm_model)
@@ -213,7 +243,9 @@ Undirected graph with 4 nodes and the following edges:
 @define_model_attribute_getter((components_of_simplified_dual_graph, Vector{String}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(components_of_simplified_dual_graph(qsm_model))
@@ -225,7 +257,9 @@ julia> length(components_of_simplified_dual_graph(qsm_model))
 @define_model_attribute_getter((degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph, Dict{String, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_model))
@@ -237,7 +271,9 @@ Dict{String, Int64}
 @define_model_attribute_getter((genera_of_components_of_simplified_dual_graph, Dict{String, Int64}),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> typeof(genera_of_components_of_simplified_dual_graph(qsm_model))

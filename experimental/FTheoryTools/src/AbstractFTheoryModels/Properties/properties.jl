@@ -9,7 +9,9 @@ Return `true` if the F-theory model has a concrete base space and `false` otherw
 
 # Examples
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> is_base_space_fully_specified(t)
@@ -27,13 +29,15 @@ thereby potentially resolving its singularities. Otherwise, return `false`.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> is_partially_resolved(t)
@@ -71,7 +75,9 @@ raises an error.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> verify_euler_characteristic_from_hodge_numbers(qsm_model; completeness_check = false)
@@ -120,7 +126,9 @@ toric ambient space is smooth and complete.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> is_calabi_yau(qsm_model, completeness_check = false)

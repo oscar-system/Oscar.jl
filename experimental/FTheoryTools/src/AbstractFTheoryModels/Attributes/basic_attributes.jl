@@ -5,7 +5,9 @@ Return the base space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> w = weierstrass_model_over_projective_space(2);
+julia> using Random;
+
+julia> w = weierstrass_model_over_projective_space(2, rng = Random.Xoshiro(1234));
 
 julia> dim(base_space(w))
 2
@@ -24,7 +26,9 @@ Return the ambient space of the F-theory model.
 
 # Examples
 ```jldoctest
-julia> w = weierstrass_model_over_projective_space(2);
+julia> using Random;
+
+julia> w = weierstrass_model_over_projective_space(2, rng = Random.Xoshiro(1234));
 
 julia> dim(ambient_space(w))
 4
@@ -43,7 +47,9 @@ Return the fiber ambient space of an F-theory model.
 
 # Examples
 ```jldoctest
-julia> w = weierstrass_model_over_projective_space(2);
+julia> using Random;
+
+julia> w = weierstrass_model_over_projective_space(2, rng = Random.Xoshiro(1234));
 
 julia> dim(fiber_ambient_space(w))
 2
@@ -62,7 +68,9 @@ All models have a model_index and these will not change in the future.
 
 # Examples
 ```jldoctest
-julia> t = literature_model(31)
+julia> using Random
+
+julia> t = literature_model(31, rng = Random.Xoshiro(1234))
 Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10 based on arXiv paper 1408.4808 Eq. (3.130)
 
 julia> model_index(t)
@@ -84,13 +92,15 @@ as a closed subvariety of its toric ambient space.
 
 # Examples
 ```jldoctest
-julia> w =  weierstrass_model_over_projective_space(3)
+julia> using Random;
+
+julia> w =  weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 
 julia> calabi_yau_hypersurface(w)
 Closed subvariety of a normal toric variety
 
-julia> t = global_tate_model_over_projective_space(2)
+julia> t = global_tate_model_over_projective_space(2, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 
 julia> calabi_yau_hypersurface(t)

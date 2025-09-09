@@ -3,7 +3,8 @@
 # A preprint is available at https://arxiv.org/abs/2506.13849.
 # Consequently, both the input and output should ideally remain unchanged.
 
-
+using Random
+our_rng = Random.Xoshiro(1234)
 
 #######################################
 # 3.1 Weierstrass Models
@@ -84,12 +85,12 @@ end
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_bundle(B3)
 W = toric_line_bundle(torusinvariant_prime_divisors(B3)[1])
-w = generic_section(W)
+w = generic_section(W; rng = our_rng)
 w = gens(cox_ring(B3))[1]
-a10 = generic_section(Kbar)
-a21 = generic_section(Kbar^2*W^(-1))
-a32 = generic_section(Kbar^3*W^(-2))
-a43 = generic_section(Kbar^4*W^(-3))
+a10 = generic_section(Kbar; rng = our_rng)
+a21 = generic_section(Kbar^2*W^(-1); rng = our_rng)
+a32 = generic_section(Kbar^3*W^(-2); rng = our_rng)
+a43 = generic_section(Kbar^4*W^(-3); rng = our_rng)
 a6 = zero(cox_ring(B3))
 t = global_tate_model(B3, [a10, a21 * w, a32 * w^2, a43 * w^3, a6])
 amb = ambient_space(t)
@@ -111,11 +112,11 @@ tate_polynomial(t_res)
 end
 
 W = toric_line_bundle(2 * torusinvariant_prime_divisors(B3)[1])
-w = generic_section(W)
-a10 = generic_section(Kbar)
-a21 = generic_section(Kbar^2*W^(-1))
-a32 = generic_section(Kbar^3*W^(-2))
-a43 = generic_section(Kbar^4*W^(-3))
+w = generic_section(W; rng = our_rng)
+a10 = generic_section(Kbar; rng = our_rng)
+a21 = generic_section(Kbar^2*W^(-1); rng = our_rng)
+a32 = generic_section(Kbar^3*W^(-2); rng = our_rng)
+a43 = generic_section(Kbar^4*W^(-3); rng = our_rng)
 a6 = zero(cox_ring(B3))
 t2 = global_tate_model(B3, [a10, a21 * w, a32 * w^2, a43 * w^3, a6])
 
@@ -146,7 +147,7 @@ end
 #######################################
 
 W = torusinvariant_prime_divisors(B3)[1]
-t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => W))
+t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => W), rng = our_rng)
 
 @testset "FTheoryToolsPaper Section 4.1 Part 1" begin
   @test journal_name(t) == "Nucl. Phys. B"
@@ -175,7 +176,7 @@ MT = transpose(M)
 end
 
 W = 2 * torusinvariant_prime_divisors(B3)[1]
-t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => W))
+t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => W), rng = our_rng)
 t_res = resolve(t, 1)
 
 @testset "FTheoryToolsPaper Section 4.1 Part 3" begin
@@ -190,8 +191,8 @@ end
 #######################################
 
 display_all_literature_models(Dict("gauge_algebra" => ["su(3)", "su(2)", "u(1)"]))
-foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
-foah11_B3 = literature_model(34, base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = our_rng)
+foah11_B3 = literature_model(34, base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = our_rng)
 C = algebraic_closure(QQ)
 diagonal_matrix(root_of_unity(C,3),3)
 
@@ -220,7 +221,7 @@ end
 # 5.1 Computation of G4-Fluxes
 #######################################
 
-qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283))
+qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = our_rng)
 cox_ring(ambient_space(qsm_model))
 cohomology_ring(ambient_space(qsm_model))
 g4_gens = chosen_g4_flux_gens(qsm_model)
@@ -290,7 +291,7 @@ end
 # 5.2 G4-Fluxes in a Complex Model
 #######################################
 
-t = literature_model(arxiv_id = "1511.03209")
+t = literature_model(arxiv_id = "1511.03209", rng = our_rng)
 t_res = resolve(t, 1)
 amb = ambient_space(t_res)
 cohomology_ring(amb, completeness_check = false)

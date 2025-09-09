@@ -2,9 +2,12 @@
 # 1: Tuning Weierstrass models over concrete base space
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 my_base = projective_space(NormalToricVariety, 3)
-sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)
-sec_g = generic_section(anticanonical_bundle(my_base)^6)
+sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4; rng = our_rng)
+sec_g = generic_section(anticanonical_bundle(my_base)^6; rng = our_rng)
 w = weierstrass_model(my_base; completeness_check = false)
 Kbar = anticanonical_bundle(base_space(w))
 my_choice = Dict("f" => basis_of_global_sections(Kbar^4)[1])
@@ -60,11 +63,11 @@ end
 #############################################################
 
 my_base = projective_space(NormalToricVariety, 3)
-sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)))
-sec_a2 = generic_section(anticanonical_bundle(my_base)^2)
-sec_a3 = generic_section(anticanonical_bundle(my_base)^3)
-sec_a4 = generic_section(anticanonical_bundle(my_base)^4)
-sec_a6 = generic_section(anticanonical_bundle(my_base)^6)
+sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)); rng = our_rng)
+sec_a2 = generic_section(anticanonical_bundle(my_base)^2; rng = our_rng)
+sec_a3 = generic_section(anticanonical_bundle(my_base)^3; rng = our_rng)
+sec_a4 = generic_section(anticanonical_bundle(my_base)^4; rng = our_rng)
+sec_a6 = generic_section(anticanonical_bundle(my_base)^6; rng = our_rng)
 t = global_tate_model(my_base; completeness_check = false)
 
 Kbar = anticanonical_bundle(base_space(t))
