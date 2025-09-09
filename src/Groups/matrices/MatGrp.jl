@@ -1061,27 +1061,6 @@ const SU = special_unitary_group
 
 ########################################################################
 #
-# Subgroups
-#
-########################################################################
-
-function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
-   @assert elem_type(G) === S
-   elems_in_GAP = GAP.Obj(GapObj[GapObj(x) for x in elements])
-   H = GAP.Globals.Subgroup(GapObj(G),elems_in_GAP)::GapObj
-   #H is the group. I need to return the inclusion map too
-   K,f = _as_subgroup(G, H)
-   L = Vector{elem_type(K)}(undef, length(elements))
-   for i in 1:length(L)
-      L[i] = MatrixGroupElem(K, matrix(elements[i]), elements[i].X)
-   end
-   K.gens = L
-   return K,f
-end
-
-
-########################################################################
-#
 # Conjugation
 #
 ########################################################################
