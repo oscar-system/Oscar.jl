@@ -407,7 +407,7 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
         return mp
       end
       mp = nw[1]
-      for (p, k) = lf.fac
+      for (p, k) in lf
         if p in primes && valuation(order(codomain(mp)), p) >= k
           deleteat!(primes, findfirst(isequal(p), primes))
 #          @show :removing, p

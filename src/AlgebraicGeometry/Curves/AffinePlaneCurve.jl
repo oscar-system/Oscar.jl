@@ -224,9 +224,9 @@ function tangent_lines(C::AffinePlaneCurve, P::AbsAffineRationalPoint)
   D = Dict{typeof(C), Int}()
   X = V[1] - P[1]
   Y = V[2] - P[2]
-  for p in keys(Z.fac)
+  for (p, k) in Z
      if total_degree(p) == 1
-        push!(D, AffinePlaneCurve(evaluate(p, [X, Y])) => Z.fac[p])
+        push!(D, AffinePlaneCurve(evaluate(p, [X, Y])) => k)
      end
   end
   return D
