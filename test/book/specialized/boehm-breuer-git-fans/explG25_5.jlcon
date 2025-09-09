@@ -7,8 +7,8 @@ ZZRingElem[20, 110, 240, 225, 76]
 julia> c = cones(fanobj, 5)[1]
 Polyhedral cone in ambient dimension 5
 
-julia> rays(c)
-5-element SubObjectIterator{RayVector{QQFieldElem}}:
+julia> sort(rays(c))
+5-element Vector{RayVector{QQFieldElem}}:
  [0, 1, 0, 0, -1]
  [1, 0, 1, 1, 0]
  [1, 1, 0, 0, 0]
