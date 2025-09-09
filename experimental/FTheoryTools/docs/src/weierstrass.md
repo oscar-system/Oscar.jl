@@ -122,7 +122,7 @@ used in the F-theory literature, but it is guaranteed to be compatible with the 
 Users can construct Weierstrass models over such concrete toric bases with the following constructors:
 
 ```@docs
-weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
@@ -130,9 +130,9 @@ For convenience—ideal for quick experiments and educational use—we also supp
 models over commonly used base spaces:
 
 ```@docs
-weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
-weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
-weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+weierstrass_model_over_projective_space(d::Int)
+weierstrass_model_over_hirzebruch_surface(r::Int)
+weierstrass_model_over_del_pezzo_surface(b::Int)
 ```
 
 ### Famous Weierstrass Models

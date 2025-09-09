@@ -148,7 +148,7 @@ elliptic fibration structure.
 Users can construct global Tate models over such concrete toric bases with the following constructors:
 
 ```@docs
-global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
 global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
@@ -156,9 +156,9 @@ For convenience—ideal for quick experiments and educational use—we also supp
 over commonly used base spaces:
 
 ```@docs
-global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
-global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
-global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+global_tate_model_over_projective_space(d::Int)
+global_tate_model_over_hirzebruch_surface(r::Int)
+global_tate_model_over_del_pezzo_surface(b::Int)
 ```
 
 ### Famous Global Tate Models
