@@ -183,7 +183,7 @@ julia> fixed_points(one(s))
  4
 ```
 """
-fixed_points(G::PermGroup) = setdiff!(collect(1:degree(G)), moved_points(G))
+@gapattribute fixed_points(G::PermGroup) = setdiff!(collect(1:degree(G)), moved_points(G))
 
 
 @doc raw"""
