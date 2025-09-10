@@ -320,7 +320,7 @@ function AbstractAlgebra.Generic.add_direct_sum_injection!(a::FinGenAbGroupElem,
   for j=1:i-1
     n += ngens(C[j])
   end
-  _a = Hecke.FinGenAbGroupElem(C[i], view(a.coeff, 1, n+1, 1, n+ngens(C[i])))
+  _a = Hecke.FinGenAbGroupElem(C[i], _view_window(a.coeff, 1, n+1, 1, n+ngens(C[i])))
   add!(_a, _a, b)
   return a
 end
@@ -366,7 +366,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
 
-  #= C is Z[U] module, we needd
+  #= C is Z[U] module, we need
     C otimes Z[G]
 
     any pure tensor c otimes g can be "normalized" g = u*g_i for one of the
