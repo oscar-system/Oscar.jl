@@ -725,8 +725,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
