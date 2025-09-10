@@ -294,7 +294,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   res = Any[(M, sub(M.M, gens(M.M))[2])]
   sres = 1
   new = true
-  lp = keys(factor(order(M.G)).fac)
+  lp = prime_divisors(order(M.G))
   while new
     new  = false
     lres = length(res)

@@ -1030,7 +1030,7 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
       lp = Hecke.modular_proj(g, me)
       for pg = lp
         l = factor(pg)
-        q, mqq = quo(q, [degree(x)*mq(P) for (x, _) in keys(l)], false)
+        q, mqq = quo(q, [degree(x)*mq(P) for (x, _) in l], false)
         mq = mq*mqq
         if order(q) <= degree(g)*degree(k)
           break
