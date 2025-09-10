@@ -643,13 +643,7 @@ julia> F[3]
 
 julia> F[ZZ(7)]
 ERROR: 7 is not a factor of -1 * 2^2 * 3 * 5
-Stacktrace:
- [1] error(s::String)
-   @ Base ./error.jl:44
- [2] getindex(a::Fac{ZZRingElem}, b::ZZRingElem)
-   @ AbstractAlgebra ~/.julia/packages/AbstractAlgebra/5aRkh/src/Factor.jl:124
- [3] top-level scope
-   @ none:1
+[...]
 
 ```
 

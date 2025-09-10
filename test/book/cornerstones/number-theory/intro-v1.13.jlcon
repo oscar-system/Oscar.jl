@@ -42,7 +42,7 @@ julia> prime_ideals_over(OK, 7)
  <7, a + 5>
 
 julia> factor(change_coefficient_ring(GF(7), x^2 - 235))
-1 * (x + 2) * (x + 5)
+(x + 2) * (x + 5)
 
 julia> factor(a * OK)
 Dict{AbsSimpleNumFieldOrderIdeal, Int64} with 2 entries:

@@ -164,15 +164,7 @@ Grading an already graded polynomial ring is not supported.
 ```jldoctest grade-ex
 julia> grade(S)
 ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
-Stacktrace:
- [1] macro expansion
-   @ ~/.julia/packages/AbstractAlgebra/5aRkh/src/Assertions.jl:602 [inlined]
- [2] MPolyDecRing(R::MPolyDecRing{QQFieldElem, QQMPolyRing}, d::Vector{FinGenAbGroupElem})
-   @ Oscar ~/software/Oscar.jl/src/Rings/mpoly-graded.jl:11
- [3] grade(R::MPolyDecRing{QQFieldElem, QQMPolyRing})
-   @ Oscar ~/software/Oscar.jl/src/Rings/mpoly-graded.jl:181
- [4] top-level scope
-   @ none:1
+[...]
 ```
 To produce a new ring with different grading, you need to first
 call `forget_grading` and then `grade` the result.
