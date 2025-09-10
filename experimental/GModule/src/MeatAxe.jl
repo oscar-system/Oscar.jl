@@ -383,6 +383,27 @@ end
 
 function idempotent(C::GModule, iKG::Map)
   #use a pc-rep tp reduce the calls to action and the number of terms
+  K = domain(iKG)
+  if is_solvable(K)
+    hom = isomorphism(PcGroup, K) #K -> pc
+    g = gens(codomain(hom))
+    r = [relative_order(x) for x = g]
+    a = [action(C, iKG(preimage(hom, x))) for x = g]
+    I = id_hom(C.M)
+    for i=length(r):-1:1
+      a = action(C, iKG(preimage(hom, g[i])))
+      J = id_hom(C.M) + a
+      b = a
+      for j = 2:relative_order(g[i])-1
+        b *= a
+#        @assert b == action(C, iKG(preimage(hom, g[i]^j)))
+        J += b
+      end
+#      @assert J == sum([action(C, iKG(preimage(hom, g[i]^l))) for l=0:relative_order(g[i])-1])
+      I = J*I
+    end
+    return QQ(1, order(domain(iKG)))*I
+  end
   return QQ(1, order(domain(iKG)))*sum([action(C, iKG(k)) for k = domain(iKG)])
 end
 
