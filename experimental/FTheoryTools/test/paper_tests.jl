@@ -21,7 +21,7 @@ w = weierstrass_model(B2, weier_f, weier_g; completeness_check = false)
   @test length(explicit_model_sections(w)) == 2
 end
 
-w_generic = weierstrass_model(B2; completeness_check = false)
+w_generic = weierstrass_model(B2; completeness_check = false, rng = our_rng)
 
 @testset "FTheoryToolsPaper Section 3.1 - Test 2" begin
   @test length(explicit_model_sections(w_generic)) == 2

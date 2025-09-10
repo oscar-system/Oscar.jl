@@ -193,7 +193,8 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     directory = joinpath(@__DIR__, "Models/1511_03209/1511-03209-base-space.mrdi")
     base_space = load(directory)
     set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
-    model = global_tate_model(base_space, completeness_check = false)
+    our_rng = Random.Xoshiro(1234)
+    model = global_tate_model(base_space, completeness_check = false, rng = our_rng)
     model_dict["literature_identifier"] = "1511_03209"
     _set_all_attributes(model, model_dict, model_parameters)
     return model
