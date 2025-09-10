@@ -243,8 +243,8 @@ mat_rat = matrix_rational(fg)
   @test size(mat_rat) == (25,0)
 end
 
-g4 = random_flux_instance(fg)
-g4_2 = random_flux(qsm_model, completeness_check = false)
+g4 = random_flux_instance(fg, rng = our_rng)
+g4_2 = random_flux(qsm_model, completeness_check = false, rng = our_rng)
 fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
 
 @testset "FTheoryToolsPaper Section 5.1 Part 3" begin

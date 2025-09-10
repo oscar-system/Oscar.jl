@@ -275,7 +275,7 @@ Family of G4 fluxes:
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -310,7 +310,7 @@ Family of G4 fluxes:
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -345,7 +345,7 @@ Family of G4 fluxes:
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

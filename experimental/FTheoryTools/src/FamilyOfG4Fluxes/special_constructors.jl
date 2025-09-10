@@ -29,7 +29,7 @@ Family of G4 fluxes:
   - Transversality checks: satisfied
   - Non-abelian gauge group: unbroken
 
-julia> g4_tester = random_flux_instance(fg, completeness_check = false, consistency_check = false)
+julia> g4_tester = random_flux_instance(fg, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
