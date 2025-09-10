@@ -84,7 +84,7 @@ function basis_lie_highest_weight_compute(
 end
 
 function basis_coordinate_ring_kodaira_compute(
-  V::SimpleModuleData,
+  V::ModuleData,
   degree::Int,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
@@ -138,7 +138,13 @@ function basis_coordinate_ring_kodaira_compute(
       monomials_new = empty(monomials_minkowski_sum)
     else
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we have $(length(monomials_minkowski_sum)) and need $(dim_i) monomials"
-      V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
+      if V isa SimpleModuleData
+        V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
+      elseif V isa DemazureModuleData
+        V_i = DemazureModuleData(base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V))
+      else
+        error("unreachable")
+      end
       monomials = compute_monomials(
         V_i,
         birational_seq,
@@ -156,8 +162,13 @@ function basis_coordinate_ring_kodaira_compute(
         by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
       )
     end
-
-    V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
+    if V isa SimpleModuleData
+      V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
+    elseif V isa DemazureModuleData
+      V_i = DemazureModuleData(base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V))
+    else
+      error("unreachable")
+    end
     mb = MonomialBasis(
       V_i, birational_seq, monomial_ordering, monomials
     )

@@ -742,3 +742,115 @@ function basis_lie_demazure_ffl(
   # simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
+
+@doc raw"""
+    basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
+
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the Demazure module
+with extremal weight `highest_weight * weyl_group_elem` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
+of the bases of the lower degrees.
+
+!!! warning
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+    
+If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
+A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
+A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
+
+`monomial_ordering` describes the monomial ordering used for the basis.
+If this is a weighted ordering, the height of the corresponding root is used as weight.
+
+# Examples
+```jldoctest
+```
+"""
+function basis_coordinate_ring_kodaira_demazure(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  weyl_group_elem::Vector{Int},
+  degree::Int;
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_asc_height(L))
+  return basis_coordinate_ring_kodaira_compute(
+    V, degree, operators, monomial_ordering
+  )
+end
+
+function basis_coordinate_ring_kodaira_demazure(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  weyl_group_elem::Vector{Int},
+  degree::Int,
+  birational_sequence::Vector{Int};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_by_index(L, birational_sequence))
+  return basis_coordinate_ring_kodaira_compute(
+    V, degree, operators, monomial_ordering
+  )
+end
+
+function basis_coordinate_ring_kodaira_demazure(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  weyl_group_elem::Vector{Int},
+  degree::Int,
+  birational_sequence::Vector{Vector{Int}};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_by_simple_roots(L, birational_sequence))
+  return basis_coordinate_ring_kodaira_compute(
+    V, degree, operators, monomial_ordering
+  )
+end
+
+@doc raw"""
+    basis_coordinate_ring_kodaira_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the Demazure module
+with extremal weight `highest_weight * weyl_group_elem` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
+of the bases of the lower degrees.
+
+!!! warning
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+
+The the birational sequence used consists of all operators in descening height of the corresponding root, i.e. a "good" ordering.
+
+The monomial ordering is fixed to `degrevlex`. 
+
+# Examples
+```jldoctest
+```
+"""
+function basis_coordinate_ring_kodaira_demazure_ffl(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  degree::Int,
+)
+  monomial_ordering = :degrevlex
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, reverse(operators_asc_height(L)))
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering.
+  # simple roots at the right end speed up the program very much
+  return basis_coordinate_ring_kodaira_compute(
+    V, degree, operators, monomial_ordering
+  )
+end
