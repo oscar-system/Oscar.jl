@@ -110,10 +110,10 @@ prtypes = [
     ["enhancement",                 "New features or extended functionality"],
     ["experimental",                "Only changes experimental parts of OSCAR"],
     ["optimization",                "Performance improvements or improved testing"],
-    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
-    ["bug",                         "Other fixed bugs"],
     ["bug: wrong result",           "Fixed bugs that returned incorrect results"],
+    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
     ["bug: unexpected error",       "Fixed bugs that resulted in unexpected errors"],
+    ["bug",                         "Other fixed bugs"],
     ["documentation",               "Improvements or additions to documentation"],
 ]
 
