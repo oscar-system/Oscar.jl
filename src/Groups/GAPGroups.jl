@@ -6,6 +6,8 @@
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 
+#TODO: where is `check_parent` *used* in the context of groups?
+#      (apparently not in the situation of a group element and a group)
 #TODO: document `check_parent`!
 # If `check_parent(a, b)` yields `false` then `a` and `b` do not fit
 # together.
@@ -1112,8 +1114,8 @@ Permutation group of degree 4 and order 3
 ```
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
-  @req check_parent(G, x) "G and x are not compatible"
-  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
+  P = Oscar._common_parent_group(G, parent(x))
+  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), P)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
