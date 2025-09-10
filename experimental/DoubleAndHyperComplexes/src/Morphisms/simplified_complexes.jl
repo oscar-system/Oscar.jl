@@ -446,7 +446,9 @@ end
 If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
 
 If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
-
+!!! note
+    If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
+    
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
