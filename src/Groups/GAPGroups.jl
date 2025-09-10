@@ -1481,7 +1481,7 @@ Return the torsion subgroup of `G`.
 julia> g = symmetric_group(4);
 
 julia> torsion_subgroup(g)
-(Symmetric group of degree 4, Hom: G -> G)
+(Symmetric group of degree 4, Hom: g -> g)
 
 julia> g = GL(3, 2);
 
