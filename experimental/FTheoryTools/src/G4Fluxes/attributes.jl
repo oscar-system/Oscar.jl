@@ -269,7 +269,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special", rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -304,7 +304,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special", rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -339,7 +339,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false)
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied

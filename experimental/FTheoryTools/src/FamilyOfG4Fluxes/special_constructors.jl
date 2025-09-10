@@ -17,13 +17,13 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> fg = special_flux_family(qsm_model, completeness_check = false)
+julia> fg = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> fg = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
+julia> fg = special_flux_family(qsm_model, not_breaking = true, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -48,14 +48,14 @@ julia> breaks_non_abelian_gauge_group(g4_tester_double)
 false
 ```
 """
-function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, algorithm::String = "default")
+function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, algorithm::String = "default", rng::AbstractRNG = Random.default_rng())
 
   # (1) Is result known?
   if !not_breaking
     if has_attribute(m, :matrix_integral_quant_transverse) && has_attribute(m, :matrix_rational_quant_transverse) && has_attribute(m, :offset_quant_transverse)
-      fgs_m_int = matrix_integral_quant_transverse(m; completeness_check)
-      fgs_m_rat = matrix_rational_quant_transverse(m; completeness_check)
-      fgs_offset = offset_quant_transverse(m; completeness_check)
+      fgs_m_int = matrix_integral_quant_transverse(m, completeness_check = completeness_check, rng = rng)
+      fgs_m_rat = matrix_rational_quant_transverse(m; completeness_check = completeness_check, rng = rng)
+      fgs_offset = offset_quant_transverse(m; completeness_check = completeness_check, rng = rng)
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
@@ -63,9 +63,9 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
     end
   else
     if has_attribute(m, :matrix_integral_quant_transverse_nobreak) && has_attribute(m, :matrix_rational_quant_transverse_nobreak) && has_attribute(m, :offset_quant_transverse_nobreak)
-      fgs_m_int = matrix_integral_quant_transverse_nobreak(m; completeness_check)
-      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m; completeness_check)
-      fgs_offset = offset_quant_transverse_nobreak(m; completeness_check)
+      fgs_m_int = matrix_integral_quant_transverse_nobreak(m; completeness_check = completeness_check, rng = rng)
+      fgs_m_rat = matrix_rational_quant_transverse_nobreak(m; completeness_check = completeness_check, rng = rng)
+      fgs_offset = offset_quant_transverse_nobreak(m; completeness_check = completeness_check, rng = rng)
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
       set_attribute!(fgs, :passes_transversality_checks, true)
@@ -89,7 +89,7 @@ function special_flux_family(m::AbstractFTheoryModel; not_breaking::Bool = false
   final_shift = Vector{QQFieldElem}()
   res = Vector{ZZMatrix}()
   if algorithm == "special"
-    final_shift, res = special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking, completeness_check)
+    final_shift, res = special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking, completeness_check, rng = rng)
   else
     final_shift, res = special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not_breaking, completeness_check)
   end
@@ -238,7 +238,7 @@ function special_flux_family_with_default_algorithm(m::AbstractFTheoryModel; not
 end
 
 
-function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true)
+function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
   
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
   S = coordinate_ring(ambient_space(m))
@@ -283,14 +283,14 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
     # Compute against pairs of base divisors
     for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
       my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
-      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng))
     end
 
     # Compute against zero section and base divisor
     pos_zero_section = zero_section_index(m)
     for j in 1:n_rays(base_space(m))
       my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
-      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng))
     end
 
     # Compute against exceptional divisors if desired
@@ -298,7 +298,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
       for j in 1:n_rays(base_space(m))
         for k in 1:length(exceptional_divisor_positions)
           my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, exceptional_divisor_positions[k]]...]))
-          push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+          push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng))
         end
       end
     end
@@ -318,7 +318,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
     condition = Vector{ZZRingElem}()
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
       my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng))
     end
     push!(quant_constraint_matrix, condition)
   end
@@ -337,7 +337,7 @@ function special_flux_family_with_special_algorithm(m::AbstractFTheoryModel; not
     inter_numb = QQ(0)
     for k in 1:length(non_zero_exponents)
       my_tuple = Tuple(sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...]))
-      inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
+      inter_numb += coeffs[k] * sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng)
     end
     push!(offset_vector, inter_numb)
   end

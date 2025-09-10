@@ -268,6 +268,6 @@ G4-flux candidate
 ```
 """
 function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
-  family = special_flux_family(m; not_breaking, completeness_check)
+  family = special_flux_family(m; not_breaking, completeness_check, rng = rng)
   return random_flux_instance(family, completeness_check = completeness_check, consistency_check = false, rng = rng)
 end

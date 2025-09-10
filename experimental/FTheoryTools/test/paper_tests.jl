@@ -234,7 +234,7 @@ g4_gens = chosen_g4_flux_gens(qsm_model)
   @test parent(polynomial(cohomology_class(g4_gens[1]))) == cohomology_ring(ambient_space(qsm_model))
 end
 
-fg = special_flux_family(qsm_model, completeness_check = false)
+fg = special_flux_family(qsm_model, completeness_check = false, rng = our_rng)
 mat_int = matrix_integral(fg)
 mat_rat = matrix_rational(fg)
 
@@ -245,7 +245,7 @@ end
 
 g4 = random_flux_instance(fg, rng = our_rng)
 g4_2 = random_flux(qsm_model, completeness_check = false, rng = our_rng)
-fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
+fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false, rng = our_rng)
 
 @testset "FTheoryToolsPaper Section 5.1 Part 3" begin
   @test size(matrix_integral(fg_not_breaking)) == (25,1)
@@ -277,7 +277,7 @@ cohomology_class(g4_sample2)
   @test is_trivial(3 * cohomology_class(g4_sample) - cohomology_class(g4_sample2))
 end
 
-d3_tadpole_constraint(fg_not_breaking)
+d3_tadpole_constraint(fg_not_breaking, rng = our_rng)
 g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "FTheoryToolsPaper Section 5.1 Part 6" begin
@@ -296,8 +296,8 @@ t_res = resolve(t, 1)
 amb = ambient_space(t_res)
 cohomology_ring(amb, completeness_check = false)
 g4_amb_candidates = chosen_g4_flux_gens(t_res, completeness_check = false)
-fg_quant = special_flux_family(t_res, completeness_check = false)
-fg_quant_no_break = special_flux_family(t_res, not_breaking = true, completeness_check = false)
+fg_quant = special_flux_family(t_res, completeness_check = false, rng = our_rng)
+fg_quant_no_break = special_flux_family(t_res, not_breaking = true, completeness_check = false, rng = our_rng)
 
 @testset "FTheoryToolsPaper Section 5.2" begin
   @test betti_number(amb, 4) == 1109

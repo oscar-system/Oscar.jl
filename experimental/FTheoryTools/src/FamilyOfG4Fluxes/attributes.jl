@@ -179,16 +179,16 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> fgs = special_flux_family(qsm_model, completeness_check = false)
+julia> fgs = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> d3_tadpole_constraint(fgs);
+julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
 ```
 """
-@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
+@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
   # Entry checks
   m = model(fgs)
@@ -270,7 +270,7 @@ julia> d3_tadpole_constraint(fgs);
           my_tuple = Tuple(sort([basis_indices[l1]..., basis_indices[l2]...]))
 
           if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
-            change = sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
+            change = sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data; rng)
           else
             change = get!(inter_dict, my_tuple) do
               return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); completeness_check))

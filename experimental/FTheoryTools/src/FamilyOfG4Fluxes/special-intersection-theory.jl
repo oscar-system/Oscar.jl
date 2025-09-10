@@ -2,7 +2,7 @@
 # (1) Compute the intersection product of an algebraic cycle with a hypersurface.
 # ---------------------------------------------------------------------------------------------------------
 
-function sophisticated_intersection_product(v::NormalToricVariety, indices::NTuple{4, Int64}, hypersurface_equation::MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, inter_dict::Dict{NTuple{4, Int64}, ZZRingElem}, s_inter_dict::Dict{String, ZZRingElem}, data::NamedTuple)
+function sophisticated_intersection_product(v::NormalToricVariety, indices::NTuple{4, Int64}, hypersurface_equation::MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, inter_dict::Dict{NTuple{4, Int64}, ZZRingElem}, s_inter_dict::Dict{String, ZZRingElem}, data::NamedTuple; rng::AbstractRNG = Random.default_rng())
 
   # (A) Have we computed this intersection number in the past? If so, just use that result...
   indices = Tuple(sort(collect(indices)))
@@ -21,7 +21,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   # (C) Deal with self-intersection and should-never-happen case.
   distinct_variables = Set(indices)
   if length(distinct_variables) < 4 && length(distinct_variables) >= 1
-    return intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data)
+    return intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data; rng)
   end
   if length(distinct_variables) == 0
     println("WEIRD! THIS SHOULD NEVER HAPPEN! INFORM THE AUTHORS!")
@@ -41,7 +41,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
 
   # D.2 If pt == 0, then we are not looking at a transverse intersection. So take an equivalent cycle and try again...
   if is_zero(pt_reduced)
-    return intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data)
+    return intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data; rng)
   end
 
   # D.3 If pt is constant and non-zero, then the intersection is trivial.
@@ -145,7 +145,7 @@ function sophisticated_intersection_product(v::NormalToricVariety, indices::NTup
   println("TRYING WITH EQUIVALENT CYCLE")
   println("")
   =#
-  numb = intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data)
+  numb = intersection_from_equivalent_cycle(v, indices, hypersurface_equation, inter_dict, s_inter_dict, data; rng)
   s_inter_dict[string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations])] = numb
   return numb
 
@@ -157,12 +157,12 @@ end
 # (2) Compute the intersection product from a rationally equivalent cycle.
 # ---------------------------------------------------------------------------------------------------------
 
-function intersection_from_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, Int64}, hypersurface_equation::MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, inter_dict::Dict{NTuple{4, Int64}, ZZRingElem}, s_inter_dict::Dict{String, ZZRingElem}, data::NamedTuple)
-  coeffs_list, tuple_list = Oscar._rationally_equivalent_cycle(v, indices, data)
+function intersection_from_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, Int64}, hypersurface_equation::MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, inter_dict::Dict{NTuple{4, Int64}, ZZRingElem}, s_inter_dict::Dict{String, ZZRingElem}, data::NamedTuple; rng::AbstractRNG = Random.default_rng())
+  coeffs_list, tuple_list = Oscar._rationally_equivalent_cycle(v, indices, data; rng)
   intersect_numb = 0
   for k in 1:length(tuple_list)
     if !is_zero(coeffs_list[k])
-      intersect_numb += coeffs_list[k] * sophisticated_intersection_product(v, tuple_list[k], hypersurface_equation, inter_dict, s_inter_dict, data)
+      intersect_numb += coeffs_list[k] * sophisticated_intersection_product(v, tuple_list[k], hypersurface_equation, inter_dict, s_inter_dict, data; rng)
     end
   end
   @req is_integer(intersect_numb) "Should have expected to find only integer intersection numbers, but found $intersect_numb for $indices"
@@ -239,11 +239,11 @@ end
 # (4) A function to find a rationally equivalent algebraic cycle.
 # ---------------------------------------------------------------------------------------------------------
 
-function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, Int64}, data::NamedTuple)
+function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, Int64}, data::NamedTuple; rng::AbstractRNG = Random.default_rng())
 
   # Identify positions of the single and triple variable
   positions = [i for (i, val) in pairs(indices) if count(==(val), indices) >= 2]
-  power_variable = isempty(positions) ? indices[rand(1:length(indices))] : indices[rand(positions)]
+  power_variable = isempty(positions) ? indices[rand(rng, 1:length(indices))] : indices[rand(rng, positions)]
   other_variables = collect(Set(filter(!=(power_variable), indices)))
   pos_power_variable = findfirst(==(power_variable), indices)
 
@@ -255,7 +255,7 @@ function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, 
   
   # On top, at a random combination of linear relations, which do not involve the variables in question
   ker = nullspace(simpler_matrix)[2]
-  A_offset = sum(rand([-1, 0, 1]) * ker[:, my_index] for my_index in 1:ncols(ker))
+  A_offset = sum(rand(rng, [-1, 0, 1]) * ker[:, my_index] for my_index in 1:ncols(ker))
 
   # Now form the relation in case...
   employed_relation = -sum((data.linear_relations[:, k] .* (A[k,1] + A_offset[k,1])) for k in 1:nrows(A))
