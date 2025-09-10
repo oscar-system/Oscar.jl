@@ -237,11 +237,11 @@ hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check:
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
-    identity_map(M::ModuleFP)
+    id_hom(M::ModuleFP)
 
 Return the identity map $id_M$.
 """
-function identity_map(M::ModuleFP)
+function id_hom(M::ModuleFP)
   phi = hom(M, M, gens(M), check=false)
   phi.generators_map_to_generators = true
   return phi

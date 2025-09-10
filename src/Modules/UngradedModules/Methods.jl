@@ -93,7 +93,7 @@ If there exists no path an error is thrown.
 """
 function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
-    return [identity_map(M)]
+    return [id_hom(M)]
   end
   parent_hom = IdDict{SubquoModule, ModuleFPHom}()
   modules = [M]
@@ -186,7 +186,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   morphisms = Vector{ModuleFPHom}()
   for path in all_paths
-    phi = identity_map(N)
+    phi = id_hom(N)
     for h in path
       phi = phi*h
     end

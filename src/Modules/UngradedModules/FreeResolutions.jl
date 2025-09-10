@@ -160,7 +160,7 @@ function _extend_free_resolution_to_the_left_by_zeros(cc::Hecke.ComplexOfMorphis
   if idx > first(r)
     for j = first(r):idx-1
       cod =  domain(first(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       pushfirst!(cc.maps, phi)
     end
   end
@@ -192,7 +192,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end
@@ -894,7 +894,7 @@ function _extend_free_resolution_via_kernels(cc::Hecke.ComplexOfMorphisms, idx::
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end

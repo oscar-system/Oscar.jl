@@ -1978,7 +1978,7 @@ end
 
 # for convenience
 function full_group(G::Union{FPGroup, PcGroup})
-  return G, identity_map(G)
+  return G, id_hom(G)
 end
 
 

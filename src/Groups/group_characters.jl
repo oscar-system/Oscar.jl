@@ -3176,7 +3176,7 @@ function character_field(chi::GAPGroupClassFunction)
       flag, e, pp = is_prime_power_with_data(q)
       (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
       F = GF(p, e)
-      return (F, identity_map(F))
+      return (F, id_hom(F))
     end
 
     values = GapObj(chi)::GapObj
@@ -3195,7 +3195,7 @@ function character_field(l::Vector{GAPGroupClassFunction})
       exps = [is_prime_power_with_data(q)[2] for q in orders]
       e = lcm(exps)
       F = GF(p, e)
-      return (F, identity_map(F))
+      return (F, id_hom(F))
     end
 
     values = GapObj(l, recursive = true)::GapObj
