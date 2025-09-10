@@ -256,8 +256,6 @@ function _rationally_equivalent_cycle(v::NormalToricVariety, indices::NTuple{4, 
   # On top, at a random combination of linear relations, which do not involve the variables in question
   ker = nullspace(simpler_matrix)[2]
   A_offset = sum(rand([-1, 0, 1]) * ker[:, my_index] for my_index in 1:ncols(ker))
-  #max_numb = 50
-  #A_offset = sum(rand(vcat(-max_numb:-1,1:max_numb)) * ker[:, my_index] for my_index in 1:ncols(ker))
 
   # Now form the relation in case...
   employed_relation = -sum((data.linear_relations[:, k] .* (A[k,1] + A_offset[k,1])) for k in 1:nrows(A))
