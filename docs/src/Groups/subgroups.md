@@ -37,6 +37,7 @@ socle
 solvable_radical
 pcore(G::GAPGroup, p::IntegerUnion)
 intersect(::T, V::T...) where T<:GAPGroup
+p_rump(G::GAPGroup, p::IntegerUnion)
 ```
 
 The following functions return a vector of subgroups.
