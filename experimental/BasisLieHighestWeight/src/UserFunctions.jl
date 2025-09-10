@@ -749,8 +749,8 @@ end
     basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
 
 Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
-of the Kodaira embedding of the generalized flag variety into the projective space of the Demazure module
-with extremal weight `highest_weight * weyl_group_elem` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+of the Kodaira embedding of a Schubert variety into the projective space of the Demazure module
+of extremal weight `highest_weight * weyl_group_elem` associated with a simple Lie algebra $L$ of type `type` and rank `rank`.
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
 of the bases of the lower degrees.
 
