@@ -284,7 +284,12 @@ end
 @doc raw"""
     torsion_subgroup(W::WeylGroup) -> WeylGroup, Map
 
-Return the torsion subgroup of `W`.
+Return the torsion subgroup of `W`, i.e. the subgroup of all elements of `W` with finite order.  
+
+For a finite Weyl group, every element has finite order, so the torsion subgroup
+is the entire group `W`.
+
+If `W` is infinite, an `NotImplementedError` exception will be thrown.
 
 # Examples
 ```jldoctest
@@ -294,7 +299,14 @@ julia> torsion_subgroup(W)
 (Weyl group of root system of type A2, Identity map of W)
 ```
 """
-torsion_subgroup(W::WeylGroup) = (W, id_hom(W))
+function torsion_subgroup(W::WeylGroup)
+  is_finite(W) || throw(
+    NotImplementedError(
+      :torsion_subgroup, "torsion_subgroup only implemented for finite Weyl groups"
+    ),
+  )
+  return (W, id_hom(W))
+end
 
 ###############################################################################
 # Weyl group elements

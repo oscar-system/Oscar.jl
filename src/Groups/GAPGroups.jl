@@ -1474,7 +1474,7 @@ end
 @doc raw"""
     torsion_subgroup(G::GAPGroup)
 
-Return the torsion subgroup of `G`.
+Return the torsion subgroup of `G`, i.e. the subgroup of all elements of `G` with finite order.
 
 # Examples
 ```jldoctest
