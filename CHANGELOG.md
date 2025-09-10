@@ -161,12 +161,6 @@ which we think might affect some users directly.
 - [#4988](https://github.com/oscar-system/Oscar.jl/pull/4988) New implementation of `map_from_func` with changed argument order
 - [#5051](https://github.com/oscar-system/Oscar.jl/pull/5051) Drop support for julia versions older than current LTS (1.10)
 
-### **TODO** release notes: to be added
-
-If there are any PRs listed below, check their title and labels.
-When done, change their label to "release notes: use title".
-
-
 ## [1.4.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.1) - 2025-06-07
 
 The following gives an overview of the changes compared to the previous release. This list is not
