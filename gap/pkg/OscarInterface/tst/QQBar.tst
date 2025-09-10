@@ -73,7 +73,7 @@ gap> Display( M );
 gap> Display( M : short );
 2x2 matrix over QQBarField:
                . <{a2: 1.41421}>
- <{a2: 1.41421}>
+ <{a2: 1.41421}>               .
 
 #
 gap> r:= Sqrt( QQBarFieldElement( 2 ) );;
