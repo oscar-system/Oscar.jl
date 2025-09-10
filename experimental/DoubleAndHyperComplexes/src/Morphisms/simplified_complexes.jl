@@ -402,6 +402,13 @@ function simplify(c::FreeResolution{T}) where T
     result.fill = function(C::ComplexOfMorphisms, k::Int)
       k0 = first(chain_range(C))
       k0 < k-1 && C[k-1] # Make sure the complex is filled
+
+      if is_zero(C[k-1])
+        Z = C[k-1]
+        pushfirst!(C.maps, hom(Z, Z, elem_type(Z)[zero(Z) for _ in 1:ngens(Z)]))
+        return first(C.maps)
+      end
+
       if is_zero(c[k])
         Z = c[k]
         cod = domain(first(C.maps))
@@ -534,7 +541,6 @@ function minimize(c::FreeResolution; check::Bool=true)
   end
   cm = simplify(c)
   set_attribute!(cm.C, :minimal=>true)
-  cm[first(chain_range(c))-1] # trigger the computation for the known part of the resolution
   set_attribute!(cm.C,
                  :show=>Hecke.pres_show,
                  :free_res=>get_attribute(c.C, :free_res)
