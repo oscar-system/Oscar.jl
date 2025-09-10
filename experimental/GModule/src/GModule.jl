@@ -294,7 +294,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   res = Any[(M, sub(M.M, gens(M.M))[2])]
   sres = 1
   new = true
-  lp = keys(factor(order(M.G)).fac)
+  lp = prime_divisors(order(M.G))
   while new
     new  = false
     lres = length(res)
@@ -2191,7 +2191,7 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
     i = _i.elem_in_algebra
     f = minpoly(i)
     lf = factor(f)
-    if length(lf) == 1 && degree(f) == s*m*k &&  haskey(lf.fac, f)
+    if length(lf) == 1 && degree(f) == s*m*k && f in lf
       if first
         best_f = f
         best_i = i
