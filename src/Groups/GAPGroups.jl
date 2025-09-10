@@ -378,6 +378,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 isequal(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
 function ==(x::GAPGroup, y::GAPGroup)
+  x === y && return true
   _check_compatible(x, y)
   return GapObj(x) == GapObj(y)
 end
@@ -389,6 +390,7 @@ isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 # in the sense of `_check_compatible`,
 # and compare the `GapObj`s if this is the case.
 function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y))
   return GapObj(x) == GapObj(y)
 end
@@ -396,6 +398,7 @@ end
 # For two `GAPGroupElem`s,
 # if no specialized method is applicable then no `==` comparison is allowed.
 function ==(x::GAPGroupElem, y::GAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
