@@ -8,6 +8,7 @@
 Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
 """
 @attr Vector{ToricVanishingSet} function vanishing_sets(variety::NormalToricVarietyType)
+    @req (is_simplicial(variety) && is_projective(variety)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
@@ -57,6 +58,7 @@ x_1 <= -3
 ```
 """
 @attr Any function immaculate_line_bundles(variety::NormalToricVarietyType)
+    @req (is_simplicial(variety) && is_projective(variety)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
     list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
     return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))
@@ -107,12 +109,10 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
 ```
 """
 @attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
+  v = toric_variety(l)
   if occursin("cohomcalg", lowercase(algorithm))
     # check if we can apply cohomCalg
-    v = toric_variety(l)
-    if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
-        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective"))
-    end
+    @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     
     # Minimal example:
     #
@@ -211,6 +211,7 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
     # return result
     return result
   elseif occursin("chamber", lowercase(algorithm))
+    @req (is_complete(v) && is_simplicial(v)) "the chamber counting algorithm only applies to toric varieties that are simplicial and complete"
     return _all_cohomologies_via_cech(l)
   end
 end
@@ -243,6 +244,6 @@ function cohomology(l::ToricLineBundle, i::Int; algorithm::String = "cohomCalg")
   if occursin("cohomcalg", lowercase(algorithm))
     return all_cohomologies(l; algorithm = "cohomCalg")[i+1]
   elseif occursin("chamber", lowercase(algorithm))
-    return _all_cohomologies_via_cech(l)[i+1]
+    return all_cohomologies(l; algorithm = "chamber")[i+1]
   end
 end

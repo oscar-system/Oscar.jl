@@ -19,7 +19,7 @@ julia> vs = vanishing_sets(dP1)
  Toric vanishing set for cohomology indices [2]
 
 julia> toric_variety(vs[3])
-Normal, 2-dimensional toric variety without torusfactor
+Normal, simplicial, projective, 2-dimensional toric variety without torusfactor
 ```
 """
 toric_variety(tvs::ToricVanishingSet) = tvs.toric_variety
