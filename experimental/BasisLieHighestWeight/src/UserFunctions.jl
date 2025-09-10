@@ -640,7 +640,7 @@ function basis_lie_demazure(
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
-  operators = demazurify_operators(V,operators_by_simple_roots(L, birational_sequence))
+  operators = demazurify_operators(V, operators_by_simple_roots(L, birational_sequence))
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
@@ -686,7 +686,8 @@ over Lie algebra of type D4
 ```
 """
 function basis_lie_demazure_lusztig(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int}
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int},
 )
   monomial_ordering = :wdegrevlex
   L = lie_algebra(QQ, type, rank)
@@ -730,11 +731,13 @@ over Lie algebra of type C3
     [0, 0, 1] * s1 * s2
 ```
 """
-function basis_lie_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int})
+function basis_lie_demazure_ffl(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}
+)
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
-  operators = demazurify_operators(V,reverse(operators_asc_height(L)))
+  operators = demazurify_operators(V, reverse(operators_asc_height(L)))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)

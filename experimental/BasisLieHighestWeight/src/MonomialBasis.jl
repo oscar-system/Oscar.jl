@@ -180,7 +180,9 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis{<:DemazureMo
       Indent(),
     )
     for gen in get_attribute(basis, :minkowski_gens)
-      print(io, '\n', "$(Int.(Oscar._vec(coefficients(gen)))) * $(weyl_group_elem(basis.V))")
+      print(
+        io, '\n', "$(Int.(Oscar._vec(coefficients(gen)))) * $(weyl_group_elem(basis.V))"
+      )
     end
     print(io, Dedent(), Dedent())
   elseif get_attribute(basis, :algorithm, nothing) === basis_coordinate_ring_kodaira_compute
@@ -201,7 +203,9 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis{<:DemazureMo
       Indent(),
     )
     for gen in get_attribute(basis, :minkowski_gens)
-      print(io, '\n', "$(Int.(Oscar._vec(coefficients(gen)))) * $(weyl_group_elem(basis.V))")
+      print(
+        io, '\n', "$(Int.(Oscar._vec(coefficients(gen)))) * $(weyl_group_elem(basis.V))"
+      )
     end
     print(io, Dedent(), Dedent())
   end
