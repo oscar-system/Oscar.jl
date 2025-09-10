@@ -112,6 +112,8 @@ prtypes = [
     ["optimization",                "Performance improvements or improved testing"],
     ["bug: crash",                  "Fixed bugs that could lead to crashes"],
     ["bug",                         "Other fixed bugs"],
+    ["bug: wrong result",           "Fixed bugs that returned incorrect results"],
+    ["bug: unexpected error",       "Fixed bugs that resulted in unexpected errors"],
     ["documentation",               "Improvements or additions to documentation"],
 ]
 
