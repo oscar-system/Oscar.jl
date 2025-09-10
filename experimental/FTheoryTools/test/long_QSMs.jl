@@ -2,6 +2,9 @@
 # Extra long QSM model tests
 #############################################################
 
+using Random
+our_rng = Random.Xoshiro(1234)
+
 @testset "Advanced intersection theory and QSM-fluxes" begin
   for k in 1:5000
     qsm_model = try literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k), rng = our_rng) catch e continue end
@@ -46,7 +49,7 @@
     non_zero_entries = collect(filter(x -> x[2] != 0, known_intersections))
     sampled_dict = Dict()
     while length(sampled_dict) < min(100, length(non_zero_entries))
-      i = rand(1:length(non_zero_entries))
+      i = rand(our_rng, 1:length(non_zero_entries))
       sampled_dict[non_zero_entries[i][1]] = non_zero_entries[i][2]
     end
     for (k,v) in sampled_dict
