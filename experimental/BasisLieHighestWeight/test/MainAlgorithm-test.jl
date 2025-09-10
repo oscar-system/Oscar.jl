@@ -693,8 +693,8 @@ end
 
       R = root_system(birational_sequence(mb))
       w =
-        WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) -
-        (WeightLatticeElem(2 * root(R, 8) + 2 * root(R, 7)))
+        WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) +
+        (WeightLatticeElem(2 * root(R, 1) + 2 * root(R, 2)))
 
       monomials_for_weight_w = filter(
         mon ->
