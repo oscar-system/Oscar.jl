@@ -18,7 +18,7 @@ julia> discriminant(E)
 -432*t^14 + 1728*t^13 - 2592*t^12 + 1728*t^11 - 432*t^10
 
 julia> factor(Qt, discriminant(E))
--432 * t^10 * (t - 1)^4
+-432 * (t - 1)^4 * t^10
 
 julia> R = rescale(root_lattice([(:E, 8), (:E, 8), (:A, 2)]), -1);
 

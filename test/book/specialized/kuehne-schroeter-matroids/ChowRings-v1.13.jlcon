@@ -8,7 +8,7 @@ julia> char_poly = characteristic_polynomial(M)
 q^3 - 6*q^2 + 11*q - 6
 
 julia> factor(char_poly)
-1 * (q - 3) * (q - 2) * (q - 1)
+(q - 3) * (q - 2) * (q - 1)
 
 julia> A = chow_ring(M);
 
