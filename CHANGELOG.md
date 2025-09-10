@@ -68,8 +68,15 @@ which we think might affect some users directly.
 - [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) **Breaking:** Remove support for (most) `has`-functions, to tell if a (literature) model has a particular attribute.
 - [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) Introduce `add_torsion_section` method.
 - [#5156](https://github.com/oscar-system/Oscar.jl/pull/5156) Stabilize `singular_loci`'s refined Tate fiber type computation (Monte Carlo) with fixed seed
+- [#5161](https://github.com/oscar-system/Oscar.jl/pull/5161) **Breaking:** Drop support for `add_model_parameter(m::AbstractFTheoryModel, addition::String)`
 - [#5198](https://github.com/oscar-system/Oscar.jl/pull/5198) Serialize mappings of properties of toric varieties and update QSMDB
 - [#5200](https://github.com/oscar-system/Oscar.jl/pull/5200) Drop support for `cox_ring` of `FamilyOfSpaces`
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) **Breaking:** Kwarg `check` renamed according to the role it plays/adjusting its role when needed. In most places, it was renamed to `completeness_check`. For constructors of G4-fluxes, we introduced the kwarg `consistency_check` (is the flux properly quantized? does it pass the transversality constraints?).
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) Support for kwarg `completeness_check` extended. For instance, it is now allowed as input to `is_well_quantized`, `passes_transversality_checks`, `d3_tadpole` for individual G4-fluxes. But it is also used internally in many more places.
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) Kwargs `completeness_check` and `consistency_check` are described in docstrings.
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) **Breaking:** Stop support for `chosen_g4_flux_basis`, `basis_of_h22_hypersurface` and `basis_of_h22_hypersurface_indices`.
+- [#5269](https://github.com/oscar-system/Oscar.jl/pull/5269) **Breaking:** Stop support for `_blowup_global`, `_blowup_global_sequence`, and `_is_nontrivial`
+- [#5278](https://github.com/oscar-system/Oscar.jl/pull/5278) Make `generic_section` and functions derived thereby less random by providing a seed as kwarg
 
 ### Groups
 
@@ -101,7 +108,9 @@ which we think might affect some users directly.
 - [#5064](https://github.com/oscar-system/Oscar.jl/pull/5064) Introduce `class_group_with_map` and `picard_group_with_map`
 - [#5073](https://github.com/oscar-system/Oscar.jl/pull/5073) Use Laurent polynomial ring approach to speed up computation of `toric_ideal`
 - [#5234](https://github.com/oscar-system/Oscar.jl/pull/5234) Refine optional checks in toric varieties: introduce kwarg `completeness_check`
+- [#5278](https://github.com/oscar-system/Oscar.jl/pull/5278) Make `generic_section` and functions derived thereby less random by providing a seed as kwarg
 - [#5284](https://github.com/oscar-system/Oscar.jl/pull/5284) Implement chamber counting algorithm for toric line bundles
+- [#5287](https://github.com/oscar-system/Oscar.jl/pull/5287) **Breaking:** Require simplicial, projective toric varieties in the current cohomCalg implementation; update input tests
 
 ### Changes related to serializing data in the MRDI file format
 
@@ -146,12 +155,7 @@ If there are any PRs listed below, check their title and labels.
 When done, change their label to "release notes: use title".
 
 - [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Update AA to 0.46, Nemo to 0.51, Hecke to 0.37
-- [#5161](https://github.com/oscar-system/Oscar.jl/pull/5161) [FTheoryTools] Overhaul adder functions
-- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) FTheoryTools: Improve kwargs
-- [#5269](https://github.com/oscar-system/Oscar.jl/pull/5269) Drop support for some old functionality that is no longer used
-- [#5278](https://github.com/oscar-system/Oscar.jl/pull/5278) [ToricVarieties] Make `generic_section` and functions derived thereby less random by providing a seed as kwarg
 - [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) chore: update AA to 0.47, Nemo to 0.52, and Hecke to 0.38
-- [#5287](https://github.com/oscar-system/Oscar.jl/pull/5287) Require simplicial, projective toric varieties in the current cohomCalg implementation; update input tests.
 
 ## [1.4.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.1) - 2025-06-07
 
