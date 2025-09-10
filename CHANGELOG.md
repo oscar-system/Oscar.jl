@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.0) - 2025-09-10
+## [1.5.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.0) - 2025-09-11
 
 The following gives an overview of the changes compared to the previous release. This list is not
 complete, many more internal or minor changes were made, but we tried to only list those changes
