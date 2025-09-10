@@ -129,12 +129,24 @@ which we think might affect some users directly.
 ### Changes related to the package AbstractAlgebra
 
 - [#4965](https://github.com/oscar-system/Oscar.jl/pull/4965) No longer export misleading `@perm_str` from AA
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump AbstractAlgebra to v0.46
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump AbstractAlgebra to v0.47
 
 ### Changes related to the package GAP
 
 - [#4952](https://github.com/oscar-system/Oscar.jl/pull/4952) Add a `QQBar` interface to GAP
 - [#5049](https://github.com/oscar-system/Oscar.jl/pull/5049) Add support for GAP.jl 0.14
 - [#5226](https://github.com/oscar-system/Oscar.jl/pull/5226) Update to GAP.jl 0.15
+
+### Changes related to the package Hecke
+
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump Hecke to v0.37
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump Hecke to v0.38
+
+### Changes related to the package Nemo
+
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump Nemo to v0.51
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump Nemo to v0.52
 
 ### Changes related to the package Polymake
 
@@ -154,8 +166,6 @@ which we think might affect some users directly.
 If there are any PRs listed below, check their title and labels.
 When done, change their label to "release notes: use title".
 
-- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Update AA to 0.46, Nemo to 0.51, Hecke to 0.37
-- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) chore: update AA to 0.47, Nemo to 0.52, and Hecke to 0.38
 
 ## [1.4.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.1) - 2025-06-07
 
