@@ -53,6 +53,20 @@ which we think might affect some users directly.
 
 - [#5017](https://github.com/oscar-system/Oscar.jl/pull/5017) Chern classes can be serialized
 - [#5019](https://github.com/oscar-system/Oscar.jl/pull/5019) For all QSMs, remember that toric ambient space is complete and smooth
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Compute integral and rational coefficients for **all** `G_4`-fluxes
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Upon construction, automatically express the defining cohomology class of each `G_4`-flux using the internally chosen generating set
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Deprecate `basis_of_h22_hypersurface` in favor of `gens_of_h22_hypersurface`
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Deprecate `basis_of_h22_hypersurface_indices` in favor of `gens_of_h22_hypersurface_indices`
+- [#5048](https://github.com/oscar-system/Oscar.jl/pull/5048) **Breaking:** Stop support for `su5_weierstrass_model_over_arbitrary_3d_base`
+- [#5048](https://github.com/oscar-system/Oscar.jl/pull/5048) **Breaking:** Stop support for `su5_tate_model_over_arbitrary_3d_base`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Extended flexibility for `HypersurfaceModel` constructors
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Improved implementation of `set_weierstrass_model(h::HypersurfaceModel)`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Improved implementation of `set_global_tate_model(h::HypersurfaceModel)`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) **Breaking:** Remove support for `sample_toric_variety()`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) **Breaking:** Remove support for `weierstrass_model(w::WeierstrassModel)`
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) **Breaking:** Remove support for `set`-functions of metadata attributes of literature models.
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) **Breaking:** Remove support for (most) `has`-functions, to tell if a (literature) model has a particular attribute.
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) Introduce `add_torsion_section` method.
 - [#5156](https://github.com/oscar-system/Oscar.jl/pull/5156) Stabilize `singular_loci`'s refined Tate fiber type computation (Monte Carlo) with fixed seed
 - [#5198](https://github.com/oscar-system/Oscar.jl/pull/5198) Serialize mappings of properties of toric varieties and update QSMDB
 - [#5200](https://github.com/oscar-system/Oscar.jl/pull/5200) Drop support for `cox_ring` of `FamilyOfSpaces`
@@ -131,10 +145,6 @@ which we think might affect some users directly.
 If there are any PRs listed below, check their title and labels.
 When done, change their label to "release notes: use title".
 
-- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) More features for FTheoryTools
-- [#5048](https://github.com/oscar-system/Oscar.jl/pull/5048) FTheoryTools documentation improvements
-- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) FTheory: More documentation and related improvements
-- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) FTheoryTools: Yet more documentation changes
 - [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Update AA to 0.46, Nemo to 0.51, Hecke to 0.37
 - [#5161](https://github.com/oscar-system/Oscar.jl/pull/5161) [FTheoryTools] Overhaul adder functions
 - [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) FTheoryTools: Improve kwargs
