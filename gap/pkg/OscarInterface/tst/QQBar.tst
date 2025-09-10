@@ -5,13 +5,13 @@ gap> START_TEST( "QQBar.tst" );
 gap> F:= QQBarField;
 QQBarField
 gap> x:= One( F );
-<Root 1.00000 of x - 1>
+<{a1: 1.00000}>
 gap> Print( x, "\n" );
-<Root 1.00000 of x - 1>
+<{a1: 1.00000}>
 gap> String( x );
-"<Root 1.00000 of x - 1>"
+"<{a1: 1.00000}>"
 gap> z:= Zero( F );
-<Root 0 of x>
+<{a1: 0}>
 gap> Zero( x ) = z;
 true
 gap> z < x;
@@ -38,7 +38,7 @@ true
 gap> x * x = x;
 true
 gap> r:= Sqrt( y );
-<Root 1.41421 of x^2 - 2>
+<{a2: 1.41421}>
 gap> r^2 = y;
 true
 gap> r^-1 = 1 / r;
@@ -63,13 +63,13 @@ gap> M:= [ [ z, r ], [ r, z ] ];;
 gap> Determinant( M ) = -2;
 true
 gap> MinimalPolynomial( M );
-x_1^2+(<Root -2.00000 of x + 2>)
+x_1^2+(<{a1: -2.00000}>)
 gap> Eigenvalues( F, M );
 [ <{a2: 1.41421}>, <{a2: -1.41421}> ]
 gap> Display( M );
 2x2 matrix over QQBarField:
-                         . <Root 1.41421 of x^2 - 2>
- <Root 1.41421 of x^2 - 2>                         .
+               . <{a2: 1.41421}>
+ <{a2: 1.41421}>               .
 gap> Display( M : short );
 2x2 matrix over QQBarField:
                . <{a2: 1.41421}>

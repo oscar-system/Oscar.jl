@@ -1335,13 +1335,13 @@ function sum_orbits(K, Qt_to_G, r)
   end
   @vprint :GaloisGroup 1 "... factoring...\n"
   @vtime :GaloisGroup 2 fg  = factor(g)
-  @assert all(isone, values(fg.fac))
+  @assert all(isone(e) for (_, e) in fg)
 
   O = []
   if isa(r[1], AcbFieldElem)
     mm = collect(m)
   end
-  for f = keys(fg.fac)
+  for (f, _) in fg
     r = roots(map_coefficients(Qt_to_G, f))
     if isa(r[1], AcbFieldElem)
       push!(O, [mm[argmin(map(x->abs(x[1]-y), mm))][2] for y = r])
@@ -1708,13 +1708,13 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
   if prime != 0
     p = prime
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
 
   d_max = degree(f)^2
