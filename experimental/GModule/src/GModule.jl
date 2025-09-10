@@ -2191,7 +2191,7 @@ function split_homogeneous2(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQField
     i = _i.elem_in_algebra
     f = minpoly(i)
     lf = factor(f)
-    if length(lf) == 1 && degree(f) == s*m*k &&  haskey(lf.fac, f)
+    if length(lf) == 1 && degree(f) == s*m*k && f in lf
       if first
         best_f = f
         best_i = i
