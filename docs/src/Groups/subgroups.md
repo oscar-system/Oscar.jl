@@ -33,6 +33,7 @@ sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 derived_subgroup
 fitting_subgroup
 frattini_subgroup
+torsion_subgroup
 socle
 solvable_radical
 pcore(G::GAPGroup, p::IntegerUnion)

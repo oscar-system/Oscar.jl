@@ -1471,6 +1471,33 @@ function p_rump(G::GAPGroup, p::IntegerUnion)
   return _as_subgroup(G, H)
 end
 
+@doc raw"""
+    torsion_subgroup(G::GAPGroup)
+
+Return the torsion subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> torsion_subgroup(g)
+(Symmetric group of degree 4, Hom: G -> G)
+
+julia> g = GL(3, 2);
+
+julia> torsion_subgroup(g)
+(Matrix group of degree 3 over GF(2), Hom: matrix group -> g)
+```
+"""
+function torsion_subgroup(G::GAPGroup)
+  T = GAPWrap.TorsionSubgroup(GapObj(G))
+  @req T != GAP.Globals.fail "Could not determine torsion subgroup of the given group"
+  return _as_subgroup(G, T)
+end
+
+torsion_subgroup(G::PermGroup) = (G, id_hom(G))
+torsion_subgroup(G::T) where T <: Union{FPGroup, SubFPGroup} = trivial_subgroup(G)
+
 ################################################################################
 #
 # Sylow & Hall Subgroups
@@ -1945,30 +1972,6 @@ false
 ```
 """
 @gapattribute is_finitely_generated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(GapObj(G))::Bool
-
-"""
-  p_rump(G::GAPGroup, p::IntegerUnion)
-
-For a prime p, the p-rump of a group G is the subgroup G' G^p.
-Unless it equals G itself (which is the e.g. the case if G is perfect), 
-it is equal to the second term of the p-central series of G, see [`p_central_series`](@ref).
-
-# Examples
-```jldoctest
-julia> g = symmetric_group(4);
-
-julia> h, _ = p_rump(g, 2)
-(Permutation group of degree 4, Hom: h -> g)
-
-julia> h == alternating_group(4)
-true
-```
-"""
-function p_rump(G::GAPGroup, p::IntegerUnion)
-  @req is_prime(p) "p must be a prime"
-  H = GAPWrap.PRump(GapObj(G), p)
-  return Oscar._as_subgroup(G, H)
-end
 
 # TODO/FIXME: is_free is disabled for now as it is not universal; it only
 # really works for fp groups, and then also only for those without relators;

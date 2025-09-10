@@ -281,6 +281,21 @@ function root_system(W::WeylGroup)
   return W.root_system
 end
 
+@doc raw"""
+    torsion_subgroup(W::WeylGroup) -> WeylGroup, Map
+
+Return the torsion subgroup of `W`.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 2);
+
+julia> torsion_subgroup(W)
+(Weyl group of root system of type A2, Identity map of W)
+```
+"""
+torsion_subgroup(W::WeylGroup) = (W, id_hom(W))
+
 ###############################################################################
 # Weyl group elements
 

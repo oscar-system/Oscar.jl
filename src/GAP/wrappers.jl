@@ -395,6 +395,7 @@ GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap SymplecticComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap TableOfMarks(x::GapObj)::GapObj
+GAP.@wrap TorsionSubgroup(x::GapObj)::GapObj
 GAP.@wrap Trace(x::GapObj, y::GAP.Obj)::GAP.Obj
 GAP.@wrap TrivialCharacter(x::GapObj)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
