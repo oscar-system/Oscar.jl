@@ -1447,6 +1447,29 @@ see [`minimal_normal_subgroups`](@ref).
 """
 @gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(GapObj(G)))
 
+"""
+    p_rump(G::GAPGroup, p::IntegerUnion)
+
+For a prime p, the p-rump of a group `G` is the subgroup `G'` of `G^p`.
+Unless it equals `G` itself (which is the e.g. the case if `G` is perfect), 
+it is equal to the second term of the p-central series of `G`, see [`p_central_series`](@ref).
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> h, _ = p_rump(g, 2)
+(Permutation group of degree 4, Hom: h -> g)
+
+julia> h == alternating_group(4)
+true
+```
+"""
+function p_rump(G::GAPGroup, p::IntegerUnion)
+  @req is_prime(p) "p is not a prime"
+  H = GAPWrap.PRump(GapObj(G), p)
+  return _as_subgroup(G, H)
+end
 
 ################################################################################
 #
