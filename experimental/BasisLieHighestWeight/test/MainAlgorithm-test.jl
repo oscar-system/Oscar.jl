@@ -664,9 +664,8 @@ end
       dict = Dict{WeightLatticeElem,Int64}()
       for mon in monomials(mb)
         w =
-          WeightLatticeElem(R, highest_weight) -
+          WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) -
           Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb))
-        w = w * weyl_group(R)(weyl_group_elem) #the module is twisted and we need to twist it back
         val = get(dict, w, 0) + 1
         dict[w] = val
       end
@@ -694,12 +693,12 @@ end
 
       R = root_system(birational_sequence(mb))
       w =
-        WeightLatticeElem(R, highest_weight) -
-        WeightLatticeElem(2 * simple_root(R, 1) + 2 * simple_root(R, 2))
+        WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) -
+        (WeightLatticeElem(2 * root(R, 8) + 2 * root(R, 7)))
 
       monomials_for_weight_w = filter(
         mon ->
-          WeightLatticeElem(R, highest_weight) -
+          WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) -
           Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w,
         monomials(mb),
       )

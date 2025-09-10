@@ -60,8 +60,17 @@ function basis_lie_highest_weight_compute(
     collect(no_minkowski);
     by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
   )
-  # output
-  mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
+  # output  
+  if V isa SimpleModuleData
+    mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
+  elseif V isa DemazureModuleData #the module is twisted and we need to twist it back
+    twisted_roots = [root * V.weyl_group_elem for root in operators_as_roots(birational_seq)]
+    twisted_weights = [weight * V.weyl_group_elem for weight in operators_as_weights(birational_seq)]
+    twisted_birational_seq = birational_sequence(twisted_roots, twisted_weights, birational_seq.root_system)
+    mb = MonomialBasis(V, twisted_birational_seq, monomial_ordering, monomials)    
+  else
+    error("unreachable")
+  end
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
