@@ -2791,7 +2791,7 @@ end
 function is_annihilated(
   x::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}},
 )
-  return (f::AutomorphismGroupElem{TorQuadModule} -> is_annihilated(f, x)::Bool)
+  return Base.Fix2(is_annihilated, x)
 end
 
 @doc raw"""
@@ -2826,7 +2826,7 @@ end
 function is_annihilated_on_discriminant(
   x::Union{MPolyIdeal{ZZMPolyRingElem}, ZZMPolyRingElem, ZZPolyRingElem},
 )
-  return (f::ZZLatWithIsom -> is_annihilated_on_discriminant(f, x)::Bool)
+  return Base.Fix2(is_annihilated_on_discriminant, x)
 end
 
 _default_discriminant_annihilator(Lf::ZZLatWithIsom) = _annihilator(discriminant_group(Lf)[1])
