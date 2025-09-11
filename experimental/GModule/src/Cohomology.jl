@@ -320,7 +320,7 @@ function AbstractAlgebra.Generic.add_direct_sum_injection!(a::FinGenAbGroupElem,
   for j=1:i-1
     n += ngens(C[j])
   end
-  _a = Hecke.FinGenAbGroupElem(C[i], _view_window(a.coeff, 1, n+1, 1, n+ngens(C[i])))
+  _a = Hecke.FinGenAbGroupElem(C[i], Oscar.Nemo._view_window(a.coeff, 1, n+1, 1, n+ngens(C[i])))
   add!(_a, _a, b)
   return a
 end
