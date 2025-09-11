@@ -734,7 +734,8 @@ over Lie algebra of type B3
 ```
 """
 function basis_lie_demazure_string(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int}
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int},
 )
   monomial_ordering = :neglex
   L = lie_algebra(QQ, type, rank)
@@ -828,7 +829,8 @@ over Lie algebra of type B3
 ```
 """
 function basis_lie_demazure_nz(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int}
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int},
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(QQ, type, rank)
