@@ -115,6 +115,7 @@ smallest_moved_point
 largest_moved_point
 moved_points
 number_of_moved_points
+fixed_points
 ```
 
 ## Cycle structures
