@@ -35,7 +35,7 @@ which we think might affect some users directly.
 - [#5182](https://github.com/oscar-system/Oscar.jl/pull/5182) Fix a bug in the computation of matroid realization spaces with saturated defining ideal
 - [#5193](https://github.com/oscar-system/Oscar.jl/pull/5193) Add documentation for graph visualization using Graphviz
 - [#5211](https://github.com/oscar-system/Oscar.jl/pull/5211) Add `is_acyclic` function for directed graphs
-- [#5244](https://github.com/oscar-system/Oscar.jl/pull/5244) graphs: add induced_subgraph
+- [#5244](https://github.com/oscar-system/Oscar.jl/pull/5244) Add `induced_subgraph`
 
 ### Commutative Algebra
 
@@ -45,7 +45,7 @@ which we think might affect some users directly.
 - [#5030](https://github.com/oscar-system/Oscar.jl/pull/5030) Deprecate `vector_space_dimension`, use `vector_space_dim` instead
 - [#5078](https://github.com/oscar-system/Oscar.jl/pull/5078) Support `kernel` of maps with Laurent polynomials as codomain
 - [#5080](https://github.com/oscar-system/Oscar.jl/pull/5080) Don't allow `grade` on graded polynomial ring
-- [#5185](https://github.com/oscar-system/Oscar.jl/pull/5185) Fix radical over integers
+- [#5185](https://github.com/oscar-system/Oscar.jl/pull/5185) Fix `radical` for ideals in polynomial rings over the integers
 - [#5240](https://github.com/oscar-system/Oscar.jl/pull/5240) Add `change_base_ring` for graded multivariate rings
 - [#5241](https://github.com/oscar-system/Oscar.jl/pull/5241) Add `rational_solutions` over larger field
 
@@ -88,7 +88,7 @@ which we think might affect some users directly.
 
 ### Lie Theory
 
-- [#4570](https://github.com/oscar-system/Oscar.jl/pull/4570) BasisLieHightestWeight: Extend functionality to Demazure modules
+- [#4570](https://github.com/oscar-system/Oscar.jl/pull/4570) Extend functionality to Demazure modules
 
 ### Number Theory
 
@@ -98,9 +98,9 @@ which we think might affect some users directly.
 
 ### Polyhedral Geometry
 
-- [#5217](https://github.com/oscar-system/Oscar.jl/pull/5217) (n_)cones now properly considers all cones
-- [#5220](https://github.com/oscar-system/Oscar.jl/pull/5220) visualize: add filename and backend keyword args
-- [#5246](https://github.com/oscar-system/Oscar.jl/pull/5246) add support for serializing linear programs over non-rational fields
+- [#5217](https://github.com/oscar-system/Oscar.jl/pull/5217) `n_cones` and `cones` now properly consider all cones
+- [#5220](https://github.com/oscar-system/Oscar.jl/pull/5220) Add `filename` and `backend` keyword arguments to `visualize`
+- [#5246](https://github.com/oscar-system/Oscar.jl/pull/5246) Add support for serializing linear programs over non-rational fields
 
 ### Toric Geometry
 
