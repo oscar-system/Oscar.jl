@@ -58,7 +58,7 @@ import ..Oscar:
   hom_direct_sum,
   hom_tensor,
   ideal,
-  identity_map,
+  id_hom,
   image,
   induced_map_on_exterior_power,
   inner_direct_product,

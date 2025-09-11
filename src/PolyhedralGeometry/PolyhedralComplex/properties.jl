@@ -370,10 +370,21 @@ _vector_matrix(::Val{_ray_polyhedral_complex}, PC::PolyhedralComplex; homogenize
     _ray_indices_polyhedral_complex(pm_object(PC)), (homogenized ? 1 : 2):end
   ]
 
-_maximal_polyhedron(
+function _maximal_polyhedron(
   ::Type{Polyhedron{T}}, PC::PolyhedralComplex{T}, i::Base.Integer
-) where {T<:scalar_types} =
-  Polyhedron{T}(Polymake.fan.polytope(pm_object(PC), i - 1), coefficient_field(PC))
+) where {T<:scalar_types}
+  pmp = Polymake.fan.polytope(pm_object(PC), i - 1)
+  if Polymake.exists(pmp, "VERTICES") && Polymake.exists(pmp, "VERTICES_IN_FACETS")
+    # workaround wrong column indexing in polymake until next polymake release
+    if nrows(pmp.VERTICES) < ncols(pmp.VERTICES_IN_FACETS)
+      mci = Polymake.row(maximal_polyhedra(IncidenceMatrix, PC), i)
+      pmp = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(;
+        VERTICES=pmp.VERTICES, VERTICES_IN_FACETS=pmp.VERTICES_IN_FACETS[:, collect(mci)]
+      )
+    end
+  end
+  Polyhedron{T}(pmp, coefficient_field(PC))
+end
 
 _vertex_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
   pm_object(PC).MAXIMAL_POLYTOPES[:, _vertex_indices(pm_object(PC))]

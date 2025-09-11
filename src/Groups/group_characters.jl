@@ -2182,7 +2182,10 @@ group(chi::GAPGroupClassFunction) = group(parent(chi))
 characteristic(chi::GAPGroupClassFunction) = characteristic(parent(chi))
 
 function class_function(tbl::GAPGroupCharacterTable, values::GapObj)
-    @req GAPWrap.IsClassFunction(values) "values must be a class function"
+    if ! GAPWrap.IsClassFunction(values)
+      @req (GAPWrap.IsList(values) && GAPWrap.IsCyclotomicCollection(values)) "values must be a GAP class function or list"
+      values = GAPWrap.ClassFunction(GapObj(tbl), values)
+    end
     return GAPGroupClassFunction(tbl, values)
 end
 
@@ -2192,8 +2195,7 @@ function class_function(tbl::GAPGroupCharacterTable, values::Vector{<:Union{Inte
 end
 
 function class_function(G::GAPGroup, values::GapObj)
-    @req GAPWrap.IsClassFunction(values) "values must be a class function"
-    return GAPGroupClassFunction(character_table(G), values)
+    return class_function(character_table(G), values)
 end
 
 function class_function(G::GAPGroup, values::Vector{<:Union{Integer, ZZRingElem, Rational, QQFieldElem, QQAbFieldElem}})
@@ -2654,11 +2656,11 @@ Return `chi[1]`, as an instance of `T`.
 """
 Nemo.degree(chi::GAPGroupClassFunction) = Nemo.degree(QQFieldElem, chi)::QQFieldElem
 
-Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1].data, 0)::QQFieldElem
+Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(chi[1].data, 0)::QQFieldElem
 
-Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::ZZRingElem
+Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(chi[1].data, 0))::ZZRingElem
 
-Nemo.degree(::Type{QQAbFieldElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbFieldElem{AbsSimpleNumFieldElem}
+Nemo.degree(::Type{QQAbFieldElem}, chi::GAPGroupClassFunction) = chi[1]::QQAbFieldElem{AbsSimpleNumFieldElem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(ZZRingElem, chi))::T
 
@@ -2671,7 +2673,7 @@ end
 # access character values by positions
 function Base.getindex(chi::GAPGroupClassFunction, v::AbstractVector{Int})
   vals = GAPWrap.ValuesOfClassFunction(GapObj(chi))
-  return [QQAbFieldElem(x) for x in vals]
+  return [QQAbFieldElem(vals[i]) for i in v]
 end
 
 # access character values by class name
@@ -2850,7 +2852,7 @@ function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, FinGenAbGrou
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
     pi = [findfirst(x -> x^g in c, reps) for c in ccl]
-    return class_function(tbl, values(chi)[pi])
+    return class_function(tbl, chi[pi])
 end
 
 @doc raw"""
@@ -3174,7 +3176,7 @@ function character_field(chi::GAPGroupClassFunction)
       flag, e, pp = is_prime_power_with_data(q)
       (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
       F = GF(p, e)
-      return (F, identity_map(F))
+      return (F, id_hom(F))
     end
 
     values = GapObj(chi)::GapObj
@@ -3193,7 +3195,7 @@ function character_field(l::Vector{GAPGroupClassFunction})
       exps = [is_prime_power_with_data(q)[2] for q in orders]
       e = lcm(exps)
       F = GF(p, e)
-      return (F, identity_map(F))
+      return (F, id_hom(F))
     end
 
     values = GapObj(l, recursive = true)::GapObj

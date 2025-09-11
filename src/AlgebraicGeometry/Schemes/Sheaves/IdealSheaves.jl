@@ -775,23 +775,6 @@ end
 
 is_equidimensional(I::PrimeIdealSheafFromChart) = true
 
-@attr Bool function is_equidimensional(I::MPolyIdeal)
-  decomp = equidimensional_decomposition_weak(I)
-  return isone(length(decomp))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
-  is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
-  return is_equidimensional(saturated_ideal(I))
-end
-
-@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
-  return is_equidimensional(pre_image_ideal(I))
-end
-
 @doc raw"""
     _minimal_power_such_that(
         I::Ideal, P::PropertyType;
@@ -2276,7 +2259,14 @@ function produce_non_radical_ideal_of_singular_locus(II::SingularLocusIdealSheaf
   return II.non_radical_ideals[U]::Ideal
 end
 
-is_one(II::SingularLocusIdealSheaf) = all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in affine_charts(scheme(II)))
+function is_one(II::SingularLocusIdealSheaf; covering::Covering=default_covering(scheme(II)))
+  if has_decomposition_info(covering)
+    return all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)
+                      + ideal(OO(U), decomposition_info(covering)[U])) 
+               for U in patches(covering))
+  end
+  return all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in patches(covering))
+end
 
 in_radical(J::AbsIdealSheaf, II::SingularLocusIdealSheaf) = all(all(radical_membership(g, produce_non_radical_ideal_of_singular_locus(II, U)) for g in gens(J(U))) for U in affine_charts(scheme(J)))
 

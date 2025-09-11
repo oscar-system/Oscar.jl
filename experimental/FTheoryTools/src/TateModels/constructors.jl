@@ -3,18 +3,26 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
+    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
+The random source used in their creation can be set with the optional argument `rng`.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
-julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
+julia> using Random;
+
+julia> t = global_tate_model(projective_space(NormalToricVariety, 2); completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng()) = global_tate_model(base, _tate_sections(base; rng); completeness_check)
 
 
 @doc raw"""
@@ -23,9 +31,14 @@ global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = g
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
+
 # Examples
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> a1 = generic_section(anticanonical_bundle(chosen_base));
@@ -44,7 +57,7 @@ Global Tate model over a concrete base
 """
 function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
   @req length(ais) == 5 "All the Tate sections a1, a2, a3, a4, a6 must be provided"
-  return global_tate_model(base, Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5]), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+  return global_tate_model(base, Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5]), Dict{String, MPolyRingElem}(); completeness_check)
 end
 
 function global_tate_model(base::NormalToricVariety,
@@ -52,7 +65,7 @@ function global_tate_model(base::NormalToricVariety,
                            model_section_parametrization::Dict{String, MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
-  @req all(k -> parent(k) == cox_ring(base), vs) "All Tate sections must reside in the Cox ring of the base toric variety"
+  @req all(k -> parent(k) == coordinate_ring(base), vs) "All Tate sections must reside in the Cox ring of the base toric variety"
   @req haskey(explicit_model_sections, "a1") "Tate section a1 must be specified"
   @req haskey(explicit_model_sections, "a2") "Tate section a2 must be specified"
   @req haskey(explicit_model_sections, "a3") "Tate section a3 must be specified"
@@ -61,9 +74,9 @@ function global_tate_model(base::NormalToricVariety,
   vs2 = collect(keys(model_section_parametrization))
   @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
-  gens_base_names = symbols(cox_ring(base))
+  gens_base_names = symbols(coordinate_ring(base))
   if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   if completeness_check
@@ -80,24 +93,72 @@ function global_tate_model(base::NormalToricVariety,
   
   # construct the model
   ais = [explicit_model_sections["a1"], explicit_model_sections["a2"], explicit_model_sections["a3"], explicit_model_sections["a4"], explicit_model_sections["a6"]]
-  pt = _tate_polynomial(ais, cox_ring(ambient_space))
+  pt = _tate_polynomial(ais, coordinate_ring(ambient_space))
   model = GlobalTateModel(explicit_model_sections, model_section_parametrization, pt, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
 
 
-################################################
-# 2: Constructors with scheme as base
-################################################
+@doc raw"""
+    global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
 
-# Yet to come...
-# This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
-# -> Types to be generalized then.
+Construct a global Tate model over the ``d``-dimensional projective space,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> global_tate_model_over_projective_space(3, rng = Random.Xoshiro(1234))
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(projective_space(NormalToricVariety, d); completeness_check = false, rng = rng)
+
+
+@doc raw"""
+    global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
+
+Construct a global Tate model over the Hirzebruch surface ``F_r``,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> global_tate_model_over_hirzebruch_surface(1, rng = Random.Xoshiro(1234))
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false, rng = rng)
+
+
+@doc raw"""
+    global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+
+Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
+represented as a toric variety. The Tate sections ``a_i`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> global_tate_model_over_del_pezzo_surface(3, rng = Random.Xoshiro(1234))
+Global Tate model over a concrete base
+```
+"""
+global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng()) = global_tate_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false, rng = rng)
 
 
 ################################################
-# 3: Constructors without specified base
+# 2: Constructors with unspecified base
 ################################################
 
 @doc raw"""
@@ -136,8 +197,6 @@ julia> a6 = a65 * w^5;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
-Assuming that the first row of the given grading is the grading under Kbar
-
 Global Tate model over a not fully specified base
 ```
 """
@@ -149,11 +208,11 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # inform about the assume Kbar grading
-  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 1 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Compute the Tate polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
@@ -194,9 +253,8 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 end
 
 
-
 ################################################
-# 4: Display
+# 3: Display
 ################################################
 
 # Detailed printing
@@ -213,16 +271,16 @@ function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(t)
+  if has_attribute(t, :model_description)
     push!(properties_string, "-- " * model_description(t))
-    if has_model_parameters(t)
+    if has_attribute(t, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(t)
+  if has_attribute(t, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
-  if has_arxiv_model_equation_number(t)
+  if has_attribute(t, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")

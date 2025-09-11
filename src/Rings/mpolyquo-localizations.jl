@@ -377,7 +377,7 @@ end
 Elements ``a//b`` of localizations ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of type 
 `MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}`.
 """
-mutable struct MPolyQuoLocRingElem{
+struct MPolyQuoLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,
@@ -1079,8 +1079,8 @@ function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where 
 end
 
 ### implementing the Oscar map interface
-function identity_map(W::T) where {T<:MPolyQuoLocRing} 
-  MPolyQuoLocalizedRingHom(W, W, identity_map(base_ring(W)))
+function id_hom(W::T) where {T<:MPolyQuoLocRing} 
+  MPolyQuoLocalizedRingHom(W, W, id_hom(base_ring(W)))
 end
 
 function simplify(a::MPolyQuoLocRingElem)
@@ -1600,10 +1600,17 @@ function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfEle
   return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
+# The `simplify` routine uses Singular's "elimpart". This does not work 
+# when the coefficient ring is not a field. Hence, unless that is the case, 
+# we refrain from doing anything here. 
 function simplify(L::MPolyQuoRing)
+  return L, id_hom(L), id_hom(L)
+end
+
+function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   J = modulus(L)
   R = base_ring(L)
-  is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
+  is_zero(ngens(R)) && return L, id_hom(L), id_hom(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)
 
@@ -1647,6 +1654,22 @@ function simplify(R::MPolyRing)
   f = hom(R, Rnew, gens(Rnew), check=false)
   finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
+end
+
+function simplify(L::MPolyQuoLocRing{<:Field, <:FieldElem, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  A = underlying_quotient(L)::MPolyQuoRing
+  AA, iso, iso_inv = simplify(A)
+  a = point_coordinates(inverted_set(L))
+  b = [evaluate(lift(f), a) for f in images_of_generators(iso_inv)]
+  U = complement_of_point_ideal(base_ring(AA), b)
+  LL, _ = localization(AA, U)
+  return LL, 
+  hom(L, LL, 
+      elem_type(LL)[LL(x) for x in images_of_generators(iso)]
+     ),
+  hom(LL, L, 
+      elem_type(L)[L(x) for x in images_of_generators(iso_inv)]
+     )
 end
 
 @doc raw"""
@@ -2221,6 +2244,19 @@ function minimal_primes(
 end
 
 @doc raw"""
+    is_equidimensional(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return whether I is equidimensional
+"""
+@attr Bool function is_equidimensional(I::Union{<:MPolyQuoIdeal,<:MPolyLocalizedIdeal})
+  return is_equidimensional(saturated_ideal(I))
+end
+
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
+end
+
+@doc raw"""
     saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
 
 Return ``I:J^\infty``.
@@ -2709,7 +2745,7 @@ end
 
 
 function _as_localized_quotient(W::MPolyQuoLocRing)
-  return W, identity_map(W), identity_map(W)
+  return W, id_hom(W), id_hom(W)
 end
 
 # Problems arise with comparison for non-trivial coefficient maps 

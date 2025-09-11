@@ -156,6 +156,14 @@
     @test is_negative(b)
     @test_throws DomainError x < n
     @test_throws DomainError y < F(n)
+
+    # compatibility of roots of unity in `K` and `F`
+    i = F(z(4))
+    for n in 1:20
+      @test z(n) == root_of_unity(K, n)
+      @test all(d -> z(n)^d == z(div(n, d)), divisors(n))
+      @test F(z(n)) == cospi(F(2)/n) + i*sinpi(F(2)/n)
+    end
   end
 
   @testset "Conversion to Float64 and ComplexF64" begin
@@ -171,6 +179,19 @@
     @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, Int) == QQAbFieldElem
     @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, ZZRingElem) == QQAbFieldElem
     @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, QQFieldElem) == QQAbFieldElem
+  end
+
+  @testset "Test for integrality and rationality" begin
+    for sparse in (true, false)
+      K, z = abelian_closure(QQ; sparse)
+      z_3 = z(3)
+      @test isinteger(z_3^3)
+      @test !isinteger(z_3)
+      @test is_rational(1//2*z_3^3)
+      @test !is_rational(1//2*z_3)
+      @test is_algebraic_integer(z_3)
+      @test !is_algebraic_integer(1//2*z_3)
+    end
   end
 
   @testset "Arithmetic" begin

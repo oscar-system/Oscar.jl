@@ -175,6 +175,7 @@ Get the underlying polymake `Polytope`.
 pm_object(P::Polyhedron) = P.pm_polytope
 
 function ==(P0::Polyhedron{T}, P1::Polyhedron{T}) where {T<:scalar_types}
+  @req coefficient_field(P0) == coefficient_field(P1) "Cannot compare polyhedra over different coefficient fields."
   Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 

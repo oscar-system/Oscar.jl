@@ -547,12 +547,6 @@ julia> [instanton_number(d, 5) for d = 1:3]
 ```
 
 ```jldoctest
-julia> instanton_number(3,4,2)
-15655168
-
-julia> instanton_number(2,4,2)
-92288
-
 julia> instanton_number(2, 4, 2)
 92288
 

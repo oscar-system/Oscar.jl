@@ -19,6 +19,12 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 
+ownpath = os.path.abspath(sys.argv[0])
+dirpath = os.path.dirname(ownpath)
+repopath = os.path.dirname(os.path.dirname(os.path.dirname(ownpath)))
+newfile = f"{dirpath}/new.md"
+finalfile = f"{repopath}/CHANGELOG.md"
+
 def usage(name: str) -> None:
     print(f"Usage: `{name} [NEWVERSION]`")
     sys.exit(1)
@@ -36,6 +42,7 @@ def is_existing_tag(tag: str) -> bool:
             f""".[] | select(.name | contains("{tag.strip()}"))"""
         ],
         shell=False,
+        check=False, # this subprocess is allowed to fail
         capture_output=True
     )
     return res.stdout.decode() != ""
@@ -120,10 +127,11 @@ def get_tag_date(tag: str) -> str:
                 "gh",
                 "release",
                 "view",
-                tag,
+                f"{tag}",
                 "--json=createdAt"
             ],
             shell=False,
+            check=True,
             capture_output=True
         )
         res = json.loads(res.stdout.decode())
@@ -151,7 +159,9 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    return json.loads(res.stdout.strip())
+    jsonList = json.loads(res.stdout.strip())
+    jsonList = sorted(jsonList, key=lambda d: d['number']) # sort by ascending PR number
+    return jsonList
 
 
 def pr_to_md(pr: Dict[str, Any]) -> str:
@@ -174,8 +184,6 @@ def changes_overview(
     release_url = f"https://github.com/oscar-system/Oscar.jl/releases/tag/v{new_version}"
 
     # Could also introduce some consistency checks here for wrong combinations of labels
-    newfile = './new.md'
-    finalfile = '../../CHANGELOG.md'
     notice("Writing release notes into file " + newfile)
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
@@ -267,28 +275,46 @@ which we think might affect some users directly.
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
+    extra = ""
+    release_type = 0 # 0 by default, 1 for point release, 2 for patch release
     if major != 1:
         error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
         # "major" OSCAR release which changes just the minor version
+        release_type = 1
         previous_minor = minor - 1
         basetag = f"v{major}.{minor}dev"
         # *exclude* PRs backported to previous stable-1.X branch
-        extra = f'-label:"backport-to-{major}.{previous_minor}-DONE"'
+        extra = f'-label:"backport {major}.{previous_minor}.x done"'
     else:
         # "minor" OSCAR release which changes just the patchlevel
+        release_type = 2
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
-        extra = f'label:"backport-to-{major}.{minor}-DONE"'
-        extra = ''
+        extra = f'label:"backport {major}.{minor}.x done"'
 
+    if release_type == 2:
+        startdate = get_tag_date(basetag)
+    else:
+        # Find the timestamp of the last shared commit
+        shared_commit = subprocess.run([
+            "git",
+            "merge-base",
+            basetag,
+            "HEAD"
+        ], shell=False, check=True, capture_output=True).stdout.decode().strip()
+        timestamp = subprocess.run([
+            "git",
+            "show",
+            "-s",
+            "--format=\"%cI\"",
+            shared_commit
+        ], shell=False, check=True, capture_output=True).stdout.decode().strip().replace('"', '')
+        # date is first 10 characters of timestamp
+        startdate = timestamp[0:10]
     print("Base tag is", basetag)
-
-    #startdate = get_tag_date(basetag)
-    # HACK HACK HACK FIXME TODO WORKAROUND
-    startdate = "2024-10-30"
-    print("Base tag was created ", startdate)
+    print("Last common commit at ", startdate)
 
     print("Downloading filtered PR list")
     prs = get_pr_list(startdate, extra)
@@ -296,7 +322,7 @@ def main(new_version: str) -> None:
 
     # reset changelog file to state tracked in git
     
-    subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
+    subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
     changes_overview(prs, startdate, new_version)
 
@@ -314,6 +340,7 @@ if __name__ == "__main__":
                 ".[] | select(.isLatest == true)"
             ],
             shell=False,
+            check=True,
             capture_output=True
         )
         itag = json.loads(itag.stdout.decode())["name"][1:]

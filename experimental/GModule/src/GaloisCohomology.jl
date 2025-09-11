@@ -270,7 +270,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
   cp = coprime_base(vcat([numerator(norm(x.data*denominator(x.data))) for x = values(c.d)],
                          map(x->denominator(x.data), values(c.d))))
   @vprint :GaloisCohomology 2 ".. coprime done, now factoring ..\n"
-  s = Set(reduce(vcat, [collect(keys(factor(x).fac)) for x = cp], init = [1]))
+  s = Set(reduce(vcat, [prime_divisors(x) for x = cp], init = [1]))
   while 1 in s
     pop!(s, 1)
   end
@@ -733,7 +733,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AbsSimpleNumFie
 
   #want a map: L-> codomain(m)
   function to(a::FacElem{AbsSimpleNumFieldElem})
-    return prod(m(k)^v for (k,v) = a.fac)
+    return prod(m(k)^v for (k,v) in a)
   end
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, a))
@@ -750,7 +750,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AbsSim
   #want a map: L-> codomain(m) -> domain(mu)
   function to(a::FacElem{AbsSimpleNumFieldElem})
     s = domain(mu)[0]
-    for (k,v) = a.fac
+    for (k,v) = a
       if haskey(cache, k)
         s += v*cache[k]
       else
@@ -834,7 +834,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(keys(factor(discriminant(zk)).fac))...)
+  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(prime_divisors(discriminant(zk)))...)
   for i=1:length(sf)
     l = factor(prod(s)*zf[i])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])

@@ -8,6 +8,7 @@
 Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
 """
 @attr Vector{ToricVanishingSet} function vanishing_sets(variety::NormalToricVarietyType)
+    @req (is_simplicial(variety) && is_projective(variety)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
@@ -57,6 +58,7 @@ x_1 <= -3
 ```
 """
 @attr Any function immaculate_line_bundles(variety::NormalToricVarietyType)
+    @req (is_simplicial(variety) && is_projective(variety)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
     list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
     return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))
@@ -71,9 +73,10 @@ end
     all_cohomologies(l::ToricLineBundle)
 
 Compute the dimension of all sheaf cohomologies of the 
-toric line bundle `l` by use of the cohomCalg algorithm 
+toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
-[Jow11](@cite) and [BJRR12](@cite)).
+[Jow11](@cite) and [BJRR12](@cite)). It is also possible to specify algorithm = "chamber counting"
+in which case the chamber counting algorithm will be used [CLS11](@cite) p.398 .
 
 # Examples
 ```jldoctest
@@ -85,14 +88,31 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
  0
  16
  0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = "chamber counting")
+3-element Vector{ZZRingElem}:
+ 0
+ 16
+ 0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]))
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
+
+julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "chamber counting")
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
 ```
 """
-@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle)
+@attr Vector{ZZRingElem} function all_cohomologies(l::ToricLineBundle; algorithm::String = "cohomCalg")
+  v = toric_variety(l)
+  if occursin("cohomcalg", lowercase(algorithm))
     # check if we can apply cohomCalg
-    v = toric_variety(l)
-    if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
-        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective"))
-    end
+    @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     
     # Minimal example:
     #
@@ -190,8 +210,11 @@ julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
     
     # return result
     return result
+  elseif occursin("chamber", lowercase(algorithm))
+    @req (is_complete(v) && is_simplicial(v)) "the chamber counting algorithm only applies to toric varieties that are simplicial and complete"
+    return _all_cohomologies_via_cech(l)
+  end
 end
-
 
 @doc raw"""
     cohomology(l::ToricLineBundle, i::Int)
@@ -210,13 +233,17 @@ julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12
 ```
 """
-function cohomology(l::ToricLineBundle, i::Int)
-    v = toric_variety(l)
-    if has_attribute(v, :vanishing_sets)
-        tvs = vanishing_sets(v)[i+1]
-        if contains(tvs, l)
-            return 0
-        end
+function cohomology(l::ToricLineBundle, i::Int; algorithm::String = "cohomCalg")
+  v = toric_variety(l)
+  if has_attribute(v, :vanishing_sets)
+    tvs = vanishing_sets(v)[i+1]
+    if contains(tvs, l)
+      return 0
     end
-    return all_cohomologies(l)[i+1]
+  end
+  if occursin("cohomcalg", lowercase(algorithm))
+    return all_cohomologies(l; algorithm = "cohomCalg")[i+1]
+  elseif occursin("chamber", lowercase(algorithm))
+    return all_cohomologies(l; algorithm = "chamber")[i+1]
+  end
 end

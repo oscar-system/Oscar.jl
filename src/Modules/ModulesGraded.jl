@@ -2827,11 +2827,11 @@ function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
-     return _return_wrt_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, id_hom(I)), task)
   end
   dmin = minimum(degree(Int, x; check) for x in gens(I))
   if  d <= dmin
-     return _return_wrt_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, id_hom(I)), task)
   end
   V = sort(gens(I); by=a -> degree(Int, a; check))
   RES = elem_type(I)[]
@@ -3012,7 +3012,7 @@ by graded submodule of S^1 with 2 generators
 
 ```
 """
-function quotient_ring_as_module(A::MPolyQuoRing)
+function quotient_ring_as_module(A::Union{MPolyQuoRing, MPolyQuoLocRing})
   return quotient_ring_as_module(modulus(A))
 end
 

@@ -3,33 +3,45 @@
 #####################################################################
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
+    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
-This method constructs a Weierstrass model over a given toric base
-3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
-coefficients.
+Construct a Weierstrass model over a given toric base space. The Weierstrass sections
+``f`` and ``g`` are automatically generated with (pseudo)random coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
-julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
+julia> using Random;
+
+julia> w = weierstrass_model(projective_space(NormalToricVariety, 2); completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base
 ```
 """
-function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
-  (f, g) = _weierstrass_sections(base)
-  return weierstrass_model(base, f, g; completeness_check = completeness_check)
+function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+  (f, g) = _weierstrass_sections(base; rng)
+  return weierstrass_model(base, f, g; completeness_check)
 end
 
 
 @doc raw"""
     weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
-This method operates analogously to `weierstrass_model(base::NormalToricVarietyType)`.
-The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
+Construct a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
+``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
+
+!!! note "Complete toric base"
+    This function assumes that the toric base space is **complete**.
+    Checking completeness may take a long time. To skip this check,
+    pass the **optional keyword argument** `completeness_check=false`.
 
 # Examples
 ```jldoctest
-julia> chosen_base = sample_toric_variety()
+julia> chosen_base = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> f = generic_section(anticanonical_bundle(chosen_base)^4);
@@ -41,7 +53,7 @@ Weierstrass model over a concrete base
 ```
 """
 function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check)
 end
 
 function weierstrass_model(base::NormalToricVariety,
@@ -49,15 +61,15 @@ function weierstrass_model(base::NormalToricVariety,
                            model_section_parametrization::Dict{String, <:MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
-  @req all(x -> parent(x) == cox_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
+  @req all(x -> parent(x) == coordinate_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
   @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
   @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
   vs2 = collect(keys(model_section_parametrization))
   @req all(in(("f", "g")), vs2) "Only the Weierstrass sections f, g must be parametrized"
 
-  gens_base_names = symbols(cox_ring(base))
+  gens_base_names = symbols(coordinate_ring(base))
   if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   if completeness_check
@@ -73,52 +85,99 @@ function weierstrass_model(base::NormalToricVariety,
   ambient_space = _ambient_space(base, fiber_ambient_space, [D1, D2, D3])
   
   # construct the model
-  pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
+  pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], coordinate_ring(ambient_space))
   model = WeierstrassModel(explicit_model_sections, model_section_parametrization, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
 
 
-#####################################################################
-# 2: Constructors with scheme as base
-#####################################################################
+@doc raw"""
+    weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
 
-# Yet to come...
-# This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
-# -> Types to be generalized then.
+Construct a Weierstrass model over the ``d``-dimensional projective space,
+represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> weierstrass_model_over_projective_space(3, rng = Random.Xoshiro(1234))
+Weierstrass model over a concrete base
+```
+"""
+weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false, rng = rng)
+
+
+@doc raw"""
+    weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
+
+Construct a Weierstrass model over the Hirzebruch surface ``F_r``,
+represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> weierstrass_model_over_hirzebruch_surface(1, rng = Random.Xoshiro(1234))
+Weierstrass model over a concrete base
+```
+"""
+weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false, rng = rng)
+
+
+@doc raw"""
+    weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+
+Construct a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
+represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
+automatically generated with pseudorandom coefficients. The random
+source used in their creation can be set with the optional argument `rng`.
+
+# Examples
+```jldoctest
+julia> using Random;
+
+julia> weierstrass_model_over_del_pezzo_surface(3, rng = Random.Xoshiro(1234))
+Weierstrass model over a concrete base
+```
+"""
+weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng()) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false, rng = rng)
 
 
 #####################################################################
-# 3: Constructor with toric base attempting to represent moduli space
+# 2: Constructors with unspecified base
 #####################################################################
 
 @doc raw"""
     weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
-This method constructs a Weierstrass model over a base space that is not
-fully specified.
+Construct a Weierstrass model over an *unspecified* base space.
 
-Note that many studies in the literature use the class of the anticanonical bundle
-in their analysis. We anticipate this by adding this class as a variable of the
-auxiliary base space, unless the user already provides this grading. Our convention
-is that the first grading refers to Kbar and that the homogeneous variable corresponding
-to this class carries the name "Kbar".
+This method is intended for workflows where the base space is not concretely fixed,
+such as in singularity engineering or symbolic studies. The variables in
+`auxiliary_base_ring` are interpreted as sections of line bundles on the (unspecified) base space. 
+The corresponding line bundles are encoded by the `auxiliary_base_grading` matrix.
 
-The following example illustrates this approach.
+**Grading convention:**
+- The **first row** of the grading corresponds to twists by the anticanonical bundle ``\overline{K}_B``.  
+- Subsequent rows correspond to additional user-defined gradings.
+
+To support typical F-theory constructions, a variable `Kbar` representing a section of
+``\overline{K}_B`` is automatically included unless already provided.
+
+Note: This interface is more symbolic and less robust than the constructors for concrete toric bases.
 
 # Examples
 ```jldoctest
 julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
-julia> auxiliary_base_grading = [4 6 1 0]
-1×4 Matrix{Int64}:
- 4  6  1  0
-
-julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
-Assuming that the first row of the given grading is the grading under Kbar
-
+julia> w = weierstrass_model(auxiliary_base_ring, [4 6 1 0], 3, f, g)
 Weierstrass model over a not fully specified base
 ```
 """
@@ -129,11 +188,11 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 1 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # Inform about the assume Kbar grading
-  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 1 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Compute Weierstrass polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
@@ -165,7 +224,7 @@ end
 
 
 #####################################################################
-# 4: Display
+# 3: Display
 #####################################################################
 
 # Detailed printing
@@ -182,16 +241,16 @@ function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_model_description(w)
+  if has_attribute(w, :model_description)
     push!(properties_string, "-- " * model_description(w))
-    if has_model_parameters(w)
+    if has_attribute(w, :model_parameters)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
-  if has_arxiv_id(w)
+  if has_attribute(w, :arxiv_id)
     push!(properties_string, "based on arXiv paper " * arxiv_id(w))
   end
-  if has_arxiv_model_equation_number(w)
+  if has_attribute(w, :arxiv_model_equation_number)
     push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
   end
   join(io, properties_string, " ")

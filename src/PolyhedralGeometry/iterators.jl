@@ -354,7 +354,8 @@ matrix(
   iter::SubObjectIterator{<:Union{RayVector{QQFieldElem},PointVector{QQFieldElem}}},
 ) = matrix(R, matrix_for_polymake(iter))
 matrix(
-  K, iter::SubObjectIterator{<:Union{RayVector{<:FieldElem},PointVector{<:FieldElem}}}
+  K::NCRing,
+  iter::SubObjectIterator{<:Union{RayVector{<:FieldElem},PointVector{<:FieldElem}}},
 ) = matrix(K, matrix_for_polymake(iter))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)

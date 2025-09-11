@@ -8,6 +8,7 @@
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
+    @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -16,6 +17,7 @@
     return r
   end
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
+    @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -135,7 +137,7 @@ of `R`, and return the new ring, together with the vector of variables.
 As above, where the grading is the standard $\mathbb Z$-grading on `R`.
 
 # Examples
-```jldoctest
+```jldoctest grade-ex
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -156,8 +158,16 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1]
-
 ```
+
+Grading an already graded polynomial ring is not supported.
+```jldoctest grade-ex
+julia> grade(S)
+ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
+[...]
+```
+To produce a new ring with different grading, you need to first
+call `forget_grading` and then `grade` the result.
 """
 function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)

@@ -133,6 +133,7 @@ export MPolyRingElem
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
+export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleFP
 export ModuleFPElem
@@ -388,6 +389,7 @@ export chief_series, has_chief_series, set_chief_series
 export chow_ring
 export circuits
 export class_group
+export class_group_with_map
 export class_lengths
 export class_multiplication_coefficient
 export class_names
@@ -548,6 +550,7 @@ export dim_of_torusfactor
 export direct_product
 export direct_sum
 export direct_sum_components
+export directed_component
 export discriminant_representation
 export disjoint_union
 export div_left
@@ -816,6 +819,7 @@ export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power
 export induced_ring_ordering
+export induced_subgraph
 export initial
 export inneighbors
 export inner_automorphism
@@ -859,6 +863,7 @@ export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
+export is_acylic
 export is_admissible_ordering
 export is_admissible_triple
 export is_affine
@@ -1099,6 +1104,7 @@ export label!
 export labeled_matrix_formatted
 export labelings
 export laplacian_matrix
+export largest_moved_point
 export lattice_homomorphism
 export lattice_of_cyclic_flats
 export lattice_of_flats
@@ -1400,6 +1406,7 @@ export permuted
 export phylogenetic_tree
 export picard_class
 export picard_group
+export picard_group_with_map
 export picard_index
 export pile_polytope
 export pitman_stanley_polytope
@@ -1653,6 +1660,7 @@ export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
 export smaller_degree_permutation_representation
+export smallest_moved_point
 export snub_cube
 export snub_dodecahedron
 export socle, has_socle, set_socle
@@ -1777,6 +1785,7 @@ export underlying_gluing
 export underlying_presheaf
 export underlying_quotient
 export underlying_word
+export undirected_component
 export uniform_matroid
 export unit
 export unitary_group

@@ -269,3 +269,21 @@ end
    end
 
 end
+
+@testset "Conjugation with different parents" begin
+   G = symmetric_group(4)
+   x = G[1]
+   H = symmetric_group(3)
+   @test_throws ArgumentError conjugate_group(H, x)
+   HH = G(H)
+   C = conjugate_group(HH, x)
+   @test order(C) == order(H)
+   @test HH == stabilizer(G, 4)[1]
+   @test C == stabilizer(G, 1)[1]
+
+   G = small_group(24, 12)
+   x = G[3]
+   H = sylow_subgroup(G, 3)[1]
+   C = conjugate_group(H, x)
+   @test order(C) == order(H)
+end

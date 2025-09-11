@@ -49,6 +49,7 @@ Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{TG, TH, S}}) where {TG, TH, S} = S
 
 function ==(C1::GroupCoset, C2::GroupCoset)
+  C1 === C2 && return true
   H = C1.H
   right = is_right(C1)
   (right == is_right(C2) && C1.G == C2.G && H == C2.H ) || return false
@@ -169,11 +170,11 @@ function Base.:*(c::GroupCoset, y::GAPGroupElem)
 end
 
 function Base.:*(y::GAPGroupElem, c::GroupCoset)
-   @assert y in c.G "element not in the group"
+   yy = c.G(y)
    if is_left(c)
-      return left_coset(c.H, y*representative(c))
+      return left_coset(c.H, yy*representative(c))
    else
-      return right_coset(c.H^(y^-1), y*representative(c))
+      return right_coset(c.H^(y^-1), yy*representative(c))
    end
 end
 
@@ -623,7 +624,8 @@ Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
-   # Avoid creating a GAP object if the result is obviously `false`.
+   # Avoid creating a GAP object if the result is "obvious"
+   x === y && return true
    isassigned(x.size) && isassigned(y.size) && order(x) != order(y) && return false
    return GapObj(x) == GapObj(y)
 end

@@ -16,7 +16,7 @@ julia> structure_sheaf(v)
 Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle structure_sheaf(v::NormalToricVarietyType) = toric_line_bundle(v, zero(picard_group(v)))
+@attr ToricLineBundle structure_sheaf(v::NormalToricVarietyType) = toric_line_bundle(v, zero(picard_group_with_map(v)[1]))
 
 
 @doc raw"""

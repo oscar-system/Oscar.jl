@@ -1,4 +1,3 @@
-include("integer.jl")
 include("orderings.jl")
 include("mpoly.jl")
 include("mpoly_types.jl")

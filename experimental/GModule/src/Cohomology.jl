@@ -193,6 +193,9 @@ function inv_action(C::GModule)
   return C.iac
 end
 
+# convert G-module into a matrix group
+Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
+
 function fp_group_with_isomorphism(C::GModule)
   if !isdefined(C, :F)
     iso = isomorphism(FPGroup, group(C), on_gens=true)
@@ -567,7 +570,7 @@ function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) 
 end
 function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
-  d = prod(dim(x) for x = F)
+  d = prod(rank(x) for x = F)
   G = free_module(base_ring(F[1]), d)
   if task == :none
     return G
@@ -627,7 +630,7 @@ export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
-_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = dim(M)
+_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = vector_space_dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1755,9 +1758,17 @@ compute the map
   f : M -> prod N_i : m -> (f_i(m))_i
 """
 function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingElement}, FinGenAbGroupHom}})
-  D = direct_product([codomain(x) for x = a]...; task = :none)
-  return hom(domain(a[1]), D, hcat([matrix(x) for x = a]...))
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_product(codomain.(a)...; task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
+
+function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_sum(codomain.(a); task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
+end
+
 
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
@@ -1990,7 +2001,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   if refine
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = collect(factor(h[i,i]).fac)
+      lf = collect(factor(h[i,i]))
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
@@ -2288,7 +2299,7 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
 end
 
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
-  G = GL(dim(F), base_ring(F))
+  G = GL(vector_space_dim(F), base_ring(F))
   set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
                          x->hom(F, F, matrix(x)),

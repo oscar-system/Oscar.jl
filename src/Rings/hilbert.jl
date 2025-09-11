@@ -26,23 +26,6 @@ function random_subset(n::Int64, m::Int64)
   return L
 end
 
-# There must be a better way...!
-# Split a "list" into 2 parts determined by a predicate.
-# Returns 2-tuple: list-of-sat-elems, list-of-unsat-elems
-function filter2(pred::Function, L::Vector)
-  sat = []
-  unsat = []
-  for x in L
-    if pred(x)
-      push!(sat,x)
-    else
-      push!(unsat,x)
-    end
-  end
-  return sat,unsat
-end
-
-
 ##################################################################
 # Code for representing & manipulating PPs (power products, aka. monomials)
 # All this code is "local" to this file, & not exported!
@@ -50,10 +33,10 @@ end
 
 # Each PP is represented as Vector{PP_exponent}
 
-PP_exponent = Int64;  # UInt ???  Strange: Int32 was slower on my machine ?!?
+const PP_exponent = Int64 # FIXME  # UInt ???  Strange: Int32 was slower on my machine ?!?
 
 
-#= mutable =# struct PP
+struct PP
   expv::Vector{PP_exponent}
 end
 
@@ -87,11 +70,11 @@ end
 function is_simple_power_pp(t::PP)
   CountNZ = 0
   for i in 1:length(t)
-    @inbounds if (t[i] == 0)  continue  end
-    if (CountNZ > 0)  return false end
+    @inbounds t[i] == 0 && continue
+    CountNZ > 0 && return false
     CountNZ = i
   end
-  if (CountNZ != 0)  return true end # MAYBE RETURN index & exp???
+  CountNZ != 0 && return true # MAYBE RETURN index & exp???
   return false # because t == 1
 end
 
@@ -99,9 +82,7 @@ end
 function is_divisible(t::PP, s::PP)  # is t divisible by s
   nvars = length(t) # assume equal to length(s)
   for i in 1:nvars
-    @inbounds if t[i] < s[i]
-      return false
-    end
+    @inbounds t[i] < s[i] && return false
   end
   return true
 end
@@ -136,31 +117,19 @@ end
 
 function lcm(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = max(t1[i], t2[i])
-  end
+  expv = [@inbounds max(t1[i], t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
 function gcd(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nnvars
-    @inbounds expv[i] = min(t1[i], t2[i])
-  end
+  expv = [@inbounds min(t1[i], t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
 function gcd3(t1::PP, t2::PP, t3::PP)
   # ASSUMES: length(t1) == length(t2) == length(t3)
-  nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = min(t1[i], t2[i], t3[i])
-  end
+  expv = [@inbounds min(t1[i], t2[i], t3[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
@@ -168,11 +137,7 @@ end
 # Computes t1/gcd(t1,t2)
 function colon(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds expv[i] = max(0, t1[i]-t2[i])
-  end
+  expv = [@inbounds max(0, t1[i]-t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
@@ -180,26 +145,13 @@ end
 # Computes t1/gcd(t1,t2^infty)
 function saturatePP(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  nvars = length(t1)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds if t2[i] == 0
-      @inbounds expv[i] = t1[i]
-    end
-  end
+  expv = [@inbounds t2[i] == 0 ? t1[i] : 0 for i in 1:length(t1)]
   return PP(expv)
 end
 
 # Computes radical = product of vars which divide t
 function radical(t::PP)
-  nvars = length(t)
-  expv = [0  for _ in 1:nvars]
-  for i in 1:nvars
-    @inbounds if t[i] > 0
-      expv[i] = 1
-    end
-  end
-  return PP(expv)
+  return PP(sign.(t.expv))
 end
 
 
@@ -208,12 +160,10 @@ end
 function deg_rev_lex_less(t1::PP, t2::PP)
   d1 = degree(t1)
   d2 = degree(t2)
-  if d1 != d2  return (d1 < d2) end
+  d1 != d2 && return d1 < d2
   nvars = length(t1)
   for i in nvars:-1:1
-    if t1[i] != t2[i]
-      return (t1[i] > t2[i])
-    end
+    t1[i] != t2[i] && return t1[i] > t2[i]
   end
   return false
 end
@@ -223,29 +173,27 @@ end
 function involves(t::PP, IndexList::Vector{Int64})
   # ASSUMES: indexes in IndexList are all in range
   for i in IndexList
-    @inbounds if t[i] != 0
-      return true
-    end
+    @inbounds t[i] != 0 && return true
   end
-  return  false
+  return false
 end
 
 
 function Base.show(io::IO, t::PP)
-  if all(t.expv .== 0)   # isone(PP)  # why doesn't this work ???
+  if isone(t)
     print(io, "1")
     return
   end
   str = ""
   nvars = length(t)
   for i in 1:nvars
-    if (t[i] != 0)
+    if t[i] != 0
       if (str != "")
-        str = str * "*"
+        str *= "*"
       end
-      str = str * "x[$(i)]"
-      if (t[i] > 1)
-        str = str * "^$(t[i])"
+      str *= "x[$(i)]"
+      if t[i] > 1
+        str *= "^$(t[i])"
       end
     end
   end
@@ -261,14 +209,7 @@ function interreduce(L::Vector{PP})
   sort!(L, by=degree)
   MinGens = PP[]
   for t in L
-    discard = false
-    for s in MinGens
-      if is_divisible(t,s)
-        discard = true
-        break
-      end
-    end
-    if !discard
+    if not_mult_of_any(MinGens, t)
       push!(MinGens, t)
     end
   end
@@ -279,32 +220,14 @@ end
 # Is t a multiple of at least one element of L?
 # Add degree truncation???
 function not_mult_of_any(L::Vector{PP}, t::PP)
-  for s in L
-    if is_divisible(t,s)
-      return false
-    end
-  end
-  return true
+  return !any(is_divisible(t,s) for s in L)
 end
 
 
 
 # "project" PP onto sub-monoid of PPs gen by indets in indexes
 function project_indets(t::PP, indexes::Vector{Int})
-  return PP([t[k]  for k in indexes])
-end
-
-
-# NOT SURE THIS IS USEFUL: how many indets are really needed in the list L?
-function true_num_vars(L::Vector{PP})
-  if  isempty(L)
-    return 0
-  end
-  t = radical(L[1])
-  for j in 2:length(L)
-    t = lcm(t, radical(L[j]))
-  end
-  return degree(t)
+  return PP(t.expv[indexes])
 end
 
 
@@ -319,7 +242,7 @@ end
 # Input: non-empty list of PPs
 # Output: list of lists of var indexes, each sublist is a connected component
 function connected_components(L::Vector{PP})
-  ConnCompt::Vector{Vector{Int64}} = []
+  ConnCompt = Vector{Vector{Int64}}()
   nvars = length(L[1])
   IgnoreVar = [ false   for _ in 1:nvars]
   VarAppears = copy(IgnoreVar)
@@ -345,9 +268,9 @@ function connected_components(L::Vector{PP})
     while DoAnotherIteration
       DoAnotherIteration = false
       for t in L
-        if is_coprime(lcm,t)  continue end
+        is_coprime(lcm,t) && continue
         s = saturatePP(t,lcm)
-        if isone(s)  continue  end
+        isone(s) && continue
         lcm = mult(lcm,s) ### lcm *= s
         DoAnotherIteration = true
       end
@@ -395,32 +318,32 @@ end
 
 function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
   # t is not a "simple power", all the others are
-  @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)";
-  @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)"
+  @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)"
   ans = HSNum_base_SimplePowers(SimplePPs, T)
-  ReducedSimplePPs::Vector{PP} = []
-  for j in 1:length(SimplePPs)
-    @inbounds e = SimplePPs[j].expv
+  ReducedSimplePPs = PP[]
+  for spp in SimplePPs
+    e = spp.expv
     k = findfirst(>(0), e) # ispositive
     if  t[k] == 0
-      push!(ReducedSimplePPs,SimplePPs[j])
+      push!(ReducedSimplePPs, spp)
       continue
     end   # no need to make a copy
-    tt = copy(SimplePPs[j])
+    tt = copy(spp)
     tt.expv[k] -= t[k] # guaranteed > 0
     push!(ReducedSimplePPs, tt)
   end
   nvars = length(t)
   @inbounds scale = prod([T[k]^t[k]  for k in 1:nvars])
   ans = ans - scale * HSNum_base_SimplePowers(ReducedSimplePPs, T)
-  @vprintln  :hilbert 1  "HSNum_base_case1: returning $(ans)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: returning $(ans)"
   return ans
 end # function
 
 
 ## CC contains at least 2 connected components (each compt repr as Vector{Int64} of the variable indexes in the compt)
 function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
-  @vprintln  :hilbert 1  "Splitting case: CC = $(CC)";
+  @vprintln  :hilbert 1  "Splitting case: CC = $(CC)"
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1])
@@ -443,14 +366,13 @@ function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, 
   HSNum_combined = prod(HSNumList)
   if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T)
-    ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy)
   end
   return HSNum_combined
 end
 
 
 function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
-  @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)";
+  @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)"
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1])
@@ -466,7 +388,6 @@ function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector
   HSNum_combined = prod(HSNumList)
   if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T)
-    ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy)
   end
   return HSNum_combined
 end
@@ -479,16 +400,13 @@ end
 function is_rev_lex_smaller(t1::PP, t2::PP)
   n = length(t1)
   for j in n:-1:1
-    if t1[j] != t2[j]
-      return (t1[j] > t2[j])
-    end
+    t1[j] != t2[j] && return t1[j] > t2[j]
   end
   return false # t1 and t2 were equal (should not happen in this code)
 end
 
 function rev_lex_min(L::Vector{PP})
   # assume length(L) > 0
-  if isempty(L)  return L[1]  end
   IndexMin = 1
   for j in 2:length(L)
     if !is_rev_lex_smaller(L[j], L[IndexMin])
@@ -500,7 +418,6 @@ end
 
 function rev_lex_max(L::Vector{PP})
   # assume length(L) > 0
-  if length(L) == 1  return L[1]  end
   IndexMax = 1
   for j in 2:length(L)
     if !is_rev_lex_smaller(L[IndexMax], L[j])
@@ -511,8 +428,8 @@ function rev_lex_max(L::Vector{PP})
 end
 
 function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}) where {RET <: RingElem}
-  ##println("HSNum_BS: Simple:    $(SimplePPs)")
-  ##println("HSNum_BS: NonSimple: $(NonSimplePPs)")
+  ##@vprintln(:hilbert,1, "HSNum_BS: Simple:    $(SimplePPs)")
+  ##@vprintln(:hilbert,1, "HSNum_BS: NonSimple: $(NonSimplePPs)")
   # Maybe sort the gens???
   if isempty(NonSimplePPs)
     return HSNum_base_SimplePowers(SimplePPs, T)
@@ -525,9 +442,9 @@ function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   #??    BSPivot = rev_lex_min(NonSimplePPs) # VERY SLOW on Hilbert-test-rnd6.jl
   BSPivot = rev_lex_max(NonSimplePPs)
   #VERY SLOW?!?    BSPivot = rev_lex_max(vcat(SimplePPs,NonSimplePPs)) # VERY SLOW on Hilbert-test-rnd6.jl
-  @vprintln :hilbert 2 "BSPivot = $(BSPivot)";
+  @vprintln :hilbert 2 "BSPivot = $(BSPivot)"
   NonSPP = filter(!=(BSPivot), NonSimplePPs)
-  SPP = SimplePPs#filter((t -> (t != BSPivot)), SimplePPs)
+  SPP = SimplePPs #filter((t -> (t != BSPivot)), SimplePPs)
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman)
   ReducedPPs = interreduce([colon(t,BSPivot)  for t in vcat(SPP,NonSPP)])
   NewSimplePPs, NewNonSimplePPs = SeparateSimplePPs(ReducedPPs)
@@ -667,7 +584,7 @@ function HSNum_choose_pivot_gcd3simple(MostFreq::Vector{Int64}, gens::Vector{PP}
     t = gcd(cand[1], cand[2])
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)]
-    t = gcd3(pick3...) ##    t = gcd3(pick3[1], pick3[2], pick3[3])
+    t = gcd3(pick3...)
   end
   # t is gcd of 3 rnd PPs (or of 2 if there are only 2)
   # Now set all exps to 0 except the first max one.
@@ -696,7 +613,7 @@ function HSNum_choose_pivot_gcd3max(MostFreq::Vector{Int64}, gens::Vector{PP})
     t = gcd(cand[1], cand[2])
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)]
-    t = gcd3(pick3...)  ##    t = gcd3(pick3[1], pick3[2], pick3[3])
+    t = gcd3(pick3...)
   end
   d = maximum(t.expv)
   # Now set to 0 all exps which are less than the max
@@ -732,7 +649,6 @@ end
 function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
   @vprintln  :hilbert 1 "HSNum_loop: SimplePPs=$(SimplePPs)"
   @vprintln  :hilbert 1 "HSNum_loop: NonSimplePPs=$(NonSimplePPs)"
-#  @vprintln  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))"
   # Check if we have base case 0
   if  isempty(NonSimplePPs)
     @vprintln :hilbert  1 "HSNum_loop:  --> delegate base case 0"
@@ -755,7 +671,8 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   # Check for "splitting case"
   if length(NonSimplePPs) <= length(NonSimplePPs[1])#=nvars=#
     CC = connected_components(NonSimplePPs)
-  else CC = []
+  else
+    CC = []
   end
   if length(CC) > 1
     @vprintln :hilbert  1 "HSNum_loop:  --> delegate Splitting case"
@@ -832,7 +749,6 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   else  # Use "smart version"
     if !PivotIsSimple   # GENERAL CASE (e.g. if not PivotIsSimple)
       # Clever approach (for non-simple pivots) taken from Bigatti 1997 paper (p.247 just after Prop 1 to end of sect 5)
-      # ???Maybe use filter2 (see start of this file) instead of loop below???
       BM = PP[]
       NotBM = PP[]
       PivotPlus = mult(PivotPP, radical(PivotPP))
@@ -901,21 +817,21 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   # Now put the two pieces together:
   nvars = length(PivotPP)
   scale = prod([T[k]^PivotPP[k]  for k in 1:nvars])
-  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)";
-  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)"
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)"
 
   HSNum_sum = HSNum_loop(RecurseSum_SimplePPs, RecurseSum_NonSimplePPs, T, PivotStrategy)
   HSNum_quot = HSNum_loop(RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs, T, PivotStrategy)
-  @vprintln  :hilbert 1 "HSNum_loop:  END OF CALL";
+  @vprintln  :hilbert 1 "HSNum_loop:  END OF CALL"
   return HSNum_sum + scale*HSNum_quot
 end
 
 
 function separate_simple_pps(gens::Vector{PP})
-  SimplePPs::Vector{PP} = []
-  NonSimplePPs::Vector{PP} = []
+  SimplePPs = PP[]
+  NonSimplePPs = PP[]
   for g in gens
     if is_simple_power_pp(g)
       push!(SimplePPs, g)
@@ -925,29 +841,6 @@ function separate_simple_pps(gens::Vector{PP})
   end
   return SimplePPs, NonSimplePPs
 end
-
-
-# !!!OBSOLESCENT!!!   2023-08-17 this fn will no be needed after Wolfram's PR is merged
-# Returns nothing; throws if ker(W) contains a non-zero vector >= 0
-#function _hilbert_series_check_weights(W::Vector{Vector{Int}})
-#  # assumes W is rectangular (and at least 1x1)
-#  # Transpose while converting:
-#  ncols = length(W);
-#  nrows = length(W[1]);
-#  A = zero_matrix(ZZ, nrows,ncols);
-#  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
-#  b = zero_matrix(ZZ, nrows,1);
-#  try
-#    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
-#  catch e
-#    if !(e isa ArgumentError && e.msg == "Polyhedron not bounded")
-#      rethrow(e)
-#    end
-#    # solve_non_negative must have thrown because there is a non-zero soln
-#    error("given weights permit infinite dimensional homogeneous spaces")
-#  end
-#  return nothing # otherwise it returns the result of solve_non_negative (Doh!!)
-#end
 
 
 # Check args: either throws or returns nothing.
@@ -969,8 +862,8 @@ end
 
 function HSNum_abbott_PPs(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol, HSRing::Ring)
   # ASSUME W is "rectangular"
-  @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)";
-  @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)";
+  @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)"
+  @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)"
   HSNum_check_args(PP_gens, W) #throws or does nothing
   # Grading is over ZZ^m
   m = length(W)
@@ -1043,16 +936,10 @@ julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 function HSNum_abbott(PmodI::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol = :auto)
   I = modulus(PmodI)
   P = base_ring(I)
-  nvars = length(gens(P))
-  grading_dim = length(gens(Oscar.parent(degree(gen(P,1))))) # better way???
-  weights = [degree(var)  for var in gens(P)]
-  W = [[0  for _ in 1:nvars]  for _ in 1:grading_dim]
-  for i in 1:nvars
-    expv = [Int64(exp)  for exp in gen_repr(degree(gen(P,i)))]
-    for j in 1:grading_dim
-      W[j][i] = expv[j]
-    end
-  end
+  is_graded(P) || error("Ring must be quotient of graded ring")
+  grading_dim = ngens(grading_group(P))
+  weights = degree.(gens(P))
+  W = [[Int(d[j]) for d in weights] for j in 1:grading_dim]
   LTs = gens(leading_ideal(I))
   PPs = [PP(degrees(t))  for t in LTs]
   return HSNum_abbott_PPs(PPs, W, pivot_strategy, HSRing)
@@ -1071,7 +958,7 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   fac_dict = Dict{elem_type(HSRing), Integer}()
   for i = 1:n
     # adjoin factor ( 1 - prod(t_j^W[i,j]) )
-    new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m]);
+    new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m])
     # ???BUG??? DOES NOT WORK if HSRing is Univariate poly ring over ZZ
     # B = MPolyBuildCtx(HSRing)
     # push_term!(B, 1, W[i])

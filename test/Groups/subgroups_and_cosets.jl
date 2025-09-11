@@ -183,7 +183,7 @@ end
    @test_throws ArgumentError right_transversal(H, G)
    @test_throws ArgumentError left_transversal(H, G)
 
-   G = symmetric_group(5)
+   G, _ = stabilizer(symmetric_group(6), 6)  # smaller than the natural parent
    @testset "set comparison for cosets in PermGroup" begin
       x = G(cperm([1,2,3]))
       y = G(cperm([1,4,5]))
@@ -199,7 +199,9 @@ end
       lc = left_coset(H,x)
       dc = double_coset(H,x,K)
       @test rc==H*x
+      @test rc == rc * one(H)
       @test lc==x*H
+      @test lc == one(H) * lc
       @test dc==H*x*K
       @test acting_group(rc) == H
       @test acting_group(lc) == H
@@ -254,7 +256,7 @@ end
    end
    rc = L[1]
    r = representative(rc)
-   rc1 = right_coset(H, H[1]*r)
+   rc1 = right_coset(H, G(H[1])*r)
    @test representative(rc1) != representative(rc)
    @test rc1 == rc
    L = left_cosets(G,H)
@@ -272,7 +274,7 @@ end
    end
    lc = L[1]
    r = representative(lc)
-   lc1 = left_coset(H, r*H[1])
+   lc1 = left_coset(H, r*G(H[1]))
    @test representative(lc1) != representative(lc)
    @test lc1 == lc
    K = sub(G, gens(symmetric_group(3)) )[1]

@@ -60,8 +60,23 @@ function basis_lie_highest_weight_compute(
     collect(no_minkowski);
     by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
   )
-  # output
-  mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
+  # output  
+  if V isa SimpleModuleData
+    mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
+  elseif V isa DemazureModuleData #the module is twisted and we need to twist it back
+    twisted_roots = [
+      -(root * V.weyl_group_elem) for root in operators_as_roots(birational_seq)
+    ]
+    twisted_weights = [
+      -(weight * V.weyl_group_elem) for weight in operators_as_weights(birational_seq)
+    ]
+    twisted_birational_seq = birational_sequence(
+      twisted_roots, twisted_weights, birational_seq.root_system
+    )
+    mb = MonomialBasis(V, twisted_birational_seq, monomial_ordering, monomials)
+  else
+    error("unreachable")
+  end
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
@@ -223,6 +238,9 @@ function compute_monomials(
       if V isa SimpleModuleData
         M_lambda_1 = SimpleModuleData(base_lie_algebra(V), lambda_1)
         M_lambda_2 = SimpleModuleData(base_lie_algebra(V), lambda_2)
+      elseif V isa DemazureModuleData
+        M_lambda_1 = DemazureModuleData(base_lie_algebra(V), lambda_1, weyl_group_elem(V))
+        M_lambda_2 = DemazureModuleData(base_lie_algebra(V), lambda_2, weyl_group_elem(V))
       else
         error("unreachable")
       end
@@ -467,6 +485,14 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
     root
   end
   return operators
+end
+
+function demazurify_operators(
+  V::DemazureModuleData, simple_operators::Vector{RootSpaceElem}
+)
+  inv_weyl_group_elem = inv(weyl_group_elem(V))
+  op = [-(root * inv_weyl_group_elem) for root in simple_operators]
+  return op
 end
 
 function sub_weights(w::WeightLatticeElem)

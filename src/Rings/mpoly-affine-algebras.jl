@@ -56,14 +56,6 @@ function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   return krull_dim(A) <= 0
 end
 
-struct InfiniteDimensionError <: Exception
-end
-
-function Base.showerror(io::IO, err::InfiniteDimensionError)
-  println(io, "Infinite-dimensional vector space")
-  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
-end
-
 @doc raw"""
     vector_space_dim(A::MPolyQuoRing)
 
@@ -101,7 +93,7 @@ function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
     error("vector_space_dim requires a coefficient ring that is a field")
   end
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   I = modulus(A)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
@@ -142,7 +134,7 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   if is_trivial(A)
     return elem_type(base_ring(A))[]
   end
@@ -539,8 +531,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -621,7 +614,7 @@ function multi_hilbert_series(
   # @assert evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
-  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
+  iszero(I) && return (one(HSRing), fac_denom), (G, id_hom(G))
 
   # In general refer to internal methods for monomial ideals
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
@@ -635,7 +628,7 @@ function multi_hilbert_series(
   else
     error("backend ($(backend)) not found")
   end
-  return (numer, fac_denom), (G, identity_map(G))
+  return (numer, fac_denom), (G, id_hom(G))
 end
 
 
@@ -732,8 +725,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 

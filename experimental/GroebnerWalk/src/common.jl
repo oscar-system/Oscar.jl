@@ -27,8 +27,8 @@ julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
 julia> groebner_walk(I, lex(R))
 Gröbner basis with elements
-  1: x + y^12 - y^8 + y^4
-  2: y^16
+  1: y^16
+  2: x + y^12 - y^8 + y^4
 with respect to the ordering
   lex([x, y])
 
@@ -50,8 +50,8 @@ ZZRingElem[4, 1]
 ZZRingElem[12, 1]
 Cones crossed: 4
 Gröbner basis with elements
-  1: x + y^12 - y^8 + y^4
-  2: y^16
+  1: y^16
+  2: x + y^12 - y^8 + y^4
 with respect to the ordering
   lex([x, y])
 

@@ -87,6 +87,17 @@ function *(a::ZZRingElem, b::BoundRingElem)
 #  @show a, ":*", b, ":=", c
   return c
 end
+
+function Oscar.divexact(a::BoundRingElem{ZZRingElem}, b::ZZRingElem; check::Bool = true) 
+  c = BoundRingElem(ceil(ZZRingElem, a.val//b), a.p)
+#  @show a, ":/", b, ":=", c
+  return c
+end
+
+function Oscar.divexact(a::BoundRingElem, b::ZZRingElem; check::Bool = true) 
+  return a #TODO: for power series we can get the degree down!
+end
+
 function ^(a::BoundRingElem, b::Int) 
   c = BoundRingElem(a.p.pow(a.val, b), a.p)
 #  @show a, ":^", b, ":=", c
@@ -1324,13 +1335,13 @@ function sum_orbits(K, Qt_to_G, r)
   end
   @vprint :GaloisGroup 1 "... factoring...\n"
   @vtime :GaloisGroup 2 fg  = factor(g)
-  @assert all(isone, values(fg.fac))
+  @assert all(isone(e) for (_, e) in fg)
 
   O = []
   if isa(r[1], AcbFieldElem)
     mm = collect(m)
   end
-  for f = keys(fg.fac)
+  for (f, _) in fg
     r = roots(map_coefficients(Qt_to_G, f))
     if isa(r[1], AcbFieldElem)
       push!(O, [mm[argmin(map(x->abs(x[1]-y), mm))][2] for y = r])
@@ -1697,13 +1708,13 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
   if prime != 0
     p = prime
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
 
   d_max = degree(f)^2
@@ -1726,13 +1737,13 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
       continue
     end
     lf = factor(GF(p), f)
-    if any(>(1), values(lf.fac))
+    if any(>(1), (e for (_, e) in lf))
       continue
     end
     filter_pattern(lf) || continue
     no_p +=1 
-    push!(ct, sort(map(degree, collect(keys(lf.fac))))) # ct = cycle types as vector of cycle lengths
-    d = lcm([degree(x) for x = keys(lf.fac)])
+    push!(ct, sort(map(degree, first.(collect(lf))))) # ct = cycle types as vector of cycle lengths
+    d = lcm([degree(x) for (x, _) in lf])
     if d <= d_max 
       if d >= d_min
         push!(ps, (p, d))
@@ -2089,7 +2100,18 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       @vprint :GaloisGroup 2 "of maximal degree $(total_degree(I)*degree(ts))\n"
       @vprint :GaloisGroup 2 "root upper_bound: $(value(B))\n"
 
-      c = roots(GC, bound_to_precision(GC, B, extra))
+      pr = bound_to_precision(GC, B, extra)
+      # if |I(r)| <= B, then I(r) is an algebraic number and 
+      # N(I) := prod_(G//s) I^sigma(r) is an integer, by assumption on G
+      # p-adically: I(r) = mu mod p^k implies p^k | N(I(r)-mu)
+      # so either |N| = N = 0 or larger than p^k
+      # arithmetic mean:
+      # prod |I(r) - mu| <= (sum |I(r)-mu|/n)^n for n = |G/s|, the index
+      #                  <= (2B/n)^n
+      # thus if p^k > (2B/n)^n, we're safe. In general this is too large
+      # (and for complex roots we need s.th. different, for symbolics this
+      # is a no-op)
+      c = roots(GC, pr)
       c = map(ts, c)
 
       local fd
@@ -2132,8 +2154,33 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
         push!(cs, e)
         fl, l = isinteger(GC, B, e)
         if fl
-          @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
-          push!(fd, t)
+          if isa(e, FlintLocalFieldElem) && index(G, s) < 10
+            #TODO: better strategy, add 10%? use n = min(10, index)?
+            #      Fabian found e with 5 consecutive 0 digits mod 17
+            #      so it can happen...
+            @vprint :GaloisGroup 2 "found possible descent at $t and value $l, proving now ..."
+            
+
+            n = index(G, s)
+            local _pr = bound_to_precision(GC, (2*B/n)^n, extra)
+            local _c = roots(GC, _pr)
+            _c = map(ts, _c)
+            local _e = evaluate(I, t, _c)
+            fl, l = isinteger(GC, B, _e)
+            if fl
+              @vprint :GaloisGroup 2 "confirmed!\n"
+              push!(fd, t)
+            else
+              @vprint :GaloisGroup 2 "failed, no descent!\n"
+              if is_normalized_by(s, G)
+                @vprint :GaloisGroup 2 "no descent here, group is normal, giving up\n"
+                break
+              end
+            end
+          else
+            @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
+            push!(fd, t)
+          end
         end
       end
       if length(cs) == length(lt)
@@ -2369,7 +2416,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   k = extension_field(f, check = false, cached = false)[1]
   @assert all(x->isone(denominator(x)), coefficients(k.pol))
   @assert is_monic(k.pol)
-  return k
+  return k#, a, T, ts
 end
 
 """
@@ -2803,7 +2850,7 @@ group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """
 function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
-  lf = [(k,v) for  (k,v) = factor(f).fac]
+  lf = [(k,v) for  (k,v) = factor(f)]
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"

@@ -339,6 +339,27 @@ end
   @test length(FMI) == 4
 end
 
+@testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
+    F = GF(2)
+    function _rep_mat(n)
+        I = [i for i in 1:n-1 for d in (0,1)]
+        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
+        matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
+    end
+    for n in 2:50
+        d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
+        C = chain_complex([d])
+        H = homology(C)
+        ker_d = kernel(d)[1]
+        @test dim(ker_d) == 0
+        @test H[1] == ker_d
+        coker_d, coker_proj = cokernel(d)
+        @test dim(coker_d) == 1
+        @test H[2][1] == coker_d
+        @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
+    end
+end
+
 @testset "Prune With Map" begin
   Oscar.set_seed!(235)
   # ungraded
@@ -565,8 +586,8 @@ end
   @test is_welldefined(p2)
   @test is_bijective(i2)
   @test is_bijective(p2)
-  @test i2*p2 == identity_map(M2)
-  @test p2*i2 == identity_map(M1)
+  @test i2*p2 == id_hom(M2)
+  @test p2*i2 == id_hom(M1)
 
   A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
   B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
@@ -755,7 +776,7 @@ end
   End_M = hom(M1,M1)[1]
   R_as_module = FreeMod(R,1)
   phi = multiplication_induced_morphism(R_as_module, End_M)
-  @test element_to_homomorphism(phi(R_as_module[1])) == identity_map(M1)
+  @test element_to_homomorphism(phi(R_as_module[1])) == id_hom(M1)
   @test image(element_to_homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
 
   # test if hom(zero-module, ...) is zero
@@ -808,7 +829,7 @@ end
     M2 = SubquoModule(F3,A2,B2)
 
     M,pure_M = tensor_product(M1,M2, task=:map)
-    phi = hom_tensor(M,M,[identity_map(M1),identity_map(M2)])
+    phi = hom_tensor(M,M,[id_hom(M1),id_hom(M2)])
 
     for _=1:3
       v = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M)])), M)
@@ -1849,4 +1870,18 @@ end
   @test [ngens(res2min[i]) for i in 0:2] == [1, 2, 1]
 end
 
+@testset "Krull dimension for subquos" begin
+    R, (a, b, c, d) = graded_polynomial_ring(QQ, [:a, :b, :c, :d])
+    I = ideal(R, [a*d - b*c])
+    M = quotient_ring_as_module(I)
 
+    E2 = ext(M, graded_free_module(R, 1), 0 + 2)
+    @test is_zero(E2)
+    @test krull_dim(E2) == -inf
+
+    E3 = ext(M, graded_free_module(R, 1), 1 + 2)
+    @test is_zero(E3)
+    @test krull_dim(E3) == -inf
+
+    @test typeof(E2) == typeof(E3)
+end
