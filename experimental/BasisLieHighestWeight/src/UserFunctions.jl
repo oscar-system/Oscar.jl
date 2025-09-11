@@ -697,6 +697,32 @@ function basis_lie_demazure_lusztig(
 end
 
 @doc raw"""
+    basis_lie_demazure_string(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int})
+
+Compute a monomial basis for the demazure module with extremal weight
+`highest_weight * weyl_group_elem` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra of type `type_rank`.
+
+Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
+given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
+Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
+
+The monomial ordering is fixed to `neglex` (negative lexicographic order).
+
+# Examples
+Coming soon
+"""
+function basis_lie_demazure_string(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int}
+)
+  monomial_ordering = :neglex
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_by_index(L, reduced_expression))
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+end
+
+@doc raw"""
     basis_lie_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int})
 
 Compute a monomial basis for the demazure module with extremal weight
@@ -740,5 +766,31 @@ function basis_lie_demazure_ffl(
   operators = demazurify_operators(V, reverse(operators_asc_height(L)))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+end
+
+@doc raw"""
+    basis_lie_demazure_nz(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int})
+
+Compute a monomial basis for the demazure module with extremal weight
+`highest_weight * weyl_group_elem` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra of type `type_rank`.
+
+Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
+given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
+Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
+
+The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).     
+
+# Examples
+Coming soon
+"""
+function basis_lie_demazure_nz(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, reduced_expression::Vector{Int}
+)
+  monomial_ordering = :degrevlex
+  L = lie_algebra(QQ, type, rank)
+  V = DemazureModuleData(L, highest_weight, weyl_group_elem)
+  operators = demazurify_operators(V, operators_by_index(L, reduced_expression))
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
