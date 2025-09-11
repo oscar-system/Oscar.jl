@@ -88,7 +88,7 @@ which we think might affect some users directly.
 
 ### Lie Theory
 
-- [#4570](https://github.com/oscar-system/Oscar.jl/pull/4570) Extend functionality to Demazure modules
+- [#4570](https://github.com/oscar-system/Oscar.jl/pull/4570) Extend functionality of the experimental `BasisLieHighestWeight` module to Demazure modules
 
 ### Number Theory
 
