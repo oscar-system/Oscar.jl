@@ -8,7 +8,7 @@
 
 ### Difference ###
 @doc raw"""
-    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol},Int}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Construct the difference polynomial ring over the base ring `R` with the given elementary symbols and 
 `ndiffs` commuting endomorphisms. 
@@ -69,7 +69,7 @@ end
 
 ### Differential ###
 @doc raw"""
-    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol},Int}, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
 Construct the differential polynomial ring over the base ring `R` with the given elementary symbols and 
 `ndiffs` commuting derivations. 
@@ -233,8 +233,18 @@ parent(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.par
 #
 ###############################################################################
 
+@doc raw"""
+    coeff(p::ActionPolyRingElem, i::Int)
+
+Return coefficient of the `i`-th term of `p`.
+"""
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
 
+@doc raw"""
+    exponent_vector(p::ActionPolyRingElem, i::Int)
+
+Return the exponent vector of the `i`-th term of `p`.
+"""
 function exponent_vector(apre::ActionPolyRingElem, i::Int)
   v = exponent_vector(data(apre), __perm_for_sort_poly(apre)[i])
   perm = __perm_for_sort(parent(apre))
@@ -243,22 +253,71 @@ function exponent_vector(apre::ActionPolyRingElem, i::Int)
   return (length(v) == L) ? v[perm] : vcat(v, zeros(Int, L - length(v)))[perm]
 end
 
+@doc raw"""
+    monomial(p::ActionPolyRingElem, i::Int)
+
+Return the `i`-th monomial of `p`.
+"""
 monomial(apre::ActionPolyRingElem, i::Int) = parent(apre)(monomial(data(apre), __perm_for_sort_poly(apre)[i]))
 
+@doc raw"""
+    term(p::ActionPolyRingElem, i::Int)
+
+Return the `i`-th term of `p`.
+"""
 term(apre::ActionPolyRingElem, i::Int) = parent(apre)(term(data(apre), __perm_for_sort_poly(apre)[i]))
 
+@doc raw"""
+    is_monomial(p::ActionPolyRingElem)
+
+Return `true` if `p` is a monomial and `false` otherwise.
+"""
 is_monomial(apre::ActionPolyRingElem) = is_monomial(data(apre))
 
+@doc raw"""
+    is_term(p::ActionPolyRingElem)
+
+Return `true` if `p` is a term, i.e. a non-zero multiple of a monomial, and `false` otherwise.
+"""
 is_term(apre::ActionPolyRingElem) = is_term(data(apre))
 
+@doc raw"""
+    is_univariate(p::ActionPolyRingElem)
+
+Return `true` if `p` is a polynomial in a single jet variable and `false` otherwise.
+"""
 is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
 
+@doc raw"""
+    is_univariate(p::ActionPolyRing)
+
+Returns `false` since an action polynomial ring cannot be univariate.
+"""
 is_univariate(apr::ActionPolyRing) = false
 
+@doc raw"""
+    to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
+
+Assuming the polynomial `p` is actually a univariate polynomial, convert the polynomial to a univariate polynomial in the
+given univariate polynomial ring `R`. An exception is raised if the polynomial `p` involves more than one variable.
+"""
 to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement} = to_univariate(R, data(p))
 
+@doc raw"""
+    to_univariate(p::ActionPolyRingElem)
+
+Assuming the polynomial `p` is actually a univariate polynomial in the variable `x`, convert the polynomial to a univariate
+polynomial in a univariate polynomial ring over the same base ring in the variable `x`. If `p` is constant, it is considered
+to be a polynomial in the first variable of its parent. An exception is raised if the polynomial `p` involves more than one
+variable.
+"""
 to_univariate(p::ActionPolyRingElem) = to_univariate(data(p))
 
+@doc raw"""
+    length(p::ActionPolyRingElem) -> Int
+
+Return the length of `p`, i.e. the number of terms of `p`.
+"""
 length(apre::ActionPolyRingElem) = length(data(apre))
 
 @doc raw"""
@@ -271,8 +330,8 @@ total_degree(apre::ActionPolyRingElem) = total_degree(data(apre))
 @doc raw"""
     degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) -> Int
 
-Return the degree of the polynomial `p` in the `i`-th elementary variable with
-multiindex `jet`. If this jet variable is valid but still untracked, return $0$. Alternatively, the variable may be passed right away instead of its index.
+Return the degree of the polynomial `p` in the jet variable specified by `i` and `jet`. If this jet variable
+is valid but still untracked, return $0$. This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
 """
 function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
@@ -321,17 +380,22 @@ is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 @doc raw"""
     vars(p::ActionPolyRingElem)
 
-Return the variables actually occuring in `p`. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
+Return the variables actually occuring in `p` as a vector. The variables are sorted with respect to the ranking of the action polynomial ring containing `p`, leading with the largest variable.
 """
 vars(apre::ActionPolyRingElem) = sort!(parent(apre).(vars(data(apre))); rev = true)
 
+@doc raw"""
+    is_gen(p::ActionPolyRingElem)
+
+Return true if `p` is a jet variable in an action polynomial ring.
+"""
 is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
 
 @doc raw"""
-    gen(apr::ActionPolyRing, i::Int, jet::Vector{Int})
+    gen(A::ActionPolyRing, i::Int, jet::Vector{Int})
 
 Return the `i`-th elementary variable with multiindex `jet` in the action polynomial
-`apr`. If this jet variable was untracked, it is tracked afterwards. The index of the jet variable may also be passed as a tuple.
+`A`. If this jet variable was untracked, it is tracked afterwards. The index of the jet variable may also be passed as a tuple.
 
 # Examples
 
@@ -351,7 +415,7 @@ julia> gens(dpr)
  c[0,0,0,0]
 ```
 """
-function gen(apr::ActionPolyRing, i::Int, jet::Vector)
+function gen(apr::ActionPolyRing, i::Int, jet::Vector{Int})
   @req __is_valid_jet(apr, i, jet) "invalid jet variable"
   jtv = __jtv(apr)
   if haskey(jtv, (i, jet))
@@ -364,9 +428,9 @@ end
 gen(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
 
 @doc raw"""
-    gen(apr::ActionPolyRing, i::Int)
+    gen(A::ActionPolyRing, i::Int)
 
-Return the, among the currently tracked variables of `apr`, 'i'-th largest one.
+Among the currently tracked variables of `A`, return the `i`-th largest one.
 
 # Examples
 
@@ -381,9 +445,9 @@ c[0,0,0,0]
 gen(apr::ActionPolyRing, i::Int) = gens(apr)[i]
 
 @doc raw"""
-    gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
+    gens(A::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
 
-Return the jet variables of the action polynomial ring `apr` specified by the entries of `jet_idxs` as
+Return the jet variables of the action polynomial ring `A` specified by the entries of `jet_idxs` as
 a vector and track all new variables.
 
 # Examples
@@ -406,9 +470,9 @@ julia> gens(dpr)
 gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) = [gen(apr, jet_idx) for jet_idx in jet_idxs]
 
 @doc raw"""
-    gens(apr::ActionPolyRing)
+    gens(A::ActionPolyRing)
 
-Return the currently tracked variables of the action polynomial ring `apr` as a vector. The variables are sorted with respect to the ranking of `apr`, leading with the largest variable.
+Return the currently tracked variables of the action polynomial ring `A` as a vector. The variables are sorted with respect to the ranking of `A`, leading with the largest variable.
 
 # Examples
 
@@ -443,24 +507,29 @@ number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
 number_of_variables(apr::ActionPolyRing) = number_of_variables(__upr(apr))
 
 @doc raw"""
-    getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int})
+    getindex(A::ActionPolyRing, i::Int, jet::Vector{Int})
 
-Alias for `gen(apr, i, jet)`.
+Alias for [`gen(A, i, jet)`](@ref gen(A::ActionPolyRing, i::Int, jet::Vector{Int})).
 """
 getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
 
 getindex(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
 
 @doc raw"""
-    var_index(x::ActionPolyRingElem)
+    var_index(p::ActionPolyRingElem)
 
-Return the integer `i` such that `x` is the `i`-th largest currently tracked variable. If `x` is not a variable an exception is raised. 
+Return the integer `i` such that `p` is the `i`-th largest currently tracked variable. If `p` is not a variable an exception is raised. 
 """
 function var_index(x::ActionPolyRingElem)
   @req is_gen(x) "Not a variable in var_index"
   return findfirst(==(x), gens(parent(x)))
 end
 
+@doc raw"""
+    constant_coefficient(p::ActionPolyRingElem{T}) -> T
+
+Return the constant coefficient of `p`. Does not throw an error for the zero polynomial like [`trailing_coefficient`](@ref trailing_coefficient(apre::ActionPolyRingElem)).
+"""
 constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre))
 
 @doc raw"""
@@ -529,7 +598,7 @@ end
 @doc raw"""
     tail(p::ActionPolyRingElem)
 
-Return the tail of `p` with respect to the ranking of the action polynomial ring containing it.
+Return the tail of `p`, i.e. `p`, i.e. remove the leading term of `p` with respect to the ranking of the action polynomial ring containing it.
 """
 tail(apre::ActionPolyRingElem) = apre - leading_term(apre)
 
@@ -539,17 +608,23 @@ function derivative(apre::ActionPolyRingElem{T}, var::ActionPolyRingElem{T}) whe
   return derivative(apre, __vtj(parent(var))[var])
 end
 
-function derivative(apre::ActionPolyRingElem, i::Int, idx::Vector{Int})
+@doc raw"""
+    derivative(p::ActionPolyRing, i::Int, jet::Vector{Int})
+
+Return the derivative of `p` with respect to the jet variable specified by `i` and `jet`.
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
+"""
+function derivative(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
-  @req __is_valid_jet(apr, i, idx) "Invalid jet variable"
+  @req __is_valid_jet(apr, i, jet) "Invalid jet variable"
   jtv = __jtv(apr)
-  if haskey(jtv, (i, idx))
-    return apr(derivative(data(apre), data(jtv[(i, idx)])))
+  if haskey(jtv, (i, jet))
+    return apr(derivative(data(apre), data(jtv[(i, jet)])))
   end
   return zero(apr)
 end
 
-derivative(apre::ActionPolyRingElem, jet_idx::Tuple{Int,Vector{Int}}) = derivative(apre, jet_idx...)
+derivative(apre::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = derivative(apre, jet_idx...)
 
 derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre), i))
 
@@ -630,7 +705,7 @@ end
 @doc raw"""
     diff_action(p::ActionPolyRingElem, d::Vector{Int}) -> ActionPolyRingElem
 
-Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, where $i = 1, \ldots, length(d)$. 
+Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
@@ -733,9 +808,6 @@ Return an iterator for the coefficients of `p` with respect to the ranking of th
 # Examples
 
 ```jldoctests
-julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2
-3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
-
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> cf = coefficients(f)
@@ -994,13 +1066,13 @@ ranking(dpr::DifferencePolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRanki
 ranking(dpr::DifferentialPolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRanking{DifferentialPolyRing{T}}
 
 @doc raw"""
-    set_ranking!(apr::ActionPolyRing;
+    set_ranking!(A::ActionPolyRing;
                  partition_name::Symbol = :default,
                  index_ordering_name::Symbol = :default,
                  partition::Vector{Vector{Int}} = Vector{Int}[],
                  index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)) 
 
-This method configures the ranking of the action polynomial ring `apr`, using an ordered partition of the elementary symbols and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
+This method configures the ranking of the action polynomial ring `A`, using an ordered partition of the elementary symbols and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
 
 # Keyword Arguments
 - `partition_name`: Determines the partition of the elementary symbols of `dpr`. Supported values are:
@@ -1018,7 +1090,7 @@ This method configures the ranking of the action polynomial ring `apr`, using an
 
 - `partition`: A custom partition of the elementary symbols, represented as a vector of characteristic vectors. The elementary symbols corresponding to the first characteristic vectors are considered largest and so on.
 
-- `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `ndiffs(dpr)`.
+- `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `ndiffs(A)`.
 
 # Examples
 
@@ -1121,13 +1193,19 @@ end
 ###############################################################################
 
 ### Difference ###
-base_ring(ran::ActionPolyRingRanking) = ran.ring
+
+@doc raw"""
+  parent(r::ActionPolyRingRanking)
+
+Return the action polynomial ring `A` with `r = ranking(A)`.
+"""
+parent(ran::ActionPolyRingRanking) = ran.ring
 
 @doc raw"""
     partition(r::ActionPolyRingRanking) -> Vector{Vector{Int}}
 
 Return the partition of the elementary symbols defined by the ranking `r`
-of the action polynomial ring `apr`, where `r = ranking(apr)`.
+of the action polynomial ring `A`, where `r = ranking(A)`.
 """
 partition(ran::ActionPolyRingRanking) = ran.partition
 
@@ -1135,21 +1213,21 @@ partition(ran::ActionPolyRingRanking) = ran.partition
     index_ordering_matrix(r::ActionPolyRingRanking) -> ZZMatrix
 
 Return the matrix inducing the monomial ordering of the multiindices defined
-by the ranking `r` of the action polynomial ring `apr`, where `r = ranking(apr)`.
+by the ranking `r` of the action polynomial ring `A`, where `r = ranking(A)`.
 """
 index_ordering_matrix(ran::ActionPolyRingRanking) = ran.index_ordering_matrix
 
 @doc raw"""
     riquier_matrix(r::ActionPolyRingRanking) -> ZZMatrix
 
-Return a Riquier matrix that induces the ranking `r` of the action polynomial ring `apr`, where `r = ranking(apr)`.
+Return a Riquier matrix that induces the ranking `r` of the action polynomial ring `A`, where `r = ranking(A)`.
 """
 function riquier_matrix(ran::ActionPolyRingRanking)
   if !isdefined(ran, :riquier_matrix)
     par = partition(ran)
-    dpr = base_ring(ran)
-    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_elementary_symbols(dpr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
-    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(dpr))])
+    apr = parent(ran)
+    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_elementary_symbols(apr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
+    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(apr))])
     ran.riquier_matrix = vcat(upper_part, lower_part)
   end
   return ran.riquier_matrix

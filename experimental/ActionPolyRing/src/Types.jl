@@ -199,8 +199,8 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   index_ordering_matrix::ZZMatrix
   riquier_matrix::ZZMatrix
 
-  function ActionPolyRingRanking{PolyT}(dpr::PolyT, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T, PolyT <: ActionPolyRing{T}}
-    return new{PolyT}(dpr, partition, index_ordering_matrix)
+  function ActionPolyRingRanking{PolyT}(S::PolyT, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T, PolyT <: ActionPolyRing{T}}
+    return new{PolyT}(S, partition, index_ordering_matrix)
   end
   
 end
