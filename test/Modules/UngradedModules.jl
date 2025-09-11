@@ -1895,3 +1895,24 @@ end
 
     @test typeof(E2) == typeof(E3)
 end
+
+@testset "New minimization of free resolutions" begin
+  R, (x, y, z, w) = QQ[:x, :y, :z, :w]
+  U = complement_of_point_ideal(R, [0, 0, 0, 0])
+  L, _ = localization(R, U)
+  A = L[x y z; y-1 z-1 w]
+  I = ideal(L, minors(A, 2))
+  II = ideal_as_module(I)
+  M = quotient_ring_as_module(I)
+  res = free_resolution(M; length=1)
+  @test ngens(res[0]) == 1
+  @test ngens(res[1]) == 3
+  @test ngens(res[2]) == 2
+
+  min_res = minimize(res)
+  @test min_res isa FreeResolution
+  @test ngens(min_res[0]) == 1
+  @test ngens(min_res[1]) == 2
+  @test ngens(min_res[2]) == 1
+end
+
