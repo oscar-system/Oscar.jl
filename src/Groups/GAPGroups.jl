@@ -2240,9 +2240,9 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
     @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
     return one(genimgs[1])
   end
-  res = prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
-  if init !== nothing
-    res = init * res
+  res = init !== nothing ? init : one(genimgs[1])
+  for i in v
+    res = mul!(res, _map_word_syllable(i, genimgs, genimgs_inv))
   end
   return res
 end
@@ -2257,9 +2257,9 @@ function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, ge
     @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
     return zero(parent(genimgs[1]))
   end
-  res = sum(i -> _map_word_syllable_additive(i, genimgs, genimgs_inv), v)
-  if init !== nothing
-    res = init + res
+  res = init !== nothing ? init : zero(parent(genimgs[1]))
+  for i in v
+    res = add!(res, _map_word_syllable_additive(i, genimgs, genimgs_inv))
   end
   return res
 end
@@ -2270,22 +2270,20 @@ function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
   vi = -vi
   @assert vi <= length(genimgs)
   isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
-  res = inv(genimgs[vi])
-  genimgs_inv[vi] = res
-  return res
+  genimgs_inv[vi] = inv(genimgs[vi])
+  return genimgs_inv[vi]
 end
 
 function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
   x = vi[1]
   @assert (x > 0 && x <= length(genimgs))
   e = vi[2]
-  e > 1 && return genimgs[x]^e
   e == 1 && return genimgs[x]
-  isassigned(genimgs_inv, x) && return genimgs_inv[x]^-e
-  res = inv(genimgs[x])
-  genimgs_inv[x] = res
-  e == -1 && return res
-  return res^-e
+  e > 1 && return pow(genimgs[x], e)
+  isassigned(genimgs_inv, x) && return pow!(res, genimgs_inv[x], -e)
+  genimgs_inv[x] = inv(genimgs[x])
+  e == -1 && return genimgs_inv[x]
+  return pow(genimgs_inv[x], -e)
 end
 
 
