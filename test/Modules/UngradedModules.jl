@@ -337,6 +337,16 @@ end
   FMI = free_resolution_via_kernels(MI)
   @test is_complete(FMI)
   @test length(FMI) == 4
+
+  R, (v, w, x, y, z) = graded_polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  I = ideal(R, [v, w, x, y, z])
+  A, _ = quo(R, I)
+  M = quotient_ring_as_module(A)
+  FM = free_resolution(M, length = 1, algorithm = :mres)
+  @test length(FM) == 1
+  FM[3]
+  @test length(FM) == 3
+  @test rank(FM[3]) == 10
 end
 
 @testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
