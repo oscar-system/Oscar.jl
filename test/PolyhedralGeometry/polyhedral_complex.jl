@@ -51,8 +51,17 @@
     @test vector_matrix(rays(PCF)) == matrix(f, [-1 -1])
     @test vertices_and_rays(PCFL) isa SubObjectIterator{Union{RayVector{T},PointVector{T}}}
     @test length(vertices_and_rays(PCFL)) == 4
-    @test issetequal(vertices_and_rays(PCFL),  [point_vector(f, [0, 0, 0]), point_vector(f, [1, 0, 0]), point_vector(f, [0, 1, 0]), ray_vector(f, [1, 1, 0])])
-    @test vector_matrix(vertices_and_rays(PCFL)) == _oscar_matrix_from_property(f, vertices_and_rays(PCFL))
+    @test issetequal(
+      vertices_and_rays(PCFL),
+      [
+        point_vector(f, [0, 0, 0]),
+        point_vector(f, [1, 0, 0]),
+        point_vector(f, [0, 1, 0]),
+        ray_vector(f, [1, 1, 0]),
+      ],
+    )
+    @test vector_matrix(vertices_and_rays(PCFL)) ==
+      _oscar_matrix_from_property(f, vertices_and_rays(PCFL))
     @test maximal_polyhedra(PC) isa SubObjectIterator{Polyhedron{T}}
     @test length(maximal_polyhedra(PC)) == 2
     @test issetequal(maximal_polyhedra(PC), convex_hull.([f], [P[1:3, :], P[[2, 4], :]]))
@@ -63,7 +72,7 @@
     @test polyhedra_of_dim(PC, 1) isa SubObjectIterator{Polyhedron{T}}
     @test length(polyhedra_of_dim(PC, 1)) == 4
     @test issetequal(polyhedra_of_dim(PC, 1),
-                     convex_hull.(Ref(f), [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]]))
+      convex_hull.(Ref(f), [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]]))
     @test lineality_space(PCL) isa SubObjectIterator{RayVector{T}}
     @test length(lineality_space(PCL)) == 1
     @test lineality_space(PCL) == [L[:]]

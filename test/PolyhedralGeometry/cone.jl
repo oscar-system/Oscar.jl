@@ -29,7 +29,8 @@
       @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test length(hilbert_basis(Cone1)) == 2
       @test issetequal(hilbert_basis(Cone1), point_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
-      @test generator_matrix(hilbert_basis(Cone1)) == _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
+      @test generator_matrix(hilbert_basis(Cone1)) ==
+        _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
     end
     @test n_rays(Cone1) == 2
     @test rays(RayVector{T}, Cone1) isa SubObjectIterator{RayVector{T}}
@@ -46,7 +47,7 @@
     end
     @test length(rays(Cone1)) == 2
     for S in [LinearHalfspace{T},
-                     Cone{T}]
+      Cone{T}]
       @test facets(S, Cone1) isa SubObjectIterator{S}
       @test length(facets(S, Cone1)) == 2
       if S == LinearHalfspace{T}
@@ -54,8 +55,10 @@
       else
         @test issetequal(facets(S, Cone1), positive_hull.(Ref(f), [[1 0], [0 1]]))
       end
-      @test linear_inequality_matrix(facets(S, Cone1)) == _oscar_matrix_from_property(f, facets(S, Cone1))
-      @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == _polymake_matrix_from_property(facets(S, Cone1))
+      @test linear_inequality_matrix(facets(S, Cone1)) ==
+        _oscar_matrix_from_property(f, facets(S, Cone1))
+      @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) ==
+        _polymake_matrix_from_property(facets(S, Cone1))
       @test _check_im_perm_rows(ray_indices(facets(S, Cone1)), [[1], [2]])
       @test _check_im_perm_rows(incidence_matrix(facets(S, Cone1)), [[1], [2]])
     end
@@ -116,8 +119,8 @@
 
     @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
-    @test length(findall(f->[1,0,0] in f, facets(Hyperplane, Cone5))) == 2
-    @test length(findall(f->[1,0,0] in f, facets(Halfspace, Cone5))) == 4
+    @test length(findall(f -> [1, 0, 0] in f, facets(Hyperplane, Cone5))) == 2
+    @test length(findall(f -> [1, 0, 0] in f, facets(Halfspace, Cone5))) == 4
   end
 
   @testset "constructors" begin

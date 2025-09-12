@@ -12,15 +12,18 @@ if !isdefined(Main, :_prepare_scalar_types)
     nr, nc = size(inc)
     (nr, nc) == size(oinc) &&
       issetequal(Polymake.row.(Ref(inc), 1:nr),
-                 Polymake.row.(Ref(oinc), 1:nr))
+        Polymake.row.(Ref(oinc), 1:nr))
   end
 
-  _matrix_from_property(b::SubObjectIterator{<:Union{LinearHalfspace, LinearHyperplane}}) = permutedims(hcat([normal_vector(be) for be in b]...))
+  _matrix_from_property(b::SubObjectIterator{<:Union{LinearHalfspace,LinearHyperplane}}) =
+    permutedims(hcat([normal_vector(be) for be in b]...))
 
-  _matrix_from_property(b::SubObjectIterator{<:Union{AffineHalfspace, AffineHyperplane}}) = permutedims(hcat([vcat(-negbias(be), normal_vector(be)) for be in b]...))
+  _matrix_from_property(b::SubObjectIterator{<:Union{AffineHalfspace,AffineHyperplane}}) =
+    permutedims(hcat([vcat(-negbias(be), normal_vector(be)) for be in b]...))
 
   # only used for cones that are linear halfspaces
-  _matrix_from_property(b::SubObjectIterator{Cone{T}}) where T = _matrix_from_property(SubObjectIterator{LinearHalfspace{T}}(b.Obj, b.Acc, b.n))
+  _matrix_from_property(b::SubObjectIterator{Cone{T}}) where {T} =
+    _matrix_from_property(SubObjectIterator{LinearHalfspace{T}}(b.Obj, b.Acc, b.n))
 
   _matrix_from_property(b::SubObjectIterator) = permutedims(hcat(b...))
 

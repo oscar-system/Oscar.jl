@@ -32,7 +32,7 @@ jobs:
     - uses: julia-actions/cache@v2
     - name: 'Check format with JuliaFormatter'
       run: |
-        julia etc/test_formatting.jl
+        julia etc/format_code.jl
       shell: bash
       env:
         jf-version: ${{ inputs.version }}
