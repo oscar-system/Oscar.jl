@@ -973,10 +973,12 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where (T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}
 
 Return a vector of all conjugacy classes of subgroups of `G` or,
-if `order` is positive, the classes of subgroups of this order.
+if `order` is positive, the classes of subgroups of this order, or,
+if `order_bound` is an integer,
+the classes of subgroups of order up to `order_bound`.
 
 # Examples
 ```jldoctest
@@ -993,15 +995,39 @@ julia> subgroup_classes(G)
 julia> subgroup_classes(G, order = ZZRingElem(2))
 1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
+
+julia> subgroup_classes(G, order_bound = 3)
+3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
-function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
-  L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
-  res = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where {T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}}
   if order != -1
-    filter!(x -> AbstractAlgebra.order(representative(x)) == order, res)
+    order_bound = min(order, order_bound)
   end
-  return res
+  if order_bound != inf && !GAPWrap.HasConjugacyClassesSubgroups(GapObj(G))
+    # Avoid computing all classes of subgroups.
+    gapbound = GAP.Obj(order_bound)
+    l = GAPWrap.LatticeByCyclicExtension(GapObj(G),
+            GapObj(x -> Oscar.GAPWrap.Size(x) <= gapbound))
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(l))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    end
+  else
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    elseif order_bound != inf
+      gapbound = GAP.Obj(order_bound)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) <= gapbound, L)
+    end
+  end
+  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
 end
 
 """
