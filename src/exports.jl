@@ -1375,6 +1375,7 @@ export orthogonal_sign
 export outdegree
 export outneighbors
 export p_central_series
+export p_rump
 export pappus_matroid
 export parallel_extension
 export parametrization
