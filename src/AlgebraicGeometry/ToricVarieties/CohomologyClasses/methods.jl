@@ -91,14 +91,25 @@ julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
 62
 ```
 """
-function integrate(c::CohomologyClass; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+function integrate(
+  c::CohomologyClass;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
   if check isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :integrate)
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :integrate,
+      )
       completeness_check = check
     else
-       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -112,31 +123,31 @@ function integrate(c::CohomologyClass; completeness_check::Union{Bool,Nothing}=n
 
   # if the intersection form is known, we can use it
   if has_attribute(toric_variety(c), :_intersection_form_via_exponents)
-      intersection_dict = _intersection_form_via_exponents(toric_variety(c))
-      coeffs = coefficients(c)
-      expos = exponents(c)
-      integral = zero(QQ)
-      for i in 1:nrows(expos)
-          if expos[i, :] in keys(intersection_dict)
-              integral += coeffs[i] * intersection_dict[expos[i, :]]
-          end
+    intersection_dict = _intersection_form_via_exponents(toric_variety(c))
+    coeffs = coefficients(c)
+    expos = exponents(c)
+    integral = zero(QQ)
+    for i in 1:nrows(expos)
+      if expos[i, :] in keys(intersection_dict)
+        integral += coeffs[i] * intersection_dict[expos[i, :]]
       end
-      return integral::QQFieldElem
+    end
+    return integral::QQFieldElem
   end
-  
+
   # otherwise, proceed "by hand"
   if is_trivial(c)
-      return zero(QQ)
+    return zero(QQ)
   end
   poly = polynomial(c)
   dict = homogeneous_components(poly)
   elem = base_ring(parent(poly)).D([dim(toric_variety(c))])
   if !(elem in keys(dict))
-      return zero(QQ)
+    return zero(QQ)
   end
   top_form = dict[elem]
   if iszero(top_form)
-      return zero(QQ)
+    return zero(QQ)
   end
   n = AbstractAlgebra.leading_coefficient(top_form.f)
   m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)

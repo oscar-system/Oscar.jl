@@ -47,6 +47,8 @@ result = 0
     "src/LieTheory",
     "test/LieTheory",
     "src/aliases.jl",
+    "src/AlgebraicGeometry/ToricVarieties",
+    "test/AlgebraicGeometry/ToricVarieties",
     "experimental/BasisLieHighestWeight",
     "experimental/ExperimentalTemplate",
     "experimental/ExteriorAlgebra",

@@ -14,7 +14,6 @@ Normal toric variety
 """
 domain(tm::ToricMorphism) = tm.domain
 
-
 @doc raw"""
     codomain(tm::ToricMorphism)
 
@@ -30,7 +29,6 @@ Normal toric variety
 ```
 """
 codomain(tm::ToricMorphism) = tm.codomain
-
 
 @doc raw"""
     lattice_homomorphism(tm::ToricMorphism)
@@ -50,7 +48,6 @@ Map
 """
 lattice_homomorphism(tm::ToricMorphism) = tm.lattice_homomorphism
 
-
 @doc raw"""
     morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
 
@@ -68,21 +65,35 @@ Map
   to Z^4
 ```
 """
-@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
-    d = domain(tm)
-    cod = codomain(tm)
-    cod_rays = matrix(ZZ, rays(cod))
-    images = matrix(ZZ, rays(d)) * matrix(lattice_homomorphism(tm))
-    mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
-    for i in 1:nrows(images)
-      v = [images[i,k] for k in 1:ncols(images)]
-      j = findfirst(j -> v in maximal_cones(cod)[j], 1:n_maximal_cones(cod))
-      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
-    end
-    return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(
+  tm::ToricMorphism
+)
+  d = domain(tm)
+  cod = codomain(tm)
+  cod_rays = matrix(ZZ, rays(cod))
+  images = matrix(ZZ, rays(d)) * matrix(lattice_homomorphism(tm))
+  mapping_matrix = matrix(
+    ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0)
+  )
+  for i in 1:nrows(images)
+    v = [images[i, k] for k in 1:ncols(images)]
+    j = findfirst(j -> v in maximal_cones(cod)[j], 1:n_maximal_cones(cod))
+    m = reduce(
+      vcat,
+      [
+        Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)
+      ],
+    )
+    mapping_matrix = hcat(
+      mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side=:right)
+    )
+  end
+  return hom(
+    torusinvariant_weil_divisor_group(d),
+    torusinvariant_weil_divisor_group(cod),
+    transpose(mapping_matrix),
+  )
 end
-
 
 @doc raw"""
     morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
@@ -101,15 +112,22 @@ Map
   to Z^4
 ```
 """
-@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
-    domain_variety = domain(tm)
-    codomain_variety = codomain(tm)
-    domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
-    morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
-    codomain_post_inverse = postinverse(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(codomain_variety))
-    return domain_embedding * morphism_on_weil_divisors * codomain_post_inverse
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(
+  tm::ToricMorphism
+)
+  domain_variety = domain(tm)
+  codomain_variety = codomain(tm)
+  domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
+    domain_variety
+  )
+  morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
+  codomain_post_inverse = postinverse(
+    map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
+      codomain_variety
+    ),
+  )
+  return domain_embedding * morphism_on_weil_divisors * codomain_post_inverse
 end
-
 
 @doc raw"""
     morphism_on_class_group(tm::ToricMorphism)
@@ -129,14 +147,17 @@ Map
 ```
 """
 @attr FinGenAbGroupHom function morphism_on_class_group(tm::ToricMorphism)
-    domain_variety = domain(tm)
-    codomain_variety = codomain(tm)
-    domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
-    morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
-    codomain_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(codomain_variety)
-    return domain_preinverse * morphism_on_weil_divisors * codomain_projection
+  domain_variety = domain(tm)
+  codomain_variety = codomain(tm)
+  domain_preinverse = preinverse(
+    map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety)
+  )
+  morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
+  codomain_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(
+    codomain_variety
+  )
+  return domain_preinverse * morphism_on_weil_divisors * codomain_projection
 end
-
 
 @doc raw"""
     morphism_on_picard_group(tm::ToricMorphism)
@@ -156,14 +177,17 @@ Map
 ```
 """
 @attr FinGenAbGroupHom function morphism_on_picard_group(tm::ToricMorphism)
-    domain_variety = domain(tm)
-    codomain_variety = codomain(tm)
-    domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))
-    morphism_on_cartier_divisors = morphism_on_torusinvariant_cartier_divisor_group(tm)
-    codomain_projection = map_from_torusinvariant_cartier_divisor_group_to_picard_group(codomain_variety)
-    return domain_preinverse * morphism_on_cartier_divisors * codomain_projection
+  domain_variety = domain(tm)
+  codomain_variety = codomain(tm)
+  domain_preinverse = preinverse(
+    map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety)
+  )
+  morphism_on_cartier_divisors = morphism_on_torusinvariant_cartier_divisor_group(tm)
+  codomain_projection = map_from_torusinvariant_cartier_divisor_group_to_picard_group(
+    codomain_variety
+  )
+  return domain_preinverse * morphism_on_cartier_divisors * codomain_projection
 end
-
 
 ########################################################################
 # Functionality for the associated CoveredSchemeMorphism               #
@@ -223,12 +247,12 @@ Covering
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
 
   # construct the corresponding morphism of rings
-  morphism_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  morphism_dict = IdDict{AbsAffineScheme,AbsAffineSchemeMor}()
   domain_cov = default_covering(X) # ordering of the patches must be the same as `maximal_cones`
   codomain_cov = default_covering(Y)
   for i in 1:n_maximal_cones(X)
     U = domain_cov[i] # The corresponding chart in the domain
-    k = findfirst(x-> is_subset(image_cones[i], x), codomain_cones)
+    k = findfirst(x -> is_subset(image_cones[i], x), codomain_cones)
     V = codomain_cov[k] # The chart in the codomain whose cone contains the image of the cone of U
 
     wc1 = weight_cone(U)
@@ -251,14 +275,17 @@ Covering
     # For some weird reason `solve_mixed` solves A*x = b, but returns x as a 1xn-matrix (not nx1).
     sol = vcat(sol_list...)
 
-    @assert sol*hb_U_mat == hb_V_img
+    @assert sol * hb_U_mat == hb_V_img
     @assert all(>=(0), sol)
 
     # assemble the monomials where the variables of OO(V) are mapped
-    imgs = [prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for i in 1:nrows(sol)]
+    imgs = [
+      prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for
+      i in 1:nrows(sol)
+    ]
     morphism_dict[U] = morphism(U, V, imgs)
   end
-  return CoveringMorphism(domain_cov, codomain_cov, morphism_dict, check=false)
+  return CoveringMorphism(domain_cov, codomain_cov, morphism_dict; check=false)
 end
 
 # Some helper functions for conversion. 
@@ -270,7 +297,7 @@ function _my_mult(u::PointVector{ZZRingElem}, A::ZZMatrix)
   n = ncols(A)
   result = zero_matrix(ZZ, 1, n)
   for k in 1:n
-    result[1, k] = sum(u[i]*A[i, k] for i in 1:m; init=zero(ZZ))
+    result[1, k] = sum(u[i] * A[i, k] for i in 1:m; init=zero(ZZ))
   end
   return result
 end
