@@ -55,17 +55,25 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function is_well_quantized(g4::G4Flux; completeness_check::Bool = true)
+@attr Bool function is_well_quantized(g4::G4Flux; completeness_check::Bool=true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization checks for  G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Elementary quantization checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks for G4-flux currently supported only for toric ambient space"
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
+  cy = polynomial(
+    cohomology_class(
+      toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)));
+      completeness_check,
+    ),
+  )
 
   # Now check quantization condition G4 + 1/2 c2 is integral.
-  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  c_ds = [
+    polynomial(cohomology_class(d; completeness_check)) for
+    d in torusinvariant_prime_divisors(ambient_space(m))
+  ]
 
   # explicitly switched off an expensive test in the following line
   twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; completeness_check))
@@ -73,14 +81,15 @@ G4-flux candidate
   # now execute elementary checks of the quantization condition
   for i in 1:length(c_ds)
     for j in i:length(c_ds)
-      class_to_be_integrated = cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy; completeness_check)
+      class_to_be_integrated = cohomology_class(
+        ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy; completeness_check
+      )
       numb = integrate(class_to_be_integrated; completeness_check)
       !is_integer(numb) && return false
     end
   end
   return true
 end
-
 
 @doc raw"""
     passes_transversality_checks(gf::G4Flux)
@@ -127,36 +136,49 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function passes_transversality_checks(g4::G4Flux; completeness_check::Bool = true)
+@attr Bool function passes_transversality_checks(g4::G4Flux; completeness_check::Bool=true)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Transversality checks supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Transversality checks supported only for toric ambient space"
   @req has_attribute(m, :zero_section_class) "Transversality checks require zero section class"
-  
+
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
-   
+  cy = polynomial(
+    cohomology_class(
+      toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)));
+      completeness_check,
+    ),
+  )
+
   n = ngens(coordinate_ring(base_space(m)))
-  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
+  c_ds = [
+    polynomial(cohomology_class(d; completeness_check)) for
+    d in torusinvariant_prime_divisors(ambient_space(m))[1:n]
+  ]
   zero_sec = zero_section_class(m)
 
   # now execute checks to verify if the transversality conditions are satisfied
   for i in 1:n
-    class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy; completeness_check)
+    class_to_be_integrated = cohomology_class(
+      ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * cy; completeness_check
+    )
     numb = integrate(class_to_be_integrated * zero_sec; completeness_check)
-    numb!=0 && return false
+    numb != 0 && return false
   end
   for i in 1:n
     for j in i:n
-      class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy; completeness_check)
+      class_to_be_integrated = cohomology_class(
+        ambient_space(m),
+        polynomial(cohomology_class(g4)) * c_ds[i] * c_ds[j] * cy;
+        completeness_check,
+      )
       numb = integrate(class_to_be_integrated; completeness_check)
-      numb!=0 && return false
+      numb != 0 && return false
     end
   end
   return true
 end
-
 
 @doc raw"""
     passes_tadpole_cancellation_check(gf::G4Flux)
@@ -207,7 +229,9 @@ G4-flux candidate
   - Tadpole cancellation check: satisfied
 ```
 """
-@attr Bool function passes_tadpole_cancellation_check(g4::G4Flux; completeness_check::Bool = true)
+@attr Bool function passes_tadpole_cancellation_check(
+  g4::G4Flux; completeness_check::Bool=true
+)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
@@ -215,7 +239,6 @@ G4-flux candidate
   numb = d3_tadpole_constraint(g4; completeness_check)
   return numb >= 0 && is_integer(numb)
 end
-
 
 @doc raw"""
     breaks_non_abelian_gauge_group(gf::G4Flux)
@@ -262,18 +285,28 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-@attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux; completeness_check::Bool = true)
+@attr Bool function breaks_non_abelian_gauge_group(
+  g4::G4Flux; completeness_check::Bool=true
+)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Checks for breaking non-abelian gauge group factors only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric ambient space"
-  
+
   # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check))
+  cy = polynomial(
+    cohomology_class(
+      toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)));
+      completeness_check,
+    ),
+  )
 
   # Identify the cohomology classes of all base divisors
   n = ngens(coordinate_ring(base_space(m)))
-  c_ds = [polynomial(cohomology_class(d; completeness_check)) for d in torusinvariant_prime_divisors(ambient_space(m))[1:n]]
+  c_ds = [
+    polynomial(cohomology_class(d; completeness_check)) for
+    d in torusinvariant_prime_divisors(ambient_space(m))[1:n]
+  ]
 
   # Identify the cohomology classes of all exceptional divisors
   gS = gens(coordinate_ring(ambient_space(m)))
@@ -284,9 +317,13 @@ G4-flux candidate
   # now execute the checks if any non-abelian gauge group factor is broken
   for i in 1:n
     for j in 1:length(exceptional_divisors)
-      class_to_be_integrated = cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy; completeness_check)
+      class_to_be_integrated = cohomology_class(
+        ambient_space(m),
+        polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy;
+        completeness_check,
+      )
       numb = integrate(class_to_be_integrated; completeness_check)
-      numb!=0 && return true
+      numb != 0 && return true
     end
   end
   return false

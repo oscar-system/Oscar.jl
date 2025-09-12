@@ -35,21 +35,44 @@ julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], p; completenes
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)  
-  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, string(p); completeness_check)
+function hypersurface_model(
+  bs::NormalToricVariety,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{ToricDivisorClass},
+  p::MPolyRingElem;
+  completeness_check::Bool=true,
+)
+  return hypersurface_model(
+    bs, fiber_ambient_space, fiber_twist_divisor_classes, string(p); completeness_check
+  )
 end
 
-function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
+function hypersurface_model(
+  bs::NormalToricVariety,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{ToricDivisorClass},
+  p::String;
+  completeness_check::Bool=true,
+)
   @req all(toric_variety(c) == bs for c in fiber_twist_divisor_classes) "All fiber divisor classes must belong to be base space"
   if length(fiber_twist_divisor_classes) == n_rays(fiber_ambient_space)
-    return _build_hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, p; completeness_check)
+    return _build_hypersurface_model(
+      bs, fiber_ambient_space, fiber_twist_divisor_classes, p; completeness_check
+    )
   end
   @req length(fiber_twist_divisor_classes) == 2 "Exactly two fiber twist divisor classes must be provided"
   @req n_rays(fiber_ambient_space) >= 2 "The fiber ambient space must have at least 2 rays"
-  new_fiber_twist_divisor_classes = vcat(fiber_twist_divisor_classes, [trivial_divisor_class(bs) for k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))])
-  return _build_hypersurface_model(bs, fiber_ambient_space, new_fiber_twist_divisor_classes, p; completeness_check)
+  new_fiber_twist_divisor_classes = vcat(
+    fiber_twist_divisor_classes,
+    [
+      trivial_divisor_class(bs) for
+      k in 1:(n_rays(fiber_ambient_space) - length(fiber_twist_divisor_classes))
+    ],
+  )
+  return _build_hypersurface_model(
+    bs, fiber_ambient_space, new_fiber_twist_divisor_classes, p; completeness_check
+  )
 end
-
 
 @doc raw"""
     hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem)
@@ -83,24 +106,59 @@ julia> h = hypersurface_model(b, fiber_ambient, [2 * kb, 3 * kb], [1, 2], p; com
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
-  return hypersurface_model(bs, fiber_ambient_space, fiber_twist_divisor_classes, indices, string(p); completeness_check)
+function hypersurface_model(
+  bs::NormalToricVariety,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{ToricDivisorClass},
+  indices::Vector{Int},
+  p::MPolyRingElem;
+  completeness_check::Bool=true,
+)
+  return hypersurface_model(
+    bs,
+    fiber_ambient_space,
+    fiber_twist_divisor_classes,
+    indices,
+    string(p);
+    completeness_check,
+  )
 end
 
-function hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::String; completeness_check::Bool = true)
-  @req all(toric_variety(c) == bs for c in fiber_twist_divisor_classes) "All fiber divisor classes must belong to be base space"  
+function hypersurface_model(
+  bs::NormalToricVariety,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{ToricDivisorClass},
+  indices::Vector{Int},
+  p::String;
+  completeness_check::Bool=true,
+)
+  @req all(toric_variety(c) == bs for c in fiber_twist_divisor_classes) "All fiber divisor classes must belong to be base space"
   @req length(fiber_twist_divisor_classes) == 2 "Exactly two fiber twist divisor classes must be provided"
   @req length(Set(indices)) == 2 "Exactly two distinct indices must be provided"
   @req 1 <= minimum(indices) "The indices must not be smaller than 1"
   @req n_rays(fiber_ambient_space) >= maximum(indices) "The indices must not exceed the number of rays of the fiber ambient space"
   @req n_rays(fiber_ambient_space) >= 2 "The fiber ambient space must have at least 2 rays"
-  new_fiber_twist_divisor_classes = [trivial_divisor_class(bs) for k in 1:(n_rays(fiber_ambient_space))]
+  new_fiber_twist_divisor_classes = [
+    trivial_divisor_class(bs) for k in 1:(n_rays(fiber_ambient_space))
+  ]
   new_fiber_twist_divisor_classes[indices[1]] = fiber_twist_divisor_classes[1]
   new_fiber_twist_divisor_classes[indices[2]] = fiber_twist_divisor_classes[2]
-  return _build_hypersurface_model(bs, fiber_ambient_space, new_fiber_twist_divisor_classes, p; completeness_check = completeness_check)
+  return _build_hypersurface_model(
+    bs,
+    fiber_ambient_space,
+    new_fiber_twist_divisor_classes,
+    p;
+    completeness_check=completeness_check,
+  )
 end
 
-function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
+function _build_hypersurface_model(
+  bs::NormalToricVariety,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{ToricDivisorClass},
+  p::String;
+  completeness_check::Bool=true,
+)
   # Consistency checks
   gens_base_names = symbols(coordinate_ring(bs))
   gens_fiber_names = symbols(coordinate_ring(fiber_ambient_space))
@@ -121,7 +179,7 @@ function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::
   ds = [x.coeff for x in keys(homogeneous_components(hypersurface_equation))]
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
-  explicit_model_sections = Dict{String, MPolyRingElem}()
+  explicit_model_sections = Dict{String,MPolyRingElem}()
   gens_S = gens(coordinate_ring(bs))
 
   # The below code was removed because it is inconsistent with our standard use of explicit_model_sections. In particular,
@@ -133,11 +191,17 @@ function _build_hypersurface_model(bs::NormalToricVariety, fiber_ambient_space::
   #   explicit_model_sections[string(gens_S[k])] = gens_S[k]
   # end
 
-  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, bs, ambient_space, fiber_ambient_space)
+  model = HypersurfaceModel(
+    explicit_model_sections,
+    hypersurface_equation,
+    hypersurface_equation,
+    bs,
+    ambient_space,
+    fiber_ambient_space,
+  )
   set_attribute!(model, :partially_resolved, false)
   return model
 end
-
 
 ################################################
 # 2: Constructors with unspecified base
@@ -198,21 +262,63 @@ julia> h = hypersurface_model(aux_base_vars, aux_base_grading, 3, fiber_ambient,
 Hypersurface model over a not fully specified base
 ```
 """
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
-  return hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, transpose(matrix(ZZ, fiber_twist_divisor_classes)), p)
+function hypersurface_model(
+  auxiliary_base_vars::Vector{String},
+  auxiliary_base_grading::Matrix{Int64},
+  d::Int,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{Vector{Int64}},
+  p::MPolyRingElem,
+)
+  return hypersurface_model(
+    auxiliary_base_vars,
+    auxiliary_base_grading,
+    d,
+    fiber_ambient_space,
+    transpose(matrix(ZZ, fiber_twist_divisor_classes)),
+    p,
+  )
 end
 
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix, p::MPolyRingElem)
+function hypersurface_model(
+  auxiliary_base_vars::Vector{String},
+  auxiliary_base_grading::Matrix{Int64},
+  d::Int,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::ZZMatrix,
+  p::MPolyRingElem,
+)
   @req nrows(fiber_twist_divisor_classes) == nrows(auxiliary_base_grading) "Twist does not match the number of base gradings"
   if ncols(fiber_twist_divisor_classes) == n_rays(fiber_ambient_space)
-    return build_hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, fiber_twist_divisor_classes, p)  
+    return build_hypersurface_model(
+      auxiliary_base_vars,
+      auxiliary_base_grading,
+      d,
+      fiber_ambient_space,
+      fiber_twist_divisor_classes,
+      p,
+    )
   end
   @req ncols(fiber_twist_divisor_classes) == 2 "Exactly two fiber twist divisor classes must be specified"
-  ext_mat = transpose(matrix(ZZ, [[0 for l in 1:nrows(fiber_twist_divisor_classes)] for k in 1:(n_rays(fiber_ambient_space) - ncols(fiber_twist_divisor_classes))]))
+  ext_mat = transpose(
+    matrix(
+      ZZ,
+      [
+        [0 for l in 1:nrows(fiber_twist_divisor_classes)] for
+        k in 1:(n_rays(fiber_ambient_space) - ncols(fiber_twist_divisor_classes))
+      ],
+    ),
+  )
   new_fiber_twist_divisor_classes = hcat(fiber_twist_divisor_classes, ext_mat)
-  return build_hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, new_fiber_twist_divisor_classes, p)
+  return build_hypersurface_model(
+    auxiliary_base_vars,
+    auxiliary_base_grading,
+    d,
+    fiber_ambient_space,
+    new_fiber_twist_divisor_classes,
+    p,
+  )
 end
-
 
 @doc raw"""
     hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, indices::Vector{Int}, p::MPolyRingElem)
@@ -265,45 +371,89 @@ julia> h = hypersurface_model(aux_base_vars, aux_base_grading, 3, fiber_ambient,
 Hypersurface model over a not fully specified base
 ```
 """
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, indices::Vector{Int}, p::MPolyRingElem)
-  return hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, transpose(matrix(ZZ, fiber_twist_divisor_classes)), indices, p)
+function hypersurface_model(
+  auxiliary_base_vars::Vector{String},
+  auxiliary_base_grading::Matrix{Int64},
+  d::Int,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::Vector{Vector{Int64}},
+  indices::Vector{Int},
+  p::MPolyRingElem,
+)
+  return hypersurface_model(
+    auxiliary_base_vars,
+    auxiliary_base_grading,
+    d,
+    fiber_ambient_space,
+    transpose(matrix(ZZ, fiber_twist_divisor_classes)),
+    indices,
+    p,
+  )
 end
 
-
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix, indices::Vector{Int}, p::MPolyRingElem)
+function hypersurface_model(
+  auxiliary_base_vars::Vector{String},
+  auxiliary_base_grading::Matrix{Int64},
+  d::Int,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::ZZMatrix,
+  indices::Vector{Int},
+  p::MPolyRingElem,
+)
   @req ncols(fiber_twist_divisor_classes) == 2 "Exactly two fiber twist divisor classes must be specified"
   @req length(Set(indices)) == 2 "Exactly two distinct indices must be provided"
   @req 1 <= minimum(indices) "The indices must not be smaller than 1"
   @req n_rays(fiber_ambient_space) >= maximum(indices) "The indices must not exceed the number of rays of the fiber ambient space"
   @req nrows(fiber_twist_divisor_classes) == nrows(auxiliary_base_grading) "Twist does not match the number of base gradings"
-  new_fiber_twist_divisor_classes = zero_matrix(ZZ, nrows(auxiliary_base_grading), n_rays(fiber_ambient_space))
+  new_fiber_twist_divisor_classes = zero_matrix(
+    ZZ, nrows(auxiliary_base_grading), n_rays(fiber_ambient_space)
+  )
   for l in 1:nrows(fiber_twist_divisor_classes)
     new_fiber_twist_divisor_classes[l, indices[1]] = fiber_twist_divisor_classes[l, 1]
     new_fiber_twist_divisor_classes[l, indices[2]] = fiber_twist_divisor_classes[l, 2]
   end
-  return build_hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, new_fiber_twist_divisor_classes, p)
+  return build_hypersurface_model(
+    auxiliary_base_vars,
+    auxiliary_base_grading,
+    d,
+    fiber_ambient_space,
+    new_fiber_twist_divisor_classes,
+    p,
+  )
 end
 
+function build_hypersurface_model(
+  auxiliary_base_vars::Vector{String},
+  auxiliary_base_grading::Matrix{Int64},
+  d::Int,
+  fiber_ambient_space::NormalToricVariety,
+  fiber_twist_divisor_classes::ZZMatrix,
+  p::MPolyRingElem,
+)
 
-function build_hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix, p::MPolyRingElem)
-  
   # Compute simple information
   gens_fiber_names = [string(g) for g in gens(coordinate_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
   set_fiber_vars = Set(gens_fiber_names)
   set_p_vars = Set([string(g) for g in gens(parent(p))])
-  
+
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
   @req isdisjoint(set_base_vars, set_fiber_vars) "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
-  
+
   # Inform about the assume Kbar grading
   @vprint :FTheoryModelPrinter 1 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
-  
+
   # Construct the spaces
-  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, fiber_twist_divisor_classes)
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(
+    auxiliary_base_grading,
+    auxiliary_base_vars,
+    d,
+    fiber_ambient_space,
+    fiber_twist_divisor_classes,
+  )
 
   # Map p to coordinate ring of ambient space
   gens_S = gens(S)
@@ -315,21 +465,29 @@ function build_hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary
   hypersurface_equation = hom(parent(p), S, image_list)(p)
 
   # Remember the parametrization of the hypersurface equation
-  hypersurface_equation_parametrization = eval_poly(string(p), coordinate_ring(auxiliary_ambient_space))
+  hypersurface_equation_parametrization = eval_poly(
+    string(p), coordinate_ring(auxiliary_ambient_space)
+  )
 
   # Remember the explicit model sections
   gens_R = gens(coordinate_ring(auxiliary_base_space))
-  explicit_model_sections = Dict{String, MPolyRingElem}()
+  explicit_model_sections = Dict{String,MPolyRingElem}()
   for k in 1:length(gens_R)
     explicit_model_sections[string(gens_R[k])] = gens_R[k]
   end
 
   # Construct the model
-  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space)
+  model = HypersurfaceModel(
+    explicit_model_sections,
+    hypersurface_equation_parametrization,
+    hypersurface_equation,
+    auxiliary_base_space,
+    auxiliary_ambient_space,
+    fiber_ambient_space,
+  )
   set_attribute!(model, :partially_resolved, false)
   return model
 end
-
 
 ################################################
 # 3: Display

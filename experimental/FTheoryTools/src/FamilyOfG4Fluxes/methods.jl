@@ -2,7 +2,6 @@
 ### (1) Fluxes within family of G4-fluxes
 ##########################################
 
-
 @doc raw"""
     flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix)
 
@@ -84,7 +83,13 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; completeness_check::Bool = true, consistency_check::Bool = true)
+function flux_instance(
+  fgs::FamilyOfG4Fluxes,
+  int_combination::ZZMatrix,
+  rat_combination::QQMatrix;
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
   @req ncols(int_combination) == 1 "int_combination is expected to be a single column vector"
   @req ncols(rat_combination) == 1 "rat_combination is expected to be a single column vector"
   @req nrows(int_combination) == ncols(matrix_integral(fgs)) "Number of specified integers must match the number of integral combinations in G4-flux family"
@@ -93,8 +98,8 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   m2 = matrix_rational(fgs) * rat_combination
   shift = offset(fgs)
   gens = chosen_g4_flux_gens(model(fgs); completeness_check)
-  c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
-  c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
+  c1 = sum(m1[k, 1] * gens[k] for k in 1:length(gens))
+  c2 = sum(m2[k, 1] * gens[k] for k in 1:length(gens))
   c3 = sum(shift[k] * gens[k] for k in 1:length(gens))
   flux = c1 + c2 + c3
   set_attribute!(flux, :int_combination, int_combination)
@@ -122,8 +127,13 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   return flux
 end
 
-
-function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeffs::Vector{Rational{Int}}; completeness_check::Bool = true, consistency_check::Bool = true)
+function flux_instance(
+  fgs::FamilyOfG4Fluxes,
+  int_coeffs::Vector{Int},
+  rat_coeffs::Vector{Rational{Int}};
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
   if length(int_coeffs) == 0 && length(rat_coeffs) == 0
     m = model(fgs)
     r = cohomology_ring(ambient_space(m); completeness_check)
@@ -150,18 +160,49 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeff
   return flux_instance(fgs, m_int, m_rat; completeness_check, consistency_check)
 end
 
-function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Any}, rat_coeffs::Vector{Rational{Int}}; completeness_check::Bool = true, consistency_check::Bool = true)
-  return flux_instance(fgs, Vector{Int}(int_coeffs), rat_coeffs; completeness_check, consistency_check)
+function flux_instance(
+  fgs::FamilyOfG4Fluxes,
+  int_coeffs::Vector{Any},
+  rat_coeffs::Vector{Rational{Int}};
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
+  return flux_instance(
+    fgs, Vector{Int}(int_coeffs), rat_coeffs; completeness_check, consistency_check
+  )
 end
 
-function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Int}, rat_coeffs::Vector{Any}; completeness_check::Bool = true, consistency_check::Bool = true)
-  return flux_instance(fgs, int_coeffs, Vector{Rational{Int}}(rat_coeffs); completeness_check, consistency_check)
+function flux_instance(
+  fgs::FamilyOfG4Fluxes,
+  int_coeffs::Vector{Int},
+  rat_coeffs::Vector{Any};
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
+  return flux_instance(
+    fgs,
+    int_coeffs,
+    Vector{Rational{Int}}(rat_coeffs);
+    completeness_check,
+    consistency_check,
+  )
 end
 
-function flux_instance(fgs::FamilyOfG4Fluxes, int_coeffs::Vector{Any}, rat_coeffs::Vector{Any}; completeness_check::Bool = true, consistency_check::Bool = true)
-  return flux_instance(fgs, Vector{Int}(int_coeffs), Vector{Rational{Int}}(rat_coeffs); completeness_check, consistency_check)
+function flux_instance(
+  fgs::FamilyOfG4Fluxes,
+  int_coeffs::Vector{Any},
+  rat_coeffs::Vector{Any};
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
+  return flux_instance(
+    fgs,
+    Vector{Int}(int_coeffs),
+    Vector{Rational{Int}}(rat_coeffs);
+    completeness_check,
+    consistency_check,
+  )
 end
-
 
 @doc raw"""
     random_flux_instance(fgs::FamilyOfG4Fluxes)
@@ -213,7 +254,12 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function random_flux_instance(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true, consistency_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+function random_flux_instance(
+  fgs::FamilyOfG4Fluxes;
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+  rng::AbstractRNG=Random.default_rng(),
+)
   int_combination = zero_matrix(ZZ, ncols(matrix_integral(fgs)), 1)
   rat_combination = zero_matrix(QQ, ncols(matrix_rational(fgs)), 1)
   for i in 1:ncols(matrix_integral(fgs))
@@ -222,12 +268,12 @@ function random_flux_instance(fgs::FamilyOfG4Fluxes; completeness_check::Bool = 
   for i in 1:ncols(matrix_rational(fgs))
     numerator = rand(rng, -100:100)
     denominator = rand(rng, 1:100)
-    rat_combination[i] = numerator // denominator
+    rat_combination[i] = numerator//denominator
   end
-  return flux_instance(fgs, int_combination, rat_combination; completeness_check, consistency_check)
+  return flux_instance(
+    fgs, int_combination, rat_combination; completeness_check, consistency_check
+  )
 end
-
-
 
 ##########################################
 ### (2) Special random flux on model
@@ -267,7 +313,14 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
-  family = special_flux_family(m; not_breaking, completeness_check, rng = rng)
-  return random_flux_instance(family, completeness_check = completeness_check, consistency_check = false, rng = rng)
+function random_flux(
+  m::AbstractFTheoryModel;
+  not_breaking::Bool=false,
+  completeness_check::Bool=true,
+  rng::AbstractRNG=Random.default_rng(),
+)
+  family = special_flux_family(m; not_breaking, completeness_check, rng=rng)
+  return random_flux_instance(
+    family; completeness_check=completeness_check, consistency_check=false, rng=rng
+  )
 end

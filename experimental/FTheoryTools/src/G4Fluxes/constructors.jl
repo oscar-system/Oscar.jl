@@ -36,7 +36,12 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; completeness_check::Bool = true, consistency_check::Bool = true)
+function g4_flux(
+  m::AbstractFTheoryModel,
+  g4_class::CohomologyClass;
+  completeness_check::Bool=true,
+  consistency_check::Bool=true,
+)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
@@ -88,10 +93,9 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; completenes
   return g4
 end
 
-
 # One helper function to avoid repeating exponent extraction logic
 function extract_exponent_pairs(M::Vector{Vector{Int64}})
-  pairs = Tuple{Int, Int}[]
+  pairs = Tuple{Int,Int}[]
   for k in 1:length(M)
     row = copy(M[k])
     i1 = findfirst(!=(0), row)
@@ -101,7 +105,6 @@ function extract_exponent_pairs(M::Vector{Vector{Int64}})
   end
   return pairs
 end
-
 
 @doc raw"""
     qsm_flux(qsm_model::AbstractFTheoryModel)
@@ -135,15 +138,16 @@ function qsm_flux(qsm_model::AbstractFTheoryModel)
   e4 = cohomology_class(divs[findfirst(x -> x == :e4, gens_strings)])
   u = cohomology_class(divs[findfirst(x -> x == :u, gens_strings)])
   v = cohomology_class(divs[findfirst(x -> x == :v, gens_strings)])
-  pb_Kbar = cohomology_class(sum([divs[k] for k in 1:length(gens_strings)-7]))
-  g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
-  my_flux = g4_flux(qsm_model, g4_class, completeness_check = false, consistency_check = false)
+  pb_Kbar = cohomology_class(sum([divs[k] for k in 1:(length(gens_strings) - 7)]))
+  g4_class =
+    (-3)//kbar3(qsm_model) *
+    (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v))
+  my_flux = g4_flux(qsm_model, g4_class; completeness_check=false, consistency_check=false)
   set_attribute!(my_flux, :is_well_quantized, true)
   set_attribute!(my_flux, :passes_transversality_checks, true)
   set_attribute!(my_flux, :breaks_non_abelian_gauge_group, false)
   return my_flux
 end
-
 
 ################################################
 # 2: Equality and hash
@@ -156,7 +160,9 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   # Currently, can only decide equality for Weierstrass, global Tate and hypersurface models
   m = model(gf1)
   if (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) == false
-    error("Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models")
+    error(
+      "Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models"
+    )
   end
 
   # Compute the cohomology class corresponding to the hypersurface equation
@@ -165,7 +171,6 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
 
   # Now can return the result
   return cy * cohomology_class(gf1) == cy * cohomology_class(gf2)
-
 end
 
 function Base.hash(gf::G4Flux, h::UInt)
@@ -175,8 +180,6 @@ function Base.hash(gf::G4Flux, h::UInt)
   return xor(h, b)
 end
 
-
-
 ################################################
 # 3: Arithmetics
 ################################################
@@ -184,23 +187,27 @@ end
 function Base.:+(g1::G4Flux, g2::G4Flux)
   @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
   R = parent(polynomial(cohomology_class(g1)))
-  new_poly = R(lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2))))
+  new_poly = R(
+    lift(polynomial(cohomology_class(g1))) + lift(polynomial(cohomology_class(g2)))
+  )
   new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly, true)
-  return g4_flux(model(g1), new_cohomology_class, completeness_check = false, consistency_check = false)
+  return g4_flux(
+    model(g1), new_cohomology_class; completeness_check=false, consistency_check=false
+  )
 end
 
 Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
 
 Base.:-(g::G4Flux) = (-1) * g
 
-function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
+function Base.:*(c::T, g::G4Flux) where {T<:Union{IntegerUnion,QQFieldElem,Rational{Int64}}}
   R = parent(polynomial(cohomology_class(g)))
   new_poly = R(c * lift(polynomial(cohomology_class(g))))
   new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly, true)
-  return g4_flux(model(g), new_cohomology_class, completeness_check = false, consistency_check = false)
+  return g4_flux(
+    model(g), new_cohomology_class; completeness_check=false, consistency_check=false
+  )
 end
-
-
 
 ################################################
 # 4: Display
@@ -212,7 +219,8 @@ function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
   properties_string = ["G4-flux candidate"]
 
   # Check for elementary quantization checks
-  if has_attribute(g4, :is_well_quantized) && get_attribute(g4, :is_well_quantized) !== nothing
+  if has_attribute(g4, :is_well_quantized) &&
+    get_attribute(g4, :is_well_quantized) !== nothing
     if is_well_quantized(g4)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
@@ -223,7 +231,8 @@ function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
   end
 
   # Check for transversality checks
-  if has_attribute(g4, :passes_transversality_checks) && get_attribute(g4, :passes_transversality_checks) !== nothing
+  if has_attribute(g4, :passes_transversality_checks) &&
+    get_attribute(g4, :passes_transversality_checks) !== nothing
     if passes_transversality_checks(g4)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
@@ -234,7 +243,8 @@ function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
   end
 
   # Check for non-abelian gauge group breaking
-  if has_attribute(g4, :breaks_non_abelian_gauge_group) && get_attribute(g4, :breaks_non_abelian_gauge_group) !== nothing
+  if has_attribute(g4, :breaks_non_abelian_gauge_group) &&
+    get_attribute(g4, :breaks_non_abelian_gauge_group) !== nothing
     if breaks_non_abelian_gauge_group(g4)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
@@ -245,7 +255,8 @@ function Base.show(io::IO, ::MIME"text/plain", g4::G4Flux)
   end
 
   # Check for tadpole cancellation checks
-  if has_attribute(g4, :passes_tadpole_cancellation_check) && get_attribute(g4, :passes_tadpole_cancellation_check) !== nothing
+  if has_attribute(g4, :passes_tadpole_cancellation_check) &&
+    get_attribute(g4, :passes_tadpole_cancellation_check) !== nothing
     if passes_tadpole_cancellation_check(g4)
       push!(properties_string, "  - Tadpole cancellation check: satisfied")
     else

@@ -102,51 +102,76 @@ const COMMON_FIELDS = [
 @register_serialization_type HypersurfaceModel uses_id COMMON_FIELDS
 @register_serialization_type GlobalTateModel uses_id COMMON_FIELDS
 
-
 ###########################################################################
 # (2) Type parameters
 ###########################################################################
 
-function _fmodel_params(m::Union{WeierstrassModel, GlobalTateModel, HypersurfaceModel})
+function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel})
   params = [:base_space => base_space(m),
-            :ambient_space => ambient_space(m),
-            :fiber_ambient_space => fiber_ambient_space(m),
-            :hypersurface_equation_ring => parent(hypersurface_equation(m)),
-            m isa HypersurfaceModel ? (:hypersurface_equation_parametrization_ring => parent(hypersurface_equation_parametrization(m))) : nothing,
-            !isempty(explicit_model_sections(m)) ? (:explicit_model_sections => type_params(explicit_model_sections(m))) : nothing,
-            !isempty(defining_classes(m)) ? (:defining_classes => type_params(defining_classes(m))) : nothing,
-            !isempty(model_section_parametrization(m)) ? (:model_section_parametrization => type_params(model_section_parametrization(m))) : nothing]
+    :ambient_space => ambient_space(m),
+    :fiber_ambient_space => fiber_ambient_space(m),
+    :hypersurface_equation_ring => parent(hypersurface_equation(m)),
+    if m isa HypersurfaceModel
+      (
+        :hypersurface_equation_parametrization_ring =>
+          parent(hypersurface_equation_parametrization(m))
+      )
+    else
+      nothing
+    end,
+    if !isempty(explicit_model_sections(m))
+      (:explicit_model_sections => type_params(explicit_model_sections(m)))
+    else
+      nothing
+    end,
+    if !isempty(defining_classes(m))
+      (:defining_classes => type_params(defining_classes(m)))
+    else
+      nothing
+    end,
+    if !isempty(model_section_parametrization(m))
+      (:model_section_parametrization => type_params(model_section_parametrization(m)))
+    else
+      nothing
+    end]
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel, GlobalTateModel, HypersurfaceModel}} = TypeParams(T, _fmodel_params(m)...)
-
+type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
+  TypeParams(
+    T, _fmodel_params(m)...
+  )
 
 ###########################################################################
 # (3) Saving
 ###########################################################################
 
-function _check_serializable(m::Union{WeierstrassModel, GlobalTateModel, HypersurfaceModel})
+function _check_serializable(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel})
   @req base_space(m) isa NormalToricVariety "For serialization, base space must be toric"
   @req ambient_space(m) isa NormalToricVariety "For serialization, ambient space must be toric"
   @req hypersurface_equation(m) !== nothing "For serialization, hypersurface equation must be known (not only the ideal sheaf)"
 end
 
-function _save_common_data(s::SerializerState, m::Union{WeierstrassModel, GlobalTateModel, HypersurfaceModel})
+function _save_common_data(
+  s::SerializerState, m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}
+)
   save_object(s, hypersurface_equation(m), :hypersurface_equation)
-  m isa HypersurfaceModel && save_object(s, hypersurface_equation_parametrization(m), :hypersurface_equation_parametrization)
+  m isa HypersurfaceModel && save_object(
+    s, hypersurface_equation_parametrization(m), :hypersurface_equation_parametrization
+  )
   for (data, key) in [(explicit_model_sections(m), :explicit_model_sections),
-                      (defining_classes(m), :defining_classes),
-                      (model_section_parametrization(m), :model_section_parametrization)]
+    (defining_classes(m), :defining_classes),
+    (model_section_parametrization(m), :model_section_parametrization)]
     !isempty(data) && save_object(s, data, key)
   end
 end
 
-function save_object(s::SerializerState, m::Union{WeierstrassModel, GlobalTateModel, HypersurfaceModel})
+function save_object(
+  s::SerializerState, m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}
+)
   _check_serializable(m)
   save_data_dict(() -> _save_common_data(s, m), s)
 end
-
 
 ###########################################################################
 # (4) Loading
@@ -160,37 +185,78 @@ function _load_common_parts(s::DeserializerState, params::Dict)
   # TODO: The following should eventually be handled by a serializatino upgrade script.
   # TODO: Discussed with Antony on slack today (August 22, 2025), and we decided to postpone.
   # TODO: This can/should/may be fixed after the OSCAR 1.5.0 release and the corresponding upgrade script.
-  ring_key, poly_key = first(((rk, pk) for (rk, pk) in (
-    (:hypersurface_equation_ring, :hypersurface_equation),
-    (:weierstrass_polynomial_ring, :weierstrass_polynomial),
-    (:tate_polynomial_ring, :tate_polynomial),
-  ) if haskey(params, rk)))
+  ring_key, poly_key = first((
+    (rk, pk) for (rk, pk) in (
+      (:hypersurface_equation_ring, :hypersurface_equation),
+      (:weierstrass_polynomial_ring, :weierstrass_polynomial),
+      (:tate_polynomial_ring, :tate_polynomial),
+    ) if haskey(params, rk)
+  ))
   def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
-  explicit_model_sections = _maybe_load(s, Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}, :explicit_model_sections, params)
-  model_section_parametrization = _maybe_load(s, Dict{String, MPolyRingElem}, :model_section_parametrization, params)
-  defining_classes = _maybe_load(s, Dict{String, ToricDivisorClass}, :defining_classes, params)
+  explicit_model_sections = _maybe_load(
+    s,
+    Dict{String,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},
+    :explicit_model_sections,
+    params,
+  )
+  model_section_parametrization = _maybe_load(
+    s, Dict{String,MPolyRingElem}, :model_section_parametrization, params
+  )
+  defining_classes = _maybe_load(
+    s, Dict{String,ToricDivisorClass}, :defining_classes, params
+  )
   return def_poly, explicit_model_sections, model_section_parametrization, defining_classes
 end
 
 function load_object(s::DeserializerState, ::Type{<:WeierstrassModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, params)
-  model = WeierstrassModel(explicit_model_sections, model_section_parametrization, def_poly, params[:base_space], params[:ambient_space])
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, params
+  )
+  model = WeierstrassModel(
+    explicit_model_sections,
+    model_section_parametrization,
+    def_poly,
+    params[:base_space],
+    params[:ambient_space],
+  )
   model.defining_classes = defining_classes
   return model
 end
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, params)
-  model = GlobalTateModel(explicit_model_sections, model_section_parametrization, def_poly, params[:base_space], params[:ambient_space])
+function load_object(s::DeserializerState, ::Type{<:GlobalTateModel}, params::Dict)
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, params
+  )
+  model = GlobalTateModel(
+    explicit_model_sections,
+    model_section_parametrization,
+    def_poly,
+    params[:base_space],
+    params[:ambient_space],
+  )
   model.defining_classes = defining_classes
   return model
 end
 
 function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, params)
-  defining_equation_parametrization = load_object(s, MPolyRingElem, params[:hypersurface_equation_parametrization_ring], :hypersurface_equation_parametrization)
-  model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, def_poly, params[:base_space], params[:ambient_space], params[:fiber_ambient_space])
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, params
+  )
+  defining_equation_parametrization = load_object(
+    s,
+    MPolyRingElem,
+    params[:hypersurface_equation_parametrization_ring],
+    :hypersurface_equation_parametrization,
+  )
+  model = HypersurfaceModel(
+    explicit_model_sections,
+    defining_equation_parametrization,
+    def_poly,
+    params[:base_space],
+    params[:ambient_space],
+    params[:fiber_ambient_space],
+  )
   model.model_section_parametrization = model_section_parametrization
   model.defining_classes = defining_classes
   return model
