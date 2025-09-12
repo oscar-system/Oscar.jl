@@ -15,7 +15,7 @@ end
   N = quo_object(F, (R(P)*F)[1])
   k = 0
   MM = M
-  p = identity_map(M)
+  p = id_hom(M)
   NtoM, interp = hom(N, MM)
   comp = Vector{elem_type(M)}()
   while !iszero(NtoM)

@@ -179,6 +179,9 @@ Create a random element of a family of G4-fluxes.
   Verifying those properties can be very time consuming. To skip these consistency checks,
   pass the optional keyword argument `consistency_check=false`.
 
+!!! note "Randomness"
+  The random source can be set with the optional argument `rng`
+
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> using Random;
@@ -202,7 +205,7 @@ Family of G4 fluxes:
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> random_flux_instance(fgs, completeness_check = false, consistency_check = false)
+julia> random_flux_instance(fgs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
@@ -210,15 +213,15 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function random_flux_instance(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true, consistency_check::Bool = true)
+function random_flux_instance(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true, consistency_check::Bool = true, rng::AbstractRNG = Random.default_rng())
   int_combination = zero_matrix(ZZ, ncols(matrix_integral(fgs)), 1)
   rat_combination = zero_matrix(QQ, ncols(matrix_rational(fgs)), 1)
   for i in 1:ncols(matrix_integral(fgs))
-    int_combination[i] = rand(-100:100)
+    int_combination[i] = rand(rng, -100:100)
   end
   for i in 1:ncols(matrix_rational(fgs))
-    numerator = rand(-100:100)
-    denominator = rand(1:100)
+    numerator = rand(rng, -100:100)
+    denominator = rand(rng, 1:100)
     rat_combination[i] = numerator // denominator
   end
   return flux_instance(fgs, int_combination, rat_combination; completeness_check, consistency_check)
@@ -246,6 +249,9 @@ Create a random ``G_4``-flux on a given F-theory model.
   Verifying those properties can be very time consuming. To skip these consistency checks,
   pass the optional keyword argument `consistency_check=false`.
 
+!!! note "Randomness"
+  The random source can be set with the optional argument `rng`
+
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> using Random;
@@ -253,7 +259,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> rf = random_flux(qsm_model, completeness_check = false)
+julia> rf = random_flux(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -261,7 +267,7 @@ G4-flux candidate
   - Tadpole cancellation check: not computed
 ```
 """
-function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true)
-  family = special_flux_family(m; not_breaking, completeness_check)
-  return random_flux_instance(family, completeness_check = completeness_check, consistency_check = false)
+function random_flux(m::AbstractFTheoryModel; not_breaking::Bool = false, completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+  family = special_flux_family(m; not_breaking, completeness_check, rng = rng)
+  return random_flux_instance(family, completeness_check = completeness_check, consistency_check = false, rng = rng)
 end

@@ -39,7 +39,7 @@
     V1 = symmetric_power(stdV, 3)[1]
     V2 = exterior_power(stdV, 2)[1]
 
-    h = identity_map(V1)
+    h = id_hom(V1)
     @test domain(h) == V1
     @test codomain(h) == V1
     @test matrix(h) == identity_matrix(QQ, dim(V1))
@@ -90,15 +90,15 @@
     h = hom(V, V, [zero(V), zero(V), zero(V), v1, v2, v3])
     @test !is_isomorphism(h)
 
-    @test is_isomorphism(identity_map(V))
-    @test identity_map(V) == inv(identity_map(V))
+    @test is_isomorphism(id_hom(V))
+    @test id_hom(V) == inv(id_hom(V))
 
     h = hom(V, V, [v4, v5, v6, v1, v2, v3])
     @test is_isomorphism(h)
     @test is_welldefined(inv(h))
     @test h == inv(h)
-    @test identity_map(V) == compose(h, inv(h))
-    @test identity_map(V) == compose(inv(h), h)
+    @test id_hom(V) == compose(h, inv(h))
+    @test id_hom(V) == compose(inv(h), h)
   end
 
   @testset "Direct sum constructions" begin
@@ -116,11 +116,11 @@
 
     # direct sum universal properties
     for i in 1:length(Vs)
-      @test canonical_injection(V, i) * canonical_projection(V, i) == identity_map(Vs[i])
+      @test canonical_injection(V, i) * canonical_projection(V, i) == id_hom(Vs[i])
     end
     @test sum(
       proj * inj for (proj, inj) in zip(canonical_projections(V), canonical_injections(V))
-    ) == identity_map(V)
+    ) == id_hom(V)
   end
 
   @testset "hom_direct_sum" begin

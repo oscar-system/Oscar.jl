@@ -805,7 +805,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
      if is_diagonal(rels(A))
        exponents = diagonal(rels(A))
        A2 = A
-       A2_to_A = identity_map(A)
+       A2_to_A = id_hom(A)
      else
        exponents = elementary_divisors(A)
        A2, A2_to_A = snf(A)

@@ -23,7 +23,7 @@ cy = cohomology_class(toric_divisor_class(as, degree(hypersurface_equation(qsm_m
 c2_B = cohomology_class(as, 4*x4*x6 + 8*x5*x6 + 14*x6*x7 + 5*x7^2)
 Kbar = cohomology_class(ambient_space(qsm_model), x1+x2+x3+x4+x5+x6+x7)
 Kbar3 = kbar3(qsm_model)
-fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
+fg_not_breaking = special_flux_family(qsm_model, not_breaking = true, completeness_check = false, rng = our_rng)
 g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "Test properties of the QSM" begin
@@ -57,7 +57,7 @@ end
     flux_vector[idx] = coeffs[i]
   end
   flux_vector = transpose(matrix(QQ, [flux_vector]))
-  fg = special_flux_family(qsm_model; not_breaking = true, completeness_check = false, algorithm = "special")
+  fg = special_flux_family(qsm_model; not_breaking = true, completeness_check = false, algorithm = "special", rng = our_rng)
   @test ncols(matrix_integral(fg)) == 1
   @test nrows(matrix_integral(fg)) == nrows(matrix_rational(fg))
   @test unique(offset(fg)) == [0]
