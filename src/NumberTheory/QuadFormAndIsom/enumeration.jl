@@ -986,7 +986,7 @@ function representatives_of_hermitian_type(
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
     end
   end
-  @hassert :ZZLatWithIsom 1 all(is_annihilated_on_discriminant(discriminant_annihilator), reps)
+  @hassert :ZZLatWithIsom 1 all(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), reps)
   return reps
 end
 
@@ -1471,7 +1471,7 @@ function splitting_of_hermitian_type(
           filter!(M -> is_of_same_type(M^p, Lf), Es)
           append!(reps, Es)
         end
-        filter!(is_annihilated_on_discriminant(discriminant_annihilator), Es)
+        filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), Es)
       end
     end
   end
@@ -1603,7 +1603,7 @@ function splitting_of_prime_power(
     b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false)
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
-    filter!(is_annihilated_on_discriminant(discriminant_annihilator), E)
+    filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
   end
   return reps
@@ -1710,7 +1710,7 @@ function splitting_of_pure_mixed_prime_power(
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false)
-    filter!(is_annihilated_on_discriminant(discriminant_annihilator), E)
+    filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
   end
   return reps
@@ -1852,7 +1852,7 @@ function splitting_of_mixed_prime_power(
   for L1 in RA, L2 in RB
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p; check=false)
     b == 1 && filter!(LL -> order_of_isometry(LL) == p*n, E)
-    filter!(is_annihilated_on_discriminant(discriminant_annihilator), E)
+    filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
   end
   return reps
@@ -2036,7 +2036,7 @@ function splitting(
         !ok && continue
         Es = first.(_Es)
         filter!(T -> is_of_type(T^p, type(Lq)), Es)
-        filter!(is_annihilated_on_discriminant(tc*discriminant_annihilator), Es)
+        filter!(Base.Fix2(is_annihilated_on_discriminant, tc*discriminant_annihilator), Es)
         append!(Ns, Es)
       end
     end
@@ -2787,13 +2787,6 @@ function is_annihilated(
   return all(is_annihilated(f, p) for p in gens(I))
 end
 
-# For iterators like `filter!`
-function is_annihilated(
-  x::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}},
-)
-  return Base.Fix2(is_annihilated, x)
-end
-
 @doc raw"""
     is_annihilated_on_discriminant(
       Lf::ZZLatWithIsom,
@@ -2820,13 +2813,6 @@ function is_annihilated_on_discriminant(
 )
   _, Df= discriminant_group(Lf)
   return is_annihilated(Df, p)
-end
-
-# For iterators like `filter!`
-function is_annihilated_on_discriminant(
-  x::Union{MPolyIdeal{ZZMPolyRingElem}, ZZMPolyRingElem, ZZPolyRingElem},
-)
-  return Base.Fix2(is_annihilated_on_discriminant, x)
 end
 
 _default_discriminant_annihilator(Lf::ZZLatWithIsom) = _annihilator(discriminant_group(Lf)[1])
