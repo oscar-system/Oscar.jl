@@ -1450,9 +1450,9 @@ see [`minimal_normal_subgroups`](@ref).
 """
     p_rump(G::GAPGroup, p::IntegerUnion)
 
-For a prime p, the p-rump of a group `G` is the subgroup `G'` of `G^p`.
-Unless it equals `G` itself (which is the e.g. the case if `G` is perfect), 
-it is equal to the second term of the p-central series of `G`, see [`p_central_series`](@ref).
+For a prime `p`, the `p`-rump of a group `G` is the subgroup `G' G^p`.
+Unless it equals `G` itself (for example if `G` is perfect),
+it is equal to the second term of the `p`-central series of `G`, see [`p_central_series`](@ref).
 
 # Examples
 ```jldoctest
@@ -1491,7 +1491,7 @@ julia> torsion_subgroup(g)
 """
 function torsion_subgroup(G::GAPGroup)
   T = GAPWrap.TorsionSubgroup(GapObj(G))
-  @req T != GAP.Globals.fail "Could not determine torsion subgroup of the given group"
+  @req T != GAP.Globals.fail "The given group does not admit a torsion subgroup"
   return _as_subgroup(G, T)
 end
 
