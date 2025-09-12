@@ -52,6 +52,7 @@ result = 0
     "experimental/ExteriorAlgebra",
     "experimental/LieAlgebras",
     "experimental/LinearQuotients",
+    "experimental/FTheoryTools",
   ]
   skip = [
     "experimental/InvariantTheory/src/InvariantTheory.jl",# the path matches the whitelist entry "src/InvariantTheory"

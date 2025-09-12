@@ -6,12 +6,14 @@ using Random
 our_rng = Random.Xoshiro(1234)
 
 my_base = projective_space(NormalToricVariety, 3)
-sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4; rng = our_rng)
-sec_g = generic_section(anticanonical_bundle(my_base)^6; rng = our_rng)
-w = weierstrass_model(my_base; completeness_check = false, rng = our_rng)
+sec_f = generic_section(
+  anticanonical_bundle(projective_space(NormalToricVariety, 3))^4; rng=our_rng
+)
+sec_g = generic_section(anticanonical_bundle(my_base)^6; rng=our_rng)
+w = weierstrass_model(my_base; completeness_check=false, rng=our_rng)
 Kbar = anticanonical_bundle(base_space(w))
 my_choice = Dict("f" => basis_of_global_sections(Kbar^4)[1])
-w2 = tune(w, my_choice; completeness_check = false)
+w2 = tune(w, my_choice; completeness_check=false)
 
 # The tests associated to the below code did not actually test the tune functionality of Weierstrass models,
 # but instead the tune functionality of abstract F-theory models, inherited by Weierstrass models
@@ -43,7 +45,6 @@ other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
   # @test_throws ArgumentError tune(w3, x1)
 end
 
-
 #############################################################
 # 2: Tuning Weierstrass models over generic base spaces
 #############################################################
@@ -57,18 +58,19 @@ w4 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
   @test_throws ArgumentError tune(w4, Dict("f" => basis_of_global_sections(other_Kbar)[1]))
 end
 
-
 #############################################################
 # 3: Tuning global Tate models over concrete base space
 #############################################################
 
 my_base = projective_space(NormalToricVariety, 3)
-sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)); rng = our_rng)
-sec_a2 = generic_section(anticanonical_bundle(my_base)^2; rng = our_rng)
-sec_a3 = generic_section(anticanonical_bundle(my_base)^3; rng = our_rng)
-sec_a4 = generic_section(anticanonical_bundle(my_base)^4; rng = our_rng)
-sec_a6 = generic_section(anticanonical_bundle(my_base)^6; rng = our_rng)
-t = global_tate_model(my_base; completeness_check = false, rng = our_rng)
+sec_a1 = generic_section(
+  anticanonical_bundle(projective_space(NormalToricVariety, 3)); rng=our_rng
+)
+sec_a2 = generic_section(anticanonical_bundle(my_base)^2; rng=our_rng)
+sec_a3 = generic_section(anticanonical_bundle(my_base)^3; rng=our_rng)
+sec_a4 = generic_section(anticanonical_bundle(my_base)^4; rng=our_rng)
+sec_a6 = generic_section(anticanonical_bundle(my_base)^6; rng=our_rng)
+t = global_tate_model(my_base; completeness_check=false, rng=our_rng)
 
 Kbar = anticanonical_bundle(base_space(t))
 my_choice = Dict("a1" => basis_of_global_sections(Kbar)[1])
@@ -77,7 +79,7 @@ my_choice["a3"] = basis_of_global_sections(Kbar^3)[1]
 my_choice["a4"] = basis_of_global_sections(Kbar^4)[1]
 my_choice["a6"] = basis_of_global_sections(Kbar^6)[1]
 
-t3 = tune(t, my_choice; completeness_check = false)
+t3 = tune(t, my_choice; completeness_check=false)
 
 # The tests associated to the below code did not actually test the tune functionality of Tate models,
 # but instead the tune functionality of abstract F-theory models, inherited by Tate models
@@ -117,33 +119,42 @@ other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
   # @test_throws ArgumentError tune(t2, x1)
 end
 
-
 #############################################################
 # 4: Tuning global Tate models over arbitrary base space
 #############################################################
 
 # rings needed for constructions
-tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v, w) = QQ[:a1p, :a2p, :a3p, :a4p, :a6p, :v, :w];
-t_i5_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5]);
+tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v, w) = QQ[
+  :a1p, :a2p, :a3p, :a4p, :a6p, :v, :w
+];
+t_i5_s = global_tate_model(
+  tate_auxiliary_base_ring,
+  [1 2 3 4 6 0 0; 0 -1 -2 -3 -5 1 2],
+  3,
+  [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5],
+);
 
 @testset "Error messages in global Tate models over generic base space" begin
-  @test_throws ArgumentError tune(t_i5_s, Dict("a2" => basis_of_global_sections(other_Kbar)[1]))
+  @test_throws ArgumentError tune(
+    t_i5_s, Dict("a2" => basis_of_global_sections(other_Kbar)[1])
+  )
   # @test_throws ArgumentError tune(t_i5_s, basis_of_global_sections(other_Kbar)[1]) # Removed, see above
 end
-
 
 #############################################################
 # 5: Tuning hypersurface models over concrete bases
 #############################################################
 
 B3 = projective_space(NormalToricVariety, 3)
-ambient_space_of_fiber = weighted_projective_space(NormalToricVariety, [2,3,1])
+ambient_space_of_fiber = weighted_projective_space(NormalToricVariety, [2, 3, 1])
 set_coordinate_names(ambient_space_of_fiber, ["x", "y", "z"])
 D1 = 2 * anticanonical_divisor_class(B3)
 D2 = 3 * anticanonical_divisor_class(B3)
 D3 = trivial_divisor_class(B3)
 p = "x^3 - 2*y^2 + x1^16*x*z^4 + x2^24*z^6 + 13*x3^4*x*y*z"
-h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness_check = false)
+h = hypersurface_model(
+  B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness_check=false
+)
 
 # The tests below did not actually test the tune functionality of hypersurface models,
 # but instead the tune functionality of abstract F-theory models, inherited by hypersurface models
@@ -167,22 +178,27 @@ h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness
 #   @test_throws ArgumentError tune(h, hypersurface_equation(h3))
 # end
 
-
 #############################################################
 # 6: Tuning hypersurface models over generic base space
 #############################################################
 
 auxiliary_base_vars = ["a1", "a21", "a32", "a43", "a65", "w"]
 auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
-D1 = [4,0]
-D2 = [6,0]
-D3 = [0,0]
+D1 = [4, 0]
+D2 = [6, 0]
+D3 = [0, 0]
 d = 3
-ambient_space_of_fiber_2 = weighted_projective_space(NormalToricVariety, [2,3,1])
+ambient_space_of_fiber_2 = weighted_projective_space(NormalToricVariety, [2, 3, 1])
 set_coordinate_names(ambient_space_of_fiber_2, ["x", "y", "z"])
-auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ[:a1, :a21, :a32, :a43, :a65, :w, :x, :y, :z]
-p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
-h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, [D1, D2, D3], p)
+auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z) = QQ[
+  :a1, :a21, :a32, :a43, :a65, :w, :x, :y, :z
+]
+p =
+  x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 +
+  x * z^4 * a43 * w^3 + z^6 * a65 * w^5
+h4 = hypersurface_model(
+  auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, [D1, D2, D3], p
+)
 
 @testset "Error messages in hypersurface models over not fully specified base spaces" begin
   # @test_throws ArgumentError tune(h4, hypersurface_equation(h4)) # Removed, see above
