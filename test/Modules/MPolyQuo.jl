@@ -125,3 +125,13 @@ end
   @test (f*F2[1]) in K
   @test (f*F2[2]) in K
 end
+
+@testset "issue 5143" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
+  S, _ = quo(R, ideal(R, [y]));
+  F = free_module(S, 0)
+  f = identity_map(F);
+  K, _ = kernel(f)
+  @test is_zero(K)
+end
+
