@@ -205,9 +205,11 @@ end
 
 # Fixed points of a permutation group
 function fixed_points(G::PermGroup)
-  # Return all points in 1:degree that are not moved by any element of G
-  points = 1:degree(G)
-  return setdiff(points, moved_points(G))
+  pts = collect(1:degree(G))
+  for g in gens(G)
+      pts = intersect(pts, fixed_points(g))
+  end
+  return pts
 end
 
 @doc raw"""

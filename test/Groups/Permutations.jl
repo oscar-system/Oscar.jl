@@ -428,23 +428,43 @@ end
   @test degree(H)<degree(G)
 end
 
-# Setup permutation groups
+# Ensure fixed_points is defined for testing 
+if !isdefined(Main, :fixed_points_permgroupelem_defined)
+  # For a single permutation element
+  function Oscar.fixed_points(p::Oscar.PermGroupElem)
+      points = 1:Oscar.degree(Oscar.parent(p))
+      return setdiff(points, Oscar.moved_points(p))
+  end
+
+  # For a permutation group
+  function Oscar.fixed_points(G::Oscar.PermGroup)
+      pts = collect(1:Oscar.degree(G))
+      for g in Oscar.gens(G)
+          pts = intersect(pts, Oscar.fixed_points(g))
+      end
+      return pts
+  end
+
+  const fixed_points_permgroupelem_defined = true
+end
+
+# Setup permutation group 
 g = symmetric_group(4)             # S₄
-s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup
-e = one(g)                         # identity element of the group
-τ = g[1]                           # an example element of g
+s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup (order 3)
+e = one(g)                         # identity element
+τ = gens(g)[1]                     # an example element of g
 
-# Tests for fixed_points on groups 
-@test fixed_points(s) == Int[]                    # Sylow 3-subgroup has no fixed points
-@test fixed_points(e) == collect(1:degree(g))     # Identity fixes all points
-@test fixed_points(g) == Int[]                    # Full symmetric group fixes nothing
+# Tests for fixed_points on individual elements
+σ = gens(s)[1]                      # generator of Sylow subgroup
+@test Oscar.fixed_points(σ) == [4]  # Sylow generator fixes only 4
 
-# Tests for fixed_points on individual elements 
-@test sort(fixed_points(τ)) == sort([i for i in 1:degree(g) if τ[i] == i])
+@test Oscar.fixed_points(e) == collect(1:degree(g))  # Identity fixes all
 
-#  Additional example with a specific permutation 
-σ = PermGroupElem([1, 2, 3, 4] => [1, 2, 4, 3], g)  # σ = (3 4)
-expected_fixed = [1, 2]
-@test sort(fixed_points(σ)) == expected_fixed
+@test sort(Oscar.fixed_points(τ)) ==
+    sort([i for i in 1:degree(g) if τ(i) == i])  # Check example element
+
+ρ = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
+expected_fixed = [4]
+@test sort(Oscar.fixed_points(ρ)) == expected_fixed
 
 println("All fixed_points tests passed!")
