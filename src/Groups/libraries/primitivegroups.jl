@@ -11,7 +11,7 @@ Currently the number of primitive permutation groups is available up to degree 4
 julia> has_number_of_primitive_groups(50)
 true
 
-julia> has_number_of_primitive_groups(5000)
+julia> has_number_of_primitive_groups(10000)
 false
 ```
 """
