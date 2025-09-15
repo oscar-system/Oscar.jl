@@ -196,20 +196,17 @@ julia> fixed_points(σ)
  2
 ```
 """
-# Fixed points of a single permutation element
+
 function fixed_points(p::PermGroupElem)
   # Return all points in 1:degree that are not moved by p
   points = 1:degree(parent(p))
   return setdiff(points, moved_points(p))
 end
 
-# Fixed points of a permutation group
+
 function fixed_points(G::PermGroup)
-  pts = collect(1:degree(G))
-  for g in gens(G)
-      pts = intersect(pts, fixed_points(g))
-  end
-  return pts
+  is_trivial(G) && return collect(1:degree(G))
+  return mapreduce(fixed_points, intersect, gens(G))
 end
 
 @doc raw"""
