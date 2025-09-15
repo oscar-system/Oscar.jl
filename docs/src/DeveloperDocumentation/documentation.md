@@ -82,10 +82,8 @@ include your new page in the appropriate place.
     Once you have created a pull request it is possible to preview the
     documentation on github using the link
     https://docs.oscar-system.org/previews/PR<prnumber>/
-    where you insert the number of your PR for `prnumber`. Alternatively you
-    can look at the github actions tab of your PR and click the details link
-    next to the `documenter/deploy` action. There are a few conditions for this 
-    to work:
+    where you insert the number of your PR for `<prnumber>`.
+    There are a few conditions for this to work:
     - No conflicts with the master branch.
     - Documentation action is successful, i.e. no doctest errors.
     - The branch for the PR is in the main `oscar-system/Oscar.jl` repository.

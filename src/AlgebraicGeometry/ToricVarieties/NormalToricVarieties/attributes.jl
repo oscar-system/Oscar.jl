@@ -117,20 +117,20 @@ julia> antv = affine_normal_toric_variety(C);
 julia> set_coordinate_names(antv, [:u])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "u"
+1-element Vector{Symbol}:
+ :u
 
 julia> set_coordinate_names(antv, ["v"])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "v"
+1-element Vector{Symbol}:
+ :v
 
 julia> set_coordinate_names(antv, ['w'])
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "w"
+1-element Vector{Symbol}:
+ :w
 ```
 """
 function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -138,7 +138,7 @@ function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Abstr
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
-    set_attribute!(v, :coordinate_names, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names, Symbol.(coordinate_names))
 end
 
 
@@ -154,9 +154,9 @@ julia> F3 = hirzebruch_surface(NormalToricVariety, 3);
 julia> set_coordinate_names_of_torus(F3, ["u", "v"])
 
 julia> coordinate_names_of_torus(F3)
-2-element Vector{String}:
- "u"
- "v"
+2-element Vector{Symbol}:
+ :u
+ :v
 ```
 """
 function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
@@ -164,7 +164,7 @@ function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_nam
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
-    set_attribute!(v, :coordinate_names_of_torus, string.(coordinate_names))
+    set_attribute!(v, :coordinate_names_of_torus, Symbol.(coordinate_names))
 end
 
 
@@ -205,15 +205,15 @@ julia> C = Oscar.positive_hull([1 0]);
 julia> antv = affine_normal_toric_variety(C);
 
 julia> coordinate_names(antv)
-1-element Vector{String}:
- "x1"
+1-element Vector{Symbol}:
+ :x1
 ```
 """
-@attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
+@attr Vector{Symbol} function coordinate_names(v::NormalToricVarietyType)
   if has_attribute(v, :cox_ring)
-    return string.(symbols(cox_ring(v)))
+    return symbols(cox_ring(v))
   end
-  return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
+  return [Symbol(:x, i) for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -529,8 +529,8 @@ end
 Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
-@attr Vector{String} function coordinate_names_of_torus(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:ambient_dim(v)]
+@attr Vector{Symbol} function coordinate_names_of_torus(v::NormalToricVarietyType)
+  return [Symbol(:x, i) for i in 1:ambient_dim(v)]
 end
 
 
@@ -567,7 +567,8 @@ Quotient
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+  nams = coordinate_names_of_torus(v)
+  S, _ = polynomial_ring(coefficient_ring(v), nams, [Symbol(x, '_') for x in nams]; cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 
@@ -591,7 +592,7 @@ x2^2*x1_
 ```
 """
 function character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
-    S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]); cached=false)
+    S, _ = polynomial_ring(coefficient_ring(v), coordinate_names_of_torus(v), [Symbol(x, '_') for x in coordinate_names_of_torus(v)]; cached=false)
     return character_to_rational_function(S, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 end
 character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
@@ -648,7 +649,7 @@ julia> character_lattice(p2)
 Z^2
 ```
 """
-@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+@attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
 
 
 @doc raw"""
@@ -680,7 +681,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
+@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))
 
 
 @doc raw"""
@@ -700,7 +701,7 @@ Map
 """
 @attr FinGenAbGroupHom function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
+    return hom(free_abelian_group(ambient_dim(v)), free_abelian_group(n_rays(v)), mat)
 end
 
 
@@ -736,17 +737,28 @@ end
     class_group(v::NormalToricVarietyType)
 
 Return the class group of the normal toric variety `v`.
+"""
+class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
+
+
+@doc raw"""
+    class_group_with_map(v::NormalToricVarietyType)
+
+Return the class group of the normal toric variety `v` together with the map from the torus
+invariant Weil divisor group into the class group.
 
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> class_group(p2)
-Z
+julia> class_group_with_map(p2)
+(Z, Map: Z^3 -> Z)
 ```
 """
-@attr FinGenAbGroup class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
-
+function class_group_with_map(v::NormalToricVarietyType)
+  mapping = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return codomain(mapping), mapping
+end
 
 @doc raw"""
     map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -769,7 +781,7 @@ Map
     # we cannot call class_group unless the attribute exists
     # but we need to make sure to have the correct codomain if it does exist
     if has_attribute(v, :class_group)
-      cg = class_group(v)
+      cg = get_attribute(v, :class_group)
       return map1*map2*hom(codomain(map2), cg, gens(cg))
     else
       return map1*map2
@@ -932,19 +944,29 @@ end
     picard_group(v::NormalToricVarietyType)
 
 Return the Picard group of an abstract normal toric variety `v`.
+"""
+picard_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
+
+
+@doc raw"""
+    picard_group_with_map(v::NormalToricVarietyType)
+
+Return the Picard group of the normal toric variety `v` together with the map from the torus
+invariant Cartier divisor group into the Picard group.
 
 # Examples
 ```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2)
-Normal toric variety
+julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> picard_group(p2)
-Z
+julia> picard_group_with_map(p2)
+(Z, Map: Z^3 -> Z)
 ```
 """
-@attr FinGenAbGroup function picard_group(v::NormalToricVarietyType)
-    return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
+function picard_group_with_map(v::NormalToricVarietyType)
+  mapping = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
+  return codomain(mapping), mapping
 end
+
 
 @doc raw"""
     map_from_picard_group_to_class_group(v::NormalToricVarietyType)
@@ -965,7 +987,7 @@ Map
 @attr FinGenAbGroupHom function map_from_picard_group_to_class_group(v::NormalToricVarietyType)
     f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
     g = snf(domain(f))[2] * f
-    return hom(picard_group(v), class_group(v), matrix(g))
+    return hom(picard_group_with_map(v)[1], class_group_with_map(v)[1], matrix(g))
 end
 
 

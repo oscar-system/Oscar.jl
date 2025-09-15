@@ -12,7 +12,7 @@ A *matrix group* is a group that consists of invertible square matrices
 over a common ring, the *base ring* of the group
 (see [`base_ring(G::MatrixGroup{RE}) where RE <: RingElem`](@ref)).
 
-Matrix groups in Oscar have the type
+Matrix groups in OSCAR have the type
 [`MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`](@ref),
 their elements have the type
 [`MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}`](@ref).
@@ -119,7 +119,7 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 Sesquilinear forms are alternating and symmetric bilinear forms,
 hermitian forms, and quadratic forms.
 
-Sesquilinear forms in Oscar have the type
+Sesquilinear forms in OSCAR have the type
 [`SesquilinearForm{T<:RingElem}`](@ref).
 
 A sesquilinear form can be created
@@ -189,7 +189,7 @@ upper_triangular_matrix(L::AbstractVector{T}) where {T <: NCRingElement}
 lower_triangular_matrix(L::AbstractVector{T}) where {T <: NCRingElement}
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
-permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
+permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion})
 is_alternating(B::MatElem)
 is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 ```

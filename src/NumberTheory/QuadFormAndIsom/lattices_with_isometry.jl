@@ -153,7 +153,7 @@ julia> L = root_lattice(:A, 5);
 julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> factor(characteristic_polynomial(Lf))
-1 * (x + 1)^5
+(x + 1)^5
 ```
 """
 characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))
@@ -1872,7 +1872,7 @@ julia> mf = minimal_polynomial(Lf)
 x^5 - 1
 
 julia> factor(mf)
-1 * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
+(x - 1) * (x^4 + x^3 + x^2 + x + 1)
 
 julia> kernel_lattice(Lf, x-1)
 Integer lattice of rank 1 and degree 5

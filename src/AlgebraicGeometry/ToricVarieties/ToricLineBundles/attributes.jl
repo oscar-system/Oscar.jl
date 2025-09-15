@@ -208,7 +208,7 @@ basis_of_global_sections(l::ToricLineBundle) = basis_of_global_sections_via_homo
 #############################
 
 @doc raw"""
-    generic_section(l::ToricLineBundle)
+    generic_section(l::ToricLineBundle; range::UnitRange{Int64} = -10000:10000, rng::AbstractRNG = Random.default_rng())
 
 Return a generic section of the toric line bundle `l`, that
 is return the sum of all elements `basis_of_global_sections(l)`,
@@ -217,26 +217,31 @@ each multiplied by a random integer.
 The optional keyword argument `range` can be used to set the range
 of the random integers, e.g., `generic_section(l, range = -100:100)`
 
+The random source used to create random coefficients can be set with
+the optional argument `rng`.
+
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> v = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
-julia> s = generic_section(l);
+julia> s = generic_section(l, rng = Random.Xoshiro(1234));
 
 julia> parent(s) == cox_ring(toric_variety(l))
 true
 ```
 """
-function generic_section(l::ToricLineBundle; range::UnitRange{Int64} = -10000:10000)
+function generic_section(l::ToricLineBundle; range::UnitRange{Int64} = -10000:10000, rng::AbstractRNG = Random.default_rng())
     global_sections = basis_of_global_sections(l)
 
     if length(global_sections) == 0
         return zero(cox_ring(toric_variety(l)))
     end
 
-    return sum(rand(range) * b for b in global_sections)
+    return sum(rand(rng, range) * b for b in global_sections)
 end

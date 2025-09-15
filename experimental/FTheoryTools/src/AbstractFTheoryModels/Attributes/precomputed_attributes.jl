@@ -38,7 +38,9 @@
 @define_model_attribute_getter((zero_section, ZeroSectionType),
 """
 ```jldoctest
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+julia> using Random;
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> zero_section(h)
@@ -53,7 +55,9 @@ julia> zero_section(h)
 @define_model_attribute_getter((zero_section_class, CohomologyClass),
 """
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> zero_section_class(qsm_model)
@@ -65,13 +69,15 @@ Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
 @define_model_attribute_getter((zero_section_index, Int),
 """
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
-julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> zero_section_index(foah15_B3)
@@ -88,7 +94,9 @@ julia> zero_section_index(foah15_B3)
 @define_model_attribute_getter((generating_sections, GeneratingSectionsType),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
@@ -101,13 +109,15 @@ julia> generating_sections(m)
 @define_model_attribute_getter((torsion_sections, TorsionSectionsType),
 """
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
-julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> length(torsion_sections(foah15_B3))
@@ -124,7 +134,9 @@ julia> length(torsion_sections(foah15_B3))
 @define_model_attribute_getter((gauge_algebra, DirectSumLieAlgebra{QQBarFieldElem}),
 """
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+julia> using Random;
+
+julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> gauge_algebra(t)
@@ -144,7 +156,9 @@ over algebraic closure of rational field
 @define_model_attribute_getter((global_gauge_group_quotient, Vector{Vector{String}}),
 """
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+julia> using Random;
+
+julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> global_gauge_group_quotient(t)
@@ -166,7 +180,9 @@ julia> global_gauge_group_quotient(t)
 @define_model_attribute_getter((resolutions, Vector{Tuple{Vector{Vector{String}}, Vector{String}}}),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolutions(m)
@@ -179,7 +195,9 @@ julia> resolutions(m)
 @define_model_attribute_getter((weighted_resolutions, Vector{Tuple{Vector{Tuple{Vector{String}, Vector{Int64}}}, Vector{String}}}),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolutions(m)
@@ -197,7 +215,9 @@ julia> weighted_resolutions(m)
 @define_model_attribute_getter((resolution_zero_sections, ResolutionZeroSectionsType),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_zero_sections(m)
@@ -210,7 +230,9 @@ julia> resolution_zero_sections(m)
 @define_model_attribute_getter((resolution_generating_sections, ResolutionGeneratingSectionsType),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_generating_sections(m)
@@ -223,7 +245,9 @@ julia> resolution_generating_sections(m)
 @define_model_attribute_getter((weighted_resolution_zero_sections, WeightedResolutionZeroSectionsType),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_zero_sections(m)
@@ -236,7 +260,9 @@ julia> weighted_resolution_zero_sections(m)
 @define_model_attribute_getter((weighted_resolution_generating_sections, WeightedResolutionGeneratingSectionsType),
 """
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> using Random;
+
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1", rng = Random.Xoshiro(1234))
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_generating_sections(m)
@@ -262,13 +288,15 @@ See [Exceptional Divisors](@ref exceptional_divisors) for more details.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
-julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> exceptional_classes(foah11_B3)
@@ -296,13 +324,15 @@ See [Exceptional Divisors](@ref exceptional_divisors) for more details.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> Kbar = anticanonical_divisor_class(B3)
 Divisor class on a normal toric variety
 
-julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+julia> foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> exceptional_divisor_indices(foah11_B3)

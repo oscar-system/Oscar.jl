@@ -30,6 +30,7 @@ function linear_program(
     throw(ArgumentError("convention must be set to :min or :max."))
   end
   ambDim = ambient_dim(P)
+  objective = coefficient_field(P).(objective)
   size(objective, 1) == ambDim || error("objective has wrong dimension.")
   lp = Polymake.polytope.LinearProgram{_scalar_type_to_polymake(T)}(;
     LINEAR_OBJECTIVE=homogenize(objective, k)

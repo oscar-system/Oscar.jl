@@ -15,11 +15,11 @@ p = "x^3 - 2*y^2 + x1^16*x*z^4 + x2^24*z^6 + 13*x3^4*x*y*z"
 h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness_check = false)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
-  @test parent(hypersurface_equation(h)) == cox_ring(ambient_space(h))
+  @test parent(hypersurface_equation(h)) == coordinate_ring(ambient_space(h))
   @test dim(base_space(h)) == dim(B3)
   @test fiber_ambient_space(h) == ambient_space_of_fiber
   @test is_smooth(fiber_ambient_space(h)) == false
-  @test symbols(cox_ring(fiber_ambient_space(h))) == [:x, :y, :z]
+  @test symbols(coordinate_ring(fiber_ambient_space(h))) == [:x, :y, :z]
   @test toric_variety(calabi_yau_hypersurface(h)) == ambient_space(h)
   @test is_base_space_fully_specified(h) == true
 end
@@ -47,7 +47,7 @@ end
 end
 
 Kbar = anticanonical_divisor(B3)
-foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false, rng = our_rng)
 
 @testset "Saving and loading hypersurface literature model and some of their attributes" begin
   mktempdir() do path
@@ -70,12 +70,12 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b), rng = our_rng)
 
 # Currently, none of the hypersurface models in our database has corresponding Weierstrass/Tate models.
 # This code thus only tests if the code works, but the assignment is mathematically speaking wrong.
-w_model = weierstrass_model_over_projective_space(2)
-gt_model = global_tate_model_over_projective_space(2)
+w_model = weierstrass_model_over_projective_space(2, rng = our_rng)
+gt_model = global_tate_model_over_projective_space(2, rng = our_rng)
 set_weierstrass_model(h3, w_model)
 set_global_tate_model(h3, gt_model)
 
@@ -85,11 +85,11 @@ set_global_tate_model(h3, gt_model)
 end
 
 @testset "Attributes and properties of hypersurface literature models over concrete base space" begin
-  @test parent(hypersurface_equation(h3)) == cox_ring(ambient_space(h3))
+  @test parent(hypersurface_equation(h3)) == coordinate_ring(ambient_space(h3))
   @test dim(base_space(h3)) == 2
   @test is_smooth(fiber_ambient_space(h3)) == false
   @test is_simplicial(fiber_ambient_space(h3)) == true
-  @test symbols(cox_ring(fiber_ambient_space(h3))) == [:u, :w, :v]
+  @test symbols(coordinate_ring(fiber_ambient_space(h3))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h3) == true
   @test is_partially_resolved(h3) == false
 end
@@ -118,7 +118,7 @@ h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
   @test fiber_ambient_space(h4) == ambient_space_of_fiber_2
   @test is_smooth(fiber_ambient_space(h4)) == false
   @test is_simplicial(fiber_ambient_space(h4)) == true
-  @test symbols(cox_ring(fiber_ambient_space(h4))) == [:x, :y, :z]
+  @test symbols(coordinate_ring(fiber_ambient_space(h4))) == [:x, :y, :z]
   @test is_base_space_fully_specified(h4) == false
   @test is_partially_resolved(h4) == false
 end
@@ -127,14 +127,14 @@ end
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, [D1, D2, D3], p)
 end
 
-h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = our_rng)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
   @test parent(hypersurface_equation(h5)) == coordinate_ring(ambient_space(h5))
   @test dim(base_space(h5)) == 2
   @test is_smooth(fiber_ambient_space(h5)) == false
   @test is_simplicial(fiber_ambient_space(h5)) == true
-  @test symbols(cox_ring(fiber_ambient_space(h5))) == [:u, :w, :v]
+  @test symbols(coordinate_ring(fiber_ambient_space(h5))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h5) == false
   @test is_partially_resolved(h5) == false
 end

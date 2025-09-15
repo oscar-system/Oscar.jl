@@ -8,14 +8,14 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   # Extract information about the toric base
   b_rays = matrix(ZZ, rays(base))
   b_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
-  b_grades = reduce(vcat, [elem.coeff for elem in cox_ring(base).d])
-  b_var_names = symbols(cox_ring(base))
+  b_grades = reduce(vcat, [elem.coeff for elem in coordinate_ring(base).d])
+  b_var_names = symbols(coordinate_ring(base))
   
   # Extract information about the fiber ambient space
   f_rays = matrix(ZZ, rays(fiber_amb_space))
   f_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_amb_space)))
-  f_grades = reduce(vcat, [elem.coeff for elem in cox_ring(fiber_amb_space).d])
-  f_var_names = symbols(cox_ring(fiber_amb_space))
+  f_grades = reduce(vcat, [elem.coeff for elem in coordinate_ring(fiber_amb_space).d])
+  f_var_names = symbols(coordinate_ring(fiber_amb_space))
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
   fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
@@ -34,7 +34,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   
   # Compute divisor group and the class group of a_space
   a_space_divisor_group = free_abelian_group(nrows(a_rays))
-  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group(fiber_amb_space)))
+  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group_with_map(fiber_amb_space)[1]))
   
   # Compute grading of Cox ring of a_space
   a_space_grading = zero_matrix(ZZ, torsion_free_rank(a_space_divisor_group), torsion_free_rank(a_space_class_group))
@@ -47,7 +47,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   # Set important attributes of a_space and return it
   a_space_grading = hom(a_space_divisor_group, a_space_class_group, a_space_grading)
   set_attribute!(a_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, a_space_grading)
-  set_attribute!(a_space, :class_group, a_space_class_group)
+  set_attribute!(a_space, :class_group, codomain(a_space_grading))
   set_attribute!(a_space, :torusinvariant_weil_divisor_group, a_space_divisor_group)
   return a_space
 end
@@ -57,8 +57,8 @@ end
 # 2: Construct the Weierstrass polynomial
 ################################################################
 
-function _weierstrass_sections(base::NormalToricVariety)
-  return [generic_section(anticanonical_bundle(base)^4), generic_section(anticanonical_bundle(base)^6)]
+function _weierstrass_sections(base::NormalToricVariety; rng::AbstractRNG = Random.default_rng())
+  return [generic_section(anticanonical_bundle(base)^4; rng), generic_section(anticanonical_bundle(base)^6; rng)]
 end
 
 function _weierstrass_polynomial(base::NormalToricVariety, S::MPolyRing)
@@ -77,12 +77,12 @@ end
 # 3: Construct the Tate polynomial
 ################################################################
 
-function _tate_sections(base::NormalToricVariety)
-  a1 = generic_section(anticanonical_bundle(base))
-  a2 = generic_section(anticanonical_bundle(base)^2)
-  a3 = generic_section(anticanonical_bundle(base)^3)
-  a4 = generic_section(anticanonical_bundle(base)^4)
-  a6 = generic_section(anticanonical_bundle(base)^6)
+function _tate_sections(base::NormalToricVariety; rng::AbstractRNG = Random.default_rng())
+  a1 = generic_section(anticanonical_bundle(base); rng)
+  a2 = generic_section(anticanonical_bundle(base)^2; rng)
+  a3 = generic_section(anticanonical_bundle(base)^3; rng)
+  a4 = generic_section(anticanonical_bundle(base)^4; rng)
+  a6 = generic_section(anticanonical_bundle(base)^6; rng)
   return [a1, a2, a3, a4, a6]
 end
 
@@ -169,8 +169,8 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
       # Choose explicit sections for all parameters of the model,
       # and then put the model over the concrete base using these data
-      concrete_data = merge(Dict(string(base_coords_symbols[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
-      w = put_over_concrete_base(w, concrete_data)
+      concrete_data = merge(Dict(string(base_coords_symbols[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1])); rng) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
+      w = put_over_concrete_base(w, concrete_data; rng)
 
       # We also need to determine the gauge locus over the new base
       # by using the explicit forms of all of the sections chosen above
@@ -267,9 +267,8 @@ end
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix)
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
-  ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
-  coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
-  w = Matrix{Int64}(reduce(vcat, [k.coeff for k in cox_ring(fiber_ambient_space).d]))
+  coordinate_ring_ambient_space, _ = polynomial_ring(QQ, base_vars, coordinate_names(fiber_ambient_space); cached=false)
+  w = Matrix{Int64}(reduce(vcat, [k.coeff for k in coordinate_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
   D_block = hcat([[Int(fiber_twist_divisor_classes[k,l]) for k in 1:nrows(fiber_twist_divisor_classes)] for l in 1:ncols(fiber_twist_divisor_classes)]...)
   ambient_space_grading = [base_grading D_block; z_block w']

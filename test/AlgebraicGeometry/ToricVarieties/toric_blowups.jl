@@ -22,7 +22,7 @@
     @test betti_number(BP2, 3) == 0
     @test betti_number(BP2, 4) == 1
     @test euler_characteristic(BP2) == 4
-    @test torsion_free_rank(picard_group(BP2)) == 2
+    @test torsion_free_rank(picard_group_with_map(BP2)[1]) == 2
   end
 
   amb = load(joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv"))
@@ -31,9 +31,7 @@
   # The coordinates below correspond to the ideal `ideal([x, y, x1]`
   coords = [1, 0, 0, 0, 1, 1, 0]
 
-  bd1 = blow_up_along_minimal_supercone_coordinates(
-    amb, coords; coordinate_name = "e1"
-  )
+  bd1 = blow_up_along_minimal_supercone_coordinates(amb, coords; coordinate_name = :e1)
   amb1 = domain(bd1)
   
   @testset "Trigger issue of PR3006" begin
@@ -90,7 +88,7 @@
     # Now blowing up along an existing ray
     g = blow_up(X, 2)
     @test n_rays(domain(g)) == 2
-    @test n_cones(domain(g)) == 3
+    @test n_cones(domain(g)) == 4
 
     # Quadratic cone, blowup along maximal cone
     ray_generators = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
@@ -108,6 +106,6 @@
     # Now blowing up along an existing ray
     g = blow_up(X, 6)
     @test n_rays(domain(g)) == 4
-    @test n_cones(domain(g)) == 11
+    @test n_cones(domain(g)) == 12
   end
 end

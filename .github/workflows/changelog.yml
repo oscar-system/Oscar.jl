@@ -21,7 +21,9 @@ jobs:
     steps:
     # Checkout the repository
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
 
     # Run the update script
     - name: Run python script

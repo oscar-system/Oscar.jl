@@ -38,6 +38,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   base_to_ambient_ring_map = hom(base_coords, ambient_coords, gens(ambient_coords)[1:end-3])
   
   # Resolved model
+  # NOTE: _blowup_global_sequence was removed on September 4, 2025. This entire function needs to be rewritten!
   strict_transform, exceptionals, crepant, res_irr, res_sri, res_lin, res_S, res_S_gens, res_ring_map = _blowup_global_sequence(hypersurface_ideal, centers, irr, sri, lin)
   if !crepant
       @warn "The given sequence of blowups is not crepant"
