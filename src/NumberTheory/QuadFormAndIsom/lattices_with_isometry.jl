@@ -775,19 +775,15 @@ function integer_lattice_with_isometry(
 
   if ambient_representation
     f_ambient = f
-    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
-    B = basis_matrix(L)
-    ok, f = can_solve_with_solution(B, B*f_ambient; side=:left)
-    @req ok "Isometry does not preserve the lattice"
+    f = representation_in_lattice_coordinates(L, f; check)
   else
     f_ambient = representation_in_ambient_coordinates(L, f; check)
-    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
   end
+  Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
 
   n = multiplicative_order(f)
 
   if check
-    @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
     @hassert :ZZLatWithIsom 1 basis_matrix(L)*f_ambient == f*basis_matrix(L)
   end
 
@@ -916,8 +912,7 @@ function lattice(
     check::Bool=true
   )
   L = lattice(space(Vf), B; isbasis, check)
-  ok, fB = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*isometry(Vf); side=:left)
-  @req ok "The lattice defined by B is not preserved under the action of the isometry of Vf"
+  fB = representation_in_lattice_coordinates(L, isometry(Vf); check)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   return ZZLatWithIsom(Vf, L, fB, n)
 end
@@ -983,11 +978,18 @@ end
 ###############################################################################
 
 @doc raw"""
-    orthogonal_submodule(Lf::ZZLatWithIsom, B::QQMatrix) -> ZZLatWithIsom
+    orthogonal_submodule(
+      Lf::ZZLatWithIsom,
+      B::QQMatrix;
+      check::Bool=true,
+    ) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$ and a matrix $B$ with rational entries
 defining an $f$-stable sublattice of $L$, return the largest submodule of $L$
 orthogonal to each row of $B$, equipped with the induced action from $f$.
+
+If `check` is set to false, the function does not check whether ``B`` and its
+orthogonal complement are ``f``-stable.
 
 # Examples
 ```jldoctest
@@ -1016,10 +1018,14 @@ Integer lattice of rank 2 and degree 5
   [ 0   -1]
 ```
 """
-function orthogonal_submodule(Lf::ZZLatWithIsom, B::QQMatrix)
+function orthogonal_submodule(
+  Lf::ZZLatWithIsom,
+  B::QQMatrix;
+  check=true,
+)
   @req ncols(B) == degree(Lf) "The rows of B should represent vectors in the ambient space of Lf"
   B2 = basis_matrix(orthogonal_submodule(lattice(Lf), B))
-  return lattice_in_same_ambient_space(Lf, B2; check=false)
+  return lattice_in_same_ambient_space(Lf, B2; check)
 end
 
 @doc raw"""
@@ -1558,7 +1564,7 @@ function discriminant_representation(
     Oq = orthogonal_group(q)
     imag_lis = elem_type(Oq)[Oq(f; check=false) for f in imag_lis_map]
   else
-    Oq = Oscar._orthogonal_group(q, matrix.(imag_lis); check=false)
+    Oq = Oscar._orthogonal_group(q, matrix.(imag_lis_map); check=false)
     imag_lis = gens(Oq)
   end
   return hom(G, Oq, geneG, imag_lis; check=false)
@@ -1595,7 +1601,7 @@ end
       L::ZZLat,
       G::MatrixGroup;
       ambient_representation::Bool=true,
-      check::Bool=true
+      check::Bool=true,
     ) -> MatrixGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
@@ -1625,10 +1631,14 @@ julia> index(OA4, H)
 function stable_subgroup(
     L::ZZLat,
     G::MatrixGroup;
-    kwargs...,
+    ambient_representation::Bool=true,
+    check::Bool=true,
   )
   @req is_finite(G) "The group G must be finite"
-  discL = discriminant_representation(L, G; kwargs...)
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
+  end
+  discL = discriminant_representation(L, G; ambient_representation, check, full=false)
   return kernel(discL)
 end
 
@@ -1749,6 +1759,95 @@ function _transfer_isometry(
     vQ[i] = zero(QQ)
   end
   return gQ
+end
+
+###############################################################################
+#
+#  Special isometries
+#
+###############################################################################
+
+@doc raw"""
+    is_special_isometry(Lf::ZZLatWithIsom) -> Bool
+
+Given an integral $\mathbb{Z}$-lattice with isometry ``(L, f)``, return
+whether the isometry ``f`` acts trivially on the discriminant group of ``L``.
+
+# Examples
+```jldoctest
+julia> A2 = root_lattice(:A, 2);
+
+julia> f = matrix(QQ, 2, 2, [0 -1; 1 1]);
+
+julia> Lf = integer_lattice_with_isometry(A2, f);
+
+julia> is_special_isometry(Lf)
+true
+```
+"""
+function is_stable_isometry(Lf::ZZLatWithIsom)
+  return is_one(det(isometry(Lf)))
+end
+
+@doc raw"""
+    special_subgroup(
+      L::ZZLat,
+      G::MatrixGroup;
+      ambient_representation::Bool=true,
+      check::Bool=true
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
+normal subgroup $S$ of $G$ consisting of isometries with determinant ``+1``,
+together with embedding $S \to G$.
+
+If `ambient_representation` is set to `true`, then the isometries in $G$ are
+considered as matrix representation of their action on the standard basis of
+the ambient space of $L$. Otherwise, they are considered as matrix
+representation of their action on the basis matrix of $L$.
+
+# Examples
+```jldoctest
+julia> A4 = root_lattice(:A, 4);
+
+julia> OA4 = isometry_group(A4);
+
+julia> H, _ = special_subgroup(A4, OA4)
+(Matrix group of degree 4 over QQ, Hom: H -> OA4)
+
+julia> index(OA4, H)
+2
+```
+"""
+function special_subgroup(
+    L::ZZLat,
+    G::MatrixGroup;
+    ambient_representation::Bool=true,
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
+  end
+  @req is_finite(G) "The group G must be finite"
+  mu = matrix_group(QQMatrix[QQ[-1;]])
+  j = one(mu)
+  d = hom(G, mu, [Int(det(m))*j for m in gens(G)])
+  return kernel(d)
+end
+
+function _special_stable_subgroup(
+    L::ZZLat,
+    G::MatrixGroup;
+    ambient_representation::Bool=true,
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
+  end
+  @req is_finite(G) "The group G must be finite"
+  H, j1 = stable_subgroup(L, G; ambient_representation, check=false)
+  H, j2 = special_subgroup(L, H; ambient_representation, check=false)
+  return H, compose(j2, j1)
 end
 
 ###############################################################################

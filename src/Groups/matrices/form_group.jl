@@ -957,3 +957,62 @@ function stable_orthogonal_group(
   @req is_finite(OL) "Isometry group must be of finite order"
   return stable_subgroup(L, OL; check=false)
 end
+
+@doc raw"""
+    special_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ with finite isometry group, return the
+subgroup $SO(L)$ of the isometry group of $L$ consisting of isometries
+with determinant ``1``.
+
+# Examples
+```jldoctest
+julia> D5 = root_lattice(:D, 5);
+
+julia> H, _ = special_orthogonal_group(D5);
+
+julia> order(H)
+1920
+```
+"""
+function special_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  @req is_finite(OL) "Isometry group must be of finite order"
+  return special_subgroup(L, OL; check=false)
+end
+
+# We do not export this one, it is just a shortcut
+@doc raw"""
+    _special_stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ with finite isometry group, return the
+subgroup $SO^\#(L)$ of the isometry group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$ and of determinant ``1``.
+
+# Examples
+```jldoctest
+julia> A6 = root_lattice(:A, 6);
+
+julia> H, _ = Oscar._special_stable_orthogonal_group(A6);
+
+julia> describe(H)
+"A7"
+```
+"""
+function _special_stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  @req is_finite(OL) "Isometry group must be of finite order"
+  return Oscar._special_stable_subgroup(L, OL; check=false)
+end

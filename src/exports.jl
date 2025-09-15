@@ -1422,6 +1422,7 @@ export point_matrix
 export point_vector
 export points
 export pointwize_stabilizer_in_orthogonal_group
+export pointwize_stabilizer_orthogonal_complement_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type

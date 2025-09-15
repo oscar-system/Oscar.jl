@@ -651,4 +651,19 @@ end
   G = stabilizer_in_orthogonal_group(L, v)
   @test order(G)==2
   @test all(v*matrix(g)==v for g in gens(G))
+
+  for i in 2:7
+    Ai = root_lattice(:A, i)
+    S = symmetric_group(i+1)
+    A = alternating_group(i+1)
+    T = isodd(i) ? S : direct_product(A, cyclic_group(2))
+    O_st, _ = stable_orthogonal_group(Ai)
+    @test is_isomorphic(O_st, S)
+
+    O_sp, _ = special_orthogonal_group(Ai)
+    @test is_isomorphic(O_sp, T)
+
+    O_spst, _ = Oscar.special_stable_orthogonal_group(Ai)
+    @test is_isomorphic(O_spst, A)
+  end
 end
