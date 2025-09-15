@@ -1683,6 +1683,7 @@ export spanning_sets
 export spec
 export special_linear_group
 export special_orthogonal_group
+export special_subgroup
 export special_unitary_group
 export splitting
 export splitting_of_hermitian_type
