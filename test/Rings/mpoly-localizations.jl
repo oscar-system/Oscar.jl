@@ -524,3 +524,14 @@ end
   @test dim(K) == -inf
 end
 
+@testset "issue 5316" begin
+  R, (x, y) = QQ[:x, :y]
+  f = x+y
+  U = powers_of_element(f)
+  V = Oscar.MPolyLeadingMonOne(neglex(gens(R)))
+  T = U*V
+  L, _ = localization(R, T)
+  I = ideal(L, x)
+  @test coordinates(x, I)[1] == one(L)
+end
+
