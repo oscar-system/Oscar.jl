@@ -155,8 +155,8 @@ end
 struct AllModuleExponents{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGroupElem}}
   F::ModuleType
   d::DegreeType
-  exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
   check::Bool
+  exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
 
   function AllModuleExponents(F::FreeMod{T}, d::Int; check::Bool=true) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
@@ -168,7 +168,7 @@ struct AllModuleExponents{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGr
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_zm_graded(S) || error("iterator implemented only for the ZZ^m-graded case")
-    return new{typeof(F), FinGenAbGroupElem}(F, d, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}(), check)
+    return new{typeof(F), FinGenAbGroupElem}(F, d, check, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}())
   end
 end
 
