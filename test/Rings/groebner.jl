@@ -236,6 +236,12 @@ end
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
   @test elements(H) == G
   @test length(I.gb) == 1
+  # issue 5216
+  R, (a,b,c,d,x,y,z,w) = polynomial_ring(QQ, ["a", "b", "c", "d", "x", "y", "z", "w"])
+  I = ideal(R, [x - a*c, y - a*c*d, z - a*c^2 - b, w - a*c^2*d - b*d])
+  H = groebner_basis_f4(I; eliminate=4);
+  G= [-x*w + y*z]
+  @test elements(H) == G
 end
 
 @testset "fglm" begin
