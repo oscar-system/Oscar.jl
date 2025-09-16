@@ -91,6 +91,16 @@ leader(p::ActionPolyRingElem)
 
 We also provide the usual `ngens` and `nvars` methods that respectively return the number of currently tracked jet variables.
 
+## [Basic methods for action polynomial rings](@id basic_functionality_apr)
+
+```@docs
+zero(A::ActionPolyRing)
+one(A::ActionPolyRing)
+n_elementary_symbols(A::ActionPolyRing)
+elementary_symbols(A::DifferencePolyRing)
+n_action_maps(A::DifferencePolyRing)
+```
+
 ## [Iterators](@id iterators_apr)
 
 The following iterators are available for elements of action polynomial rings. The entries across the different iterators are

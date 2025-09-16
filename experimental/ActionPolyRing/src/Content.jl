@@ -172,8 +172,18 @@ elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
+@doc raw"""
+    zero(A::ActionPolyRing)
+
+Return the zero element of the action polynomial ring `A`.
+"""
 zero(apr::ActionPolyRing) = apr()
 
+@doc raw"""
+    one(A::ActionPolyRing)
+
+Return the multiplicitive identity of the action polynomial ring `A`.
+"""
 one(apr::ActionPolyRing) = apr(one(__upr(apr)))
 
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
@@ -217,10 +227,26 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 
 base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
 
+@doc raw"""
+    n_elementary_symbols(A::ActionPolyRing) -> Int
+
+Return the number of elementary symbols of the action polynomial ring `A`.
+"""
 n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
+@doc raw"""
+    elementary_symbols(A::ActionPolyRing) -> Vector{Symbol}
+
+Return the elementary_symbols of the action polynomial ring `A` as a vector.
+"""
 elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
 
+
+@doc raw"""
+    n_action_maps(A::ActionPolyRing) -> Int
+
+Return the elementary_symbols of the action polynomial ring `A` as a vector.
+"""
 n_action_maps(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.n_action_maps
 
 ##### Elements #####
@@ -394,8 +420,8 @@ is_gen(apre::ActionPolyRingElem) = is_gen(data(apre))
 @doc raw"""
     gen(A::ActionPolyRing, i::Int, jet::Vector{Int})
 
-Return the `i`-th elementary variable with multiindex `jet` in the action polynomial
-`A`. If this jet variable was untracked, it is tracked afterwards. The index of the jet variable may also be passed as a tuple.
+Return the jet variable of the action polynomial ring `A` specified by `i` and `jet`. If this jet variable was untracked, it is tracked afterwards.
+The index of the jet variable may also be passed as a tuple.
 
 # Examples
 
@@ -1195,7 +1221,7 @@ end
 ### Difference ###
 
 @doc raw"""
-  parent(r::ActionPolyRingRanking)
+    parent(r::ActionPolyRingRanking)
 
 Return the action polynomial ring `A` with `r = ranking(A)`.
 """
