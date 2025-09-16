@@ -15,8 +15,6 @@ orderings of ``\mathbb{N}_0^n``, rankings of jet variables correspond to total o
 
 Specifically, we identify a jet variable ``(u_i)_J \in A`` with the pair ``(i, J) \in X``.
 
----
-
 ## [Riquier rankings](@id actionpolyriquierranking)
 
 The rankings we use are called *Riquier rankings*. By definition, these are rankings of ``X`` that extend to a ranking of
@@ -27,7 +25,7 @@ of the jet variables defined by ``X`` coincides with the ordering obtained from 
 on ``\mathbb{N}_0^{m+n}`` defined by ``M``.
 
 For this construction, we identify a jet variable ``(u_i)_J \in A`` with ``(e_i, J) \in \mathbb{N}_0^{m+n}``,
-where ``e_i`` is the ``i``-th unit row vector and restrict ourselves to integer matrices ``M``. In this context, we call ``M``
+where ``e_i`` is the ``i``-th unit row and restrict ourselves to integer matrices ``M``. In this context, we call ``M``
 a *Riquier matrix*.
 
 !!! note

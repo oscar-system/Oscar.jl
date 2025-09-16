@@ -227,6 +227,11 @@ using Test
           @test gens(dpr) == [u1_010, u1_100, u1, u2_100, u2, u3_111, u3]
           @test all(var -> is_gen(var), gens(dpr))
             
+          #Permutations
+          @test !__are_perms_up_to_date(dpr)
+          @test __perm_for_sort(dpr) == [5,4,1,6,2,7,3]
+          @test __are_perms_up_to_date(dpr)
+          
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -234,6 +239,10 @@ using Test
             @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
             @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
+          Rtmp0 = parent(to_univariate(dpr(0)))
+          Rtmp1 = parent(to_univariate(dpr(1)))
+          @test gen(Rtmp0) == gen(Rtmp1)
+          @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
         
           @testset "Check internals after adding variables" begin
             upr = __upr(dpr)
@@ -255,10 +264,6 @@ using Test
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
           
-            #Permutations
-            @test !__are_perms_up_to_date(dpr)
-            @test __perm_for_sort(dpr) == [5,4,1,6,2,7,3]
-            @test __are_perms_up_to_date(dpr)
           end
         
           @testset "Check public fields after adding variables" begin
@@ -479,6 +484,11 @@ using Test
           @test gens(dpr) == [u3_111, u2_100, u2, u3, u1_100, u1_010, u1]
           @test all(var -> is_gen(var), gens(dpr))
             
+          #Permutations
+          @test !__are_perms_up_to_date(dpr)
+          @test __perm_for_sort(dpr) == [7,6,2,3,4,5,1]
+          @test __are_perms_up_to_date(dpr)
+            
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -486,6 +496,11 @@ using Test
             @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
             @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
+          Rtmp0 = parent(to_univariate(dpr(0)))
+          Rtmp1 = parent(to_univariate(dpr(1)))
+          @test gen(Rtmp0) == gen(Rtmp1)
+          @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
+
           
           @testset "Check internals after changing ranking" begin
             upr = __upr(dpr)
@@ -507,10 +522,6 @@ using Test
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
           
-            #Permutations
-            @test !__are_perms_up_to_date(dpr)
-            @test __perm_for_sort(dpr) == [7,6,2,3,4,5,1]
-            @test __are_perms_up_to_date(dpr)
           end
         
           @testset "Check public fields after changing ranking" begin

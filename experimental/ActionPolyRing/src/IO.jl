@@ -144,7 +144,7 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", ran::ActionPolyRingRanking)
   io = pretty(io)
-  print(io, "Ranking of ", Lowercase(), base_ring(ran))
+  print(io, "Ranking of ", Lowercase(), parent(ran))
   print(io, "\n")
   print(io, "with elementary symbols partitioned by\n")
   print(io, Indent())
@@ -161,10 +161,10 @@ function Base.show(io::IO, ran::ActionPolyRingRanking)
   if is_terse(io)
     print(io, "Ranking")
   else
-    if base_ring(ran) isa DifferencePolyRing
+    if parent(ran) isa DifferencePolyRing
       print(terse(io), "Ranking of difference polynomial ring")
     end
-    if base_ring(ran) isa DifferentialPolyRing
+    if parent(ran) isa DifferentialPolyRing
       print(terse(io), "Ranking of differential polynomial ring")
     end
   end
