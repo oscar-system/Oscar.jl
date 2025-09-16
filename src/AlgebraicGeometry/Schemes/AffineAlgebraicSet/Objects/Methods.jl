@@ -141,7 +141,7 @@ julia> rational_points(X)
 """
 function rational_points(X::AffineAlgebraicSet)
   I = defining_ideal(X)
-  dim(I) == 0 || error("Not a zero-dimensional algebraic set")
+  @rep dim(I) == 0 "Not a zero-dimensional algebraic set"
   PL = minimal_primes(I)
   result = []
   for J in PL
