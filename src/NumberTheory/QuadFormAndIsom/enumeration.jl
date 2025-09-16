@@ -2546,7 +2546,7 @@ function oscar_genus_representatives(
   save_partial::Bool=false,
   save_path::Union{IO, String, Nothing}=nothing,
   stop_after::IntExt=1000,
-  max_lat::IntExt=inf,
+  max_lat::IntExt=1,
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
   root_test::Bool=false,
   info_depth::Int=1,
