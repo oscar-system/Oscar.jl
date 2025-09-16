@@ -135,7 +135,9 @@ Affine algebraic set
 defined by ideal (x^2 - 1, y - 3)
 
 julia> rational_points(X)
-
+2-element Vector{Vector{QQFieldElem}}:
+ [1, 3]
+ [-1, 3]
 
 ```
 """
