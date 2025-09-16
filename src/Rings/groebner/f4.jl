@@ -13,7 +13,7 @@ Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 
 See [Fau99](@cite) for more information.
 
 !!! note
-    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported.
+    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported. For the rationals a multi-modular approach is used without final verification test over the rationals.
 
 # Possible keyword arguments
 - `initial_hts::Int=17`: initial hash table size `log_2`.
