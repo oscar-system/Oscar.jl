@@ -281,7 +281,6 @@ function root_system(W::WeylGroup)
   return W.root_system
 end
 
-
 ###############################################################################
 # Weyl group elements
 
