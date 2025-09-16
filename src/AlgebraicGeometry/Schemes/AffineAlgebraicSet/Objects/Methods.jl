@@ -141,7 +141,7 @@ julia> rational_points(X)
 """
 function rational_points(X::AffineAlgebraicSet{T}) where T <: Field 
   I = defining_ideal(X)
-  @rep dim(I) == 0 "Not a zero-dimensional algebraic set"
+  @req dim(I) == 0 "Not a zero-dimensional algebraic set"
   PL = minimal_primes(I)
   result = Vector{elem_type(T)}[]
   for J in PL
