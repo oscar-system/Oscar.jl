@@ -79,7 +79,7 @@ Construct the differential polynomial ring over the base ring `R` with the given
 
 In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each elementary symbol.
 
-Returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
+Returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the 
 vector of initial jet variables.  
 
 This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
@@ -245,7 +245,7 @@ elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.e
 @doc raw"""
     n_action_maps(A::ActionPolyRing) -> Int
 
-Return the elementary_symbols of the action polynomial ring `A` as a vector.
+Return the number of elementary symbols of the action polynomial ring `A`.
 """
 n_action_maps(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.n_action_maps
 

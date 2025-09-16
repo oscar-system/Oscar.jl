@@ -36,7 +36,8 @@ a *Riquier matrix*.
 
 In OSCAR we define rankings, i.e. total orderings of ``X`` by combining the natural *less-than* relation on ``\underline{m}``
 with a customizable total ordering on ``\mathbb{N}_0^n``. The latter is constructed as a matrix ordering; see
-[`index_ordering_matrix`](@ref)./
+[`index_ordering_matrix`](@ref).
+
 The way of combining of these two total orderings to obtain a total ordering of ``X`` is specified by an ordered partition of
 ``\underline{m}``, i.e. by grouping the elements of ``\underline{m}`` into blocks. The first block is considered largest and so on.
 See [`partition`](@ref partition(r::ActionPolyRingRanking)).
