@@ -167,7 +167,7 @@ using Test
           @test base_ring(dpr) == ZZ
           @test all(var -> base_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-          @test ndiffs(dpr) == 3
+          @test n_action_maps(dpr) == 3
           @test n_elementary_symbols(dpr) == 3
           @test all(var -> parent(var) === dpr, vars)
 
@@ -265,7 +265,7 @@ using Test
             @test base_ring(dpr) == ZZ
             @test all(var -> base_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-            @test ndiffs(dpr) == 3
+            @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
 
             ran = ranking(dpr)
@@ -517,7 +517,7 @@ using Test
             @test base_ring(dpr) == ZZ
             @test all(var -> base_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-            @test ndiffs(dpr) == 3
+            @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
           
             ran = ranking(dpr)
@@ -763,9 +763,9 @@ using Test
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
             @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
             @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
             @test diff_action(dpr(-2), 1) == dpr(-2)
             @test diff_action(dpr(-2), [0,0,0]) == dpr(-2)
             @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
@@ -794,9 +794,9 @@ using Test
           end
           if dpr isa DifferentialPolyRing
             @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
             @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
             @test is_zero(diff_action(dpr(-2), 1))
             @test diff_action(dpr(-2), [0,0,0]) == -2
             @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 

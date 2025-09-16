@@ -8,15 +8,15 @@
 
 ### Difference ###
 @doc raw"""
-    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, ndiffs::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 Construct the difference polynomial ring over the base ring `R` with the given elementary symbols and 
-`ndiffs` commuting endomorphisms. 
+`n_action_maps` commuting endomorphisms. 
 
 - If `elementary_symbols` is a vector of symbols, those names are used.  
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
 
-In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `ndiffs`.
+In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `n_action_maps`.
 
 Returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
 vector of its elementary variables.  
@@ -55,29 +55,29 @@ julia> variablesS
  c[0,0,0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
+function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_elementary_symbols])))
 end
 
-function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
+function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int; kwargs...)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:length(elementary_symbols)])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
 end
 
 ### Differential ###
 @doc raw"""
-    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, ndiffs::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
 Construct the differential polynomial ring over the base ring `R` with the given elementary symbols and 
-`ndiffs` commuting derivations. 
+`n_action_maps` commuting derivations. 
 
 - If `elementary_symbols` is a vector of symbols, those names are used.  
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
 
-In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `ndiffs`.
+In both cases, each variable is initially indexed by the multiindex `[0,…,0]` of length `n_action_maps`.
 
 Returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the 
 vector of its elementary variables.  
@@ -116,16 +116,16 @@ julia> variablesS
  c[0,0,0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, ndiffs::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, ndiffs)
+function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:n_elementary_symbols])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_elementary_symbols])))
 end
 
-function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, ndiffs::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, ndiffs)
+function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int; kwargs...)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, ndiffs)) for i in 1:length(elementary_symbols)])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
 end
 
 ##### Elements #####
@@ -221,7 +221,7 @@ n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 
 elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
 
-ndiffs(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.ndiffs
+n_action_maps(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.n_action_maps
 
 ##### Elements #####
 
@@ -641,8 +641,8 @@ Apply the `i`-th endomorphism to the polynomial `p`.
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
-  @req i in 1:ndiffs(dpr) "index out of range"
-  d = fill(0, ndiffs(parent(dpre)))
+  @req i in 1:n_action_maps(dpr) "index out of range"
+  d = fill(0, n_action_maps(parent(dpre)))
   d[i] = 1
   return diff_action(dpre, d)
 end
@@ -654,7 +654,7 @@ Apply the `i`-th derivation to the polynomial `p`.
 """
 function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
-  @req i in 1:ndiffs(dpr) "index out of range"
+  @req i in 1:n_action_maps(dpr) "index out of range"
 
   # Remove constant term: d_i(1) = 0
   dpre -= constant_coefficient(dpre)
@@ -663,7 +663,7 @@ function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
     return dpre
   end
  
-  d = fill(0, ndiffs(dpr))
+  d = fill(0, n_action_maps(dpr))
   d[i] = 1
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = filter(new_idx -> !haskey(__jtu_idx(dpr), new_idx), map(idx -> (idx[1], idx[2] + d), dpre_vars_idxs))
@@ -709,7 +709,7 @@ Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, wh
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
-  @req length(d) == ndiffs(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
+  @req length(d) == n_action_maps(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
   if is_zero(d)
     return dpre
   end
@@ -752,7 +752,7 @@ end
 
 function diff_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
-  @req len == ndiffs(parent(dpre)) && all(>=(0), d) "Invalid vector of diff multiplicities"
+  @req len == n_action_maps(parent(dpre)) && all(>=(0), d) "Invalid vector of diff multiplicities"
   res = dpre
   for i in 1:len
     for j in 1:d[i]
@@ -1031,7 +1031,7 @@ function __my_lt_for_vec(perm::Vector{Int})
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
-__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == ndiffs(apr) && all(>=(0), jet)
+__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == n_action_maps(apr) && all(>=(0), jet)
 
 function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
@@ -1090,7 +1090,7 @@ This method configures the ranking of the action polynomial ring `A`, using an o
 
 - `partition`: A custom partition of the elementary symbols, represented as a vector of characteristic vectors. The elementary symbols corresponding to the first characteristic vectors are considered largest and so on.
 
-- `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `ndiffs(A)`.
+- `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `n_action_maps(A)`.
 
 # Examples
 
@@ -1134,7 +1134,7 @@ function set_ranking!(dpr::PolyT;
   ) where {PolyT <: ActionPolyRing}
   
   __set_are_perms_up_to_date!(dpr, false)
-  m, n = n_elementary_symbols(dpr), ndiffs(dpr)
+  m, n = n_elementary_symbols(dpr), n_action_maps(dpr)
   dpr.ranking = ActionPolyRingRanking{PolyT}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
   return ranking(dpr)
 end
@@ -1227,7 +1227,7 @@ function riquier_matrix(ran::ActionPolyRingRanking)
     par = partition(ran)
     apr = parent(ran)
     upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_elementary_symbols(apr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
-    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, ndiffs(apr))])
+    lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, n_action_maps(apr))])
     ran.riquier_matrix = vcat(upper_part, lower_part)
   end
   return ran.riquier_matrix
