@@ -36,7 +36,6 @@ true
 """
 model(gf::FamilyOfG4Fluxes) = gf.model
 
-
 @doc raw"""
     matrix_integral(gf::FamilyOfG4Fluxes)
 
@@ -71,7 +70,6 @@ true
 ```
 """
 matrix_integral(gf::FamilyOfG4Fluxes) = gf.mat_int
-
 
 @doc raw"""
     matrix_rational(gf::FamilyOfG4Fluxes)
@@ -108,7 +106,6 @@ true
 """
 matrix_rational(gf::FamilyOfG4Fluxes) = gf.mat_rat
 
-
 @doc raw"""
     offset(gf::FamilyOfG4Fluxes)
 
@@ -144,7 +141,6 @@ true
 """
 offset(gf::FamilyOfG4Fluxes) = gf.offset
 
-
 #####################################################
 # 2 Compute the D3-tadpole constraint
 #####################################################
@@ -179,16 +175,20 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> fgs = special_flux_family(qsm_model, completeness_check = false)
+julia> fgs = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> d3_tadpole_constraint(fgs);
+julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
 ```
 """
-@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
+@attr QQMPolyRingElem function d3_tadpole_constraint(
+  fgs::FamilyOfG4Fluxes;
+  completeness_check::Bool=true,
+  rng::AbstractRNG=Random.default_rng(),
+)
 
   # Entry checks
   m = model(fgs)
@@ -203,12 +203,12 @@ julia> d3_tadpole_constraint(fgs);
 
   # Are intersection numbers known?
   inter_dict = get_attribute!(m, :inter_dict) do
-    Dict{NTuple{4, Int64}, ZZRingElem}()
-  end::Dict{NTuple{4, Int64}, ZZRingElem}
+    Dict{NTuple{4,Int64},ZZRingElem}()
+  end::Dict{NTuple{4,Int64},ZZRingElem}
   s_inter_dict = get_attribute!(m, :s_inter_dict) do
-    Dict{String, ZZRingElem}()
-  end::Dict{String, ZZRingElem}
-  
+    Dict{String,ZZRingElem}()
+  end::Dict{String,ZZRingElem}
+
   # Compute data, that is used by the default/sophisticated intersection product
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = coordinate_ring(ambient_space(m))
@@ -218,14 +218,18 @@ julia> d3_tadpole_constraint(fgs);
     mnf = Oscar._minimal_nonfaces(ambient_space(m))
     sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
     data = (
-      S = S,
-      gS = gS,
-      linear_relations = linear_relations,
-      scalings = scalings,
-      sr_ideal_pos = sr_ideal_pos
+      S=S,
+      gS=gS,
+      linear_relations=linear_relations,
+      scalings=scalings,
+      sr_ideal_pos=sr_ideal_pos,
     )
   else
-    cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+    cy = polynomial(
+      cohomology_class(
+        toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+      ),
+    )
   end
 
   # Find the number of integral and rational parameters
@@ -233,7 +237,9 @@ julia> d3_tadpole_constraint(fgs);
   numb_rat_parameters = ncols(matrix_rational(fgs))
 
   # Create a polynomial ring with parameters ai for the integral_parameters and ri for the rational parameters
-  amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
+  amb_ring, my_gens = polynomial_ring(
+    QQ, "a#" => 1:numb_int_parameters, "r#" => 1:numb_rat_parameters
+  )
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
   basis = gens_of_h22_hypersurface(m; completeness_check)
@@ -263,22 +269,35 @@ julia> d3_tadpole_constraint(fgs);
       inter_number = ZZ(0)
       for l1 in 1:length(basis)
         for l2 in 1:length(basis)
-
           val = gen1[l1] * gen2[l2]
           is_zero(val) && continue
 
           my_tuple = Tuple(sort([basis_indices[l1]..., basis_indices[l2]...]))
 
           if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
-            change = sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data)
+            change = sophisticated_intersection_product(
+              ambient_space(m),
+              my_tuple,
+              hypersurface_equation(m),
+              inter_dict,
+              s_inter_dict,
+              data;
+              rng,
+            )
           else
             change = get!(inter_dict, my_tuple) do
-              return QQ(integrate(cohomology_class(ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy); completeness_check))
+              return QQ(
+                integrate(
+                  cohomology_class(
+                    ambient_space(m), polynomial(basis[l1]) * polynomial(basis[l2]) * cy
+                  );
+                  completeness_check,
+                ),
+              )
             end
           end
 
           inter_number += val * change
-          
         end
       end
 
@@ -292,11 +311,12 @@ julia> d3_tadpole_constraint(fgs);
       end
       exp_vec[k1] = 0
       exp_vec[k2] = 0
-
     end
   end
   tadpole_constraint_polynomial = finish(C)
-  tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m; completeness_check)
+  tadpole_constraint_polynomial =
+    -1//2 * tadpole_constraint_polynomial +
+    1//24 * euler_characteristic(m; completeness_check)
 
   # Update the computed intersection numbers
   set_attribute!(m, :inter_dict, inter_dict)
@@ -304,5 +324,4 @@ julia> d3_tadpole_constraint(fgs);
 
   # Finally, return the result
   return tadpole_constraint_polynomial::QQMPolyRingElem
-
 end

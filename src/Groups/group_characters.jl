@@ -891,7 +891,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 
     # Compute display format for power maps.
     names = class_names(tbl)
-    pmaps = Vector{Any}(GAPWrap.ComputedPowerMaps(gaptbl))
+    pmaps = Vector{Any}(GAPWrap.ComputedPowerMaps(gaptbl), recursive = true)
     power_maps_primes = String[]
     power_maps_strings = Vector{String}[]
     for i in 2:length(pmaps)

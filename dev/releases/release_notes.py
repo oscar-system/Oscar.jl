@@ -84,11 +84,8 @@ def warning(s):
 # the given label is put into the corresponding section; each PR is put into only one section, the first one
 # one from this list it fits in.
 # See also <https://github.com/gap-system/gap/issues/4257>.
-prioritylist = [
-    ["release notes: highlight", "Highlights"],
-
-    ["renaming", "Renamings"],
-
+topics = [
+    ["release notes: highlight",    "Highlights"],
     ["topic: algebraic geometry",   "Algebraic Geometry"],
     ["topic: combinatorics",        "Combinatorics"],
     ["topic: commutative algebra",  "Commutative Algebra"],
@@ -99,16 +96,6 @@ prioritylist = [
     ["topic: polyhedral geometry",  "Polyhedral Geometry"],
     ["topic: toric geometry",       "Toric Geometry"],
     ["topic: tropical geometry",    "Tropical Geometry"],
-
-    ["serialization",               "Changes related to serializing data in the MRDI file format"],
-
-    ["enhancement",                 "New features or extended functionality"],
-    ["experimental",                "Only changes experimental parts of OSCAR"],
-    ["optimization",                "Performance improvements or improved testing"],
-    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
-    ["bug",                         "Other fixed bugs"],
-    ["documentation",               "Improvements or additions to documentation"],
-
     ["package: AbstractAlgebra",    "Changes related to the package AbstractAlgebra"],
     ["package: AlgebraicSolving",   "Changes related to the package AlgebraicSolving"],
     ["package: GAP",                "Changes related to the package GAP"],
@@ -116,7 +103,18 @@ prioritylist = [
     ["package: Nemo",               "Changes related to the package Nemo"],
     ["package: Polymake",           "Changes related to the package Polymake"],
     ["package: Singular",           "Changes related to the package Singular"],
-
+]
+prtypes = [
+    ["renaming",                    "Renamings"],
+    ["serialization",               "Changes related to serializing data in the MRDI file format"],
+    ["enhancement",                 "New features or extended functionality"],
+    ["experimental",                "Only changes experimental parts of OSCAR"],
+    ["optimization",                "Performance improvements or improved testing"],
+    ["bug: wrong result",           "Fixed bugs that returned incorrect results"],
+    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
+    ["bug: unexpected error",       "Fixed bugs that resulted in unexpected errors"],
+    ["bug",                         "Other fixed bugs"],
+    ["documentation",               "Improvements or additions to documentation"],
 ]
 
 
@@ -209,28 +207,57 @@ which we think might affect some users directly.
         totalPRs = len(prs)
         print(f"Total number of PRs: {totalPRs}")
         countedPRs = 0
-        for priorityobject in prioritylist:
+        for priorityobject in topics:
             matches = [
                 pr for pr in prs_with_use_title if has_label(pr, priorityobject[0])
             ]
             print("PRs with label '" + priorityobject[0] + "': ", len(matches))
+            print(matches)
             countedPRs = countedPRs + len(matches)
             if len(matches) == 0:
                 continue
             relnotes_file.write("### " + priorityobject[1] + "\n\n")
-            for pr in matches:
-                relnotes_file.write(pr_to_md(pr))
-                prs_with_use_title.remove(pr)
-            relnotes_file.write("\n")
+            if priorityobject[1] == 'Highlights':
+                itervar = topics
+            else:
+                itervar = prtypes
+            for typeobject in itervar:
+                if typeobject[1] == priorityobject[1]:
+                    continue
+                matches_type = [
+                    pr for pr in matches if has_label(pr, typeobject[0])
+                ]
+                print("PRs with label '" + priorityobject[0] + "' and type '" + typeobject[0] + "': ", len(matches_type))
+                if len(matches_type) == 0:
+                    continue
+                relnotes_file.write(f"#### {typeobject[1]}\n\n")
+                for pr in matches_type:
+                    relnotes_file.write(pr_to_md(pr))
+                    prs_with_use_title.remove(pr)
+                    matches.remove(pr)
+                    matches_type.remove(pr)
+                relnotes_file.write('\n')
         print(f"Remaining PRs: {totalPRs - countedPRs}")
         # The remaining PRs have no "kind" or "topic" label from the priority list
         # (may have other "kind" or "topic" label outside the priority list).
         # Check their list in the release notes, and adjust labels if appropriate.
         if len(prs_with_use_title) > 0:
             relnotes_file.write("### Other changes\n\n")
-            for pr in prs_with_use_title:
-                relnotes_file.write(pr_to_md(pr))
-            relnotes_file.write("\n")
+            for typeobject in prtypes:
+                print(typeobject)
+                matches_type = [
+                    pr for pr in prs_with_use_title if has_label(pr, typeobject[0])
+                ]
+                len(matches_type)
+                print("PRs with label '" + priorityobject[0] + "' and type '" + typeobject[0] + "': ", len(matches_type))
+                if len(matches_type) == 0:
+                    continue
+                relnotes_file.write("#### " + typeobject[1] + "\n\n")
+
+                for pr in matches_type:
+                    relnotes_file.write(pr_to_md(pr))
+                    prs_with_use_title.remove(pr)
+                relnotes_file.write("\n")
 
         # Report PRs that have to be updated before inclusion into release notes.
         prs_to_be_added = [pr for pr in prs if has_label(pr, "release notes: to be added")]
@@ -245,6 +272,23 @@ which we think might affect some users directly.
             for pr in prs_to_be_added:
                 relnotes_file.write(pr_to_md(pr))
             relnotes_file.write("\n")
+        if len(prs_with_use_title) > 0:
+            relnotes_file.write(
+                "### **TODO** insufficient labels for automatic classification\n\n"
+                "The following PRs only have a topic label assigned to them, not a PR type. Either "
+                "assign a type label to them (e.g., `enhancement`), or manually move them to the "
+                "general section of the topic section in the changelog.\n\n")
+            for pr in prs_with_use_title:
+                for topic in topics:
+                    matches = [pr for pr in prs_with_use_title if has_label(pr, topic[0])]
+                    if len(matches) == 0:
+                        continue
+                    relnotes_file.write(f'#### {topic[1]}\n\n')
+                    for match in matches:
+                        relnotes_file.write(pr_to_md(match))
+                        prs_with_use_title.remove(match)
+                    relnotes_file.write('\n')
+            relnotes_file.write('\n')
 
         # remove PRs already handled earlier
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]

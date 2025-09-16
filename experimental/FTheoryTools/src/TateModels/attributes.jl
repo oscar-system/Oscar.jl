@@ -16,7 +16,6 @@ Abelian group element [3]
 """
 tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 
-
 @doc raw"""
     tate_section_a2(t::GlobalTateModel)
 
@@ -34,7 +33,6 @@ Abelian group element [6]
 ```
 """
 tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
-
 
 @doc raw"""
     tate_section_a3(t::GlobalTateModel)
@@ -54,7 +52,6 @@ Abelian group element [9]
 """
 tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 
-
 @doc raw"""
     tate_section_a4(t::GlobalTateModel)
 
@@ -73,7 +70,6 @@ Abelian group element [12]
 """
 tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 
-
 @doc raw"""
     tate_section_a6(t::GlobalTateModel)
 
@@ -91,7 +87,6 @@ Abelian group element [18]
 ```
 """
 tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
-
 
 @doc raw"""
     tate_polynomial(t::GlobalTateModel)
@@ -125,14 +120,12 @@ function tate_polynomial(t::GlobalTateModel)
   return t.tate_polynomial
 end
 
-
 @doc raw"""
     hypersurface_equation(t::GlobalTateModel)
 
 Alias for [`tate_polynomial(t::GlobalTateModel)`](@ref).
 """
 hypersurface_equation(t::GlobalTateModel) = tate_polynomial(t)
-
 
 @doc raw"""
     tate_ideal_sheaf(t::GlobalTateModel)
@@ -178,7 +171,6 @@ function tate_ideal_sheaf(t::GlobalTateModel)
   return t.tate_ideal_sheaf
 end
 
-
 @doc raw"""
     weierstrass_model(t::GlobalTateModel)
 
@@ -197,12 +189,12 @@ Weierstrass model over a concrete base
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
-  
+
   # Compute explicit Weierstrass sections
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
-  f = - 1//48 * (b2^2 - 24 * b4)
+  f = -1//48 * (b2^2 - 24 * b4)
   g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
 
   # Compute explicit_model_sections
@@ -216,14 +208,14 @@ Weierstrass model over a concrete base
 
   # Compute Weierstrass polynomial
   S = coordinate_ring(ambient_space(t))
-  x, y, z = gens(S)[ngens(S)-2:ngens(S)]
+  x, y, z = gens(S)[(ngens(S) - 2):ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
-  pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
+  pw = x^3 - y^2 + ring_map(f) * x * z^4 + ring_map(g) * z^6
 
   # Compute parametrization of Weierstrass sections
   parametrization = model_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_model_section_parametrization = Dict{String, MPolyRingElem}()
+  new_model_section_parametrization = Dict{String,MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])
@@ -274,11 +266,16 @@ Weierstrass model over a concrete base
 
     # Compute model_section_parametrization
     new_model_section_parametrization = Dict("f" => param_f, "g" => param_g)
-
   end
-  
+
   # Compute Weierstrass model
-  model = WeierstrassModel(new_explicit_model_sections, new_model_section_parametrization, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(
+    new_explicit_model_sections,
+    new_model_section_parametrization,
+    pw,
+    base_space(t),
+    ambient_space(t),
+  )
 
   # Copy attributes and return model
   model_attributes = t.__attrs
@@ -287,7 +284,6 @@ Weierstrass model over a concrete base
   end
   return model
 end
-
 
 @doc raw"""
     discriminant(t::GlobalTateModel)
@@ -309,7 +305,6 @@ Abelian group element [36]
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Discriminant of global Tate model is currently only supported for toric varieties and family of spaces as base space"
   return discriminant(weierstrass_model(t))
 end
-
 
 @doc raw"""
     singular_loci(t::GlobalTateModel)
@@ -363,7 +358,9 @@ julia> sort([k[2:3] for k in singular_loci(t; rng = Random.Xoshiro(1234))])
  ((1, 2, 3), "III")
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel; rng::AbstractRNG = Random.default_rng())
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem},Tuple{Int64,Int64,Int64},String}} function singular_loci(
+  t::GlobalTateModel; rng::AbstractRNG=Random.default_rng()
+)
   @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
   return singular_loci(weierstrass_model(t); rng)
 end

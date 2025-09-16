@@ -25,7 +25,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, completeness_check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -48,7 +48,7 @@ julia> is_well_quantized(gf2, completeness_check = false)
 true
 ```
 """
-@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
+@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; completeness_check::Bool=true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
@@ -64,24 +64,33 @@ true
   # Verify that each integral generator is well-quantized
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     if !is_well_quantized(gen_k)
       return false
     end
   end
 
   # Verify that each rational generator is well-quantized, in that all relevant integrals vanish.
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  cy = polynomial(
+    cohomology_class(
+      toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+    ),
+  )
+  c_ds = [
+    polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))
+  ]
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; completeness_check))
     for i in 1:length(c_ds)
       for j in i:length(c_ds)
-        numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); completeness_check)
+        numb = integrate(
+          cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy);
+          completeness_check,
+        )
         if !is_zero(numb)
-          return false    
+          return false
         end
       end
     end
@@ -90,7 +99,6 @@ true
   # All other tests passed, so must be well-quantized according to elementary tests.
   return true
 end
-
 
 @doc raw"""
     passes_transversality_checks(fgs::FamilyOfG4Fluxes)
@@ -111,7 +119,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, completeness_check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -134,7 +142,9 @@ julia> passes_transversality_checks(gf3)
 true
 ```
 """
-@attr Bool function passes_transversality_checks(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
+@attr Bool function passes_transversality_checks(
+  fgs::FamilyOfG4Fluxes; completeness_check::Bool=true
+)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Transversality checks supported only for Weierstrass, global Tate and hypersurface models"
@@ -150,21 +160,20 @@ true
   # Verify that each generator of the flux family is vertical
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     if !passes_transversality_checks(gen_k)
       return false
     end
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     if !passes_transversality_checks(gen_k)
       return false
     end
   end
   return true
 end
-
 
 @doc raw"""
     breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
@@ -185,7 +194,7 @@ julia> using Random;
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gf = special_flux_family(qsm_model, completeness_check = false)
+julia> gf = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -194,7 +203,7 @@ Family of G4 fluxes:
 julia> breaks_non_abelian_gauge_group(gf)
 true
 
-julia> gf3 = special_flux_family(qsm_model, not_breaking = true, completeness_check = false)
+julia> gf3 = special_flux_family(qsm_model, not_breaking = true, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -217,7 +226,9 @@ julia> breaks_non_abelian_gauge_group(gf4, completeness_check = false)
 false
 ```
 """
-@attr Bool function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; completeness_check::Bool = true)
+@attr Bool function breaks_non_abelian_gauge_group(
+  fgs::FamilyOfG4Fluxes; completeness_check::Bool=true
+)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
@@ -225,7 +236,7 @@ false
   @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
   @req all(==(0), offset(fgs)) "Currently, the check for breaking the non-abelian gauge group is only supported for flux families with trivial offset"
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
-  
+
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_gens(model(fgs); completeness_check)
   nmb = length(mb)
@@ -233,14 +244,14 @@ false
   # Verify that each generator of the flux family does not break the non-abelian gauge group
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       return true
     end
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       return true
     end

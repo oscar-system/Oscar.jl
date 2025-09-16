@@ -19,7 +19,6 @@ Abelian group element [1]
 """
 divisor_class(tdc::ToricDivisorClass) = tdc.class
 
-
 @doc raw"""
     toric_variety(tdc::ToricDivisorClass)
 
@@ -41,7 +40,6 @@ Normal toric variety
 """
 toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
 
-
 @doc raw"""
     toric_divisor(tdc::ToricDivisorClass)
 
@@ -62,7 +60,7 @@ Torus-invariant, prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor function toric_divisor(tdc::ToricDivisorClass)
-    f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
-    coeffs = vec([ZZRingElem(x) for x in preimage(f, divisor_class(tdc)).coeff])
-    return toric_divisor(toric_variety(tdc), coeffs)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
+  coeffs = vec([ZZRingElem(x) for x in preimage(f, divisor_class(tdc)).coeff])
+  return toric_divisor(toric_variety(tdc), coeffs)
 end
