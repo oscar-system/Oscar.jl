@@ -22,7 +22,7 @@
   @testset "Basic attributes" begin
     @test degree(l) == -6
     @test degree(l^(-1)) == 6
-    @test degree(l*l) == -12
+    @test degree(l * l) == -12
     @test picard_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
     @test dim(toric_variety(l)) == 2
   end

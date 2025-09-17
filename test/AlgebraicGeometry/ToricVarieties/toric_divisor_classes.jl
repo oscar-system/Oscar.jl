@@ -51,8 +51,8 @@
   end
 
   @testset "Arithmetic" begin
-    @test is_trivial(ZZRingElem(2)*DC+DC2) == false
-    @test is_trivial(2*DC-DC2) == false
+    @test is_trivial(ZZRingElem(2) * DC + DC2) == false
+    @test is_trivial(2 * DC - DC2) == false
     @test (DC == DC2) == false
     @test (DC4 - DC5 == DC6) == false
     @test (DC == DC3) == false

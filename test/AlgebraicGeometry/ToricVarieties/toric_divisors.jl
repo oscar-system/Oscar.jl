@@ -3,7 +3,7 @@
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
   P2 = projective_space(NormalToricVariety, 2)
 
-  D=toric_divisor(F5, [0, 0, 0, 0])
+  D = toric_divisor(F5, [0, 0, 0, 0])
   D2 = divisor_of_character(F5, [1, 2])
   D3 = toric_divisor(dP3, [1, 0, 0, 0, 0, 0])
   D4 = canonical_divisor(dP3)
@@ -15,9 +15,9 @@
 
   @testset "Should fail" begin
     @test_throws ArgumentError toric_divisor(F5, [0, 0, 0])
-    @test_throws ArgumentError D+D3
-    @test_throws ArgumentError D-D3
-    @test_throws ArgumentError D==D3
+    @test_throws ArgumentError D + D3
+    @test_throws ArgumentError D - D3
+    @test_throws ArgumentError D == D3
   end
 
   @testset "Basic properties" begin
@@ -59,10 +59,10 @@
   @testset "Arithmetic" begin
     @test (D == D2) == false
     @test (D4 + D5 == D6) == true
-    @test is_principal(ZZRingElem(2)*D+D2) == true
-    @test is_principal(2*D-D2) == true
-    @test coefficients(D2+D2) == coefficients(2*D2)
-    @test coefficients(D2-D2) == [0, 0, 0, 0]
+    @test is_principal(ZZRingElem(2) * D + D2) == true
+    @test is_principal(2 * D - D2) == true
+    @test coefficients(D2 + D2) == coefficients(2 * D2)
+    @test coefficients(D2 - D2) == [0, 0, 0, 0]
   end
 
   @testset "Error handling" begin

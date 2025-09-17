@@ -42,21 +42,26 @@
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
     @test n_vertices.(faces(Q0, 1)) == [2, 2, 2]
-      @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
-      @test length(lattice_points(Q0)) == 3
-      @test issetequal(lattice_points(Q0), point_vector.(Ref(ZZ), [[0, 0], [0, 1], [1, 0]]))
-      @test point_matrix(lattice_points(Q0)) == _oscar_matrix_from_property(ZZ, lattice_points(Q0))
-      @test matrix(ZZ, lattice_points(Q0)) == _oscar_matrix_from_property(ZZ, lattice_points(Q0))
-      @test interior_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
-      @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
-      @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ, [0 0])
-      @test length(interior_lattice_points(square)) == 1
-      @test interior_lattice_points(square) == [[0, 0]]
-      @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
-      @test length(boundary_lattice_points(square)) == 8
-      @test issetequal(boundary_lattice_points(square),
-                           point_vector.(Ref(ZZ), [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]))
-      @test point_matrix(boundary_lattice_points(square)) == _oscar_matrix_from_property(ZZ, boundary_lattice_points(square))
+    @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
+    @test length(lattice_points(Q0)) == 3
+    @test issetequal(lattice_points(Q0), point_vector.(Ref(ZZ), [[0, 0], [0, 1], [1, 0]]))
+    @test point_matrix(lattice_points(Q0)) ==
+      _oscar_matrix_from_property(ZZ, lattice_points(Q0))
+    @test matrix(ZZ, lattice_points(Q0)) ==
+      _oscar_matrix_from_property(ZZ, lattice_points(Q0))
+    @test interior_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
+    @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
+    @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ, [0 0])
+    @test length(interior_lattice_points(square)) == 1
+    @test interior_lattice_points(square) == [[0, 0]]
+    @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{ZZRingElem}}
+    @test length(boundary_lattice_points(square)) == 8
+    @test issetequal(boundary_lattice_points(square),
+      point_vector.(
+        Ref(ZZ), [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+      ))
+    @test point_matrix(boundary_lattice_points(square)) ==
+      _oscar_matrix_from_property(ZZ, boundary_lattice_points(square))
     if T == QQFieldElem
       @test is_smooth(Q0)
       @test is_normal(Q0)
@@ -111,28 +116,32 @@
     @test faces(square, 1) isa SubObjectIterator{Polyhedron{T}}
     @test length(faces(square, 1)) == 4
     @test issetequal(faces(square, 1),
-                     convex_hull.(Ref(f), [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]]))
+      convex_hull.(Ref(f), [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]]))
     @test _check_im_perm_rows(vertex_indices(faces(square, 1)),
-                              [[1, 3], [2, 4], [1, 2], [3, 4]])
+      [[1, 3], [2, 4], [1, 2], [3, 4]])
     @test ray_indices(faces(square, 1)) == incidence_matrix(4, 0)
     @test _check_im_perm_rows(vertex_and_ray_indices(faces(square, 1)),
-                              [[2, 4], [1, 3], [1, 2], [3, 4]])
+      [[2, 4], [1, 3], [1, 2], [3, 4]])
     @test _check_im_perm_rows(incidence_matrix(faces(square, 1)),
-                              [[1, 3], [2, 4], [1, 2], [3, 4]])
+      [[1, 3], [2, 4], [1, 2], [3, 4]])
     @test _check_im_perm_rows(faces(IncidenceMatrix, square, 1),
-                              [[1, 3], [2, 4], [1, 2], [3, 4]])
+      [[1, 3], [2, 4], [1, 2], [3, 4]])
     @test _check_im_perm_rows(facet_indices(vertices(square)),
-                              [[1, 3], [2, 3], [1, 4], [2, 4]])
+      [[1, 3], [2, 3], [1, 4], [2, 4]])
     @test _check_im_perm_rows(incidence_matrix(vertices(square)),
-                              [[1, 3], [2, 3], [1, 4], [2, 4]])
+      [[1, 3], [2, 3], [1, 4], [2, 4]])
     @test _check_im_perm_rows(vertices(IncidenceMatrix, square),
-                              [[1, 3], [2, 3], [1, 4], [2, 4]])
+      [[1, 3], [2, 3], [1, 4], [2, 4]])
     @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
     @test length(faces(Pos, 1)) == 3
-    @test issetequal(faces(Pos, 1), convex_hull.(Ref(f), [[0 0 0]], [[1 0 0], [0 1 0], [0 0 1]]))
+    @test issetequal(
+      faces(Pos, 1), convex_hull.(Ref(f), [[0 0 0]], [[1 0 0], [0 1 0], [0 0 1]])
+    )
     @test _check_im_perm_rows(vertex_indices(faces(Pos, 1)), [[1], [1], [1]])
     @test _check_im_perm_rows(ray_indices(faces(Pos, 1)), [[1], [2], [3]])
-    @test _check_im_perm_rows(vertex_and_ray_indices(faces(Pos, 1)), [[1, 4], [2, 4], [3, 4]])
+    @test _check_im_perm_rows(
+      vertex_and_ray_indices(faces(Pos, 1)), [[1, 4], [2, 4], [3, 4]]
+    )
     @test _check_im_perm_rows(incidence_matrix(faces(Pos, 1)), [[1, 4], [2, 4], [3, 4]])
     @test _check_im_perm_rows(faces(IncidenceMatrix, Pos, 1), [[1, 4], [2, 4], [3, 4]])
     @test isnothing(faces(Q2, 0))
@@ -141,14 +150,18 @@
     @test issetequal(v, point_vector.(Ref(f), [[2, -1], [2, 1], [-1, -1], [-1, 2], [1, 2]]))
     @test point_matrix(v) == _oscar_matrix_from_property(f, v)
     let S = Pair{Matrix{T},T}
-      @test issetequal(facets(S, Pos), S.([f.([-1 0 0]), f.([0 -1 0]), f.([0 0 -1])], [f(0)]))
+      @test issetequal(
+        facets(S, Pos), S.([f.([-1 0 0]), f.([0 -1 0]), f.([0 0 -1])], [f(0)])
+      )
     end
     let S = AffineHalfspace{T}
-      @test issetequal(facets(S, Pos), affine_halfspace.(Ref(f), [[-1 0 0], [0 -1 0], [0 0 -1]], [0]))
+      @test issetequal(
+        facets(S, Pos), affine_halfspace.(Ref(f), [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+      )
     end
     for S in [AffineHalfspace{T},
-              Pair{Matrix{T},T},
-              Polyhedron{T}]
+      Pair{Matrix{T},T},
+      Polyhedron{T}]
       @test facets(S, Pos) isa SubObjectIterator{S}
       @test length(facets(S, Pos)) == 3
       @test affine_inequality_matrix(facets(S, Pos)) ==
@@ -161,12 +174,16 @@
         @test hmp.b == f.([0, 0, 0])
       end
       @test _check_im_perm_rows(ray_indices(facets(S, Pos)), [[2, 3], [1, 3], [1, 2]])
-      @test _check_im_perm_rows(vertex_and_ray_indices(facets(S, Pos)), [[2, 3, 4], [1, 3, 4], [1, 2, 4]])
-      @test _check_im_perm_rows(incidence_matrix(facets(S, Pos)), [[2, 3, 4], [1, 3, 4], [1, 2, 4]])
+      @test _check_im_perm_rows(
+        vertex_and_ray_indices(facets(S, Pos)), [[2, 3, 4], [1, 3, 4], [1, 2, 4]]
+      )
+      @test _check_im_perm_rows(
+        incidence_matrix(facets(S, Pos)), [[2, 3, 4], [1, 3, 4], [1, 2, 4]]
+      )
       @test _check_im_perm_rows(vertex_indices(facets(S, Pos)), [[1], [1], [1]])
     end
     @test _check_im_perm_rows(facets(IncidenceMatrix, Pos),
-        [[2, 3, 4], [1, 3, 4], [1, 2, 4]]
+      [[2, 3, 4], [1, 3, 4], [1, 2, 4]],
     )
     @test _check_im_perm_rows(facet_indices(vertices(Pos)), [[1, 2, 3]])
     @test _check_im_perm_rows(incidence_matrix(vertices(Pos)), [[1, 2, 3]])
@@ -180,9 +197,11 @@
     @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
     @test length(affine_hull(point)) == 3
     @test issetequal(affine_hull(point),
-                     [hyperplane(f, [1 0 0], 0), hyperplane(f, [0 1 0], 1), hyperplane(f, [0 0 1], 0)])
-    @test affine_equation_matrix(affine_hull(point)) == _oscar_matrix_from_property(f, affine_hull(point))
-    @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == _polymake_matrix_from_property(affine_hull(point))
+      [hyperplane(f, [1 0 0], 0), hyperplane(f, [0 1 0], 1), hyperplane(f, [0 0 1], 0)])
+    @test affine_equation_matrix(affine_hull(point)) ==
+      _oscar_matrix_from_property(f, affine_hull(point))
+    @test Oscar.affine_matrix_for_polymake(affine_hull(point)) ==
+      _polymake_matrix_from_property(affine_hull(point))
     @test n_facets(square) == 4
     @test lineality_dim(Q0) == 0
     @test n_rays(Q1) == 1
@@ -190,8 +209,13 @@
     @test relative_interior_point(Q0) == [1//3, 1//3]
 
     # issue #4024
-    let op = Polyhedron{T}(Polymake.polytope.Polytope{Oscar._scalar_type_to_polymake(T)}(REL_INT_POINT=f.([1//3, -1, -2, -4//3]), CONE_AMBIENT_DIM=4), f)
-      @test relative_interior_point(op) == point_vector(f, [-3,-6,-4])
+    let op = Polyhedron{T}(
+        Polymake.polytope.Polytope{Oscar._scalar_type_to_polymake(T)}(;
+          REL_INT_POINT=f.([1//3, -1, -2, -4//3]), CONE_AMBIENT_DIM=4
+        ),
+        f,
+      )
+      @test relative_interior_point(op) == point_vector(f, [-3, -6, -4])
     end
 
     @test facet_sizes(Q0)[1] == 2
@@ -205,8 +229,8 @@
 
     @test dim(full) == ambient_dim(full)
     @test lineality_dim(full) == 3
-    @test length(findall(f-> [1,0] in f, facets(Hyperplane, Q0))) == 2
-    @test length(findall(f-> [1,0] in f, facets(Halfspace, Q0))) == 3
+    @test length(findall(f -> [1, 0] in f, facets(Hyperplane, Q0))) == 2
+    @test length(findall(f -> [1, 0] in f, facets(Halfspace, Q0))) == 3
   end
 
   @testset "volume" begin
@@ -605,134 +629,155 @@
           @test halfspace_matrix_pair(facets(S, D)) == (A=matrix(R, vcat(A...)), b=b)
 
           @test ray_indices(facets(S, D)) == incidence_matrix(12, 0)
-          @test _check_im_perm_rows(vertex_indices(facets(S, D)), [
-            [1, 3, 5, 9, 10],
-            [1, 2, 3, 4, 6],
-            [1, 2, 5, 7, 8],
-            [11, 12, 16, 18, 20],
-            [5, 8, 10, 15, 17],
-            [2, 4, 7, 11, 12],
-            [3, 6, 9, 13, 14],
-            [4, 6, 11, 13, 16],
-            [13, 14, 16, 19, 20],
-            [7, 8, 12, 15, 18],
-            [9, 10, 14, 17, 19],
-            [15, 17, 18, 19, 20],
-          ])
-          @test _check_im_perm_rows(vertex_and_ray_indices(facets(S, D)), [
-            [1, 3, 5, 9, 10],
-            [1, 2, 3, 4, 6],
-            [1, 2, 5, 7, 8],
-            [11, 12, 16, 18, 20],
-            [5, 8, 10, 15, 17],
-            [2, 4, 7, 11, 12],
-            [3, 6, 9, 13, 14],
-            [4, 6, 11, 13, 16],
-            [13, 14, 16, 19, 20],
-            [7, 8, 12, 15, 18],
-            [9, 10, 14, 17, 19],
-            [15, 17, 18, 19, 20],
-          ])
-          @test _check_im_perm_rows(incidence_matrix(facets(S, D)), [
-            [1, 3, 5, 9, 10],
-            [1, 2, 3, 4, 6],
-            [1, 2, 5, 7, 8],
-            [11, 12, 16, 18, 20],
-            [5, 8, 10, 15, 17],
-            [2, 4, 7, 11, 12],
-            [3, 6, 9, 13, 14],
-            [4, 6, 11, 13, 16],
-            [13, 14, 16, 19, 20],
-            [7, 8, 12, 15, 18],
-            [9, 10, 14, 17, 19],
-            [15, 17, 18, 19, 20],
-          ])
+          @test _check_im_perm_rows(
+            vertex_indices(facets(S, D)),
+            [
+              [1, 3, 5, 9, 10],
+              [1, 2, 3, 4, 6],
+              [1, 2, 5, 7, 8],
+              [11, 12, 16, 18, 20],
+              [5, 8, 10, 15, 17],
+              [2, 4, 7, 11, 12],
+              [3, 6, 9, 13, 14],
+              [4, 6, 11, 13, 16],
+              [13, 14, 16, 19, 20],
+              [7, 8, 12, 15, 18],
+              [9, 10, 14, 17, 19],
+              [15, 17, 18, 19, 20],
+            ],
+          )
+          @test _check_im_perm_rows(
+            vertex_and_ray_indices(facets(S, D)),
+            [
+              [1, 3, 5, 9, 10],
+              [1, 2, 3, 4, 6],
+              [1, 2, 5, 7, 8],
+              [11, 12, 16, 18, 20],
+              [5, 8, 10, 15, 17],
+              [2, 4, 7, 11, 12],
+              [3, 6, 9, 13, 14],
+              [4, 6, 11, 13, 16],
+              [13, 14, 16, 19, 20],
+              [7, 8, 12, 15, 18],
+              [9, 10, 14, 17, 19],
+              [15, 17, 18, 19, 20],
+            ],
+          )
+          @test _check_im_perm_rows(
+            incidence_matrix(facets(S, D)),
+            [
+              [1, 3, 5, 9, 10],
+              [1, 2, 3, 4, 6],
+              [1, 2, 5, 7, 8],
+              [11, 12, 16, 18, 20],
+              [5, 8, 10, 15, 17],
+              [2, 4, 7, 11, 12],
+              [3, 6, 9, 13, 14],
+              [4, 6, 11, 13, 16],
+              [13, 14, 16, 19, 20],
+              [7, 8, 12, 15, 18],
+              [9, 10, 14, 17, 19],
+              [15, 17, 18, 19, 20],
+            ],
+          )
         end
       end
 
-      @test _check_im_perm_rows(facets(IncidenceMatrix, D), [
-        [1, 3, 5, 9, 10],
-        [1, 2, 3, 4, 6],
-        [1, 2, 5, 7, 8],
-        [11, 12, 16, 18, 20],
-        [5, 8, 10, 15, 17],
-        [2, 4, 7, 11, 12],
-        [3, 6, 9, 13, 14],
-        [4, 6, 11, 13, 16],
-        [13, 14, 16, 19, 20],
-        [7, 8, 12, 15, 18],
-        [9, 10, 14, 17, 19],
-        [15, 17, 18, 19, 20],
-      ])
+      @test _check_im_perm_rows(
+        facets(IncidenceMatrix, D),
+        [
+          [1, 3, 5, 9, 10],
+          [1, 2, 3, 4, 6],
+          [1, 2, 5, 7, 8],
+          [11, 12, 16, 18, 20],
+          [5, 8, 10, 15, 17],
+          [2, 4, 7, 11, 12],
+          [3, 6, 9, 13, 14],
+          [4, 6, 11, 13, 16],
+          [13, 14, 16, 19, 20],
+          [7, 8, 12, 15, 18],
+          [9, 10, 14, 17, 19],
+          [15, 17, 18, 19, 20],
+        ],
+      )
       @test facet_indices(rays(D)) == incidence_matrix(0, 12)
       @test incidence_matrix(rays(D)) == incidence_matrix(0, 12)
       @test rays(IncidenceMatrix, D) == incidence_matrix(0, 12)
-      @test _check_im_perm_rows(facet_indices(vertices(D)), [
-        [1, 2, 3],
-        [2, 3, 6],
-        [1, 2, 7],
-        [2, 6, 8],
-        [1, 3, 5],
-        [2, 7, 8],
-        [3, 6, 10],
-        [3, 5, 10],
-        [1, 7, 11],
-        [1, 5, 11],
-        [4, 6, 8],
-        [4, 6, 10],
-        [7, 8, 9],
-        [7, 9, 11],
-        [5, 10, 12],
-        [4, 8, 9],
-        [5, 11, 12],
-        [4, 10, 12],
-        [9, 11, 12],
-        [4, 9, 12],
-      ])
-      @test _check_im_perm_rows(incidence_matrix(vertices(D)), [
-        [1, 2, 3],
-        [2, 3, 6],
-        [1, 2, 7],
-        [2, 6, 8],
-        [1, 3, 5],
-        [2, 7, 8],
-        [3, 6, 10],
-        [3, 5, 10],
-        [1, 7, 11],
-        [1, 5, 11],
-        [4, 6, 8],
-        [4, 6, 10],
-        [7, 8, 9],
-        [7, 9, 11],
-        [5, 10, 12],
-        [4, 8, 9],
-        [5, 11, 12],
-        [4, 10, 12],
-        [9, 11, 12],
-        [4, 9, 12],
-      ])
-      @test _check_im_perm_rows(vertices(IncidenceMatrix, D), [
-        [1, 2, 3],
-        [2, 3, 6],
-        [1, 2, 7],
-        [2, 6, 8],
-        [1, 3, 5],
-        [2, 7, 8],
-        [3, 6, 10],
-        [3, 5, 10],
-        [1, 7, 11],
-        [1, 5, 11],
-        [4, 6, 8],
-        [4, 6, 10],
-        [7, 8, 9],
-        [7, 9, 11],
-        [5, 10, 12],
-        [4, 8, 9],
-        [5, 11, 12],
-        [4, 10, 12],
-        [9, 11, 12],
-        [4, 9, 12],
-      ])
+      @test _check_im_perm_rows(
+        facet_indices(vertices(D)),
+        [
+          [1, 2, 3],
+          [2, 3, 6],
+          [1, 2, 7],
+          [2, 6, 8],
+          [1, 3, 5],
+          [2, 7, 8],
+          [3, 6, 10],
+          [3, 5, 10],
+          [1, 7, 11],
+          [1, 5, 11],
+          [4, 6, 8],
+          [4, 6, 10],
+          [7, 8, 9],
+          [7, 9, 11],
+          [5, 10, 12],
+          [4, 8, 9],
+          [5, 11, 12],
+          [4, 10, 12],
+          [9, 11, 12],
+          [4, 9, 12],
+        ],
+      )
+      @test _check_im_perm_rows(
+        incidence_matrix(vertices(D)),
+        [
+          [1, 2, 3],
+          [2, 3, 6],
+          [1, 2, 7],
+          [2, 6, 8],
+          [1, 3, 5],
+          [2, 7, 8],
+          [3, 6, 10],
+          [3, 5, 10],
+          [1, 7, 11],
+          [1, 5, 11],
+          [4, 6, 8],
+          [4, 6, 10],
+          [7, 8, 9],
+          [7, 9, 11],
+          [5, 10, 12],
+          [4, 8, 9],
+          [5, 11, 12],
+          [4, 10, 12],
+          [9, 11, 12],
+          [4, 9, 12],
+        ],
+      )
+      @test _check_im_perm_rows(
+        vertices(IncidenceMatrix, D),
+        [
+          [1, 2, 3],
+          [2, 3, 6],
+          [1, 2, 7],
+          [2, 6, 8],
+          [1, 3, 5],
+          [2, 7, 8],
+          [3, 6, 10],
+          [3, 5, 10],
+          [1, 7, 11],
+          [1, 5, 11],
+          [4, 6, 8],
+          [4, 6, 10],
+          [7, 8, 9],
+          [7, 9, 11],
+          [5, 10, 12],
+          [4, 8, 9],
+          [5, 11, 12],
+          [4, 10, 12],
+          [9, 11, 12],
+          [4, 9, 12],
+        ],
+      )
       @test is_feasible(D)
       @test is_bounded(D)
       @test is_fulldimensional(D)
@@ -768,8 +813,10 @@
       @test vdesc == hdesc
       @test recession_cone(PC) == C
     end
-    pts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
-    inc = incidence_matrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
+    pts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
+    inc = incidence_matrix([
+      [4, 5, 6], [1, 4, 2], [2, 4, 5], [2, 3, 5], [3, 5, 6], [1, 3, 6], [1, 4, 6]
+    ])
     SOP = subdivision_of_points(pts, inc)
     SC = secondary_cone(SOP)
     @test polyhedron(SC) isa Polyhedron
