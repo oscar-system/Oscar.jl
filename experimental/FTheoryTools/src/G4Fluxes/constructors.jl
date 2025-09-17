@@ -20,7 +20,7 @@ on the toric ambient space.
   pass the optional keyword argument `consistency_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -115,7 +115,7 @@ Standard models, as described in [CHLLT19](@cite CHLLT19).
 This flux has been pre-validated to pass essential consistency checks.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))

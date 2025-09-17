@@ -20,7 +20,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -380,7 +380,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -417,7 +417,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -466,7 +466,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -546,7 +546,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -591,7 +591,7 @@ For mathematical background shared across related methods see [Advanced Methods]
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 283), rng = Random.Xoshiro(1234))
@@ -643,7 +643,7 @@ returned by this method.
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir))), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed()), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> using Random;
 
 julia> B3 = projective_space(NormalToricVariety, 3)
