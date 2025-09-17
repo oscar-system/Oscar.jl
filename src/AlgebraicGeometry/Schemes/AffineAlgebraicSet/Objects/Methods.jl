@@ -98,13 +98,12 @@ julia> rational_point_coordinates(I)
 function rational_point_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
-  G=groebner_basis(I)
   LG = leading_ideal(I;ordering=o)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
   vd = vector_space_dim(quo(base_ring(LG),LG)[1])
   vd ==1 || error("Ideal does not describe a single K-point")
   nf_vec = [normal_form(v,I) for v in gens(R)]
-  return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
+  return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # 
 end
 
 @doc raw"""
