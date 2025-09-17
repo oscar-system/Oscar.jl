@@ -2077,6 +2077,7 @@ end
       root_test::Bool=false,
       keep_partial_result::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(L),
+      _local::Bool=false
     ) -> Vector{ZZLatWithIsom}
 
 Given an even integer lattice $L$, return a complete set of representatives
@@ -2122,6 +2123,10 @@ keyword argument `eiglat_cond`.
       that the annihilator of $D_g$, for every lattices with isometry `(M,g)`
       in output, contains ``I``. If ``I`` is prinicipal, one can also give a
       generator as input.
+    - `_local` -- if `true` return only a single genus representative 
+      of each genus of lattices with isometry matching the given conditions.
+      This keyword argument is not considered as part of the interface and 
+      may change in future versions.
 
 # Examples
 ```jldoctest
