@@ -1613,83 +1613,80 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
   f = isometry(Lf)
   chi = minpoly(Lf)
   T = Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}
-
   
   if _local 
-    if has_attribute(Lf, :image_centralizer_in_Oq_local)
-      return get_attribute(Lf, :image_centralizer_in_Oq_local)::T
+    return get_attribute!(Lf, :image_centralizer_in_Oq_local)::T do
+      qL,fqL = discriminant_group(Lf)
+      OqL = orthogonal_group(qL)
+      C = centralizer(OqL, OqL(matrix(fqL)))
+      return C::T
     end
-    qL,fqL = discriminant_group(Lf)
-    OqL = orthogonal_group(qL)
-    C = centralizer(OqL, OqL(matrix(fqL)))
-    set_attribute!(Lf, :image_centralizer_in_Oq_local, C)
-    return C::T
   end
-  get_attribute!(Lf, :image_centralizer_in_Oq) do
   
-  if is_unimodular(L)
-    # If L is unimodular we do not have to do any wizard's trick since the
-    # discriminant group is trivial
-    qL = discriminant_group(L)
-    OqL = orthogonal_group(qL)
-    return OqL, id_hom(OqL)
-  elseif (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
-    # Trivial cases: the lattice has rank 0 or 1, or it is endowed with +- identity
-    return image_in_Oq(L)
-  elseif rank(L) == degree(chi)
-    # Hermitian type with hermitian structure of rank 1
-    # The image consists of -id and multiplication by a primitive element on the
-    # hermitian side, which itself corresponds to f along the trace construction
-    qL, fqL = discriminant_group(Lf)
-    OqL = orthogonal_group(qL)
-    UL = elem_type(OqL)[OqL(m; check=false) for m in ZZMatrix[-matrix(one(OqL)), matrix(fqL)]]
-    return sub(OqL, unique!(UL))
-  elseif is_of_hermitian_type(Lf)
-    if is_definite(L) || rank(L) == 2
-      # If L is definite or of rank 2 and we use the correspondence between
-      # O(L, f) and O(L, h) via the trace equivalence, where (L, h) is the
-      # hermitian structure on (L, f). Preferable choice than computing O(L, f)
-      # directly because the rank of the hermitian structure is a strict divisor
-      # of the rank of L (the lower the rank is, the better!)
-      H, res = hermitian_structure_with_transfer_data(integer_lattice(; gram=gram_matrix(L)), f)
-      @hassert :ZZLatWithIsom 1 is_definite(H) # Should always be the case since L is definite, even for infinite isometries
-      OH = isometry_group(H)                   # This is identified with O(L, f) using `res`
-      geneOH = gens(OH)
-      geneUL = QQMatrix[_transfer_isometry(res, matrix(g)) for g in geneOH]
-      @hassert :ZZLatWithIsom 1 all(g -> g*gram_matrix(Lf)*transpose(g) == gram_matrix(Lf), geneUL)
-      @hassert :ZZLatWithIsom 1 all(g -> g*f == f*g, geneUL)
-      UL = matrix_group(unique!(geneUL))
-      disc = discriminant_representation(L, UL; check=false, ambient_representation=false)
-      return image(disc)
+  return get_attribute!(Lf, :image_centralizer_in_Oq) do
+    if is_unimodular(L)
+      # If L is unimodular we do not have to do any wizard's trick since the
+      # discriminant group is trivial
+      qL = discriminant_group(L)
+      OqL = orthogonal_group(qL)
+      return (OqL, id_hom(OqL))::T
+    elseif (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
+      # Trivial cases: the lattice has rank 0 or 1, or it is endowed with +- identity
+      return image_in_Oq(L)::T
+    elseif rank(L) == degree(chi)
+      # Hermitian type with hermitian structure of rank 1
+      # The image consists of -id and multiplication by a primitive element on the
+      # hermitian side, which itself corresponds to f along the trace construction
+      qL, fqL = discriminant_group(Lf)
+      OqL = orthogonal_group(qL)
+      UL = elem_type(OqL)[OqL(m; check=false) for m in ZZMatrix[-matrix(one(OqL)), matrix(fqL)]]
+      return sub(OqL, unique!(UL))::T
+    elseif is_of_hermitian_type(Lf)
+      if is_definite(L) || rank(L) == 2
+        # If L is definite or of rank 2 and we use the correspondence between
+        # O(L, f) and O(L, h) via the trace equivalence, where (L, h) is the
+        # hermitian structure on (L, f). Preferable choice than computing O(L, f)
+        # directly because the rank of the hermitian structure is a strict divisor
+        # of the rank of L (the lower the rank is, the better!)
+        H, res = hermitian_structure_with_transfer_data(integer_lattice(; gram=gram_matrix(L)), f)
+        @hassert :ZZLatWithIsom 1 is_definite(H) # Should always be the case since L is definite, even for infinite isometries
+        OH = isometry_group(H)                   # This is identified with O(L, f) using `res`
+        geneOH = gens(OH)
+        geneUL = QQMatrix[_transfer_isometry(res, matrix(g)) for g in geneOH]
+        @hassert :ZZLatWithIsom 1 all(g -> g*gram_matrix(Lf)*transpose(g) == gram_matrix(Lf), geneUL)
+        @hassert :ZZLatWithIsom 1 all(g -> g*f == f*g, geneUL)
+        UL = matrix_group(unique!(geneUL))
+        disc = discriminant_representation(L, UL; check=false, ambient_representation=false)
+        return image(disc)::T
+      else
+        @req is_even(Lf) "Hermitian Miranda-Morrison currently available only for even lattices"
+        # If L is indefinite of rank >=3, then we use the hermitian version of
+        # Miranda-Morrison theory to compute the image of the centralizer f directly
+        # in the centralizer of D_f.
+        dets, j = Oscar._local_determinants_morphism(Lf)
+        _, jj = kernel(dets)
+        jj = compose(jj, j)
+        return image(jj)::T
+      end
     else
-      @req is_even(Lf) "Hermitian Miranda-Morrison currently available only for even lattices"
-      # If L is indefinite of rank >=3, then we use the hermitian version of
-      # Miranda-Morrison theory to compute the image of the centralizer f directly
-      # in the centralizer of D_f.
-      dets, j = Oscar._local_determinants_morphism(Lf)
-      _, jj = kernel(dets)
-      jj = compose(jj, j)
-      return image(jj)
-    end
-  else
-    # For this last case, we cut our lattice into two orthogonal parts and we
-    # proceed by induction by gluing the stabilizers. For now we do naively,
-    # and we split the "largest nontrivial exponent of the isometry".
-    #
-    # TODO: make a smart search, for instance for some particular stable
-    # kernel sublattices of small rank or for which rank(L) == euler_phi(n)
-    #
-    # We use the similar method as used for extending stabilizers along
-    # equivariant primitive extensions as seen in the function
-    # `admissible_equivariant_primitive_extensions`.
-    divs = typeof(chi)[a for (a, _) in factor(chi)]
-    sort!(divs; lt = (a, b) -> degree(a) <= degree(b))
-    psi = divs[end]
+      # For this last case, we cut our lattice into two orthogonal parts and we
+      # proceed by induction by gluing the stabilizers. For now we do naively,
+      # and we split the "largest nontrivial exponent of the isometry".
+      #
+      # TODO: make a smart search, for instance for some particular stable
+      # kernel sublattices of small rank or for which rank(L) == euler_phi(n)
+      #
+      # We use the similar method as used for extending stabilizers along
+      # equivariant primitive extensions as seen in the function
+      # `admissible_equivariant_primitive_extensions`.
+      divs = typeof(chi)[a for (a, _) in factor(chi)]
+      sort!(divs; lt = (a, b) -> degree(a) <= degree(b))
+      psi = divs[end]
 
-    M = kernel_lattice(Lf, psi)
-    N = orthogonal_submodule(Lf, basis_matrix(M))
-    return _glue_stabilizers(Lf, M, N)
-  end
+      M = kernel_lattice(Lf, psi)
+      N = orthogonal_submodule(Lf, basis_matrix(M))
+      return _glue_stabilizers(Lf, M, N)::T
+    end
   end
 end
 
