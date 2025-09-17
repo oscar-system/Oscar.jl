@@ -116,11 +116,7 @@ function doit(
   )
 
   # Copy documentation from Hecke, Nemo, AbstractAlgebra
-  other_packages = [
-    (Oscar.Hecke, Oscar.heckedir),
-    (Oscar.Nemo, Oscar.nemodir),
-    (Oscar.AbstractAlgebra, Oscar.aadir),
-  ]
+  other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
   for (pkg, pkgdir) in other_packages
     srcbase = normpath(pkgdir, "docs", "src")
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
@@ -193,10 +189,10 @@ function doit(
       checkdocs=:none,
       pages=doc,
       remotes=Dict(
-        Oscar.aadir => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
-        Oscar.nemodir => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
-        Oscar.heckedir => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
-        Oscar.singulardir => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+        Base.pkgdir(Oscar.AbstractAlgebra) => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
+        Base.pkgdir(Oscar.Nemo) => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
+        Base.pkgdir(Oscar.Hecke) => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
+        Base.pkgdir(Oscar.Singular) => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
       ),
       plugins=[bib],
     )
