@@ -1606,12 +1606,27 @@ julia> order(G)
 2
 ```
 """
-@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_centralizer_in_Oq(Lf::ZZLatWithIsom)
+function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
   @req is_integral(Lf) "Underlying lattice must be integral"
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = isometry(Lf)
   chi = minpoly(Lf)
+  T = Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}
+
+  
+  if _local 
+    if has_attribute(Lf, :image_centralizer_in_Oq_local)
+      return get_attribute(Lf, :image_centralizer_in_Oq_local)::T
+    end
+    qL,fqL = discriminant_group(Lf)
+    OqL = orthogonal_group(qL)
+    C = centralizer(OqL, OqL(matrix(fqL)))
+    set_attribute!(Lf, :image_centralizer_in_Oq_local, C)
+    return C::T
+  end
+  get_attribute!(Lf, :image_centralizer_in_Oq) do
+  
   if is_unimodular(L)
     # If L is unimodular we do not have to do any wizard's trick since the
     # discriminant group is trivial
@@ -1674,6 +1689,7 @@ julia> order(G)
     M = kernel_lattice(Lf, psi)
     N = orthogonal_submodule(Lf, basis_matrix(M))
     return _glue_stabilizers(Lf, M, N)
+  end
   end
 end
 

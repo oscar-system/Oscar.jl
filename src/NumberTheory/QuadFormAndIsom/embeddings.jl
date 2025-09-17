@@ -1914,6 +1914,7 @@ function admissible_equivariant_primitive_extensions(
     q::IntegerUnion = p;
     check::Bool=true,
     test_type::Bool=true,
+    _local::Bool=false
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
@@ -1940,9 +1941,9 @@ function admissible_equivariant_primitive_extensions(
   qA, fqA = discriminant_group(A)
   qB, fqB = discriminant_group(B)
   qC = discriminant_group(lattice(C))
-  GA, _ = image_centralizer_in_Oq(A)
+  GA, _ = image_centralizer_in_Oq(A;_local)
   @hassert :ZZLatWithIsom 1 fqA in GA
-  GB, _ = image_centralizer_in_Oq(B)
+  GB, _ = image_centralizer_in_Oq(B;_local)
   @hassert :ZZLatWithIsom 1 fqB in GB
 
   # this is where we will perform the gluing
