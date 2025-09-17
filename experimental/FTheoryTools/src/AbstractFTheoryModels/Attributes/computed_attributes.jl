@@ -23,7 +23,7 @@ this very cohomology class ``h``, otherwise it raises an error.
     executes the restriction to the hypersurface.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -104,7 +104,7 @@ such as in the example below.
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -147,7 +147,7 @@ error.
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
