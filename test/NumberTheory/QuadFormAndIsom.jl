@@ -252,8 +252,8 @@ end
   @test length(r) == 1
   @test det(invariant_lattice(r[1])) == -1
   
-  r_local = enumerate_classes_of_lattices_with_isometry(L,2;char_poly=(x-1)^4*(x+1)^6,fix_root=5,_local=true)
-  r_global = enumerate_classes_of_lattices_with_isometry(L,2;char_poly=(x-1)^4*(x+1)^6,fix_root=5,_local=false)
+  r_local = enumerate_classes_of_lattices_with_isometry(L, 2; char_poly=(x-1)^4*(x+1)^6, _local=true)
+  r_global = enumerate_classes_of_lattices_with_isometry(L, 2; char_poly=(x-1)^4*(x+1)^6, _local=false)
   @test length(r_local)==9
   @test length(r_global)==11
 
