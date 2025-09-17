@@ -90,7 +90,7 @@ function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.F
 end
 
 function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
-  F = free_module(QQ, dim(C)*degree(base_ring(C)))
+  F = free_module(QQ, dim(C)*degree(base_ring(C)); cached = false)
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x in transpose(matrix(y))]...)) for y in C.ac])
 end
 
@@ -204,7 +204,7 @@ function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPMod
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
-  F = free_module(k, dim(M))
+  F = free_module(k, dim(M); cached = false)
   N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])#C also appears here
   # TODO: Get this map working
   # psi = GModuleHom(N, M, , phi)
@@ -309,7 +309,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
     lres = length(res)
     for X in res[sres:end]
       for p in lp
-        F = free_module(GF(p), dim(M))
+        F = free_module(GF(p), dim(M); cached = false)
         pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x in map(matrix, action(M))])
         S = maximal_submodule_bases(pM)
         pG = p.*gens(M.M)
@@ -377,7 +377,7 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
       F = free_module(k, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
     else
-      F = free_module(k, nrows(z[1]))
+      F = free_module(k, nrows(z[1]); cached = false)
       zz = map(x->hom(F, F, x), z)
     end
     push!(IM, gmodule(F, G, zz))
@@ -398,7 +398,7 @@ function irreducible_modules(G::Oscar.GAPGroup)
       F = free_module(K, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
     else
-      F = free_module(K, nrows(z[1]))
+      F = free_module(K, nrows(z[1]); cached = false)
       zz = map(x->hom(F, F, x), z)
     end
     push!(IM, gmodule(F, G, zz))
@@ -426,7 +426,7 @@ function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <
   end
   k, mk = Hecke.subfield(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
   if k != base_ring(M)
-    F = free_module(k, dim(M))
+    F = free_module(k, dim(M); cached = false)
     return gmodule(group(M), [hom(F, F, map_entries(pseudo_inv(mk), matrix(x))) for x = M.ac])
   end
   return M
@@ -666,7 +666,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
       if d == divexact(degree(m), degree(k))
         ac = [AA*matrix(x)*AAi for x = action(V)]
         ac = [map_entries(pseudo_inv(mm), x) for x = ac]
-        f = free_module(m, dim(V))
+        f = free_module(m, dim(V); cached = false)
         return gmodule(V.G, [hom(f, f, x) for x = ac])
       end
 
@@ -684,7 +684,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
       B, mB = automorphism_group(PermGroup, m)
       h = hom(q, B, [[b for b = B if mm(mB(b)(m[1])) == mA(preimage(mq, x))(mm(m[1]))][1] for x = gens(q)])
       if get_assertion_level(:MinField) > 0
-        f = free_module(m, dim(V))
+        f = free_module(m, dim(V); cached = false)
         W = gmodule(V.G, [hom(f, f, map_entries(pseudo_inv(mm), AA*matrix(x)*AAi)) for x = V.ac])
         _c, _X = _two_cocycle(mB, W, two_cycle = true, GL_chain = true)
         #so _X[h(b)] = l*X[b], hopefully
@@ -756,7 +756,7 @@ function _minimize(V::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFiel
       ac = [map_entries(mE_EF, map_entries(pseudo_inv(mm), x)) for x = ac]
       ac = [BB*x*BBi for x = ac]
       ac = [map_entries(pseudo_inv(mF_EF), x) for x = ac]
-      f = free_module(F, dim(V))
+      f = free_module(F, dim(V); cached = false)
       return gmodule(V.G, [hom(f, f, x) for x = ac])
     end
   end
@@ -819,7 +819,7 @@ function _irred_abelian(G::Oscar.GAPGroup)
     end
     f = mR(r)
     C, z = cyclotomic_field(Int(o); cached = false)
-    F = free_module(QQ, degree(C))
+    F = free_module(QQ, degree(C); cached = false)
     m = representation_matrix(z)
 
     function conv(r)
@@ -882,19 +882,19 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   d = dim(C)
   if d == 0
     K = cyclotomic_field(base_ring(C), 1)[1]
-    F = free_module(K, dim(C))
+    F = free_module(K, dim(C); cached = false)
     h = hom(F, F, elem_type(F)[])
     return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
   end
   if ngens(group(C)) == 0
     K = cyclotomic_field(base_ring(C), 1)[1]
-    F = free_module(K, dim(C))
+    F = free_module(K, dim(C); cached = false)
     h = hom(F, F, gens(F))
     return gmodule(F, group(C), typeof(h)[])
   end
   M = map_entries(CyclotomicField, map(matrix, action(C)))
   K = base_ring(M[1])
-  F = free_module(K, dim(C))
+  F = free_module(K, dim(C); cached = false)
 
   D = gmodule(F, group(C), [hom(F, F, x) for x = M])
 
@@ -930,7 +930,7 @@ function gmodule(k::fpField, mC::Hecke.MapClassGrp)
 end
 
 function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, phi::Map{AbsSimpleNumField, AbsSimpleNumField})
-  F = free_module(codomain(phi), dim(C))
+  F = free_module(codomain(phi), dim(C); cached = false)
   return GModule(group(C), [hom(F, F, map_entries(phi, matrix(x))) for x = C.ac])
 end
 
@@ -939,12 +939,12 @@ function Base.:^(C::GModule{<:Any, T}, h::Map{S, S}) where T <: S where S
 end
 
 function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbFieldElem}}, phi::Map{QQAbField, QQAbField})
-  F = free_module(codomain(phi), dim(C))
+  F = free_module(codomain(phi), dim(C); cached = false)
   return GModule(F, group(C), [hom(F, F, map_entries(phi, matrix(x))) for x = C.ac])
 end
 
 function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
-  F = free_module(QQ, dim(C)*degree(base_ring(C)))
+  F = free_module(QQ, dim(C)*degree(base_ring(C)); cached = false)
   if isa(group(C), Group)
     return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
   else
@@ -1018,7 +1018,7 @@ Return `(R[G], f, g)`, where
   indices of the corresponding module generators.
 """
 function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
-  M = free_module(R, order(Int, G))
+  M = free_module(R, order(Int, G); cached = false)
   return _regular_gmodule(G, M)
 end
 
@@ -1031,7 +1031,7 @@ end
 # compatible with that used by C.m
 function regular_gmodule(C::GModule)
   G = C.G
-  M = GrpCoh._similar_free_module(C.M, order(Int, G))
+  M = GrpCoh._similar_free_module(C.M, order(Int, G); cached = false)
   return _regular_gmodule(G, M)
 end
 
@@ -1067,7 +1067,8 @@ Return the G-module of dimension `degree(G)` over `R`
 that is induced by the permutation action of `G` on the basis of the  module.
 """
 function natural_gmodule(G::PermGroup, R::Ring)
-  M = free_module(R, degree(G))
+  M = free_module(R, degree(G); cached = false)
+  return GModule(M, G, [hom(M, M, PermMat(R, a)) for a in gens(G)])
   return GModule(M, G, [hom(M, M, permutation_matrix(R, a)) for a in gens(G)])
 #TODO: We do not really want to write down these matrices.
 #      What is the appropriate way to construct a module homomorphism
@@ -1242,6 +1243,18 @@ function swap_rows!(A::QQMatrix, pi::PermGroupElem)
   end
 end
 
+function Oscar.mul!(A::QQMatrix, B::QQMatrix, C::PermMat{QQFieldElem})
+  A[:, :] = B
+  swap_cols!(A, C.p)
+  return A
+end
+
+function Oscar.mul!(A::QQMatrix, B::PermMat{QQFieldElem}, C::QQMatrix)
+  A[:, :] = C
+  swap_rows!(A, C.p)
+  return A
+end
+
 function *(A::QQMatrix, M::PermMat{QQFieldElem})
   #permute columns by p
   B = deepcopy(A)
@@ -1297,7 +1310,7 @@ function permutation_gmodule(G::Group, U::Group, R::Ring)
   end
   rc = right_cosets(G, U)
   h = action_homomorphism(rc)
-  F = free_module(R, Int(divexact(order(G), order(U))))
+  F = free_module(R, Int(divexact(order(G), order(U))); cached = false)
   C = gmodule(G, [hom(F, F, PermMat(R, h(g))) for g = gens(G)])
 #  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
   set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule)
@@ -1334,7 +1347,7 @@ function hom_base_perm_module(C::GModule, D::GModule)
           #MUCH faster than calling action_hom...
 
   O = orbits(gset(J, *, rD)) #to be improved... this are J-orbits of H\G
-  F = free_module(base_ring(C), length(O))
+  F = free_module(base_ring(C), length(O); cached = false)
   FG = trivial_gmodule(G, F)
 #  ZG = group_algebra(QQ, G)
 
@@ -1366,7 +1379,7 @@ that is induced by the action of `G` via right multiplication.
 """
 function natural_gmodule(G::MatrixGroup)
   R = base_ring(G)
-  M = free_module(R, degree(G))
+  M = free_module(R, degree(G); cached = false)
   return GModule(M, G, [hom(M, M, matrix(a)) for a in gens(G)])
 end
 
@@ -1441,7 +1454,7 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
   b = matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])
 
   y = GAP.Globals.MTX.InducedActionSubmoduleNB(g, x)
-  F = free_module(k, nrows(b))
+  F = free_module(k, nrows(b); cached = false)
   D = gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators])
   return D, hom(C, D, b)
   return b
@@ -1452,7 +1465,10 @@ end
 function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   @assert codomain(f) === M.M
   S = domain(f)
-  Sac = [hom(S, S, elem_type(S)[preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  fS = map(f, gens(S))
+  #do all preimages at the same time - but seems to not be universally
+  #supported
+  Sac = [hom(S, S, elem_type(S)[preimage(f, h(x)) for x in fS]) for h in M.ac]
   D = gmodule(S, M.G, Sac)
   return D, hom(D, M, f; check = false)
 end
@@ -1468,7 +1484,7 @@ end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   @assert absolute_degree(k) == 1
-  F = free_module(k, dim(C)*absolute_degree(base_ring(C)))
+  F = free_module(k, dim(C)*absolute_degree(base_ring(C)); cached = false)
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
 
@@ -1563,7 +1579,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
-  F = free_module(k, dim(C))
+  F = free_module(k, dim(C); cached = false)
   return gmodule(F, Group(C), [hom(F, F, map_entries(x -> preimage(mkK, x), Di*matrix(x)*D)) for x = C.ac])
   # return C^-1 x C for x = action_gens(C), coerced into k
 end
@@ -1585,7 +1601,7 @@ function gmodule_over(em::Map{AbsSimpleNumField, AbsSimpleNumField}, C::GModule{
       return nothing
     end
   end
-  F = free_module(k, dim(C))
+  F = free_module(k, dim(C); cached = false)
   return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
 end
 
@@ -1604,7 +1620,7 @@ function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{Ab
       return nothing
     end
   end
-  F = free_module(QQ, dim(C))
+  F = free_module(QQ, dim(C); cached = false)
   return gmodule(F, group(C), [hom(F, F, map_entries(QQ, x)) for x = ac])
 end
 
@@ -1918,14 +1934,14 @@ function hilbert90_cyclic(A::MatElem{<:FieldElem}, s, os::Int)
 end
 
 function gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
-  F = free_module(k, dim(C))
+  F = free_module(k, dim(C); cached = false)
   return GModule(group(C), [hom(F, F, map_entries(k, matrix(x))) for x=C.ac])
 end
 
 function gmodule(mk::Map{AbsSimpleNumField, <:FinField}, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k = codomain(mk)
   @assert domain(mk) == base_ring(C)
-  F = free_module(k, dim(C))
+  F = free_module(k, dim(C); cached = false)
   return GModule(group(C), [hom(F, F, map_entries(mk, matrix(x))) for x=C.ac])
 end
 
@@ -1933,7 +1949,7 @@ function Hecke.modular_proj(C::GModule{T, <:AbstractAlgebra.FPModule{AbsSimpleNu
   R = []
   z = map(x->(Hecke.modular_proj(x.matrix, me)), C.ac)
   for i=1:length(z[1])
-    F = free_module(base_ring(z[1][i]), dim(C))
+    F = free_module(base_ring(z[1][i]), dim(C); cached = false)
     @assert all(j->base_ring(z[j][i]) == base_ring(z[1][i]), 1:length(z))
     push!(R, GModule(group(C), [hom(F, F, t[i]) for t = z]))
     @assert all(i->base_ring(matrix(R[end].ac[i])) == base_ring(R[end]), 1:length(R[end].ac))
@@ -1995,7 +2011,7 @@ function Oscar.composition_factors_with_multiplicity(C::GModule{<:Any, <:Abstrac
   for c = z
     m = GAP.Globals.MTX.Generators(c[1])
     mm = [matrix(k, x) for x = m]
-    F = free_module(k, nrows(mm[1]))
+    F = free_module(k, nrows(mm[1]); cached = false)
     push!(CF, (gmodule(F, Group(C), [hom(F, F, x) for x = mm]), c[2]))
   end
   return CF
@@ -2017,7 +2033,7 @@ function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinField
   for c = z
     m = GAP.Globals.MTX.Generators(c[2])
     mm = [matrix(k, x) for x = m]
-    F = free_module(k, nrows(mm[1]))
+    F = free_module(k, nrows(mm[1]); cached = false)
     push!(CF, (gmodule(F, Group(C), [hom(F, F, x) for x = mm]), hom(F, C.M, matrix(k, c[1]))))
   end
   return CF
@@ -2289,7 +2305,7 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
           reco *= 2
         end
         for t = T
-          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = true, unbalanced = false)
+          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = !true, unbalanced = false)
           fl || break
           push!(S, s)
         end
@@ -2360,7 +2376,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
           reco *= 2
         end
         for t = T
-          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = true, unbalanced = false)
+          fl, s = Nemo._induce_rational_reconstruction_nosplit(t, pp, error_tolerant = !true, unbalanced = false)
           fl || break
           push!(S, s)
         end
@@ -2377,6 +2393,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
   end
 end
 
+last_bla = []
 #can't use "end" as a function name... and "End" does not fit into our scheme
 #life is hard.
 function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem}}})
@@ -2395,6 +2412,11 @@ function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, 
     E  = matrix_algebra(base_ring(M), b)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   else
+    global last_bla
+    push!(last_bla, M)
+#    if dim(M) > 50
+#      Base.show_backtrace(stdout, backtrace())
+#    end
     E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   end
@@ -2416,9 +2438,10 @@ function restrict_endo(mE, mC)
   #mE maps E -> End(M) and C is a submodule of M
   h, mh = hom(C.M, C.M) # hom of the vector spaces, so Q^(n x n)
                         # NO G-action here
-  EE = free_module(QQ, dim(E)) #E and EE are isomorphic as Q-vector spaces
+  EE = free_module(QQ, dim(E); cached = false) #E and EE are isomorphic as Q-vector spaces
 
-  z = hom(EE, h, [preimage(mh, hom(C.M, C.M, [preimage(mmC, (mmC*mE(E[i]).module_map)(x)) for x = gens(C.M)])) for i=1:dim(E)])
+  gC = gens(C.M)
+  z = hom(EE, h, [preimage(mh, hom(C.M, C.M, preimage(mmC, map(mmC*mE(E[i]).module_map, gC)))) for i=1:dim(E)])
   # E = EE -> hom(C, C) as Q-vector space map
   #      e -> (C->M) * e * (C->M)^-1 is the map
   # then endo(C) as an algebra is E/kern of this map (I hope)
@@ -2442,7 +2465,7 @@ function proj_endo(mE, mC)
   #mE maps E -> End(M) and C is a quotient of M
   #logic as above.
   h, mh = hom(C.M, C.M)
-  EE = free_module(QQ, dim(E))
+  EE = free_module(QQ, dim(E); cached = false)
   z = hom(EE, h, [preimage(mh, hom(C.M, C.M, [mmC(mE(E[i]).module_map(preimage(mmC, x))) for x = gens(C.M)])) for i=1:dim(E)])
   #      e -> (M->C)^-1 * e * (M->C) is the map
   Q, mQ = quo(EE, kernel(z)[1])
@@ -2489,7 +2512,7 @@ Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = vector_space_dim(M)
 
 
 function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
-  F = free_module(K, dim(M))
+  F = free_module(K, dim(M); cached = false)
   return gmodule(F, group(M), [hom(F, F, map_entries(K, matrix(x))) for x = M.ac])
 end
 
@@ -2516,7 +2539,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
 end
 
 function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
-  F = free_module(QQ, dim(C))
+  F = free_module(QQ, dim(C); cached = false)
   return GModule(group(C), [hom(F, F, map_entries(QQ, matrix(x))) for x = C.ac])
 end
 
@@ -2609,7 +2632,7 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   @assert all(x->R == base_ring(x), v)
   @assert nrows(v[1]) == ncols(v[1])
   @assert allequal(size, v)
-  F = free_module(R, nrows(v[1]))
+  F = free_module(R, nrows(v[1]); cached = false)
   return gmodule(G, [hom(F, F, x) for x = v])
 end
 
@@ -2634,7 +2657,7 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   K = abelian_closure(QQ)[1]
   g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
-  F = free_module(K, degree(Int, chi))
+  F = free_module(K, degree(Int, chi); cached = false)
   M = gmodule(group(chi), [hom(F, F, x) for x = z])
   c = conjugacy_classes(chi.table)
   set_attribute!(M, :_character => [(c[i], K(chi.values[i])) for i=1:length(c)])
