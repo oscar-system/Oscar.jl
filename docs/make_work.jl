@@ -117,8 +117,8 @@ function doit(
 
   # Copy documentation from Hecke, Nemo, AbstractAlgebra
   other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
-  for (pkg, pkgdir) in other_packages
-    srcbase = normpath(pkgdir, "docs", "src")
+  for pkg in other_packages
+    srcbase = normpath(Base.pkgdir(pkg), "docs", "src")
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
 
     # clear the destination directory first
@@ -199,7 +199,7 @@ function doit(
   end
 
   # remove the copied documentation again
-  for (pkg, pkgdir) in other_packages
+  for pkg in other_packages
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
