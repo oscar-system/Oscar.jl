@@ -46,8 +46,7 @@
       end
     end
     @test length(rays(Cone1)) == 2
-    for S in [LinearHalfspace{T},
-      Cone{T}]
+    for S in [LinearHalfspace{T}, Cone{T}]
       @test facets(S, Cone1) isa SubObjectIterator{S}
       @test length(facets(S, Cone1)) == 2
       if S == LinearHalfspace{T}

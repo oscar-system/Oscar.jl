@@ -159,9 +159,7 @@
         facets(S, Pos), affine_halfspace.(Ref(f), [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
       )
     end
-    for S in [AffineHalfspace{T},
-      Pair{Matrix{T},T},
-      Polyhedron{T}]
+    for S in [AffineHalfspace{T}, Pair{Matrix{T},T}, Polyhedron{T}]
       @test facets(S, Pos) isa SubObjectIterator{S}
       @test length(facets(S, Pos)) == 3
       @test affine_inequality_matrix(facets(S, Pos)) ==
