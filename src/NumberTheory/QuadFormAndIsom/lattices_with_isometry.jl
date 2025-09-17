@@ -1515,17 +1515,8 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   
-  Ld = cover(q)
-  L = relations(q)
-  fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
-  T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
-  iso = hom(q,T,[T(lift(i)) for i in gens(q)])
-  f = hom(T, T, [T(lift(i)) for i in gens(q)], elem_type(T)[T(lift(t)*f) for t in gens(q)])
-  f = iso*f*inv(iso)
+  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
   fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
-
-  # f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  #fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
   return q, fq
 end
 
