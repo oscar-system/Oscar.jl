@@ -22,7 +22,7 @@ julia> k, a = cyclotomic_field(11);
 
 julia> u, mu = unit_group(maximal_order(k));
 
-julia> C = gmodule(automorphism_group(PermGroup, k), mu)
+julia> C = gmodule(automorphism_group(PermGroup, k)[1], mu)
 G-module for permutation group of degree 10 acting on u
 
 julia> G = group(C)
