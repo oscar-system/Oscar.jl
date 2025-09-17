@@ -5,7 +5,7 @@
 @doc raw"""
     is_empty(c::ClosedSubvarietyOfToricVariety)
 
-Checks if a closed subvariety of a toric variety is empty.
+Check if a closed subvariety of a toric variety is empty.
 This check uses proposition 5.2.6 in [CLS11](@cite).
 
 # Examples
@@ -28,6 +28,6 @@ true
 ```
 """
 @attr Bool function is_empty(c::ClosedSubvarietyOfToricVariety)
-    B = irrelevant_ideal(toric_variety(c))
-    return (is_one(defining_ideal(c)) || is_one(saturation(defining_ideal(c), B)))
+  B = irrelevant_ideal(toric_variety(c))
+  return (is_one(defining_ideal(c)) || is_one(saturation(defining_ideal(c), B)))
 end

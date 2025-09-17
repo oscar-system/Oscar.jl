@@ -26,13 +26,13 @@ julia> @perm (1,2)(4,5)     # cycle notation via macro
 (1,2)(4,5)
 
 julia> K = algebraic_closure(QQ)
-Field of algebraic numbers
+Algebraic closure of rational field
 
 julia> e = one(K)
-Root 1.00000 of x - 1
+{a1: 1.00000}
 
 julia> s, c = sinpi(2*e/5), cospi(2*e/5)
-(Root 0.951057 of 16x^4 - 20x^2 + 5, Root 0.309017 of 4x^2 + 2x - 1)
+({a4: 0.951057}, {a2: 0.309017})
 
 julia> mat_rot = matrix([ c -s ; s c ]);
 
@@ -40,7 +40,7 @@ julia> mat_sigma1 = matrix(K, [ -1 0 ; 0 1 ]);
 
 julia> G_mat = matrix_group(mat_rot, mat_sigma1)
 Matrix group of degree 2
-  over field of algebraic numbers
+  over algebraic closure of rational field
 
 julia> is_isomorphic(G_mat, G_perm)
 true
@@ -50,15 +50,15 @@ julia> p = K.([0,1]);  # coordinates of vertex 1, expressed over K
 julia> orb = orbit(G_mat, *, p)
 G-set of
   matrix group of degree 2 over QQBar
-  with seeds Vector{QQBarFieldElem}[[Root 0 of x, Root 1.00000 of x - 1]]
+  with seeds [[{a1: 0}, {a1: 1.00000}]]
 
 julia> pts = collect(orb)
 5-element Vector{Vector{QQBarFieldElem}}:
- [Root 0 of x, Root 1.00000 of x - 1]
- [Root 0.951057 of 16x^4 - 20x^2 + 5, Root 0.309017 of 4x^2 + 2x - 1]
- [Root 0.587785 of 16x^4 - 20x^2 + 5, Root -0.809017 of 4x^2 + 2x - 1]
- [Root -0.951057 of 16x^4 - 20x^2 + 5, Root 0.309017 of 4x^2 + 2x - 1]
- [Root -0.587785 of 16x^4 - 20x^2 + 5, Root -0.809017 of 4x^2 + 2x - 1]
+ [{a1: 0}, {a1: 1.00000}]
+ [{a4: 0.951057}, {a2: 0.309017}]
+ [{a4: 0.587785}, {a2: -0.809017}]
+ [{a4: -0.951057}, {a2: 0.309017}]
+ [{a4: -0.587785}, {a2: -0.809017}]
 
 julia> visualize(convex_hull(pts))
 

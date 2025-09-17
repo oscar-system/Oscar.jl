@@ -1072,6 +1072,10 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(
 Construct the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
 - [PS09](@cite)
 
+For Demazure characters as in [Dem74](@cite),
+i.e. the weights with multiplicities occurring in a Demazure module of a semisimple Lie algebra,
+see [`demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)`](@ref).
+
 # Examples
 ```jldoctest
 julia> lambda = partition([3,1,1])
@@ -1907,7 +1911,7 @@ julia> p = n_gon(3)
 Polytope in ambient dimension 2 with QQBarFieldElem type coefficients
 
 julia> volume(n_gon(4, r=2, alpha_0=1//4))
-Root 8.00000 of x - 8
+{a1: 8.00000}
 ```
 """
 function n_gon(
@@ -2068,7 +2072,7 @@ end
 @doc raw"""
     rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
-Computes the convex hull of `n` points sampled uniformly at random from the integer 
+Compute the convex hull of `n` points sampled uniformly at random from the integer 
 points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 
 # Optional Argument
@@ -2107,7 +2111,7 @@ end
 @doc raw"""
     rand_cyclic_polytope(d::Int, n::Int; seed::Int=nothing)
 
-Computes a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
+Compute a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
 generating a Gale diagram whose cocircuits have alternating signs.
 
 # Optional Argument
@@ -2454,4 +2458,83 @@ function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scala
   return Polyhedron{T}(
     Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
   )
+end
+
+@doc raw"""
+    tutte_lifting(G::Graph{Undirected})
+
+Compute a realization of `G` in $\mathbb{R}^3$, i.e., a polyhedron whose edge graph is `G`.  Assumes that `G` is planar, 3-connected, and that is has a triangular facet.
+
+# Examples
+```jldoctest
+julia> G = vertex_edge_graph(simplex(3))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
+
+julia> pG = tutte_lifting(G)
+Polytope in ambient dimension 3
+
+julia> vertices(pG)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+ [1, 0, 1//3]
+ [0, 1, 0]
+ [1//3, 1//3, 0]
+
+julia> faces(IncidenceMatrix,pG,1)
+6×4 IncidenceMatrix
+ [1, 2]
+ [1, 3]
+ [1, 4]
+ [2, 3]
+ [2, 4]
+ [3, 4]
+```
+"""
+function tutte_lifting(G::Graph{Undirected})
+  pmG = Polymake.graph.Graph{Undirected}(; ADJACENCY=G)
+  return Polyhedron{QQFieldElem}(Polymake.polytope.tutte_lifting(pmG), QQ)
+end
+
+@doc raw"""
+    integer_hull(P::Polyhedron)
+
+Return the convex hull of the lattice points in `P`.  Works even for nonrational polytopes.
+
+# Examples
+```jldoctest
+julia> vertices(integer_hull(dodecahedron()))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [-1, 0, 0]
+ [0, -1, 0]
+ [0, 0, -1]
+ [0, 0, 1]
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function integer_hull(P::Polyhedron{T}) where {T<:scalar_types}
+  return convex_hull(lattice_points(P))
+end
+
+@doc raw"""
+    gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+
+Return the Gomory-Chvátal closure of a rational polyhedron; sometimes also called "elementary closure".
+
+Applying this function iteratively to any rational polytope yields the integer hull after finitely many steps.
+[Sch86](@cite).
+
+# Examples
+```jldoctest
+julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0]
+ [1, 1]
+ [0, 1]
+ [0, 0]
+```
+"""
+function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+  return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
 end

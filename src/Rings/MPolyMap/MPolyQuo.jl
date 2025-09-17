@@ -43,7 +43,7 @@ elements of `S`, return the homomorphism `A` $\to$ `S` whose restriction
 to `C` is `coeff_map`, and which sends the `i`-th generator of `A` to the 
 `i`-th entry of `images`.
  
-If no coefficient map is entered, invoke a canonical homomorphism of `C`
+If no coefficient map is entered, invoke a canonical homomorphism from `C`
 to `S`, if such a homomorphism exists, and throw an error, otherwise.
 
 !!! note
@@ -152,6 +152,7 @@ end
 # The two main evaluation methods
 function (F::MPolyAnyMap{<: MPolyQuoRing})(g)
   if g isa elem_type(domain(F))
+    @req parent(g) === domain(F) "Element not in domain"
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)
     else 

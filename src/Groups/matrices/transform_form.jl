@@ -42,7 +42,7 @@ function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_
    V2 = vector_space(F,nr)
    K, embK = kernel(ModuleHomomorphism(V1, V2, _is_symmetric ? B : transpose(B)))
    U, embU = complement(V1,K)
-   d = dim(U)
+   d = vector_space_dim(U)
    elemT = elem_type(V1)
    A = matrix(elemT[embU.(gens(U)) ; embK.(gens(K))])
 #   type_vector = elem_type(V1)
@@ -374,15 +374,15 @@ end
 """
     is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
-If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a
+If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
+matrix `C` such that `f^C = ag` for some scalar `a`. If such `C` does not
+exist, then return (`false`, `nothing`).
+
+Otherwise return (`true`, `C`) if there exists a
 matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
 are the Gram matrices of `f` and `g` respectively, and `C*` is the
 transpose-conjugate matrix of `C`. If such `C` does not exist, then return
 (`false`, `nothing`).
-
-If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
-matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not
-exist, then return (`false`, `nothing`).
 """
 function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 

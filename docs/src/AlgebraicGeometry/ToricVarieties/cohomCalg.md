@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -7,6 +9,12 @@ CurrentModule = Oscar
 
 We employ the cohomCalg algorithm [BJRR10*1](@cite)
 to compute the dimension of line bundle cohomologies as well as vanishing sets.
+
+!!! note "Simplicial and Projective Toric Varieties"
+    In theory, the cohomCalg algorithm works for all smooth, complete as well as all
+    simplicial, projective toric varieties [RR10](@cite), [Jow11](@cite). However, the implementation in [BJRR10*1](@cite) is limited to the
+    simplicial, projective case due to its handling of the secondary cohomologies. As such, all
+    functions that rely on calls to cohomCalg are limited to **simplicial, projective toric varieties**.
 
 
 ## Dimensions of line bundle cohomology

@@ -61,7 +61,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    star_subdivision(PF::PolyhedralFan, new_ray::AbstractVector{<:IntegerUnion})
+    star_subdivision(PF::PolyhedralFan, exceptional_ray::AbstractVector{<:IntegerUnion})
 
 Return the star subdivision of a polyhedral fan by a primitive element of
 the underlying lattice. We follow the definition at the top of page 515 in
@@ -72,9 +72,9 @@ the underlying lattice. We follow the definition at the top of page 515 in
 julia> fan = normal_fan(simplex(3))
 Polyhedral fan in ambient dimension 3
 
-julia> new_ray = [1, 1, 1];
+julia> exceptional_ray = [1, 1, 1];
 
-julia> star = star_subdivision(fan, new_ray)
+julia> star = star_subdivision(fan, exceptional_ray)
 Polyhedral fan in ambient dimension 3
 
 julia> rays(star)
@@ -87,37 +87,43 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
-function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:IntegerUnion})
+function star_subdivision(
+  Sigma::_FanLikeType, exceptional_ray::AbstractVector{<:IntegerUnion}
+)
 
-  # Check if new_ray is primitive in ZZ^d, i.e. gcd(new_ray)==1.
-  @req ambient_dim(Sigma) == length(new_ray) "New ray is not $(ambient_dim(Sigma))-dimensional"
-  @req gcd(new_ray) == 1 "The new ray r is not a primitive element of the lattice Z^d with d = length(r)"
+  # Check if exceptional_ray is primitive in ZZ^d, i.e. gcd(exceptional_ray)==1.
+  @req ambient_dim(Sigma) == length(exceptional_ray) "New ray is not $(ambient_dim(Sigma))-dimensional"
+  @req gcd(exceptional_ray) == 1 "The exceptional ray r is not a primitive element of the lattice Z^d with d = length(r)"
   @req lineality_dim(Sigma) == 0 "star_subdivision does not work for polyhedral fans with lineality."
 
   old_rays = matrix(ZZ, rays(Sigma))
-  # In case the new ray is an old ray.
-  new_ray_index = findfirst(i -> vec(old_rays[i, :]) == new_ray, 1:nrows(old_rays))
+  # In case the exceptional ray is an old ray.
+  exceptional_ray_index = findfirst(
+    i -> vec(old_rays[i, :]) == exceptional_ray, 1:nrows(old_rays)
+  )
   new_rays = old_rays
-  if isnothing(new_ray_index)
-    new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
-    new_ray_index = n_rays(Sigma) + 1
+  if isnothing(exceptional_ray_index)
+    new_rays = vcat(old_rays, matrix(ZZ, [exceptional_ray]))
+    exceptional_ray_index = n_rays(Sigma) + 1
   end
   mc_old = maximal_cones(IncidenceMatrix, Sigma)
 
   facet_normals = matrix(QQ, pm_object(Sigma).FACET_NORMALS)
-  refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray)
-  @req length(refinable_cones) > 0 "$new_ray not contained in support of fan."
-  new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
+  refinable_cones = _get_maximal_cones_containing_vector(Sigma, exceptional_ray)
+  @req length(refinable_cones) > 0 "$exceptional_ray not contained in support of fan."
+  new_cones = _get_refinable_facets(
+    Sigma, exceptional_ray, refinable_cones, facet_normals, mc_old
+  )
   for nc in new_cones
-    push!(nc, new_ray_index)
+    push!(nc, exceptional_ray_index)
   end
   for i in 1:n_maximal_cones(Sigma)
     if !(i in refinable_cones)
@@ -135,13 +141,13 @@ end
 
 function _get_refinable_facets(
   Sigma::_FanLikeType,
-  new_ray::AbstractVector{<:IntegerUnion},
+  exceptional_ray::AbstractVector{<:IntegerUnion},
   refinable_cones::Vector{Int},
   facet_normals::MatElem,
   mc_old::IncidenceMatrix,
 )
   new_cones = Vector{Int}[]
-  v_facet_signs = _facet_signs(facet_normals, new_ray)
+  v_facet_signs = _facet_signs(facet_normals, exceptional_ray)
   R = rays(Sigma)
   hd = pm_object(Sigma).HASSE_DIAGRAM
   hd_graph = Graph{Directed}(hd.ADJACENCY)
@@ -159,8 +165,8 @@ function _get_refinable_facets(
       mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R, mc_facet_indices
     )
     append!(new_cones, refinable_facets)
-    # If all facets contain new_ray, then the current maximal cone is just
-    # new_ray.
+    # If all facets contain exceptional_ray, then the current maximal cone is just
+    # exceptional_ray.
     length(refinable_facets) > 0 || push!(new_cones, Vector{Int}(mc_indices))
   end
   return unique(new_cones)
@@ -203,8 +209,9 @@ function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector
   end
   return true
 end
+
 function _get_maximal_cones_containing_vector(
-  Sigma::_FanLikeType, v::AbstractVector{<:IntegerUnion}
+  Sigma::_FanLikeType, v::AbstractVector{<:RationalUnion}
 )
   # Make sure these are computed as otherwise performance degrades.
   pm_object(Sigma).FACET_NORMALS
@@ -234,22 +241,21 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType, n::Int)
   cones_Sigma = cones(Sigma)
   tau = Polymake.row(cones_Sigma, n)
-  @req length(tau) > 1 "Cannot subdivide cone $n as it is generated by a single ray"
   R = matrix(ZZ, rays(Sigma))
-  newray = vec(sum([R[i, :] for i in tau]))
-  newray = newray ./ gcd(newray)
-  return star_subdivision(Sigma, newray)
+  exceptional_ray = vec(sum([R[i, :] for i in tau]))
+  exceptional_ray = exceptional_ray ./ gcd(exceptional_ray)
+  return star_subdivision(Sigma, exceptional_ray)
 end
 
 @doc raw"""
@@ -328,7 +334,7 @@ arrangement_polynomial(...  ; hyperplanes=:in_cols)
 ```
 
 # Example using standard ring and then custom ring.
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 [   1   2   5//2]
 [   0   0      1]
@@ -348,7 +354,7 @@ julia> factor(arrangement_polynomial(R, A))
 ```
 
 To use the columns instead, proceed in the following way:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1]);
 
 julia> factor(arrangement_polynomial(A; hyperplanes=:in_cols))

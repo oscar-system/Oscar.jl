@@ -3,16 +3,19 @@ module BasisLieHighestWeight
 using ..Oscar
 using ..Oscar: IntegerUnion
 using ..Oscar: _is_weighted
+using ..Oscar: _root_system_type_string
 
-using Oscar.LieAlgebras:
-  _root_system_type_string,
-  lie_algebra_simple_module_struct_consts_gap
+using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
 
 using AbstractAlgebra.PrettyPrinting
 
+import Oscar: base_lie_algebra
+import Oscar: character
 import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
+import Oscar: root_system
+import Oscar: vector_space_dim
 
 import Base: length
 
@@ -27,6 +30,7 @@ import Base: length
 # - the list of Minkowski gens contains too many elements, only include those that give us something new
 
 include("LieAlgebras.jl")
+include("ModuleData.jl")
 include("BirationalSequence.jl")
 include("MonomialBasis.jl")
 include("NewMonomial.jl")
@@ -47,6 +51,11 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_demazure
+export basis_lie_demazure_ffl
+export basis_lie_demazure_lusztig
+export basis_lie_demazure_nz
+export basis_lie_demazure_string
 
 end
 
@@ -65,3 +74,8 @@ export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_string
+export basis_lie_demazure
+export basis_lie_demazure_ffl
+export basis_lie_demazure_lusztig
+export basis_lie_demazure_nz
+export basis_lie_demazure_string

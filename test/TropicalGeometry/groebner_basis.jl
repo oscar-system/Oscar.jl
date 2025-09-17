@@ -35,12 +35,4 @@
         @test issetequal(groebner_basis(I,nu,w),gens(I))
     end
 
-    @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector) - binomial ideals" begin
-        R,(x,y) = QQ[:x, :y]
-        I = ideal(R,[x^1+8*y^2,x^2+y^4])
-        w = [-2,-1]
-        nu = tropical_semiring_map(QQ)
-        @test issetequal(groebner_basis(I,nu,w),gens(I))
-    end
-
 end

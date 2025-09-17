@@ -1,9 +1,17 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Schubert Calculus
+
+The term `Schubert Calculus` refers to the intersection theory of Grassmannians. This is to honor Hermann Schubert,
+a German 18th century mathematician who solved a variety of problems in enumerative geometry by reducing them
+to the combinatorics and  intersection theory of certain cycles on Grassmanians. These cycles are nowadays called
+`Schubert cycles`, their cycle classes are called `Schubert classes`.
+
+We show how to define such classes in OSCAR.
 
 To recall the definition of Schubert cycles on a Grassmannian $\mathrm{G}(k,n)$, we think of $\mathrm{G}(k, n)$ as the
 Grassmannian $\mathrm{G}(k, W)$ of $k$-dimensional subspaces of an $n$-dimensional $K$-vector space $W$.
@@ -58,10 +66,6 @@ See [EH16](@cite) for the relations on these generators.
 
 ```@docs
 schubert_class(G::AbstractVariety, λ::Int...)
-```
-
-```@docs
-schubert_classes(G::AbstractVariety, m::Int)
 ```
 
 ```@docs

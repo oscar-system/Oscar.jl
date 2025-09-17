@@ -236,14 +236,14 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   return SS
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool=false, check::Bool=true)
   C = base_ring(f)
   Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
 
-function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool=false, check::Bool=true)
   return number_field(f; cached, check)
 end
 
@@ -291,12 +291,12 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
+(Symmetric group of degree 3, Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Sym(3)
- Alt(3)
+ Symmetric group of degree 3
+ Alternating group of degree 3
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)
@@ -507,7 +507,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
   @vtime :SolveRadical 1 G, C = galois_group(f)
-  lp = [p for p = keys(factor(order(G)).fac) if p > 2]
+  lp = [p for (p, _) in factor(order(G)) if p > 2]
   if length(lp) > 0
     @vprint :SolveRadical 1 "need to add roots-of-one: $lp\n"
     @vtime :SolveRadical 1 G, C = galois_group(f*prod(cyclotomic(Int(p), gen(parent(f))) for p = lp))
@@ -599,7 +599,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         p = parent(s)
         if p == QQ
           lf = factor(s, ZZ)
-          t = prod([p for (p, k) = lf.fac if isodd(k)], init = ZZ(1)) * lf.unit
+          t = prod([p for (p, k) = lf if isodd(k)], init = ZZ(1)) * lf.unit
           r = root(s//t, 2)    
         else
           _, ma = absolute_simple_field(p)

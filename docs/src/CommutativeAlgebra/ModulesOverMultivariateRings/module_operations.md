@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Operations on Modules
@@ -27,11 +29,17 @@ cokernel(a::ModuleFPHom)
 ## Direct Sums and Products
 
 ```@docs
-direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where T
+direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
 ```
 
 ```@docs
-direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
+direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+```
+
+## Annihilator
+
+```@docs
+annihilator(N::ModuleFP{T}) where T
 ```
 
 ## Truncation

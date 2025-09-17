@@ -134,3 +134,13 @@ end
   @test coefficients(h)[2] == 0
   @test degree(Q) == 6
 end
+
+@testset "Hilbert series part 5"  begin
+  # Test a trivial case -- just to check that the 1 power product prints correctly
+  P,(x,y) = graded_polynomial_ring(QQ, ["x","y"]);
+  @test  repr(Oscar.PP(degrees(one(P)))) == "1"
+  I = ideal(one(P));
+  PmodI,_ = quo(P,I); # Q is the zero ring
+  HSRing1,_ = polynomial_ring(ZZ, "t");
+  @test is_zero(Oscar.HSNum_abbott(PmodI, HSRing1))
+end

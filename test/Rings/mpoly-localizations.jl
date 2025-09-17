@@ -182,11 +182,6 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-function test_elem(W::Oscar.MPolyLocRing) 
-  f = rand(rng, W, 0:3, 0:4, 0:3)
-  return f
-end
-
 @testset "Ring interface for localized polynomial rings" begin
 # kk = QQ
 # R, v = kk[:x, :y]
@@ -201,9 +196,9 @@ end
 # T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(localization(S)[1])
-# test_Ring_interface_recursive(localization(T)[1])
-# test_Ring_interface_recursive(localization(U)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 
 # should be unnecessary: https://github.com/oscar-system/Oscar.jl/pull/1459#issuecomment-1230185617
 #  AbstractAlgebra.promote_rule(::Type{fpMPolyRingElem}, ::Type{ZZRingElem}) = fpMPolyRingElem
@@ -225,9 +220,9 @@ end
   T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = Oscar.MPolyComplementOfPrimeIdeal(I)
 
-  test_Ring_interface_recursive(localization(S)[1])
-  test_Ring_interface_recursive(localization(T)[1])
-  test_Ring_interface_recursive(localization(U)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+  ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 
 # kk = ZZ
 # R, v = kk[:x, :y]
@@ -241,9 +236,9 @@ end
 # S = Oscar.MPolyPowersOfElement(R, d)
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(localization(S)[1])
-# test_Ring_interface_recursive(localization(T)[1])
-# test_Ring_interface_recursive(localization(U)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
+# ConformanceTests.test_Ring_interface_recursive(localization(U)[1])
 end
 
 @testset "localization_at_orderings_1" begin
@@ -515,5 +510,28 @@ end
   (x, y, z) = map(Q, (x, y, z))
   @test inv(x) + inv(y) == (x + y)*inv(x*y)
   @test_throws Exception x*inv(x - 2)
+end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  L, loc = localization(R, complement_of_prime_ideal(I))
+  J = ideal(L, x)
+  @test dim(J) == 0
+  @test dim(L) == 1
+  K = ideal(L, y)
+  @test dim(K) == -inf
+end
+
+@testset "issue 5316" begin
+  R, (x, y) = QQ[:x, :y]
+  f = x+y
+  U = powers_of_element(f)
+  V = Oscar.MPolyLeadingMonOne(neglex(gens(R)))
+  T = U*V
+  L, _ = localization(R, T)
+  I = ideal(L, x)
+  @test coordinates(x, I)[1] == one(L)
 end
 

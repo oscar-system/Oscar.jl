@@ -200,7 +200,6 @@ end
   @test ambient_coordinate_ring(U) === R
   @test Oscar.ring_type(V) == typeof(OO(V))
   @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
-  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test is_subscheme(V,U)
   @test is_subscheme(U,V)
@@ -267,20 +266,28 @@ end
   P = OO(IA2)
   x, y = gens(P)
 
-  X = subscheme(IA2, x^2 + y^2)
+  X, inc_X = sub(IA2, x^2 + y^2)
 
   U = hypersurface_complement(IA2, x)
+  inc_U = inclusion_morphism(U, IA2)
 
   V = hypersurface_complement(X, x)
+  inc_V = inclusion_morphism(V, X)
 
   kk, pr = quo(ZZ, 5)
   IA2_red, phi1 = base_change(pr, IA2)
-  X_red, phi2 = base_change(pr, X)
-  U_red, phi3 = base_change(pr, U)
-  V_red, phi4 = base_change(pr, V)
+  red_X, phi2, _ = base_change(pr, inc_X; codomain_map=phi1)
+  X_red = domain(red_X)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(X_red)
+  red_U, phi3, _ = base_change(pr, inc_U; codomain_map=phi1)
+  U_red = domain(red_U)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(U_red)
+  red_V, phi4, _ = base_change(pr, inc_V; codomain_map=red_X)
+  V_red = domain(red_V)
+  @test ambient_coordinate_ring(IA2_red) === ambient_coordinate_ring(V_red)
 
   m1 = compose(inclusion_morphism(V_red, IA2_red), phi1);
-  m2 = compose(phi4, inclusion_morphism(V, IA2));
+  m2 = compose(red_V, inclusion_morphism(V, IA2));
   @test m1 == m2
 
   # Testing morphisms
@@ -427,3 +434,16 @@ end
   J = ideal(R, R[1])
   Sat = saturation(modulus(Q),J)
 end
+  
+@testset "irreducible components" begin
+  A = affine_space(QQ,2)
+  (x,y) = coordinates(A)
+  Y1 = subscheme(A, [x*y])
+  @test length(irreducible_components(Y1))==2
+  Y2 = hypersurface_complement(Y1,x)
+  @test length(irreducible_components(Y2))==1
+  P = ideal([x,y])
+  l,_ = localization(OO(Y1), complement_of_prime_ideal(P))
+  Y3 = spec(l)
+  @test length(irreducible_components(Y3))==2
+end 

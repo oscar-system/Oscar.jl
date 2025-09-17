@@ -9,8 +9,6 @@ scheme_type(D::AbsWeilDivisor{S, U}) where{S, U} = S
 scheme_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = S
 coefficient_ring_type(D::AbsWeilDivisor{S, U}) where{S, U} = U
 coefficient_ring_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = U
-coefficient_type(D::AbsWeilDivisor{S, U}) where{S, U} = elem_type(U)
-coefficient_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = elem_type(U)
 
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
@@ -378,7 +376,7 @@ function _self_intersection(I::AbsIdealSheaf)
   return get_attribute(I, :_self_intersection)::Int
 end
 
-function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::AbsIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "checking triviality of $(I) on $(U)"
@@ -394,7 +392,7 @@ function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
   return false
 end
 
-function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
+function is_known(::typeof(is_one), I::SumIdealSheaf, U::AbsAffineScheme;
     dec_inf::Vector = elem_type(OO(U))[]
   )
   @vprintln :Divisors 5 "triviality on $(U)"

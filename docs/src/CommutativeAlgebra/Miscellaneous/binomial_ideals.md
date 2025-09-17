@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -40,6 +41,13 @@ Papers offering details on theory and algorithms as well as examples include:
 - [Kah10](@cite)
 - [EM16](@cite)
 - [EM19](@cite)
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on binomial ideals in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/CommutativeAlgebra/).
+
 
 ## Basic Tests
 

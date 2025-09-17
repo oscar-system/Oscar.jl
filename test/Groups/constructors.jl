@@ -65,6 +65,10 @@ end
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
 
   @test is_quaternion_group(small_group(8, 4))
+  @test ! is_quaternion_group(small_group(12, 3))
+  @test is_dicyclic_group(small_group(8, 4))
+  @test ! is_dicyclic_group(small_group(13, 1))
+
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)
@@ -170,6 +174,9 @@ end
 
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
+
+  Dic12 = dicyclic_group(12)
+  @test isa(Dic12, PcGroup)
   
   gl = GL(2, 3)
   @test isa(gl, MatrixGroup)
@@ -177,6 +184,25 @@ end
   sl = SL(2, 3)
   @test isa(sl, MatrixGroup)
   
+end
+
+@testset "Extraspecial groups" begin
+   @testset for p in [2, 3, 5], n in [1, 2], type in [:+, :-]
+      G = extraspecial_group(p, n, type)
+      @test is_extraspecial_group(G)
+      @test G isa PcGroup
+
+      for T in [PcGroup, SubPcGroup, PermGroup, FPGroup, SubFPGroup]
+         G = extraspecial_group(T, p, n, type)
+         @test is_extraspecial_group(G)
+         @test G isa T
+         @test (p == 2) ? (exponent(G) == 4) :
+                          ((type == :+) ? exponent(G) == p : exponent(G) == p^2)
+      end
+   end
+   @test_throws ArgumentError extraspecial_group(2, 0, :+)
+   @test_throws ArgumentError extraspecial_group(4, 1, :+)
+   @test_throws MethodError extraspecial_group(2, 1, "+")
 end
 
 @testset "Classical groups" begin

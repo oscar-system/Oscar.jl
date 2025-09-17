@@ -28,7 +28,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> order(G)
 120
@@ -38,6 +38,16 @@ julia> order(G)
 function symmetric_group(n::Int)
   @req n >= 1 "n must be a positive integer"
   return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
+end
+
+# for functions like perm, cperm or macros like @perm provide a cached
+# version of symmetric_group to reduce the overhead for these functions.
+const SymmetricGroupID = AbstractAlgebra.CacheDictType{Int, PermGroup}()
+
+function _symmetric_group_cached(n::Int)
+  Base.get!(SymmetricGroupID, n) do
+    symmetric_group(n)
+  end
 end
 
 """
@@ -64,7 +74,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Alt(5)
+Alternating group of degree 5
 
 julia> order(G)
 60
@@ -195,11 +205,11 @@ end
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubPcGroup} where T <: IntegerUnion
   if 0 in v
-# if 0 in v || (TG == PcGroup && any(!is_prime, v))
-#TODO: Currently GAP's IsPcpGroup groups run into problems
-#      already in the available Oscar tests,
-#      see https://github.com/gap-packages/polycyclic/issues/88,
-#      so we keep the code from the master branch here.
+    # if 0 in v || (TG == PcGroup && any(!is_prime, v))
+    #TODO: Currently GAP's IsPcpGroup groups run into problems
+    #      already in the available Oscar tests,
+    #      see https://github.com/gap-packages/polycyclic/issues/88,
+    #      so we keep the code from the master branch here.
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
     return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v; recursive = true)))
@@ -317,8 +327,8 @@ julia> order(g)
 ```
 """
 function projective_general_linear_group(n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   return PermGroup(GAP.Globals.PGL(n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  return PermGroup(GAP.Globals.PGL(n, q))
 end
 
 
@@ -340,8 +350,8 @@ julia> order(g)
 ```
 """
 function projective_special_linear_group(n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   return PermGroup(GAP.Globals.PSL(n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  return PermGroup(GAP.Globals.PSL(n, q))
 end
 
 
@@ -363,9 +373,9 @@ julia> order(g)
 ```
 """
 function projective_symplectic_group(n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   @req iseven(n) "The dimension must be even"
-   return PermGroup(GAP.Globals.PSp(n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  @req iseven(n) "The dimension must be even"
+  return PermGroup(GAP.Globals.PSp(n, q))
 end
 
 
@@ -387,8 +397,8 @@ julia> order(g)
 ```
 """
 function projective_unitary_group(n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   return PermGroup(GAP.Globals.PGU(n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  return PermGroup(GAP.Globals.PGU(n, q))
 end
 
 
@@ -410,8 +420,8 @@ julia> order(g)
 ```
 """
 function projective_special_unitary_group(n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   return PermGroup(GAP.Globals.PSU(n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  return PermGroup(GAP.Globals.PSU(n, q))
 end
 
 
@@ -434,15 +444,15 @@ julia> g = projective_orthogonal_group(3, 3);  order(g)
 ```
 """
 function projective_orthogonal_group(e::Int, n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   if e == 1 || e == -1
-      @req iseven(n) "The dimension must be even"
-   elseif e == 0
-      @req isodd(n) "The dimension must be odd"
-   else
-      throw(ArgumentError("Invalid description of projective orthogonal group"))
-   end
-   return PermGroup(GAP.Globals.PGO(e, n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  if e == 1 || e == -1
+    @req iseven(n) "The dimension must be even"
+  elseif e == 0
+    @req isodd(n) "The dimension must be odd"
+  else
+    throw(ArgumentError("Invalid description of projective orthogonal group"))
+  end
+  return PermGroup(GAP.Globals.PGO(e, n, q))
 end
 
 projective_orthogonal_group(n::Int, q::Int) = projective_orthogonal_group(0, n, q)
@@ -467,15 +477,15 @@ julia> g = projective_special_orthogonal_group(3, 3);  order(g)
 ```
 """
 function projective_special_orthogonal_group(e::Int, n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   if e == 1 || e == -1
-      @req iseven(n) "The dimension must be even"
-   elseif e == 0
-      @req isodd(n) "The dimension must be odd"
-   else
-      throw(ArgumentError("Invalid description of projective special orthogonal group"))
-   end
-   return PermGroup(GAP.Globals.PSO(e, n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  if e == 1 || e == -1
+    @req iseven(n) "The dimension must be even"
+  elseif e == 0
+    @req isodd(n) "The dimension must be odd"
+  else
+    throw(ArgumentError("Invalid description of projective special orthogonal group"))
+  end
+  return PermGroup(GAP.Globals.PSO(e, n, q))
 end
 
 projective_special_orthogonal_group(n::Int, q::Int) = projective_special_orthogonal_group(0, n, q)
@@ -500,15 +510,15 @@ julia> g = projective_omega_group(3, 3);  order(g)
 ```
 """
 function projective_omega_group(e::Int, n::Int, q::Int)
-   @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
-   if e == 1 || e == -1
-      @req iseven(n) "The dimension must be even"
-   elseif e == 0
-      @req isodd(n) "The dimension must be odd"
-   else
-      throw(ArgumentError("Invalid description of projective orthogonal group"))
-   end
-   return PermGroup(GAP.Globals.POmega(e, n, q))
+  @req is_prime_power_with_data(q)[1] "The field size must be a prime power"
+  if e == 1 || e == -1
+    @req iseven(n) "The dimension must be even"
+  elseif e == 0
+    @req isodd(n) "The dimension must be odd"
+  else
+    throw(ArgumentError("Invalid description of projective orthogonal group"))
+  end
+  return PermGroup(GAP.Globals.POmega(e, n, q))
 end
 
 projective_omega_group(n::Int, q::Int) = projective_omega_group(0, n, q)
@@ -601,17 +611,17 @@ julia> gens(free_group([:a, :b], "x" => 1:2, 'y' => (1:2, 1:2)))
 ```
 """
 function free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
-   @req allunique(L) "generator names must be unique"
-   J = GapObj(L, recursive = true)
-   if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
-   elseif eltype == :letter
-     G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
-   else
-     error("eltype must be :letter or :syllable, not ", eltype)
-   end
-   GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
-   return G
+  @req allunique(L) "generator names must be unique"
+  J = GapObj(L, recursive = true)
+  if eltype == :syllable
+    G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+  elseif eltype == :letter
+    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+  else
+    error("eltype must be :letter or :syllable, not ", eltype)
+  end
+  GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
+  return G
 end
 
 # HACK: we want to use `AbstractAlgebra.@varnames_interface` for free groups,
@@ -626,8 +636,8 @@ end
 # `@free_group` by delegating to the `@_free_group` macros (plus some extra
 # shenigans).
 function _free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
-   G = free_group(L; eltype)
-   return G, gens(G)
+  G = free_group(L; eltype)
+  return G, gens(G)
 end
 
 AbstractAlgebra.@varnames_interface _free_group(s)
@@ -639,7 +649,7 @@ free_group(; kw...) = _free_group(0; kw...)[1]
 # HACK to get the default variable name stem `:f` instead of `:x`
 # but also to insert validation for `n`.
 function free_group(n::Int, s::VarName = :f; kw...)
-   @req n >= 0 "n must be a non-negative integer"
+  @req n >= 0 "n must be a non-negative integer"
   _free_group(n, s; kw...)[1]
 end
 
@@ -683,12 +693,12 @@ macro free_group(args...)
     # if the arguments are varnames, put them into a vector before delegating
     # to @_free_group
     esc(quote
-      Oscar.@_free_group([$(args...)])
+        Oscar.@_free_group([$(args...)])
     end)
   else
     # by default just delegate to `@_free_group`
     esc(quote
-      Oscar.@_free_group($(args...))
+        Oscar.@_free_group($(args...))
     end)
   end
 end
@@ -711,7 +721,7 @@ end
 #end
 
 function free_abelian_group(::Type{FPGroup}, n::Int)
- return FPGroup(GAPWrap.FreeAbelianGroup(n)::GapObj)
+  return FPGroup(GAPWrap.FreeAbelianGroup(n)::GapObj)
 end
 
 
@@ -772,6 +782,7 @@ Pc group of infinite order
 
 julia> dihedral_group(7)
 ERROR: ArgumentError: n must be a positive even integer or infinity
+[...]
 ```
 """
 dihedral_group(n::Union{IntegerUnion,PosInf}) = dihedral_group(PcGroup, n)
@@ -810,22 +821,28 @@ false
 @gapattribute is_dihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(GapObj(G))::Bool
 
 """
+    dicyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
     quaternion_group(::Type{T} = PcGroup, n::IntegerUnion)
 
-Return the (generalized) quaternion group of order `n`,
-as an instance of `T`,
-where `n` is a power of 2 and `T` is in
-{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
+Return the dicyclic group of order `n`,
+as an instance of `T`, where `n` is a multiple of 4
+and `T` is a suitable group type such as
+`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`.
+
+!!! note
+    In the literature, these groups are sometimes called dicyclic groups and
+    sometimes (generalized) quaternion groups. For user convenience we support
+    both names. However, the two functions are fully identical. 
 
 # Examples
 ```jldoctest
-julia> g = quaternion_group(8)
+julia> g = dicyclic_group(8)
 Pc group of order 8
 
-julia> quaternion_group(PermGroup, 8)
+julia> dicyclic_group(PermGroup, 8)
 Permutation group of degree 8
 
-julia> g = quaternion_group(FPGroup, 8)
+julia> g = dicyclic_group(FPGroup, 8)
 Finitely presented group of order 8
 
 julia> relators(g)
@@ -833,38 +850,164 @@ julia> relators(g)
  r^2*s^-2
  s^4
  r^-1*s*r*s
-
 ```
 """
-quaternion_group(n::IntegerUnion) = quaternion_group(PcGroup, n)
+dicyclic_group(n::IntegerUnion) = dicyclic_group(PcGroup, n)
 
-function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
-  # FIXME: resolve naming: dicyclic vs (generalized) quaternion: only the
-  # former should be for any n divisible by 4; the latter only for powers of 2.
-  # see also debate on the GAP side (https://github.com/gap-system/gap/issues/2725)
+function dicyclic_group(::Type{T}, n::IntegerUnion) where {T<:GAPGroup}
   @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
+  return T(GAP.Globals.DicyclicGroup(_gap_filter(T), n)::GapObj)
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
-function quaternion_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
+function dicyclic_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
   @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
+  return T(GAP.Globals.DicyclicGroup(GAP.Globals.IsPcGroup, n)::GapObj)
 end
 
 @doc raw"""
+    is_dicyclic_group(G::GAPGroup)
     is_quaternion_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic to a (generalized) quaternion group
-of order $2^{k+1}, k \geq 2$, and `false` otherwise.
+Return `true` if `G` is isomorphic to a dicyclic group
+of order $4k, k > 1$, and `false` otherwise.
+
+!!! note
+    In the literature, these groups are sometimes called dicyclic groups and
+    sometimes (generalized) quaternion groups. For user convenience we support
+    both names. However, the two functions are fully identical.
+    
+    If you wish to check that `G` is a quaternion group in a stricter sense,
+    e.g. that its order exactly 8 resp. a power of two, you can check
+    the order explicitly resp. use `is_pgroup`.
 
 # Examples
 ```jldoctest
-julia> is_quaternion_group(small_group(8, 3))
+julia> is_dicyclic_group(small_group(8, 3))
 false
 
-julia> is_quaternion_group(small_group(8, 4))
+julia> is_dicyclic_group(transitive_group(8, 5))
 true
 ```
 """
-@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool
+is_dicyclic_group(G::GAPGroup) = _is_dicyclic_group(G)
+
+function _is_dicyclic_group(G::GAPGroup)
+  N = order(G)
+  !iszero(mod(N, 4)) && return false
+  
+  n = div(N, 2)
+  a = div(n, 2)
+
+  G1, _ = derived_subgroup(G)
+  (is_cyclic(G1) && order(G1) == a) || return false
+
+  local Zn
+  T = right_transversal(G, G1)
+  @assert length(T) == 4
+  for x in T
+    H = GAP.Globals.ClosureGroup(GapObj(G1), GapObj(x))
+    Zn, _ = Oscar._as_subgroup(G1, H)
+    if is_cyclic(Zn) && order(Zn) == n
+      break
+    end
+  end
+
+  (is_cyclic(Zn) && order(Zn) == n) || return false
+
+  local t = one(G)
+  while t in Zn
+    t = rand(G)
+  end
+
+  !(order(t) == 4 && all(s -> s^t*s == s^0, gens(Zn))) && return false
+
+  # Different from GAP code, here we skip finding other generator.
+  return true
+end
+
+@alias quaternion_group dicyclic_group
+@alias is_quaternion_group is_dicyclic_group
+
+
+@doc raw"""
+    extraspecial_group(::Type{T} = PcGroup, p::Int, n::Int, type::Symbol)}
+
+Return the extraspecial group of order `p^(2*n+1)` and of type `type`,
+as an instance of `T`,
+where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`}
+and `type` is either `:+` or `:-`.
+
+If `type` is `:+` then the result has exponent `p` if `p` is odd,
+and the result is isomorphic to a central product of `n` dihedral groups
+of order 8 if `p` is 2.
+
+If `type` is `:-` then the result has exponent `p^2` if `p` is odd,
+and the result is isomorphic to a central product of `n-1` dihedral groups
+of order 8 and one quaternion group of order 8 if `p` is 2.
+
+# Examples
+```jldoctest
+julia> extraspecial_group(3, 2, :-)
+Pc group of order 243
+
+julia> describe(extraspecial_group(2, 1, :+))
+"D8"
+
+julia> describe(extraspecial_group(PermGroup, 2, 1, :-))
+"Q8"
+```
+"""
+function extraspecial_group(p::Int, n::Int, type::Symbol)
+  @req is_prime(p) "p must be a prime"
+  @req (n > 0) "n must be positive"
+  @req (type === :+ || type === :-) "type must be :+ or :-"
+  return PcGroup(GAPWrap.ExtraspecialGroup(GAP.Globals.IsPcGroup,
+             GAPWrap.POW(GAP.Obj(p), GAP.Obj(2*n+1)), GapObj(type)))
+end
+
+function extraspecial_group(::Type{T}, p::Int, n::Int, type::Symbol) where T <: GAPGroup
+  return T(extraspecial_group(p, n, type))
+end
+
+@doc raw"""
+    is_extraspecial_group(G::GAPGroup)
+
+Return `true` if `G` is isomorphic to an extraspecial group,
+and `false` otherwise.
+
+A group $G$ is called extraspecial if it is a finite $p$-group of order
+$p^{2n+1}$, for a prime $p$ and $n > 0$,
+such that the centre of $G$ has order $p$ and is equal to the Frattini
+subgroup of $G$.
+
+# Examples
+```jldoctest
+julia> is_extraspecial_group(dihedral_group(8))
+true
+
+julia> is_extraspecial_group(dicyclic_group(8))
+true
+
+julia> is_extraspecial_group(sylow_subgroup(mathieu_group(12), 3)[1])
+true
+
+julia> is_extraspecial_group(symmetric_group(3))
+false
+
+julia> is_extraspecial_group(cyclic_group(7))
+false
+```
+"""
+function is_extraspecial_group(G::Group)
+  is_finite(G) || return false
+  facts = collect(factor(order(G)))
+  (length(facts) == 1) || return false
+  (p, n) = facts[1]
+  (n > 0 && is_odd(n)) || return false
+  C, embC = center(G)
+  (order(C) == p) || return false
+  F, embF = frattini_subgroup(G)
+  (order(F) == p) || return false
+  return has_preimage_with_preimage(embF, embC(cyclic_generator(C)))[1]
+end

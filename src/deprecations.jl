@@ -144,7 +144,7 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate scheme(W::CartierDivisor) ambient_scheme(W)
 @deprecate scheme(W::EffectiveCartierDivisor) ambient_scheme(W)
 
-@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X) 
+@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X)
 @deprecate minimal_generating_set(G::GAPGroup) minimal_size_generating_set(G)
 @deprecate has_minimal_generating_set(G::GAPGroup) has_minimal_size_generating_set(G)
 @deprecate set_minimal_generating_set(G::GAPGroup, v) set_minimal_size_generating_set(G, v)
@@ -152,3 +152,29 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 # deprecated for 1.3
 @deprecate acting_domain(C::GroupCoset) acting_group(C)
 @deprecate acting_domain(Omega::GSet) acting_group(Omega)
+@deprecate grid_morphism lattice_homomorphism
+
+# deprecated for 1.4
+@deprecate gset(G::PermGroup) natural_gset(G)
+@deprecate gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem} natural_gset(G)
+
+# deprecated for 1.5
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
+    return tropical_linear_space(AbstractAlgebra.combinations(n,k), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+end
+
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
+    TropL = tropical_linear_space(AbstractAlgebra.combinations(n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
+end
+
+@deprecate vector_space_dimension vector_space_dim

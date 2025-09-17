@@ -13,7 +13,7 @@ Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 
 See [Fau99](@cite) for more information.
 
 !!! note
-    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported.
+    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported. For the rationals a multi-modular approach is used without final verification test over the rationals.
 
 # Possible keyword arguments
 - `initial_hts::Int=17`: initial hash table size `log_2`.
@@ -60,14 +60,19 @@ function groebner_basis_f4(
         info_level::Int=0
         )
 
-    AI = AlgebraicSolving.Ideal(I.gens.O)
-    vars = gens(base_ring(I))[eliminate+1:end]
-    ord = degrevlex(vars)
+    AI   = AlgebraicSolving.Ideal(oscar_generators(I))
+    if eliminate == 0
+      AR = base_ring(I)
+    else
+      vars = symbols(base_ring(I))[eliminate+1:end]
+      AR,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
+    end
+    ord  = degrevlex(AR)
     if length(AI.gens) == 0
-        I.gb[ord]        = IdealGens(I.gens.Ox, singular_generators(I), complete_reduction)
-        I.gb[ord].ord    = ord
-        I.gb[ord].isGB   = true
-        I.gb[ord].S.isGB = true
+        GB = IdealGens(base_ring(I), singular_generators(I), complete_reduction)
+        GB.ord    = ord
+        GB..isGB  = true
+        GB.S.isGB = true
     else
         AlgebraicSolving.groebner_basis(AI,
                     initial_hts = initial_hts,
@@ -80,9 +85,12 @@ function groebner_basis_f4(
                     truncate_lifting = truncate_lifting,
                     info_level = info_level)
 
-        I.gb[ord] =
-            IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
-        I.gb[ord].isReduced = complete_reduction
+        GB = IdealGens(AR, AI.gb[eliminate], ord, keep_ordering = false,
+                       isGB = true, isReduced = complete_reduction)
     end
-    return I.gb[ord]
+    if eliminate == 0
+      I.gb[ord] = GB
+    end
+
+    return GB
 end

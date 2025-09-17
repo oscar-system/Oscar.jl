@@ -11,7 +11,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   @test Set(gens(R)) == Set(x)
   for i in 1:3
     for j in 1:4
@@ -23,7 +23,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   for i in 1:3
     for j in 1:4
       @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
@@ -31,7 +31,7 @@
   end
   @test y isa Vector{<: Any}
   @test length(y) == 2
-  @test length(unique(y)) == 2
+  @test allunique(y)
   for i in 1:2
     @test sprint(show, "text/plain", y[i]) == "y[$i]"
   end
@@ -43,7 +43,7 @@
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
-  @test length(unique(x)) == 12
+  @test allunique(x)
   for i in 1:3
     for j in 1:4
       @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
@@ -51,7 +51,7 @@
   end
   @test y isa Vector{<: Any}
   @test length(y) == 2
-  @test length(unique(y)) == 2
+  @test allunique(y)
   for i in 1:2
     @test sprint(show, "text/plain", y[i]) == "y[$i]"
   end
@@ -91,6 +91,11 @@ end
   @test saturation(I) == saturation(I, J)
   @test saturation_with_index(I) == (ideal(R, [x]), 2)
   @test saturation_with_index(I) == saturation_with_index(I, J)
+  # issue 4840
+  I = ideal(R, [x^5*y])
+  J = ideal(R, [x^2])
+  @test saturation(I, J) == ideal(R, [y])
+  @test saturation_with_index(I, J) == (ideal(R, [y]), 3)
 
   @test I != J
   RR, (xx, yy) = grade(R, [1, 1])
@@ -368,6 +373,24 @@ end
   equidimensional_decomposition_weak(I)
 end
 
+@testset "absolute primary decomposition over number fields" begin
+  P1, t1 = QQ[:t1];
+  kk1, a = extension_field(t1^4 + 1);
+  #P2, t2 = kk1[:t2]
+  #kk2, b = extension_field(t2^3 - 7); # working over this field is too expensive.
+  R, (x,) = polynomial_ring(kk1, [:x]);
+
+  I = ideal(R, x^8 + 1)
+  dec = absolute_primary_decomposition(I^2)
+  @test length(dec) == 4
+  for (Q, P, PP, d) in dec
+    @test d == 2
+    R_ext = base_ring(PP)
+    L = coefficient_ring(R_ext)
+    @test all(map_coefficients(L, g; parent=R_ext) in PP for g in gens(Q))
+  end
+end
+
 @testset "Hessian matrix" begin
   R, (x, y, z) = QQ[:x, :y, :z]
   f = x^2 + x*y^2 - z^3
@@ -573,7 +596,7 @@ end
   ambient_dimension = 4
   I = flag_pluecker_ideal(dimension_vector, ambient_dimension)
   R = base_ring(I)
-  @test dim(R) == 6
+  @test krull_dim(R) == 6
   x = gens(R)
   f1 = -x[1]*x[5]+x[2]*x[4]-x[3]*x[6] 
   @test [f1] == gens(I)
@@ -613,3 +636,66 @@ end
   I = ideal(P, elem_type(P)[])
   @test !radical_membership(x, I)
 end
+
+@testset "preprocessing for radical computations" begin
+  kk7 = GF(7^3)
+  P0, t0 = QQ[:t0]
+  mipo1 = t0^2 + 1
+  kk1, alpha_1 = extension_field(mipo1)
+
+  P1, t1 = kk1[:t1]
+  mipo2 = t1^2 - 2
+  kk2, alpha2 = extension_field(mipo2)
+
+  for kk in [QQ, GF(23), kk1, kk2, kk7]
+    R0, (x0, y0) = kk[:x0, :y0]
+    I0 = ideal(R0, [x0^4*(y0 + 5)^8])
+    @test x0*(y0+5) in radical(I0^2)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false, factor_generators=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=true, factor_generators=false)
+  end
+end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  @test I.dim === nothing
+  @test dim(I) == 1
+  @test I.dim !== nothing
+  
+  I2 = ideal(R, [x, x+1])
+  @test I2.dim === nothing
+  @test dim(I2) == -inf
+  @test I2.dim !== nothing
+end
+
+@testset "dimensions over number fields" begin
+  P, t = QQ[:t]
+  kk, i = extension_field(t^2 + 1)
+  R, (x, y) = kk[:x, :y]
+  @test dim(R) == 2
+end
+
+@testset "principally generated ideals" begin
+  R, (x, y) = QQ[:x, :y]
+  I1 = ideal(R, [x])
+  I2 = ideal(R, [x, x^2])
+  I3 = ideal(R, [x, y])
+  @test Oscar.is_known(is_principal, I1) # obvious to check
+  @test !Oscar.is_known(is_principal, I2) # not obvious to check, needs GB
+  g = principal_generator(I2) # computes a `small_generating_set`
+  @test Oscar.is_known(is_principal, I2) # result is cached
+  @test Oscar.is_principal(I2)
+  @test !Oscar.is_known(is_principal, I3) # not obvious to check
+  @test !Oscar.is_principal(I3) # check can be done
+  @test Oscar.is_known(is_principal, I3) # result is cached
+end
+
+@testset "issue 5175" begin
+  R,(x,y) = polynomial_ring(ZZ,2)
+  I = ideal(R,[y,2*x-1])
+  @test !is_one(radical(I))
+end
+

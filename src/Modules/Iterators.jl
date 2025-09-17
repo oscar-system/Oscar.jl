@@ -1,26 +1,36 @@
 ### Iteration over monomials in modules of a certain degree
-struct AllModuleMonomials{ModuleType<:FreeMod}
+struct AllModuleMonomials{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGroupElem}}
   F::ModuleType
-  d::Int
+  d::DegreeType
+  # Cache for the exponent vectors of the `base_ring` of the module in degree `d`
+  # For multigradings we're using polymake and this doesn't return iterators. 
+  # Since the computation is expensive, we don't want to do it over and over again. 
+  exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
 
   function AllModuleMonomials(F::FreeMod{T}, d::Int) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_standard_graded(S) || error("iterator implemented only for the standard graded case")
-    return new{typeof(F)}(F, d)
+    return new{typeof(F), Int}(F, d)
+  end
+  function AllModuleMonomials(F::FreeMod{T}, d::FinGenAbGroupElem) where {T <: MPolyDecRingElem}
+    is_graded(F) || error("module must be graded")
+    S = base_ring(F)
+    is_zm_graded(S) || error("iterator implemented only for the ZZ^m-graded case")
+    return new{typeof(F), FinGenAbGroupElem}(F, d, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}())
   end
 end
 
 underlying_module(amm::AllModuleMonomials) = amm.F
 degree(amm::AllModuleMonomials) = amm.d
 
-function all_monomials(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
+function all_monomials(F::FreeMod{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:MPolyDecRingElem}
   return AllModuleMonomials(F, d)
 end
 
-Base.eltype(::Type{AllModuleMonomials{T}}) where {T} = elem_type(T)
+Base.eltype(::Type{<:AllModuleMonomials{T}}) where {T} = elem_type(T)
 
-function Base.length(amm::AllModuleMonomials)
+function Base.length(amm::AllModuleMonomials{<:FreeMod, Int})
   F = underlying_module(amm)
   r = rank(F)
   R = base_ring(F)
@@ -34,7 +44,15 @@ function Base.length(amm::AllModuleMonomials)
   return result
 end
   
-function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
+function Base.length(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem})
+  F = underlying_module(amm)
+  r = rank(F)
+  R = base_ring(F)
+  d = degree(amm)::FinGenAbGroupElem
+  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g)))) for g in gens(F); init=0)
+end
+  
+function Base.iterate(amm::AllModuleMonomials{<:FreeMod, Int}, state::Nothing = nothing)
   i = 1
   F = underlying_module(amm)
   d = degree(amm)
@@ -52,7 +70,10 @@ function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
   return x*F[i], (i, mon_it, s)
 end
 
-function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, Vector{Int}})
+function Base.iterate(
+    amm::AllModuleMonomials{<:FreeMod, Int}, 
+    state::Tuple{Int, AllMonomials, Vector{Int}}
+  )
   F = underlying_module(amm)
   d = degree(amm)
   R = base_ring(F)
@@ -76,29 +97,90 @@ function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, V
   return x*F[i], (i, mon_it, s)
 end
 
+function Base.iterate(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem}, state::Nothing = nothing)
+  F = underlying_module(amm)
+  d = degree(amm)::FinGenAbGroupElem
+  R = base_ring(F)
+
+  for (i, g) in enumerate(gens(F))
+    d_loc = d - degree(g; check=false)
+
+    exps = get!(amm.exp_cache, d_loc) do
+      all_exponents(R, d_loc)
+    end
+
+    res = iterate(exps)
+    res === nothing && continue
+
+    e, s = res
+    poly_ctx = MPolyBuildCtx(R)
+    push_term!(poly_ctx, one(coefficient_ring(R)), e)
+    return (finish(poly_ctx)*g)::elem_type(F), (i, exps, s)
+  end
+  return nothing
+end
+
+function Base.iterate(
+    amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem}, 
+    state::Tuple{Int, Vector{Vector{Int}}, Int}
+  )
+  F = underlying_module(amm)
+  d = degree(amm)
+  R = base_ring(F)
+
+  i, exps, s = state
+  res = iterate(exps, s)
+  if res === nothing
+    for j in i+1:ngens(F)
+      d_loc = d - degree(F[j]; check=false)
+      exps = get!(amm.exp_cache, d_loc) do
+        all_exponents(R, d_loc)
+      end
+      res_loc = iterate(exps)
+      res_loc === nothing && continue
+      e, s = res_loc
+      poly_ctx = MPolyBuildCtx(R)
+      push_term!(poly_ctx, one(coefficient_ring(R)), e)
+      return finish(poly_ctx)*F[j], (j, exps, s)
+    end
+    return nothing
+  end
+  e, s = res
+  poly_ctx = MPolyBuildCtx(R)
+  push_term!(poly_ctx, one(coefficient_ring(R)), e)
+  return (finish(poly_ctx)*F[i])::elem_type(F), (i, exps, s)
+end
+
 ### The same for module exponents
-struct AllModuleExponents{ModuleType<:FreeMod}
+struct AllModuleExponents{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGroupElem}}
   F::ModuleType
-  d::Int
+  d::DegreeType
+  exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
 
   function AllModuleExponents(F::FreeMod{T}, d::Int) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_standard_graded(S) || error("iterator implemented only for the standard graded case")
-    return new{typeof(F)}(F, d)
+    return new{typeof(F), Int}(F, d)
+  end
+  function AllModuleExponents(F::FreeMod{T}, d::FinGenAbGroupElem) where {T <: MPolyDecRingElem}
+    is_graded(F) || error("module must be graded")
+    S = base_ring(F)
+    is_zm_graded(S) || error("iterator implemented only for the ZZ^m-graded case")
+    return new{typeof(F), FinGenAbGroupElem}(F, d, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}())
   end
 end
 
 underlying_module(amm::AllModuleExponents) = amm.F
 degree(amm::AllModuleExponents) = amm.d
 
-function all_exponents(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
+function all_exponents(F::FreeMod{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:MPolyDecRingElem}
   return AllModuleExponents(F, d)
 end
 
-Base.eltype(::Type{AllModuleExponents{T}}) where {T} = Tuple{Vector{Int}, Int}
+Base.eltype(::Type{<:AllModuleExponents{T}}) where {T} = Tuple{Vector{Int}, Int}
 
-function Base.length(amm::AllModuleExponents)
+function Base.length(amm::AllModuleExponents{<:FreeMod, Int})
   F = underlying_module(amm)
   r = rank(F)
   R = base_ring(F)
@@ -113,7 +195,7 @@ function Base.length(amm::AllModuleExponents)
   return result
 end
   
-function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
+function Base.iterate(amm::AllModuleExponents{<:FreeMod, Int}, state::Nothing = nothing)
   i = 1
   F = underlying_module(amm)
   d = degree(amm)
@@ -132,7 +214,7 @@ function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
   return (data(e), i), (i, exp_it, s)
 end
 
-function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakCompositions{Int}, Vector{Int}})
+function Base.iterate(amm::AllModuleExponents{<:FreeMod, Int}, state::Tuple{Int, WeakCompositions{Int}, Vector{Int}})
   F = underlying_module(amm)
   d = degree(amm)
   R = base_ring(F)
@@ -155,6 +237,72 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakComposition
 
   e, s = res
   return (data(e), i), (i, exp_it, s)
+end
+
+function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
+  F = underlying_module(amm)
+  r = rank(F)
+  R = base_ring(F)
+  d = degree(amm)::FinGenAbGroupElem
+  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g)))) for g in gens(F); init=0)
+  result = 0
+  for i in 1:r
+    d_loc = d - degree(F[i]; check=false)
+    any(Int(d_loc[i]) < 0 for i in 1:ngens(parent(d)))&& continue
+    exps = get!(amm.exp_cache, d_loc) do
+      return all_exponents(R, d_loc)
+    end
+    result += length(exps)
+  end
+  return result
+end
+  
+function Base.iterate(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, state::Nothing = nothing)
+  F = underlying_module(amm)
+  d = degree(amm)::FinGenAbGroupElem
+  R = base_ring(F)
+
+  for (i, g) in enumerate(gens(F))
+    d_loc = d - degree(g; check=false)
+
+    exps = get!(amm.exp_cache, d_loc) do
+      all_exponents(R, d_loc)
+    end
+
+    res = iterate(exps)
+    res === nothing && continue
+
+    e, s = res
+    return (e, i), (i, exps, s)
+  end
+  return nothing
+end
+
+function Base.iterate(
+    amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, 
+    state::Tuple{Int, Vector{Vector{Int}}, Int}
+  )
+  F = underlying_module(amm)
+  d = degree(amm)
+  R = base_ring(F)
+
+  i, exps, s = state
+  res = iterate(exps, s)
+  if res === nothing
+    for j in i+1:ngens(F)
+      d_loc = d - degree(F[j]; check=false)
+      exps = get!(amm.exp_cache, d_loc) do
+        all_exponents(R, d_loc)
+      end
+      res_loc = iterate(exps)
+      res_loc === nothing && continue
+      e, s = res_loc
+      return (e, j), (j, exps, s)
+    end
+    return nothing
+  end
+  e, s = res
+  return (e, i), (i, exps, s)
 end
 
 ### Iteration over monomials in Subquos

@@ -535,6 +535,7 @@ Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace` (or its subtype `LinearHalfspace`),
+* `Hyperplane` (or its subtype `LinearHyperplane1),
 * `Cone`.
 
 # Examples
@@ -549,13 +550,19 @@ julia> f = facets(Halfspace, c)
 -x_2 + x_3 <= 0
 ```
 """
-facets(as::Type{<:Union{LinearHalfspace{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types} =
+facets(
+  as::Type{<:Union{LinearHalfspace{T},LinearHyperplane{T},Cone{T}}}, C::Cone{T}
+) where {T<:scalar_types} =
   SubObjectIterator{as}(C, _facet_cone, n_facets(C))
 
 _facet_cone(
   U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer
 ) where {T<:scalar_types} =
   linear_halfspace(coefficient_field(C), -pm_object(C).FACETS[[i], :])::U
+_facet_cone(
+  U::Type{LinearHyperplane{T}}, C::Cone{T}, i::Base.Integer
+) where {T<:scalar_types} =
+  linear_hyperplane(coefficient_field(C), -pm_object(C).FACETS[[i], :])::U
 
 _facet_cone(::Type{Cone{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   Cone{T}(Polymake.polytope.facet(pm_object(C), i - 1), coefficient_field(C))
@@ -572,6 +579,8 @@ facets(C::Cone{T}) where {T<:scalar_types} = facets(LinearHalfspace{T}, C)
 
 facets(::Type{<:Halfspace}, C::Cone{T}) where {T<:scalar_types} =
   facets(LinearHalfspace{T}, C)
+facets(::Type{<:Hyperplane}, C::Cone{T}) where {T<:scalar_types} =
+  facets(LinearHyperplane{T}, C)
 
 facets(::Type{Cone}, C::Cone{T}) where {T<:scalar_types} = facets(Cone{T}, C)
 

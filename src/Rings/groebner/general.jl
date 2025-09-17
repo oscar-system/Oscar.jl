@@ -8,7 +8,7 @@
 Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
 this function computes a Gröbner basis (if `complete_reduction = true` the reduced Gröbner basis) of the
 ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`. The Gröbner basis is then
-returned in `B.S`.
+returned as a new `IdealGens`.
 
 # Examples
 ```jldoctest
@@ -32,7 +32,7 @@ with respect to the ordering
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
+  BA = IdealGens(base_ring(B), i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)
@@ -55,6 +55,7 @@ The keyword `algorithm` can be set to
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
+- `:markov` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -113,14 +114,15 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       R = base_ring(I)
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
-      gb = groebner_assure(K, degrevlex(S))
+      ord = degrevlex(S)
+      gb = standard_basis(K, ordering=ord)
       # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
       H = homogenizer(S, "w")
       K_hom = H(K)
       gb_hom = IdealGens(H.(gens(gb)))
       gb_hom.isGB = true
-      K_hom.gb[degrevlex(S)] = gb_hom
-      singular_assure(K_hom.gb[degrevlex(S)])
+      gb_hom.ord = ord
+      K_hom.gb[ord] = gb_hom
       hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
       H2 = homogenizer(R, "w")
       J = H2(I)
@@ -142,6 +144,9 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
+  elseif algorithm == :markov
+    @req _islattice(I) "Ideal needs to be a lattice ideal to use Markov algorithm."
+    I.gb[ordering] = _groebner4ti2(I, ordering)
   end
   return I.gb[ordering]
 end
@@ -240,3 +245,12 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
+
+function is_known(
+    ::typeof(groebner_basis), I::MPolyIdeal; 
+    ordering::Union{MonomialOrdering, Nothing}=nothing
+  )
+  ordering === nothing && return !is_empty(I.gb) # Check whether there is any groebner basis
+  return haskey(I.gb, ordering)
+end
+

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -45,7 +46,7 @@ normal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
-derived_series
+derived_series(G::GAPGroup)
 sylow_system
 hall_system
 complement_system
@@ -53,7 +54,7 @@ chief_series
 composition_series
 jennings_series
 p_central_series
-lower_central_series
+lower_central_series(G::GAPGroup)
 upper_central_series
 ```
 
@@ -121,6 +122,9 @@ is_right(C::GroupCoset)
 is_left(C::GroupCoset)
 right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+SubgroupTransversal
+group(T::SubgroupTransversal)
+subgroup(T::SubgroupTransversal)
 right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 is_bicoset(C::GroupCoset)

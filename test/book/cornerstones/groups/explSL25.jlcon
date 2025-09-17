@@ -21,7 +21,7 @@ X_8  5                 .                 .  5                  .                
 X_9  6                -1                -1 -6                  1                  1  .  .  .
 
 julia> R = gmodule(T[end])
-G-module for G acting on vector space of dimension 6 over abelian closure of Q
+G-module for G acting on vector space of dimension 6 over abelian closure of QQ
 
 julia> S = gmodule(CyclotomicField, R)
 G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
@@ -39,15 +39,23 @@ Relative Brauer group for cyclotomic field of order 5 over number field of degre
 
 julia> b = B(S)
 Element of relative Brauer group of number field of degree 1 over QQ
-  <2, 2> -> 1//2 + Z
-  <5, 5> -> 0 + Z
-  Complex embedding of number field -> 1//2 + Z
+  <2> -> 1//2 + Z
+  <5> -> 0 + Z
+  Real embedding of number field -> 1//2 + Z
 
 julia> K = grunwald_wang(b)
-Class field defined mod (<40, 360>, InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}[Infinite place corresponding to (Complex embedding corresponding to 1.00 of number field)]) of structure Z/2
+Class field
+  over number field with defining polynomial _$ - 1
+    over rational field
+with modulus
+  finite part <4>
+  infinite part
+    [Infinite place of real embedding with 1.00]
+with structure
+  Z/2
 
 julia> F, _ = absolute_simple_field(number_field(K))
-(Number field of degree 2 over QQ, Map: F -> non-simple number field)
+(Number field of degree 2 over QQ, Map: F -> relative non-simple number field)
 
 julia> L, _, F_to_L = compositum(base_ring(S), F)
 (Number field of degree 8 over QQ, Map: cyclotomic field of order 5 -> L, Map: F -> L)

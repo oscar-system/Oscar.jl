@@ -13,7 +13,7 @@ using Oscar
     el = Oscar.elevator(x, weight, i)
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
-    @test Oscar.number_of_elevations(el) == dim(Si)
+    @test Oscar.number_of_elevations(el) == vector_space_dim(Si)
     @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
@@ -117,7 +117,7 @@ end
   p = Oscar.associated_schur_cover(fpr[1])
   RR = representation_ring_linear_lift(fpr[1])
   G = underlying_group(fpr[1])
-  @test allunique(character_linear_lift.(fpr))
+  @test allunique(character_linear_lift, fpr)
 
   prep = rand(fpr)
   @test underlying_group(prep) === G

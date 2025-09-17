@@ -1,11 +1,9 @@
-########################
-# 1: Special attributes of toric varieties
-########################
-
 @doc raw"""
-    cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
+    cohomology_ring(v::NormalToricVarietyType)
 
-Return the cohomology ring of the simplicial and complete toric variety `v`.
+!!! note "Simplicial and complete toric varieties"
+    This function assumes that the toric variety is both **simplicial** and **complete**.
+    Completeness checks may be slow; to skip them, use the optional keyword argument `completeness_check = false`.
 
 # Examples
 ```jldoctest
@@ -15,26 +13,43 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
-  if has_attribute(v, :cohomology_ring)
-    return get_attribute(v, :cohomology_ring)
+@attr MPolyQuoRing{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}} function cohomology_ring(
+  v::NormalToricVarietyType;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :cohomology_ring,
+      )
+      completeness_check = check
+    else
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
-  if check
-    @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  @req is_simplicial(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
+  if completeness_check
+    @req is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
   end
   R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
   linear_relations = ideal_of_linear_relations(R, v)
   stanley_reisner = stanley_reisner_ideal(R, v)
-  set_attribute!(v, :cohomology_ring, quo(R, linear_relations + stanley_reisner)[1])
-  return get_attribute(v, :cohomology_ring)
+  return quo(R, linear_relations + stanley_reisner)[1]
 end
-
 
 @doc raw"""
     volume_form(v::NormalToricVariety)
 
-Construct the volume form of the normal
-toric toric variety `v`.
+Construct the volume form of the normal toric toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -49,41 +64,45 @@ julia> polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
 ```
 """
 @attr CohomologyClass function volume_form(v::NormalToricVariety)
-    mc = ray_indices(maximal_cones(v))
-    exponents = [ZZRingElem(mc[1, i]) for i in 1:length(mc[1, :])]
-    indets = gens(cohomology_ring(v))
-    poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
-    @req !iszero(poly) && degree(poly)[1] == dim(v) "The volume class does not exist"
-    return CohomologyClass(v, poly)
+  mc = ray_indices(maximal_cones(v))
+  exponents = [ZZRingElem(mc[1, i]) for i in 1:length(mc[1, :])]
+  indets = gens(cohomology_ring(v))
+  poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
+  @req !iszero(poly) && degree(poly)[1] == dim(v) "The volume class does not exist"
+  return CohomologyClass(v, poly, true)
 end
-
 
 @attr Any function _intersection_form_via_exponents(v::NormalToricVariety)
-    # extract the cohomology classes corresponding to the torus-invariant prime divisors
-    generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
-    
-    # find combinations of those classes that we have to integrate
-    S, _ = graded_polynomial_ring(QQ, "g#" => 1:length(generators); cached=false)
-    hc = homogeneous_component(S, [dim(v)])
-    monoms = [hc[2](x) for x in gens(hc[1])]
-    combinations = reduce(vcat, [[[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for m in monoms])
-    
-    # perform the integrals
-    intersection_dict = Dict{ZZMatrix, QQFieldElem}()
-    for expos in combinations
-        cc = prod(generators[k]^expos[k] for k in 1:length(generators))
-        intersection_dict[matrix(ZZ, [expos])] = integrate(cc)
-    end
-    
-    # return the dictionary
-    return intersection_dict
-end
+  # extract the cohomology classes corresponding to the torus-invariant prime divisors
+  generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
 
+  # find combinations of those classes that we have to integrate
+  S, _ = graded_polynomial_ring(QQ, "g#" => 1:length(generators); cached=false)
+  hc = homogeneous_component(S, [dim(v)])
+  monoms = [hc[2](x) for x in gens(hc[1])]
+  combinations = reduce(
+    vcat,
+    [
+      [[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for
+      m in monoms
+    ],
+  )
+
+  # perform the integrals
+  intersection_dict = Dict{ZZMatrix,QQFieldElem}()
+  for expos in combinations
+    cc = prod(generators[k]^expos[k] for k in 1:length(generators))
+    intersection_dict[matrix(ZZ, [expos])] = integrate(cc)
+  end
+
+  # return the dictionary
+  return intersection_dict
+end
 
 @doc raw"""
     intersection_form(v::NormalToricVariety)
 
-Computes the intersection numbers among the cohomology classes
+Compute the intersection numbers among the cohomology classes
 associated to the torusinvariant prime divisors of the normal toric toric variety `v`.
 
 # Examples
@@ -96,26 +115,27 @@ julia> length(intersection_form(F3))
 ```
 """
 function intersection_form(v::NormalToricVariety)
-    intersection_dict = _intersection_form_via_exponents(v)
-    monoms_of_prime_divisors = gens(cox_ring(v))
-    intersection_dict_for_user = Dict{MPolyRingElem, QQFieldElem}()
-    for (expos, v) in intersection_dict
-        monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))
-        intersection_dict_for_user[monom] = v
-    end
-    return intersection_dict_for_user
+  intersection_dict = _intersection_form_via_exponents(v)
+  monoms_of_prime_divisors = gens(cox_ring(v))
+  intersection_dict_for_user = Dict{MPolyRingElem,QQFieldElem}()
+  for (expos, v) in intersection_dict
+    monom = prod(
+      monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors)
+    )
+    intersection_dict_for_user[monom] = v
+  end
+  return intersection_dict_for_user
 end
 
-
 @doc raw"""
-    chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+    chern_class(v::NormalToricVariety)
 
-Computes the `k`-th Chern class of the tangent bundle of a normal toric variety
-that is both smooth and complete. Since these checks can be computationally
-very demanding, we provide an optional argument `check`. Once set to `false`,
-this method skips those tests.
+Compute the `k`-th Chern class of the tangent bundle of a normal toric variety.  
+The algorithm is based on Proposition 13.1.2 in [CLS11](@cite).
 
-The implemented algorithm uses proposition 13.1.2 in [CLS11](@cite).
+!!! note "Smooth and complete toric varieties"
+    This function assumes that the toric variety is both **smooth** and **complete**.
+    Completeness checks may be slow; to skip them, use the optional keyword argument `completeness_check = false`.
 
 # Examples
 ```jldoctest
@@ -125,40 +145,70 @@ Normal toric variety
 julia> chern_class(F3, 0)
 Cohomology class on a normal toric variety given by 1
 
-julia> chern_class(F3, 1, check = false)
+julia> chern_class(F3, 1, completeness_check = false)
 Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
 
-julia> integrate(chern_class(F3, 2), check = false)
+julia> integrate(chern_class(F3, 2), completeness_check = false)
 4
 ```
 """
-function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+function chern_class(
+  v::NormalToricVariety,
+  k::Int;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
+      completeness_check = check
+    else
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+
   # Consistency checks
   @req k >= 0 "Chern class index must be non-negative"
   @req k <= dim(v) "Chern class index must not exceed dimension of the toric variety"
 
-  # Check if we can compute the Chern classes for this toric variety
-  if check
-    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
-  end
-
-  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector and catch degenerate cases
   if !has_attribute(v, :chern_classes)
-    cs = Vector{Union{Nothing, CohomologyClass}}(nothing, dim(v) + 1)
-    cs[1] = cohomology_class(v, one(cohomology_ring(v, check = check)))
-    cs[2] = cohomology_class(v, sum(gens(cohomology_ring(v, check = check))))
+    cs = Dict{Int64,CohomologyClass}()
+    cs[0] = cohomology_class(v, one(cohomology_ring(v; completeness_check)))
+    cs[1] = cohomology_class(v, sum(gens(cohomology_ring(v; completeness_check))))
     set_attribute!(v, :chern_classes, cs)
+    if k == 0
+      return cs[0]
+    elseif k == 1
+      return cs[1]
+    end
   end
 
   # Check if the Chern class in question is known
-  cs = get_attribute(v, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
-  if cs[k+1] !== nothing
-    return cs[k+1]::CohomologyClass
+  cs = get_attribute(v, :chern_classes)::Dict{Int64,CohomologyClass}
+  if haskey(cs, k)
+    return cs[k]
+  end
+
+  # Check if we can compute the Chern classes for this toric variety
+  @req is_smooth(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  if completeness_check
+    @req is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
   end
 
   # Preparation to check if we can discard a set in the following iteration that computes the Chern class
   mnf = _minimal_nonfaces(v)
-  indices = [Set(Vector{Int}(Polymake.row(mnf,i))) for i in 1:Polymake.nrows(mnf)]
+  indices = [Set(Vector{Int}(Polymake.row(mnf, i))) for i in 1:Polymake.nrows(mnf)]
   function can_be_ignored(my_set)
     for k in 1:length(indices)
       if is_subset(indices[k], my_set)
@@ -168,63 +218,96 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
     return false
   end
 
-  # Ensure that we compute the cohomology ring with the desired by-pass of checks.
-  # Coefficients of the cohomology ring inherited from NormalToricVariety.
-  cohomology_ring(v, check = check)
-
   # Compute, set and return the desired Chern class
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(v)];
-  desired_class = zero(parent(c_ds[1]))
-  for t in subsets(Set([i for i in 1:length(c_ds)]), k)
+  c_ring = cohomology_ring(v; completeness_check)
+  b_ring = base_ring(c_ring)
+  number_of_my_gens = ngens(b_ring)
+  my_builder = MPolyBuildCtx(b_ring)
+  for t in subsets(Set([i for i in 1:ngens(b_ring)]), k)
     can_be_ignored(t) && continue
-    desired_class += prod(i -> c_ds[i], t)
+    exps = zeros(Int64, number_of_my_gens)
+    for a in t
+      exps[a] = 1
+    end
+    push_term!(my_builder, one(QQ), exps)
   end
-  cs[k+1] = cohomology_class(v, desired_class)
+  desired_class = CohomologyClass(
+    v, cohomology_ring(v; completeness_check)(finish(my_builder)), true
+  )
+  cs[k] = desired_class
   set_attribute!(v, :chern_classes, cs)
-  return cs[k+1]
+  return cs[k]
 end
 
-
 @doc raw"""
-    chern_classes(v::NormalToricVariety; check::Bool = true)
+    chern_classes(v::NormalToricVariety)
 
-Computes all Chern classes of the tangent bundle of a normal toric variety,
-which is smooth and complete. Since those checks can be computationally
-very demanding, the optional argument `check` can be set to `false` to skip
-those tests.
+Compute all Chern classes of the tangent bundle of a normal toric variety.
+The algorithm is based on Proposition 13.1.2 in [CLS11](@cite).
+
+!!! note "Smooth and complete toric varieties"
+    This function assumes that the toric variety is both **smooth** and **complete**.
+    Completeness checks may be slow; to skip them, use the optional keyword argument `completeness_check = false`.
 
 # Examples
 ```jldoctest
 julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
 Normal toric variety
 
-julia> cs = chern_classes(F3)
-3-element Vector{CohomologyClass}:
- Cohomology class on a normal toric variety given by 1
- Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
- Cohomology class on a normal toric variety given by 4//3*x2^2
+julia> cs = chern_classes(F3);
 
-julia> integrate(cs[3])
+julia> cs[0]
+Cohomology class on a normal toric variety given by 1
+
+julia> cs[1]
+Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
+
+julia> integrate(cs[2])
 4
 ```
 """
-function chern_classes(v::NormalToricVariety; check::Bool = true)
-  if check
-    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+function chern_classes(
+  v::NormalToricVariety;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
+      completeness_check = check
+    else
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
-  return [chern_class(v, k; check = check) for k in 0:dim(v)]
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  @req is_smooth(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  if completeness_check
+    @req is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  end
+  for k in 0:dim(v)
+    chern_class(v, k; completeness_check)
+  end
+  return get_attribute(v, :chern_classes)::Dict{Int64,CohomologyClass}
 end
 
-
 @doc raw"""
-    basis_of_h4(v::NormalToricVariety; check::Bool = true)
+    basis_of_h4(v::NormalToricVariety)
 
-This method computes a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
-for a toric variety $X$. The algorithm employs Theorem 12.4.1 in [CLS11](@cite),
-i.e. truncates the cohomology ring to degree $2$. By virtue of this theorem,
-this approach is supported only for toric varieties that are both complete and
-simplicial. Since it can be computationally very demanding to verify completeness,
-the optional argument `check` can be set to `false` to skip the tests.
+Compute a monomial basis of the cohomology group $H^4(X, \mathbb{Q})$. The algorithm,
+based on Theorem 12.4.1 in [CLS11](@cite), truncates the cohomology ring to degree 2.
+
+!!! note "Simplicial and complete toric varieties"
+    This function assumes that the toric variety is both **simplicial** and **complete**.
+    Completeness checks may be slow; to skip them, use the optional keyword argument `completeness_check = false`.
 
 # Examples
 ```jldoctest
@@ -250,19 +333,37 @@ julia> betti_number(Y, 4) == length(h4_basis)
 true
 ```
 """
-function basis_of_h4(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
-  if check
+@attr Vector{CohomologyClass} function basis_of_h4(
+  v::NormalToricVariety;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
+      completeness_check = check
+    else
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+  @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
+  if completeness_check
     @req is_complete(v) "Computation of basis of H4(X, Q) is currently only supported for complete toric varieties"
-    @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
   end
   if dim(v) < 4
-    set_attribute!(v, :basis_of_h4, Vector{CohomologyClass}())
+    return Vector{CohomologyClass}()
   end
-  if has_attribute(v, :basis_of_h4)
-    return get_attribute(v, :basis_of_h4)
-  end
-  R = cohomology_ring(v, check = check)
+  R = cohomology_ring(v; completeness_check)
   basis_of_h4 = [cohomology_class(v, R(g)) for g in monomial_basis(R, [2])]
-  set_attribute!(v, :basis_of_h4, basis_of_h4)
   return basis_of_h4
 end

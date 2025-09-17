@@ -7,10 +7,10 @@ const GroundsetType = Union{AbstractVector, AbstractSet}
 # Later test if this works:
 # @attributes mutable struct Matroid
 
-struct Matroid
+struct Matroid{T}
     pm_matroid::Polymake.BigObject
-    groundset::AbstractVector # groundset of the matroid 
-    gs2num::Dict{<:Any, Int}# dictionary to map the groundset to the integers from 1 to its size
+    groundset::Vector{T} # groundset of the matroid
+    gs2num::Dict{T, Int} # dictionary to map the groundset to the integers from 1 to its size
 end
 
 pm_object(M::Matroid) = M.pm_matroid
@@ -18,7 +18,7 @@ pm_object(M::Matroid) = M.pm_matroid
 function Base.show(io::IO, M::Matroid)
     r = rank(M)
     n = length(M.groundset)
-    print(io, "Matroid of rank $(r) on $(n) elements")
+    print(io, "Matroid of rank $(r) on ", ItemQuantity(n, "element"))
 end
 
 # function that generates the dictionary which maps the groundset to integers
@@ -579,7 +579,7 @@ function direct_sum(M::Matroid, N::Matroid)
     return Matroid(Polymake.matroid.direct_sum(pm_object(M), N.pm_matroid), [M.groundset; gsN], create_gs2num([M.groundset; gsN]))
 end
 
-direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
+direct_sum(comp::Vector{<:Matroid}) = foldl(direct_sum, comp)
 
 @doc raw"""
     deletion(M, [S, e])
@@ -615,8 +615,8 @@ julia> matroid_groundset(N)
 ```
 """
 function deletion(M::Matroid,set::GroundsetType)
-    set = unique(collect(set))
-    if length(set) == 0
+    set = unique!(collect(set))
+    if isempty(set)
         return M
     end
     if !all([e in M.groundset for e in set])
@@ -754,17 +754,18 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
         error("The element you are about to add is already contained in the ground set")
     end
     ktype = keytype(M.gs2num)
-    gs2num = Dict{Union{ktype, ElementType}, Int}(M.gs2num)
+    gs = [M.groundset;elem]
+    gs2num = Dict{eltype(gs), Int}(M.gs2num)
     gs2num[elem] = length(M.groundset)+1
     pm_set = _gs_to_pmindices(set, gs2num; type=Set)
-    return Matroid(Polymake.matroid.principal_extension(pm_object(M), pm_set),[M.groundset;elem],gs2num)
+    return Matroid(Polymake.matroid.principal_extension(pm_object(M), pm_set),gs,gs2num)
 end
 
 @doc raw"""
     free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
-See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
+See [`principal_extension`](@ref) and Section 7.2 of [Oxl11](@cite).
 
 # Examples
 To add `5` freely to the uniform matroid `U_{3,4}` do

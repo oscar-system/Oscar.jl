@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # ToricMorphisms
@@ -26,7 +28,7 @@ morphisms are exactly the toric morphisms.
 
 ```@docs
 toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
-toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbGroupHom, codomain::NormalToricVarietyType; check=true)
+toric_morphism(domain::NormalToricVarietyType, lattice_homomorphism::FinGenAbGroupHom, codomain::NormalToricVarietyType; check=true)
 ```
 
 ### Special constructors
@@ -44,7 +46,7 @@ toric_identity_morphism(variety::NormalToricVarietyType)
 domain(tm::ToricMorphism)
 image(tm::ToricMorphism)
 codomain(tm::ToricMorphism)
-grid_morphism(tm::ToricMorphism)
+lattice_homomorphism(tm::ToricMorphism)
 morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
 morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 morphism_on_class_group(tm::ToricMorphism)

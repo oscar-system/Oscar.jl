@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Tropical varieties
 
 ## Introduction
@@ -37,6 +43,8 @@ is_pure(TropV::TropicalVariety)
 is_simplicial(TropV::TropicalVariety)
 rays(TropV::TropicalVariety)
 rays_modulo_lineality(TropV::TropicalVariety)
+stable_intersection(::Union{Tuple{minOrMax}, Tuple{Oscar.TropicalVarietySupertype{minOrMax, true}, Oscar.TropicalVarietySupertype{minOrMax, true}}, Tuple{Oscar.TropicalVarietySupertype{minOrMax, true}, Oscar.TropicalVarietySupertype{minOrMax, true}, Union{Nothing, Vector{Int64}}}} where minOrMax)
+tropical_prevariety
 vertices_and_rays(TropV::TropicalVariety)
 vertices(TropV::TropicalVariety)
 visualize(TropV::TropicalVariety)

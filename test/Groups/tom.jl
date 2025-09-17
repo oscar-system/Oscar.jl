@@ -50,7 +50,7 @@ default `show`
 
 ```jldoctest tables_of_marks.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Table of marks of Alt(4)
+Table of marks of alternating group of degree 4
 
 1: 12        
 2:  6 2      
@@ -63,7 +63,7 @@ LaTeX format
 
 ```jldoctest tables_of_marks.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Table of marks of Alt(4)
+Table of marks of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
 1: & 12 &  &  &  &  \\ 
@@ -330,7 +330,7 @@ end
   @test res == [0, 1]
   @test res isa Vector{ZZRingElem}
   @test coordinates(Int, chi) isa Vector{Int}
-  @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+  @test allunique(t)
 
   d = Dict(chi => 0)
   @test chi in keys(d)

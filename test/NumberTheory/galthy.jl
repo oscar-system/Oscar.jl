@@ -10,7 +10,7 @@
   @test degree(L) == order(G)
   @test length(roots(L, k.pol)) == 5
 
-  R, x = polynomial_ring(QQ, :x)
+  R, x = polynomial_ring(QQ, :x; cached = false)
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
   g, C = galois_group(pol)
   @test order(g) == 18
@@ -24,7 +24,7 @@
   G, C = galois_group((1//13)*x^2+2)
   @test order(G) == 2
 
-  K, a = number_field(x^4-2)
+  K, a = number_field(x^4-2; cached = false)
   G, C = galois_group(K)
   Gc, Cc = galois_group(K, algorithm = :Complex)
   Gs, Cs = galois_group(K, algorithm = :Symbolic)
@@ -46,6 +46,21 @@
   G, C = galois_group((2*x+1)^2)
   @test order(G) == 1
   @test degree(G) == 2
+
+  #from errors:
+  G, C = galois_group((x^4 + 1)^3 * x^2 * (x^2 - 4*x + 1)^5)
+  @test order(G) == 8
+  @test degree(G) == 24
+  k = fixed_field(C, sub(G, [one(G)])[1])
+  @test degree(k) == 8
+
+  G, C = galois_group((x^3-2)^2*(x^3-5)^2*(x^2-6))
+  @test order(G) == 36
+  @test degree(G) == 14
+
+  #Fabian Gundlach...
+  G, C = galois_group(x^8 - 2*x^7 - 48*x^6 + 58*x^5 + 846*x^4 - 4614*x^3 + 6609*x^2 + 48742*x + 493474)
+  @test order(G) == 32
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures

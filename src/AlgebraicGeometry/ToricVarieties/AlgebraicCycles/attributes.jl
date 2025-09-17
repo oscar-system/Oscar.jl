@@ -2,7 +2,6 @@
 # 1. Defining attributes of rational equivalence class of algebraic cycles
 ###########################################################################
 
-
 @doc raw"""
     toric_variety(ac::RationalEquivalenceClass)
 
@@ -25,7 +24,6 @@ Normal, simplicial toric variety
 ```
 """
 toric_variety(ac::RationalEquivalenceClass) = ac.v
-
 
 @doc raw"""
     polynomial(ac::RationalEquivalenceClass)
@@ -51,7 +49,6 @@ julia> polynomial(ac)
 ```
 """
 polynomial(ac::RationalEquivalenceClass) = ac.p
-
 
 @doc raw"""
     polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
@@ -107,22 +104,20 @@ julia> polynomial(R_quo, ac)
 ```
 """
 function polynomial(ring::MPolyQuoRing, ac::RationalEquivalenceClass)
-    p = polynomial(ac)
-    if iszero(p)
-        return zero(ring)
-    end
-    coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
-    expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
-    indets = gens(ring)
-    monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
-    return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
+  p = polynomial(ac)
+  if iszero(p)
+    return zero(ring)
+  end
+  coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
+  expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
+  indets = gens(ring)
+  monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
+  return sum(coeffs[k] * monoms[k] for k in 1:length(monoms))
 end
-
 
 ###########################################################################
 # 2. Representing rational equivalence classes of algebraic cycles
 ###########################################################################
-
 
 @doc raw"""
     representative(ac::RationalEquivalenceClass)
@@ -147,15 +142,19 @@ julia> representative(ac*ac)
 34*x2*x3
 ```
 """
-@attr MPolyDecRingElem{QQFieldElem, QQMPolyRingElem} function representative(ac::RationalEquivalenceClass)
-    if is_trivial(ac)
-        return zero(cox_ring(toric_variety(ac)))
-    end
-    coeffs = coefficients(ac)
-    mapped_monomials = [map_gens_of_chow_ring_to_cox_ring(toric_variety(ac))[m] for m in monomials(polynomial(ac).f)]
-    return sum([coeffs[i]*mapped_monomials[i] for i in 1:length(mapped_monomials)])
+@attr MPolyDecRingElem{QQFieldElem,QQMPolyRingElem} function representative(
+  ac::RationalEquivalenceClass
+)
+  if is_trivial(ac)
+    return zero(cox_ring(toric_variety(ac)))
+  end
+  coeffs = coefficients(ac)
+  mapped_monomials = [
+    map_gens_of_chow_ring_to_cox_ring(toric_variety(ac))[m] for
+    m in monomials(polynomial(ac).f)
+  ]
+  return sum([coeffs[i] * mapped_monomials[i] for i in 1:length(mapped_monomials)])
 end
-
 
 @doc raw"""
     coefficients(ac::RationalEquivalenceClass)
@@ -179,12 +178,14 @@ julia> coefficients(ac*ac)
 ```
 """
 @attr Vector{QQFieldElem} function coefficients(ac::RationalEquivalenceClass)
-    if is_trivial(ac)
-        return QQFieldElem[]
-    end
-    return [coefficient_ring(toric_variety(ac))(k) for k in AbstractAlgebra.coefficients(polynomial(ac).f)]
+  if is_trivial(ac)
+    return QQFieldElem[]
+  end
+  return [
+    coefficient_ring(toric_variety(ac))(k) for
+    k in AbstractAlgebra.coefficients(polynomial(ac).f)
+  ]
 end
-
 
 @doc raw"""
     components(ac::RationalEquivalenceClass)
@@ -212,22 +213,26 @@ julia> length(components(ac*ac))
 1
 ```
 """
-@attr Vector{ClosedSubvarietyOfToricVariety} function components(ac::RationalEquivalenceClass)
-    if is_trivial(ac)
-        return ClosedSubvarietyOfToricVariety[]
-    end
-    variety = toric_variety(ac)
-    gs = gens(cox_ring(toric_variety(ac)))
-    mons = [m for m in monomials(representative(ac))]
-    expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
-    return [closed_subvariety_of_toric_variety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
+@attr Vector{ClosedSubvarietyOfToricVariety} function components(
+  ac::RationalEquivalenceClass
+)
+  if is_trivial(ac)
+    return ClosedSubvarietyOfToricVariety[]
+  end
+  variety = toric_variety(ac)
+  gs = gens(cox_ring(toric_variety(ac)))
+  mons = [m for m in monomials(representative(ac))]
+  expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
+  return [
+    closed_subvariety_of_toric_variety(variety, [gs[k] for k in findall(!iszero, exps)])
+    for
+    exps in expos
+  ]
 end
-
 
 ###########################################################################
 # 3. Other attributes of rational equivalence class of algebraic cycles
 ###########################################################################
-
 
 @doc raw"""
     cohomology_class(ac::RationalEquivalenceClass)
@@ -250,4 +255,6 @@ julia> cohomology_class(ac)
 Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 ```
 """
-@attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(toric_variety(ac), polynomial(cohomology_ring(toric_variety(ac)),ac))
+@attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(
+  toric_variety(ac), polynomial(cohomology_ring(toric_variety(ac)), ac), true
+)

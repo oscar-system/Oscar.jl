@@ -1,17 +1,20 @@
 const visual_supported_types = Union{PolyhedralObjectUnion,Graph,SimplicialComplex}
 
 @doc raw"""
-    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{FieldElem, Float64}
+    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...) where T<:Union{FieldElem, Float64}
 
 Visualize a polyhedral object of dimension at most four (in 3-space).
 In dimensions up to 3 a usual embedding is shown.
 Four-dimensional polytopes are visualized as a Schlegel diagram, which is a projection onto one of the facets; e.g., see Chapter 5 of [Zie95](@cite).
 
+The `backend` keyword argument allows the user to pick between a Three.js visualization by default, or passing `:tikz` for a TikZ visualization.
+The `filename` keyword argument will write visualization code to the `filename` location, this will be html for `:threejs` backend or TikZ code for `:tikz`.
+
 In higher dimensions there is no standard method; use projections to lower dimensions or try ideas from [GJRW10](@cite).
 
 # Extended help
 
-# Keyword Arguments
+# Additional Keyword Arguments
 
 ## Colors
 
@@ -60,33 +63,65 @@ function visualize(
     PolyhedralFan{<:Union{Float64,FieldElem}},
     PolyhedralComplex{<:Union{Float64,FieldElem}},
     SubdivisionOfPoints{<:Union{Float64,FieldElem}},
-    Graph,
     SimplicialComplex,
   };
-  kwargs...,
+  backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...,
 )
-  _prepare_visualization(P)
-  pmo = pm_object(P)
-  Polymake.visual(pmo; kwargs...)
+  pmo = _prepare_visualization(P)
+  vpmo = Polymake.visual(Polymake.Visual, pmo; kwargs...)
+  if !isnothing(filename)
+    Polymake.call_function(Nothing, :fan, backend, vpmo; File=filename)
+  else
+    Polymake.call_function(Nothing, :fan, backend, vpmo)
+  end
 end
 
-function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
-  for p in P
-    @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
-    _prepare_visualization(p)
-  end
+@doc raw"""
+    visualize(P::Vector; kwargs...)
+
+Visualize a vector of polyhedral objects `P`, i.e., all polyhedral objects in `P` in one visualization.  See [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for which polyhedral objects and keyword arguments are possible.
+
+# Examples
+```julia
+julia> p = simplex(3)
+Polytope in ambient dimension 3
+
+julia> P = [p,p+[3,0,0],p+[0,3,0],p+[0,0,3]]
+4-element Vector{Polyhedron{QQFieldElem}}:
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+
+julia> visualize(P)
+
+```
+"""
+function visualize(
+  P::Vector; backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...
+)
+  P = map(
+    p -> begin
+      @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
+      _prepare_visualization(p)
+    end, P)
   vis = [
     Polymake.visual(
-      Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...
+      Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
     ) for i in 1:length(P)
   ]
-  if isdefined(Main, :IJulia) && Main.IJulia.inited
+  vc = Polymake.call_function(:common, :compose, vis...)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && isnothing(filename)
     # this will return a visual object,
     # the visualization is then triggered by the show method
     return Polymake.call_function(:common, :compose, vis...)
   else
-    # this will call visual in void context and trigger the background viewer
-    Polymake.call_function(Nothing, :common, :compose, vis...)
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :fan, backend, vc; File=filename)
+    else
+      # this will call visual in void context and trigger the background viewer
+      Polymake.call_function(Nothing, :fan, backend, vc)
+    end
     return nothing
   end
 end
@@ -112,6 +147,7 @@ function _prepare_visualization(
   if !Polymake.exists(pm_object(P), "RAY_LABELS")
     pm_object(P).RAY_LABELS = string.(1:(Oscar.pm_object(P).N_RAYS))
   end
+  return pm_object(P)
 end
 
 function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem}})
@@ -123,8 +159,17 @@ function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
     pm_object(P).POINT_LABELS = string.(1:(Oscar.pm_object(P).N_POINTS))
   end
+  return pm_object(P)
 end
 
-function _prepare_visualization(P::Union{Graph,SimplicialComplex})
-  return nothing
+function _prepare_visualization(sc::SimplicialComplex)
+  return pm_object(sc)
+end
+
+function _prepare_visualization(
+  g::Graph{T}
+) where {T<:Union{Polymake.Directed,Polymake.Undirected}}
+  bg = Polymake.graph.Graph{T}(; ADJACENCY=pm_object(g))
+  bg.NODE_LABELS = string.(1:n_vertices(g))
+  return bg
 end

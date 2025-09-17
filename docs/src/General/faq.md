@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -28,7 +29,7 @@ NormalToricVariety
 ```
 Suppose that we now want to find all methods that accept a `NormalToricVariety` as one of their arguments.
 This can be achieved as follows:
-```
+```julia-repl
 julia> methodswith(typeof(v))
 [1] intersection_form(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/CohomologyClasses/special_attributes.jl:101
 [2] mori_cone(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/NormalToricVarieties/attributes.jl:976
@@ -37,14 +38,14 @@ julia> methodswith(typeof(v))
 [5] volume_form(v::NormalToricVariety) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/CohomologyClasses/special_attributes.jl:50
 ```
 Often it can be beneficial to also include supertypes in the search:
-```
+```julia-repl
 julia> methodswith(typeof(v), supertypes = true)
 ```
 As of December 2022, this results in a list of 101 functions.
 
 Note that we can also find the constructors, i.e. functions that return an object of type `NormalToricVariety`.
 This is possible with the Julia function [methods](https://docs.julialang.org/en/v1/base/base/#Base.methods):
-```julia
+```julia-repl
 julia> methods(typeof(v))
 # 5 methods for type constructor:
 [1] NormalToricVariety(P::Polyhedron) in Oscar at /datadisk/Computer/Mathematics_software/PackagesForJulia/Oscar.jl/src/ToricVarieties/NormalToricVarieties/constructors.jl:183
@@ -119,7 +120,7 @@ via `GAP.Packages.load`, where the first argument is the local path to the
 package directory (the one that contains the `PackageInfo.g` file).
 This works only if no other version of this package has been loaded already.
 
-If Oscar loads the package in question already on startup
+If OSCAR loads the package in question already on startup
 but you want a different version of this package to be loaded,
 you can force this by storing the desired version in the `pkg` subdirectory
 of the user's root directory (`GAPInfo.UserGapRoot` in GAP).
@@ -133,13 +134,13 @@ can be done via `GAP.Packages.install`, where the first argument is this URL.
 
 Many of the algorithms implemented in OSCAR have a very high complexity. Even
 if not calling one of these algorithms directly, you may be using it in the
-background. Please read our page on [Complex Algorithms in OSCAR](@ref).
+background. Please read our page on [Complex Algorithms](@ref).
 
 ---
 
 **Q: How do I cite OSCAR?**
 
-Please see [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+Please see [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
 
 ---
 ## Windows specific

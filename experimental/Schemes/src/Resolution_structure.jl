@@ -150,8 +150,8 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   ex_div_list = exceptional_divisor_list(f)
   C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
-    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
-    C = C + weil_divisor(ex_div_list[i])
+    dim(ex_div_list[i]) === -inf && continue            # kick out empty ones
+    C += weil_divisor(ex_div_list[i])
   end
 
   f.exceptional_divisor = C
@@ -165,11 +165,11 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   C = CartierDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
 # do we want to introduce is_empty for divisors?
-    dim(ideal_sheaf(ex_div_list[i]))== -1 && continue          # kick out empty ones
+    dim(ideal_sheaf(ex_div_list[i])) === -inf && continue      # kick out empty ones
                                                                # caution: dim(CartierDivisor) is not computed,
                                                                #          but inferred
                                                                #          ==> need to pass to ideal_sheaf first
-    C = C + cartier_divisor(ex_div_list[i])
+    C += cartier_divisor(ex_div_list[i])
   end
 
   f.exceptional_divisor_on_X = C
@@ -190,8 +190,8 @@ function exceptional_locus(f::MixedBlowUpSequence)
                                                     # they might even have the wrong dimension
   C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
   for E in ex_div_list
-    dim(E) != -1 || continue                        # kick out empty ones
-    C = C + algebraic_cycle(E)
+    dim(E) === -inf && continue                     # kick out empty ones
+    C += algebraic_cycle(E)
   end
 
   return C
@@ -702,7 +702,7 @@ function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUp
   while !is_one(I_sl_temp)
     f = _blow_up_at_all_points(f,I_sl_temp)
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
-    if dim(I_sl_temp) == 1
+    if is_one(dim(I_sl_temp))
       f = _do_normalization!(f)
       I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
     end
@@ -872,10 +872,10 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   for (i, j) in non_zero_indices
     h_ij = M_ext[i, j]
     U_ij = PrincipalOpenSubset(W, OO(W)(h_ij))
-    I = ordered_multi_index(i, codim, n)
-    J = ordered_multi_index(j, codim, r)
+    I = combination(n, codim, i)
+    J = combination(r, codim, j)
     push!(ref_patches, U_ij)
-    minor_dict[U_ij] = (indices(I), indices(J), M_ext[i, j])
+    minor_dict[U_ij] = (data(I), data(J), M_ext[i, j])
   end
   res_cov = Covering(ref_patches)
   inherit_gluings!(res_cov, Covering(W))
@@ -1036,7 +1036,7 @@ end
 # and count the A1 encountered on the way (their count is total_number)
 function curve_sing_A1_or_beyond(I::AbsIdealSheaf)
   !is_one(I) || return(I,0)
-  @assert dim(I) == 1
+  @assert is_one(dim(I))
   I_scheme,I_inc = sub(I)
   I_sl = pushforward(I_inc)(ideal_sheaf_of_singular_locus(I_scheme))
   decomp = maximal_associated_points(I_sl)    # zero-dimensional, as I describes a curve
@@ -1068,7 +1068,7 @@ function is_A1_at_point_curve(IX::AbsIdealSheaf,Ipt::AbsIdealSheaf)
   IptU = saturated_ideal(Ipt(U))
 
   # absolutely irreducible point
-  if vector_space_dimension(quo(R,IptU)[1]) == 1
+  if vector_space_dim(quo(R,IptU)[1]) == 1
     return (check_A1_at_point_curve(IXU,IptU) ? (true,1) : (false,0))
   else
     decomp = absolute_primary_decomposition(IptU)
@@ -1087,7 +1087,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
 ## only call this from higher functions
 ## it assumes: IX singular at Ipt, germ of IX at Ipt contact equivalent to hypersurface singularity
   R = base_ring(IX)
-  dim(IX) == 1 || error("not applicable: not a curve")
+  is_one(dim(IX)) || error("not applicable: not a curve")
   R == base_ring(Ipt) || error("basering mismatch")
   kk = base_ring(R)
   characteristic(kk) == 0 || error("only available in characteristic zero")
@@ -1118,7 +1118,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
   F1 = leading_module(Jm_shifted,o)
   F1quo = quo(F_shifted, F1)[1]
 
-  return vector_space_dimension(F1quo) == 1
+  return vector_space_dim(F1quo) == 1
 end
 
 function divisor_intersections_with_X(current_div::Vector{<:EffectiveCartierDivisor}, I_X::AbsIdealSheaf)

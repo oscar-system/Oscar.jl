@@ -19,10 +19,9 @@ function get_lattice_points_of_weightspace(
   zero_coordinates::Vector{Int},
 )
   # calculate all integer solutions to the following linear program:
-  # [       |                 |       ]       [   x   ]      
-  # [root_weights[1]...root_weights[k]]   *   [   |   ]   =   weight
-  # [       |                 |       ]       [  res  ] 
-  # [       |                 |       ]       [   |   ]
+  # [       |                 |       ]       [   |   ]      [    |    ]
+  # [root_weights[1]...root_weights[k]]   *   [  res  ]   =  [  weight ]
+  # [       |                 |       ]       [   |   ]      [    |    ]
   # where res[i] >= 0 for all i
   n = length(root_weights)
   m = rank(root_system(weight))
@@ -66,7 +65,7 @@ function compute_zero_coordinates(
     if !isdisjoint(
       non_zeros, findall(!iszero, coefficients(operator_as_root(bir_sequence, c)))
     )
-      union!(non_zeros, findall(<(0), coefficients(operator_as_weight(bir_sequence, c))))
+      union!(non_zeros, findall(!=(0), coefficients(operator_as_weight(bir_sequence, c))))
     else
       push!(zero_coordinates, c)
     end

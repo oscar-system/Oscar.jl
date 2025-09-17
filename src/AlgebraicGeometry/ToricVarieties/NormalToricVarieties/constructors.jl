@@ -35,7 +35,6 @@ function affine_normal_toric_variety(C::Cone)
   return variety
 end
 
-
 @doc raw"""
     normal_toric_variety(C::Cone)
 
@@ -61,7 +60,6 @@ function normal_toric_variety(C::Cone)
   return variety
 end
 
-
 @doc raw"""
     normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
 
@@ -83,10 +81,10 @@ julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
 
 julia> max_cones = incidence_matrix([[1, 2], [2, 3], [3, 4], [4, 1]])
 4×4 IncidenceMatrix
-[1, 2]
-[2, 3]
-[3, 4]
-[1, 4]
+ [1, 2]
+ [2, 3]
+ [3, 4]
+ [1, 4]
 
 julia> normal_toric_variety(max_cones, ray_generators)
 Normal toric variety
@@ -95,12 +93,19 @@ julia> normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
 ```
 """
-normal_toric_variety(max_cones::Vector{Vector{Int64}}, rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = normal_toric_variety(IncidenceMatrix(max_cones), rays; non_redundant)
-function normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
+normal_toric_variety(
+  max_cones::Vector{Vector{Int64}},
+  rays::AbstractCollection[RayVector];
+  non_redundant::Bool=false,
+) = normal_toric_variety(
+  IncidenceMatrix(max_cones), rays; non_redundant
+)
+function normal_toric_variety(
+  max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool=false
+)
   fan = polyhedral_fan(max_cones, rays; non_redundant)
   return normal_toric_variety(fan)
 end
-
 
 @doc raw"""
     normal_toric_variety(PF::PolyhedralFan)
@@ -125,7 +130,6 @@ function normal_toric_variety(PF::PolyhedralFan)
   pmntv = Polymake.fulton.NormalToricVariety(fan)
   return NormalToricVariety(pmntv)
 end
-
 
 @doc raw"""
     normal_toric_variety(P::Polyhedron)
@@ -152,7 +156,6 @@ function normal_toric_variety(P::Polyhedron)
   return variety
 end
 
-
 @doc raw"""
     affine_normal_toric_variety(v::NormalToricVariety)
 
@@ -175,22 +178,78 @@ function affine_normal_toric_variety(v::NormalToricVariety)
   return AffineNormalToricVariety(pm_object(v))
 end
 
-
-
 ######################
 # Equality
 ######################
 
-function Base.:(==)(tv1::NormalToricVariety, tv2::NormalToricVariety)
-  tv1 === tv2 && return true
-  error("Equality of normal toric varieties is computationally very demanding. More details in the documentation.")
+@doc raw"""
+    (==)(X::NormalToricVariety, Y::NormalToricVariety) -> Bool
+
+Check equality of the polyhedral fans as sets of cones.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> H == P1 * P1
+true
+```
+"""
+function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
+  X === Y && return true
+  ambient_dim(X) == ambient_dim(Y) || return false
+  n_rays(X) == n_rays(Y) || return false
+
+  # p is a permutation such that the i-th ray of X is the p(i)-th ray of Y
+  p = inv(perm(sortperm(rays(X)))) * perm(sortperm(rays(Y)))
+
+  for i in 1:n_rays(X)
+    rays(X)[i] == rays(Y)[p(i)] || return false
+  end
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
+  return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
 end
 
-function Base.hash(tv::NormalToricVariety, h::UInt)
-  return hash(objectid(tv), h)
+@doc raw"""
+    _id(X::NormalToricVariety)
+    -> Tuple{Vector{Vector{QQFieldElem}}, Vector{Vector{Int64}}}
+
+Given a toric variety `X`, return a pair `Oscar._id(X)` with the
+following property: two toric varieties `X` and `Y` have equal
+polyhedral fans, taken as sets of cones, if and only if
+`Oscar._id(X) == Oscar._id(Y)`.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> Oscar._id(H) == Oscar._id(P1 * P1)
+true
+```
+"""
+function _id(X::NormalToricVariety)
+  p = inv(perm(sortperm(rays(X))))
+  sorted_rays = Vector.(permuted(collect(rays(X)), p))
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
+  sorted_maximal_cones = sort(map(r -> sort(Vector(p.(r))), rows(X)))
+  return (sorted_rays, sorted_maximal_cones)
 end
 
-
+function Base.hash(X::NormalToricVariety, h::UInt)
+  return hash(_id(X), h)
+end
 
 ######################
 # Display
@@ -199,32 +258,40 @@ end
 function Base.show(io::IO, v::NormalToricVarietyType)
   # initiate properties string
   properties_string = ["Normal"]
-  
+
   affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
-  
+
   simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
-  push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
-  
+  push_attribute_if_exists!(
+    properties_string, v, :is_smooth, "smooth"; callback=(simplicial_cb!)
+  )
+
   projective = nothing
   if isnothing(affine) || !affine
     complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
-    projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
+    projective = push_attribute_if_exists!(
+      properties_string, v, :is_projective, "projective"; callback=(complete_cb!)
+    )
   end
-  
+
   q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-  gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
-  
+  gorenstein = push_attribute_if_exists!(
+    properties_string, v, :is_gorenstein, "gorenstein"; callback=(q_gor_cb!)
+  )
+
   push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
-  
+
   if has_attribute(v, :dim)
-    push!(properties_string, string(dim(v))*"-dimensional")
+    push!(properties_string, string(dim(v)) * "-dimensional")
   end
-  
+
   properties_string = [join(properties_string, ", ")]
   push!(properties_string, "toric variety")
-  
-  push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
-  
+
+  push_attribute_if_exists!(
+    properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor"
+  )
+
   join(io, properties_string, " ")
 end
 

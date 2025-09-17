@@ -7,7 +7,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.11.3", # version this script upgrades to
-   function upgrade_0_11_3(s::UpgradeState, dict::Dict)
+  function upgrade_0_11_3(s::UpgradeState, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
@@ -41,19 +41,21 @@ push!(upgrade_scripts_set, UpgradeScript(
     if dict[:type] == "Vector"
       upgraded_vector = []
       entry_type = nothing
-
       for entry in dict[:data][:vector]
-        result = upgrade_0_11_3(s, entry)
+        if entry isa String
+          result = entry
+        else
+          result = upgrade_0_11_3(s, entry)
 
-        # store values in state that are vector entries that aren't backrefs
-        if entry[:type] != string(backref_sym)
-          if haskey(entry, :id)
-            s.id_to_dict[Symbol(entry[:id])] = result
+          # store values in state that are vector entries that aren't backrefs
+          if entry[:type] != string(backref_sym)
+            if haskey(entry, :id)
+              s.id_to_dict[Symbol(entry[:id])] = result
+            end
+            @assert entry_type === nothing || entry_type == entry[:type]
+            entry_type = entry[:type]
           end
-          @assert entry_type === nothing || entry_type == entry[:type]
-          entry_type = entry[:type]
         end
-
         push!(upgraded_vector, result)
       end
 
@@ -97,28 +99,30 @@ push!(upgrade_scripts_set, UpgradeScript(
       dict_type = "PolyRing"
     end
 
-    U = reverse_type_map[dict_type]
-
     # Upgrades basic types
-    if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, zzModRing}
-      if U === QQFieldElem
-        num = dict[:data][:num][:data]
-        den = dict[:data][:den][:data]
-        updated_fmpq = "$num//$den"
-        #add to state
-        s.id_to_dict[Symbol(dict[:id])] = updated_fmpq
-        
-        return updated_fmpq
-      else
-        updated_basic_value = dict[:data]
-        #add to state
-        if haskey(dict, :id)
-          s.id_to_dict[Symbol(dict[:id])] = updated_basic_value
-        end
-        
-        return updated_basic_value
+    if dict_type == "QQFieldElem"
+      num = dict[:data][:num][:data]
+      den = dict[:data][:den][:data]
+      updated_fmpq = "$num//$den"
+      #add to state
+      s.id_to_dict[Symbol(dict[:id])] = updated_fmpq
+      
+      return updated_fmpq
+
+    elseif dict_type in ["ZZRingElem", "String", "Symbol", "Bool", "zzModRing",
+                         "Base.Int", "UInt64", "UInt8", "UInt16", "UInt32", "UInt64",
+                         "UInt128", "Int8", "Int16", "Int32", "Int64", "Int128",
+                         "Float16", "Float32", "Float64", "BigInt"
+                         ]
+      updated_basic_value = dict[:data]
+      #add to state
+      if haskey(dict, :id)
+        s.id_to_dict[Symbol(dict[:id])] = updated_basic_value
       end
+      
+      return updated_basic_value
     end
+
 
     upgraded_data = upgrade_0_11_3(s, dict[:data])
     upgraded_dict = Dict(

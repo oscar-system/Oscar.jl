@@ -14,8 +14,10 @@ function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=t
   end
   n = ngens(R)
   result = FreeMod(R, n)
-  symb = symbols(R)
-  result.S = [Symbol(:d, symb[i]) for i in 1:n]
+  S = symbols(R)
+  result.S = function _get_symbols() 
+    return [Symbol(:d, S[i]) for i in 1:n]
+  end
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
@@ -207,7 +209,7 @@ end
 @doc raw"""
     exterior_derivative(w::ModuleFPElem; parent::ModuleFP=...)
 
-Checks whether `parent(w)` is an exterior power ``Ωᵖ(R/𝕜)`` of the module of 
+Check whether `parent(w)` is an exterior power ``Ωᵖ(R/𝕜)`` of the module of 
 Kaehler differentials of some ``𝕜``-algebra `R` and computes its exterior 
 derivative in `parent`. If the latter is not specified, it defaults to 
 ``Ωᵖ⁺¹(R/𝕜)``, the `kaehler_differentials(R, p+1)`.

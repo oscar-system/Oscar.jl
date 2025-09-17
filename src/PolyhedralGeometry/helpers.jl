@@ -10,9 +10,8 @@ Note that the input of this example and the print of an `IncidenceMatrix` list t
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> IM[1, 2]
 true
@@ -36,15 +35,14 @@ Return an `IncidenceMatrix` of size r x c whose entries are all `false`.
 ```jldoctest
 julia> IM = incidence_matrix(8, 5)
 8×5 IncidenceMatrix
-[]
-[]
-[]
-[]
-[]
-[]
-[]
-[]
-
+ []
+ []
+ []
+ []
+ []
+ []
+ []
+ []
 ```
 """
 incidence_matrix(r::Base.Integer, c::Base.Integer) = IncidenceMatrix(undef, r, c)
@@ -58,9 +56,8 @@ Convert `mat` to an `IncidenceMatrix`.
 ```jldoctest
 julia> IM = incidence_matrix([true false true false true false; false true false true false true])
 2×6 IncidenceMatrix
-[1, 3, 5]
-[2, 4, 6]
-
+ [1, 3, 5]
+ [2, 4, 6]
 ```
 """
 incidence_matrix(mat::Union{AbstractMatrix{Bool},IncidenceMatrix}) = IncidenceMatrix(mat)
@@ -74,9 +71,8 @@ Convert the `0`/`1` matrix `mat` to an `IncidenceMatrix`. Entries become `true` 
 ```jldoctest
 julia> IM = incidence_matrix([1 0 1 0 1 0; 0 1 0 1 0 1])
 2×6 IncidenceMatrix
-[1, 3, 5]
-[2, 4, 6]
-
+ [1, 3, 5]
+ [2, 4, 6]
 ```
 """
 function incidence_matrix(mat::AbstractMatrix)
@@ -101,10 +97,9 @@ Return an `IncidenceMatrix` of size r x c. The i-th element of `incidenceRows` l
 ```jldoctest
 julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
 3×4 IncidenceMatrix
-[2, 3]
-[1]
-[]
-
+ [2, 3]
+ [1]
+ []
 ```
 """
 incidence_matrix(
@@ -122,9 +117,8 @@ Return an `IncidenceMatrix` where the i-th element of `incidenceRows` lists the 
 ```jldoctest
 julia> IM = incidence_matrix([[2, 3], [1]])
 2×3 IncidenceMatrix
-[2, 3]
-[1]
-
+ [2, 3]
+ [1]
 ```
 """
 incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) =
@@ -142,12 +136,11 @@ number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> row(IM, 2)
 Set{Int64} with 3 elements:
@@ -167,9 +160,8 @@ Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
-[1, 2, 3]
-[4, 5, 6]
-
+ [1, 2, 3]
+ [4, 5, 6]
 
 julia> column(IM, 5)
 Set{Int64} with 1 element:
@@ -239,7 +231,7 @@ linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix
   assure_matrix_polymake(x)
 
 linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) =
-  assure_matrix_polymake(stack(x...))
+  assure_matrix_polymake(stack(x))
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
   assure_matrix_polymake(x)
@@ -395,7 +387,7 @@ homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
   homogenize(x, val)
 homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
-  stack((homogenize(x[i], val) for i in 1:length(x))...)
+  stack([homogenize(x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
@@ -403,7 +395,7 @@ unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
 unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
 unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) =
-  unhomogenized_matrix(stack(x...))
+  unhomogenized_matrix(stack(x))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -448,21 +440,12 @@ stack(A::AbstractVector, B::AbstractVector) =
   isempty(A) ? B : [permutedims(A); permutedims(B)]
 stack(A::AbstractVector, ::Nothing) = permutedims(A)
 stack(::Nothing, B::AbstractVector) = permutedims(B)
-stack(x, y, z...) = stack(stack(x, y), z...)
-stack(x) = stack(x, nothing)
-# stack(x::Union{QQMatrix, ZZMatrix}, ::Nothing) = x
-#=
-function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
-    if length(A)==2
-        return stack(A[1],A[2])
-    end
-    M=stack(A[1],A[2])
-    for i in 3:length(A)
-        M=stack(M,A[i])
-    end
-    return M
+function stack(VV::AbstractVector{<:AbstractVector})
+  @req length(VV) > 0 "at least one vector required"
+  permutedims(Base.stack(VV))
 end
-=#
+stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
+stack(x) = stack(x, nothing)
 
 _ambient_dim(x::AbstractVector) = length(x)
 _ambient_dim(x::AbstractMatrix) = size(x, 2)
@@ -563,12 +546,13 @@ _find_elem_type(x::Type) = x
 _find_elem_type(x::Polymake.Rational) = QQFieldElem
 _find_elem_type(x::Polymake.Integer) = ZZRingElem
 _find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
-_find_elem_type(x::Tuple) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::AbstractArray{<:AbstractArray}) = vcat(_find_elem_type.(x)...)
-_find_elem_type(x::MatElem) = elem_type(base_ring(x))
+_find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
+_find_elem_type(x::AbstractArray{<:AbstractArray}) =
+  reduce(vcat, _find_elem_type.(x); init=[])
+_find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
 
 function _guess_fieldelem_type(x...)
-  types = filter(!=(Any), vcat(_find_elem_type.(x)...))
+  types = filter(!=(Any), _find_elem_type(x))
   T = QQFieldElem
   for t in types
     if t == Float64
@@ -841,8 +825,10 @@ end
 # Cone -> Polyhedron
 # PolyhedralFan -> PolyhedralComplex
 # for transforming coordinate matrices.
-function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
-  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+function embed_at_height_one(M::AbstractMatrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{Polymake.convert_to_pm_type(T)}(
+    add_vert + size(M)[1], size(M)[2] + 1
+  )
   if add_vert
     result[1, 1] = 1
   end

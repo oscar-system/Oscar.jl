@@ -11,9 +11,8 @@ const PrimeFieldMatrix = Union{FpMatrix,fpMatrix}
 
 # NOTE: These give missing features to OSCAR/Nemo that will likely be added in the near future.
 
-function pop_largest_factor!(f::Fac{ZZRingElem})
-  D = f.fac
-  m = maximum(f)
+function pop_largest_factor!(D::Dict{ZZRingElem, Int})
+  m = maximum(D)
   if isone(m[2])
     Base.delete!(D, m[1])
   else
@@ -296,7 +295,7 @@ function standard_monomial(n::IntegerUnion)
 end
 # just returns degrees of monomials in tower basis
 # TODO : pass in factorization? Do we need this with memoization?
-function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
+function standard_monomial_degrees(n::IntegerUnion)
   if n == 1
     return [1]
   end
@@ -308,7 +307,7 @@ function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   for i in 1:a-1
     append!(res, new)
   end
-  return res
+  return res::Vector{Int}
 end
 # map of monomials for degree n -> monomials of degree m by positions
 function standard_monomial_map(n::IntegerUnion, m::IntegerUnion)
@@ -463,11 +462,11 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
   F = Native.GF(p)
   set_standard_prime_field!(F)
 
-  function _sff(N::Fac{ZZRingElem})
+  function _sff(N::Dict{ZZRingElem, Int})
     # local m::ZZRingElem, k::IntegerUnion, nK::ZZRingElem, K::FinField, stn::ZZRingElem,
     #         n1::ZZRingElem, q1::ZZRingElem, l::Vector{ZZRingElem}, c::Vector{ZZRingElem}, b::FinFieldElem
     m, k = pop_largest_factor!(N)
-    nK = evaluate(N)
+    nK = prod(p^e for (p, e) in N; init = one(ZZ))
 
     K = get_standard_extension!(F, nK) do
       _sff(N)
@@ -490,7 +489,7 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
 
   return get_standard_extension!(F, n) do
     N = factor(ZZ(n))
-    return _sff(N)
+    return _sff(Dict(p => e for (p, e) in N))
   end
 end
 

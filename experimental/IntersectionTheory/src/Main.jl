@@ -7,8 +7,8 @@
     abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
     abstract_bundle(X::AbstractVariety, r::RingElement, c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return an abstract vector bundle on `X` by specifying its Chern character. Equivalently, specify its rank and
-total Chern class.
+Return an abstract vector bundle on `X` by specifying its Chern character `ch`. Equivalently, specify its rank `r` and
+total Chern class `c`.
 
 # Examples
 
@@ -296,10 +296,12 @@ pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 
 @doc raw"""
     euler_characteristic(F::AbstractBundle)
+
+Return the Euler characteristic $\chi(F)$
+
     euler_pairing(F::AbstractBundle, G::AbstractBundle)
 
-Return the holomorphic Euler characteristic $\chi(F)$ and the Euler pairing
-$\chi(F,G)$, respectively.
+Return the Euler pairing $\chi(F,G)$.
 
 # Examples
 ```jldoctest
@@ -320,7 +322,7 @@ julia> tc = todd_class(TZ)
 julia> K = canonical_class(Z)
 z - H
 
-julia> H = hyperplane_class(Z)
+julia> H = polarization(Z)
 H
 
 julia> ec = euler_characteristic(OO(Z, H))
@@ -345,13 +347,13 @@ end
     map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map `X` $\rightarrow$ `Y` by specifying the pullbacks of
-the generators of the Chow ring of `Y`. 
+the generators of the Chow ring of `Y`.
 
 !!! note
     The corresponding pushforward will be automatically computed in certain cases.
 
 In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
-present in the Chow ring of `Y`, use the argument `inclusion = true`. Then,
+present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
 a copy of `Y` will be created, with extra classes added so that one can
 pushforward all classes on `X`.
 
@@ -420,7 +422,7 @@ dim(f::AbstractVarietyMap) = f.dim
 @doc raw"""
     tangent_bundle(f::AbstractVarietyMap)
 
-Return the relative tangent bundle of `f`.
+If `domain(f)` and `codomain(f)` are given tangent bundles, return the relative tangent bundle of `f`.
 
 # Examples
 
@@ -431,7 +433,7 @@ AbstractVariety of dim 2
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> PT = abstract_projective_bundle(T)
+julia> PT = projective_bundle(T)
 AbstractVariety of dim 3
 
 julia> pr = structure_map(PT)
@@ -439,6 +441,9 @@ AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
 
 julia> PBT = pullback(pr, T)
 AbstractBundle of rank 2 on AbstractVariety of dim 3
+
+julia> tangent_bundle(PT) - PBT == tangent_bundle(pr)
+true
 
 julia> PBT*OO(PT, 1) - OO(PT) == tangent_bundle(pr) # relative Euler sequence
 true
@@ -450,7 +455,7 @@ tangent_bundle(f::AbstractVarietyMap) = f.T
 @doc raw"""
     cotangent_bundle(f::AbstractVarietyMap)
 
-Return the relative cotangent bundle of `f`.
+If `domain(f)` and `codomain(f)` are given tangent bundles, return the relative cotangent bundle of `f`.
 """
 cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
 
@@ -511,7 +516,7 @@ h
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> E = pullback(i, OO(P2,1))
+julia> E = pullback(i, OO(P5,1))
 AbstractBundle of rank 1 on AbstractVariety of dim 2
 
 julia> total_chern_class(E)
@@ -583,7 +588,7 @@ pushforward(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.codomai
 Return the identity map on `X`.
 """
 function identity_map(X::AbstractVariety)
-  AbstractVarietyMap(X, X, gens(X.ring), map_from_func(identity, X.ring, X.ring))
+  AbstractVarietyMap(X, X, gens(X.ring), MapFromFunc(X.ring, X.ring, identity))
 end
 
 @doc raw"""
@@ -597,7 +602,7 @@ function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   Z = g.codomain
   gofₓ = nothing
   if isdefined(f, :pushforward) && isdefined(g, :pushforward)
-    gofₓ = map_from_func(g.pushforward ∘ f.pushforward, X.ring, Z.ring)
+    gofₓ = MapFromFunc(X.ring, Z.ring, g.pushforward ∘ f.pushforward)
   end
   gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
   return gof
@@ -632,8 +637,8 @@ Construct a generic abstract variety of dimension $n$ with some bundles of given
 Return the abstract variety and the list of bundles.
 """
 function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) where T
-  symbols = vcat([_parse_symbol(s,1:r) for (r,s) in bundles]...)
-  degs = vcat([collect(1:r) for (r,s) in bundles]...)
+  symbols = reduce(vcat, [_parse_symbol(s,1:r) for (r,s) in bundles])
+  degs = reduce(vcat, [1:r for (r,s) in bundles])
   X = abstract_variety(n, symbols, degs, base=base)[1]
   i = 1
   X.bundles = AbstractBundle[]
@@ -663,7 +668,10 @@ end
 @doc raw"""
      abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
 
-Return an abstract variety of dimension `n` with Chow ring `A`.
+Return an abstract variety by specifying its dimension `n` and Chow ring `A`.
+
+!!! note
+    We allow graded polynomial rings here since for the construction of a new abstract variety it is occasionally useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
 
 # Examples
 ```jldoctest
@@ -684,11 +692,48 @@ AbstractVariety of dim 2
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
+julia> chow_ring(P2)
+Quotient
+  of multivariate polynomial ring in 1 variable over QQ graded by
+    h -> [1]
+  by ideal (h^3)
+
 julia> TP2 = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
 julia> chern_character(TP2)
 3//2*h^2 + 3*h + 2
+
+```
+
+!!! note
+    Typically, the coefficient ring of a Chow ring in OSCAR will be $\mathbb Q$. In order to
+    allow the use of parameters, the coefficient ring may be extended, say to a function field of type $\mathbb Q(t_1, \dots, t_r).$
+    The example below shows how to do this when using built-in constructors such as `abstract_projective_space`:
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P2 = abstract_projective_space(2, base = QT)
+AbstractVariety of dim 2
+
+julia> chow_ring(P2)
+Quotient
+  of multivariate polynomial ring in 1 variable over QT graded by
+    h -> [1]
+  by ideal (h^3)
+
+julia> TP2 = tangent_bundle(P2)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> chern_character(TP2*OO(P2, t))
+(t^2 + 3*t + 3//2)*h^2 + (2*t + 3)*h + 2
+
 ```
 """
 function abstract_variety(n::Int, R::MPolyDecRingOrQuo)
@@ -702,7 +747,7 @@ end
 @doc raw"""
     chow_ring(X::AbstractVariety)
 
-Return the Chow ring of the abstract variety `X`.
+Return the Chow ring of `X`.
 
 # Examples
 ```jldoctest
@@ -753,7 +798,10 @@ base(X::AbstractVariety) = X.base
 @doc raw"""
     point_class(X::AbstractVariety)
 
-Return the point class of `X`.
+If `X` has been given a point class, return that class.
+
+!!! note
+    A *point class* is a top-degree element of the Chow ring of `X` which integrates to 1.
 
 # Examples
 ```jldoctest
@@ -777,14 +825,14 @@ julia> integral(p)
 point_class(X::AbstractVariety) = X.point
 
 @doc raw"""
-    hyperplane_class(X::AbstractVariety)
+    polarization(X::AbstractVariety)
 
-If defined, return the class of a hyperplane section of `X`.
+If `X` has been given a polarization, return that polarization.
 
 !!! note
-    Speaking of a hyperplane class of `X` means that we have a specific embedding of `X` into projective space in mind.
-    For Grassmanians, for example, this embedding is the Plücker embedding. For the product of two abstract varieties with
-    given hyperplane classes, it is the Segre embedding.
+    To implement a polarization $\mathcal O_X(1)$ means to implement its first Chern class.
+    For Grassmannians, this is the polarization of the Plücker embedding. For the product
+    of two abstract varieties with given polarizations, it is the polarization of the Segre embedding.
 
 # Examples
 
@@ -792,10 +840,16 @@ If defined, return the class of a hyperplane section of `X`.
 julia> G = abstract_grassmannian(2, 5)
 AbstractVariety of dim 6
 
-julia> hyperplane_class(G)
+julia> D = polarization(G)
 -c[1]
 
-julia> degree(G) == integral(hyperplane_class(G)^dim(G)) == 5
+julia> degree(G) == integral(D^dim(G)) == 5
+true
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 3 on AbstractVariety of dim 6
+
+julia> OO(G, D) == det(Q)
 true
 
 ```
@@ -810,15 +864,15 @@ AbstractVariety of dim 1
 julia> P = P1s*P1t
 AbstractVariety of dim 2
 
-julia> H = hyperplane_class(P)
+julia> D = polarization(P)
 s + t
 
-julia> integral(H^dim(P))
-2
+julia> degree(P) == integral(D^dim(P)) == 2
+true
 
 ```
 """
-function hyperplane_class(X::AbstractVariety)
+function polarization(X::AbstractVariety)
   return(X.O1)
 end
 
@@ -826,7 +880,9 @@ end
 @doc raw"""
     trivial_line_bundle(X::AbstractVariety)
 
-Return the trivial line bundle $\mathcal O_X$ on `X`. Alternatively, use `OO` instead of `trivial_line_bundle`.
+Return the trivial line bundle $\mathcal O_X$ on `X`.
+
+Alternatively, use `OO` instead of `trivial_line_bundle`.
 
 # Examples
 ```jldoctest
@@ -847,7 +903,7 @@ trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
 @doc raw"""
     tautological_bundles(X::AbstractVariety)
 
-Return the tautological_bundles of `X` (if applicable).
+If `X` has been given tautological bundles, return these bundles.
 
 # Examples
 ```jldoctest
@@ -883,7 +939,7 @@ tautological_bundles(X::AbstractVariety) = X.bundles
 @doc raw"""
     structure_map(X::AbstractVariety)
 
-Return the structure map of `X`.
+If `X` has been given a structure map, return that map.
 
 # Examples
 ```jldoctest
@@ -896,7 +952,7 @@ AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 0
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> E = abstract_projective_bundle(T, symbol = "H")
+julia> E = projective_bundle(T, symbol = "H")
 AbstractVariety of dim 3
 
 julia> chow_ring(E)
@@ -916,10 +972,14 @@ structure_map(X::AbstractVariety) = X.struct_map
 
 @doc raw"""
     line_bundle(X::AbstractVariety, n::RingElement)
+
+If `X` has been given a polarization $\mathcal O_X(1)$, return the line bundle $\mathcal O_X(n)$ on `X`.
+
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return the line bundle $\mathcal O_X(n)$ on `X` if `X` has been given a
-hyperplane class, or a line bundle $\mathcal O_X(D)$ with first Chern class $D$.
+Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$. Here, $D[1]$ is the degree-1 part of `D`
+(geometrically, this is the codimension 1 part of $D$).
+
 Alternatively, use `OO` instead of `line_bundle`.
 
 # Examples
@@ -947,7 +1007,7 @@ OO(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = line_bund
 @doc raw"""
     degree(X::AbstractVariety)
 
-If `X` has been given a hyperplane class, return the corresponding degree of `X`.
+If `X` has been given a polarization, return the corresponding degree of `X`.
 
 # Examples
 ```jldoctest
@@ -964,7 +1024,7 @@ degree(X::AbstractVariety) = integral(X.O1^X.dim)
 @doc raw"""
     tangent_bundle(X::AbstractVariety)
 
-Return the tangent bundle of `X`.
+If `X` has been given a tangent bundle, return that bundle.
 
 # Examples
 ```jldoctest
@@ -984,14 +1044,14 @@ tangent_bundle(X::AbstractVariety) = X.T
 @doc raw"""
     cotangent_bundle(X::AbstractVariety)
 
-Return the cotangent bundle of `X`.
+If `X` has been given a tangent bundle, return the dual bundle.
 
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
-julia> cotangent_bundle(P2) == dual(tangent_bundle(P2)) 
+julia> cotangent_bundle(P2) == dual(tangent_bundle(P2))
 true
 
 ```
@@ -1001,7 +1061,7 @@ cotangent_bundle(X::AbstractVariety) = dual(X.T)
 @doc raw"""
     canonical_class(X::AbstractVariety)
 
-Return the canonical class of `X`.
+If `X` has been given a tangent bundle, return the canonical class of `X`.
 
 # Examples
 ```jldoctest
@@ -1011,7 +1071,7 @@ AbstractVariety of dim 2
 julia> canonical_class(P2) == chern_class(cotangent_bundle(P2), 1)
 true
 
-julia> canonical_class(P2) 
+julia> canonical_class(P2)
 -3*h
 
 ```
@@ -1021,8 +1081,9 @@ canonical_class(X::AbstractVariety) = -chern_class(X.T, 1)
 @doc raw"""
     canonical_bundle(X::AbstractVariety)
 
-Return the canonical bundle of `X`.
+If `X` has been given a tangent bundle, return the canonical bundle on `X`.
 
+# Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
@@ -1051,12 +1112,27 @@ Return the `k'-th Chern class of the tangent bundle of `X`.
 chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
 
 @doc raw"""
-    euler(X::AbstractVariety)
-    euler(X::TnVariety)
+    euler_number(X::AbstractVariety)
 
 Return the Euler number of `X`.
+
+!!! note
+    Recall that in our geometric interpretation, we think of `X` as a smooth projective complex variety. The returned number is then the Euler number of `X` considered as a compact complex manifold. Note that this number coincides with the topological Euler characteristic of the manifold.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> euler_number(P2)
+3
+
+julia> euler_number(P2) == integral(total_chern_class(tangent_bundle(P2)))
+true
+
+```
 """
-euler(X::AbstractVariety) = integral(total_chern_class(X.T))
+euler_number(X::AbstractVariety) = integral(total_chern_class(X.T))
 
 @doc raw"""
     todd_class(X::AbstractVariety)
@@ -1167,8 +1243,8 @@ signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 @doc raw"""
     hilbert_polynomial(F::AbstractBundle)
 
-If an abstract vector bundle `F` on an abstract variety with a specified hyperplane class is given, 
-return the corresponding Hilbert polynomial of `F`.
+If `F` is an abstract vector bundle on an abstract variety with a given polarization,
+then return the corresponding Hilbert polynomial of `F`.
 
 # Examples
 ```jldoctest
@@ -1193,7 +1269,7 @@ julia> euler_characteristic(OO(P2, 3))
 ```
 """
 function hilbert_polynomial(F::AbstractBundle)
-  !isdefined(F.parent, :O1) && error("no hyperplane class is specified for the abstract_variety")
+  !isdefined(F.parent, :O1) && error("no polarization is specified for the abstract_variety")
   X, O1 = F.parent, F.parent.O1
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
@@ -1216,7 +1292,7 @@ end
 @doc raw"""
     hilbert_polynomial(X::AbstractVariety)
 
-If `X` has been given a hyperplane class, return the corresponding Hilbert polynomial of `X`.
+If `X` has been given a polarization, return the corresponding Hilbert polynomial of `X`.
 
 # Examples
 ```jldoctest
@@ -1272,8 +1348,8 @@ end
 
 Return the product $X\times Y$. Alternatively, use `*`.
 
-!!! note 
-    If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
+!!! note
+    If both `X` and `Y` have been given a polarization, $X\times Y$ will be endowed with the polarization corresponding to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
@@ -1302,12 +1378,10 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   @assert X.base == Y.base
   base = X.base
   A, B = X.ring, Y.ring
-  symsA, symsB = string.(gens(A)), string.(gens(B))
-  a = length(symsA)
-  R, x = graded_polynomial_ring(base, vcat(symsA, symsB), vcat(gradings(A), gradings(B)))
+  R, x, y = graded_polynomial_ring(base, symbols(A), symbols(B); weights = vcat(gradings(A), gradings(B)))
   # TODO: fails with check = true
-  AtoR = hom(A, R, x[1:a], check = false)
-  BtoR = hom(B, R, x[a+1:end], check = false)
+  AtoR = hom(A, R, x, check = false)
+  BtoR = hom(B, R, y, check = false)
   IA = ideal(A isa MPolyQuoRing ? AtoR.(A.(gens(A.I))) : [R()])
   IB = ideal(B isa MPolyQuoRing ? BtoR.(B.(gens(B.I))) : [R()])
   AXY, _ = quo(R, IA + IB)
@@ -1315,8 +1389,8 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   if isdefined(X, :point) && isdefined(Y, :point)
     XY.point = XY(AtoR(X.point) * BtoR(Y.point))
   end
-  p = AbstractVarietyMap(XY, X, XY.(x[1:a]))
-  q = AbstractVarietyMap(XY, Y, XY.(x[a+1:end]))
+  p = AbstractVarietyMap(XY, X, XY.(x))
+  q = AbstractVarietyMap(XY, Y, XY.(y))
   if isdefined(X, :T) && isdefined(Y, :T)
     XY.T = pullback(p, X.T) + pullback(q, Y.T)
   end
@@ -1399,7 +1473,7 @@ end
     +(F::AbstractBundle, G::AbstractBundle)
     -(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
-    
+
 Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
 
 # Examples
@@ -1480,7 +1554,7 @@ end
 @doc raw"""
     symmetric_power(F::AbstractBundle, k::Int)
     symmetric_power(F::AbstractBundle, k::RingElement)
-    
+
 Return the `k`-th symmetric power of `F`. Here, `k` can contain parameters.
 """
 function symmetric_power(F::AbstractBundle, k::Int)
@@ -1489,7 +1563,7 @@ end
 
 function symmetric_power(F::AbstractBundle, k::RingElement)
   X = F.parent
-  PF = abstract_projective_bundle(dual(F))
+  PF = projective_bundle(dual(F))
   p = PF.struct_map
   AbstractBundle(X, p.pushforward(sum((chern_character(line_bundle(PF, k)) * todd_class(p))[0:PF.dim])))
 end
@@ -1533,8 +1607,9 @@ end
 #
 @doc raw"""
     basis(X::AbstractVariety)
+    basis(X::AbstractVariety, k::Int)
 
-If `K = base(X)`, return a `K`-basis of the Chow ring of `X`.
+If `K = base(X)`, return a `K`-basis of the Chow ring of `X` (return the elements of degree `k` in that basis).
 
 !!! note
     The basis elements are ordered by increasing degree (geometrically, by increasing codimension).
@@ -1559,6 +1634,11 @@ julia> basis(G)
  [c[1]*c[2]]
  [c[2]^2]
 
+julia> basis(G, 2)
+2-element Vector{MPolyQuoRingElem}:
+ c[2]
+ c[1]^2
+
 ```
 """
 @attr Vector{Vector{MPolyQuoRingElem}} function basis(X::AbstractVariety)
@@ -1566,7 +1646,7 @@ julia> basis(G)
   R = X.ring
   try_trim = "Try use `trim!`."
   !(R isa MPolyQuoRing) && error("the ring has no ideal. "*try_trim)
-  dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
+  krull_dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
   b = Oscar._kbase(R)
   ans = [MPolyQuoRingElem[] for i in 0:X.dim]
   for bi in b
@@ -1578,14 +1658,14 @@ end
 @doc raw"""
     basis(X::AbstractVariety, k::Int)
 
-Return an additive basis of the Chow ring of `X` in codimension `k`.
+If `K = base(X)`, return the elements of degree `k` in a `K`-basis of the Chow ring of `X`.
 """
 basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 
 @doc raw"""
     betti_numbers(X::AbstractVariety)
 
-Return the Betti numbers of the Chow ring of `X`. 
+Return the Betti numbers of the Chow ring of `X`.
 
 !!! note
     The Betti number of `X` in a given degree is the number of elements of `basis(X)` in that degree.
@@ -1616,16 +1696,52 @@ julia> basis(P2xP2)
 betti_numbers(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
-    integral(x:::Union{MPolyDecRingElem, MPolyQuoRingElem})
+    integral(c:::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
+Given an element `c` of the Chow ring of an abstract variety `X`, say, return the integral of `c`.
 
 !!! note
-    If `X` has a (unique) point class, the integral will be a
-number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest degree part of $x$ is returned
-(geometrically, this is the 0-dimensional part of $x$).
+    If the abstract variety has been given a point class, and `length(basis(X, dim(X)) == 1`,
+    then the integral will be an element of the coefficient ring of the Chow ring.
+    That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
+    part of `c` is returned.
 
 # Examples
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 5)
+AbstractVariety of dim 6
+
+julia> p = point_class(G)
+c[2]^3
+
+julia> integral(p)
+1
+
+```
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P3 = abstract_projective_space(3, base = QT)
+AbstractVariety of dim 3
+
+julia> h = gens(P3)[1]
+h
+
+julia> integral(t^2*h^3+t*h)
+t^2
+
+```
+
+# Lines on a General Cubic Hypersurface in $\mathbb P^3$
+
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
@@ -1638,6 +1754,23 @@ AbstractBundle of rank 4 on AbstractVariety of dim 4
 
 julia> integral(top_chern_class(E))
 27
+
+```
+
+# Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4+4)
+AbstractVariety of dim 12
+
+julia> S = tautological_bundles(G)[1]
+AbstractBundle of rank 2 on AbstractVariety of dim 12
+
+julia> E = symmetric_power(S, 2)
+AbstractBundle of rank 3 on AbstractVariety of dim 12
+
+julia> integral(top_chern_class(E)^4)
+512
 
 ```
 """
@@ -1654,7 +1787,7 @@ end
     intersection_matrix(X::AbstractVariety)
 
 If `b = vcat(basis(X)...)`, return `matrix([integral(bi*bj) for bi in b, bj in b])`.
-    
+
     intersection_matrix(a::Vector, b::Vector)
 
 Return `matrix([integral(ai*bj) for ai in a, bj in b])`.
@@ -1698,39 +1831,21 @@ julia> integral(b[4]*b[4])
 
 ```
 """
-function intersection_matrix(X::AbstractVariety) intersection_matrix(vcat(basis(X)...)) end
+intersection_matrix(X::AbstractVariety) = intersection_matrix(reduce(vcat, basis(X)))
+
 function intersection_matrix(a::Vector{}, b=nothing)
   if b === nothing b = a end
   matrix([integral(ai*bj) for ai in a, bj in b])
 end
 
 @doc raw"""
-     dual_basis(X::AbstractVariety, k::Int)
-
-Compute the dual basis of the additive basis in codimension `k` given by
-`basis(X, k)` (the returned elements are therefore in codimension
-$\dim X-k$).
-"""
-function dual_basis(X::AbstractVariety, k::Int)
-  T = Dict{Int, Vector{elem_type(X.ring)}}
-  d = get_attribute!(X, :dual_basis) do
-    T()
-  end::T
-  if !(k in keys(d))
-    B = basis(X)
-    b_k = B[k+1]
-    b_comp = B[X.dim-k+1]
-    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
-    d[k] = M * b_comp
-    d[X.dim-k] = transpose(M) * b_k
-  end
-  return d[k]
-end
-
-@doc raw"""
     dual_basis(X::AbstractVariety)
 
-If `K = base(X)`, return a `K`-basis for the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`.
+If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here, `K = base(X)`.
+
+    dual_basis(X::AbstractVariety, k::Int)
+
+If `X` has been given a point class, return the elements of degree `k` in the dual basis.
 
 !!! note
     The basis elements are ordered by decreasing degree (geometrically, by decreasing codimension).
@@ -1788,6 +1903,23 @@ function _expp(x::MPolyDecRingOrQuoElem; truncate::Int=-1)
     e[i+1] = QQ(-1, i) * sum(p[j+1] * e[i-j+1] for j in 1:i)
   end
   simplify(sum(e))
+end
+
+function dual_basis(X::AbstractVariety, k::Int)
+  isdefined(X, :point) || error("point class not defined") ### DIFF Song
+  T = Dict{Int, Vector{elem_type(X.ring)}}
+  d = get_attribute!(X, :dual_basis) do
+    T()
+  end::T
+  if !(k in keys(d))
+    B = basis(X)
+    b_k = B[k+1]
+    b_comp = B[X.dim-k+1]
+    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
+    d[k] = M * b_comp
+    d[X.dim-k] = transpose(M) * b_k
+  end
+  return d[k]
 end
 
 function _logg(x::MPolyDecRingOrQuoElem)
@@ -1872,7 +2004,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   _g = Symbol("_", g)
   @eval function $g(n::Int)
     n == 0 && return QQ(1)
-    R, p = graded_polynomial_ring(QQ, _parse_symbol($s, 1:n), collect(1:n))
+    R, p = graded_polynomial_ring(QQ, $s => 1:n; weights = 1:n)
     set_attribute!(R, :abstract_variety_dim, n)
     $_g(_logg(R(1+sum(p))))[n]
   end
@@ -1922,7 +2054,8 @@ julia> degree(C)
 3
 
 ```
-```
+
+```jldoctest
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
@@ -1937,7 +2070,7 @@ julia> degree(C)
 
 ```
 
-```
+```jldoctest
 julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
@@ -1985,7 +2118,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     Z.O1 = Z(X.O1.f)
   end
   iₓ = x -> x.f * cZ
-  iₓ = map_from_func(iₓ, Z.ring, X.ring)
+  iₓ = MapFromFunc(Z.ring, X.ring, iₓ)
   @assert R isa MPolyQuoRing
   i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), iₓ)
   i.T = pullback(i, -F)
@@ -2059,6 +2192,13 @@ AbstractVariety of dim 2
 julia> degree(Z)
 4
 
+julia> chow_ring(Z)
+Quotient
+  of multivariate polynomial ring in 2 variables over QQ graded by
+    z -> [1]
+    h -> [1]
+  by ideal (2*z - 3*h, h^3)
+
 ```
 
 ```jldoctest
@@ -2080,7 +2220,7 @@ z - H
 julia> integral(K^2)
 -7
 
-julia> H = hyperplane_class(Z)
+julia> H = polarization(Z)
 H
 
 julia> integral(H^2) # degree of surface
@@ -2106,20 +2246,20 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
       return F.parent.ring(0)
     end
   end
-  Gr = (m-k == 1) ? abstract_projective_bundle(F) : abstract_flag_bundle(F, m-k)
+  Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = map(D, F.parent) # skip the flag abstract_variety
-  if isdefined(F.parent, :O1)
-    D.O1 = pullback(D.struct_map, F.parent.O1)
-  end
+  if isdefined(F.parent, :O1) ### DIFF Song
+    D.O1 = pullback(D.struct_map, F.parent.O1) ### DIFF Song
+  end ### DIFF Song
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
 
 ###############################################################################
 @doc raw"""
-    abstract_point()
+    abstract_point(; base::Ring = QQ)
 
 Return an abstract variety consisting of a point.
 
@@ -2151,6 +2291,9 @@ end
     abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
 
 Return the abstract projective space of lines in an `n+1`-dimensional vector space.
+
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 # Examples
 ```jldoctest
@@ -2215,9 +2358,12 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
 end
 
 @doc raw"""
-    abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+    projective_bundle(F::AbstractBundle; symbol::String = "z")
 
 Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
+
+!!! note
+    The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(\mathcal F)}(1)$.
 
 # Examples
 ```jldoctest
@@ -2227,7 +2373,7 @@ AbstractVariety of dim 2
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> PT = abstract_projective_bundle(T)
+julia> PT = projective_bundle(T)
 AbstractVariety of dim 3
 
 julia> chow_ring(PT)
@@ -2245,10 +2391,12 @@ julia> [chern_class(T, i) for i = 1:2]
 julia> gens(PT)[1]
 z
 
-julia> gens(PT)[1] == hyperplane_class(PT)
+julia> gens(PT)[1] == polarization(PT)
 true
 
 ```
+
+*Number of Conics on the General Quintic Hypersurface in $\mathbb P^4$:*
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
@@ -2260,7 +2408,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
-julia> PF = abstract_projective_bundle(F)
+julia> PF = projective_bundle(F)
 AbstractVariety of dim 11
 
 julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)
@@ -2271,24 +2419,23 @@ julia> integral(top_chern_class(A))
 
 ```
 """
-function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
+function projective_bundle(F::AbstractBundle; symbol::String = "z")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
-  syms = vcat([symbol], string.(gens(R)))
- 
+
   # construct the ring
-  
+
   w = vcat([1], gradings(R))
-  R1, (z,) = graded_polynomial_ring(X.base, syms, w)
+  R1, (z,), imgs_in_R1 = graded_polynomial_ring(X.base, [symbol], symbols(R); weights = w)
   if R isa MPolyQuoRing
     PR = base_ring(R)
   else
     PR = R
   end
-  pback = hom(PR, R1, gens(R1)[2:end])
+  pback = hom(PR, R1, imgs_in_R1)
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
-  
+
   # construct the relations
 
   rels = [sum(pback(chern_class(F, i).f) * z^(r-i) for i in 0:r)]
@@ -2297,19 +2444,19 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   end
   APF = quo(R1, ideal(rels))[1]
   z = APF(z)
-  
+
   # construct the abstract variety
-  
+
   PF = AbstractVariety(X.dim+r-1, APF)
   pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
-  pₓ = map_from_func(pₓ, PF.ring, X.ring)
-  p = AbstractVarietyMap(PF, X, PF.(gens(R1)[2:end]), pₓ)
+  pₓ = MapFromFunc(PF.ring, X.ring, pₓ)
+  p = AbstractVarietyMap(PF, X, PF.(imgs_in_R1), pₓ)
   if isdefined(X, :point)
     PF.point = p.pullback(X.point) * z^(r-1)
   end
   p.O1 = PF(z)
   PF.O1 = PF(z)
-  S = AbstractBundle(PF, 1, 1-z) 
+  S = AbstractBundle(PF, 1, 1-z)
   Q = pullback(p, F) - S
   p.T = dual(S)*Q
   if isdefined(X, :T)
@@ -2319,6 +2466,9 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   PF.struct_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(PF, :alg => true) ### DIFF Song
+  end ### DIFF Song
   return PF
 end
 
@@ -2348,15 +2498,18 @@ Quotient
 function abstract_hirzebruch_surface(n::Int)
   P1 = abstract_projective_space(1)
   E = OO(P1)+OO(P1, -n)
-  return abstract_projective_bundle(E)
+  return projective_bundle(E)
 end
 
 
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
-Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an 
+Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an
 `n`-dimensional vector space.
+
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 # Examples
 ```jldoctest
@@ -2390,9 +2543,9 @@ true
 ```
 """
 function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
-  @assert k < n 
+  @assert k < n
   d = k*(n-k)
-  R, c = graded_polynomial_ring(base, _parse_symbol(symbol, 1:k), collect(1:k))
+  R, c = graded_polynomial_ring(base, symbol => 1:k; weights = 1:k)
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
@@ -2416,9 +2569,12 @@ end
     abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
     abstract_flag_variety(dims::Vector{Int}; base::Ring = QQ, symbol::String = "c")
 
-Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
-return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of 
+Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
+return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of
 dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
+
+!!! note
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 # Examples
 ```jldoctest
@@ -2456,10 +2612,10 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
+  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)])
   # FIXME ordering
   # ord = prod(ordering_dp(r) for r in ranks)
-  R = graded_polynomial_ring(base, syms, vcat([collect(1:r) for r in ranks]...))[1]
+  R = graded_polynomial_ring(base, syms, reduce(vcat, [1:r for r in ranks]))[1]
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
@@ -2486,11 +2642,11 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
-    abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
+    flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+    flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
-Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
-and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences 
+Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
+and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences
 of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $F$.
 
 !!! note
@@ -2504,7 +2660,7 @@ AbstractVariety of dim 4
 julia> F = exterior_power(cotangent_bundle(P),  3)*OO(P,3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
 
-julia> FB = abstract_flag_bundle(F, 1, 3)
+julia> FB = flag_bundle(F, 1, 3)
 AbstractVariety of dim 9
 
 julia> CR = chow_ring(FB)
@@ -2525,7 +2681,7 @@ Ideal generated by
   -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2] + 4*h^2
   -c[1, 1] - c[2, 1] - c[3, 1] - 3*h
 
-julia> FB.bundles
+julia> tautological_bundles(FB)
 3-element Vector{AbstractBundle}:
  AbstractBundle of rank 1 on AbstractVariety of dim 9
  AbstractBundle of rank 2 on AbstractVariety of dim 9
@@ -2533,43 +2689,43 @@ julia> FB.bundles
 
 ```
 """
-function abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
-  abstract_flag_bundle(F, collect(dims), symbol=symbol)
+function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+  flag_bundle(F, collect(dims), symbol=symbol)
 end
 
-function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
+function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   X, n = F.parent, F.rank
   !(n isa Int) && error("expect rank to be an integer")
-  
+
   # compute the ranks of successive subqotients and the relative dimension
-  
+
+  if dims[end] < n # the last dim can be omitted
+    dims = vcat(dims, [n])
+  end
   l = length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(>(0), ranks) && dims[end] <= n
-  if dims[end] < n # the last dim can be omitted
-    dims = vcat(dims, [n])
-    push!(ranks, n-dims[l])
-    l += 1
-  end
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
-  
+
   # construct the ring
-  
+
   R = X.ring
   if R isa MPolyQuoRing
     PR = base_ring(R)
   else
     PR = R
   end
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(PR)))
-  w = vcat([collect(1:r) for r in ranks]..., gradings(R))
-  R1 = graded_polynomial_ring(X.base, syms, w)[1]
-  pback = hom(PR, R1, gens(R1)[n+1:end])
+  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)])
+  w = reduce(vcat, [1:r for r in ranks])
+  append!(w, gradings(R))
+  R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(X.base, syms, symbols(PR); weights = w)
+  pback = hom(PR, R1, imgs_in_R1)
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
-  
+
   # compute the relations
-  
-  c = pushfirst!([1+sum(gens(R1)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R1)[1:dims[1]]))
+
+  c = [1+sum(gens_for_rels_R1[dims[i]+1:dims[i+1]]) for i in 1:l-1]
+  pushfirst!(c, 1+sum(gens_for_rels_R1[1:dims[1]]))
   Rx, x = R1[:x]
   fi = pback(total_chern_class(F).f)[0:n]
   f = sum(fi[i+1].f * x^(n-i) for i in 0:n)
@@ -2583,16 +2739,16 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   c = AFl.(c)
 
   # construct the abstract_variety
-  
-  Fl = AbstractVariety(X.dim + d, AFl)  
+
+  Fl = AbstractVariety(X.dim + d, AFl)
   Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
   section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
   if isdefined(X, :point)
     Fl.point = pback(X.point.f) * section
   end
-  pˣ = Fl.(gens(R1)[n+1:end])
+  pˣ = Fl.(imgs_in_R1)
   pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
-  pₓ = map_from_func(pₓ, Fl.ring, X.ring)
+  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
   p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1
@@ -2603,8 +2759,24 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   Fl.struct_map = p
   set_attribute!(Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
+
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(Fl, :alg => true) ### DIFF Song
+  end ### DIFF Song
+
   if l == 2
      set_attribute!(Fl, :grassmannian => :relative)
   end
   return Fl
+end
+
+###############################################################################
+#
+#
+function _parse_symbol(symbol::String, I::AbstractUnitRange)
+  return ["$symbol[$i]" for i in I]
+end
+
+function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
+  return ["$symbol[$n, $i]" for i in I]
 end

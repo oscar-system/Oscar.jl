@@ -38,17 +38,11 @@ julia> discriminant(OK)
 
 julia> prime_ideals_over(OK, 7)
 2-element Vector{AbsSimpleNumFieldOrderIdeal}:
- <7, a + 5>
-Norm: 7
-Minimum: 7
-two normal wrt: 7
  <7, a + 2>
-Norm: 7
-Minimum: 7
-two normal wrt: 7
+ <7, a + 5>
 
 julia> factor(change_coefficient_ring(GF(7), x^2 - 235))
-1 * (x + 5) * (x + 2)
+(x + 2) * (x + 5)
 
 julia> factor(a * OK)
 Dict{AbsSimpleNumFieldOrderIdeal, Int64} with 2 entries:
@@ -61,23 +55,22 @@ julia> A
 Z/6
 
 julia> m(zero(A)) # apply m to the neutral element of A
-<1, 1>
-Norm: 1
-Minimum: 1
-principal generator 1
-two normal wrt: 1
+Ideal of maximal order of number field of degree 2 over QQ
+  of norm 1
+  of minimum 1
+with generator 1
 
 julia> P = prime_ideals_over(OK, 2)[1]
-<2, a + 1>
-Norm: 2
-Minimum: 2
-two normal wrt: 2
+Ideal of maximal order of number field of degree 2 over QQ
+  of norm 2
+  of minimum 2
+with 2-normal generators [2, a + 1]
 
 julia> preimage(m, P)
 Abelian group element [3]
 
-julia> is_principal_with_data(P^2)
-(true, 2)
+julia> fl, gen = is_principal_with_data(P^2); (fl, gen in [2,-2])
+(true, true)
 
 julia> P^2 == 2*OK
 true

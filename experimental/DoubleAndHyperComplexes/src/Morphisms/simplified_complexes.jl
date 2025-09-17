@@ -208,9 +208,9 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     for i in 1:m
       w = Sinv[i]
       v = zero(new_dom)
-      for j in 1:length(I)
-        a = w[I[j]]
-        !iszero(a) && (v += a*new_dom[j])
+      for (j, ind) in enumerate(I)
+        success, a = _has_index(w, ind)
+        success && (v += a*new_dom[j])
       end
       push!(img_gens_dom, v)
     end
@@ -332,9 +332,228 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
   return can_compute_index(d, I)
 end
 
+#= 
+# `simplify` for `FreeResolution`
+#
+# `FreeResolution` is a wrapper-type for `ComplexOfMorphism` which indicates that 
+# this particular complex comes from a free resolution. For instance, it prints 
+# differently.
+=#
+function simplify(c::FreeResolution{T}) where T
+  if is_complete(c)
+    cut_off = length(c)+1
+  else
+    cut_off = length(c)
+  end
+  simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
+  phi = map_to_original_complex(simp)
+  result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
+  # fill the cache from behind (usually faster)
+  for i in cut_off:-1:0
+    simp[i]
+  end
 
-function simplify(c::FreeResolution)
-  return simplify(SimpleComplexWrapper(c.C))
+  # treat the augmentation map
+  pushfirst!(result.maps, compose(phi[0], map(c, 0)))
+
+  # Fill in the remaining maps.
+  # If the resulting resolution is already complete, 
+  # preserve that information. The minimization might 
+  # also become complete, even though the original resolution 
+  # was not. In case we end up with a non-complete minimal 
+  # resolution, avoid storing the last map, as it can not be 
+  # properly minimized, yet. 
+  for j in 1:cut_off-1
+    psi = map(simp, j)
+    pushfirst!(result.maps, psi)
+    if is_zero(domain(psi))
+      result.complete = true
+      break
+    end
+  end
+
+  # the last map needs special treatment
+  psi = map(simp, cut_off)
+  if is_zero(domain(psi))
+    pushfirst!(result.maps, psi)
+    result.complete = true
+  end
+
+  # we set some attributes for internal use 
+  set_attribute!(result, 
+                 :show=>Hecke.pres_show, 
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+
+  # if the resolution `c` had a `fill` function which was 
+  # `_extend_free_resolution`, then this suggests that we are in a
+  # graded polynomial setting and we extend the minimized resolution 
+  # via `mres`. Unfortunately, this decision can not be inferred from 
+  # the type parameter of `c`, because it comes out of `ModuleFP`, i.e. 
+  # without specifying the `elem_type` of the rings. 
+  if c.C.fill == _extend_free_resolution
+    result.fill = c.C.fill
+    set_attribute!(result, :algorithm => :mres)
+  else
+    # if the previous does not hold, we set the fill function to be 
+    # something which works completely generic. 
+    k = first(chain_range(c)) - 1
+    set_attribute!(result, :zip_map=>map_from_original_complex(simp)[k])
+    result.fill = function(C::ComplexOfMorphisms, k::Int)
+      k0 = first(chain_range(C))
+      k0 < k-1 && C[k-1] # Make sure the complex is filled
+
+      if is_zero(C[k-1])
+        Z = C[k-1]
+        pushfirst!(C.maps, hom(Z, Z, elem_type(Z)[zero(Z) for _ in 1:ngens(Z)]))
+        return first(C.maps)
+      end
+
+      if is_zero(c[k])
+        Z = c[k]
+        cod = domain(first(C.maps))
+        pushfirst!(C.maps, hom(Z, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(Z)]))
+        set_attribute!(C, :zip_map => nothing)
+        set_attribute!(C, :complete => true)
+        C.complete = true
+        return first(C.maps)
+      end
+      zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+      @assert domain(zip_map) === c[k-1]
+      @assert codomain(zip_map) === C[k-1]
+      tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
+      @assert tmp[k-1] === domain(zip_map) === c[k-1]
+      @assert tmp[k] === c[k]
+      @assert tmp[k+1] === c[k+1]
+      @assert C[k-1] === codomain(zip_map)
+      tmp_simp = simplify(SimpleComplexWrapper(tmp))
+      new_map = compose(compose(map(tmp_simp, k), map_to_original_complex(tmp_simp)[k-1]), zip_map)
+      @assert codomain(new_map) === C[k-1]
+      pushfirst!(C.maps, new_map)
+      set_attribute!(C, :zip_map=>map_from_original_complex(tmp_simp)[k])
+      C.complete = is_zero(domain(first(C.maps)))
+      return first(C.maps)
+    end
+  end
+  return FreeResolution(result)
+end
+
+# An alias to cater for the common phrasing of the CA community:
+
+@doc raw"""
+    minimize(F::FreeResolution)
+
+If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
+
+If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
+!!! note
+    If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
+    
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> Z = R(0)
+0
+
+julia> O = R(1)
+1
+
+julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
+
+julia> A = transpose(matrix(B));
+
+julia> M = graded_cokernel(A)
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
+
+julia> FM = free_resolution(M)
+Free resolution of M
+R^2 <---- R^7 <---- R^8 <---- R^3 <---- 0
+0         1         2         3         4
+
+julia> betti(FM)
+degree: 0  1  2  3
+------------------
+    -1: -  1  -  -
+     0: 2  -  -  -
+     1: -  3  3  1
+     2: -  3  5  2
+------------------
+ total: 2  7  8  3
+
+julia> FMmin = minimize(FM)
+Free resolution of M
+R^1 <---- R^3 <---- R^4 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> betti(FMmin)
+degree: 0  1  2  3
+------------------
+     0: 1  -  -  -
+     1: -  3  -  -
+     2: -  -  4  2
+------------------
+ total: 1  3  4  2
+
+julia> FM2 = free_resolution(M, length = 2)
+Free resolution of M
+R^2 <---- R^7 <---- R^8
+0         1         2
+
+julia> betti_table(FM2)
+degree: 0  1  2
+---------------
+    -1: -  1  -
+     0: 2  -  -
+     1: -  3  3
+     2: -  3  5
+---------------
+ total: 2  7  8
+
+julia> FM2min = minimize(FM2)
+Free resolution of M
+R^1 <---- R^3
+0         1
+
+julia> betti_table(FM2min)
+degree: 0  1
+------------
+     0: 1  -
+     1: -  3
+------------
+ total: 1  3
+
+```
+"""
+function minimize(c::FreeResolution; check::Bool=true)
+  # The following assertion is a bit complicated. 
+  # This method is allowed for graded modules and modules over 
+  # local rings. Checking for being graded is cheap, but checking 
+  # for being a local ring is not. Hence the latter checks must be 
+  # behind an @check, but the gradedness check not. 
+  if !is_graded(c[-1]) 
+    @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
+  end
+  cm = simplify(c)
+  set_attribute!(cm.C, :minimal=>true)
+  set_attribute!(cm.C,
+                 :show=>Hecke.pres_show,
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  k0 = first(chain_range(c))
+  if is_zero(c[k0])
+    cod = cm[k0-1]
+    pushfirst!(cm.C.maps, hom(c[k0], cod, elem_type(cod)[zero(cod) for _ in 1:ngens(c[k0])]))
+    cm.C.complete=true
+  end
+  return cm
 end
 
 function simplify(c::ComplexOfMorphisms)
@@ -401,13 +620,13 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
   # Initialize the base change matrices in domain and codomain
   S = sparse_matrix(R, m, m)
   for i in 1:m
-    S[i] = sparse_row(R, [(i, one(R))])
+    S[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Sinv_transp = deepcopy(S)
 
   T = sparse_matrix(R, n, n)
   for i in 1:n
-    T[i] = sparse_row(R, [(i, one(R))])
+    T[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Tinv_transp = deepcopy(T)
 
@@ -479,7 +698,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # been treated.
 
     a_row = deepcopy(A[p])
-    a_row_del = a_row - sparse_row(R, [(q, u)])
+    a_row_del = a_row - sparse_row(R, [(q, u)]; sort=false)
 
     col_entries = Vector{Tuple{Int, elem_type(R)}}()
     for i in 1:m
@@ -488,8 +707,8 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
       success, c = _has_index(A, i, q)
       success && push!(col_entries, (i, c::elem_type(R)))
     end
-    a_col = sparse_row(R, col_entries)
-    a_col_del = a_col - sparse_row(R, [(p, u)])
+    a_col = sparse_row(R, col_entries; sort=false)
+    a_col_del = a_col - sparse_row(R, [(p, u)]; sort=false)
 
     uinv = inv(u)
 
@@ -643,20 +862,12 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   if !isdefined(und, :boundary_cache) 
     und.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(und.boundary_cache, (i, p))
-    inc = und.boundary_cache[(i, p)]
-    return domain(inc), inc
+  inc = get!(und.boundary_cache, (i, p)) do
+    orig_boundary, orig_inc = boundary(c.original_complex, p, i)
+    from_orig = map_from_original_complex(c)[i]
+    sub(c[i], filter!(!is_zero, from_orig.(orig_inc.(gens(orig_boundary)))))[2]
   end
-
-  # compute the boundary from scratch
-  orig_boundary, orig_inc = boundary(c.original_complex, p, i)
-  from_orig = map_from_original_complex(c)[i]
-  result, inc = sub(c[i], from_orig.(orig_inc.(gens(orig_boundary))))
-
-  # Cache the result
-  und.boundary_cache[(i, p)] = inc
-
-  return result, inc
+  return domain(inc), inc
 end
 
 function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
@@ -665,23 +876,19 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   if !isdefined(c, :kernel_cache) 
     c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
   end
-  if haskey(c.kernel_cache, (i, p))
-    inc = c.kernel_cache[(i, p)]
-    return domain(inc), inc
-  end
 
-  if !can_compute_map(simp, p, i)
-    M = simp[i]
-    K, inc = sub(simp[i], gens(simp[i]))
-    c.kernel_cache[(i, p)] = inc
-    return K, inc
-  end
+  inc = get!(c.kernel_cache, (i, p)) do
+    if !can_compute_map(simp, p, i)
+      M = simp[i]
+      return sub(simp[i], gens(simp[i]))[2]
+    end
 
-  psi = map_to_original_complex(simp)[i]
-  phi = map(original_complex(simp), p, i)
-  K, inc = kernel(compose(psi, phi))
-  c.kernel_cache[(i, p)] = inc
-  return K, inc
+    psi = map_to_original_complex(simp)[i]
+    phi = map(original_complex(simp), p, i)
+    kernel(compose(psi, phi))[2]
+  end
+  
+  return domain(inc), inc
 end
 
 function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}

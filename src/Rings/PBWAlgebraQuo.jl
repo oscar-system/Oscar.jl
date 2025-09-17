@@ -85,8 +85,6 @@ base_ring(Q::PBWAlgQuo) = base_ring(Q.I)
 
 base_ring_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = base_ring_type(PBWAlgIdeal{0, T, S})
 
-base_ring(a::PBWAlgQuoElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgQuoElem, dict::IdDict)
   return PBWAlgQuoElem(parent(a), deepcopy_internal(a.data, dict))
 end
@@ -130,8 +128,8 @@ function simplify(a::PBWAlgQuoElem)
         return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
     end
     I = parent(a).I
-    groebner_assure!(I)
-    a.data.sdata = Singular.reduce(a.data.sdata, I.gb)
+    new_data = Singular.reduce(a.data.sdata, singular_groebner_basis(I))
+    a.data = PBWAlgElem(parent(a.data), new_data)
     return a
 end
 
@@ -279,6 +277,12 @@ end
 function (Q::PBWAlgQuo)(a::PBWAlgQuoElem)
   @req parent(a) == Q "coercion between different PBWAlg quotients not possible"
   return a
+end
+
+### Conformance test element generation
+function ConformanceTests.generate_element(Q::PBWAlgQuo{QQFieldElem})
+  R = base_ring(Q)
+  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
 end
 
 #############################################

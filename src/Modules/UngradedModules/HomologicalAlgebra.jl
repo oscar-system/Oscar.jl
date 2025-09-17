@@ -79,7 +79,7 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP
     res = pure_N(image_as_tuple)
     return res
   end
-  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))); check=false)
 end
 
 # the case of a non-trivial base change
@@ -144,8 +144,7 @@ function lift_with_unit(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <
   # TODO allow optional argument ordering
   # To do this efficiently we need better infrastructure in Singular.jl
   R = base_ring(parent(a))
-  singular_assure(generators)
-  if Singular.has_global_ordering(base_ring(generators.SF))
+  if has_global_singular_ordering(generators)
     l = lift(a, generators)
     return l, R(1)
   end
@@ -170,9 +169,16 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   for i in 1:length(Hecke.map_range(C))
     A = tensor_modules[i]
     B = tensor_modules[i+1]
-
+    success, A_fac = _is_tensor_product(A)
+    @assert success
+    success, B_fac = _is_tensor_product(B)
+    @assert success
+    @assert A_fac[1] === B_fac[1]
+    
     j = Hecke.map_range(C)[i]
-    push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
+    @assert domain(map(C, j)) === A_fac[2]
+    @assert codomain(map(C, j)) === B_fac[2]
+    push!(tensor_chain, hom_tensor(A,B,[id_hom(A_fac[1]), map(C,j)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
@@ -201,7 +207,7 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
     B = tensor_modules[i+1]
 
     j = chain_range[i]
-    push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
+    push!(tensor_chain, hom_tensor(A,B,[map(C,j), id_hom(P)]))
   end
 
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
@@ -232,22 +238,28 @@ julia> Q, _ = quo(F, [x*F[1]]);
 
 julia> T0 = tor(Q, M, 0)
 Subquotient of submodule with 2 generators
-  1: x*e[1] \otimes e[1]
-  2: y*e[1] \otimes e[1]
-by submodule with 4 generators
-  1: x^2*e[1] \otimes e[1]
-  2: y^3*e[1] \otimes e[1]
-  3: z^4*e[1] \otimes e[1]
-  4: x*y*e[1] \otimes e[1]
+  1: (e[1] \otimes e[1])
+  2: (e[1] \otimes e[2])
+by submodule with 7 generators
+  1: x*(e[1] \otimes e[1])
+  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
+  3: y^2*(e[1] \otimes e[2])
+  4: y^3*(e[1] \otimes e[1])
+  5: z^4*(e[1] \otimes e[1])
+  6: z^4*(e[1] \otimes e[2])
+  7: x*(e[1] \otimes e[2])
 
 julia> T1 = tor(Q, M, 1)
 Subquotient of submodule with 2 generators
-  1: x*e[1] \otimes e[1]
-  2: x*y*e[1] \otimes e[1]
-by submodule with 3 generators
-  1: x^2*e[1] \otimes e[1]
-  2: y^3*e[1] \otimes e[1]
-  3: z^4*e[1] \otimes e[1]
+  1: (e[1] \otimes e[1])
+  2: x*(e[1] \otimes e[2])
+by submodule with 6 generators
+  1: x*(e[1] \otimes e[1])
+  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
+  3: y^2*(e[1] \otimes e[2])
+  4: y^3*(e[1] \otimes e[1])
+  5: z^4*(e[1] \otimes e[1])
+  6: z^4*(e[1] \otimes e[2])
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators
@@ -260,7 +272,7 @@ function tor(M::ModuleFP, N::ModuleFP, i::Int)
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
-simplify_light(F::FreeMod) = (F, identity_map(F), identity_map(F))
+simplify_light(F::FreeMod) = (F, id_hom(F), id_hom(F))
 
 #TODO, mF
 #  (hom lift) => hom and tensor functor
@@ -465,7 +477,7 @@ end
 
 #############################
 @doc raw"""
-    homology(C::ComplexOfMorphisms{<:ModuleFP})
+    homology(C::ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
 
 Return the homology of `C`.
 
@@ -483,7 +495,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
+julia> C = chain_complex([a,b]; seed = 3);
 
 julia> H = homology(C)
 3-element Vector{SubquoModule{QQMPolyRingElem}}:
@@ -503,7 +515,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
+function homology(C::Hecke.ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
@@ -513,7 +525,7 @@ end
 
 
 @doc raw"""
-    homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
+    homology(C::ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
 
 Return the `i`-th homology module of `C`.
 
@@ -541,7 +553,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
+function homology(C::Hecke.ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
   chain_range = Hecke.range(C)
   map_range = Hecke.map_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
@@ -549,7 +561,7 @@ function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
     return kernel(map(C, first(map_range)))[1]
   elseif i == last(chain_range)
     f = map(C,last(map_range))
-    return cokernel(f)    
+    return cokernel(f)
   elseif i in chain_range
     if Hecke.is_chain_complex(C)
       return quo_object(kernel(map(C,i))[1], image(map(C,i+1))[1])
