@@ -477,4 +477,3 @@ end
   @test all(is_of_hermitian_type, r)
   @test count(Lf -> is_one(order(discriminant_group(Lf)[2])), r) == 4
 end
-

@@ -1638,7 +1638,7 @@ function stable_subgroup(
   if check
     @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
   end
-  discL = discriminant_representation(L, G; ambient_representation, check, full=false)
+  discL = discriminant_representation(L, G; ambient_representation, check=false, full=false)
   return kernel(discL)
 end
 
@@ -1785,7 +1785,7 @@ julia> is_special_isometry(Lf)
 true
 ```
 """
-function is_stable_isometry(Lf::ZZLatWithIsom)
+function is_special_isometry(Lf::ZZLatWithIsom)
   return is_one(det(isometry(Lf)))
 end
 
@@ -1833,6 +1833,13 @@ function special_subgroup(
   j = one(mu)
   d = hom(G, mu, [Int(det(m))*j for m in gens(G)])
   return kernel(d)
+end
+
+# We do not export the next two functions; but they could be convenient
+function _is_special_stable_isometry(
+  Lf::ZZLatWithIsom
+)
+  return is_special_isometry(Lf) && is_stable_isometry(Lf)
 end
 
 function _special_stable_subgroup(
@@ -2077,7 +2084,8 @@ invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
     invariant_lattice(
       L::ZZLat,
       G::MatrixGroup;
-      ambient_representation::Bool=true
+      ambient_representation::Bool=true,
+      check::Bool=true,
     ) -> ZZLat
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$ in matrix,
@@ -2087,6 +2095,9 @@ If `ambient_representation` is set to `true`, the isometries in $G$ are
 considered as matrix representation of their action on the standard basis
 of the ambient space of $L$. Otherwise, they are considered as matrix
 representation of their action on the basis matrix of $L$.
+
+If `check` is set to `true`, the functions tests whether the group ``G``
+consists of isometries of the lattice ``L``.
 
 # Examples
 ```jldoctest
@@ -2103,8 +2114,12 @@ with gram matrix
 function invariant_lattice(
     L::ZZLat,
     G::MatrixGroup;
-    ambient_representation::Bool=true
+    ambient_representation::Bool=true,
+    check::Bool=true,
   )
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not consists of isometries of the lattice"
+  end
   return invariant_lattice(L, matrix.(gens(G)); ambient_representation)
 end
 
@@ -2155,7 +2170,8 @@ end
     coinvariant_lattice(
       L::ZZLat,
       G::MatrixGroup;
-      ambient_representation::Bool=true
+      ambient_representation::Bool=true,
+      check::Bool=true,
     ) -> ZZLat, MatrixGroup
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
@@ -2167,6 +2183,9 @@ considered as matrix representation of their action on the standard basis of
 the ambient space of $L$. Otherwise, they are considered as matrix
 representation of their action on the basis matrices of $L$ and $L_G$
 respectively.
+
+If `check` is set to `true`, the functions tests whether the group ``G``
+consists of isometries of the lattice ``L``.
 
 # Examples
 ```jldoctest
@@ -2187,17 +2206,20 @@ true
 function coinvariant_lattice(
     L::ZZLat,
     G::MatrixGroup;
-    ambient_representation::Bool=true
+    ambient_representation::Bool=true,
+    check::Bool=true,
   )
-  F = invariant_lattice(L, G; ambient_representation)
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not consist of isometries of the lattice"
+  end
+  F = invariant_lattice(L, matrix.(gens(G)); ambient_representation)
   C = orthogonal_submodule(L, F)
-  if ambient_representation
-    return C, G
-  else
+  if !ambient_representation
     gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
     gene = representation_in_lattice_coordinates(C, gene; check=false)
-    return C, matrix_group(gene)
+    G = matrix_group(gene)
   end
+  return C, G
 end
 
 @doc raw"""
@@ -2220,20 +2242,27 @@ end
 @doc raw"""
     invariant_coinvariant_pair(
       L::ZZLat,
-      G::MatrixGroup;
-      ambient_representation::Bool=true
-      ) -> ZZLat, ZZLat, MatrixGroup
+      F::T;
+      ambient_representation::Bool=true,
+      check::Bool=true,
+      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> ZZLat, ZZLat, T
 
-Given an integer lattice $L$ and a group $G$ of isometries of $L$, return
-the invariant sublattice $L^G$ of $L$ and its coinvariant sublattice
-$L_G$ together with the subgroup $H$ of isometries of $L_G$ induced by the
-action of $G$ on $L$.
+Given ``F`` being either:
+  * a matrix with rational entries;
+  * a list of matrices with rational entries;
+  * a matrix group over the rationals,
+representing a collection of isometries of the lattice ``L``, return the
+invariant sublattice $L^F$ of $L$ and its coinvariant sublattice $L_F$ together
+with the collection ``F'`` of isometries of $L_F$ induced by ``F``.
 
-If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
-considered as matrix representation of their action on the standard basis of
-the ambient space of $L$. Otherwise, they are considered as matrix
-representation of their action on the basis matrices of $L$ and $L_G$
+If `ambient_representation` is set to `true`, the isometries in $F$ and $F'$
+are considered as matrix representation of their action on the standard basis
+of the ambient space of $L$. Otherwise, they are considered as matrix
+representation of their action on the basis matrices of $L$ and $L_F$
 respectively.
+
+If `check` is set to `true`, the function tests whether the matrices in ``F``
+define isometries of the lattice ``L``.
 
 # Examples
 ```jldoctest
@@ -2241,9 +2270,7 @@ julia> L = root_lattice(:A, 2);
 
 julia> G = isometry_group(L);
 
-julia> Gsub, _ = sub(G, [gens(G)[end]]);
-
-julia> F, C, G2 = invariant_coinvariant_pair(L, Gsub)
+julia> F, C, _ = invariant_coinvariant_pair(L, last(gens(G)))
 (Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, Matrix group of degree 2 over QQ)
 
 julia> F
@@ -2257,20 +2284,61 @@ with gram matrix
 [6]
 ```
 """
+invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatrixGroup})
+
+function invariant_coinvariant_pair(
+    L::ZZLat,
+    f::QQMatrix;
+    ambient_representation::Bool=true,
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry(L, f, ambient_representation) "Matrix does not define an isometry of the lattice"
+  end
+  F = invariant_lattice(L, f; ambient_representation)
+  C = orthogonal_submodule(L, F)
+  if !ambient_representation
+    f = representation_in_ambient_coordinates(L, f; check=false)
+    f = representation_in_lattice_coordinates(C, f; check=false)
+  end
+  return F, C, f
+end
+
+function invariant_coinvariant_pair(
+    L::ZZLat,
+    V::Vector{QQMatrix};
+    ambient_representation::Bool=true,
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry_list(L, V, ambient_representation) "Matrices do not define isometries of the lattice"
+  end
+  F = invariant_lattice(L, V; ambient_representation)
+  C = orthogonal_submodule(L, F)
+  if !ambient_representation
+    V = representation_in_ambient_coordinates(L, V; check=false)
+    V = representation_in_lattice_coordinates(C, V; check=false)
+  end
+  return F, C, V
+end
+
 function invariant_coinvariant_pair(
     L::ZZLat,
     G::MatrixGroup;
-    ambient_representation::Bool=true
+    ambient_representation::Bool=true,
+    check::Bool=true,
   )
-  F = invariant_lattice(L, G; ambient_representation)
+  if check
+    @req is_isometry_group(L, G, ambient_representation) "Group does not consist of isometries of the lattice"
+  end
+  F = invariant_lattice(L, matrix.(gens(G)); ambient_representation)
   C = orthogonal_submodule(L, F)
-  if ambient_representation
-    return F, C, G
-  else
+  if !ambient_representation
     gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
     gene = representation_in_lattice_coordinates(C, gene; check=false)
-    return F, C, matrix_group(gene)
+    G = matrix_group(gene)
   end
+  return F, C, matrix_group(gene)
 end
 
 ##############################################################################

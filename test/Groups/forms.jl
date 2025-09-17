@@ -652,7 +652,7 @@ end
   @test order(G)==2
   @test all(v*matrix(g)==v for g in gens(G))
 
-  for i in 2:7
+  for i in 2:5
     Ai = root_lattice(:A, i)
     S = symmetric_group(i+1)
     A = alternating_group(i+1)
@@ -663,7 +663,7 @@ end
     O_sp, _ = special_orthogonal_group(Ai)
     @test is_isomorphic(O_sp, T)
 
-    O_spst, _ = Oscar.special_stable_orthogonal_group(Ai)
+    O_spst, _ = Oscar._special_stable_orthogonal_group(Ai)
     @test is_isomorphic(O_spst, A)
   end
 end

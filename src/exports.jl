@@ -1027,6 +1027,7 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
+export is_saturated
 export is_semiregular
 export is_semisimple
 export is_semistandard
@@ -1040,6 +1041,7 @@ export is_simplicial
 export is_singular
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
+export is_special_isometry
 export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
