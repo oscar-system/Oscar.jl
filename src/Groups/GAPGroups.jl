@@ -1478,7 +1478,8 @@ end
     torsion_subgroup(G::GAPGroup)
 
 Return the torsion subgroup of `G`, i.e. the subgroup of all elements of finite order.
-This subgroup exists only if the finite order elements form a subgroup; otherwise, an error is raised.
+If the set of finite order elements does not form a subgroup, an error
+is raised.
 
 # Examples
 ```jldoctest
