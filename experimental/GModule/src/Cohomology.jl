@@ -195,7 +195,7 @@ function inv_action(C::GModule)
   return C.iac
 end
 
-function Oscar.map_word(v::Vector{Int64}, genimgs::Vector{Map}; genimgs_inv::Vector{Map}, init::T) where T <:Union{<:AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}, FinGenAbGroupHom}
+function Oscar.map_word(v::Vector{Int64}, genimgs::Vector{Map}; genimgs_inv::Vector{Map}, init::T) where T <:Union{<:AbstractAlgebra.Generic.ModuleHomomorphism{<:Union{<:FieldElem, ZZRingElem}}, FinGenAbGroupHom}
   gen = map(matrix, genimgs)
   igen = map(matrix, genimgs_inv)
   res = matrix(init)
