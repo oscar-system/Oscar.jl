@@ -142,6 +142,7 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   #TODO: this group is internal only. Should it be made available?
   #TODO: this should be using the new syllable/ expo vector interface and
   #      not do any group arithmetic
+  #it has 
   fM = codomain(mMf)
 
   cM = collector(fM)
@@ -166,8 +167,13 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   end
 
   for i=1:nG
-    for j=i+1:nG+ngens(fM)
+    for j=i+1:nG
       x = E[j]^E[i]
+      t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+      set_conjugate!(cE, j, i, t)
+    end
+    for j=nG+1:nG+ngens(fM)
+      x = E(one(G), preimage(mMf, fM[j-nG]))^E[i]
       t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
       set_conjugate!(cE, j, i, t)
     end
