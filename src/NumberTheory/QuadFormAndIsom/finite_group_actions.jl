@@ -110,15 +110,15 @@ function is_isometry(
     return false
   elseif !(rank(L) == nrows(fL) == ncols(fL))
     return false
-  elseif f*gram_matrix(L)*transpose(f) != gram_matrix(L)
+  elseif fL*gram_matrix(L)*transpose(fL) != gram_matrix(L)
     return false
   elseif !is_stable
     return true
   end
-
+  fLQ = solve(basis_matrix(L), fL*basis_matrix(L); side=:right)
   q = discriminant_group(L)
-  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  return isone(matrix(f))
+  fq = hom(q, q, elem_type(q)[q(lift(t)*fLQ) for t in gens(q)])
+  return isone(matrix(fq))
 end
 
 @doc raw"""
