@@ -10,7 +10,7 @@ Let $\phi: S = \mathbb{K}[x_1, \ldots, x_n] \to R = \mathbb{K}[t_1, \ldots, t_m]
 
 ```@docs
 components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing)
-max_grading(phi::MPolyAnyMap)
+max_grade_domain(phi::MPolyAnyMap)
 compute_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
 jacobian(phi::MPolyAnyMap)
 ```

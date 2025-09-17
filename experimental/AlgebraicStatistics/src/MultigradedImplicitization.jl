@@ -49,7 +49,7 @@ function homogeneity_space(I::MPolyIdeal)
 end
 
 @doc raw"""
-    max_grading(phi::MPolyAnyMap)
+    max_grade_domain(phi::MPolyAnyMap)
 
 Computes the maximal rank grading on the kernel of $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which can be induced by grading the codomain of `phi`. 
 The first $m$ columns of the resulting matrix correspond to the degrees of the codomain while the last $n$ columns are the resulting degrees on the domain. 
@@ -73,25 +73,29 @@ defined by
   x[1, 2] -> s[2]*t[1]
   x[2, 2] -> s[2]*t[2]
 
-julia> max_grading(phi)
-[1   0   0   0   1   1   0   0]
-[0   1   0   0   0   0   1   1]
-[0   0   1   0   1   0   1   0]
-[0   0   0   1   0   1   0   1]
+julia> max_grade_domain(phi)
+Multivariate polynomial ring in 4 variables over QQ graded by
+  x[1, 1] -> [1 0 1 0]
+  x[2, 1] -> [1 0 0 1]
+  x[1, 2] -> [0 1 1 0]
+  x[2, 2] -> [0 1 0 1]
 ```
 """
-function max_grading(phi::MPolyAnyMap)
+function max_grade_domain(phi::MPolyAnyMap)
   codom = codomain(phi)
   dom = domain(phi)
-  elim_ring, z = polynomial_ring(QQ, vcat(symbols(codom), symbols(dom)))
+  elim_ring, z = polynomial_ring(QQ, vcat(symbols(codom), symbols(dom)); cached=false)
   lift_codom = hom(codom, elim_ring, gens(elim_ring)[1:ngens(codom)])
   lift_dom = hom(dom, elim_ring, z[ngens(codom) + 1:ngens(elim_ring)])
 
-  return homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
+  A = homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
+  
+  # grade the domain
+  graded_dom = grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
 end
 
 @doc raw"""
-    jacobian(phi::MPolyAnyMap)
+    jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing})
 
 Computes the Jacobian of a polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ such that $(i, j)$ entry is $\frac{d \phi(x_j)}{d t_i}$.
 
@@ -121,36 +125,31 @@ julia> jacobian(phi)
 [   0   s[1]      0   s[2]]
 ```
 """
-function jacobian(phi::MPolyAnyMap)
-  return matrix(codomain(phi), [[derivative(phi(j), i) for j in gens(domain(phi))] for i in gens(codomain(phi))])
-end
-
-# compute the jacobian and evalauate it at the point pt
-function jacobian_at_point(phi::MPolyAnyMap, pt::fpFieldElem)
-  return matrix(codomain(phi), [[evaluate(derivative(phi(j), i), pt) for j in gens(domain(phi))] for i in gens(codomain(phi))])
-end
+jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing}) = jacobian_matrix(codomain(phi), _images_of_generators(phi))
 
 # compute the jacobian at a random point with parameters sampled from a finite field
 function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   K = fpField(char)
   
-  # remake codomain over finite field
-  R = codomain(phi)
-  fq_R, fq_R_gens = polynomial_ring(K, ngens(R))
-
   # randomly sample parameter values in the finite field
-  pt = rand(K, ngens(fq_R))
+  pt = rand(K, ngens(codomain(phi)))
 
-  return matrix(K, [[evaluate(derivative(fq_R(phi(j)), i), pt) for j in gens(domain(phi))] for i in fq_R_gens])
+  if any(iszero.(K.(denominator.(jacobian(phi)))))
+    return jacobian_at_rand_point(phi; char=next_prime(char))
+  end
+         
+  fin_field_jac = map_coefficients.(c->K(numerator(c)) * inv(K(denominator(c))), jacobian(phi))
+  eval_at_pt = Base.Fix2(evaluate, pt)
+  return eval_at_pt.(fin_field_jac)
 end
 
 # find the indices of the variable support of all monomials in mon_basis
 function component_support(mon_basis::Vector{<: MPolyDecRingElem})
-  supp = var_index.(unique!(reduce(vcat, vars.(mon_basis))))
+  findall(!iszero, eachcol(matrix(first.(AbstractAlgebra.exponent_vectors.(mon_basis)))))
 end
 
 @doc raw"""
-    compute_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
+    compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
 
 Computes a basis for the elements in the kernel of a polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which lie in the homogeneous component corresponding to `mon_basis`. 
 
@@ -178,12 +177,12 @@ julia> B = monomial_basis(R, [1,1,1,1])
  x[2, 1]*x[1, 2]
  x[1, 1]*x[2, 2]
 
-julia> compute_component(B, phi)
+julia> compute_kernel_component(B, phi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
-function compute_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
+function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
   image_polys = [phi(m) for m in mon_basis]
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
   coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
@@ -252,16 +251,13 @@ julia> d[1, 1, 1, 1]
 function components_of_kernel(d::Int, phi::MPolyAnyMap;
                               wp::Union{OscarWorkerPool, Nothing}=nothing,
                               batch_size=100)
-  # Compute a maximal grading on the domain
-  A = Oscar.max_grading(phi)[:, ngens(codomain(phi)) + 1:end]
-  
   # grade the domain
-  graded_dom = grade(domain(phi), A)[1]
+  graded_dom = max_grade_domain(phi)
   
   # grade the domain by the standard grading as well and compute the jacobian at a random point over a finite field
   total_deg_dom = grade(domain(phi), [1 for i in 1:ngens(domain(phi))])[1]
   graded_phi = hom(graded_dom, codomain(phi), [phi(x) for x in gens(domain(phi))])
-  jac = Oscar.jacobian_at_rand_point(graded_phi)
+  jac = jacobian_at_rand_point(graded_phi)
 
   # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
@@ -307,11 +303,11 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
       if isnothing(wp)
-        results = pmap(compute_component, map(deg -> mon_bases[deg], remain_degs),
+        results = pmap(compute_kernel_component, map(deg -> mon_bases[deg], remain_degs),
                        [graded_phi for _ in remain_degs];
                        distributed=false)
       else
-        results = pmap(compute_component, wp, map(deg -> mon_bases[deg], remain_degs),
+        results = pmap(compute_kernel_component, wp, map(deg -> mon_bases[deg], remain_degs),
                        [graded_phi for _ in remain_degs]; batch_size=batch_size)
       end
     else

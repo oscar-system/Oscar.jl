@@ -2,7 +2,7 @@ using Distributed: pmap
 
 # there will be more specific types of Dict that will
 # be coming in another AlgebraicStatisitics merge request
-# we should agrogate them and bring them into src where
+# we should aggregate them and bring them into src where
 # they can be easily found and added to if necessary
 # leaving here for now
 include("DictTypes.jl")
@@ -55,4 +55,4 @@ export GroupBasedPhylogeneticModel
 export components_of_kernel
 export compute_component
 export jacobian
-export max_grading
+export max_grade_domain
