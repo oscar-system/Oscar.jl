@@ -2483,11 +2483,6 @@ function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, 
     E  = matrix_algebra(base_ring(M), b)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   else
-    global last_bla
-    push!(last_bla, M)
-#    if dim(M) > 50
-#      Base.show_backtrace(stdout, backtrace())
-#    end
     E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   end
