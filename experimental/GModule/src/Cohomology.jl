@@ -491,8 +491,8 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
 end
 
 function is_induced(C::GModule)
-  if hasfield(typeof(indC), :__attrs)
-    return has_attribute(indC.M, :induce)
+  if hasfield(typeof(C.M), :__attrs)
+    return has_attribute(C.M, :induce)
   end
   return false
 end
