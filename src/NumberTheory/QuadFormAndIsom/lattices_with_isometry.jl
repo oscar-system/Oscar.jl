@@ -1615,7 +1615,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
   T = Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}}
   
   if _local 
-    return get_attribute!(Lf, :image_centralizer_in_Oq_local)::T do
+    return get_attribute!(Lf, :image_centralizer_in_Oq_local) do
       qL,fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
       C = centralizer(OqL, OqL(matrix(fqL)))
