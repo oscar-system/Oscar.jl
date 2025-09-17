@@ -50,7 +50,7 @@ function disc_log(a::FinFieldElem, b::FinFieldElem)
   da = disc_log(a)
   db = disc_log(b)
   qm1 = size(parent(a))-1
-  return (db*modinv(da, qm1)) % qm1
+  return (db*invmod(da, qm1)) % qm1
 end
 
 function disc_log(a::T) where {T <: FinFieldElem}
