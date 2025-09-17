@@ -2460,20 +2460,20 @@ end
 
 function split_extension(C::GModule)
   #bypasses the Cohomolgy computation, hopefully
-  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  c = Dict((one(C.G), one(C.G)) => zero(C.M))
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(CoChain{2, S, T}(C, c))
+  e = extension(CoChain{2, S, T}(C, c, x -> zero(C.M)))
+  return e
 end
 
 function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
   #bypasses the Cohomolgy computation, hopefully
-  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  c = Dict((one(C.G), one(C.G)) => zero(C.M))
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(PcGroup, CoChain{2, S, T}(C, c))
+  return extension(PcGroup, CoChain{2, S, T}(C, c, x -> zero(C.M)))
 end
-
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
