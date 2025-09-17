@@ -237,7 +237,7 @@ n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
 @doc raw"""
     elementary_symbols(A::ActionPolyRing) -> Vector{Symbol}
 
-Return the elementary_symbols of the action polynomial ring `A` as a vector.
+Return the elementary symbols of the action polynomial ring `A` as a vector.
 """
 elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
 
