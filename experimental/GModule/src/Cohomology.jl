@@ -140,7 +140,9 @@ function Base.show(io::IO, C::GModule)
   print(io, "G-module for ", Lowercase(), C.G, " acting on ", Lowercase(), C.M)# , "\nvia: ", C.ac)
 end
 
-"""
+@doc raw"""
+    gmodule(H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
+
 Given an automorphism of some module for each generator of the
 group `H`, return the `ZZ[H]` module.
 
@@ -217,6 +219,8 @@ end
 
 #TODO? have a GModuleElem and action via ^?
 """
+    action(C::GModule, g, v::T) where T <: Array
+
 For an array of objects in the module, compute the image under the
 action of `g`, ie. an array where each entry is mapped.
 """
@@ -263,6 +267,8 @@ end
 
 
 """
+    action(C::GModule, g, v)
+
 The image of `v` under `g`
 """
 function action(C::GModule, g, v)
@@ -289,6 +295,8 @@ function ^(f::AbstractAlgebra.Generic.ModuleHomomorphism, n::Int64)
 end
 
 """
+    action(C::GModule, g)
+
 The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
@@ -372,6 +380,8 @@ end
 
 #TODO: write an action function that does not use create the matrix...
 """
+    induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
+
 For a Z[U]-Module C and a map U->G, compute the induced module:
     ind_U^G(C) = C otimes Z[G]
 where the tensor product is over Z[U].
@@ -1979,6 +1989,8 @@ function is_left_G_module(C::GModule)
 end
 
 """
+    cohomology_group(C::GModule, i::Int; Tate::Bool = false)
+
 For a gmodule `C` compute the `i`-th cohomology group
 where `i` can be `0`, `1` or `2`. (or `3` ...)
 Together with the abstract module, a map is provided that will
@@ -2114,6 +2126,8 @@ end
 
 
 """
+    extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
+
 Given a 2-cocycle, return the corresponding group extension, ie. the large
 group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns

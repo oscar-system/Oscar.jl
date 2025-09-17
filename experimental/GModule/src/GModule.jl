@@ -875,7 +875,7 @@ end
 """
     gmodule(k::Field, C::GModule)
 
-TODO
+Rewrite the module over the field `k`.
 """
 function gmodule(::Type{CyclotomicField}, C::GModule)
   @assert isa(base_ring(C), QQAbField)
@@ -1646,6 +1646,8 @@ function Oscar.content_ideal(M::MatElem{AbsSimpleNumFieldElem})
 end
 
 """
+    factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, mA::Union{Map, Nothing} = nothing)
+
 Compute the factor set or 2-cochain defined by `C` as a Galois
 module of the automorphism group over the character field.
 If `mA` is given, it needs to map the automorphism group over the
@@ -2066,6 +2068,8 @@ function Hecke.hom(C::GModule{T, FinGenAbGroup}, D::GModule{T, FinGenAbGroup}) w
 end
 
 """
+    ghom(C::GModule, D::GModule)
+
 The G-module of all Z-module homomorphisms
 """
 function ghom(C::GModule, D::GModule)
