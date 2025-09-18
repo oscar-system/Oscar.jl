@@ -139,7 +139,7 @@ end
   X1,phi1 = germ_at_point(R,ideal(R,[x,y,z]))
   X2,phi2 = germ_at_point(Q1,[0,0,0])
   @test_throws ErrorException("rings are incompatible") germ_at_point(Q2,(ideal(Q,[x,y,z])))
-  @test_throws ErrorException("Ideal does not describe finite set of points") germ_at_point(Q2,(ideal(Q2,[x,y,z])))
+  @test_throws ArgumentError("Ideal does not describe finite set of points") germ_at_point(Q2,(ideal(Q2,[x,y,z])))
   X3,phi3 = germ_at_point(Q3,(ideal(Q3,[x,y,z])))
   X4,phi4 = germ_at_point(OO(X0))
   X5,phi5 = germ_at_point(OO(X3))
