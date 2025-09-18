@@ -45,8 +45,10 @@ Origami ((1,2),(1,2))
 
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
-    deg = max(degree(h), degree(v))
-    return Origami(GAP.Globals.Origami(GapObj(h), GapObj(v)), h, v, deg)
+    d = max(degree(h), degree(v))
+    G = symmetric_group(d)
+    obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
+    return Origami(obj, G(h), G(v), d)
     # TODO check for transitivity? GAP already does this and this was so slow
     # for huge origamis
     #perm_group = permutation_group(deg, [h, v])
@@ -99,25 +101,12 @@ end
 GapObj(O::Origami) = O.o
 
 function stratum(o::Origami)
-    # cannot use comm from Oscar because of different definitions
     h = horizontal_perm(o)
     v = vertical_perm(o)
-    commutator = h * v * h^-1 * v^-1
-    cycle_struc = cycle_structure(commutator)
-    different_cycle_count = length(cycle_struc)
-    stratum::Vector{Integer} = []
-    for i in 1:different_cycle_count
-        cycle_type_entry = cycle_struc[i]
-        cycle_type_length = cycle_struc[i][1]
-        if(cycle_type_entry[1] == 1)
-            # ignore cycles of length 1
-            continue
-        end
-        for j in 1:cycle_type_entry[2]
-            push!(stratum, ZZ(cycle_type_length - 1))
-        end
-    end
-    return stratum
+    commutator = comm(h, v)
+    cycs = cycles(commutator)
+    unsorted_stratum = [length(c) - 1 for c in cycs if length(c) > 1]
+    return sort(unsorted_stratum, rev=true)
 end
 
 function genus(o::Origami)
