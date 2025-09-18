@@ -2467,12 +2467,12 @@ function split_extension(C::GModule)
   return e
 end
 
-function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
+function split_extension(TT::Union{Type{PcGroup}, Type{FPGroup}}, C::GModule)
   #bypasses the Cohomolgy computation, hopefully
   c = Dict((one(C.G), one(C.G)) => zero(C.M))
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(PcGroup, CoChain{2, S, T}(C, c, x -> zero(C.M)))
+  return extension(TT, CoChain{2, S, T}(C, c, x -> zero(C.M)))
 end
 
 function all_extensions(C::GModule)

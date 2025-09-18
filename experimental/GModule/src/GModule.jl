@@ -1031,7 +1031,7 @@ end
 # compatible with that used by C.m
 function regular_gmodule(C::GModule)
   G = C.G
-  M = GrpCoh._similar_free_module(C.M, order(Int, G); cached = false)
+  M = GrpCoh._similar_free_module(C.M, order(Int, G))
   return _regular_gmodule(G, M)
 end
 
@@ -1258,20 +1258,35 @@ function Oscar.mul!(A::T, B::PermMat{S}, C::T) where T <: MatElem{S} where S <: 
   return A
 end
 
+#the special matrix types need to be explicitly added otherwise the * is
+#ambigous
+#there are more of them
 for (M, E) in ((QQMatrix, QQFieldElem), (FqMatrix, FqFieldElem))
   @eval begin
     function *(A::$M, M::PermMat{$E})
       #permute columns by p
       B = deepcopy(A)
       swap_cols!(B, M.p)
-      return B
+      return B::$M
     end
 
     function *(M::PermMat{$E}, A::$M)
       #permute columns by p
       B = deepcopy(A)
       swap_rows!(B, inv(M.p))
-      return B
+      return B::$M
+    end
+
+    function Oscar.mul!(A::$M, B::PermMat{$E}, C::$M)
+      A[:, :] = C
+      swap_rows!(A, C.p)
+      return A
+    end
+
+    function Oscar.mul!(A::$M, B::$M, C::PermMat{$E})
+      A[:, :] = B
+      swap_cols!(A, C.p)
+      return A
     end
   end
 end
