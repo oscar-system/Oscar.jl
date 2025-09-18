@@ -94,7 +94,7 @@ julia> rational_point_coordinates(I)
 
 ```
 """
-function rational_point_coordinates(I::MPolyIdeal)
+function rational_point_coordinates(I::MPolyIdeal{T}) where T <:Field
   R = base_ring(I)
   o = degrevlex(gens(R))
   LG = leading_ideal(I;ordering=o)
