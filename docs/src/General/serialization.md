@@ -79,7 +79,6 @@ TropicalCurve
 TropicalHypersurface
 ```
 
-
 ## Listing all serializable types of the current session
 
 If you are curious about whether your type can already be serialized given your version of Oscar
