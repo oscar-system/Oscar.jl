@@ -81,7 +81,7 @@ function get_oscar_serialization_version()
   end
   if Oscar.is_dev
     next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
-    n_upgrades = count(x -> contains(x, next_version),
+    n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
                        readdir(joinpath(@__DIR__, "Upgrades")))
 
 
