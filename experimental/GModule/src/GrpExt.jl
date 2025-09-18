@@ -408,6 +408,14 @@ end
     
 Oscar.copy(g::GrpExtElem) = GrpExtElem(g.P, g.g, g.m)
 
+function Oscar.permutation_group(G::GrpExt)
+  if isa(group(gmodule(G)), PcGroup)
+    return permutation_group(codomain(isomorphism(PcGroup, G)))
+  else
+    return permutation_group(codomain(isomorphism(FPGroup, G)))
+  end
+end
+
 end #module
 
 using .GrpExt_module
