@@ -67,7 +67,7 @@ julia> rational_points(X)
 function rational_points(X::ProjectiveVariety{T}) where T <: Field
   @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
   @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
-  I = defining_ideal(X)
+  I = vanishing_ideal(X)
   all(b -> degree(b)[1] == 1, gens(I)) || "not all equations of degree 1"
   If = forget_grading(I)
   Rf = base_ring(If)

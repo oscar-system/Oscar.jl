@@ -68,7 +68,7 @@ julia> rational_points(X)
 """
 function rational_points(X::ProjectiveAlgebraicSet{T}) where T <: Field
   @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
-  I = defining_ideal(X)
+  I = fat_ideal(X)
   @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
   PL = minimal_primes(I)
   result = Vector{elem_type(T)}[]
