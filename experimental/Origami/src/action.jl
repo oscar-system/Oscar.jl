@@ -24,11 +24,8 @@ function action_s_inv(o::Origami)
 end
 
 function action_sl2(A::ZZMatrix, o::Origami)
-    # TODO necessary? loses performance
-    sl2z = special_linear_group(2, ZZ)
-    if !(A in sl2z)
-        throw("Matrix has to be an element of SL2(Z)!")
-    end
+        @req is_one(det(A)) "matrix has to be an element of SL2(Z)"  
+
 
     # TODO implement this in Oscar when implementing the modular subgroup pkg
     # because this is really slow and ugly
