@@ -230,6 +230,11 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) wher
   end
 end
 
+function load_object(s::DeserializerState, T::Type{Array{S, N}}, key::Union{Int, Symbol}) where {S, N}
+  return load_node(s, key) do _
+    load_object(s, T)
+  end
+end
 
 ################################################################################
 # Saving and loading Tuple
