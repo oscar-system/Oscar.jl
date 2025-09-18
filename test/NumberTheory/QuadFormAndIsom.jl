@@ -252,8 +252,11 @@ end
   @test length(r) == 1
   @test det(invariant_lattice(r[1])) == -1
   
-  r_local = enumerate_classes_of_lattices_with_isometry(L, 2; char_poly=(x-1)^4*(x+1)^6, _local=true)
-  r_global = enumerate_classes_of_lattices_with_isometry(L, 2; char_poly=(x-1)^4*(x+1)^6, _local=false)
+  B = matrix(QQ, 10, 10 ,[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3//2, 1//2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1//2, 1//2, 1//2, 1//2, 1, 0, 0, 0, 0, 0, 3//2, 1, 0, 1//2, 1//2, 1//2, 0, 0, 0, 0, 1//2, 1, 0, 1//2, 0, 0, 1//2, 0, 0, 0, 1, 1//2, 1//2, 0, 0, 0, 0, 1//2]);
+  G = matrix(QQ, 10, 10 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,   0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -10]);
+  M = integer_lattice(B, gram = G);
+  r_local = enumerate_classes_of_lattices_with_isometry(M, 2; char_poly=(x-1)^4*(x+1)^6, _local=true)
+  r_global = enumerate_classes_of_lattices_with_isometry(M, 2; char_poly=(x-1)^4*(x+1)^6, _local=false)
   @test length(r_local)==9
   @test length(r_global)==11
 
