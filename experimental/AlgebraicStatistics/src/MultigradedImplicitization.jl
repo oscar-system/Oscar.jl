@@ -137,7 +137,7 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   if any(iszero.(K.(denominator.(jacobian(phi)))))
     return jacobian_at_rand_point(phi; char=next_prime(char))
   end
-         
+  
   fin_field_jac = map_coefficients.(c->K(numerator(c)) * inv(K(denominator(c))), jacobian(phi))
   eval_at_pt = Base.Fix2(evaluate, pt)
   return eval_at_pt.(fin_field_jac)
@@ -183,11 +183,36 @@ julia> compute_kernel_component(B, phi)
 ```
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
-  image_polys = [phi(m) for m in mon_basis]
-  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
-  coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
-  (r, K) = nullspace(coeffs)
-  return mon_basis * K
+  # does using sparse matrices make sense?
+  # for small examples seems like using a sparse matrix is slightly slower
+  SM = sparse_matrix(QQ)
+  count = 1
+  cols = Dict{Vector{Int}, Int}()
+  for m in mon_basis
+    row = Tuple{Int, QQFieldElem}[]
+    for (c, e) in coefficients_and_exponents(phi(m))
+      col = get(cols, e, nothing)
+      if isnothing(col)
+        count += 1
+        cols[e] = count
+        col = count
+      end
+      push!(row, (col, c))
+    end
+    push!(SM, sparse_row(QQ, row))
+  end
+  coeffs = transpose(SM)
+  _, K1 = nullspace(coeffs)
+
+  #@time begin
+  #  image_polys = [phi(m) for m in mon_basis]
+  #  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
+  #  coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
+  #  println("**")
+  #  _, K2 = nullspace(coeffs)
+  #end
+
+  return mon_basis * K1
 end
 
 @doc raw"""
