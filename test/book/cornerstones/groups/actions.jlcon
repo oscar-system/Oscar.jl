@@ -1,10 +1,9 @@
 julia> gset(alternating_group(4))
 G-set of
-  Alt(4)
+  alternating group of degree 4
   with seeds 1:4
 
-julia> G = dihedral_group(6)
-Pc group of order 6
+julia> G = dihedral_group(6);
 
 julia> U = sub(G, [g for g in gens(G) if order(g) == 2])[1]
 Sub-pc group of order 2
@@ -18,7 +17,7 @@ julia> acting_group(r)
 Pc group of order 6
 
 julia> collect(r)
-3-element Vector{GroupCoset{PcGroup, PcGroupElem}}:
+3-element Vector{GroupCoset{PcGroup, SubPcGroup, PcGroupElem}}:
  Right coset of U with representative <identity> of ...
  Right coset of U with representative f2
  Right coset of U with representative f2^2
@@ -37,7 +36,7 @@ Group homomorphism
 julia> phi(G[1]), phi(G[2])
 ((2,3), (1,2,3))
 
-julia> function optimal_perm_rep(G)
+julia> function optimal_transitive_perm_rep(G)
          is_natural_symmetric_group(G) && return hom(G,G,gens(G))
          is_natural_alternating_group(G) && return hom(G,G,gens(G))
          cand = []  # pairs (U,h) with U ≤ G and h a map G -> Sym(G/U)
@@ -52,7 +51,7 @@ julia> function optimal_perm_rep(G)
 julia> U = dihedral_group(8)
 Pc group of order 8
 
-julia> optimal_perm_rep(U)
+julia> optimal_transitive_perm_rep(U)
 Group homomorphism
   from pc group of order 8
   to permutation group of degree 4 and order 8
@@ -60,13 +59,13 @@ Group homomorphism
 julia> isomorphism(PermGroup, U)
 Group homomorphism
   from pc group of order 8
-  to permutation group of degree 8 and order 8
+  to permutation group of degree 4 and order 8
 
 julia> permutation_group(U)
-Permutation group of degree 8 and order 8
+Permutation group of degree 4 and order 8
 
-julia> for g in all_transitive_groups(degree => 3:9, !is_primitive)
-         h = image(optimal_perm_rep(g))[1]
+julia> for g in all_transitive_groups(degree => 3:8, !is_primitive)
+         h = image(optimal_transitive_perm_rep(g))[1]
          if degree(h) < degree(g)
            id = transitive_group_identification(g)
            id_new = transitive_group_identification(h)
@@ -81,5 +80,3 @@ julia> for g in all_transitive_groups(degree => 3:9, !is_primitive)
 (8, 13) => (6, 6)
 (8, 14) => (4, 5)
 (8, 24) => (6, 11)
-(9, 4) => (6, 5)
-(9, 8) => (6, 9)

@@ -108,7 +108,7 @@ Invariant ring
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring
-  of Sym(3)
+  of symmetric group of degree 3
 
 julia> coefficient_ring(IRp)
 Rational field
@@ -167,7 +167,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
       if iszero(M[i, j])
         continue
       end
-      vars[i] = addeq!(vars[i], M[i, j] * x[j])
+      vars[i] = add!(vars[i], M[i, j] * x[j])
     end
   end
 
@@ -214,7 +214,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for action in actions
-      g = addeq!(g, action(f))
+      g = add!(g, action(f))
     end
     return g * base_ring(f)(1//order(group(IR)))
   end
@@ -344,7 +344,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for (action, val) in actions_and_values
-      g = addeq!(g, action(f) * val)
+      g = add!(g, action(f) * val)
     end
     return g * base_ring(f)(1//order(group(IR)))
   end
@@ -401,7 +401,7 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -535,7 +535,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of group Sym( [ 1 .. 2 ] ), [1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -573,7 +573,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   G = group(I)
   n = degree(G)
   K = coefficient_ring(I)
-  Kt, _ = polynomial_ring(K, "t"; cached=false)
+  Kt, _ = polynomial_ring(K, :t; cached=false)
   C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
@@ -679,7 +679,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)
@@ -718,12 +718,12 @@ function molien_series(
 )
   if chi === nothing
     if !isdefined(I, :molien_series)
-      S, t = polynomial_ring(QQ, "t"; cached=false)
+      S, t = polynomial_ring(QQ, :t; cached=false)
       I.molien_series = molien_series(S, I)
     end
     return I.molien_series
   else
-    S, t = polynomial_ring(QQ, "t"; cached=false)
+    S, t = polynomial_ring(QQ, :t; cached=false)
     return molien_series(S, I, chi)
   end
 end

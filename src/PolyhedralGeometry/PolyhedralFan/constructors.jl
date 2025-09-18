@@ -43,7 +43,7 @@ To obtain the upper half-space of the plane:
 ```jldoctest
 julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
 
-julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
+julia> IM = incidence_matrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
 
 julia> PF=polyhedral_fan(IM, R)
 Polyhedral fan in ambient dimension 2
@@ -55,7 +55,7 @@ julia> R = [1 0 0; 0 0 1];
 
 julia> L = [0 1 0];
 
-julia> IM = IncidenceMatrix([[1],[2]]);
+julia> IM = incidence_matrix([[1],[2]]);
 
 julia> PF=polyhedral_fan(IM, R, L)
 Polyhedral fan in ambient dimension 3

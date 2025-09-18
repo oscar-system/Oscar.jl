@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Projective Curves
@@ -8,4 +10,5 @@ CurrentModule = Oscar
 ProjectiveCurve
 invert_birational_map
 geometric_genus
+graph_curve
 ```

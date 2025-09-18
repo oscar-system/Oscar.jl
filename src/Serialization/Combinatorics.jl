@@ -1,4 +1,4 @@
-using JSON
+using Oscar: create_gs2num
 
 ###############################################################################
 ## Graphs
@@ -15,9 +15,36 @@ end
 
 
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return g(smallobj)
 end
+
+###############################################################################
+## Matroid
+###############################################################################
+@register_serialization_type Matroid "Matroid"
+
+function save_object(s::SerializerState, m::Matroid) 
+  gs = matroid_groundset(m)
+  @req gs isa Vector{Int} "Groundset must be a Vector{Int}"
+
+  save_data_dict(s) do
+    save_object(s, pm_object(m), :matroid)
+    save_object(s, gs, :groundset)
+    save_object(s, create_gs2num(gs), :gs2num)
+  end
+end
+
+
+function load_object(s::DeserializerState, m::Type{<:Matroid})
+  # TODO: for now only objects of type `Matroid{Int}` are supported, to preserve
+  # backwards compatibility.
+  mt = load_object(s, Polymake.BigObject, :matroid)
+  grds = load_object(s, Vector{Int}, :groundset)
+  gs2num = load_object(s, Dict{Int,Int}, :gs2num)
+  return Matroid{Int}(mt, grds, gs2num)
+end
+
 
 ###############################################################################
 ## IncidenceMatrix
@@ -31,7 +58,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return IM
 end
 
@@ -46,7 +73,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return K(bigobject)
 end
 
@@ -59,7 +86,6 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   save_object(s, pm_object(PT))
 end
 
-function load_object(s::DeserializerState, T::Type{PhylogeneticTree}, dict::Dict)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
-  return T(bigobject)
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree})
+  load_from_polymake(Dict(s.obj))
 end

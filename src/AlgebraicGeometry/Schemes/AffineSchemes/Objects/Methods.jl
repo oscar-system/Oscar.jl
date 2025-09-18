@@ -121,7 +121,7 @@ end
 @doc raw"""
     is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
 
-Checks if a ring element is a non-zero divisor
+Check if a ring element is a non-zero-divisor
 in the coordinate ring of an affine scheme.
 
 # Examples
@@ -183,11 +183,11 @@ end
 - if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
 
 # Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the scheme ``X`` is normal.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> X = spec(R);
 
@@ -412,60 +412,78 @@ For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism
 ``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair
 `(Y, psi)` where `psi` is the canonical map ``Y → X``.
 """
-function base_change(phi::Any, X::AbsAffineScheme)
-  kk = base_ring(X)
-  kk_red = parent(phi(zero(kk)))
+function base_change(
+    phi::Any, X::AbsAffineScheme;
+    ambient_ring_map::Map=_change_base_ring(phi, ambient_coordinate_ring(X))[2]
+  )
   R = OO(X)
-  R_red, Phi = _change_base_ring(phi, R)
+  R_red, Phi = _change_base_ring(phi, R; ambient_ring_map)
   Y = spec(R_red)
   return Y, morphism(Y, X, Phi; check=false)
 end
 
 ### Some helper functions
-function _change_base_ring(phi::Any, R::MPolyRing)
-  K = coefficient_ring(R)
-  kk = parent(phi(zero(K)))
-  P, _ = polynomial_ring(kk, symbols(R))
-  Phi = hom(R, P, phi, gens(P); check=false)
-  return P, Phi
+function _change_base_ring(
+    phi::Any, R::MPolyRing;
+    ambient_ring_map::Map=begin
+      K = coefficient_ring(R)
+      kk = parent(phi(zero(K)))
+      P, _ = polynomial_ring(kk, symbols(R); cached=false)
+      Phi = hom(R, P, phi, gens(P); check=false)
+      Phi
+    end
+  )
+  return codomain(ambient_ring_map), ambient_ring_map
 end
 
-function _change_base_ring(phi::Any, A::MPolyQuoRing)
-  R = base_ring(A)
+function _change_base_ring(
+    phi::Any, A::MPolyQuoRing;
+    ambient_ring_map::Map=_change_base_ring(phi, base_ring(A))[2]
+  )
   I = modulus(A)
-  P, Phi = _change_base_ring(phi, R)
-  I_red = ideal(P, Phi.(gens(I)))
+  P = codomain(ambient_ring_map)
+  I_red = ideal(P, ambient_ring_map.(gens(I)))
   Q, pr = quo(P, I_red)
   Phi_bar = hom(A, Q, phi, gens(Q), check=false)
   return Q, Phi_bar
 end
 
-function _change_base_ring(phi::Any,
+function _change_base_ring(
+    phi::Any,
     W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-                    <:MPolyPowersOfElement}
+                    <:MPolyPowersOfElement};
+    ambient_ring_map::Map=_change_base_ring(phi, base_ring(W))[2]
   )
-  R = base_ring(W)
-  P, Phi = _change_base_ring(phi, R)
+  P = codomain(ambient_ring_map)
+  @assert _has_coefficient_map(ambient_ring_map)
   U = inverted_set(W)
-  U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
+  U_red = MPolyPowersOfElement(P, ambient_ring_map.(denominators(U)))
   W_red, loc_map = localization(P, U_red)
-  res_map = hom(W, W_red, compose(Phi, loc_map), check=false)
-  #@assert _has_coefficient_map(res_map)
+  comp = hom(base_ring(W), W_red, phi, gens(W_red); check=false)
+  @assert _has_coefficient_map(comp)
+  res_map = hom(W, W_red, comp, check=false)
+  @assert _has_coefficient_map(res_map)
   return W_red, res_map
 end
 
 function _change_base_ring(phi::Any,
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                       <:MPolyPowersOfElement}
+                       <:MPolyPowersOfElement};
+    ambient_ring_map::Map=_change_base_ring(phi, base_ring(L))[2]
   )
-  R = base_ring(L)
   W = localized_ring(L)
-  W_red, Phi_W = _change_base_ring(phi, W)
+  W_red, Phi_W = _change_base_ring(phi, W; ambient_ring_map)
   I = modulus(L)
   I_red = ideal(W_red, Phi_W.(gens(I)))
   L_red, pr = quo(W_red, I_red)
   res = compose(restricted_map(Phi_W), pr)
+  @assert _has_coefficient_map(res)
   res_map = hom(L, L_red, res, check=false)
-  #@assert _has_coefficient_map(res_map)
+  @assert _has_coefficient_map(res_map)
   return L_red, res_map
 end
+
+function Base.hash(X::Scheme, u::UInt)
+  return u
+end
+

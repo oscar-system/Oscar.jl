@@ -24,7 +24,7 @@ julia> all(i -> s[i] == 0, ord5)
 true
 
 julia> (x -> [x["1a"], x["2b"], x["3a"], x["3b"]]).(filt)
-2-element Vector{Vector{QQAbElem{AbsSimpleNumFieldElem}}}:
+2-element Vector{Vector{QQAbFieldElem{AbsSimpleNumFieldElem}}}:
  [100, 0, 10, 4]
  [1800, 20, 0, 6]
 

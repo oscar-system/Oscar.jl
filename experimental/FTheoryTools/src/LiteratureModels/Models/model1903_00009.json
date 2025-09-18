@@ -1,0 +1,66 @@
+{
+    "model_index": "45",
+    "arxiv_data": {
+        "id": "1903.00009",
+        "doi": "10.48550/arXiv.1903.00009",
+        "version": "3",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1903.00009v3",
+        "model_location": {
+            "section": "II",
+            "equation": "2",
+            "page": "2"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1103/PhysRevLett.123.101601",
+        "report_numbers": ["UPR-1297-T"],
+        "journal": "Physical Review Letters",
+        "volume": "123",
+        "pages": "",
+        "year": "2019",
+        "link": "https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.123.101601",
+        "model_location": {
+            "section": "",
+            "equation": "2",
+            "page": "2"
+        }
+    },
+    "paper_metadata": {
+        "authors": [
+            "Mirjam Cvetič",
+            "James Halverson",
+            "Ling Lin",
+            "Muyang Liu",
+            "Jiahua Tian"
+        ],
+        "title": "Quadrillion F-theory Compactifications with the Exact Chiral Spectrum of the Standard Model",
+        "description": "As of 2024, largest class of F-theory Standard Models with gauge coupling unification and no chiral exotics",
+        "buzzwords": ["Standard model", "Chiral spectrum", "quadrillion"]
+    },
+    "model_descriptors": {
+        "type": "hypersurface",
+        "description": "Quadrillion F-theory Standard Model",
+        "gauge_algebra": ["su(3)","su(2)","u(1)"],
+        "global_gauge_group_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["-identity_matrix(C,2)"], ["diagonal_matrix(root_of_unity(C,6,-1),1)"]]
+    },
+    "model_parameters": ["k"],
+    "model_data": {
+        "base_dim": 3,
+        "tunable_sections": ["s1", "s2", "s3", "s5", "s6", "s9"],
+        "base_coordinates": ["s1", "s2", "s3", "s5", "s6", "s9"],
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
+            [1, 1, 1, 1, 1, 1]
+        ],
+    "fiber_ambient_space_rays": [[0,-1], [-1,-1], [-1,0], [-1,1], [-1,2], [0,1], [1,0]],
+    "fiber_ambient_space_max_cones": [[1, 2], [1, 7], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]],
+    "fiber_ambient_space_coordinates": ["v", "e3", "e2", "u", "e4", "e1", "w"],
+    "fiber_ambient_space_name": "P^{F_11}",
+    "fiber_ambient_space_weights": [[1,0,-1,-1,0], [0,0,0,1,0], [0,0,1,-1,0], [1,-1,-1,0,-1], [0,0,0,0,1], [0,1,0,0,-1], [1,-1,0,0,0]],
+    "D1": [0, 0],
+    "D2": [0, 0],
+    "hypersurface_equation": "s1*e1^2*e2^2*e3*e4^4*u^3+s2*e1*e2^2*e3^2*e4^2*u^2*v+s3*e2^2*e3^3*u*v^2+s5*e1^2*e2*e4^3*u^2*w+s6*e1*e2*e3*e4*u*v*w+s9*e1*v*w^2",
+    "zero_section_class": "v",
+    "exceptional_classes": ["e1", "e2", "e3", "e4"]
+    }
+}

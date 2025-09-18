@@ -24,7 +24,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
+             #"specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
              # very slow: 24000s
              "cornerstones/number-theory/cohenlenstra.jlcon",
              # ultra slow: time unknown
@@ -32,7 +32,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+
+             # not a proper julia input file
+             "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
+             "specialized/fang-fourier-monomial-bases/gap.jlcon",
             ]
 
   dispsize = (40, 130)
@@ -49,13 +52,31 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       result = strip(result)
       result = replace(result, r"julia>$"s => "")
       # canonicalize numbered anonymous functions
-      result = replace(result, r"^\s*(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
+      result = replace(result, r"^\s*(?:#[a-z_]+#)?(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
       # remove timings
       result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
       # this removes the package version slug, filename and linenumber
-      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\1 \2")
+      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\2")
       lafter = length(result)
     end
+
+    # apply doctestfilters. this is heavily inspired by https://github.com/JuliaDocs/Documenter.jl/blob/9b27810d5e1875124a92f7a735a36ecd52c9ea42/src/doctests.jl#L309
+    # but we don't require a filter to match on both in- and output to be applied
+    for rs in Oscar.doctestfilters()
+      # If a doctest filter is just a string or regex, everything that matches gets
+      # removed before comparing the inputs and outputs of a doctest. However, it can
+      # also be a regex => substitution pair in which case the match gets replaced by
+      # the substitution string.
+      r, s = if isa(rs, Pair{Regex, T} where {T <: AbstractString})
+        rs
+      elseif isa(rs, Regex) || isa(rs, AbstractString)
+        rs, ""
+      else
+        error("Invalid doctest filter:\n$rs :: $(typeof(rs))")
+      end
+      result = replace(result, r => s)
+    end
+
     return strip(result)
   end
 
@@ -120,7 +141,8 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       sym = Symbol("__", lstrip(string(gensym()), '#'))
       mockdule = Module(sym)
       # make it accessible from Main
-      setproperty!(Main, sym, mockdule)
+      @eval Main global $sym::Module
+      invokelatest(setproperty!, Main, sym, mockdule)
       Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
       Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
 
@@ -165,7 +187,18 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     if jlcon_mode
       input_string = "\e[200~$s\e[201~"
     end
+    haderror = false
     REPL.activate(mockrepl.mockdule)
+    # this allows us to detect errors in the middle of non-jlcon files
+    if !jlcon_mode
+      od = Base.active_repl.interface.modes[1].on_done
+      Base.active_repl.interface.modes[1].on_done = function (x...)
+                if Base.active_repl.waserror
+                  haderror = true
+                end
+                od(x...)
+              end
+    end
     result = redirect_stdout(mockrepl.out_stream) do
       input_task = @async begin
         write(mockrepl.stdin_write, input_string)
@@ -174,14 +207,23 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       wait(input_task)
       readuntil(mockrepl.output.out, "\nEND_BLOCK")
     end
+    if !jlcon_mode
+      # restore on-done
+      Base.active_repl.interface.modes[1].on_done=od
+    end
     REPL.activate(Main)
-    return sanitize_output(result)
+    output = sanitize_output(result)
+    if !jlcon_mode && haderror
+      error("ERROR in jl-mode:\n", output)
+    end
+    return output
   end
 
   function test_chapter(chapter::String="")
     # add overlay project for plots
     custom_load_path = []
     old_load_path = []
+    oldrepl = isdefined(Base, :active_repl) ? Base.active_repl : nothing
     copy!(custom_load_path, LOAD_PATH)
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
@@ -211,7 +253,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             println("  created mockrepl: $(mockrepl.mockdule)")
 
             # clear verbosity levels before each chapter
-            empty!(Hecke.VERBOSE_LOOKUP)
+            empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
             auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
@@ -230,22 +272,24 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
             run_repl_string(mockrepl, """Oscar.randseed!(42);""")
             for example in example_list
-              full_file = joinpath(chapter, example)
-              println("    $example$(full_file in skipped ? ": skip" :
-                                     full_file in broken ? ": broken" : "")")
+              full_file_path = joinpath(chapter, example)
+              full_file_path_versioned = join(splitext(full_file_path), "-v$(VERSION.major).$(VERSION.minor)")
+              has_versioned_file = isfile(joinpath(Oscar.oscardir, "test", "book", full_file_path_versioned))
+              println("    $example$(full_file_path in skipped ? ": skip" :
+                                     full_file_path in broken ? ": broken" : "")$(has_versioned_file ? " version-specific" : "")")
               filetype = endswith(example, "jlcon") ? :jlcon :
                          endswith(example, "jl") ? :jl : :unknown
-              content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+              content = read(joinpath(Oscar.oscardir, "test", "book", has_versioned_file ? full_file_path_versioned : full_file_path), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @debug "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file_path"
               end
-              if full_file in skipped
+              if full_file_path in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true
               elseif filetype == :jlcon
                 content = sanitize_input(content)
                 computed = run_repl_string(mockrepl, content)
-                res = @test normalize_repl_output(content) == computed broken=(full_file in broken)
+                res = @test normalize_repl_output(content) == computed broken=(full_file_path in broken)
                 if res isa Test.Fail
                   println(deepdiff(normalize_repl_output(content),computed))
                 end
@@ -253,12 +297,12 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
                 if occursin("# output\n", content)
                   (code, res) = split(content, "# output\n"; limit=2)
                   # TODO do we want to compare with `res` ?
-                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 else
-                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 end
               else
-                @warn "unknown file type: $full_file"
+                @warn "unknown file type: $full_file_path"
               end
             end
             println("  closing mockrepl: $(mockrepl.mockdule)")
@@ -268,7 +312,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       end
     finally
       # restore some state
-      Main.REPL.activate(Main)
+      isnothing(oldrepl) || Main.REPL.activate(Main)
       Pkg.activate("$act_proj"; io=devnull)
       cd(curdir)
       copy!(LOAD_PATH, old_load_path)

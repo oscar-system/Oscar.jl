@@ -3,7 +3,46 @@ const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
 const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
 
 abstract type Bundle end
+
+
+@doc raw"""
+     parent(F::AbstractBundle)
+
+Return the underlying abstract variety of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> parent(Q) == G
+true
+
+```
+"""
 Base.parent(F::Bundle) = F.parent
+
+@doc raw"""
+     rank(F::AbstractBundle)
+
+Return the rank of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> rank(symmetric_power(Q,3))
+4
+
+```
+"""
 rank(F::Bundle) = F.rank
 
 abstract type Variety end
@@ -29,7 +68,19 @@ julia> dim(P2*P3)
 dim(X::Variety) = X.dim
 
 abstract type VarietyHom end
+
+@doc raw"""
+     domain(f::AbstractVarietyMap)
+
+Return the domain of `f`.
+"""
 domain(X::VarietyHom) = X.domain
+
+@doc raw"""
+     codomain(f::AbstractVarietyMap)
+
+Return the codomain of `f`.
+"""
 codomain(X::VarietyHom) = X.codomain
 
 Base.show(io::IO, F::Bundle) = print(io, "$(typeof(F).name.name) of rank $(F.rank) on $(F.parent)")
@@ -73,11 +124,11 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   codomain::V2
   dim::Int
   pullback::AffAlgHom
-  pushforward::FunctionalMap
+  pushforward::MapFromFunc
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
   function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
-    if !(fₓ isa FunctionalMap) && isdefined(X, :point) && isdefined(Y, :point)
+    if !(fₓ isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
@@ -90,7 +141,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
         end;
         sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
             if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
-      fₓ = map_from_func(fₓ, X.ring, Y.ring)
+      fₓ = MapFromFunc(X.ring, Y.ring, fₓ)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)
     try
@@ -128,4 +179,3 @@ end
     return X
   end
 end
-

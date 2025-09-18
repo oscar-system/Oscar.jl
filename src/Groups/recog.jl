@@ -71,11 +71,9 @@ julia> evaluate(slp, nice_gens(rec)) == x
 true
 ```
 """
-function nice_gens(tree::GroupRecognitionTree)
-  return get_attribute!(tree, :nice_gens) do
-    G = group(tree)
-    return [group_element(G, x) for x in GAPWrap.NiceGens(GapObj(tree))]
-  end
+@attr Vector{<:GAPGroupElem} function nice_gens(tree::GroupRecognitionTree)
+  G = group(tree)
+  return [group_element(G, x) for x in GAPWrap.NiceGens(GapObj(tree))]
 end
 
 function Base.show(io::IO, tree::GroupRecognitionTree)

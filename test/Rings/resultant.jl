@@ -1,13 +1,13 @@
 @testset "resultant" begin
-  QQt, t = QQ["t"]
-  R, (x1, x2, x0) = QQt["x1", "x2", "x0"]
+  QQt, t = QQ[:t]
+  R, (x1, x2, x0) = QQt[:x1, :x2, :x0]
   F = [x2^2 - t*x0*x1 , x2^2-t*x0*x2, x1^2+x2^2-x0^2]
   # this example requires coordinate change
   @test resultant(F) == -2*t^6 + t^4
 
   @test resultant([x1, x1, x1]) == 0
 
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   F0 = x^3 + y^2 * z
   F1 = x*y + y^2 + x*z + y * z
   F2 = y^4 + z^4

@@ -4,6 +4,7 @@
   "General" => [
      "General/architecture.md",
      "General/other.md",
+     "General/printing.md",
      "General/faq.md",
      "General/serialization.md",
      "General/complex.md",
@@ -23,9 +24,15 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/abelian/introduction.md",
+     "Abelian Groups" => [
+        "Introduction" => "Hecke/manual/abelian/introduction.md",
+        "Elements" => "Hecke/manual/abelian/elements.md",
+        "Morphisms" => "Hecke/manual/abelian/maps.md",
+        "Structural Computations" => "Hecke/manual/abelian/structural.md",
+     ],
      "Groups/group_characters.md",
      "Groups/recog.md",
+     "Groups/tom.md",
   ],
 
   "Rings" => [
@@ -50,8 +57,8 @@
      "Fields/intro.md",
      "AbstractAlgebra/field.md",
      "Rings/rational.md",
-     "Hecke/FacElem.md",
-     "Hecke/class_fields/intro.md",
+     "Hecke/manual/misc/FacElem.md",
+     "Hecke/manual/number_fields/class_fields.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
         "Nemo/padic.md",
@@ -64,9 +71,11 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/sparse/intro.md",
      "AbstractAlgebra/matrix.md",
+     "AbstractAlgebra/matrix_spaces.md",
+     "AbstractAlgebra/linear_solving.md",
      "AbstractAlgebra/matrix_algebras.md",
+     "Hecke/manual/misc/sparse.md",
      "Modules" => [
         "AbstractAlgebra/module.md",
         "AbstractAlgebra/free_module.md",
@@ -75,32 +84,46 @@
         "AbstractAlgebra/direct_sum.md",
         "AbstractAlgebra/module_homomorphism.md",
      ],
-     "Quadratic and Hermitian forms" => [
-        "Hecke/quad_forms/introduction.md",
-        "Hecke/quad_forms/basics.md",
-        "Hecke/quad_forms/lattices.md",
-        "Hecke/quad_forms/genusherm.md",
-        "Hecke/quad_forms/integer_lattices.md",
-        "Hecke/quad_forms/Zgenera.md",
-        "Hecke/quad_forms/discriminant_group.md"
-     ],
+     "AbstractAlgebra/matrix_implementation.md",
   ],
 
   "Number Theory" => [
      "NumberTheory/intro.md",
      "Number Fields" => [
-        "Hecke/number_fields/intro.md",
-        "Hecke/number_fields/fields.md",
-        "Hecke/number_fields/elements.md",
-        "Hecke/number_fields/internal.md",
+        "Hecke/manual/number_fields/intro.md",
+        "Hecke/manual/number_fields/fields.md",
+        "Hecke/manual/number_fields/elements.md",
+        "Hecke/manual/number_fields/internal.md",
      ],
      "Orders" => [
-        "Hecke/orders/introduction.md",
-        "Hecke/orders/orders.md",
-        "Hecke/orders/elements.md",
-        "Hecke/orders/ideals.md",
-        "Hecke/orders/frac_ideals.md",
+        "Hecke/manual/orders/introduction.md",
+        "Hecke/manual/orders/orders.md",
+        "Hecke/manual/orders/elements.md",
+        "Hecke/manual/orders/ideals.md",
+        "Hecke/manual/orders/frac_ideals.md",
      ],
+     "Elliptic Curves" => [
+        "Hecke/manual/elliptic_curves/intro.md",
+        "Hecke/manual/elliptic_curves/basics.md",
+        "Hecke/manual/elliptic_curves/finite_fields.md"
+     ],
+     "Quadratic and Hermitian forms" => [
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md",
+        "NumberTheory/vinberg.md",
+     ],
+     "Quadratic forms and isometries" => [
+      "NumberTheory/QuadFormAndIsom/introduction.md",
+      "NumberTheory/QuadFormAndIsom/spacewithisom.md",
+      "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/enumeration.md",
+      "NumberTheory/QuadFormAndIsom/primembed.md"
+    ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],
@@ -116,9 +139,11 @@
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
-      "PolyhedralGeometry/linear_programs.md",
-      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
+     "Optimization"=> [
+       "PolyhedralGeometry/Optimization/linear_programs.md",
+       "PolyhedralGeometry/Optimization/mixed_integer_linear_programs.md",
+     ],
   ],
 
   "Commutative Algebra" => [
@@ -131,6 +156,8 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/module_data.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
@@ -171,6 +198,8 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/RationalPointsProjective.md",
+        "AlgebraicGeometry/Schemes/Sheaves.md",
+        "AlgebraicGeometry/Schemes/Cycles.md",
      ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
@@ -188,9 +217,12 @@
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/EnriquesSurfaces.md",
+        "AlgebraicGeometry/Surfaces/EllipticSurface.md",
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+        "AlgebraicGeometry/Surfaces/duValSing.md",
      ],
      "Sheaf Cohomology" => [
         "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
@@ -209,7 +241,7 @@
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
         "AlgebraicGeometry/ToricVarieties/ToricSchemes.md",
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
-        "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
+        "AlgebraicGeometry/ToricVarieties/BlowupMorphisms.md",
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
@@ -229,9 +261,10 @@
      "TropicalGeometry/linear_space.md",
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
+     "TropicalGeometry/positive_variety.md",
   ],
 
- "Noncommutative Algebra" => [
+  "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
@@ -242,17 +275,28 @@
     "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
+  "Lie Theory" => [
+    "LieTheory/intro.md",
+    "LieTheory/cartan_matrix.md",
+    "LieTheory/root_systems.md",
+    "LieTheory/weight_lattices.md",
+    "LieTheory/weyl_groups.md",
+  ],
+
   "Combinatorics" => [
     "Combinatorics/graphs.md",
+    "Combinatorics/posets.md",
     "Combinatorics/matroids.md",
     "Combinatorics/simplicialcomplexes.md",
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
       "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
+    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Straight Line Programs" => [
@@ -272,8 +316,10 @@
     "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
+    "DeveloperDocumentation/known_properties.md",
     "DeveloperDocumentation/gap_integration.md",
     "DeveloperDocumentation/release.md",
+    "DeveloperDocumentation/changelog.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

@@ -8,7 +8,7 @@ If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -19,10 +19,12 @@ julia> B = Rg[x^2; y^3; z^4];
 julia> M = SubquoModule(F, A, B);
 
 julia> is_equal_with_morphism(M, M)
-M -> M
-x*e[1] -> x*e[1]
-y*e[1] -> y*e[1]
 Homogeneous module homomorphism
+  from M
+  to M
+defined by
+  x*e[1] -> x*e[1]
+  y*e[1] -> y*e[1]
 ```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
@@ -91,7 +93,7 @@ If there exists no path an error is thrown.
 """
 function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
-    return [identity_map(M)]
+    return [id_hom(M)]
   end
   parent_hom = IdDict{SubquoModule, ModuleFPHom}()
   modules = [M]
@@ -143,7 +145,7 @@ function transport(M::SubquoModule, v::SubquoModuleElem)
   N = parent(v)
   morphisms = find_sequence_of_morphisms(N, M)
 
-  return foldl((x,f) -> f(x), morphisms; init=v)
+  return foldl(|>, morphisms; init=v)
 end
 
 @doc raw"""
@@ -184,7 +186,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   morphisms = Vector{ModuleFPHom}()
   for path in all_paths
-    phi = identity_map(N)
+    phi = id_hom(N)
     for h in path
       phi = phi*h
     end
@@ -229,11 +231,27 @@ ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
 function default_ordering(F::FreeMod)
-  if iszero(F)
-    return default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+  if !isdefined(F, :default_ordering)
+    if iszero(F)
+      F.default_ordering = default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+    else
+      F.default_ordering = default_ordering(base_ring(F))*lex(gens(F))
+    end
   end
-  return default_ordering(base_ring(F))*lex(gens(F))
+  return F.default_ordering::ModuleOrdering{typeof(F)}
 end
+
+function default_ordering(F::FreeMod{T}) where {T<:Union{ZZRingElem, FieldElem}}
+    if !isdefined(F, :default_ordering)
+        if iszero(F)
+            F.default_ordering = ModuleOrdering(F, Orderings.ModOrdering(Int[], :lex))
+        else
+            F.default_ordering = lex(gens(F))
+        end
+    end
+    return F.default_ordering::ModuleOrdering{typeof(F)}
+end
+
 
 ##############################
 #TODO: move to Singular.jl ?
@@ -373,8 +391,8 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S) # the symbols of F
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
 
@@ -382,7 +400,7 @@ function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, F.S)
+  FS = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : FreeMod{elem_type(S)}(ngens(F), S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
@@ -394,7 +412,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, S); check=false)
   return MS, map
 end
 
@@ -410,6 +428,16 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
+
+function change_base_ring(phi::Any, f::ModuleFPHom; 
+    domain_base_change=change_base_ring(phi, domain(f))[2], 
+    codomain_base_change=change_base_ring(phi, codomain(f))[2]
+  )
+  new_dom = codomain(domain_base_change)
+  new_cod = codomain(codomain_base_change)
+  return hom(new_dom, new_cod, codomain_base_change.(f.(gens(domain(f)))))
+end
+
 
 ### Duals of modules
 @doc raw"""
@@ -513,40 +541,40 @@ end
 ## spaces
 ##########################################################################
 @doc raw"""
-    vector_space_dimension(M::SubquoModule, d::Int)
+    vector_space_dim(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
 Then the command returns the dimension of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
-    vector_space_dimension(M::SubquoModule)
+    vector_space_dim(M::SubquoModule)
 
 If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
 julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
 
-julia> vector_space_dimension(M,1)
+julia> vector_space_dim(M,1)
 2
 
-julia> vector_space_dimension(M,2)
+julia> vector_space_dim(M,2)
 2
 
-julia> vector_space_dimension(M,3)
+julia> vector_space_dim(M,3)
 1
 
-julia> vector_space_dimension(M)
+julia> vector_space_dim(M)
 6
 
 ```
 """
-function vector_space_dimension(M::SubquoModule)
+function vector_space_dim(M::SubquoModule)
   
   R = base_ring(M)
   F = ambient_free_module(M)
@@ -561,18 +589,18 @@ function vector_space_dimension(M::SubquoModule)
   
   d = 0
   sum_dim = 0
-  tempdim = vector_space_dimension(M,0)
+  tempdim = vector_space_dim(M,0)
 
   while tempdim > 0
     sum_dim = sum_dim + tempdim
     d = d+1
-    tempdim = vector_space_dimension(M,d)
+    tempdim = vector_space_dim(M,d)
   end
  
   return sum_dim
 end
 
-function vector_space_dimension(M::SubquoModule,d::Int64)
+function vector_space_dim(M::SubquoModule,d::Int64)
   R = base_ring(M)
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
@@ -585,7 +613,7 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   return count(t->!(t[1]*t[2] in LM), Iterators.product(monomials_of_degree(R, d), gens(F)))
 end
   
-function vector_space_dimension(M::SubquoModule{T}
+function vector_space_dim(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
@@ -594,10 +622,10 @@ function vector_space_dimension(M::SubquoModule{T}
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)))
+  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
-function vector_space_dimension(M::SubquoModule{T},d::Int64
+function vector_space_dim(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
@@ -606,15 +634,15 @@ function vector_space_dimension(M::SubquoModule{T},d::Int64
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)),d)
+  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
-function vector_space_dimension(M::SubquoModule{T}
+function vector_space_dim(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
 
-function vector_space_dimension(M::SubquoModule{T},d::Int64
+function vector_space_dim(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
@@ -633,7 +661,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -801,9 +829,10 @@ end
 # constructor of induced maps.
 tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
 
-function tensor_product(maps::Vector{<:ModuleFPHom})
-  dom = tensor_product([domain(f) for f in maps])
-  cod = tensor_product([codomain(f) for f in maps])
-  return tensor_product(dom, cod, maps)
+function tensor_product(maps::Vector{<:ModuleFPHom}; 
+        domain::ModuleFP = tensor_product([domain(f) for f in maps]), 
+        codomain::ModuleFP = tensor_product([codomain(f) for f in maps])
+    )
+  return tensor_product(domain, codomain, maps)
 end
 

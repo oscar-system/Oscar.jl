@@ -12,14 +12,15 @@
   # this example relies on the same source as polymake's johnson_solid(84):
   # https://de.wikipedia.org/wiki/Trigondodekaeder
   # as of now, johnson solid J84 is realized as a Polyhedron over floats within polymake
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   K, r = number_field(x^3 - 3x^2 - 4x + 8, "r")
-  Ky, y = K["y"]
-  L, = number_field(y^2 - (2 - r^2)//2, "q")
-  Lz, z = L["z"]
-  E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
-  pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
-  pq2 = E(roots(z^2 - (3 - r^2))[1])
+  Ky, y = K[:y]
+  L, lq = number_field(y^2 - (2 - r^2)//2, "q")
+  Lz, z = L[:z]
+  emb = only(filter(Base.Fix1(is_positive, lq), real_embeddings(L)))
+  E, q = Hecke.embedded_field(L, emb)
+  pq1 = only(filter(is_positive, E.(roots(z^2 - (3 + 2r - r^2)))))
+  pq2 = only(filter(is_positive, E.(roots(z^2 - (3 - r^2)))))
   p = (pq1 + pq2)//2
   r = E(r)
 
@@ -43,10 +44,13 @@
   @test _edge_length_for_test.(faces(sd, 1)) == repeat([4], 18)
   # scaling the Polyhedron by 3 yields edge lengths of 6
   @test _edge_length_for_test.(faces(3 * sd, 1)) == repeat([36], 18)
+  # there are 11 lattice points
+  @test length(lattice_points(sd)) == 11
+
   let pc = polyhedral_complex(
-      E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant=true
+      E, incidence_matrix(facets(sd)), vertices(sd); non_redundant=true
     )
-    @test maximal_polyhedra(pc) == faces(sd, 2)
+    @test issetequal(maximal_polyhedra(pc), faces(sd, 2))
   end
   let c = convex_hull(E, permutedims([0]), permutedims([r]))
     ms = product(sd, c)
@@ -61,6 +65,8 @@
 
   @test number_of_vertices(qp) == 3
   @test number_of_facets(qp) == 3
+
+  @test length(lattice_points(qp)) == 1
 
   @testset "Scalar detection" begin
     let j = johnson_solid(12)
@@ -90,6 +96,11 @@
         ),
       )
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
+    end
+    let ng = n_gon(5)
+      (A, b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A, b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A, b)) == coefficient_field((ng))
     end
   end
 

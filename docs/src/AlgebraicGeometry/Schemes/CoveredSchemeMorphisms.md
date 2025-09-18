@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Morphisms of covered schemes
@@ -41,6 +43,16 @@ The minimal concrete type of an `AbsCoveredSchemeMorphism` which
 implements this interface, is `CoveredSchemeMorphism`.
 
 ## Special types of morphisms of covered schemes
+### Closed embeddings
+```@docs 
+CoveredClosedEmbedding
+image_ideal(phi::CoveredClosedEmbedding)
+```
+
+### Composite morphisms
+```@docs
+CompositeCoveredSchemeMorphism
+```
 
 ### Morphisms from rational functions
 

@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -82,13 +83,10 @@ galois_group(f::PolyRingElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
-```@meta
-DocTestFilters = r"Galois context\(.*\]\)"
-```
-```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
+```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1)), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Qt, t = rational_function_field(QQ, "t");
 
-julia> Qtx, x = Qt["x"];
+julia> Qtx, x = Qt[:x];
 
 julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
@@ -112,9 +110,6 @@ over `C(t)` is only of degree `3`. Here the group collapses to a cyclic group
 of degree `3`, the algebraic closure of `Q` in the splitting field is the
 quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
 
-```@meta
-DocTestFilters = nothing
-```
 ```jldoctest galqt
 julia> is_isomorphic(k, cyclotomic_field(3)[1])
 true
@@ -132,7 +127,7 @@ Oscar.GaloisGrp.resolvent(C::Oscar.GaloisGrp.GaloisCtx, G::PermGroup, U::PermGro
 
 To illustrate:
 ```jldoctest galois1; setup = :(using Oscar, Random ; Random.seed!(1))
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> f = (x^2-2)*(x^2-3);
 
@@ -200,7 +195,7 @@ of `s[1]+s[3]` evaluated at the roots.
 Once the orbit is known, the coefficients of the minimal polynomial are just the elementary
 symmetric functions evaluated at the roots: 
 
-```jldoctest galois1
+```jldoctest galois1; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> o = collect(orbit(G, s[1]+s[3]))
 4-element Vector{ZZMPolyRingElem}:
  x1 + x3
@@ -233,7 +228,7 @@ to bound the degree as well as the coefficient size.
 ```jldoctest
 julia> Qt,t = rational_function_field(QQ, "t");
 
-julia> Qtx, x = Qt["x"];
+julia> Qtx, x = Qt[:x];
 
 julia> F, a = function_field(x^3+t+2);
 

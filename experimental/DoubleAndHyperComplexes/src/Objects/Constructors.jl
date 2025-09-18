@@ -35,7 +35,7 @@ struct MapFactoryFromComplex{MorphismType} <: HyperComplexMapFactory{MorphismTyp
       auto_extend::Bool=false
     ) where {ChainType}
     MorphismType = morphism_type(ChainType)
-    return new{MorphismType}(C)
+    return new{MorphismType}(C, auto_extend)
   end
 end
 

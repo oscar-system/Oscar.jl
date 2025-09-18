@@ -23,19 +23,18 @@ include("ZeroDec.jl")
 #           basering has characteristic 0
 #OUTPUT:    Primary decomposition of I with associated primes in a list 
 @doc raw"""
-    decomp(I::Oscar.ideal; usefglm::Bool)
+    primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool)
 
-Computes the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
-via GTZ. Returns the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
+Compute the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
+via GTZ. Return the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
 set to 'true' then the FGLM - algorithm is used in zero-dimensional computations.
 """
 function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
-    Oscar.singular_assure(I)
     B = base_ring(I)
     trivial = Vector{Singular.sideal}(undef, 0)
     n = 1
-    Is = I.gens.S
-    J = changeOrderOfBasering(I.gens.S, :lex)
+    Is = Oscar.singular_generators(I)
+    J = changeOrderOfBasering(Is, :lex)
     check = oneideal(J.base_ring)
     PDint = decomp_internal(J, trivial, n, check, usefglm)
     
@@ -89,7 +88,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
 #prepare and then do dimension reduction (see reductionToZero)
     ureturn = Singular.deepcopy(u)
    
-    x_minus_u = filter((x) -> !(x in u), X)
+    x_minus_u = filter(!in(u), X)
     #switch lexicographic ordering to K[x\u, u]
     switch_morphism, switch_morphism_inverse, T = switchLexOrdering(copy_I, x_minus_u, u)
     copy_I = switch_morphism(copy_I)
@@ -98,7 +97,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
 #change ring to K(u)[x\u]
     n = Singular.ngens(G)
     X = Singular.gens(R)
-    x_minus_u = filter((x) -> !(x in u), X)
+    x_minus_u = filter(!in(u), X)
 
     T = G.base_ring
     K, u = Singular.FunctionField(Singular.QQ, string.(u))

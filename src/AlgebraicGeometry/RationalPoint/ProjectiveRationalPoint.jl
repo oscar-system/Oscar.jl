@@ -23,10 +23,37 @@ function dehomogenization(p::AbsProjectiveRationalPoint, i::Int)
   c = coordinates(p)
   s = inv(c[i])
   w = weights(codomain(p))
-  any(x->!isone(x), w) && error("cannot dehomogenize with weights")
+  any(!is_one, w) && error("cannot dehomogenize with weights")
   return [s*c[j] for j in 1:length(c) if j!=i]
 end
 
+
+@doc raw"""
+    rational_point(X::AbsProjectiveScheme, coordinates; check::Bool=true)
+    
+Return the rational point of ``X`` defined by the given coordinates. 
+
+# Examples
+```jldoctest
+julia> P1 = projective_space(QQ,1)
+Projective space of dimension 1
+  over rational field
+with homogeneous coordinates [s0, s1]
+
+julia> rational_point(P1, [0,1])
+Projective rational point
+  of Projective 1-space over QQ with coordinates [s0, s1]
+with coordinates (0 : 1)
+
+julia> P1([0,1])
+Projective rational point
+  of Projective 1-space over QQ with coordinates [s0, s1]
+with coordinates (0 : 1)
+```
+"""
+rational_point(X::AbsProjectiveScheme, coordinates; check::Bool=true) = X(coordinates;check)
+
+  
 function (X::AbsProjectiveScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
@@ -196,7 +223,7 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
   ca = inv(a[i])
   a[i] = one(coefficient_ring(a))
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
+  any(!is_one, w) && error("cannot normalize with weights")
   i += 1
   l = length(w)
   while i <= l
@@ -219,7 +246,7 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
     i += 1
   end
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
+  any(!is_one, w) && error("cannot normalize with weights")
   ca = sign(a[i])
   while i <= dim(codomain(a))
     a[i] = ca*a[i]  #TODO: weights

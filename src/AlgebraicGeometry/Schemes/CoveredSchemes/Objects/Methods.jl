@@ -159,16 +159,13 @@ end
 @doc raw"""
     is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
 
-# Input:
-- a reduced scheme ``X``,
-- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
-
-# Output:
-Returns whether the scheme ``X`` is normal.
+Return whether the given reduced scheme ``X`` is normal.
+By default this verifies that `X` is reduced; this expensive test
+can be avoided by setting `check` to `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> X = covered_scheme(spec(R));
 
@@ -196,7 +193,7 @@ Return the normalization of the reduced scheme ``X``.
 # Output:
 A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
 normal scheme, ``\nu`` is the normalization, and ``\mathrm{injs}`` is a
-vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
+vector of inclusion morphisms ``ı_i\colon Y_i \to Y``, where ``Y_i`` are
 the connected components of the scheme ``Y``.
 See [Tag 0CDV](https://stacks.math.columbia.edu/tag/0CDV) in
 [Stacks](@cite) or Definition 7.5.1 in [Liu06](@cite) for normalization
@@ -204,7 +201,7 @@ of non-integral schemes.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal(R, z*x^2 + y^3);
 
@@ -333,11 +330,11 @@ function _normalization_integral(
   data = NormalizationIntegralGluingData(G, X_1_norm_output, X_2_norm_output, check)
   X_1_norm = X_1_norm_output[1]
   X_2_norm = X_2_norm_output[1]
-  return LazyGluing(X_1_norm, X_2_norm, _compute_normalization_integral, data)
+  return LazyGluing(X_1_norm, X_2_norm, data)
 end
 
 # Warning: assume patches irreducible
-function _compute_normalization_integral(
+function _compute_gluing(
     data::NormalizationIntegralGluingData
   )
   # Initialize the variables
@@ -390,3 +387,17 @@ function _compute_normalization_integral(
     check=false
   )
 end
+
+@doc raw"""
+    irreducible_components(X::AbsCoveredScheme) -> Vector{Tuple{CoveredScheme,CoveredClosedEmbedding}}
+    
+Return the irreducible components of `X` with their reduced structure. 
+
+See [`maximal_associated_points`](@ref) for keyword arguments. 
+"""
+function irreducible_components(X::AbsCoveredScheme,kwargs...)
+  I = ideal_sheaf(X)
+  D = maximal_associated_points(I; kwargs...)
+  return sub.(D)
+end
+

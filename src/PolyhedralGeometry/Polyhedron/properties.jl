@@ -177,7 +177,7 @@ where `p` is only unique modulo `L`. The return type is a dict, the key
 `:base_points` gives an iterator over such `p`, and the key `:lineality_basis`
 lets one access a basis for the lineality space `L` of `P`.
 
-See also [`vertices`](@ref) and [`lineality_space`](@ref).
+See also [`vertices`](@ref vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}).
 
 # Examples
 The polyhedron `P` is just a line through the origin:
@@ -223,7 +223,7 @@ with two iterators. If `P` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `P/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
-See also [`rays`](@ref) and [`lineality_space`](@ref).
+See also [`rays`](@ref rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}).
 
 # Examples
 ```jldoctest
@@ -269,7 +269,7 @@ Return an iterator over the vertices of `P` in the format defined by `as`. The
 vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
 there are no vertices, only minimal faces.
 
-See also [`minimal_faces`](@ref) and [`rays`](@ref).
+See also [`minimal_faces`](@ref minimal_faces(P::Polyhedron{T}) where {T<:scalar_types}) and [`rays`](@ref rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `PointVector`.
@@ -401,7 +401,7 @@ Return a minimal set of generators of the cone of unbounded directions of `P`
 one-dimensional faces of the recession cone, so if `P` has lineality, there
 are no rays.
 
-See also [`rays_modulo_lineality`](@ref), [`recession_cone`](@ref) and [`vertices`](@ref).
+See also [`rays_modulo_lineality`](@ref rays_modulo_lineality(P::Polyhedron{T}) where {T<:scalar_types}), [`recession_cone`](@ref recession_cone(P::Polyhedron{T}) where {T<:scalar_types}) and [`vertices`](@ref vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -491,7 +491,8 @@ end
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspace`,
+* `Halfspace` (or its subtype `AffineHalfspace`),
+* `Hyperplane` (or its subtype `AffineHyperplane`),
 * `Polyhedron`,
 * `Pair`.
 
@@ -510,7 +511,7 @@ julia> facets(Polyhedron, C)
  Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_1 <= 1
 x_1 <= 1
 -x_2 <= 1
@@ -521,7 +522,10 @@ x_3 <= 1
 """
 facets(
   as::Type{T}, P::Polyhedron{S}
-) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
+) where {
+  S<:scalar_types,
+  T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}},
+} =
   SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
@@ -544,6 +548,12 @@ function _facet_polyhedron(
     Polymake.polytope.facet(pm_object(P), _facet_index(pm_object(P), i) - 1),
     coefficient_field(P),
   )
+end
+function _facet_polyhedron(
+  U::Type{AffineHyperplane{S}}, P::Polyhedron{S}, i::Base.Integer
+) where {S<:scalar_types}
+  h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
+  return affine_hyperplane(coefficient_field(P), h[1], h[2][])::U
 end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polyhedron) =
@@ -582,30 +592,12 @@ facets(::Type{<:Pair}, P::Polyhedron{T}) where {T<:scalar_types} =
 facets(::Type{Polyhedron}, P::Polyhedron{T}) where {T<:scalar_types} =
   facets(Polyhedron{T}, P)
 
-@doc raw"""
-    facets(P::Polyhedron)
-
-Return the facets of `P` as halfspaces.
-
-# Examples
-We can retrieve the six facets of the 3-dimensional cube this way:
-```jldoctest
-julia> C = cube(3);
-
-julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x_1 <= 1
-x_1 <= 1
--x_2 <= 1
-x_2 <= 1
--x_3 <= 1
-x_3 <= 1
-```
-"""
 facets(P::Polyhedron{T}) where {T<:scalar_types} = facets(AffineHalfspace{T}, P)
 
 facets(::Type{<:Halfspace}, P::Polyhedron{T}) where {T<:scalar_types} =
   facets(AffineHalfspace{T}, P)
+facets(::Type{<:Hyperplane}, P::Polyhedron{T}) where {T<:scalar_types} =
+  facets(AffineHyperplane{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
   i < _facet_at_infinity(P) && return i
@@ -731,7 +723,7 @@ julia> dim(P)
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 @doc raw"""
-    lattice_points(P::Polyhedron{QQFieldElem})
+    lattice_points(P::Polyhedron)
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -757,7 +749,7 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron{QQFieldElem})
+function lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
@@ -765,7 +757,7 @@ function lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
 _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -774,7 +766,7 @@ _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc raw"""
-    interior_lattice_points(P::Polyhedron{QQFieldElem})
+    interior_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -792,7 +784,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 [0   0   0]
 ```
 """
-function interior_lattice_points(P::Polyhedron{QQFieldElem})
+function interior_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
@@ -800,7 +792,7 @@ function interior_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _interior_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -813,7 +805,7 @@ _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc raw"""
-    boundary_lattice_points(P::Polyhedron{QQFieldElem})
+    boundary_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -841,7 +833,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 [ 1    0    0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron{QQFieldElem})
+function boundary_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
@@ -849,7 +841,7 @@ function boundary_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _boundary_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -900,7 +892,7 @@ codim(P::Polyhedron) = ambient_dim(P) - dim(P)
 
 Number of vertices in each facet. 
 
-# Example
+# Examples
 ```jldoctest
 julia> p = johnson_solid(4) 
 Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
@@ -929,7 +921,7 @@ end
 
 Number of incident facets for each vertex.
 
-# Example
+# Examples
 ```jldoctest
 julia> vertex_sizes(bipyramid(simplex(2)))
 5-element Vector{Int64}:
@@ -998,7 +990,7 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
+2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the hyperplanes of R^4 described by:
 x_3 = 2
 x_4 = 5
 ```
@@ -1059,7 +1051,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1070,7 +1062,7 @@ Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
@@ -1101,7 +1093,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1112,7 +1104,7 @@ Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
@@ -1336,7 +1328,7 @@ is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
 
-See also [`johnson_solid`](@ref).
+See also [`johnson_solid`](@ref johnson_solid(index::Int)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1346,7 +1338,7 @@ See also [`johnson_solid`](@ref).
 julia> J = johnson_solid(37)
 Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
-julia> is_johnson_solid(J) 
+julia> is_johnson_solid(J)
 true
 ```
 """
@@ -1358,7 +1350,7 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !is_vertex_transit
 Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex
 transitive polytope with regular facets, but not a prism or antiprism.
 
-See also [`archimedean_solid`](@ref).
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1387,7 +1379,7 @@ is_archimedean_solid(P::Polyhedron) =
 
 Check whether `P` is a Platonic solid.
 
-See also [`platonic_solid`](@ref).
+See also [`platonic_solid`](@ref platonic_solid(s::String)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1441,8 +1433,7 @@ function _squared_distance(p::PointVector, q::PointVector)
 end
 
 function _has_equal_facets(P::Polyhedron)
-  nv = facet_sizes(P)
-  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
+  return allequal(facet_sizes(P))
 end
 
 @doc raw"""
@@ -1483,7 +1474,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
   dg = dual_graph(P)
-  ngon_is = findall(x -> x == n, nvf)
+  ngon_is = findall(==(n), nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])
@@ -1501,7 +1492,7 @@ end
 @doc raw"""
     f_vector(P::Polyhedron)
 
-Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{dim(P) - 1})$ where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples
@@ -1516,12 +1507,12 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)::Vector{ZZRingElem}
+function f_vector(P::Polyhedron)
   # the following differs from polymake's count in the unbounded case;
   # polymake takes the far face into account, too
   ldim = lineality_dim(P)
   f_vec = vcat(zeros(Int64, ldim), [length(faces(P, i)) for i in ldim:(dim(P) - 1)])
-  return f_vec
+  return Vector{ZZRingElem}(f_vec)
 end
 
 @doc raw"""
@@ -1541,9 +1532,9 @@ julia> h_vector(cross_polytope(3))
  1
 ```
 """
-function h_vector(P::Polyhedron)::Vector{ZZRingElem}
+function h_vector(P::Polyhedron)
   @req is_bounded(P) "defined for bounded polytopes only"
-  return pm_object(P).H_VECTOR
+  return Vector{ZZRingElem}(pm_object(P).H_VECTOR)
 end
 
 @doc raw"""
@@ -1561,9 +1552,9 @@ julia> g_vector(cross_polytope(3))
  2
 ```
 """
-function g_vector(P::Polyhedron)::Vector{ZZRingElem}
+function g_vector(P::Polyhedron)
   @req is_bounded(P) "defined for bounded polytopes only"
-  return pm_object(P).G_VECTOR
+  return Vector{ZZRingElem}(pm_object(P).G_VECTOR)
 end
 
 @doc raw"""
@@ -1831,7 +1822,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Halfspaces of R^$n described by:\n")
+    print(io, " over the halfspaces of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else
@@ -1854,7 +1845,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Hyperplanes of R^$n described by:\n")
+    print(io, " over the hyperplanes of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else

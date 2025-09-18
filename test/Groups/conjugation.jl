@@ -70,10 +70,17 @@
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
+  G = symmetric_group(4)
   CC5 = @inferred subgroup_classes(G, order = 5)
   @test length(CC5) == 0
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)
+  @test length(CC5) == 7
   CC = @inferred subgroup_classes(G)
-  @test length(CC)==11
+  @test length(CC) == 11
+  CC4 = @inferred subgroup_classes(G, order = 4)  # uses stored classes
+  @test length(CC4) == 3
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)  # uses stored classes
+  @test length(CC5) == 7
   @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))
@@ -104,7 +111,7 @@
   @test length(CC)==3
   @test Set([order(Int, representative(l)) for l in CC])==Set([6,8,12])
 
-  x = G(cperm([1,2,3,4]))
+  x = cperm(G,[1,2,3,4])
   H = sub(G,[x])[1]
   @test normalizer(G,H)==normalizer(G,x)
 
@@ -192,7 +199,7 @@ end
    G = GL(8,25)
    S = SL(8,25)
    l = gen(base_ring(G))
-   R,t = polynomial_ring(base_ring(G),"t")
+   R,t = polynomial_ring(base_ring(G),:t)
 
    x = generalized_jordan_block(t-1,8)
    y = generalized_jordan_block(t-1,8)
@@ -211,7 +218,7 @@ end
 
    G = GL(8,5)
    S = SL(8,5)
-   R,t = polynomial_ring(base_ring(G),"t")
+   R,t = polynomial_ring(base_ring(G),:t)
    x = cat(generalized_jordan_block(t-1,4), generalized_jordan_block(t-1,2), identity_matrix(base_ring(G),2), dims=(1,2))
    C = centralizer(G,G(x))[1]
    @test order(C) == order(GL(2,5))*4^2*5^16
@@ -257,9 +264,9 @@ end
       @test x*y==y*x
    end
 
-   F,t = polynomial_ring(GF(3),"t")
+   F,t = polynomial_ring(GF(3),:t)
    F,z = finite_field(t^2+1,"z")
-   _,t = polynomial_ring(F,"t")
+   _,t = polynomial_ring(F,:t)
    G = GL(8,F)
    x = cat(generalized_jordan_block(t^2+t+z,2), generalized_jordan_block(t^2+z+1,2); dims=(1,2))
    C = centralizer(G,G(x))[1]
@@ -268,4 +275,22 @@ end
       @test x*y==y*x
    end
 
+end
+
+@testset "Conjugation with different parents" begin
+   G = symmetric_group(4)
+   x = G[1]
+   H = symmetric_group(3)
+   @test_throws ArgumentError conjugate_group(H, x)
+   HH = G(H)
+   C = conjugate_group(HH, x)
+   @test order(C) == order(H)
+   @test HH == stabilizer(G, 4)[1]
+   @test C == stabilizer(G, 1)[1]
+
+   G = small_group(24, 12)
+   x = G[3]
+   H = sylow_subgroup(G, 3)[1]
+   C = conjugate_group(H, x)
+   @test order(C) == order(H)
 end

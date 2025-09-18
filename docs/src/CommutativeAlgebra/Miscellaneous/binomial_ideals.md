@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -41,6 +42,13 @@ Papers offering details on theory and algorithms as well as examples include:
 - [EM16](@cite)
 - [EM19](@cite)
 
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on binomial ideals in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/CommutativeAlgebra/).
+
+
 ## Basic Tests
 
 ### Binomiality Test
@@ -50,7 +58,7 @@ is_binomial(f::MPolyRingElem)
 is_binomial(I::MPolyIdeal)
 ```
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 2*x+y

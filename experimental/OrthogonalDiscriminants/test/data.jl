@@ -50,7 +50,7 @@ end
     @test vals == [orthogonal_discriminant(chi) for chi in t]
     @test length(vals) == length(t)
     @test vals[1] == ""
-    for p in vcat([i for (i, e) in collect(factor(order(t)))], [101])
+    for p in vcat([i for (i, e) in factor(order(t))], [101])
       modt = mod(t, p)
       vals = orthogonal_discriminants(modt)
       @test vals == [orthogonal_discriminant(chi) for chi in modt]

@@ -1,5 +1,5 @@
 @testset "mpoly_affine_algebras.normalization" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   Q, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
   for (S, M, FI) in normalization(Q)
     @test parent(FI[1]) == Q
@@ -18,7 +18,7 @@
   end
 
   for algorithm in (:equidimDec, :primeDec)
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
     Q, _ = quo(R, ideal(R, [(x^2 - y^3)*(x^2 + y^2)*x]))
     for (S, M, FI) in normalization(Q, algorithm=algorithm)
       @test parent(FI[1]) == Q
@@ -42,10 +42,10 @@
   @test !is_normal(quo(R, ideal(R, [x^2]))[1])
   @test is_normal(quo(R, ideal(R, [z^2 - x*y]))[1])
 
-  R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(ZZ, [:x, :y, :z])
   @test_throws ArgumentError is_normal(quo(R, ideal(R, [x - y^3]))[1])
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   Q, _ = quo(R, ideal(R, [(x^2 - y^3)]))
   for (S, M, FI) in normalization(Q, algorithm=:isPrime)
     @test parent(FI[1]) == Q
@@ -55,7 +55,7 @@
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; algorithm = :hensel)
   @test all(p -> base_ring(parent(p)) == R, nums)
   @test base_ring(parent(den)) == R
@@ -63,58 +63,58 @@ end
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
   @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
-  R, (x, y) = polynomial_ring(GF(2), ["x", "y"])
+  R, (x, y) = polynomial_ring(GF(2), [:x, :y])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2; algorithm = :what)
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; algorithm = :normal_global)
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; algorithm = :normal_local)
   @test all(p -> base_ring(parent(p)) == R, nums)
   @test base_ring(parent(den)) == R
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2)
 
-  R, (x, y) = polynomial_ring(GF(2), ["x", "y"])
+  R, (x, y) = polynomial_ring(GF(2), [:x, :y])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
 
-  R, (x, y) = polynomial_ring(rational_function_field(QQ, ["s", "t"])[1], ["x", "y"])
+  R, (x, y) = polynomial_ring(rational_function_field(QQ, [:s, :t])[1], [:x, :y])
   @test_throws NotImplementedError integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 
 @testset "Noether normalization" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   A, _ = quo(R, ideal(R, [x*y, x*z]))
   L = noether_normalization(A)
   @test length(L) == 3 # just a smoke test
 end
 
-@testset "mpoly_affine_algebra.vector_space_dimension" begin
+@testset "mpoly_affine_algebra.vector_space_dim" begin
   r, (x, y) = polynomial_ring(QQ, [:x, :y])
   @test !is_finite_dimensional_vector_space(quo(r, ideal(r, [x^2+y^2]))[1])
-  @test_throws InfiniteDimensionError vector_space_dimension(quo(r, ideal(r, [x^2+y^2]))[1])
-  @test vector_space_dimension(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
+  @test_throws InfiniteDimensionError vector_space_dim(quo(r, ideal(r, [x^2+y^2]))[1])
+  @test vector_space_dim(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
   @test is_finite_dimensional_vector_space(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1])
-  @test vector_space_dimension(quo(r, ideal(r, [one(r)]))[1]) == 0
+  @test vector_space_dim(quo(r, ideal(r, [one(r)]))[1]) == 0
   @test is_finite_dimensional_vector_space(quo(r, ideal(r, [one(r)]))[1])
 
   @test !is_finite_dimensional_vector_space(r)
 
   r, (x, y) = polynomial_ring(ZZ, [:x, :y])
-  @test_throws ErrorException vector_space_dimension(quo(r, ideal(r, [x, y]))[1])
+  @test_throws ErrorException vector_space_dim(quo(r, ideal(r, [x, y]))[1])
 end
 
 @testset "mpoly_affine_algebra.monomial_basis" begin
-  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
   A, _ = quo(R, ideal(R, [x^2, y^3]))
   mons = monomial_basis(A)
   @test mons == [x*y^2, y^2, x*y, y, x, 1]
-  @test length(mons) == vector_space_dimension(A)
+  @test length(mons) == vector_space_dim(A)
 
   A, _ = quo(R, ideal(R, [one(R)]))
   @test isempty(monomial_basis(A))
 end
 
 @testset "Subalgebra membership" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   Q, _ = quo(R, ideal(R, [z - y^3]))
   f = Q(z + x^2 - y^6)
   v = [ Q(x), Q(y^3) ]
@@ -125,7 +125,7 @@ end
   fl, t = subalgebra_membership(g, v)
   @test !fl
 
-  R, (x, y, z) = graded_polynomial_ring(QQ, [ "x", "y", "z" ], [ 3, 1, 3 ])
+  R, (x, y, z) = graded_polynomial_ring(QQ, [ :x, :y, :z ], [ 3, 1, 3 ])
   f = x^2 - y^6 + z^2
   v = [ x, y^3, z - y^3 ]
   fl, t = subalgebra_membership_homogeneous(f, v)
@@ -146,7 +146,7 @@ end
   fl, t = subalgebra_membership_homogeneous(g, v)
   @test !fl
 
-  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [ 1, 2 ])
   Q, _ = quo(R, ideal(R, [x^10 - y^5]))
   for S in [R, Q]
     u = gen(S, 1)
@@ -177,7 +177,7 @@ end
 end
 
 @testset "algebraic independence" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   V = [x, y]
   fl, I = is_algebraically_independent_with_relations(V)
   @test fl

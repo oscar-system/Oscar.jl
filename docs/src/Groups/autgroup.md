@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -11,8 +12,8 @@ automorphism_group(G::GAPGroup)
 
 The following functions are available for automorphisms, some of them similar to the corresponding functions for homomorphisms of groups.
 ```@docs
-is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
-restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
+is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup) where T <: GAPGroup
+restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup, A=automorphism_group(H)) where T <: GAPGroup
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
 hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
 ```

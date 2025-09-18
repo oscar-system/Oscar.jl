@@ -1,12 +1,21 @@
 @testset "types" begin
   @testset "IncidenceMatrix" begin
-    im = IncidenceMatrix([[1, 2, 3], [4, 5, 6]])
+    im = incidence_matrix([[1, 2, 3], [4, 5, 6]])
     @test nrows(im) == 2
     @test ncols(im) == 6
     @test row(im, 1) isa Set{Int}
     @test row(im, 1) == Set{Int}([1, 2, 3])
     @test column(im, 2) isa Set{Int}
     @test column(im, 2) == Set{Int}([1])
+
+    @testset "IncidenceMatrix constructions" begin
+      @test incidence_matrix([true true true false false false; false false false true true true]) == im
+      @test incidence_matrix([1 1 1 0 0 0; 0 0 0 1 1 1]) == im
+      @test incidence_matrix(4, 2) == incidence_matrix([0 0; 0 0; 0 0; 0 0])
+      @test incidence_matrix(im) == im
+      @test incidence_matrix(3, 8, [[1, 2, 3], [4, 5, 6]]) == incidence_matrix([1 1 1 0 0 0 0 0; 0 0 0 1 1 1 0 0; 0 0 0 0 0 0 0 0])
+      @test_throws ArgumentError incidence_matrix([1 1 1 0 0 0; 0 0 0 1 2 1])
+    end
   end
 
   a = [1, 2, 3]
@@ -14,7 +23,7 @@
 
   (ENF, _) = _prepare_scalar_types()[2]
 
-  @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
+  @testset "$T" for (T, fun, other) in ((PointVector, point_vector, ray_vector), (RayVector, ray_vector, point_vector))
     @test fun(a) isa T{QQFieldElem}
 
     for f in (ZZ, QQ, ENF)
@@ -57,6 +66,10 @@
           @test *(g(3), A) isa T
 
           @test *(g(3), A) == 3 * a
+
+          let Ao = other(g, a)
+            @test_throws ArgumentError A == Ao
+          end
         end
 
         for op in [+, -]
@@ -68,6 +81,19 @@
         @test 3 * A isa T
         @test 3 * A isa T{U}
         @test 3 * A == 3 * a
+
+        if T == RayVector
+          @test 5 * A == A
+          @test fun(f, 5 * a) == A
+          @test A == fun(f, 5 * a)
+          @test 5 * a == A
+          @test vcat(a, a) != A
+          @test -5 * A != A
+          @test fun(f, -5 * a) != A
+          @test A != fun(f, -5 * a)
+          @test A == 5 * a
+          @test A != vcat(a, a)
+        end
 
         if f != ENF
           let h = Int
@@ -82,6 +108,9 @@
             @test Ah == [1, 2, 3]
           end
         end
+      end
+      if T == RayVector
+        @test length(Set(ray_vector.(Ref(f), [[1,2,3],[2,4,6],[-1,-2,-3]]))) == 2
       end
     end
   end
@@ -159,4 +188,18 @@
   @test hyperplane(a) isa LinearHyperplane{QQFieldElem}
   @test halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
   @test hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
+
+  for f in [QQ, ENF]
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, a, -3)])) == 2
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, -a, -3)])) == 2
+    @test length(Set([affine_halfspace(f, a, 3), affine_halfspace(f, 2 .* a, 6)])) == 1
+    @test length(Set([linear_halfspace(f, a),    linear_halfspace(f, -a)])) == 2
+    @test length(Set([linear_halfspace(f, a),    linear_halfspace(f, 2 .* a)])) == 1
+
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, -a,  3)])) == 2
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, -a, -3)])) == 1
+    @test length(Set([affine_hyperplane(f, a, 3), affine_hyperplane(f, 2 .* a, 6)])) == 1
+    @test length(Set([linear_hyperplane(f, a),    linear_hyperplane(f, -a)])) == 1
+    @test length(Set([linear_hyperplane(f, a),    linear_hyperplane(f, 2 .* a)])) == 1
+  end
 end

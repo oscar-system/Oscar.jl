@@ -27,7 +27,7 @@ true
 julia> ngens(chow_ring(p2))
 3
 
-julia> v = normal_toric_variety(IncidenceMatrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
+julia> v = normal_toric_variety(incidence_matrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
 Normal toric variety
 
 julia> is_complete(v)
@@ -52,13 +52,12 @@ Quotient
 ```
 """
 @attr MPolyQuoRing function chow_ring(v::NormalToricVarietyType)
-    @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
-    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
-    linear_relations = ideal_of_linear_relations(R, v)
-    stanley_reisner = stanley_reisner_ideal(R, v)
-    return quo(R, linear_relations + stanley_reisner)[1]
+  @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
+  R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
+  linear_relations = ideal_of_linear_relations(R, v)
+  stanley_reisner = stanley_reisner_ideal(R, v)
+  return quo(R, linear_relations + stanley_reisner)[1]
 end
-
 
 @doc raw"""
     gens_of_rational_equivalence_classes(v::NormalToricVarietyType)
@@ -86,13 +85,14 @@ julia> gens_of_rational_equivalence_classes(p2)
  x3
 ```
 """
-@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::NormalToricVarietyType)
+@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(
+  v::NormalToricVarietyType
+)
   cr = chow_ring(v)
   R = base_ring(cr)
-  cs = cones(v)
-  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:n_cones(v)]
+  cs = cones(v; trivial=false)
+  return [simplify(cr(R([1], [Vector{Int}(cs[k, :])]))) for k in 1:nrows(cs)]
 end
-
 
 @doc raw"""
     map_gens_of_chow_ring_to_cox_ring(v::NormalToricVarietyType)
@@ -102,7 +102,7 @@ ring to monomials in the Cox ring. This dictionary involves
 a choice, i.e. is not unique.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_gens_of_chow_ring_to_cox_ring(p2)
@@ -111,15 +111,17 @@ Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 ent
   x3   => x3
 ```
 """
-@attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::NormalToricVarietyType)
+@attr Dict{QQMPolyRingElem,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(
+  v::NormalToricVarietyType
+)
   cr = chow_ring(v)
   R = base_ring(cr)
   co = cox_ring(v)
-  cs = cones(v)
-  mapping = Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  cs = cones(v; trivial=false)
+  mapping = Dict{QQMPolyRingElem,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}}()
   for k in 1:nrows(cs)
-    p1 = simplify(cr(R([1], [Vector{Int}(cs[k,:])]))).f
-    p2 = co([1], [Vector{Int}(cs[k,:])])
+    p1 = simplify(cr(R([1], [Vector{Int}(cs[k, :])]))).f
+    p2 = co([1], [Vector{Int}(cs[k, :])])
     coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
     if coeff != 1
       p1 = 1//coeff * p1

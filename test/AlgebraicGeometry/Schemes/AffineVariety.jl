@@ -19,6 +19,6 @@
   ABset = set_theoretic_intersection(A, B)
   ABsch = intersect(A, B)
 
-  @test ABset == variety(ideal([x,y])) # reduced no mutiplicity
-  @test ABset != ABsch # reduced no mutiplicity
+  @test ABset == variety(ideal([x,y])) # reduced no multiplicity
+  @test ABset != ABsch # reduced no multiplicity
 end

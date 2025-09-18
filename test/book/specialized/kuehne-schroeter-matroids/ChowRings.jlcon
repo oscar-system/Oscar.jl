@@ -8,7 +8,7 @@ julia> char_poly = characteristic_polynomial(M)
 q^3 - 6*q^2 + 11*q - 6
 
 julia> factor(char_poly)
-1 * (q - 2) * (q - 1) * (q - 3)
+(q - 3) * (q - 2) * (q - 1)
 
 julia> A = chow_ring(M);
 
@@ -63,26 +63,26 @@ julia> RR, _ = graded_polynomial_ring(QQ,"y_#" => 1:length(basis_PD1));
 
 julia> map = hom(RR,AA,basis_PD1);
 
-julia> K = kernel(hom(RR,AA,[b^(rank(M)-2k)*b for b in basis_PD1]));
+julia> K = kernel(hom(RR,AA,[b^(rank(M)-2k)*b3 for b3 in basis_PD1]));
 
 julia> basis_HR = [map(h) for h in gens(K) if degree(h).coeff==k*g.coeff]
 7-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- -x_{Edge(4, 3)} + 2*x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)}
- -x_{Edge(4, 3)} + 2*x_{Edge(2, 1),Edge(4, 1),Edge(4, 2)}
- -x_{Edge(4, 3)} + 2*x_{Edge(2, 1),Edge(4, 3)}
- -x_{Edge(4, 3)} + 2*x_{Edge(3, 1),Edge(4, 2)}
- -x_{Edge(4, 3)} + 2*x_{Edge(3, 1),Edge(4, 1),Edge(4, 3)}
- -x_{Edge(4, 3)} + 2*x_{Edge(3, 2),Edge(4, 1)}
- -x_{Edge(4, 3)} + 2*x_{Edge(3, 2),Edge(4, 2),Edge(4, 3)}
+ x_{Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(2, 1),Edge(4, 1),Edge(4, 2)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(2, 1),Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(3, 1),Edge(4, 2)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(3, 1),Edge(4, 1),Edge(4, 3)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + 2*x_{Edge(3, 2),Edge(4, 1)}
+ -x_{Edge(2, 1),Edge(3, 1),Edge(3, 2)} + x_{Edge(3, 2),Edge(4, 2),Edge(4, 3)}
 
 julia> Mat3 = matrix(QQ,[[(-1)^k*vol_map(b1*b^(rank(M)-2k-1)*b2) for b1 in basis_HR] for b2 in basis_HR])
-[6   2    4   2    4   2    4]
-[2   6    4   2    4   2    4]
-[4   4   10   4    6   4    6]
-[2   2    4   6    4   2    4]
-[4   4    6   4   10   4    6]
-[2   2    4   2    4   6    4]
-[4   4    6   4    6   4   10]
+[ 2   0   -2   0   -1   0   -1]
+[ 0   2    1   1    1   1    1]
+[-2   1    5   1    1   1    1]
+[ 0   1    1   5    1   1    1]
+[-1   1    1   1    2   1    1]
+[ 0   1    1   1    1   5    1]
+[-1   1    1   1    1   1    2]
 
 julia> is_positive_definite(matrix(ZZ,[ZZ(i) for i in Mat3]))
 true

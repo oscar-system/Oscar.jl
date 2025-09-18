@@ -1,8 +1,11 @@
 @doc raw"""
     integrate(c::CohomologyClass)
 
-Integrate the cohomolgy class `c` over the normal
-toric variety `toric_variety(c)`.
+Integrate the cohomology class `c` over the normal toric variety `toric_variety(c)`.
+
+!!! note "Simplicial and complete toric varieties"
+    This function assumes that the underlying toric variety is both **simplicial** and **complete**.
+    Completeness checks may be slow; to skip them, use the optional keyword argument `completeness_check = false`.
 
 # Examples
 ```jldoctest
@@ -58,7 +61,7 @@ julia> m = 2;
 
 julia> ray_generators = [e1, -e1, e2, e3, - e2 - e3 - m * e1];
 
-julia> max_cones = IncidenceMatrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
+julia> max_cones = incidence_matrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
 
 julia> X = normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
@@ -88,39 +91,65 @@ julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
 62
 ```
 """
-function integrate(c::CohomologyClass)
-    # can only integrate if the variety is simplicial, complete
-    @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
-    
-    # if the intersection form is known, we can use it
-    if has_attribute(toric_variety(c), :_intersection_form_via_exponents)
-        intersection_dict = _intersection_form_via_exponents(toric_variety(c))
-        coeffs = coefficients(c)
-        expos = exponents(c)
-        integral = zero(QQ)
-        for i in 1:nrows(expos)
-            if expos[i, :] in keys(intersection_dict)
-                integral += coeffs[i] * intersection_dict[expos[i, :]]
-            end
-        end
-        return integral::QQFieldElem
+function integrate(
+  c::CohomologyClass;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
+  if check isa Bool
+    if completeness_check === nothing
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :integrate,
+      )
+      completeness_check = check
+    else
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
     end
-    
-    # otherwise, proceed "by hand"
-    if is_trivial(c)
-        return zero(QQ)
+  end
+  if completeness_check === nothing
+    completeness_check = true # default value
+  end
+
+  # can only integrate if the variety is simplicial, complete
+  @req is_simplicial(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
+  if completeness_check
+    @req is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
+  end
+
+  # if the intersection form is known, we can use it
+  if has_attribute(toric_variety(c), :_intersection_form_via_exponents)
+    intersection_dict = _intersection_form_via_exponents(toric_variety(c))
+    coeffs = coefficients(c)
+    expos = exponents(c)
+    integral = zero(QQ)
+    for i in 1:nrows(expos)
+      if expos[i, :] in keys(intersection_dict)
+        integral += coeffs[i] * intersection_dict[expos[i, :]]
+      end
     end
-    poly = polynomial(c)
-    dict = homogeneous_components(poly)
-    elem = base_ring(parent(poly)).D([dim(toric_variety(c))])
-    if !(elem in keys(dict))
-        return zero(QQ)
-    end
-    top_form = dict[elem]
-    if iszero(top_form)
-        return zero(QQ)
-    end
-    n = AbstractAlgebra.leading_coefficient(top_form.f)
-    m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
-    return n//m
+    return integral::QQFieldElem
+  end
+
+  # otherwise, proceed "by hand"
+  if is_trivial(c)
+    return zero(QQ)
+  end
+  poly = polynomial(c)
+  dict = homogeneous_components(poly)
+  elem = base_ring(parent(poly)).D([dim(toric_variety(c))])
+  if !(elem in keys(dict))
+    return zero(QQ)
+  end
+  top_form = dict[elem]
+  if iszero(top_form)
+    return zero(QQ)
+  end
+  n = AbstractAlgebra.leading_coefficient(top_form.f)
+  m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
+  return n//m
 end

@@ -57,15 +57,14 @@ domain(phi::HyperComplexMorphism) = phi.domain
 codomain(phi::HyperComplexMorphism) = phi.codomain
 
 function getindex(phi::HyperComplexMorphism{<:Any, <:Any, MorphismType}, i::Tuple) where {MorphismType}
+  can_compute(phi.fac, phi, i) || error("index out of bounds")
   # No caching deflects to production
   !isdefined(phi, :map_cache) && return phi.fac(phi, i)::MorphismType
 
   # The case of cached results
-  haskey(phi.map_cache, i) && return phi.map_cache[i]
-  can_compute(phi.fac, phi, i) || error("index out of bounds")
-  result = phi.fac(phi, i)::MorphismType
-  phi.map_cache[i] = result
-  return result
+  return get!(phi.map_cache, i) do
+    phi.fac(phi, i)
+  end::MorphismType
 end
 
 offset(phi::HyperComplexMorphism) = phi.offset
@@ -133,7 +132,7 @@ original_complex(c::SimplifiedComplex) = c.original_complex
   # to be set by the external constructor.
   function SimpleFreeResolution(
       M::T,
-      complex::AbsHyperComplex{ChainType, MorphismType},
+      complex::AbsHyperComplex{ChainType, MorphismType};
     ) where {ChainType, MorphismType, T}
     return new{ChainType, MorphismType, T}(M, complex)
   end
@@ -142,3 +141,61 @@ end
 underlying_complex(c::SimpleFreeResolution) = c.underlying_complex
 original_module(c::SimpleFreeResolution) = c.M
 
+### Lifting morphisms through projective resolutions
+mutable struct MapLifter{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  dom::AbsHyperComplex
+  cod::AbsHyperComplex
+  orig_map::Map
+  start_index::Int
+  offset::Int
+  check::Bool
+
+  function MapLifter(::Type{MorphismType}, dom::AbsHyperComplex, cod::AbsHyperComplex, phi::Map; 
+      start_index::Int=0, offset::Int=0, check::Bool=true
+    ) where {MorphismType}
+    @assert dim(dom) == 1 && dim(cod) == 1 "lifting of maps is only implemented in dimension one"
+    @assert (is_chain_complex(dom) && is_chain_complex(cod)) || (is_cochain_complex(dom) && is_cochain_complex(cod))
+    @assert domain(phi) === dom[start_index]
+    @assert codomain(phi) === cod[start_index + offset]
+    return new{MorphismType}(dom, cod, phi, start_index, offset)
+  end
+end
+
+# Induced maps for Koszul complexes
+struct InducedKoszulMorFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  dom::HomogKoszulComplex
+  cod::HomogKoszulComplex
+  A::SMat # the transition matrix between the generators
+
+  function InducedKoszulMorFactory(
+      dom::HomogKoszulComplex,
+      cod::HomogKoszulComplex,
+      A::SMat
+    )
+    return new{ModuleFPHom}(dom, cod, A)
+  end
+end
+
+@attributes mutable struct InducedKoszulMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, InducedKoszulMorphism{DomainType, CodomainType, MorphismType}}
+  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
+
+  function InducedKoszulMorphism(
+      dom::HomogKoszulComplex,
+      cod::HomogKoszulComplex;
+      transition_matrix::SMat=begin
+        S = ring(dom)
+        a = sequence(cod)
+        b = sequence(dom)
+        a_ideal = ideal(S, a)
+        c = sparse_matrix(S, 0, length(a))
+        for f in b
+          push!(c, coordinates(SRow, f, a_ideal))
+        end
+        c
+      end
+    )
+    map_factory = InducedKoszulMorFactory(dom, cod, transition_matrix)
+    internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
+    return new{typeof(dom), typeof(cod), ModuleFPHom}(internal_morphism)
+  end
+end

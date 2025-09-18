@@ -4,7 +4,7 @@
 #
 module BuildDoc
 
-using Documenter, DocumenterCitations
+using Documenter, DocumenterCitations, JSON
 
 include("documenter_helpers.jl")
 include("citation_style.jl")
@@ -26,14 +26,6 @@ include("citation_style.jl")
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-# We monkey-patch Base.walkdir to use true as default value for follow_symlinks
-# (normally false is the default), in order to "trick" the Documenter code into
-# following those symlinks.
-# See also:
-# https://github.com/JuliaDocs/Documenter.jl/pull/552
-# https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
-Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
-
 # When we read a `doc.main` from an experimental package, we need to equip all
 # its entries with a prefix to fit with our docs. The doc.main of an
 # experimental package will contain paths relative to
@@ -43,16 +35,7 @@ Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
 # get the prefix `Experimental/PACKAGE_NAME`.
 #
 # Example:
-# 1. cat experimental/PlaneCurve/docs/doc.main:
-# [
-#    "plane_curves.md",
-# ]
-# after `add_prefix_to_experimental_docs` becomes
-# [
-#    "Experimental/PlaneCurve/plane_curves.md",
-# ]
-#
-# 2. cat experimental/FTheoryTools/docs/doc.main 
+# cat experimental/FTheoryTools/docs/doc.main 
 # [
 #    "F-Theory Tools" => [
 #       "introduction.md",
@@ -83,25 +66,21 @@ function setup_experimental_package(Oscar::Module, package_name::String)
     return []
   end
 
-  # Set symlink inside docs/src/experimental
-  symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
-
-  if !ispath(symlink_target)
+  # Assumes that a symbolic link from `experimental/package_name/docs/src`
+  # to `docs/src/Experimental/package_name` has been created (or there is no
+  # documentation for this package)
+  if !ispath(joinpath(Oscar.oscardir, "docs/src/Experimental", package_name))
     return []
-  end
-
-  if !ispath(symlink_link)
-    symlink(symlink_target, symlink_link)
-  elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
-    error("""$symlink_link already exists, but is not a symlink to $symlink_target
-    Please investigate the contents of $symlink_link,
-    optionally move them somewhere else and delete the directory once you are done.""")
   end
 
   # Read doc.main of package
   exp_s = read(doc_main_path, String)
-  exp_doc = eval(Meta.parse(exp_s))
+  exp_doc = try
+    eval(Meta.parse(exp_s))
+  catch
+    println("error while parsing $doc_main_path:")
+    rethrow()
+  end
 
   # Prepend path
   prefix = "Experimental/" * package_name * "/"
@@ -116,15 +95,12 @@ function doit(
   doctest::Union{Bool,Symbol}=true,
 )
 
-  # Remove symbolic links from earlier runs
-  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
-  for x in readdir(expdocdir; join=true)
-    islink(x) && rm(x)
-  end
-
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
+
+  # Link experimental docs to `docs/src` and collect the documentation pages
+  Oscar.link_experimental_docs()
   collected = Any["Experimental/intro.md"]
   for pkg in Oscar.exppkgs
     pkgdocs = setup_experimental_package(Oscar, pkg)
@@ -140,13 +116,9 @@ function doit(
   )
 
   # Copy documentation from Hecke, Nemo, AbstractAlgebra
-  other_packages = [
-    (Oscar.Hecke, Oscar.heckedir),
-    (Oscar.Nemo, Oscar.nemodir),
-    (Oscar.AbstractAlgebra, Oscar.aadir),
-  ]
-  for (pkg, pkgdir) in other_packages
-    srcbase = normpath(pkgdir, "docs", "src")
+  other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
+  for pkg in other_packages
+    srcbase = normpath(Base.pkgdir(pkg), "docs", "src")
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
 
     # clear the destination directory first
@@ -197,7 +169,7 @@ function doit(
     DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive=true)
 
     if doctest !== false
-      Documenter.doctest(Oscar, fix = doctest === :fix)
+      Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters())
     end
 
     makedocs(;
@@ -207,6 +179,7 @@ function doit(
         size_threshold=409600,
         size_threshold_warn=204800,
         size_threshold_ignore=["manualindex.md"],
+        canonical="https://docs.oscar-system.org/stable/",
       ),
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
@@ -216,20 +189,70 @@ function doit(
       checkdocs=:none,
       pages=doc,
       remotes=Dict(
-        Oscar.aadir => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
-        Oscar.nemodir => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
-        Oscar.heckedir => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
-        Oscar.singulardir => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+        Base.pkgdir(Oscar.AbstractAlgebra) => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
+        Base.pkgdir(Oscar.Nemo) => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
+        Base.pkgdir(Oscar.Hecke) => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
+        Base.pkgdir(Oscar.Singular) => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
       ),
       plugins=[bib],
     )
   end
 
   # remove the copied documentation again
-  for (pkg, pkgdir) in other_packages
+  for pkg in other_packages
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
+  
+  # postprocessing, for the search index
+  docspath = normpath(joinpath(Oscar.oscardir, "docs"))
+  @info "Patching search index."
+  # extract valid json from search_index.js
+  run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it
+  
+  # extract paths from doc
+  filelist=String[]
+  docmain = doc
+  while !isempty(docmain)
+    n = pop!(docmain)
+    if n isa Pair
+      push!(docmain, last(n))
+    elseif n isa String
+      push!(filelist, n)
+    elseif n isa Array{String}
+      append!(filelist,n)
+    elseif n isa Array
+      append!(docmain,n)
+    else
+      error("err: $(typeof(n))")
+    end
+  end
+  suffix = local_build ? ".html" : "/"
+  filelist = replace.(filelist, r"\.md$"=>suffix)
+
+  # read these files
+  iosearchindex = open(joinpath(docspath, "build", "search_index.json"), "r")
+  searchindex = JSON.parse(iosearchindex)
+  close(iosearchindex)
+  
+  newsearchindex = []
+  
+  for item in searchindex
+    if split(item["location"], "#")[1] in filelist
+      push!(newsearchindex, item)
+    end
+  end
+  
+  
+  # combine this to valid javascript again, and overwrite input
+  ionewsearchindex = open(joinpath(docspath, "build", "search_index.js"), "w")
+  write(ionewsearchindex, """var documenterSearchIndex = {"docs":\n""")
+  JSON.print(ionewsearchindex, newsearchindex)
+  write(ionewsearchindex, "\n}")
+  close(ionewsearchindex)
+
+  # clean up
+  rm(joinpath(docspath, "build", "search_index.json"))
 end
 
 end # module BuildDoc

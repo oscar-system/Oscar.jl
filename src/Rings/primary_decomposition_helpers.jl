@@ -5,7 +5,7 @@
 # ring L[x₁,…,xₙ] over a number field L = ℚ[α₁,…,αᵣ] it is better to 
 # first translate the respective problem to one in a polynomial ring 
 # ℚ [θ₁,…,θᵣ,x₁,…,xₙ] over ℚ by adding further variables for the 
-# algebraic elemnts αᵢ and dividing by their minimum polynomials.
+# algebraic elements αᵢ and dividing by their minimum polynomials.
 #
 # This might seem counter intuitive, but it has proved to provide 
 # significant speedup in most cases. The reason is that Singular does 
@@ -18,11 +18,11 @@
 # in an extra file.
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return R, identity_map(R), identity_map(R)
+  return R, id_hom(R), id_hom(R)
 end
 
 function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return Q, identity_map(Q), identity_map(Q)
+  return Q, id_hom(Q), id_hom(Q)
 end
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}}
@@ -111,7 +111,7 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
 end
 
 function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
     res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
     return res, compose(a, to_R), compose(to_R_flat, b)
@@ -119,18 +119,18 @@ function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; 
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
-@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -139,7 +139,7 @@ end
 end
 
 
-@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -147,7 +147,7 @@ end
   return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
 end
 
-@attr function equidimensional_hull(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -155,7 +155,7 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -163,19 +163,28 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function absolute_primary_decomposition(I::MPolyQuoIdeal)
+@attr Any function absolute_primary_decomposition(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
   res = absolute_primary_decomposition(J)
   result = []
+  if is_empty(res)
+    U = ideal(A, one(A))
+    return [(U, U, U, 0)]
+  end
+  
+  # Create the ring for the return values
   for (P, Q, P_prime, d) in res
+    R_prime = base_ring(P_prime) # the new polynomial ring
+    L = coefficient_ring(R_prime) # the new field for the result
+    A_ext, ext_map = change_base_ring(L, A) # recreate the quo-ring over that field
+    @assert coefficient_ring(base_ring(A_ext)) === L
+    help_map = hom(R_prime, A_ext, gens(A_ext); check=false)
     PP = ideal(A, A.(gens(P)))
     QQ = ideal(A, A.(gens(Q)))
-    R_prime = base_ring(P_prime)
-    L = coefficient_ring(R_prime)
-    A_ext, ext_map = change_base_ring(L, R_prime)
-    PP_prime = ideal(A_ext, ext_map.(gens(P_prime)))
+    trans_gens = help_map.(gens(P_prime))
+    PP_prime = ideal(A_ext, trans_gens)
     push!(result, (PP, QQ, PP_prime, d))
   end
   return result
@@ -196,6 +205,14 @@ function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
   L = parent(phi(zero(kk)))
   RR, _ = polynomial_ring(L, symbols(R); cached = false)
+  psi = hom(R, RR, phi, gens(RR); check=false)
+  return RR, psi
+end
+
+function change_base_ring(phi::Any, R::MPolyDecRing)
+  kk = coefficient_ring(R)
+  L = parent(phi(zero(kk)))
+  RR, _ = graded_polynomial_ring(L, symbols(R); cached = false, weights=weights(R))
   psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end

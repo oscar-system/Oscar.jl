@@ -7,7 +7,7 @@
 # it will remove all the higher degree / codimension stuff
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Union{Nothing, Int}
   n === nothing && return x
   return sum(x[0:n])
 end
@@ -51,19 +51,4 @@ function Base.getindex(x::MPolyDecRingOrQuoElem, I::AbstractUnitRange)
   R = parent(x)
   D = grading_group(R)
   return getindex(x, [D([n]) for n in I])
-end
-
-###############################################################################
-#
-# pretty printing
-#
-
-# generate a list of symbols [x₁,…,xₙ] using LaTeX / unicode for IJulia / REPL
-
-function _parse_symbol(symbol::String, I::AbstractUnitRange)
-  return ["$symbol[$i]" for i in I]
-end
-
-function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
-  return [symbol*"[$n, $i]" for i in I]
 end

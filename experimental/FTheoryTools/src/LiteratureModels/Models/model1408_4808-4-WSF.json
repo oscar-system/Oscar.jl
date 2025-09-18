@@ -47,10 +47,10 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
-        "model_sections": ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9"],
+        "tunable_sections": ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9"],
         "f": "1//48*(-24*d9*(-2*d5*d6^2 + d4*d6*d7 - 2*d3*d6*d8 + d2*d7*d8 - 2*d1*d8^2 - 2*d2*d4*d9 + 8*d1*d5*d9) - (d7^2 - 4*(d6*d8 + d3*d9))^2)",
         "g": "1//864*(36*d9*(-2*d5*d6^2 + d4*d6*d7 - 2*d3*d6*d8 + d2*d7*d8 - 2*d1*d8^2 - 2*d2*d4*d9 + 8*d1*d5*d9)*(d7^2 - 4*(d6*d8 + d3*d9)) + (d7^2 - 4*(d6*d8 + d3*d9))^3 + 216*d9^2*(4*d2*d5*d6*d7 - 4*d1*d5*d7^2 + d2^2*d8^2 + d4*(-2*d2*d6*d8 + 4*d1*d7*d8) - 4*d2^2*d5*d9 + d4^2*(d6^2 - 4*d1*d9) - 4*d3*(d5*d6^2 + d1*d8^2 - 4*d1*d5*d9)))",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [3,   2,  1,  0, -1,  2, 1, 0,  1],
             [-1,  0,  1,  2,  3, -1, 0, 1, -1],
             [-1, -1, -1, -1, -1,  0, 0, 0,  1]
@@ -73,5 +73,5 @@
         "model1408_4808-15-WSF.json",
         "model1408_4808-16-WSF.json"
     ],
-    "related_models": ["model1408_4808-4.json"]
+    "birational_models": ["model1408_4808-4.json"]
 }

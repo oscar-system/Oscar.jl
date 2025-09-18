@@ -1,13 +1,7 @@
-function test_elem(K::QQAbField)
-  ns = rand(1:8, 3)
-  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
-  return sum(zs)
-end
-
 @testset "AbelianClosure" begin
   @testset "Interface" begin
     K, z = abelian_closure(QQ)
-    test_Field_interface(K)
+    ConformanceTests.test_Field_interface(K)
   end
 
   @testset "Creation" begin
@@ -15,25 +9,25 @@ end
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QQAbField
-    @test elem_type(K) === QQAbElem{AbsSimpleNumFieldElem}
-    @test elem_type(typeof(K)) === QQAbElem{AbsSimpleNumFieldElem}
-    @test parent_type(QQAbElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
+    @test elem_type(K) === QQAbFieldElem{AbsSimpleNumFieldElem}
+    @test elem_type(typeof(K)) === QQAbFieldElem{AbsSimpleNumFieldElem}
+    @test parent_type(QQAbFieldElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
     @test parent_type(one(K)) === QQAbField{AbsSimpleNumField}
 
     a = @inferred K()
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test parent(a) === K
 
     a = @inferred K(1)
     @test parent(a) === K
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test isone(a)
     @test isone(one(a))
     @test !iszero(a)
 
     a = @inferred K(0)
     @test parent(a) === K
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test iszero(a)
     @test iszero(zero(a))
     @test !isone(a)
@@ -59,7 +53,14 @@ end
 
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
-    @test sprint(show, "text/plain", K) == "Abelian closure of Q"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(K) == "Abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(K) == "Abelian closure of QQ"
+
+    @test AbstractAlgebra.PrettyPrinting.detailed(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.oneline(z) == "Generator of abelian closure of rational field"
+    @test AbstractAlgebra.PrettyPrinting.supercompact(z) == "Generator of abelian closure of QQ"
 
     orig = get_variable(K)
     @test orig == "zeta"
@@ -113,9 +114,9 @@ end
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
-  @testset "Conversion" begin
+  @testset "Conversion to ZZRingElem and QQFieldElem" begin
     K, z = abelian_closure(QQ)
-    x  = z(5)
+    x = z(5)
     y = ZZ(x^5)
     @test y isa ZZRingElem
     @test y == 1
@@ -126,10 +127,71 @@ end
     @test_throws ErrorException QQ(x)
   end
 
+  @testset "Conversion to QQBarFieldElem" begin
+    K, z = abelian_closure(QQ)
+    F = QQBarField()
+    x = z(5)
+    y = F(x)
+    @test F(x) == QQBarFieldElem(x)
+    @test F(x^2) == y^2
+    @test y == root_of_unity(F, 5)
+    @test is_one(y^5)
+    a = x + x^4
+    b = x^2 + x^3
+    n = zero(K)
+    @test a > n && F(a) > F(n)
+    @test a > 0
+    @test a > BigInt(0)
+    @test a > 0 // 1
+    @test a > ZZ(0)
+    @test a > QQ(0)
+    @test b < n && F(b) < F(n)
+    @test b < 0
+    @test b < BigInt(0)
+    @test b < 0 // 1
+    @test b < ZZ(0)
+    @test b < QQ(0)
+    @test b < a && F(b) < F(a)
+    @test is_positive(a)
+    @test is_negative(b)
+    @test_throws DomainError x < n
+    @test_throws DomainError y < F(n)
+
+    # compatibility of roots of unity in `K` and `F`
+    i = F(z(4))
+    for n in 1:20
+      @test z(n) == root_of_unity(K, n)
+      @test all(d -> z(n)^d == z(div(n, d)), divisors(n))
+      @test F(z(n)) == cospi(F(2)/n) + i*sinpi(F(2)/n)
+    end
+  end
+
+  @testset "Conversion to Float64 and ComplexF64" begin
+    K, z = abelian_closure(QQ)
+    x = z(5)
+    a = x + x^4
+    @test Float64(a) > 0
+    @test_throws InexactError Float64(x)
+    @test is_one(ComplexF64(one(K)))
+  end
+
   @testset "Promote rule" begin
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, Int) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, ZZRingElem) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, QQFieldElem) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, Int) == QQAbFieldElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, ZZRingElem) == QQAbFieldElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, QQFieldElem) == QQAbFieldElem
+  end
+
+  @testset "Test for integrality and rationality" begin
+    for sparse in (true, false)
+      K, z = abelian_closure(QQ; sparse)
+      z_3 = z(3)
+      @test isinteger(z_3^3)
+      @test !isinteger(z_3)
+      @test is_rational(1//2*z_3^3)
+      @test !is_rational(1//2*z_3)
+      @test is_algebraic_integer(z_3)
+      @test !is_algebraic_integer(1//2*z_3)
+    end
   end
 
   @testset "Arithmetic" begin
@@ -194,7 +256,7 @@ end
       c = rand_elem()
       aa = deepcopy(a)
       bb = deepcopy(b)
-      @test addeq!(a, b) == aa + bb
+      @test add!(a, b) == aa + bb
       @test b == bb
       aa = deepcopy(a)
       @test Oscar.AbelianClosure.neg!(a) == -aa
@@ -223,7 +285,19 @@ end
         @test a - b == a - K(b)
         @test b - a == K(b) - a
         if !iszero(b)
-          @test //(a * b, b) == a
+          @test (a * b) // b == a
+          @test (a // b) * b == a
+
+          @test (a * b) / b == a
+          @test (a / b) * b == a
+        end
+
+        if !iszero(a)
+          @test (b * a) // a == b
+          @test (b // a) * a == b
+
+          @test (b * a) / a == b
+          @test (b / a) * a == b
         end
       end
     end
@@ -276,6 +350,10 @@ end
     f = hom(K, K, 3)
     @test f(a) == a^3
     @test f(z(9)) == z(9)
+
+    @test isone(conj(a)*a)
+    @test !isreal(a)
+    @test isreal(a+conj(a))
   end
 
   @testset "Square roots" begin
@@ -340,7 +418,7 @@ end
 
   @testset "Polynomial" begin
     K, z = abelian_closure(QQ)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(z(4)) == z(4)^2 + 1
   end
 

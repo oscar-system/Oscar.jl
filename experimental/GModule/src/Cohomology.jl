@@ -4,8 +4,8 @@ using Oscar
 import Oscar: action
 import Oscar: induce
 import Oscar: word
-import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
-import AbstractAlgebra: Group, Module
+import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum, GAPGroup
+import AbstractAlgebra: Group, Module, FPModule
 import Base: parent
 
 import Oscar: pretty, Lowercase, @show_name, @show_special
@@ -85,20 +85,30 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function GModule(M, G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(M, G::T, ac::Vector{<:Map}) where {T}
     r = new{T,typeof(M)}()
     r.G = G
     r.ac = ac
     r.M = M
     @assert all(x -> domain(x) === codomain(x) === r.M, ac)
-    @assert length(ac) == ngens(G)
-    @hassert :GroupCohomology 1 is_consistent(r)
+    if isa(G, Group)
+      @assert length(ac) == ngens(G)
+      @hassert :GroupCohomology 1 is_consistent(r)
+    end
     return r
   end
 
 
-  function GModule(G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+  function GModule(G::T, ac::Vector{<:Map}) where {T}
     return GModule(domain(ac[1]), G, ac)
+  end
+
+  function GModule(ac::Vector{<:Map})
+    T = typeof(domain(ac[1]))
+    M = new{Nothing, T}()
+    M.M = domain(ac[1])
+    M.ac = ac
+    return M
   end
 
   F::Group # G as an Fp-group (if set)
@@ -136,19 +146,19 @@ group `H`, return the `ZZ[H]` module.
 
 Note: we do not check that this defined indeed a `ZZ[H]` module.
 """
-function gmodule(H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(H, ac)
 end
 
 #in case the group is trivial, (ngens == 0), then length(ac)=0
 #and the modules cannot be inferred. Thus a version with the
 #module...
-function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
+function gmodule(M, H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(M, H, ac)
 end
 
 """
-Checks if the action maps satisfy the same relations
+Check if the action maps satisfy the same relations
 as the generators of `G`.
 """
 function is_consistent(M::GModule)
@@ -183,23 +193,13 @@ function inv_action(C::GModule)
   return C.iac
 end
 
-function fp_group_with_isomorphism(C::GModule)
-  #TODO: better for PcGroup!!!
-  G = group(C)
-  if !isdefined(C, :F)
-    if (!isa(G, FPGroup)) && is_trivial(G)
-      C.F = free_group(0)
-      C.mF = hom(G, C.F, elem_type(G)[], elem_type(C.F)[])
-    elseif isa(group(C), PcGroup) && GAP.Globals.GeneratorsOfGroup(G.X) == GAP.Globals.Pcgs(G.X)
-      X = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X), GAP.julia_to_gap("a"))
+# convert G-module into a matrix group
+Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
 
-      C.F = FPGroup(GAPWrap.Range(X))
-      C.mF = GAPGroupHomomorphism(G, C.F, X)
-      return C.F, C.mF
-    else
-      C.F, C.mF = fp_group_with_isomorphism(gens(G))
-#      C.mF = GAPGroupHomomorphism(C.F, group(C), GAP.Globals.InverseGeneralMapping(C.mF.map))
-    end
+function fp_group_with_isomorphism(C::GModule)
+  if !isdefined(C, :F)
+    iso = isomorphism(FPGroup, group(C), on_gens=true)
+    C.F, C.mF = codomain(iso), iso
   end
   return C.F, C.mF
 end
@@ -211,6 +211,13 @@ action of `g`, ie. an array where each entry is mapped.
 """
 function action(C::GModule, g, v::Array)
   @assert parent(g) == Group(C)
+  if has_attribute(C, :is_trivial)
+    return v
+  end
+
+  if has_attribute(C, :action)
+    return get_attribute(C, :action)(C, g, v)
+  end
 
   ac = action(C)
   f = findfirst(isequal(g), gens(Group(C)))
@@ -275,6 +282,9 @@ The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
   @assert parent(g) == Group(C)
+  if has_attribute(C, :is_trivial)
+    return C.ac[1]
+  end
 
   ac = action(C)
   G = Group(C)
@@ -307,7 +317,28 @@ function action(C::GModule, g)
   return h
 end
 
+function AbstractAlgebra.Generic.add_direct_sum_injection!(a::FinGenAbGroupElem, i::Int, b::FinGenAbGroupElem)
+  C = get_attribute(parent(a), :direct_product)
+  n = 0
+  for j=1:i-1
+    n += ngens(C[j])
+  end
+  _a = Hecke.FinGenAbGroupElem(C[i], Oscar.Nemo._view_window(a.coeff, 1, n+1, 1, n+ngens(C[i])))
+  add!(_a, _a, b)
+  return a
+end
 
+function _coeffs(a::FinGenAbGroupElem)
+  return a.coeff
+end
+function _coeffs(a::AbstractAlgebra.FPModuleElem)
+  return a.v
+end
+function Oscar.zero!(a::AbstractAlgebra.FPModuleElem)
+  zero!(a.v)
+end
+
+#TODO: write an action function that does not use create the matrix...
 """
 For a Z[U]-Module C and a map U->G, compute the induced module:
     ind_U^G(C) = C otimes Z[G]
@@ -338,7 +369,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
 
-  #= C is Z[U] module, we needd
+  #= C is Z[U] module, we need
     C otimes Z[G]
 
     any pure tensor c otimes g can be "normalized" g = u*g_i for one of the
@@ -358,23 +389,52 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   end
   ac = []
   iac = []
+  o = one(base_ring(C))
   for s = gens(G)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
+    @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q)
+      _coeffs(q)[_q] = o
+
+      X = zero(indC)
+      for i=1:length(g)
+#        add!(X, inj[i^sigma](au[i](pro[i](q))))
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(ac, hom(indC, indC, [x for x = im_q]))
 
     s = inv(s)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
+    @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q)
+      _coeffs(q)[_q] = o
+      X = zero(indC)
+      for i=1:length(g)
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(iac, hom(indC, indC, [x for x = im_q]))
 
@@ -393,7 +453,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   return iC, h
 end
 
-function Oscar.quo(C::GModule{<:Any, <:Generic.FreeModule}, mDC::Generic.ModuleHomomorphism)
+function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.ModuleHomomorphism)
   q, mq = Oscar.quo(C.M, image(mDC)[1])
   S = GModule(C.G, [hom(q, q, [mq(x(preimage(mq, t))) for t = gens(q)]) for x = C.ac])
   return S, mq
@@ -457,7 +517,11 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup
+function Oscar.tensor_product(C::GModule{T, <:FPModule}, Cs::GModule{T, <:FPModule}...; task::Symbol = :map) where {T <: GAPGroup}
+  return Oscar.tensor_product(GModule{T, <:FPModule}[C, Cs...]; task)
+end
+
+function Oscar.tensor_product(C::Vector{<:GModule{<:GAPGroup, <:FPModule}}; task::Symbol = :map)
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -472,13 +536,41 @@ function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}..
   end
 end
 
+#TODO: cannot extend as it is not yet defined...
+#function Oscar.tensor_power(C::GModule, n::Int; task = :none)
+#  return tensor_product([C for i=1:n]; task)
+#end
+
+#TODO: do not use the tensor product, directly write down
+#      the module and the action (both symmetric and alternating)
+#TODO: higher powers?
+function symmetric_square(C::GModule)
+  t, mt = tensor_product(C, C; task = :map)
+  g = gens(C.M)
+  return sub(t, sub(t.M, [mt((g[i], g[j])) + mt((g[j], g[i])) for i=1:length(g) for j=1:i])[2])[1]
+end
+
+export symmetric_square
+
+function alternating_square(C::GModule)
+  t, mt = tensor_product(C, C; task = :map)
+  g = gens(C.M)
+  return sub(t, sub(t.M, [mt((g[i], g[j])) - mt((g[j], g[i])) for i=2:length(g) for j=1:i-1])[2])[1]
+end
+
+export alternating_square
+
+
 import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
 
 
-function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
+function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) where {T}
+  return Oscar.tensor_product([F, Fs...]; task)
+end
+function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
-  d = prod(dim(x) for x = F)
+  d = prod(rank(x) for x = F)
   G = free_module(base_ring(F[1]), d)
   if task == :none
     return G
@@ -538,6 +630,7 @@ export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
+_rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = vector_space_dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -551,17 +644,6 @@ Oscar.group(C::GModule) = C.G
 ###########################################################
 
 """
-Compute an fp-presentation of the common parent 'G' of 'g'
-and return both the group and the map from 'G' to the new group.
-"""
-function fp_group_with_isomorphism(g::Vector{<:Oscar.GAPGroupElem})
-  G = parent(g[1])
-  @assert all(x->parent(x) == G, g)
-  iso = isomorphism(FPGroup, G, on_gens=true)
-  return codomain(iso), iso
-end
-
-"""
 For an element of an fp-group, return a corresponding word as a sequence
 of integers. A positive integers indicates the corresponding generator,
 a negative one the inverse.
@@ -572,39 +654,18 @@ function word(y::FPGroupElem)
 end
 
 """
-The relations defining 'F' as an array of pairs.
+The relations defining 'G' as an array of pairs.
 """
-function _relations_by_generators(G::Oscar.GAPGroup)
-   f = GAPWrap.IsomorphismFpGroupByGenerators(GapObj(G), GAPWrap.GeneratorsOfGroup(GapObj(G)))
-   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-   H = FPGroup(GAPWrap.Image(f))
-   return relations(H)
+function Oscar.relations(G::Oscar.GAPGroup)
+  rels = relators(G)
+  if length(rels) == 0
+    T = eltype(rels)
+    return Tuple{T,T}[]
+  end
+  z = one(parent(rels[1]))
+  return [(x, z) for x in rels]
 end
 
-Oscar.relations(G::Oscar.GAPGroup) = _relations_by_generators(G)
-
-function Oscar.relations(F::Union{FPGroup, SubFPGroup})
-  Oscar._is_full_fp_group(GapObj(F)) || return _relations_by_generators(F)
-  R = relators(F)
-  z = one(free_group(F))
-  return [(x, z) for x = R]
-end
-
-function Oscar.relators(F::PcGroup)
-  #TODO: do it properly!!!!
-  return [x[1] for x = relations(F)]
-end
-
-function Oscar.relations(G::PcGroup)
-   # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
-   Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
-   Gpcgs = GAPWrap.Pcgs(GapObj(G))
-   Ggens == Gpcgs || return _relations_by_generators(G)
-   f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GAP.Obj("g"))
-   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-   H = FPGroup(GAPWrap.Image(f))
-   return relations(H)
-end
 
 ######################################################
 #
@@ -690,6 +751,11 @@ function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   return all(c(x) == d(x) for x = keys(c))
 end
 
+function Base.hash(c::CoChain{N, G, M}, h::UInt) where {N, G, M}
+  # this is a very bad hash, but it is correct
+  return hash(c.C, h)
+end
+
 function +(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   @assert c.C === d.C
   if isdefined(c, :D) && isdefined(d, :D)
@@ -759,14 +825,14 @@ end
 Evaluate a 2-cochain, a 2-cochain is a map from pairs of group elements
 into the module
 """
-function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
+function (C::CoChain{2})(g::Oscar.GAPGroupElem, h::Oscar.GAPGroupElem)
   if haskey(C.d, (g,h))
     return C.d[(g,h)]
   end
   @assert isdefined(C, :D)
   return C.d[(g,h)] = C.D((g, h))
 end
-(C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
+(C::CoChain{2})(g::NTuple{2, <:Oscar.GAPGroupElem}) = C(g[1], g[2])
 
 #TODO: re-write to get the maps! To support Q/Z as well
 """
@@ -1010,7 +1076,7 @@ end
 
 
 """
-Computes an isomorphic fp-group and a confluent system of
+Compute an isomorphic fp-group and a confluent system of
 relations given as pairs of words.
 
 Return the new group, the isomorphism and the confluent relations.
@@ -1107,7 +1173,7 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
       if do_f
         C.f(C, w, d1[w[i]], i)
       end
-      w = vcat(w[1:i-1], R[d1[w[i]]][2], w[i+1:end])
+      w = vcat(view(w, 1:i-1), R[d1[w[i]]][2], view(w, i+1:length(w)))
       i = 1
       continue
     end
@@ -1120,11 +1186,11 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
     if haskey(d2, (w[i], w[i+1]))
       for r = d2[(w[i], w[i+1])]
         if length(R[r][1]) + i-1 <= length(w) &&
-           R[r][1] == w[i:i+length(R[r][1])-1]
+           R[r][1] == view(w, i:i+length(R[r][1])-1)
           if do_f
             C.f(C, w, r, i)
           end
-          w = vcat(w[1:i-1], R[r][2], w[i+length(R[r][1]):end])
+          w = vcat(view(w, 1:i-1), R[r][2], view(w, i+length(R[r][1]):length(w)))
           i = 0
           break
         end
@@ -1136,7 +1202,7 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
 end
 
 function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
-  H_two(C; force_rws, redo)
+  H_two(C; force_rws, redo, maps_only = true)
   return get_attribute(C, :H_two_maps)
 end
 
@@ -1146,7 +1212,7 @@ https://arxiv.org/pdf/1910.11453.pdf
 almost the same as Holt
 =#
 #TODO: lazy = true, or even remove it
-function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = !false)
+function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = !false, maps_only::Bool = false)
   z = get_attribute(C, :H_two)
   if !redo && z !== nothing
     return domain(z[1]), z[1], z[2]
@@ -1241,27 +1307,33 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   # if use_rws we investigate all overlaps
   # otherwise, we know it a pc-presentation and thus fewer tests
   # are needed.
+  is_triv = has_attribute(C, :is_trivial)
+
   function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
     # C = c1 c2 ... C(tail):
-    @assert w[p:p+length(R[r][1])-1] == R[r][1]
+#    @assert w[p:p+length(R[r][1])-1] == R[r][1]
 
     if pos[r] == 0
       return
     end
 #    T = pro[pos[r]]
     T = nothing
-    for i=w[p+length(R[r][1]):end]
-      if i < 0
-        T = (T === nothing) ? iac[-i] : T*iac[-i]
-#        T = T*iac[-i]
-      else
-        T = (T === nothing) ? ac[i] : T * ac[i]
-#        T = T*ac[i]
+    if is_triv
+      C.T += pro[pos[r]]
+    else
+      for i=view(w, p+length(R[r][1]):length(w))
+        if i < 0
+          T = (T === nothing) ? iac[-i] : T*iac[-i]
+  #        T = T*iac[-i]
+        else
+          T = (T === nothing) ? ac[i] : T * ac[i]
+  #        T = T*ac[i]
+        end
       end
+      C.T += T === nothing ? pro[pos[r]] : pro[pos[r]] * T
     end
-    C.T += T === nothing ? pro[pos[r]] : pro[pos[r]] * T
   end
   c.f = symbolic_collect
 
@@ -1296,27 +1368,46 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
       end
 
       for l=1:l_max
-        if r[1][end-l+1:end] == s[1][1:l]
+        if view(r[1], length(r[1])-l+1:length(r[1])) == view(s[1], 1:l)
           #TODO  AB    -> Ss  s,t are tails
           #       BC   -> Tt
           #      (AB)C -> SsC -> SC C(s)
           #      A(BC) -> ATt -> AT t
           if pos[i] > 0
-            c.T = pro[pos[i]]
-            for h = s[1][l+1:end]
-              if h < 0
-                c.T = c.T * iac[-h]
+            if is_triv
+              c.T = pro[pos[i]]
+            else
+              first = true
+              for h = view(s[1], l+1:length(s[1]))
+                if h < 0
+                  if first
+                    c.T = iac[-h] 
+                    first = false
+                  else
+                    c.T = c.T * iac[-h]
+                  end
+                else
+                  if first
+                    c.T = ac[h] 
+                    first = false
+                  else
+                    c.T = c.T * ac[h]
+                  end
+                end
+              end
+              if first
+                c.T = pro[pos[i]]
               else
-                c.T = c.T * ac[h]
+                c.T = pro[pos[i]] * c.T
               end
             end
           else
             c.T = Z
           end
-          z1 = collect(vcat(r[2], s[1][l+1:end]), c)
+          z1 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
           T = c.T
           c.T = Z
-          z2 = collect(vcat(r[1][1:end-l], s[2]), c)
+          z2 = collect(vcat(view(r[1], 1:length(r[1])-l), s[2]), c)
           if pos[j] > 0
             c.T += pro[pos[j]]
           end
@@ -1327,7 +1418,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     end
   end
 
-  @vprint :GroupCohomology 2 "found $(length(all_T)) relations\n"
+  @vprint :GroupCohomology 1 "found $(length(all_T)) relations\n"
 
   if length(all_T) == 0
     Q = sub(M, elem_type(M)[])[1]
@@ -1336,13 +1427,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     mm = Oscar.direct_sum(all_T)
     Q = codomain(mm)
   end
-  @vprint :GroupCohomology 2 "computing 2-cycles...\n"
-#  return mm;
-  @vtime :GroupCohomology 2 E, mE = kernel(mm)
-  @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
-  @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
-
-
   if length(ac) == 0
     B = sub(M, elem_type(M)[])[1]
     B_pro = []
@@ -1395,6 +1479,17 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
 
     CC += (T-S)*inj[pos[i]]
   end
+
+  set_attribute!(C, :H_two_maps => (CC, mm))
+  if maps_only
+    return
+  end
+
+  @vprint :GroupCohomology 2 "computing 2-cycles...\n"
+  @vtime :GroupCohomology 2 E, mE = kernel(mm)
+  @hassert :GroupCohomology 1 all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
+  @hassert :GroupCohomology 1 all(x->iszero(mm(mE(x))), gens(E))
+
   @vprint :GroupCohomology 2 "now the 2-boundaries...\n"
   @vtime :GroupCohomology 2 i, mi = image(CC)
   @vprint :GroupCohomology 2 "and the quotient...\n"
@@ -1576,14 +1671,22 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
-  set_attribute!(C, :H_two_maps => (CC, mm))
 
-  function is_coboundary(cc::CoChain{2})
+  function is_coboundary(cc::CoChain{2}; reduce::Bool = false)
     t = TailFromCoChain(cc)
     fl, b = has_preimage_with_preimage(CC, t)
     if !fl
       return false, nothing
     end
+    if reduce
+      k, mk = kernel(CC)
+      if !is_trivial(k)
+        m = vcat(ZZMatrix[mk(x).coeff for x = gens(k) if !iszero(x)]...)
+        m = lll(m)
+        b = parent(b)(Hecke.MultDep.size_reduce(m, b.coeff))
+      end
+    end
+
     d = Dict{Tuple{elem_type(G), }, elem_type(M)}()
     # t gives, directly, the images of the generators (of FF)
     im_g = [B_pro[i](b) for i=1:ngens(FF)]
@@ -1655,9 +1758,17 @@ compute the map
   f : M -> prod N_i : m -> (f_i(m))_i
 """
 function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingElement}, FinGenAbGroupHom}})
-  D = direct_product([codomain(x) for x = a]...; task = :none)
-  return hom(domain(a[1]), D, hcat([matrix(x) for x = a]...))
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_product(codomain.(a)...; task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
+
+function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+  @req allequal(domain, a) "All maps must have equal domain"
+  D = direct_sum(codomain.(a); task = :none)
+  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
+end
+
 
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
@@ -1696,6 +1807,11 @@ iszero(a) || (@show g, h, k, a ; return false)
   return true
 end
 
+# create a free module with type "compatible" with that of `M`
+_similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
+_similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n)
+_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+
 """
 Compute
   0 -> C -I-> hom(Z[G], C) -q-> B -> 0
@@ -1703,16 +1819,8 @@ To allow "dimension shifting": H^(n+1)(G, C) - H^n(G, q)
 returns (I, q), (hom(Z[G], C), B)
 """
 function dimension_shift(C::GModule)
-  G = C.G
-  if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
-    Z = Hecke.zero_obj(zg.M)
-  elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
-    Z = free_module(base_ring(C), 0)
-  else
-    error("unsupported module")
-  end
+  zg, _, _ = regular_gmodule(C)
+  Z = _similar_free_module(zg.M, 0)
   @assert is_consistent(zg)
   H, mH = Oscar.GModuleFromGap.ghom(zg, C)
   @assert is_consistent(H)
@@ -1720,7 +1828,7 @@ function dimension_shift(C::GModule)
   #around 29.8
   #Drew's notes.
   #the augmentation map on the (canonical) generators is 1
-  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
+  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g in 1:ngens(zg.M)])) for c in gens(C.M)])
   @assert is_G_hom(C, H, inj)
   B, q = quo(H, image(inj)[2])
 
@@ -1730,7 +1838,7 @@ function dimension_shift(C::GModule)
   #XXX: we don't have homs for GModules
   #   : sice we also don't have elements
   #   : do we need elements for homs?
-  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i = gens(Z)])
+  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i in 1:ngens(Z)])
   Z2 = hom(q.M, Z, [zero(Z) for x = gens(q.M)])
   return cochain_complex([Z1, inj, mq, Z2])
 end
@@ -1751,10 +1859,10 @@ end
 function dimension_shift_left(C::GModule)
   G = C.G
   if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
+    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
     Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    zg, ac, em = regular_gmodule(G, base_ring(C))
     Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")
@@ -1785,7 +1893,7 @@ end
 
 
 """
-Computes H^3 via dimension-shifting:
+Compute H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1
 thus
@@ -1853,15 +1961,15 @@ function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
   error("only H^0, H^1 and H^2 are supported")
 end
 
-# return an f.p. group `F` and an isomorphism `M -> F`
+# better use `isomorphism` directly
 function fp_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem})
-  p, mp = pc_group_with_isomorphism(M, refine = false)
-  mf = isomorphism(FPGroup, p)
-  return codomain(mf), mf*mp
+  iso = isomorphism(FPGroup, M, on_gens=true)
+  return codomain(iso), iso
 end
 
+
 #########################################################
-function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
+function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbFieldElem}, FreeMod{QQAbFieldElem}})
   return M.matrix
 end
 
@@ -1891,38 +1999,19 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   end
   @assert nrows(h) == ncols(h)
   if refine
-    r = sparse_matrix(ZZ)
-    ng = 1
-    gp = []
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = factor(h[i,i]).fac
+      lf = collect(factor(h[i,i]))
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
-          push!(r, sparse_row(ZZ, [ng, ng+1], [p, ZZRingElem(-1)]))
           push!(hm, v)
           v *= p
-          ng += 1
         end
-        push!(r, sparse_row(ZZ, [ng], [p]))
-        push!(gp, ng)
         push!(hm, v)
-        ng += 1
       end
     end
-    for i=1:nrows(h)
-      for j=i+1:ncols(h)
-        if !iszero(h[i,j])
-          push!(r.rows[gp[i]].pos, gp[j])
-          push!(r.rows[gp[i]].values, h[i,j])
-        end
-      end
-    end
-    MM = abelian_group(matrix(r))
-    h = hom(MM, M, hm)
-    M = MM
-    mM = h
+    M, mM = sub(M, hm) #without simplify is guaranteed to keep the gens!
   else
     mM = hom(M, M, gens(M))
   end
@@ -1943,7 +2032,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   B = pc_group(C)
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
 
-  Julia_to_gap = function(a::FinGenAbGroupElem)
+  function Julia_to_gap(a::FinGenAbGroupElem)
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
@@ -1954,7 +2043,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
   end
 
-  gap_to_julia = function(a::GapObj)
+  function Gap_to_julia(a::GapObj)
     e = GAPWrap.ExtRepOfObj(a)
     z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
@@ -1970,84 +2059,15 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   return B, MapFromFunc(
     codomain(mM), B,
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
-    x->image(mM, gap_to_julia(GapObj(x))))
+    x->image(mM, Gap_to_julia(GapObj(x))))
 end
 
+# `refine` is irrelevant because `M` is elementary abelian.
 function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = true)
-  k = base_ring(M)
-  p = characteristic(k)
-
-  G = free_group(degree(k)*dim(M))
-
-  C = GAP.Globals.CombinatorialCollector(GapObj(G),
-                  GAP.Obj([p for i=1:ngens(G)]; recursive = true))
-  F = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(G)))
-
-  # Note that we have specified all relative orders as `p`.
-  # Missing commutator and power relators are interpreted as trivial,
-  # thus `C` describes an elementary abelian group.
-  B = PcGroup(GAP.Globals.GroupByRws(C))
-  @assert is_abelian(B)
-  @assert order(B) == order(M)
-
-  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
-
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
-    F = base_ring(parent(a))
-    @assert absolute_degree(F) == 1
-    r = ZZRingElem[]
-    for i=1:ngens(M)
-      if !iszero(a[i])
-        push!(r, i)
-        push!(r, lift(ZZ, a[i]))
-      end
-    end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
-    return g
-  end
-
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
-    r = ZZRingElem[]
-    for i=1:ngens(M)
-      if !iszero(a[i])
-        for j=0:degree(k)-1
-          if !iszero(coeff(a[i], j))
-            push!(r, (i-1)*degree(k)+j+1)
-            push!(r, ZZ(coeff(a[i], j)))
-          end
-        end
-      end
-    end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
-    return g
-  end
-
-
-  gap_to_julia = function(a::GapObj)
-    e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(ZZRingElem, ngens(M)*degree(k))
-    for i=1:2:length(e)
-      if !iszero(e[i+1])
-        z[e[i]] = e[i+1]
-      end
-    end
-    c = elem_type(k)[]
-    for i=1:dim(M)
-      push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
-    end
-    return M(c)
-  end
-
-  return B, MapFromFunc(
-    M, B,
-    y->PcGroupElem(B, Julia_to_gap(y)),
-    x->gap_to_julia(GapObj(x)))
+  iso = isomorphism(PcGroup, M, on_gens=true)
+  return codomain(iso), iso
 end
 
-
-function underlying_word(g::FPGroupElem)
-  return FPGroupElem(free_group(parent(g)), GAPWrap.UnderlyingElement(GapObj(g)))
-end
 
 """
 Given a 2-cocycle, return the corresponding group extension, ie. the large
@@ -2058,10 +2078,10 @@ the corresponding elt in the extension.
 If the gmodule is defined via a pc-group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
-function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
+function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
-  F, _ = fp_group_with_isomorphism(gens(G))
+  F = codomain(isomorphism(FPGroup, G, on_gens=true))
   M = Module(C)
   ac = action(C)
   iac = inv_action(C)
@@ -2231,7 +2251,6 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 
 #  z = GAP.Globals.GroupByRwsNC(CN)
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
-#  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
   mQ = hom(N, Q, gens(N), gens(Q); check = false)
@@ -2248,10 +2267,10 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
-    for i=1:2:length(wm)
-      push!(wg, wm[i]+ngens(G))
-      push!(wg, wm[i+1])
+    wm = syllables(preimage(mffM, mfM(m)))
+    for (ind, exp) in wm
+      push!(wg, ind+ngens(G))
+      push!(wg, exp)
     end
     return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
   end
@@ -2280,7 +2299,7 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
 end
 
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
-  G = GL(dim(F), base_ring(F))
+  G = GL(vector_space_dim(F), base_ring(F))
   set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
                          x->hom(F, F, matrix(x)),
@@ -2367,7 +2386,7 @@ function split_extension(C::GModule)
   c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(CoChain{2, S, T}(C, c))
+  return extension(FPGroup, CoChain{2, S, T}(C, c))
 end
 
 function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
@@ -2411,7 +2430,7 @@ end
 
 Tests if the domain is in the center of the codomain.    
 """
-function Oscar.is_central(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group})
+function Oscar.is_central(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group})
   E = codomain(NtoE)
   n = map(NtoE, gens(domain(NtoE)))
   return all(x->all(y->y*x == x*y, n), gens(E))
@@ -2423,7 +2442,7 @@ end
 
 Tests if the domain is in the center and the derived subgroup of the codomain.
 """
-function is_stem_extension(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group}; is_central_known::Bool = false)
+function is_stem_extension(NtoE::Map{<:Union{Group, FinGenAbGroup}, <:Group}; is_central_known::Bool = false)
   E = codomain(NtoE)
   N = image(NtoE)[1]
   E = codomain(NtoE)
@@ -2510,7 +2529,7 @@ function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
 end
 
 function Oscar.permutation_group(c::CoChain{2})
-  g = extension(c)[1]
+  g = extension(FPGroup, c)[1]
   return permutation_group(g)
 end
 
@@ -2522,3 +2541,4 @@ export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
 export is_stem_extension, is_central
+export alternating_square, symmetric_square

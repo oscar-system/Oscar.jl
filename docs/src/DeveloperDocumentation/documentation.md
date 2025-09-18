@@ -1,4 +1,10 @@
-# Documenting OSCAR code
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
+# Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
 information as possible into the docstrings and only use the doc pages for
@@ -8,7 +14,7 @@ Exceptions to this philosophy are the developer and general pages.
 
 ## Docstrings of exported functions
 
-Exported function should have docstrings, which look like
+Exported function should have docstrings, which look like this.
 ```julia
 @doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
@@ -17,10 +23,13 @@ A short description of the function. It is allowed to use $\LaTeX$.
 """
 functionname(x...,b...; c = ...)
 ```
-If the signature is too long, use linebreaks to fit 80 characters.
+If the signature is too long, use linebreaks to fit it in 80 characters.
+Note that the signature should be indented by exactly four spaces to be rendered
+correctly in the manual.
 
 Please also do provide an example within the docstring if possible, preferably
-as a `jldoctest`, i.e.
+as a `jldoctest`. This should be in a section titled `Examples`. Overall it might
+look like this:
 ````julia
 @doc raw"""
     functionname(x::ArgumentType, b::OtherArgument; c::Keyword = default) -> Int, Int
@@ -42,6 +51,14 @@ This allows the user to immediately see how the function can be used, gives
 them some code that they can copy-paste and manipulate, and, as a bonus,
 provides a testcase as well.
 
+
+The docstrings can be tested separately by function or path name substring; or all at once:
+
+```@docs
+doctest(f::Function; set_meta::Bool = false, doctest = true)
+doctest(path::String; set_meta::Bool = false, doctest = true)
+doctest(; doctest = true)
+```
 
 ## The folder `docs`
 
@@ -65,10 +82,8 @@ include your new page in the appropriate place.
     Once you have created a pull request it is possible to preview the
     documentation on github using the link
     https://docs.oscar-system.org/previews/PR<prnumber>/
-    where you insert the number of your PR for `prnumber`. Alternatively you
-    can look at the github actions tab of your PR and click the details link
-    next to the `documenter/deploy` action. There are a few conditions for this 
-    to work:
+    where you insert the number of your PR for `<prnumber>`.
+    There are a few conditions for this to work:
     - No conflicts with the master branch.
     - Documentation action is successful, i.e. no doctest errors.
     - The branch for the PR is in the main `oscar-system/Oscar.jl` repository.
@@ -123,7 +138,7 @@ existing entries. An easy way to do that is to add your new BibTeX entry,
 then run [bibtool](http://www.gerd-neugebauer.de/software/TeX/BibTool/en/)
 by invoking it as follows from the root directory of the Oscar.jl repository:
 
-    bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+    bibtool -r .bibtoolrsc docs/oscar_references.bib -o docs/oscar_references.bib
 
 For every pull request on github, the CI checks if running `bibtool` leads to
 changes in the bibliography. If so, this test fails and indicates that the
@@ -131,10 +146,17 @@ changes in the bibliography. If so, this test fails and indicates that the
 is not required that this test is passed. Still, please feel encouraged to fix
 this failure by running `bibtool` locally as explained above.
 
+!!! note "bibtool produces changes in unrelated parts of oscar_references.bib"
+    Sometimes `bibtool` will produce many changes when run locally. This can be
+    caused by a version difference. The version used in our github actions is
+    2.68. Check your version by running `bibtool -V`. When running this
+    command, please also pay attention whether any "Special configuration
+    options" are set.
+
 Please follow the additional guidelines below, that are not checked by bibtool:
 
 - Do not escape special characters like umlauts or accented characters. Instead, use the unicode character directly.
 - You do not need to use braces to preserve capitalization as `DocumenterCitations.jl` keeps entries as is (in contrast to `bibtex`). In some cases, braces can even be harmful, i.e., show up in the output.
 - If a DOI is available for your reference, please add it as a `doi` field to the BibTeX entry. In this case, please refrain from adding an additional `url` field.
 - If your reference has no DOI or the paper is not open-access, but is available as an arXiv preprint, you can add the arXiv link as a `eprint` field (even additionally to a `doi` field). For other preprint servers (e.g. HAL), please refer to the [DocumenterCitations.jl docs](https://juliadocs.org/DocumenterCitations.jl/stable/syntax/#Preprint-support).
-- Documents available only as an arXiv preprint should be added as `@Article` entries with, e.g., `arXiv:2003.10132` in the `journal` field, and, e.g., `10.48550/arxiv.2003.10132` in the `doi` field, but without an `eprint` field.
+- Documents available only as an arXiv preprint should be added as `@Misc` entries with the arXiv-ID in the `eprint` field, e.g., `archiveprefix = {arXiv}` and `eprint = {2008.12651}`.

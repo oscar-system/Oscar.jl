@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
@@ -21,6 +23,12 @@ Similarly, most algorithms for toric varieties and schemes are are based on
 General textbooks offering details on the theory of varieties and schemes include:
 - [Har77](@cite)
 - [The Stacks Project](https://stacks.math.columbia.edu)
+
+
+## Tutorials
+
+We encourage you to take a look at our [tutorials](https://www.oscar-system.org/tutorials/). For instance,
+there is a [tutorial for toric geometry in OSCAR](https://www.oscar-system.org/tutorials/ToricGeometry/).
 
 
 ## Conventions

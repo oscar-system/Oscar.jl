@@ -85,6 +85,31 @@ Return a `RayVector` resembling a ray from the origin through the point whose co
 """
 ray_vector
 
+function Base.:(==)(x::RayVector, y::RayVector)
+  ix = findfirst(!is_zero, x)
+  iy = findfirst(!is_zero, y)
+  ix == iy || return false
+  isnothing(ix) && return true
+  sign(x[ix]) == sign(y[iy]) || return false
+  return y[iy] * x.p == x[ix] * y.p
+end
+
+function Base.:(==)(x::RayVector, y::AbstractVector)
+  ry = ray_vector(coefficient_field(x), y)
+  return x == ry
+end
+
+Base.:(==)(x::AbstractVector, y::RayVector) = y == x
+
+Base.:(==)(::PointVector, ::RayVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
+Base.:(==)(::RayVector, ::PointVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
+
+Base.isequal(x::RayVector, y::RayVector) = x == y
+
+Base.hash(x::RayVector, h::UInt) = hash(collect(sign.(x)), hash(coefficient_field(x), h))
+
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################
@@ -172,15 +197,15 @@ end
 #  Field access
 negbias(H::Union{AffineHalfspace,AffineHyperplane}) = H.b
 negbias(H::Union{LinearHalfspace,LinearHyperplane}) = coefficient_field(H)(0)
-normal_vector(H::Union{Halfspace,Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
+normal_vector(H::Union{Halfspace,Hyperplane}) = H.a[1, :]
 
 _ambient_dim(x::Union{Halfspace,Hyperplane}) = length(x.a)
 
 function Base.:(==)(x::Halfspace, y::Halfspace)
   ax = normal_vector(x)
   ay = normal_vector(y)
-  ix = findfirst(a -> !iszero(a), ax)
-  iy = findfirst(a -> !iszero(a), ay)
+  ix = findfirst(!is_zero, ax)
+  iy = findfirst(!is_zero, ay)
   ix == iy || return false
   r = y.a[iy]//x.a[ix]
   r > 0 || return false
@@ -190,18 +215,31 @@ end
 function Base.:(==)(x::Hyperplane, y::Hyperplane)
   ax = normal_vector(x)
   ay = normal_vector(y)
-  ix = findfirst(a -> !iszero(a), ax)
-  iy = findfirst(a -> !iszero(a), ay)
+  ix = findfirst(!is_zero, ax)
+  iy = findfirst(!is_zero, ay)
   ix == iy || return false
   r = y.a[iy]//x.a[ix]
   return (r .* ax == ay) && (r * negbias(x) == negbias(y))
 end
 
-Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
-  hash((x.a, x.b), hash(T, h))
+Base.in(x::AbstractVector, y::Hyperplane) = (dot(x, normal_vector(y)) == negbias(y))
+Base.in(x::AbstractVector, y::Halfspace) = (dot(x, normal_vector(y)) <= negbias(y))
+# A ray vector needs a base point for containment in an affine space, so we
+# just error when this combination is tested.
+Base.in(x::RayVector, y::T) where {T<:Union{AffineHalfspace,
+    AffineHyperplane}} =
+  throw(ArgumentError("Containment of RayVector in affine spaces is not
+                      well-defined."))
 
-Base.hash(x::T, h::UInt) where {T<:Union{LinearHalfspace,LinearHyperplane}} =
-  hash(x.a, hash(T, h))
+function Base.hash(x::Union{<:Halfspace,<:Hyperplane}, h::UInt)
+  a = normal_vector(x)
+  f = inv(first(Iterators.filter(!is_zero, a)))
+  b = negbias(x)
+  if x isa Halfspace
+    f = abs(f)
+  end
+  hash((f .* a, f * b), h)
+end
 
 ################################################################################
 ######## SubObjectIterator
@@ -303,6 +341,8 @@ function IncidenceMatrix(iter::SubObjectIterator)
   end
 end
 
+incidence_matrix(iter::SubObjectIterator) = IncidenceMatrix(iter)
+
 # primitive generators only for ray based iterators
 matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
   matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
@@ -314,7 +354,8 @@ matrix(
   iter::SubObjectIterator{<:Union{RayVector{QQFieldElem},PointVector{QQFieldElem}}},
 ) = matrix(R, matrix_for_polymake(iter))
 matrix(
-  K, iter::SubObjectIterator{<:Union{RayVector{<:FieldElem},PointVector{<:FieldElem}}}
+  K::NCRing,
+  iter::SubObjectIterator{<:Union{RayVector{<:FieldElem},PointVector{<:FieldElem}}},
 ) = matrix(K, matrix_for_polymake(iter))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)

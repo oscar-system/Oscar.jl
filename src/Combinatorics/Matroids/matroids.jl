@@ -7,10 +7,10 @@ const GroundsetType = Union{AbstractVector, AbstractSet}
 # Later test if this works:
 # @attributes mutable struct Matroid
 
-struct Matroid
+struct Matroid{T}
     pm_matroid::Polymake.BigObject
-    groundset::AbstractVector # groundset of the matroid 
-    gs2num::Dict{<:Any, Int}# dictionary to map the groundset to the integers from 1 to its size
+    groundset::Vector{T} # groundset of the matroid
+    gs2num::Dict{T, Int} # dictionary to map the groundset to the integers from 1 to its size
 end
 
 pm_object(M::Matroid) = M.pm_matroid
@@ -18,7 +18,7 @@ pm_object(M::Matroid) = M.pm_matroid
 function Base.show(io::IO, M::Matroid)
     r = rank(M)
     n = length(M.groundset)
-    print(io, "Matroid of rank $(r) on $(n) elements")
+    print(io, "Matroid of rank $(r) on ", ItemQuantity(n, "element"))
 end
 
 # function that generates the dictionary which maps the groundset to integers
@@ -30,7 +30,7 @@ _pmset_to_indices(A::Polymake.Set{<:Integer}) = collect(Int, Polymake.to_one_bas
 _indices_to_gs(A::AbstractVector{<:AbstractVector{<:Integer}}, gs::AbstractVector) = [gs[S] for S in A]
 _indices_to_gs(A::AbstractVector{<:Integer}, gs::AbstractVector) = gs[A]
 
-_gs_to_indices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = type(collect(Int, gs2num[i] for i in collect(s)))
+_gs_to_indices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = type(collect(Int, gs2num[i] for i in s))
 _gs_to_pmindices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = Polymake.to_zero_based_indexing(_gs_to_indices(s, gs2num; type=type))
 
 _property_to_gs(M::Matroid, p::Symbol) = _indices_to_gs(_pmset_to_indices(getproperty(pm_object(M), p)), M.groundset)
@@ -278,9 +278,9 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem)
+    matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 
-A matroid represented by the column vectors of a matrix `A`.
+A matroid represented by the column vectors of a matrix `A`. The value of `check` is currently ignored.
 
 See Section 1.1 of [Oxl11](@cite).
 
@@ -310,13 +310,13 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
         end
     end
 
-    return matroid_from_bases(bases, ncols(A); check=check)
+    return matroid_from_bases(bases, ncols(A); check=false)
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem)
+    matroid_from_matrix_rows(A::MatrixElem, check::Bool=true)
 
-A matroid represented by the row vectors of a matrix.
+A matroid represented by the row vectors of a matrix. The value of `check` is currently ignored.
 
 See Section 1.1 of [Oxl11](@cite).
 
@@ -412,7 +412,7 @@ See Section 6.7 of [Oxl11](@cite).
 
 # Examples
 ```jldoctest
-julia> R,(x,y,s,t,Δ) = polynomial_ring(QQ, ["x","y","s","t","Δ"]);
+julia> R,(x,y,s,t,Δ) = polynomial_ring(QQ, [:x,:y,:s,:t,:Δ]);
 
 julia> I = ideal(R, [y^2 - x^3 - s*x - t, Δ + 16*(4*s^3 + 27*t^2)]);
 
@@ -444,7 +444,7 @@ See Section 6.7 of [Oxl11](@cite).
 # Examples
 This is the algebraic matroid pictured in Figure 6.27 of [Oxl11](@cite):
 ```jldoctest
-julia> R,v = polynomial_ring(GF(2), ["x","y","z"]);
+julia> R,v = polynomial_ring(GF(2), [:x,:y,:z]);
 
 julia> F = fraction_field(R);
 
@@ -480,7 +480,7 @@ function algebraic_matroid(G::Vector; check::Bool=true)
   # Implicitize the rational map t[i] -> G[i]. Since the G can have
   # denominators, we can't at the moment use kernel(hom(F, ...)).
   C = coefficient_ring(R)
-  S, t, x = polynomial_ring(C, "t" => 1:length(G), [string(x) for x in gens(R)]; cached=false)
+  S, t, x = polynomial_ring(C, :t => 1:length(G), [string(x) for x in gens(R)]; cached=false)
   phi = hom(R, S, x)
   I = F isa FracField ?
     ideal(S, [phi(R(numerator(g))) - t*phi(R(denominator(g))) for (g,t) in zip(G,t)]) :
@@ -579,7 +579,7 @@ function direct_sum(M::Matroid, N::Matroid)
     return Matroid(Polymake.matroid.direct_sum(pm_object(M), N.pm_matroid), [M.groundset; gsN], create_gs2num([M.groundset; gsN]))
 end
 
-direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
+direct_sum(comp::Vector{<:Matroid}) = foldl(direct_sum, comp)
 
 @doc raw"""
     deletion(M, [S, e])
@@ -615,8 +615,8 @@ julia> matroid_groundset(N)
 ```
 """
 function deletion(M::Matroid,set::GroundsetType)
-    set = unique(collect(set))
-    if length(set) == 0
+    set = unique!(collect(set))
+    if isempty(set)
         return M
     end
     if !all([e in M.groundset for e in set])
@@ -663,7 +663,7 @@ julia> matroid_groundset(N)
 ```
 """
 function restriction(M::Matroid, set::GroundsetType)
-    deleted_elems = filter(x -> !(x in set), M.groundset)
+    deleted_elems = filter(!in(set), M.groundset)
     return deletion(M, deleted_elems)
 end
 
@@ -754,17 +754,18 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
         error("The element you are about to add is already contained in the ground set")
     end
     ktype = keytype(M.gs2num)
-    gs2num = Dict{Union{ktype, ElementType}, Int}(M.gs2num)
+    gs = [M.groundset;elem]
+    gs2num = Dict{eltype(gs), Int}(M.gs2num)
     gs2num[elem] = length(M.groundset)+1
     pm_set = _gs_to_pmindices(set, gs2num; type=Set)
-    return Matroid(Polymake.matroid.principal_extension(pm_object(M), pm_set),[M.groundset;elem],gs2num)
+    return Matroid(Polymake.matroid.principal_extension(pm_object(M), pm_set),gs,gs2num)
 end
 
 @doc raw"""
     free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
-See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
+See [`principal_extension`](@ref) and Section 7.2 of [Oxl11](@cite).
 
 # Examples
 To add `5` freely to the uniform matroid `U_{3,4}` do
@@ -963,7 +964,7 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     n=Int((q^(r+1)-1)/(q-1))
     for i in 1:(q^(r+1)-1)
         new_column = digits(i, base=q, pad=r+1)
-        if new_column[findfirst(k->k!=0, new_column)]==1
+        if new_column[findfirst(!is_zero, new_column)]==1
             M = vcat(M, new_column)
         end
     end

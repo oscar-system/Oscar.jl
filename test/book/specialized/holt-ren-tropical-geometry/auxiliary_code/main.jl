@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add(name="MixedSubdivisions", version=v"1.1"; io=devnull)
+Pkg.add(name="MixedSubdivisions", version="1.1"; io=devnull)
 
 import LibGit2
 repo = LibGit2.clone("https://github.com/isaacholt100/generic_root_count", "generic_root_count");

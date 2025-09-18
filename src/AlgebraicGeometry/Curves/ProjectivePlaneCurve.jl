@@ -7,7 +7,7 @@ A reduced curve in the projective plane.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
 Projective plane curve
@@ -19,20 +19,22 @@ Projective plane curve
   X::ProjectiveAlgebraicSet{BaseRingType, RingType}
   defining_equation::MPolyDecRingElem
 
-  function ProjectivePlaneCurve(X::ProjectiveAlgebraicSet{S,T}, check::Bool=true) where {S,T}
+  function ProjectivePlaneCurve(X::ProjectiveAlgebraicSet{S,T}; check::Bool=true) where {S,T}
     @check begin
       dim(X) == 1 || error("not of dimension one")
+      is_equidimensional(X) || error("not equidimensional")
       dim(ambient_space(X)) == 2 || error("not a plane curve")
     end
     new{S,T}(X)
   end
 
-  function ProjectivePlaneCurve(eqn::MPolyDecRingElem; is_radical::Bool=false)
+  function ProjectivePlaneCurve(eqn::MPolyDecRingElem; is_radical::Bool=false, check::Bool=true)
     ngens(parent(eqn)) == 3 || error("not a plane curve")
+    iszero(eqn) && error("the given equation must be non-zero")
     if !is_radical
-      eqn = prod([i[1] for i in factor(eqn)], init=one(parent(eqn)))
+      eqn = prod([i[1] for i in factor_squarefree(eqn)], init=one(parent(eqn)))
     end
-    X = ProjectivePlaneCurve(algebraic_set(eqn; is_radical=true))
+    X = ProjectivePlaneCurve(algebraic_set(eqn; is_radical=true, check=check); check=false)
     X.defining_equation = eqn
     return X
   end
@@ -40,7 +42,7 @@ end
 
 
 
-ProjectivePlaneCurve(I::MPolyIdeal{<:MPolyDecRingElem}; kwargs...) = ProjectivePlaneCurve(algebraic_set(eq; kwargs...))
+ProjectivePlaneCurve(I::MPolyIdeal{<:MPolyDecRingElem}; kwargs...) = ProjectivePlaneCurve(algebraic_set(I; kwargs...))
 
 plane_curve(I::MPolyIdeal{<:MPolyDecRingElem};kwargs...) = ProjectivePlaneCurve(I; kwargs...)
 plane_curve(eq::MPolyDecRingElem{<:FieldElem}; kwargs...) = ProjectivePlaneCurve(eq; kwargs...)
@@ -66,12 +68,11 @@ end
 Return the defining equation of the (reduced) plane curve `C`.
 """
 function defining_equation(C::ProjectivePlaneCurve{S,MPolyQuoRing{T}}) where {S,T}
-  if isdefined(C, :defining_equation)
-    return C.defining_equation::T
+  if !isdefined(C, :defining_equation)
+    m = minimal_generating_set(vanishing_ideal(C))
+    C.defining_equation = only(m)
   end
-  m = minimal_generating_set(vanishing_ideal(C))
-  @assert length(m) == 1
-  return m[1]::T
+  return C.defining_equation::T
 end
 
 ################################################################################
@@ -115,7 +116,49 @@ function irreducible_components(C::ProjectivePlaneCurve)
 end
 
 
+@doc raw"""
+    dual(C::ProjectivePlaneCurve; dual_projective_space=projective_space(base_ring(C),[:u0, :u1, :u2]))
+    
+Return the dual curve to ``C``. 
 
+The points of the dual curve are the tangent lines to ``C`` in the dual projective space. 
+We require that ``C`` does not contain a line. 
+
+# Examples 
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(x*y^3+y*z^3+z*x^3)
+Projective plane curve
+  defined by 0 = x^3*z + x*y^3 + y*z^3
+
+julia> dual(C)
+Projective plane curve
+  defined by 0 = 27*u0^10*u1^2 - 4*u0^9*u2^3 - 282*u0^7*u1^3*u2^2 + 42*u0^6*u1*u2^5 + 42*u0^5*u1^6*u2 + 651*u0^4*u1^4*u2^4 - 4*u0^3*u1^9 - 282*u0^3*u1^2*u2^7 - 282*u0^2*u1^7*u2^3 + 27*u0^2*u2^10 + 42*u0*u1^5*u2^6 + 27*u1^10*u2^2 - 4*u1^3*u2^9
+
+julia> dual(dual(C);dual_projective_space=ambient_space(C))
+Projective plane curve
+  defined by 0 = x^3*z + x*y^3 + y*z^3
+
+``` 
+"""
+function dual(C::ProjectivePlaneCurve; dual_projective_space=projective_space(base_ring(C),[:u0, :u1, :u2]))
+  F = defining_equation(C)
+  R = parent(F)
+  k = base_ring(R)
+  P, x = polynomial_ring(k, 7; cached=false)
+  Fp = F(x[4],x[5],x[6])
+  I = ideal(P, [x[i]-x[7]*derivative(Fp,i+3) for i in 1:3]) + ideal(P, [Fp])
+  J = eliminate(I,x[4:7])
+  S = homogeneous_coordinate_ring(dual_projective_space)
+  y = gens(S)
+  yy = vcat(y, [zero(S) for i in 1:4])
+  phi = hom(P, S, yy)
+  PP = dual_projective_space
+  Cdual = plane_curve(phi(J))
+  set_attribute!(Cdual,:ambient_space=>PP)
+  return Cdual
+end 
 
 
 ################################################################################
@@ -125,6 +168,24 @@ end
     multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
 
 Return the multiplicity of `C` at `P`.
+
+# Examples
+```jldoctest 
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
+Projective plane curve
+  defined by 0 = x^5*y - x*y^4*z
+
+julia> P = C([0,0,1])
+Projective rational point
+  of V(x^5*y - x*y^4*z)
+with coordinates (0 : 0 : 1)
+
+julia> multiplicity(C, P)
+5
+
+```
 """
 function multiplicity(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || return 0
@@ -159,6 +220,22 @@ end
     tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
+Projective plane curve
+  defined by 0 = x^5*y - x*y^4*z
+
+julia> P = C([0,0,1])
+Projective rational point
+  of V(x^5*y - x*y^4*z)
+with coordinates (0 : 0 : 1)
+
+julia> tangent_lines(C, P);
+```
 """
 function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || error("The point is not on the curve.")

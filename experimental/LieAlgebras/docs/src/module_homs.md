@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -17,7 +18,7 @@ or a $\dim V_1 \times \dim V_2$ matrix.
 ```@docs
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleElem{C}}; check::Bool=true) where {C<:FieldElem}
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::MatElem{C}; check::Bool=true) where {C<:FieldElem}
-identity_map(::LieAlgebraModule)
+id_hom(::LieAlgebraModule)
 zero_map(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:FieldElem}
 ```
 

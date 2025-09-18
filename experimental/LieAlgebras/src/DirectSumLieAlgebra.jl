@@ -1,26 +1,3 @@
-@attributes mutable struct DirectSumLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  dim::Int
-  summands::Vector{<:LieAlgebra{C}}
-  s::Vector{Symbol}
-
-  function DirectSumLieAlgebra{C}(
-    R::Field,
-    summands::Vector{<:LieAlgebra{C}},
-  ) where {C<:FieldElem}
-    @req all(x -> coefficient_ring(x) == R, summands) "Summands must have the same coefficient ring."
-    totaldim = sum(dim, summands; init=0)
-    s = [Symbol("$(x)^($(i))") for (i, S) in enumerate(summands) for x in symbols(S)]
-    L = new{C}(R, totaldim, summands, s)
-    return L
-  end
-end
-
-struct DirectSumLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::DirectSumLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -36,7 +13,7 @@ parent(x::DirectSumLieAlgebraElem) = x.parent
 
 coefficient_ring(L::DirectSumLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::DirectSumLieAlgebra) = L.dim
+vector_space_dim(L::DirectSumLieAlgebra) = L.dim
 
 ###############################################################################
 #
@@ -121,7 +98,7 @@ end
 #
 ###############################################################################
 
-function is_abelian(L::DirectSumLieAlgebra)
+@attr Bool function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
 end
 
@@ -150,6 +127,33 @@ function canonical_projection(D::DirectSumLieAlgebra, i::Int)
     coefficient_ring(D), dim(D), dim(S), sum(dim, D.summands[1:(i - 1)]; init=0) + 1
   )
   return hom(D, S, mat; check=false)
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(D::DirectSumLieAlgebra) = isdefined(D, :root_system)
+
+function root_system(D::DirectSumLieAlgebra)
+  assure_root_system(D)
+  return D.root_system
+end
+
+function chevalley_basis(D::DirectSumLieAlgebra)
+  assure_root_system(D)
+  return D.chevalley_basis::NTuple{3,Vector{elem_type(D)}}
+end
+
+function set_root_system_and_chevalley_basis!(
+  D::DirectSumLieAlgebra{C},
+  R::RootSystem,
+  chev::NTuple{3,Vector{DirectSumLieAlgebraElem{C}}},
+) where {C<:FieldElem}
+  D.root_system = R
+  D.chevalley_basis = chev
 end
 
 ###############################################################################

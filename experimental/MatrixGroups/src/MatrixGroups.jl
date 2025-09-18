@@ -6,12 +6,7 @@ import Oscar:GAPWrap
 
 export _wrap_for_gap
 
-################################################################################
-# Initialize GAP function, i.e. GAP reads the file matrix.g
-#
-function __init__()
-    GAP.Globals.Read(GapObj(joinpath(@__DIR__, "matrix.g")))
-end
+# The corresponding gap functions are defined in the file gap/OscarInterface/gap/ExperimentalMatrixGroups.g
 
 ################################################################################
 """
@@ -19,7 +14,7 @@ end
 
 Compute the JuliaMatrixRep of `m` in GAP.
 
-# Example
+# Examples
 ```jldoctest
 julia> m = matrix(ZZ, [0 1 ; -1 0]);
 
@@ -43,7 +38,7 @@ A nice monomorphism from `G` to a GAP matrix group `G2` over a finite field
 is stored in `G`, such that calculations in `G` can be handled automatically
 by transferring them to `G2`.
 
-# Example
+# Examples
 ```jldoctest
 julia> m1 = matrix(QQ, [0 1 ; -1 0]);
 

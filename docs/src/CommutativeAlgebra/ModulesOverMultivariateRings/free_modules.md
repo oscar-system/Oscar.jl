@@ -1,12 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
+over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, `MPolyQuoLocRing`, `ZZRing`, or `Field`.
 More concretely, given a ring $R$ of one of these types, the free $R$-modules considered are of
 type $R^p$, where we think of $R^p$ as a free module with a given basis, namely the basis of
 standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors,
@@ -32,6 +33,11 @@ they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{
 
 ```@docs
 free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
+```
+
+```@docs
+free_module(::Type{<:FreeMod}, R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+                n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
 Over graded multivariate polynomial rings and their quotients,  there are two basic ways of
@@ -61,13 +67,13 @@ If `F` is a free `R`-module, then
 
 - `base_ring(F)` refers to `R`,
 - `basis(F)`, `gens(F)` to the basis vectors of `F`, 
-- `rank(F)`, `number_of_generators(F)` / `ngens(F)`, `dim(F)` to the number of these vectors, and
+- `rank(F)`, `number_of_generators(F)` / `ngens(F)` to the number of these vectors, and
 - `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`-th such vector.
 
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -114,7 +120,7 @@ Alternatively, directly write the element as a linear combination of basis vecto
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -138,7 +144,7 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 

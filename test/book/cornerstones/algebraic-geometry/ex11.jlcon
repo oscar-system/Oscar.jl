@@ -4,8 +4,8 @@ julia> I = ideal(R, [x^2+y^2+2*z^2-8, x^2-y^2-z^2+1, x-y+z]);
 
 julia> groebner_basis(I, ordering = lex(R), complete_reduction = true)
 Gröbner basis with elements
-  1 -> 6*z^4 - 18*z^2 + 1
-  2 -> y + 3*z^3 - 9*z
-  3 -> x + 3*z^3 - 8*z
+  1: 6*z^4 - 18*z^2 + 1
+  2: y + 3*z^3 - 9*z
+  3: x + 3*z^3 - 8*z
 with respect to the ordering
   lex([x, y, z])

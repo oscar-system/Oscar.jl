@@ -1,6 +1,6 @@
-###################################################
-#### PARAMETRIZATION IN PROBABLITY COORDINATES ####
-###################################################
+####################################################
+#### PARAMETRIZATION IN PROBABILITY COORDINATES ####
+####################################################
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
@@ -54,7 +54,7 @@ Create a parametrization for a `PhylogeneticModel` of type `Dictionary`.
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm)
@@ -131,7 +131,7 @@ Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> q = fourier_map(pm)
@@ -178,7 +178,7 @@ end
 Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries and return equivalence classes of states which are attached the same probabilities.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm);
@@ -216,7 +216,7 @@ Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 5 entries:
 """
 function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
   polys = unique(collect(values(parametrization)))
-  polys = polys[findall(x -> x!=0, polys)]
+  polys = polys[findall(!is_zero, polys)]
 
   equivalent_keys = []
   for value in polys
@@ -239,7 +239,7 @@ end
 Take the output of the function `compute_equivalent_classes` for `PhylogeneticModel` and multiply by a factor to obtain probabilities as specified on the original small trees database.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm);
@@ -269,7 +269,7 @@ end
 @doc raw"""
     specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
-Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
+Reparametrize between a model specification in terms of probability and Fourier coordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
 
 # Examples
 ```jldoctest
@@ -325,7 +325,7 @@ end
 @doc raw"""
     inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
-Reparametrize between a model specification in terms of Fourier and probability cooordinates.
+Reparametrize between a model specification in terms of Fourier and probability coordinates.
 
 # Examples
 ```jldoctest

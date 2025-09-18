@@ -59,7 +59,7 @@ end
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: FinGenAbGroup
    @req is_subgroup(H, G)[1] "H must be a subgroup of G"
-   f = count(x -> x == 0, snf(G)[1].snf) - count(x -> x == 0, snf(H)[1].snf)
+   f = count(is_zero, snf(G)[1].snf) - count(is_zero, snf(H)[1].snf)
    @req f == 0 "index is supported only for subgroups of finite index"
    return I(divexact(order(torsion_subgroup(G)[1]), order(torsion_subgroup(H)[1]), check = false))
 end
@@ -203,12 +203,12 @@ end
 
 function normalizer(G::FinGenAbGroup, H::FinGenAbGroup)
   @req is_subgroup(H, G)[1] "H  must be a subgroup of G"
-  return (G, identity_map(G))
+  return (G, id_hom(G))
 end
 
 function normalizer(G::FinGenAbGroup, x::FinGenAbGroupElem)
   @req is_element(x, G) "x does not lie in G"
-  return (G, identity_map(G))
+  return (G, id_hom(G))
 end
 
 function normal_closure(G::FinGenAbGroup, H::FinGenAbGroup)
@@ -226,13 +226,13 @@ pcore(G::FinGenAbGroup, p::IntegerUnion) = sylow_subgroup(G, p)
 #
 ################################################################################
 
-fitting_subgroup(G::FinGenAbGroup) = (G, identity_map(G))
+fitting_subgroup(G::FinGenAbGroup) = (G, id_hom(G))
 
 function frattini_subgroup(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    subgens = FinGenAbGroupElem[]
    for x in gens(G)
-     for (p, e) in collect(factor(order(x)))
+     for (p, e) in factor(order(x))
        x = p*x
      end
      if !is_zero(x)
@@ -248,7 +248,7 @@ function socle(G::FinGenAbGroup)
    for x in gens(G)
      n = 1
      ord = order(x)
-     for (p, e) in collect(factor(ord))
+     for (p, e) in factor(ord)
        n = p*n
      end
      x = divexact(ord, n)*x
@@ -261,7 +261,7 @@ end
 
 trivial_subgroup(G::FinGenAbGroup) = sub(G, FinGenAbGroupElem[])
 
-solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
+solvable_radical(G::FinGenAbGroup) = (G, id_hom(G))
 
 
 ################################################################################
@@ -277,7 +277,7 @@ solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 function sylow_system(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    result = FinGenAbGroup[]
-   for (p, e) in collect(factor(order(G)))
+   for (p, e) in factor(order(G))
      push!(result, sylow_subgroup(G, p)[1])
    end
    return result
@@ -314,6 +314,28 @@ function hall_system(G::FinGenAbGroup)
    return result
 end
 
+
+################################################################################
+#
+#   G-Sets of `FinGenAbGroup`s
+#
+################################################################################
+
+function action_homomorphism(Omega::GSetByElements{FinGenAbGroup, S}) where S
+  A = acting_group(Omega)
+
+  # Compute a permutation group isomorphic with `A`.
+  phi = isomorphism(PermGroup, A)
+
+  # Let the image of `phi` act on `Omega` as `A` does.
+  OmegaG = induce(Omega, inv(phi))
+
+  # Compute the permutation action on `1:length(Omega)`
+  # corresponding to the action of `A` on `Omega`.
+  return compose(phi, action_homomorphism(OmegaG))
+end
+
+
 ################################################################################
 #
 #   Properties
@@ -346,12 +368,33 @@ end
 
 is_pgroup_with_prime(G::FinGenAbGroup) = is_pgroup_with_prime(ZZRingElem, G)
 
-# Let `v` be a vector of integers.
-# This function returns the unique sorted vector `w` of zeros and prime powers
-# such that `v` and `w` describe the same abelian group in the sense that
-# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
-# the direct product of the groups `ZZ /(w[i]*ZZ)`.
-function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+# convert between "abelian invariants format" and "elementary divisors format"
+
+"""
+    abelian_invariants(::Type{T} = S, v::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+
+Return the unique sorted vector `w` of zeros and prime powers of type `T`
+such that `v` and `w` describe the same abelian group in the sense that
+the direct product of the groups of order `v[i]` is isomorphic to
+the direct product of the groups of order `w[i]`.
+
+For example, if `v` was computed with
+[`elementary_divisors(G::FinGenAbGroup)`](@ref)
+then `w` is equal to the vector computed with
+[`abelian_invariants(G::FinGenAbGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> abelian_invariants(ZZRingElem, [1, 0, 12])
+3-element Vector{ZZRingElem}:
+ 0
+ 3
+ 4
+```
+"""
+abelian_invariants(v::Vector{S}) where S <: IntegerUnion = abelian_invariants(S, v)
+
+function abelian_invariants(::Type{T}, v::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   invs = T[]
   for elm in v
     if elm == 0
@@ -365,13 +408,31 @@ function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUn
   return sort!(invs)
 end
 
-# Let `v` be a vector of integers.
-# This function returns the unique vector `w` of nonnegative integers
-# such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 < i < length(w)-1`
-# and such that `v` and `w` describe the same abelian group in the sense that
-# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
-# the direct product of the groups `ZZ /(w[i]*ZZ)`.
-function elementary_divisors_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+"""
+    elementary_divisors(::Type{T} = S, v::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+
+Return the unique vector `w` of nonnegative integers of type `T`
+such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 <= i < length(w)`
+and such that `v` and `w` describe the same abelian group in the sense that
+the direct product of cyclic groups of order `v[i]` is isomorphic to
+the direct product of cyclic groups of order `w[i]`.
+
+For example, if `v` was computed with
+[`abelian_invariants(G::FinGenAbGroup)`](@ref)
+then `w` is equal to the vector computed with
+[`elementary_divisors(G::FinGenAbGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> elementary_divisors(ZZRingElem, [1, 0, 3, 4])
+2-element Vector{ZZRingElem}:
+ 12
+ 0
+```
+"""
+elementary_divisors(v::Vector{S}) where S <: IntegerUnion = elementary_divisors(S, v)
+
+function elementary_divisors(::Type{T}, v::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   invs = T[]
   d = Dict{T, Vector{T}}()
   for elm in v
@@ -414,7 +475,7 @@ function elementary_divisors_of_vector(::Type{T}, v::Vector) where T <: IntegerU
 end
 
 abelian_invariants(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion =
-  abelian_invariants_of_vector(T, elementary_divisors(G))
+  abelian_invariants(T, elementary_divisors(G))
 
 abelian_invariants(G::FinGenAbGroup) = abelian_invariants(ZZRingElem, G)
 
@@ -429,7 +490,7 @@ function abelian_invariants_schur_multiplier(::Type{T}, G::FinGenAbGroup) where 
   for i in 1:(k-1)
     append!(res, repeat(T[invs[i]], k-i))
   end
-  return abelian_invariants_of_vector(T, res)
+  return abelian_invariants(T, res)
 end
 
 abelian_invariants_schur_multiplier(G::FinGenAbGroup) = abelian_invariants_schur_multiplier(ZZRingElem, G)

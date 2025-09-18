@@ -21,7 +21,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   dict = Dict{Symbol, Any}(s.obj)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
   return bigobject
 end
 
@@ -32,29 +32,43 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, coefficient_field(obj), :params)
-  end
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
+
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+
+function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
+  p_dict = _polyhedral_object_as_dict(obj)
+  field = p_dict[:_coeff]
+  delete!(p_dict, :_coeff)
+  return TypeParams(
+    T,
+    :field => field,
+    :pm_params => type_params(p_dict))
 end
+
+function type_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
+  par = params(type_params(feasible_region(obj)))
+  return TypeParams(
+    T,
+    par...)
+end
+
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
-  if typeof(obj) <: Union{MixedIntegerLinearProgram, LinearProgram}
-    T = typeof(obj)
-    error("Unsupported type $T for serialization")
-  end
+  p_dict = _polyhedral_object_as_dict(obj)
+  delete!(p_dict, :_coeff)
   save_data_dict(s) do
-    save_typed_object(s, _polyhedral_object_as_dict(obj))
+    for (k, v) in p_dict
+      if !Base.issingletontype(typeof(v))
+        save_object(s, v, k)
+      end
+    end
   end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
-  return load_typed_object(s)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
@@ -67,21 +81,25 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
   return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
-  polymake_dict = load_typed_object(s)
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
+  field = dict[:field]
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
+
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     field::Field) where S <: FieldElem
-  polymake_dict = load_typed_object(s)
+                     dict::Dict) where S <: FieldElem
+  field = dict[:field]
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
+
   return T(bigobject, field)
 end
 
 ##############################################################################
-@register_serialization_type LinearProgram uses_params
+@register_serialization_type LinearProgram
 
 function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
@@ -94,7 +112,26 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   end
 end
 
+function save_object(s::SerializerState, lp::LinearProgram{<:FieldElem})
+  lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
+  save_data_dict(s) do
+    save_object(s, lp.feasible_region, :feasible_region)
+    save_object(s, lp.convention, :convention)
+    save_object(s, _pmdata_for_oscar(lpcoeffs, coefficient_field(lp)), :lpcoeffs)
+  end
+end
+
+function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
+  lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
+  save_lp(lp_filename, lp)
+
+  save_object(s, basename(lp_filename))
+end
+
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
+  if s.obj isa String
+    error("Loading this file requires using the LPSerializer")
+  end
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
@@ -113,8 +150,38 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
 end
 
+function load_object(s::DeserializerState, ::Type{<:LinearProgram}, params::Dict)
+  if s.obj isa String
+    error("Loading this file requires using the LPSerializer")
+  end
+  field = params[:field]
+  coeff_type = elem_type(field)
+  fr = load_object(s, Polyhedron, params, :feasible_region)
+  conv = load_object(s, String, :convention)
+  lpcoeffs = load_object(s, Vector{coeff_type}, field, :lpcoeffs)
+  all = Polymake._lookup_multi(pm_object(fr), "LP")
+  lp = nothing
+  for i in 1:length(all)
+    lo = _pmdata_for_oscar(all[i].LINEAR_OBJECTIVE, field)
+    if lpcoeffs == lo
+      lp = all[i]
+      break
+    end
+  end
+  @req lp !== nothing "could not identify LP subobject"
+  return LinearProgram{coeff_type}(fr, lp, Symbol(conv), field)
+end
+
+function load_object(s::DeserializerState{LPSerializer},
+                     ::Type{<:LinearProgram}, field::QQField)
+  load_node(s) do _
+    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj)"
+    pm_lp = load_lp(lp_filename)
+  end
+end
+
 ##############################################################################
-@register_serialization_type MixedIntegerLinearProgram uses_params
+@register_serialization_type MixedIntegerLinearProgram
 
 function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQFieldElem})
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
@@ -129,7 +196,19 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQField
     save_object(s, milp.feasible_region, :feasible_region)
     save_object(s, milp.convention, :convention)
     save_json(s, coeffs_jsonstr, :milp_coeffs)
-    save_json(s, int_vars_jsonstr, :int_vars)
+    # we can probably changes this line to just store a vector{Int} but will need upgrade
+    save_json(s, int_vars_jsonstr, :int_vars) 
+  end
+end
+
+function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{<:FieldElem})
+  milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
+  int_vars = milp.polymake_milp.INTEGER_VARIABLES
+  save_data_dict(s) do
+    save_object(s, milp.feasible_region, :feasible_region)
+    save_object(s, milp.convention, :convention)
+    save_object(s, _pmdata_for_oscar(milp_coeffs, coefficient_field(milp)), :milp_coeffs)
+    save_object(s, _pmdata_for_oscar(int_vars, QQ), :int_vars)
   end
 end
 
@@ -164,9 +243,29 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv), field)
 end
 
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, params::Dict)
+  conv = load_object(s, String, :convention)
+  field = params[:field]
+  coeff_type = elem_type(field)
+  fr = load_object(s, Polyhedron, params, :feasible_region)
+  milp_coeffs = load_object(s, Vector{coeff_type}, field, :milp_coeffs)
+  int_vars = load_object(s, Vector{Int}, :int_vars)
+  
+  all = Polymake._lookup_multi(pm_object(fr), "MILP")
+  index = 0
+  for i in 1:length(all)
+    if _pmdata_for_oscar(all[i].LINEAR_OBJECTIVE, field) == milp_coeffs && all[i].INTEGER_VARIABLES == Set(int_vars)
+      index = i
+      break
+    end
+  end
+  milp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
+  return MixedIntegerLinearProgram{coeff_type}(fr, milp, Symbol(conv), field)
+end
+
 # use generic serialization for the other types:
-@register_serialization_type Cone uses_params
-@register_serialization_type PolyhedralComplex uses_params
-@register_serialization_type Polyhedron uses_params
-@register_serialization_type PolyhedralFan uses_params
-@register_serialization_type SubdivisionOfPoints uses_params
+@register_serialization_type Cone
+@register_serialization_type PolyhedralComplex
+@register_serialization_type Polyhedron
+@register_serialization_type PolyhedralFan
+@register_serialization_type SubdivisionOfPoints

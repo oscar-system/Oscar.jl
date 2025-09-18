@@ -225,20 +225,20 @@ end
    my_rand_bits(F::NumField, b::Int) = F([my_rand_bits(base_field(F), b) for i in 1:degree(F)])
 
    # absolute number fields
-   R, x = polynomial_ring(QQ, "x")
+   R, x = polynomial_ring(QQ, :x)
    pols = [ x - 1, x^2 - 5, x^2 + 3, x^3 - 2,  # simple
             [x^2 - 2, x^2 + 1] ]        # non-simple
    fields = Any[number_field(pol)[1] for pol in pols]
 
    # non-absolute number fields
    F1, _ = number_field(x^2-2)
-   R1, x1 = polynomial_ring(F1, "x")
+   R1, x1 = polynomial_ring(F1, :x)
    F2, _ = number_field(x1^2-3)
    push!(fields, F2)                                 # simple
    push!(fields, number_field([x1^2-3, x1^2+1])[1])  # non-simple
 
    # and a simple three-step construction (in order to exercise recursion)
-   R2, x2 = polynomial_ring(F2, "x")
+   R2, x2 = polynomial_ring(F2, :x)
    push!(fields, number_field(x2^2+1)[1])
 
    @testset for F in fields
@@ -290,7 +290,7 @@ end
                ]
 #TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
-      PR, x = polynomial_ring(R, "x")
+      PR, x = polynomial_ring(R, :x)
       iso = Oscar.iso_oscar_gap(PR)
       for pol in [zero(x), one(x), x, x^3+x+1]
          img = iso(pol)
@@ -298,8 +298,8 @@ end
       end
       m = matrix([x x; x x])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(polynomial_ring(R, "y")[1]())
-      @test_throws ErrorException image(iso, polynomial_ring(R, "y")[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, :y)[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, :y)[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end
@@ -324,8 +324,8 @@ end
       end
       m = matrix([x x; y z])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
-      @test_throws ErrorException iso(polynomial_ring(R, ["y"])[1]())
-      @test_throws ErrorException image(iso, polynomial_ring(R, ["y"])[1]())
+      @test_throws ErrorException iso(polynomial_ring(R, [:y])[1]())
+      @test_throws ErrorException image(iso, polynomial_ring(R, [:y])[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end

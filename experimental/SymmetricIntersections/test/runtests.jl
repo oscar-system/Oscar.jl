@@ -13,7 +13,7 @@ using Oscar
     el = Oscar.elevator(x, weight, i)
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
-    @test Oscar.number_of_elevations(el) == dim(Si)
+    @test Oscar.number_of_elevations(el) == vector_space_dim(Si)
     @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
@@ -32,14 +32,14 @@ end
   @test base_field(RR) isa AbsSimpleNumField
   @test underlying_group(RR) === E
   @test order(Oscar.character_table_underlying_group(RR)) == 8
-  @test all(chi -> is_irreducible(chi), Oscar.irreducible_characters_underlying_group(RR))
-  @test all(h -> h in E, Oscar.generators_underlying_group(RR))
+  @test all(is_irreducible, Oscar.irreducible_characters_underlying_group(RR))
+  @test all(in(E), Oscar.generators_underlying_group(RR))
 
   chis = @inferred all_characters(RR, 2)
   @test length(chis) == 11
 
   RR, reps = @inferred all_irreducible_representations(E)
-  @test all(r -> is_irreducible(r), reps)
+  @test all(is_irreducible, reps)
   chis = Oscar.irreducible_characters_underlying_group(RR)
   @test length(reps) == 5
   @test all(i -> character_representation(RR, representation_mapping(reps[i])) == chis[i], 1:length(chis))
@@ -95,8 +95,8 @@ end
   @test dimension_representation(reph) == binomial(dimension_representation(rep) +1,2)
   @test character_representation(RR, representation_mapping(reph)) == symmetric_power(conj(chi), 2)
   ic = @inferred isotypical_components(reph)
-  inj = [v[1] for v in collect(values(ic))]
-  proj = [v[2] for v in collect(values(ic))]
+  inj = [v[1] for v in values(ic)]
+  proj = [v[2] for v in values(ic)]
   @test all(ii -> rank(ii) == nrows(ii), inj)
   @test all(pp -> rank(pp) == ncols(pp), proj)
   @test all(j -> isone(inj[j]*proj[j]), 1:length(inj))
@@ -117,7 +117,7 @@ end
   p = Oscar.associated_schur_cover(fpr[1])
   RR = representation_ring_linear_lift(fpr[1])
   G = underlying_group(fpr[1])
-  @test allunique(character_linear_lift.(fpr))
+  @test allunique(character_linear_lift, fpr)
 
   prep = rand(fpr)
   @test underlying_group(prep) === G

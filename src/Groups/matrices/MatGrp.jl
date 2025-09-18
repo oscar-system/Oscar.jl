@@ -1,4 +1,13 @@
-matrix_group(F::Ring, m::Int) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(F, m)
+matrix_group_type(::Type{T}) where T<:RingElement = MatrixGroup{T, dense_matrix_type(T)}
+
+matrix_group_type(::Type{S}) where S<:Ring = matrix_group_type(elem_type(S))
+matrix_group_type(x) = matrix_group_type(typeof(x)) # to stop this method from eternally recursing on itself, we better add ...
+matrix_group_type(::Type{T}) where T = throw(ArgumentError("Type `$T` must be subtype of `RingElement`."))
+
+const ZZMatrixGroup = matrix_group_type(ZZRing)
+const QQMatrixGroup = matrix_group_type(QQField)
+
+matrix_group(F::Ring, m::Int) = matrix_group_type(F)(F, m)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 """
@@ -59,8 +68,8 @@ matrix_group(m::Int, R::Ring, V; check::Bool = true) = matrix_group(R, m, V, che
 
 # `MatrixGroup`: compare types, dimensions, and coefficient rings
 function check_parent(G::T, g::GAPGroupElem) where T <: MatrixGroup
-  P = g.parent
-  return T === typeof(P) && G.deg == P.deg && G.ring == P.ring
+  P = parent(g)
+  return T === typeof(P) && degree(G) == degree(P) && base_ring(G) == base_ring(P)
 end
 
 function _as_subgroup_bare(G::MatrixGroup, H::GapObj)
@@ -75,8 +84,42 @@ MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = Matrix
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
+"""
+    ring_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `S` of the entries of the elements of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> ring_elem_type(typeof(g)) == elem_type(typeof(base_ring(g)))
+true
+```
+"""
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
+ring_elem_type(::MatrixGroup{S,T}) where {S,T} = S
+
+"""
+    mat_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `T` of `matrix(x)`, for elements `x` of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> mat_elem_type(typeof(g)) == typeof(matrix(one(g)))
+true
+```
+"""
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
+mat_elem_type(::MatrixGroup{S,T}) where {S,T} = T
+
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
@@ -91,13 +134,13 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
     X = Base.deepcopy_internal(x.X, dict)
     if isdefined(x, :elm)
       elm = Base.deepcopy_internal(matrix(x), dict)
-      return MatrixGroupElem(x.parent, elm, X)
+      return MatrixGroupElem(parent(x), elm, X)
     else
-      return MatrixGroupElem(x.parent, X)
+      return MatrixGroupElem(parent(x), X)
     end
   elseif isdefined(x, :elm)
     elm = Base.deepcopy_internal(matrix(x), dict)
-    return MatrixGroupElem(x.parent, elm)
+    return MatrixGroupElem(parent(x), elm)
   end
   error("$x has neither :X nor :elm")
 end
@@ -110,37 +153,38 @@ change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 #
 ########################################################################
 
-function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+function _print_matrix_group_desc(io::IO, G::MatrixGroup)
   io = pretty(io)
-  print(io, LowercaseOff(), string(x.descr), "(", x.deg ,",")
-  if x.descr==:GU || x.descr==:SU
-    print(io, characteristic(x.ring)^(div(degree(x.ring),2)),")")
-  elseif x.ring isa Field && is_finite(x.ring)
-    print(io, order(x.ring),")")
+  R = base_ring(G)
+  print(io, LowercaseOff(), string(G.descr), "(", degree(G) ,",")
+  if G.descr==:GU || G.descr==:SU
+    print(io, characteristic(R)^(div(degree(R),2)),")")
+  elseif R isa Field && is_finite(R)
+    print(io, order(R),")")
   else
-    print(terse(io), x.ring)
+    print(terse(io), R)
     print(io ,")")
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
-  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
-  println(io, "Matrix group of degree ", degree(x))
+function Base.show(io::IO, ::MIME"text/plain", G::MatrixGroup)
+  isdefined(G, :descr) && return _print_matrix_group_desc(io, G)
+  println(io, "Matrix group of degree ", degree(G))
   io = pretty(io)
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(x))
+  print(io, "over ", Lowercase(), base_ring(G))
   print(io, Dedent())
 end
 
-function Base.show(io::IO, x::MatrixGroup)
-  @show_name(io, x)
-  @show_special(io, x)
-  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+function Base.show(io::IO, G::MatrixGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  isdefined(G, :descr) && return _print_matrix_group_desc(io, G)
   print(io, "Matrix group")
   if !is_terse(io)
-    print(io, " of degree ", degree(x))
+    print(io, " of degree ", degree(G))
     io = pretty(io)
-    print(terse(io), " over ", Lowercase(), base_ring(x))
+    print(terse(io), " over ", Lowercase(), base_ring(G))
   end
 end
 
@@ -153,21 +197,21 @@ group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 function assign_from_description(G::MatrixGroup)
    F = codomain(_ring_iso(G))
    GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
-   if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
-   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
-   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
-   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1, G.deg, F)
-   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1, G.deg, F)
+   if G.descr==:GL G.X=GAP.Globals.GL(degree(G), F)
+   elseif G.descr==:SL G.X=GAP.Globals.SL(degree(G), F)
+   elseif G.descr==:Sp G.X=GAP.Globals.Sp(degree(G), F)
+   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1, degree(G), F)
+   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1, degree(G), F)
    elseif G.descr==Symbol("Omega+")
       # FIXME/TODO: Work around GAP issue <https://github.com/gap-system/gap/issues/500>
       # using the following inefficient code. In the future, we should use appropriate
       # generators for Omega (e.g. by applying a form change matrix to the Omega
       # generators returned by GAP).
-      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1, G.deg, F))
-      if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
+      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1, degree(G), F))
+      if degree(G) == 4 && order(base_ring(G)) == 2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
             _ranks = [GAP.Globals.Rank(u) for u in GAPWrap.GeneratorsOfGroup(y)]
-            if all(r->iseven(r),_ranks)
+            if all(is_even, _ranks)
                G.X=y
                break
             end
@@ -176,26 +220,26 @@ function assign_from_description(G::MatrixGroup)
          @assert length(L) == 1
          G.X=L[1]
       end
-   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1, G.deg, F)
-   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1, G.deg, F)
-   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1, G.deg, F))[1]
-   elseif G.descr==:GO G.X=GAP.Globals.GO(0, G.deg, F)
-   elseif G.descr==:SO G.X=GAP.Globals.SO(0, G.deg, F)
+   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1, degree(G), F)
+   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1, degree(G), F)
+   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1, degree(G), F))[1]
+   elseif G.descr==:GO G.X=GAP.Globals.GO(0, degree(G), F)
+   elseif G.descr==:SO G.X=GAP.Globals.SO(0, degree(G), F)
    elseif G.descr==:Omega
      # For even q or d = 1, \Omega(d,q) is equal to SO(d,q).
      # Otherwise, \Omega(d,q) has index 2 in SO(d,q).
      # Here d is odd, and we do not get here if d == 1 holds
      # because `omega_group` delegates to `SO` in this case.
-     @assert G.deg > 1
+     @assert degree(G) > 1
      if iseven(GAPWrap.Size(F))
-       G.X = GAP.Globals.SO(0, G.deg, F)
+       G.X = GAP.Globals.SO(0, degree(G), F)
      else
-       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, G.deg, F))
+       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, degree(G), F))
        @assert length(L) == 1
        G.X = L[1]
      end
-   elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
-   elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
+   elseif G.descr==:GU G.X=GAP.Globals.GU(degree(G),Int(characteristic(base_ring(G))^(div(degree(base_ring(G)),2) ) ))
+   elseif G.descr==:SU G.X=GAP.Globals.SU(degree(G),Int(characteristic(base_ring(G))^(div(degree(base_ring(G)),2) ) ))
    else error("unsupported description")
    end
 end
@@ -208,18 +252,18 @@ function _ring_iso(G::MatrixGroup{T}) where T
       # construct a number field over which all matrices are already defined
       nf, nf_to_QQBar = number_field(QQ, entries)
       iso = iso_oscar_gap(nf)
-      G.ring_iso = MapFromFunc(G.ring, codomain(iso),
+      G.ring_iso = MapFromFunc(base_ring(G), codomain(iso),
                                x -> iso(preimage(nf_to_QQBar, x)),
                                y -> nf_to_QQBar(preimage(iso, y))
                                )
     else
-      G.ring_iso = iso_oscar_gap(G.ring)
+      G.ring_iso = iso_oscar_gap(base_ring(G))::MapFromFunc{parent_type(T), GapObj}
     end
   end
-  return G.ring_iso
+  return G.ring_iso::MapFromFunc{parent_type(T), GapObj}
 end
 
-function GAP.julia_to_gap(G::MatrixGroup)
+GAP.@install function GapObj(G::MatrixGroup)
   if !isdefined(G, :X)
     if isdefined(G, :descr)
       assign_from_description(G)
@@ -233,42 +277,11 @@ function GAP.julia_to_gap(G::MatrixGroup)
   return G.X
 end
 
-function GAP.julia_to_gap(x::MatrixGroupElem)
+GAP.@install function GapObj(x::MatrixGroupElem)
   if !isdefined(x, :X)
-    x.X = map_entries(_ring_iso(x.parent), x.elm)
+    x.X = map_entries(_ring_iso(parent(x)), x.elm)
   end
   return x.X
-end
-
-# return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
-
-   isdefined(G,sym) && return getfield(G,sym)
-
-   if sym === :X
-      if isdefined(G,:descr)
-         assign_from_description(G)
-      elseif isdefined(G,:gens)
-         V = GapObj([g.X for g in gens(G)])
-         G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
-      else
-         error("Cannot determine underlying GAP object")
-      end
-   end
-
-   return getfield(G, sym)
-
-end
-
-
-function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
-
-   isdefined(x,sym) && return getfield(x,sym)
-
-   if sym === :X
-      x.X = map_entries(_ring_iso(x.parent), x.elm)
-   end
-   return getfield(x,sym)
 end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
@@ -289,8 +302,9 @@ end
 
 
 function ==(G::MatrixGroup,H::MatrixGroup)
-   G.deg==H.deg || return false
-   G.ring==H.ring || return false
+   G === H && return true
+   degree(G) == degree(H) || return false
+   base_ring(G) == base_ring(H) || return false
    if isdefined(G, :descr) && isdefined(H, :descr)
       return G.descr == H.descr
    end
@@ -304,7 +318,7 @@ end
 # this saves the value of x.X
 # x_gap = x.X if this is already known, x_gap = nothing otherwise
 function lies_in(x::MatElem, G::MatrixGroup, x_gap)
-   if base_ring(x)!=G.ring || nrows(x)!=G.deg return false, x_gap end
+   if base_ring(x) != base_ring(G) || nrows(x) != degree(G) return false, x_gap end
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
       for g in gens(G)
@@ -374,7 +388,7 @@ end
 
 # embedding a n x n array into a group G
 function (G::MatrixGroup)(L::AbstractVecOrMat; check::Bool=true)
-   x = matrix(G.ring, G.deg, G.deg, L)
+   x = matrix(base_ring(G), degree(G), degree(G), L)
    return G(x; check=check)
 end
 
@@ -394,9 +408,9 @@ end
 
 function _common_parent_group(x::T, y::T) where T <: MatrixGroup
    x === y && return x
-   @assert x.deg == y.deg
-   @assert x.ring === y.ring
-   return GL(x.deg, x.ring)::T
+   @assert degree(x) == degree(y)
+   @assert base_ring(x) === base_ring(y)
+   return GL(degree(x), base_ring(x))::T
 end
 
 # Base.:* is defined in src/Groups/GAPGroups.jl,
@@ -417,18 +431,18 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
+Base.:*(x::MatrixGroupElem, y::MatElem) = matrix(x)*y
+Base.:*(x::MatElem, y::MatrixGroupElem) = x*matrix(y)
 
-Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x)^n)
+Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(x)^n)
 
 Base.isone(x::MatrixGroupElem) = isone(matrix(x))
 
-Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(matrix(x)))
+Base.inv(x::MatrixGroupElem) = MatrixGroupElem(parent(x), inv(matrix(x)))
 
 # if the parents are different, the parent of the output is set as GL(n,q)
 function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
-   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+   G = parent(x) == parent(y) ? parent(x) : GL(degree(parent(x)), base_ring(parent(x)))
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return MatrixGroupElem(G, inv(y.X)*x.X*y.X)
    else
@@ -449,9 +463,25 @@ det(x::MatrixGroupElem) = det(matrix(x))
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of the underlying matrix of `x`.
+Return the base ring of the matrix group to which `x` belongs.
+This is also the base ring of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> base_ring(x) == F
+true
+
+julia> base_ring(x) == base_ring(matrix(x))
+true
+```
 """
-base_ring(x::MatrixGroupElem) = x.parent.ring
+base_ring(x::MatrixGroupElem) = base_ring(parent(x))
 
 base_ring_type(::Type{<:MatrixGroupElem{RE}}) where {RE} = parent_type(RE)
 
@@ -461,10 +491,29 @@ parent(x::MatrixGroupElem) = x.parent
     matrix(x::MatrixGroupElem)
 
 Return the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> m = matrix(x)
+[o   0]
+[0   1]
+
+julia> x == m
+false
+
+julia> x == g(m)
+true
+```
 """
 function matrix(x::MatrixGroupElem)
   if !isdefined(x, :elm)
-    x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
+    x.elm = preimage_matrix(_ring_iso(parent(x)), GapObj(x))
   end
   return x.elm
 end
@@ -493,15 +542,30 @@ size(x::MatrixGroupElem) = size(matrix(x))
     tr(x::MatrixGroupElem)
 
 Return the trace of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> t = tr(x)
+o + 1
+
+julia> t in F
+true
+```
 """
 tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
-frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in matrix(x)]))
+frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(base_ring(x), degree(parent(x)), degree(parent(x)), [frobenius(y,n) for y in matrix(x)]))
 frobenius(x::MatrixGroupElem) = frobenius(x,1)
 
-transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
+transpose(x::MatrixGroupElem) = MatrixGroupElem(parent(x), transpose(matrix(x)))
 =#
 
 ########################################################################
@@ -514,6 +578,14 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
     base_ring(G::MatrixGroup)
 
 Return the base ring of the matrix group `G`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> base_ring(g) == F
+true
+```
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
@@ -522,23 +594,29 @@ base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 """
     degree(G::MatrixGroup)
 
-Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
+Return the degree of `G`, i.e., the number of rows of its matrices.
+
+# Examples
+```jldoctest
+julia> degree(GL(4, 2))
+4
+```
 """
 degree(G::MatrixGroup) = G.deg
 
-Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
+Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(base_ring(G), degree(G)))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
-   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)::GapObj
+   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(G))::GapObj
    return MatrixGroupElem(G, x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
-      L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
-      G.gens = [MatrixGroupElem(G, a) for a in L]
+      L = GAPWrap.GeneratorsOfGroup(GapObj(G))::GapObj
+      G.gens = [MatrixGroupElem(G, a::GapObj) for a in L]
    end
-   return G.gens
+   return G.gens::Vector{elem_type(G)}
 end
 
 # Note that the `gen(G::GAPGroup, i::Int)` method cannot be used
@@ -554,26 +632,26 @@ end
 number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
+compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(GapObj(G)))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
-    - For a matrix group G over the Rationals or over a number field,
-    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    - For a matrix group G over the rationals or over a number field,
+    the GAP group GapObj(G) does usually not store the flag `IsHandledByNiceMonomorphism`.
     - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
-    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    we can set this flag in `GapObj(G)` to true and store the action homomorphism in `GapObj(G)`,
     and then this information should be used in the computation of the order.
     - If the flag is not known to be true then the Oscar code from
     `isomorphic_group_over_finite_field` shall be preferred.
   =#
-  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAPWrap.IsHandledByNiceMonomorphism(G.X)
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(GapObj(G)) && GAPWrap.IsHandledByNiceMonomorphism(GapObj(G))
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return ZZRingElem(GAPWrap.Size(G.X))
+    return ZZRingElem(GAPWrap.Size(GapObj(G)))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
-    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    set_order(G, n)
     return n
   end
 end
@@ -622,12 +700,12 @@ function map_entries(f, G::MatrixGroup)
 end
 
 function map_entries(R::Ring, G::MatrixGroup)
-  imgs = [map_entries(R, matrix(x)) for x in gens(G)]
+  imgs = dense_matrix_type(R)[map_entries(R, matrix(x)) for x in gens(G)]
   return matrix_group(R, degree(G), imgs)
 end
 
 function map_entries(mp::Map, G::MatrixGroup)
-  imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
+  imgs = dense_matrix_type(codomain(mp))[map_entries(mp, matrix(x)) for x in gens(G)]
   return matrix_group(codomain(mp), degree(G), imgs)
 end
 
@@ -989,8 +1067,8 @@ const SU = special_unitary_group
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) === S
-   elems_in_GAP = GAP.Obj(GapObj[x.X for x in elements])
-   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
+   elems_in_GAP = GAP.Obj(GapObj[GapObj(x) for x in elements])
+   H = GAP.Globals.Subgroup(GapObj(G),elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)
    L = Vector{elem_type(K)}(undef, length(elements))
@@ -1027,14 +1105,14 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
       for k in gens(K) k.parent = K end
    else
       K = matrix_group(base_ring(H), degree(H))
-      K.X = H.X^y.X
+      K.X = GapObj(H)^GapObj(y)
    end
 
    return K
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
-   H = matrix_group(C.X.ring, C.X.deg)
+   H = matrix_group(base_ring(acting_group(C)), degree(acting_group(C)))
    H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj
    return H
 end

@@ -6,7 +6,7 @@ Type for reduced affine plane curves.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = y^3*x^6 - y^6*x^2;
 
@@ -34,8 +34,8 @@ Affine plane curve
       (isone(eqn) || iszero(eqn)) && error("the equation must not be trivial")
       true
     end
-    eqn = prod([i[1] for i in factor(eqn)], init=one(parent(eqn)))
-    X = algebraic_set(eqn, is_radical=true)
+    eqn = prod([i[1] for i in factor_squarefree(eqn)], init=one(parent(eqn)))
+    X = algebraic_set(eqn; is_radical=true, check=check)
     C = new{base_ring_type(X),ring_type(X)}(X)
     C.defining_equation = eqn
     return C
@@ -101,7 +101,7 @@ component can be reducible.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> C = plane_curve(x*(x+y)*(x^2 + x + 1));
 
@@ -156,7 +156,7 @@ Return the multiplicity of `C` at `P`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
@@ -193,7 +193,7 @@ Return the tangent lines at `P` to `C` with their multiplicity.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
@@ -243,7 +243,7 @@ Return the intersection multiplicity of `C` and `D` at `P`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> C = plane_curve((x^2+y^2)*(x^2 + y^2 + 2*y))
 Affine plane curve
@@ -264,7 +264,7 @@ function intersection_multiplicity(C::AffinePlaneCurve, D::AffinePlaneCurve, P::
   P in ambient_space(C) || error("The point needs to be in the same affine plane as C")
   P in C && P in D || return 0
   S,_ = stalk(intersect(C,D), P)
-  return vector_space_dimension(S)
+  return vector_space_dim(S)
 end
 
 ################################################################################
@@ -277,7 +277,7 @@ Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwis
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> C = plane_curve(x*(x+y))

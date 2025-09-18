@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -35,13 +36,13 @@ If `I` is an ideal of a PBW-algebra  `A`, then
 
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-(Weyl-algebra over Rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
+(Weyl-algebra over rational field in variables (x, y), PBWAlgElem{QQFieldElem, Singular.n_Q}[x, y, dx, dy])
 
 julia> I = left_ideal(D, [x, dx])
 left_ideal(x, dx)
 
 julia> base_ring(I)
-Weyl-algebra over Rational field in variables (x, y)
+Weyl-algebra over rational field in variables (x, y)
 
 julia> gens(I)
 2-element Vector{PBWAlgElem{QQFieldElem, Singular.n_Q}}:

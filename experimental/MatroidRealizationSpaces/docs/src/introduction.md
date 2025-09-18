@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Matroid Realization Spaces
@@ -31,4 +33,54 @@ If ``B`` is the polynomial ring `ambient_ring(RS)`, ``I`` the ideal
 `inequations(RS)`, then the coordinate ring of the realization space
 ``\mathcal{R}(M)`` is isomorphic to ``U^{-1}B/I``.  
 
+### Matroid realization spaces as affine schemes
+Every `MatroidRealizationSpace` is an instance of an affine scheme.  
+For those cases where implementations exist, the
+entire functionality provided for `AbsAffineScheme`s applies 
+to matroid realization spaces. For example:
+```jldoctest
+julia> RM = realization_space(pappus_matroid(), ground_ring=QQ)
+The realization space is
+  [1   0   1   0   x2   x2                 x2^2    1    0]
+  [0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
+  [0   0   0   1   x2   x1                x1*x2   x1   x2]
+in the multivariate polynomial ring in 2 variables over QQ
+avoiding the zero loci of the polynomials
+RingElem[x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2]
+
+julia> OO(RM)
+Localization
+  of quotient
+    of multivariate polynomial ring in 2 variables x1, x2
+      over rational field
+    by ideal (0)
+  at products of (x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2)
+
+julia> is_smooth(RM) # Calls the generic routine implemented for schemes
+true
+
+julia> x, y = gens(OO(RM)); I = ideal(OO(RM), [x - 4, y^2 - 8]);
+
+julia> pr = blow_up(RM, I)
+Blowup
+  of scheme over QQ covered with 1 patch
+    1b: [x1, x2]   scheme(0) \ scheme((x1 - x2)*x2*x1*(x2 - 1)*(x1 + x2^2 - x2)*(x1 - 1)*(x1*x2 - x1 - x2^2))
+  in sheaf of ideals with restriction
+    1b: Ideal (x1 - 4, x2^2 - 8)
+with domain
+  scheme over QQ covered with 2 patches
+    1a: [(s1//s0), x1, x2]   scheme(-(s1//s0)*x1 + 4*(s1//s0) + x2^2 - 8) \ scheme((x1 - x2)*x2*x1*(x2 - 1)*(x1 - 1)*(x1 + x2^2 - x2)*(x1*x2 - x1 - x2^2))
+    2a: [(s0//s1), x2]       scheme(0) \ scheme(((s0//s1)*x2^2 - 8*(s0//s1) - x2 + 4)*x2*((s0//s1)*x2^2 - 8*(s0//s1) + 4)*(x2 - 1)*((s0//s1)*x2^2 - 8*(s0//s1) + 3)*((s0//s1)*x2^2 - 8*(s0//s1) + x2^2 - x2 + 4)*((s0//s1)*x2^3 - (s0//s1)*x2^2 - 8*(s0//s1)*x2 + 8*(s0//s1) - x2^2 + 4*x2 - 4))
+and exceptional divisor
+  effective cartier divisor defined by
+    sheaf of ideals with restrictions
+      1a: Ideal (x1 - 4)
+      2a: Ideal (x2^2 - 8)
+      
+julia> first(affine_charts(codomain(pr))) === RM
+true
+```
+Note, however, that there are also cases which are not covered. 
+For instance, one realization of the `fano_matroid()` is ``\mathrm{Spec}(\mathbb Z/2 \mathbb Z)``
+which is not (yet) supported by the schemes framework.
 

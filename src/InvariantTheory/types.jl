@@ -79,17 +79,17 @@ mutable struct FinGroupInvarRing{FldT,GrpT,PolyRingElemT,PolyRingT,ActionT}
 
   function FinGroupInvarRing(
     K::FldT, G::GrpT, action::Vector{ActionT}
-  ) where {FldT<:Field,GrpT<:AbstractAlgebra.Group,ActionT}
+  ) where {FldT<:Field,GrpT<:Group,ActionT}
     n = degree(G)
     # We want to use divrem w.r.t. degrevlex for the computation of secondary
     # invariants and fundamental invariants
-    R, = graded_polynomial_ring(K, "x" => 1:n; cached=false, internal_ordering=:degrevlex)
+    R, = graded_polynomial_ring(K, :x => 1:n; cached=false, internal_ordering=:degrevlex)
     return FinGroupInvarRing(K, G, action, R)
   end
 
   function FinGroupInvarRing(
     K::FldT, G::GrpT, action::Vector{ActionT}, poly_ring::PolyRingT
-  ) where {FldT<:Field,GrpT<:AbstractAlgebra.Group,ActionT,PolyRingT<:MPolyDecRing}
+  ) where {FldT<:Field,GrpT<:Group,ActionT,PolyRingT<:MPolyDecRing}
     @assert coefficient_ring(poly_ring) === K
     @assert ngens(poly_ring) == degree(G)
 

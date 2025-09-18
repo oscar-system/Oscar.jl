@@ -89,7 +89,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  S, _ = graded_polynomial_ring(A, Symbol.(var_symb))
+  S, _ = graded_polynomial_ring(A, Symbol.(var_symb); cached=false)
   return proj(S)
 end
 
@@ -100,7 +100,7 @@ Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A`
 where `s` is a string for the variable names.
 """
 function projective_space(A::Ring, r::Int; var_name::VarName=:s)
-  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r]; cached=false)
   return proj(S)
 end
 
@@ -138,3 +138,19 @@ end
 function reduced_scheme(X::AbsProjectiveScheme{S,T}) where {S, T<:MPolyDecRing}
   return X
 end
+
+"""
+See [`minimal_primes`](@ref) for algorithms and keyword arguments. 
+"""
+function irreducible_components(X::AbsProjectiveScheme; kwargs...)
+  I = defining_ideal(X)
+  PP = minimal_primes(I; kwargs...)
+  C = AbsProjectiveScheme[] 
+  for p in PP
+    Y = subscheme(ambient_space(X), p)
+    set_attribute!(Y, :is_reduced=>true)
+    set_attribute!(Y, :is_integral=>true)
+    push!(C, Y)
+  end
+  return C
+end 

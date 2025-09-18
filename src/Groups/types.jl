@@ -1,5 +1,5 @@
 @doc raw"""
-    GAPGroup <: AbstractAlgebra.Group
+    GAPGroup <: Group
 
 Each object of the abstract type `GAPGroup` stores a group object from
 the GAP system,
@@ -11,13 +11,13 @@ i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `SubFPGroup`,
 `PcGroup`, `SubPcGroup`, and `MatrixGroup`.
 """
-abstract type GAPGroup <: AbstractAlgebra.Group end
+abstract type GAPGroup <: Group end
 
-## `GapGroup` to GAP group
-GAP.julia_to_gap(obj::GAPGroup) = obj.X
+## `GapGroup` to underlying GAP group
+GAP.@install GapObj(obj::GAPGroup) = obj.X
 
 @doc raw"""
-    GAPGroupElem <: AbstractAlgebra.GroupElem
+    GAPGroupElem <: GroupElem
 
 Each object of the abstract type `GAPGroupElem` stores a group element
 object from the GAP system,
@@ -26,10 +26,10 @@ and thus can delegate questions about this object to GAP.
 For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g`.
 """
-abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+abstract type GAPGroupElem{T<:GAPGroup} <: GroupElem end
 
 ## `GapGroupElem` to GAP group element
-GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
+GAP.@install GapObj(obj::GAPGroupElem) = obj.X
 
 @doc raw"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
@@ -73,19 +73,19 @@ If `G` is a permutation group and `x` is a permutation,
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
 julia> G=symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> x=cperm([1,2,3])
 (1,2,3)
 
 julia> parent(x)
-Sym(3)
+Symmetric group of degree 3
 
 julia> y=G(x)
 (1,2,3)
 
 julia> parent(y)
-Sym(5)
+Symmetric group of degree 5
 ```
 
 If `G` is a permutation group and `x` is a vector of integers,
@@ -95,13 +95,13 @@ an exception is thrown if the element does not embed into `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(6)
-Sym(6)
+Symmetric group of degree 6
 
 julia> x = G([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
@@ -450,7 +450,6 @@ function _oscar_subgroup(obj::GapObj, G::GAPGroup)
   @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
-#T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
 function _oscar_subgroup(obj::GapObj, G::PermGroup)
@@ -479,7 +478,7 @@ end
 
 ################################################################################
 
-abstract type GSet{T} end
+abstract type GSet{T,S} end
 
 
 ################################################################################
@@ -494,7 +493,7 @@ abstract type GSet{T} end
 It can be either the conjugacy class of an element or of a subgroup of type `S`
 in a group `G` of type `T`.
 """
-abstract type GroupConjClass{T, S} <: GSet{T} end
+abstract type GroupConjClass{T,S} <: GSet{T,S} end
 
 
 ################################################################################
@@ -526,24 +525,36 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  is_known_to_be_full::Bool
 
-  function AutomorphismGroup{T}(G::GapObj, H::T) where T
+  function AutomorphismGroup{T}(G::GapObj, H::T, full::Bool = false) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
-    z = new{T}(G, H)
+    z = new{T}(G, H, full)
     return z
   end
 end
 
-function AutomorphismGroup(G::GapObj, H::T) where T
-  return AutomorphismGroup{T}(G, H)
+function AutomorphismGroup(G::GapObj, H::T, full::Bool = false) where T
+  return AutomorphismGroup{T}(G, H, full)
 end
 
 (aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
 
 const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
 
-function Base.show(io::IO, AGE::AutomorphismGroupElem{FinGenAbGroup}) 
-    print(io, "Automorphism of ", FinGenAbGroup, " with matrix representation ", matrix(AGE))
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{FinGenAbGroup})
+  D = domain(parent(f))
+  io = pretty(io)
+  println(io, "Automorphism of")
+  println(io, Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AutomorphismGroupElem{FinGenAbGroup})
+  print(io, matrix(f))
 end
 
 ################################################################################
@@ -649,6 +660,7 @@ function _oscar_group(G::GapObj)
         ring = codomain(iso)
         matgrp = matrix_group(ring, deg)
         matgrp.ring_iso = inv(iso)
+        set_attribute!(ring, :iso_oscar_gap, matgrp.ring_iso)
         matgrp.X = G
         return matgrp
       elseif pair[2] == AutomorphismGroup

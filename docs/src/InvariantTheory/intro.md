@@ -1,11 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Introduction](@id invariant_theory)
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants
-of group actions, focusing on finite and linearly reductive groups, respectively.
+of group actions, focusing on finite groups, tori, and linearly reductive groups, respectively.
 
 The basic setting in this context consists of a group $G$, a field $K$, a vector space
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
@@ -28,7 +30,7 @@ The *invariants* of $G$ are the fixed points of the action defined above, its *i
 $K[V]^G:=\{f\in K[V] \mid f \;\!   . \;\! \pi =f {\text { for any }} \pi\in G\} \subset K[V].$
 
 Explicitly, fixing a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$,
-we may identify $\GL(V) \cong \GL_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
+we may identify $\operatorname{GL}(V) \cong \operatorname{GL}_n(K)$ and $K[V]\cong K[x_1, \dots, x_n]$.
 Then the action of an element $\pi \in G$ with $\rho(\pi) = (a_{i, j})$ on a polynomial $f\in K[x_1,\dots, x_n]$ is given as follows:
 
 $(f \;\!   . \;\! \pi)  (x_1, \dots, x_n) = f\bigl(\sum_j a_{1, j}x_j, \dots, \sum_j a_{n, j}x_j\bigr).$

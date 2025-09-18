@@ -34,7 +34,7 @@ julia> length(fano_matroid())
 7
 ```
 """
-length(M::Matroid) = length(M.groundset)
+length(M::Matroid) = length(M.groundset)::Int
 
 
 @doc raw"""
@@ -53,9 +53,9 @@ julia> bases(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
-bases(M::Matroid) = _indices_to_gs(bases(Int, M), M.groundset)
+bases(M::Matroid{T}) where T = _indices_to_gs(bases(Int, M), M.groundset)::Vector{Vector{T}}
 
-bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)
+bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)::Vector{Vector{Int}}
 
 @doc raw"""
     nonbases(M::Matroid)
@@ -75,9 +75,9 @@ julia> nonbases(fano_matroid())
  [3, 5, 6]
 ```
 """
-nonbases(M::Matroid) = _indices_to_gs(nonbases(Int, M), M.groundset)
+nonbases(M::Matroid{T}) where T = _indices_to_gs(nonbases(Int, M), M.groundset)::Vector{Vector{T}}
 
-nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)
+nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)::Vector{Vector{Int}}
 
 
 @doc raw"""
@@ -95,7 +95,7 @@ julia> circuits(uniform_matroid(2, 4))
  [2, 3, 4]
 ```
 """
-circuits(M::Matroid) = _property_to_gs(M, :CIRCUITS)
+circuits(M::Matroid{T}) where T = _property_to_gs(M, :CIRCUITS)::Vector{Vector{T}}
 
 @doc raw"""
     hyperplanes(M::Matroid)
@@ -115,7 +115,7 @@ julia> hyperplanes(fano_matroid())
  [1, 2, 3]
 ```
 """
-hyperplanes(M::Matroid) = _property_to_gs(M, :MATROID_HYPERPLANES)
+hyperplanes(M::Matroid{T}) where T = _property_to_gs(M, :MATROID_HYPERPLANES)::Vector{Vector{T}}
 
 @doc raw"""
     flats(M::Matroid, [r::Int])
@@ -161,7 +161,7 @@ julia> flats(M, 2)
 """
 flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
 
-function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
+function flats_impl(M::Matroid{T}, r::Union{Int,Nothing}, num_flats::Int, pm_flats) where T
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
     if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
@@ -173,9 +173,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         end
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
-    gs = matroid_groundset(M)
-    elt = eltype(gs)
-    matroid_flats = Vector{Vector{elt}}(matroid_flats)
+    matroid_flats = Vector{Vector{T}}(matroid_flats)
     return matroid_flats
 end
 
@@ -218,7 +216,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid{T}, r::Union{Int,Nothing}=nothing) where T = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
@@ -412,7 +410,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> !(k in set), matroid_groundset(M)) for set in coindependent_sets]
+    span_sets = [filter(!in(set), matroid_groundset(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 
@@ -496,7 +494,7 @@ corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, M.groundset) + rank
 @doc raw"""
     is_clutter(sets::AbstractVector{T}) where T <: GroundsetType
 
-Checks if the collection of subsets `sets` is a clutter.
+Check if the collection of subsets `sets` is a clutter.
 A collection of subsets is a clutter if none of the sets is a proper subset of another.
 See Section 2.1 in [Oxl11](@cite).
 
@@ -523,7 +521,7 @@ end
 @doc raw"""
     is_regular(M::Matroid)
 
-Checks if the matroid `M` is regular, that is representable over every field.
+Check if the matroid `M` is regular, that is representable over every field.
 See Section 6.6 in [Oxl11](@cite).
 
 # Examples
@@ -546,7 +544,7 @@ end
 @doc raw"""
     is_binary(M::Matroid)
 
-Checks if the matroid `M` is binary, that is representable over the finite field `F_2`.
+Check whether the matroid `M` is binary, that is representable over the finite field `F_2`.
 See Section 6.5 in [Oxl11](@cite).
 
 # Examples
@@ -563,7 +561,7 @@ is_binary(M::Matroid) = pm_object(M).BINARY::Bool
 @doc raw"""
     is_ternary(M::Matroid)
 
-Checks if the matroid `M` is ternary, that is representable over the finite field `F_3`.
+Check if the matroid `M` is ternary, that is representable over the finite field `F_3`.
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
@@ -598,7 +596,7 @@ julia> n_connected_components(uniform_matroid(3, 3))
 3
 ```
 """
-n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
+n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)::Int
 
 @doc raw"""
     connected_components(M::Matroid)
@@ -619,7 +617,7 @@ julia> connected_components(uniform_matroid(3, 3))
  [3]
 ```
 """
-connected_components(M::Matroid) = _property_to_gs(M, :CONNECTED_COMPONENTS)
+connected_components(M::Matroid{T}) where T = _property_to_gs(M, :CONNECTED_COMPONENTS)::Vector{Vector{T}}
 
 @doc raw"""
     is_connected(M::Matroid)
@@ -654,7 +652,7 @@ julia> loops(fano_matroid())
 Int64[]
 ```
 """
-loops(M::Matroid) = _property_to_gs(M, :LOOPS)
+loops(M::Matroid{T}) where T = _property_to_gs(M, :LOOPS)::Vector{T}
 
 @doc raw"""
     coloops(M::Matroid)
@@ -672,7 +670,7 @@ julia> coloops(fano_matroid())
 Int64[]
 ```
 """
-coloops(M::Matroid) = _property_to_gs(M, Symbol("DUAL.LOOPS"))
+coloops(M::Matroid{T}) where T = _property_to_gs(M, Symbol("DUAL.LOOPS"))::Vector{T}
 
 @doc raw"""
     is_loopless(M::Matroid)
@@ -740,9 +738,9 @@ julia> direct_sum_components(fano_matroid())
 
 julia> direct_sum_components(uniform_matroid(3, 3))
 3-element Vector{Matroid}:
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
- Matroid of rank 1 on 1 elements
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
+ Matroid of rank 1 on 1 element
 ```
 """
 function direct_sum_components(M::Matroid)
@@ -849,7 +847,7 @@ julia> girth(fano_matroid(), [1,2,3,4])
 
 ```
 """
-girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
+girth(M::Matroid, set::GroundsetType=M.groundset) = minimum(issubset(C,set) ? length(C) : inf for C in circuits(M); init=inf)
 
 @doc raw"""
     tutte_connectivity(M::Matroid)
@@ -880,11 +878,13 @@ function tutte_connectivity(M::Matroid)
             return inf
         end
     end
-    return minimum([vertical_connectivity(M),girth(M)])
+    return min(vertical_connectivity(M), girth(M))
 end
 
 @doc raw"""
     tutte_polynomial(M::Matroid)
+    tutte_polynomial(M::Matroid; parent::ZZMPolyRing)
+    tutte_polynomial(parent::ZZMPolyRing, M::Matroid)
 
 Return the Tutte polynomial of `M`. This is polynomial in the variables x and y with integral coefficients.
 See Section 15.3 in [Oxl11](@cite).
@@ -896,15 +896,22 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 
 ```
 """
-function tutte_polynomial(M::Matroid)
-    R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-    poly = pm_object(M).TUTTE_POLYNOMIAL
-    exp = Polymake.monomials_as_matrix(poly)
-    return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
+function tutte_polynomial(M::Matroid;
+           parent::ZZMPolyRing = polynomial_ring(ZZ, [:x, :y]; cached = false)[1])
+  @assert ngens(parent) >= 2
+  poly = pm_object(M).TUTTE_POLYNOMIAL
+  coeffs = Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly))
+  exp = Polymake.monomials_as_matrix(poly)
+  ev = [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]]::Vector{Vector{Int}}
+  return parent(coeffs, ev)
 end
+
+tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
 
 @doc raw"""
     characteristic_polynomial(M::Matroid)
+    characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the characteristic polynomial of `M`. This is polynomial in the variable q with integral coefficients.
 It is computed as an evaluation of the Tutte polynmomial.
@@ -917,13 +924,17 @@ q^3 - 7*q^2 + 14*q - 8
 
 ```
 """
-function characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    return (-1)^rank(M)*tutte_polynomial(M)(1-q,0)
+function characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)::ZZPolyRingElem
 end
+
+characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)
 
 @doc raw"""
     reduced_characteristic_polynomial(M::Matroid)
+    reduced_characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    reduced_characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the reduced characteristic polynomial of `M`. This is the quotient of the characteristic polynomial by (q-1).
 See Section 15.2 in [Oxl11](@cite).
@@ -935,17 +946,19 @@ q^2 - 6*q + 8
 
 ```
 """
-function reduced_characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    p = characteristic_polynomial(M)
-    c = Vector{Int}(undef,degree(p))
-    s = 0
-    for i in 1:degree(p)
-        s-= coeff(p,i-1)
-        c[i] = s
-    end
-    return R(c)
+function reduced_characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  p = characteristic_polynomial(M, parent = parent)
+  c = Vector{ZZRingElem}(undef, degree(p))
+  s = ZZ(0)
+  for i in 1:degree(p)
+    s -= coeff(p, i - 1)
+    c[i] = s
+  end
+  return parent(c)
 end
+
+reduced_characteristic_polynomial(R::ZZPolyRing, M::Matroid) = reduced_characteristic_polynomial(M, parent = R)
 
 # This function compares two sets A and B in reverse lexicographic order.
 # It assumes that both sets are of the same length and ordered.
@@ -976,13 +989,13 @@ function revlex_bases_matrix(r::Int64,n::Int64)
     return M
 end
 
-_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in collect(s)]
+_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in s]
 _revlex_basis_from_vector(v::AbstractVector{<:Integer}) = join(isone(x) ? '*' : '0' for x in v)
 
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
-Computes the revlex basis encoding of the matroid M.
+Compute the revlex basis encoding of the matroid M.
 
 # Examples
 To get the revlex basis encoding of the fano matroid and to produce a matrod form the encoding write:
@@ -1002,7 +1015,7 @@ end
 @doc raw"""
     min_revlex_basis_encoding(M::Matroid)
 
-Computes the minimal revlex basis encoding among isomorphic matroids.
+Compute the minimal revlex basis encoding among isomorphic matroids.
 
 # Examples
 To get the minimal revlex basis encoding of the fano matroid write:
@@ -1031,9 +1044,66 @@ function min_revlex_basis_encoding(M::Matroid)
 end
 
 @doc raw"""
+    matroid_hex(M::Matroid)
+
+Store a matroid as a string of hex characters. The first part of the string is
+"r" followed by the rank of the matroid. This is followed by "n" and the
+number of elements. The rest of the string is the revlex basis encoding. The
+encoding is done by converting the basis encoding to a vector of bits and then
+to a string of characters. The bits are padded to a multiple of 4 and then
+converted to hex characters.
+
+# Examples
+To get the hex encoding of the fano matroid write:
+```jldoctest
+julia> matroid_hex(fano_matroid())
+"r3n7_3f7eefd6f"
+
+```
+"""
+function matroid_hex(M::Matroid)
+  rvlx = min_revlex_basis_encoding(M)
+  r,n = rank(M), length(M) 
+  v = zeros(Int, 4*ceil(Int, length(rvlx)/4))
+  v[length(v)-length(rvlx)+1:end] = _revlex_basis_to_vector(rvlx)
+
+  v = reshape(v,4,:)
+  v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
+
+  return "r$(r)n$(n)_" * join(v)
+end
+
+@doc raw"""
+    matroid_from_matroid_hex(str::AbstractString)
+
+Return a matroid from a string of hex characters.
+
+# Examples
+To retrieve the fano matroid from its hex encoding write:
+
+```jldoctest
+julia> matroid_from_matroid_hex("r3n7_3f7eefd6f")
+Matroid of rank 3 on 7 elements
+
+```
+"""
+function matroid_from_matroid_hex(str::AbstractString)
+  @req occursin(r"^r\d+n\d+_[0-9a-f]+$", str) "Invalid hex encoding"
+
+  sep = split(str, "_")
+  (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+
+  v = [digits(parse(Int, x, base=16), base=2, pad=4) |> reverse for x in sep[2]]
+  v = foldl(append!, v)
+  v = v[(length(v)-binomial(n, r)+1):end]
+
+  return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v), r, n)
+end
+
+@doc raw"""
     is_isomorphic(M1::Matroid, M2::Matroid)
 
-Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
+Check if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
 
 # Examples
 To compare two matrods write:
@@ -1057,7 +1127,7 @@ end
 @doc raw"""
     is_minor(M::Matroid, N::Matroid)
 
-Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
+Check if the matroid `M` is isomorphic to a minor of the matroid `N`.
 
 # Examples
 ```jldoctest

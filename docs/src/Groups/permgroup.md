@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -39,6 +40,7 @@ In OSCAR, every permutation group has a degree `n`, that corresponds to the size
 
 ```@docs
 degree(x::PermGroup)
+smaller_degree_permutation_representation(G::PermGroup)
 ```
 
 
@@ -107,6 +109,13 @@ julia> x(6)
 6
 ```
 
+## Moved points of permutations and permutation groups
+```@docs
+smallest_moved_point
+largest_moved_point
+moved_points
+number_of_moved_points
+```
 
 ## Cycle structures
 

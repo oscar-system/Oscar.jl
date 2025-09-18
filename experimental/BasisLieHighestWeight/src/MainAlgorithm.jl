@@ -1,7 +1,6 @@
 function basis_lie_highest_weight_compute(
-  L::LieAlgebraStructure,
-  highest_weight::Vector{Int},
-  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  V::ModuleData,
+  operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
 )
   # Pseudocode:
@@ -17,61 +16,67 @@ function basis_lie_highest_weight_compute(
   #     else
   #         set_mon = {}
   #         go through all partitions lambda_1 + lambda_2 = highest_weight
-  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
+  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_2) to set_mon 
   #         if set_mon too small
   #             add_by_hand(highest_weight, set_mon)
   #         return set_mon
 
   # add_by_hand(highest_weight, set_mon)
-  #     add_known_monomials(set_mon)
+  #     add all monomials from set_mon to basis
   #     go through all weightspaces that are not full
   #         add_new_monomials(weightspace, set_mon)
   #     return set_mon
-
-  # add_known_monomials(set_mon)
-  #     add all monomials from set_mon to basis
 
   # add_new_monomials(weightspace, set_mon)
   #     calculate monomials with weight in weightspace
   #     go through them one by one in monomial_ordering until basis is full
   #     return set_mon
 
-  highest_weight = ZZ.(highest_weight)
-  # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
-  # steps. Then it starts the recursion and returns the result.
+  R = root_system(base_lie_algebra(V))
 
-  weights_w = [weight(L, op) for op in operators] # weights of the operators
-  weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
-
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
-  birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_alpha
-  )
+  birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
-  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
+  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, operators)
 
   # save computations from recursions
-  calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
-    [ZZ(0) for i in 1:rank(L)] => Set([ZZx(1)])
+  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-  no_minkowski = Set{Vector{ZZRingElem}}()
+  no_minkowski = Set{WeightLatticeElem}()
 
   # start recursion over highest_weight
   monomials = compute_monomials(
-    L,
-    birational_sequence,
+    V,
+    birational_seq,
     ZZx,
-    highest_weight,
     monomial_ordering,
     calc_highest_weight,
     no_minkowski,
   )
-  # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
-  minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
-  # output
-  mb = MonomialBasis(L, highest_weight, birational_sequence, monomial_ordering, monomials)
+  # monomials = sort(collect(monomials); order=monomial_ordering)
+  minkowski_gens = sort(
+    collect(no_minkowski);
+    by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
+  )
+  # output  
+  if V isa SimpleModuleData
+    mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
+  elseif V isa DemazureModuleData #the module is twisted and we need to twist it back
+    twisted_roots = [
+      -(root * V.weyl_group_elem) for root in operators_as_roots(birational_seq)
+    ]
+    twisted_weights = [
+      -(weight * V.weyl_group_elem) for weight in operators_as_weights(birational_seq)
+    ]
+    twisted_birational_seq = birational_sequence(
+      twisted_roots, twisted_weights, birational_seq.root_system
+    )
+    mb = MonomialBasis(V, twisted_birational_seq, monomial_ordering, monomials)
+  else
+    error("unreachable")
+  end
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
@@ -79,10 +84,9 @@ function basis_lie_highest_weight_compute(
 end
 
 function basis_coordinate_ring_kodaira_compute(
-  L::LieAlgebraStructure,
-  highest_weight::Vector{Int},
+  V::SimpleModuleData,
   degree::Int,
-  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
 )
   # Pseudocode:
@@ -95,28 +99,21 @@ function basis_coordinate_ring_kodaira_compute(
   #       of smaller multiples, the missing monomials
 
   @req degree > 0 "Degree must be positive"
-  highest_weight = ZZ.(highest_weight)
-  # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
-  # steps. Then it starts the recursion and returns the result.
+  R = root_system(base_lie_algebra(V))
+  #highest_weight = WeightLatticeElem(R, highest_weight(V))
 
-  weights_w = [weight(L, op) for op in operators] # weights of the operators
-  weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
-
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
-  birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_alpha
-  )
+  birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
-  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
+  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, operators)
 
   # save computations from recursions
-  calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
-    [ZZ(0) for i in 1:rank(L)] => Set([ZZx(1)])
+  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-  no_minkowski = Set{Vector{ZZRingElem}}()
+  no_minkowski = Set{WeightLatticeElem}()
   monomials_k = Set{ZZMPolyRingElem}[]        # monomial basis of the module k*highest_weight
   monomials_new_k = Vector{ZZMPolyRingElem}[] # store the monomials that are not products of basis monomials of smaller degree
   sizehint!(monomials_k, degree)
@@ -126,7 +123,7 @@ function basis_coordinate_ring_kodaira_compute(
   # start recursion over degree
   for i in 1:degree
     monomials_minkowski_sum = Set{ZZMPolyRingElem}()
-    dim_i = dim_of_simple_module(L, i * highest_weight)
+    dim_i = dim_of_simple_module(base_lie_algebra(V), i * highest_weight(V))
     # iterate over all minkowski sums of previous steps
     for k in 1:div(i, 2)
       set_help = Set([p * q for p in monomials_k[i - k] for q in monomials_k[k]])
@@ -136,38 +133,43 @@ function basis_coordinate_ring_kodaira_compute(
       end
     end
     if length(monomials_minkowski_sum) == dim_i
-      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight)) everything is generated by smaller weights"
+      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) everything is generated by smaller weights"
       monomials = monomials_minkowski_sum
       monomials_new = empty(monomials_minkowski_sum)
     else
-      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight)) we have $(length(monomials_minkowski_sum)) and need $(dim_i) monomials"
+      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we have $(length(monomials_minkowski_sum)) and need $(dim_i) monomials"
+      V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
       monomials = compute_monomials(
-        L,
-        birational_sequence,
+        V_i,
+        birational_seq,
         ZZx,
-        i * highest_weight,
         monomial_ordering,
         calc_highest_weight,
         no_minkowski,
       )
       monomials_new = setdiff(monomials, monomials_minkowski_sum)
-      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight)) we added $(length(monomials_new)) monomials "
+      @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we added $(length(monomials_new)) monomials "
 
-      # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
-      minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
+      # monomials = sort(collect(monomials); order=monomial_ordering)
+      minkowski_gens = sort(
+        collect(no_minkowski);
+        by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
+      )
     end
 
+    V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
     mb = MonomialBasis(
-      L, i * highest_weight, birational_sequence, monomial_ordering, monomials
+      V_i, birational_seq, monomial_ordering, monomials
     )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
     monomials_new_sorted = sort(
-      collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
+      collect(monomials_new); order=monomial_ordering
     )
     if isempty(monomials_new)
       set_attribute!(
         mb,
-        :minkowski_gens => [k * highest_weight for k in findall(!isempty, monomials_new_k)],
+        :minkowski_gens =>
+          [k * highest_weight(V) for k in findall(!isempty, monomials_new_k)],
         :new_monomials => nothing,
       )
     else
@@ -184,18 +186,17 @@ function basis_coordinate_ring_kodaira_compute(
 end
 
 function compute_monomials(
-  L::LieAlgebraStructure,
-  birational_sequence::BirationalSequence,
+  V::ModuleData,
+  birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
-  highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
-  calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  no_minkowski::Set{Vector{ZZRingElem}},
+  calc_highest_weight::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
+  no_minkowski::Set{WeightLatticeElem},
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
   # If this is not the case, we need to perform computations. The recursion works by using the Minkowski-sum. 
-  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is know 
+  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is known 
   # that for lambda_1 + lambda_2 = highest_weight we have M_{lambda_1} + M_{lambda_2} subseteq M_{highest_weight}. 
   # The complexity grows exponentially in the size of highest_weight. Therefore, it is very helpful to obtain a part of
   # M_{highest_weight} by going through all partitions of highest_weight and using the Minkowski-property. The base 
@@ -204,111 +205,91 @@ function compute_monomials(
 
   # simple cases
   # we already computed the highest_weight result in a prior recursion step
-  if haskey(calc_highest_weight, highest_weight)
-    return calc_highest_weight[highest_weight]
-  elseif highest_weight == [ZZ(0) for i in 1:(L.rank)] # we mathematically know the solution
+  if haskey(calc_highest_weight, highest_weight(V))
+    return calc_highest_weight[highest_weight(V)]
+  elseif is_zero(highest_weight(V)) # we mathematically know the solution
     return Set(ZZx(1))
   end
   # calculation required
-  # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
-  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the basecase of 
+  # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
+  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the base case of
   # the recursion.
-  gap_dim = dim_of_simple_module(L, highest_weight)
-  if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
-    push!(no_minkowski, highest_weight)
+  if is_zero(highest_weight(V)) || is_fundamental_weight(highest_weight(V))
+    push!(no_minkowski, highest_weight(V))
     monomials = add_by_hand(
-      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
+      V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
     )
-    push!(calc_highest_weight, highest_weight => monomials)
+    push!(calc_highest_weight, highest_weight(V) => monomials)
     return monomials
   else
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
-    i = 0
-    sub_weights_w = compute_sub_weights(highest_weight)
-    l = length(sub_weights_w)
-    # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all 
-    # partitions
-    while length(monomials) < gap_dim && i < l
-      i += 1
-      lambda_1 = sub_weights_w[i]
-      lambda_2 = highest_weight .- lambda_1
+    sub_weights = sub_weights_proper(highest_weight(V))
+    sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
+    # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
+    for (ind_lambda_1, lambda_1) in enumerate(sub_weights)
+      length(monomials) >= dim(V) && break
 
-      if lambda_1 > lambda_2
-        continue
+      lambda_2 = highest_weight(V) - lambda_1
+      ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int
+
+      ind_lambda_1 > ind_lambda_2 && continue
+
+      if V isa SimpleModuleData
+        M_lambda_1 = SimpleModuleData(base_lie_algebra(V), lambda_1)
+        M_lambda_2 = SimpleModuleData(base_lie_algebra(V), lambda_2)
+      elseif V isa DemazureModuleData
+        M_lambda_1 = DemazureModuleData(base_lie_algebra(V), lambda_1, weyl_group_elem(V))
+        M_lambda_2 = DemazureModuleData(base_lie_algebra(V), lambda_2, weyl_group_elem(V))
+      else
+        error("unreachable")
       end
 
       mon_lambda_1 = compute_monomials(
-        L,
-        birational_sequence,
+        M_lambda_1,
+        birational_seq,
         ZZx,
-        lambda_1,
         monomial_ordering,
         calc_highest_weight,
         no_minkowski,
       )
       mon_lambda_2 = compute_monomials(
-        L,
-        birational_sequence,
+        M_lambda_2,
+        birational_seq,
         ZZx,
-        lambda_2,
         monomial_ordering,
         calc_highest_weight,
         no_minkowski,
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
-      monomials_minkowski_sum = Set([p * q for p in mon_lambda_1 for q in mon_lambda_2])
-      union!(monomials, monomials_minkowski_sum)
+      union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
     end
     # check if we found enough monomials
 
-    if length(monomials) < gap_dim
-      push!(no_minkowski, highest_weight)
+    if length(monomials) < dim(V)
+      push!(no_minkowski, highest_weight(V))
       monomials = add_by_hand(
-        L, birational_sequence, ZZx, highest_weight, monomial_ordering, monomials
+        V, birational_seq, ZZx, monomial_ordering, monomials
       )
     end
 
-    push!(calc_highest_weight, highest_weight => monomials)
+    push!(calc_highest_weight, highest_weight(V) => monomials)
     return monomials
   end
 end
 
-function add_known_monomials!(
-  weight_w::Vector{ZZRingElem},
-  monomials_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  matrices_of_operators::Vector{<:SMat{ZZRingElem}},
-  space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
-  v0::SRow{ZZRingElem},
-)
-  # By using the Minkowski-sum, we know that all monomials in monomials_in_weightspace are in our basis. Since we want to
-  # extend the weightspace with missing monomials, we need to calculate and add the vector of each monomial to our 
-  # basis.
-
-  for mon in monomials_in_weightspace[weight_w]
-    # calculate the vector vec associated with mon
-    vec = calc_vec(v0, mon, matrices_of_operators)
-
-    # check if vec extends the basis
-    if !haskey(space, weight_w)
-      space[weight_w] = sparse_matrix(QQ)
-    end
-    Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
-  end
-end
-
 function add_new_monomials!(
-  L::LieAlgebraStructure,
-  birational_sequence::BirationalSequence,
+  V::ModuleData,
+  birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
   monomial_ordering::MonomialOrdering,
-  weightspaces::Dict{Vector{ZZRingElem},Int},
-  dim_weightspace::Int,
-  weight_w::Vector{ZZRingElem},
-  monomials_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
+  weightspaces::Dict{WeightLatticeElem,ZZRingElem},
+  dim_weightspace::ZZRingElem,
+  weight_w::WeightLatticeElem,
+  monomials_in_weightspace::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
+  space::Dict{WeightLatticeElem,<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
   basis::Set{ZZMPolyRingElem},
   zero_coordinates::Vector{Int},
@@ -317,23 +298,34 @@ function add_new_monomials!(
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
-  # polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
+  # polytope is bounded these are finitely many and we can sort them and then go through them, until we found enough.
 
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, w_to_alpha(L, weight_w), zero_coordinates
+      operators_as_roots(birational_seq), RootSpaceElem(highest_weight(V) - weight_w),
+      zero_coordinates,
     ),
   )
-  isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
-  poss_mon_in_weightspace = sort(
-    poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
-  )
+  if isempty(poss_mon_in_weightspace)
+    if V isa SimpleModuleData
+      error(
+        "The input seems to be invalid. Not enough monomials for weightspace $(highest_weight(V) - weight_w) in module with highest weight $(highest_weight(V))"
+      )
+    elseif V isa DemazureModuleData
+      error(
+        "The input seems to be invalid. Not enough monomials for weightspace $((highest_weight(V) - weight_w) * weyl_group_elem(V)) in module with extremal weight $(highest_weight(V) * weyl_group_elem(V))"
+      )
+    else
+      error("unreachable")
+    end
+  end
+  poss_mon_in_weightspace = sort(poss_mon_in_weightspace; order=monomial_ordering)
 
   # check which monomials should get added to the basis
   i = 0
-  if weight_w == 0 # check if [0 0 ... 0] already in basis
+  if highest_weight(V) == weight_w # check if [0 0 ... 0] already in basis
     i += 1
   end
   number_mon_in_weightspace = length(monomials_in_weightspace[weight_w])
@@ -345,14 +337,14 @@ function add_new_monomials!(
       continue
     end
 
-    # check if the weight ob each suffix is a weight of the module
+    # check if the weight of each suffix is a weight of the module
     cancel = false
     for i in 1:(nvars(ZZx) - 1)
       if !haskey(
         weightspaces,
-        sum(
+        highest_weight(V) - sum(
           exp * weight for (exp, weight) in
-          Iterators.drop(zip(degrees(mon), birational_sequence.weights_w), i)
+          Iterators.drop(zip(degrees(mon), operators_as_weights(birational_seq)), i)
         ),
       )
         cancel = true
@@ -382,10 +374,9 @@ function add_new_monomials!(
 end
 
 function add_by_hand(
-  L::LieAlgebraStructure,
-  birational_sequence::BirationalSequence,
+  V::ModuleData,
+  birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
-  highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
   basis::Set{ZZMPolyRingElem},
 )
@@ -394,53 +385,56 @@ function add_by_hand(
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
+  R = root_system(base_lie_algebra(V))
   matrices_of_operators = tensor_matrices_of_operators(
-    L, highest_weight, birational_sequence.operators
+    base_lie_algebra(V), highest_weight(V), operators_as_roots(birational_seq)
   )
-  space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
+  space = Dict(zero(weight_lattice(R)) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(basis, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = get_dim_weightspace(L, highest_weight)
+  weightspaces = character(V)
   # sort the monomials from the minkowski-sum by their weightspaces
-  monomials_in_weightspace = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}()
+  monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
     monomials_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
   end
   for mon in basis
-    weight_w = weight(mon, birational_sequence.weights_w)
-    push!(monomials_in_weightspace[weight_w], mon)
+    push!(monomials_in_weightspace[highest_weight(V) - weight(mon, birational_seq)], mon)
   end
 
   # only inspect weightspaces with missing monomials
-  weights_with_non_full_weightspace = Set{Vector{ZZRingElem}}()
+  weights_with_non_full_weightspace = Set{WeightLatticeElem}()
   for (weight_w, dim_weightspace) in weightspaces
     if length(monomials_in_weightspace[weight_w]) != dim_weightspace
       push!(weights_with_non_full_weightspace, weight_w)
     end
   end
 
-  # The weightspaces could be calculated completely indepent (except for
-  # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
-  # Oscar dependendencies. But I plan to reimplement this. 
-  # insert known monomials into basis
-
+  # add all images from `monomials_in_weightspace` on `v0` to `space`
   for weight_w in weights_with_non_full_weightspace
-    add_known_monomials!(
-      weight_w, monomials_in_weightspace, matrices_of_operators, space, v0
-    )
+    for mon in monomials_in_weightspace[weight_w]
+      # calculate the vector vec associated with mon
+      vec = calc_vec(v0, mon, matrices_of_operators)
+
+      # check if vec extends the basis
+      s = get!(space, weight_w) do
+        sparse_matrix(QQ)
+      end
+      Hecke._add_row_to_rref!(s, change_base_ring(QQ, vec))
+    end
   end
 
   # identify coordinates that are trivially zero because of the action on the generator
-  zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
+  zero_coordinates = compute_zero_coordinates(birational_seq, highest_weight(V))
 
   # calculate new monomials
   for weight_w in weights_with_non_full_weightspace
     dim_weightspace = weightspaces[weight_w]
     add_new_monomials!(
-      L,
-      birational_sequence,
+      V,
+      birational_seq,
       ZZx,
       matrices_of_operators,
       monomial_ordering,
@@ -457,121 +451,72 @@ function add_by_hand(
   return basis
 end
 
-function operators_by_index(
-  L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  birational_sequence::Vector{Int},
-)
-  @req all(i -> 1 <= i <= number_of_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
+function operators_asc_height(L::LieAlgebra)
+  return positive_roots(root_system(L))
+end
 
-  return [chevalley_basis[1][i] for i in birational_sequence] # TODO: change to [2]
+function operators_by_index(
+  L::LieAlgebra,
+  birational_seq::Vector{Int},
+)
+  return operators_asc_height(L)[birational_seq]
 end
 
 function operators_by_simple_roots(
-  L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  birational_sequence::Vector{Vector{Int}},
+  L::LieAlgebra,
+  birational_seq::Vector{Vector{Int}},
 )
-  rs = root_system_gap(L)
-  simple_roots = Vector{Vector{Int}}(GAP.Globals.SimpleSystem(rs))
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-
-  root_inds = Int[]
-  for whgt_alpha in birational_sequence
-    @req length(whgt_alpha) == rank(L) "Length mismatch"
-    @req all(>=(0), whgt_alpha) "Only positive roots are allowed as input"
-    root = sum(whgt_alpha .* simple_roots)
-    root_ind = findfirst(==(root), positive_roots)
-    @req !isnothing(root_ind) "$whgt_alpha is not a positive root"
-    push!(root_inds, root_ind)
+  R = root_system(L)
+  operators = map(birational_seq) do whgt_alpha
+    root = RootSpaceElem(R, whgt_alpha)
+    fl = is_positive_root(root)
+    @req fl "Only positive roots are allowed as input"
+    root
   end
 
-  return operators_by_index(L, chevalley_basis, root_inds)
+  return operators
 end
 
-function operators_lusztig(
-  L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  reduced_expression::Vector{Int},
-)
-  root_inds = operators_lusztig_indices(L, reduced_expression)
-  return operators_by_index(L, chevalley_basis, root_inds)
-end
-
-function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})
+function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   # Computes the operators for the lusztig polytopes for a longest weyl-word 
   # reduced_expression.
 
-  # \beta_k := s_{i_1} … s_{i_{k-1}} (\alpha_{i_k})
+  # \beta_k := (\alpha_{i_k}) s_{i_{k-1}} … s_{i_1}
 
   # F.e. for A, 2, [1, 2, 1], we get
   # \beta_1 = \alpha_1
   # \beta_2 = \alpha_1 + \alpha_2
   # \beta_3 = \alpha_2
 
-  rs = root_system_gap(L)
-
-  simple_roots = GAP.Globals.SimpleSystem(rs)
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
-
-  root_inds = Int[]
-
-  for k in 1:length(word)
-    # Calculate betas by applying simple reflections step-by-step.
-    root = copy(simple_roots[word[k]])
-    for j in (k - 1):-1:1
-      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, word[j], root)
-    end
-    root_ind = findfirst(==(Vector{Int}(root)), positive_roots)
-    @req !isnothing(root_ind) "$root is not a positive root"
-    push!(root_inds, root_ind)
+  R = root_system(L)
+  W = weyl_group(R)
+  operators = map(1:length(reduced_expression)) do k
+    root = simple_root(R, reduced_expression[k]) * W(reduced_expression[(k - 1):-1:1])
+    fl = is_positive_root(root)
+    @req fl "Only positive roots may occur here"
+    root
   end
-  return root_inds
+  return operators
 end
 
-@doc """
-    is_fundamental(highest_weight::Vector{IntegerUnion}) -> Bool
-
-Return if ``highest_weight`` is fundamental, i.e. [0, ..., 1, ..., 0].
-
-# Examples
-```jldoctest
-julia> BasisLieHighestWeight.is_fundamental([0, 1, 0])
-true
-
-julia> BasisLieHighestWeight.is_fundamental([0, 1, 1])
-false
-```
-"""
-function is_fundamental(highest_weight::Vector{<:IntegerUnion})
-  hasone = false
-  for i in highest_weight
-    if iszero(i)
-      continue
-    elseif isone(i)
-      hasone && return false
-      hasone = true
-    else
-      return false
-    end
-  end
-  return hasone
+function demazurify_operators(
+  V::DemazureModuleData, simple_operators::Vector{RootSpaceElem}
+)
+  inv_weyl_group_elem = inv(weyl_group_elem(V))
+  op = [-(root * inv_weyl_group_elem) for root in simple_operators]
+  return op
 end
 
-function compute_sub_weights(highest_weight::Vector{ZZRingElem})
-  # returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
+function sub_weights(w::WeightLatticeElem)
+  # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise
+  @req is_dominant(w) "The input must be a dominant weight"
+  R = root_system(w)
+  map(AbstractAlgebra.ProductIterator([0:w[i] for i in 1:rank(R)])) do coeffs
+    WeightLatticeElem(R, coeffs)
+  end
+end
 
-  sub_weights_w = []
-  foreach(Iterators.product((0:x for x in highest_weight)...)) do i
-    push!(sub_weights_w, [i...])
-  end
-  if isempty(sub_weights_w) || length(sub_weights_w) == 1 # case [] or [[0, ..., 0]]
-    return []
-  else
-    popfirst!(sub_weights_w) # [0, ..., 0]
-    pop!(sub_weights_w) # highest_weight
-    sort!(sub_weights_w; by=x -> sum((x) .^ 2))
-    return sub_weights_w
-  end
+function sub_weights_proper(w::WeightLatticeElem)
+  # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise, but neither 0 nor w
+  return filter(x -> !iszero(x) && x != w, sub_weights(w))
 end

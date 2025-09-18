@@ -33,8 +33,7 @@ julia> H == alternating_group(4)
 true
 ```
 """
-function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
-  @assert elem_type(G) == S
+function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = true)
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
@@ -46,7 +45,7 @@ end
 function sub(gens::GAPGroupElem...)
    @req length(gens) > 0 "Empty list"
    l = collect(gens)
-   @assert all(x -> parent(x) == parent(l[1]), l)
+   @assert allequal(parent, l)
    return sub(parent(l[1]), l, check = false)
 end
 
@@ -68,7 +67,7 @@ false
 """
 function is_subset(H::GAPGroup, G::GAPGroup)
    _check_compatible(H, G, error = false) || return false
-   return all(h -> h in G, gens(H))
+   return all(in(G), gens(H))
 end
 
 """
@@ -158,15 +157,7 @@ end
 
 # convert a GAP list of subgroups into a vector of Julia groups objects
 function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
-  res = Vector{T}(undef, length(subs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
-  end
-  return res
-end
-
-function _as_subgroups(G::PcGroup, subs::GapObj)
-  res = Vector{SubPcGroup}(undef, length(subs))
+  res = Vector{sub_type(T)}(undef, length(subs))
   for i = 1:length(res)
     res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
   end
@@ -183,8 +174,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Symmetric group of degree 5
+ Alternating group of degree 5
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -211,7 +202,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
@@ -254,7 +245,7 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 ```jldoctest
 julia> characteristic_subgroups(symmetric_group(3))
 3-element Vector{PermGroup}:
- Sym(3)
+ Symmetric group of degree 3
  Permutation group of degree 3 and order 3
  Permutation group of degree 3 and order 1
 
@@ -292,6 +283,15 @@ julia> center(quaternion_group(8))
 Return the centralizer of `H` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
 in `H`, together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  h = sylow_subgroup(g, 3)[1]
+Permutation group of degree 5 and order 3
+
+julia> centralizer(g, h)
+(Permutation group of degree 5 and order 6, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, H::GAPGroup)
   _check_compatible(G, H)
@@ -304,6 +304,15 @@ end
 Return the centralizer of `x` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
 together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  x = gen(g, 2)
+(1,2)
+
+julia> centralizer(g, x)
+(Permutation group of degree 4 and order 4, Hom: permutation group -> g)
+```
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
@@ -329,7 +338,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -393,6 +402,7 @@ julia> jennings_series(dihedral_group(16))
 
 julia> jennings_series(dihedral_group(10))
 ERROR: ArgumentError: group must be a p-group
+[...]
 ```
 """
 @gapattribute function jennings_series(G::GAPGroup)
@@ -412,15 +422,16 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
 ERROR: ArgumentError: p must be a prime
+[...]
 ```
 """
 function p_central_series(G::GAPGroup, p::IntegerUnion)
@@ -457,8 +468,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Symmetric group of degree 4
+ Alternating group of degree 4
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(GapObj(G)))
@@ -517,6 +528,7 @@ julia> nilpotency_class(dihedral_group(8))
 
 julia> nilpotency_class(dihedral_group(12))
 ERROR: ArgumentError: The group is not nilpotent.
+[...]
 ```
 """
 @gapattribute function nilpotency_class(G::GAPGroup)
@@ -555,6 +567,7 @@ false
 
 julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
@@ -655,6 +668,7 @@ false
 
 julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
+[...]
 ```
 """
 function is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
@@ -743,10 +757,14 @@ false
 
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
-  Q = FPGroup(GapObj(G)/elems_in_gap)
-  function proj(x::FPGroupElem)
-    return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
-             GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
+  Q = FPGroup((GapObj(G)/elems_in_gap)::GapObj)
+  Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+  Qgens = GAPWrap.GeneratorsOfGroup(GapObj(Q))
+  if length(Ggens) == 0
+    proj = x::FPGroupElem -> one(Q)
+  else
+    proj = x::FPGroupElem -> group_element(Q, GAPWrap.MappedWord(GapObj(x),
+                                                  Ggens, Qgens))
   end
   return Q, hom(G, Q, proj)
 end
@@ -804,7 +822,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> N = pcore(G, 2)[1];
 
@@ -910,11 +928,16 @@ end
 """
     abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
-Return the sorted vector of abelian invariants of the commutator factor group
-of `G` (see [`maximal_abelian_quotient`](@ref)).
+Return the sorted vector `v` of abelian invariants of the commutator factor
+group `Q` of `G` (see [`maximal_abelian_quotient`](@ref)).
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the commutator factor group of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
+
+In order to convert between the formats defined for `abelian_invariants`
+and [`elementary_divisors(::FinGenAbGroup)`](@ref) for `Q`,
+one can apply [`elementary_divisors(::Vector)`](@ref) to `v`
+and [`abelian_invariants(::Vector{S}) where S <: Oscar.IntegerUnion`](@ref) to the result of that call.
 
 # Examples
 ```jldoctest
@@ -945,7 +968,8 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
     abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
-(see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
+(see [`abelian_invariants(::Union{GAPGroup, FinGenAbGroup})`](@ref))
+of the Schur multiplier of `G`.
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the Schur multiplier of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
@@ -1000,7 +1024,7 @@ Z/1
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)
 
 function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
-  eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
+  eldiv = elementary_divisors(ZZRingElem, abelian_invariants_schur_multiplier(G))
   M = abelian_group(eldiv)
   (M isa T) && return M
   return codomain(isomorphism(T, M))
@@ -1064,7 +1088,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group of rank 2
-  to Sym(4)
+  to symmetric group of degree 4
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
@@ -1098,7 +1122,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Alt(5), Hom: Alt(5) -> Sym(5))
+(Alternating group of degree 5, Hom: Alt(5) -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1115,15 +1139,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Symmetric group of degree 4
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Symmetric group of degree 5
+ Alternating group of degree 5
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
@@ -1167,7 +1191,7 @@ julia> derived_length(dihedral_group(8))
 
 If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
-together with the embeddings of $K into $G_i$.
+together with the embeddings of $K$ into $G_i$.
 """
 function intersect(G1::GAPGroup, V::GAPGroup...)
    return intersect([G1, V...])

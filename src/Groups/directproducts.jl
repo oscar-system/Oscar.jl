@@ -17,15 +17,15 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H,K)
 Direct product of
- Sym(3)
- Sym(2)
+  symmetric group of degree 3
+  symmetric group of degree 2
 
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
@@ -33,14 +33,14 @@ julia> elements(G)
  (4,5)
  (2,3)
  (2,3)(4,5)
- (1,2)
- (1,2)(4,5)
- (1,2,3)
- (1,2,3)(4,5)
  (1,3,2)
  (1,3,2)(4,5)
  (1,3)
  (1,3)(4,5)
+ (1,2,3)
+ (1,2,3)(4,5)
+ (1,2)
+ (1,2)(4,5)
 ```
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
@@ -162,22 +162,20 @@ It is not defined for proper subgroups of direct products.
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+  symmetric group of degree 3
+  symmetric group of degree 2
 
 julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
-  from Sym(3)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  from symmetric group of degree 3
+  to H x K
 
 julia> h = perm(H, [2,3,1])
 (1,2,3)
@@ -187,10 +185,8 @@ julia> inj1(h)
 
 julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
-  from Sym(2)
-  to direct product of
-   Sym(3)
-   Sym(2)
+  from symmetric group of degree 2
+  to H x K
 
 julia> k = perm(K, [2,1])
 (1,2)
@@ -228,29 +224,25 @@ Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#
 # Examples
 ```jldoctest
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> G = direct_product(H, K)
 Direct product of
- Sym(3)
- Sym(2)
+  symmetric group of degree 3
+  symmetric group of degree 2
 
 julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(3)
+  from H x K
+  to symmetric group of degree 3
 
 julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
-  from direct product of
-   Sym(3)
-   Sym(2)
-  to Sym(2)
+  from H x K
+  to symmetric group of degree 2
 
 julia> g = perm([2,3,1,5,4])
 (1,2,3)(4,5)
@@ -297,14 +289,34 @@ function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
   return DirectProductGroup(H, G.L, GapObj(G), false)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", G::DirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  print(io, "Direct product of", Indent())
+  for x in G.L
+    print(io, "\n", Lowercase(), x)
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, G::DirectProductGroup)
-  if G.isfull
-    print(io, "Direct product of")
-    for x in G.L
-      print(io, "\n ", x)
-    end
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Direct product of groups")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(G))))
+    io = terse(io)
+    for (i,x) in enumerate(G.L)
+      i > 1 && print(io, is_unicode_allowed() ? " × " : " x ", Lowercase())
+      print(io, x)
+    end
   end
 end
 
@@ -351,6 +363,35 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 
 Return the semidirect product of `N` and `H`, of type `SemidirectProductGroup{S,T}`,
 where `f` is a group homomorphism from `H` to the automorphism group of `N`.
+
+# Examples
+```jldoctest
+julia> Q = quaternion_group(8)
+Pc group of order 8
+
+julia> C = cyclic_group(2)
+Pc group of order 2
+
+julia> A = automorphism_group(Q)
+Automorphism group of
+  pc group of order 8
+
+julia> au = A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
+[ x, y ] -> [ x*y2, y*y2 ]
+
+julia> f = hom(C,A,[C[1]],[au])
+Group homomorphism
+  from pc group of order 2
+  to automorphism group of pc group of order 8
+
+julia> G = semidirect_product(Q,f,C)
+Semidirect product of
+  normal group: pc group of order 8
+  acting group: pc group of order 2
+
+julia> derived_subgroup(G)
+(Subgroup of Q : C, Hom: subgroup of semidirect product of groups -> semidirect product of groups)
+```
 """
 function semidirect_product(
   N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T
@@ -436,18 +477,32 @@ function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T
   return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, GapObj(G), false)
 end
 
-function Base.show(io::IO, x::SemidirectProductGroup)
-  if x.isfull
-    print(
-      io,
-      "SemidirectProduct( ",
-      String(GAPWrap.StringViewObj(GapObj(x.N))),
-      " , ",
-      String(GAPWrap.StringViewObj(GapObj(x.H))),
-      " )",
-    )
+function Base.show(io::IO, ::MIME"text/plain", G::SemidirectProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Semidirect product of", Indent())
+  println(io, "normal group: ", Lowercase(), G.N)
+  print(io, "acting group: ", Lowercase(), G.H)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, G::SemidirectProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Semidirect product of groups")
   else
-    print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+    io = terse(io)
+    print(io, G.N)
+    print(io, is_unicode_allowed() ? " ⋊ " : " : ")
+    print(io, Lowercase(), G.H)
   end
 end
 
@@ -481,10 +536,12 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
@@ -544,10 +601,12 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> normal_subgroup(W)
 Pc group of order 3
@@ -566,36 +625,38 @@ julia> G = cyclic_group(3)
 Pc group of order 3
 
 julia> H = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> W = wreath_product(G,H)
-<group of size 18 with 2 generators>
+Wreath product with
+  base group: pc group of order 3
+  top group: symmetric group of degree 2
 
 julia> acting_subgroup(W)
-Sym(2)
+Symmetric group of degree 2
 ```
 """
 acting_subgroup(W::WreathProductGroup) = W.H
 
 """
-    homomorphism_of_wreath_product(G::WreathProductGroup)
+    homomorphism_of_wreath_product(W::WreathProductGroup)
 
 If `W` is the wreath product of `G` and `H`, then return the homomorphism `f`
 from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 """
-homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
+homomorphism_of_wreath_product(W::WreathProductGroup) = W.a
 
 """
-    is_full_wreath_product(G::WreathProductGroup)
+    is_full_wreath_product(W::WreathProductGroup)
 
-Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
+Return whether `W` is a wreath product of two groups, instead of a proper subgroup.
 """
-is_full_wreath_product(G::WreathProductGroup) = G.isfull
+is_full_wreath_product(W::WreathProductGroup) = W.isfull
 
 """
-    canonical_projection(G::WreathProductGroup)
+    canonical_projection(W::WreathProductGroup)
 
-Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
+If `W` is the wreath product of `G` and `H`, then return the projection of `W` onto the permutation group `H`.
 """
 function canonical_projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
@@ -605,9 +666,9 @@ function canonical_projection(W::WreathProductGroup)
 end
 
 """
-    canonical_injection(G::WreathProductGroup, n::Int)
+    canonical_injection(W::WreathProductGroup, n::Int)
 
-Return the injection of the `n`-th component of `G` into `G`.
+Return the injection of the `n`-th component of `W` into `W`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injection(W::WreathProductGroup, n::Int)
@@ -623,16 +684,43 @@ function canonical_injection(W::WreathProductGroup, n::Int)
 end
 
 """
-    canonical_injections(G::WreathProductGroup)
+    canonical_injections(W::WreathProductGroup)
 
-Return the injection of the `n`-th component of `G` into `G` for all `n`.
+Return the injection of the `n`-th component of `W` into `W` for all `n`.
 It is not defined for proper subgroups of wreath products.
 """
 function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
+function Base.show(io::IO, ::MIME"text/plain", G::WreathProductGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  println(io, "Wreath product with", Indent())
+  println(io, "base group: ", Lowercase(), G.G)
+  print(io, "top group: ", Lowercase(), G.H)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, G::WreathProductGroup)
+  io = pretty(io)
+  if !G.isfull
+    print(io, "Subgroup of ", Lowercase())
+  end
+  if is_terse(io)
+    print(io, "Wreath product of groups")
+  else
+    io = terse(io)
+    print(io, G.G)
+    print(io, is_unicode_allowed() ? " ≀ " : " wr ")
+    print(io, Lowercase(), G.H)
+  end
+end
 
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)

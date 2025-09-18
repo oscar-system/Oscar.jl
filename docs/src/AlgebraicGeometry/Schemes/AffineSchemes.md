@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -29,7 +31,7 @@ See [`inclusion_morphism(::AbsAffineScheme, ::AbsAffineScheme)`](@ref) for a way
 ### Affine n-space
 
 ```@docs
-affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
+affine_space(kk::BRT, n::Int; variable_name=:x) where {BRT<:Ring}
 affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
 ```
 
@@ -64,7 +66,7 @@ closure(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 ### Ambient affine space
 
-Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
+Most affine schemes in OSCAR ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
 affine space ``\mathbb{A}_B``.
 More precisely, `ambient_space(X)` is defined for `X = spec(R)` if `R`

@@ -31,43 +31,47 @@ function check_dimension(
   @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
 end
 
-@testset "Test BasisLieHighestWeight" begin
-  @testset "is_fundamental" begin
-    @test BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(0)])
-    @test !BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(1)])
-  end
+@testset "sub_weights(_proper)" begin
+  sub_weights = BasisLieHighestWeight.sub_weights
+  sub_weights_proper = BasisLieHighestWeight.sub_weights_proper
+  R = root_system(:B, 3)
 
-  @testset "compute_sub_weights" begin
-    @test isequal(BasisLieHighestWeight.compute_sub_weights([ZZ(0), ZZ(0), ZZ(0)]), [])
-    sub_weights = Vector{Vector{ZZRingElem}}([
-      [1, 0, 0],
-      [0, 1, 0],
+  w_zero = zero(weight_lattice(R))
+  @test issetequal(sub_weights(w_zero), [w_zero])
+  @test isempty(sub_weights_proper(w_zero))
+
+  w_231 = WeightLatticeElem(R, [2, 3, 1])
+  sub_weights_proper_231 = [
+    WeightLatticeElem(R, coeffs) for coeffs in [
       [0, 0, 1],
-      [1, 1, 0],
-      [1, 0, 1],
+      [0, 1, 0],
       [0, 1, 1],
-      [1, 1, 1],
-      [2, 0, 0],
       [0, 2, 0],
-      [2, 1, 0],
-      [1, 2, 0],
-      [2, 0, 1],
       [0, 2, 1],
-      [2, 1, 1],
-      [1, 2, 1],
-      [2, 2, 0],
       [0, 3, 0],
-      [2, 2, 1],
-      [1, 3, 0],
       [0, 3, 1],
+      [1, 0, 0],
+      [1, 0, 1],
+      [1, 1, 0],
+      [1, 1, 1],
+      [1, 2, 0],
+      [1, 2, 1],
+      [1, 3, 0],
       [1, 3, 1],
+      [2, 0, 0],
+      [2, 0, 1],
+      [2, 1, 0],
+      [2, 1, 1],
+      [2, 2, 0],
+      [2, 2, 1],
       [2, 3, 0],
-    ])
-    @test isequal(
-      BasisLieHighestWeight.compute_sub_weights([ZZ(2), ZZ(3), ZZ(1)]), sub_weights
-    )
-  end
+    ]
+  ]
+  @test issetequal(sub_weights(w_231), [w_zero, w_231, sub_weights_proper_231...])
+  @test issetequal(sub_weights_proper(w_231), sub_weights_proper_231)
+end
 
+@testset "Test BasisLieHighestWeight" begin
   @testset "Known examples basis_lie_highest_weight" begin
     base = basis_lie_highest_weight(:A, 2, [1, 0])
     mons = monomials(base)
@@ -602,6 +606,108 @@ end
       for i in 2:degree
         @test isempty(mbs[i][2])
       end
+    end
+  end
+end
+
+@testset "Demazure" begin
+  @testset "Trivial Cases" begin
+    for (type, rank, highest_weight) in [
+        (:A, 3, [1, 0, 1]),
+        (:A, 3, [2, 2, 2]),
+        (:B, 2, [1, 1]),
+        (:D, 4, [1, 0, 1, 0]),
+        (:G, 2, [1, 0]),
+      ],
+      monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
+
+      # longest weyl group element leads to the same result as a simple module
+      mb1 = basis_lie_highest_weight(type, rank, highest_weight; monomial_ordering)
+      mb2 = basis_lie_demazure(
+        type,
+        rank,
+        highest_weight,
+        letters(longest_element(weyl_group(type, rank)));
+        monomial_ordering,
+      )
+      @test monomials(mb1) == monomials(mb2)
+
+      # empty weyl group element leads to a monomialbasis with only the one element
+      mb = basis_lie_demazure(type, rank, highest_weight, Int[]; monomial_ordering)
+      @test monomials(mb) == Set{ZZMPolyRingElem}([one(mb.monomials_parent)])
+    end
+  end
+
+  @testset "Nontrivial Cases" begin
+    for (type, rank, highest_weight, weyl_group_elem) in [
+        (:A, 3, [1, 0, 1], [1, 2, 1]),
+        (:A, 3, [2, 2, 2], [1, 2, 1]),
+        (:A, 2, [1, 0], [1, 2]),
+        (:A, 2, [1, 1], [1, 2]),
+        (:A, 3, [2, 1, 1], [1, 2]),
+        (:A, 3, [1, 2, 0], [1, 2, 1]), #example below
+        (:B, 2, [1, 0], [1, 2]),
+        (:C, 2, [0, 1], [2, 1]),
+        (:C, 2, [1, 1], [1, 2, 1]),
+        (:D, 4, [1, 0, 1, 0], [1, 2, 1]),
+        (:G, 2, [1, 0], [1, 2, 1]),
+      ],
+      monomial_ordering in [:degrevlex, :lex, :invlex, :neglex, :wdegrevlex]
+
+      mb = basis_lie_demazure(
+        type, rank, highest_weight, weyl_group_elem; monomial_ordering
+      )
+      R = root_system(birational_sequence(mb))
+
+      char = demazure_character(R, highest_weight, weyl_group_elem)
+
+      dict = Dict{WeightLatticeElem,Int64}()
+      for mon in monomials(mb)
+        w =
+          WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) +
+          Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb))
+        val = get(dict, w, 0) + 1
+        dict[w] = val
+      end
+      @test dict == char
+    end
+  end
+
+  @testset "Hand Computed Case" begin
+    # Test for a specific case in which dependent on the order there are two out of three monomials in a weight space
+    type = :A
+    rank = 3
+    highest_weight = [2, 1, 0]
+    weyl_group_elem = [1, 2, 1]
+
+    for (monomial_ordering, expected_result) in [
+      (:degrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:lex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:invlex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:neglex, Set{Vector{Int64}}([[2, 2, 0, 0, 0, 0], [1, 1, 0, 1, 0, 0]])),
+      (:wdegrevlex, Set{Vector{Int64}}([[0, 0, 0, 2, 0, 0], [1, 1, 0, 1, 0, 0]])),
+    ]
+      mb = basis_lie_demazure(
+        type, rank, highest_weight, weyl_group_elem; monomial_ordering
+      )
+
+      R = root_system(birational_sequence(mb))
+      w =
+        WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) +
+        (WeightLatticeElem(2 * root(R, 1) + 2 * root(R, 2)))
+
+      monomials_for_weight_w = filter(
+        mon ->
+          WeightLatticeElem(R, highest_weight) * weyl_group(R)(weyl_group_elem) +
+          Oscar.BasisLieHighestWeight.weight(mon, birational_sequence(mb)) == w,
+        monomials(mb),
+      )
+
+      exponent_vectors = Set{Vector{Int64}}([
+        only(exponents(m)) for m in monomials_for_weight_w
+      ])
+
+      @test exponent_vectors == expected_result
     end
   end
 end

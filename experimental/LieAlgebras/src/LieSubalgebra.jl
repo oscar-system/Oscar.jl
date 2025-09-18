@@ -1,48 +1,3 @@
-@attributes mutable struct LieSubalgebra{C<:FieldElem,LieT<:LieAlgebraElem{C}}
-  base_lie_algebra::LieAlgebra{C}
-  gens::Vector{LieT}
-  basis_elems::Vector{LieT}
-  basis_matrix::MatElem{C}
-
-  function LieSubalgebra{C,LieT}(
-    L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
-  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
-    @req all(g -> parent(g) === L, gens) "Parent mismatch."
-    L::parent_type(LieT)
-    if is_basis
-      basis_elems = gens
-      basis_matrix = if length(gens) == 0
-        matrix(coefficient_ring(L), 0, dim(L), C[])
-      else
-        matrix(coefficient_ring(L), [coefficients(g) for g in gens])
-      end
-      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
-    else
-      basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
-      gens = unique(g for g in gens if !iszero(g))
-      left = copy(gens)
-      while !isempty(left)
-        g = pop!(left)
-        can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for i in 1:nrows(basis_matrix)
-          push!(left, g * L(basis_matrix[i, :]))
-        end
-        basis_matrix = vcat(basis_matrix, _matrix(g))
-        rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
-      end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
-      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
-    end
-  end
-
-  function LieSubalgebra{C,LieT}(
-    L::LieAlgebra{C}, gens::Vector; kwargs...
-  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
-    return LieSubalgebra{C,LieT}(L, Vector{LieT}(map(L, gens)); kwargs...)
-  end
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -91,7 +46,10 @@ end
 
 Return the dimension of the Lie subalgebra `S`.
 """
-dim(S::LieSubalgebra) = length(basis(S))
+dim(S::LieSubalgebra) = vector_space_dim(S)
+vector_space_dim(S::LieSubalgebra) = length(basis(S))
+
+coefficient_ring(S::LieSubalgebra) = coefficient_ring(base_lie_algebra(S))
 
 ###############################################################################
 #
@@ -122,6 +80,55 @@ function Base.show(io::IO, S::LieSubalgebra)
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
     print(terse(io), base_lie_algebra(S))
   end
+end
+
+###############################################################################
+#
+#   Parent object call overload
+#
+###############################################################################
+
+@doc raw"""
+    (S::LieSubalgebra{C})() -> LieAlgebraElem{C}
+
+Return the zero element of the Lie subalgebra `S`.
+"""
+function (S::LieSubalgebra)()
+  return zero(base_lie_algebra(S))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector `v`.
+Fail, if `Int` cannot be coerced into the base ring of `S`.
+"""
+function (S::LieSubalgebra)(v::AbstractVector{Int})
+  return S(coefficient_ring(S).(v))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector `v`.
+"""
+function (S::LieSubalgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
+  @req length(v) == dim(S) "Length of vector does not match dimension."
+  mat = matrix(coefficient_ring(S), 1, length(v), v)
+  L = base_lie_algebra(S)
+  return elem_type(L)(L, mat * basis_matrix(S))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector equivalent to
+the $1 \times \dim(S)$ matrix `mat`.
+"""
+function (S::LieSubalgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
+  @req size(mat) == (1, dim(S)) "Invalid matrix dimensions."
+  L = base_lie_algebra(S)
+  return elem_type(L)(L, mat * basis_matrix(S))
 end
 
 ###############################################################################
@@ -159,12 +166,24 @@ end
 ###############################################################################
 
 @doc raw"""
-    in(x::LieAlgebraElem, S::LieSubalgebra) -> Bool
+    in(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) -> Bool
 
 Return `true` if `x` is in the Lie subalgebra `S`, `false` otherwise.
 """
-function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
+function Base.in(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(S) "Incompatible Lie algebras"
   return can_solve(basis_matrix(S), _matrix(x); side=:left)
+end
+
+@doc raw"""
+    Oscar.LieAlgebras.coefficient_vector(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) -> Vector{C}
+
+Return the coefficient vector of `x` in the basis of `S`.
+This function will throw an error if `x` is not in `S`.
+"""
+function coefficient_vector(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(S) "Incompatible Lie algebras"
+  return solve(basis_matrix(S), _matrix(x); side=:left)
 end
 
 ###############################################################################
@@ -174,7 +193,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    bracket(S1::LieSubalgebra, S2::LieSubalgebra) -> LieAlgebraIdeal
+    bracket(S1::LieSubalgebra, S2::LieSubalgebra) -> LieSubalgebra
 
 Return $[S_1, S_2]$.
 """
@@ -182,14 +201,14 @@ function bracket(
   S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
-  return ideal(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
+  return sub(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
 end
 
 function bracket(
   L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req L === base_lie_algebra(S) "Incompatible Lie algebras."
-  return bracket(ideal(L), S)
+  return sub(sub(L), S)
 end
 
 ###############################################################################
@@ -258,20 +277,32 @@ end
 
 ###############################################################################
 #
+#   More misc stuff
+#
+###############################################################################
+
+function any_non_ad_nilpotent_element(S::LieSubalgebra)
+  LS, emb = lie_algebra(S)
+  x = any_non_ad_nilpotent_element(LS)
+  return emb(x)
+end
+
+###############################################################################
+#
 #   Conversion
 #
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(S::LieSubalgebra) -> LieAlgebra
+    lie_algebra(S::LieSubalgebra) -> LieAlgebra, LieAlgebraHom
 
 Return `S` as a Lie algebra `LS`, together with an embedding `LS -> L`,
 where `L` is the Lie algebra where `S` lives in.
 """
 function lie_algebra(S::LieSubalgebra)
-  LS = lie_algebra(basis(S))
   L = base_lie_algebra(S)
-  emb = hom(LS, L, basis(S))
+  LS = lie_algebra(L, basis(S))
+  emb = hom(LS, L, basis(S); check=false)
   return LS, emb
 end
 

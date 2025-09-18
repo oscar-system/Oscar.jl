@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -30,7 +31,7 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y])^2
@@ -134,7 +135,7 @@ Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
-saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; iteration::Bool=false) where T
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
@@ -208,10 +209,13 @@ We discuss various decomposition techniques. They are implemented for
 polynomial rings over fields and, if explicitly mentioned, also for
 polynomial rings over the integers. See [DGP99](@cite) for a survey.
 
+!!! note
+    In addition to Gröbner (standard) basis methods, functions for computing radicals and primary decompositions require methods for sqarefree decomposition and polynomial factorization, respectively. In the case of fields for which such methods are not implemented, an error will be thrown.
+	
 ### Radical
 
 ```@docs
-radical(I::MPolyIdeal)
+radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
 ```
 
 ### Primary Decomposition
@@ -256,9 +260,16 @@ equidimensional_hull(I::MPolyIdeal)
 equidimensional_hull_radical(I::MPolyIdeal)
 ```
 
+### Triangular Decomposition
+
+```@docs
+triangular_decomposition(::MPolyIdeal)
+```
+
+
 ## Homogenization and Dehomogenization
 
-Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
+Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings.
 
 ```@docs
 homogenizer(P::MPolyRing{T}, h::VarName; pos::Int=1+ngens(P))  where T
@@ -267,7 +278,7 @@ dehomogenizer(H::Homogenizer)
 ```
 
 ```jldoctest
-julia> P, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> P, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal([x^2+y, x*y+y^2]);
 
@@ -285,11 +296,10 @@ julia> DH(Ih) == I   # dehomogenization of Ih
 true
 ```
 
-
-## Ideals as Modules
+## Vanishing sets and solving multivariate polynomial systems
 
 ```@docs
-ideal_as_module(I::MPolyIdeal)
+rational_solutions
 ```
 
 ## Generating Special Ideals

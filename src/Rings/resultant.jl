@@ -17,9 +17,9 @@ variables.
 # Examples
 
 ```jldoctest
-julia> QQt, t = QQ["t"];
+julia> QQt, t = QQ[:t];
 
-julia> R, (x1, x2, x0) = QQt["x1", "x2", "x0"];
+julia> R, (x1, x2, x0) = QQt[:x1, :x2, :x0];
 
 julia> F = [x2^2 - t*x0*x1 , x2^2 - t*x0*x2, x1^2 + x2^2 - x0^2];
 
@@ -93,7 +93,7 @@ end
 
 function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   # If we hit a zero, it is inconclusive and we return the zero
-  #@req all(is_homogeneous, F) "Polynomials must be homogenous"
+  #@req all(is_homogeneous, F) "Polynomials must be homogeneous"
   R = parent(F[1])
   n = ngens(R) - 1
   K = coefficient_ring(R)
@@ -117,12 +117,12 @@ function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   end
   Q, mQ = quo(S, I)
   V, VtoQ = vector_space(K, Q)
-  @assert dim(V) == prod(d[1:end-1]; init = 1)
-  M = zero_matrix(K, dim(V), dim(V))
+  @assert vector_space_dim(V) == prod(d[1:end-1]; init = 1)
+  M = zero_matrix(K, vector_space_dim(V), vector_space_dim(V))
   fn = mQ(last(f))
-  for i in 1:dim(V)
+  for i in 1:vector_space_dim(V)
     v = VtoQ\(VtoQ(V[i]) * fn)
-    for j in 1:dim(V)
+    for j in 1:vector_space_dim(V)
       M[i, j] = v[j]
     end
   end

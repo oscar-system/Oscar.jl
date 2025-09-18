@@ -1,16 +1,14 @@
 ```@meta
 CurrentModule = Oscar
-```
-
-```@setup oscar
-using Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Affine Varieties
 An affine variety is an algebraic set such that $X(K)$ is irreducible for $k \subseteq K$ an algebraic closure.
 See [Affine Algebraic Sets](@ref).
 
-In Oscar varieties are implemented as special instances of [Affine schemes](@ref) and more formally defined as follows.
+In OSCAR, varieties are implemented as special instances of [Affine schemes](@ref) and more formally defined as follows.
 ```@docs
 AbsAffineVariety
 ```

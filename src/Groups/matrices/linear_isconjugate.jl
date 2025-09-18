@@ -19,7 +19,8 @@
 Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
-    this is *NOT*, in general, the same output returned when `M` has type `MatElem`.
+    this is *NOT*, in general, equal to
+    `multiplicative_jordan_decomposition(matrix(M))`.
 """
 function multiplicative_jordan_decomposition(x::MatrixGroupElem)
    a = order(x)
@@ -43,7 +44,7 @@ is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
 """
-is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_power(order(Int, x))[2]==Int(characteristic(x.parent.ring))
+is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_perfect_power_with_data(order(Int, x))[2]==Int(characteristic(x.parent.ring))
 
 
 

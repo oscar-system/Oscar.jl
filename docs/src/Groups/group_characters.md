@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -96,26 +97,32 @@ GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
+character_table_wreath_symmetric
+character_table_complex_reflection_group
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
+is_character_table_name
 ```
 
 ## Attributes of group characters
 
 ```@docs
+central_character(chi::GAPGroupClassFunction)
 character_field
 conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
+degree_of_character_field
 galois_orbit_sum
+galois_representative_and_multiplicity
 indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
-schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+schur_index(chi::GAPGroupClassFunction)
 det(chi::GAPGroupClassFunction)
 order(chi::GAPGroupClassFunction)
 order_field_of_definition(chi::GAPGroupClassFunction)
@@ -130,14 +137,16 @@ class_names(tbl::GAPGroupCharacterTable)
 class_parameters
 conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
-identifier
+defect_group
+identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
+is_atlas_character_table
 is_duplicate_table
 maxes
 names_of_fusion_sources
-class_lengths
+class_lengths(tbl::GAPGroupCharacterTable)
 orders_centralizers
-orders_class_representatives
+orders_class_representatives(tbl::GAPGroupCharacterTable)
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 regular_character(tbl::GAPGroupCharacterTable)
@@ -170,6 +179,7 @@ natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
+permutation_character(G::GAPGroup, H::GAPGroup)
 trivial_character(G::GAPGroup)
 regular_character(G::GAPGroup)
 ```
@@ -208,7 +218,8 @@ arithmetic operations:
   where the group of `chi` is a subgroup of the group of `tbl`.
 
 ```@docs
-scalar_product
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 coordinates(chi::GAPGroupClassFunction)
 multiplicities_eigenvalues
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -236,6 +247,7 @@ known_class_fusions
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
 approximate_class_fusion
+power_map(tbl::GAPGroupCharacterTable, k::Int, i::Int)
 ```
 
 ## Character tables and normal subgroups

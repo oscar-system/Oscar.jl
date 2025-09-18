@@ -46,7 +46,7 @@ function _mult(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   @assert bound(a) == bound(b) "multiindices must have the same bounds"
 
   # in case of a double index return zero
-  any(x->(x in indices(b)), indices(a)) && return 0, indices(a)
+  any(in(indices(b)), indices(a)) && return 0, indices(a)
 
   p = length(a)
   q = length(b)
@@ -92,6 +92,10 @@ end
 
 function ==(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   return bound(a) == bound(b) && indices(a) == indices(b)
+end
+
+function Base.hash(a::OrderedMultiIndex, h::UInt)
+  return hash(indices(a), hash(bound(a), h))
 end
 
 ########################################################################

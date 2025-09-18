@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -36,7 +37,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-exterior_algebra
+exterior_algebra(::Ring, ::Vector{Symbol})
 ```
 
 ## Data Associated to Affine GR-Algebras
@@ -54,7 +55,7 @@ If `Q=A/I` is the quotient ring of a PBW-algebra `A` modulo a two-sided ideal `I
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 
@@ -67,7 +68,7 @@ julia> I = two_sided_ideal(A, [x^2, y^2, z^2]);
 julia> Q, q = quo(A, I);
 
 julia> base_ring(Q)
-PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
+PBW-algebra over rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
 
 julia> modulus(Q)
 two_sided_ideal(x^2, y^2, z^2)
@@ -102,7 +103,7 @@ with regard to the modulus $I$.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 

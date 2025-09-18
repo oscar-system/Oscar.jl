@@ -14,7 +14,33 @@
 
 # Oscar needs some complicated setup to get the printing right. This provides a
 # helper function to set this up consistently.
-doctestsetup() = :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+function doctestsetup()
+  link_experimental_docs()
+  return :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+end
+
+function doctestfilters()
+  # this returns a list of doctest filters that should be passed to all doctest invocations
+  return [
+    # due to JuliaLang/julia#57898, oscar-system/Oscar.jl#4872:
+    r"^0-element SubObjectIterator{RayVector{QQFieldElem}}|^RayVector{QQFieldElem}\[\]"m => "RayVector{QQFieldElem}[]",
+    r"^0-element SubObjectIterator{PointVector{QQFieldElem}}|^PointVector{QQFieldElem}\[\]"m => "PointVector{QQFieldElem}[]",
+    r"^ 0-element SubObjectIterator{RayVector{QQFieldElem}}|^ \[\]"m => " []",
+    r"^ 0-element SubObjectIterator{PointVector{QQFieldElem}}|^ \[\]"m => " []",
+  ]
+end
+
+# https://github.com/JuliaLang/julia/pull/57509 changed hashing for many base types.
+# We thus filter doctestoutputs that show Sets, Dicts, etc. for julia versions with
+# this change to still have the doctests passing.
+function doctestfilter_hash_changes_in_1_13()
+  if VERSION >= v"1.13.0-DEV.570"
+    # The filter in place here checks that the number of lines in the output matches the input.
+    [r".*"]
+  else
+    return []
+  end
+end
 
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
@@ -25,25 +51,47 @@ function doc_init(;path=mktempdir())
   Pkg.activate(docsproject) do
     # we dev all "our" packages with the paths from where they are currently
     # loaded
-    for pkg in [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
-      Pkg.develop(path=Base.pkgdir(pkg))
-    end
+    pkglist = [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
+    Pkg.develop([PackageSpec(path=Base.pkgdir(pkg)) for pkg in pkglist])
     Pkg.develop(path=oscardir)
     Pkg.instantiate()
     Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
+  docsproject in Base.LOAD_PATH || pushfirst!(Base.LOAD_PATH, docsproject)
+  return nothing
 end
 
-function get_document(set_meta::Bool)
+"""
+    @doc_init
+
+Initialize a new temporary project with Documenter and Oscar for doctesting.
+Adds that project to the load path and runs `using Documenter` in the calling module.
+
+# Examples
+```julia
+julia> Oscar.@doc_init
+<...>
+
+julia> Oscar.doctest(cube)
+page: ../src/PolyhedralGeometry/Polyhedron/standard_constructions.jl:202-207
+  0.020471 seconds (69.71 k allocations: 1.828 MiB)
+"""
+macro doc_init()
+  isdefined(Oscar, :docsproject) && isdefined(Main, :Documenter) && return nothing
+  doc_init()
+  return :(using Documenter)
+end
+
+function get_document(set_meta::Bool; doctest=:fix)
   if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` first")
+    error("you need to do `using Documenter` or `Oscar.@doc_init` first")
   end
   Documenter = Main.Documenter
   if pkgversion(Documenter) < v"1-"
     error("you need to use Documenter.jl version 1.0.0 or later")
   end
 
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters())
 
   if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
@@ -57,23 +105,32 @@ end
 
 Fixes all doctests for the given function `f`.
 
-# Example
+# Examples
 The following call fixes all doctests for the function `symmetric_group`:
 ```julia
 julia> Oscar.doctest_fix(symmetric_group)
 ```
 """
-function doctest_fix(f::Function; set_meta::Bool = false)
-  S = Symbol(f)
-  doc, doctest = get_document(set_meta)
+doctest_fix(f::Function; set_meta::Bool = false) = doctest(f; set_meta = set_meta, doctest = :fix)
 
-  with_unicode(false) do
-    #essentially inspired by Documenter/src/DocTests.jl
-    pm = parentmodule(f)
-    bm = Base.Docs.meta(pm)
-    md = bm[Base.Docs.Binding(pm, S)]
-    for s in md.order
-      doctest(md.docs[s], Oscar, doc)
+"""
+    doctest(f::Function; set_meta::Bool = false)
+
+Run all doctests for the given function `f`.
+"""
+function doctest(f::Function; set_meta::Bool = false, doctest = true)
+  S = Symbol(f)
+  doc, doctest = get_document(set_meta; doctest=doctest)
+
+  withenv("COLUMNS"=>80, "LINES"=>24) do
+    with_unicode(false) do
+      #essentially inspired by Documenter/src/DocTests.jl
+      pm = parentmodule(f)
+      bm = Base.Docs.meta(pm)
+      md = bm[Base.Docs.Binding(pm, S)]
+      for s in md.order
+        doctest(md.docs[s], Oscar, doc)
+      end
     end
   end
 end
@@ -84,30 +141,48 @@ end
 Fixes all doctests for all files in Oscar where
 `path` occurs in the full pathname.
 
-# Example
+# Examples
 The following call fixes all doctests in files that live in a directory
 called `Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
 ```julia
 julia> Oscar.doctest_fix("/Rings/")
 ```
 """
-function doctest_fix(path::String; set_meta::Bool=false)
-  doc, doctest = get_document(set_meta)
+doctest_fix(path::String; set_meta::Bool = false) = doctest(path; set_meta = set_meta, doctest = :fix)
 
-  with_unicode(false) do
-    walkmodules(Oscar) do m
-      #essentially inspired by Documenter/src/DocTests.jl
-      bm = Base.Docs.meta(m)
-      for (_, md) in bm
-        for s in md.order
-          if occursin(path, md.docs[s].data[:path])
-            doctest(md.docs[s], Oscar, doc)
+
+"""
+    doctest(path::String; set_meta::Bool = false)
+
+Run all doctests for all files in Oscar where
+`path` occurs in the full pathname.
+"""
+function doctest(path::String; set_meta::Bool = false, doctest = true)
+  doc, doctest = get_document(set_meta; doctest = doctest)
+
+  withenv("COLUMNS"=>80, "LINES"=>24) do
+    with_unicode(false) do
+      walkmodules(Oscar) do m
+        #essentially inspired by Documenter/src/DocTests.jl
+        bm = Base.Docs.meta(m)
+        for (_, md) in bm
+          for s in md.order
+            if occursin(path, md.docs[s].data[:path])
+              doctest(md.docs[s], Oscar, doc)
+            end
           end
         end
       end
     end
   end
 end
+
+"""
+    doctest()
+
+Run all doctests for Oscar, calls [`build_doc`](@ref) with `doctest=true`.
+"""
+doctest(; doctest = true) = build_doc(; doctest = doctest, warnonly = false, open_browser = false, start_server = false)
 
 # copied from JuliaTesting/Aqua.jl
 function walkmodules(f, x::Module)
@@ -215,11 +290,13 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
-  with_unicode(false) do
-    Pkg.activate(docsproject) do
-      Base.invokelatest(
-        Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest
-      )
+  withenv("COLUMNS"=>80, "LINES"=>24) do
+    with_unicode(false) do
+      Pkg.activate(docsproject) do
+        Base.invokelatest(
+          Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest
+        )
+      end
     end
   end
   if start_server
@@ -230,4 +307,39 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   if doctest != false && !versioncheck
     @warn versionwarn
   end
+end
+
+# Create symbolic links from any documentation directory in `experimental` into
+# `docs/src`
+function link_experimental_docs()
+  # Remove symbolic links from earlier runs
+  expdocdir = joinpath(oscardir, "docs", "src", "Experimental")
+  for x in readdir(expdocdir; join=true)
+    !islink(x) && continue
+    pkg = splitpath(x)[end]
+    if !(pkg in exppkgs)
+      # We don't know this link, let's remove it
+      rm(x)
+    end
+  end
+
+  for pkg in exppkgs
+    # Set symlink inside docs/src/experimental
+    symlink_link = joinpath(oscardir, "docs/src/Experimental", pkg)
+    symlink_target = joinpath(oscardir, "experimental", pkg, "docs", "src")
+
+    if !ispath(symlink_target)
+      continue
+    end
+
+    if !ispath(symlink_link)
+      symlink(symlink_target, symlink_link)
+    elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
+      error("""$symlink_link already exists, but is not a symlink to $symlink_target
+      Please investigate the contents of $symlink_link,
+      optionally move them somewhere else and delete the directory once you are done.""")
+    end
+  end
+
+  return nothing
 end

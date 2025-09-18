@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -49,6 +50,10 @@ lineality_space(PF::PolyhedralFan)
 maximal_cones(PF::PolyhedralFan)
 cones(PF::PolyhedralFan, cone_dim::Int)
 cones(PF::PolyhedralFan)
+minimal_supercone_coordinates(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+minimal_supercone_indices(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+is_minimal_supercone_coordinate_vector(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:RationalUnion})
 n_maximal_cones(PF::PolyhedralFan)
 n_cones(PF::PolyhedralFan)
 n_rays(PF::PolyhedralFan)
@@ -56,6 +61,6 @@ rays(PF::PolyhedralFan)
 rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
 star_subdivision(PF::PolyhedralFan, n::Int)
-star_subdivision(PF::PolyhedralFan, new_ray::AbstractVector{<:IntegerUnion})
+star_subdivision(PF::PolyhedralFan, exceptional_ray::AbstractVector{<:IntegerUnion})
 *(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 ```

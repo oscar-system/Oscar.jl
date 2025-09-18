@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -43,46 +44,9 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
     Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
-## Default Orderings
-
 !!! note
-    The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
-    Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-    positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
-    `default_ordering` is `default_ordering(R)*lex(gens(F))`.
-
-```@docs
-default_ordering(::MPolyRing)
-```
-
-Here are some illustrating OSCAR examples:
-
-##### Examples
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> default_ordering(R)
-degrevlex([x, y, z])
-
-julia> F = free_module(R, 2)
-Free module of rank 2 over R
-
-julia> default_ordering(F)
-degrevlex([x, y, z])*lex([gen(1), gen(2)])
-
-julia> S, _ = grade(R, [1, 2, 3])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
-
-julia> default_ordering(S)
-wdegrevlex([x, y, z], [1, 2, 3])
-```
-
-Expert users may temporarily choose a different default ordering for a given ring.
-```@docs
-with_ordering
-```
+    See the previous section on [Monomial Orderings](@ref monomial_orderings) for details on how to
+    implement monomial orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
 
 ## [Monomials, Terms, and More](@id monomials_terms_more)
 
@@ -90,7 +54,7 @@ Here are examples which indicate how to recover monomials, terms, and
 more from a given polynomial.
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*z^3+2*x*y+1
@@ -143,7 +107,7 @@ julia> tail(f)
 ```
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
@@ -164,7 +128,7 @@ julia> collect(terms(f))
  2*y*e[2]
  3*e[1]
 
-julia> collect(terms(f, ordering = lex(F)*lex(R)))
+julia> collect(terms(f, ordering = invlex(F)*lex(R)))
 6-element Vector{FreeModElem{QQMPolyRingElem}}:
  5*x*y^2*e[1]
  -y^10*e[1]
@@ -179,7 +143,7 @@ julia> tail(f)
 julia> leading_exponent(f)
 ([0, 10], 1)
 
-julia> leading_exponent(f, ordering = lex(F)*lex(R))
+julia> leading_exponent(f, ordering = invlex(F)*lex(R))
 ([1, 2], 1)
 ```
 
@@ -308,6 +272,9 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
     complete_reduction::Bool=false)
 ```
 
+!!! note
+    The strategy behind the `groebner_basis` function and the strategy behind the function `groebner_basis_with_transformation_matrix` differ. As a consequence, the computed generators may differ. Even if `complete_reduction` is set to `true`, the generators might still only agree up to multiplication by units.
+
 ### Gröbner Basis Conversion Algorithms
 
 The performance of Buchberger's Gröbner basis algorithm is sensitive to the choice of monomial ordering.
@@ -412,4 +379,3 @@ We refer to the section on [modules](@ref modules_multivariate) for more on syzy
 ```@docs
 syzygy_generators(G::Vector{<:MPolyRingElem})
 ```
-

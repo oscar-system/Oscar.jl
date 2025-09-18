@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Release management
 
 We roughly follow the julia release process. The following outlines the approach taken for OSCAR 1.0.0 but is subject to change depending in how this works out.
@@ -8,7 +14,8 @@ Before preparing the release branch two developers are chosen to take care of ma
 
 Assuming the current master has version number `X.Y.0-DEV`, in preparation for the next release
 a branch `release-X.Y` is created directly on GitHub.
-Once that is done the master should be set to `X.Y+1.0-DEV`.
+Once that is done the master should be set to `X.Y+1.0-DEV`. At this point, a new tag should be
+created named `vX.Y+1dev`
 
 !!! note 
     Please use the script `etc/update_version.sh` for version changes.
@@ -19,10 +26,10 @@ The backports should be mostly bug-fixes and small improvements but no major new
 Every change that is considered for backporting has to be merged to master first.
 Once in the stage of release candidates only small bug-fixes and documentation changes should be added.
 
-Changes for the release, after the branch was created, are mostly done by cherry-picking the commits from master that correspond to the already _merged_ PRs. Preferrably with `git cherry-pick -x` to keep a reference to the original commit.
+Changes for the release, after the branch was created, are mostly done by cherry-picking the commits from master that correspond to the already _merged_ PRs. Preferably with `git cherry-pick -x` to keep a reference to the original commit.
 The cherry-picked commits are collected on a `backports-release-X.Y` branch and a corresponding PR, like for [release 1.0.0-rc1](https://github.com/oscar-system/Oscar.jl/pull/3378). Please take care to set the merge target for the PR to the `release-X.Y` branch.
 
-Once this set of changes is complete the PR is merged to the release branch, using a _proper merge commit_, i.e. please do not squash or rebase this.
+Once this set of changes is complete the PR is merged to the release branch, using a _proper merge commit_, i.e. please do not squash or rebase this. The PR is then labeled as `backports {major}.{minor}.x done`.
 The list of backported PRs may be added to the commit message for the merge.
 
 ### Conflicts
@@ -40,7 +47,10 @@ For OSCAR 1.0.0 we plan to have one or two release candidates but unlike julia a
 
 ## Releases
 
-Once the version is at X.Y.0 the version can be registered in the julia registry with `@JuliaRegistrator register()`. In this case TagBot will create the corresponding release, but preferrably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
+Just before making the release, `CHANGELOG.md` should be updated.
+See [Updating `CHANGELOG.md`](@ref) for details.
+
+Once the version is at X.Y.0, the version can be registered in the julia registry with `@JuliaRegistrator register()`. In this case TagBot will create the corresponding release, but preferably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
 
 Consider deploying a released version at [zenodo](https://zenodo.org/).
 

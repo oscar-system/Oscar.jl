@@ -42,20 +42,20 @@
         "type": "weierstrass",
         "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_16",
         "gauge_algebra": ["su(3)", "su(3)", "su(3)"],
-        "global_gauge_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["diagonal_matrix(root_of_unity(C,3),3)"], ["diagonal_matrix(root_of_unity(C,3),3)"]]
+        "global_gauge_group_quotients": [["diagonal_matrix(root_of_unity(C,3),3)"], ["diagonal_matrix(root_of_unity(C,3),3)"], ["diagonal_matrix(root_of_unity(C,3),3)"]]
      },
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
-        "model_sections": ["s1", "s6", "s7", "s9"],
+        "tunable_sections": ["s1", "s6", "s7", "s9"],
         "f": "1//48*(-s6^4 - 24*s1*s7*s9*s6)",
         "g": "1//864*(216*s1^2*s7^2*s9^2 + 36*s1*s6^3*s7*s9 + s6^6)",
-        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+        "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [3, 1, 0, 0],
             [-1, 0, 1, 0],
             [-1, 0, 0, 1]
         ],
-        "zero_section": ["0", "0", "1"],
+        "zero_section": ["1", "1", "0"],
         "torsion_sections": [
             ["1//12*s6^2", "1//2*s1*s7*s9", "1"],
             ["1//12*s6^2", "-1//2*s1*s7*s9", "1"]
@@ -78,5 +78,5 @@
         "model1408_4808-14-WSF.json",
         "model1408_4808-15-WSF.json"
     ],
-    "related_models": ["model1408_4808-16.json"]
+    "birational_models": ["model1408_4808-16.json"]
 }

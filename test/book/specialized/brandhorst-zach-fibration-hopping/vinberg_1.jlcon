@@ -6,8 +6,10 @@ Fraction field
   of univariate polynomial ring in t over QQ
 
 julia> E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
-Elliptic curve with equation
-y^2 = x^3 + t^7 - 2*t^6 + t^5
+Elliptic curve
+  over fraction field of Qt
+with equation
+  y^2 = x^3 + t^7 - 2*t^6 + t^5
 
 julia> j_invariant(E)
 0
@@ -40,7 +42,7 @@ julia> length(Xchambers)
 1
 
 julia> C = Xchambers[1]
-Chamber  in dimension 20 with 36 walls
+Chamber in dimension 20 with 36 walls
 
 julia> Xelliptic_classes = [f for f in rays(C) if 0 == f*gram_matrix(NS)*transpose(f)];
 

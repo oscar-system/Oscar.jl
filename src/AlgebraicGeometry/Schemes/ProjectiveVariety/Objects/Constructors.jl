@@ -41,7 +41,7 @@ julia> dim(X)
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal (s0^3 + s1^3 + s2^3 + s3^3, s0)
+defined by ideal (s0, s1^3 + s2^3 + s3^3)
 
 julia> dim(Y)
 1
@@ -75,7 +75,7 @@ Return the projective variety defined by the homogeneous polynomial `f`.
 This checks that `f` is absolutely irreducible.
 """
 function variety(f::MPolyDecRingElem; check::Bool=true, is_radical::Bool=false)
-  if check
+  @check begin
     is_irreducible(f) || error("polynomial is reducible")
     ff = factor_absolute(forget_decoration(f))[2]
     # deal with weird type instability in factor_absolute
@@ -83,6 +83,7 @@ function variety(f::MPolyDecRingElem; check::Bool=true, is_radical::Bool=false)
     @assert ff[2] == 1
     g = ff[1]
     (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
+    true
   end
   return variety(ideal([f]), check=false, is_radical=is_radical)
 end
@@ -94,7 +95,7 @@ end
 
 function projective_space(A::Field, var_symb::Vector{VarName})
   n = length(var_symb)
-  S, _ = graded_polynomial_ring(A, var_symb)
+  S, _ = graded_polynomial_ring(A, var_symb; cached=false)
   return variety(proj(S), check=false)
 end
 
@@ -104,6 +105,6 @@ function projective_space(
     r::Int;
     var_name::VarName=:s
   ) where {CoeffRingType<:Field}
-  S, _ = graded_polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name,i) for i in 0:r]; cached=false)
   return variety(proj(S), check=false)
 end

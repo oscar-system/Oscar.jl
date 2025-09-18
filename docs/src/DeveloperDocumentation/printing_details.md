@@ -1,8 +1,40 @@
-# Printing in OSCAR
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
 
-The following dection contains more details and examples on how to implement
-OSCAR's 2+1 printing modes. The specifications and a minimal example may be
-found in the [Developer Style Guide](@ref).
+# Printing Details
+
+The following section contains details and examples on how to implement
+OSCAR's 2+1 printing modes described in the [Printing Options](@ref) section.
+
+The print modes are specified as follows:
+
+1. **Detailed printing**
+  - the output must make sense as a standalone without context to non-specialists
+  - the number of output lines should fit in the terminal
+  - if the object is simple enough use only one line
+  - use indentation and (usually) `one line` to print substructures
+
+2. **One line printing**
+  - the output must print in one line
+  - should make sense as a standalone without context
+  - variable names/generators/relations should not be printed only their number.
+  - Only the first word is capitalized e.g. `Polynomial ring`
+  - one should use `terse` for nested printing in compact
+  - nested calls to `one line` (if you think them really necessary) should be at the end,
+    so that one can read sequentially. Calls to `terse` can be anywhere.
+  - commas must be enclosed in brackets so that printing tuples stays unambiguous
+
+3. Terse printing
+  - a user readable version of the main (mathematical) type.
+  - a single term or a symbol/letter mimicking mathematical notation
+  - should usually only depend on the type and not of the type parameters or of
+    the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+  - no nested printing. In particular variable names and `base_ring` must not be displayed.
+    This ensures that `one line` and `terse` stay compact even for complicated things.
+    If you want nested printing use `one line` or `detailed`.
 
 
 ## Implementing `show` functions
@@ -10,7 +42,7 @@ found in the [Developer Style Guide](@ref).
 Here is the translation between `:detail`, `one line` and `terse`,
 where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
 
-```
+```julia
 show(io, MIME"text/plain"(), x)                # detailed printing
 print(io, x)                                   # one line printing
 print(terse(io), x)                            # terse printing
@@ -25,6 +57,11 @@ while on the REPL detailed printing is used to show top level objects.
     "In general, you cannot assume that `display` output goes to `stdout`
     [...]". In particular, the output of `display` will not work in the
     `jldoctest`s.
+
+!!! warning "changes on print"
+    Printing an object should not change data in any way through changing the representation
+    of the object being printed, nor by generating any cached data that will affect
+    any future computations.
 
 ### Mockup
 
@@ -63,7 +100,7 @@ function Base.show(io::IO, R::NewRing)
 end
 ```
 And this is how it looks like:
-```julia
+```julia-repl
 julia> R = NewRing(QQ)
 I am a new ring
 I print with newlines
@@ -102,7 +139,7 @@ function Base.show(io::IO, R::NewRing2)
 end
 ```
 And this is how it looks like:
-```julia
+```julia-repl
 julia> R = NewRing2(QQ)
 I am a new ring and always print in one line QQ
 
@@ -149,7 +186,7 @@ function Base.show(io::IO, R::NewRing)
 end
 ```
 This example illustrates the unexpected behavior.
-```julia
+```julia-repl
 julia> R = NewRing(1)
 
 julia> R
@@ -181,7 +218,7 @@ The `IOCustom` object allows one to locally control:
 
 We illustrate this with an example
 
-```
+```julia
 struct A{T}
   x::T
 end
@@ -203,7 +240,7 @@ end
 ```
 
 At the REPL, this will then be printed as follows:
-```
+```julia-repl
 julia> A(2)
 Something of type A
   over 2
@@ -225,7 +262,7 @@ elements with a variable number of objects. For this, one can use `ItemQuantity`
 
 We illustrate this with an example
 
-```
+```julia-repl
 julia> struct C{T}
        x::Vector{T}
        end
@@ -238,7 +275,7 @@ julia> function Base.show(io::IO, c::C{T}) where T
 ```
 
 At the REPL, this will then be printed as follows:
-```
+```julia-repl
 julia> C(Int[2,3,4])
 Something with 3 elements of type Int64
 
@@ -253,8 +290,8 @@ Something with 1 element of type Int64
 
 ### LaTeX output
 Some types support LaTeX output.
-```
-julia> Qx, x = QQ["x"];
+```julia-repl
+julia> Qx, x = QQ[:x];
 
 julia> show(stdout, "text/latex", x^2 + 2x + x^10)
 x^{10} + x^{2} + 2 x
@@ -270,23 +307,24 @@ x & x^{2} \\
 Base.show(io::IOContext, ::MIME"text/latex")
 ```
 
-### Unicode printing
-Per default output should be ASCII only (no Unicode). Implementors of
+### Supporting Unicode printing
+
+As described in section [Unicode printing](@ref) by default
+output should be ASCII only (no Unicode). Implementors of
 `Base.show` and related functions can branch on the output of
-`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
-This will then be used for users which enabled Unicode using
-`allow_unicode(true)`. Note that
+[`Oscar.is_unicode_allowed`](@ref) to display objects using non-ASCII characters.
+Note that
 
 - there must be a default ASCII only output, since this is the default setting
   for new users, and
 - OSCAR library code is not allowed to call `Oscar.allow_unicode`.
 
 Objects may follow the value of `Oscar.is_unicode_allowed()` at the time of their
-creation for their printing, i.e. ignore later changes of the setting.
+creation for their printing, i.e., ignore later changes of the setting.
 This is useful for objects storing a string representation of themselves, e.g.
 generators of a module.
 
-Here is an example with and without output using Unicode:
+Here is a code example with and without output using Unicode:
 
 ```julia
   struct AtoB
@@ -308,7 +346,7 @@ Here is an example with and without output using Unicode:
   the name of a Julia REPL variable to which the object is currently assigned) then in
   a `compact` or `terse` io context it is printed using that name.
   Here is an example illustrating this:
-  ```
+  ```julia-repl
   julia> vector_space(GF(2), 2)
   Vector space of dimension 2 over prime field of characteristic 2
 

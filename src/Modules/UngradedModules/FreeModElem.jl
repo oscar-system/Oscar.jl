@@ -24,7 +24,7 @@ end
 
 function FreeModElem(i::Int, x::T, parent::FreeMod{T}) where T
   @assert 1 <= i <= rank(parent)
-  sparse_coords = sparse_row(base_ring(parent), [i], [x])
+  sparse_coords = sparse_row(base_ring(parent), [(i, x)])
   return FreeModElem{T}(sparse_coords, parent)
 end
 
@@ -47,7 +47,7 @@ end
 #
 ## Examples
 #```jldoctest
-#julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+#julia> R, (x,y) = polynomial_ring(QQ, [:x, :y])
 #(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
 #
 #julia> F = FreeMod(R,3)
@@ -87,7 +87,7 @@ Return the entries (with respect to the standard basis) of `v` as a sparse row.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
@@ -125,15 +125,11 @@ end
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModElem{T}
 parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
 
-function generator_symbols(F::FreeMod)
-  return F.S
-end
-
 function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
   for (pos, val) in coordinates(e)
-     # assuming generator_symbols(parent(e)) is an array of strings/symbols
-     push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
+     # assuming symbols(parent(e)) is an array of strings/symbols
+     push!(sum.args, Expr(:call, :*, expressify(val, context = context), symbols(parent(e))[pos]))
   end
   return sum
 end
@@ -154,10 +150,10 @@ end
 Return the standard basis of `F`.
 """
 function basis(F::AbstractFreeMod)
-  bas = Vector{elem_type(F)}(undef, dim(F))
+  bas = Vector{elem_type(F)}(undef, rank(F))
   e = one(base_ring(F))
-  for i=1:dim(F)
-    s = sparse_row(base_ring(F), [i], [e])
+  for i=1:rank(F)
+    s = sparse_row(base_ring(F), [(i, e)])
     bas[i] = F(s)
   end
   return bas
@@ -181,7 +177,7 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   e = one(base_ring(F))
-  s = sparse_row(base_ring(F), [i], [e])
+  s = sparse_row(base_ring(F), [(i, e)])
   return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
@@ -254,28 +250,39 @@ function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
 end
 
 # scalar multiplication with polynomials, integers
-function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  @req parent(a) === base_ring(parent(b)) "elements not compatible"
-  return parent(b)(a*coordinates(b))
+*(a::Any, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+
+function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleModuleFPRingElem}
+  @assert is_left(parent(b)) "left multiplication is not defined for non-left module $(parent(b))"
+  parent(a) === base_ring(parent(b)) && return parent(b)(a*coordinates(b))
+  return parent(b)(base_ring(parent(b))(a)*coordinates(b))
 end
 
-function *(a::MPolyRingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
+function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleModuleFPRingElem}
+  @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
+  error("right multiplication is not supported at the moment")
 end
 
-function *(a::RingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
+function *(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem}
+  error("scalar multiplication from the right is not yet supported")
 end
 
-*(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
-*(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
-*(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+# Methods to determine whether a module is a left-, right-, or bi-module. 
+# We plan to have flags set for this. But for the moment the generic code only supports left-multiplication, 
+# so we can decide this from the type alone. How we do it in the long run is not yet decided, but in either case
+# we want to use these functions to decide as they are already there for ideals. 
+is_left(M::ModuleFP) = is_left(typeof(M))
+is_left(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_left(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = true # Left multiplication is generically supported
+
+is_right(M::ModuleFP) = is_right_module(typeof(M))
+is_right(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_right(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
+
+is_two_sided(M::ModuleFP) = is_right_module(typeof(M))
+is_two_sided(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_two_sided(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # see above
+
 
 @doc raw"""
     zero(F::AbstractFreeMod)

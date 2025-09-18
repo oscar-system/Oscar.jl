@@ -65,6 +65,10 @@ end
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
 
   @test is_quaternion_group(small_group(8, 4))
+  @test ! is_quaternion_group(small_group(12, 3))
+  @test is_dicyclic_group(small_group(8, 4))
+  @test ! is_dicyclic_group(small_group(13, 1))
+
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)
@@ -78,9 +82,16 @@ end
 
   @test_throws ArgumentError cyclic_generator(symmetric_group(3))
 
+  @test isa(elementary_abelian_group(27), PcGroup)
+  @test isa(elementary_abelian_group(PermGroup, 27), PermGroup)
+  @test isa(elementary_abelian_group(FinGenAbGroup, 27), FinGenAbGroup)
+  @test_throws ArgumentError elementary_abelian_group(6)
+  @test_throws ArgumentError elementary_abelian_group(PermGroup, 6)
+
   for p in [1, next_prime(2^62), next_prime(ZZRingElem(2)^66)]
     g = cyclic_group(p)
     @test is_cyclic(g)
+    @test is_elementary_abelian(g)
     @test order(cyclic_generator(g)) == order(g)
     @test !is_dihedral_group(g)
     @test is_finite(g)
@@ -93,6 +104,14 @@ end
     @test !is_cyclic(g)
     #@test is_dihedral_group(g)
     @test is_finite(g)
+    @test order(g) == n
+
+    n = p^2
+    g = elementary_abelian_group(n)
+    @test is_abelian(g)
+    @test is_finite(g)
+    @test !is_cyclic(g)
+    @test exponent(g) == p
     @test order(g) == n
   end
 
@@ -155,6 +174,9 @@ end
 
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
+
+  Dic12 = dicyclic_group(12)
+  @test isa(Dic12, PcGroup)
   
   gl = GL(2, 3)
   @test isa(gl, MatrixGroup)
@@ -162,6 +184,25 @@ end
   sl = SL(2, 3)
   @test isa(sl, MatrixGroup)
   
+end
+
+@testset "Extraspecial groups" begin
+   @testset for p in [2, 3, 5], n in [1, 2], type in [:+, :-]
+      G = extraspecial_group(p, n, type)
+      @test is_extraspecial_group(G)
+      @test G isa PcGroup
+
+      for T in [PcGroup, SubPcGroup, PermGroup, FPGroup, SubFPGroup]
+         G = extraspecial_group(T, p, n, type)
+         @test is_extraspecial_group(G)
+         @test G isa T
+         @test (p == 2) ? (exponent(G) == 4) :
+                          ((type == :+) ? exponent(G) == p : exponent(G) == p^2)
+      end
+   end
+   @test_throws ArgumentError extraspecial_group(2, 0, :+)
+   @test_throws ArgumentError extraspecial_group(4, 1, :+)
+   @test_throws MethodError extraspecial_group(2, 1, "+")
 end
 
 @testset "Classical groups" begin

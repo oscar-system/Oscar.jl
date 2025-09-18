@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Operations on Module Maps
@@ -9,11 +11,11 @@ then `compose(a, b)` refers to the composition `b` $\circ$ `a`. If an isomorphis
 `a` is given, then `inv(a)` refers to its inverse.
 
 ```@docs
-hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<: ModuleFPHom})
+hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
 ```
 
 ```@docs
-hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
 ```
 
 ```@docs

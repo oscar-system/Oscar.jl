@@ -24,13 +24,13 @@ end
 function interior_nodes(graph::Graph)
   big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
   degrees = big_graph.NODE_DEGREES
-  return findall(x -> x > 1, degrees)
+  return findall(>(1), degrees)
 end
 
 function leaves(graph::Graph)
   big_graph = Polymake.graph.Graph(ADJACENCY = pm_object(graph))
   degrees = big_graph.NODE_DEGREES
-  return findall(x -> x == 1, degrees)
+  return findall(==(1), degrees)
 end
 
 function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})

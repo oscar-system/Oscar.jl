@@ -29,35 +29,7 @@
 # - MPolyQuoRing
 # - MPolyDecRing
 
-const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
-
-@attributes mutable struct MPolyAnyMap{
-    D <: _DomainTypes,
-    C <: NCRing,
-    U,
-    V} <: Map{D, C, Map, MPolyAnyMap}
-
-  domain::D
-  codomain::C
-  coeff_map::U
-  img_gens::Vector{V}
-  temp_ring           # temporary ring used when evaluating maps
-
-  function MPolyAnyMap{D, C, U, V}(domain::D,
-                                codomain::C,
-                                coeff_map::U,
-                                img_gens::Vector{V}) where {D, C, U, V}
-      @assert V === elem_type(C)
-      for g in img_gens
-        @assert parent(g) === codomain "elements does not have the correct parent"
-      end
-    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-  end
-end
-
-function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D, C, U, V}
-  return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
-end
+### See `Types.jl` for the declaration of the type.
 
 ################################################################################
 #
@@ -75,11 +47,73 @@ coefficient_map(f::MPolyAnyMap) = f.coeff_map
 
 _images(f::MPolyAnyMap) = f.img_gens
 
+@doc raw"""
+    _maps_variables_to_variables(f::MPolyAnyMap)
+
+A cheap check to see whether `f` is taking the variables of its domain into 
+pairwise different variables of its codomain. In the affirmative case 
+return `(true, ind)` where `ind` is a `Vector` of the indices so that 
+`gens(codomain(f))[ind]` equals the images of the generators. 
+Otherwise, return `(false, garbage)`.
+
+Note: For rings different from plain polynomial rings in the codomain 
+this is not a rigorous check (which would probably be very expensive), 
+but based only a quick look on the representatives!
+
+Do not mutate the second return value.
+"""
+function _maps_variables_to_variables(f::MPolyAnyMap)
+  if ngens(domain(f)) == 0
+    return true, f.variable_indices
+  end
+  return !isempty(f.variable_indices), f.variable_indices
+end
+
+# This can be overwritten in order to avoid making the above check a bottleneck.
+_cmp_reps(a) = ==(a)
+
+function _assert_has_maps_variables_to_variables!(f::MPolyAnyMap)
+  if !isdefined(f, :variable_indices)
+    f.variable_indices = __maps_variables_to_variables(_images(f), codomain(f))
+  end
+end
+
+function __maps_variables_to_variables(img_gens::Vector, C)
+  # C is codomain
+
+  # this is a dirty implicit check, that the codomain is of a useful type for
+  # everything to make sense
+  # proper check would be to see if C isa MPolyRing etc
+  if !all(_is_gen, img_gens)
+    return Int[]
+  end
+
+  if !_allunique(img_gens)
+    return Int[]
+  end
+
+  l = length(img_gens)
+  r = Vector{Int}(undef, l)
+  Cgens = gens(C)
+
+  for i in 1:length(img_gens)
+    j = findfirst(_cmp_reps(img_gens[i]), Cgens)
+    if j isa Nothing
+      # image not a variable
+      return Int[]
+    end
+    r[i] = j::Int
+  end
+
+  return r
+end
+
 ################################################################################
 #
 #  String I/O
 #
 ################################################################################
+#
 function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   io = pretty(io)
   println(terse(io), f)
@@ -239,6 +273,32 @@ function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, 
   end
 end
 
+# No coefficient maps in the second argument
+function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  f = coefficient_map(F)
+  if typeof(codomain(f)) === typeof(coefficient_ring(domain(G)))
+    return hom(domain(F), codomain(G), f, G.(_images(F)), check=false)
+  elseif typeof(codomain(f)) === typeof(domain(G))
+    new_coeff_map = compose(f, G)
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
+  else
+    return Generic.CompositeMap(F, G)
+  end
+end
+
+# No coefficient maps in the first argument
+function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, S}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  g = coefficient_map(G)
+  if domain(g) === coefficient_ring(domain(F))
+    return hom(domain(F), codomain(G), g, G.(_images(F)), check=false)
+  else
+    new_coeff_map = MapFromFunc(coefficient_ring(domain(F)), codomain(g), x->g(domain(g)(x)))
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
+  end
+end
+
 # No coefficient maps in both maps
 function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
@@ -307,3 +367,10 @@ function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
+images_of_generators(phi::MPolyAnyMap) = _images(phi)
+
+identity_map(R::MPolyRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(R::MPolyQuoRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(Z::ZZRing) = AbstractAlgebra.identity_map(Z)

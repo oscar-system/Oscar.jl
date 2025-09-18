@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -19,20 +20,20 @@ polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
 polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
-The complete $H$-representation can be retrieved using [`facets`](@ref facets)
-and [`affine_hull`](@ref affine_hull):
+The complete $H$-representation can be retrieved using [`facets`](@ref facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}})
+and [`affine_hull`](@ref affine_hull(P::Polyhedron{T}) where {T<:scalar_types}):
 ```jldoctest
 julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
+2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^2 described by:
 -x_1 <= 0
 x_1 <= 1
 
 
 julia> affine_hull(P)
-1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^2 described by:
+1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the hyperplanes of R^2 described by:
 x_2 = 0
 
 
@@ -68,7 +69,7 @@ julia> halfspace_matrix_pair(facets(T))
 ```
 
 The complete $V$-representation can be retrieved using [`minimal_faces`](@ref
-minimal_faces), [`rays_modulo_lineality`](@ref rays_modulo_lineality) and [`lineality_space`](@ref lineality_space):
+minimal_faces(P::Polyhedron{T}) where {T<:scalar_types}), [`rays_modulo_lineality`](@ref rays_modulo_lineality(P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}):
 
 ```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
@@ -103,7 +104,7 @@ true
 ```
 
 ## Regular polytopes
-A polytope is regular, in the strict sense, if it admits a flag-transtive group
+A polytope is regular, in the strict sense, if it admits a flag-transitive group
 of (linear) automorphisms. There are three infinite families of regular
 polytopes which exist in each dimension: the (regular) simplices, cubes and
 cross polytopes. In addition there are two exceptional regular 3-polytopes
@@ -114,7 +115,7 @@ The regular 3-polytopes are also known as the Platonic solids. Here we also
 list the Archimedean, Catalan and Johnson solids, which form various
 generalizations of the Platonic solids. However, here we implement "disjoint
 families", i.e., the proper Archimedean solids exclude the Platonic solids;
-similarly, the proper Johnson solids exclude the Archmidean solids.
+similarly, the proper Johnson solids exclude the Archimedean solids.
 ```@docs
 simplex
 cross_polytope
@@ -134,7 +135,7 @@ regular_600_cell
 Like some of the Johnson solids, the following four Archimedean and Catalan
 solids are constructed using [serialized data](@ref serialization).
 In order to properly document the respective sources, they also come as
-seperate functions. 
+separate functions.
 
 ```@docs
 snub_cube
@@ -190,6 +191,7 @@ rss_associahedron
 signed_permutahedron
 stable_set_polytope
 transportation_polytope
+tutte_lifting
 zonotope
 zonotope_vertices_fukuda_matrix
 ```

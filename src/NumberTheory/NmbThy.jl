@@ -1,10 +1,95 @@
+function norm_equation_fac_elem_non_max(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = false)
+  #Idea
+  #every solution in R is also one in S, the maximal order, hence
+  #associated to some solution in S
+  #Step 1: solve completely in S
+  #Step 2: compute X = S^*/R^* (finite)
+  #Step 3: for each solution b find all x in X s.th. bx in R
+  #
+  # Improvement, sometimes: f = conductor(R, S)
+  # then 1 -> R^* -> S^* -> (S/f)^*/(R/f)^* 
+  # is exact (and used to compute R^*)
+  # if k is coprime to f, then every solution b in S is also coprime to
+  # f, hence in (S/f)^*/(R/f)^*
+  # so instead of all X, just use all preimages in S^* of b
+  #
+  # finally, adjust for signs...
+  #
+  S = maximal_order(R)
+  U, mU = unit_group_fac_elem(S)
+  q, mqS, mSq = Hecke.OO_mod_F_mod_O_mod_F(R)
+  s = norm_equation_fac_elem(S, k; abs)
+  f = conductor(R, S)
+  mu = hom(U, q, [preimage(mqS, mSq(mU(x))) for x = gens(U)])
+
+  p, phi = quo(U, kernel(mu)[1])
+  t = typeof(s)()
+  have_unit = false
+  if isodd(degree(R)) 
+    u_m1 = FacElem(number_field(R)(-1))
+    have_unit = true
+  end
+  for x = s
+    if is_one(gcd(minimum(f), k))
+      y = preimage(mqS, mSq(x))
+      fl, d = has_preimage_with_preimage(mu, y)
+      fl || continue
+      u = mU(-d)
+      if !abs && !have_unit && norm(u) == -1
+        u_m1 = u
+        have_unit = true
+      end
+      push!(t, x*u)
+      @assert is_zero(preimage(mqS, mSq(t[end])))
+    else
+      for z = p
+        u = mU(preimage(phi, z))
+        if !abs && !have_unit && norm(u) == -1
+          u_m1 = u
+          have_unit = true
+        end
+        xx = u*x
+        xxx = evaluate(xx)
+        if denominator(xxx, R) == 1
+          push!(t, xx)
+        end
+      end
+    end
+  end
+  if !abs && !have_unit
+    U, mU = unit_group(R)
+    for g = gens(U)
+      u = mU(g)
+      if norm(u) == -1
+        u_m1 = u
+        have_unit = true
+        break
+      end
+    end
+  end
+  tt = typeof(t)()
+  for x = t
+    if !abs && norm(x) != k
+      if have_unit
+        push!(tt, u_m1*x)
+      end
+    else
+      push!(tt, x)
+    end
+  end
+
+  return tt
+end
+
 function norm_equation_fac_elem(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = false)
-  @assert Hecke.is_maximal(R)
+  if !Hecke.is_maximal(R)
+    return norm_equation_fac_elem_non_max(R, k; abs)
+  end
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
-  for (p, k) = lp.fac
+  for (p, k) in lp
     P = prime_decomposition(R, p)
-    s = solve_non_negative(matrix(FlintZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(FlintZZ, 1, 1, [k]))
+    s = solve_non_negative(matrix(ZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(ZZ, 1, 1, [k]))
     push!(S, (P, ZZMatrix[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))
   end
   sol = FacElem{AbsSimpleNumFieldElem, AbsSimpleNumField}[]
@@ -41,10 +126,10 @@ end
 
 norm_equation(R::AbsNumFieldOrder, k::Base.Integer; abs::Bool = false) = norm_equation(R, ZZRingElem(k), abs = abs)
 
-function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsSimpleNumFieldOrderElem)
 
   @assert Hecke.is_maximal(R)
-  Ka, mKa, mkK = absolute_field(Hecke.nf(R))
+  Ka, mKa, mkK = collapse_top_layer(Hecke.nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)
   k = Hecke.nf(parent(a))
@@ -59,10 +144,10 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   q, mms = snf(q)
   mq = mq*inv(mms)
 
-  C = vcat([matrix(FlintZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)])
+  C = reduce(vcat, (matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)))
   
-  A = vcat([matrix(FlintZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)])
-  b = matrix(FlintZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
+  A = reduce(vcat, (matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)))
+  b = matrix(ZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
 
   so = solve_mixed(A, b, C)
   u, mu = Hecke.unit_group_fac_elem(parent(a))
@@ -83,9 +168,9 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   return sol
 end
 
-norm_equation(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
+norm_equation(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsSimpleNumFieldOrderElem) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
 
-function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function is_irreducible(a::AbsSimpleNumFieldOrderElem)
   if iszero(a)
     return false
   end
@@ -95,25 +180,25 @@ function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
     return false
   end
   s, ms = Hecke.sunit_mod_units_group_fac_elem(S)
-  V = transpose(matrix(ZZ, [ZZRingElem[valuation(ms(x), y) for y = S] for x = gens(s)]))
-  b = transpose(matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]]))
-  sol = solve(V, b)
+  V = matrix(ZZ, [ZZRingElem[valuation(ms(x), y) for y = S] for x = gens(s)])
+  b = matrix(ZZ, [ZZRingElem[valuation(a, y) for y = S]])
+  sol = transpose(solve(V, b))
 
   #want to write sol = x+y where
   # Cx, Cy > 0
   # if this is possible, then a is not irreducible as a
   # is then ms(Ax) * ms(Ay) and neither is trivial.
 
-  I = identity_matrix(FlintZZ, length(S))
+  I = identity_matrix(ZZ, length(S))
   A = hcat(I, I)
   #so A*(x|y) = x+y = sol is the  1. condition
-  C = cat(V, V, dims=(1,2))
+  C = cat(transpose(V), transpose(V), dims=(1,2))
   # C(x|y) >=0 iff Cx >=0 and Cy >=0
   #Cx <> 0 iff (1,..1)*Cx >= 1
-  one = matrix(FlintZZ, 1, length(S), [1 for p = S])
-  zer = matrix(FlintZZ, 1, length(S), [0 for p = S])
+  one = matrix(ZZ, 1, length(S), [1 for p = S])
+  zer = matrix(ZZ, 1, length(S), [0 for p = S])
   C = vcat(C, hcat(one, zer), hcat(zer, one))
-  d = matrix(FlintZZ, 2*length(S)+2, 1, [0 for i = 1:2*length(S) + 2])
+  d = matrix(ZZ, 2*length(S)+2, 1, [0 for i = 1:2*length(S) + 2])
   d[end-1, 1] = 1
   d[end, 1] = 1
   pt = solve_mixed(A, sol, C, d)
@@ -121,11 +206,11 @@ function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
 end
 
 @doc raw"""
-    irreducibles(S::Vector{AbsNumFieldOrderIdeal{AbsSimpleNumField,AbsSimpleNumFieldElem}}) -> Vector{AbsNumFieldOrderElem}
+    irreducibles(S::Vector{AbsSimpleNumFieldOrderIdeal}) -> Vector{AbsNumFieldOrderElem}
 
 Return all irreducibles whose support is contained in $S$.
 """
-function irreducibles(S::Vector{AbsNumFieldOrderIdeal{AbsSimpleNumField,AbsSimpleNumFieldElem}})
+function irreducibles(S::Vector{AbsSimpleNumFieldOrderIdeal})
   if length(S) == 0
     return []
   end
@@ -183,11 +268,11 @@ end
 =#
 
 @doc raw"""
-    factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
+    factorizations(a::AbsSimpleNumFieldOrderElem) -> Vector{Fac{OrdElem}}
 
 Return all factorizations of $a$ into irreducibles.
 """
-function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function factorizations(a::AbsSimpleNumFieldOrderElem)
   O = parent(a)
   S = collect(keys(factor(a*O)))
   if length(S) == 0
@@ -217,7 +302,7 @@ function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
     end
   end
   sol = solve_non_negative(A, b)
-  res = Fac{AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}}[]
+  res = Fac{AbsSimpleNumFieldOrderElem}[]
   for j=1:nrows(sol)
     x = Dict{typeof(a), Int}()
     y = a
@@ -230,28 +315,4 @@ function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
     push!(res, Fac(y, x))
   end
   return res
-end
-
-
-################################################################################
-#
-#   disc_log   TODO: move to Hecke
-#
-@doc raw"""
-    disc_log(b::T, x::T) where {T <: FinFieldElem}
-
-Return an integer `s` such that $b^s = x$.
-If no such `x` exists, an exception is thrown.
-
-# Examples
-```jldoctest
-julia> F = GF(3,4); a = gen(F)^21;
-
-julia> disc_log(gen(F), a)
-21
-```
-"""
-function disc_log(b::T, x::T) where {T <: FinFieldElem}
-  @assert parent(b) === parent(x)
-  return Hecke.disc_log_bs_gs(b, x, order(parent(b)))
 end

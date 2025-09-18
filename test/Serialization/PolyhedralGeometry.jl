@@ -12,6 +12,25 @@ using Oscar: _integer_variables
       end
     end
 
+    @testset "Matroid" begin
+      @testset "Fano" begin
+        M = fano_matroid()
+        test_save_load_roundtrip(path, M) do loaded
+          @test sort(bases(M)) == sort(bases(loaded))
+          @test length(M) == length(loaded)
+          @test rank(M) == rank(loaded)
+        end
+      end
+      @testset "uniform" begin
+        M = uniform_matroid(2, 4)
+        test_save_load_roundtrip(path, M) do loaded
+          @test sort(bases(M)) == sort(bases(loaded))
+          @test length(M) == length(loaded)
+          @test rank(M) == rank(loaded)
+        end
+      end
+    end
+
     @testset "Cone" begin
       C = positive_hull([1 0; 0 1])
       test_save_load_roundtrip(path, C) do loaded
@@ -30,24 +49,32 @@ using Oscar: _integer_variables
 
     @testset "Polyhedron" begin
       square = cube(2)
+      f_vector(square)
       test_save_load_roundtrip(path, square) do loaded
         @test n_vertices(square) == n_vertices(loaded)
         @test dim(square) == dim(loaded)
         @test square == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
 
       n2 = (QQBarField()(5))^(QQ(4//5))
       c = cube(QQBarField(), 3, -1, n2)
-      test_save_load_roundtrip(path, square) do loaded
-        @test n_vertices(square) == n_vertices(loaded)
-        @test dim(square) == dim(loaded)
-        @test square == loaded
+      f_vector(c)
+      lattice_points(c)
+      test_save_load_roundtrip(path, c) do loaded
+        @test n_vertices(c) == n_vertices(loaded)
+        @test dim(c) == dim(loaded)
+        @test c == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
 
       d_hedron = dodecahedron()
       facets(d_hedron)
       vertices(d_hedron)
+      f_vector(d_hedron)
+      lattice_points(d_hedron)
 
+      # this type needs to be any since the values have different type_params
       dict_ps = Dict{String, Any}(
         "unprecise" => polyhedron(
           Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
@@ -61,7 +88,7 @@ using Oscar: _integer_variables
     end
 
     @testset "PolyhedralComplex" begin
-      IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+      IM = incidence_matrix([[1,2,3],[1,3,4]])
       vr = [0 0; 1 0; 1 1; 0 1]
       PC = polyhedral_complex(IM, vr)
       test_save_load_roundtrip(path, PC) do loaded
@@ -104,6 +131,27 @@ using Oscar: _integer_variables
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
+
+      serializer=Oscar.Serialization.LPSerializer(joinpath(path, "original"))
+      test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
+        @test objective_function(LP) == objective_function(loaded)
+        @test feasible_region(LP) == feasible_region(loaded)
+      end
+
+      P = dodecahedron()
+      F = coefficient_field(P)
+      a = gen(number_field(F))
+      LP1 = linear_program(P, F.([3, -2, 4]);k=2,convention = :min)
+      LP2 = linear_program(P, F.([-1, a - 2, a + 5]);k=2,convention = :min)
+      ov1 = optimal_value(LP1)
+      ov2 = optimal_value(LP2)
+      test_save_load_roundtrip(path, [LP1, LP2]) do (loaded1, loaded2)
+        @test objective_function(LP1) == objective_function(loaded1)
+        @test feasible_region(LP1) == feasible_region(loaded1)
+        @test ov1 == optimal_value(loaded1)
+        @test ov2 == optimal_value(loaded2)
+        @test feasible_region(LP1) == feasible_region(LP2)
+      end
     end
 
     @testset "MixedIntegerLinearProgram" begin
@@ -120,11 +168,39 @@ using Oscar: _integer_variables
         @test feasible_region(MILP) == feasible_region(loaded)
         @test Oscar._integer_variables(MILP) == Oscar._integer_variables(loaded)
       end
+
+      P = dodecahedron()
+      F = coefficient_field(P)
+      a = gen(number_field(F))
+
+      MILP1 = mixed_integer_linear_program(
+        P,
+        [3,-2, a];
+        k=2,
+        convention = :min,
+        integer_variables=[1, 2]
+      )
+
+      MILP2 = mixed_integer_linear_program(
+        P,
+        [-3 * a,-2, 3];
+        k=2,
+        convention = :max,
+        integer_variables=[1, 2]
+      )
+
+      test_save_load_roundtrip(path, [MILP1, MILP2]) do (loaded1, loaded2)
+        @test objective_function(MILP1) == objective_function(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded1)
+        @test feasible_region(MILP1) == feasible_region(loaded2)
+        @test Oscar._integer_variables(MILP1) == Oscar._integer_variables(loaded1)
+        @test Oscar._integer_variables(MILP2) == Oscar._integer_variables(loaded2)
+      end
     end
 
     @testset "SubdivisionOfPoints" begin
       moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
-      moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
+      moaeimnonreg0 = incidence_matrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
       MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
       test_save_load_roundtrip(path, MOAE) do loaded
         @test number_of_maximal_cells(MOAE) == number_of_maximal_cells(loaded)
@@ -144,6 +220,18 @@ using Oscar: _integer_variables
         @test Base.propertynames(cpp) == Base.propertynames(loaded)
         @test euler_characteristic(cpp) == euler_characteristic(loaded)
         @test n_vertices(cpp) == n_vertices(loaded)
+      end
+    end
+
+    @testset "PhylogeneticTree" begin
+      phylo_t = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
+      test_save_load_roundtrip(path, phylo_t) do loaded
+        @test taxa(loaded) == ["B", "C", "G", "H"]
+      end
+
+      phylo_t = phylogenetic_tree(QQFieldElem, "((H:3,(C:1,B:1):2):1,G:4);");
+      test_save_load_roundtrip(path, phylo_t) do loaded
+        @test cophenetic_matrix(loaded) == matrix(QQ, [0 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0])
       end
     end
   end
