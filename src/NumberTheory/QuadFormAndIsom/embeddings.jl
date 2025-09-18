@@ -1717,6 +1717,7 @@ function equivariant_primitive_extensions(
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=true,
     first_fitting_isometry::Bool=false,
+    _local::Bool=false
   ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
@@ -1724,19 +1725,19 @@ function equivariant_primitive_extensions(
   if classification == :embsub || classification == :embemb
     GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
   else
-    GM, _ = image_centralizer_in_Oq(M)
+    GM, _ = image_centralizer_in_Oq(M; _local)
   end
 
   qN, fqN = discriminant_group(N)
   if classification == :subemb || classification == :embemb
     GN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
   else
-    GN, _ = image_centralizer_in_Oq(N)
+    GN, _ = image_centralizer_in_Oq(N; _local)
   end
 
   if compute_bar_Gf
-    OqfM, _ = image_centralizer_in_Oq(M)
-    OqfN, _ = image_centralizer_in_Oq(N)
+    OqfM, _ = image_centralizer_in_Oq(M; _local)
+    OqfN, _ = image_centralizer_in_Oq(N; _local)
   else
     OqfM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
     OqfN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
