@@ -1611,8 +1611,8 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
       OqL = orthogonal_group(qL)
       C = centralizer(OqL, OqL(matrix(fqL)))
       return C
-    end
-  end::T
+    end::T
+  end
   
   return get_attribute!(Lf, :image_centralizer_in_Oq) do
     if is_unimodular(L)
