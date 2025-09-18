@@ -173,12 +173,13 @@ fixed by all elements (for groups) or by `x` (for elements).
 
 ```jldoctest
 julia> g = symmetric_group(4)
-S₄
+Symmetric group of degree 4
 
 julia> s = sylow_subgroup(g, 3)[1];
 
 julia> fixed_points(s)
-Int64[]
+1-element Vector{Int64}:
+ 4
 
 julia> fixed_points(one(s))
 4-element Vector{Int64}:
@@ -187,26 +188,18 @@ julia> fixed_points(one(s))
  3
  4
 
-julia> σ = PermGroupElem([1,2,3,4] => [1,2,4,3], g)
-PermGroupElem((3 4))
+julia> x = g([1,2,4,3])
+(3,4)
 
-julia> fixed_points(σ)
+julia> fixed_points(x)
 2-element Vector{Int64}:
  1
  2
 ```
 """
-
-function fixed_points(p::PermGroupElem)
-  # Return all points in 1:degree that are not moved by p
-  points = 1:degree(parent(p))
-  return setdiff(points, moved_points(p))
-end
-
-
-function fixed_points(G::PermGroup)
-  is_trivial(G) && return collect(1:degree(G))
-  return mapreduce(fixed_points, intersect, gens(G))
+function fixed_points(G::Union{PermGroup, PermGroupElem})
+  points = 1:degree(G)
+  return setdiff(points, moved_points(G))
 end
 
 @doc raw"""

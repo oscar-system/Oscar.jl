@@ -433,18 +433,18 @@ end
   g = symmetric_group(4)             # S₄
   s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup (order 3)
   e = one(g)                         # identity element
-  τ = gens(g)[1]                     # an example element of g
+  y = gens(g)[1]                     # an example element of g
+  x = gens(s)[1]                     # generator of Sylow subgroup
 
   # Tests for fixed_points on individual elements
-  σ = gens(s)[1]                      # generator of Sylow subgroup
-  @test fixed_points(σ) == [4]        # Sylow generator fixes only 4
+  @test fixed_points(x) == [4]       # Sylow generator fixes only 4
 
   @test fixed_points(e) == collect(1:degree(g))  # Identity fixes all
 
-  @test sort(fixed_points(τ)) ==
-      sort([i for i in 1:degree(g) if τ(i) == i])  # Check example element
+  @test sort(fixed_points(y)) ==
+      sort([i for i in 1:degree(g) if y(i) == i])  # Check example element
 
-  ρ = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
+  z = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
   expected_fixed = [4]
-  @test sort(fixed_points(ρ)) == expected_fixed
+  @test sort(fixed_points(z)) == expected_fixed
 end
