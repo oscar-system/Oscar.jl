@@ -148,7 +148,6 @@ julia> rational_points(X)
 
 ```
 """
-
 function rational_points(X::AffineVariety{T}) where T <: Field
   I = defining_ideal(X)
   @req dim(I) == 0 "Not a zero-dimensional algebraic set"

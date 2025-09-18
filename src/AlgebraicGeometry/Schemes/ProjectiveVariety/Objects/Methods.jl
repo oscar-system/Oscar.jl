@@ -41,8 +41,6 @@ Base.show(io::IO, P::AbsProjectiveVariety{<:Field, <:MPolyDecRing}) = Base.show(
 Returns a vector of coordinate tuples of the $k$-points of $X$ under the condition that $X$ is of dimension zero, where $k$ denotes the base field.
 If $X$ is not zero-dimensional (considered as an algebraic set over the algebraic closure of $k$), an error exception results.
 
-!!!note If $X$ is zero dimensional, but does not contain any $k$-point, the returned vector will be empty.
-
 # Examples
 ```jldoctest
 julia> R,(x,y,z) = graded_polynomial_ring(QQ,3)

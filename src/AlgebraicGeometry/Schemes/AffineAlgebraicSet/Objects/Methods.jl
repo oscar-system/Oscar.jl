@@ -99,11 +99,11 @@ function rational_point_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
   LG = leading_ideal(I;ordering=o)
-  dim(LG)==0 || error("Ideal does not describe finite set of points")
+  @req dim(LG)==0 "Ideal does not describe finite set of points"
   vd = vector_space_dim(quo(base_ring(LG),LG)[1])
-  vd ==1 || error("Ideal does not describe a single K-point")
+  @req vd ==1 "Ideal does not describe a single K-point"
   nf_vec = [normal_form(v,I) for v in gens(R)]
-  return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # 
+  return [iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec]
 end
 
 @doc raw"""
@@ -115,7 +115,8 @@ field.
 If $X$ is not zero-dimensional (considered as an algebraic set over the 
 algebraic closure of $k$), an error exception results.
 
-!!!note If $X$ is zero dimensional, but does not contain any $k$-point, 
+!!! note
+    If $X$ is zero dimensional, but does not contain any $k$-point,
 the returned vector will be empty.
 
 # Examples
@@ -144,10 +145,5 @@ function rational_points(X::AffineAlgebraicSet{T}) where T <: Field
   I = defining_ideal(X)
   @req dim(I) == 0 "Not a zero-dimensional algebraic set"
   PL = minimal_primes(I)
-  result = Vector{elem_type(T)}[]
-  for J in PL
-    vector_space_dim(quo(base_ring(J),J)[1]) == 1 || continue
-    push!(result, rational_point_coordinates(J))
-  end
-  return result
+  return [rational_point_coordinates(J) for J in PL if vector_space_dim(quo(base_ring(J),J)[1]) == 1]
 end
