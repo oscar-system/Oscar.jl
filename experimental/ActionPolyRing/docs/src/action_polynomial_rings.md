@@ -59,7 +59,7 @@ which can be found below. The first two do not require the jet variable in quest
 
 ## [Element Constructors](@id element_constructors_apr)
 
-`(A::ActionPolyRing)()` returns the zero polynomial of the action polynomial ring `A`.\
+`(A::ActionPolyRing)()` returns the zero polynomial of the action polynomial ring `A`.
 `(A::ActionPolyRing)(a::T) where {T<:RingElement}` returns `a` as an element of `A`, if possible.
 This can be used for creating constant polynomials.
 
