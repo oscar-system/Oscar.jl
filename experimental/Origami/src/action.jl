@@ -32,10 +32,10 @@ function action_sl2(A::ZZMatrix, o::Origami)
 
     # TODO implement this in Oscar when implementing the modular subgroup pkg
     # because this is really slow and ugly
-    gap_origami = GAP.Globals.ActionOfSL2(GAP.julia_to_gap(A), GapObj(o))
-    gap_h = GAP.Globals.HorizontalPerm(gap_origami)
-    gap_v = GAP.Globals.VerticalPerm(gap_origami)
-    h = perm((i-> Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(gap_h))))
-    v = perm((i->Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(gap_v))))
+    gap_origami = GAP.Globals.ActionOfSL2(GapObj(A), GapObj(o))
+    d = GAP.Globals.DegreeOrigami(gap_origami)::Int
+    G = symmetric_group(d)
+    h = PermGroupElem(G, GAP.Globals.HorizontalPerm(gap_origami))
+    v = PermGroupElem(G, GAP.Globals.VerticalPerm(gap_origami))
     return origami_disconnected(h, v, degree(o))
 end
