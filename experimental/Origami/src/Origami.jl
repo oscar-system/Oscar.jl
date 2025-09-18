@@ -56,16 +56,11 @@ function origami(h::PermGroupElem, v::PermGroupElem)
 end
 
 # ugly workaround
-function from_GAP_origami(o)::Origami
-    GAP.Globals.temporaryOrigami = o
-    d = GAP.gap_to_julia(GAP.evalstr("DegreeOrigami(temporaryOrigami);"))
+function from_GAP_origami(o::GapObj)
+    d = GAP.Globals.DegreeOrigami(o)::Int
     G = symmetric_group(d)
-    h = GAP.gap_to_julia(GAP.evalstr("ListPerm(HorizontalPerm(temporaryOrigami));"))
-    v = GAP.gap_to_julia(GAP.evalstr("ListPerm(VerticalPerm(temporaryOrigami));"))
-    h = map(Int, h)
-    v = map(Int, v)
-    h = G(perm(h))
-    v = (perm(v))
+    h = PermGroupElem(G, GAP.Globals.HorizontalPerm(o))
+    v = PermGroupElem(G, GAP.Globals.VerticalPerm(o))
     return origami(h, v)
 end
 
@@ -75,7 +70,7 @@ end
 
 function Base.:(==)(a::Origami, b::Origami)
     # TODO rewrite this? for now use Gap equality
-    return (a.h == b.h) && (a.v == b.v) #GAP.evalstr("$(string(a)) = $(string(b))")
+    return (a.h == b.h) && (a.v == b.v)
 end
 
 function Base.hash(o::Origami, h::UInt=0x000000000)
