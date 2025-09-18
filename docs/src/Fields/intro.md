@@ -29,7 +29,7 @@ Here is a list of the fields available in OSCAR:
 | $\mathbb{Q}_p$ | `padic_field(p)` |  | [Padics](@ref)
 | $\mathbb{Q}_{p^n}$ | `qadic_field(p, n)` | Unramified extensions of $\mathbb{Q}_p$ | [Qadics](@ref)
 | $R/(f)$ | `residue_Field(R, f)` | $R$ must be a principal ideal domain
-| $\mathrm{Quot}(R)$ | `field_of_fractions(R)` | $R$ must be an integral domain | [Generic fraction fields](@ref)
+| $\mathrm{Quot}(R)$ | `fraction_field(R)` | $R$ must be an integral domain | [Generic fraction fields](@ref)
 
 ## Converting between fields
 
