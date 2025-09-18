@@ -346,17 +346,17 @@ function image(f::GAPGroupHomomorphism)
 end
 
 """
-    image(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where {S <: GAPGroup, T <: GAPGroup}
-    (f::GAPGroupHomomorphism{S, T})(H::GAPGroup)
+    image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
+    (f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup)
 
 Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
 """
-function image(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where {S <: GAPGroup, T <: GAPGroup}
+function image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
   H1 = GAPWrap.Image(GapObj(f), GapObj(H))
   return _as_subgroup(codomain(f), H1)
 end
 
-(f::GAPGroupHomomorphism{S, T})(H::GAPGroup) where {S <: GAPGroup, T <: GAPGroup} = image(f,H)
+(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup) = image(f,H)
 
 """
     cokernel(f::GAPGroupHomomorphism)
