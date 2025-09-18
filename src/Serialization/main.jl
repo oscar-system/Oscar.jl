@@ -747,8 +747,8 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::T = nothing, type::Any = nothing,
-              serializer=JSONSerializer(), with_attrs::Bool=true) where T
+function load(io::IO; params::Any = nothing, type::Any = nothing,
+              serializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
@@ -803,7 +803,7 @@ function load(io::IO; params::T = nothing, type::Any = nothing,
         decode_type(s)
       end
       
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
@@ -841,9 +841,9 @@ function load(io::IO; params::T = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::T = nothing,
+function load(filename::String; params::Any = nothing,
               type::Any = nothing, with_attrs::Bool=true,
-              serializer::OscarSerializer=JSONSerializer()) where T
+              serializer::OscarSerializer=JSONSerializer())
   open(filename) do file
     return load(file; params=params, type=type, serializer=serializer)
   end
