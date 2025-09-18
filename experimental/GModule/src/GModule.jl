@@ -1258,6 +1258,24 @@ function Oscar.mul!(A::T, B::PermMat{S}, C::T) where T <: MatElem{S} where S <: 
   return A
 end
 
+for (M, E) in ((QQMatrix, QQFieldElem), (FqMatrix, FqFieldElem))
+  @eval begin
+    function *(A::$M, M::PermMat{$E})
+      #permute columns by p
+      B = deepcopy(A)
+      swap_cols!(B, M.p)
+      return B
+    end
+
+    function *(M::PermMat{$E}, A::$M)
+      #permute columns by p
+      B = deepcopy(A)
+      swap_rows!(B, inv(M.p))
+      return B
+    end
+  end
+end
+
 function *(A::MatElem{S}, M::PermMat{S}) where S
   #permute columns by p
   B = deepcopy(A)
