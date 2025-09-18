@@ -1112,14 +1112,16 @@ import Base: *
 function *(M::PermMat{T}, N::PermMat{T}) where T
   @assert M.R == N.R
   @assert parent(M.p) == parent(N.p)
+  P = PermMat(M.R, M.p*N.p)
+  @assert matrix(P) == matrix(M) * matrix(N)
   return PermMat(M.R, M.p*N.p)
 end
 
-function swap_rows!(A::Matrix, pi::PermGroupElem)
+function swap_rows!(A::MatElem, pi::PermGroupElem)
   n = nrows(A)
   m = ncols(A)
 
-  tmp = [A[1,1] for i = 1:m]
+  tmp = [A[1,i] for i = 1:m]
 
   for C = cycles(pi)
     length(C) == 1 && continue
@@ -1131,7 +1133,7 @@ function swap_rows!(A::Matrix, pi::PermGroupElem)
       Cj = C[j]
       Cj1 = C[j+1]
       for i=1:m
-        A[Cj, i] = A[Cj1, i]
+        A[Cj1, i] = A[Cj, i]
       end
     end
     j = C[1]
@@ -1142,11 +1144,11 @@ function swap_rows!(A::Matrix, pi::PermGroupElem)
   end
 end
 
-function swap_cols!(A::Matrix, pi::PermGroupElem)
+function swap_cols!(A::MatElem, pi::PermGroupElem)
   n = nrows(A)
   m = ncols(A)
 
-  tmp = [A[1,1] for i = 1:n]
+  tmp = [A[i,1] for i = 1:n]
 
   for C = cycles(pi)
     length(C) == 1 && continue
@@ -1158,7 +1160,7 @@ function swap_cols!(A::Matrix, pi::PermGroupElem)
       Cj = C[j]
       Cj1 = C[j+1]
       for i=1:n
-        A[i, Cj] = A[i, Cj1]
+        A[i, Cj1] = A[i, Cj]
       end
     end
     j = C[1]
@@ -1243,31 +1245,30 @@ function swap_rows!(A::QQMatrix, pi::PermGroupElem)
   end
 end
 
-function Oscar.mul!(A::QQMatrix, B::QQMatrix, C::PermMat{QQFieldElem})
+
+function Oscar.mul!(A::T, B::T, C::PermMat{S}) where T <: MatElem{S} where S <: RingElem
   A[:, :] = B
   swap_cols!(A, C.p)
   return A
 end
 
-function Oscar.mul!(A::QQMatrix, B::PermMat{QQFieldElem}, C::QQMatrix)
+function Oscar.mul!(A::T, B::PermMat{S}, C::T) where T <: MatElem{S} where S <: RingElem
   A[:, :] = C
   swap_rows!(A, C.p)
   return A
 end
 
-function *(A::QQMatrix, M::PermMat{QQFieldElem})
+function *(A::MatElem{S}, M::PermMat{S}) where S
   #permute columns by p
   B = deepcopy(A)
   swap_cols!(B, M.p)
-#  @assert B == A*permutation_matrix(QQ, M.p)
   return B
 end
 
-function *(M::PermMat{QQFieldElem}, A::QQMatrix)
+function *(M::PermMat{S}, A::MatElem{S}) where S
   #permute columns by p
   B = deepcopy(A)
   swap_rows!(B, inv(M.p))
-#  @assert B == permutation_matrix(QQ, M.p)*A
   return B
 end
 
