@@ -125,7 +125,9 @@ julia> jacobian(phi)
 [   0   s[1]      0   s[2]]
 ```
 """
-jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing}) = jacobian_matrix(codomain(phi), _images_of_generators(phi))
+function jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing})
+  jacobian_matrix(codomain(phi), _images_of_generators(phi))
+end
 
 # compute the jacobian at a random point with parameters sampled from a finite field
 function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
