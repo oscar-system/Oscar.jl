@@ -2048,7 +2048,7 @@ function splitting(
     for i in 1:l
       N = popfirst!(Ns)
       for M in Ms
-        ok, _Es = equivariant_primitive_extensions(N, M; form_over=TorQuadModule[first(discriminant_group(Lq))],_local)
+        ok, _Es = equivariant_primitive_extensions(N, M; form_over=TorQuadModule[first(discriminant_group(Lq))], _local)
         !ok && continue
         Es = first.(_Es)
         filter!(T -> is_of_type(T^p, type(Lq)), Es)
@@ -2377,7 +2377,7 @@ function _conditions_from_input(
       jp = findfirst(a -> a[1] == n, pos_sigs)
       pn = isnothing(jp) ? -1 : pos_sigs[jp][2]
       jn = findfirst(a -> a[1] == n, neg_sigs)
-      nn = isnothing(jp) ? -1 : neg_sigs[jp][2]
+      nn = isnothing(jn) ? -1 : neg_sigs[jn][2]
       eiglat_cond[n] = Int[rn, pn, nn]
     end
     # For the other eigenlattices, we know that the rank is 0 so we
