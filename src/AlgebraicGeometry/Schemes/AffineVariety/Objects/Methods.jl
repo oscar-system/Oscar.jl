@@ -121,7 +121,7 @@ end
 @doc raw"""
     rational_points(X::AffineVariety)
 
-Returns the coordinate tuple of the $k$-point described by $X$ under
+Returns the coordinate vector of the $k$-point described by $X$ under
 the condition that $X$ is of dimension zero, where $k$ denotes the base
 field.
 If $X$ is not zero-dimensional (considered as an algebraic set over the

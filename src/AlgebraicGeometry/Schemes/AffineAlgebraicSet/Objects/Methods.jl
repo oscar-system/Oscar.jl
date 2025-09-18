@@ -72,9 +72,8 @@ end
 @doc raw"""
     rational_point_coordinates(I::MPolyIdeal)
 
-Over the base field $k$, return the $k$-coordinates of the point 
-corresponding to a maximal ideal $I \in k[x_1,\dots,x_n]$, which 
-describes a $k$-point. 
+Returns the $k$-coordinates of the point corresponding to a 
+maximal ideal $I \in k[x_1,\dots,x_n]$. 
 If $I$ is not maximal or does not describe a point with coordinates in the 
 field $k$, an error exception results.
 
@@ -96,7 +95,7 @@ julia> rational_point_coordinates(I)
 ```
 """
 function rational_point_coordinates(I::MPolyIdeal)
-  R=base_ring(I)
+  R = base_ring(I)
   o = degrevlex(gens(R))
   LG = leading_ideal(I;ordering=o)
   @req dim(LG)==0 "Ideal does not describe finite set of points"
@@ -109,11 +108,11 @@ end
 @doc raw"""
     rational_points(X::AffineAlgebraicSet)
 
-Returns a vector of coordinate tuples of the $k$-points of $X$ under 
+Returns a vector of coordinate vectors of the $k$-points of $X$ under 
 the condition that $X$ is of dimension zero, where $k$ denotes the base 
 field.
 If $X$ is not zero-dimensional (considered as an algebraic set over the 
-algebraic closure of $k$), an error exception results.
+algebraic closure of $k$), an exception is raised.
 
 !!! note
     If $X$ is zero dimensional, but does not contain any $k$-point,
