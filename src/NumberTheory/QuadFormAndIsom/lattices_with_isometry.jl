@@ -1610,9 +1610,9 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
       qL,fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
       C = centralizer(OqL, OqL(matrix(fqL)))
-      return C::T
+      return C
     end
-  end
+  end::T
   
   return get_attribute!(Lf, :image_centralizer_in_Oq) do
     if is_unimodular(L)
@@ -1620,10 +1620,10 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
       # discriminant group is trivial
       qL = discriminant_group(L)
       OqL = orthogonal_group(qL)
-      return (OqL, id_hom(OqL))::T
+      return (OqL, id_hom(OqL))
     elseif (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
       # Trivial cases: the lattice has rank 0 or 1, or it is endowed with +- identity
-      return image_in_Oq(L)::T
+      return image_in_Oq(L)
     elseif rank(L) == degree(chi)
       # Hermitian type with hermitian structure of rank 1
       # The image consists of -id and multiplication by a primitive element on the
@@ -1631,7 +1631,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
       qL, fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
       UL = elem_type(OqL)[OqL(m; check=false) for m in ZZMatrix[-matrix(one(OqL)), matrix(fqL)]]
-      return sub(OqL, unique!(UL))::T
+      return sub(OqL, unique!(UL))
     elseif is_of_hermitian_type(Lf)
       if is_definite(L) || rank(L) == 2
         # If L is definite or of rank 2 and we use the correspondence between
@@ -1648,7 +1648,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
         @hassert :ZZLatWithIsom 1 all(g -> g*f == f*g, geneUL)
         UL = matrix_group(unique!(geneUL))
         disc = discriminant_representation(L, UL; check=false, ambient_representation=false)
-        return image(disc)::T
+        return image(disc)
       else
         @req is_even(Lf) "Hermitian Miranda-Morrison currently available only for even lattices"
         # If L is indefinite of rank >=3, then we use the hermitian version of
@@ -1657,7 +1657,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
         dets, j = Oscar._local_determinants_morphism(Lf)
         _, jj = kernel(dets)
         jj = compose(jj, j)
-        return image(jj)::T
+        return image(jj)
       end
     else
       # For this last case, we cut our lattice into two orthogonal parts and we
@@ -1676,9 +1676,9 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
 
       M = kernel_lattice(Lf, psi)
       N = orthogonal_submodule(Lf, basis_matrix(M))
-      return _glue_stabilizers(Lf, M, N)::T
+      return _glue_stabilizers(Lf, M, N)
     end
-  end
+  end::T
 end
 
 # Given an isometry $g$ of a hermitian space $W$, and given a map of
