@@ -29,7 +29,7 @@ julia> G = group(C)
 Permutation group of degree 10
 
 julia> C = natural_gmodule(G, QQ)
-G-module for G acting on vector space of dimension 11 over QQ
+G-module for G acting on vector space of dimension 10 over QQ
 
 ```
 
