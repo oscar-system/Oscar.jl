@@ -620,10 +620,4 @@
       end
     end
   end
-
-  @testset "Some specific subgroups" begin
-    W = weyl_group(:A, 3)
-    T = torsion_subgroup(W)
-    @test T == (W, id_hom(W))
-  end
 end

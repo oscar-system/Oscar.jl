@@ -1085,10 +1085,3 @@ julia> coefficients(w * x)
 
   return G, MapFromFunc(W, G, iso)
 end
-
-function torsion_subgroup(W::WeylGroup)
-  @req is_finite(W) "An infinite Weyl group does not admit a torsion subgroup"
-  return (W, id_hom(W))
-end
-
-id_hom(W::WeylGroup) = AbstractAlgebra.identity_map(W)
