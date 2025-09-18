@@ -1150,7 +1150,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   zk = order(m0)
   @req order(automorphism_group(Hecke.nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
-    s, ms = split_extension(gmodule(A))
+    s, ms = split_extension(FPGroup, gmodule(A))
     return permutation_group(s), ms
   end
   if idele_parent === nothing
