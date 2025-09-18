@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Weierstrass Models
+# [Weierstrass Models](@id weierstrass_models)
 
 Weierstrass models are central to many constructions in F-theory. Such a model describes
 a particular form of an elliptic fibration. Our primary focus is on Weierstrass models
@@ -150,11 +150,11 @@ Weierstrass models are one way to represent an elliptic fibration as a hypersurf
 While different representations may vary in implementation details, they share a common structure in broad
 strokes. As such, many attributes and properties are shared across model representations. These shared
 components—such as `base_space`, `ambient_space`, and `fiber_ambient_space`—are documented on the page
-[Functionality for all F-theory models](@ref "Functionality for all F-theory models").
+[Common Model Ops](@ref common_model_ops).
 
 Below, we list the attributes that are **specific to Weierstrass models** and do not generally apply to
-other representations (such as [Global Tate Models](@ref "Global Tate Models") or
-[Hypersurface Models](@ref "Hypersurface Models")):
+other representations (such as [Global Tate Models](@ref global_tate_models) or
+[Hypersurface Models](@ref hypersurface_models)):
 
 ```@docs
 weierstrass_section_f(w::WeierstrassModel)
@@ -162,7 +162,6 @@ weierstrass_section_g(w::WeierstrassModel)
 weierstrass_polynomial(w::WeierstrassModel)
 hypersurface_equation(w::WeierstrassModel)
 weierstrass_ideal_sheaf(w::WeierstrassModel)
-calabi_yau_hypersurface(w::WeierstrassModel)
 ```
 
 ---
@@ -189,4 +188,4 @@ singular_loci(w::WeierstrassModel)
 ```
 
 We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
-structure and how to resolve them—in [Resolving F-Theory Models](@ref "Resolving F-Theory Models").
+structure and how to resolve them—in [Resolving F-Theory Models](@ref resolving_f_theory_models).

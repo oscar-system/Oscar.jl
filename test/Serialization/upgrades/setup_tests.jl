@@ -8,7 +8,7 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   !isdir(Main.serialization_upgrade_test_path) ||
   !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
 
-  serialization_upgrade_test_path = let commit_hash = "a28d9e4dcc89de46377061e2f42ee09739735b97"
+  serialization_upgrade_test_path = let commit_hash = "051f76410adb7cefdb30fa8238c5c28434cf7720"
     tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
 
     destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
@@ -18,12 +18,8 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   end
 end
 
-if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
-  # this function is used to run an upgrade on all types that had serialization tests
-  # the reason for such a large upgrade test was due to the fact that so many types were affected
-  # it's possible upgrades in the future will also want to run such a script however for now
-  # we keep the name related to the the upgrade.
-  function test_1_4_0_upgrade(;
+if !isdefined(Main, :test_upgrade_folder) || isinteractive()
+  function test_upgrade_folder(folder::String;
     exclude::Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#=String[],
     only::Union{Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#,Nothing}=nothing,
   )  
@@ -35,7 +31,7 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
       only_type_ids = Dict{String, Vector{Int}}(first(pair) => collect(last(pair)) for pair in only if pair isa Pair)
     end
 
-    type_folders = joinpath(Main.serialization_upgrade_test_path, "version_1_3_0")
+    type_folders = joinpath(Main.serialization_upgrade_test_path, folder)
     for dir_name in readdir(type_folders)
       type_str = split(dir_name, "-")[1]
       type_str in exclude_types && continue

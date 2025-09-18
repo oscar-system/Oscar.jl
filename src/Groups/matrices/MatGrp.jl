@@ -302,6 +302,7 @@ end
 
 
 function ==(G::MatrixGroup,H::MatrixGroup)
+   G === H && return true
    degree(G) == degree(H) || return false
    base_ring(G) == base_ring(H) || return false
    if isdefined(G, :descr) && isdefined(H, :descr)

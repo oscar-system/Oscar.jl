@@ -152,8 +152,6 @@ end
 
 @register_serialization_type PermGroupElem
 
-type_params(x::T) where T <: GroupElem = TypeParams(T, parent(x))
-
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
@@ -276,4 +274,63 @@ end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
   return G(vec(load_object(s, Matrix{ZZRingElem})))
+end
+
+# homomorphisms
+@register_serialization_type FinGenAbGroupHom uses_id
+
+type_params(X::FinGenAbGroupHom) = TypeParams(
+  FinGenAbGroupHom,
+  :domain => domain(X),
+  :codomain => codomain(X)
+)
+
+function save_object(s::SerializerState, h::FinGenAbGroupHom)
+  save_object(s, matrix(h))
+end
+
+function load_object(s::DeserializerState, ::Type{FinGenAbGroupHom}, params::Dict)
+  map_matrix = load_object(s, Matrix{ZZRingElem})
+  return hom(params[:domain], params[:codomain], matrix(ZZ, map_matrix))
+end
+
+##############################################################################
+# MatrixGroup
+
+@register_serialization_type MatrixGroup uses_id
+
+type_params(G::MatrixGroup) = TypeParams(MatrixGroup,
+                                         :base_ring => base_ring(G),
+                                         :degree => degree(G))
+
+function save_object(s::SerializerState, G::MatrixGroup)
+  save_data_dict(s) do
+    save_object(s, matrix.(gens(G)), :gens)
+
+    if isdefined(G, :descr)
+      save_object(s, G.descr, :descr)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
+  R = params[:base_ring]
+  d = params[:degree]
+  generators = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, d, d), :gens)
+  G = matrix_group(R, d, generators; check=false)
+
+  if haskey(s, :descr)
+    G.descr = load_object(s, Symbol, :descr)
+  end
+  return G
+end
+
+@register_serialization_type MatrixGroupElem
+
+save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
+
+function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
+  R = base_ring(G)
+  d = degree(G)
+  return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))); check = false)
 end

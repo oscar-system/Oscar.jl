@@ -340,7 +340,11 @@ end
 # differently.
 =#
 function simplify(c::FreeResolution{T}) where T
-  cut_off = length(c.C.maps)-2
+  if is_complete(c)
+    cut_off = length(c)+1
+  else
+    cut_off = length(c)
+  end
   simp = simplify(SimpleComplexWrapper(c.C[0:cut_off]))
   phi = map_to_original_complex(simp)
   result = Hecke.ComplexOfMorphisms(T, morphism_type(T)[map(c, -1)]; seed=-2)
@@ -374,10 +378,63 @@ function simplify(c::FreeResolution{T}) where T
     pushfirst!(result.maps, psi)
     result.complete = true
   end
+
+  # we set some attributes for internal use 
   set_attribute!(result, 
                  :show=>Hecke.pres_show, 
                  :free_res=>get_attribute(c.C, :free_res)
                 )
+
+  # if the resolution `c` had a `fill` function which was 
+  # `_extend_free_resolution`, then this suggests that we are in a
+  # graded polynomial setting and we extend the minimized resolution 
+  # via `mres`. Unfortunately, this decision can not be inferred from 
+  # the type parameter of `c`, because it comes out of `ModuleFP`, i.e. 
+  # without specifying the `elem_type` of the rings. 
+  if c.C.fill == _extend_free_resolution
+    result.fill = c.C.fill
+    set_attribute!(result, :algorithm => :mres)
+  else
+    # if the previous does not hold, we set the fill function to be 
+    # something which works completely generic. 
+    k = first(chain_range(c)) - 1
+    set_attribute!(result, :zip_map=>map_from_original_complex(simp)[k])
+    result.fill = function(C::ComplexOfMorphisms, k::Int)
+      k0 = first(chain_range(C))
+      k0 < k-1 && C[k-1] # Make sure the complex is filled
+
+      if is_zero(C[k-1])
+        Z = C[k-1]
+        pushfirst!(C.maps, hom(Z, Z, elem_type(Z)[zero(Z) for _ in 1:ngens(Z)]))
+        return first(C.maps)
+      end
+
+      if is_zero(c[k])
+        Z = c[k]
+        cod = domain(first(C.maps))
+        pushfirst!(C.maps, hom(Z, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(Z)]))
+        set_attribute!(C, :zip_map => nothing)
+        set_attribute!(C, :complete => true)
+        C.complete = true
+        return first(C.maps)
+      end
+      zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+      @assert domain(zip_map) === c[k-1]
+      @assert codomain(zip_map) === C[k-1]
+      tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
+      @assert tmp[k-1] === domain(zip_map) === c[k-1]
+      @assert tmp[k] === c[k]
+      @assert tmp[k+1] === c[k+1]
+      @assert C[k-1] === codomain(zip_map)
+      tmp_simp = simplify(SimpleComplexWrapper(tmp))
+      new_map = compose(compose(map(tmp_simp, k), map_to_original_complex(tmp_simp)[k-1]), zip_map)
+      @assert codomain(new_map) === C[k-1]
+      pushfirst!(C.maps, new_map)
+      set_attribute!(C, :zip_map=>map_from_original_complex(tmp_simp)[k])
+      C.complete = is_zero(domain(first(C.maps)))
+      return first(C.maps)
+    end
+  end
   return FreeResolution(result)
 end
 
@@ -389,10 +446,9 @@ end
 If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
 
 If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
-
 !!! note
     If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
-
+    
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
@@ -485,7 +541,19 @@ function minimize(c::FreeResolution; check::Bool=true)
   if !is_graded(c[-1]) 
     @check is_local(base_ring(c[-1])) "complex does not consist of graded modules or modules over a local ring"
   end
-  return simplify(c)
+  cm = simplify(c)
+  set_attribute!(cm.C, :minimal=>true)
+  set_attribute!(cm.C,
+                 :show=>Hecke.pres_show,
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  k0 = first(chain_range(c))
+  if is_zero(c[k0])
+    cod = cm[k0-1]
+    pushfirst!(cm.C.maps, hom(c[k0], cod, elem_type(cod)[zero(cod) for _ in 1:ngens(c[k0])]))
+    cm.C.complete=true
+  end
+  return cm
 end
 
 function simplify(c::ComplexOfMorphisms)

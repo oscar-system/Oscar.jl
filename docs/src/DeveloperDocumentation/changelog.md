@@ -60,10 +60,17 @@ labelled. We have the following labels, along with how they are meant to be appl
 In addition to the release notes action labels, you can tag your PR with these following
 labels, and the release notes script will organize them appropriately:
 
+#### Multi level topics
+
+The changelog is organized into a 2 level structure: the topic, and the type. Each PR must have one
+topic label, and one type label. The changes in each topic are then grouped by types, before moving
+on to the next topic, which are also grouped by types, and so on.
+
+##### PR Topics
+
 | Label                         | Changelog Category |
 |-------------------------------|--------------------|
 | `release notes: highlight`    | Highlights |
-| `renaming`                    | Items being renamed |
 | `topic: algebraic geometry`   | Changes related to Algebraic Geometry |
 | `topic: combinatorics`        | Changes related to Combinatorics |
 | `topic: commutative algebra`  | Changes related to Commutative Algebra |
@@ -74,13 +81,6 @@ labels, and the release notes script will organize them appropriately:
 | `topic: polyhedral geometry`  | Changes related to Polyhedral Geometry |
 | `topic: toric geometry `      | Changes related to Toric Geometry |
 | `topic: tropical geometry`    | Changes related to Tropical Geometry |
-| `serialization`               | Changes related to serializing data in the MRDI file format ? |
-| `enhancement`                 | New features or extended functionality |
-| `experimental`                | Only changes experimental parts of OSCAR |
-| `optimization`                | Performance improvements or improved testing |
-| `bug: crash`                  | Fixed bugs that could lead to crashes |
-| `bug`                         | Other fixed bugs |
-| `documentation`               | Improvements or additions to documentation |
 | `package: AbstractAlgebra`    | Changes related to the package AbstractAlgebra |
 | `package: AlgebraicSolving`   | Changes related to the package AlgebraicSolving |
 | `package: GAP`                | Changes related to the package GAP |
@@ -88,6 +88,49 @@ labels, and the release notes script will organize them appropriately:
 | `package: Nemo`               | Changes related to the package Nemo |
 | `package: Polymake`           | Changes related to the package Polymake |
 | `package: Singular`           | Changes related to the package Singular |
+
+##### PR Types
+
+| Label                         | Changelog Category |
+|-------------------------------|--------------------|
+| `renaming`                    | Items being renamed |
+| `serialization`               | Changes related to serializing data in the MRDI file format |
+| `enhancement`                 | New features or extended functionality |
+| `experimental`                | Only changes experimental parts of OSCAR |
+| `optimization`                | Performance improvements or improved testing |
+| `bug: wrong result`           | Fixed bugs that returned incorrect results |
+| `bug: crash`                  | Fixed bugs that could lead to crashes |
+| `bug: unexpected error`       | Fixed bugs that resulted in unexpected errors |
+| `bug`                         | Other fixed bugs |
+| `documentation`               | Improvements or additions to documentation |
+
+#### Example
+
+As an example, the following PRs are rendered as follows:
+
+> - PR #1337 with topic label `topic: groups`, and type label `optimization`
+> - PR #1338 with topic label `package: Singular`, and type label `renaming`
+> - PR #1339 with topic label `package: Singular`, and type label `experimental`
+
+-----
+> 
+> ### Groups
+> 
+> #### Performance improvements or improved testing
+> 
+> - [#1337] Lorem ipsum
+> 
+> ### Changes related to the package Singular
+> 
+> #### Renamings
+> 
+> - [#1338] Foo bar
+> 
+> #### Only changes experimental parts of OSCAR
+> 
+> - [#1338] Alice bob
+> 
+-----
 
 ## Suggestions for formulations
 
@@ -113,8 +156,10 @@ submitting a pull request. In particular, don't manually add anything to `CHANGE
 
 ### Changelog Script
 
-The script is located at `dev/releases/release_notes.py`. It must be run from
-inside the `dev/releases` directory. Running it updates `CHANGELOG.md`, for review.
+The script is located at `dev/releases/release_notes.py`. Running it updates `CHANGELOG.md`, for
+review. The script requires the github CLI program to be installed, and the environment variable
+`GH_TOKEN` to be set to a Github Personal Access Token with sufficient rights. (Which rights ?) The
+github action takes care of this via a github actions secret.
 
 ### GitHub Workflow
 

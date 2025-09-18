@@ -4,12 +4,12 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Hypersurface Models
+# [Hypersurface Models](@id hypersurface_models)
 
 A **hypersurface model** is a description of an elliptic fibration whose
 total space is defined as the vanishing locus of a single polynomial in a
-suitable ambient space. Prominent examples include [Weierstrass Models](@ref "Weierstrass Models")
-and [Global Tate Models](@ref "Global Tate Models"). Our algorithmic framework is rooted in the
+suitable ambient space. Prominent examples include [Weierstrass Models](@ref weierstrass_models)
+and [Global Tate Models](@ref global_tate_models). Our algorithmic framework is rooted in the
 constructions presented in [KM-POPR15](@cite).
 
 ---
@@ -17,9 +17,9 @@ constructions presented in [KM-POPR15](@cite).
 ## What is a Hypersurface Model?
 
 Every elliptic fibration is birationally equivalent to an elliptic fibration
-represented as [Weierstrass model](@ref "Weierstrass Models") (in characteristics other than 2 or 3).
+represented as [Weierstrass model](@ref weierstrass_models) (in characteristics other than 2 or 3).
 However, for practical purposes it is often more convenient to work with alternative
-descriptions. This is the main reason for working with [Global Tate Models](@ref "Global Tate Models"),
+descriptions. This is the main reason for working with [Global Tate Models](@ref global_tate_models),
 and extends more generally to the constructions presented in [KM-POPR15](@cite).
 Our implementation is focused on exactly these constructions.
 
@@ -34,7 +34,7 @@ following ingredients:
 It is worth noting that any elliptic fibration, for which the fiber ambient space is toric,
 can be cast into this form [KM-POPR15](@cite). Consequently, this approach allows for a
 uniform interface for constructing and manipulating hypersurface models in a way that
-generalizes [Global Tate Models](@ref "Global Tate Models") and [Weierstrass Models](@ref "Weierstrass Models")
+generalizes [Global Tate Models](@ref global_tate_models) and [Weierstrass Models](@ref weierstrass_models)
 naturally. Our standing assumption is therefore that the fiber ambient space ``F`` is toric.
 
 ---
@@ -68,7 +68,7 @@ completeness_check = false
 We proceed under the assumption that the base space is a fixed, complete toric variety.
 
 Under this assumption, a toric ambient space ``A`` can be constructed algorithmically. Similar to
-our approach for [Weierstrass Models](@ref "Weierstrass Models") and [Global Tate Models](@ref "Global Tate Models"),
+our approach for [Weierstrass Models](@ref weierstrass_models) and [Global Tate Models](@ref global_tate_models),
 our approach is optimized for performance. In general, several such ambient spaces ``A`` may exist.
 Instead of enumerating a large number of such ambient spaces, we merely compute a single one. As such,
 the ambient space ``A`` computed by our methods may differ from explicit choices in the literature.
@@ -77,8 +77,8 @@ However, the obtained space ``A`` is guaranteed to be consistent with the fibrat
 Users can construct hypersurface models over such concrete toric bases with the following constructor:
 
 ```@docs
-hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
-hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, indices::Vector{Int}, p::MPolyRingElem)
 ```
 
 ### Famous Hypersurface Models
@@ -94,21 +94,19 @@ interface, which is discussed on the page [Literature Models](@ref literature_mo
 
 Hypersurface models represent an elliptic fibration as a hypersurface in an ambient space. While different types
 of models may vary in implementation, they share a broadly similar structure. Common attributes—such as `base_space`,
-`ambient_space`, and `fiber_ambient_space`—are documented on the page
-[Functionality for all F-theory models](@ref "Functionality for all F-theory models").
+`ambient_space`, and `fiber_ambient_space`—are documented on the page [Common Model Ops](@ref common_model_ops).
 
 The following attributes are **specific to hypersurface models** and do not generally apply to other representations
-(such as [Weierstrass Models](@ref "Weierstrass Models") or [Global Tate Models](@ref "Global Tate Models")):
+(such as [Weierstrass Models](@ref weierstrass_models) or [Global Tate Models](@ref global_tate_models)):
 
 ```@docs
 hypersurface_equation(h::HypersurfaceModel)
-calabi_yau_hypersurface(h::HypersurfaceModel)
 weierstrass_model(h::HypersurfaceModel)
 global_tate_model(h::HypersurfaceModel)
 ```
 
 Currently, we do not provide automatic functionality to convert a hypersurface model into a
-[Weierstrass Model](@ref "Weierstrass Models") or a [Global Tate Model](@ref "Global Tate Model"). However, such relations
+[Weierstrass Model](@ref weierstrass_models) or a [Global Tate Model](@ref global_tate_models). However, such relations
 may be known or derived in the literature. If desired, users can manually establish the connection using the functions below:
 
 ```@docs
@@ -128,8 +126,8 @@ and references therein): singularities signal non-trivial physics.
 A key step in analyzing an elliptic fibration is identifying its singular fibers—those whose structure degenerates
 over certain loci in the base. The **discriminant locus** is the subset of the base space over which the fibers degenerate.
 
-For hypersurface models, we provide this functionality only if corresponding [Weierstrass Models](@ref "Weierstrass Models") or
-[Global Tate Models](@ref "Global Tate Models") are known.
+For hypersurface models, we provide this functionality only if corresponding [Weierstrass Models](@ref weierstrass_models) or
+[Global Tate Models](@ref global_tate_models) are known.
 
 ```@docs
 discriminant(h::HypersurfaceModel)
@@ -143,4 +141,4 @@ singular_loci(h::HypersurfaceModel)
 ```
 
 We discuss singularities in greater depth—including how to deform models to achieve a desired singularity
-structure and how to resolve them—in [Resolving F-Theory Models](@ref "Resolving F-Theory Models").
+structure and how to resolve them—in [Resolving F-Theory Models](@ref resolving_f_theory_models).

@@ -1,6 +1,5 @@
 @attr Bool is_trivial(tdc::ToricDivisorClass) = iszero(divisor_class(tdc))
 
-
 @doc raw"""
     is_effective(tdc::ToricDivisorClass)
 
@@ -29,7 +28,10 @@ false
   amb = toric_variety(tdc)
   pi = matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(amb))
   coeffs = coefficients(toric_divisor(tdc))
-  P = polyhedron((-identity_matrix(QQ, nrows(pi)), zeros(QQ, nrows(pi))), (transpose(pi), transpose(pi)*coeffs))
+  P = polyhedron(
+    (-identity_matrix(QQ, nrows(pi)), zeros(QQ, nrows(pi))),
+    (transpose(pi), transpose(pi) * coeffs),
+  )
   # If the polyhedron is empty, there cannot be a effective representative.
   is_feasible(P) || return false
   # We check whether there is an integral point using a MILP

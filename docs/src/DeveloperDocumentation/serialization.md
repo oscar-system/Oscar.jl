@@ -309,7 +309,7 @@ All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
 The mechanics of upgrading are found in the `main.jl` file where the
 [`Oscar.Serialization.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
-to be loaded is older than the current Oscar version.
+to be loaded is older than the current OSCAR version.
 
 ```@docs
 Oscar.Serialization.upgrade
@@ -319,7 +319,7 @@ Oscar.Serialization.upgrade_data
 #### Upgrade Scripts
 
 All upgrade scripts should be contained in a file named after the version
-they upgrade to. For example a script that upgrades to Oscar version 0.13.0
+they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
 should be named `0.13.0.jl`.
 
 ```@docs
@@ -376,18 +376,18 @@ that has been manipulated by hand is still valid and should be validated against
 the schema. In the same way we cannot guarantee that any files created externally
 are valid in terms of the mathematics either, these will not lead to a parse error
 but instead will be handle as though the incorrect input has been passed to one
-of the Oscar functions.
+of the OSCAR functions.
 
-External implementations should not be expected to read or write all possible Oscar types.
+External implementations should not be expected to read or write all possible OSCAR types.
 It is perfectly valid for external implementations to throw parse errors when a certain
-file format is unexpected. For example Oscar will parse a `QQFieldElem` that has data value
+file format is unexpected. For example, OSCAR will parse a `QQFieldElem` that has data value
 "0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
 we should not restrict users when deserializing to formats that may have issues deserializing
 the same format externally.
 
 Allowing extensions to JSON is not recommended, this is to keep the scope
 of possible software that can parse the given JSON as large as possible.
-For example some JSON extensions allow comments in the files, Oscar cannot
+For example some JSON extensions allow comments in the files, OSCAR cannot
 parse such JSONs and we recommend that any comments should be placed in the
 meta field.
 

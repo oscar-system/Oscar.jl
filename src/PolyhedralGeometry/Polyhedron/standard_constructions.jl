@@ -1911,7 +1911,7 @@ julia> p = n_gon(3)
 Polytope in ambient dimension 2 with QQBarFieldElem type coefficients
 
 julia> volume(n_gon(4, r=2, alpha_0=1//4))
-Root 8.00000 of x - 8
+{a1: 8.00000}
 ```
 """
 function n_gon(

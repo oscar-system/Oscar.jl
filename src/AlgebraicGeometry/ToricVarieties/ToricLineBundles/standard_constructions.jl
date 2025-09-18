@@ -16,8 +16,9 @@ julia> structure_sheaf(v)
 Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle structure_sheaf(v::NormalToricVarietyType) = toric_line_bundle(v, zero(picard_group(v)))
-
+@attr ToricLineBundle structure_sheaf(v::NormalToricVarietyType) = toric_line_bundle(
+  v, zero(picard_group_with_map(v)[1])
+)
 
 @doc raw"""
     anticanonical_bundle(v::NormalToricVarietyType)
@@ -33,8 +34,9 @@ julia> anticanonical_bundle(v)
 Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle anticanonical_bundle(v::NormalToricVarietyType) = toric_line_bundle(v, anticanonical_divisor(v))
-
+@attr ToricLineBundle anticanonical_bundle(v::NormalToricVarietyType) = toric_line_bundle(
+  v, anticanonical_divisor(v)
+)
 
 @doc raw"""
     canonical_bundle(v::NormalToricVarietyType)
@@ -50,8 +52,9 @@ julia> canonical_bundle(v)
 Toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle canonical_bundle(v::NormalToricVarietyType) = inv(anticanonical_bundle(v))
-
+@attr ToricLineBundle canonical_bundle(v::NormalToricVarietyType) = inv(
+  anticanonical_bundle(v)
+)
 
 @doc raw"""
     trivial_line_bundle(v::NormalToricVarietyType)
@@ -70,4 +73,6 @@ julia> is_trivial(l)
 true
 ```
 """
-@attr ToricLineBundle trivial_line_bundle(v::NormalToricVarietyType) = toric_line_bundle(v, trivial_divisor(v))
+@attr ToricLineBundle trivial_line_bundle(v::NormalToricVarietyType) = toric_line_bundle(
+  v, trivial_divisor(v)
+)
