@@ -49,12 +49,6 @@ function origami(h::PermGroupElem, v::PermGroupElem)
     G = symmetric_group(d)
     obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
     return Origami(obj, G(h), G(v), d)
-    # TODO check for transitivity? GAP already does this and this was so slow
-    # for huge origamis
-    #perm_group = permutation_group(deg, [h, v])
-    #if transitivity(perm_group) > 0
-        
-    #end
 end
 
 # ugly workaround
@@ -298,7 +292,7 @@ function automorphisms(o::Origami)
     return [[translations(o),1], [point_reflections(o),-1]]
 end
 
-export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
+export origami, origami_nc, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         index_monodromy_group, sum_of_lyapunov_exponents, translations,
         is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
         veech_group_is_even, are_equivalent, normalform_conjugators,
