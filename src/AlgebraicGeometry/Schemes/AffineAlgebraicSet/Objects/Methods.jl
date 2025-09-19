@@ -94,8 +94,9 @@ julia> rational_point_coordinates(I)
 
 ```
 """
-function rational_point_coordinates(I::MPolyIdeal{T}) where T <:Field
+function rational_point_coordinates(I::MPolyIdeal)
   R = base_ring(I)
+  @req coefficient_ring(R) isa Field
   o = degrevlex(gens(R))
   LG = leading_ideal(I;ordering=o)
   @req dim(LG)==0 "Ideal does not describe finite set of points"
