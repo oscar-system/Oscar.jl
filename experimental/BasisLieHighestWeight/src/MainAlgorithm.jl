@@ -319,7 +319,19 @@ function add_new_monomials!(
       zero_coordinates,
     ),
   )
-  isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
+  if isempty(poss_mon_in_weightspace)
+    if V isa SimpleModuleData
+      error(
+        "The input seems to be invalid. Not enough monomials for weightspace $(highest_weight(V) - weight_w) in module with highest weight $(highest_weight(V))"
+      )
+    elseif V isa DemazureModuleData
+      error(
+        "The input seems to be invalid. Not enough monomials for weightspace $((highest_weight(V) - weight_w) * weyl_group_elem(V)) in module with extremal weight $(highest_weight(V) * weyl_group_elem(V))"
+      )
+    else
+      error("unreachable")
+    end
+  end
   poss_mon_in_weightspace = sort(poss_mon_in_weightspace; order=monomial_ordering)
 
   # check which monomials should get added to the basis

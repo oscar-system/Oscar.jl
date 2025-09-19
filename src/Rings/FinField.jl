@@ -28,7 +28,7 @@ end
 function is_primitive(a::FinFieldElem, f::Fac{ZZRingElem} = factored_order(parent(a)))
   iszero(a) && return false
   n = size(parent(a))-1
-  for p = keys(f.fac)
+  for (p, _) in f
     if a^divexact(n, p) == 1
       return false
     end

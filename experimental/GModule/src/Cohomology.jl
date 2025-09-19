@@ -215,6 +215,10 @@ function action(C::GModule, g, v::Array)
     return v
   end
 
+  if has_attribute(C, :action)
+    return get_attribute(C, :action)(C, g, v)
+  end
+
   ac = action(C)
   f = findfirst(isequal(g), gens(Group(C)))
   if f !== nothing
@@ -313,7 +317,28 @@ function action(C::GModule, g)
   return h
 end
 
+function AbstractAlgebra.Generic.add_direct_sum_injection!(a::FinGenAbGroupElem, i::Int, b::FinGenAbGroupElem)
+  C = get_attribute(parent(a), :direct_product)
+  n = 0
+  for j=1:i-1
+    n += ngens(C[j])
+  end
+  _a = Hecke.FinGenAbGroupElem(C[i], Oscar.Nemo._view_window(a.coeff, 1, n+1, 1, n+ngens(C[i])))
+  add!(_a, _a, b)
+  return a
+end
 
+function _coeffs(a::FinGenAbGroupElem)
+  return a.coeff
+end
+function _coeffs(a::AbstractAlgebra.FPModuleElem)
+  return a.v
+end
+function Oscar.zero!(a::AbstractAlgebra.FPModuleElem)
+  zero!(a.v)
+end
+
+#TODO: write an action function that does not use create the matrix...
 """
 For a Z[U]-Module C and a map U->G, compute the induced module:
     ind_U^G(C) = C otimes Z[G]
@@ -344,7 +369,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
 
-  #= C is Z[U] module, we needd
+  #= C is Z[U] module, we need
     C otimes Z[G]
 
     any pure tensor c otimes g can be "normalized" g = u*g_i for one of the
@@ -364,23 +389,52 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   end
   ac = []
   iac = []
+  o = one(base_ring(C))
   for s = gens(G)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
     @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q)
+      _coeffs(q)[_q] = o
+
+      X = zero(indC)
+      for i=1:length(g)
+#        add!(X, inj[i^sigma](au[i](pro[i](q))))
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(ac, hom(indC, indC, [x for x = im_q]))
 
     s = inv(s)
     sigma = ra(s)
-    u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
+    u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
+    au = [action(C, x) for x = u]
     @assert all(in(iU), u)
     im_q = []
-    for q = gens(indC)
-      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
+    q = zero(indC)
+    for _q = 1:ngens(indC)
+      zero!(q)
+      _coeffs(q)[_q] = o
+      X = zero(indC)
+      for i=1:length(g)
+        p = pro[i](q)
+        if !iszero(p)
+          AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
+        end
+      end
+      @assert !iszero(X)
+      push!(im_q, X)
+#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
     push!(iac, hom(indC, indC, [x for x = im_q]))
 
@@ -466,6 +520,7 @@ end
 function Oscar.tensor_product(C::GModule{T, <:FPModule}, Cs::GModule{T, <:FPModule}...; task::Symbol = :map) where {T <: GAPGroup}
   return Oscar.tensor_product(GModule{T, <:FPModule}[C, Cs...]; task)
 end
+
 function Oscar.tensor_product(C::Vector{<:GModule{<:GAPGroup, <:FPModule}}; task::Symbol = :map)
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
@@ -480,6 +535,31 @@ function Oscar.tensor_product(C::Vector{<:GModule{<:GAPGroup, <:FPModule}}; task
     return TT
   end
 end
+
+#TODO: cannot extend as it is not yet defined...
+#function Oscar.tensor_power(C::GModule, n::Int; task = :none)
+#  return tensor_product([C for i=1:n]; task)
+#end
+
+#TODO: do not use the tensor product, directly write down
+#      the module and the action (both symmetric and alternating)
+#TODO: higher powers?
+function symmetric_square(C::GModule)
+  t, mt = tensor_product(C, C; task = :map)
+  g = gens(C.M)
+  return sub(t, sub(t.M, [mt((g[i], g[j])) + mt((g[j], g[i])) for i=1:length(g) for j=1:i])[2])[1]
+end
+
+export symmetric_square
+
+function alternating_square(C::GModule)
+  t, mt = tensor_product(C, C; task = :map)
+  g = gens(C.M)
+  return sub(t, sub(t.M, [mt((g[i], g[j])) - mt((g[j], g[i])) for i=2:length(g) for j=1:i-1])[2])[1]
+end
+
+export alternating_square
+
 
 import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
@@ -1921,7 +2001,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   if refine
     hm = elem_type(M)[]
     for i=1:nrows(h)
-      lf = collect(factor(h[i,i]).fac)
+      lf = collect(factor(h[i,i]))
       for (p,k) = lf
         v = divexact(h[i,i], p^k)*M[i]
         for j=1:k-1
@@ -2461,3 +2541,4 @@ export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
 export is_stem_extension, is_central
+export alternating_square, symmetric_square

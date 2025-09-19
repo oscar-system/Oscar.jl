@@ -54,6 +54,8 @@ export basis_lie_highest_weight_string
 export basis_lie_demazure
 export basis_lie_demazure_ffl
 export basis_lie_demazure_lusztig
+export basis_lie_demazure_nz
+export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl
 
@@ -77,5 +79,7 @@ export basis_lie_highest_weight_string
 export basis_lie_demazure
 export basis_lie_demazure_ffl
 export basis_lie_demazure_lusztig
+export basis_lie_demazure_nz
+export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl

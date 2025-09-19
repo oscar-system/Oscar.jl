@@ -879,7 +879,7 @@ of order $4k, k > 1$, and `false` otherwise.
     
     If you wish to check that `G` is a quaternion group in a stricter sense,
     e.g. that its order exactly 8 resp. a power of two, you can check
-    check the order explicitly resp. use `is_pgroup`.
+    the order explicitly resp. use `is_pgroup`.
 
 # Examples
 ```jldoctest

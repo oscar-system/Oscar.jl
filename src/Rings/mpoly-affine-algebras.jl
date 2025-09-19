@@ -531,8 +531,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -613,7 +614,7 @@ function multi_hilbert_series(
   # @assert evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
-  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
+  iszero(I) && return (one(HSRing), fac_denom), (G, id_hom(G))
 
   # In general refer to internal methods for monomial ideals
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
@@ -627,7 +628,7 @@ function multi_hilbert_series(
   else
     error("backend ($(backend)) not found")
   end
-  return (numer, fac_denom), (G, identity_map(G))
+  return (numer, fac_denom), (G, id_hom(G))
 end
 
 
@@ -724,8 +725,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
