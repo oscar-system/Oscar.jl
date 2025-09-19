@@ -14,12 +14,6 @@ function normal_form(o::Origami)
 
     x = sym(horizontal_perm(o))
     y = sym(vertical_perm(o))
-    
-
-    # TODO does this exists already? if not move to appropriate part of Oscar
-    function cycle_length(sigma::PermGroupElem, i::Integer)
-        return GAPWrap.CYCLE_LENGTH_PERM_INT(GapObj(sigma), i)
-    end
 
     # Find points which minimize the lengths of the cycles in which they occur.
     # This can greatly reduce the number of breadths-first searches below.
