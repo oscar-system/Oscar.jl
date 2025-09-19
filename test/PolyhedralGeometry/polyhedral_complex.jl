@@ -151,4 +151,28 @@
       @test n_maximal_polyhedra(vrep) == n_maximal_polyhedra(hrep)
     end
   end
+
+  @testset "Operators" begin
+    PC = normal_fan(cube(2))
+    PCshifted = PC + [1, 1]
+    @test dim(PCshifted) == dim(PC)
+    @test ambient_dim(PCshifted) == ambient_dim(PC)
+    @test lineality_dim(PCshifted) == lineality_dim(PC)
+    @test issetequal(rays(PCshifted), rays(PC))
+    @test n_maximal_polyhedra(PCshifted) == n_maximal_cones(PC)
+
+    PCscaled = PCshifted*2
+    @test dim(PCscaled) == dim(PCshifted)
+    @test ambient_dim(PCscaled) == ambient_dim(PCshifted)
+    @test lineality_dim(PCscaled) == lineality_dim(PCshifted)
+    @test issetequal(rays(PCscaled), rays(PCshifted))
+    @test n_maximal_polyhedra(PCscaled) == n_maximal_polyhedra(PCshifted)
+
+    PCnegated = -PCshifted
+    @test dim(PCnegated) == dim(PCshifted)
+    @test ambient_dim(PCnegated) == ambient_dim(PCshifted)
+    @test lineality_dim(PCnegated) == lineality_dim(PCshifted)
+    @test issetequal(rays(PCnegated), rays(PCshifted))
+    @test n_maximal_polyhedra(PCnegated) == n_maximal_polyhedra(PCshifted)
+  end
 end
