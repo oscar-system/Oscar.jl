@@ -839,7 +839,6 @@ function basis_lie_demazure_nz(
   return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
 end
 
-
 @doc raw"""
     basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
     basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)

@@ -141,7 +141,9 @@ function basis_coordinate_ring_kodaira_compute(
       if V isa SimpleModuleData
         V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
       elseif V isa DemazureModuleData
-        V_i = DemazureModuleData(base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V))
+        V_i = DemazureModuleData(
+          base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V)
+        )
       else
         error("unreachable")
       end
@@ -165,7 +167,9 @@ function basis_coordinate_ring_kodaira_compute(
     if V isa SimpleModuleData
       V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
     elseif V isa DemazureModuleData
-      V_i = DemazureModuleData(base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V))
+      V_i = DemazureModuleData(
+        base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V)
+      )
     else
       error("unreachable")
     end
