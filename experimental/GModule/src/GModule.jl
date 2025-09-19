@@ -1254,7 +1254,7 @@ end
 
 function Oscar.mul!(A::T, B::PermMat{S}, C::T) where T <: MatElem{S} where S <: RingElem
   A[:, :] = C
-  swap_rows!(A, C.p)
+  swap_rows!(A, inv(C.p))
   return A
 end
 
