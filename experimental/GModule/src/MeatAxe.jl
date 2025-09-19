@@ -218,6 +218,9 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
               have_V = true
             end
 #            @show "condense", V, K
+            if dim_condensed(V, K) > limit
+              continue
+            end
             c, mc, phi = condense(V, K)
             @show dim(c), limit, dim_condensed(V, K)
             @assert dim(c) <= limit
@@ -232,6 +235,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
             #      condensing Q[G] wrongly. Not sure if this is the correct
             #      way...
             tr = [trace_condensed(char, K, g) for g = rand_G]
+            found = false
             for _t = sp
               ttr = Any[]
               for g = rand_G
@@ -242,7 +246,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
                 end
                 push!(ttr, _c)
                 if ttr[end] != tr[length(ttr)]
-#                  @show "stop as trace is wrong"
+                  @show "stop as trace is wrong"
                   break
                 end
               end
@@ -254,7 +258,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
 #                  @show coordinates(character(d))
 #                  @show coordinates(char)
 #                  @show coordinates(character(V))
-#                  @show "spin too large", d, dim(d), limit, dim(V)
+                  @show "spin too large", d, dim(d), limit, dim(V)
                   #OK: rand_G is too small
                   break
                   error("should not happen")
@@ -262,17 +266,19 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
                 @assert dim(d) < dim(V)
 #                @show dim(d), dim(V), coordinates(character(d))
                 if dim(d) <= limit
+                  found = true
                   _do_one!(res, t, d; is_irr = true) && return res
                 end
               else
-#                @show "wrong module lifted"
+                @show "wrong module lifted"
               end
               if !any(cc .& t)
-#                @show "OK, leaving this level"
+                @show "OK, leaving this level"
                 #can't get any more out of V
                 break
               end
             end
+            @assert found
             if !any(cc .& t)
               #can't get any more out of V
               break
@@ -365,6 +371,11 @@ function dim_condensed(C::GModule, K::Oscar.GAPGroup)
   return Int(scalar_product(restrict(character(C), K), trivial_character(K)))
 end
 
+function dim_condensed(C::Oscar.GAPGroupClassFunction, K::Oscar.GAPGroup)
+  #Allan, Cor. 3.5.5.
+  return Int(scalar_product(restrict(C, K), trivial_character(K)))
+end
+
 function trace_condensed(chi::Oscar.GAPGroupClassFunction, K::Oscar.GAPGroup, g::GAPGroupElem)
   return QQ(ZZ(1), order(K))*sum(chi(g*k) for k = K)
 end
@@ -444,7 +455,7 @@ end
 # the A-module (without a group!!!, A = condensed Q[G])
 # the vector-space embedding
 # the idempotent
-function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
+function condense(C::GModule, K::Oscar.GAPGroup, extra::Int = 5)
   #K should be a subgroup of G for the G-Module C
   G = group(C)
   iKG = embedding(K, G)
@@ -467,7 +478,7 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   i = 0
   while length(ge) < d
     i += 1
-    x = phi(C.M[i])
+    x = phi(C.M[i])::elem_type(C.M)
     if has_preimage_with_preimage(ms, x)[1]
       continue
     end
@@ -485,6 +496,11 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   #TODO: sanity: for everything in rG, the traces will be "for free"
   #      as the action is already computed. so use it?
   rG = vcat(gens(G), [rand(G) for i=1:extra])
+#  rG = [rand(G) for i=1:2]
+  if ngens(s) == 0
+    gs = elem_type(codomain(ms))[]
+    return gmodule(nothing, [hom(s, s, gens(s)) for g = rG]), ms, phi
+  end
   gs = map(ms, gens(s))::Vector{elem_type(C.M)}
   return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG]), ms, phi
 end
