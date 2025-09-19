@@ -337,7 +337,7 @@ function _common_parent_group(x::FPGroup, y::SubFPGroup)
   return as_sub_fp_group(y.full_group)
 end
 
-function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
+function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: Union{GAPGroup, FinGenAbGroup}
   x === y && return x
   @req x.G === y.G "the groups belong to different full groups"
   return automorphism_group(x.G)

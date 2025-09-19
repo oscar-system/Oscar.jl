@@ -284,6 +284,8 @@ end
 
 @testset "Various" begin
   @test length(all_extensions(abelian_group(2), cyclic_group(PermGroup, 2))) == 2
+  @test length(all_extensions(abelian_group([6, 6]), cyclic_group(6))) == 32
+
   k, a = cyclotomic_field(5)
   zk = maximal_order(k)
 

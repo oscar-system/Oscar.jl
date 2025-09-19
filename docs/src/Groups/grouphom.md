@@ -142,7 +142,7 @@ The following functions compute subgroups or quotients of either the domain or t
 ```@docs
 kernel(f::GAPGroupHomomorphism)
 image(f::GAPGroupHomomorphism)
-image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
+image(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where {S <: GAPGroup, T <: GAPGroup}
 cokernel(f::GAPGroupHomomorphism)
 preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
 ```

@@ -2374,7 +2374,7 @@ function compatible_pairs(C::GModule)
   NS, em, pr = direct_product(N, S, morphisms = true)
   #from Holt/ Eick, ... Handbook of Computational Group Theory, P319
   S, func = stabilizer(NS, h, (x, y) -> hom(G, autM,
-            [inv(pr[1](y))*x(inv(pr[2](y))(g))*pr[1](y) for g = gens(G)]))
+            [autM(inv(pr[1](y)))*x(inv(pr[2](y))(g))*autM(pr[1](y)) for g = gens(G)]))
   #the more direct naive (and slow) approach...
   #C = sub(D, [t for t in preimage(pro[1], N)[1] if all(ag -> action(C, pro[2](t)(ag[2]), ag[1]) == pro[1](t)(action(C, ag[2], inv(pro[1](t))(ag[1]))), Iterators.product(gens(M), gens(G)))])
 
