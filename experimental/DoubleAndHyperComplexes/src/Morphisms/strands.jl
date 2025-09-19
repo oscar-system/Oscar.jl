@@ -133,14 +133,19 @@ function (fac::StrandProjectionMorphismFactory)(self::AbsHyperComplexMorphism, i
   # generators of `cod`.
   cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(dom, degree(strand))))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
+  
   return MapFromFunc(dom, cod, 
-                     v->sum(sum(c*get(cod_dict, (e, i)) do
-                                    zero(cod)
-                                end for (c, e) in zip(AbstractAlgebra.coefficients(p), 
-                                                      AbstractAlgebra.exponent_vectors(p));
-                                init = zero(cod)
-                               ) for (i, p) in coordinates(v); init=zero(cod)
-                            )
+                     function(v)
+                       R = base_ring(cod)
+                       pre_res = sparse_row(R)
+                       for (i, p) in coordinates(v)
+                         for (c, e) in zip(AbstractAlgebra.coefficients(p), 
+                                           AbstractAlgebra.exponent_vectors(p))
+                           pre_res = Hecke.add_scaled_row!(coordinates(get(cod_dict, (e, i), zero(cod))), pre_res, c)
+                         end
+                       end
+                       return FreeModElem(pre_res, cod)
+                     end
                     )
 end
 
