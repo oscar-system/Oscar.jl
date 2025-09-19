@@ -140,7 +140,9 @@ function Base.show(io::IO, C::GModule)
   print(io, "G-module for ", Lowercase(), C.G, " acting on ", Lowercase(), C.M)# , "\nvia: ", C.ac)
 end
 
-"""
+@doc raw"""
+    gmodule(H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
+
 Given an automorphism of some module for each generator of the
 group `H`, return the `ZZ[H]` module.
 
@@ -193,6 +195,17 @@ function inv_action(C::GModule)
   return C.iac
 end
 
+function Oscar.map_word(v::Vector{Int64}, genimgs::Vector{Map}; genimgs_inv::Vector{Map}, init::T) where T <:Union{<:AbstractAlgebra.Generic.ModuleHomomorphism{<:Union{<:FieldElem, ZZRingElem}}, FinGenAbGroupHom}
+  gen = map(matrix, genimgs)
+  igen = map(matrix, genimgs_inv)
+  res = matrix(init)
+  for i = v
+    mul!(res, res, i<0 ? igen[-i] : gen[i])
+  end
+  return hom(domain(init), codomain(init), res)
+end
+
+
 # convert G-module into a matrix group
 Oscar.matrix_group(C::GModule{<:Any, <:AbstractAlgebra.Module{<:FieldElem}}) = matrix_group(matrix.(action(C)))
 
@@ -206,40 +219,42 @@ end
 
 #TODO? have a GModuleElem and action via ^?
 """
+    action(C::GModule, g, v::T) where T <: Array
+
 For an array of objects in the module, compute the image under the
 action of `g`, ie. an array where each entry is mapped.
 """
-function action(C::GModule, g, v::Array)
+function action(C::GModule, g, v::T) where T <: Array
   @assert parent(g) == Group(C)
   if has_attribute(C, :is_trivial)
-    return v
+    return v::T
   end
 
   if has_attribute(C, :action)
-    return get_attribute(C, :action)(C, g, v)
+    return get_attribute(C, :action)(C, g, v)::T
   end
 
   ac = action(C)
   f = findfirst(isequal(g), gens(Group(C)))
   if f !== nothing
-    return map(ac[f], v)
+    return map(ac[f], v)::T
   end
 
   iac = inv_action(C)
   f = findfirst(isequal(inv(g)), gens(Group(C)))
   if f !== nothing
-    return map(iac[f], v)
+    return map(iac[f], v)::T
   end
 
   F, mF = fp_group_with_isomorphism(C)
   for i = word(mF(g))
     if i > 0
-      v = map(ac[i], v)
+      v = map(ac[i], v)::T
     else
-      v = map(iac[-i], v)
+      v = map(iac[-i], v)::T
     end
   end
-  return v
+  return v::T
 end
 
 function Base.deepcopy_internal(C::GModule, ::IdDict)
@@ -252,6 +267,8 @@ end
 
 
 """
+    action(C::GModule, g, v)
+
 The image of `v` under `g`
 """
 function action(C::GModule, g, v)
@@ -278,6 +295,8 @@ function ^(f::AbstractAlgebra.Generic.ModuleHomomorphism, n::Int64)
 end
 
 """
+    action(C::GModule, g)
+
 The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
@@ -296,6 +315,10 @@ function action(C::GModule, g)
   f = findfirst(isequal(inv(g)), gens(G))
   if f !== nothing
     return iac[f]
+  end
+
+  if has_attribute(C, :action)
+    return get_attribute(C, :action)(C, g)
   end
 
   h = id_hom(C.M)
@@ -331,15 +354,35 @@ end
 function _coeffs(a::FinGenAbGroupElem)
   return a.coeff
 end
+
 function _coeffs(a::AbstractAlgebra.FPModuleElem)
   return a.v
 end
+
 function Oscar.zero!(a::AbstractAlgebra.FPModuleElem)
   zero!(a.v)
 end
 
+direct_sum_elem_type(x) = direct_sum_elem_type(typeof(x))
+direct_sum_elem_type(T::DataType) = throw(MethodError(direct_sum_elem_type, (T,)))
+direct_sum_elem_type(::Type{<:FPModule{T}}) where T = Generic.DirectSumModuleElem{T}
+direct_sum_elem_type(::Type{FinGenAbGroup}) = FinGenAbGroupElem
+
+function show_induced_gmodule(io::IO, C::GModule)
+  io = pretty(io)
+  io = IOContext(io, :compact => true)
+  h = get_attribute(C, :induce)
+  print(io, "Induced module from ",
+             Lowercase(), domain(h), " to ",
+             Lowercase(), group(C), " over ",
+             Lowercase(), base_ring(C))
+end
+
+
 #TODO: write an action function that does not use create the matrix...
 """
+    induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
+
 For a Z[U]-Module C and a map U->G, compute the induced module:
     ind_U^G(C) = C otimes Z[G]
 where the tensor product is over Z[U].
@@ -352,7 +395,7 @@ The induced module is returned as a product of copies of C. it also returns
 homomorphism. I this case a Z[G] linear map to the induced module
 is returned.
 """
-function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing)
+function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
@@ -390,12 +433,12 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   ac = []
   iac = []
   o = one(base_ring(C))
-  for s = gens(G)
+  function ind_action(XX::GModule, s)
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
     @assert all(in(iU), u)
-    im_q = []
+    im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
       zero!(q)
@@ -413,20 +456,19 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
       push!(im_q, X)
 #      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
-    push!(ac, hom(indC, indC, [x for x = im_q]))
+    return hom(indC, indC, [x for x = im_q])
+  end
 
-    s = inv(s)
+  function ind_action(::GModule, s, v::T) where T <: Array
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
     @assert all(in(iU), u)
-    im_q = []
-    q = zero(indC)
-    for _q = 1:ngens(indC)
-      zero!(q)
-      _coeffs(q)[_q] = o
+    im_q = T()
+    for q = v
       X = zero(indC)
       for i=1:length(g)
+#        add!(X, inj[i^sigma](au[i](pro[i](q))))
         p = pro[i](q)
         if !iszero(p)
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
@@ -434,13 +476,19 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
       end
       @assert !iszero(X)
       push!(im_q, X)
-#      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
-    push!(iac, hom(indC, indC, [x for x = im_q]))
+    return im_q
+  end
 
+
+  for s = gens(G)
+    push!(ac, ind_action(C, s))
+    push!(iac, ind_action(C, inv(s)))
   end
   iC = GModule(G, [x for x = ac])
   iC.iac = [x for x = iac]
+  set_attribute!(iC, :action  => ind_action, :induce => h, :show => show_induced_gmodule)
+  
   if D === nothing
     return iC, g, pro, inj
   end
@@ -451,6 +499,13 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   =#
   h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
   return iC, h
+end
+
+function is_induced(C::GModule)
+  if hasfield(typeof(C.M), :__attrs)
+    return has_attribute(C.M, :induce)
+  end
+  return false
 end
 
 function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.ModuleHomomorphism)
@@ -571,7 +626,7 @@ end
 function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
   d = prod(rank(x) for x = F)
-  G = free_module(base_ring(F[1]), d)
+  G = free_module(base_ring(F[1]), d; cached = false)
   if task == :none
     return G
   end
@@ -1809,7 +1864,7 @@ end
 
 # create a free module with type "compatible" with that of `M`
 _similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
-_similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n)
+_similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n; cached = false)
 _similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
 
 """
@@ -1935,6 +1990,8 @@ function is_left_G_module(C::GModule)
 end
 
 """
+    cohomology_group(C::GModule, i::Int; Tate::Bool = false)
+
 For a gmodule `C` compute the `i`-th cohomology group
 where `i` can be `0`, `1` or `2`. (or `3` ...)
 Together with the abstract module, a map is provided that will
@@ -2070,6 +2127,8 @@ end
 
 
 """
+    extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
+
 Given a 2-cocycle, return the corresponding group extension, ie. the large
 group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns
@@ -2369,12 +2428,31 @@ function compatible_pairs(C::GModule)
   end
 
   N, mN = normalizer(autM, im)
-  S, mS = stabilizer(autG, ke, (x,y)->image(hom(y), x)[1])
+  function doit(x, y)
+    return hom(y)(x)
+    s, ms = sub(G, map(hom(y), [G(t) for t = gens(x)]))
+    return s
+  end
+  S, mS = stabilizer(autG, ke, doit)
+#  S, mS = stabilizer(autG, ke, (x,y)->sub(G, map(hom(y), [G(t) for t = gens(x)]))[1])
 
   NS, em, pr = direct_product(N, S, morphisms = true)
   #from Holt/ Eick, ... Handbook of Computational Group Theory, P319
-  S, func = stabilizer(NS, h, (x, y) -> hom(G, autM,
-            [inv(pr[1](y))*x(inv(pr[2](y))(g))*pr[1](y) for g = gens(G)]))
+  function ddoit(x, y)
+    res = elem_type(autM)[]
+    for g = gens(G)
+      t = x(inv(pr[2](y))(g))
+      s = autM(inv(pr[1](y))) 
+      s = s*t
+      s = s*autM(pr[1](y))
+      push!(res, s)
+    end
+    h = hom(G, autM, res)
+    return h
+  end
+  S, func = stabilizer(NS, h, ddoit)
+#  S, func = stabilizer(NS, h, (x, y) -> hom(G, autM,
+#            [inv(pr[1](y))*x(inv(pr[2](y))(g))*pr[1](y) for g = gens(G)]))
   #the more direct naive (and slow) approach...
   #C = sub(D, [t for t in preimage(pro[1], N)[1] if all(ag -> action(C, pro[2](t)(ag[2]), ag[1]) == pro[1](t)(action(C, ag[2], inv(pro[1](t))(ag[1]))), Iterators.product(gens(M), gens(G)))])
 
@@ -2383,20 +2461,20 @@ end
 
 function split_extension(C::GModule)
   #bypasses the Cohomolgy computation, hopefully
-  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  c = Dict((one(C.G), one(C.G)) => zero(C.M))
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(FPGroup, CoChain{2, S, T}(C, c))
+  e = extension(CoChain{2, S, T}(C, c, x -> zero(C.M)))
+  return e
 end
 
-function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
+function split_extension(TT::Union{Type{PcGroup}, Type{FPGroup}}, C::GModule)
   #bypasses the Cohomolgy computation, hopefully
-  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  c = Dict((one(C.G), one(C.G)) => zero(C.M))
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(PcGroup, CoChain{2, S, T}(C, c))
+  return extension(TT, CoChain{2, S, T}(C, c, x -> zero(C.M)))
 end
-
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
@@ -2412,7 +2490,7 @@ function all_extensions(C::GModule)
   O = orbits(G)
   all_G = []
   for o = O
-    E, NtoE, EtoG, EGtoM = extension(mH2(representative(o)))
+    E = extension(mH2(representative(o)))
     push!(all_G, E)
   end
   return all_G

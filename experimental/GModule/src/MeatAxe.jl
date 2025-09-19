@@ -3,6 +3,8 @@ using Oscar
 using Oscar.GModuleFromGap
 import Oscar: GAPGroup
 import Oscar.GModuleFromGap: is_regular_gmodule, restrict_endo
+import Oscar: AbstractAlgebra
+import AbstractAlgebra: FPModuleElem, FPModule
 
 
 #very basic...
@@ -28,7 +30,7 @@ function _do_one!(res, t, M; is_irr::Bool = false)
   if !is_irr
     _t = split_into_homogenous(M)
   else
-    _t = [hom(M, M, hom(M.M, M.M, gens(M.M)))]
+    _t = [hom(M, M, hom(M.M, M.M, gens(M.M)); check = false)]
   end
   for _x = _t
     x = domain(_x)
@@ -73,14 +75,20 @@ function _try_squares!(res::Vector{GModule}, t::Vector{Bool}; limit::Int = 100)
     if 0 < dim(res[i])*(dim(res[i])-1)/2 <= limit
       c = coordinates(alternating_square(character(res[i])))
       cc = map(iszero, c) .& t
-      M = alternating_square(res[i])
-      _do_one!(res, t, M) && return true
+      if cc != t
+        @show :square_rocks
+        M = alternating_square(res[i])
+        _do_one!(res, t, M) && return true
+      end
     end
     if dim(res[i])*(dim(res[i])+1)/2 <= limit
       c = coordinates(symmetric_square(character(res[i])))
       cc = map(iszero, c) .& t
-      M = symmetric_square(res[i])
-      _do_one!(res, t, M) && return true
+      if cc != t
+        @show :square_rocks_a_bit
+        M = symmetric_square(res[i])
+        _do_one!(res, t, M) && return true
+      end
     end
   end
   return false
@@ -145,14 +153,17 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
       cc = map(iszero, coordinates(chi_G)) .& t
       if cc != t
 #        @show "could help"
-        v = gmodule_new(chi)
-        @assert length(v) == 1
+        _v = gmodule_new(chi)
+        @assert length(_v) == 1
+        v = _v[1]
+        @show dim(v), deg
+
         if is_irreducible(chi_G)
-          V = induce(v[1], embedding(i, G))[1]
+          V = induce(v, embedding(i, G))[1]
           _do_one!(res, t, V; is_irr = true) && return res
           continue
         end
-        v = v[1]
+        deg = dim(v) * index(G, i)
         if deg <= limit
 #          @show "direct induce"
           for j=1:length(t)
@@ -168,8 +179,10 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
           local V
           have_V = false
           good_K = []
+          chi_Q = galois_orbit_sum(chi_G)
+          @show chi_Q, chi_G
           for K = all_K
-            dim_C = scalar_product(restrict(chi_G, K), trivial_character(K))
+            dim_C = scalar_product(restrict(chi_Q, K), trivial_character(K))
             if dim_C <= limit
               #test if K makes sense
               tt = [!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(t)]
@@ -205,7 +218,11 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
               have_V = true
             end
 #            @show "condense", V, K
+            if dim_condensed(V, K) > limit
+              continue
+            end
             c, mc, phi = condense(V, K)
+            @show dim(c), limit, dim_condensed(V, K)
             @assert dim(c) <= limit
             sp = split_into_homogenous(c)
 #            @show "split done"
@@ -218,6 +235,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
             #      condensing Q[G] wrongly. Not sure if this is the correct
             #      way...
             tr = [trace_condensed(char, K, g) for g = rand_G]
+            found = false
             for _t = sp
               ttr = Any[]
               for g = rand_G
@@ -228,7 +246,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
                 end
                 push!(ttr, _c)
                 if ttr[end] != tr[length(ttr)]
-#                  @show "stop as trace is wrong"
+                  @show "stop as trace is wrong"
                   break
                 end
               end
@@ -240,7 +258,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
 #                  @show coordinates(character(d))
 #                  @show coordinates(char)
 #                  @show coordinates(character(V))
-#                  @show "spin too large", d, dim(d), limit, dim(V)
+                  @show "spin too large", d, dim(d), limit, dim(V)
                   #OK: rand_G is too small
                   break
                   error("should not happen")
@@ -248,17 +266,19 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
                 @assert dim(d) < dim(V)
 #                @show dim(d), dim(V), coordinates(character(d))
                 if dim(d) <= limit
+                  found = true
                   _do_one!(res, t, d; is_irr = true) && return res
                 end
               else
-#                @show "wrong module lifted"
+                @show "wrong module lifted"
               end
               if !any(cc .& t)
-#                @show "OK, leaving this level"
+                @show "OK, leaving this level"
                 #can't get any more out of V
                 break
               end
             end
+            @assert found
             if !any(cc .& t)
               #can't get any more out of V
               break
@@ -351,6 +371,11 @@ function dim_condensed(C::GModule, K::Oscar.GAPGroup)
   return Int(scalar_product(restrict(character(C), K), trivial_character(K)))
 end
 
+function dim_condensed(C::Oscar.GAPGroupClassFunction, K::Oscar.GAPGroup)
+  #Allan, Cor. 3.5.5.
+  return Int(scalar_product(restrict(C, K), trivial_character(K)))
+end
+
 function trace_condensed(chi::Oscar.GAPGroupClassFunction, K::Oscar.GAPGroup, g::GAPGroupElem)
   return QQ(ZZ(1), order(K))*sum(chi(g*k) for k = K)
 end
@@ -430,7 +455,7 @@ end
 # the A-module (without a group!!!, A = condensed Q[G])
 # the vector-space embedding
 # the idempotent
-function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
+function condense(C::GModule, K::Oscar.GAPGroup, extra::Int = 5)
   #K should be a subgroup of G for the G-Module C
   G = group(C)
   iKG = embedding(K, G)
@@ -453,7 +478,7 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   i = 0
   while length(ge) < d
     i += 1
-    x = phi(C.M[i])
+    x = phi(C.M[i])::elem_type(C.M)
     if has_preimage_with_preimage(ms, x)[1]
       continue
     end
@@ -471,7 +496,13 @@ function condense(C::GModule, K::Oscar.GAPGroup; extra::Int = 5)
   #TODO: sanity: for everything in rG, the traces will be "for free"
   #      as the action is already computed. so use it?
   rG = vcat(gens(G), [rand(G) for i=1:extra])
-  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, map(ms, gens(s)))))) for g = rG]), ms, phi
+#  rG = [rand(G) for i=1:2]
+  if ngens(s) == 0
+    gs = elem_type(codomain(ms))[]
+    return gmodule(nothing, [hom(s, s, gens(s)) for g = rG]), ms, phi
+  end
+  gs = map(ms, gens(s))::Vector{elem_type(C.M)}
+  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG]), ms, phi
 end
 
 #plain, vanilla spin, slow
@@ -497,7 +528,7 @@ function spin(C::GModule, v::Vector)
 end
 
 #same as above, but bypass modules and work with matrices directly
-function spin2(C::GModule, v::Vector; limit::Int = 50)
+function spin2(C::GModule{<:GAPGroup, T}, v::Vector; limit::Int = 50) where T <: FPModule{<:FieldElem}
   #TODO: not use action(C, g, ...) but C.ac[1] in some form
   #      this might also work for non groups!
   #TODO: use similar for condensation?
@@ -567,14 +598,14 @@ function spin2(C::GModule, v::Vector; limit::Int = 50)
 #      @assert _x[1] == r
 #      @assert _x[2] == s
   end
-  v = [C.M(collect(view(s, i, :))) for i=1:r]
+  v = [C.M(collect(view(s, i, :))) for i=1:r]::Vector{elem_type(T)}
   ss, mss = sub(C.M, v)
   mss = _simplify(mss)
-  v = map(mss, gens(ss))
+  v = map(mss, gens(ss))::Vector{elem_type(T)}
   #preimage can handle vectors of elements, this means only one rref
   #possibly eventually homs should use the solve_ctx?
   #similarly, action can handle vectors, removing identical group theory
-  return gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v))) for g = gens(group(C))])
+  return gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v)::Vector{elem_type(T)})) for g = gens(group(C))])
 end
 
 #b is an endomorphism of M

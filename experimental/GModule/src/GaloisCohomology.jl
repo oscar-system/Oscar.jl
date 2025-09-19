@@ -84,6 +84,8 @@ function units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0)
 end
 
 """
+    gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, Hecke.nf(order(codomain((mR)))))[2])
+
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
@@ -96,6 +98,8 @@ function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group
 end
 
 """
+    gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2]; check::Bool = true)
+
 The natural `ZZ[G]` module where `G`, the
   automorphism group, acts on the ideal group defining the class field.
 """
@@ -116,6 +120,8 @@ function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_fi
 end
 
 """
+    gmodule(H::PermGroup, R::ClassField, mG = automorphism_group(PermGroup, k))
+
 The natural `ZZ[H]` module where `H`, a subgroup of the 
   automorphism group, acts on the ideal group defining the class field.
 """
@@ -1144,7 +1150,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   zk = order(m0)
   @req order(automorphism_group(Hecke.nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
-    s, ms = split_extension(gmodule(A))
+    s, ms = split_extension(FPGroup, gmodule(A))
     return permutation_group(s), ms
   end
   if idele_parent === nothing
@@ -1938,6 +1944,8 @@ function Oscar.can_solve_with_solution(A::Vector{RelativeBrauerGroupElem}, b::Re
 end  
 
 """
+    structure_constant_algebra(a::RelativeBrauerGroupElem)
+
 Compute an explicit matrix algebra with the local invariants given
 by the element
 """
@@ -1973,6 +1981,8 @@ function local_index(C::GModule{<:Oscar.GAPGroup, Generic.FreeModule{AbsSimpleNu
 end
 
 """
+    structure_constant_algebra(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, CC.C.M.data)[2], mkK::Union{<:Map, Nothing} = nothing)
+
 Return the cross-product algebra defined by the factor system given
 as a 2-cochain.
 """
