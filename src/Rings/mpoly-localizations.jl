@@ -2042,6 +2042,7 @@ function coordinates(
   end
 
   if numerator(a) in pre_saturated_ideal(I) 
+    T = pre_saturation_data(I)
     return transpose(T * transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))))
   end
 

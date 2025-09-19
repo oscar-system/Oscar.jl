@@ -6,14 +6,31 @@ function _all_cohomologies_via_cech(tl::ToricLineBundle)
 
   #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
   if dim(X) > 2
-    alternating_sum = abs(sum(sum(length.(values(our_points[k]))) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0)) 
+    alternating_sum = abs(
+      sum(
+        sum(length.(values(our_points[k]))) * (-1)^k for
+        k in (dim(X) + 2):n_maximal_cones(X);
+        init=0,
+      ),
+    )
   else
-    alternating_sum = abs(sum(binomial(n_maximal_cones(X), k) * (-1)^k for k in dim(X)+2:n_maximal_cones(X); init = 0))
-    alternating_sum *= Int(ncols(our_maps[end]) // binomial(n_maximal_cones(X), dim(X)+1))
+    alternating_sum = abs(
+      sum(
+        binomial(n_maximal_cones(X), k) * (-1)^k for k in (dim(X) + 2):n_maximal_cones(X);
+        init=0,
+      ),
+    )
+    alternating_sum *= Int(ncols(our_maps[end])//binomial(n_maximal_cones(X), dim(X) + 1))
   end
   @req ncols(our_maps[end]) >= alternating_sum "Inconsistency encountered"
   rks_maps = push!([rref(M)[1] for M in our_maps], alternating_sum)
-  return ZZRingElem.([nrows(our_maps[1]) - rks_maps[1]; [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k-1] for k in 2:dim(X)]; ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]])
+  return ZZRingElem.(
+    [
+      nrows(our_maps[1]) - rks_maps[1];
+      [nrows(our_maps[k]) - rks_maps[k] - rks_maps[k - 1] for k in 2:dim(X)];
+      ncols(our_maps[dim(X)]) - rks_maps[dim(X) + 1] - rks_maps[dim(X)]
+    ],
+  )
 end
 
 function _toric_cech_complex(tl::ToricLineBundle)
@@ -24,21 +41,39 @@ function _toric_cech_complex(tl::ToricLineBundle)
   # Compute the hyperplane arrangement
   a_plane = matrix(ZZ, n_rays(X), 1, coefficients(toric_divisor(tl)))
   sc = cone_from_inequalities(matrix(ZZ, [[-1; zeros(Int, dim(X))]]))
-  H = Polymake.fan.HyperplaneArrangement( HYPERPLANES = [a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone)
+  H = Polymake.fan.HyperplaneArrangement(;
+    HYPERPLANES=[a_plane matrix(ZZ, rays(X))], SUPPORT=sc.pm_cone
+  )
 
   # Classify the regions obtained from the hyperlane arrangement
-  pff = Polymake.fan.PolyhedralComplex(POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES)
+  pff = Polymake.fan.PolyhedralComplex(;
+    POINTS=H.CHAMBER_DECOMPOSITION.RAYS, INPUT_CONES=H.CHAMBER_DECOMPOSITION.MAXIMAL_CONES
+  )
   max_polys = maximal_polyhedra(polyhedral_complex(pff))
-  other_polys = filter(is_bounded, vcat([polyhedra_of_dim(polyhedral_complex(pff), i) for i in 0:dim(polyhedral_complex(pff))-1]...))
-  chamber_signs = 2*matrix(ZZ, H.CHAMBER_SIGNATURES).-1
-  sign_of_chamber = Dict(chamber_signs[i,:] => interior_lattice_points(p) for (i, p) in enumerate(max_polys) if is_bounded(p))
+  other_polys = filter(
+    is_bounded,
+    vcat(
+      [
+        polyhedra_of_dim(polyhedral_complex(pff), i) for
+        i in 0:(dim(polyhedral_complex(pff)) - 1)
+      ]...,
+    ),
+  )
+  chamber_signs = 2 * matrix(ZZ, H.CHAMBER_SIGNATURES) .- 1
+  sign_of_chamber = Dict(
+    chamber_signs[i, :] => interior_lattice_points(p) for
+    (i, p) in enumerate(max_polys) if is_bounded(p)
+  )
 
   # For the other regions, we don't get their signs for free and have to calculate them
   for p in other_polys
     if dim(p) == 0
-      sign_list = ZZ.(sign.(matrix(ZZ, rays(X)) * vertices(p)[1] + a_plane)[:,1])
+      sign_list = ZZ.(sign.(matrix(ZZ, rays(X)) * vertices(p)[1] + a_plane)[:, 1])
     else
-      sign_list = ZZ.(sign.(matrix(ZZ, rays(X))  * sum(vertices(p)) * 1//n_vertices(p) + a_plane)[:,1])
+      sign_list =
+        ZZ.(
+          sign.(matrix(ZZ, rays(X)) * sum(vertices(p)) * 1//n_vertices(p) + a_plane)[:, 1]
+        )
     end
     sign_of_chamber[sign_list] = interior_lattice_points(p)
   end
@@ -48,21 +83,24 @@ function _toric_cech_complex(tl::ToricLineBundle)
   ray_index_list = map(row -> findall(!iszero, collect(row)), eachrow(RI))
 
   # Now iterate over the Cech complex
-  cech_complex_points = Vector{Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}}(undef, n_maximal_cones(X))
+  cech_complex_points = Vector{Dict{Vector{Int64},Vector{PointVector{ZZRingElem}}}}(
+    undef, n_maximal_cones(X)
+  )
   cech_complex_maps = Vector{Any}(undef, dim(X))
-  comb_dict = Dict{Combination{Int64}, Dict{PointVector{ZZRingElem}, Int64}}()
+  comb_dict = Dict{Combination{Int64},Dict{PointVector{ZZRingElem},Int64}}()
   d_k = 0
   previous_number_of_generators = 0
   for k in 0:dim(X)
 
     # Find the contributing lattice points
-    polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
-    combs = collect(combinations(n_maximal_cones(X), k+1))
+    polyhedron_dict = Dict{Vector{Int64},Vector{PointVector{ZZRingElem}}}()
+    combs = collect(combinations(n_maximal_cones(X), k + 1))
     for i in 1:length(combs)
       list_of_lattice_points = PointVector{ZZRingElem}[]
       generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
       for (signs, pts) in sign_of_chamber
-        all(x -> x >= 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
+        all(x -> x >= 0, signs[generating_ray_indices]) &&
+          append!(list_of_lattice_points, pts)
       end
       polyhedron_dict[combs[i]] = list_of_lattice_points
     end
@@ -76,7 +114,7 @@ function _toric_cech_complex(tl::ToricLineBundle)
       comb_dict[this_comb] = inner_dict
       offset += length(pts)
     end
-    
+
     # Compute Cech differential maps
     if k > 0
       our_sparse_matrix = sparse_matrix(QQ, 0, previous_number_of_generators)
@@ -102,26 +140,27 @@ function _toric_cech_complex(tl::ToricLineBundle)
       end
       cech_complex_maps[k] = our_sparse_matrix
     end
-    cech_complex_points[k+1] = polyhedron_dict
+    cech_complex_points[k + 1] = polyhedron_dict
     previous_number_of_generators = sum(length.(values(polyhedron_dict)))
   end
 
   #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
   if dim(X) > 2
-    for k in dim(X)+1:n_maximal_cones(X)-1
+    for k in (dim(X) + 1):(n_maximal_cones(X) - 1)
 
       # Find the contributing lattice points
-      polyhedron_dict = Dict{Vector{Int64}, Vector{PointVector{ZZRingElem}}}()
-      combs = collect(combinations(n_maximal_cones(X), k+1))
+      polyhedron_dict = Dict{Vector{Int64},Vector{PointVector{ZZRingElem}}}()
+      combs = collect(combinations(n_maximal_cones(X), k + 1))
       for i in 1:length(combs)
         list_of_lattice_points = PointVector{ZZRingElem}[]
         generating_ray_indices = reduce(intersect, ray_index_list[combs[i]])
         for (signs, pts) in sign_of_chamber
-          all(x -> x >= 0, signs[generating_ray_indices]) && append!(list_of_lattice_points, pts)
+          all(x -> x >= 0, signs[generating_ray_indices]) &&
+            append!(list_of_lattice_points, pts)
         end
         polyhedron_dict[combs[i]] = list_of_lattice_points
       end
-      cech_complex_points[k+1] = polyhedron_dict
+      cech_complex_points[k + 1] = polyhedron_dict
     end
   end
   return cech_complex_points, cech_complex_maps

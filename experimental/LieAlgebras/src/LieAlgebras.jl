@@ -87,6 +87,7 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  torsion_subgroup,
   vector_space_dim,
   zero_map,
   ⊕,

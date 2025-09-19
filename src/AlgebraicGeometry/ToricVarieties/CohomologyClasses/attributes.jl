@@ -24,7 +24,6 @@ Normal, simplicial, complete toric variety
 """
 toric_variety(c::CohomologyClass) = c.v
 
-
 @doc raw"""
     simplify!(c::CohomologyClass)
 
@@ -63,7 +62,6 @@ function simplify!(c::CohomologyClass)
   c.p = simplify(c.p)
 end
 
-
 @doc raw"""
     coefficients(c::CohomologyClass)
 
@@ -90,11 +88,10 @@ julia> coefficients(cc)
  7
 ```
 """
-function coefficients(c::CohomologyClass) 
+function coefficients(c::CohomologyClass)
   simplify!(c)
   return collect(coefficients(lift(polynomial(c))))
 end
-
 
 @doc raw"""
     exponents(c::CohomologyClass)
@@ -122,11 +119,10 @@ julia> exponents(cc)
  [0, 0, 0, 0, 1]
 ```
 """
-function exponents(c::CohomologyClass) 
+function exponents(c::CohomologyClass)
   simplify!(c)
   return collect(exponents(lift(polynomial(c))))
 end
-
 
 @doc raw"""
     polynomial(c::CohomologyClass)
@@ -153,7 +149,6 @@ julia> polynomial(cc)
 ```
 """
 polynomial(c::CohomologyClass) = c.p
-
 
 @doc raw"""
     polynomial(c::CohomologyClass, ring::MPolyQuoRing)
@@ -207,13 +202,13 @@ julia> polynomial(R_quo, cc)
 ```
 """
 function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
-    p = polynomial(c)
-    if iszero(p)
-        return zero(ring)
-    end
-    coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
-    expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
-    indets = gens(ring)
-    monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
-    return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
+  p = polynomial(c)
+  if iszero(p)
+    return zero(ring)
+  end
+  coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
+  expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
+  indets = gens(ring)
+  monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
+  return sum(coeffs[k] * monoms[k] for k in 1:length(monoms))
 end

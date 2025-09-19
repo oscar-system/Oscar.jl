@@ -1375,6 +1375,7 @@ export orthogonal_sign
 export outdegree
 export outneighbors
 export p_central_series
+export p_rump
 export pappus_matroid
 export parallel_extension
 export parametrization
@@ -1743,6 +1744,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors

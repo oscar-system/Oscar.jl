@@ -28,7 +28,6 @@ function defining_classes(m::AbstractFTheoryModel)
   return m.defining_classes
 end
 
-
 @doc raw"""
     model_sections(m::AbstractFTheoryModel)
 
@@ -58,7 +57,6 @@ julia> model_sections(m)
 """
 model_sections(m::AbstractFTheoryModel) = collect(keys(explicit_model_sections(m)))
 
-
 @doc raw"""
     tunable_sections(m::AbstractFTheoryModel)
 
@@ -82,8 +80,9 @@ julia> tunable_sections(m)
  "a32"
 ```
 """
-@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m))))
-
+@attr Vector{String} tunable_sections(m::AbstractFTheoryModel) = collect(
+  setdiff(keys(explicit_model_sections(m)), keys(model_section_parametrization(m)))
+)
 
 @doc raw"""
     model_section_parametrization(m::AbstractFTheoryModel)
@@ -113,7 +112,6 @@ function model_section_parametrization(m::AbstractFTheoryModel)
   return m.model_section_parametrization
 end
 
-
 @doc raw"""
     classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel)
 
@@ -138,8 +136,12 @@ Dict{String, Vector{Int64}} with 5 entries:
   "a32" => [3, -2]
 ```
 """
-classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel) = get_attribute(m, :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, "Classes of tunable sections in basis of Kbar and defining classes not known for this model")::Dict{String, Vector{Int64}}
-
+classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(m::AbstractFTheoryModel) =
+  get_attribute(
+    m,
+    :classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes,
+    "Classes of tunable sections in basis of Kbar and defining classes not known for this model",
+  )::Dict{String,Vector{Int64}}
 
 @doc raw"""
     classes_of_model_sections(m::AbstractFTheoryModel)
@@ -174,10 +176,12 @@ Dict{String, ToricDivisorClass} with 9 entries:
   "a32" => Divisor class on a normal toric variety
 ```
 """
-@attr Dict{String, ToricDivisorClass} function classes_of_model_sections(m::AbstractFTheoryModel)
+@attr Dict{String,ToricDivisorClass} function classes_of_model_sections(
+  m::AbstractFTheoryModel
+)
   @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
   @req base_space(m) isa NormalToricVariety "classes_of_model_sections only supported for models over a toric base"
-  my_dict = Dict{String, ToricDivisorClass}()
+  my_dict = Dict{String,ToricDivisorClass}()
   for (key, value) in explicit_model_sections(m)
     sec = value
     @req is_homogeneous(sec) "Encountered a non-homogeneous model section"
@@ -190,7 +194,6 @@ Dict{String, ToricDivisorClass} with 9 entries:
   end
   return my_dict
 end
-
 
 @doc raw"""
     explicit_model_sections(m::AbstractFTheoryModel)

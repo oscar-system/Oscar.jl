@@ -21,7 +21,6 @@ Abelian group element [2]
 """
 picard_class(l::ToricLineBundle) = l.picard_class
 
-
 @doc raw"""
     toric_variety(l::ToricLineBundle)
 
@@ -40,7 +39,6 @@ Normal toric variety without torusfactor
 ```
 """
 toric_variety(l::ToricLineBundle) = l.toric_variety
-
 
 @doc raw"""
     toric_divisor(l::ToricLineBundle)
@@ -63,16 +61,17 @@ true
 ```
 """
 @attr ToricDivisor function toric_divisor(l::ToricLineBundle)
-    class = picard_class(l)
-    map1 = map_from_torusinvariant_cartier_divisor_group_to_picard_group(toric_variety(l))
-    map2 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(toric_variety(l))
-    image = map2(preimage(map1, class)).coeff
-    coeffs = vec([ZZRingElem(x) for x in image])
-    td = toric_divisor(toric_variety(l), coeffs)
-    set_attribute!(td, :is_cartier, true)
-    return td
+  class = picard_class(l)
+  map1 = map_from_torusinvariant_cartier_divisor_group_to_picard_group(toric_variety(l))
+  map2 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
+    toric_variety(l)
+  )
+  image = map2(preimage(map1, class)).coeff
+  coeffs = vec([ZZRingElem(x) for x in image])
+  td = toric_divisor(toric_variety(l), coeffs)
+  set_attribute!(td, :is_cartier, true)
+  return td
 end
-
 
 @doc raw"""
     toric_divisor_class(l::ToricLineBundle)
@@ -94,8 +93,9 @@ julia> is_cartier(toric_divisor(l))
 true
 ```
 """
-@attr ToricDivisorClass toric_divisor_class(l::ToricLineBundle) = toric_divisor_class(toric_divisor(l))
-
+@attr ToricDivisorClass toric_divisor_class(l::ToricLineBundle) = toric_divisor_class(
+  toric_divisor(l)
+)
 
 @doc raw"""
     degree(l::ToricLineBundle)
@@ -115,7 +115,6 @@ julia> degree(l)
 ```
 """
 @attr ZZRingElem degree(l::ToricLineBundle) = sum(coefficients(toric_divisor(l)))
-
 
 #############################
 # 2. Basis of global sections
@@ -144,17 +143,22 @@ julia> basis_of_global_sections_via_rational_functions(l)
  1
 ```
 """
-@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
-    if has_attribute(toric_variety(l), :vanishing_sets)
-        tvs = vanishing_sets(toric_variety(l))[1]
-        if contains(tvs, l)
-            return MPolyQuoRingElem{QQMPolyRingElem}[]
-        end
+@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function basis_of_global_sections_via_rational_functions(
+  l::ToricLineBundle
+)
+  if has_attribute(toric_variety(l), :vanishing_sets)
+    tvs = vanishing_sets(toric_variety(l))[1]
+    if contains(tvs, l)
+      return MPolyQuoRingElem{QQMPolyRingElem}[]
     end
-    characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
-    return MPolyQuoRingElem{QQMPolyRingElem}[character_to_rational_function(toric_variety(l), vec([ZZRingElem(c) for c in characters[i, :]])) for i in 1:nrows(characters)]
+  end
+  characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
+  return MPolyQuoRingElem{QQMPolyRingElem}[
+    character_to_rational_function(
+      toric_variety(l), vec([ZZRingElem(c) for c in characters[i, :]])
+    ) for i in 1:nrows(characters)
+  ]
 end
-
 
 @doc raw"""
     basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
@@ -191,17 +195,21 @@ julia> basis_of_global_sections(l)
  x1^2
 ```
 """
-@attr Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
-    if has_attribute(toric_variety(l), :vanishing_sets)
-        tvs = vanishing_sets(toric_variety(l))[1]
-        if contains(tvs, l)
-            return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
-        end
+@attr Vector{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}} function basis_of_global_sections_via_homogeneous_component(
+  l::ToricLineBundle
+)
+  if has_attribute(toric_variety(l), :vanishing_sets)
+    tvs = vanishing_sets(toric_variety(l))[1]
+    if contains(tvs, l)
+      return MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}[]
     end
-    return monomial_basis(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
+  end
+  return monomial_basis(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
 end
-basis_of_global_sections(l::ToricLineBundle) = basis_of_global_sections_via_homogeneous_component(l)
-
+basis_of_global_sections(l::ToricLineBundle) =
+  basis_of_global_sections_via_homogeneous_component(
+    l
+  )
 
 #############################
 # 3. Generic section
@@ -236,12 +244,16 @@ julia> parent(s) == cox_ring(toric_variety(l))
 true
 ```
 """
-function generic_section(l::ToricLineBundle; range::UnitRange{Int64} = -10000:10000, rng::AbstractRNG = Random.default_rng())
-    global_sections = basis_of_global_sections(l)
+function generic_section(
+  l::ToricLineBundle;
+  range::UnitRange{Int64}=-10000:10000,
+  rng::AbstractRNG=Random.default_rng(),
+)
+  global_sections = basis_of_global_sections(l)
 
-    if length(global_sections) == 0
-        return zero(cox_ring(toric_variety(l)))
-    end
+  if length(global_sections) == 0
+    return zero(cox_ring(toric_variety(l)))
+  end
 
-    return sum(rand(rng, range) * b for b in global_sections)
+  return sum(rand(rng, range) * b for b in global_sections)
 end

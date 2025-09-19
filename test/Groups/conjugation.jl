@@ -70,10 +70,17 @@
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
+  G = symmetric_group(4)
   CC5 = @inferred subgroup_classes(G, order = 5)
   @test length(CC5) == 0
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)
+  @test length(CC5) == 7
   CC = @inferred subgroup_classes(G)
-  @test length(CC)==11
+  @test length(CC) == 11
+  CC4 = @inferred subgroup_classes(G, order = 4)  # uses stored classes
+  @test length(CC4) == 3
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)  # uses stored classes
+  @test length(CC5) == 7
   @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))

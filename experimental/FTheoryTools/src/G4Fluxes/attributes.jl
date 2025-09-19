@@ -8,7 +8,7 @@
 Return the F-theory model used to construct the ``G_4``-flux candidate.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -27,14 +27,13 @@ true
 """
 model(gf::G4Flux) = gf.model
 
-
 @doc raw"""
     cohomology_class(gf::G4Flux)
 
 Return the ambient space cohomology class which defines the ``G_4``-flux candidate.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -54,8 +53,6 @@ julia> cohomology_class(g4f);
 """
 cohomology_class(gf::G4Flux) = gf.class
 
-
-
 #####################################################
 # 2 Compute the D3-tadpole constraint
 #####################################################
@@ -73,7 +70,7 @@ Return the d3-tapdole of a G4-flux, that is compute and return the quantity
   `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -90,7 +87,7 @@ julia> d3_tadpole_constraint(g4, completeness_check = false)
 12
 ```
 """
-@attr QQFieldElem function d3_tadpole_constraint(gf::G4Flux; completeness_check::Bool = true)
+@attr QQFieldElem function d3_tadpole_constraint(gf::G4Flux; completeness_check::Bool=true)
   m = model(gf)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
@@ -103,21 +100,28 @@ julia> d3_tadpole_constraint(g4, completeness_check = false)
   if has_attribute(gf, :int_combination) && has_attribute(gf, :rat_combination)
     gfs = g4_flux_family(gf; completeness_check)
     if has_attribute(gfs, :d3_tadpole_constraint)
-      values_to_evaluate_at = vcat(matrix(QQ, get_attribute(gf, :int_combination)), get_attribute(gf, :rat_combination))
+      values_to_evaluate_at = vcat(
+        matrix(QQ, get_attribute(gf, :int_combination)), get_attribute(gf, :rat_combination)
+      )
       values_to_evaluate_at = values_to_evaluate_at[:, 1]
       return evaluate(d3_tadpole_constraint(gfs), values_to_evaluate_at)
     end
   end
-  tcc = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))); completeness_check)
+  tcc = cohomology_class(
+    toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)));
+    completeness_check,
+  )
   cy = polynomial(tcc)
-  poly_of_offset_class = polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy
-  class_of_offset = cohomology_class(ambient_space(m), poly_of_offset_class; completeness_check)
-  offset = 1//2* QQ(integrate(class_of_offset; completeness_check))
+  poly_of_offset_class =
+    polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy
+  class_of_offset = cohomology_class(
+    ambient_space(m), poly_of_offset_class; completeness_check
+  )
+  offset = 1//2 * QQ(integrate(class_of_offset; completeness_check))
   numb = QQ(euler_characteristic(m; completeness_check)//24) - offset
   set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
   return numb::QQFieldElem
 end
-
 
 #####################################################
 # 3 The "position" of a flux within a G4-flux family
@@ -137,7 +141,7 @@ non-abelian gauge group.
   `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
@@ -157,12 +161,13 @@ Family of G4 fluxes:
   - Non-abelian gauge group: unbroken
 ```
 """
-@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; completeness_check::Bool = true)
+@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; completeness_check::Bool=true)
   nb = breaks_non_abelian_gauge_group(gf)
-  gfs = special_flux_family(model(gf), not_breaking = !nb, completeness_check = completeness_check)
+  gfs = special_flux_family(
+    model(gf); not_breaking=(!nb), completeness_check=completeness_check
+  )
   return gfs
 end
-
 
 function _g4_flux_coordinate_computer(gf::G4Flux)
   # Thus far, I cannot seem to create an example which would test the entires code below. So I hard-code something here...
@@ -190,24 +195,26 @@ function _g4_flux_coordinate_computer(gf::G4Flux)
   mat_rhs = hcat(gff_mat_int, gff_mat_rat)
 
   # 4. Find a particular solution over the rationals
-  cs, up = can_solve_with_solution(mat_rhs, lhs, side = :right)
+  cs, up = can_solve_with_solution(mat_rhs, lhs; side=:right)
   @req cs "Inconsistency: Could not express flux in its family"
 
   # 5. Check degenerate case: All entries of cs are integers
   if all(is_integer, up[1:ncols(gff_mat_int)])
     int_coeffs = transpose(matrix(ZZ, [[up[k] for k in 1:ncols(gff_mat_int)]]))::ZZMatrix
-    rat_coeffs = transpose(matrix(QQ, [[up[ncols(gff_mat_int) + k] for k in 1:ncols(gff_mat_rat)]]))::QQMatrix
+    rat_coeffs = transpose(
+      matrix(QQ, [[up[ncols(gff_mat_int) + k] for k in 1:ncols(gff_mat_rat)]])
+    )::QQMatrix
     set_attribute!(gf, :int_combination, int_coeffs)
     set_attribute!(gf, :rat_combination, rat_coeffs)
     return get_attribute(gf, :int_combination)::ZZMatrix
   end
 
   # 6. Find the kernel of mat_rhs
-  K = kernel(mat_rhs, side = :right)
+  K = kernel(mat_rhs; side=:right)
   @req ncols(K) > 0 "Inconcistency encountered - trivial kernel"
   P = identity_matrix(QQ, ncols(gff_mat_int) + ncols(gff_mat_rat))
-  for k in ncols(gff_mat_int)+1:ncols(gff_mat_int) + ncols(gff_mat_rat)
-    P[k,k] = QQ(0)
+  for k in (ncols(gff_mat_int) + 1):(ncols(gff_mat_int) + ncols(gff_mat_rat))
+    P[k, k] = QQ(0)
   end
 
   # 7. Rephrase the problem: lhs = mat_rhs * (vector-with-Z-entries, vector-with-Q-entries)
@@ -223,7 +230,7 @@ function _g4_flux_coordinate_computer(gf::G4Flux)
 
   # 8. To solve this equation, we compute the SNF of C over ZZ: S = T * C * U
   # 8. In this expression T and U are invertible square matrices of ZZ and S a diagonal matrix with integer entries.
-  denom = lcm(unique(vcat([[denominator(k) for k in C[l,:]] for l in 1:nrows(C)]...)))
+  denom = lcm(unique(vcat([[denominator(k) for k in C[l, :]] for l in 1:nrows(C)]...)))
   Ctilde = matrix(ZZ, denom * C)
   S, T, U = snf_with_transform(Ctilde)
   o_vec_prime = T * o_vec
@@ -232,9 +239,9 @@ function _g4_flux_coordinate_computer(gf::G4Flux)
   u_tilde_prime = Vector{elem_type(QQ)}()
   r = rank(S)
   @req all(a -> S[a, a] != 0, 1:r) "Inconsistency encountered"
-  @req all(a -> S[a, a] == 0, r+1:min(ncols(S), nrows(S))) "Inconsistency encountered"
+  @req all(a -> S[a, a] == 0, (r + 1):min(ncols(S), nrows(S))) "Inconsistency encountered"
   for k in 1:rank(S)
-    push!(u_tilde_prime, (-1) * o_vec_prime[k] * denom // S[k, k])
+    push!(u_tilde_prime, (-1) * o_vec_prime[k] * denom//S[k, k])
   end
   u_tilde_prime = transpose(matrix(QQ, [u_tilde_prime]))
 
@@ -243,19 +250,20 @@ function _g4_flux_coordinate_computer(gf::G4Flux)
 
   # 11. Now obtain a "good" particular solution
   good_up = up + K * u_vec
-  
+
   # 12. Execute consistency checks
   @req mat_rhs * good_up == lhs "Inconsistency encountered"
   @req all(isinteger, good_up[:, 1:1:ncols(gff_mat_int)]) "Inconsistency encountered"
 
   # 13. Set the attributes and return the computed value
   int_coeffs = transpose(matrix(ZZ, [[good_up[k] for k in 1:ncols(gff_mat_int)]]))::ZZMatrix
-  rat_coeffs = transpose(matrix(QQ, [[good_up[ncols(gff_mat_int) + k] for k in 1:ncols(gff_mat_rat)]]))::QQMatrix
+  rat_coeffs = transpose(
+    matrix(QQ, [[good_up[ncols(gff_mat_int) + k] for k in 1:ncols(gff_mat_rat)]])
+  )::QQMatrix
   set_attribute!(gf, :int_combination, int_coeffs)
   set_attribute!(gf, :rat_combination, rat_coeffs)
   return get_attribute(gf, :int_combination)::ZZMatrix
 end
-
 
 @doc raw"""
     integral_coefficients(gf::G4Flux)
@@ -263,19 +271,19 @@ end
 Return the integral coefficients of a ``G_4``-flux.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special", rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -291,26 +299,25 @@ function integral_coefficients(gf::G4Flux)
   return get_attribute(gf, :int_combination)::ZZMatrix
 end
 
-
 @doc raw"""
     rational_coefficients(gf::G4Flux)
 
 Return the rational coefficients of a ``G_4``-flux.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special")
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, algorithm = "special", rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
@@ -326,26 +333,25 @@ function rational_coefficients(gf::G4Flux)
   return get_attribute(gf, :rat_combination)::QQMatrix
 end
 
-
 @doc raw"""
     offset(gf::G4Flux)
 
 Return the offset of a ``G_4``-flux.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
-julia> gfs = special_flux_family(qsm_model, completeness_check = false)
+julia> gfs = special_flux_family(qsm_model, completeness_check = false, rng = Random.Xoshiro(1234))
 Family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
 
-julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false)
+julia> g4 = random_flux_instance(gfs, completeness_check = false, consistency_check = false, rng = Random.Xoshiro(1234))
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Transversality checks: satisfied
