@@ -68,22 +68,7 @@ function Base.show(io::IO, basis::MonomialBasis{<:SimpleModuleData})
       io,
       "Monomial basis of a highest weight module with highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis))))) over ",
     )
-    # TODO: use the following line instead of printing workaround below
-    # print(terse(io), Lowercase(), base_lie_algebra(basis))
-    # begin of workaround
-    L = base_lie_algebra(basis)
-    print(io, "Lie algebra")
-    if has_root_system(L)
-      rs = root_system(L)
-      if has_root_system_type(rs)
-        type, ord = root_system_type_with_ordering(rs)
-        print(io, " of type ", _root_system_type_string(type))
-        if !issorted(ord)
-          print(io, " (non-canonical ordering)")
-        end
-      end
-    end
-    # end of workaround
+    print(terse(io), Lowercase(), base_lie_algebra(basis))
   end
 end
 
