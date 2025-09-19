@@ -122,7 +122,8 @@
       "NumberTheory/QuadFormAndIsom/spacewithisom.md",
       "NumberTheory/QuadFormAndIsom/latwithisom.md",
       "NumberTheory/QuadFormAndIsom/enumeration.md",
-      "NumberTheory/QuadFormAndIsom/primembed.md"
+      "NumberTheory/QuadFormAndIsom/primembed.md",
+      "NumberTheory/QuadFormAndIsom/fingrpact.md",
     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",

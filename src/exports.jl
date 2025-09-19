@@ -953,6 +953,9 @@ export is_invariant
 export is_inverse_of
 export is_invertible
 export is_irreducible
+export is_isometry
+export is_isometry_group
+export is_isometry_list
 export is_isomorphic
 export is_isomorphic_to_alternating_group, has_is_isomorphic_to_alternating_group, set_is_isomorphic_to_alternating_group
 export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, set_is_isomorphic_to_symmetric_group
@@ -1024,6 +1027,7 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
+export is_saturated
 export is_semiregular
 export is_semisimple
 export is_semistandard
@@ -1037,9 +1041,11 @@ export is_simplicial
 export is_singular
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
+export is_special_isometry
 export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
+export is_stable_isometry
 export is_standard
 export is_standard_basis
 export is_standard_graded
@@ -1418,6 +1424,8 @@ export point_coordinates
 export point_matrix
 export point_vector
 export points
+export pointwize_stabilizer_in_orthogonal_group
+export pointwize_stabilizer_orthogonal_complement_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type
@@ -1553,6 +1561,8 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
+export representation_in_ambient_coordinates
+export representation_in_lattice_coordinates
 export representative
 export representative_field
 export representative_patch
@@ -1676,6 +1686,7 @@ export spanning_sets
 export spec
 export special_linear_group
 export special_orthogonal_group
+export special_subgroup
 export special_unitary_group
 export splitting
 export splitting_of_hermitian_type
@@ -1685,8 +1696,11 @@ export splitting_of_pure_mixed_prime_power
 export splitting_roots_mod2
 export src
 export stabilizer_in_orthogonal_group
+export stabilizer_sublattice_in_orthogonal_group
 export stable_intersection
+export stable_orthogonal_group
 export stable_set_polytope
+export stable_subgroup
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix

@@ -1,0 +1,871 @@
+###############################################################################
+#
+#  Testing whether a collection of matrices define isometries
+#
+###############################################################################
+
+@doc raw"""
+    is_isometry(
+      Q::QuadSpace,
+      f::QQMatrix;
+      is_special::Bool=false,
+    ) -> Bool
+
+Return whether ``f`` defines an isometry of the quadratic space ``Q``.
+
+If `is_special` is set to `true`, return whether ``f`` has determinant 1.
+"""
+function is_isometry(
+    Q::Hecke.QuadSpace,
+    f::QQMatrix;
+    is_special::Bool=false,
+  )
+  !(rank(Q) == nrows(f) == ncols(f)) && return false
+  if f*gram_matrix(Q)*transpose(f) != gram_matrix(Q)
+    return false
+  end
+  return !is_special || isone(det(f))
+end
+
+@doc raw"""
+    is_isometry_list(
+      Q::QuadSpace,
+      V::Vector{QQMatrix};
+      is_special::Bool=false,
+    ) -> Bool
+
+Return whether the matrices in ``V`` define isometries of the quadratic space
+``Q``.
+
+If `is_special` is set to `true`, return whether all isometries in ``V``
+have determinant 1.
+"""
+function is_isometry_list(
+    Q::Hecke.QuadSpace,
+    V::Vector{QQMatrix};
+    is_special::Bool = false,
+  )
+  return all(f -> is_isometry(Q, f; is_special), V)
+end
+
+@doc raw"""
+    is_isometry_group(
+      Q::QuadSpace
+      G::MatrixGroup;
+      is_special::Bool=false,
+    ) -> Bool
+
+Return whether the matrix ``G`` defines a group of isometries of the quadratic
+space ``Q``.
+
+If `is_special` is set to `true`, return whether all isometries in ``G``
+have determinant 1.
+"""
+function is_isometry_group(
+    Q::Hecke.QuadSpace,
+    G::MatrixGroup;
+    is_special::Bool=false,
+  )
+  return all(f -> is_isometry(Q, matrix(f); is_special), gens(G))
+end
+
+@doc raw"""
+    is_isometry(
+      L::ZZLat,
+      f::QQMatrix,
+      ambient_representation::Bool = false;
+      is_special::Bool=false,
+      is_stable::Bool=false,
+    ) -> Bool
+
+Return whether ``f`` defines an isometry of the lattice ``L``.
+
+If `is_special` is set to `true`, return whether ``f`` has determinant 1.
+
+If `is_stable` is set to `true`, return whether ``f`` acts trivially on
+the discriminant group of ``L`` (note: this requires ``L`` being integral).
+
+If `ambient_representation` is set to `true`, ``f`` is considered as a
+$\mathbb{Q}$-linear map on the ambient space of ``L``.
+"""
+function is_isometry(
+    L::ZZLat,
+    f::QQMatrix,
+    ambient_representation::Bool = false;
+    is_special::Bool=false,
+    is_stable::Bool=false,
+  )
+  if is_special && !isone(det(f))
+    return false
+  end
+
+  if ambient_representation
+    !is_isometry(ambient_space(L), f) && return false
+    ok, fL =  can_solve_with_solution(basis_matrix(L), basis_matrix(L)*f)
+  else
+    ok = true
+    fL = f
+  end
+  if !ok || !isone(denominator(fL))
+    return false
+  elseif !(rank(L) == nrows(fL) == ncols(fL))
+    return false
+  elseif fL*gram_matrix(L)*transpose(fL) != gram_matrix(L)
+    return false
+  elseif !is_stable
+    return true
+  end
+  fLQ = solve(basis_matrix(L), fL*basis_matrix(L); side=:right)
+  q = discriminant_group(L)
+  fq = hom(q, q, elem_type(q)[q(lift(t)*fLQ) for t in gens(q)])
+  return isone(matrix(fq))
+end
+
+@doc raw"""
+    is_isometry_list(
+      L::ZZLat,
+      V::Vector{QQMatrix},
+      ambient_representation::Bool = false;
+      is_special::Bool=false,
+      is_stable::Bool = false,
+    ) -> Bool
+
+Return whether the matrices in ``V`` define isometries of the lattice ``L``.
+
+If `is_special` is set to `true`, return whether all isometries in ``V``
+have determinant 1.
+
+If `is_stable` is set to `true`, return whether all isometries in ``V``
+act trivially on the discriminant group of ``L`` (note: this requires
+``L`` being integral).
+
+If `ambient_representation` is set to `true`, the matrices in ``V`` are
+considered as $\mathbb{Q}$-linear maps on the ambient space of ``L``.
+"""
+function is_isometry_list(
+    L::ZZLat,
+    V::Vector{QQMatrix},
+    ambient_representation::Bool = false;
+    is_special::Bool=false,
+    is_stable::Bool=false,
+  )
+  return all(f -> is_isometry(L, f, ambient_representation; is_special, is_stable), V)
+end
+
+@doc raw"""
+    is_isometry_group(
+      L::ZZLat,
+      G::MatrixGroup,
+      ambient_representation::Bool = false;
+      is_special::Bool=false,
+      is_stable::Bool=false,
+    ) -> Bool
+
+Return whether the matrix ``G`` defines a group of isometries of the lattice
+``L``.
+
+If `is_special` is set to `true`, return whether all isometries in ``G``
+have determinant 1.
+
+If `is_stable` is set to `true`, return whether all isometries in ``G``
+act trivially on the discriminant group of ``L`` (note: this requires
+``L`` being integral).
+
+If `ambient_representation` is set to `true`, the group ``G`` is considered as
+a group of $\mathbb{Q}$-linear automorphisms on the ambient space of ``L``.
+"""
+function is_isometry_group(
+    L::ZZLat,
+    G::MatrixGroup,
+    ambient_representation::Bool = false;
+    is_special::Bool=false,
+    is_stable::Bool=false,
+  )
+  return all(f -> is_isometry(L, matrix(f), ambient_representation; is_special, is_stable), gens(G))
+end
+
+###############################################################################
+#
+#  Change of representation
+#
+###############################################################################
+
+###############################################################################
+# Lattice to ambient
+
+@doc raw"""
+    representation_in_ambient_coordinates(
+      L::ZZLat,
+      F::T;
+      check::Bool=false,
+    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> T
+
+Given ``F`` being either:
+  * a matrix with rational entries;
+  * a list of matrices with rational entries;
+  * a matrix group over the rationals,
+representing a collection of isometries of ``L`` in the fixed basis of ``L``,
+return the same collection but represented in the standard basis of the ambient
+space of ``L``.
+
+If ``L`` is not of full rank in its ambient quadratic space ``V``, each
+isometry is extended to be the identity on the quadratic space orthogonal to
+$L\otimes\mathbb{Q}$ inside ``V``.
+
+If `check` is set to `true`, the function checks whether ``F`` indeed defines
+a collection of isometries of ``L``.
+"""
+representation_in_ambient_coordinates
+
+function representation_in_ambient_coordinates(
+    L::ZZLat,
+    f::QQMatrix;
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry(L, f, false) "Matrix must define an isometry of the lattice"
+  end
+  V = ambient_space(L)
+  B = basis_matrix(L)
+  B2 = orthogonal_complement(V, B)
+  C = vcat(B, B2)
+  f_ambient = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
+  f_ambient = inv(C)*f_ambient*C
+  return f_ambient
+end
+
+function representation_in_ambient_coordinates(
+    L::ZZLat,
+    F::Vector{QQMatrix};
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry_list(L, F, false) "Matrices must define isometries of the lattice"
+  end
+  V = ambient_space(L)
+  B = basis_matrix(L)
+  B2 = orthogonal_complement(V, B)
+  C = vcat(B, B2)
+  iC = inv(C)
+  I = identity_matrix(QQ, nrows(B2))
+  F_ambient = eltype(F)[]
+  for f in F
+    f_ambient = iC*block_diagonal_matrix(QQMatrix[f, I])*C
+    push!(F_ambient, f_ambient)
+  end
+  return F_ambient
+end
+
+function representation_in_ambient_coordinates(
+    L::ZZLat,
+    F::MatrixGroup{QQFieldElem, QQMatrix};
+    check::Bool=true,
+  )
+  F_ambient_gens = representation_in_ambient_coordinates(L, matrix.(gens(F)); check)
+  return matrix_group(F_ambient_gens)
+end
+
+###############################################################################
+# Ambient to lattice
+
+@doc raw"""
+    representation_in_lattice_coordinates(
+      L::ZZLat,
+      F::T;
+      check::Bool=false,
+    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> T
+
+Given ``F`` being either:
+  * a matrix with rational entries;
+  * a list of matrices with rational entries;
+  * a matrix group over the rationals,
+representing a collection of isometries of ``L`` in the standard basis of the
+ambient space of ``L``, return the same collection but represented in the fixed
+basis of ``L``.
+
+If `check` is set to `true`, the function checks whether ``F`` indeed defines
+a collection of isometries of the ambient space of ``L`` which preserve ``L``.
+"""
+representation_in_lattice_coordinates
+
+function representation_in_lattice_coordinates(
+    L::ZZLat,
+    f::QQMatrix;
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry(L, f, true) "Matrix must define an isometry of the lattice"
+  end
+  return solve(basis_matrix(L), basis_matrix(L)*f)
+end
+
+function representation_in_lattice_coordinates(
+    L::ZZLat,
+    F::Vector{QQMatrix};
+    check::Bool=true,
+  )
+  if check
+    @req is_isometry_list(L, F, true) "Matrices must define isometries of the lattice"
+  end
+  F_lattice = QQMatrix[]
+  for f in F
+    f_lattice = solve(basis_matrix(L), basis_matrix(L)*f)
+    push!(F_lattice, f_lattice)
+  end
+  return F_lattice
+end
+
+function representation_in_lattice_coordinates(
+    L::ZZLat,
+    F::MatrixGroup{QQFieldElem, QQMatrix};
+    check::Bool=true,
+  )
+  F_lattice_gens = representation_in_lattice_coordinates(L, matrix.(gens(F)); check)
+  return matrix_group(F_lattice_gens)
+end
+
+###############################################################################
+#
+#  Stabilizers in orthogonal group
+#
+###############################################################################
+
+@doc raw"""
+    stabilizer_in_orthogonal_group(
+      L::ZZLat,
+      B::QQMatrix;
+      stable::Bool=false,
+      special::Bool=false,
+      check::Bool=true,
+      kwargs...,
+    ) -> MatrixGroup
+
+Return the joint stabilizer in the orthogonal group of ``L`` of the vectors in
+the rational span of ``L`` given by the rows of the matrix ``B``.
+
+The implementation requires that the largest saturated submodule ``K`` of ``L``
+orthogonal to ``B`` is definite.
+
+If `stable` is set to `true`, return the largest subgroup of the stable
+orthogonal group $O^\#(L)$ fixing ``B``. If `special` is set
+to `true`, return the largest subgroup of the special orthogonal group
+$SO(L)$ fixing ``B``. If both keyword arguments are `true`,
+then return the intersection of the corresponding joint stabilizers.
+
+If `check` is set to true, the function tests whether ``B`` defines a set of
+vectors in $L\otimes \mathbb{Q}$ and whether the lattice ``K`` is definite.
+
+The function first computes the orthogonal group of ``K``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A2 = root_lattice(:A, 2)
+Integer lattice of rank 2 and degree 2
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia> v = QQ[1 1;]
+[1   1]
+
+julia> H = stabilizer_in_orthogonal_group(A2, v)
+Matrix group of degree 2
+  over rational field
+
+julia> order(H)
+2
+```
+"""
+function stabilizer_in_orthogonal_group(
+    L::ZZLat,
+    B::QQMatrix;
+    stable::Bool=false,
+    special::Bool=false,
+    check::Bool=true,
+    kwargs...,
+  )
+  K = orthogonal_submodule(L, B)
+  if check
+    @req can_solve(basis_matrix(L), B) "B does not define a subspace of the rational span of L"
+    @req is_definite(K) "The orthogonal complement of B in L is not definite"
+  end
+  # The different orthogonal group functions for K produce isometries of
+  # K which are the identity on the orthogonal quadratic space
+  if stable
+    # Stable isometries of K are in bijection with stable isometries of L
+    # acting trivially on the orthogonal complement K^\perp_L (K is saturated)
+    if special
+      P, _ = Oscar._special_stable_orthogonal_group(K; kwargs...)
+    else
+      P, _ = stable_orthogonal_group(K; kwargs...)
+    end
+  else
+    if special
+      OK, _ = special_orthogonal_group(K; kwargs...)
+    else
+      OK = orthogonal_group(K; kwargs...)
+    end
+    P, _ = stabilizer(OK, L, on_lattices) # These come from isometries of L
+  end
+  return P
+end
+
+@doc raw"""
+    pointwize_stabilizer_in_orthogonal_group(
+      L::ZZLat,
+      S::ZZLat;
+      stable::Bool=false,
+      special::Bool=false,
+      check::Bool=true,
+      kwargs...,
+    ) -> MatrixGroup
+
+Return the pointwize stabilizer in the orthogonal group of ``L`` of the lattice
+``S``, contained in the rational span of ``L``.
+
+The implementation requires that the largest saturated submodule ``K`` of ``L``
+orthogonal to ``S`` is definite.
+
+If `stable` is set to `true`, return the largest subgroup of the stable
+orthogonal group $O^\#(L)$ fixing pointwize ``S``. If `special` is set
+to `true`, return the largest subgroup of the special orthogonal group
+$SO(L)$ fixing pointwize ``S``. If both keyword arguments are `true`,
+then return the intersection of the corresponding pointwize stabilizers.
+
+If `check` is set to true, the function tests whether ``S`` is contained in
+$L\otimes \mathbb{Q}$ and whether the lattice ``K`` is definite.
+
+The function first computes the orthogonal group of ``K``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A4 = root_lattice(:A, 4)
+Integer lattice of rank 4 and degree 4
+with gram matrix
+[ 2   -1    0    0]
+[-1    2   -1    0]
+[ 0   -1    2   -1]
+[ 0    0   -1    2]
+
+julia> A2 = lattice_in_same_ambient_space(A4, QQ[1 0 0 0; 0 1 0 0])
+Integer lattice of rank 2 and degree 4
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia> H = pointwize_stabilizer_in_orthogonal_group(A4, A2)
+Matrix group of degree 4
+  over rational field
+
+julia> order(H)
+2
+```
+"""
+function pointwize_stabilizer_in_orthogonal_group(
+    L::ZZLat,
+    S::ZZLat;
+    kwargs...
+  )
+  @req ambient_space(L) === ambient_space(S) "Lattices are not contained in the same quadratic space"
+  return stabilizer_in_orthogonal_group(L, basis_matrix(S); kwargs...)
+end
+
+@doc raw"""
+    _stabilizer_in_diagonal_action(
+      L::ZZLat,
+      K::ZZLat,
+      N::ZZLat,
+      OK::MatrixGroup,
+      ON::MatrixGroup,
+    ) -> Vector{QQMatrix}
+
+Given a primitive extension ``K\oplus N \subseteq L`` of even lattices,
+and given two finite groups of isometries ``OK`` and ``ON`` of ``K`` and ``N``,
+respectively, return generators for the stabilizer of ``L`` in ``OK\times ON``,
+seen as a group of isometries of the ambient space of ``L``.
+"""
+function _stabilizer_in_diagonal_action(
+    L::ZZLat,
+    K::ZZLat,
+    N::ZZLat,
+    OK::MatrixGroup,
+    ON::MatrixGroup;
+    gen_fun::Function=gens,
+  )
+  # Necessary tests and can speed up kernel computations
+  @assert is_finite(OK)
+  @assert is_finite(ON)
+
+  # Need the glue map to determine isometries of OK\times ON preserving L in
+  # K^\vee\oplus N^\vee
+  phi, HKinqK, HNinqN = glue_map(L, K, N)
+  iphi = inv(phi)
+
+  gen = QQMatrix[]
+  qN = codomain(HNinqN)
+  genN = ZZMatrix[matrix(hom(qN, qN, elem_type(qN)[qN(lift(a)*matrix(g)) for a in gens(qN)])) for g in gen_fun(ON)]
+  GN = Oscar._orthogonal_group(qN, genN; check=false)
+  discN = hom(ON, GN, gens(GN); check=false)
+  stabN, _ = stabilizer(GN, HNinqN)
+  SN, resN = restrict_automorphism_group(stabN, HNinqN; check=false)
+  # Largest subgroup of ON satisfying that {id_K}\times kerN preserves L
+  kerN, _ = preimage(discN, first(kernel(resN)))
+  append!(gen, matrix.(gen_fun(kerN)))
+
+  qK = codomain(HKinqK)
+  genK = ZZMatrix[matrix(hom(qK, qK, elem_type(qK)[qK(lift(a)*matrix(g)) for a in gens(qK)])) for g in gen_fun(OK)]
+  GK = Oscar._orthogonal_group(qK, genK; check=false)
+  discK = hom(OK, GK, gens(GK); check=false)
+  stabK, _ = stabilizer(GK, HKinqK)
+  SK, resK = restrict_automorphism_group(stabK, HKinqK; check=false)
+  # Largest subgroup of OK satisfying that kerK\times {id_N} preserves L
+  kerK, _ = preimage(discK, first(kernel(resK)))
+  append!(gen, matrix.(gen_fun(kerK)))
+
+  SNphi = Oscar._orthogonal_group(domain(SK), ZZMatrix[matrix(phi * hom(g) * iphi) for g in gens(SN)])
+  # C is isomorphic to kerK\P/kerN where P is the group we aim to construct
+  C, _ = intersect(SK, SNphi)
+
+  for g in gen_fun(C)
+    f = matrix(preimage(discK, preimage(resK, g)))
+    g = matrix(preimage(discN, preimage(resN, SN(iphi * hom(g) * phi; check=false))))
+    push!(gen, f*g)
+  end
+  unique!(gen)
+  return gen
+end
+
+@doc raw"""
+    _maximal_extension(
+      L::ZZLat,
+      S::ZZLat,
+      OS::MatrixGroup;
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a primitive sublattice ``S`` of an even lattice ``L`` with definite
+orthogonal complement ``K``, and given a finite group of isometries ``OS``
+of ``S``, return the largest (finite) group ``P`` of isometries of ``L``
+preserving ``S`` and whose restriction to ``S`` is contained in ``OS``.
+
+By definition, ``P`` is the stabilizer of ``L`` in ``O(K)\times OS``
+where ``O(K)`` is the full orthogonal group of ``K``.
+
+The keyword arguments in `kwargs` are optional arguments for calling the
+function `isometry_group(K; kwargs...)`.
+"""
+function _maximal_extension(
+    L::ZZLat,
+    S::ZZLat,
+    OS::MatrixGroup;
+    gen_fun::Function=gens,
+    kwargs...,
+  )
+  T = orthogonal_submodule(L, S)
+  @req is_definite(T) "Orthogonal complement is not definite"
+
+  if rank(T) == 0
+    P = OS
+  else
+    OT = isometry_group(T; kwargs...)
+    gen = _stabilizer_in_diagonal_action(L, S, T, OS, OT; gen_fun)
+    P = matrix_group(gen)
+  end
+  return P
+end
+
+@doc raw"""
+    stabilizer_sublattice_in_orthogonal_group(
+      L::ZZLat,
+      S::Union{QQMatrix, ZZLat};
+      stable::Bool=false,
+      special::Bool=false,
+      check::Bool=true,
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a definite sublattice ``S`` of an even lattice ``L``, or a generating
+set of vectors given as rows in a matrix with rational entries, return the
+stabilizer of ``S`` in the orthogonal group of ``L``.
+
+Note that the function requires that ``S`` and its orthogonal complement ``T``
+in ``L`` are both definite. However ``S`` need not be primitive in ``L``.
+
+If `stable` is set to `true`, return the largest subgroup of the stable
+orthogonal group $O^\#(L)$ preserving ``S``. If `special` is set
+to `true`, return the largest subgroup of the special orthogonal group
+$SO(L)$ preserving ``S``. If both keyword arguments are `true`,
+then return the intersection of the corresponding stabilizers.
+
+If `check` is set to `true`, the function tests whether ``S`` is a sublattice
+of ``L``, and whether ``S`` and ``T`` are definite.
+
+The keyword arguments in `kwargs` are optional arguments for the computation
+of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A2 = root_lattice(:A, 2)
+Integer lattice of rank 2 and degree 2
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia> L = lattice_in_same_ambient_space(A2, QQ[1 1; 1 -1])
+Integer lattice of rank 2 and degree 2
+with gram matrix
+[2   0]
+[0   6]
+
+julia> H1 = stabilizer_sublattice_in_orthogonal_group(A2, L)
+Matrix group of degree 2
+  over rational field
+
+julia> describe(H1)
+"C2 x C2"
+
+julia> H2 = stabilizer_sublattice_in_orthogonal_group(A2, L; stable=true, special=true)
+Matrix group of degree 2
+  over rational field
+
+julia> order(H2)
+1
+```
+"""
+function stabilizer_sublattice_in_orthogonal_group(
+    L::ZZLat,
+    S::ZZLat;
+    stable::Bool=false,
+    special::Bool=false,
+    check::Bool=true,
+    kwargs...,
+  )
+  if check
+    @req ambient_space(L) === ambient_space(S) "Lattices are not contained in the same quadratic space"
+    @req is_sublattice(L, S) "Matrix does not define a sublattice"
+    @req is_definite(S) "The lattice S is not definite"
+  end
+  # Compute the isometries preserving the rational span of S
+  # If S is not saturated, we then filter the ones actually preserving S 
+  if !is_primitive(L, S)
+    is_sat = false
+    Ssat = primitive_closure(L, S)
+  else
+    is_sat = true
+    Ssat = S
+  end
+  OSsat = orthogonal_group(Ssat; kwargs...)
+
+  P = _maximal_extension(L, Ssat, OSsat; kwargs...)
+  if !is_sat
+    P, _ = stabilizer(P, S, on_lattices)
+  end
+
+  if stable
+    if special
+      P, _ = Oscar._special_stable_subgroup(L, P; check=false)
+    else
+      P, _ = stable_subgroup(L, P; check=false)
+    end
+  elseif special
+    P, _ = special_subgroup(L, P; check=false)
+  end
+  return P
+end
+
+function stabilizer_sublattice_in_orthogonal_group(
+    L::ZZLat,
+    B::QQMatrix;
+    kwargs...,
+  )
+  S = lattice(ambient_space(L), B; isbasis=(rank(B)==nrows(B)))
+  return stabilizer_sublattice_in_orthogonal_group(L, S; kwargs...)
+end
+
+@doc raw"""
+    pointwize_stabilizer_orthogonal_complement_in_orthogonal_group(
+      L::ZZLat,
+      S::Union{QQMatrix, ZZLat};
+      stable::Bool=false,
+      special::Bool=false,
+      check::Bool=true,
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a definite sublattice ``S`` of an even lattice ``L``, or a generating
+set of vectors given as rows in a matrix with rational entries, return the
+largest subgroup of $O(L)$ which fixes pointwize the orthogonal complement
+``T`` of ``S`` in ``L``.
+
+If `stable` is set to `true`, return the largest subgroup of the stable
+orthogonal group $O^\#(L)$ fixing pointwize ``T``. If `special` is set to
+`true`, return the largest subgroup of the special orthogonal group $SO(L)$
+fixing pointwize ``T``. If both keyword arguments are `true`, then return
+the intersection of the corresponding stabilizers.
+
+If `check` is set to `true`, the function tests whether ``S`` is a sublattice
+of ``L``, and whether ``S`` is definite.
+
+The keyword arguments in `kwargs` are optional arguments for the computation
+of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A2 = root_lattice(:A, 2)
+Integer lattice of rank 2 and degree 2
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia> v = QQ[1 1;]
+[1   1]
+
+julia> H1 = pointwize_stabilizer_orthogonal_complement_in_orthogonal_group(A2, v)
+Matrix group of degree 2
+  over rational field
+
+julia> H2 = pointwize_stabilizer_orthogonal_complement_in_orthogonal_group(A2, v; special=true)
+Matrix group of degree 2
+  over rational field
+
+julia> index(H1, H2)
+2
+```
+"""
+function pointwize_stabilizer_orthogonal_complement_in_orthogonal_group(
+    L::ZZLat,
+    B::QQMatrix;
+    kwargs...,
+  )
+  K = orthogonal_submodule(L, B)
+  return stabilizer_in_orthogonal_group(L, basis_matrix(K); kwargs...)
+end
+
+function pointwize_stabilizer_orthogonal_complement_in_orthogonal_group(
+    L::ZZLat,
+    S::ZZLat;
+    kwargs...,
+  )
+  @req (ambient_space(L) === ambient_space(S)) "Lattices are not contained in the same quadratic space"
+  K = orthogonal_submodule(L, S)
+  return stabilizer_in_orthogonal_group(L, basis_matrix(K); kwargs...)
+end
+
+###############################################################################
+#
+#  Saturation
+#
+###############################################################################
+
+@doc raw"""
+    saturation(
+      L::ZZLat,
+      G::MatrixGroup;
+      ambient_representation::Bool=true,
+      check::Bool=true,
+      special::Bool=false,
+      stable::Bool=false,
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a lattice ``L`` and a finite group of isometries ``G`` of ``L`` with
+definite coinvariant sublattice``S`` , return the saturation of ``G`` in the
+orthogonal group ``O(L)`` of ``L``, that is the pointwize stabilizer in ``O(L)``
+of its invariant sublattice.
+
+If `ambient_representation` is set to `true`, the group ``G`` is considered as
+a group of $\mathbb{Q}$-linear automorphisms on the ambient space of ``L``.
+
+If `check` is set to `true`, the function tests whether the group ``G`` is
+finite, whether it defines a group of isometries of the lattice ``L`` and
+whether the coinvariant lattice ``S`` is definite.
+
+If `special` is set to `true`, the function returns the saturation of ``G``
+in the special orthogonal group ``SO(L)`` of ``L``. Note that this requires
+``G`` to consist also of special isometries. If `check` is set to `true`, the
+function tests whether all isometries in ``G`` have determinant `.
+
+If `stable` is set to `true`, the function returns the saturation of ``G``
+in the stable orthogonal group ``O^\#(L)`` of ``L``. Note that this requires
+``G`` to consist also of stable isometries. If `check` is set to `true`, the
+function tests whether all isometries in ``G`` act trivially on the
+discriminant group of ``L``.
+
+The keyword arguments in `kwargs` are optional arguments for the computation
+of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
+"""
+function saturation(
+  L::ZZLat,
+  G::MatrixGroup;
+  ambient_representation::Bool=true,
+  check::Bool=true,
+  special::Bool=false,
+  stable::Bool=false,
+  kwargs...,
+)
+  if check
+    @req is_finite(G) "Group is not finite"
+    @req is_isometry_group(L, G, ambient_representation; is_special=special, is_stable=stable) "Group does not define a group of isometries of the lattice L with the given properties"
+  end
+
+  F = invariant_lattice(L, G; check=false)
+  Gsat = stabilizer_in_orthogonal_group(L, basis_matrix(F); check, special, stable, kwargs...)
+
+  if !ambient_representation
+    return representation_in_lattice_coordinates(L, Gsat; check=false)
+  else
+    return Gsat
+  end
+end
+
+@doc raw"""
+    is_saturated(
+      L::ZZLat,
+      G::MatrixGroup;
+      ambient_representation::Bool=true,
+      check::Bool=true,
+      special::Bool=false,
+      stable::Bool=false,
+      kwargs...,
+    ) -> MatrixGroup
+
+Given a lattice ``L`` and a finite group of isometries ``G`` of ``L`` with
+definite coinvariant sublattice``S`` , return whether the group ``G`` is
+saturated in the orthogonal group ``O(L)`` of ``L``, meaning ``G`` is the
+pointwize stabilizer in ``O(L)`` of its invariant sublattice.
+
+If `ambient_representation` is set to `true`, the group ``G`` is considered as
+a group of $\mathbb{Q}$-linear automorphisms on the ambient space of ``L``.
+
+If `check` is set to `true`, the function tests whether the group ``G`` is
+finite, whether it defines a group of isometries of the lattice ``L`` and
+whether the coinvariant lattice ``S`` is definite.
+
+If `special` is set to `true`, the function returns whether ``G`` is saturated
+in the special orthogonal group ``SO(L)`` of ``L``. Note that this requires
+``G`` to consist also of special isometries. If `check` is set to `true`, the
+function tests whether all isometries in ``G`` have determinant `.
+
+If `stable` is set to `true`, the function returns whether ``G`` is saturated
+in the stable orthogonal group ``O^\#(L)`` of ``L``. Note that this requires
+``G`` to consist also of stable isometries. If `check` is set to `true`, the
+function tests whether all isometries in ``G`` act trivially on the
+discriminant group of ``L``.
+
+The keyword arguments in `kwargs` are optional arguments for the computation
+of isometry group of definite lattices (see [`isometry_group(::ZZLat)`](@ref)).
+
+See also [`saturation(::ZZLat, ::MatrixGroup)`](@ref).
+"""
+function is_saturated(
+  L::ZZLat,
+  G::MatrixGroup;
+  kwargs...,
+)
+  Gsat = saturation(L, G; kwargs...)
+  return G == Gsat
+end
