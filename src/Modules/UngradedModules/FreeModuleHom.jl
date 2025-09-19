@@ -477,8 +477,6 @@ end
 end
 
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
-    @show ngens(domain(h)), ngens(codomain(h))
-    @show maximum(total_degree.(numerator.(matrix(h))))
   K = kernel(kernel_ctx(h); side=:left)
   F = domain(h)
   v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
