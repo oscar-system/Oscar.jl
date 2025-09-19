@@ -1279,7 +1279,7 @@ for (M, E) in ((QQMatrix, QQFieldElem), (FqMatrix, FqFieldElem))
 
     function Oscar.mul!(A::$M, B::PermMat{$E}, C::$M)
       A[:, :] = C
-      swap_rows!(A, C.p)
+      swap_rows!(A, inv(B.p))
       return A
     end
 
@@ -1552,6 +1552,11 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
     D === nothing || return D
   end
   return C
+end
+
+#shortcut to do it in 1 step
+function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:QQAbFieldElem}})
+  return _minimize(gmodule(AbsSimpleNumField, C))
 end
 
 function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
@@ -2076,7 +2081,7 @@ function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinField
 end
 
 """
-The group of Z[G]-homomorphisms as a k-module, not a k[G] one. (The G operation
+The group of k[G]-homomorphisms as a k-module, not a k[G] one. (The G operation
 is trivial)
 """
 function Oscar.hom(C::S, D::T) where S <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}} where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
@@ -2431,7 +2436,36 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
   end
 end
 
-last_bla = []
+#the endo of abs. irred is 1 dim - over the correct field
+# over Q, the char needs to be rational
+# for a galois orbit sum of a irred. char, it is the degree of char field
+# for homogenous components of rationals M : M + M...+M, it should be dim(GL(n, char field))
+#     thus dim char field * n^2 * schur_index(X) 
+# dim char * schur index = deg of smallest poss. field
+#for sums, it just adds the dims
+function dim_of_endo(M::Oscar.GAPGroupClassFunction, ::QQField)
+  @assert is_rational(M)
+  c = coordinates(M)
+  d = 0
+  X = parent(M)
+  for i=1:length(c)
+    if c[i] != 0
+      o = coordinates(galois_orbit_sum(X[i]))
+      d += degree_of_character_field(X[i])*Int(c[i])^2
+      c .-= c[i].*o
+    end
+  end
+  @assert all(iszero, c)
+  return d
+end
+function dim_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, ::QQField)
+  return dim_of_endo(character(M), QQ)
+end
+
+function dim_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
+  return dim_of_endo(galois_orbit_sum(character(M)), QQ)
+end
+
 #can't use "end" as a function name... and "End" does not fit into our scheme
 #life is hard.
 function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem}}})
@@ -2513,6 +2547,40 @@ function proj_endo(mE, mC)
                  y -> E(matrix(y.module_map)))
 end
 
+
+#from Max:
+# the vector is a "structure" that allows evaluation to get the group
+# elements with a minimal number of products
+# Step 1: set up a correspondence g<->G of elements. g is fast, G is slow
+#      2  compute the vector wrt <g>
+#      3  eval with <g> and <G> to get complete Lists of group elements
+#         in the same order with an optimal number of "*" in <G>
+#         the <g> eval is alreadt in elms
+function schreier_vector(gs::Vector{T}) where T
+  elms = IndexedSet([one(gs[1])])
+  svec = [(0,0)]
+  i = 1
+  for (i,p) in enumerate(elms)
+    for k in 1:length(gs)
+      g = gs[k]
+      p = p*g
+      if !(p in elms)
+        push!(elms, p)
+        push!(svec, (i, k))
+      end
+    end
+  end
+
+  return svec, elms
+end
+  
+function eval_schreier_vec(gs::Vector{T}, svec::Vector{Tuple{Int, Int}}) where T
+  res = T[]
+  for (i,k) in svec
+    push!(res, i == 0 ? one(gs[1]) : res[i] * gs[k])
+  end
+  return res
+end
 
 function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   mE = get_attribute(M, :center_endo)
@@ -2686,6 +2754,9 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
+  @assert is_irreducible(chi)
+  #in general: get reps for each irred. occoring in chi 
+  #add them with the correct multiplicity
   f = GAP.Globals.IrreducibleAffordingRepresentation(GapObj(chi))
   K = abelian_closure(QQ)[1]
   g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
@@ -2709,6 +2780,7 @@ function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}},
     fl, em = is_subfield(c[1], base_ring(N))
     set_attribute!(N, :_character_field => (c[1], hom(c[1], base_ring(N), em(gen(c[1])))))
   end
+  return N
 end
 
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{fqPolyRepFieldElem}}) where {T <: Oscar.GAPGroup}
