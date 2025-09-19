@@ -15,6 +15,7 @@ end
 
 end
 
+include("exports.jl")
 include("types.jl")
 include("canonical.jl")
 include("deck_group.jl")
@@ -326,24 +327,7 @@ function point_reflections(o::Origami)
 end
 
 function automorphisms(o::Origami)
-    return [[translations(o),1], [point_reflections(o),-1]]
+    # TODO is this structure useful?
+    return (translations(o),1), (point_reflections(o),-1)
 end
 
-export origami, origami_nc, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
-        index_monodromy_group, sum_of_lyapunov_exponents, translations,
-        is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
-        veech_group_is_even, are_equivalent, normalform_conjugators,
-        point_reflections, automorphisms, in_deck_group, deck_group, is_normal,
-        origami_disconnected, action_s, action_t, action_s_inv, action_t_inv,
-        action_sl2, random_origami, staircase_origami, CylinderDiagram, compute_rays,
-        all_combinations, realizable_lengths, origami_from_cylinder_coordinates, product_gray_code,
-        cylinders, system_of_equations, origamis_in_h11, cylinder_diagrams_h11,
-        possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram,
-        x_origami, elevator_origami, homology, non_taut_part_of_homology,
-        action_of_matrix_on_non_taut, shadow_veech_group, homology_to_string,
-        action_of_matrix_on_homology, generalized_cyclic_torus_cover, comb_origami, cyclic_torus_cover_origamiS,
-        cyclic_torus_cover_origamiL, base_change_l_to_s, translation_group_on_homology_of_tn, action_of_t_on_homology_of_tn,
-        action_of_s_on_homology_of_tn, action_of_matrix_on_homology_of_tn, symplectic_basis_of_homology, has_spin_structure,
-        spin_parity, normal_stored_origami, as_permutation_pepresentation, all_normal_origamis_by_degree,
-        all_normal_origamis_from_group, read_cylinder_diagrams, split_diagrams, parse_cycle, origamis, extract_permutation,
-        from_GAP_origami, systolic_ratio, systolic_ratio_bigger_one_over_pi_in_h11

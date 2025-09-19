@@ -66,7 +66,6 @@ GAP.@wrap ConjugacyClassSubgroups(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ConjugateSubgroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Core(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CycleFromList(x::GapObj)::GapObj
-GAP.@wrap CycleLength(x::GapObj, y::Int)::GapInt
 GAP.@wrap CycleStructurePerm(x::GapObj)::GapObj
 GAP.@wrap CYCLE_LENGTH_PERM_INT(x::GapObj, y::Int)::Int
 GAP.@wrap CycList(x::GapObj)::GapInt
