@@ -354,27 +354,28 @@ end
 function _coeffs(a::FinGenAbGroupElem)
   return a.coeff
 end
+
 function _coeffs(a::AbstractAlgebra.FPModuleElem)
   return a.v
 end
+
 function Oscar.zero!(a::AbstractAlgebra.FPModuleElem)
   zero!(a.v)
 end
 
+direct_sum_elem_type(x) = direct_sum_elem_type(typeof(x))
+direct_sum_elem_type(T::DataType) = throw(MethodError(direct_sum_elem_type, (T,)))
 direct_sum_elem_type(::Type{<:FPModule{T}}) where T = Generic.DirectSumModuleElem{T}
 direct_sum_elem_type(::Type{FinGenAbGroup}) = FinGenAbGroupElem
-function direct_sum_elem_type(T::TypeVar) 
-   @show T, typeof(T)
-   Any
-end
-direct_sum_elem_type(::FinGenAbGroup) = FinGenAbGroupElem
-direct_sum_elem_type(::FPModule{T}) where T = Generic.DirectSumModuleElem{T}
 
 function show_induced_gmodule(io::IO, C::GModule)
   io = pretty(io)
   io = IOContext(io, :compact => true)
   h = get_attribute(C, :induce)
-  print(io, "induced module from $(domain(h)) to $(group(C)) over $(base_ring(C))")
+  print(io, "Induced module from ",
+             Lowercase(), domain(h), " to ",
+             Lowercase(), group(C), " over ",
+             Lowercase(), base_ring(C))
 end
 
 
