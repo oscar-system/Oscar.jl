@@ -1,3 +1,6 @@
+# this can be run from the command line with:
+# > julia etc/format_code.jl
+#
 using Pkg
 Pkg.activate(; temp=true)
 Pkg.add(name="JuliaFormatter", version="1")
