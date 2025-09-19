@@ -12,29 +12,29 @@ OSCAR's 2+1 printing modes described in the [Printing Options](@ref) section.
 The print modes are specified as follows:
 
 1. **Detailed printing**
-  - the output must make sense as a standalone without context to non-specialists
-  - the number of output lines should fit in the terminal
-  - if the object is simple enough use only one line
-  - use indentation and (usually) `one line` to print substructures
+   - the output must make sense as a standalone without context to non-specialists
+   - the number of output lines should fit in the terminal
+   - if the object is simple enough use only one line
+   - use indentation and (usually) `one line` to print substructures
 
 2. **One line printing**
-  - the output must print in one line
-  - should make sense as a standalone without context
-  - variable names/generators/relations should not be printed only their number.
-  - Only the first word is capitalized e.g. `Polynomial ring`
-  - one should use `terse` for nested printing in compact
-  - nested calls to `one line` (if you think them really necessary) should be at the end,
-    so that one can read sequentially. Calls to `terse` can be anywhere.
-  - commas must be enclosed in brackets so that printing tuples stays unambiguous
+   - the output must print in one line
+   - should make sense as a standalone without context
+   - variable names/generators/relations should not be printed only their number.
+   - Only the first word is capitalized e.g. `Polynomial ring`
+   - one should use `terse` for nested printing in compact
+   - nested calls to `one line` (if you think them really necessary) should be at the end,
+     so that one can read sequentially. Calls to `terse` can be anywhere.
+   - commas must be enclosed in brackets so that printing tuples stays unambiguous
 
-3. Terse printing
-  - a user readable version of the main (mathematical) type.
-  - a single term or a symbol/letter mimicking mathematical notation
-  - should usually only depend on the type and not of the type parameters or of
-    the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
-  - no nested printing. In particular variable names and `base_ring` must not be displayed.
-    This ensures that `one line` and `terse` stay compact even for complicated things.
-    If you want nested printing use `one line` or `detailed`.
+3. **Terse printing**
+   - a user readable version of the main (mathematical) type.
+   - a single term or a symbol/letter mimicking mathematical notation
+   - should usually only depend on the type and not of the type parameters or of
+     the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+   - no nested printing. In particular variable names and `base_ring` must not be displayed.
+     This ensures that `one line` and `terse` stay compact even for complicated things.
+     If you want nested printing use `one line` or `detailed`.
 
 
 ## Implementing `show` functions
