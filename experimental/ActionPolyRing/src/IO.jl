@@ -11,7 +11,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   print(io, "Difference polynomial ring in $n elementary symbols ")
   join(io, elementary_symbols(dpr), ", ")
   print(io, "\n")
-  print(io, "with $(ndiffs(dpr)) commuting endomorphisms\n")
+  print(io, "with $(n_action_maps(dpr)) commuting endomorphisms\n")
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(dpr))
   print(io, Dedent())
@@ -34,7 +34,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   print(io, "Differential polynomial ring in $n elementary symbols ")
   join(io, elementary_symbols(dpr), ", ")
   print(io, "\n")
-  print(io, "with $(ndiffs(dpr)) commuting derivations\n")
+  print(io, "with $(n_action_maps(dpr)) commuting derivations\n")
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(dpr))
   print(io, Dedent())
@@ -144,7 +144,7 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", ran::ActionPolyRingRanking)
   io = pretty(io)
-  print(io, "Ranking of ", Lowercase(), base_ring(ran))
+  print(io, "Ranking of ", Lowercase(), parent(ran))
   print(io, "\n")
   print(io, "with elementary symbols partitioned by\n")
   print(io, Indent())
@@ -161,10 +161,10 @@ function Base.show(io::IO, ran::ActionPolyRingRanking)
   if is_terse(io)
     print(io, "Ranking")
   else
-    if base_ring(ran) isa DifferencePolyRing
+    if parent(ran) isa DifferencePolyRing
       print(terse(io), "Ranking of difference polynomial ring")
     end
-    if base_ring(ran) isa DifferentialPolyRing
+    if parent(ran) isa DifferentialPolyRing
       print(terse(io), "Ranking of differential polynomial ring")
     end
   end
