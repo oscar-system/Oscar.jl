@@ -41,12 +41,13 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
     # TODO: Iteration over the terms of v is VERY slow due to its suboptimal implementation.
     # We have to iterate manually. This saves us roughly 2/3 of the memory consumption and 
     # it also runs three times as fast. 
-    w = zero(cod)
+    w_coords = sparse_row(kk)
     for (i, b) in coordinates(v)
-      #g = orig_cod[i]
-      w += sum(c*cod[cod_dict[(n, i)]] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
+      for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b))
+        w_coords = Hecke.add_scaled_row!(coordinates(cod[cod_dict[(n, i)]]), w_coords, c)
+      end
     end
-    img_gens_res[k] = w
+    img_gens_res[k] = cod(w_coords)
   end
   return hom(dom, cod, img_gens_res)
 end
