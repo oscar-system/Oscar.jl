@@ -671,7 +671,14 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(map_entries(h, coordinates(x)))
-      return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      # in-place version of 
+      # return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      S = base_ring(G)
+      pre_res = sparse_row(S)
+      for (i, b) in coordinates(x)
+        pre_res = Hecke.add_scaled_row!(coordinates(a[i]), pre_res, h(b))
+      end
+      return FreeModElem(pre_res, G)
     end
     function pr_func(x)
       @assert parent(x) === G
