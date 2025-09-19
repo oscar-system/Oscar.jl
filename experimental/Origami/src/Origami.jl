@@ -144,7 +144,7 @@ end
 
 function veech_group(O::Origami)
     # TODO use hashtables or not? Implement modular subgroup?
-    GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))::Int
+    GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))
 end
 
 function index_monodromy_group(o::Origami)
@@ -152,7 +152,7 @@ function index_monodromy_group(o::Origami)
 end
 
 function sum_of_lyapunov_exponents(o::Origami)
-    return GAP.Globals.SumOfLyapunovExponents(GapObj(o))::Int
+    return QQFieldElem(GAP.Globals.SumOfLyapunovExponents(GapObj(o)))
 end
 
 function translations(o::Origami)
@@ -228,7 +228,11 @@ end
 
 function cylinder_structure(o::Origami)
     gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
-    return Vector{Int}(gap_obj)
+    cyl_lists = Vector{Vector{Int}}(gap_obj)
+    # TODO do we want the structure as a list of length-two lists or as
+    # a list of tuples? Current solution uses tuples.
+    cyl_tuples = [(l[1], l[2]) for l in cyl_lists]
+    return cyl_tuples
 end
 
 function veech_group_and_orbit(o::Origami)
