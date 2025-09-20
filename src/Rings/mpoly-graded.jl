@@ -37,7 +37,7 @@ If `R` is, say, `G`-graded, then return `G`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> G = grading_group(R)
@@ -276,7 +276,7 @@ julia> weights(R)
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:4, W);
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:4; weights = W);
 
 julia> weights(R)
 4-element Vector{FinGenAbGroupElem}:
@@ -409,7 +409,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> R
 Multivariate polynomial ring in 4 variables over QQ graded by
@@ -531,7 +531,7 @@ Finitely generated abelian group
 
 julia> W1 = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
  
-julia> R1, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3, W1);
+julia> R1, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = W1);
 
 julia> R1
 Multivariate polynomial ring in 5 variables over QQ graded by

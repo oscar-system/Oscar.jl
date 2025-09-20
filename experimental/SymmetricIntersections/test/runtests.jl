@@ -3,7 +3,7 @@ using Oscar
 
 @testset "Elevators" begin
   W = sort(rand(1:5, 10))
-  S, x = graded_polynomial_ring(QQ, 10, W; cached=false)
+  S, x = graded_polynomial_ring(QQ, 10; weights=W, cached=false)
 
   function weight(p)
     return degree(p).coeff[1]

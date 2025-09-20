@@ -328,7 +328,7 @@ $(0 :_M I) := \{m \in M \mid m\cdot I = 0\}.$
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"];weights = [[1,0],[0,1]])
+julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
@@ -389,7 +389,7 @@ $(0 :_M I^\infty) := \{m \in M \mid m\cdot I^n = 0\text{ for some }n\in \NN_{>0}
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"];weights = [[1,0],[0,1]])
+julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
