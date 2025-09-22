@@ -139,7 +139,7 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
 end
 
 function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
-  if dict[:_type] in ["Vector", "Set", "Matrix",
+  if dict[:_type][:name] in ["Vector", "Set", "Matrix",
                       "MultiDimArray", "NamedTuple", "Tuple"]
     if dict[:data] isa Vector{String}
       ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
@@ -159,8 +159,20 @@ function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
         dict[:_type][:params] = upgraded_entry[:_type]
       end
     end
-  elseif dict[:_type] == "Dict"
-    
+  elseif dict[:_type][:name] == "Dict"
+    key_params = dict[:_type][:params][:key_params]
+    value_params = dict[:_type][:params][:value_params]
+    upgraded_entry = nothing
+    for entry in dict[:data]
+      if entry isa Pair
+        upgraded_entry = script(u_s)(s, Dict(:_type => key_params, :data => k))
+        dict[:data][entry.first] = upgraded_entry[:data]
+      else
+        k, v = entry
+        upgraded_k = script(u_s)(s, Dict(:_type => key_params, :data => k))
+        upgraded_v = script(u_s)(s, Dict(:_type => key_params, :data => k))
+      end
+    end
   end
 end
 include("0.11.3.jl")
