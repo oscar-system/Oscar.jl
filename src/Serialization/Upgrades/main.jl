@@ -51,7 +51,7 @@ function UpgradeState()
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
-                     dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
+                     dict::Dict{Symbol}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
 const upgrade_scripts_set = Set{UpgradeScript}()
@@ -139,13 +139,16 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
 end
 
 
-function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
+function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
+  # all containers have a Dict for their type description
+  # with a name and a params key
+  dict[:_type] isa String && return dict
   if dict[:_type][:name] in ["Vector", "Set", "Matrix",
                              "MultiDimArray", "NamedTuple", "Tuple"]
     if dict[:data] isa Vector{String}
       ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
       if !isnothing(ref_entry)
-        ref_entry = script(u_s)(s, ref_entry)
+        ref_entry = upgrade(s, ref_entry)
         dict[:_type][:params] = ref_entry[:_type]
       end
     else
@@ -153,7 +156,7 @@ function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
       upgraded_entries = Dict[]
       upgraded_entry = nothing
       for entry in dict[:data]
-        upgraded_entry = script(u_s)(s, Dict(:_type => subtype, :data => entry))
+        upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
         push!(upgraded_entries, upgraded_entry[:data])
       end
       if !isnothing(upgraded_entry)
@@ -162,16 +165,18 @@ function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
     end
   elseif dict[:_type][:name] == "Dict"
     key_params = dict[:_type][:params][:key_params]
-    value_params = dict[:_type][:params][:value_params]
-    upgraded_entry = nothing
-    for entry in dict[:data]
-      if entry isa Pair
-        upgraded_entry = script(u_s)(s, Dict(:_type => key_params, :data => k))
+
+    if haskey(dict[:_type][:params], :value_params)
+      value_params = [:value_params]
+      upgraded_entry = nothing
+      for (k, v) in dict[:data]
+        upgraded_k = upgrade(s, Dict(:_type => key_params, :data => k))
+        upgraded_v = upgrade(s, Dict(:_type => value_params, :data => v))
+      end
+    else
+      for entry in dict[:data]
+        upgraded_entry = upgrade(s, Dict(:_type => key_params, :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
-      else
-        k, v = entry
-        upgraded_k = script(u_s)(s, Dict(:_type => key_params, :data => k))
-        upgraded_v = script(u_s)(s, Dict(:_type => key_params, :data => k))
       end
     end
   end
@@ -188,6 +193,7 @@ include("1.1.0.jl")
 include("1.2.0.jl")
 include("1.3.0.jl")
 include("1.4.0.jl")
+include("1.6.0.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -215,7 +221,7 @@ function upgrade(format_version::VersionNumber, dict::Dict)
 
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load
-      # uses JSON3 which is read only 
+      # uses JSON3 which is read only
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)
