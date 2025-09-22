@@ -155,7 +155,7 @@ end
 ## GAP straight line program
 function straight_line_program(slp::GapObj)
   @req GAP.Globals.IsStraightLineProgram(slp) "slp must be a straight line program in GAP"
-  lines = Vector{Any}(GAP.Globals.LinesOfStraightLineProgram(slp))
+  lines = Vector{Any}(GAP.Globals.LinesOfStraightLineProgram(slp); recursive = true)
   n = GAP.Globals.NrInputsOfStraightLineProgram(slp)
   return SLP.GAPSLProgram(lines, n)
 end

@@ -4,9 +4,9 @@
   )
 
   ntv = normal_toric_variety(cube(2))
-  (x1, x2, y1, y2) = gens(cox_ring(ntv));
+  (x1, x2, y1, y2) = gens(cox_ring(ntv))
   sv1 = closed_subvariety_of_toric_variety(ntv, [x1])
-  sv2 = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
+  sv2 = closed_subvariety_of_toric_variety(ntv, [x1^2 + x1 * x2 + x2^2, y2])
 
   P3 = projective_space(NormalToricVariety, 3)
   sv3 = closed_subvariety_of_toric_variety(P3, [gens(cox_ring(P3))[1]^2])

@@ -489,3 +489,10 @@ macro define_model_attribute_getter(
     end
   end
 end
+
+#
+#
+function ensure_qsmdb_installed()
+  f = LazyArtifacts.find_artifacts_toml(oscardir)
+  LazyArtifacts.ensure_artifact_installed("QSMDB", f)
+end
