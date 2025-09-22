@@ -140,7 +140,7 @@ end
 
 function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
   if dict[:_type][:name] in ["Vector", "Set", "Matrix",
-                      "MultiDimArray", "NamedTuple", "Tuple"]
+                             "MultiDimArray", "NamedTuple", "Tuple"]
     if dict[:data] isa Vector{String}
       ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
       if !isnothing(ref_entry)
