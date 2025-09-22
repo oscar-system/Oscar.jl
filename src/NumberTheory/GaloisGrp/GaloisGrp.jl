@@ -1335,13 +1335,13 @@ function sum_orbits(K, Qt_to_G, r)
   end
   @vprint :GaloisGroup 1 "... factoring...\n"
   @vtime :GaloisGroup 2 fg  = factor(g)
-  @assert all(isone, values(fg.fac))
+  @assert all(isone(e) for (_, e) in fg)
 
   O = []
   if isa(r[1], AcbFieldElem)
     mm = collect(m)
   end
-  for f = keys(fg.fac)
+  for (f, _) in fg
     r = roots(map_coefficients(Qt_to_G, f))
     if isa(r[1], AcbFieldElem)
       push!(O, [mm[argmin(map(x->abs(x[1]-y), mm))][2] for y = r])
@@ -1708,13 +1708,13 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
   if prime != 0
     p = prime
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
     lf = factor(GF(p), f)
-    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, first.(collect(lf))))])
   end
 
   d_max = degree(f)^2
@@ -1737,13 +1737,13 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
       continue
     end
     lf = factor(GF(p), f)
-    if any(>(1), values(lf.fac))
+    if any(>(1), (e for (_, e) in lf))
       continue
     end
     filter_pattern(lf) || continue
     no_p +=1 
-    push!(ct, sort(map(degree, collect(keys(lf.fac))))) # ct = cycle types as vector of cycle lengths
-    d = lcm([degree(x) for x = keys(lf.fac)])
+    push!(ct, sort(map(degree, first.(collect(lf))))) # ct = cycle types as vector of cycle lengths
+    d = lcm([degree(x) for (x, _) in lf])
     if d <= d_max 
       if d >= d_min
         push!(ps, (p, d))
@@ -2850,7 +2850,7 @@ group of permutations of the roots. Furthermore, the `GaloisCtx` is
 returned allowing algorithmic access to the splitting field.
 """
 function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
-  lf = [(k,v) for  (k,v) = factor(f).fac]
+  lf = [(k,v) for  (k,v) = factor(f)]
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"

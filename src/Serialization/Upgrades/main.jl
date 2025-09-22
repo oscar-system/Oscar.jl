@@ -138,6 +138,7 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
   return dict
 end
 
+
 function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
   if dict[:_type][:name] in ["Vector", "Set", "Matrix",
                              "MultiDimArray", "NamedTuple", "Tuple"]
@@ -175,6 +176,9 @@ function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
     end
   end
 end
+
+# following order is the order in which upgrades will happen
+
 include("0.11.3.jl")
 include("0.12.0.jl")
 include("0.12.2.jl")

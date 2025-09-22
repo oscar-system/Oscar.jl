@@ -34,7 +34,7 @@ function _create_literature_model_index()
       model_index = string.(maximum([parse(Int, x) for x in values(model_indices)]) + 1)
       model_indices[model] = model_index
     end
-    
+
     model_index_dict = Dict("model_index" => model_index)
 
     arxiv_data = get(model_data, "arxiv_data", false)
@@ -64,25 +64,32 @@ function _create_literature_model_index()
 
     meta_data = get(model_data, "paper_meta_data", false)
     if meta_data != false
-      meta_data_dict = Dict("authors" => get(meta_data, "authors", [""]), "title" => get(meta_data, "title", ""))
+      meta_data_dict = Dict(
+        "authors" => get(meta_data, "authors", [""]), "title" => get(meta_data, "title", "")
+      )
     else
       meta_data_dict = Dict{String,Union{String,Vector{Any}}}()
     end
 
     model_descriptor_data = get(model_data, "model_descriptors", false)
     if model_descriptor_data != false
-      model_descriptor_data_dict = Dict("type" => get(model_descriptor_data, "type", [""]), "gauge_algebra" => get(model_descriptor_data, "gauge_algebra", [""]))
+      model_descriptor_data_dict = Dict(
+        "type" => get(model_descriptor_data, "type", [""]),
+        "gauge_algebra" => get(model_descriptor_data, "gauge_algebra", [""]),
+      )
     else
       model_descriptor_data_dict = Dict{String,Union{String,Vector{Any}}}()
     end
-    
-    index_entry = merge(model_index_dict, arxiv_dict, journal_dict, meta_data_dict, model_descriptor_data_dict)
+
+    index_entry = merge(
+      model_index_dict, arxiv_dict, journal_dict, meta_data_dict, model_descriptor_data_dict
+    )
     index_entry["file"] = model
     if !isempty(index_entry)
       push!(index, index_entry)
     end
   end
-  
+
   #Check if any models have been removed and update the index accordingly
   if issetequal(collect(keys(model_indices)), models) == false
     difference = setdiff(collect(keys(model_indices)), models)
@@ -90,11 +97,11 @@ function _create_literature_model_index()
       delete!(model_indices, key)
     end
   end
-  
-  open(joinpath(@__DIR__,"index.json"), "w") do file
+
+  open(joinpath(@__DIR__, "index.json"), "w") do file
     JSON.print(file, index)
   end
-  open(joinpath(@__DIR__,"model_indices.json"), "w") do file
+  open(joinpath(@__DIR__, "model_indices.json"), "w") do file
     JSON.print(file, model_indices, 2)
   end
 end

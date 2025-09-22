@@ -164,6 +164,7 @@ Grading an already graded polynomial ring is not supported.
 ```jldoctest grade-ex
 julia> grade(S)
 ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
+[...]
 ```
 To produce a new ring with different grading, you need to first
 call `forget_grading` and then `grade` the result.

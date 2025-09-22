@@ -47,11 +47,14 @@ result = 0
     "src/LieTheory",
     "test/LieTheory",
     "src/aliases.jl",
+    "src/AlgebraicGeometry/ToricVarieties",
+    "test/AlgebraicGeometry/ToricVarieties",
     "experimental/BasisLieHighestWeight",
     "experimental/ExperimentalTemplate",
     "experimental/ExteriorAlgebra",
     "experimental/LieAlgebras",
     "experimental/LinearQuotients",
+    "experimental/FTheoryTools",
   ]
   skip = [
     "experimental/InvariantTheory/src/InvariantTheory.jl",# the path matches the whitelist entry "src/InvariantTheory"

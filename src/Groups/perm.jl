@@ -4,9 +4,9 @@
 
 Base.isfinite(G::PermGroup) = true
 
-==(x::PermGroup, y::PermGroup) = x.deg == y.deg && GapObj(x) == GapObj(y)
+==(x::PermGroup, y::PermGroup) = (x === y) || (x.deg == y.deg && GapObj(x) == GapObj(y))
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && GapObj(x) == GapObj(y)
+==(x::PermGroupElem, y::PermGroupElem) = (x === y) || (degree(x) == degree(y) && GapObj(x) == GapObj(y))
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 
