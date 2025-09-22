@@ -507,7 +507,7 @@ end
 @doc raw"""
     coefficients(N::SubquoModule, p_F::FaceQ)
 
-Returns a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
+Return a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
 
 $(0 :_N p_F) \xrightarrow{\Lambda} \sum_{b\in Bp}k\{\deg(b) + F - Q\}.$
 
