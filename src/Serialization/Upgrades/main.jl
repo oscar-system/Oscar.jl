@@ -139,7 +139,8 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
 end
 
 function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
-  if dict[:_type] in ["Vector", "Set", "Matrix"]
+  if dict[:_type] in ["Vector", "Set", "Matrix",
+                      "MultiDimArray", "NamedTuple", "Tuple"]
     if dict[:data] isa Vector{String}
       ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
       if !isnothing(ref_entry)
@@ -149,15 +150,16 @@ function upgrade_containers(script::Function, s::UpgradeState, dict::Dict)
     else
       subtype = dict[:_type][:params]
       upgraded_entries = Dict[]
+      upgraded_entry = nothing
       for entry in dict[:data]
         upgraded_entry = script(u_s)(s, Dict(:_type => subtype, :data => entry))
+        push!(upgraded_entries, upgraded_entry[:data])
+      end
+      if !isnothing(upgraded_entry)
+        dict[:_type][:params] = upgraded_entry[:_type]
       end
     end
   elseif dict[:_type] == "Dict"
-
-  elseif dict[:_type] == "NamedTuple"
-
-  elseif dict[:_type] == "Tuple"
     
   end
 end
