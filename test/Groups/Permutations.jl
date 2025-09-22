@@ -433,8 +433,8 @@ end
   g = symmetric_group(4)             # S₄
   s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup (order 3)
   e = one(g)                         # identity element
-  y = gens(g)[1]                     # an example element of g
-  x = gens(s)[1]                     # generator of Sylow subgroup
+  y = gen(g, 1)                      # an example element of g
+  x = gen(s, 1)                      # generator of Sylow subgroup
 
   # Tests for fixed_points on individual elements
   @test fixed_points(x) == [4]       # Sylow generator fixes only 4
@@ -447,4 +447,22 @@ end
   z = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
   expected_fixed = [4]
   @test sort(fixed_points(z)) == expected_fixed
+end
+
+@testset "number_of_fixed_points tests" begin
+  # Setup permutation group
+  g = symmetric_group(4)              # S₄
+  s = sylow_subgroup(g, 3)[1]         # a Sylow 3-subgroup (order 3)
+  e = one(g)                          # identity element
+  y = gen(g, 1)                       # first generator of S₄ (4-cycle)
+  x = gen(s, 1)                       # generator of Sylow subgroup
+
+  # Tests for number_of_fixed_points on individual elements
+  @test number_of_fixed_points(x) == 1          # Sylow generator fixes only 4
+  @test number_of_fixed_points(e) == 4          # Identity fixes all points
+  @test number_of_fixed_points(y) == 0          # generator (1 2 3 4) fixes nothing
+
+  z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
+  expected_number = 1                            # only point 4 is fixed
+  @test number_of_fixed_points(z) == expected_number
 end

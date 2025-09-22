@@ -203,6 +203,26 @@ function fixed_points(G::Union{PermGroup, PermGroupElem})
 end
 
 @doc raw"""
+    number_of_fixed_points(x::PermGroupElem) -> Int
+    number_of_fixed_points(G::PermGroup) -> Int
+
+Return the number of those points in `1:degree(x)` or `1:degree(G)`,
+respectively, that are fixed under the action `^`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> number_of_fixed_points(s)
+1
+
+julia> number_of_fixed_points(one(s))
+4
+```
+"""
+number_of_fixed_points(x::Union{PermGroupElem, PermGroup}) = length(fixed_points(x))
+
+@doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
     number_of_moved_points(G::PermGroup) -> Int
 
