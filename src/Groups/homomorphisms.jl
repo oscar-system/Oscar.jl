@@ -408,12 +408,12 @@ end
 
 
 """
-    preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+    preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
 
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+function preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
   H1 = GAP.Globals.PreImage(GapObj(f), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
