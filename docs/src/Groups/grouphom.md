@@ -144,7 +144,7 @@ kernel(f::GAPGroupHomomorphism)
 image(f::GAPGroupHomomorphism)
 image(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
 cokernel(f::GAPGroupHomomorphism)
-preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup}
+preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
 ```
 
 ## Group isomorphisms
