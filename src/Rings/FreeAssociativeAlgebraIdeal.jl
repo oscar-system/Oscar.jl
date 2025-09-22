@@ -163,13 +163,18 @@ _to_lpring(a::FreeAssociativeAlgebra, deg_bound::Int; ordering::Symbol=:deglex) 
 Compute the Groebner basis for a vector of generators `g` in a free associative algebra.
 Supports several algorithms and options for degree bounds, ordering, protocol, and interreduction.
 
+By default (`algorithm=:default`), the algorithm is chosen as follows:
+- If `ordering == :deglex` and the base ring is `QQ`, use `:f4`.
+- If `deg_bound == -1`, use `:buchberger`.
+- Otherwise, use `:letterplace`.
+
 # Arguments
 - `g::Vector{<:FreeAssociativeAlgebraElem}`: Generators of the ideal.
 - `deg_bound::Int`: Degree bound for the computation (default: -1).
 - `ordering::Symbol`: Monomial ordering (default: :deglex).
 - `protocol::Bool`: Whether to return the computation protocol (default: false).
 - `interreduce::Bool`: Whether to interreduce the result (default: false).
-- `algorithm::Symbol`: Algorithm to use (:f4, :buchberger, :letterplace; default: :f4).
+- `algorithm::Symbol`: Algorithm to use (:f4, :buchberger, :letterplace, or :default). If set to `:default`, the algorithm is chosen automatically based on the input.
 - `set_tracer::Bool`: Enable probabilistic behavior (default: false).
 
 # Returns
