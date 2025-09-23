@@ -3,7 +3,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d; check=fac.check)))
+  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d)))
   fac.mapping_dicts[i] = cod_dict
   return FreeMod(kk, length(cod_dict))
 end

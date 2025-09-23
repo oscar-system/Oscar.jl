@@ -29,7 +29,7 @@ struct StrandMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMapFactor
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
 
-  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem)
+  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem})
     return new{FreeModuleHom}(orig, d)
   end
 end
