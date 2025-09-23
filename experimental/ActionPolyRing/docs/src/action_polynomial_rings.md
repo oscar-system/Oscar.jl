@@ -74,7 +74,7 @@ gens(A::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
 ```
 
 !!! note "Creating polynomials"
-    Polynomials can be created using by applying the usual arithmetic operations, such as `+`, `-`, `*`, `^`
+    Polynomials can be created by applying the usual arithmetic operations, such as `+`, `-`, `*`, and `^`,
     to jet variables.
 
 ## [Generators and variables](@id generators_and_variables_apr)
