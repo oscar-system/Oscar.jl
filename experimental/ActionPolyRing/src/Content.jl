@@ -325,7 +325,7 @@ end
 @doc raw"""
     is_univariate(p::ActionPolyRing)
 
-Returns `false` since an action polynomial ring cannot be univariate.
+Return `false`, since an action polynomial ring cannot be univariate.
 """
 is_univariate(apr::ActionPolyRing) = false
 
