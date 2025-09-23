@@ -750,6 +750,7 @@ julia> matrix(ZZ, lattice_points(S))
 ```
 """
 function lattice_points(P::Polyhedron; check::Bool=true)
+    check && error()
   @check pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
