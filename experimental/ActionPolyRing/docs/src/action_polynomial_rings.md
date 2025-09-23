@@ -156,7 +156,7 @@ tail(p::ActionPolyRingElem)
 ```
 
 ## [Miscellaneous](@id miscellaneous_apr)
-In this subsection we enumerate methods that might be useful but primarily exists, because they already do
+In this subsection, we enumerate methods that might be useful but primarily exists, because they already do
 for other polynomial types.
 
 ### Constant polynomials
