@@ -26,14 +26,14 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = chain_factory(c).mapping_dicts[next] #Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d; check=fac.check)))
+  cod_dict = chain_factory(c).mapping_dicts[next]
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
   kk = coefficient_ring(R)
   vv = gens(R)
   img_gens_res = Vector{elem_type(cod)}(undef, ngens(dom))
-  for ((e, i), k) in chain_factory(c).mapping_dicts[i] # all_exponents(orig_dom, fac.d; check=fac.check) # iterate through the generators of `dom`
+  for ((e, i), k) in chain_factory(c).mapping_dicts[i] # all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
     # m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i] # replaced by the more efficient line below
     m = R([one(kk)], [e])*orig_dom[i]
     v = orig_map(m) # map the monomial
@@ -57,8 +57,8 @@ function can_compute(fac::StrandMorphismFactory, c::AbsHyperComplex, p::Int, i::
 end
 
 ### User facing constructor
-function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:ModuleFP}
-  result = StrandComplex(c, d; check)
+function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:ModuleFP}
+  result = StrandComplex(c, d)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc
   pr = StrandProjectionMorphism(result)
@@ -68,9 +68,9 @@ end
 
 
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
-function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
+function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
   D = W.D
-  @check is_free(D) "Grading group must be free"
+  is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), D, W.d)
   fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
@@ -81,7 +81,7 @@ function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
      #Ax = b, Cx >= 0
      C = identity_matrix(ZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C; check)
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)
      B = Vector{Int}[k[ee, :] for ee in 1:nrows(k)]
   end
   return B

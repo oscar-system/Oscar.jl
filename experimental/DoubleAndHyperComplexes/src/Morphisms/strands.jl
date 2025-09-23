@@ -16,12 +16,11 @@ struct StrandChainFactory{ChainType<:ModuleFP} <: HyperComplexChainFactory{Chain
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
   mapping_dicts::Dict{Tuple, Dict}
-  check::Bool
 
   function StrandChainFactory(
-      orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}, check::Bool
+      orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}
     ) where {ChainType<:ModuleFP}
-    return new{FreeMod}(orig, d, Dict{Tuple, Dict}(), check) # TODO: Specify the chain type better
+    return new{FreeMod}(orig, d, Dict{Tuple, Dict}()) # TODO: Specify the chain type better
   end
 end
 
@@ -29,10 +28,9 @@ end
 struct StrandMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMapFactory{MorphismType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
-  check::Bool
 
-  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem}, check)
-    return new{FreeModuleHom}(orig, d, check)
+  function StrandMorphismFactory(orig::AbsHyperComplex, d::Union{Int, FinGenAbGroupElem)
+    return new{FreeModuleHom}(orig, d)
   end
 end
 
@@ -45,11 +43,10 @@ end
   projection_map::AbsHyperComplexMorphism
 
   function StrandComplex(
-      orig::AbsHyperComplex{ChainType, MorphismType}, d::Union{Int, FinGenAbGroupElem}; 
-      check::Bool=true
+      orig::AbsHyperComplex{ChainType, MorphismType}, d::Union{Int, FinGenAbGroupElem}
     ) where {ChainType <: ModuleFP, MorphismType <: ModuleFPHom}
-    chain_fac = StrandChainFactory(orig, d, check)
-    map_fac = StrandMorphismFactory(orig, d, check)
+    chain_fac = StrandChainFactory(orig, d)
+    map_fac = StrandMorphismFactory(orig, d)
 
     internal_complex = HyperComplex(dim(orig), 
                                     chain_fac, map_fac, Symbol[direction(orig, i) for i in 1:dim(orig)],
@@ -133,7 +130,6 @@ function (fac::StrandProjectionMorphismFactory)(self::AbsHyperComplexMorphism, i
   # generators of `cod`.
   cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(dom, degree(strand))))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
-  
   return MapFromFunc(dom, cod, 
                      function(v)
                        R = base_ring(cod)

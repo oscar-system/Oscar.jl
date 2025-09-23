@@ -155,28 +155,27 @@ end
 struct AllModuleExponents{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGroupElem}}
   F::ModuleType
   d::DegreeType
-  check::Bool
   exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
 
-  function AllModuleExponents(F::FreeMod{T}, d::Int; check::Bool=true) where {T <: MPolyDecRingElem}
+  function AllModuleExponents(F::FreeMod{T}, d::Int) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_standard_graded(S) || error("iterator implemented only for the standard graded case")
-    return new{typeof(F), Int}(F, d, check)
+    return new{typeof(F), Int}(F, d)
   end
-  function AllModuleExponents(F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true) where {T <: MPolyDecRingElem}
+  function AllModuleExponents(F::FreeMod{T}, d::FinGenAbGroupElem) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_zm_graded(S) || error("iterator implemented only for the ZZ^m-graded case")
-    return new{typeof(F), FinGenAbGroupElem}(F, d, check, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}())
+    return new{typeof(F), FinGenAbGroupElem}(F, d, Dict{FinGenAbGroupElem, Vector{Vector{Int}}}())
   end
 end
 
 underlying_module(amm::AllModuleExponents) = amm.F
 degree(amm::AllModuleExponents) = amm.d
 
-function all_exponents(F::FreeMod{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:MPolyDecRingElem}
-  return AllModuleExponents(F, d; check)
+function all_exponents(F::FreeMod{T}, d::Union{Int, FinGenAbGroupElem}) where {T<:MPolyDecRingElem}
+  return AllModuleExponents(F, d)
 end
 
 Base.eltype(::Type{<:AllModuleExponents{T}}) where {T} = Tuple{Vector{Int}, Int}
@@ -245,13 +244,13 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
   r = rank(F)
   R = base_ring(F)
   d = degree(amm)::FinGenAbGroupElem
-  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g); check=amm.check))) for g in gens(F); init=0)
+  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g)))) for g in gens(F); init=0)
   result = 0
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
     any(Int(d_loc[i]) < 0 for i in 1:ngens(parent(d)))&& continue
     exps = get!(amm.exp_cache, d_loc) do
-      return all_exponents(R, d_loc; check=amm.check)
+      return all_exponents(R, d_loc)
     end
     result += length(exps)
   end
@@ -267,7 +266,7 @@ function Base.iterate(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, sta
     d_loc = d - degree(g; check=false)
 
     exps = get!(amm.exp_cache, d_loc) do
-      all_exponents(R, d_loc; check=amm.check)
+      all_exponents(R, d_loc)
     end
 
     res = iterate(exps)
@@ -293,7 +292,7 @@ function Base.iterate(
     for j in i+1:ngens(F)
       d_loc = d - degree(F[j]; check=false)
       exps = get!(amm.exp_cache, d_loc) do
-        all_exponents(R, d_loc; check=amm.check)
+        all_exponents(R, d_loc)
       end
       res_loc = iterate(exps)
       res_loc === nothing && continue
