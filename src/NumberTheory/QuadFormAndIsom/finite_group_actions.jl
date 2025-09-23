@@ -399,7 +399,8 @@ function stabilizer_in_diagonal_action(
     K::ZZLat,
     N::ZZLat,
     OK::MatrixGroup,
-    ON::MatrixGroup,
+    ON::MatrixGroup;
+    check::Bool=true,
   )
   if check
     @req is_even(L) "Currently only available for even lattices"
@@ -561,6 +562,9 @@ julia> order(H)
 function stabilizer_in_orthogonal_group(
     L::ZZLat,
     B::QQMatrix;
+    stable::Bool=false,
+    special::Bool=false,
+    check::Bool=true,
     kwargs...,
   )
   K = orthogonal_submodule(L, B)
