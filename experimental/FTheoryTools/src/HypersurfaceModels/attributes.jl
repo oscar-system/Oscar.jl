@@ -24,7 +24,6 @@ x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
 """
 hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 
-
 @doc raw"""
     hypersurface_equation_parametrization(h::HypersurfaceModel)
 
@@ -32,7 +31,9 @@ Return the parametrization of the hypersurface equation by the model sections.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+julia> using Random;
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", rng = Random.Xoshiro(1234))
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
@@ -47,13 +48,17 @@ julia> hypersurface_equation_parametrization(h)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equation_parametrization
-
+hypersurface_equation_parametrization(h::HypersurfaceModel) =
+  h.hypersurface_equation_parametrization
 
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
 
 Return the Weierstrass model corresponding to the given hypersurface model, if known.
+
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -89,7 +94,7 @@ julia> weierstrass_model(h) === w
 true
 ```
 """
-function weierstrass_model(h::HypersurfaceModel)
+function weierstrass_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng())
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   w = get_attribute(h, :weierstrass_model)
   if w isa WeierstrassModel
@@ -99,19 +104,28 @@ function weierstrass_model(h::HypersurfaceModel)
   directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   if is_base_space_fully_specified(h)
-    w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+    w_model = literature_model(
+      parse(Int, model_indices[w]);
+      base_space=base_space(h),
+      defining_classes=defining_classes(h),
+      completeness_check=false,
+      rng=rng,
+    )
   else
-    w_model = literature_model(parse(Int, model_indices[w]))
+    w_model = literature_model(parse(Int, model_indices[w]); rng=rng)
   end
   set_weierstrass_model(h, w_model)
   return w_model
 end
 
-
 @doc raw"""
     global_tate_model(h::HypersurfaceModel)
 
 Return the global Tate model corresponding to the given hypersurface model, if known.
+
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding global
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -153,7 +167,7 @@ julia> global_tate_model(h) === t
 true
 ```
 """
-function global_tate_model(h::HypersurfaceModel)
+function global_tate_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng())
   @req has_attribute(h, :global_tate_model) "No corresponding global Tate model is known"
   t = get_attribute(h, :global_tate_model)
   if t isa GlobalTateModel
@@ -163,14 +177,19 @@ function global_tate_model(h::HypersurfaceModel)
   directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
   model_indices = JSON.parsefile(directory * "model_indices.json")
   if is_base_space_fully_specified(h)
-    t_model = literature_model(parse(Int, model_indices[t]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+    t_model = literature_model(
+      parse(Int, model_indices[t]);
+      base_space=base_space(h),
+      defining_classes=defining_classes(h),
+      completeness_check=false,
+      rng=rng,
+    )
   else
-    t_model = literature_model(parse(Int, model_indices[t]))
+    t_model = literature_model(parse(Int, model_indices[t]); rng=rng)
   end
   set_global_tate_model(h, t_model)
   return t_model
 end
-
 
 @doc raw"""
     discriminant(h::HypersurfaceModel)
@@ -218,7 +237,6 @@ Abelian group element [36]
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return discriminant(weierstrass_model(h))
 end
-
 
 @doc raw"""
     singular_loci(h::HypersurfaceModel)
@@ -269,8 +287,14 @@ julia> length(singular_loci(h; rng = Random.Xoshiro(1234)))
 2
 ```
 """
-@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel; rng::AbstractRNG = Random.default_rng())
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem},Tuple{Int64,Int64,Int64},String}} function singular_loci(
+  h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng()
+)
   @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) || has_attribute(h, :global_tate_model) "No corresponding Weierstrass model or global Tate model is known"
-  return has_attribute(h, :weierstrass_model) ? singular_loci(weierstrass_model(h); rng) : singular_loci(global_tate_model(h); rng)
+  return if has_attribute(h, :weierstrass_model)
+    singular_loci(weierstrass_model(h); rng)
+  else
+    singular_loci(global_tate_model(h); rng)
+  end
 end

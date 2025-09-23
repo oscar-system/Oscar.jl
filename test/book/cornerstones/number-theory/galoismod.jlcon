@@ -1,4 +1,4 @@
-julia> Oscar.randseed!(VERSION > v"1.13.0-" ? 778754 : 3371100);
+julia> Oscar.randseed!(VERSION > v"1.13.0-" ? 1145739 : 3371100);
 
 julia> Qx, x = QQ["x"];
 

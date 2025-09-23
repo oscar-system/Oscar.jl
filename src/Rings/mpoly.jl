@@ -69,6 +69,27 @@ using .Orderings
 Return the monomial ordering that is used for computations with ideals in `R`
 if no other ordering is specified -- either directly by the user or by
 requirements of a specific algorithm.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> default_ordering(R)
+degrevlex([x, y, z])
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over R
+
+julia> default_ordering(F)
+degrevlex([x, y, z])*lex([gen(1), gen(2)])
+
+julia> S, _ = grade(R, [1, 2, 3])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> default_ordering(S)
+wdegrevlex([x, y, z], [1, 2, 3])
+```
 """
 @attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyRing}
   return degrevlex(R)

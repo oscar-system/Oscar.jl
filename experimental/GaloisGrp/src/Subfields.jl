@@ -339,7 +339,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   f = divexact(f, content(f))
 
   p, ct = find_prime(Hecke.Globals.Qx(f), pStart = pStart, prime = prime,
-                                          filter_pattern = x->any(t->degree(t) == 1, keys(x.fac)))
+                                          filter_pattern = x->any(t->degree(t) == 1, first.(collect(x))))
   n = degree(K)
   if primitive_by_shape(ct, n)
     return nothing

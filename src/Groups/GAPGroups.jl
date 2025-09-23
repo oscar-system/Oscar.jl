@@ -6,6 +6,8 @@
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 
+#TODO: where is `check_parent` *used* in the context of groups?
+#      (apparently not in the situation of a group element and a group)
 #TODO: document `check_parent`!
 # If `check_parent(a, b)` yields `false` then `a` and `b` do not fit
 # together.
@@ -376,6 +378,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 isequal(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
 function ==(x::GAPGroup, y::GAPGroup)
+  x === y && return true
   _check_compatible(x, y)
   return GapObj(x) == GapObj(y)
 end
@@ -387,6 +390,7 @@ isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 # in the sense of `_check_compatible`,
 # and compare the `GapObj`s if this is the case.
 function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y))
   return GapObj(x) == GapObj(y)
 end
@@ -394,6 +398,7 @@ end
 # For two `GAPGroupElem`s,
 # if no specialized method is applicable then no `==` comparison is allowed.
 function ==(x::GAPGroupElem, y::GAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
@@ -968,10 +973,12 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where (T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}
 
 Return a vector of all conjugacy classes of subgroups of `G` or,
-if `order` is positive, the classes of subgroups of this order.
+if `order` is positive, the classes of subgroups of this order, or,
+if `order_bound` is an integer,
+the classes of subgroups of order up to `order_bound`.
 
 # Examples
 ```jldoctest
@@ -988,15 +995,39 @@ julia> subgroup_classes(G)
 julia> subgroup_classes(G, order = ZZRingElem(2))
 1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
+
+julia> subgroup_classes(G, order_bound = 3)
+3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
-function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
-  L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
-  res = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where {T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}}
   if order != -1
-    filter!(x -> AbstractAlgebra.order(representative(x)) == order, res)
+    order_bound = min(order, order_bound)
   end
-  return res
+  if order_bound != inf && !GAPWrap.HasConjugacyClassesSubgroups(GapObj(G))
+    # Avoid computing all classes of subgroups.
+    gapbound = GAP.Obj(order_bound)
+    l = GAPWrap.LatticeByCyclicExtension(GapObj(G),
+            GapObj(x -> Oscar.GAPWrap.Size(x) <= gapbound))
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(l))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    end
+  else
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    elseif order_bound != inf
+      gapbound = GAP.Obj(order_bound)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) <= gapbound, L)
+    end
+  end
+  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
 end
 
 """
@@ -1112,8 +1143,8 @@ Permutation group of degree 4 and order 3
 ```
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
-  @req check_parent(G, x) "G and x are not compatible"
-  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
+  P = Oscar._common_parent_group(G, parent(x))
+  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), P)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
@@ -1976,7 +2007,7 @@ end
 
 # for convenience
 function full_group(G::Union{FPGroup, PcGroup})
-  return G, identity_map(G)
+  return G, id_hom(G)
 end
 
 
