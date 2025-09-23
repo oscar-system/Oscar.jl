@@ -1025,7 +1025,6 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
-export is_saturated
 export is_saturated_with_saturation
 export is_semiregular
 export is_semisimple
@@ -1422,8 +1421,8 @@ export point_coordinates
 export point_matrix
 export point_vector
 export points
-export pointwize_stabilizer_in_orthogonal_group
-export pointwize_stabilizer_orthogonal_complement_in_orthogonal_group
+export pointwise_stabilizer_in_orthogonal_group
+export pointwise_stabilizer_orthogonal_complement_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type
