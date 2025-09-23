@@ -14,14 +14,14 @@ rational quadratic spaces and integer lattices.
 Given an integer lattice $L$ and a collection $F$ of isometries of $L$,
 there are two canonical ways of representing the isometries in $F$ by mean
 of matrices. The first way is to represent the isometries in $F$ in the
-standard basis of the ambient quadratic space of $L$. The second way if to
+standard basis of the ambient quadratic space of $L$. The second way is to
 represent such isometries in the given fixed basis of $L$.
 
 Given one representation of $F$, by mean of matrices, the following two methods
 allow to switch to another one.
 
 ```@docs
-representation_in_ambient_coordinates
+extend_to_ambient_space
 representation_in_lattice_coordinates
 ```
 
@@ -68,43 +68,58 @@ stable_orthogonal_group(::ZZLat)
 Similarly, given any finite group $G$ of isometries of $L$, one can compute
 the stable subgroup $G\cap O^\#(L)$ of $G$.
 
-```docs
+```@docs
 stable_subgroup(::ZZLat, ::MatrixGroup)
 ```
 
-## Finite stabilizers
+## Stabilizers
 
 ```@docs
+stabilizer_discriminant_subgroup
+stabilizer_in_diagonal_action
+maximal_extension(::ZZLat, ::ZZLat, ::MatrixGroup)
 stabilizer_in_orthogonal_group
-pointwize_stabilizer_in_orthogonal_group
-stabilizer_sublattice_in_orthogonal_group
-pointwize_stabilizer_orthogonal_complement_in_orthogonal_group
+pointwise_stabilizer_in_orthogonal_group
+setwise_stabilizer_in_orthogonal_group
+pointwise_stabilizer_orthogonal_complement_in_orthogonal_group
 ```
 
 ## Saturation
 
-Given an integer lattice $L$ and two groups of isometries $H\leq G$ of $L$, we
-define the *saturation* of $H$ in $G$ to be the kernel of group homomorphism
+Given an integer lattice $L$ and two groups of isometries $H \leq G$ of $L$,
+we define the *saturation* of $H$ in $G$ to be the kernel of group homomorphism
 
 ```math
 G(L^H) \to O(L^H)
 ```
 where $G(L^H)$ denotes the stabilizer of the invariant sublattice $L^H$ in $G$.
-In other words, the saturation of $H$ in $G$ is the pointwize stabilizer of
-$L^H$ in $G$. In the case where the coinvariant sublattice $L_H$ is definite,
-the group $H$ and its saturation in any subgroup of $O(L)$ are finite. In that
-case, we can explicitly compute the saturation of $H$.
+In other words, the saturation of $H$ in $G$ is the pointwise stabilizer of
+$L^H$ in $G$. In the case where the group $G$ is finite, one can actually
+explictly compute such a group:
+
+```@docs
+saturation(::ZZLat, ::MatrixGroup, ::MatrixGroup)
+```
+In general, if the coinvariant sublattice $L_H$ of the group $H$ is definite or
+of rank 2, one can compute the saturation of $H$ inside the orthogonal group
+$O(L)$ of $L$.
 
 ```@docs
 saturation(::ZZLat, ::MatrixGroup)
-is_saturated(::ZZLat, ::MatrixGroup)
+```
+Finally, whenever the coinvariant lattice $L_H$ of $H$ is definite, it is
+possible to decide whether $H$ is saturated in the given groups as above.
+
+```@docs
+is_saturated_with_saturation
 ```
 
 ## Isometry checks
 
 Given a rational quadratic space or an integer lattice, one can ask whether
 a collection of matrices with rational entries consists of isometries of the
-given object.
+given object. The following six functions are not exported, they can be used
+for input checks in one's functions.
 
 ```@docs
 is_isometry(::Hecke.QuadSpace, ::QQMatrix)

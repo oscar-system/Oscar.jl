@@ -777,7 +777,7 @@ function integer_lattice_with_isometry(
     f_ambient = f
     f = representation_in_lattice_coordinates(L, f; check)
   else
-    f_ambient = representation_in_ambient_coordinates(L, f; check)
+    f_ambient = extend_to_ambient_space(L, f; check)
   end
   Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
 
@@ -1516,7 +1516,7 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  fq = gens(Oscar._orthogonal_group(q, TorQuadModuleMap[f]; check=false))[1]
   return q, fq
 end
 
@@ -1549,9 +1549,9 @@ function discriminant_representation(
     full::Bool=true,
     check::Bool=true,
   )
-  @check is_isometry_group(L, G, ambient_representation) "G does not define a group of isometries of L"
+  @req !check || is_isometry_group(L, G, ambient_representation) "G does not define a group of isometries of L"
   if !ambient_representation
-    G = representation_in_ambient_coordinates(L, G; check=false)
+    G = extend_to_ambient_space(L, G; check=false)
   end
   q = discriminant_group(L)
   imag_lis_map = TorQuadModuleMap[]
@@ -1564,7 +1564,7 @@ function discriminant_representation(
     Oq = orthogonal_group(q)
     imag_lis = elem_type(Oq)[Oq(f; check=false) for f in imag_lis_map]
   else
-    Oq = Oscar._orthogonal_group(q, matrix.(imag_lis_map); check=false)
+    Oq = Oscar._orthogonal_group(q, imag_lis_map; check=false)
     imag_lis = gens(Oq)
   end
   return hom(G, Oq, geneG, imag_lis; check=false)
@@ -2215,7 +2215,7 @@ function coinvariant_lattice(
   F = invariant_lattice(L, matrix.(gens(G)); ambient_representation)
   C = orthogonal_submodule(L, F)
   if !ambient_representation
-    gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
+    gene = extend_to_ambient_space(L, matrix.(gens(G)); check=false)
     gene = representation_in_lattice_coordinates(C, gene; check=false)
     G = matrix_group(gene)
   end
@@ -2298,7 +2298,7 @@ function invariant_coinvariant_pair(
   F = invariant_lattice(L, f; ambient_representation)
   C = orthogonal_submodule(L, F)
   if !ambient_representation
-    f = representation_in_ambient_coordinates(L, f; check=false)
+    f = extend_to_ambient_space(L, f; check=false)
     f = representation_in_lattice_coordinates(C, f; check=false)
   end
   return F, C, f
@@ -2316,7 +2316,7 @@ function invariant_coinvariant_pair(
   F = invariant_lattice(L, V; ambient_representation)
   C = orthogonal_submodule(L, F)
   if !ambient_representation
-    V = representation_in_ambient_coordinates(L, V; check=false)
+    V = extend_to_ambient_space(L, V; check=false)
     V = representation_in_lattice_coordinates(C, V; check=false)
   end
   return F, C, V
@@ -2334,11 +2334,11 @@ function invariant_coinvariant_pair(
   F = invariant_lattice(L, matrix.(gens(G)); ambient_representation)
   C = orthogonal_submodule(L, F)
   if !ambient_representation
-    gene = representation_in_ambient_coordinates(L, matrix.(gens(G)); check=false)
+    gene = extend_to_ambient_space(L, matrix.(gens(G)); check=false)
     gene = representation_in_lattice_coordinates(C, gene; check=false)
     G = matrix_group(gene)
   end
-  return F, C, matrix_group(gene)
+  return F, C, G
 end
 
 ##############################################################################

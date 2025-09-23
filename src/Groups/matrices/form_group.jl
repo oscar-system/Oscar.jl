@@ -935,9 +935,13 @@ unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
       kwargs...,
     ) -> MatrixGroup, GAPGroupHomomorphism
 
-Given an integer lattice $L$ with finite isometry group, return the
-subgroup $O^\#(L)$ of the isometry group of $L$ consisting of isometries
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $O^\#(L)$ of the orthogonal group of $L$ consisting of isometries
 acting trivially on the discriminant group of $L$.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -954,7 +958,6 @@ function stable_orthogonal_group(
     kwargs...,
   )
   OL = orthogonal_group(L; kwargs...)
-  @req is_finite(OL) "Isometry group must be of finite order"
   return stable_subgroup(L, OL; check=false)
 end
 
@@ -964,9 +967,13 @@ end
       kwargs...,
     ) -> MatrixGroup, GAPGroupHomomorphism
 
-Given an integer lattice $L$ with finite isometry group, return the
-subgroup $SO(L)$ of the isometry group of $L$ consisting of isometries
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO(L)$ of the orthogonal group of $L$ consisting of isometries
 with determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -983,7 +990,6 @@ function special_orthogonal_group(
     kwargs...,
   )
   OL = orthogonal_group(L; kwargs...)
-  @req is_finite(OL) "Isometry group must be of finite order"
   return special_subgroup(L, OL; check=false)
 end
 
@@ -994,9 +1000,13 @@ end
       kwargs...,
     ) -> MatrixGroup, GAPGroupHomomorphism
 
-Given an integer lattice $L$ with finite isometry group, return the
-subgroup $SO^\#(L)$ of the isometry group of $L$ consisting of isometries
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO^\#(L)$ of the orthogonal group of $L$ consisting of isometries
 acting trivially on the discriminant group of $L$ and of determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -1013,6 +1023,5 @@ function _special_stable_orthogonal_group(
     kwargs...,
   )
   OL = orthogonal_group(L; kwargs...)
-  @req is_finite(OL) "Isometry group must be of finite order"
   return Oscar._special_stable_subgroup(L, OL; check=false)
 end
