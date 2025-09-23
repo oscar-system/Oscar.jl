@@ -150,7 +150,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
       dict[:_type][:params] = ref_entry[:_type]
     end
   end
-  if dict[:_type][:name] in ["Vector", "Set", "Matrix", "MultiDimArray"]
+  if dict[:_type][:name] in ["Vector", "Set", "Matrix"] 
     subtype = dict[:_type][:params]
     upgraded_entries = Dict[]
     upgraded_entry = nothing
@@ -162,6 +162,19 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
       dict[:_type][:params] = upgraded_entry[:_type]
     end
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+  elseif dict[:_type][:name] == "MultiDimArray"
+    subtype = dict[:_type][:params][:subtype_params]
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for entry in dict[:data]
+      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    if !isnothing(upgraded_entry)
+      dict[:_type][:params][:subtype_params] = upgraded_entry[:_type]
+    end
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+
   elseif dict[:_type][:name] == "Tuple"
     upgraded_entries = Dict[]
     upgraded_entry = nothing
