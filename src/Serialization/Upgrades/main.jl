@@ -167,15 +167,33 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
     key_params = dict[:_type][:params][:key_params]
 
     if haskey(dict[:_type][:params], :value_params)
-      value_params = [:value_params]
+      value_params = dict[:_type][:params][:value_params]
       upgraded_entry = nothing
+      upgraded_pairs = Tuple[]
       for (k, v) in dict[:data]
-        upgraded_k = upgrade(s, Dict(:_type => key_params, :data => k))
         upgraded_v = upgrade(s, Dict(:_type => value_params, :data => v))
+        upgraded_k = upgrade(s, Dict(:_type => key_params, :data => k))
+        push!(upgraded_pairs, (upgraded_k, upgraded_v))
+      end
+
+      if key_params in ["Symbol", "Int", "String"]
+        dict[:data] = Dict()
+        for (upgraded_k, upgraded_v) in upgraded_pairs
+          dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+        end
+      else
+        dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
+      end
+
+      first_pair = first(upgraded_pairs)
+      if !isnothing(first_pair)
+        dict[:_type][:params][:key_params] = first_pair[1][:_type]
+        dict[:_type][:params][:value_params] = first_pair[2][:_type]
       end
     else
       for entry in dict[:data]
-        upgraded_entry = upgrade(s, Dict(:_type => key_params, :data => entry.second))
+        upgraded_entry = upgrade(s, Dict(:_type => dict[:_type][:params][entry.first],
+                                         :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
       end
     end
