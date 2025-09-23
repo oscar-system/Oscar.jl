@@ -121,11 +121,12 @@ end
 @doc raw"""
     rational_points(X::AffineVariety)
 
-Returns the coordinate vector of the $k$-point described by $X$ under
-the condition that $X$ is of dimension zero, where $k$ denotes the base
-field.
-If $X$ is not zero-dimensional (considered as an algebraic set over the
-algebraic closure of $k$), an error exception results.
+If $X$ is defined by a zero-dimensional ideal in a multivariate
+polynomial ring over a field, say, $k$, return the $k$-rational
+points of $X$.
+
+!!! note
+The zero-dimensional condition is checked by the function.
 
 # Examples
 ```jldoctest

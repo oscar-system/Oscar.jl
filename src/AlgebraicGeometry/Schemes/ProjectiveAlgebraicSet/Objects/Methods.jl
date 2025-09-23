@@ -38,11 +38,12 @@ end
 @doc raw"""
     rational_points(X::ProjectiveAlgebraicSet)
 
-Returns a vector of coordinate vectors of the $k$-points of $X$ under the condition that $X$ is of dimension zero, where $k$ denotes the base field.
-If $X$ is not zero-dimensional (considered as an algebraic set over the algebraic closure of $k$), an exception is raised.
+If $X$ is defined by a zero-dimensional homogeneous ideal in a multivariate
+graded polynomial ring over a field, say, $k$, return the $k$-rational
+points of $X$.
 
 !!! note
-    If $X$ is zero dimensional, but does not contain any $k$-point, the returned vector will be empty.
+The zero-dimensional condition is checked by the function.
 
 # Examples
 ```jldoctest
