@@ -10,10 +10,13 @@ This project aims to provide functionality for what we call action polynomial ri
 framework that allows for an algorithmic treatment of both difference polynomial rings and differential polynomial rings.
 In the future, further similar algebraic structure might be covered as well.
 
-## Supported features
+## Content
 
-The action polynomial rings provided in this project are implemented within [AbstractAlgebra's ring interface](@ref "Ring Interface") and come with all its [required functions](@ref "Required functions for all rings"). Also, the methods from [AbstractAlgebra's ring functionality](@ref "Ring functionality") are available for action polynomial rings.
+This project is structured as follows:
 
+- The section [Action polynomial rings](@ref actionpolyring) contains generic methods that work for all subtypes of the action polynomial ring interface.
+- The sections [Difference polynomial rings](@ref differencepolyring) and [Differential polynomial rings](@ref differentialpolyring) contain functionality that is unique to difference polynomial rings and differential polynomial rings respectively.
+- The section [Rankings](@ref actionpolyranking) contains the functionality for rankings of jet variables of action polynomial rings.
 
 ## Status
 
