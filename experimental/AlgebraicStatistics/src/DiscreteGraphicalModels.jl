@@ -55,14 +55,12 @@ function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
   print(io, " with states ", string(M.states))
 end
 
-# TODO: Allow the ground field to be specified!
-# TODO: Should this return MarkovRing instead which manages the MPolyRing
-# together with its generators and any special form they may have.
 @doc raw"""
-     model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
+    @attr Tuple{ModelRing, GenDict} model_ring(M::DiscreteGraphicalModel; cached=false)
 
 Return the ring in which the statistical model lives, together with a
-Dict for indexing its generators.
+Dict for indexing its generators. This is the same for directed and for
+undirected graphs.
 
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
@@ -84,18 +82,17 @@ Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
 @attr Tuple{
   ModelRing,
   GenDict
-} function model_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
+} function model_ring(M::DiscreteGraphicalModel; cached=false)
   random_variables = 1:n_states(M)
   state_spaces = [1:s for s in states(M)]
   varindices = collect(Iterators.product(state_spaces...))
-  gen_names = [["$(varnames(M)[:p])[$(join(i, ", "))]" for i in varindices]...]
 
-  # the base ring should come from the model, leaving as QQ for now
-  return model_ring(QQ, gen_names)
+  # TODO: the base ring should come from the model, leaving as QQ for now
+  return model_ring(QQ, varnames(M)[:p] => varindices)
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
-  return length(C) == 1 ? states(M)[C[1]] : Iterators.product([1:states(M)[i] for i in C]...)
+  return length(C) == 1 ? (1:states(M)[C[1]]) : Iterators.product([1:states(M)[i] for i in C]...)
 end
 
 @doc raw"""
@@ -135,6 +132,16 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
 end
 
 @doc raw"""
+    vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L} where L
+
+The vanishing ideal is toric of an undirected discrete graphical model
+is toric. Therefore its `vanishing_ideal` method defaults to `algorithm=:markov`.
+"""
+function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
+  vanishing_ideal(M; algorithm=:markov)
+end
+
+@doc raw"""
   parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the
@@ -155,31 +162,35 @@ Ring homomorphism
   from multivariate polynomial ring in 8 variables over QQ
   to multivariate polynomial ring in 8 variables over QQ
 defined by
-  p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
-  p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
-  p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
-  p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
-  p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
-  p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
-  p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
-  p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+  p[1,1,1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
+  p[2,1,1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
+  p[1,2,1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
+  p[2,2,1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
+  p[1,1,2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
+  p[2,1,2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
+  p[1,2,2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
+  p[2,2,2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
 ```
 """
-
 function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
-  G = graph(M)
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
-  # TODO: At this point it would be nice to have the MarkovRing available
-  # (e.g., returned from model_ring instead of the inner MPolyRing) so that
-  # we could ask what the index s of a given generator "p[s]" is. Right now,
-  # we fall back to computing this index.
   images = []
-  for p in gens(S)
-    s = findfirst(q -> q == p, pd)
+  for p in gens(_ring(S))
+    s = S[p] # get label of the variable
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[k[1]]))
   end
   hom(S, R, images)
+end
+
+@doc raw"""
+    ci_structure(M::DiscreteGraphicalModel{Graph{Undirected}, L})
+
+Return the set of elementary CI statements which are satisfied by every distribution in the
+graphical model. This is the same as the `global_markov` property of the underlying graph.
+"""
+function ci_structure(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
+  global_markov(graph(M))
 end
 
 ###################################################################################
@@ -188,106 +199,143 @@ end
 #
 ###################################################################################
 
-
 @doc raw"""
-   discrete_graphical_model(G::Graph{Directed}, q_var_name::String="q")
+    discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q")
 
-A parametric statistical model associated to a directed acyclic graph.
-It contains a directed acylic graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives, 
-and a parameter ring whose variables `q[i][j](j_1, j_2, ..., j_#pa(i))` correspond to the conditional distribution 
-of the node i given its parents. 
-
-## Examples
-
+The parametric statistical model associated to a directed acyclic graph.
+It contains a directed acylic graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives,
+and a parameter ring whose variables `q[i][j](j_1, j_2, ..., j_#pa(i))` correspond to the conditional distribution
+of the node i given its parents.
 
 ``` jldoctest 
-julia> M = graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3, 4]]), markov_ring("1" => 1:2, "2" => 1:2, "3" => 1:2, "4" => 1:2))
-discrete graphical model on a directed graph with edges:
-(1, 3), (2, 3), (3, 4)
+julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3,4]]), [2,2,2,2])
+Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with states [2, 2, 2, 2]
+
 ```
 """
-function discrete_graphical_model(G::Graph{Directed}, q_var_name::String="q")
-  rvs = random_variables(S)
-  R, q = polynomial_ring(QQ, vcat([q_var_name * string([i, j]) * string(par_state)
-                                   for i in vertices(G)
-                                     for j in state_space(S, rvs[i])
-                                       for par_state in parental_state_space(G, i, S)], ["h"]))
-
-  param_dict = Dict([[(i, j), Dict()] for i in vertices(G) for j in state_space(S, rvs[i])])
-  t = 1
-  for i in vertices(G)
-    for j in state_space(S, rvs[i])
-      for par_state in parental_state_space(G, i, S)
-        
-        param_dict[i, j][Tuple(par_state)] = q[t]
-        t += 1
-      end
-    end
-  end
-
-  return GraphicalModel(G, S, R, param_dict)
+function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q", p_var_name::String="p")
+  @req length(states) == n_vertices(G) "need one and only one random variable in MarkovRing for each graph vertex"
+  DiscreteGraphicalModel(G, states, Dict{Symbol, VarName}(:q => q_var_name, :p => p_var_name))
 end
 
-# returns the joint states of the parents vertex i in a directed graph G
-function parental_state_space(G::Graph{Directed}, i::Integer, S::MarkovRing)
-  par = inneighbors(G, i)
-  par_rvs = random_variables(S)[par]
-  
-  return collect(state_space(S, par_rvs))
+@doc raw"""
+  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false)
+
+Return the ring of parameters of the statistical model, together with a
+Dict for indexing its generators.
+
+There is a "hidden" homogenizing variable named "_h" in the ring. It can be
+obtained via `last(gens(R))` but is not listed in the dictionary of generators.
+
+``` jldoctest 
+julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3,4]]), [2,2,2,2])
+Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with states [2, 2, 2, 2]
+
+julia> parameter_ring(M)[2]
+Dict{Tuple{Int64, Int64, Vector{Int64}}, QQMPolyRingElem} with 16 entries:
+  (4, 2, [1])    => q[4](2 | 1)
+  (3, 1, [2, 2]) => q[3](1 | 2, 2)
+  (2, 2, [])     => q[2](2)
+  (3, 1, [1, 2]) => q[3](1 | 2, 1)
+  (4, 1, [2])    => q[4](1 | 2)
+  (1, 1, [])     => q[1](1)
+  (3, 2, [2, 2]) => q[3](2 | 2, 2)
+  (3, 2, [1, 2]) => q[3](2 | 2, 1)
+  (4, 2, [2])    => q[4](2 | 2)
+  (1, 2, [])     => q[1](2)
+  (3, 1, [2, 1]) => q[3](1 | 1, 2)
+  (3, 1, [1, 1]) => q[3](1 | 1, 1)
+  (4, 1, [1])    => q[4](1 | 1)
+  (2, 1, [])     => q[2](1)
+  (3, 2, [2, 1]) => q[3](2 | 1, 2)
+  (3, 2, [1, 1]) => q[3](2 | 1, 1)
+```
+"""
+@attr Tuple{
+  MPolyRing,
+  GenDict
+} function parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false) where T
+  G = graph(M)
+  params = []
+  for i in 1:n_vertices(G)
+    pa = parents(G, i);
+    if length(pa) == 0
+      append!(params, (i, x, Int64[]) for x in state_space(M, [i]))
+    else
+      append!(params, (i, x, collect(Iterators.flatten([y]))) for x in state_space(M, [i]) for y in state_space(M, pa))
+    end
+  end
+  gen_names = sort([varnames(M)[:q] * "[" * string(i) * "](" * string(x) * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params])
+  push!(gen_names, "_h")
+  R, q = polynomial_ring(QQ, gen_names; cached=cached);
+  gens_dict = Dict(p => q[k] for (k, p) in enumerate(params))
+  return (R, gens_dict)
 end
 
 @doc raw"""
   parameterization(M::GraphicalModel{Graph{Directed}, MarkovRing})
 
-Creates the polynomial map which parameterizes the vanishing ideal of the directed discrete graphical model `M`.   
-The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$
-where every joint probability is given by the product of conditional densities of each node given its parents. 
+Creates the polynomial map which parameterizes the vanishing ideal of the directed discrete graphical model `M`.
+Every probability coordinate in the `model_ring` is expressed as the product of conditional densities of each
+node given its parents. The conditional probability parameters are subject to linear constraints.
+
 ## Examples
 
 ``` jldoctest
-julia> M = graphical_model(graph_from_edges(Directed, [[1,3], [2,3]]), markov_ring("1" => 1:2, "2" => 1:2, "3" => 1:2))
-discrete graphical model on an directed graph with edges:
-(1, 3), (2, 3)
+julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3]]), [2,2,2])
 
-julia> parameterization(M)
+julia> phi = parametrization(M)
 Ring homomorphism
-from multivariate polynomial ring in 8 variables over QQ
-to multivariate polynomial ring in 8 variables over QQ
+  from multivariate polynomial ring in 8 variables over QQ
+  to multivariate polynomial ring in 13 variables over QQ
 defined by
-p[1, 1, 1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
-p[2, 1, 1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
-p[1, 2, 1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
-p[2, 2, 1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
-p[1, 1, 2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
-p[2, 1, 2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
-p[1, 2, 2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
-p[2, 2, 2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+  p[1,1,1] -> q[1](1)*q[2](1)*_h - q[1](1)*q[3](2 | 1, 1)*_h - q[1](2)*q[2](2)*q[3](2 | 1, 1) + q[2](2)*q[3](2 | 1, 1)*_h
+  p[2,1,1] -> q[1](2)*q[2](1)*_h + q[1](2)*q[2](2)*q[3](2 | 1, 2) - q[1](2)*q[3](2 | 1, 2)*_h
+  p[1,2,1] -> q[1](1)*q[2](2)*_h + q[1](2)*q[2](2)*q[3](2 | 2, 1) - q[2](2)*q[3](2 | 2, 1)*_h
+  p[2,2,1] -> -q[1](2)*q[2](2)*q[3](2 | 2, 2) + q[1](2)*q[2](2)*_h
+  p[1,1,2] -> q[1](1)*q[3](2 | 1, 1)*_h + q[1](2)*q[2](2)*q[3](2 | 1, 1) - q[2](2)*q[3](2 | 1, 1)*_h
+  p[2,1,2] -> -q[1](2)*q[2](2)*q[3](2 | 1, 2) + q[1](2)*q[3](2 | 1, 2)*_h
+  p[1,2,2] -> -q[1](2)*q[2](2)*q[3](2 | 2, 1) + q[2](2)*q[3](2 | 2, 1)*_h
+  p[2,2,2] -> q[1](2)*q[2](2)*q[3](2 | 2, 2)
+
+julia> I = kernel(phi)
+Ideal generated by
+  -p[1,1,1]*p[2,2,1] - p[1,1,1]*p[2,2,2] + p[2,1,1]*p[1,2,1] + p[2,1,1]*p[1,2,2] + p[1,2,1]*p[2,1,2] - p[2,2,1]*p[1,1,2] - p[1,1,2]*p[2,2,2] + p[2,1,2]*p[1,2,2]
 """
-# function parametrization(M::GraphicalModel{Graph{Directed}, MarkovRing})
-# 
-#   G = graph(M)
-#   V = vertices(G)
-#   S = ring(M)
-#   rvs = random_variables(S)
-#   R = param_ring(M)
-#   q = param_gens(M)
-# 
-#   images = []
-# 
-#   for ind in state_space(S)
-# 
-#       push!(images, prod(map(i-> q[i, ind[i]][Tuple(ind[inneighbors(G, i)])], V)))
-#   end
-# 
-#   lin_constraints  = []
-# 
-#   for i in V
-#     for par_state in parental_state_space(G, i, S)
-# 
-#       push!(lin_constraints, last(gens(R)) - sum(map(j -> q[i, j][Tuple(par_state)] , state_space(S, rvs[i]))))
-#     end
-#   end
-#   I = ideal(lin_constraints)
-# 
-#   return hom(ring(S), R, map(f -> reduce(f, gens(I)), images))
-# end
+function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
+  G = graph(M)
+  n = n_vertices(G)
+  S, pd = model_ring(M)
+  R, qd = parameter_ring(M)
+  h = last(gens(R))
+  images = []
+  for p in gens(_ring(S))
+    s = collect(S[p]) # get label of the variable but as a vector for type reasons
+    push!(images, prod(qd[(i, s[i], s[parents(G, i)])] for i in 1:n))
+  end
+  # There are linear constraints to enforce on the `images`. Instead of
+  # doing this by hand, we employ a Gröbner basis of the linear ideal.
+  condprob = []
+  for i in 1:n
+    pa = parents(G, i)
+    if length(pa) == 0
+      push!(condprob, h - sum(qd[(i, x, Int64[])] for x in state_space(M, [i])))
+    else
+      for y in state_space(M, pa)
+        push!(condprob, h - sum(qd[(i, x, collect(Iterators.flatten([y])))] for x in state_space(M, [i])))
+      end
+    end
+  end
+  I = ideal(condprob)
+  return hom(S, R, map(Base.Fix2(reduce, gens(I)), images))
+end
+
+@doc raw"""
+    ci_structure(M::DiscreteGraphicalModel{Graph{Directed}, L})
+
+Return the set of elementary CI statements which are satisfied by every distribution in the
+graphical model. This is the same as the `global_markov` property of the underlying graph.
+"""
+function ci_structure(M::DiscreteGraphicalModel{Graph{Directed}, L}) where L
+  global_markov(graph(M))
+end

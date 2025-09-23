@@ -52,6 +52,9 @@ function ci_stmt(I::Vector{Int}, J::Vector{Int}, K::Vector{Int}; symmetric=true,
   CIStmt(sort(I), sort(J), sort(unique(K)))
 end
 
+ci_stmt(i::Int, j::Int, K::Vector{Int}; symmetric=true, disjoint=true) =
+  ci_stmt([i], [j], K; symmetric=symmetric, disjoint=disjoint)
+
 @doc raw"""
     Base.:(==)(lhs::CIStmt, rhs::CIStmt)
 
@@ -61,12 +64,12 @@ Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
   lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
 
 @doc raw"""
-    Base.hash(stmt:;CIStmt, h::UInt)
+    Base.hash(stmt::CIStmt, h::UInt)
 
 Compute the hash of a `CIStmt`.
 """
 Base.hash(stmt::CIStmt, h::UInt) =
-  foldr(hash, stmt.I, stmt.J, stmt.K; init=hash(CIStmt, h))
+  foldr(hash, [stmt.I, stmt.J, stmt.K]; init=hash(CIStmt, h))
 
 @doc raw"""
     CI"I...,J...|K..."
