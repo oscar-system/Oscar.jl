@@ -157,8 +157,8 @@ end
 _to_lpring(a::FreeAssociativeAlgebra, deg_bound::Int; ordering::Symbol=:deglex) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound; ordering=ordering)
 
 @doc raw"""
-    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, set_tracer::Bool=false)
-    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, set_tracer::Bool=false)
+    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
+    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
 
 Compute the Groebner basis for a vector of generators `g` in a free associative algebra.
 Supports several algorithms and options for degree bounds, ordering, protocol, and interreduction.
@@ -175,7 +175,7 @@ By default (`algorithm=:default`), the algorithm is chosen as follows:
 - `protocol::Bool`: Whether to return the computation protocol (default: false).
 - `interreduce::Bool`: Whether to interreduce the result (default: false).
 - `algorithm::Symbol`: Algorithm to use (:f4, :buchberger, :letterplace, or :default). If set to `:default`, the algorithm is chosen automatically based on the input.
-- `set_tracer::Bool`: Enable probabilistic behavior (default: false).
+- `probabilistic::Bool`: Enable probabilistic behavior (default: false).
 
 # Returns
 - The Groebner basis as a vector of free associative algebra elements.
@@ -202,7 +202,7 @@ function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
-  set_tracer::Bool = false
+  probabilistic::Bool = false
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
   I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm)
@@ -215,9 +215,9 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
-  set_tracer::Bool = false
+  probabilistic::Bool = false
   )
-  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce,algorithm=algorithm)
+  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm)
   gb = Generic.FreeAssociativeAlgebraElem{QQFieldElem}[x for x in gb]
   return IdealGens(gb)
 end
@@ -228,7 +228,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
-  set_tracer::Bool = false
+  probabilistic::Bool = false
   )
 
   @req length(g) > 0 "Vector must not be empty"
@@ -245,7 +245,6 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   end
 
   @req all(x -> parent(x) == R, g) "parent mismatch"
-  #@req deg_bound >= 0 || !protocol "computing with a protocol requires a degree bound"
   @req ordering == :deglex || deg_bound > 0 "only :deglex ordering is supported for no degree bound"
   @req algorithm in (:f4, :buchberger, :letterplace) "Not a valid algorithm, use :f4, :buchberger or :letterplace"
 
@@ -260,7 +259,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
       f4ncgb_set_nvars(handle, UInt32(ngens(R)))
       f4ncgb_set_blocks(handle, UInt32[ngens(R)])
       f4ncgb_set_threads(handle, UInt32(1))
-      f4ncgb_set_tracer(handle, set_tracer)
+      f4ncgb_probabilistic(handle, probabilistic)
       f4ncgb_set_maxiter(handle, UInt32(typemax(Int32)))
 
       deg_bound > 0 && f4ncgb_set_maxdeg(handle, UInt32(deg_bound))

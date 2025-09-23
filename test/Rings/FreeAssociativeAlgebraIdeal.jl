@@ -120,5 +120,5 @@ end
     gb_bb = groebner_basis(S1_alt;algorithm=:buchberger);
     @test is_groebner_basis(gb_f4)
     @test is_groebner_basis(gb_bb)
-    S1 == S1_alt
+    @test S1 == S1_alt
 end
