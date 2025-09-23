@@ -30,7 +30,7 @@ Currently identification is available for all primitive permutation groups up to
 julia> has_primitive_group_identification(50)
 true
 
-julia> has_primitive_group_identification(5000)
+julia> has_primitive_group_identification(10000)
 false
 ```
 """
@@ -49,7 +49,7 @@ Currently all primitive permutation groups up to degree 4095 are available.
 julia> has_primitive_groups(50)
 true
 
-julia> has_primitive_groups(5000)
+julia> has_primitive_groups(10000)
 false
 ```
 """
@@ -69,8 +69,8 @@ up to permutation isomorphism.
 julia> number_of_primitive_groups(10)
 9
 
-julia> number_of_primitive_groups(4096)
-ERROR: ArgumentError: the number of primitive permutation groups of degree 4096 is not available
+julia> number_of_primitive_groups(10000)
+ERROR: ArgumentError: the number of primitive permutation groups of degree 10000 is not available
 [...]
 ```
 """
@@ -135,8 +135,8 @@ julia> m = primitive_group_identification(S)
 julia> order(primitive_group(m...)) == order(S)
 true
 
-julia> primitive_group_identification(symmetric_group(4096))
-ERROR: ArgumentError: identification of primitive permutation groups of degree 4096 is not available
+julia> primitive_group_identification(symmetric_group(10000))
+ERROR: ArgumentError: identification of primitive permutation groups of degree 10000 is not available
 [...]
 
 julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
