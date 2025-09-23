@@ -76,8 +76,28 @@ function k_skeleton(PC::PolyhedralComplex{T}, k::Int) where {T<:scalar_types}
 end
 
 ###############################################################################
-## Scalar product
+## Scalar multiplication
 ###############################################################################
+
+# helper functions to ensure that point and ray vectors scale differently:
+# - point vectors represent points in space and should be scaled normally
+# - ray vectors represent directions and they should only be scaled by 0 or +/-1
+function scale_by_scalar(
+  u::PointVector{<:scalar_types_extended}, c::scalar_types_extended
+)
+  return u * c
+end
+function scale_by_scalar(
+  u::RayVector{<:scalar_types_extended}, c::scalar_types_extended
+)
+  if is_positive(c)
+    return u
+  end
+  if is_negative(c)
+    return -u
+  end
+  return 0*u
+end
 
 function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
   # if scalar is zero, return polyhedral complex consisting only of the origin
@@ -93,7 +113,7 @@ function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
   return polyhedral_complex(
     coefficient_field(Sigma),
     SigmaIncidence,
-    SigmaVertsAndRays .* c,
+    scale_by_scalar.(SigmaVertsAndRays,c),
     SigmaRayIndices,
     SigmaLineality,
   )
@@ -118,7 +138,9 @@ end
 ## Translation
 ###############################################################################
 
-# requires separate function because to ensure that translation does not change ray vectors
+# helper functions to ensure that point and ray vectors are translated differently:
+# - point vectors represent points in space and should be translated normally
+# - ray vectors represent directions and they should not change at all
 function translate_by_vector(
   u::PointVector{<:scalar_types_extended}, v::Vector{<:scalar_types_extended}
 )
