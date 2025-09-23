@@ -143,26 +143,45 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
   # all containers have a Dict for their type description
   # with a name and a params key
   dict[:_type] isa String && return dict
-  if dict[:_type][:name] in ["Vector", "Set", "Matrix",
-                             "MultiDimArray", "NamedTuple", "Tuple"]
-    if dict[:data] isa Vector{String}
-      ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
-      if !isnothing(ref_entry)
-        ref_entry = upgrade(s, ref_entry)
-        dict[:_type][:params] = ref_entry[:_type]
-      end
-    else
-      subtype = dict[:_type][:params]
-      upgraded_entries = Dict[]
-      upgraded_entry = nothing
-      for entry in dict[:data]
-        upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
-        push!(upgraded_entries, upgraded_entry[:data])
-      end
-      if !isnothing(upgraded_entry)
-        dict[:_type][:params] = upgraded_entry[:_type]
-      end
+  if dict[:data] isa Vector{String}
+    ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
+    if !isnothing(ref_entry)
+      ref_entry = upgrade(s, ref_entry)
+      dict[:_type][:params] = ref_entry[:_type]
     end
+  end
+  
+  if dict[:_type][:name] in ["Vector", "Set", "Matrix", "MultiDimArray"]
+    subtype = dict[:_type][:params]
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for entry in dict[:data]
+      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    if !isnothing(upgraded_entry)
+      dict[:_type][:params] = upgraded_entry[:_type]
+    end
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+  elseif dict[:_type][:name] == "NamedTuple"
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for (type, entry) in zip(dict[:_type][:params], dict[:data])
+      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+
+  elseif dict[:_type][:name] == "NamedTuple"
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif dict[:_type][:name] == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
@@ -185,8 +204,8 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
         dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
       end
 
-      first_pair = first(upgraded_pairs)
-      if !isnothing(first_pair)
+      if !isempty(upgraded_pairs)
+        first_pair = first(upgraded_pairs)
         dict[:_type][:params][:key_params] = first_pair[1][:_type]
         dict[:_type][:params][:value_params] = first_pair[2][:_type]
       end
