@@ -220,7 +220,7 @@ julia> number_of_fixed_points(one(s))
 4
 ```
 """
-number_of_fixed_points(x::Union{PermGroupElem, PermGroup}) = length(fixed_points(x))
+number_of_fixed_points(x::Union{PermGroupElem, PermGroup}) = degree(x) - number_of_moved_points(x)
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int

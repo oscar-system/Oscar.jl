@@ -441,8 +441,7 @@ end
 
   @test fixed_points(e) == collect(1:degree(g))  # Identity fixes all
 
-  @test sort(fixed_points(y)) ==
-      sort([i for i in 1:degree(g) if y(i) == i])  # Check example element
+  @test fixed_points(y) == [i for i in 1:degree(g) if y(i) == i]  # Check example element
 
   z = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
   expected_fixed = [4]
