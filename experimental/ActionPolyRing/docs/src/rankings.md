@@ -34,7 +34,7 @@ a *Riquier matrix*.
 
 ### Constructing Riquier rankings
 
-In OSCAR we define rankings, i.e. total orderings of ``X`` by combining the natural *less-than* relation on ``\underline{m}``
+In OSCAR, we define rankings, i.e., total orderings of ``X``, by combining the natural *less-than* relation on ``\underline{m}``
 with a customizable total ordering on ``\mathbb{N}_0^n``. The latter is constructed as a matrix ordering; see
 [`index_ordering_matrix`](@ref).
 
