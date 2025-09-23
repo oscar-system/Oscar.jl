@@ -18,7 +18,7 @@ Construct the difference polynomial ring over the base ring `R` with the given e
 
 In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each elementary symbol.
 
-Returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
+This method returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
 vector of initial jet variables.  
 
 This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
