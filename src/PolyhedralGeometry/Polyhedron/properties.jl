@@ -722,7 +722,7 @@ function castelnuovo_excess(P::Polyhedron)::Integer
   d = dim(P)
   l = P.pm_polytope.N_LATTICE_POINTS::Integer
   c = P.pm_polytope.N_INTERIOR_LATTICE_POINTS::Integer
-  b = l-c
+  b = l - c
   e = (d * c + (d - 1) * b - d^2 + 2)
   # the normalized volume is an integer as P is lattice
   return numerator(normalized_volume(P)) - e
