@@ -718,11 +718,11 @@ julia> castelnuovo_excess(cube(4))
 ```
 """
 function castelnuovo_excess(P::Polyhedron)
-  _assert_lattice(P);
-  d = dim(P);
-  l = P.pm_polytope.N_LATTICE_POINTS;
-  c = P.pm_polytope.N_INTERIOR_LATTICE_POINTS;
-  b = l-c;
+  _assert_lattice(P)
+  d = dim(P)
+  l = P.pm_polytope.N_LATTICE_POINTS::Int
+  c = P.pm_polytope.N_INTERIOR_LATTICE_POINTS::Int
+  b = l-c
   e = (d * c + (d - 1) * b - d^2 + 2)
   return normalized_volume(P) - e
 end
