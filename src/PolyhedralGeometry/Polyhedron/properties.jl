@@ -717,11 +717,11 @@ julia> castelnuovo_excess(cube(4))
 154
 ```
 """
-function castelnuovo_excess(P::Polyhedron)::Integer
+function castelnuovo_excess(P::Polyhedron)
   _assert_lattice(P)
   d = dim(P)
-  l = P.pm_polytope.N_LATTICE_POINTS::Integer
-  c = P.pm_polytope.N_INTERIOR_LATTICE_POINTS::Integer
+  l = ZZ(pm_object(P).N_LATTICE_POINTS)::ZZRingElem
+  c = ZZ(pm_object(P).N_INTERIOR_LATTICE_POINTS)::ZZRingElem
   b = l - c
   e = (d * c + (d - 1) * b - d^2 + 2)
   # the normalized volume is an integer as P is lattice
