@@ -275,7 +275,7 @@ function action(C::GModule, g, v)
   return action(C, g, [v])[1]
 end
 
-import Base.:^
+import Base.^
 function ^(f::AbstractAlgebra.Generic.ModuleHomomorphism, n::Int64)
   if n < 0
     n = -n
