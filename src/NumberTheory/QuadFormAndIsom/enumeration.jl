@@ -222,12 +222,8 @@ function is_admissible_triple(
   # Condition (2) of Definition 4.13
   # Half the p-valuation of the quotient of the determinants should be
   # smaller than lA, lB and rank(B)/(p-1)
-  #lA0 = ngens(discriminant_group(A))
-  #lB0 = ngens(discriminant_group(B))
   lA = _length_discriminant_group(A)
   lB = _length_discriminant_group(B)
-  #@assert lA0 == lA
-  #@assert lB0 == lB
   if g > min(lA, lB, divexact(rank(B), p-1))
     return false
   end
