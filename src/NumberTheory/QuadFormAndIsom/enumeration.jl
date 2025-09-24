@@ -88,7 +88,7 @@ function _length_discriminant_group(g::ZZGenus)
   return maximum(_length_discriminant_group(i) for i in local_symbols(g); init=0)
 end 
 
-function _is_anti_isometric_odd(a, b, is_minus_one_a_square)
+function _is_anti_isometric_odd(a::Vector{Int}, b::Vector{Int}, is_minus_one_a_square::Bool)
   a[1]==b[1] || return false
   a[2]==b[2] || return false
   if iszero(mod(a[2], 2)) || is_minus_one_a_square
@@ -97,13 +97,13 @@ function _is_anti_isometric_odd(a, b, is_minus_one_a_square)
   return a[3]!=b[3]  
 end
 
-function _is_anti_isometric_bilinear_2(a, b)
+function _is_anti_isometric_bilinear_2(a::Vector{Int}, b::Vector{Int})
   a[1]==b[1] || return false
   a[2]==b[2] || return false
   a[4]==b[4] || return false
 end
 
-function _is_anti_isometric_quadratic_2(a, b)
+function _is_anti_isometric_quadratic_2(a::Vector{Int}, b::Vector{Int})
   a[1]==b[1] || return false
   a[2]==b[2] || return false
   a[4] == b[4] || return false
@@ -116,7 +116,6 @@ function _is_anti_isometric_quadratic_2(a, b)
   return iszero(mod(exc_a-exc_b, 8) )
 end
 
-
 function _is_anti_isometric_bilinear(a::ZZLocalGenus, b::ZZLocalGenus, l::Int)
   al = symbol(a, l)
   bl = symbol(b, l)
@@ -124,7 +123,7 @@ function _is_anti_isometric_bilinear(a::ZZLocalGenus, b::ZZLocalGenus, l::Int)
   if p == 2
     return _is_anti_isometric_bilinear_2(al, bl)
   end
-  is_minus_one_a_square = isone(kronecker_symbol(-1, p))
+  is_minus_one_a_square = isone(kronecker_symbol(ZZ(-1), p))
   return _is_anti_isometric_odd(al, bl, is_minus_one_a_square)
 end
 
@@ -267,19 +266,10 @@ function is_admissible_triple(
   l = valuation(level(C), p)
   Ap = local_symbol(A, p)
   Bp = local_symbol(B, p)
-  la = valuation(level(Ap), p)
-  lb = valuation(level(Bp), p)
 
-  # qA = discriminant_group(A)
-  # qB = discriminant_group(B)
   if iszero(valuation(det(C), p))
-    # this should be superflous, because there exists a unimodular overlattice already?
-    #Ap = local_symbol(A, p)
-    #Bp = local_symbol(B, p)
-    
-    # fl0 =  is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
-    fl1 = _is_anti_isometric_quadratic(Ap, Bp, l+1)
-    #@assert fl0 == fl1
+    # The lattice C_p is unimodular, so the level of A_p and B_p is at most p
+    fl1 = _is_anti_isometric_quadratic(Ap, Bp, 1)
     return return fl1 
   end
 
@@ -361,7 +351,7 @@ function is_admissible_triple(
 
   # Condition (4) of Definition 4.13 
   _is_anti_isometric_bilinear(Ap, Bp, l+1) || return false 
-    
+    p != 2 && return true
   is_freeA = 0 == symbol(Ap, l)[4]
   is_freeB = 0 == symbol(Bp, l)[4]
   if is_freeA && is_freeB
@@ -1525,10 +1515,6 @@ function splitting_of_hermitian_type(
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
-      if n==1 
-        @show A 
-        @show B 
-      end
       if root_test
         if rank(A) > 0 && _roger_upper_bound_test(A)
           continue
