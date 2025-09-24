@@ -390,6 +390,20 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
   fourier_param_structure::Vector{<: VarName}
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
+
+  function GroupBasedPhylogeneticModel(pm::PhylogeneticModel{GT, <: VarName, L, <: RingElem},
+                                       fourier_param_structure::Vector{<: VarName},
+                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                       varnames_group_based::VarName="q") where {GT, L}
+
+    if isnothing(group)
+      # this feels weird to me, I dont see why you can't just use the group itself?
+      # seems like you don't like the ordering?
+      group = collect(abelian_group(2,2))
+      group = [group[1],group[3],group[2],group[4]]
+    end
+    new{GT, L}(pm, fourier_param_structure, group, varnames_group_based)
+  end
   
   function GroupBasedPhylogeneticModel(F::Field, 
                                        G::Graph{Directed},
@@ -399,18 +413,10 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
                                        root_distribution::Union{Nothing, Vector} = nothing,
                                        varnames_phylo_model::VarName="p",
                                        varnames_group_based::VarName="q")
-    if isnothing(group)
-      group = collect(abelian_group(2,2))
-      group = [group[1],group[3],group[2],group[4]]
-    end
-
-    graph_maps = NamedTuple(_graph_maps(G))
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
     pm = PhylogeneticModel(F, G, trans_matrix_structure, 
                            root_distribution,
                            varnames_phylo_model)
-    return new{typeof(graph(pm)), typeof(graph_maps)}(
-      pm, fourier_param_structure, group, varnames_group_based)
+    return GroupBasedPhylogeneticModel(pm, fourier_param_structure, group, varnames_group_based)
   end
 
   function GroupBasedPhylogeneticModel(G::Graph{Directed},
