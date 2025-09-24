@@ -100,7 +100,7 @@ function rational_point_coordinates(I::MPolyIdeal)
   LG = leading_ideal(I;ordering=o)
   @req dim(LG) == 0 "Ideal does not describe finite set of points"
   vd = vector_space_dim(quo(base_ring(LG),LG)[1])
-  @req vd == 1 "Ideal does not describe a single k-point"
+  @req vd == 1 "Ideal does not describe a single K-point"
   nf_vec = [normal_form(v,I) for v in gens(R)]
   return [iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec]
 end
