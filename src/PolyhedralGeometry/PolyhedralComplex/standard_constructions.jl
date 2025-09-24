@@ -82,12 +82,12 @@ end
 # helper functions to ensure that point and ray vectors scale differently:
 # - point vectors represent points in space and should be scaled normally
 # - ray vectors represent directions and they should only be scaled by 0 or +/-1
-function scale_by_scalar(
+function scale(
   u::PointVector{<:scalar_types_extended}, c::scalar_types_extended
 )
   return u * c
 end
-function scale_by_scalar(
+function scale(
   u::RayVector{<:scalar_types_extended}, c::scalar_types_extended
 )
   if is_positive(c)
@@ -113,7 +113,7 @@ function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
   return polyhedral_complex(
     coefficient_field(Sigma),
     SigmaIncidence,
-    scale_by_scalar.(SigmaVertsAndRays,c),
+    scale.(SigmaVertsAndRays,c),
     SigmaRayIndices,
     SigmaLineality,
   )
@@ -141,13 +141,13 @@ end
 # helper functions to ensure that point and ray vectors are translated differently:
 # - point vectors represent points in space and should be translated normally
 # - ray vectors represent directions and they should not change at all
-function translate_by_vector(
-  u::PointVector{<:scalar_types_extended}, v::Vector{<:scalar_types_extended}
+function translate(
+  u::PointVector{<:scalar_types_extended}, v::AbstractVector{<:scalar_types_extended}
 )
   return u + v
 end
-function translate_by_vector(
-  u::RayVector{<:scalar_types_extended}, ::Vector{<:scalar_types_extended}
+function translate(
+  u::RayVector{<:scalar_types_extended}, ::AbstractVector{<:scalar_types_extended}
 )
   return u
 end
@@ -160,7 +160,7 @@ function +(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
   return polyhedral_complex(
     coefficient_field(Sigma),
     SigmaIncidence,
-    translate_by_vector.(SigmaVertsAndRays, Ref(v)),
+    translate.(SigmaVertsAndRays, Ref(v)),
     SigmaRayIndices,
     SigmaLineality,
   )
