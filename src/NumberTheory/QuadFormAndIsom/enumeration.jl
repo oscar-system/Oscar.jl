@@ -80,6 +80,65 @@ function _find_L(
   return gen
 end
 
+function _length_discriminant_group(g::ZZLocalGenus)
+  return sum(i[2] for i in symbol(g) if i[1]>0;init = 0)
+end 
+
+function _length_discriminant_group(g::ZZGenus)
+  return maximum(_length_discriminant_group(i) for i in local_symbols(g); init=0)
+end 
+
+function _is_anti_isometric_odd(a, b, is_minus_one_a_square)
+  a[1]==b[1] || return false
+  a[2]==b[2] || return false
+  if iszero(mod(a[2], 2)) || is_minus_one_a_square
+    return a[3]==b[3]
+  end
+  return a[3]!=b[3]  
+end
+
+function _is_anti_isometric_bilinear_2(a, b)
+  a[1]==b[1] || return false
+  a[2]==b[2] || return false
+  a[4]==b[4] || return false
+end
+
+function _is_anti_isometric_quadratic_2(a, b)
+  a[1]==b[1] || return false
+  a[2]==b[2] || return false
+  a[4] == b[4] || return false
+  dets = kronecker_symbol(a[3],2)==kronecker_symbol(b[3],2)
+  if a[4] == 0
+    return dets
+  end
+  exc_a = a[5]+2*(1-kronecker_symbol(a[3],2))
+  exc_b = -b[5]+2*(1-kronecker_symbol(b[3],2))
+  return iszero(mod(exc_a-exc_b, 8) )
+end
+
+
+function _is_anti_isometric_bilinear(a::ZZLocalGenus, b::ZZLocalGenus, l::Int)
+  al = symbol(a, l)
+  bl = symbol(b, l)
+  p = prime(a)
+  if p == 2
+    return _is_anti_isometric_bilinear_2(al, bl)
+  end
+  is_minus_one_a_square = isone(kronecker_symbol(-1, p))
+  return _is_anti_isometric_odd(al, bl, is_minus_one_a_square)
+end
+
+function _is_anti_isometric_quadratic(a::ZZLocalGenus, b::ZZLocalGenus, l::Int)
+  al = symbol(a, l)
+  bl = symbol(b, l)
+  p = prime(a)
+  if p == 2
+    return _is_anti_isometric_quadratic_2(al, bl)
+  end
+  is_minus_one_a_square = isone(kronecker_symbol(ZZ(-1), p))
+  return _is_anti_isometric_odd(al, bl, is_minus_one_a_square)
+end 
+
 @doc raw"""
     is_admissible_triple(
       A::ZZGenus,
@@ -163,14 +222,18 @@ function is_admissible_triple(
   # Condition (2) of Definition 4.13
   # Half the p-valuation of the quotient of the determinants should be
   # smaller than lA, lB and rank(B)/(p-1)
-  lA = ngens(discriminant_group(A))
-  lB = ngens(discriminant_group(B))
+  #lA0 = ngens(discriminant_group(A))
+  #lB0 = ngens(discriminant_group(B))
+  lA = _length_discriminant_group(A)
+  lB = _length_discriminant_group(B)
+  #@assert lA0 == lA
+  #@assert lB0 == lB
   if g > min(lA, lB, divexact(rank(B), p-1))
     return false
   end
 
   # Condition (1) of Definition 4.13
-  # A+B and C must agree locally at every primes except p
+  # A+B and C must agree locally at all primes except p
   for q in filter(!=(p), union!(ZZRingElem[2], primes(AperpB), primes(C)))
     if local_symbol(AperpB, q) != local_symbol(C, q)
       return false
@@ -202,18 +265,28 @@ function is_admissible_triple(
     return false
   end
 
-  qA = discriminant_group(A)
-  qB = discriminant_group(B)
 
   # At this point, if C is unimodular at p, the gluing condition is equivalent to having
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
-  if iszero(valuation(det(C), p))
-    return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
-  end
-
   l = valuation(level(C), p)
   Ap = local_symbol(A, p)
   Bp = local_symbol(B, p)
+  la = valuation(level(Ap), p)
+  lb = valuation(level(Bp), p)
+
+  # qA = discriminant_group(A)
+  # qB = discriminant_group(B)
+  if iszero(valuation(det(C), p))
+    # this should be superflous, because there exists a unimodular overlattice already?
+    #Ap = local_symbol(A, p)
+    #Bp = local_symbol(B, p)
+    
+    # fl0 =  is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
+    fl1 = _is_anti_isometric_quadratic(Ap, Bp, l+1)
+    #@assert fl0 == fl1
+    return return fl1 
+  end
+
   a_max = symbol(Ap, l+1)[2]
   b_max = symbol(Bp, l+1)[2]
 
@@ -281,21 +354,27 @@ function is_admissible_triple(
   for s in _Cp
     s[1] += 2
   end
-  Cp = ZZLocalGenus(p, _Cp)
+  Cp1 = ZZLocalGenus(p, _Cp)
 
   # Condition (5) of Definition 4.13
-  if !represents(local_symbol(AperpB, p), Cp)
+  if !represents(local_symbol(AperpB, p), Cp1)
     return false
   elseif !represents(C, AperpB)
     return false
   end
 
-  # Condition (4) of Definition 4.13
-  qC = discriminant_group(C)
-  special = (p == 2) && (_is_free(qA, p, l+1)) && (_is_free(qB, p, l+1)) && (_is_even(qC, p, l))
-  rA = _rho_functor(qA, p, l+1; quad=special)
-  rB = _rho_functor(qB, p, l+1; quad=special)
-  return is_anti_isometric_with_anti_isometry(rA, rB)[1]
+  # Condition (4) of Definition 4.13 
+  _is_anti_isometric_bilinear(Ap, Bp, l+1) || return false 
+    
+  is_freeA = 0 == symbol(Ap, l)[4]
+  is_freeB = 0 == symbol(Bp, l)[4]
+  if is_freeA && is_freeB
+    # condition 4'
+    Cp_l_is_even = symbol(Cp, l)[4] == 0
+    glues_to_even = _is_anti_isometric_quadratic(Ap, Bp, l+1)
+    return Cp_l_is_even == glues_to_even
+  end
+  return true
 end
 
 function is_admissible_triple(
@@ -1450,6 +1529,10 @@ function splitting_of_hermitian_type(
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
+      if n==1 
+        @show A 
+        @show B 
+      end
       if root_test
         if rank(A) > 0 && _roger_upper_bound_test(A)
           continue
