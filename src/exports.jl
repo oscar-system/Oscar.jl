@@ -358,6 +358,7 @@ export cartan_type
 export cartan_type_with_ordering
 export cartesian_power
 export cartier_divisor
+export castelnuovo_excess
 export catalan_solid
 export cauchy_ideal
 export cellular_associated_primes
@@ -887,6 +888,7 @@ export is_canonically_isomorphic_with_map
 export is_cartan_matrix
 export is_cartan_type
 export is_cartier
+export is_castelnuovo
 export is_cellular
 export is_character_table_name
 export is_characteristic_subgroup

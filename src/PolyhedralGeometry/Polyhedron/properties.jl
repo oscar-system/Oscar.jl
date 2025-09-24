@@ -706,6 +706,48 @@ normalized_volume(P::Polyhedron) =
   coefficient_field(P)(factorial(dim(P)) * (pm_object(P)).VOLUME)
 
 @doc raw"""
+    castelnuovo_excess(P::Polyhedron)
+
+For an arbitrary lattice polytope, Hibi [Hib94](@cite) proved that the normalized volume is always at least as large as a certain lattice point count.
+This function returns the difference between those two numbers.
+
+# Examples
+```jldoctest
+julia> castelnuovo_excess(cube(4))
+154
+```
+"""
+function castelnuovo_excess(P::Polyhedron)
+  _assert_lattice(P)
+  d = dim(P)
+  l = ZZ(pm_object(P).N_LATTICE_POINTS)::ZZRingElem
+  c = ZZ(pm_object(P).N_INTERIOR_LATTICE_POINTS)::ZZRingElem
+  b = l - c
+  e = (d * c + (d - 1) * b - d^2 + 2)
+  # the normalized volume is an integer as P is lattice
+  return numerator(normalized_volume(P)) - e
+end
+
+@doc raw"""
+    is_castelnuovo(P::Polyhedron)
+
+For an arbitrary lattice polytope, Hibi [Hib94](@cite) proved that the normalized volume is always at least as large as a certain lattice point count.
+This function returns true if both numbers agree.
+
+# Examples
+```jldoctest
+julia> is_castelnuovo(cube(2))
+true
+
+julia> is_castelnuovo(cube(4))
+false
+```
+"""
+function is_castelnuovo(P::Polyhedron)
+  return castelnuovo_excess(P) == 0
+end
+
+@doc raw"""
     dim(P::Polyhedron)
 
 Return the dimension of `P`.
