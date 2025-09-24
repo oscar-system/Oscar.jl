@@ -20,7 +20,7 @@
   @test PL[2][2] == 3
   @test PL[1][1]^2 == 1
   @test PL[2][1]^2 == 1
-  PS = rations_points(FiniteRationalPointSet,X)
+  PS = rational_points(FiniteRationalPointSet,X)
   @test length(PS) == 2
   @test first(PS) isa AffineRationalPoint
 end
