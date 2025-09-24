@@ -133,21 +133,21 @@ end
 ###################################################################################
 
 
-function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: VarName, L, T}, i::Int, j::Int, e::Edge) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: VarName, T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: VarName, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: VarName, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
   entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, <: T}, i::Int, j::Int, e::Edge) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: MPolyRingElem, <: T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][e](tr_mat[i,j])
 end
 
-function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, <: MPolyRingElem, L, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
+function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: MPolyRingElem, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
   entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
@@ -200,14 +200,14 @@ end
 
 leaves_indices(PM::GroupBasedPhylogeneticModel) = leaves_indices(phylogenetic_model(PM))
 
-function hybrid_indices(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}) where {M, L, T}
+function hybrid_indices(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}) where {M, L, T}
   hyb = hybrids(graph(PM))
   hyb_indices = collect(Iterators.product([tuple(1:2...) for _ in keys(hyb)]...))
 
   return hyb_indices
 end
 
-function fully_observed_probability(PM::PhylogeneticModel{Graph{Directed}, M, L, T}, vertices_states::Dict{Int, Int}) where{M, L, T}
+function fully_observed_probability(PM::PhylogeneticModel{Graph{Directed}, L, M, T}, vertices_states::Dict{Int, Int}) where{M, L, T}
   gr = graph(PM)
 
   r = root(PM)
@@ -228,7 +228,7 @@ function fully_observed_probability(PM::PhylogeneticModel{Graph{Directed}, M, L,
   return monomial
 end
 
-function fully_observed_probability(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+function fully_observed_probability(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
 
   r = root(subtree)
   monomial = entry_root_distribution(PM, vertices_states[r])
@@ -248,7 +248,7 @@ function fully_observed_probability(PM::PhylogeneticModel{PhylogeneticNetwork, M
   return monomial
 end
 
-function leaves_probability(PM::PhylogeneticModel{Graph{Directed}, M, L, T}, leaves_states::Dict{Int, Int}) where{M, L, T}
+function leaves_probability(PM::PhylogeneticModel{Graph{Directed}, L, M, T}, leaves_states::Dict{Int, Int}) where{M, L, T}
   gr = graph(PM)
   int_nodes = interior_nodes(gr)
 
@@ -266,7 +266,7 @@ function leaves_probability(PM::PhylogeneticModel{Graph{Directed}, M, L, T}, lea
   return poly
 end 
 
-function leaves_probability(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+function leaves_probability(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
   int_nodes = interior_nodes(subtree)
 
   interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  

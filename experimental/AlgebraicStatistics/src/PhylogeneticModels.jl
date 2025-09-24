@@ -75,10 +75,10 @@ based on a root distribution and transition matrices on the edges. The model is 
 base field (e.g., `QQ` for rational numbers).
 
 **Type Parameters:**
-* `GT`: The graph type, expected to be `Graph{Directed}` for a phylogenetic tree.
-* `M`: The type of elements in the transition matrix structure, typically a `VarName` (a `Symbol`) or a polynomial ring element (`MPolyRingElem`).
+* `GT`: The graph type, expected to be `Graph{Directed}` for a phylogenetic tree. TODO: change to PhyloTree/PhyloNetwork 
 * `L`: The type of the graph labelings, a `NamedTuple`.
-* `T`: The type of elements in the root distribution vector.
+* `M`: The type of elements in the transition matrix structure, typically a `VarName` (a `Symbol`) or a polynomial ring element (`MPolyRingElem`).
+* `R`: The type of elements in the root distribution vector.
 
 **Fields:**
 * `base_field::Field`: The base field of the model's parameters.
@@ -89,17 +89,18 @@ base field (e.g., `QQ` for rational numbers).
 * `n_states::Int`: The number of states in the model.
 * `model_parameter_name::VarName`: The symbolic name for the variables of the model ring.
 """
-@attributes mutable struct PhylogeneticModel{GT, M, L, T} <: GraphicalModel{GT, L}
+@attributes mutable struct PhylogeneticModel{GT, L, M, R} <: GraphicalModel{GT, L}
   # do need to for T to be directed here? YES!
   # do we need binary trees/networs? Check if works otherwise!
   base_field::Field
   graph::GT
   labelings::L
   trans_matrix_structure::Matrix{M}
-  root_distribution::Vector{T}
+  root_distribution::Vector{R}
   n_states::Int
   model_parameter_name::VarName
 
+  # Constructor for PhylogeneticTree
   function PhylogeneticModel(F::Field,
                              G::T,
                              trans_matrix_structure::Matrix,
@@ -114,12 +115,38 @@ base field (e.g., `QQ` for rational numbers).
 
     return new{
       T,
-      typeof(first(trans_matrix_structure)), 
       typeof(graph_maps),
+      typeof(first(trans_matrix_structure)), 
       typeof(first(root_distribution))
     }(F, G, graph_maps, trans_matrix_structure, root_distribution, n_states, varname)
   end
-  
+
+  # Constructor for PhylogeneticNetwork
+  function PhylogeneticModel(F::Field,
+                             N::PhylogeneticNetwork,
+                             trans_matrix_structure::Matrix,
+                             root_distribution::Union{Nothing, Vector} = nothing,
+                             varnames::VarName="p")
+
+    ## TODO: If N::PhylogeneticNetwork{0,0} --> convert it into a PhylogeneticTree 
+    n_states = size(trans_matrix_structure)[1]
+    if isnothing(root_distribution)
+      root_distribution = F.(repeat([1//n_states], outer = n_states))
+    end
+    G = graph(N)
+    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    return new{PhylogeneticNetwork, typeof(graph_maps),
+               typeof(first(trans_matrix_structure)), 
+               typeof(first(root_distribution))}(F, N,
+                                                 graph_maps,
+                                                 trans_matrix_structure,
+                                                 root_distribution,
+                                                 n_states,
+                                                 varnames)
+  end
+
+  # Constructor for Graph{Directed}
   function PhylogeneticModel(F::Field,
                              G::Graph{Directed},
                              trans_matrix_structure::Matrix,
@@ -141,33 +168,10 @@ base field (e.g., `QQ` for rational numbers).
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     return new{
       Graph{Directed},
-      typeof(first(trans_matrix_structure)), 
       typeof(graph_maps),
+      typeof(first(trans_matrix_structure)), 
       typeof(first(root_distribution))
     }(F, G, graph_maps, trans_matrix_structure, root_distribution, n_states, varname)
-  end
-
-  function PhylogeneticModel(F::Field,
-                             N::PhylogeneticNetwork,
-                             trans_matrix_structure::Matrix,
-                             root_distribution::Union{Nothing, Vector} = nothing,
-                             varnames::VarName="p")
-
-    ## TODO: If N::PhylogeneticNetwork{0,0} --> convert it into a PhylogeneticTree 
-    n_states = size(trans_matrix_structure)[1]
-    if isnothing(root_distribution)
-      root_distribution = F.(repeat([1//n_states], outer = n_states))
-    end
-    G = graph(N)
-    graph_maps = NamedTuple(_graph_maps(G))
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{PhylogeneticNetwork, typeof(first(trans_matrix_structure)), 
-               typeof(graph_maps), typeof(first(root_distribution))}(F, N,
-                                                                    graph_maps,
-                                                                    trans_matrix_structure,
-                                                                    root_distribution,
-                                                                    n_states,
-                                                                    varnames)
   end
 
   function PhylogeneticModel(G::AbstractGraph{Directed},
@@ -310,13 +314,13 @@ varnames(PM::PhylogeneticModel) = PM.model_parameter_name
 
 
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false) where {L, T <: FieldElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName}; cached=false)
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L}; cached=false) where {L}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
+    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
 
-Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, M, L, T}`.
+Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}`.
 
 If `M  <: VarName`, returns a tuple containing:
   1.  The polynomial ring.
@@ -337,8 +341,8 @@ If GT::PhylogeneticNetwork it additionally returns:
 @attr Tuple{
   MPolyRing, 
   GraphTransDict,
-  Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: VarName, L, T}; cached=false) where {L, T <: FieldElem} 
+  Vector{RT}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -353,7 +357,7 @@ end
   MPolyRing,
   GraphTransDict,
   Vector{<:MPolyRingElem}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: VarName}; cached=false)
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName}; cached=false) where {L}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM),
@@ -369,8 +373,8 @@ end
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
+  Vector{RT}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
 
@@ -389,8 +393,8 @@ end
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
+  Vector{RT}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -410,10 +414,10 @@ end
 end
 
 @attr Tuple{
-  MPolyRing{T}, 
+  MPolyRing{RT}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+  Vector{RT}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -430,14 +434,14 @@ end
 end
 
 
-### parameter_ring for PhylogeneticModel{PhylogeneticNetwork}
+# ### parameter_ring for PhylogeneticModel{PhylogeneticNetwork}
 
 @attr Tuple{
   MPolyRing, 
   GraphTransDict,
-  Vector{T},
+  Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, <: VarName, L, T}; cached=false) where {L, T <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
@@ -459,7 +463,7 @@ end
   GraphTransDict,
   Vector{<:MPolyRingElem},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, <: VarName}; cached=false)
+} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: VarName}; cached=false)  where {L}
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
@@ -480,9 +484,9 @@ end
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T},
+  Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, <: MPolyRingElem, L, T}; cached=false) where {L, T <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -505,9 +509,9 @@ end
 @attr Tuple{
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T},
+  Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, <: MPolyRingElem, L, T}; cached=false) where {L, T <: MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -532,11 +536,11 @@ end
 end
 
 @attr Tuple{
-  MPolyRing{T}, 
+  MPolyRing{R}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
-  Vector{T},
+  Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, <: MPolyRingElem, L, T}; cached=false) where {L, T <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -600,7 +604,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
 * `model_parameter_name::VarName`: The symbolic name for the model's Fourier parameters.
 """
 @attributes mutable struct GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
-  phylo_model::PhylogeneticModel{GT, <: VarName, L, <: RingElem} 
+  phylo_model::PhylogeneticModel{GT, L, <: VarName, <: RingElem} 
   fourier_param_structure::Vector{<: VarName}
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
@@ -911,7 +915,7 @@ Constructs the parametrization map from the full model ring in _probability_ coo
 configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
 # TODO: Change Graph{Directed} to PhylogeneticTree
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{Graph{Directed}, M, L, T}) where {M, L, T}
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{Graph{Directed}, L, M, T}) where {M, L, T}
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -923,7 +927,7 @@ configurations) to the parameter ring (with generators from the transition matri
   hom(R, S, reduce(vcat, map))
 end
 
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticNetwork, M, L, T}) where {M, L, T}
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}) where {M, L, T}
   N = graph(PM)
 
   R, _ = full_model_ring(PM)
