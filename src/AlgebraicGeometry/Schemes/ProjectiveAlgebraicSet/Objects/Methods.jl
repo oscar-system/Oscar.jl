@@ -36,11 +36,12 @@ function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing}
 end
 
 @doc raw"""
-    rational_points(X::ProjectiveAlgebraicSet)
+    rational_points(::Type{S}, X::ProjectiveAlgebraicSet)
 
 If $X$ is defined by a zero-dimensional homogeneous ideal in a multivariate
 graded polynomial ring over a field, say, $k$, return the $k$-rational
-points of $X$.
+points of $X$ as an instance of $S$. Here, S must be one of Vector
+and AbsRationalPointSet.
 
 !!! note
 The zero-dimensional condition is checked by the function.
@@ -67,7 +68,7 @@ julia> rational_points(X)
 
 ```
 """
-function rational_points(X::ProjectiveAlgebraicSet{T}) where T <: Field
+function rational_points(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S<:Vector}
   @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
   I = fat_ideal(X)
   @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
@@ -87,3 +88,7 @@ function rational_points(X::ProjectiveAlgebraicSet{T}) where T <: Field
   return result
 end
 
+function rational_poins(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
+  v = rational_points(Vector,X)
+  return finite_pointset(X,v)
+end

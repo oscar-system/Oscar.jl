@@ -119,11 +119,12 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
 end
 
 @doc raw"""
-    rational_points(X::AffineVariety)
+    rational_points(::Type{S},X::AffineVariety)
 
 If $X$ is defined by a zero-dimensional ideal in a multivariate
 polynomial ring over a field, say, $k$, return the $k$-rational
-points of $X$.
+points of $X$ as an instance of $S$. Here, S must be one of Vector
+and AbsRationalPointSet.
 
 !!! note
 The zero-dimensional condition is checked by the function.
@@ -149,8 +150,13 @@ julia> rational_points(X)
 
 ```
 """
-function rational_points(X::AffineVariety{T}) where T <: Field
+function rational_points(::Type{S},X::AffineVariety{T}) where {T <: Field, S <:Vector}
   I = vanishing_ideal(X)
   @req dim(I) == 0 "Not a zero-dimensional algebraic set"
   return [rational_point_coordinates(I)]
+end
+
+function rational_points(::Type{S}, X::AffineVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
+  v = rational_points(Vector,X)
+  return finite_pointset(X,v)
 end

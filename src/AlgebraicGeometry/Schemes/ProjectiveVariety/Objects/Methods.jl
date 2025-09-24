@@ -36,11 +36,12 @@ Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveVariety{<:Field, <:MPolyDe
 Base.show(io::IO, P::AbsProjectiveVariety{<:Field, <:MPolyDecRing}) = Base.show(io, underlying_scheme(P))
 
 @doc raw"""
-    rational_points(X::ProjectiveVariety)
+    rational_points(::Type{S}, X::ProjectiveVariety)
 
 If $X$ is defined by a homogeneous zero-dimensional ideal in a multivariate
 graded polynomial ring over a field, say, $k$, return the $k$-rational
-points of $X$.
+points of $X$ as an instance of $S$. Here, S must be one of Vector
+and AbsRationalPointSet.
 
 !!! note
 The zero-dimensional condition is checked by the function.
@@ -68,7 +69,7 @@ julia> rational_points(X)
 
 ```
 """
-function rational_points(X::ProjectiveVariety{T}) where T <: Field
+function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S<:Vector}
   @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
   @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
   I = vanishing_ideal(X)
@@ -83,3 +84,7 @@ function rational_points(X::ProjectiveVariety{T}) where T <: Field
   return [KV[1,b] for b in 1:size(KV)[2]]
 end
 
+function rational_poins(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
+  v = rational_points(Vector,X)
+  return finite_pointset(X,v)
+end

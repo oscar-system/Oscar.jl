@@ -106,11 +106,12 @@ function rational_point_coordinates(I::MPolyIdeal)
 end
 
 @doc raw"""
-    rational_points(X::AffineAlgebraicSet)
+    rational_points(::Type{S}, X::AffineAlgebraicSet)
 
 If $X$ is defined by a zero-dimensional ideal in a multivariate
 polynomial ring over a field, say, $k$, return the $k$-rational
-points of $X$.
+points of $X$ as an instance of $S$. Here, S must be one of Vector
+and AbsRationalPointSet.
 
 !!! note
 The zero-dimensional condition is checked by the function.
@@ -137,9 +138,18 @@ julia> rational_points(X)
 
 ```
 """
-function rational_points(X::AffineAlgebraicSet{T}) where T <: Field 
+function rational_points(::Type{S}, X::AffineAlgebraicSet{T}) where {T <: Field, S <:Vector}
   I = fat_ideal(X)
   @req dim(I) == 0 "Not a zero-dimensional algebraic set"
   PL = minimal_primes(I)
-  return [rational_point_coordinates(J) for J in PL if vector_space_dim(quo(base_ring(J),J)[1]) == 1]
+  return Vector{<:FieldElem}[rational_point_coordinates(J)
+                       for J in PL
+                           if vector_space_dim(quo(base_ring(J),J)[1]) == 1]
+end
+
+function rational_points(::Type{S}, X::AffineAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
+  v = rational_points(Vector,X)
+@show X isa AffineAlgebraicSet{<:Field}
+@show v isa Vector{Vector{<:FieldElem}}
+  return finite_pointset(X,v)
 end
