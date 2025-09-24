@@ -171,7 +171,7 @@ end
 entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int) = entry_fourier_parameter(PM, i, Edge(u,v))
 
 
-function entry_hybrid_parameter(PM::PhylogeneticModel, e::Edge)
+function entry_hybrid_parameter(PM::PhylogeneticModel{<: PhylogeneticNetwork}, e::Edge)
   if !(dst(e) in collect(keys(hybrids(graph(PM)))))
     error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
   end
@@ -179,8 +179,17 @@ function entry_hybrid_parameter(PM::PhylogeneticModel, e::Edge)
   parameter_ring(PM)[4][e]
 end
 
-entry_hybrid_parameter(PM::PhylogeneticModel, u::Int, v::Int) = entry_hybrid_parameter(PM, Edge(u,v))
+function entry_hybrid_parameter(PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, e::Edge) 
+  if !(dst(e) in collect(keys(hybrids(graph(PM)))))
+    error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
+  end
 
+  parameter_ring(PM)[3][e]
+end
+
+function entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel, PhylogeneticModel}, u::Int, v::Int)
+  entry_hybrid_parameter(PM, Edge(u,v))
+end
 
 ###################################################################################
 #
@@ -200,7 +209,7 @@ end
 
 leaves_indices(PM::GroupBasedPhylogeneticModel) = leaves_indices(phylogenetic_model(PM))
 
-function hybrid_indices(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}) where {M, L, T}
+function hybrid_indices(PM::Union{GroupBasedPhylogeneticModel{GT}, PhylogeneticModel{GT}}) where {GT <: PhylogeneticNetwork} 
   hyb = hybrids(graph(PM))
   hyb_indices = collect(Iterators.product([tuple(1:2...) for _ in keys(hyb)]...))
 
@@ -228,7 +237,7 @@ function fully_observed_probability(PM::PhylogeneticModel{Graph{Directed}, L, M,
   return monomial
 end
 
-function fully_observed_probability(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+function fully_observed_probability(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, M, T}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
 
   r = root(subtree)
   monomial = entry_root_distribution(PM, vertices_states[r])
@@ -266,7 +275,7 @@ function leaves_probability(PM::PhylogeneticModel{Graph{Directed}, L, M, T}, lea
   return poly
 end 
 
-function leaves_probability(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
+function leaves_probability(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, M, T}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed}) where{M, L, T}
   int_nodes = interior_nodes(subtree)
 
   interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
@@ -283,7 +292,7 @@ function leaves_probability(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T},
   return poly
 end 
 
-function monomial_fourier(PM::GroupBasedPhylogeneticModel, leaves_states::Dict{Int, Int})
+function monomial_fourier(PM::GroupBasedPhylogeneticModel{Graph{Directed}}, leaves_states::Dict{Int, Int})
   gr = graph(PM)
   monomial = 1
   
@@ -296,10 +305,33 @@ function monomial_fourier(PM::GroupBasedPhylogeneticModel, leaves_states::Dict{I
   return monomial
 end
 
-function leaves_fourier(PM::GroupBasedPhylogeneticModel, leaves_states::Dict{Int, Int})
+function leaves_fourier(PM::GroupBasedPhylogeneticModel{Graph{Directed}}, leaves_states::Dict{Int, Int})
   
   if is_zero_group_sum(PM, leaves_states) 
-    return monomial_fourier(PM, leaves_states)
+    return monomial_fourier(PM, leaves_states, subtree)
+  end 
+
+  S = parameter_ring(PM)[1]
+  return S(0)
+  
+end 
+
+function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed})
+  monomial = 1
+  
+  for edge in edges(subtree)
+    dsc = vertex_descendants(subtree, dst(edge))
+    dsc_states = filter(pair -> pair.first in dsc, leaves_states)
+    group_elem = group_sum(PM, dsc_states)
+    monomial = monomial * entry_fourier_parameter(PM, which_group_element(PM, group_elem), edge)
+  end
+  return monomial
+end
+
+function leaves_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed})
+  
+  if is_zero_group_sum(PM, leaves_states) 
+    return monomial_fourier(PM, leaves_states, subtree)
   end 
 
   S = parameter_ring(PM)[1]

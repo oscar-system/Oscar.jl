@@ -443,7 +443,7 @@ end
   GraphTransDict,
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
@@ -465,7 +465,7 @@ end
   GraphTransDict,
   Vector{<:MPolyRingElem},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: VarName}; cached=false)  where {L}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName}; cached=false)  where {L}
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
@@ -488,7 +488,7 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -513,7 +513,7 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -542,7 +542,7 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
@@ -889,6 +889,27 @@ Returns a tuple containing:
   )
 end
 
+@attr Tuple{
+  MPolyRing,
+  GraphTransDict,
+  GenDict
+} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}; cached=false)
+  N = graph(PM)
+
+  vars = unique(fourier_parameters(PM))
+  edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
+  h_nodes = hybrid_vertices(N)
+
+  R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes),1:2), edge_gens...; cached=cached)
+  
+
+  hyb = hybrids(N)
+  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+     (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))),
+     Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
+
+end
+
 function Base.show(io::IO, PM::GroupBasedPhylogeneticModel)
 
   gr = graph(PM)
@@ -940,7 +961,7 @@ Constructs the parametrization map from the full model ring in _probability_ coo
 configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
 # TODO: Change Graph{Directed} to PhylogeneticTree
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{Graph{Directed}, L, M, T}) where {M, L, T}
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{Graph{Directed}})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -952,7 +973,7 @@ configurations) to the parameter ring (with generators from the transition matri
   hom(R, S, reduce(vcat, map))
 end
 
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticNetwork, L, M, T}) where {M, L, T}
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -985,7 +1006,7 @@ end
 Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
 configurations) to the parameter ring (with generators from the Fourier parameters).
 """
-function full_parametrization(PM::GroupBasedPhylogeneticModel)
+function full_parametrization(PM::GroupBasedPhylogeneticModel{Graph{Directed}})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -994,6 +1015,34 @@ function full_parametrization(PM::GroupBasedPhylogeneticModel)
   lvs_indices = leaves_indices(PM)
 
   map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
+
+end
+
+function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
+  N = graph(PM)
+
+  R, _ = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  lvs_indices = leaves_indices(PM)
+  h_indices = hybrid_indices(PM)
+
+  t_edges = tree_edges(N)
+  hyb = hybrids(N)
+  h_nodes = collect(keys(hyb))
+
+  map = [0 for i in lvs_indices]
+
+  for idx in h_indices
+      subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
+      subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
+
+      l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
+      map_subtree = [Oscar.leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+      map = map + l.*map_subtree
+  end
+
   hom(R, S, reduce(vcat, map))
 
 end
@@ -1045,6 +1094,17 @@ end
 Constructs the parametrization map from the reduced model ring of probability coordinates (with generators for
 each equivalence class) to the parameter ring.
 """
+function parametrization(PM::PhylogeneticModel)
+  R, _ = model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  # TODO: need to double check the order of the keys here is consitent,
+  # otherwise we need to add a sort
+  lvs_indices = keys(gens(R))
+  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
+  hom(R, S, reduce(vcat, map))
+end
+
 function parametrization(PM::PhylogeneticModel)
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
