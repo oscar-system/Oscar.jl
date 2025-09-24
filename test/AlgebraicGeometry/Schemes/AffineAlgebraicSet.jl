@@ -15,7 +15,7 @@
   # rational points
   I = ideal(P, [x^2-1,y-3])
   X = algebraic_set(I)
-  PL = rational_points(X)
+  PL = rational_points(Vector,X)
   @test PL[1][2] == 3
   @test PL[2][2] == 3
   @test PL[1][1]^2 == 1
