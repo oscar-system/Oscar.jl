@@ -557,7 +557,6 @@ end
   R, dict_maps, root_vars, Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
 end
 
-
 function Base.show(io::IO, PM::PhylogeneticModel)
   gr = graph(PM)
 
@@ -931,10 +930,10 @@ end
   S, _ = parameter_ring(PM)
 
   lvs_indices = leaves_indices(PM)
-  h_indices = Oscar.hybrid_indices(PM)
+  h_indices = hybrid_indices(PM)
 
-  t_edges = Oscar.tree_edges(N)
-  hyb = Oscar.hybrids(N)
+  t_edges = tree_edges(N)
+  hyb = hybrids(N)
   h_nodes = collect(keys(hyb))
 
   map = [0 for i in lvs_indices]

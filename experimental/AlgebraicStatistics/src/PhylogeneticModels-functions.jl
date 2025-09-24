@@ -4,7 +4,7 @@
 #
 ###################################################################################
 
-interior_nodes(graph::Graph) = findall(>(1), outdegree(graph))
+interior_nodes(graph::Graph) = findall(>=(1), outdegree(graph))
 
 leaves(graph::Graph) = findall(iszero, outdegree(graph))
 n_leaves(graph::Graph) = length(leaves(graph))
