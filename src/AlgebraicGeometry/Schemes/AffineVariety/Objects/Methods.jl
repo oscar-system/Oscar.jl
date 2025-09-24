@@ -160,3 +160,5 @@ function rational_points(::Type{S}, X::AffineVariety{T}) where {T <: Field, S <:
   v = rational_points(Vector,X)
   return finite_point_set(X,v)
 end
+
+rational_points(X::AffineVariety) = rational_points(FiniteRationalPointSet,X)

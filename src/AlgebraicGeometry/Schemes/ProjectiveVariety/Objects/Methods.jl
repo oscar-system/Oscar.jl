@@ -87,3 +87,5 @@ function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, 
   v = rational_points(Vector,X)
   return finite_point_set(X,v)
 end
+
+rational_points(X::ProjectiveVariety) = rational_points(FiniteRationalPointSet,X)

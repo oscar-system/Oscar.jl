@@ -151,3 +151,5 @@ function rational_points(::Type{S}, X::AffineAlgebraicSet{T}) where {T <: Field,
   v = rational_points(Vector,X)
   return finite_point_set(X,v)
 end
+
+rational_points(X::AffineAlgebraicSet) = rational_points(FiniteRationalPointSet,X)
