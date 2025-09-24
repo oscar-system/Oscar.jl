@@ -20,15 +20,20 @@
 #    * model_descriptors
 #        -type
 
+# internal helper
+function _model_indices()
+  return JSON.parsefile(joinpath(@__DIR__, "model_indices.json"))
+end
+
 function _create_literature_model_index()
-  model_directory = joinpath(@__DIR__, "Models/")
+  model_directory = joinpath(@__DIR__, "Models")
   models = readdir(model_directory)
   filter!(startswith("model"), models)
 
   index = Vector{Dict{String,Union{String,Vector{Any}}}}()
-  model_indices = JSON.parsefile(joinpath(@__DIR__, "model_indices.json"))
+  model_indices = _model_indices()
   for model in models
-    model_data = JSON.parsefile(model_directory * model)
+    model_data = JSON.parsefile(joinpath(model_directory, model))
     model_index = get(model_indices, model, "")
     if model_index == ""
       model_index = string.(maximum([parse(Int, x) for x in values(model_indices)]) + 1)

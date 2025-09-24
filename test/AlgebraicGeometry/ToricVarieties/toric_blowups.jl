@@ -25,7 +25,7 @@
   end
 
   amb = load(
-    joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv")
+    joinpath(Oscar.oscardir, "test", "AlgebraicGeometry", "ToricVarieties", "pr3006.ntv")
   )
   (x1, x2, x3, x4, x, y, z) = gens(cox_ring(amb))
 

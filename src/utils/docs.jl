@@ -325,7 +325,7 @@ function link_experimental_docs()
 
   for pkg in exppkgs
     # Set symlink inside docs/src/experimental
-    symlink_link = joinpath(oscardir, "docs/src/Experimental", pkg)
+    symlink_link = joinpath(oscardir, "docs", "src", "Experimental", pkg)
     symlink_target = joinpath(oscardir, "experimental", pkg, "docs", "src")
 
     if !ispath(symlink_target)
