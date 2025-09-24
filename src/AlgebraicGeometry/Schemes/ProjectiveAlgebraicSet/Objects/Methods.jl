@@ -88,7 +88,7 @@ function rational_points(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Fi
   return result
 end
 
-function rational_poins(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
+function rational_points(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
   return finite_pointset(X,v)
 end

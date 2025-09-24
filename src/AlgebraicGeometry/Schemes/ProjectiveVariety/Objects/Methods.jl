@@ -84,7 +84,7 @@ function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, 
   return [KV[1,b] for b in 1:size(KV)[2]]
 end
 
-function rational_poins(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
+function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
   return finite_pointset(X,v)
 end
