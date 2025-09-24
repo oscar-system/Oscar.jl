@@ -144,7 +144,7 @@ Affine variety
   in affine 2-space over QQ with coordinates [x, y]
 defined by ideal (x - 1, y - 3)
 
-julia> rational_points(X)
+julia> rational_points(Vector,X)
 1-element Vector{Vector{QQFieldElem}}:
  [1, 3]
 
@@ -152,11 +152,11 @@ julia> rational_points(X)
 """
 function rational_points(::Type{S},X::AffineVariety{T}) where {T <: Field, S <:Vector}
   I = vanishing_ideal(X)
-  @req dim(I) == 0 "Not a zero-dimensional algebraic set"
+  @req dim(I) == 0 "Currently only available for zero-dimensional case"
   return [rational_point_coordinates(I)]
 end
 
 function rational_points(::Type{S}, X::AffineVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
-  return finite_pointset(X,v)
+  return finite_point_set(X,v)
 end

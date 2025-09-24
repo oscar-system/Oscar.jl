@@ -3,6 +3,11 @@ struct RationalPointSet{P<:AbsAffineScheme, T<:Scheme} <: AbsRationalPointSet{P,
   codomain::T
 end
 
+@doc raw"""
+    FiniteRationalPointSet{P<:AbsAffineScheme, X<:Scheme, C<:Vector)
+
+Iterator over a finite set of RationalPoints, each in terms of a vector of coordinates.
+"""
 struct FiniteRationalPointSet{P<:AbsAffineScheme, T<:Scheme, C<:Vector} <:AbsRationalPointSet{P,T}
   domain::P
   codomain::T

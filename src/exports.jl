@@ -638,6 +638,7 @@ export fibration_type
 export filtrate
 export find_morphism
 export find_morphisms
+export finite_point_set
 export fits
 export fitting_ideal
 export fitting_subgroup

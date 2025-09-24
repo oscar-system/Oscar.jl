@@ -75,7 +75,7 @@ end
 Returns the $k$-coordinates of the point corresponding to a 
 maximal ideal $I \in k[x_1,\dots,x_n]$. 
 If $I$ is not maximal or does not describe a point with coordinates in the 
-field $k$, an error exception results.
+field $k$, an assertion error is raised.
 
 # Examples
 ```jldoctest
@@ -98,9 +98,9 @@ function rational_point_coordinates(I::MPolyIdeal)
   R = base_ring(I)
   o = degrevlex(gens(R))
   LG = leading_ideal(I;ordering=o)
-  @req dim(LG)==0 "Ideal does not describe finite set of points"
+  @req dim(LG) == 0 "Ideal does not describe finite set of points"
   vd = vector_space_dim(quo(base_ring(LG),LG)[1])
-  @req vd ==1 "Ideal does not describe a single K-point"
+  @req vd == 1 "Ideal does not describe a single k-point"
   nf_vec = [normal_form(v,I) for v in gens(R)]
   return [iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec]
 end
@@ -131,7 +131,7 @@ Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
 defined by ideal (x^2 - 1, y - 3)
 
-julia> rational_points(X)
+julia> rational_points(Vector,X)
 2-element Vector{Vector{QQFieldElem}}:
  [1, 3]
  [-1, 3]
@@ -140,7 +140,7 @@ julia> rational_points(X)
 """
 function rational_points(::Type{S}, X::AffineAlgebraicSet{T}) where {T <: Field, S <:Vector}
   I = fat_ideal(X)
-  @req dim(I) == 0 "Not a zero-dimensional algebraic set"
+  @req dim(I) == 0 "Currently only available for zero-dimensional case"
   PL = minimal_primes(I)
   return Vector{<:FieldElem}[rational_point_coordinates(J)
                        for J in PL
@@ -149,7 +149,5 @@ end
 
 function rational_points(::Type{S}, X::AffineAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
-@show X isa AffineAlgebraicSet{<:Field}
-@show v isa Vector{Vector{<:FieldElem}}
-  return finite_pointset(X,v)
+  return finite_point_set(X,v)
 end

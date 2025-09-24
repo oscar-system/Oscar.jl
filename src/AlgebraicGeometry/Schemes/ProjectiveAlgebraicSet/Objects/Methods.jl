@@ -38,8 +38,7 @@ end
 @doc raw"""
     rational_points(::Type{S}, X::ProjectiveAlgebraicSet)
 
-If $X$ is defined by a zero-dimensional homogeneous ideal in a multivariate
-graded polynomial ring over a field, say, $k$, return the $k$-rational
+If $X$ is defined over a field, say, $k$, return the $k$-rational
 points of $X$ as an instance of $S$. Here, S must be one of Vector
 and AbsRationalPointSet.
 
@@ -61,7 +60,7 @@ Projective algebraic set
   in projective 2-space over QQ with coordinates [x1, x2, x3]
 defined by ideal (x1^2 - x2^2 - 2*x2*x3 - x3^2, x1 - x2 + 2*x3)
 
-julia> rational_points(X)
+julia> rational_points(Vector, X)
 2-element Vector{Vector{QQFieldElem}}:
  [1, 1, 0]
  [-3//2, 1//2, 1]
@@ -69,9 +68,9 @@ julia> rational_points(X)
 ```
 """
 function rational_points(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S<:Vector}
-  @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
+  @req dim(X) == 0 "Currently only available for zero-dimensional case"
   I = fat_ideal(X)
-  @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
+  @req is_standard_graded(ambient_coordinate_ring(X)) "Currently only available for standard grading"
   PL = minimal_primes(I)
   result = Vector{elem_type(T)}[]
   for J in PL
@@ -90,5 +89,5 @@ end
 
 function rational_points(::Type{S}, X::ProjectiveAlgebraicSet{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
-  return finite_pointset(X,v)
+  return finite_point_set(X,v)
 end

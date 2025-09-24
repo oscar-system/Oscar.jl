@@ -38,8 +38,7 @@ Base.show(io::IO, P::AbsProjectiveVariety{<:Field, <:MPolyDecRing}) = Base.show(
 @doc raw"""
     rational_points(::Type{S}, X::ProjectiveVariety)
 
-If $X$ is defined by a homogeneous zero-dimensional ideal in a multivariate
-graded polynomial ring over a field, say, $k$, return the $k$-rational
+If $X$ is defined over a field, say, $k$, return the $k$-rational
 points of $X$ as an instance of $S$. Here, S must be one of Vector
 and AbsRationalPointSet.
 
@@ -61,7 +60,7 @@ Projective variety
   in projective 2-space over QQ with coordinates [x1, x2, x3]
 defined by ideal (x1 + x2 + x3, 2*x2 - x3)
 
-julia> rational_points(X)
+julia> rational_points(Vector,X)
 3-element Vector{QQFieldElem}:
  -3//2
  1//2
@@ -70,8 +69,8 @@ julia> rational_points(X)
 ```
 """
 function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S<:Vector}
-  @req dim(X) == 0 "Not a zero-dimensional projective algebraic set"
-  @req is_standard_graded(ambient_coordinate_ring(X)) "only available for standard grading"
+  @req dim(X) == 0 "Currently only available for zero-dimensional case"
+  @req is_standard_graded(ambient_coordinate_ring(X)) "Currently only available for standard grading"
   I = vanishing_ideal(X)
   all(b -> degree(b)[1] == 1, gens(I)) || "not all equations of degree 1"
   If = forget_grading(I)
@@ -86,5 +85,5 @@ end
 
 function rational_points(::Type{S}, X::ProjectiveVariety{T}) where {T <: Field, S <:AbsRationalPointSet}
   v = rational_points(Vector,X)
-  return finite_pointset(X,v)
+  return finite_point_set(X,v)
 end
