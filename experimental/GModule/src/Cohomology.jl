@@ -2429,9 +2429,9 @@ function compatible_pairs(C::GModule)
 
   N, mN = normalizer(autM, im)
   function doit(x, y)
-    return hom(y)(x)
-    s, ms = sub(G, map(hom(y), [G(t) for t = gens(x)]))
-    return s
+    return hom(y)(x)[1]
+#    s, ms = sub(G, map(hom(y), [G(t) for t = gens(x)]))
+#    return s
   end
   S, mS = stabilizer(autG, ke, doit)
 #  S, mS = stabilizer(autG, ke, (x,y)->sub(G, map(hom(y), [G(t) for t = gens(x)]))[1])
