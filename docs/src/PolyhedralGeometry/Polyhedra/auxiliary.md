@@ -37,41 +37,47 @@ f_vector(P::Polyhedron)
 facet_sizes(P::Polyhedron)
 g_vector(P::Polyhedron)
 h_vector(P::Polyhedron)
+is_simple(P::Polyhedron)
 vertex_sizes(P::Polyhedron)
 ```
 
 ## Groups
 ```@docs
-linear_symmetries(P::Polyhedron)
 combinatorial_symmetries(P::Polyhedron)
+linear_symmetries(P::Polyhedron)
 automorphism_group(P::Polyhedron)
 automorphism_group_generators(P::Polyhedron)
 automorphism_group(IM::IncidenceMatrix)
 automorphism_group_generators(IM::IncidenceMatrix)
 ```
 
-## Other
-
+## Lattice polytopes
 ```@docs
-all_triangulations
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
-Base.in(v::AbstractVector, P::Polyhedron)
-Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
-demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
+castelnuovo_excess(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(P::Polyhedron{QQFieldElem})
 ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 h_star_polynomial(P::Polyhedron{QQFieldElem})
 h_star_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
 interior_lattice_points(P::Polyhedron{QQFieldElem})
+is_castelnuovo(P::Polyhedron{QQFieldElem})
 is_normal(P::Polyhedron{QQFieldElem})
-is_simple(P::Polyhedron)
 is_smooth(P::Polyhedron{QQFieldElem})
 is_very_ample(P::Polyhedron{QQFieldElem})
+lattice_points(P::Polyhedron{QQFieldElem})
+lattice_volume(P::Polyhedron{QQFieldElem})
+```
+
+## Other
+
+```@docs
+all_triangulations
+Base.in(v::AbstractVector, P::Polyhedron)
+Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 is_archimedean_solid(P::Polyhedron)
 is_johnson_solid(P::Polyhedron)
 is_platonic_solid(P::Polyhedron)
-lattice_points(P::Polyhedron{QQFieldElem})
-lattice_volume(P::Polyhedron{QQFieldElem})
 normalized_volume(P::Polyhedron)
 polarize(P::Polyhedron{T}) where T<:scalar_types
 project_full(P::Polyhedron{T}) where T<:scalar_types

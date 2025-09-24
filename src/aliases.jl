@@ -1,7 +1,3 @@
-# make some Julia names compatible with our naming conventions
-@alias is_subset issubset
-@alias is_valid isvalid
-
 # predeclare some functions to allow defining aliases
 function n_atoms end
 function n_coatoms end
