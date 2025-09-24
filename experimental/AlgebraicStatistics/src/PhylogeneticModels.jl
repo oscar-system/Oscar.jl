@@ -123,22 +123,22 @@ base field (e.g., `QQ` for rational numbers).
 
   # Constructor for PhylogeneticNetwork
   function PhylogeneticModel(F::Field,
-                             N::PhylogeneticNetwork,
+                             G::N,
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varnames::VarName="p")
+                             varnames::VarName="p") where N <: PhylogeneticNetwork
 
     ## TODO: If N::PhylogeneticNetwork{0,0} --> convert it into a PhylogeneticTree 
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
     end
-    G = graph(N)
-    graph_maps = NamedTuple(_graph_maps(G))
+
+    graph_maps = NamedTuple(_graph_maps(graph(G)))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{PhylogeneticNetwork, typeof(graph_maps),
+    return new{typeof(G), typeof(graph_maps),
                typeof(first(trans_matrix_structure)), 
-               typeof(first(root_distribution))}(F, N,
+               typeof(first(root_distribution))}(F, G,
                                                  graph_maps,
                                                  trans_matrix_structure,
                                                  root_distribution,
@@ -152,10 +152,12 @@ base field (e.g., `QQ` for rational numbers).
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
-    if _is_tree(G)
-      pt = phylogenetic_tree(QQFieldElem, G)
-      return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
-    end
+
+    #TODO: this does not work - fix it!
+    # if _is_tree(G)
+    #   pt = phylogenetic_tree(QQFieldElem, G)
+    #   return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
+    # end
 
     #TODO
     # turn G into a network
@@ -631,7 +633,30 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
       pm, fourier_param_structure, group, varnames_group_based)
   end
 
-  function GroupBasedPhylogeneticModel(G::Graph{Directed},
+   function GroupBasedPhylogeneticModel(F::Field, 
+                                       N::PhylogeneticNetwork,
+                                       trans_matrix_structure::Matrix{<: VarName},
+                                       fourier_param_structure::Vector{<: VarName},
+                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
+                                       root_distribution::Union{Nothing, Vector} = nothing,
+                                       varnames_phylo_model::VarName="p",
+                                       varnames_group_based::VarName="q")
+    if isnothing(group)
+      group = collect(abelian_group(2,2))
+      group = [group[1],group[3],group[2],group[4]]
+    end
+
+    graph_maps = NamedTuple(_graph_maps(graph(N)))
+    graph_maps = isempty(graph_maps) ? nothing : graph_maps
+    pm = PhylogeneticModel(F, N, trans_matrix_structure, 
+                           root_distribution,
+                           varnames_phylo_model)
+
+    return new{typeof(graph(pm)), typeof(graph_maps)}(
+      pm, fourier_param_structure, group, varnames_group_based)
+  end
+
+  function GroupBasedPhylogeneticModel(G::Union{Graph{Directed}, PhylogeneticNetwork},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -654,7 +679,7 @@ Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`
 """
 
 function group_based_phylogenetic_model(F::Field, 
-                                      G::Graph{Directed},
+                                      G::Union{Graph{Directed}, PhylogeneticNetwork},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -665,7 +690,7 @@ function group_based_phylogenetic_model(F::Field,
                                root_distribution, varnames_phylo_model, varnames_group_based)
 end
 
-function group_based_phylogenetic_model(G::Graph{Directed},
+function group_based_phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -1226,7 +1251,7 @@ and fourier parameters of the form [:x, :y].
 ```
 
 """
-function cavender_farris_neyman_model(G::Graph{Directed})
+function cavender_farris_neyman_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
   M = [:a :b;
        :b :a]
   x = [:x, :y] 
@@ -1257,7 +1282,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :y, :y].
 ```
 """
-function jukes_cantor_model(G::Graph{Directed})
+function jukes_cantor_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
   M = [:a :b :b :b;
        :b :a :b :b;
        :b :b :a :b;
@@ -1289,7 +1314,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :z].
 ```
 """
-function kimura2_model(G::Graph{Directed})
+function kimura2_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
   M = [:a :b :c :b;
        :b :a :b :c;
        :c :b :a :b;
@@ -1318,7 +1343,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :t].
 ```
 """
-function kimura3_model(G::Graph{Directed})
+function kimura3_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
   M = [:a :b :c :d;
        :b :a :d :c;
        :c :d :a :b;
