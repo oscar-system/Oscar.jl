@@ -155,6 +155,7 @@ function translate(
 end
 function +(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
   @req length(v) == ambient_dim(Sigma) "ambient dimension mismatch"
+  n_maximal_polyhedra(Sigma) == 0 && return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
   SigmaVertsAndRays = vertices_and_rays(Sigma)
   SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
   SigmaLineality = lineality_space(Sigma)
