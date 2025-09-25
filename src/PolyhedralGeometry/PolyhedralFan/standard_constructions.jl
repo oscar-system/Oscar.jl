@@ -436,6 +436,6 @@ function -(Sigma::PolyhedralFan)
   SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
   SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
   return polyhedral_fan(
-    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality; non_redundant=true
   )
 end
