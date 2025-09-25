@@ -3,7 +3,7 @@ function systolic_ratio(ori::Origami)
 end
 
 function systolic_ratio_bigger_one_over_pi_in_h11(deg::Int)
-    oris::Vector{Origami} = []
+    oris = Origami[]
     for d in 1:deg
         orisDeg = origamis([1,1], d)
         append!(oris, orisDeg)
