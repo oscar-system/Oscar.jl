@@ -115,7 +115,8 @@ function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
     SigmaIncidence,
     scale.(SigmaVertsAndRays,c),
     SigmaRayIndices,
-    SigmaLineality,
+    SigmaLineality;
+    non_redundant=true
   )
 end
 *(Sigma::PolyhedralComplex, c::scalar_types_extended) = c * Sigma
