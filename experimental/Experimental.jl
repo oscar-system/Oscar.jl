@@ -1,4 +1,4 @@
-const expdir = joinpath(@__DIR__, "../experimental")
+const expdir = joinpath(@__DIR__, "..", "experimental")
 
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one

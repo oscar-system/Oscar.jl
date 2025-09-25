@@ -62,7 +62,7 @@ add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) 
 
 function setup_experimental_package(Oscar::Module, package_name::String)
   oscardir = Base.pkgdir(Oscar)
-  doc_main_path = joinpath(oscardir, "experimental", package_name, "docs/doc.main")
+  doc_main_path = joinpath(oscardir, "experimental", package_name, "docs", "doc.main")
   if !isfile(doc_main_path)
     return []
   end
@@ -70,7 +70,7 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   # Assumes that a symbolic link from `experimental/package_name/docs/src`
   # to `docs/src/Experimental/package_name` has been created (or there is no
   # documentation for this package)
-  if !ispath(joinpath(oscardir, "docs/src/Experimental", package_name))
+  if !ispath(joinpath(oscardir, "docs", "src", "Experimental", package_name))
     return []
   end
 
