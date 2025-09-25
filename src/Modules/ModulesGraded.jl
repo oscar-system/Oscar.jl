@@ -105,7 +105,7 @@ Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 
 ```jldoctest
-julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1 0 1; 0 1 1]);
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1 0 1; 0 1 1]);
 
 julia> FF = graded_free_module(S, [[1, 2], [-1, 3]])
 Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
@@ -226,7 +226,7 @@ Return the new module.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z],  [1 0 1; 0 1 1])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1 0 1; 0 1 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
@@ -2827,11 +2827,11 @@ function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
-     return _return_wrt_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, id_hom(I)), task)
   end
   dmin = minimum(degree(Int, x; check) for x in gens(I))
   if  d <= dmin
-     return _return_wrt_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, id_hom(I)), task)
   end
   V = sort(gens(I); by=a -> degree(Int, a; check))
   RES = elem_type(I)[]

@@ -454,7 +454,7 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldE
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert allequal(parent, a)
   @assert fl
-  for p = keys(factor(c).fac)
+  for p = prime_divisors(c)
     while c % p == 0
       K, _ = cyclotomic_field(Int(div(c, p)), cached = false)
       b = similar(a)
@@ -601,13 +601,13 @@ struct RootData
      @assert p % n == 1
      k = Native.GF(p)
      @assert((p-1)%n == 0)
-     lf = factor(n)
+     lf = prime_divisors(n)
      local Z, Zn
      while true
        Z = rand(k)
        iszero(Z) && continue
        Zn = Z^divexact(p-1, n)
-       if all(x->!isone(Zn^divexact(n, x)), keys(lf.fac))
+       if all(x->!isone(Zn^divexact(n, x)), lf)
          break
        end
      end
@@ -964,7 +964,7 @@ is_rational(a::QQAbFieldElem) = is_rational(data(a))
 @doc raw"""
     is_integral(a::QQAbFieldElem)
 
-Returns whether $a$ is integral, that is, whether the minimal
+Return whether $a$ is integral, that is, whether the minimal
 polynomial of $a$ has integral coefficients.
 """
 is_integral(a::QQAbFieldElem) = is_integral(data(a))
@@ -995,7 +995,7 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
   c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(QQAb, c)
   f = map_coefficients(x->k(x.data), f)
-  lf = factor(f).fac
+  lf = factor(f)
   #we need to find the correct cyclotomic field...
   #can't use ray_class_group in k as this is expensive (needs class group)
   #need absolute norm group
@@ -1005,7 +1005,7 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
 
   rts = QQAbFieldElem{T}[]
 
-  for g = keys(lf)
+  for (g, _) in lf
     c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(g)), init = Int(1))
     #so THIS factor lives in cyclo(c)
     k, z = cyclotomic_field(QQAb, c)
@@ -1030,7 +1030,7 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
       lp = Hecke.modular_proj(g, me)
       for pg = lp
         l = factor(pg)
-        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)], false)
+        q, mqq = quo(q, [degree(x)*mq(P) for (x, _) in l], false)
         mq = mq*mqq
         if order(q) <= degree(g)*degree(k)
           break
@@ -1099,7 +1099,7 @@ end
 function Oscar.order(a::QQAbFieldElem)
   f = Nemo.factor(ZZRingElem(2*a.c))
   o = 1
-  for (p, e) = f.fac
+  for (p, e) in f
     b = a^div(2*a.c, Int(p)^e)
     f = 0
 

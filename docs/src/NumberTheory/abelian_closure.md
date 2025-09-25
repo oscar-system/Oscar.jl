@@ -51,10 +51,10 @@ julia> x = z(5)
 zeta(5)
 
 julia> y = F(x)
-Root 0.309017 + 0.951057*im of x^4 + x^3 + x^2 + x + 1
+{a4: 0.309017 + 0.951057*im}
 
 julia> y^5
-Root 1.00000 of x - 1
+{a1: 1.00000}
 ```
 
 Real elements of `K` can be compared with `<` and `>`.

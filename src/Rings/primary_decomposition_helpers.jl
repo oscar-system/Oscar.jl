@@ -18,11 +18,11 @@
 # in an extra file.
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return R, identity_map(R), identity_map(R)
+  return R, id_hom(R), id_hom(R)
 end
 
 function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return Q, identity_map(Q), identity_map(Q)
+  return Q, id_hom(Q), id_hom(Q)
 end
 
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}}
@@ -205,6 +205,14 @@ function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
   L = parent(phi(zero(kk)))
   RR, _ = polynomial_ring(L, symbols(R); cached = false)
+  psi = hom(R, RR, phi, gens(RR); check=false)
+  return RR, psi
+end
+
+function change_base_ring(phi::Any, R::MPolyDecRing)
+  kk = coefficient_ring(R)
+  L = parent(phi(zero(kk)))
+  RR, _ = graded_polynomial_ring(L, symbols(R); cached = false, weights=weights(R))
   psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end

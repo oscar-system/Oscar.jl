@@ -1,4 +1,4 @@
-const expdir = joinpath(@__DIR__, "../experimental")
+const expdir = joinpath(@__DIR__, "..", "experimental")
 
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -63,7 +63,7 @@ for name in names(Oscar)
     # Loop over all definitions of a function
     for entry in md.meta[:results]
       # Test whether function was defined in experimental
-      if startswith(entry.data[:path], joinpath(Oscar.oscardir, "experimental"))
+      if startswith(entry.data[:path], @__DIR__)
         append!(entry.object.content[1].content, warnexp.content)
       end
     end

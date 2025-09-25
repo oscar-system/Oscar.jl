@@ -32,7 +32,13 @@ jobs:
     - uses: julia-actions/cache@v2
     - name: 'Check format with JuliaFormatter'
       run: |
-        julia etc/test_formatting.jl
+        julia etc/format_code.jl
+        git status  # to see which files changed
+        if ! git diff-index --quiet HEAD; then
+          echo "+------------------------------------------------------------------"
+          echo "| Error, detected files which are not properly formatted!"
+          echo "| Please run 'julia etc/format_code.jl' on your code and try again."
+          echo "+------------------------------------------------------------------"
+          exit 1
+        fi
       shell: bash
-      env:
-        jf-version: ${{ inputs.version }}

@@ -60,8 +60,7 @@ const upgrade_scripts_set = Set{UpgradeScript}()
     upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
 
 `upgrade_data` is a helper function that provides functionality for
-recursing on the tree structure. It is independent of any particular
-file format version and can be used in any upgrade script.
+recursing on the tree structure. Used for upgrades up to 0.12.2.
 """
 function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   s.nested_level += 1
@@ -94,8 +93,13 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   return upgraded_dict
 end
 
-# upgrades all types in dict based on renamings
-function upgrade_types(dict::Dict, renamings::Dict{String, String})
+"""
+    rename_types(dict::Dict, renamings::Dict{String, String})
+
+Provides functionality for recursing on the tree structure of `dict`
+and replace all type names that occur as keys in renamings with the values. 
+"""
+function rename_types(dict::Dict, renamings::Dict{String, String})
   function upgrade_type(d::String)
     return get(renamings, d, d)
   end
@@ -172,6 +176,15 @@ function upgrade(format_version::VersionNumber, dict::Dict)
       # upgrading large files needs a work around since the new load
       # uses JSON3 which is read only 
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
+      if script_version > v"0.13.0"
+        if haskey(upgraded_dict, :_refs)
+          upgraded_refs = Dict{Symbol, Any}()
+          for (k, v) in upgraded_dict[:_refs]
+            upgraded_refs[k] = upgrade_script(upgrade_state, v)
+          end
+          upgraded_dict[:_refs] = upgraded_refs
+        end
+      end
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

@@ -3,15 +3,16 @@
 ##############################################################
 
 @attributes mutable struct ClosedSubvarietyOfToricVariety
-    toric_variety::NormalToricVarietyType
-    defining_ideal::MPolyIdeal
-    function ClosedSubvarietyOfToricVariety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal)
-      @req is_simplicial(toric_variety) "Currently, closed subvarieties are only supported for simplicial toric varieties"
-      @req base_ring(defining_ideal) == cox_ring(toric_variety) "The defining ideal must be contained in the Cox ring of the toric supervariety"
-      return new(toric_variety, defining_ideal)
-    end
+  toric_variety::NormalToricVarietyType
+  defining_ideal::MPolyIdeal
+  function ClosedSubvarietyOfToricVariety(
+    toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal
+  )
+    @req is_simplicial(toric_variety) "Currently, closed subvarieties are only supported for simplicial toric varieties"
+    @req base_ring(defining_ideal) == cox_ring(toric_variety) "The defining ideal must be contained in the Cox ring of the toric supervariety"
+    return new(toric_variety, defining_ideal)
+  end
 end
-
 
 ##############################################################
 # 2: Generic constructor
@@ -38,8 +39,12 @@ julia> closed_subvariety_of_toric_variety(f2, [t1])
 Closed subvariety of a normal toric variety
 ```
 """
-closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
-
+closed_subvariety_of_toric_variety(
+  toric_variety::NormalToricVarietyType,
+  defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},
+) = ClosedSubvarietyOfToricVariety(
+  toric_variety, ideal(defining_polynomials)
+)
 
 @doc raw"""
     closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal)
@@ -60,16 +65,19 @@ julia> closed_subvariety_of_toric_variety(f2, ideal([t1]))
 Closed subvariety of a normal toric variety
 ```
 """
-closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal) = ClosedSubvarietyOfToricVariety(toric_variety, defining_ideal)
-
+closed_subvariety_of_toric_variety(
+  toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal
+) = ClosedSubvarietyOfToricVariety(
+  toric_variety, defining_ideal
+)
 
 ######################
 # 3: Display
 ######################s
 
 function Base.show(io::IO, c::ClosedSubvarietyOfToricVariety)
-    properties_string = ["Closed"]
-    push_attribute_if_exists!(properties_string, c, :is_empty, "empty")
-    push!(properties_string, "subvariety of a normal toric variety")
-    join(io, properties_string, ", ", " ")
+  properties_string = ["Closed"]
+  push_attribute_if_exists!(properties_string, c, :is_empty, "empty")
+  push!(properties_string, "subvariety of a normal toric variety")
+  join(io, properties_string, ", ", " ")
 end
