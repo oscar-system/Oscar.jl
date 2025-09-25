@@ -131,7 +131,7 @@ function -(Sigma::PolyhedralComplex)
   SigmaLineality = lineality_space(Sigma)
   SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
   return polyhedral_complex(
-    SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality
+    coefficient_field(Sigma), SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality; non_redundant=true
   )
 end
 
