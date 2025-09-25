@@ -103,10 +103,8 @@ _empty_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(0, 0), zero_ma
 _origin_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(1, 1, [[1]]), zero_matrix(cf, 1, dim); non_redundant=true)
 
 function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
-  # if scalar is zero, return polyhedral complex consisting only of the origin
-  if iszero(c)
-    return polyhedral_complex(convex_hull(zero_matrix(QQ, 1, ambient_dim(Sigma))))
-  end
+  n_maximal_polyhedra(Sigma) == 0 && return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_complex(coefficient_field(Sigma), ambient_dim(Sigma))
 
   # if scalar is non-zero, multiple all vertices and rays by said scalar
   SigmaVertsAndRays = vertices_and_rays(Sigma)
