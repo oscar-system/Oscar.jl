@@ -422,7 +422,7 @@ function *(c::scalar_types_extended, Sigma::PolyhedralFan)
   SigmaLineality = lineality_space(Sigma)
   SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
   return polyhedral_fan(
-    coefficient_field(Sigma), SigmaIncidence, SigmaRays .* c, SigmaLineality
+    coefficient_field(Sigma), SigmaIncidence, SigmaRays .* c, SigmaLineality; non_redundant=true
   )
 end
 *(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma
