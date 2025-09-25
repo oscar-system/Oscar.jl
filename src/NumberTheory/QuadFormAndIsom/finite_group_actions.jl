@@ -123,9 +123,8 @@ function is_isometry(
   elseif !is_stable
     return true
   end
-  fLQ = solve(basis_matrix(L), fL*basis_matrix(L); side=:right)
   q = discriminant_group(L)
-  fq = hom(q, q, elem_type(q)[q(lift(t)*fLQ) for t in gens(q)])
+  fq = hom(q, q, elem_type(q)[q(solve(basis_matrix(L), lift(t))*fL*basis_matrix(L)) for t in gens(q)])
   return isone(matrix(fq))
 end
 

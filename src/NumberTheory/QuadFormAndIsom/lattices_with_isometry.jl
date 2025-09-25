@@ -1770,8 +1770,8 @@ end
 @doc raw"""
     is_special_isometry(Lf::ZZLatWithIsom) -> Bool
 
-Given an integral $\mathbb{Z}$-lattice with isometry ``(L, f)``, return
-whether the isometry ``f`` acts trivially on the discriminant group of ``L``.
+Given a $\mathbb{Z}$-lattice with isometry ``(L, f)``, return whether the
+isometry ``f`` has determinant ``+1``.
 
 # Examples
 ```jldoctest
@@ -2270,8 +2270,8 @@ julia> L = root_lattice(:A, 2);
 
 julia> G = isometry_group(L);
 
-julia> F, C, _ = invariant_coinvariant_pair(L, last(gens(G)))
-(Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, Matrix group of degree 2 over QQ)
+julia> F, C, _ = invariant_coinvariant_pair(L, matrix(last(gens(G))))
+(Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, [1 0; -1 -1])
 
 julia> F
 Integer lattice of rank 1 and degree 2
