@@ -165,7 +165,8 @@ function +(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
     SigmaIncidence,
     translate.(SigmaVertsAndRays, Ref(v)),
     SigmaRayIndices,
-    SigmaLineality,
+    SigmaLineality;
+    non_redundant=true
   )
 end
 +(Sigma::PolyhedralComplex, v::Vector{<:scalar_types_extended}) = v + Sigma
