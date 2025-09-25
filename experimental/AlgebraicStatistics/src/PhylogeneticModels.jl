@@ -106,6 +106,7 @@ base field (e.g., `QQ` for rational numbers).
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p") where T <: PhylogeneticTree
+    print("hola")
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
@@ -114,7 +115,7 @@ base field (e.g., `QQ` for rational numbers).
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
 
     return new{
-      T,
+      typeof(G),
       typeof(graph_maps),
       typeof(first(trans_matrix_structure)), 
       typeof(first(root_distribution))
@@ -211,20 +212,20 @@ If `root_distribution` is not provided, a uniform distribution is assumed. If `F
 
 If `trans_matrix_structure` is a `Matrix{<: MPolyRing{<:MPolyRingElem}}` and `root_distribution` is a `Vector{<: MPolyRing}`, then the constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
 """
-function phylogenetic_model(F::Field, G::Union{Graph{Directed}, PhylogeneticNetwork},
+function phylogenetic_model(F::Field, G::Union{PhylogeneticTree, PhylogeneticNetwork},
                             trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork}, trans_matrix_structure::Matrix{M},
+function phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork}, trans_matrix_structure::Matrix{M},
                             root_distribution::Vector{T},
                             varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
   PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork}, trans_matrix_structure::Matrix,
+function phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork}, trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   return PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
@@ -419,7 +420,8 @@ end
   MPolyRing{RT}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem} 
+  #function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -612,7 +614,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
   model_parameter_name::VarName
   
   function GroupBasedPhylogeneticModel(F::Field, 
-                                       G::Graph{Directed},
+                                       G::PhylogeneticTree,
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -624,7 +626,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
       group = [group[1],group[3],group[2],group[4]]
     end
 
-    graph_maps = NamedTuple(_graph_maps(G))
+    graph_maps = NamedTuple(_graph_maps(adjacency_tree(G; add_labels=false)))
     graph_maps = isempty(graph_maps) ? nothing : graph_maps
     pm = PhylogeneticModel(F, G, trans_matrix_structure, 
                            root_distribution,
@@ -656,7 +658,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
       pm, fourier_param_structure, group, varnames_group_based)
   end
 
-  function GroupBasedPhylogeneticModel(G::Union{Graph{Directed}, PhylogeneticNetwork},
+  function GroupBasedPhylogeneticModel(G::Union{PhylogeneticTree, PhylogeneticNetwork},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -679,7 +681,7 @@ Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`
 """
 
 function group_based_phylogenetic_model(F::Field, 
-                                      G::Union{Graph{Directed}, PhylogeneticNetwork},
+                                      G::Union{PhylogeneticTree, PhylogeneticNetwork},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -690,7 +692,7 @@ function group_based_phylogenetic_model(F::Field,
                                root_distribution, varnames_phylo_model, varnames_group_based)
 end
 
-function group_based_phylogenetic_model(G::Union{Graph{Directed}, PhylogeneticNetwork},
+function group_based_phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -961,7 +963,7 @@ Constructs the parametrization map from the full model ring in _probability_ coo
 configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
 # TODO: Change Graph{Directed} to PhylogeneticTree
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{Graph{Directed}})
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -1006,7 +1008,7 @@ end
 Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
 configurations) to the parameter ring (with generators from the Fourier parameters).
 """
-function full_parametrization(PM::GroupBasedPhylogeneticModel{Graph{Directed}})
+function full_parametrization(PM::GroupBasedPhylogeneticModel{PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -1311,7 +1313,7 @@ and fourier parameters of the form [:x, :y].
 ```
 
 """
-function cavender_farris_neyman_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function cavender_farris_neyman_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
   M = [:a :b;
        :b :a]
   x = [:x, :y] 
@@ -1342,7 +1344,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :y, :y].
 ```
 """
-function jukes_cantor_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function jukes_cantor_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
   M = [:a :b :b :b;
        :b :a :b :b;
        :b :b :a :b;
@@ -1374,7 +1376,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :z].
 ```
 """
-function kimura2_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function kimura2_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
   M = [:a :b :c :b;
        :b :a :b :c;
        :c :b :a :b;
@@ -1403,7 +1405,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :t].
 ```
 """
-function kimura3_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function kimura3_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
   M = [:a :b :c :d;
        :b :a :d :c;
        :c :d :a :b;
@@ -1431,7 +1433,7 @@ and transition matrices of the form
   :m41 :m42 :m43 :m44]. 
 ```
 """
-function general_markov_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function general_markov_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 
   M = [:m11 :m12 :m13 :m14;
        :m21 :m22 :m23 :m24;
@@ -1461,7 +1463,7 @@ and transition matrices of the form
   r[1]*d r[2]*f r[3]*g r[4]*a]. 
 ```
 """
-function general_time_reversible_model(G::Union{Graph{Directed}, PhylogeneticNetwork})
+function general_time_reversible_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 
   Rp, r = polynomial_ring(QQ, :r => 1:4);
   RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);
