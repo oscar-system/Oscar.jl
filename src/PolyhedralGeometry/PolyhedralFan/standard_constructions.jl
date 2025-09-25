@@ -410,6 +410,9 @@ end
 ## Scalar multiplication
 ###############################################################################
 
+_empty_fan(cf, dim) = polyhedral_fan(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_fan(cf, dim) = polyhedral_fan(cf, incidence_matrix(1, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+
 function *(c::scalar_types_extended, Sigma::PolyhedralFan)
   # if scalar is zero, return polyhedral fan consisting only of the origin
   if iszero(c)
