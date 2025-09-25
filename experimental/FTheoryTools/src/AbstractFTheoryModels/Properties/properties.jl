@@ -20,7 +20,6 @@ false
 """
 is_base_space_fully_specified(m::AbstractFTheoryModel) = !(m.base_space isa FamilyOfSpaces)
 
-
 @doc raw"""
     is_partially_resolved(m::AbstractFTheoryModel)
 
@@ -52,8 +51,6 @@ true
 """
 is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)::Bool
 
-
-
 ##########################################
 ### (2) Consistency checks
 ##########################################
@@ -74,7 +71,7 @@ raises an error.
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -84,7 +81,9 @@ julia> verify_euler_characteristic_from_hodge_numbers(qsm_model; completeness_ch
 true
 ```
 """
-@attr Bool function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; completeness_check::Bool = true)
+@attr Bool function verify_euler_characteristic_from_hodge_numbers(
+  m::AbstractFTheoryModel; completeness_check::Bool=true
+)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verification of Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
@@ -105,7 +104,6 @@ true
   return ec == ec2
 end
 
-
 @doc raw"""
     is_calabi_yau(m::AbstractFTheoryModel)
 
@@ -125,7 +123,7 @@ toric ambient space is smooth and complete.
     `completeness_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
@@ -135,7 +133,7 @@ julia> is_calabi_yau(qsm_model, completeness_check = false)
 true
 ```
 """
-@attr Bool function is_calabi_yau(m::AbstractFTheoryModel; completeness_check::Bool = true)
+@attr Bool function is_calabi_yau(m::AbstractFTheoryModel; completeness_check::Bool=true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verification of Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"

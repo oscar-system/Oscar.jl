@@ -1412,7 +1412,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z] );
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
 (Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -> A)

@@ -55,18 +55,19 @@
 
   "Fields" => [
      "Fields/intro.md",
-     "AbstractAlgebra/field.md",
+     "Fields/interface.md",
      "Rings/rational.md",
-     "Hecke/manual/misc/FacElem.md",
-     "Hecke/manual/number_fields/class_fields.md",
-     "AbstractAlgebra/fraction.md",
      "Local Fields" => [
         "Nemo/padic.md",
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
      "Nemo/algebraic.md",
+     "Nemo/real.md",
+     "Nemo/complex.md",
      "Fields/algebraic_closure_fp.md",
+     "NumberTheory/abelian_closure.md",
+     "AbstractAlgebra/fraction.md",
   ],
 
   "Linear Algebra" => [

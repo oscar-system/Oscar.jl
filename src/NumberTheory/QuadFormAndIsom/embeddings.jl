@@ -1717,6 +1717,7 @@ function equivariant_primitive_extensions(
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=true,
     first_fitting_isometry::Bool=false,
+    _local::Bool=false
   ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
@@ -1724,19 +1725,19 @@ function equivariant_primitive_extensions(
   if classification == :embsub || classification == :embemb
     GM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   else
-    GM, _ = image_centralizer_in_Oq(M)
+    GM, _ = image_centralizer_in_Oq(M; _local)
   end
 
   qN, fqN = discriminant_group(N)
   if classification == :subemb || classification == :embemb
     GN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   else
-    GN, _ = image_centralizer_in_Oq(N)
+    GN, _ = image_centralizer_in_Oq(N; _local)
   end
 
   if compute_bar_Gf
-    OqfM, _ = image_centralizer_in_Oq(M)
-    OqfN, _ = image_centralizer_in_Oq(N)
+    OqfM, _ = image_centralizer_in_Oq(M; _local)
+    OqfN, _ = image_centralizer_in_Oq(N; _local)
   else
     OqfM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
     OqfN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
@@ -1914,6 +1915,7 @@ function admissible_equivariant_primitive_extensions(
     q::IntegerUnion = p;
     check::Bool=true,
     test_type::Bool=true,
+    _local::Bool=false
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
@@ -1940,9 +1942,9 @@ function admissible_equivariant_primitive_extensions(
   qA, fqA = discriminant_group(A)
   qB, fqB = discriminant_group(B)
   qC = discriminant_group(lattice(C))
-  GA, _ = image_centralizer_in_Oq(A)
+  GA, _ = image_centralizer_in_Oq(A;_local)
   @hassert :ZZLatWithIsom 1 fqA in GA
-  GB, _ = image_centralizer_in_Oq(B)
+  GB, _ = image_centralizer_in_Oq(B;_local)
   @hassert :ZZLatWithIsom 1 fqB in GB
 
   # this is where we will perform the gluing

@@ -1162,7 +1162,7 @@ degree: 0  1  2  3
 end
 
 @testset "twist" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1 0; 0 1]);
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1 0; 0 1]);
   I = ideal(R, [x, y])
   M = quotient_ring_as_module(I)
   N = twist(M, [1, 2])

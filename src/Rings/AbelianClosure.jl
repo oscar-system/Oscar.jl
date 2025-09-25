@@ -964,7 +964,7 @@ is_rational(a::QQAbFieldElem) = is_rational(data(a))
 @doc raw"""
     is_integral(a::QQAbFieldElem)
 
-Returns whether $a$ is integral, that is, whether the minimal
+Return whether $a$ is integral, that is, whether the minimal
 polynomial of $a$ has integral coefficients.
 """
 is_integral(a::QQAbFieldElem) = is_integral(data(a))
