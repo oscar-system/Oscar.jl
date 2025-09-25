@@ -432,6 +432,7 @@ end
 ###############################################################################
 
 function -(Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 && return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
   SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
   SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
   return polyhedral_fan(
