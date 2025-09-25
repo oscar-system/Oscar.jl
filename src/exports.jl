@@ -72,6 +72,7 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
+export FiniteRationalPointSet
 export FPGroup
 export FPGroupElem
 export FreeMod
