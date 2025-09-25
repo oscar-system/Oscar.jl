@@ -963,15 +963,16 @@ Constructs the parametrization map from the full model ring in _probability_ coo
 configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
 # TODO: Change Graph{Directed} to PhylogeneticTree
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticTree})
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = leaves(gr)
   lvs_indices = leaves_indices(PM)
 
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  map = [leaves_probability(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
@@ -981,6 +982,7 @@ end
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = leaves(N)
   lvs_indices = leaves_indices(PM)
   h_indices = hybrid_indices(PM)
 
@@ -991,12 +993,12 @@ end
   map = [0 for i in lvs_indices]
 
   for idx in h_indices
-      subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
-      subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
+    subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
+    subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
 
-      l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-      map_subtree = [Oscar.leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
-      map = map + l.*map_subtree
+    l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
+    map_subtree = [Oscar.leaves_probability(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+    map = map + l.*map_subtree
   end
 
   hom(R, S, reduce(vcat, map))
@@ -1008,25 +1010,27 @@ end
 Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
 configurations) to the parameter ring (with generators from the Fourier parameters).
 """
-function full_parametrization(PM::GroupBasedPhylogeneticModel{PhylogeneticTree})
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = leaves(gr)
   lvs_indices = leaves_indices(PM)
 
-  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  map = [leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 
 end
 
-function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = leaves(N)
   lvs_indices = leaves_indices(PM)
   h_indices = hybrid_indices(PM)
 
@@ -1041,7 +1045,7 @@ function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetw
       subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
 
       l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-      map_subtree = [Oscar.leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+      map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
       map = map + l.*map_subtree
   end
 
@@ -1091,45 +1095,21 @@ This ring has a generator for each unique polynomial (i.e., each equivalence cla
 end
 
 @doc raw"""
-    parametrization(PM::PhylogeneticModel)
+    parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
 
 Constructs the parametrization map from the reduced model ring of probability coordinates (with generators for
-each equivalence class) to the parameter ring.
-"""
-function parametrization(PM::PhylogeneticModel)
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  # TODO: need to double check the order of the keys here is consitent,
-  # otherwise we need to add a sort
-  lvs_indices = keys(gens(R))
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-end
-
-function parametrization(PM::PhylogeneticModel)
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  # TODO: need to double check the order of the keys here is consitent,
-  # otherwise we need to add a sort
-  lvs_indices = keys(gens(R))
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-end
-
-@doc raw"""
-    parametrization(PM::GroupBasedPhylogeneticModel)
-
+each equivalence class) to the parameter ring. CHANGE!!!
 Constructs the parametrization map from the reduced model of Fourier coordinates ring to the Fourier parameter ring.
 """
-function parametrization(PM::GroupBasedPhylogeneticModel)
+function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+  _, p = full_model_ring(PM)
+  f = full_parametrization(PM)
+
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
-  
-  lvs_indices = keys(gens(R))
 
-  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
+  lvs_indices = keys(gens(R))
+  map = [f(p[k...]) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
