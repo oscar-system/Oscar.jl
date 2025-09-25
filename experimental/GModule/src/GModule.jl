@@ -433,7 +433,14 @@ function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <
 end
 
 function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQAbFieldElem{AbsSimpleNumFieldElem}}})
-  return gmodule(AbsSimpleNumField, gmodule(CyclotomicField, M))
+  if ngens(group(M)) == 0 
+    F = free_module(rationals_as_number_field()[1], dim(M))
+    return gmodule(group(M), [hom(F, F, gens(F)) for x = gens(group(M))])
+  end
+  k, mk = sub(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
+  @show k, mk
+  F = free_module(k, dim(M); cached = true)
+  return gmodule(group(M), [hom(F, F, map_entries(pseudo_inv(mk), matrix(x))) for x = M.ac])
 end
 
 function irreducible_modules(::Type{AbsSimpleNumField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
@@ -954,6 +961,10 @@ end
 
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
+function trace_product(M::T, N::T) where T <: MatElem
+  return sum((M[i:i, :] * N[:, i:i])[1,1] for i=1:nrows(M))
+end
+
 #=
  On characters (in char 0)
  ========================
@@ -976,15 +987,75 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
   n = dim(C)
   K = base_ring(C)
 
-  chr = []
-  for c = conjugacy_classes(character_table(G))
-    r = representative(c)
-    if isone(r)
-      push!(chr, (c, K(n)))
-      continue
+  Cls = conjugacy_classes(character_table(G))
+  if has_attribute(C, :action)
+    chr = []
+    for c = Cls
+      r = representative(c)
+      if isone(r)
+        push!(chr, (c, K(n)))
+        continue
+      end
+      T = action(C, r)
+      push!(chr, (c, K(trace(matrix(T)))))
     end
-    T = action(C, r)
-    push!(chr, (c, K(trace(matrix(T)))))
+  elseif base_ring(C) == QQ
+    n = dim(C)
+    p = 2*n
+    while order(C.G) % p == 0
+      p = next_prime(p)
+    end
+    Cp = gmodule(Native.GF(p), C)
+    _c = _character(Cp)
+    pZ = ZZ(p)
+    @assert all(Cls[i] == _c[i][1] for i=1:length(_c))
+    chr = [(x[1], mod_sym(ZZ(lift(x[2])), pZ)) for x = _c]
+  else
+    pos = let Cls = Cls
+      function pos(g)
+        for i = 1:length(Cls)
+          if g in Cls[i]
+            return i
+          end
+        end
+        return nothing
+      end
+    end
+    have = [false for c = Cls]
+    chr = [(Cls[1], K(0)) for c = Cls]
+    M = map(matrix, action(C))
+    Mi = map(matrix, Oscar.GrpCoh.inv_action(C))
+    for g = 1:ngens(G)
+      i = pos(G[g]) 
+      have[i] && continue
+      have[i] = true
+      chr[i] = (Cls[i], K(trace(M[g])))
+
+      i = pos(inv(G[g]))
+      have[i] && continue
+      have[i] = true
+      chr[i] = (Cls[i], K(trace(Mi[g])))
+    end
+
+    for g = 1:ngens(G)
+      for h = 1:ngens(G)
+        i = pos(G[g]*G[h])
+        have[i] && continue
+        have[i] = true
+        chr[i] = (Cls[i], K(trace_product(M[g], M[h])))
+      end
+    end
+    for i = 1:length(Cls)
+      have[i] && continue
+      have[i] = true
+      r = representative(Cls[i])
+      if isone(r)
+        chr[i] =  (Cls[i], K(n))
+        continue
+      end
+      T = action(C, r)
+      chr[i] =  (Cls[i], K(trace(matrix(T))))
+    end
   end
 
   if !isa(K, SimpleNumField) #no idea is this is correct (in char p)
@@ -1031,7 +1102,7 @@ end
 # compatible with that used by C.m
 function regular_gmodule(C::GModule)
   G = C.G
-  M = GrpCoh._similar_free_module(C.M, order(Int, G); cached = false)
+  M = GrpCoh._similar_free_module(C.M, order(Int, G))
   return _regular_gmodule(G, M)
 end
 
@@ -1277,13 +1348,17 @@ for (M, E) in ((QQMatrix, QQFieldElem), (FqMatrix, FqFieldElem))
     end
 
     function Oscar.mul!(A::$M, B::PermMat{$E}, C::$M)
-      A[:, :] = C
+      if A !== C 
+        A[:, :] = C
+      end
       swap_rows!(A, inv(B.p))
       return A
     end
 
     function Oscar.mul!(A::$M, B::$M, C::PermMat{$E})
-      A[:, :] = B
+      if A !== B  
+        A[:, :] = B
+      end
       swap_cols!(A, C.p)
       return A
     end
@@ -1345,8 +1420,15 @@ function permutation_gmodule(G::Group, U::Group, R::Ring)
   h = action_homomorphism(rc)
   F = free_module(R, Int(divexact(order(G), order(U))); cached = false)
   C = gmodule(G, [hom(F, F, PermMat(R, h(g))) for g = gens(G)])
+  function perm_action(C::GModule, g::GAPGroupElem)
+    return hom(F, F, PermMat(R, h(g)))
+  end
+  function perm_action(C::GModule, g::GAPGroupElem, v::Vector)
+    h = hom(F, F, PermMat(R, h(g)))
+    return map(h, v)
+  end
 #  C = gmodule(G, [hom(F, F, permutation_matrix(R, h(g))) for g = gens(G)])
-  set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule)
+  set_attribute!(C, :right_cosets => rc, :show => show_permutation_gmodule, :action => perm_action)
   return C
 end
 
