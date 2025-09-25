@@ -1030,12 +1030,12 @@ constructor takes as input the triple
 end
 
 ### type getters 
-domain_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = D
-domain_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
-codomain_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = C
-codomain_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
+domain_type(::Type{Map{D, C}}) where {D, C} = D
+domain_type(f::Map) = domain_type(typeof(f))
+codomain_type(::Type{Map{D, C}}) where {D, C} = C
+codomain_type(f::Map) = codomain_type(typeof(f))
 restricted_map_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = M
-restricted_map_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
+restricted_map_type(f::MPolyQuoLocalizedRingHom) = restricted_map_type(typeof(f))
 
 morphism_type(::Type{R}, ::Type{S}) where {R<:MPolyQuoLocRing, S<:Ring} = MPolyQuoLocalizedRingHom{R, S, morphism_type(base_ring_type(R), S)}
 morphism_type(L::MPolyQuoLocRing, S::Ring) = morphism_type(typeof(L), typeof(S))
