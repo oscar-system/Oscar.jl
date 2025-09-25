@@ -99,6 +99,9 @@ function scale(
   return 0*u
 end
 
+_empty_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(1, 1, [[1]]), zero_matrix(cf, 1, dim); non_redundant=true)
+
 function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
   # if scalar is zero, return polyhedral complex consisting only of the origin
   if iszero(c)
