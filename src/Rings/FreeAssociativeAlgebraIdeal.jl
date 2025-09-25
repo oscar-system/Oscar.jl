@@ -205,7 +205,7 @@ function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   probabilistic::Bool = false
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
-  I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm)
+  I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   I.deg_bound = deg_bound
   return I.gb
 end
@@ -217,7 +217,7 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   algorithm::Symbol=:default,
   probabilistic::Bool = false
   )
-  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm)
+  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   gb = Generic.FreeAssociativeAlgebraElem{QQFieldElem}[x for x in gb]
   return IdealGens(gb)
 end
@@ -259,7 +259,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
       f4ncgb_set_nvars(handle, UInt32(ngens(R)))
       f4ncgb_set_blocks(handle, UInt32[ngens(R)])
       f4ncgb_set_threads(handle, UInt32(1))
-      f4ncgb_probabilistic(handle, probabilistic)
+      f4ncgb_set_tracer(handle, probabilistic)
       f4ncgb_set_maxiter(handle, UInt32(typemax(Int32)))
 
       deg_bound > 0 && f4ncgb_set_maxdeg(handle, UInt32(deg_bound))

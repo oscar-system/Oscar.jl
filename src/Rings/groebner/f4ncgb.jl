@@ -116,16 +116,8 @@ mutable struct f4ncgb_polys_helper
   end
 end 
 
-function add_cb(a::f4ncgb_polys_helper, monomial::FreeAssociativeAlgebraElem)
-  a.current_poly += monomial
-end
-
 function parent(a::f4ncgb_polys_helper)
   return a.parent
-end
-
-function zero(a::f4ncgb_polys_helper)
-  return zero(parent(a))
 end
 
 function add_cb(pa::Ptr{Nothing},
