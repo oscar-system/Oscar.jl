@@ -775,7 +775,7 @@ function integer_lattice_with_isometry(
 
   if ambient_representation
     f_ambient = f
-    f = representation_in_lattice_coordinates(L, f; check)
+    f = restrict_to_lattice(L, f; check)
   else
     f_ambient = extend_to_ambient_space(L, f; check)
   end
@@ -912,7 +912,7 @@ function lattice(
     check::Bool=true
   )
   L = lattice(space(Vf), B; isbasis, check)
-  fB = representation_in_lattice_coordinates(L, isometry(Vf); check)
+  fB = restrict_to_lattice(L, isometry(Vf); check)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   return ZZLatWithIsom(Vf, L, fB, n)
 end
@@ -2230,7 +2230,7 @@ function coinvariant_lattice(
   C = orthogonal_submodule(L, F)
   if !ambient_representation
     gene = extend_to_ambient_space(L, matrix.(gens(G)); check=false)
-    gene = representation_in_lattice_coordinates(C, gene; check=false)
+    gene = restrict_to_lattice(C, gene; check=false)
     G = matrix_group(gene)
   end
   return C, G
@@ -2313,7 +2313,7 @@ function invariant_coinvariant_pair(
   C = orthogonal_submodule(L, F)
   if !ambient_representation
     f = extend_to_ambient_space(L, f; check=false)
-    f = representation_in_lattice_coordinates(C, f; check=false)
+    f = restrict_to_lattice(C, f; check=false)
   end
   return F, C, f
 end
@@ -2331,7 +2331,7 @@ function invariant_coinvariant_pair(
   C = orthogonal_submodule(L, F)
   if !ambient_representation
     V = extend_to_ambient_space(L, V; check=false)
-    V = representation_in_lattice_coordinates(C, V; check=false)
+    V = restrict_to_lattice(C, V; check=false)
   end
   return F, C, V
 end
@@ -2349,7 +2349,7 @@ function invariant_coinvariant_pair(
   C = orthogonal_submodule(L, F)
   if !ambient_representation
     gene = extend_to_ambient_space(L, matrix.(gens(G)); check=false)
-    gene = representation_in_lattice_coordinates(C, gene; check=false)
+    gene = restrict_to_lattice(C, gene; check=false)
     G = matrix_group(gene)
   end
   return F, C, G

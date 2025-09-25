@@ -12,7 +12,7 @@ rational quadratic spaces and integer lattices.
 ## Change of basis representation
 
 Given an integer lattice $L$ and a collection $F$ of isometries of $L$,
-there are two canonical ways of representing the isometries in $F$ by mean
+there are two ways of representing the isometries in $F$ by mean
 of matrices. The first way is to represent the isometries in $F$ in the
 standard basis of the ambient quadratic space of $L$. The second way is to
 represent such isometries in the given fixed basis of $L$.
@@ -22,8 +22,11 @@ allow to switch to another one.
 
 ```@docs
 extend_to_ambient_space
-representation_in_lattice_coordinates
+restrict_to_lattice
 ```
+
+Note that the second function can actually be used to restrict any collection
+of isometries of the ambient space of $L$ preserving $L$.
 
 ## Invariant and coinvariant lattices
 

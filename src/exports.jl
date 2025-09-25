@@ -1561,7 +1561,6 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
-export representation_in_lattice_coordinates
 export representative
 export representative_field
 export representative_patch
@@ -1574,6 +1573,7 @@ export restrict_codomain
 export restrict_domain
 export restrict_endomorphism
 export restrict_homomorphism
+export restrict_to_lattice
 export restricted_map
 export restricted_map_type
 export restriction

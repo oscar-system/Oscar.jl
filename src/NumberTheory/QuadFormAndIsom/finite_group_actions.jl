@@ -199,15 +199,15 @@ Given ``F`` being either:
   * a matrix with rational entries;
   * a list of matrices with rational entries;
   * a matrix group over the rationals,
-representing a collection of isometries of ``L`` in the fixed basis of ``L``,
-return the same collection but represented in the standard basis of the ambient
-space of ``L``.
+defining a collection of isometries of ``L``, represented in the fixed basis of
+``L``, return the same collection but represented in the standard basis of the
+ambient space of ``L``.
+
+If ``L`` is not of full rank in its ambient quadratic space ``V``, each
+isometry is extended to be the identity on the quadratic space orthogonal to
+$L\otimes\mathbb{Q}$ inside ``V``.
 
 # Arguments
-- If ``L`` is not of full rank in its ambient quadratic space ``V``, each
-  isometry is extended to be the identity on the quadratic space orthogonal to
-  $L\otimes\mathbb{Q}$ inside ``V``.
-
 - If `check` is set to `true`, the function checks whether ``F`` indeed defines
   a collection of isometries of ``L``.
 """
@@ -261,7 +261,7 @@ end
 # Ambient to lattice
 
 @doc raw"""
-    representation_in_lattice_coordinates(
+    restrict_to_lattice(
       L::ZZLat,
       F::T;
       check::Bool=false,
@@ -271,18 +271,19 @@ Given ``F`` being either:
   * a matrix with rational entries;
   * a list of matrices with rational entries;
   * a matrix group over the rationals,
-representing a collection of isometries of ``L`` in the standard basis of the
-ambient space of ``L``, return the same collection but represented in the fixed
-basis of ``L``.
+defining a collection of isometries of the ambient space ``V`` of ``L``
+preserving ``L``, represented in the standard basis of ``V``, return the
+associated collection of isometries of ``L``, represented in the fixed basis of
+``L``, obtained by restricting all the isometries in ``F`` to ``L``.
 
 # Arguments
 - If `check` is set to `true`, the function checks whether ``F`` indeed defines
   a collection of isometries of the ambient space of ``L`` which preserve
   ``L``.
 """
-representation_in_lattice_coordinates
+restrict_to_lattice
 
-function representation_in_lattice_coordinates(
+function restrict_to_lattice(
     L::ZZLat,
     f::QQMatrix;
     check::Bool=true,
@@ -291,7 +292,7 @@ function representation_in_lattice_coordinates(
   return solve(basis_matrix(L), basis_matrix(L)*f)
 end
 
-function representation_in_lattice_coordinates(
+function restrict_to_lattice(
     L::ZZLat,
     F::Vector{QQMatrix};
     check::Bool=true,
@@ -305,12 +306,12 @@ function representation_in_lattice_coordinates(
   return F_lattice
 end
 
-function representation_in_lattice_coordinates(
+function restrict_to_lattice(
     L::ZZLat,
     F::MatrixGroup{QQFieldElem, QQMatrix};
     check::Bool=true,
   )
-  F_lattice_gens = representation_in_lattice_coordinates(L, matrix.(gens(F)); check)
+  F_lattice_gens = restrict_to_lattice(L, matrix.(gens(F)); check)
   return matrix_group(F_lattice_gens)
 end
 
@@ -763,7 +764,7 @@ function setwise_stabilizer_in_orthogonal_group(
     kwargs...,
   )
   S = lattice(ambient_space(L), B; isbasis=(rank(B)==nrows(B)))
-  return setwise_in_orthogonal_group(L, S; kwargs...)
+  return setwise_stabilizer_in_orthogonal_group(L, S; kwargs...)
 end
 
 @doc raw"""
@@ -892,11 +893,11 @@ function saturation(
     @req is_isometry_group(L, G, ambient_representation; is_special=special, is_stable=stable) "Group does not define a group of isometries of the lattice L with the given properties"
   end
 
-  F = invariant_lattice(L, G; check=false)
+  F = invariant_lattice(L, G; ambient_representation, check=false)
   Gsat = stabilizer_in_orthogonal_group(L, basis_matrix(F); check, special, stable, kwargs...)
 
   if !ambient_representation
-    return representation_in_lattice_coordinates(L, Gsat; check=false)
+    return restrict_to_lattice(L, Gsat; check=false)
   else
     return Gsat
   end
@@ -985,9 +986,10 @@ end
 function is_saturated_with_saturation(
   L::ZZLat,
   H::MatrixGroup;
+  ambient_representation::Bool=true,
   kwargs...,
 )
-  @req is_definite(first(coinvariant_lattice(L, H))) "Associated coinvariant sublattice is not definite"
-  Hsat = saturation(L, H; kwargs...)
+  @req is_definite(first(coinvariant_lattice(L, H; ambient_representation))) "Associated coinvariant sublattice is not definite"
+  Hsat = saturation(L, H; ambient_representation, kwargs...)
   return H == Hsat, Hsat
 end
