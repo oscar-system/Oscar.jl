@@ -8,6 +8,8 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Geometric data
 
+These are functions which depend on the vertex and facet coordinates.
+
 ```@docs
 facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}}
 vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
@@ -30,6 +32,8 @@ relative_interior_point(P::Polyhedron{T}) where T<:scalar_types
 
 ## Combinatorial data
 
+These are functions which only depend on the combinatorial type, i.e., the isomorphism type of the face poset.
+
 ```@docs
 n_facets(P::Polyhedron)
 n_vertices(P::Polyhedron)
@@ -38,10 +42,14 @@ facet_sizes(P::Polyhedron)
 g_vector(P::Polyhedron)
 h_vector(P::Polyhedron)
 is_simple(P::Polyhedron)
+is_simplicial(P::Polyhedron)
 vertex_sizes(P::Polyhedron)
 ```
 
 ## Groups
+
+There are several groups naturally associated to a polytope or polyhedron.
+
 ```@docs
 combinatorial_symmetries(P::Polyhedron)
 linear_symmetries(P::Polyhedron)
@@ -52,6 +60,9 @@ automorphism_group_generators(IM::IncidenceMatrix)
 ```
 
 ## Lattice polytopes
+
+Here a polytope is lattice if each vertex has integral coordinates.
+
 ```@docs
 boundary_lattice_points(P::Polyhedron{QQFieldElem})
 castelnuovo_excess(P::Polyhedron{QQFieldElem})
