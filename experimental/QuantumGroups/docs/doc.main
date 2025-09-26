@@ -1,0 +1,7 @@
+[
+    "Quantum Groups" => [
+        "introduction.md",
+        "quantum_field.md",
+        "quantum_group.md",
+    ],
+]
