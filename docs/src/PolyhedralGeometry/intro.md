@@ -35,9 +35,6 @@ The parent `Field` of the coefficients of an object `O` with coefficients of typ
 coefficient_field(x::PolyhedralObject)
 ```
 
-!!! warning
-    Support for fields other than the rational numbers is currently in an experimental stage.
-
 These three lines result in the same polytope over rational numbers. Besides the general support mentioned above, naming a `Field` explicitly is encouraged because it allows user control and increases efficiency.
 ```jldoctest
 julia> P = convex_hull(QQ, [1 0 0; 0 0 1]) # passing a `Field` always works
@@ -48,7 +45,44 @@ true
 
 julia> P == convex_hull([1 0 0; 0 0 1]) # `Field` defaults to `QQ`
 true
+```
 
+### Algebraic number fields
+
+Working with polytopes over algebraic number fields requires an embedded number field. This can be constructed with [`embedded_number_field`](@ref) from a polynomial and a choice for the root.
+
+```jldoctest
+julia> F,a = embedded_number_field(x^2-3//4, 0.866)
+(Embedded field
+Number field of degree 2 over QQ
+at
+Real embedding with 0.87 of number field, a)
+
+julia> triangle = convex_hull(F, [0 0; 1 0; 1//2 a])
+Polyhedron in ambient dimension 2 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> volume(triangle)
+1//2*a (0.43)
+```
+
+The algebraic closure of the rational numbers also comes with an embedding.
+
+```jldoctest
+julia> K = algebraic_closure(QQ);
+
+julia> h = sqrt(K(3//4))
+{a2: 0.866025}
+
+julia> mat = matrix(K, [0 0; 1 0; 1//2 h])
+[    {a1: 0}       {a1: 0}]
+[ {a1: 1.00}       {a1: 0}]
+[{a1: 0.500}   {a2: 0.866}]
+
+julia> triangle = convex_hull(mat)
+Polyhedron in ambient dimension 2 with QQBarFieldElem type coefficients
+
+julia> volume(triangle)
+{a2: 0.433013}
 ```
 
 ## Type compatibility
