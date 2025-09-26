@@ -90,12 +90,8 @@ end
 function scale(
   u::RayVector{<:scalar_types_extended}, c::scalar_types_extended
 )
-  if is_positive(c)
-    return u
-  end
-  if is_negative(c)
-    return -u
-  end
+  is_positive(c) && return u
+  is_negative(c) && return -u
   return 0*u
 end
 
