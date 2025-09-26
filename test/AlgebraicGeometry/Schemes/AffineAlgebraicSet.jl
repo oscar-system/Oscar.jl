@@ -12,4 +12,15 @@
   C1 = geometric_irreducible_components(X1)
   @test length(C1) == 1
   @test C1[1][3]==2
+  # rational points
+  I = ideal(P, [x^2-1,y-3])
+  X = algebraic_set(I)
+  PL = rational_points(Vector,X)
+  @test PL[1][2] == 3
+  @test PL[2][2] == 3
+  @test PL[1][1]^2 == 1
+  @test PL[2][1]^2 == 1
+  PS = rational_points(FiniteRationalPointSet,X)
+  @test length(PS) == 2
+  @test first(PS) isa Oscar.AffineRationalPoint
 end

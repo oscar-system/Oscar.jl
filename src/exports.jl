@@ -72,6 +72,7 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
+export FiniteRationalPointSet
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -639,6 +640,7 @@ export fibration_type
 export filtrate
 export find_morphism
 export find_morphisms
+export finite_point_set
 export fits
 export fitting_ideal
 export fitting_subgroup
@@ -1511,6 +1513,8 @@ export rank_action
 export rational_equivalence_class
 export rational_map
 export rational_point
+export rational_point_coordinates
+export rational_points
 export rational_point_conic
 export rational_solutions
 export rational_spinor_norm
