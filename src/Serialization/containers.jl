@@ -15,6 +15,17 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   return TypeParams(S, params[1])
 end
 
+function type_params(obj::SRow{T, Vector{T}}) where T
+  if isempty(obj)
+    return TypeParams(SRow, TypeParams(T, nothing))
+  end
+
+  params = map(x -> type_params(x[2]), obj)
+  @req params_all_equal(params) "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  return TypeParams(SRow, params[1])
+end
+
+
 function type_params(obj::S) where {N, T, S <:Array{T, N}}
   if isempty(obj)
     return TypeParams(S, :subtype_params => TypeParams(T, nothing), :dims => N)
