@@ -452,7 +452,14 @@ represented as subquotient with no relations -> F)
 
 ```
 """
-function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+function kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}; cached::Bool=true) where T
+  cached && return get_attribute!(h, :kernel) do
+    _kernel(h)
+  end::Tuple{SubquoModule{T}, SubQuoHom{SubquoModule{T}, FreeMod{T}}}
+  return _kernel(h)
+end
+
+function _kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}) where T
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return kernel_atomic(h)  # explicitly call kernel_atomic

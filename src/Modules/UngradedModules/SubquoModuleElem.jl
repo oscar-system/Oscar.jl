@@ -90,7 +90,20 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    if is_zero(coordinates(v))
+      v.repres = zero(F)
+    elseif is_one(length(coordinates(v)))
+      (i, a) = first(coordinates(v))
+      v.repres = a*M.sub[i]
+    else
+      rep_coord = sparse_row(R)
+      for (i, a) in coordinates(v)
+        rep_coord = Hecke.add_scaled_row!(coordinates(M.sub[i]), rep_coord, a)
+      end
+      v.repres = FreeModElem(rep_coord, F)
+    end
   end
   return v.repres
 end

@@ -1916,3 +1916,14 @@ end
   @test ngens(min_res[2]) == 1
 end
 
+@testset "caching of kernels" begin
+  R, (x, y) = QQ[:x, :y]
+  F = free_module(R, 1)
+  phi = hom(F, F, [x*F[1]])
+  I, _ = kernel(phi)
+  @test I === kernel(phi)[1]
+  phi = hom(F, F, [x*F[1]])
+  I, _ = kernel(phi; cached=false)
+  @test I !== kernel(phi)[1]
+end
+
