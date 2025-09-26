@@ -82,11 +82,9 @@ end
 # helper functions to ensure that point and ray vectors scale differently:
 # - point vectors represent points in space and should be scaled normally
 # - ray vectors represent directions and they should only be scaled by 0 or +/-1
-function scale(
+scale(
   u::PointVector{<:scalar_types_extended}, c::scalar_types_extended
-)
-  return u * c
-end
+) = u * c
 function scale(
   u::RayVector{<:scalar_types_extended}, c::scalar_types_extended
 )
