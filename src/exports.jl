@@ -905,6 +905,7 @@ export is_conjugate_with_data
 export is_connected
 export is_coroot
 export is_coroot_with_index
+export is_cubical
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
