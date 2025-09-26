@@ -952,7 +952,7 @@ function action_homomorphism(G::PermGroup, Omega)
   return action_homomorphism(gset_by_type(G, Omega, eltype(Omega); closed = true))
 end
 
-function action_homomorphism(G::PermGroup, fun::Function, Omega; check = true)
+function action_homomorphism(G::PermGroup, fun::Function, Omega; check::Bool = true)
   return action_homomorphism(GSetByElements(G, fun, Omega, closed = true, check = check))
 end
 
