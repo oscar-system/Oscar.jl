@@ -115,6 +115,26 @@
         H = G[J,J]
         b, I = Oscar._is_equal_up_to_permutation_with_permutation(G, H)
         @assert G[I,I] == H
+
+        gc = complete_graph(3)
+        gcc = complete_graph(3)
+        gc2 = complete_graph(2)
+        @test gc == gcc
+        @test hash(gc) == hash(gcc)
+        @test gc2 != gc
+        d = Dict(gc=>1)
+        d[gcc] = 2
+        d[gc2] = 3
+        @test length(keys(d)) == 2
+        @test d[gc] == 2
+
+        @test g != gg
+
+        is_iso, perm = is_isomorphic_with_permutation(g,gg)
+        @test is_iso
+        gp = graph_from_adjacency_matrix(Directed, adjacency_matrix(g)[perm,perm])
+        @test gp == gg
+        @test hash(gp) == hash(gg)
     end
 
     @testset "connectivity" begin

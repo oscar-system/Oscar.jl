@@ -5,6 +5,24 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function Base.:(==)(a::Graph{T}, b::Graph{T}) where {T <: Union{Directed, Undirected}}
+  return adjacency_matrix(a) == adjacency_matrix(b)
+end
+
+function Base.:(==)(a::MixedGraph, b::MixedGraph)
+  _directed_component(a) == _directed_component(b) &&
+    _undirected_component(a) == _undirected_component(b)
+end
+
+function Base.hash(g::Graph, h::UInt)
+  return hash(adjacency_matrix(g), h)
+end
+
+function Base.hash(g::MixedGraph, h::UInt)
+  return hash(adjacency_matrix(_directed_component(g)),
+              hash(adjacency_matrix(_undirected_component(g)), h))
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)
@@ -108,9 +126,9 @@ Undirected graph with 2 nodes and the following edges:
 
 ```
 """
-graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
+graph_from_adjacency_matrix(::Type, G::Union{MatElem, AbstractMatrix})
 
-function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
+function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, AbstractMatrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
   g = graph(T, n)
