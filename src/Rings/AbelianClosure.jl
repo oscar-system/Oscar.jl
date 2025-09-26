@@ -689,7 +689,7 @@ end
 
 function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true)
   f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = s])
-  k = cyclotomic_field(f)[1]
+  k = cyclotomic_field(K, f)[1]
   b = [[i for i = 1:degree(k)]] #block system for QQ as a subfield
   pe = zero(K)
   for mu = s
@@ -726,7 +726,7 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true
   @assert degree(g) == length(b)
   s, _ = number_field(g; check = false, cached = false)
   h = hom(s, k, k(pe.data))
-  hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
+  hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y.data)))
   if cached
     old = get_attribute(K, :subfields)
     old[(f, b[1])] = hh
