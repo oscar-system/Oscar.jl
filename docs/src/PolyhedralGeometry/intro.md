@@ -27,7 +27,7 @@ OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/Polyhedr
 
 The objects from polyhedral geometry operate on a given type, which (usually) resembles a field. This is indicated by the template parameter, e.g. the properties of a `Polyhedron{QQFieldElem}` are rational numbers of type `QQFieldElem`, if applicable.
 Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
-When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
+When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type will be deduced from the input data and defaults to `QQFieldElem` for primitive types like `Int64`.
 
 The parent `Field` of the coefficients of an object `O` with coefficients of type `T` can be retrieved with the `coefficient_field` function, and it holds `elem_type(coefficient_field(O)) == T`.
 
@@ -47,11 +47,11 @@ julia> P == convex_hull([1 0 0; 0 0 1]) # `Field` defaults to `QQ`
 true
 ```
 
-### Algebraic number fields
-
 Working with polytopes over algebraic number fields requires an embedded number field. This can be constructed with [`embedded_number_field`](@ref) from a polynomial and a choice for the root.
 
 ```jldoctest
+julia> Qx, x = QQ[:x];
+
 julia> F,a = embedded_number_field(x^2-3//4, 0.866)
 (Embedded field
 Number field of degree 2 over QQ
