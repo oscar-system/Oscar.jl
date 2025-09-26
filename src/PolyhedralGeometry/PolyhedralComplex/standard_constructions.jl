@@ -170,4 +170,4 @@ function +(v::AbstractVector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
     non_redundant=true
   )
 end
-+(Sigma::PolyhedralComplex, v::Vector{<:scalar_types_extended}) = v + Sigma
++(Sigma::PolyhedralComplex, v::AbstractVector{<:scalar_types_extended}) = v + Sigma
