@@ -110,8 +110,8 @@ end
 
 If $X$ is defined by a zero-dimensional ideal in a multivariate
 polynomial ring over a field, say, $k$, return the $k$-rational
-points of $X$ as an instance of $S$. Here, S must be one of Vector
-and AbsRationalPointSet.
+points of $X$ as an instance of `S`. Here, `S` must be one of [`Vector`](@ref)
+and [`AbsRationalPointSet`](@ref).
 
 !!! note
 The zero-dimensional condition is checked by the function.
