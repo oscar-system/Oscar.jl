@@ -262,11 +262,11 @@ function convex_hull(
   parent_field, scalar_type = _determine_parent_and_scalar(f, V, R, L)
   # Rays and Points are homogenized and combined and
   # Lineality is homogenized
-  points = stack(homogenized_matrix(V, f(1)), homogenized_matrix(R, f(0)))
+  points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
   lineality = if isnothing(L) || isempty(L)
     zero_matrix(QQ, 0, size(points, 2))
   else
-    homogenized_matrix(L, f(0))
+    homogenized_matrix(L, 0)
   end
 
   # These matrices are in the right format for polymake.

@@ -210,7 +210,7 @@ column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 ######## matrix and number conversion helpers
 ################################################################################
 
-function assure_matrix_polymake(m::Union{AbstractMatrix{Any},AbstractMatrix{FieldElem}})
+function assure_matrix_polymake(m::Union{Matrix{Any},AbstractMatrix{FieldElem}})
   a, b = size(m)
   if a > 0
     i = findfirst(_cannot_convert_to_fmpq, m)
@@ -393,7 +393,8 @@ end
 function augment(vec::AbstractVector, val)
   s = size(vec)
   @req s[1] > 0 "cannot homogenize empty vector"
-  res = similar(vec, (s[1] + 1,))
+  h = val + zero(first(vec))
+  res = similar(vec, typeof(h), (s[1] + 1,))
   res[1] = val + zero(first(vec))
   res[2:end] = vec
   return assure_vector_polymake(res)
@@ -409,12 +410,12 @@ end
 
 homogenize(vec::AbstractVector, val::Union{Number,scalar_types_extended}=0) = augment(vec, val)
 homogenize(mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=1) = augment(mat, fill(val, size(mat, 1)))
-homogenize(mat::MatElem, val::Union{Number,scalar_types_extended}=base_ring(mat)(1)) = homogenize(Matrix(mat), val)
+homogenize(mat::MatElem, val::Number=1) = homogenize(Matrix(mat), base_ring(mat)(val))
 homogenize(nothing, val::Union{Number,scalar_types_extended}) = nothing
-homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Union{Number,scalar_types_extended}) =
+homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
   homogenize(x, val)
-homogenized_matrix(x::AbstractVector, val::Union{Number,scalar_types_extended}) = permutedims(homogenize(x, val))
-homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}) =
+homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
+homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
   stack([homogenize(x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
