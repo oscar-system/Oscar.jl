@@ -153,7 +153,7 @@
   end
 
   @testset "Operators" begin
-    PC = normal_fan(cube(2))
+    PC = polyhedral_complex(normal_fan(cube(2)))
     PCshifted = PC + [1, 1]
     @test dim(PCshifted) == dim(PC)
     @test ambient_dim(PCshifted) == ambient_dim(PC)
