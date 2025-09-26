@@ -1363,7 +1363,7 @@ For details concerning the following construction see [JZ00](@cite).
 julia> Q = cube(2,-1,1); Q2 = cube(2,-2,2); P = convex_hull(product(Q,Q2), product(Q2,Q))
 Polyhedron in ambient dimension 4
 
-julia> is_cubical(Q)
+julia> is_cubical(P)
 true
 ```
 """
