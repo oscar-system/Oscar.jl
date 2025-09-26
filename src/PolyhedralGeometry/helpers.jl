@@ -379,14 +379,14 @@ function augment(mat::AbstractMatrix, vec::AbstractVector)
   return assure_matrix_polymake(res)
 end
 
-homogenize(vec::AbstractVector, val::Number=0) = augment(vec, val)
-homogenize(mat::AbstractMatrix, val::Number=1) = augment(mat, fill(val, size(mat, 1)))
-homogenize(mat::MatElem, val::Number=1) = homogenize(Matrix(mat), val)
-homogenize(nothing, val::Number) = nothing
-homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
+homogenize(vec::AbstractVector, val::Union{Number,scalar_types_extended}=0) = augment(vec, val)
+homogenize(mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=1) = augment(mat, fill(val, size(mat, 1)))
+homogenize(mat::MatElem, val::Union{Number,scalar_types_extended}=base_ring(mat)(1)) = homogenize(Matrix(mat), val)
+homogenize(nothing, val::Union{Number,scalar_types_extended}) = nothing
+homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Union{Number,scalar_types_extended}) =
   homogenize(x, val)
-homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
-homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
+homogenized_matrix(x::AbstractVector, val::Union{Number,scalar_types_extended}) = permutedims(homogenize(x, val))
+homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}) =
   stack([homogenize(x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
