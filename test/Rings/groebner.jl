@@ -18,6 +18,24 @@
     # uses f4 in msolve/AlgebraicSolving
     groebner_basis(I, ordering=degrevlex(R), algorithm=:modular)
     @test gens(I.gb[degrevlex(R)]) == QQMPolyRingElem[x + y^2, x*y - 1, x^2 + y]
+
+    # modular Qt
+    Qt, t = polynomial_ring(QQ, :t=>1:2)
+    Qtx, x = polynomial_ring(fraction_field(Qt), :x => 1:3)
+    f1 = x[1]^2*x[2]^3*x[3] + 2*t[1]*x[1]*x[2]*x[3]^2 + 7*x[2]^3
+    f2 = x[1]^2*x[2]^4*x[3] + (t[1]-7*t[2])*x[1]^2*x[2]*x[3]^2 - x[1]*x[2]^2*x[3]^2+2*x[1]^2*x[2]*x[3] - 12*x[1] + t[2]*x[2]
+    f3 = (t[1]^2+t[2]-2)*x[2]^5*x[3] + (t[1]+5*t[2])*x[1]^2*x[2]^2*x[3] - t[2]*x[1]*x[2]^3*x[3] - t[2]*x[1]*x[2]^3*x[3] - x[1]*x[2]^3+x[2]^4+2*t[1]^2*x[2]^2*x[3]
+    f4 = t[1]*x[2]^2*x[2]^2*x[3] - x[1]*x[2]^3 *x[3] + (-t[1]+4)*x[2]^3*x[3]^2 + 3*t[1]*x[1]*x[2]*x[3]^3 + 4*x[3]^2 - t[2]*x[1]
+    I = ideal(Qtx, [f1,f2,f3,f4])
+
+    groebner_basis(I, algorithm=:modular, ordering = degrevlex(Qtx))
+    gb_degrevlex = AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}[x[1] - 1//12*t[2]*x[2], x[2] - 48//t[2]^2*x[3]^2, x[2]^2*x[3], x[2]^3]
+    @test gens(I.gb[degrevlex(Qtx)]) == gb_degrevlex
+
+    groebner_basis(I, algorithm=:modular, ordering = lex(Qtx))
+    gb_lex = AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}[x[3]^5, x[2] - 48//t[2]^2*x[3]^2, x[1] - 4//t[2]*x[3]^2]
+    @test gens(I.gb[lex(Qtx)]) == gb_lex
+
     # uses multi-modular implementation in Oscar applying Singular finite field
     # computations
     groebner_basis(I, ordering=lex(R), algorithm=:modular)
