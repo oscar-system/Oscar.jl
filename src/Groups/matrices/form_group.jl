@@ -762,24 +762,6 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
 end
 
 """
-    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
-
-Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
-
-The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
-
-First computes the orthogonal group of ``K`` and then its subgroup 
-consisting of isometries extending to ``L``.
-"""
-function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
-  V = lattice(ambient_space(L),v)
-  K = orthogonal_submodule(L, V)
-  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
-  OK = orthogonal_group(K; kwargs...)
-  return stabilizer(OK, L, on_lattices)[1]
-end
-
-"""
     _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
@@ -947,3 +929,99 @@ orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 
 unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 
+@doc raw"""
+    stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $O^\#(L)$ of the orthogonal group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A5 = root_lattice(:A, 5);
+
+julia> H, _ = stable_orthogonal_group(A5);
+
+julia> order(H)
+720
+```
+"""
+function stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return stable_subgroup(L, OL; check=false)
+end
+
+@doc raw"""
+    special_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO(L)$ of the orthogonal group of $L$ consisting of isometries
+with determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> D5 = root_lattice(:D, 5);
+
+julia> H, _ = special_orthogonal_group(D5);
+
+julia> order(H)
+1920
+```
+"""
+function special_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return special_subgroup(L, OL; check=false)
+end
+
+# We do not export this one, it is just a shortcut
+@doc raw"""
+    _special_stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO^\#(L)$ of the orthogonal group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$ and of determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A6 = root_lattice(:A, 6);
+
+julia> H, _ = Oscar._special_stable_orthogonal_group(A6);
+
+julia> describe(H)
+"A7"
+```
+"""
+function _special_stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return Oscar._special_stable_subgroup(L, OL; check=false)
+end

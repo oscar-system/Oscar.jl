@@ -223,16 +223,6 @@ invariant_lattice(::ZZLatWithIsom)
 invariant_coinvariant_pair(::ZZLatWithIsom)
 ```
 
-Similarly, we provide the possibility to compute invariant and coinvariant
-sublattices given an orthogonal representation `G` in matrix form of a finite
-group on a given lattice `L`:
-
-```@docs
-coinvariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_coinvariant_pair(::ZZLat, ::MatrixGroup)
-```
-
 ## Signatures
 
 We conclude this introduction about standard functionalities for lattices with
