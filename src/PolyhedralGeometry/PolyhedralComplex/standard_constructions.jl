@@ -171,7 +171,3 @@ function +(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
   )
 end
 +(Sigma::PolyhedralComplex, v::Vector{<:scalar_types_extended}) = v + Sigma
-
-# Vector addition for polyhedral fans
-+(Sigma::PolyhedralFan, v::Vector{<:scalar_types_extended}) = polyhedral_complex(Sigma) + v
-+(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralFan) = v + polyhedral_complex(Sigma)
