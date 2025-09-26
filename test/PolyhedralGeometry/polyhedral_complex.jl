@@ -159,7 +159,7 @@
     @test ambient_dim(PCshifted) == ambient_dim(PC)
     @test lineality_dim(PCshifted) == lineality_dim(PC)
     @test issetequal(rays(PCshifted), rays(PC))
-    @test n_maximal_polyhedra(PCshifted) == n_maximal_cones(PC)
+    @test n_maximal_polyhedra(PCshifted) == n_maximal_polyhedra(PC)
 
     PCscaled = PCshifted*2
     @test dim(PCscaled) == dim(PCshifted)
