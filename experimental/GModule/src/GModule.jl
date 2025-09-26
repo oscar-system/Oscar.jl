@@ -385,11 +385,34 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
   return IM
 end
 
-function irreducible_modules(G::Oscar.GAPGroup)
+
+@doc raw"""
+    irreducible_modules(G::Oscar.GAPGroup; algo::Symbol = :auto)
+
+Computes absolutely irreducible representations of $G$ over the
+abelian closure of $QQ$. The `algo` can be set to `:auto` (the default),
+`:Repsn`, `:Solvable`
+or `:BaumClausen`. In case of `:Repsn` Gaps `IrreducibleRepresentations`
+is called which can fail.
+
+In case of `:BaumClausen`, the Baum-Clausen method is called which will very
+quickly determine some representations.
+
+For `:Solvable` the extension method of Pelsken/ Brueckner is used.
+
+For abelian groups, the representations are written down directly.
+"""
+function irreducible_modules(G::Oscar.GAPGroup; algo::Symbol = :auto)
   if is_abelian(G)
     return _abs_irred_abelian(G)
   end
-  im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
+  if algo == :auto || algo == :Repsn
+    im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
+  elseif algo == :BaumClausen
+    im = GAP.Globals.IrreducibleRepresentationsByBaumClausen(GapObj(G))
+  elseif algo == :Solvable
+    return Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
+  end
   IM = GModule[]
   K = abelian_closure(QQ)[1]
   for m in im
@@ -1001,7 +1024,7 @@ end
     end
   elseif base_ring(C) == QQ
     n = dim(C)
-    p = 2*n
+    p = next_prime(2*n)
     while order(C.G) % p == 0
       p = next_prime(p)
     end
