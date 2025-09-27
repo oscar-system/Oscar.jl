@@ -1030,10 +1030,6 @@ constructor takes as input the triple
 end
 
 ### type getters 
-domain_type(::Type{Map{D, C}}) where {D, C} = D
-domain_type(f::Map) = domain_type(typeof(f))
-codomain_type(::Type{Map{D, C}}) where {D, C} = C
-codomain_type(f::Map) = codomain_type(typeof(f))
 restricted_map_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = M
 restricted_map_type(f::MPolyQuoLocalizedRingHom) = restricted_map_type(typeof(f))
 
