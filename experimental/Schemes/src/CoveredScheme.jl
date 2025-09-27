@@ -83,17 +83,6 @@ end
 
 affine_refinements(C::Covering) = C.affine_refinements
 
-### type getters
-# Not required at the moment; should eventually be deleted.
-#base_morphism_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = BMT
-#base_morphism_type(C::Covering) = base_morphism_type(typeof(C))
-
-#domain_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = DT
-#domain_type(C::Covering) = domain_type(typeof(C))
-
-#codomain_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = CT
-#codomain_type(C::Covering) = codomain_type(typeof(C))
-
 ########################################################################
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
