@@ -21,3 +21,9 @@ function is_equal_as_morphism(f::Map, g::Map)
 end
 # end of changes in PR #4706
 ########################################################################
+
+
+domain_type(::Type{Map{D, C}}) where {D, C} = D
+domain_type(f::Map) = domain_type(typeof(f))
+codomain_type(::Type{Map{D, C}}) where {D, C} = C
+codomain_type(f::Map) = codomain_type(typeof(f))
