@@ -1351,6 +1351,23 @@ Check whether `P` is simplicial, i.e., each proper face is a simplex.
 is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
 
 @doc raw"""
+    is_neighborly(P::Polyhedron)
+
+Check whether `P` is neighborly, i.e., if the dimension is $d$, each $\lfloor d/2 \rfloor$-subset of the vertices forms a face.
+Neighborly polytopes in even dimension are necessarily simplicial.
+
+# Examples
+
+A 4-polytope is neighborly if and only if the vertex-edge graph is complete.
+
+```jldoctest
+julia> is_neighborly(cyclic_polytope(4,8))
+true
+```
+"""
+is_neighborly(P::Polyhedron) = pm_object(P).NEIGHBORLY::Bool
+
+@doc raw"""
     is_cubical(P::Polyhedron)
 
 Check whether `P` is cubical, i.e., each proper face is combinatorially equivalent to a cube.

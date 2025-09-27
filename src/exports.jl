@@ -984,6 +984,7 @@ export is_negative_coroot
 export is_negative_coroot_with_index
 export is_negative_root
 export is_negative_root_with_index
+export is_neighborly
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
 export is_noetherian
 export is_non_zero_divisor
