@@ -8,9 +8,9 @@ import AbstractAlgebra: FPModuleElem, FPModule
 
 
 #very basic...
-function gmodule_new(chi::Oscar.GAPGroupClassFunction)
+function gmodule_new(chi::Oscar.GAPGroupClassFunction; limit::Int = 500)
   G = group(chi)
-  s = [representative(x) for x = subgroup_classes(group(chi))]
+  s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
   sort!(s, lt = (a,b) -> isless(order(b), order(a)))
   for i = s
     if !is_zero(scalar_product(permutation_character(G, i), chi))
@@ -116,8 +116,10 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   #linear characters are handled elsewhere. Here the expectation is
   #that in "t" the linear characters are marked as known
   #the code works for linear characters, it's just unneccessarily slow)
+  @show :start
   X = character_table(G)
-  s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
+  #depending on the group, there are many small subgroups and this takes a while
+  @time s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
   s = [x for x = s if order(x) < order(G)]
   sort!(s, lt = (a,b) -> isless(order(b), order(a)))
   if t !== nothing
@@ -129,10 +131,14 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   #permutation gmodules are good as the endomorphism ring
   #is "for free", the endo is used for the splitting
   #poss. the limits should be adjusted as this is easier...
-  for i = s
+  @time for i = s
     _try_perm_character!(res, t, G, i) && return res
   end
 #  @show "after permutation modules", t
+  #BaumClausen is also getting gmodules for "free",
+  #the 1-dim are also "easy" (and might be included in Baum Clausen
+  #Problem: BC get reps over QQab and thus needs work to write over
+  #smallest poss. field
 
   _try_tensor_products!(res, t; limit) && return res
   _try_squares!(res, t; limit) && return res
@@ -140,7 +146,6 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   all_K = [x for x = subgroup_reps(G) if order(x) <= 20] #how to do this?
 
   for i=s
-#    @show "order $(order(i))"
     XX = character_table(i)
     for chi = XX
       #careful with multiplicity
@@ -180,14 +185,18 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
           have_V = false
           good_K = []
           chi_Q = galois_orbit_sum(chi_G)
-          @show chi_Q, chi_G
           for K = all_K
             dim_C = scalar_product(restrict(chi_Q, K), trivial_character(K))
+            #the dimension of the condensed module
             if dim_C <= limit
               #test if K makes sense
               tt = [!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(t)]
+              #check which modules can/ will exist under condensation: 
+              #the degree of the constituent under condensation must be > 0
               if all(tt)
 #                @show "condense would give no info"
+#                all missing components condensate to 0
+#                bad condensing subgroup
                 continue
               end
               push!(good_K, (K, dim_C, tt))
@@ -198,7 +207,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
           end
           for ii = findall(!, reduce(.&, [x[3] for x = good_K]))
             t[ii] || continue #due to orbits
-            char = galois_orbit_sum(X[ii])
+            char = galois_orbit_sum(X[ii]) #everthing is over Q...
             if degree(char) > limit
 #              @show "too large, abandoning"
               continue
@@ -206,6 +215,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
 #            @show "aiming for $i"
             for_i = [x for x = good_K if !x[3][ii]]
             sort!(for_i, lt = (a,b) -> a[2] < b[2])
+            #try small condensing dimension first
             rand_G = [rand(G) for i=1:20]
 #            @show length(for_i)
             K = for_i[1][1]
@@ -222,63 +232,77 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
               continue
             end
             c, mc, phi = condense(V, K)
-            @show dim(c), limit, dim_condensed(V, K)
             @assert dim(c) <= limit
-            sp = split_into_homogenous(c)
-#            @show "split done"
-            #TODO: use the traces in some form to decide which element in
-            #      sp needs spinning - generically, there should be only one
-            #      this is via Allan's trace vectors
-            #      not sure what happens if split_into_homo has multiplicities
-            #TODO: trace vectors: Allan adds more "generators" to the condensed
-            #      module to have traces and to avoid problems from
-            #      condensing Q[G] wrongly. Not sure if this is the correct
-            #      way...
-            tr = [trace_condensed(char, K, g) for g = rand_G]
-            found = false
-            for _t = sp
-              ttr = Any[]
-              for g = rand_G
-                _c = trace_condensed(V, _t.module_map*mc, phi, g)
-                if isnothing(_c)
-                  @show "rand_G too small..."
-                  break
+            while true
+              @show :split, length(c.ac), K
+              #problem the action gens in c might not be enough
+              @time sp = split_into_homogenous(c)
+              @show :found, length(sp)
+  #            @show "split done"
+              #TODO: use the traces in some form to decide which element in
+              #      sp needs spinning - generically, there should be only one
+              #      this is via Allan's trace vectors
+              #      not sure what happens if split_into_homo has multiplicities
+              #TODO: trace vectors: Allan adds more "generators" to the condensed
+              #      module to have traces and to avoid problems from
+              #      condensing Q[G] wrongly. Not sure if this is the correct
+              #      way...
+              tr = [trace_condensed(char, K, g) for g = rand_G] #data for the target module
+              found = false
+              more_rand = false
+              for _t = sp
+                ttr = Any[]
+                for g = rand_G
+                  _c = trace_condensed(V, _t.module_map*mc, phi, g)
+                  if isnothing(_c)
+                    #if the preimage does not work <-> if g does not act
+                    more_rand = true
+                    @show "rand_G too small..."
+                    break
+                  end
+                  push!(ttr, _c)
+                  if ttr[end] != tr[length(ttr)]
+                    @show "stop as trace is wrong"
+                    #should imply that _t is the wrong constituent
+                    break
+                  end
                 end
-                push!(ttr, _c)
-                if ttr[end] != tr[length(ttr)]
-                  @show "stop as trace is wrong"
+                more_rand && break
+                if tr == ttr
+  #                @show "bingo!!", degree(char)
+                  d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit = Int(degree(char)))
+                  if dim(d) > degree(char) || d == V
+  #                  @show coordinates(character(d))
+  #                  @show coordinates(char)
+  #                  @show coordinates(character(V))
+                    @show "spin too large", d, dim(d), limit, dim(V)
+                    #OK: rand_G is too small
+                    more_rand = true
+                    break
+                    error("should not happen")
+                  end
+                  @assert dim(d) < dim(V)
+  #                @show dim(d), dim(V), coordinates(character(d))
+                  if dim(d) <= limit
+                    found = true
+                    _do_one!(res, t, d; is_irr = true) && return res
+                  end
+                else
+                  @show "wrong module lifted"
+                end
+                if !any(cc .& t)
+                  @show "OK, leaving this level"
+                  #can't get any more out of V
                   break
                 end
               end
-              @show ttr
-              if tr == ttr
-#                @show "bingo!!", degree(char)
-                d = spin2(V, [mc(_t(x).data) for x = gens(domain(_t))]; limit = Int(degree(char)))
-                if dim(d) > degree(char) || d == V
-#                  @show coordinates(character(d))
-#                  @show coordinates(char)
-#                  @show coordinates(character(V))
-                  @show "spin too large", d, dim(d), limit, dim(V)
-                  #OK: rand_G is too small
-                  break
-                  error("should not happen")
-                end
-                @assert dim(d) < dim(V)
-#                @show dim(d), dim(V), coordinates(character(d))
-                if dim(d) <= limit
-                  found = true
-                  _do_one!(res, t, d; is_irr = true) && return res
-                end
-              else
-                @show "wrong module lifted"
+              if more_rand
+                add_gens(c)
+                more_rand = false
+                continue
               end
-              if !any(cc .& t)
-                @show "OK, leaving this level"
-                #can't get any more out of V
-                break
-              end
+              break
             end
-            @assert found
             if !any(cc .& t)
               #can't get any more out of V
               break
@@ -414,20 +438,22 @@ function idempotent(C::GModule, iKG::Map)
     g = gens(codomain(hom))
     r = [relative_order(x) for x = g]
     a = [action(C, iKG(preimage(hom, x))) for x = g]
-    I = id_hom(C.M)
+    I = matrix(id_hom(C.M))
     for i=length(r):-1:1
-      a = action(C, iKG(preimage(hom, g[i])))
-      J = id_hom(C.M) + a
-      b = a
+      a = matrix(action(C, iKG(preimage(hom, g[i]))))
+      J = 1 + a
+      b = deepcopy(a)
       for j = 2:relative_order(g[i])-1
-        b *= a
+        mul!(b, b, a)
 #        @assert b == action(C, iKG(preimage(hom, g[i]^j)))
-        J += b
+        add!(J, J, b)
       end
 #      @assert J == sum([action(C, iKG(preimage(hom, g[i]^l))) for l=0:relative_order(g[i])-1])
-      I = J*I
+      mul!(I, J, I)
     end
-    return QQ(1, order(domain(iKG)))*I
+    m = QQ(1, order(domain(iKG)))*I
+    @show C.M, typeof(m)
+    return Oscar.hom(C.M, C.M, m)
   end
   return QQ(1, order(domain(iKG)))*sum([action(C, iKG(k)) for k = domain(iKG)])
 end
@@ -455,6 +481,20 @@ end
 # the A-module (without a group!!!, A = condensed Q[G])
 # the vector-space embedding
 # the idempotent
+######
+# C Q[G] module with endo E (also a Q[G] module - but with trivial action)
+#   is E <= Q[G]?
+# C phi is the condensed module, E phi dito
+# C phi E phi is in C phi, so E phi is part of endo (C phi)
+#  - E phi -> endo(C phi) does not need to be injective (C phi = 0 for example)
+#  - is it surjective?
+#  - can we say s.th about the center?
+#
+function show_condensed(io::IO, C::GModule)
+  (D, K, ms, phi, gns) = get_attribute(C, :condensed)
+  print(io, "Condensed module for $(D.G) along $(K) with $(length(gns)) extras")
+end
+
 function condense(C::GModule, K::Oscar.GAPGroup, extra::Int = 5)
   #K should be a subgroup of G for the G-Module C
   G = group(C)
@@ -495,14 +535,42 @@ function condense(C::GModule, K::Oscar.GAPGroup, extra::Int = 5)
   # in the trace_condense...(where we try to compute more action)
   #TODO: sanity: for everything in rG, the traces will be "for free"
   #      as the action is already computed. so use it?
-  rG = vcat(gens(G), [rand(G) for i=1:extra])
-#  rG = [rand(G) for i=1:2]
+  rG = gens(G)
   if ngens(s) == 0
     gs = elem_type(codomain(ms))[]
     return gmodule(nothing, [hom(s, s, gens(s)) for g = rG]), ms, phi
   end
   gs = map(ms, gens(s))::Vector{elem_type(C.M)}
-  return gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG]), ms, phi
+  D = gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG])
+  set_attribute!(D, :condensed => (C, K, ms, phi, rG), :show => show_condensed)
+  if extra > 0
+    add_gens(D, extra)
+  end
+  return D, ms, phi
+end
+
+#if condensation did not use enough elements to condensate Q[G]
+#this will be detected (can be) if uncondense (spin) produces s.th.
+#too large or if the endo is too large (maybe)
+function add_gens(D::GModule, extra::Int = 5)
+  C, K, ms, phi, rG = get_attribute(D, :condensed)
+  if length(D.ac) > 25
+    error("ASASD")
+  end
+  empty!(D.__attrs)
+  s = domain(ms)
+  gs = map(ms, gens(s))::Vector{elem_type(C.M)}
+  for i = 1:extra
+    g = rand(group(C))
+    z = preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))
+    @show z
+    if all(iszero, z)
+      continue
+    end
+    push!(rG, g)
+    push!(D.ac, hom(s, s, z))
+  end
+  set_attribute!(D, :condensed => (C, K, ms, phi, rG), :show => show_condensed)
 end
 
 #plain, vanilla spin, slow
