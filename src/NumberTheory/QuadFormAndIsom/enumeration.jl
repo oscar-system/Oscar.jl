@@ -1783,9 +1783,9 @@ function splitting_of_pure_mixed_prime_power(
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
   # Compute this one first because it is faster to decide whether it is empty
-  RB = representatives_of_hermitian_type(B0, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
+  RB = representatives_of_hermitian_type(B0, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RB) && return reps
-  RA = splitting_of_pure_mixed_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=p*discriminant_annihilator, _local)
+  RA = splitting_of_pure_mixed_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
