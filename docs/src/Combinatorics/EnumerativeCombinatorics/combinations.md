@@ -33,6 +33,7 @@ Because `Combination` is a subtype of `AbstractVector`, many functions that can 
 For example:
 ```jldoctest
 julia> C = Combination([6, 4, 4, 2])
+[6, 4, 4, 2]
 
 julia> length(C)
 4
