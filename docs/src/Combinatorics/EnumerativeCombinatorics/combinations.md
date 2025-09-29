@@ -23,7 +23,8 @@ combinations(n::Int, k::Int)
 combinations(v::AbstractVector, k::Int)
 ```
 
-Because `Combination` is a subtype of `AbstractVector`, all functions that can be used for vectors (1-dimensional arrays) can be used for combinations as well.
+Because `Combination` is a subtype of `AbstractVector`, many functions that can be used for vectors (1-dimensional arrays) can be used for combinations as well.
+For example:
 ```jldoctest
 julia> C = Combination([6, 4, 4, 2])
 
