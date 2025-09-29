@@ -1,0 +1,35 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
+# Combinations
+
+A **combination** from a set $S$ is a selection $\lambda_1, \lambda_2 \dots \lambda_r$ of elements of $S$ taken without repetition; the order of the elements is considered not to matter. A $k$-combination is a combination consisting of $k$ elements.
+A general reference on combinations is [Knu11](@cite), Section 7.2.1.3.
+
+A combination can be encoded as an array with elements $\lambda_i$.
+In OSCAR, the parametric type `Combination{T}` is provided which is a subtype of `AbstractVector{T}`.
+Here, `T` can be any subtype of `IntegerUnion`.
+There is no performance impact by using an own type for partitions rather than simply using arrays.
+The parametric type allows one to increase performance by using smaller integer types.
+
+
+## Generating
+
+```@docs
+combinations(n::Int, k::Int)
+combinations(v::AbstractVector, k::Int)
+```
+
+Because `Combination` is a subtype of `AbstractVector`, all functions that can be used for vectors (1-dimensional arrays) can be used for combinations as well.
+```jldoctest
+julia> C = Combination([6, 4, 4, 2])
+
+julia> length(C)
+4
+
+julia> C[1]
+6
+```

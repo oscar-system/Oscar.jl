@@ -291,6 +291,7 @@
     "Combinatorics/simplicialcomplexes.md",
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
+      "Combinatorics/EnumerativeCombinatorics/combinations.md",
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
       "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
