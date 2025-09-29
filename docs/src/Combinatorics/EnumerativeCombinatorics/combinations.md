@@ -12,7 +12,6 @@ A general reference on combinations is [Knu11](@cite), Section 7.2.1.3.
 A combination can be encoded as an array with elements $\lambda_i$.
 In OSCAR, the parametric type `Combination{T}` is provided which is a subtype of `AbstractVector{T}`.
 Here, `T` can be any subtype of `IntegerUnion`.
-There is no performance impact by using an own type for combinations rather than simply using arrays.
 The parametric type allows one to increase performance by using smaller integer types.
 
 
