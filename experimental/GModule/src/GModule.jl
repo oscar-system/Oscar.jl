@@ -800,6 +800,7 @@ function _abs_irred_abelian(G::Oscar.GAPGroup; cyclo::Bool = false)
   return all
 end
 
+# representatives of QQ-irreducible representations of a finite abelian group
 function _irred_abelian(G::Oscar.GAPGroup)
   @assert is_abelian(G)
   mA = isomorphism(Hecke.FinGenAbGroup, G) # G -> A
@@ -830,6 +831,74 @@ function _irred_abelian(G::Oscar.GAPGroup)
     push!(all, gmodule(G, [hom(F, F, conv(f(mA(g)))) for g = gens(G)]))
   end
   return all
+end
+
+# representatives of `F`-irreducible representations of a finite abelian group
+# `G` over the field `F` of size `p^k`
+function _irred_abelian(G::Oscar.GAPGroup, F::FinField)
+  @assert is_abelian(G)
+  q = order(F)
+  p = characteristic(F)
+  k, _ = remove(q, p)
+
+  if mod(order(G), p) != 0
+    GG = G
+  else
+    # Replace `G` by its Hall p'-subgroup,
+    # such that the generators correspond to those of `G`.
+    # (In the end, we will construct modules,
+    # there is no need to create an epimorphism to the largest p'-factor.)
+    function pprime_part(g, p)
+      v, _ = remove(order(g), p)
+      return g^(p^v)
+    end
+    GG = sub(G, [pprime_part(g, p) for g in gens(G)])[1]
+  end
+
+  mA = isomorphism(Hecke.FinGenAbGroup, GG) # GG -> A
+  A = codomain(mA)
+  R, mR = dual(A)
+
+  res = GModule{typeof(G), AbstractAlgebra.Generic.FreeModule{elem_type(F)}}[]
+  all_elem = []  # already used
+
+  for r in R
+    r in all_elem && continue
+    o = order(r)  # `r` needs a prim. `o`-th root in the finite field
+    orblen = 1
+    rr = q * r
+    while rr != r
+      push!(all_elem, rr)
+      orblen = orblen + 1
+      rr = q * rr
+    end
+
+    # `orblen` is the length of the Galois orbit over `F`
+    m = k * orblen
+    # `m` is the smallest `d` s.t. `GF(p^d)` contains `F` and
+    # a prim. `o`-th root
+    L = GF(p^m)
+
+    # The irred. `F`-repres. of `G` live already over `K`,
+    # we work over `K` and later write the matrices over `F`.
+    t = gcd(k, m)
+    K = GF(p^t)
+
+    mp = embed(K, L)
+    z = Oscar.DiscLog.generator(L)
+    mat = companion_matrix(minpoly(z, mp))  # matrix over K, write over F
+    mmat = map_entries(embed(K, F), mat)^divexact(p^m-1, o)
+    f = mR(r)
+    M = free_module(F, orblen)
+
+    function conv(r)
+      e = r.elt::QQFieldElem
+      return (mmat^Int(divexact(o, denominator(e))))^Int(numerator(e))
+    end
+
+    push!(res, gmodule(M, G, [hom(M, M, conv(f(mA(g)))) for g = gens(GG)]))
+  end
+  return res
 end
 
 
