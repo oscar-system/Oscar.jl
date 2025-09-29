@@ -13,6 +13,13 @@ A combination can be encoded as an array with elements $\lambda_i$.
 In OSCAR, the parametric type `Combination{T}` is provided which is a subtype of `AbstractVector{T}`.
 Here, `T` can be any subtype of `IntegerUnion`.
 The parametric type allows one to increase performance by using smaller integer types.
+```julia
+julia> @time collect(combinations(20,10));
+  0.010399 seconds (184.76 k allocations: 26.782 MiB)
+
+julia> @time collect(combinations(Int8(20),10));
+  0.008780 seconds (184.76 k allocations: 12.686 MiB)
+```
 
 
 ## Generating
