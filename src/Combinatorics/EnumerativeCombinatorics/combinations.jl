@@ -1,5 +1,5 @@
 @doc raw"""
-    combinations(n::Int, k::Int)
+    combinations(n::IntegerUnion, k::IntegerUnion)
 
 Return an iterator over all $k$-combinations of ${1,...,n}$, produced in
 lexicographically ascending order.
@@ -18,10 +18,10 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::Int, k::Int) = Combinations(Base.OneTo(n), k)
+combinations(n::IntegerUnion, k::IntegerUnion) = Combinations(Base.OneTo(n), k)
 
 @doc raw"""
-    combinations(v::AbstractVector, k::Int)
+    combinations(v::AbstractVector, k::IntegerUnion)
 
 Return an iterator over all `k`-combinations of a given vector `v` produced in
 lexicographically ascending order of the indices.
@@ -40,11 +40,11 @@ julia> collect(C)
  ['b', 'c', 'd']
 ```
 """
-function combinations(v::AbstractVector{T}, k::Int) where T
+function combinations(v::AbstractVector{T}, k::IntegerUnion) where T
   return Combinations(v, k)
 end
 
-Combinations(v::AbstractArray{T}, k::Int) where T = Combinations(v, length(v), k)
+Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, length(v), Int(k))
 
 @inline function Base.iterate(C::Combinations, state = [min(C.k - 1, i) for i in 1:C.k])
   if C.k == 0 # special case to generate 1 result for k = 0
