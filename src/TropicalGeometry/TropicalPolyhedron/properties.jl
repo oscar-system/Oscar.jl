@@ -234,7 +234,7 @@ julia> CD = covector_decomposition(P)
 Polyhedral complex in ambient dimension 2
 
 julia> CD |> maximal_polyhedra
-2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
+5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
  Polyhedron in ambient dimension 2
  Polyhedron in ambient dimension 2
