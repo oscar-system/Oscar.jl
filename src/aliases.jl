@@ -14,6 +14,7 @@ function n_maximal_cones end
 function n_maximal_polyhedra end
 function n_points end
 function n_polyhedra end
+function n_pseudovertices end
 function n_rays end
 function n_vertices end
 function dual_graph end
@@ -71,3 +72,4 @@ function primitive_generator end
 
 # Polyhedral geometry
 @alias minimal_generator primitive_generator
+@alias number_of_pseudovertices n_pseudovertices

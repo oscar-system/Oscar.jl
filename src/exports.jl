@@ -235,13 +235,13 @@ export add_edge!
 export add_gluing!
 export add_vertex!
 export add_vertices!
-export admissible_equivariant_primitive_extensions
-export admissible_triples
 export adjacency_matrix
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
+export admissible_equivariant_primitive_extensions
+export admissible_triples
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -1267,6 +1267,7 @@ export n_maximal_cones
 export n_maximal_polyhedra
 export n_points
 export n_polyhedra
+export n_pseudovertices
 export n_rays
 export n_vertices
 export name
@@ -1779,10 +1780,10 @@ export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_lifting
 export tutte_polynomial
-export type
 export twist
 export twisting_sheaf
 export two_sided_ideal
+export type
 export underlying_gluing
 export underlying_presheaf
 export underlying_quotient
@@ -1854,4 +1855,3 @@ export young_tableau
 export zero_section
 export zonotope
 export zonotope_vertices_fukuda_matrix
-export n_pseudovertices
