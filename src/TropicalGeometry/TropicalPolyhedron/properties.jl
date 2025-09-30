@@ -7,7 +7,7 @@ such that `P` equals `tropical_convex_hull(V)`.
 # Examples
 The following computes retrieves the vertices of a tropical polytope with redundant generating set:
 ```jldoctest
-julia> P = tropical_convex_hull(min, QQ[0 -1 0; 0 -4 -1]);
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
 
 julia> vertices(P)
 2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
@@ -21,7 +21,7 @@ julia> Q = tropical_convex_hull(TT[0 1 2; inf 0 3; inf inf 0; 0 1 0]);
 julia> vertices(Q)
 3-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
  [(0), (1), (2)]
- [infty, (-4), (-1)]
+ [infty, (0), (3)]
  [infty, infty, (0)]
 ```
 """
@@ -57,7 +57,7 @@ that is the zero-dimensional cells in the covector decomposition of `P`.
 # Examples
 The following retrievs the pseudovertices of a bounded tropical polytope:
 ```jldoctest
-julia> P = tropical_convex_hull(min, QQ[0 -1 0; 0 -4 -1]);
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
 
 julia> vertices(P)
 2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
@@ -116,12 +116,44 @@ function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{
   )
 end
 
+@doc raw"""
+    points([as::Type{T} = PointVector,] P::TropicalPointConfiguration)
+
+Return an iterator over the points of tropical point configuration `P`.
+
+# Examples
+The following retrievs the pseudovertices of a bounded tropical polytope:
+```jldoctest
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
+
+julia> points(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+
+```
+"""
+points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = points(PointVector{TropicalSemiringElem{M}}, P)
 function points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {T<:TropicalSemiringElem}
   n = n_points(P)
 
   return SubObjectIterator{as}(P, _points, n)
 end
-points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = points(PointVector{TropicalSemiringElem{M}}, P)
+
+@doc raw"""
+    n_vertices(P::TropicalPointConfiguration)
+
+Return the number of points of `P`.
+
+# Examples
+The 3-cube's number of vertices can be obtained with this input:
+```jldoctest
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
+
+julia> n_points(P)
+2
+```
+"""
 n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::Polymake.Matrix{<:Polymake.TropicalNumber} |> size |> first
 
 function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointConfiguration, i::Int) where {M<:MinOrMax}
@@ -133,7 +165,35 @@ function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointC
   )
 end
 
+@doc raw"""
+    dim(P::TropicalPolyhedron)
+
+Return the dimension of `P`.
+
+# Examples
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> dim(P)
+1
+```
+"""
 dim(P::TropicalPolyhedron) = covector_decomposition(P) |> dim
+
+@doc raw"""
+    ambient_dim(P::TropicalPolyhedron)
+    ambient_dim(P::TropicalPointConfiguration)
+
+Return the ambient dimension of `P`.
+
+# Examples
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> ambient_dim(P)
+2
+```
+"""
 ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PROJECTIVE_AMBIENT_DIM::Int
 
 @doc raw"""
@@ -144,7 +204,7 @@ Return an iterator over the maximal covectors with respect to `P`.
 # Examples
 The following computes retrieves the vertices of a covector decomposition:
 ```jldoctest
-julia> P = tropical_point_configuration(min, QQ[0 -1 0; 0 -4 -1]);
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
 
 julia> maximal_covectors(P)
 6-element SubObjectIterator{IncidenceMatrix}:
@@ -193,7 +253,7 @@ Return an iterator over the maximal covectors of `P`.
 # Examples
 The following computes retrieves the vertices of a tropical polytope:
 ```jldoctest
-julia> P = tropical_convex_hull(min, QQ[0 -1 0; 0 -4 -1]);
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
 
 julia> maximal_covectors(P)
 2-element SubObjectIterator{IncidenceMatrix}:

@@ -52,7 +52,7 @@ covector decomposition of the entire tropical projective torus.
 vertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
 n_vertices(P::TropicalPolyhedron)
 dim(P::TropicalPolyhedron)
-ambient_dim(P::TropicalPolyhedron)
+ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration})
 maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPolyhedron)
 covector_decomposition(P::TropicalPolyhedron)
 is_bounded(P::TropicalPolyhedron)
@@ -60,9 +60,9 @@ is_bounded(P::TropicalPolyhedron)
 
 ### Tropical point configurations
 ```@docs
-points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {T<:TropicalSemiringElem}
+points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
 n_points(P::TropicalPointConfiguration)
-ambient_dim(P::TropicalPointConfiguration)
+ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration})
 maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPointConfiguration)
 covector_decomposition(P::TropicalPointConfiguration)
 ```

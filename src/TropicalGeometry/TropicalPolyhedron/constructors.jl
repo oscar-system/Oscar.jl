@@ -43,7 +43,9 @@ with `M` as tropical addition.
 
 # Examples
 Defines a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
-```jldoctest
+```jldoctest tropical_convex_hull
+julia> TT = tropical_semiring(max);
+
 julia> A = TT.(identity_matrix(QQ, 3));
 
 julia> P = tropical_convex_hull(A)
@@ -51,13 +53,11 @@ Max tropical polyhedron in tropical projective torus of dimension 2
 ```
 
 The vertices of a tropical convex hull may also be given by the rows of a tropical matrix:
-```jldoctest
-julia> TT = tropical_semiring();
-
+```jldoctest tropical_convex_hull
 julia> A = TT[0 -4 -1; 0 -1 0];
 
 julia> P = tropical_convex_hull(A)
-Min tropical polyhedron in tropical projective torus of dimension 2
+Max tropical polyhedron in tropical projective torus of dimension 2
 ```
 """
 tropical_convex_hull(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = _tropical_convex_hull(TropicalPolyhedron, V)
@@ -69,20 +69,20 @@ with `M` as tropical addition.
 
 # Examples
 Defines a point configuration containing a tropical unit ball in the 2-dimensional tropical projective torus with `max` as addition:
-```jldoctest
+```jldoctest tropical_point_configuration
+julia> TT = tropical_semiring(max);
+
 julia> A = TT.(identity_matrix(QQ, 3));
 
-julia> P = tropical_convex_hull(A)
+julia> P = tropical_point_configuration(A)
 Max tropical point configuration in tropical projective torus of dimension 2
 ```
 The tropical point configuration may also be given by the rows of a tropical matrix:
-```jldoctest
-julia> TT = tropical_semiring();
-
+```jldoctest tropical_point_configuration
 julia> A = TT[0 -4 -1; 0 -1 0];
 
 julia> P = tropical_point_configuration(A)
-Min tropical point configuration in tropical projective torus of dimension 2
+Max tropical point configuration in tropical projective torus of dimension 2
 ```
 """
 tropical_point_configuration(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = _tropical_convex_hull(TropicalPointConfiguration, V)
@@ -98,7 +98,7 @@ Defines a point configuration containing a tropical unit ball in the 2-dimension
 ```jldoctest
 julia> A = identity_matrix(QQ, 3);
 
-julia> P = tropical_convex_hull(max, A)
+julia> P = tropical_convex_hull(A,max)
 Max tropical polyhedron in tropical projective torus of dimension 2
 ```
 """
@@ -114,7 +114,7 @@ Defines a point configuration containing a tropical unit ball in the 2-dimension
 ```jldoctest
 julia> A = identity_matrix(QQ, 3);
 
-julia> P = tropical_point_configuration(max, A)
+julia> P = tropical_point_configuration(A,max)
 Max tropical point configuration in tropical projective torus of dimension 2
 ```
 """
