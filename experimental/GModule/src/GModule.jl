@@ -821,11 +821,10 @@ function _irred_abelian(G::Oscar.GAPGroup)
     f = mR(r)
     C, z = cyclotomic_field(Int(o); cached = false)
     F = free_module(QQ, degree(C); cached = false)
-    m = representation_matrix(z)
 
     function conv(r)
       e = r.elt::QQFieldElem
-      return (m^Int(divexact(o, denominator(e))))^Int(numerator(e))
+      return representation_matrix(z^Int(divexact(o, denominator(e))*numerator(e)))
     end
 
     push!(all, gmodule(G, [hom(F, F, conv(f(mA(g)))) for g = gens(G)]))
