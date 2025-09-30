@@ -1,7 +1,7 @@
 @doc raw"""
     vertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
 
-Returns an iterator over the vertices of `P`, that is, a minimal generating set `V`
+Return an iterator over the vertices of `P`, that is, a minimal generating set `V`
 such that `P` equals `tropical_convex_hull(V)`.
 
 # Examples
@@ -35,7 +35,7 @@ vertices(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = vertices(PointVector{Tr
 @doc raw"""
     n_vertices(P::TropicalPolyhedron)
 
-Returns the number of vertices of `P`.
+Return the number of vertices of `P`.
 """
 n_vertices(P::TropicalPolyhedron) = nrows(pm_object(P).VERTICES::AbstractMatrix)
 
@@ -51,7 +51,7 @@ end
 @doc raw"""
     pseudovertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
 
-Returns an iterator over the pseudovertices of `P` in the tropical projective torus, 
+Return an iterator over the pseudovertices of `P` in the tropical projective torus, 
 that is the zero-dimensional cells in the covector decomposition of `P`.
 
 # Examples
@@ -139,7 +139,7 @@ ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object
 @doc raw"""
     maximal_covectors([as::Type{T} = PointVector,] P::TropicalPointConfiguration)
 
-Returns an iterator over the maximal covectors with respect to `P`.
+Return an iterator over the maximal covectors with respect to `P`.
 
 # Examples
 The following computes retrieves the vertices of a covector decomposition:
@@ -188,7 +188,7 @@ end
 @doc raw"""
     maximal_covectors([as::Type{T} = PointVector,] P::TropicalPolyhedron)
 
-Returns an iterator over the maximal covectors of `P`.
+Return an iterator over the maximal covectors of `P`.
 
 # Examples
 The following computes retrieves the vertices of a tropical polytope:
