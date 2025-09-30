@@ -252,9 +252,9 @@ end
   @test length(r) == 1
   @test det(invariant_lattice(r[1])) == -1
   
-  r = enumerate_classes_of_lattices_with_isometry(L, 12; char_poly=x^8 - x^6 + x^2 - 1)
+  r = enumerate_classes_of_lattices_with_isometry(E8, 12; char_poly=x^8 - x^6 + x^2 - 1)
   @test length(r) == 1
-  r = enumerate_classes_of_lattices_with_isometry(L, 12; char_poly=x^8 + x^6 + x^2 + 1)
+  r = enumerate_classes_of_lattices_with_isometry(E8, 12; char_poly=x^8 + x^6 + x^2 + 1)
   @test length(r) == 1
 
   
