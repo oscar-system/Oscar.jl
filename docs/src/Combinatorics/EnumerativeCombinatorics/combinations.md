@@ -25,8 +25,8 @@ julia> @time collect(combinations(Int8(20),10));
 ## Generating
 
 ```@docs
-combinations(n::Int, k::Int)
-combinations(v::AbstractVector, k::Int)
+combinations(n::IntegerUnion, k::IntegerUnion)
+combinations(v::AbstractVector, k::IntegerUnion)
 ```
 
 Because `Combination` is a subtype of `AbstractVector`, many functions that can be used for vectors (1-dimensional arrays) can be used for combinations as well.
