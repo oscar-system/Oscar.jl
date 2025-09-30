@@ -1,4 +1,6 @@
 @testset "combinations" begin
+  @test_throws ArgumentError Combination([1,2,2])
+  @test_throws ArgumentError Combination([1,3,2])
   let
     C = combinations(4, 3)
     @test length(C) == 4
@@ -11,6 +13,14 @@
     @test length(C) == binomial(100, 3)
     C = combinations(4, 5)
     @test length(C) == 0
+
+    C = combinations(Int16(4), 3)
+    @test length(C) == 4
+    @test collect(C) == [[1, 2, 3],
+                         [1, 2, 4],
+                         [1, 3, 4],
+                         [2, 3, 4]]
+    @test eltype(C) === Combination{Int16}
 
     C = combinations('a':'d', 3)
     @test length(C) == 4
@@ -56,10 +66,7 @@
     @test length(c) == binomial(n,k)
     @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
     @test all(i->C[i] == c[i], 1:length(c))
-
   end
-
-
 
 
 

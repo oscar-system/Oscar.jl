@@ -40,16 +40,14 @@ julia> collect(C)
  ['b', 'c', 'd']
 ```
 """
-function combinations(v::AbstractVector{T}, k::IntegerUnion) where T
-  return Combinations(v, k)
-end
+combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
 
-Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, length(v), Int(k))
+Combinations(v::AbstractArray, k::IntegerUnion) = Combinations(v, length(v), Int(k))
 
-@inline function Base.iterate(C::Combinations, state = [min(C.k - 1, i) for i in 1:C.k])
+@inline function Base.iterate(C::Combinations{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(eltype(C.v)[]), [0]
+      return Combination{T}(T[]), [0]
     end
     return nothing
   end
@@ -66,7 +64,7 @@ Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, len
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination(C.v[state]), state
+  return Combination{T}(C.v[state]), state
 end
 
 Base.length(C::Combinations) = binomial(C.n, C.k)
@@ -86,6 +84,14 @@ end
 #  Array-like functionality for Combination
 #
 ################################################################################
+
+is_strictly_ascending(v::Vector) = all(v[i] < v[i+1] for i in 1:length(v)-1)
+
+# constructor with safety check
+function Combination(v::Vector{T}) where {T}
+  @req is_strictly_ascending(v) "combinations must strictly ascending"
+  return new{T}(v)
+end
 
 function Base.show(io::IO, ::MIME"text/plain", P::Combination)
   p = data(P)
@@ -110,16 +116,16 @@ function Base.getindex(C::Combination, i::IntegerUnion)
   return getindex(data(C), Int(i))
 end
 
-function Base.copy(C::Combination)
-  return Combination(copy(data(C)))
+function Base.copy(C::Combination{T}) where T
+  return Combination{T}(copy(data(C)))
 end
 
 function Base.getindex(C::Combinations{Base.OneTo}, i::IntegerUnion)
-  return Oscar.combination(C.n, C.k, i)
+  return combination(C.n, C.k, i)
 end
 
 function Base.getindex(C::Combinations, i::IntegerUnion)
-  c = Oscar.combination(C.n, C.k, i)
+  c = combination(C.n, C.k, i)
   return C.v[data(c)]
 end
 
@@ -166,7 +172,7 @@ function linear_index(C::Combination, n::IntegerUnion)
 end
 
 @doc raw"""
-    combination(n::Int, k::Int, r::Int)
+    combination(n::T, k::T, r::T) where {T <: IntegerUnion}
 
 Return the `r`th combination in the iteration over `combinations(n,k)`.
 
@@ -182,11 +188,11 @@ julia> C1 = Oscar.combination(15, 3, 13)
 [1, 2, 15]
 ```
 """
-function combination(n::Int, k::Int, r::Int)
+function combination(n::T, k::T, r::T) where {T <: IntegerUnion}
   @req 1 <= r <= binomial(n, k) "index out of range"
-  iszero(k) && return Combination(Int[])
-  isone(k) && return Combination([r])
-  n == k && return Combination(collect(1:n))
+  iszero(k) && return Combination{T}(T[])
+  isone(k) && return Combination{T}([r])
+  n == k && return Combination{T}(collect(Base.OneTo(n)))
 
   C = zeros(Int, k)
   r = binomial(n,k) - r
@@ -201,7 +207,7 @@ function combination(n::Int, k::Int, r::Int)
     j += 1
     r -= b
   end
-  return Combination(C)
+  return Combination{T}(C)
 end
 
 
@@ -251,7 +257,7 @@ end
 function _wedge(a::Combination{T}, b::Combination{T}) where {T}
   c, sign = merge_sorted_with_sign(data(a), data(b))
   sign == 0 && return sign, c
-  return sign, Combination(c)
+  return sign, Combination{T}(c)
 end
 
 
