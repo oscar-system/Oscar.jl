@@ -1,10 +1,6 @@
 polymake_version = pkgversion(Polymake.polymake_jll)
 
-for minOrMax in (min,max)
-__sign = minOrMax == min ? 1 : -1
-oo = minOrMax == min ? inf : -inf
-
-@testset "TropicalPolyhedron{$minOrMax}" begin
+@testset "TropicalPolyhedron{$minOrMax}" for (minOrMax, __sign, oo) in [(min, 1, inf), (max, -1, -inf)]
   TT = tropical_semiring(minOrMax)
   pts1_a = TT[0 -1__sign 0; 0 -4__sign -1__sign]
   pts1_b = [
@@ -238,5 +234,4 @@ end
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
     ]) broken=polymake_version <= v"400.1400.0+0"
-end
 end
