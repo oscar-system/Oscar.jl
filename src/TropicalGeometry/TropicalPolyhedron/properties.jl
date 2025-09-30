@@ -269,7 +269,7 @@ julia> CD |> maximal_polyhedra
 """
 function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   if !isnothing(dehomogenize_by)
-    return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
+    return Polymake.tropical.polytope_subdivision_as_complex(pm_object(P), dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
   else
    pv = pm_object(P).PSEUDOVERTICES::Polymake.Matrix{Polymake.Rational}
    cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS::IncidenceMatrix
