@@ -87,7 +87,7 @@ polymake_version = pkgversion(Polymake.polymake_jll)
     [
       IncidenceMatrix([[1],[1],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ]) broken=polymake_version <= v"400.1400.0+0"
+    ]) broken=polymake_version <= v"400.1500"
 
   covdec3 = covector_decomposition(P3)
   @test issetequal(covdec3 |> vertices,
@@ -108,7 +108,7 @@ polymake_version = pkgversion(Polymake.polymake_jll)
   end
 
   pts4 = QQ[0 1 0; 0 4 1; 0 3 3; 0 0 2]*__sign
-  P4 = tropical_convex_hull(minOrMax,pts4)
+  P4 = tropical_convex_hull(pts4,minOrMax)
   @test ambient_dim(P3) == 2
   @test dim(P3) == 2
   @test issetequal(vertices(P4), eachrow(TT.(pts4)))
@@ -139,7 +139,7 @@ polymake_version = pkgversion(Polymake.polymake_jll)
     ])
 end
 
-@testset "TropicalPointConfiguration{$minOrMax}" begin
+@testset "TropicalPointConfiguration{$minOrMax}" for (minOrMax, __sign, oo) in [(min, 1, inf), (max, -1, -inf)]
   TT = tropical_semiring(minOrMax)
   pts1_a = [TT.(__sign*[0, -1, 0]), TT.(__sign*[0, -4, -1])]
   C1_a = tropical_point_configuration(pts1_a)
@@ -164,7 +164,7 @@ end
 
   ## Making a pseudovertices an input point of the above point configuration
   pts1_b = QQ[0 -1 0; 0 -4 -1; 0 -3 0]*__sign
-  C1_b = tropical_point_configuration(minOrMax, pts1_b)
+  C1_b = tropical_point_configuration(pts1_b,minOrMax)
   @test issetequal(points(C1_b), eachrow(TT.(pts1_b)))
 
   cov1_b = maximal_covectors(C1_b)
@@ -206,7 +206,7 @@ end
       IncidenceMatrix([Int[],[2],[1,3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([Int[],Int[],[1,2,3]])
-    ]) broken=polymake_version <= v"400.1400.0+0"
+    ]) broken=polymake_version <= v"400.1500"
 
   covdec2 = covector_decomposition(C2)
   @test issetequal(covdec2 |> vertices,
@@ -233,5 +233,5 @@ end
       IncidenceMatrix([Int[],[1,2],[3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ]) broken=polymake_version <= v"400.1400.0+0"
+    ]) broken=polymake_version <= v"400.1500"
 end
