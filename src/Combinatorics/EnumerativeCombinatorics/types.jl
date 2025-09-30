@@ -408,7 +408,12 @@ struct Combinations{T}
 end
 
 struct Combination{T} <: AbstractVector{T}
-  v::Vector{T} 
+  v::Vector{T}
 end
 
-
+# for timing tests
+struct Combinations2{T, U<:IntegerUnion}
+  v::T
+  n::U
+  k::U
+end
