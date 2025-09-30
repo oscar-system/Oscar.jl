@@ -88,7 +88,7 @@ Min tropical point configuration in tropical projective torus of dimension 2
 tropical_point_configuration(V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax} = _tropical_convex_hull(TropicalPointConfiguration, V)
 
 @doc raw"""
-    tropical_convex_hull(convention::MinOrMax, V::QQMatrix)
+    tropical_convex_hull(V::QQMatrix[,convention::MinOrMax=min])
 
 Constructs the tropical convex hull of the vertices `V` in the tropical projective torus
 with `convention` as tropical addition.
@@ -102,9 +102,9 @@ julia> P = tropical_convex_hull(max, A)
 Max tropical polyhedron in tropical projective torus of dimension 2
 ```
 """
-tropical_convex_hull(convention::MinOrMax, V::QQMatrix) = _tropical_convex_hull(TropicalPolyhedron, convention, V)
+tropical_convex_hull(V::QQMatrix, convention::MinOrMax=min) = _tropical_convex_hull(TropicalPolyhedron, convention, V)
 @doc raw"""
-    tropical_point_configuration(convention::MinOrMax, V::QQMatrix)
+    tropical_point_configuration(V::QQMatrix[, convention::MinOrMax=min])
 
 Constructs the tropical point configuration of the vertices `V` in the tropical projective torus
 with `convention` as tropical addition.
@@ -118,7 +118,7 @@ julia> P = tropical_point_configuration(max, A)
 Max tropical point configuration in tropical projective torus of dimension 2
 ```
 """
-tropical_point_configuration(convention::MinOrMax, V::QQMatrix) = _tropical_convex_hull(TropicalPointConfiguration, convention, V)
+tropical_point_configuration(V::QQMatrix, convention::MinOrMax=min) = _tropical_convex_hull(TropicalPointConfiguration, convention, V)
 
 function _tropical_convex_hull(as::Union{Type{TropicalPolyhedron},Type{TropicalPointConfiguration}}, V::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax}
   p = Polymake.tropical.Polytope{M.instance}(POINTS=V)
@@ -143,7 +143,7 @@ function tropical_polyhedron(A::MatElem{TropicalSemiringElem{M}}, B::MatElem{Tro
 
   return TropicalPolyhedron{M}(p)
 end
-function tropical_polyhedron(convention::MinOrMax, A::QQMatrix, B::QQMatrix)
+function tropical_polyhedron(A::QQMatrix, B::QQMatrix, convention::MinOrMax=min)
   p = Polymake.tropical.Polytope{convention}(INEQUALITIES=(A,B))
 
   return TropicalPolyhedron{typeof(convention)}(p)
