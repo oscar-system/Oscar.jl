@@ -30,7 +30,7 @@ For more details see
 
 ## Constructors
 Both `TropicalPolyhedron` and `TropicalPointConfiguration` can be constructed from the following data:
-- a rational matrix and the tropical addition
+- a rational matrix and specifying min- or max-convention
 - a matrix over a tropical semiring
 - a vector of points with coordinates in a tropical semiring
 
