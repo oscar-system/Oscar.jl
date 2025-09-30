@@ -69,6 +69,56 @@ Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, len
   return Combination(C.v[state]), state
 end
 
+
+@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Nothing = nothing) where T
+  if C.k == 0 # special case to generate 1 result for k = 0
+    return Combination(eltype(C.v)[]), T[0]
+  end
+  n = T(C.n)
+  k = T(C.k)
+  st = T[min(k - 1, i) for i in 1:k]
+
+  for i in k:-1:1
+    st[i] += 1
+    if st[i] > (n - (k - i))
+      continue
+    end
+    for j in i+1:k
+      st[j] = st[j - 1] + 1
+    end
+    break
+  end
+  if st[1] > n - k + 1
+    return nothing
+  end
+  return Combination(st), st
+end
+
+
+@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Vector{T}) where T
+  if C.k == 0 # special case to generate 1 result for k = 0
+    if isempty(state)
+      return Combination(eltype(C.v)[]), T[0]
+    end
+    return nothing
+  end
+  for i in C.k:-1:1
+    state[i] += 1
+    if state[i] > (C.n - (C.k - i))
+      continue
+    end
+    for j in i+1:C.k
+      state[j] = state[j - 1] + 1
+    end
+    break
+  end
+  if state[1] > C.n - C.k + 1
+    return nothing
+  end
+
+  return Combination(state), state
+end
+
 Base.length(C::Combinations) = binomial(C.n, C.k)
 
 Base.eltype(::Type{Combinations{T}}) where {T} = Combination{eltype(T)}
