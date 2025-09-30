@@ -1367,3 +1367,18 @@ end
   @test ! is_sporadic_simple(t)
   @test ! is_supersolvable(t)
 end
+
+@testset "action  on class functions" begin
+  g = symmetric_group(4)
+  h = pcore(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test order(stabilizer(g, chi)[1]) == 8
+  chi = t[3]  # now the action on classes is already stored
+  @test order(stabilizer(g, chi)[1]) == 8
+
+  h = sylow_subgroup(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test_throws ArgumentError stabilizer(g, chi)
+end
