@@ -98,21 +98,23 @@ end
 @inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Vector{T}) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(eltype(C.v)[]), T[0]
+      return Combination(T[]), T[0]
     end
     return nothing
   end
-  for i in C.k:-1:1
+  n = T(C.n)
+  k = T(C.k)
+  for i in k:-1:1
     state[i] += 1
-    if state[i] > (C.n - (C.k - i))
+    if state[i] > (n - (k - i))
       continue
     end
-    for j in i+1:C.k
+    for j in i+1:k
       state[j] = state[j - 1] + 1
     end
     break
   end
-  if state[1] > C.n - C.k + 1
+  if state[1] > n - k + 1
     return nothing
   end
 
