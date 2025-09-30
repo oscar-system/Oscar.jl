@@ -37,7 +37,7 @@ vertices(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = vertices(PointVector{Tr
 
 Returns the number of vertices of `P`.
 """
-n_vertices(P::TropicalPolyhedron) = size(pm_object(P).VERTICES::AbstractMatrix, 1)
+n_vertices(P::TropicalPolyhedron) = nrows(pm_object(P).VERTICES::AbstractMatrix)
 
 function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPolyhedron, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
@@ -100,7 +100,7 @@ function pseudovertices(as::Type{PointVector{T}}, P::TropicalPointConfiguration)
 end
 pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) where {M<:MinOrMax} = pseudovertices(PointVector{TropicalSemiringElem{M}}, P)
 
-n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> size |> first
+n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> nrows
 function n_pseudovertices(P::TropicalPolyhedron) 
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
 
