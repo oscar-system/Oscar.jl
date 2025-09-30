@@ -44,7 +44,7 @@ function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::
 
   return point_vector(
     T,
-    T.(P.pm_tpolytope.VERTICES[i,:]::AbstractVector)
+    T.(P.pm_tpolytope.VERTICES[i,:])
   )
 end
 
@@ -84,7 +84,7 @@ julia> pseudovertices(P)
 ```
 """
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
-  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
   n = count(!iszero, eachrow(CT))
   TT = tropical_semiring(convention(P))
 
@@ -102,7 +102,7 @@ pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) wh
 
 n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> nrows
 function n_pseudovertices(P::TropicalPolyhedron) 
-  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
 
   return count(!iszero, eachrow(CT))
 end
@@ -122,7 +122,7 @@ function points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {
   return SubObjectIterator{as}(P, _points, n)
 end
 points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = points(PointVector{TropicalSemiringElem{M}}, P)
-n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::AbstractMatrix |> size |> first
+n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::Polymake.Matrix{<:Polymake.TropicalNumber} |> size |> first
 
 function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointConfiguration, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
@@ -271,9 +271,9 @@ function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
   if !isnothing(dehomogenize_by)
     return Polymake.tropical.polytope_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
   else
-   pv = pm_object(P).PSEUDOVERTICES::AbstractMatrix
+   pv = pm_object(P).PSEUDOVERTICES::Polymake.Matrix{Polymake.Rational}
    cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS::IncidenceMatrix
-   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::AbstractMatrix
+   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
    ind = findall(1:size(ct, 1)) do i
      all(!iszero, ct[i,:])
    end
@@ -287,7 +287,7 @@ end
 Checks whether `P` is bounded in the tropical projective torus.
 """
 function is_bounded(P::TropicalPolyhedron)
-  return all(!iszero, pm_object(P).VERTICES::AbstractMatrix)
+  return all(!iszero, pm_object(P).VERTICES::Polymake.Matrix{<:Polymake.TropicalNumber})
 end
 
 function Base.show(io::IO, P::TropicalPolyhedron{M}) where {M<:MinOrMax}
