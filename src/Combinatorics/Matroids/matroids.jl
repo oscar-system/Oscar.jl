@@ -70,12 +70,12 @@ end
 
 # Arguments
 - `B::AbstractVector`: The set of bases of the matroid.
-- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `n::IntegerUnion`: The size of the ground set. The ground set will be `{1, ..., n}` in this case.
 - `E::AbstractVector`: An explicit ground set passed as vector.
 
-Construct a `matroid` with bases `B` on the ground set `E` (which can be the empty set).
+Construct a matroid with bases `B` on the ground set `E` (which can be the empty set).
 The set `B` is a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
-and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
+and the default value for `E` is the set `{1, ..., n}` for a non-negative value `n`.
 
 See Section 1.2 of [Oxl11](@cite).
 
@@ -123,14 +123,14 @@ end
 
 # Arguments
 - `N::AbstractVector`: The set of nonbases of the matroid.
-- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `n::IntegerUnion`: The size of the ground set. The ground set will be `{1, ..., n}` in this case.
 - `E::AbstractVector`: An explicit ground set passed as vector.
 
-Construct a `matroid` with nonbases `N` on the ground set `E` (which can be the empty set).
+Construct a matroid with nonbases `N` on the ground set `E` (which can be the empty set).
 That means that the matroid has as bases all subsets of the size `|N[1]|` of the ground set that are not in `N`.
 The set `N` can't be empty in this function.
 The described complement of `N` needs to be a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
-and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
+and the default value for `E` is the set `{1, ..., n}` for a non-negative value `n`.
 
 See Section 1.2 of [Oxl11](@cite).
 
@@ -179,12 +179,12 @@ end
 
 # Arguments
 - `C::AbstractVector`: The set of circuits of the matroid.
-- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `n::IntegerUnion`: The size of the ground set. The ground set will be `{1, ..., n}` in this case.
 - `E::AbstractVector`: An explicit ground set passed as vector.
 
 A matroid with circuits `C` on the ground set `E` (which can be the empty set).
 The set `C` is a collection of subsets of the ground set `E` satisfying an exchange property,
-and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
+and the default value for `E` is the set `{1, ..., n}` for a non-negative value `n`.
 
 See Section 1.1 of [Oxl11](@cite).
 
@@ -233,13 +233,13 @@ end
 
 # Arguments
 - `H::AbstractVector`: The set of hyperplanes of the matroid.
-- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `n::IntegerUnion`: The size of the ground set. The ground set will be `{1, ..., n}` in this case.
 - `E::AbstractVector`: An explicit ground set passed as vector.
 
 A matroid with hyperplanes `H` on the ground set `E` (which can be the empty set).
 A hyperplane is a flat of rank `r-1`.
 The set `H` is a collection of subsets of the ground set `E` satisfying an exchange property,
-and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
+and the default value for `E` is the set `{1, ..., n}` for a non-negative value `n`.
 
 See Section 1.4 of [Oxl11](@cite).
 
@@ -383,7 +383,7 @@ Matroid of rank 3 on 6 elements
 bond_matroid(g::Graph) = dual_matroid(cycle_matroid(g))
 
 @doc raw"""
-See `bond_matroid`.
+See [`bond_matroid`](@ref).
 """
 cocycle_matroid(g::Graph) = bond_matroid(g::Graph)
 
