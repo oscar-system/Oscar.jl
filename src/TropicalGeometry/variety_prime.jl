@@ -19,8 +19,23 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
     return dehomogenize_post_tropicalization(TropIh)
 end
 
+# rename the variables of I to x1, ..., xn for n<10 or x01, ..., x10 for n<100 etc.
+# zero padding is necessary because Singular interpreter does not like variable names
+# that are substrings of other variable names.
+function make_variable_names_singular_compatible(I::MPolyIdeal)
+    R = base_ring(I)
+    n = nvars(R)
+    l = ndigits(n)
+
+    newVarNames = [ "x" * lpad(string(i),l,'0') for i in 1:n ]
+    S,x = polynomial_ring(base_ring(R), newVarNames)
+    changeVarNames = hom(R,S,x)
+    return changeVarNames(I)
+end
+
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+    I = make_variable_names_singular_compatible(I)
     R = base_ring(I)
     singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
                             "ideal I = "*join(string.(gens(I)), ",")*";",
@@ -40,6 +55,7 @@ end
 
 # p-adic valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+    I = make_variable_names_singular_compatible(I)
     R = base_ring(I)
     singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
                             "ideal I = "*join(string.(gens(I)), ",")*";",
@@ -121,7 +137,6 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
         coneIncidences = [ vcat(incidence,[originIndex]) for incidence in coneIncidences ]
         return polyhedral_complex(IncidenceMatrix(coneIncidences), rayGenerators, rayIndices, linealityGenerators)
     end
-
 end
 
 
