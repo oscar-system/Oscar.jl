@@ -9,7 +9,7 @@ the radical of the intersection coincides with the radical of the input ideal.
 function factoring_standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
     #= apply highest corner standard basis variant in Singular =#
-    sL = Singular.LibStandard.facstd(singular_generators(I, ordering))
+    sL = Singular.facstd(singular_generators(I, ordering))
 
     L = [Oscar.IdealGens(base_ring(I), r, false) for r in sL]
 
