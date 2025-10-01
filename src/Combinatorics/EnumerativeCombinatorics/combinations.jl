@@ -363,19 +363,19 @@ end
   if C.k == 0 # special case to generate 1 result for k = 0
     return Combination{T}(T[]), T[0]
   end
-  st = T[min(C.k - 1, i) for i in T(1):C.k]
+  st = T[min(C.k - 1, i) for i in 1:C.k]
 
   for i in C.k:-1:1
-    st[i] += T(1)
-    if st[i] > (C.n - (C.k - T(i)))
+    st[i] += 1
+    if st[i] > (C.n - (C.k - i))
       continue
     end
     for j in i+1:C.k
-      st[j] = st[j - 1] + T(1)
+      st[j] = st[j - 1] + 1
     end
     break
   end
-  if st[1] > C.n - C.k + T(1)
+  if st[1] > C.n - C.k + 1
     return nothing
   end
   return Combination{T}(st), st
@@ -390,16 +390,16 @@ end
     return nothing
   end
   for i in C.k:-1:1
-    state[i] += T(1)
+    state[i] += 1
     if state[i] > (C.n - (C.k - i))
       continue
     end
     for j in i+1:C.k
-      state[j] = state[j - 1] + T(1)
+      state[j] = state[j - 1] + 1
     end
     break
   end
-  if state[1] > C.n - C.k + T(1)
+  if state[1] > C.n - C.k + 1
     return nothing
   end
 
