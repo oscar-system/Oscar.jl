@@ -59,7 +59,7 @@ polymake_version = pkgversion(Polymake.polymake_jll)
   @test issetequal(pseudovertices(P2), [TT.(__sign*[0,1,2]),TT.(__sign*[0,-1,2])]) 
   @test n_pseudovertices(P2) == 2 
   @test maximal_covectors(P2) |> length == 1
-  @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]]) broken=polymake_version <= v"400.1400.0+0"
+  @test maximal_covectors(P2) |> first == IncidenceMatrix([[1], [2], [3]])
 
 
   covdec2 = covector_decomposition(P2)
@@ -87,7 +87,7 @@ polymake_version = pkgversion(Polymake.polymake_jll)
     [
       IncidenceMatrix([[1],[1],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ]) broken=polymake_version <= v"400.1500"
+    ])
 
   covdec3 = covector_decomposition(P3)
   @test issetequal(covdec3 |> vertices,
@@ -113,8 +113,8 @@ polymake_version = pkgversion(Polymake.polymake_jll)
   @test dim(P3) == 2
   @test issetequal(vertices(P4), eachrow(TT.(pts4)))
   @test n_vertices(P4) == 4
-  @test_broken issetequal(pseudovertices(P3), [eachrow(pts3)...,TT.(__sign*[0,1,3])]) 
-  @test_broken n_pseudovertices(P3) == 4
+  @test issetequal(pseudovertices(P4),eachrow(TT.(__sign*[0 1 0; 0 4 1; 0 3 3; 0 0 2; 0 0 0; 0 2 1; 0 3 1; 0 3 2; 0 1 3; 0 0 1])))
+  @test n_pseudovertices(P4) == 10
 
   @test issetequal(maximal_covectors(P4),
     [
@@ -206,7 +206,7 @@ end
       IncidenceMatrix([Int[],[2],[1,3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([Int[],Int[],[1,2,3]])
-    ]) broken=polymake_version <= v"400.1500"
+    ])
 
   covdec2 = covector_decomposition(C2)
   @test issetequal(covdec2 |> vertices,
@@ -233,5 +233,5 @@ end
       IncidenceMatrix([Int[],[1,2],[3]]),
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
-    ]) broken=polymake_version <= v"400.1500"
+    ])
 end
