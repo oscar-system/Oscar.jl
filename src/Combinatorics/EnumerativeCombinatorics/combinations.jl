@@ -70,32 +70,7 @@ Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, len
 end
 
 
-@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Nothing = nothing) where T
-  if C.k == 0 # special case to generate 1 result for k = 0
-    return Combination(eltype(C.v)[]), T[0]
-  end
-  n = T(C.n)
-  k = T(C.k)
-  st = T[min(k - 1, i) for i in 1:k]
-
-  for i in k:-1:1
-    st[i] += 1
-    if st[i] > (n - (k - i))
-      continue
-    end
-    for j in i+1:k
-      st[j] = st[j - 1] + 1
-    end
-    break
-  end
-  if st[1] > n - k + 1
-    return nothing
-  end
-  return Combination(st), st
-end
-
-
-@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Vector{T}) where T
+@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
       return Combination(T[]), T[0]
@@ -359,30 +334,7 @@ Combinations2(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations2(v,
 end
 
 
-@inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Nothing = nothing) where {T<:IntegerUnion}
-  if C.k == 0 # special case to generate 1 result for k = 0
-    return Combination{T}(T[]), T[0]
-  end
-  st = T[min(C.k - 1, i) for i in 1:C.k]
-
-  for i in C.k:-1:1
-    st[i] += 1
-    if st[i] > (C.n - (C.k - i))
-      continue
-    end
-    for j in i+1:C.k
-      st[j] = st[j - 1] + 1
-    end
-    break
-  end
-  if st[1] > C.n - C.k + 1
-    return nothing
-  end
-  return Combination{T}(st), st
-end
-
-
-@inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Vector{T}) where {T<:IntegerUnion}
+@inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where {T<:IntegerUnion}
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
       return Combination{T}(T[]), T[0]
