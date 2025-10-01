@@ -613,6 +613,7 @@ export exponents
 export ext
 export ext_of_degree
 export extend!
+export extend_to_ambient_space
 export extension_field
 export exterior_derivative
 export exterior_power
@@ -1030,6 +1031,7 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
+export is_saturated_with_saturation
 export is_semiregular
 export is_semisimple
 export is_semistandard
@@ -1043,9 +1045,11 @@ export is_simplicial
 export is_singular
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
+export is_special_isometry
 export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
+export is_stable_isometry
 export is_standard
 export is_standard_basis
 export is_standard_graded
@@ -1424,6 +1428,8 @@ export point_coordinates
 export point_matrix
 export point_vector
 export points
+export pointwise_stabilizer_in_orthogonal_group
+export pointwise_stabilizer_orthogonal_complement_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type
@@ -1573,6 +1579,7 @@ export restrict_codomain
 export restrict_domain
 export restrict_endomorphism
 export restrict_homomorphism
+export restrict_to_lattice
 export restricted_map
 export restricted_map_type
 export restriction
@@ -1638,6 +1645,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
+export setwise_stabilizer_in_orthogonal_group
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
@@ -1684,6 +1692,7 @@ export spanning_sets
 export spec
 export special_linear_group
 export special_orthogonal_group
+export special_subgroup
 export special_unitary_group
 export splitting
 export splitting_of_hermitian_type
@@ -1692,9 +1701,13 @@ export splitting_of_prime_power
 export splitting_of_pure_mixed_prime_power
 export splitting_roots_mod2
 export src
+export stabilizer_discriminant_subgroup
+export stabilizer_in_diagonal_action
 export stabilizer_in_orthogonal_group
 export stable_intersection
+export stable_orthogonal_group
 export stable_set_polytope
+export stable_subgroup
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
