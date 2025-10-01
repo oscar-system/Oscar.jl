@@ -15,20 +15,10 @@ using Oscar.OscarDB.Mongoc
     # Types
     @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
     db = Oscar.OscarDB.get_db()
-    @test db["Surfaces"] isa Oscar.OscarDB.Collection
     try
       @test Mongoc.ping(db.mdb.client)["ok"] == 1
     catch
       @test "not" == "connected"
-    end
-    collection_bo = db["Surfaces"]
-    query = Dict("_id" => "abelian_d10_pi6")
-
-    @test length(collection_bo) == 48
-    @test length(collection_bo, query) == 1
-
-    @testset verbose=true "Iterator (Collection)" begin
-      @test iterate(collection_bo) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
     end
   end
 
@@ -36,7 +26,11 @@ using Oscar.OscarDB.Mongoc
     # can only test collections that are in the .github/oscardb_dump/oscar
     db = Oscar.OscarDB.get_db()
     collection_tsc = db["TransitiveSimplicialComplexes"]
-    
+
+    @testset verbose=true "Iterator (Collection)" begin
+      @test iterate(collection_tsc) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
+    end
+
     @testset "Types" begin
       @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
       @test db["TransitiveSimplicialComplexes"] isa Oscar.OscarDB.Collection
