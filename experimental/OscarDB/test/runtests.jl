@@ -39,8 +39,8 @@ using Oscar.OscarDB.Mongoc
 
     @testset "Querying" begin
       tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"],
-                                   Dict("data.betti_numbers" => ["0", "1", "0"]))
-      @test betti_numbers(tsc) == [0, 1, 0]
+                                   Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
+      @test betti_numbers(tsc) == [0, 0, 0, 1]
     end
   end
 end
