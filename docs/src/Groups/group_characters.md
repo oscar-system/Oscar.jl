@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Group characters
+# Characters and character tables
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
 be a group homomorphism, for some ring ``R``.
