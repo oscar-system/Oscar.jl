@@ -326,19 +326,19 @@ end
 
 # for timing tests
 
-combinations2(n::T, k::T) where T<:IntegerUnion = Combinations2(Base.OneTo(n), k)
+combinations2(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations2(Base.OneTo(n), T(k))
 
-function combinations2(v::AbstractVector{T}, k::IntegerUnion) where T
+function combinations2(v::AbstractVector, k::IntegerUnion)
   return Combinations2(v, k)
 end
 
-Combinations2(v::AbstractArray{T}, k::U) where {T, U<:IntegerUnion} = Combinations2(v, U(length(v)), k)
+Combinations2(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations2(v, T(length(v)), k)
 
 
-@inline function Base.iterate(C::Combinations2, state = [min(C.k - 1, i) for i in 1:C.k])
+@inline function Base.iterate(C::Combinations2{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(eltype(C.v)[]), [0]
+      return Combination{T}(T[]), [0]
     end
     return nothing
   end
@@ -355,13 +355,13 @@ Combinations2(v::AbstractArray{T}, k::U) where {T, U<:IntegerUnion} = Combinatio
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination(C.v[state]), state
+  return Combination{T}(C.v[state]), state
 end
 
 
 @inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Nothing = nothing) where {T<:IntegerUnion}
   if C.k == 0 # special case to generate 1 result for k = 0
-    return Combination(T[]), T[0]
+    return Combination{T}(T[]), T[0]
   end
   st = T[min(C.k - 1, i) for i in T(1):C.k]
 
@@ -378,14 +378,14 @@ end
   if st[1] > C.n - C.k + T(1)
     return nothing
   end
-  return Combination(st), st
+  return Combination{T}(st), st
 end
 
 
 @inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Vector{T}) where {T<:IntegerUnion}
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(T[]), T[0]
+      return Combination{T}(T[]), T[0]
     end
     return nothing
   end
@@ -403,7 +403,7 @@ end
     return nothing
   end
 
-  return Combination(state), state
+  return Combination{T}(state), state
 end
 
 Base.length(C::Combinations2) = binomial(Int(C.n), Int(C.k))
@@ -424,7 +424,7 @@ end
 #
 ################################################################################
 
-
+# these won't work without fixing signature of `combination(n,k,i)`
 function Base.getindex(C::Combinations2{Base.OneTo}, i::IntegerUnion)
   return Oscar.combination(C.n, C.k, i)
 end
