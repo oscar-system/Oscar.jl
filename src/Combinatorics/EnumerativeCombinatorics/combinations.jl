@@ -93,7 +93,7 @@ end
     return nothing
   end
 
-  return Combination(state), state
+  return Combination(copy(state)), state
 end
 
 Base.length(C::Combinations) = binomial(C.n, C.k)
@@ -355,7 +355,7 @@ end
     return nothing
   end
 
-  return Combination{T}(state), state
+  return Combination{T}(copy(state)), state
 end
 
 Base.length(C::Combinations2) = binomial(Int(C.n), Int(C.k))
