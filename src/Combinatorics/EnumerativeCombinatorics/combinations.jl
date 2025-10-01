@@ -133,7 +133,7 @@ function Base.getindex(C::Combination, i::IntegerUnion)
   return getindex(data(C), Int(i))
 end
 
-function Base.copy(C::Combination{T})
+function Base.copy(C::Combination{T}) where T
   return Combination{T}(copy(data(C)))
 end
 
