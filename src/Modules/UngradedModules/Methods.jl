@@ -93,7 +93,7 @@ If there exists no path an error is thrown.
 """
 function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
-    return [identity_map(M)]
+    return [id_hom(M)]
   end
   parent_hom = IdDict{SubquoModule, ModuleFPHom}()
   modules = [M]
@@ -186,7 +186,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   morphisms = Vector{ModuleFPHom}()
   for path in all_paths
-    phi = identity_map(N)
+    phi = id_hom(N)
     for h in path
       phi = phi*h
     end
@@ -544,13 +544,13 @@ end
     vector_space_dim(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Then the command returns the dimension of the ``k``-vectorspace corresponding to the
+Return the dimension of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_dim(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, return its dimension; otherwise, return -1.
 
 # Examples:
 ```jldoctest
@@ -651,13 +651,13 @@ end
     vector_space_basis(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Then the command returns a monomial basis of the ``k``-vectorspace corresponding to the
+Return a monomial basis of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each generator of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_basis(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, return a monomial basis of it; otherwise throw an error.
 
 # Examples:
 ```jldoctest

@@ -125,7 +125,7 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
   Rp = polynomial_ring(coefficient_ring(R), :t => 1:ngens(R))[1]
   RtoRp = hom(R, Rp, [gen(Rp, findfirst(isequal(i), p)) for i in 1:ngens(Rp)])
 
-  Sp, _ = graded_polynomial_ring(coefficient_ring(S), "t#" => 1:ngens(S), w_perm)
+  Sp, _ = graded_polynomial_ring(coefficient_ring(S), "t#" => 1:ngens(S); weights=w_perm)
   SptoS = hom(Sp, S, [gens(S)[p[i]] for i in 1:ngens(S)])
 
   # Homogenize the generators

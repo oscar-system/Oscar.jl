@@ -15,7 +15,6 @@ true
 """
 is_normal(v::NormalToricVarietyType) = true
 
-
 @doc raw"""
     is_affine(v::NormalToricVarietyType)
 
@@ -29,7 +28,6 @@ false
 """
 @attr Bool is_affine(v::NormalToricVarietyType) = pm_object(v).AFFINE
 
-
 @doc raw"""
     is_projective(v::NormalToricVarietyType)
 
@@ -42,7 +40,6 @@ true
 ```
 """
 @attr Bool is_projective(v::NormalToricVarietyType) = pm_object(v).PROJECTIVE
-
 
 @doc raw"""
     is_projective_space(v::NormalToricVarietyType)
@@ -62,28 +59,28 @@ true
 ```
 """
 @attr Bool function is_projective_space(v::NormalToricVarietyType)
-    if is_smooth(v) == false
-        return false
+  if is_smooth(v) == false
+    return false
+  end
+  if is_projective(v) == false
+    return false
+  end
+  cl = class_group_with_map(v)[1]
+  if torsion_free_rank(cl) > 1
+    return false
+  end
+  w = [[Int(x) for x in transpose(g.coeff)] for g in gens(cl)]
+  for g in gens(cl)
+    g = [Int(x) for x in g.coeff if !iszero(x)]
+    if length(g) > 1
+      return false
     end
-    if is_projective(v) == false
-        return false
+    if g[1] != 1
+      return false
     end
-    if torsion_free_rank(class_group(v)) > 1
-        return false
-    end
-    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for g in gens(class_group(v))
-        g = [Int(x) for x in g.coeff if !iszero(x)]
-        if length(g) > 1
-            return false
-        end
-        if g[1] != 1
-            return false
-        end
-    end
-    return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
+  end
+  return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
 end
-
 
 @doc raw"""
     is_smooth(v::NormalToricVarietyType)
@@ -98,7 +95,6 @@ true
 """
 @attr Bool is_smooth(v::NormalToricVarietyType) = pm_object(v).SMOOTH
 
-
 @doc raw"""
     is_complete(v::NormalToricVarietyType)
 
@@ -112,7 +108,6 @@ true
 """
 @attr Bool is_complete(v::NormalToricVarietyType) = pm_object(v).COMPLETE
 
-
 @doc raw"""
     has_torusfactor(v::NormalToricVarietyType)
 
@@ -124,8 +119,8 @@ julia> has_torusfactor(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool has_torusfactor(v::NormalToricVarietyType) = Polymake.common.rank(rays(v)) < ambient_dim(v)
-
+@attr Bool has_torusfactor(v::NormalToricVarietyType) =
+  Polymake.common.rank(rays(v)) < ambient_dim(v)
 
 @doc raw"""
     is_orbifold(v::NormalToricVarietyType)
@@ -140,7 +135,6 @@ true
 """
 @attr Bool is_orbifold(v::NormalToricVarietyType) = pm_object(v).SIMPLICIAL
 
-
 @doc raw"""
     is_simplicial(v::NormalToricVarietyType)
 
@@ -153,7 +147,6 @@ true
 ```
 """
 is_simplicial(v::NormalToricVarietyType) = is_orbifold(v)
-
 
 @doc raw"""
     is_gorenstein(v::NormalToricVarietyType)
@@ -168,7 +161,6 @@ true
 """
 @attr Bool is_gorenstein(v::NormalToricVarietyType) = pm_object(v).GORENSTEIN
 
-
 @doc raw"""
     is_q_gorenstein(v::NormalToricVarietyType)
 
@@ -181,7 +173,6 @@ true
 ```
 """
 @attr Bool is_q_gorenstein(v::NormalToricVarietyType) = pm_object(v).Q_GORENSTEIN
-
 
 @doc raw"""
     is_fano(v::NormalToricVarietyType)

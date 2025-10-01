@@ -115,6 +115,12 @@ function encode_type(::Type{T}) where T
   )
 end
 
+function decode_type(s::String)
+  return get(reverse_type_map, s) do
+    error("unsupported type '$s' for decoding")
+  end
+end
+
 function decode_type(s::DeserializerState)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
@@ -128,11 +134,7 @@ function decode_type(s::DeserializerState)
       s.obj = obj
       return T
     end
-
-    return get(reverse_type_map, s.obj) do
-      unsupported_type = s.obj
-      error("unsupported type '$unsupported_type' for decoding")
-    end
+    return decode_type(s.obj)
   end
 
   if type_key in keys(s.obj)
@@ -531,7 +533,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
@@ -858,6 +860,7 @@ export load_attrs
 export load_node
 export load_object
 export load_ref
+export params_all_equal
 export save
 export save_as_ref
 export save_attrs

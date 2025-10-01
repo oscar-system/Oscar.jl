@@ -239,7 +239,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       # make sure stdlibs are in the load path (like in the normal repl)
       push!(custom_load_path, "@stdlib")
 
-      oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
+      oefile = joinpath(Oscar.oscardir, "test", "book", "ordered_examples.json")
       ordered_examples = load(oefile)
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
@@ -256,7 +256,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
-            auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            auxmain = joinpath(Oscar.oscardir, "test", "book", chapter, "auxiliary_code", "main.jl")
             # run from temp dir
             temp = mktempdir()
             cd(temp)
