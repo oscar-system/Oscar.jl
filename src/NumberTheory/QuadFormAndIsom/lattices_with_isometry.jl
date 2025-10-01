@@ -1635,7 +1635,6 @@ function stable_subgroup(
     ambient_representation::Bool=true,
     check::Bool=true,
   )
-  @req is_finite(G) "The group G must be finite"
   if check
     @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
   end
