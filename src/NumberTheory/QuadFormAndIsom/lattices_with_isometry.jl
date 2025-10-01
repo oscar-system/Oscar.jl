@@ -1841,7 +1841,6 @@ function special_subgroup(
   if check
     @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
   end
-  @req is_finite(G) "The group G must be finite"
   mu = matrix_group(QQMatrix[QQ[-1;]])
   j = one(mu)
   d = hom(G, mu, [Int(det(m))*j for m in gens(G)])
