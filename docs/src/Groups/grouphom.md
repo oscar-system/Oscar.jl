@@ -132,7 +132,7 @@ Group homomorphism
   from symmetric group of degree 4
   to symmetric group of degree 4
 
-julia> f*g==hom(S, S, x->x^(S[1]*S[2]))
+julia> f*g == hom(S, S, x->x^(S[1]*S[2]))
 true
 
 julia> f == f^-3
