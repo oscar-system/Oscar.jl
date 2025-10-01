@@ -171,7 +171,7 @@ julia> cophenetic_matrix(pt)
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
-  @req check && _is_tree(g) "Input must be a tree"
+  @req !check || _is_tree(g) "Input must be a tree"
   r = _root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
