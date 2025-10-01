@@ -13,9 +13,9 @@ using Oscar.OscarDB.Mongoc
 
   @testset verbose=true "Basic functionality" begin
     # Types
-    @test Oscar.Oscardb.get_db() isa Oscar.Oscardb.Database
-    db = Oscar.Oscardb.get_db()
-    @test db["Surfaces"] isa Oscar.Oscardb.Collection
+    @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
+    db = Oscar.OscarDB.get_db()
+    @test db["Surfaces"] isa Oscar.OscarDB.Collection
     try
       @test Mongoc.ping(db.mdb.client)["ok"] == 1
     catch

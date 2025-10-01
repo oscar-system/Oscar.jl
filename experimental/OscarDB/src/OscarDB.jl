@@ -17,10 +17,7 @@ import Oscar:
 
 # for ca certificates
 import NetworkOptions
-import URIs
-
 import Mongoc: Mongoc, find, find_one
-
 
 const OSCAR_DB = "oscar"
 const OSCAR_DEV_DB = "oscar-dev"
@@ -74,7 +71,7 @@ Oscar.OscarDB.Database
 function get_db(;dev=false)
   # we explicitly set the cacert file, otherwise we might get connection errors because the certificate cannot be validated
   username = "oscar-pub"
-  password = escapeuri(raw"oShea/fooC$ie6h")
+  password = "oShea%2FfooC%24ie6h"
   client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/oscar?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
   return Database(client[dev ? OSCAR_DEV_DB : OSCAR_DB])
 end
