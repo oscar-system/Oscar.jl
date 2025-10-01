@@ -212,7 +212,7 @@ function combination(n::T, k::IntegerUnion, r::IntegerUnion) where T<:IntegerUni
   n == k && return Combination{T}(collect(T(1):n))
 
   C = zeros(T, k)
-  r = binomial(n,k) - r
+  r = binomial(Int(n),Int(k)) - r
   j = T(1)
   for i in 1:k
     b = binomial(Int(n) - j, Int(k) - i + 1)
@@ -274,7 +274,7 @@ end
 function _wedge(a::Combination{T}, b::Combination{T}) where {T}
   c, sign = merge_sorted_with_sign(data(a), data(b))
   sign == 0 && return sign, c
-  return sign, Combination(c)
+  return sign, Combination{T}(c)
 end
 
 
