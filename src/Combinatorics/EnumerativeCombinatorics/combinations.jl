@@ -40,9 +40,7 @@ julia> collect(C)
  ['b', 'c', 'd']
 ```
 """
-function combinations(v::AbstractVector{T}, k::IntegerUnion) where T
-  return Combinations(v, k)
-end
+combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
 
 Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 
@@ -135,16 +133,16 @@ function Base.getindex(C::Combination, i::IntegerUnion)
   return getindex(data(C), Int(i))
 end
 
-function Base.copy(C::Combination)
-  return Combination(copy(data(C)))
+function Base.copy(C::Combination{T})
+  return Combination{T}(copy(data(C)))
 end
 
 function Base.getindex(C::Combinations{Base.OneTo}, i::IntegerUnion)
-  return Oscar.combination(C.n, C.k, i)
+  return combination(C.n, C.k, i)
 end
 
 function Base.getindex(C::Combinations, i::IntegerUnion)
-  c = Oscar.combination(C.n, C.k, i)
+  c = combination(C.n, C.k, i)
   return C.v[data(c)]
 end
 
