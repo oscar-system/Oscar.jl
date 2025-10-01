@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::IntegerUnion, k::IntegerUnion) = Combinations(Base.OneTo(n), k)
+combinations(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations(Base.OneTo(n), n, T(k))
 
 @doc raw"""
     combinations(v::AbstractVector, k::IntegerUnion)
@@ -44,12 +44,12 @@ function combinations(v::AbstractVector{T}, k::IntegerUnion) where T
   return Combinations(v, k)
 end
 
-Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, length(v), Int(k))
+Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 
-@inline function Base.iterate(C::Combinations, state = [min(C.k - 1, i) for i in 1:C.k])
+@inline function Base.iterate(C::Combinations{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(eltype(C.v)[]), [0]
+      return Combination{T}(T[]), [0]
     end
     return nothing
   end
@@ -66,39 +66,37 @@ Combinations(v::AbstractArray{T}, k::IntegerUnion) where T = Combinations(v, len
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination(C.v[state]), state
+  return Combination{T}(C.v[state]), state
 end
 
 
-@inline function Base.iterate(C::Combinations{Base.OneTo{T}}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where T
+@inline function Base.iterate(C::Combinations{Base.OneTo{T}, T}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where {T<:IntegerUnion}
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(T[]), T[0]
+      return Combination{T}(T[]), T[0]
     end
     return nothing
   end
-  n = T(C.n)
-  k = T(C.k)
-  for i in k:-1:1
+  for i in C.k:-1:1
     state[i] += 1
-    if state[i] > (n - (k - i))
+    if state[i] > (C.n - (C.k - i))
       continue
     end
-    for j in i+1:k
+    for j in i+1:C.k
       state[j] = state[j - 1] + 1
     end
     break
   end
-  if state[1] > n - k + 1
+  if state[1] > C.n - C.k + 1
     return nothing
   end
 
-  return Combination(copy(state)), state
+  return Combination{T}(copy(state)), state
 end
 
-Base.length(C::Combinations) = binomial(C.n, C.k)
+Base.length(C::Combinations) = binomial(Int(C.n), Int(C.k))
 
-Base.eltype(::Type{Combinations{T}}) where {T} = Combination{eltype(T)}
+Base.eltype(::Type{<:Combinations{T}}) where {T} = Combination{eltype(T)}
 
 function Base.show(io::IO, C::Combinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
@@ -193,7 +191,7 @@ function linear_index(C::Combination, n::IntegerUnion)
 end
 
 @doc raw"""
-    combination(n::Int, k::Int, r::Int)
+    combination(n::IntegerUnion, k::IntegerUnion, r::IntegerUnion)
 
 Return the `r`th combination in the iteration over `combinations(n,k)`.
 
@@ -209,26 +207,26 @@ julia> C1 = Oscar.combination(15, 3, 13)
 [1, 2, 15]
 ```
 """
-function combination(n::Int, k::Int, r::Int)
-  @req 1 <= r <= binomial(n, k) "index out of range"
-  iszero(k) && return Combination(Int[])
-  isone(k) && return Combination([r])
-  n == k && return Combination(collect(1:n))
+function combination(n::T, k::IntegerUnion, r::IntegerUnion) where T<:IntegerUnion
+  @req 1 <= r <= binomial(Int(n), Int(k)) "index out of range"
+  iszero(k) && return Combination{T}(T[])
+  isone(k) && return Combination{T}(T[r])
+  n == k && return Combination{T}(collect(T(1):n))
 
-  C = zeros(Int, k)
+  C = zeros(T, k)
   r = binomial(n,k) - r
-  j = 1
+  j = T(1)
   for i in 1:k
-    b = binomial(n - j, k - i + 1)
+    b = binomial(Int(n) - j, Int(k) - i + 1)
     while b > r
-      j += 1
-      b = binomial(n - j, k - i + 1)
+      j += T(1)
+      b = binomial(Int(n) - j, Int(k) - i + 1)
     end
     C[i] = j
-    j += 1
+    j += T(1)
     r -= b
   end
-  return Combination(C)
+  return Combination{T}(C)
 end
 
 
@@ -293,95 +291,4 @@ function _wedge(a::Vector{T}) where {T <: Combination}
   sign_c, comb_c = _wedge(c)
   sign, comb = _wedge(comb_b, comb_c)
   return sign * sign_b * sign_c, comb
-end
-
-
-
-
-
-# for timing tests
-
-combinations2(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations2(Base.OneTo(n), T(k))
-
-function combinations2(v::AbstractVector, k::IntegerUnion)
-  return Combinations2(v, k)
-end
-
-Combinations2(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations2(v, T(length(v)), k)
-
-
-@inline function Base.iterate(C::Combinations2{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
-  if C.k == 0 # special case to generate 1 result for k = 0
-    if isempty(state)
-      return Combination{T}(T[]), [0]
-    end
-    return nothing
-  end
-  for i in C.k:-1:1
-    state[i] += 1
-    if state[i] > (C.n - (C.k - i))
-      continue
-    end
-    for j in i+1:C.k
-      state[j] = state[j - 1] + 1
-    end
-    break
-  end
-  if state[1] > C.n - C.k + 1
-    return nothing
-  end
-  return Combination{T}(C.v[state]), state
-end
-
-
-@inline function Base.iterate(C::Combinations2{Base.OneTo{T}, T}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where {T<:IntegerUnion}
-  if C.k == 0 # special case to generate 1 result for k = 0
-    if isempty(state)
-      return Combination{T}(T[]), T[0]
-    end
-    return nothing
-  end
-  for i in C.k:-1:1
-    state[i] += 1
-    if state[i] > (C.n - (C.k - i))
-      continue
-    end
-    for j in i+1:C.k
-      state[j] = state[j - 1] + 1
-    end
-    break
-  end
-  if state[1] > C.n - C.k + 1
-    return nothing
-  end
-
-  return Combination{T}(copy(state)), state
-end
-
-Base.length(C::Combinations2) = binomial(Int(C.n), Int(C.k))
-
-Base.eltype(::Type{<:Combinations2{T}}) where {T} = Combination{eltype(T)}
-
-function Base.show(io::IO, C::Combinations2{<:Base.OneTo})
-  print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
-end
-
-function Base.show(io::IO, C::Combinations2)
-  print(io, "Iterator over the ", C.k, "-combinations of ", C.v)
-end
-
-################################################################################
-#
-#  Array-like functionality for Combination
-#
-################################################################################
-
-# these won't work without fixing signature of `combination(n,k,i)`
-function Base.getindex(C::Combinations2{Base.OneTo}, i::IntegerUnion)
-  return Oscar.combination(C.n, C.k, i)
-end
-
-function Base.getindex(C::Combinations2, i::IntegerUnion)
-  c = Oscar.combination(C.n, C.k, i)
-  return C.v[data(c)]
 end
