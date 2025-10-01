@@ -1863,7 +1863,6 @@ function _special_stable_subgroup(
   if check
     @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
   end
-  @req is_finite(G) "The group G must be finite"
   H, j1 = stable_subgroup(L, G; ambient_representation, check=false)
   H, j2 = special_subgroup(L, H; ambient_representation, check=false)
   return H, compose(j2, j1)
