@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Collections of isometries
 
-In this section, we review methods related to collection of isometries for
+In this section, we review methods related to collections of isometries for
 rational quadratic spaces and integer lattices.
 
 ## Change of basis representation
