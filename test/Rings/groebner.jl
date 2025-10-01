@@ -331,4 +331,18 @@ end
   @test gens(L[2]) == QQMPolyRingElem[x]
   @test L[1].isGB == true
   @test L[2].isGB == true
+
+  R, (x, y, z) = polynomial_ring(GF(32003), [:x, :y, :z])
+  I = ideal(R,[x*y*z,y*z+x])
+
+  L = factoring_standard_basis(I)
+
+  @test length(L) == 1
+  @test gens(L[1]) == FqMPolyRingElem[x, y*z+x]
+
+  L = factoring_standard_basis(I, ordering=lex(R))
+
+  @test length(L) == 2
+  @test gens(L[1]) == FqMPolyRingElem[z, x + y*z]
+  @test gens(L[2]) == FqMPolyRingElem[y, x + y*z]
 end
