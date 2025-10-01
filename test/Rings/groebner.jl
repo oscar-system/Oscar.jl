@@ -323,3 +323,12 @@ end
   @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
 end
 
+@testset "factoring standard bases" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_standard_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+end
