@@ -27,15 +27,23 @@ An exception is thrown if the function `g` does not define a group homomorphism.
   **Example:**
 The following procedures define the same homomorphism (conjugation by `x`) in the two ways explained above.
 ```jldoctest
-julia> S=symmetric_group(4);
+julia> S = symmetric_group(4)
+Symmetric group of degree 4
 
-julia> x=S[1];
+julia> x = S[1]
+(1,2,3,4)
 
-julia> f=hom(S,S,gens(S),[S[1]^x,S[2]^x]);
+julia> f = hom(S, S, [S[1]^x, S[2]^x])
+Group homomorphism
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
-julia> g=hom(S,S,y->y^x);
+julia> g = hom(S, S, y -> y^x)
+Group homomorphism
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
-julia> f==g
+julia> f == g
 true
 ```
 
@@ -61,13 +69,18 @@ or the more compact notations `f(x)` and `x^f`.
 
   **Example:**
 ```jldoctest
-julia> S=symmetric_group(4);
+julia> S = symmetric_group(4)
+Symmetric group of degree 4
 
-julia> f=hom(S,S,x->x^S[1]);
+julia> f = hom(S, S, x->x^S[1])
+Group homomorphism
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
-julia> x=cperm(S,[1,2]);
+julia> x = cperm(S, [1,2])
+(1,2)
 
-julia> image(f,x)
+julia> image(f, x)
 (2,3)
 
 julia> f(x)
@@ -106,16 +119,23 @@ OSCAR supports the following operations on homomorphisms.
 
   **Example:**
 ```jldoctest
-julia> S=symmetric_group(4);
+julia> S = symmetric_group(4)
+Symmetric group of degree 4
 
-julia> f=hom(S,S,x->x^S[1]);
+julia> f = hom(S, S, x->x^S[1])
+Group homomorphism
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
-julia> g=hom(S,S,x->x^S[2]);
+julia> g = hom(S, S, x->x^S[2])
+Group homomorphism
+  from symmetric group of degree 4
+  to symmetric group of degree 4
 
-julia> f*g==hom(S,S,x->x^(S[1]*S[2]))
+julia> f*g==hom(S, S, x->x^(S[1]*S[2]))
 true
 
-julia> f==f^-3
+julia> f == f^-3
 true
 ```
 

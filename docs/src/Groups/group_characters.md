@@ -93,7 +93,6 @@ can be fetched as `parent(chi)`.
 
 
 ```@docs
-GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
@@ -269,4 +268,10 @@ class_positions_of_normal_subgroups
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 class_positions_of_solvable_residuum
+```
+
+## Technicalities
+
+```@docs
+GAPGroupCharacterTable
 ```
