@@ -90,9 +90,9 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree})
-  pt = load_node(s, :pm_tree) do _
-    load_from_polymake(Dict(s.obj))
+  oscar_type, inner_object = load_node(s, :pm_tree) do _
+    load_from_polymake(Polymake.BigObject, Dict(s.obj))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
-  typeof(pt)(pt.pm_ptree, vertex_perm)
+  oscar_type(inner_object, vertex_perm)
 end
