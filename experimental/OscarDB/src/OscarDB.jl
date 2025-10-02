@@ -101,7 +101,7 @@ end
 @doc raw"""
     find(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
 
-Search a collection `c` for documents matching the criteria given by `d`.
+Returns an iterator over documents in the collection `c` which match the criteria given by `d`.
 Apply search options `opts`.
 
 # Examples
