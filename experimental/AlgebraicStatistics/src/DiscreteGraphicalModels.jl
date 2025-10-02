@@ -215,6 +215,7 @@ Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with state
 """
 function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q", p_var_name::String="p")
   @req length(states) == n_vertices(G) "need one and only one random variable in MarkovRing for each graph vertex"
+  @req is_acyclic(G) "$G must be an acyclic graph"
   DiscreteGraphicalModel(G, states, Dict{Symbol, VarName}(:q => q_var_name, :p => p_var_name))
 end
 
