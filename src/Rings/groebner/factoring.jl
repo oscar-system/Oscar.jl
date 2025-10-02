@@ -35,7 +35,7 @@ with respect to the ordering
 function factoring_groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
     is_global(ordering) || error("Ordering must be global")
-    return factoring_standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
+    return factoring_standard_basis(I, ordering=ordering)
 end
 @doc raw"""
     factoring_standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
