@@ -16,6 +16,9 @@ The overall design is inspired by polymake's [PolyDB](https://polydb.org/).
 
 ## Collections
 
+The database is organized into collections.
+Within each collection the datasets are uniform.
+
 ### Vertex-transitive combinatorial manifolds
 The OSCAR DB provides access to [Frank Lutz' collection of vertex transitive triangulations](https://www3.math.tu-berlin.de/IfM/Nachrufe/Frank_Lutz/stellar/vertex-transitive-triangulations.html).
 It comprises all vertex-transitive combinatorial manifolds with up to 15 vertices in dimensions $d=2,3,9,10,11,12$.
