@@ -218,9 +218,6 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
     LABELS=la
   )
 
-  # load graph properties
-  pt.ADJACENCY
-
   return PhylogeneticTree{T}(pt, p)
 end
 
