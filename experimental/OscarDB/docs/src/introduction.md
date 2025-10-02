@@ -26,7 +26,7 @@ In the remaining dimensions below 12, the enumeration is complete up to 13 verti
 
 See also [Lut08](@cite).
 
-### Leech pairs
+### Leech pairs [LeechPairs]
 The OSCAR DB provides access to the Leech pairs computed by G. Höhn and G. Mason [HM16](@ref).
 
 ## Status
@@ -43,10 +43,16 @@ You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/communit
 
 Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 
+```@meta
+CurrentModule = Oscar.OscarDB
+```
+
 ```@docs
 get_db
 find_one
 find
 length
+getindex(db::Database, name::AbstractString)
+get_collection_names
 ```
 

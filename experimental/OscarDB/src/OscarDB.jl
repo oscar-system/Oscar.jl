@@ -76,14 +76,25 @@ function get_db(;dev=false)
   return Database(client[dev ? OSCAR_DEV_DB : OSCAR_DB])
 end
 
-#TODO add examples
 """
     getindex(db::Database, name::AbstractString)
 
 Return a `Oscar.OscarDB.Collection` instance
 from `db` with the given `name`.
-Sections and collections in the name are connected with the '.' sign.
+
 # Examples
+```julia-repl
+julia> Oscar.OscarDB.get_collection_names(db)
+4-element Vector{String}:
+ "zzlattices"
+ "LeechPairs"
+ "Surfaces"
+ "TransitiveSimplicialComplexes"
+
+julia> c = db["LeechPairs"];
+
+julia> length(c)
+290
 """
 Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
 
@@ -184,6 +195,27 @@ function parse_document(bson::Mongoc.BSON)
   return Oscar.load(IOBuffer(str))
 end
 
+"""
+    get_collection_names(db::Database)
+
+Return a `Vector{String}` containing the names of all collections in the
+Polydb, excluding meta collections.
+# Examples
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> Oscar.OscarDB.get_collection_names(db)
+4-element Vector{String}:
+ "zzlattices"
+ "LeechPairs"
+ "Surfaces"
+ "TransitiveSimplicialComplexes"
+```
+"""
+function get_collection_names(db::Database)
+   opts = Mongoc.BSON("authorizedCollections" => true, "nameOnly" => true)
+   return Mongoc.get_collection_names(db.mdb;options=opts)
+end
 # Iterator
 
 Base.IteratorSize(::Type{<:Cursor}) = Base.SizeUnknown()
