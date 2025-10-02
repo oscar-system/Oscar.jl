@@ -323,7 +323,7 @@ end
   @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
 end
 
-@testset "factoring standard bases" begin
+@testset "factoring standard resp. groebner bases" begin
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R,[x*y])
   L = factoring_standard_basis(I)
@@ -345,4 +345,14 @@ end
   @test length(L) == 2
   @test gens(L[1]) == FqMPolyRingElem[z, x + y*z]
   @test gens(L[2]) == FqMPolyRingElem[y, x + y*z]
+
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_groebner_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+
+  @test_throws ErrorException L = factoring_groebner_basis(I, ordering=neglex(R))
 end
