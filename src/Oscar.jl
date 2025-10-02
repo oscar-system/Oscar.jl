@@ -268,7 +268,6 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("Combinatorics/SimplicialComplexes.jl")
-include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
 include("Combinatorics/PartiallyOrderedSet/structs.jl")
