@@ -172,34 +172,14 @@ function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=noth
   return isnothing(p) ? nothing : parse_document(p)
 end
 
-# not sure we need this?
-# I am guessing this is to handle when there are many different types of
-# databases.
-"""
-    load(q::String, c::String, s::Symbol = :OscarDB)
-
-Load an entry given by the query `q` in the collection `c` in the database `s`.
-Currently, only the Oscar DB (indicated by `:OscarDB`) is supported.
-"""
-# function Oscar.load(q::String, c::String, s::Symbol = :OscarDB)
-#   if s != :OscarDB
-#     println("Not implemented for non Oscar databases!")
-#     @assert s == :OscarDB
-#   end
-#   db = get_db()
-#   collection = getindex(db, c)
-#   result = OscarDB.find_one(collection, Dict("_id" => q))
-#   return result
-# end
-
-#TODO clean the docs of this function up
 """
     parse_document(bson::Mongoc.BSON)
 
 Create an Oscar object from the data given by `bson`.
 """
 function parse_document(bson::Mongoc.BSON)
-  # TODO should accept override p
+  # This is a hook for future, we would like to be able override the parent
+  # of objects on load, for example forcing an ideal to live in a certain Ring
   str = Mongoc.as_json(bson)
   return Oscar.load(IOBuffer(str))
 end
