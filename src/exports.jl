@@ -626,6 +626,7 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
+export factoring_groebner_basis
 export factoring_standard_basis
 export factorizations
 export fano_matroid
