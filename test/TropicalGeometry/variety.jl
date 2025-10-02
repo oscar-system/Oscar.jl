@@ -81,6 +81,9 @@
         @test f_vector(TropV) == [1,3]
 
         # general ideals, see doctests
+        I = grassmann_pluecker_ideal(2, 5)
+        TropI = tropical_variety(I)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
     end
 
     @testset "testing tropical_variety respecting conventions" begin
