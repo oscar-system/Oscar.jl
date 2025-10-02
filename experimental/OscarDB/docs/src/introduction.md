@@ -9,11 +9,19 @@ DocTestSetup = Oscar.doctestsetup()
 This module provides a general database framework which, conceptually, works for all OSCAR types.
 
 There are two main ingredients:
-- the database backend is [https://www.mongodb.com](MongoDB);
+- the database backend is [MongoDB](https://www.mongodb.com);
 - communication with the database relies on our serialization.
 
 The overall design is inspired by polymake's [PolyDB](https://polydb.org/).
 
+## Collections
+
+### Vertex-transitive combinatorial manifolds
+The OSCAR DB provides access to [Frank Lutz' collection of vertex transitive triangulations](https://www3.math.tu-berlin.de/IfM/Nachrufe/Frank_Lutz/stellar/vertex-transitive-triangulations.html).
+It comprises all vertex-transitive combinatorial manifolds with up to 15 vertices in dimensions $d=2,3,9,10,11,12$.
+In the remaining dimensions below 12, the enumeration is complete up to 13 vertices.
+
+See also [Lut08](@cite).
 
 ## Status
 
@@ -31,7 +39,7 @@ Alternatively, you can [raise an issue on github](https://www.oscar-system.org/c
 
 ```@docs
 get_db
-find
 find_one
+find
 ```
 

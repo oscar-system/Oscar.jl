@@ -103,7 +103,21 @@ end
 
 Search a collection `c` for documents matching the criteria given by `d`.
 Apply search options `opts`.
+
 # Examples
+
+Here we show how to find all vertex-transitive 3-dimensional rational homology spheres in that database (i.e., with up to 15 vertices). 
+
+The dimension $d$ of the manifold is here implicitly given as the length of the vector of Betti numbers less one.
+
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
+
+julia> length([tsc for tsc in tscit])
+63
+```
 """
 function Mongoc.find(c::Collection, d::Dict=Dict();
                      opts::Union{Nothing, Dict}=nothing)
@@ -116,7 +130,33 @@ end
 Return one document from a collection `c` matching the criteria given by `d`.
 `T` can be chosen from `Polymake.BigObject` and `Mongoc.BSON`.
 Apply search options `opts`.
+
 # Examples
+
+Here we show how to find one vertex-transitive combinatorial surface with reduced rational Betti numbers $\tilde\beta_0 = \beta_1 = \beta_2 = 0$.
+
+The dimension of the manifold is here implicitly given as the length of the vector of Betti numbers less one.
+
+```jldoctest
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0"]));
+```
+In this case we find the unique six-vertex triangulation of the real projective plane.
+```jldoctest
+julia> facets(tsc.complex)
+10-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([6, 2, 1])
+ Set([5, 3, 1])
+ Set([5, 4, 1])
+ Set([4, 6, 1])
+ Set([4, 2, 3])
+ Set([5, 4, 2])
+ Set([5, 6, 2])
+ Set([4, 6, 3])
+ Set([5, 6, 3])
+```
 """
 function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
   p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
