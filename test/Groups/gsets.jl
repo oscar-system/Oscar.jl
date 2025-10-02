@@ -345,14 +345,27 @@ end
 
 end
 
+@testset "subspaces iterator" begin
+
+  @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
+    V = vector_space(F, n)
+    for k in 0:n
+      itr = @inferred Oscar.bases_of_subspaces(V, k)
+      @test length(itr) == length(@inferred collect(itr))
+    end
+    @test_throws ArgumentError Oscar.bases_of_subspaces(V, n+1)
+  end
+
+end
+
 @testset "orbits of matrix groups over finite fields" begin
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
     V = vector_space(F, n)
-    GL = general_linear_group(n, F)
-    S = sylow_subgroup(GL, 2)[1]
-    for G in [GL, S]
+    gl = general_linear_group(n, F)
+    S = sylow_subgroup(gl, 2)[1]
+    for G in [gl, S]
       for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
