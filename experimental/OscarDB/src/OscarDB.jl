@@ -100,7 +100,7 @@ julia> length(c)
 Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
 
 """
-    length(c::Collection{T}, d::Dict=Dict())
+    length(c::Collection, d::Dict=Dict())
 
 Count documents in a collection `c` matching the criteria given by `d`.
 

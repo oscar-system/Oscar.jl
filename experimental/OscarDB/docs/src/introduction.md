@@ -51,7 +51,7 @@ CurrentModule = Oscar.OscarDB
 get_db
 find_one
 find
-length(c::Collection{T}, d::Dict=Dict())
+length(c::Collection, d::Dict=Dict())
 getindex(db::Database, name::AbstractString)
 get_collection_names
 ```
