@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 This module provides a general database framework which, conceptually, works for all OSCAR types.
 
 There are two main ingredients:
-- the database backend is [https://www.mongodb.com](MongoDB);
+- the database backend is [MongoDB](https://www.mongodb.com);
 - communication with the database relies on our serialization.
 
 The overall design is inspired by polymake's [PolyDB](https://polydb.org/).
