@@ -16,8 +16,8 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   end
 end
 
-if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
-  function test_1_4_0_upgrade(;
+if !isdefined(Main, :test_upgrade_folder) || isinteractive()
+  function test_upgrade_folder(folder::String;
     exclude::Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#=String[],
     only::Union{Vector#={<:Union{String,Pair{String,AbstractVector{Int}}}}=#,Nothing}=nothing,
   )  
@@ -29,7 +29,7 @@ if !isdefined(Main, :test_1_4_0_upgrade) || isinteractive()
       only_type_ids = Dict{String, Vector{Int}}(first(pair) => collect(last(pair)) for pair in only if pair isa Pair)
     end
 
-    type_folders = joinpath(Main.serialization_upgrade_test_path, "version_1_3_0")
+    type_folders = joinpath(Main.serialization_upgrade_test_path, folder)
     for dir_name in readdir(type_folders)
       type_str = split(dir_name, "-")[1]
       type_str in exclude_types && continue
