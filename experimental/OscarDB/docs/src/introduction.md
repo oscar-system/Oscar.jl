@@ -44,5 +44,6 @@ Alternatively, you can [raise an issue on github](https://www.oscar-system.org/c
 get_db
 find_one
 find
+length
 ```
 

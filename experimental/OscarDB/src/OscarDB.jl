@@ -93,6 +93,15 @@ Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
 Count documents in a collection `c` matching the criteria given by `d`.
 
 # Examples
+Same as above, but faster.
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
+
+julia> length(tscit)
+63
+```
 """
 function Base.length(c::Collection, d::Dict=Dict())
   return Base.length(c.mcol, Mongoc.BSON(d))
