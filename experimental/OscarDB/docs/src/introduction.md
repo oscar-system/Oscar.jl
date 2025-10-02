@@ -19,12 +19,15 @@ The overall design is inspired by polymake's [PolyDB](https://polydb.org/).
 The database is organized into collections.
 Within each collection the datasets are uniform.
 
-### Vertex-transitive combinatorial manifolds
+### Vertex-transitive combinatorial manifolds [TransitiveSimplicialComplexes]
 The OSCAR DB provides access to [Frank Lutz' collection of vertex transitive triangulations](https://www3.math.tu-berlin.de/IfM/Nachrufe/Frank_Lutz/stellar/vertex-transitive-triangulations.html).
 It comprises all vertex-transitive combinatorial manifolds with up to 15 vertices in dimensions $d=2,3,9,10,11,12$.
 In the remaining dimensions below 12, the enumeration is complete up to 13 vertices.
 
 See also [Lut08](@cite).
+
+### Leech pairs
+The OSCAR DB provides access to the Leech pairs computed by G. Höhn and G. Mason [HM16](@ref).
 
 ## Status
 
