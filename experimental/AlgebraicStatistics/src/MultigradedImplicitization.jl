@@ -139,7 +139,8 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   if any(iszero.(K.(denominator.(jacobian(phi)))))
     return jacobian_at_rand_point(phi; char=next_prime(char))
   end
-  
+
+  # is it possible we only need numerator here?
   fin_field_jac = map_coefficients.(c->K(numerator(c)) * inv(K(denominator(c))), jacobian(phi))
   eval_at_pt = Base.Fix2(evaluate, pt)
   return eval_at_pt.(fin_field_jac)
@@ -185,8 +186,6 @@ julia> compute_kernel_component(B, phi)
 ```
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
-  # does using sparse matrices make sense?
-  # for small examples seems like using a sparse matrix is slightly slower
   SM = sparse_matrix(QQ)
   count = 1
   cols = Dict{Vector{Int}, Int}()
@@ -203,18 +202,9 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     end
     push!(SM, sparse_row(QQ, row))
   end
-  coeffs = transpose(SM)
-  _, K1 = nullspace(coeffs)
-
-  #@time begin
-  #  image_polys = [phi(m) for m in mon_basis]
-  #  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in image_polys]))
-  #  coeffs = matrix(QQ, [[coeff(f, mon) for f in image_polys] for mon in mons])
-  #  println("**")
-  #  _, K2 = nullspace(coeffs)
-  #end
-
-  return mon_basis * K1
+  K = kernel(SM)
+  
+  return mon_basis * transpose(K)
 end
 
 @doc raw"""
