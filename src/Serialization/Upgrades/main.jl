@@ -226,6 +226,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
         upgraded_entry = upgrade(s, Dict(:_type => dict[:_type][:params][entry.first],
                                          :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
+        dict[:_type][:params][entry.first] = upgraded_entry[:_type]
       end
     end
   end

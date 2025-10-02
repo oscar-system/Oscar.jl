@@ -6,6 +6,12 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     # Upgrades 
     if dict[:_type] == "PhylogeneticTree"
+      dict[:_type] = Dict(
+        :name => "PhylogeneticTree",
+        :params => Dict(
+          :_type => dict[:data][:_type] == "graph::PhylogeneticTree<Float>" ? "Floats" : "QQField"
+        )
+      )
       n_vertices = length(dict[:data][:LABELS])
       dict[:data] = Dict(
         :pm_tree => dict[:data],
