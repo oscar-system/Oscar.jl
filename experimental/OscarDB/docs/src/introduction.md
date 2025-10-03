@@ -27,7 +27,13 @@ In the remaining dimensions below 12, the enumeration is complete up to 13 verti
 See also [Lut08](@cite).
 
 ### Leech pairs [LeechPairs]
-The OSCAR DB provides access to the Leech pairs computed by G. Höhn and G. Mason [HM16](@ref).
+The OSCAR DB provides access to the [fixed-point sublattices of the Leech lattice](http://monstrous-moonshine.de/~gerald/),
+computed by Gerald Höhn and Geoffrey Mason.
+Each entry of the collection is a pair consisting of a copy of the Leech lattice
+and of the largest subgroup of the Conway group fixing pointwise the associated
+fixed-point sublattice.
+
+See also [HM16](@cite), Table 1, and [the supplementary non-published tables](https://arxiv.org/src/1505.06420v3/anc).
 
 ## Status
 
