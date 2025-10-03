@@ -25,7 +25,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 42
 
 ```
-The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
+The filename hints to the MaRDI file format [D-VJL24*1](@cite), which employs JSON.  The file looks as follows:
 ```json
 {
   "_ns": {
