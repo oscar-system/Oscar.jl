@@ -1,15 +1,6 @@
 using Oscar.OscarDB.Mongoc
 
 @testset verbose=true "OscarDB" begin
-  # conditions from which the test database dump was generated.
-  add_constraints_poly = ["DIM" => Dict("\$lte" => 3)]
-  function _acp(a::Array)
-    return append!(Array{Pair{String,Any}}(a), add_constraints_poly)
-  end
-  add_constraints_mat = [:("N_ELEMENTS" <= 4)]
-  function _acm(a::Array)
-    return append!(Array{Expr}(a), add_constraints_mat)
-  end
 
   @testset verbose=true "Basic functionality" begin
     # Types

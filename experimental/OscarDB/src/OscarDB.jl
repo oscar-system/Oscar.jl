@@ -166,7 +166,7 @@ julia> db = Oscar.OscarDB.get_db();
 
 julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0"]));
 
-julia> facets(tsc.complex)
+julia> facets(simplicial_complex(tsc))
 10-element Vector{Set{Int64}}:
  Set([2, 3, 1])
  Set([6, 2, 1])
