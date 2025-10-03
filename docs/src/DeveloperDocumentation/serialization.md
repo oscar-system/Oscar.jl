@@ -11,8 +11,8 @@ is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
 mathematicians.
 
-We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification described [here](https://arxiv.org/abs/2309.00465).
-Which means we use a JSON extension to serialize data.
+We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification developed by Della Vecchia, Joswig and Lorenz [D-VJL24*1](@cite).
+In particular, we use a JSON extension to serialize data.
 
 
 ## How it works

@@ -25,7 +25,7 @@ const OSCAR_DEV_DB = "oscar-dev"
 """
     Database
 
-Type for referencing a specific database (usually the `polyDB`)
+Type for referencing a specific database (usually the `OscarDB`)
 """
 struct Database
   mdb::Mongoc.Database
@@ -105,7 +105,9 @@ Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
 Count documents in a collection `c` matching the criteria given by `d`.
 
 # Examples
+
 Same as above, but faster.
+
 ```julia-repl
 julia> db = Oscar.OscarDB.get_db();
 
@@ -155,16 +157,15 @@ Apply search options `opts`.
 # Examples
 
 Here we show how to find one vertex-transitive combinatorial surface with reduced rational Betti numbers $\tilde\beta_0 = \beta_1 = \beta_2 = 0$.
-
 The dimension of the manifold is here implicitly given as the length of the vector of Betti numbers less one.
+
+In this case we find the unique six-vertex triangulation of the real projective plane.
 
 ```jldoctest
 julia> db = Oscar.OscarDB.get_db();
 
 julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0"]));
-```
-In this case we find the unique six-vertex triangulation of the real projective plane.
-```jldoctest
+
 julia> facets(tsc.complex)
 10-element Vector{Set{Int64}}:
  Set([2, 3, 1])
@@ -200,7 +201,7 @@ end
     get_collection_names(db::Database)
 
 Return a `Vector{String}` containing the names of all collections in the
-Polydb, excluding meta collections.
+OscarDB, excluding meta collections.
 # Examples
 ```julia-repl
 julia> db = Oscar.OscarDB.get_db();

@@ -10,7 +10,7 @@ This module provides a general database framework which, conceptually, works for
 
 There are two main ingredients:
 - the database backend is [MongoDB](https://www.mongodb.com);
-- communication with the database relies on our serialization.
+- communication with the database relies on OSCAR's serialization, via the mrdi file format [D-VJL24*1](@cite).
 
 The overall design is inspired by polymake's [PolyDB](https://polydb.org/).
 
