@@ -258,7 +258,7 @@ julia> d[1, 1, 1, 1]
 ```
 """
 function components_of_kernel(d::Int, 
-    phi::MPolyAnyMap, # Morphism between ungraded rings
+    phi::MPolyAnyMap; # Morphism between ungraded rings
     wp::Union{OscarWorkerPool, Nothing}=nothing,
     batch_size=100
   )
