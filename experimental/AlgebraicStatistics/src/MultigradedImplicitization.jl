@@ -258,6 +258,18 @@ julia> d[1, 1, 1, 1]
 ```
 """
 function components_of_kernel(d::Int, 
+    phi::MPolyAnyMap, # Morphism between ungraded rings
+    wp::Union{OscarWorkerPool, Nothing}=nothing,
+    batch_size=100
+  )
+  # grade the domain
+  graded_dom = max_grade_domain(phi)
+  graded_cod, _ = grade(codomain(phi)) # standard grading
+  phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
+  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+end
+
+function components_of_kernel(d::Int, 
     phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
     wp::Union{OscarWorkerPool, Nothing}=nothing,
     batch_size::Int=100
@@ -329,18 +341,6 @@ function components_of_kernel(d::Int,
   end
 
   return gens_dict
-end
-
-function components_of_kernel(d::Int, 
-    phi::MPolyAnyMap; # Morphism between ungraded rings
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size=100
-  )
-  # grade the domain
-  graded_dom = max_grade_domain(phi)
-  graded_cod, _ = grade(codomain(phi)) # standard grading
-  phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
-  return components_of_kernel(d, phi_grad; wp, batch_size)
 end
 
 
