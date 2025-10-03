@@ -116,9 +116,14 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   #linear characters are handled elsewhere. Here the expectation is
   #that in "t" the linear characters are marked as known
   #the code works for linear characters, it's just unneccessarily slow)
+  #TODO: we might have some reps (abelian, Baum-Clausen). Maybe we
+  #      should use them? It's not quite for free as the field might
+  #      be too large
+  #TODO: can we extend rational irred. reps? They are not abs. irred.
   @show :start
   X = character_table(G)
   #depending on the group, there are many small subgroups and this takes a while
+  #TODO: figure out how to get some subgroups cheaply, rather than all slowly
   @time s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
   s = [x for x = s if order(x) < order(G)]
   sort!(s, lt = (a,b) -> isless(order(b), order(a)))
@@ -131,12 +136,12 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   #permutation gmodules are good as the endomorphism ring
   #is "for free", the endo is used for the splitting
   #poss. the limits should be adjusted as this is easier...
-  @time for i = s
+  for i = s
     _try_perm_character!(res, t, G, i) && return res
   end
 #  @show "after permutation modules", t
   #BaumClausen is also getting gmodules for "free",
-  #the 1-dim are also "easy" (and might be included in Baum Clausen
+  #the 1-dim are also "easy" (and might be included in Baum-Clausen
   #Problem: BC get reps over QQab and thus needs work to write over
   #smallest poss. field
 
@@ -363,23 +368,45 @@ function abs_irred(C::GModule)
   end
 end
 
+function maximal_supersolvable_quotient(G::GAPGroup)
+  R = GAP.Globals.SupersolvableResiduum(GapObj(G))
+  map = GAP.Globals.NaturalHomomorphismByNormalSubgroup(GapObj(G), R)::GapObj
+  F = Oscar.GAPWrap.Range(map)::GapObj
+  F = Oscar._oscar_group(F)
+  return F, GAPGroupHomomorphism(G, F, map)
+end
+
+function Oscar.inflate(C::Oscar.GAPGroupClassFunction, mp::GAPGroupHomomorphism)
+  @assert codomain(mp) == group(C)
+  iC = GAP.Globals.RestrictedClassFunction(C.values, mp.map)
+  return Oscar.GAPGroupClassFunction(character_table(domain(mp)), iC)
+end
+
 function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} = nothing)
   X = character_table(G)
   if is_abelian(G)
     return Oscar.GModuleFromGap._abs_irred_abelian(G; cyclo = true)
   end
-  #linear characters come from the max. ab. quot.
-  Gab, mGab = maximal_abelian_quotient(G)
   zz = []
-  z = Oscar.GModuleFromGap._abs_irred_abelian(Gab; cyclo = true)
+  if false #even better use the supersolvable part!
+    #linear characters come from the max. ab. quot.
+    Gab, mG = maximal_abelian_quotient(G)
+    z = Oscar.GModuleFromGap._abs_irred_abelian(Gab; cyclo = true)
+  else
+    Gs, mG = maximal_supersolvable_quotient(G)
+    z = irreducible_modules(Gs; algo = :BaumClausen)
+  end
+  Xs = character_table(codomain(mG))
+  d = [inflate(character(x), mG) for x = z]
+
   for x = z
-    push!(zz, inflate(x, mGab))
+    push!(zz, inflate(x, mG))
   end
 
   if isnothing(t)
-    t = [degree(x) > 1 for x = X]
+    t = [!(x in d) for x = X]
   else
-    t .&= [degree(x) > 1 for x = X]
+    t .&= [!(x in d) for x = X]
   end
 
   z = gmodule_irred_rational(G; limit, t)
