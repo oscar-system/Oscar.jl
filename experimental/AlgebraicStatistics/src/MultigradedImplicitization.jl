@@ -125,7 +125,8 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   end
 
   # is it possible we only need numerator here?
-  fin_field_jac = map_coefficients.(c->K(numerator(c)) * inv(K(denominator(c))), jacobian(phi))
+  dirty_eval(c) = K(numerator(c))*inv(K(denominator(c)))
+  fin_field_jac = map_coefficients.(dirty_eval, jacobian(phi))
   eval_at_pt = Base.Fix2(evaluate, pt)
   return eval_at_pt.(fin_field_jac)
 end
@@ -175,7 +176,8 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
   cols = Dict{Vector{Int}, Int}()
   for m in mon_basis
     row = Tuple{Int, QQFieldElem}[]
-    for (c, e) in coefficients_and_exponents(phi(m))
+    img = phi(m)
+    for (c, e) in zip(AbstractAlgebra.coefficients(img), AbstractAlgebra.exponent_vectors(img))
       col = get(cols, e, nothing)
       if isnothing(col)
         count += 1
