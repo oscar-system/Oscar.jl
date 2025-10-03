@@ -78,6 +78,10 @@ function max_grade_domain(phi::MPolyAnyMap)
   graded_dom = grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
 end
 
+function max_grade_domain(phi::MPolyAnyMap{<:MPolyDecRing})
+  error("domain is already graded")
+end
+
 @doc raw"""
     jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing})
 
@@ -120,8 +124,10 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   # randomly sample parameter values in the finite field
   pt = rand(K, ngens(codomain(phi)))
 
-  if any(iszero.(K.(denominator.(jacobian(phi)))))
-    return jacobian_at_rand_point(phi; char=next_prime(char))
+  for f in jacobian(phi)
+    if any(is_zero(K(denominator(c))) for c in AbstractAlgebra.coefficients(f))
+      return jacobian_at_rand_point(phi; char=next_prime(char))
+    end
   end
 
   # is it possible we only need numerator here?
@@ -251,37 +257,39 @@ julia> d[1, 1, 1, 1]
  x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
-function components_of_kernel(d::Int, phi::MPolyAnyMap;
-                              wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size=100)
-  # grade the domain
-  graded_dom = max_grade_domain(phi)
-  
+function components_of_kernel(d::Int, 
+    phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
+    wp::Union{OscarWorkerPool, Nothing}=nothing,
+    batch_size::Int=100
+  )
+  @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
+  @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
+
   # grade the domain by the standard grading as well and compute the jacobian at a random point over a finite field
-  total_deg_dom = grade(domain(phi), [1 for i in 1:ngens(domain(phi))])[1]
-  graded_phi = hom(graded_dom, codomain(phi), [phi(x) for x in gens(domain(phi))])
-  jac = jacobian_at_rand_point(graded_phi)
+  ungraded_dom = forget_grading(domain(phi))
+  ungraded_cod = forget_grading(codomain(phi))
+  total_deg_dom = grade(ungraded_dom, [1 for i in 1:ngens(domain(phi))])[1]
+  jac = jacobian_at_rand_point(phi)
 
   # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
   for i in 1:d
-    all_mons = graded_dom.(monomial_basis(total_deg_dom, [i]))
+    all_mons = domain(phi).(monomial_basis(total_deg_dom, [i]))
     all_degs = degree.(all_mons)
-    mon_bases = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
 
     # avoid redundant degree computation
     for (d, m) in zip(all_degs, all_mons)
-      if haskey(mon_bases, d)
-        push!(mon_bases[d], m)
-      else
-        mon_bases[d] = [m]
+      bucket = get!(mon_bases, d) do
+        sizehint!(typeof(m)[], 1)
       end
+      push!(bucket, m)
     end
 
     # find the previous generators 
     if isempty(gens_dict)
-      prev_gens = MPolyDecRingElem[]
+      prev_gens = elem_type(domain(phi))[]
     else
       prev_gens = reduce(vcat, values(gens_dict))
     end
@@ -307,11 +315,11 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
     if !isempty(remain_degs)
       if isnothing(wp)
         results = pmap(compute_kernel_component, map(deg -> mon_bases[deg], remain_degs),
-                       [graded_phi for _ in remain_degs];
+                       [phi for _ in remain_degs];
                        distributed=false)
       else
         results = pmap(compute_kernel_component, wp, map(deg -> mon_bases[deg], remain_degs),
-                       [graded_phi for _ in remain_degs]; batch_size=batch_size)
+                       [phi for _ in remain_degs]; batch_size=batch_size)
       end
     else
       results =[]
@@ -322,4 +330,17 @@ function components_of_kernel(d::Int, phi::MPolyAnyMap;
 
   return gens_dict
 end
+
+function components_of_kernel(d::Int, 
+    phi::MPolyAnyMap, # Morphism between ungraded rings
+    wp::Union{OscarWorkerPool, Nothing}=nothing,
+    batch_size=100
+  )
+  # grade the domain
+  graded_dom = max_grade_domain(phi)
+  graded_cod, _ = grade(codomain(phi)) # standard grading
+  phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
+  return components_of_kernel(d, phi_grad; wp, batch_size)
+end
+
 
