@@ -53,3 +53,4 @@ export GroupBasedPhylogeneticModel
 
 # Multigradedimplicitization
 export components_of_kernel
+export jacobian
