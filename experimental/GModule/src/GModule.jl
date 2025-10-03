@@ -461,7 +461,6 @@ function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <
     return gmodule(group(M), [hom(F, F, gens(F)) for x = gens(group(M))])
   end
   k, mk = sub(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
-  @show k, mk
   F = free_module(k, dim(M); cached = true)
   return gmodule(group(M), [hom(F, F, map_entries(pseudo_inv(mk), matrix(x))) for x = M.ac])
 end
@@ -478,7 +477,6 @@ function irreducible_modules(::Type{AbsSimpleNumField}, G::Oscar.GAPGroup; minim
   if !minimal_degree
     return Z
   else
-    res = GModule[]
     return map(_minimize, Z)
   end
 end
