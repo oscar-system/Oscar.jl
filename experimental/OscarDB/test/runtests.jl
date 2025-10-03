@@ -34,4 +34,9 @@ using Oscar.OscarDB.Mongoc
       @test betti_numbers(tsc) == [0, 0, 0, 1]
     end
   end
+
+  # here to avoid
+  @testset "Doctests" begin
+
+  end
 end

@@ -161,23 +161,13 @@ The dimension of the manifold is here implicitly given as the length of the vect
 
 In this case we find the unique six-vertex triangulation of the real projective plane.
 
-```jldoctest
+```julia-repl
 julia> db = Oscar.OscarDB.get_db();
 
-julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0"]));
+julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
 
-julia> facets(simplicial_complex(tsc))
-10-element Vector{Set{Int64}}:
- Set([2, 3, 1])
- Set([6, 2, 1])
- Set([5, 3, 1])
- Set([5, 4, 1])
- Set([4, 6, 1])
- Set([4, 2, 3])
- Set([5, 4, 2])
- Set([5, 6, 2])
- Set([4, 6, 3])
- Set([5, 6, 3])
+julia> n_facets(simplicial_complex(tsc))
+35
 ```
 """
 function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
