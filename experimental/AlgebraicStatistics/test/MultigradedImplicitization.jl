@@ -7,13 +7,10 @@ oscar_worker_pool(1) do wp
 
     phi = hom(R, S, [s1*t1, s1*t2, s2*t1, s2*t2, m1*n1, m1*n2, m2*n1, m2*n2])
     
-    @time comps = components_of_kernel(2, phi)
+    comps = components_of_kernel(2, phi)
     G = parent(first(keys(comps)))
     @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y11 * y22 - y12 * y21]
     @test comps[G([1, 1, 1, 1, 0, 0, 0, 0])] == [x11 * x22 - x12 * x21]
-
-
-    components_of_kernel(2, phi; wp=wp)
 
     G = parent(first(keys(comps)))
     @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y11 * y22 - y12 * y21]
@@ -22,7 +19,6 @@ oscar_worker_pool(1) do wp
       @test all(parent(p) === R for p in v)
     end
   end
-
 
   @testset "K3P" begin
     G = abelian_group(2, 2)
@@ -54,6 +50,7 @@ oscar_worker_pool(1) do wp
     end
 
     phi = hom(S, R, images);
-    @time components_of_kernel(2, phi; wp=wp)
+    comps = components_of_kernel(2, phi; wp=wp)
+    @test isone(first(exponents(comps[1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2][1]))[16])
   end
 end
