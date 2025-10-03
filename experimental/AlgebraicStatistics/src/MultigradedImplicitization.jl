@@ -1,19 +1,3 @@
-function pivots(M::MatElem)
-  rref!(M)
-  pivots = Vector{Int}[]
-
-  for i in 1:nrows(M)
-    for j in 1:ncols(M)
-      if !iszero(M[i,j])
-        push!(pivots, [i,j])
-        break
-      end
-    end
-  end
-
-  return pivots
-end
-
 @doc raw"""
     homogeneity_space(I::MPolyIdeal)
 
