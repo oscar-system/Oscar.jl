@@ -332,7 +332,7 @@ function components_of_kernel(d::Int,
 end
 
 function components_of_kernel(d::Int, 
-    phi::MPolyAnyMap, # Morphism between ungraded rings
+    phi::MPolyAnyMap; # Morphism between ungraded rings
     wp::Union{OscarWorkerPool, Nothing}=nothing,
     batch_size=100
   )
