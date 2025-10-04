@@ -430,7 +430,7 @@ end
 
 @testset "fixed_points tests" begin
   # Setup permutation group
-  g = symmetric_group(4)             # S₄
+  g = symmetric_group(4)
   s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup (order 3)
   e = one(g)                         # identity element
   y = gen(g, 1)                      # an example element of g
@@ -450,10 +450,10 @@ end
 
 @testset "number_of_fixed_points tests" begin
   # Setup permutation group
-  g = symmetric_group(4)              # S₄
+  g = symmetric_group(4)
   s = sylow_subgroup(g, 3)[1]         # a Sylow 3-subgroup (order 3)
   e = one(g)                          # identity element
-  y = gen(g, 1)                       # first generator of S₄ (4-cycle)
+  y = gen(g, 1)
   x = gen(s, 1)                       # generator of Sylow subgroup
 
   # Tests for number_of_fixed_points on individual elements
