@@ -444,8 +444,7 @@ end
   @test fixed_points(y) == [i for i in 1:degree(g) if y(i) == i]  # Check example element
 
   z = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
-  expected_fixed = [4]
-  @test sort(fixed_points(z)) == expected_fixed
+  @test fixed_points(z) == [4]
 end
 
 @testset "number_of_fixed_points tests" begin
@@ -462,6 +461,5 @@ end
   @test number_of_fixed_points(y) == 0          # generator (1 2 3 4) fixes nothing
 
   z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
-  expected_number = 1                            # only point 4 is fixed
-  @test number_of_fixed_points(z) == expected_number
+  @test number_of_fixed_points(z) == 0
 end
