@@ -47,12 +47,15 @@ but refer to different interpretations of this point configuration. In general, 
 refer to the tropical convex hull of these points while `TropicalPointConfiguration` refers to the 
 covector decomposition of the entire tropical projective torus.
 
+```@docs
+ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration})
+```
+
 ### Tropical polyhedra
 ```@docs
 vertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
 n_vertices(P::TropicalPolyhedron)
 dim(P::TropicalPolyhedron)
-ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration})
 maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPolyhedron)
 covector_decomposition(P::TropicalPolyhedron)
 is_bounded(P::TropicalPolyhedron)
@@ -62,7 +65,6 @@ is_bounded(P::TropicalPolyhedron)
 ```@docs
 points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
 n_points(P::TropicalPointConfiguration)
-ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration})
 maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPointConfiguration)
 covector_decomposition(P::TropicalPointConfiguration)
 ```
