@@ -1,9 +1,9 @@
 @doc raw"""
     factoring_groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
 
-Return a factorization of the Gröbner basis of `I` with respect to `ordering` which must be global.
-The intersection of these ideals has the same zero set as the input ideal, i.e.
-the radical of the intersection coincides with the radical of the input ideal.
+Return a list of Gröbner bases with respect to `ordering` which must be global.
+The intersection of these ideals has the same zero set as the input ideal `I`, i.e.
+the radical of the intersection coincides with the radical of `I`.
 
 # Examples
 ```jldoctest
