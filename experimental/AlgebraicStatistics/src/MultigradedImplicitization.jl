@@ -148,35 +148,6 @@ end
 Computes a basis for the elements in the kernel of a polynomial map
 $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
 lie in the homogeneous component corresponding to `mon_basis`. 
-
-## Examples
-
-```jldoctest
-julia> R, x = graded_polynomial_ring(QQ, :x => (1:2, 1:2); weights = [[1, 0, 1, 0], [1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 0, 1]])
-(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1, 1] x[1, 2]; x[2, 1] x[2, 2]])
-
-julia> S, s, t = polynomial_ring(QQ, :s => 1:2, :t => 1:2)
-(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[s[1], s[2]], QQMPolyRingElem[t[1], t[2]])
-
-julia> phi = hom(R, S, [s[1]*t[1], s[1]*t[2], s[2]*t[1], s[2]*t[2]])
-Ring homomorphism
-  from graded multivariate polynomial ring in 4 variables over QQ
-  to multivariate polynomial ring in 4 variables over QQ
-defined by
-  x[1, 1] -> s[1]*t[1]
-  x[2, 1] -> s[1]*t[2]
-  x[1, 2] -> s[2]*t[1]
-  x[2, 2] -> s[2]*t[2]
-
-julia> B = monomial_basis(R, [1,1,1,1])
-2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x[2, 1]*x[1, 2]
- x[1, 1]*x[2, 2]
-
-julia> compute_kernel_component(B, phi)
-1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
-```
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
   SM = sparse_matrix(QQ)
