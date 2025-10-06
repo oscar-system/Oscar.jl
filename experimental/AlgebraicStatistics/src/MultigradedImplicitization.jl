@@ -255,7 +255,7 @@ defined by
 julia> d = Oscar.components_of_kernel(2, phi);
 
 julia> d[1, 1, 1, 1]
-1-element Vector{MPolyRingElem{QQFieldElem, QQMPolyRingElem}}:
+1-element Vector{QQMPolyRingElem}:
  x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
