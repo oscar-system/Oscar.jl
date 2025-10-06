@@ -124,8 +124,9 @@ test_subsets = Dict(
                               ],
                      :book => [
                                "test/book/test.jl",
-                              ]
-                   )
+                     ],
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+)
 
 test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
 if haskey(ENV, "JULIA_PKGEVAL")
