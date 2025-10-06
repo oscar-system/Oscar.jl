@@ -1,14 +1,10 @@
-function get_monomial_ordering(
-  ordering_input::Union{Symbol,Function},
-  ZZx::ZZMPolyRing,
+function construct_abs_gen_ordering(
+  symb_monomial_ordering::Symbol,
   operators::Vector{RootSpaceElem},
 )
-  if _is_weighted(ordering_input)
-    choosen_monomial_order = monomial_ordering(
-      ZZx, ordering_input, [Int(height(alpha)) for alpha in operators]
-    )
+  if _is_weighted(symb_monomial_ordering)
+    return WSymbOrdering(symb_monomial_ordering, 1:length(operators), [Int(height(alpha)) for alpha in operators])
   else
-    choosen_monomial_order = monomial_ordering(ZZx, ordering_input)
+    return SymbOrdering(symb_monomial_ordering, 1:length(operators))
   end
-  return choosen_monomial_order
 end

@@ -122,7 +122,7 @@ over Lie algebra of type C3
 ```
 """
 function basis_lie_highest_weight(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
+  type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -135,7 +135,7 @@ function basis_lie_highest_weight(
   rank::Int,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Int};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -148,7 +148,7 @@ function basis_lie_highest_weight(
   rank::Int,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Vector{Int}};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -461,7 +461,7 @@ function basis_coordinate_ring_kodaira(
   rank::Int,
   highest_weight::Vector{Int},
   degree::Int;
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -477,7 +477,7 @@ function basis_coordinate_ring_kodaira(
   highest_weight::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Int};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -493,7 +493,7 @@ function basis_coordinate_ring_kodaira(
   highest_weight::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Vector{Int}};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
@@ -608,7 +608,7 @@ function basis_lie_demazure(
   rank::Int,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
@@ -622,7 +622,7 @@ function basis_lie_demazure(
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   birational_sequence::Vector{Int};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
@@ -636,7 +636,7 @@ function basis_lie_demazure(
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   birational_sequence::Vector{Vector{Int}};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
