@@ -305,10 +305,14 @@
   ],
 
   "Straight Line Programs" => [
-      "StraightLinePrograms/intro.md",
-      "StraightLinePrograms/gapslps.md",
-      "StraightLinePrograms/abstractalgebra.md",
+    "StraightLinePrograms/intro.md",
+    "StraightLinePrograms/gapslps.md",
+    "StraightLinePrograms/abstractalgebra.md",
    ],
+
+  "Experimental: Tools in the Making" => [
+    # rest is populated by code in docs/make_work.jl
+  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
