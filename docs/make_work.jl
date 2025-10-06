@@ -116,7 +116,8 @@ function doit(
       append!(collected, pkgdocs)
     end
   end
-  push!(doc, ("Experimental" => collected))
+  pos = findfirst(d -> d isa Pair && startswith(d[1], "Experimental"), doc)
+  append!(doc[pos].second, collected)
 
   # Load the bibliography
   bib = CitationBibliography(
