@@ -102,9 +102,15 @@ function doit(
   doc = eval(Meta.parse(s))
 
   # Link experimental docs to `docs/src` and collect the documentation pages
+  # Experimental documentation order:
+  # 1. intro.md (how to add new projects)
+  # 2. ExperimentalTemplate
+  # 3. all other experimental packages (alphabetical)
   Oscar.link_experimental_docs()
   collected = Any["Experimental/intro.md"]
-  for pkg in Oscar.exppkgs
+  append!(collected, setup_experimental_package(Oscar, "ExperimentalTemplate"))
+  for pkg in sort(Oscar.exppkgs)
+    pkg == "ExperimentalTemplate" && continue
     pkgdocs = setup_experimental_package(Oscar, pkg)
     if length(pkgdocs) > 0
       append!(collected, pkgdocs)
