@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations(Base.OneTo(n), n, T(k))
+combinations(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations(Base.oneto(n), n, T(k))
 
 @doc raw"""
     combinations(v::AbstractVector, k::IntegerUnion)
@@ -44,14 +44,14 @@ combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
 
 Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 
-@inline function Base.iterate(C::Combinations{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
-  if C.k == 0 # special case to generate 1 result for k = 0
+@inline function Base.iterate(C::Combinations{<:AbstractVector{T}, U}, state::Vector{U} = U[min(C.k - 1, i) for i in Base.oneto(C.k)]) where {T, U<:IntegerUnion}
+  if is_zero(C.k) # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination{T}(T[]), [0]
+      return Combination{T}(T[]), U[0]
     end
     return nothing
   end
-  for i in C.k:-1:1
+  for i in C.k:U(-1):U(1)
     state[i] += 1
     if state[i] > (C.n - (C.k - i))
       continue
@@ -65,31 +65,6 @@ Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T
     return nothing
   end
   return Combination{T}(C.v[state]), state
-end
-
-
-@inline function Base.iterate(C::Combinations{Base.OneTo{T}, T}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where {T<:IntegerUnion}
-  if C.k == 0 # special case to generate 1 result for k = 0
-    if isempty(state)
-      return Combination{T}(T[]), T[0]
-    end
-    return nothing
-  end
-  for i in C.k:-1:1
-    state[i] += 1
-    if state[i] > (C.n - (C.k - i))
-      continue
-    end
-    for j in i+1:C.k
-      state[j] = state[j - 1] + 1
-    end
-    break
-  end
-  if state[1] > C.n - C.k + 1
-    return nothing
-  end
-
-  return Combination{T}(copy(state)), state
 end
 
 Base.length(C::Combinations) = binomial(Int(C.n), Int(C.k))
