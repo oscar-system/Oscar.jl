@@ -122,7 +122,8 @@ over Lie algebra of type C3
 ```
 """
 function basis_lie_highest_weight(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex
+  type::Symbol, rank::Int, highest_weight::Vector{Int};
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
