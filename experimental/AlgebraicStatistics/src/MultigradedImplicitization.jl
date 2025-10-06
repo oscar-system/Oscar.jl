@@ -154,7 +154,9 @@ end
 @doc raw"""
     compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
 
-Computes a basis for the elements in the kernel of a polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which lie in the homogeneous component corresponding to `mon_basis`. 
+Computes a basis for the elements in the kernel of a polynomial map
+$\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
+lie in the homogeneous component corresponding to `mon_basis`. 
 
 ## Examples
 
@@ -261,7 +263,7 @@ defined by
 julia> d = components_of_kernel(2, phi);
 
 julia> d[1, 1, 1, 1]
-1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+1-element Vector{MPolyRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
