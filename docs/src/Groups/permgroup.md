@@ -28,6 +28,10 @@ projective_unitary_group
 projective_special_unitary_group
 ```
 
+```@docs
+mathieu_group
+```
+
 ## Operations for permutation groups
 
 All operations, properties and attributes for general groups
