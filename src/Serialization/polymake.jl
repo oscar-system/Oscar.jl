@@ -37,9 +37,7 @@ function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex, Polymake.BigObject}}
   inner_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   if T <: Polymake.BigObject
-    typename = jsondict[:_type]
-    oscar_type = polymake2OscarTypes[typename]
-    return  oscar_type, inner_object
+    return inner_object
   end
   if T <: PolyhedralObject{Float64}
     return T(inner_object, AbstractAlgebra.Floats{Float64}())
