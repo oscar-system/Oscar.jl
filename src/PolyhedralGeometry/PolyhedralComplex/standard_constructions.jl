@@ -90,14 +90,19 @@ function scale(
 )
   is_positive(c) && return u
   is_negative(c) && return -u
-  return 0*u
+  return 0 * u
 end
 
-_empty_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
-_origin_complex(cf, dim) = polyhedral_complex(cf, incidence_matrix(1, 1, [[1]]), zero_matrix(cf, 1, dim); non_redundant=true)
+_empty_complex(cf, dim) = polyhedral_complex(
+  cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true
+)
+_origin_complex(cf, dim) = polyhedral_complex(
+  cf, incidence_matrix(1, 1, [[1]]), zero_matrix(cf, 1, dim); non_redundant=true
+)
 
 function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
-  n_maximal_polyhedra(Sigma) == 0 && return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
   iszero(c) && return _origin_complex(coefficient_field(Sigma), ambient_dim(Sigma))
 
   # if scalar is non-zero, multiple all vertices and rays by said scalar
@@ -108,10 +113,10 @@ function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
   return polyhedral_complex(
     coefficient_field(Sigma),
     SigmaIncidence,
-    scale.(SigmaVertsAndRays,c),
+    scale.(SigmaVertsAndRays, c),
     SigmaRayIndices,
     SigmaLineality;
-    non_redundant=true
+    non_redundant=true,
   )
 end
 *(Sigma::PolyhedralComplex, c::scalar_types_extended) = c * Sigma
@@ -121,13 +126,15 @@ end
 ###############################################################################
 
 function -(Sigma::PolyhedralComplex)
-  n_maximal_polyhedra(Sigma) == 0 && return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
   SigmaVertsAndRays = vertices_and_rays(Sigma)
   SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
   SigmaLineality = lineality_space(Sigma)
   SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
   return polyhedral_complex(
-    coefficient_field(Sigma), SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality; non_redundant=true
+    coefficient_field(Sigma), SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices,
+    SigmaLineality; non_redundant=true,
   )
 end
 
@@ -150,7 +157,8 @@ function translate(
 end
 function +(v::AbstractVector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
   @req length(v) == ambient_dim(Sigma) "ambient dimension mismatch"
-  n_maximal_polyhedra(Sigma) == 0 && return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
   SigmaVertsAndRays = vertices_and_rays(Sigma)
   SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
   SigmaLineality = lineality_space(Sigma)
@@ -161,7 +169,7 @@ function +(v::AbstractVector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
     translate.(SigmaVertsAndRays, Ref(v)),
     SigmaRayIndices,
     SigmaLineality;
-    non_redundant=true
+    non_redundant=true,
   )
 end
 +(Sigma::PolyhedralComplex, v::AbstractVector{<:scalar_types_extended}) = v + Sigma

@@ -228,7 +228,7 @@ end
   @test n_rays(fMinus) == n_rays(f)
   @test n_maximal_cones(fMinus) == n_maximal_cones(f)
 
-  fMinus = -1*f
+  fMinus = -1 * f
   @test n_rays(fMinus) == n_rays(f)
   @test n_maximal_cones(fMinus) == n_maximal_cones(f)
 end
