@@ -39,7 +39,9 @@ function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
-  params = type_params.(filter(!has_empty_entries, obj))
+  non_empty_entries = filter(!has_empty_entries, obj)
+  isempty(non_empty_entries) && return TypeParams(S, type_params(first(obj)))
+  params = type_params.(non_empty_entries)
   @req params_all_equal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end

@@ -105,6 +105,15 @@
       end
     end
 
+    @testset "Testing (de)serialization of nested Vectors with empty entries" begin
+      original = [[[[3],Int[]]]]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original[1][1][1] == 3
+        @test isempty(original[1][1][2])
+      end
+
+    end
+
     @testset "Testing (de)serialization of Matrix{$(T)}" for T in 
       (
         UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
