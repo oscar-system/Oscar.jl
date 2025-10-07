@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations(Base.oneto(n), n, T(k))
+combinations(n::T, k::T) where T<:IntegerUnion = Combinations(Base.oneto(n), n, k)
 
 @doc raw"""
     combinations(v::AbstractVector, k::IntegerUnion)
