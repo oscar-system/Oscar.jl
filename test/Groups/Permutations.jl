@@ -461,5 +461,6 @@ end
   @test number_of_fixed_points(y) == 0          # generator (1 2 3 4) fixes nothing
 
   z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
-  @test number_of_fixed_points(z) == 0
+  expected_number = 1                            # only point 4 is fixed
+  @test number_of_fixed_points(z) == expected_number
 end

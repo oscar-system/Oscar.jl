@@ -206,9 +206,9 @@ end
     number_of_fixed_points(x::PermGroupElem) -> Int
     number_of_fixed_points(G::PermGroup) -> Int
 
-Return the number of those points in `1:degree(x)` or `1:degree(G)`,
-respectively, that are fixed under the action `^`.
-
+Return the number of points in `1:degree(x)` or `1:degree(G)` that are
+fixed by all elements (for groups) or by `x` (for elements).
+  
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
