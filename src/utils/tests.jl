@@ -268,7 +268,7 @@ Run the Oscar tests of the experimental module `project`:
 - if `file` is empty, run the entire test suite in `experimental/<project>/test`
 - if `experimental/<project>/test/<file>` is a directory which contains a `runtests.jl`,
   run this file, otherwise run all test files in that directory and below
-- if `experimental/<project>/test/file` or `experimental/<project>/test/file.jl`
+- if `experimental/<project>/test/<file>` or `experimental/<project>/test/<file>.jl`
   is a file, run this file
 
 The default is to run the entire test suite of the module `project`.
