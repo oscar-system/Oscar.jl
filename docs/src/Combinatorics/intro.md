@@ -7,7 +7,17 @@ DocTestSetup = Oscar.doctestsetup()
 # Introduction
 
 The combinatorics part of OSCAR provides functionality for handling:
-
+- [Graphs](@ref)
+- [Posets](@ref)
+- [Matroids](@ref)
+- [Simplicial complexes](@ref)
+- [Phylogenetic trees](@ref)
+- [Combinations](@ref)
+- [Compositions](@ref)
+- [Partitions](@ref)
+- [Multipartitions](@ref)
+- [Tableaux](@ref)
+- [Schur polynomials](@ref)
 
 General textbooks offering details on theory and algorithms include:
 - [Knu11](@cite)
@@ -16,7 +26,7 @@ General textbooks offering details on theory and algorithms include:
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* Enumerative Combinatorics:
+* Enumerative Combinatorics: [Morgan Rodgers](https://cage.ugent.be/~mrodgers/)
 * Simplicial complexes: [Michael Joswig](https://page.math.tu-berlin.de/~joswig/),
 * Graphs: [Lars Kastner](https://lkastner.github.io/),
 * Matroids:
