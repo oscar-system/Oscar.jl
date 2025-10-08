@@ -7,75 +7,34 @@ DocTestSetup = Oscar.doctestsetup()
 # Printing Details
 
 The following section contains details and examples on how to implement
-OSCAR's 2+1 printing modes. 
+OSCAR's 2+1 printing modes described in the [Printing Options](@ref) section.
 
-## The 2 + 1 print modes of OSCAR
+The print modes are specified as follows:
 
-OSCAR has two user print modes `detailed` and `one line` and one internal
-print mode `terse`. The latter is for use during recursion,
-e.g. to print the `base_ring(X)` when in `one line` mode.
-It exists to make sure that `one line` stays compact and human readable.
+1. **Detailed printing**
+   - the output must make sense as a standalone without context to non-specialists
+   - the number of output lines should fit in the terminal
+   - if the object is simple enough use only one line
+   - use indentation and (usually) `one line` to print substructures
 
-Top-level REPL printing of an object will use `detailed` mode by default
-```julia-repl
-julia> X
-detailed
-```
-Inside nested structures, e.g. inside a `Vector`, the `one line` mode is used.
-```julia-repl
-julia> [X,X]
-3-element Vector{TypeofX{T}}
- one line
- one line
- one line
-```
+2. **One line printing**
+   - the output must print in one line
+   - should make sense as a standalone without context
+   - variable names/generators/relations should not be printed only their number.
+   - Only the first word is capitalized e.g. `Polynomial ring`
+   - one should use `terse` for nested printing in compact
+   - nested calls to `one line` (if you think them really necessary) should be at the end,
+     so that one can read sequentially. Calls to `terse` can be anywhere.
+   - commas must be enclosed in brackets so that printing tuples stays unambiguous
 
-#### An Example for the 2 + 1 print modes
-
-detailed mode:
-```jldoctest printing_example
-julia> E = elliptic_curve(QQ, [-82, 0])
-Elliptic curve
-  over rational field
-with equation
-  y^2 = x^3 - 82*x
-```
-
-one line mode:
-```jldoctest printing_example
-julia> println(E)
-Elliptic curve over QQ with equation y^2 = x^3 - 82*x
-```
-
-terse mode:
-```jldoctest printing_example
-julia> println(Oscar.terse(stdout),E)
-Elliptic curve
-```
-
-The print modes are specified as follows
-#### Detailed printing
-- the output must make sense as a standalone without context to non-specialists
-- the number of output lines should fit in the terminal
-- if the object is simple enough use only one line
-- use indentation and (usually) `one line` to print substructures
-#### One line printing
-- the output must print in one line
-- should make sense as a standalone without context
-- variable names/generators/relations should not be printed only their number.
-- Only the first word is capitalized e.g. `Polynomial ring`
-- one should use `terse` for nested printing in compact
-- nested calls to `one line` (if you think them really necessary) should be at the end,
-  so that one can read sequentially. Calls to `terse` can be anywhere.
-- commas must be enclosed in brackets so that printing tuples stays unambiguous
-#### Terse printing
-- a user readable version of the main (mathematical) type.
-- a single term or a symbol/letter mimicking mathematical notation
-- should usually only depend on the type and not of the type parameters or of
-  the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
-- no nested printing. In particular variable names and `base_ring` must not be displayed.
-  This ensures that `one line` and `terse` stay compact even for complicated things.
-  If you want nested printing use `one line` or `detailed`.
+3. **Terse printing**
+   - a user readable version of the main (mathematical) type.
+   - a single term or a symbol/letter mimicking mathematical notation
+   - should usually only depend on the type and not of the type parameters or of
+     the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
+   - no nested printing. In particular variable names and `base_ring` must not be displayed.
+     This ensures that `one line` and `terse` stay compact even for complicated things.
+     If you want nested printing use `one line` or `detailed`.
 
 
 ## Implementing `show` functions
@@ -348,23 +307,24 @@ x & x^{2} \\
 Base.show(io::IOContext, ::MIME"text/latex")
 ```
 
-### Unicode printing
-Per default output should be ASCII only (no Unicode). Implementors of
+### Supporting Unicode printing
+
+As described in section [Unicode printing](@ref) by default
+output should be ASCII only (no Unicode). Implementors of
 `Base.show` and related functions can branch on the output of
-`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
-This will then be used for users which enabled Unicode using
-`allow_unicode(true)`. Note that
+[`Oscar.is_unicode_allowed`](@ref) to display objects using non-ASCII characters.
+Note that
 
 - there must be a default ASCII only output, since this is the default setting
   for new users, and
 - OSCAR library code is not allowed to call `Oscar.allow_unicode`.
 
 Objects may follow the value of `Oscar.is_unicode_allowed()` at the time of their
-creation for their printing, i.e. ignore later changes of the setting.
+creation for their printing, i.e., ignore later changes of the setting.
 This is useful for objects storing a string representation of themselves, e.g.
 generators of a module.
 
-Here is an example with and without output using Unicode:
+Here is a code example with and without output using Unicode:
 
 ```julia
   struct AtoB

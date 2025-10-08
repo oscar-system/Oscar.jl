@@ -310,7 +310,7 @@ end
 @doc raw"""
     get_halfspace_eq(kQ::MonoidAlgebra)
 
-Returns a finite set of positive halfspaces such that $Q$ is the intersection of them. 
+Return a finite set of positive halfspaces such that $Q$ is the intersection of them. 
 
 !!! note 
     The corresponding semigroup $Q$ must be saturated. 

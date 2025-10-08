@@ -595,7 +595,7 @@ Return the ``(\tau,\overline{\tau})``-generic Enriques surface of number ``n`` a
 function generic_enriques_surface(n::Int)
   @req 1<=n<=184 "n must be a number between 1 and 184"
   @req n!=88 && n!=146  "Entries 88 and 146 cannot be constructed. See Remark 1.16 of [BS22](@cite)"
-  SY, SX, L26, w, u = load(joinpath(oscardir, "data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
+  SY, SX, L26, w, u = load(joinpath(oscardir, "data", "TauTaubarGenericEnriquesSurfaces", "TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
   Y = EnriquesBorcherdsCtx(SY, SX, L26, w; check=false)
 end
 

@@ -13,7 +13,6 @@ General references on partitions are [Ful97](@cite) and [Knu11](@cite), Section 
 A partition can be encoded as an array with elements $\lambda_i$.
 In OSCAR, the parametric type `Partition{T}` is provided which is a subtype of `AbstractVector{T}`.
 Here, `T` can be any subtype of `IntegerUnion`.
-There is no performance impact by using an own type for partitions rather than simply using arrays.
 The parametric type allows to increase performance by using smaller integer types.
 
 ```@docs

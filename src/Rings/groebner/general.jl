@@ -206,7 +206,7 @@ with respect to the ordering
   lex([x, y, z])
 ```
 ```jldoctest
-julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, 3]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, 3]);
 
 julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
 

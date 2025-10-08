@@ -28,7 +28,7 @@ end
 function is_primitive(a::FinFieldElem, f::Fac{ZZRingElem} = factored_order(parent(a)))
   iszero(a) && return false
   n = size(parent(a))-1
-  for p = keys(f.fac)
+  for (p, _) in f
     if a^divexact(n, p) == 1
       return false
     end
@@ -50,7 +50,7 @@ function disc_log(a::FinFieldElem, b::FinFieldElem)
   da = disc_log(a)
   db = disc_log(b)
   qm1 = size(parent(a))-1
-  return (db*modinv(da, qm1)) % qm1
+  return (db*invmod(da, qm1)) % qm1
 end
 
 function disc_log(a::T) where {T <: FinFieldElem}

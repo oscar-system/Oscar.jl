@@ -72,6 +72,7 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
+export FiniteRationalPointSet
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -358,6 +359,7 @@ export cartan_type
 export cartan_type_with_ordering
 export cartesian_power
 export cartier_divisor
+export castelnuovo_excess
 export catalan_solid
 export cauchy_ideal
 export cellular_associated_primes
@@ -611,6 +613,7 @@ export exponents
 export ext
 export ext_of_degree
 export extend!
+export extend_to_ambient_space
 export extension_field
 export exterior_derivative
 export exterior_power
@@ -624,6 +627,8 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
+export factoring_groebner_basis
+export factoring_standard_basis
 export factorizations
 export fano_matroid
 export fano_simplex
@@ -638,11 +643,13 @@ export fibration_type
 export filtrate
 export find_morphism
 export find_morphisms
+export finite_point_set
 export fits
 export fitting_ideal
 export fitting_subgroup
 export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
+export fixed_points
 export flag_pluecker_ideal
 export flats
 export forget_decoration
@@ -819,6 +826,7 @@ export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power
 export induced_ring_ordering
+export induced_subgraph
 export initial
 export inneighbors
 export inner_automorphism
@@ -886,6 +894,7 @@ export is_canonically_isomorphic_with_map
 export is_cartan_matrix
 export is_cartan_type
 export is_cartier
+export is_castelnuovo
 export is_cellular
 export is_character_table_name
 export is_characteristic_subgroup
@@ -902,6 +911,7 @@ export is_conjugate_with_data
 export is_connected
 export is_coroot
 export is_coroot_with_index
+export is_cubical
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
@@ -980,6 +990,7 @@ export is_negative_coroot
 export is_negative_coroot_with_index
 export is_negative_root
 export is_negative_root_with_index
+export is_neighborly
 export is_nilpotent, has_is_nilpotent, set_is_nilpotent
 export is_noetherian
 export is_non_zero_divisor
@@ -1023,6 +1034,7 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
+export is_saturated_with_saturation
 export is_semiregular
 export is_semisimple
 export is_semistandard
@@ -1036,9 +1048,11 @@ export is_simplicial
 export is_singular
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
+export is_special_isometry
 export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
+export is_stable_isometry
 export is_standard
 export is_standard_basis
 export is_standard_graded
@@ -1320,6 +1334,7 @@ export number_of_complement_equations
 export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
+export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
@@ -1374,6 +1389,7 @@ export orthogonal_sign
 export outdegree
 export outneighbors
 export p_central_series
+export p_rump
 export pappus_matroid
 export parallel_extension
 export parametrization
@@ -1416,6 +1432,8 @@ export point_coordinates
 export point_matrix
 export point_vector
 export points
+export pointwise_stabilizer_in_orthogonal_group
+export pointwise_stabilizer_orthogonal_complement_in_orthogonal_group
 export pol_elementary_divisors
 export polarize
 export poly_type
@@ -1507,6 +1525,8 @@ export rank_action
 export rational_equivalence_class
 export rational_map
 export rational_point
+export rational_point_coordinates
+export rational_points
 export rational_point_conic
 export rational_solutions
 export rational_spinor_norm
@@ -1563,6 +1583,7 @@ export restrict_codomain
 export restrict_domain
 export restrict_endomorphism
 export restrict_homomorphism
+export restrict_to_lattice
 export restricted_map
 export restricted_map_type
 export restriction
@@ -1628,6 +1649,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
+export setwise_stabilizer_in_orthogonal_group
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
@@ -1674,6 +1696,7 @@ export spanning_sets
 export spec
 export special_linear_group
 export special_orthogonal_group
+export special_subgroup
 export special_unitary_group
 export splitting
 export splitting_of_hermitian_type
@@ -1682,9 +1705,13 @@ export splitting_of_prime_power
 export splitting_of_pure_mixed_prime_power
 export splitting_roots_mod2
 export src
+export stabilizer_discriminant_subgroup
+export stabilizer_in_diagonal_action
 export stabilizer_in_orthogonal_group
 export stable_intersection
+export stable_orthogonal_group
 export stable_set_polytope
+export stable_subgroup
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
@@ -1742,6 +1769,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors

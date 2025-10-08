@@ -6,6 +6,8 @@
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 
+#TODO: where is `check_parent` *used* in the context of groups?
+#      (apparently not in the situation of a group element and a group)
 #TODO: document `check_parent`!
 # If `check_parent(a, b)` yields `false` then `a` and `b` do not fit
 # together.
@@ -335,7 +337,7 @@ function _common_parent_group(x::FPGroup, y::SubFPGroup)
   return as_sub_fp_group(y.full_group)
 end
 
-function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
+function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: Union{GAPGroup, FinGenAbGroup}
   x === y && return x
   @req x.G === y.G "the groups belong to different full groups"
   return automorphism_group(x.G)
@@ -376,6 +378,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 isequal(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
 function ==(x::GAPGroup, y::GAPGroup)
+  x === y && return true
   _check_compatible(x, y)
   return GapObj(x) == GapObj(y)
 end
@@ -387,6 +390,7 @@ isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 # in the sense of `_check_compatible`,
 # and compare the `GapObj`s if this is the case.
 function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y))
   return GapObj(x) == GapObj(y)
 end
@@ -394,6 +398,7 @@ end
 # For two `GAPGroupElem`s,
 # if no specialized method is applicable then no `==` comparison is allowed.
 function ==(x::GAPGroupElem, y::GAPGroupElem)
+  x === y && return true
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
@@ -968,10 +973,12 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where (T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}
 
 Return a vector of all conjugacy classes of subgroups of `G` or,
-if `order` is positive, the classes of subgroups of this order.
+if `order` is positive, the classes of subgroups of this order, or,
+if `order_bound` is an integer,
+the classes of subgroups of order up to `order_bound`.
 
 # Examples
 ```jldoctest
@@ -988,15 +995,39 @@ julia> subgroup_classes(G)
 julia> subgroup_classes(G, order = ZZRingElem(2))
 1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
+
+julia> subgroup_classes(G, order_bound = 3)
+3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
-function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
-  L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
-  res = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S = inf) where {T <: IntegerUnion, S <: Union{IntegerUnion,PosInf}}
   if order != -1
-    filter!(x -> AbstractAlgebra.order(representative(x)) == order, res)
+    order_bound = min(order, order_bound)
   end
-  return res
+  if order_bound != inf && !GAPWrap.HasConjugacyClassesSubgroups(GapObj(G))
+    # Avoid computing all classes of subgroups.
+    gapbound = GAP.Obj(order_bound)
+    l = GAPWrap.LatticeByCyclicExtension(GapObj(G),
+            GapObj(x -> Oscar.GAPWrap.Size(x) <= gapbound))
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(l))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    end
+  else
+    L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
+    if order != -1
+      gaporder = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+    elseif order_bound != inf
+      gapbound = GAP.Obj(order_bound)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) <= gapbound, L)
+    end
+  end
+  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
 end
 
 """
@@ -1112,8 +1143,8 @@ Permutation group of degree 4 and order 3
 ```
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
-  @req check_parent(G, x) "G and x are not compatible"
-  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
+  P = Oscar._common_parent_group(G, parent(x))
+  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), P)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
@@ -1445,6 +1476,58 @@ see [`minimal_normal_subgroups`](@ref).
 """
 @gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(GapObj(G)))
 
+"""
+    p_rump(G::GAPGroup, p::IntegerUnion)
+
+For a prime `p`, the `p`-rump of a group `G` is the subgroup `G' G^p`.
+Unless it equals `G` itself (for example if `G` is perfect),
+it is equal to the second term of the `p`-central series of `G`, see [`p_central_series`](@ref).
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> h, _ = p_rump(g, 2)
+(Permutation group of degree 4, Hom: h -> g)
+
+julia> h == alternating_group(4)
+true
+```
+"""
+function p_rump(G::GAPGroup, p::IntegerUnion)
+  @req is_prime(p) "p is not a prime"
+  H = GAPWrap.PRump(GapObj(G), p)
+  return _as_subgroup(G, H)
+end
+
+@doc raw"""
+    torsion_subgroup(G::GAPGroup)
+
+Return the torsion subgroup of `G`, i.e. the subgroup of all elements of finite order.
+If the set of finite order elements does not form a subgroup, an error
+is raised.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> torsion_subgroup(g)
+(Symmetric group of degree 4, Hom: g -> g)
+
+julia> g = GL(3, 2);
+
+julia> torsion_subgroup(g)
+(Matrix group of degree 3 over GF(2), Hom: matrix group -> g)
+```
+"""
+function torsion_subgroup(G::GAPGroup)
+  T = GAPWrap.TorsionSubgroup(GapObj(G))
+  @req T != GAP.Globals.fail "The given group does not admit a torsion subgroup"
+  return _as_subgroup(G, T)
+end
+
+torsion_subgroup(G::PermGroup) = (G, id_hom(G))
+torsion_subgroup(G::T) where T <: Union{FPGroup, SubFPGroup} = trivial_subgroup(G)
 
 ################################################################################
 #
@@ -1921,7 +2004,6 @@ false
 """
 @gapattribute is_finitely_generated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(GapObj(G))::Bool
 
-
 # TODO/FIXME: is_free is disabled for now as it is not universal; it only
 # really works for fp groups, and then also only for those without relators;
 # it returns `false` for a the quotient of the free group on x,y by y, which
@@ -1976,7 +2058,7 @@ end
 
 # for convenience
 function full_group(G::Union{FPGroup, PcGroup})
-  return G, identity_map(G)
+  return G, id_hom(G)
 end
 
 

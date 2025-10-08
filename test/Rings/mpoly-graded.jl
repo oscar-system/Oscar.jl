@@ -1,5 +1,5 @@
 @testset "MPolyQuoRing.graded" begin
-  R, (x,) = graded_polynomial_ring(QQ, [:x], [1])
+  R, (x,) = graded_polynomial_ring(QQ, [:x]; weights = [1])
   Q = quo(R, ideal([x^4]))[1];
   @test_throws ArgumentError ideal(R, [x-x^2])
   R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
@@ -52,7 +52,7 @@ end
 
 @testset "mpoly-graded" begin
 
-    R, (x,) = graded_polynomial_ring(QQ, [:x], [1])
+    R, (x,) = graded_polynomial_ring(QQ, [:x]; weights = [1])
     @test_throws ArgumentError ideal(R, [x-x^2])
     Qx, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
     t = gen(Hecke.Globals.Qx)
@@ -181,7 +181,7 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
 
-  S, t = graded_polynomial_ring(QQ, [:t], [1])
+  S, t = graded_polynomial_ring(QQ, [:t]; weights = [1])
   @test_throws ErrorException R(gen(S, 1))
 end
 
@@ -211,7 +211,7 @@ end
 end
 
 @testset "Minimal generating set" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y]; weights = [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
   @test !isempty(I.gb)
@@ -219,7 +219,7 @@ end
 end
 
 @testset "Division" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
   f = x^2 + y
   g = x^2
   @test div(f, g) == one(R)
@@ -345,7 +345,7 @@ end
   @test forget_grading(I) == ideal(R, [ x + y ])
   @test ideal(S, forget_decoration(I)) == I
 
-  T, _ = graded_polynomial_ring(QQ, [ :t ], [ 1 ])
+  T, _ = graded_polynomial_ring(QQ, [ :t ]; weights = [ 1 ])
   @test_throws ArgumentError ideal(T, forget_decoration(I))
 end
 
@@ -576,7 +576,7 @@ let
 end
 
 @testset "is_positively_graded" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, -1])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, -1])
   @test is_positively_graded(R) == false
 end
 
@@ -596,3 +596,12 @@ end
     @test issetequal(minimal_generating_set(ideal(gb)), [x, y])
   end
 end
+
+@testset "change_base_ring for graded rings" begin
+  S, (x, y) = graded_polynomial_ring(ZZ, [:x, :y])
+  S101, mod_map = change_base_ring(GF(101), S)
+  @test is_graded(S101)
+  @test grading_group(S) === grading_group(S101)
+  @test degree.(gens(S)) == degree.(gens(S101))
+end
+

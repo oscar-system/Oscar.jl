@@ -228,18 +228,16 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
-    osc_proj = dirname(Base.identify_package_env("Oscar")[2])
     try
       plots = mktempdir()
       Pkg.activate(plots; io=devnull)
       Pkg.add("Plots"; io=devnull)
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
-      pushfirst!(custom_load_path, osc_proj)
       # make sure stdlibs are in the load path (like in the normal repl)
       push!(custom_load_path, "@stdlib")
 
-      oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
+      oefile = joinpath(Oscar.oscardir, "test", "book", "ordered_examples.json")
       ordered_examples = load(oefile)
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
@@ -256,7 +254,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
-            auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            auxmain = joinpath(Oscar.oscardir, "test", "book", chapter, "auxiliary_code", "main.jl")
             # run from temp dir
             temp = mktempdir()
             cd(temp)

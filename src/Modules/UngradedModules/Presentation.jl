@@ -554,7 +554,7 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   # work around if we're passing the zero module to singular, see
   # https://github.com/oscar-system/Singular.jl/issues/796
   if iszero(krnel)
-    return M, identity_map(M)
+    return M, id_hom(M)
   end
   
   s_fmod  = Oscar.singular_module(ambient_free_module(krnel))

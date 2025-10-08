@@ -343,6 +343,83 @@ end
 #
 # AbstractVarietyMap
 #
+
+### utility functions
+
+function _trim(R::MPolyDecRingOrQuo)
+  d = get_attribute(R, :abstract_variety_dim)
+  !(d == nothing) || error("ring is not the Chow ring of an abstract variety")
+  if isdefined(R, :I)
+    gI = gens(R.I) # will consist of the generators of the modulus I of the desired Chow ring
+    S = base_ring(R)
+  else
+    gI = MPolyRingElem[] # will consist of the generators of the modulos I of the desired Chow ring
+    S = R
+  end
+  w = weights(Int, S)
+  if !isdefined(R, :I) || krull_dim(R.I) > 0
+    # add powers of variables to gI so that I = <gI> becomes 0-dimensional
+    for (i,x) in enumerate(gens(R))
+      push!(gI, x^Int(ceil((d+1)//w[i])))
+    end
+  end
+  # only keep elements of degree > dim in gI
+  b = monomial_basis(quo(S, ideal(S, gI))[1])
+  gI = vcat(gI, filter(x -> degree(Int, R(x)) > d, b))
+  result = quo(R, gI)[1]
+  return result
+end
+
+@doc raw"""
+    trim!(X::AbstractVariety)
+
+Return `X` with its Chow ring modified as follows:
+- Mod out suitable powers of the generators of `base_ring(R)` so that the resulting new ring is zero-dimensional (in the example below, these are the powers  `h^3`, `c1^3`, and `c2^2`).
+
+- Then, if `K = base(X)`, the new ring has a finite `K`-basis. Now, additionally mod out the given generators of each class in the basis which should be zero due to dimension.
+
+!!! note
+    For the construction of a new abstract variety, it is occasionally convenient to start from the underlying graded polynomial ring of the Chow ring, possibly with some relations already given, and adding further relations step by step. The `trim!` function offers one way of doing this.
+
+!!! warning
+    As this function changes an entry in the collection of data making up `X`, it should only be used by experts who are able to foresee the potential impact of such a change.
+
+# Examples
+
+```jldoctest
+julia> RS, _ = graded_polynomial_ring(QQ, ["h", "c1", "c2"], [1, 1, 2]);
+
+julia> S = abstract_variety(2, RS) # no relations yet
+AbstractVariety of dim 2
+
+julia> trim!(S);
+
+julia> chow_ring(S)
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ graded by
+    h -> [1]
+    c1 -> [1]
+    c2 -> [2]
+  by ideal with 14 generators
+
+julia> basis(S)
+3-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [c1, h]
+ [c2, c1^2, h*c1, h^2]
+
+```
+"""
+function trim!(X::AbstractVariety)
+  R = _trim(X.ring)
+  set_attribute!(R, :abstract_variety, "AbstractVariety of dim $(X.dim)")
+  set_attribute!(R, :abstract_variety_dim, X.dim)
+  X.ring = R
+  return X
+end
+
+### constructor
+
 @doc raw"""
     map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
@@ -352,10 +429,12 @@ the generators of the Chow ring of `Y`.
 !!! note
     The corresponding pushforward will be automatically computed in certain cases.
 
-In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
-present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
-a copy of `Y` will be created, with extra classes added so that one can
-pushforward all classes on `X`.
+!!! note
+    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
+    present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
+    a modified version of `Y` will be created, with extra classes added so that one can
+    pushforward all classes on `X`. See the subsection [Example: Cubic Fourfolds](@ref)
+    of the documentation for an example.
 
 # Examples
 
@@ -386,9 +465,9 @@ julia> pushforward(Se, k+l)
 ```
 """
 function map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
-  AbstractVarietyMap(X, Y, fˣ, fₓ)
-  # !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
-  # _inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
+  #AbstractVarietyMap(X, Y, fˣ, fₓ)
+   !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
+   extend_inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
 end
 
 @doc raw"""
@@ -1839,32 +1918,13 @@ function intersection_matrix(a::Vector{}, b=nothing)
 end
 
 @doc raw"""
-     dual_basis(X::AbstractVariety, k::Int)
-
-Compute the dual basis of the additive basis in codimension `k` given by
-`basis(X, k)` (the returned elements are therefore in codimension
-$\dim X-k$).
-"""
-function dual_basis(X::AbstractVariety, k::Int)
-  T = Dict{Int, Vector{elem_type(X.ring)}}
-  d = get_attribute!(X, :dual_basis) do
-    T()
-  end::T
-  if !(k in keys(d))
-    B = basis(X)
-    b_k = B[k+1]
-    b_comp = B[X.dim-k+1]
-    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
-    d[k] = M * b_comp
-    d[X.dim-k] = transpose(M) * b_k
-  end
-  return d[k]
-end
-
-@doc raw"""
     dual_basis(X::AbstractVariety)
+
+If `X` has been given a point class, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`. Here, `K = base(X)`.
+
     dual_basis(X::AbstractVariety, k::Int)
-If `K = base(X)`, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)` (return the elements of degree `k` in the dual basis).
+
+If `X` has been given a point class, return the elements of degree `k` in the dual basis.
 
 !!! note
     The basis elements are ordered by decreasing degree (geometrically, by decreasing codimension).
@@ -1907,6 +1967,23 @@ julia> integral(b[3][2]*bd[3][2])
 ```
 """
 dual_basis(X::AbstractVariety) = [dual_basis(X, k) for k in 0:X.dim]
+
+function dual_basis(X::AbstractVariety, k::Int)
+  isdefined(X, :point) || error("point class not defined") ### DIFF Song
+  T = Dict{Int, Vector{elem_type(X.ring)}}
+  d = get_attribute!(X, :dual_basis) do
+    T()
+  end::T
+  if !(k in keys(d))
+    B = basis(X)
+    b_k = B[k+1]
+    b_comp = B[X.dim-k+1]
+    M = Matrix(inv(intersection_matrix(b_comp, b_k)))
+    d[k] = M * b_comp
+    d[X.dim-k] = transpose(M) * b_k
+  end
+  return d[k]
+end
 
 # the parameter for truncation is usually the dimension, but can also be set
 # manually, which is used when computing particular Chern classes (without
@@ -2033,6 +2110,55 @@ Compute the (generic) $n$-th $\hat A$ genus.
 """
 a_hat_genus(n::Int)
 
+###############################################
+### setter functions
+###############################################
+
+function set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
+  if isdefined(X, :point)
+    error("Point class already set")
+  end
+  @assert parent(p) == chow_ring(X)
+  X.point = p
+end
+
+function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
+  if isdefined(X, :t)
+    error("Tangent bundle already set")
+  end
+  @assert parent(t) == X
+  X.T = t
+end
+
+function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
+  if isdefined(X, :polarization)
+    error("Polarization already set")
+  end
+  @assert parent(o1) == chow_ring(X)
+  X.O1 = o1
+end
+
+function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{T}}) where T
+  if isdefined(X, :tautological_bundles)
+    error("Tautological_bundles already set")
+  end
+  for b in vb
+    @assert parent(b) ==  X
+  end
+  X.bundles = vb
+end
+
+function set_structure_map(X::AbstractVariety, f::AbstractVarietyMap)
+  if isdefined(X, :structure_map)
+    error("Structure map already set")
+  end
+  @assert domain(f) == X
+  X.struct_map = f
+end
+
+###############################################
+
+
 @doc raw"""
     zero_locus_section(F::AbstractBundle; class::Bool = false)
 
@@ -2097,8 +2223,10 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
   X = parent(F)
   R = X.ring
   cZ = top_chern_class(F)
+
   # return only the class of Z in the chow ring of X
   class && return cZ
+
   if R isa MPolyQuoRing
     I = quotient(modulus(R), ideal(base_ring(R), [cZ.f]))
     AZ = quo(base_ring(R), I)[1]
@@ -2240,6 +2368,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   F, G = _coerce(F, G)
   m, n = rank(F), rank(G)
   @assert k < min(m,n)
+
   if class
     # return only the class of D in the chow ring of X
     if (m-k)*(n-k) <= F.parent.dim # Porteous' formula
@@ -2248,13 +2377,14 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
       return F.parent.ring(0)
     end
   end
+
   Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = map(D, F.parent) # skip the flag abstract_variety
-  if isdefined(F.parent, :O1)
-    D.O1 = pullback(D.struct_map, F.parent.O1)
-  end
+  if isdefined(F.parent, :O1) ### DIFF Song
+    D.O1 = pullback(D.struct_map, F.parent.O1) ### DIFF Song
+  end ### DIFF Song
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
@@ -2468,9 +2598,9 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   PF.struct_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
-  if get_attribute(X, :alg) == true
-    set_attribute!(PF, :alg => true)
-  end
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(PF, :alg => true) ### DIFF Song
+  end ### DIFF Song
   return PF
 end
 
@@ -2761,6 +2891,11 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   Fl.struct_map = p
   set_attribute!(Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
+
+  if get_attribute(X, :alg) == true ### DIFF Song
+    set_attribute!(Fl, :alg => true) ### DIFF Song
+  end ### DIFF Song
+
   if l == 2
      set_attribute!(Fl, :grassmannian => :relative)
   end

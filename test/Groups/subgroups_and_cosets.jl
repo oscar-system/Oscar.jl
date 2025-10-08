@@ -453,6 +453,7 @@ end
 @testset "Some specific subgroups" begin
    G = GL(2,3)
    S = symmetric_group(4)
+   F = free_group(2)
 
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
@@ -463,6 +464,9 @@ end
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test solvable_radical(S)[1]==S
+   @test torsion_subgroup(S)[1]==S
+   @test torsion_subgroup(F)==sub(F,[one(F)])
+   
    S = symmetric_group(5)
    @test solvable_radical(S)==sub(S,[one(S)])
 end
