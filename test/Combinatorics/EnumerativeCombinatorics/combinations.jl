@@ -12,7 +12,7 @@
     C = combinations(4, 5)
     @test length(C) == 0
 
-    C = combinations(Int16(4), 3)
+    C = combinations(Int16(4), Int16(3))
     @test length(C) == 4
     @test collect(C) == [[1, 2, 3],
                          [1, 2, 4],
