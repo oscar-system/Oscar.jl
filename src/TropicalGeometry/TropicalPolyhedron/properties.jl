@@ -14,9 +14,9 @@ julia> vertices(P)
  [(0), (-1), (0)]
  [(0), (-4), (-1)]
 
-julia> TT = tropical_semiring();
+julia> T = tropical_semiring();
 
-julia> Q = tropical_convex_hull(TT[0 1 2; inf 0 3; inf inf 0; 0 1 0]);
+julia> Q = tropical_convex_hull(T[0 1 2; inf 0 3; inf inf 0; 0 1 0]);
 
 julia> vertices(Q)
 3-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
@@ -86,11 +86,8 @@ julia> pseudovertices(P)
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
   CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
   n = count(!iszero, eachrow(CT))
-  TT = tropical_semiring(convention(P))
 
-  return SubObjectIterator{as}(
-    P,_pseudovertices,n
-  )
+  return SubObjectIterator{as}(P, _pseudovertices, n)
 end
 
 function pseudovertices(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {T<:TropicalSemiringElem}
@@ -154,7 +151,7 @@ julia> n_points(P)
 2
 ```
 """
-n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::Polymake.Matrix{<:Polymake.TropicalNumber} |> size |> first
+n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::Polymake.Matrix{<:Polymake.TropicalNumber} |> nrows
 
 function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointConfiguration, i::Int) where {M<:MinOrMax}
   T = tropical_semiring(convention(P))
@@ -334,7 +331,7 @@ function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
    pv = pm_object(P).PSEUDOVERTICES::Polymake.Matrix{Polymake.Rational}
    cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS::IncidenceMatrix
    ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
-   ind = findall(1:size(ct, 1)) do i
+   ind = findall(1:nrows(ct)) do i
      all(!iszero, ct[i,:])
    end
    return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind])::Polymake.BigObject |> polyhedral_complex
@@ -358,6 +355,7 @@ function Base.show(io::IO, P::TropicalPolyhedron{M}) where {M<:MinOrMax}
     print(io, "Max tropical polyhedron in tropical projective torus of dimension $d")
   end
 end
+
 function Base.show(io::IO, P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
   d = ambient_dim(P)
   if M == typeof(min)
