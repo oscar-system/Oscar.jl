@@ -166,16 +166,25 @@ function basis_coordinate_ring_kodaira_compute(
     end
     if V isa SimpleModuleData
       V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
+      mb = MonomialBasis(V_i, birational_seq, monomial_ordering, monomials)
     elseif V isa DemazureModuleData
       V_i = DemazureModuleData(
         base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V)
       )
+      #the module is twisted and we need to twist it back
+      twisted_roots = [
+        -(root * V.weyl_group_elem) for root in operators_as_roots(birational_seq)
+      ]
+      twisted_weights = [
+        -(weight * V.weyl_group_elem) for weight in operators_as_weights(birational_seq)
+      ]
+      twisted_birational_seq = birational_sequence(
+        twisted_roots, twisted_weights, birational_seq.root_system
+      )
+      mb = MonomialBasis(V_i, twisted_birational_seq, monomial_ordering, monomials)
     else
       error("unreachable")
     end
-    mb = MonomialBasis(
-      V_i, birational_seq, monomial_ordering, monomials
-    )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
     monomials_new_sorted = sort(
       collect(monomials_new); order=monomial_ordering
