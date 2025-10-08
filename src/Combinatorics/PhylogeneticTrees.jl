@@ -364,9 +364,12 @@ end
 
 @doc raw"""
     newick(ptree::PhylogeneticTree)
+
 Return a Newick representation of the phylogenetic tree `ptree`.
+
 # Examples
 Make a phylogenetic tree from a matrix and print a Newick representation of it.
+
 ```jldoctest
 julia> mat = [0. 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0]
 4×4 Matrix{Float64}:
@@ -374,6 +377,7 @@ julia> mat = [0. 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0]
  2.0  0.0  8.0  6.0
  8.0  8.0  0.0  8.0
  6.0  6.0  8.0  0.0
+
 julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
 4-element Vector{String}:
  "Bonobo"
@@ -381,6 +385,7 @@ julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
  "Gorilla"
  "Human"
 julia> tree_mat = phylogenetic_tree(mat, tax);
+
 julia> newick(tree_mat)
 "Gorilla:4,(Human:3,(Bonobo:1,Chimpanzee:1):2):1;"
 ```
