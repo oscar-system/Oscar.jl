@@ -47,4 +47,18 @@
   a_tree = adjacency_tree(pt)
   @test collect(edges(a_tree)) == collect(edges(tree))
   @test_throws ArgumentError a_tree.distance[1, 2]
+
+  for l in leaves(pt)
+    @test a_tree.leaves[l] == "leaf $l"
+  end
+
+  a_tree = adjacency_tree(pt; add_labels=false)
+  @test !hasproperty(a_tree, :distance)
+  @test !hasproperty(a_tree, :leaves)
+
+  @test Oscar.interior_nodes(pt) == [4]
+  @test collect(edges(pt)) == [Edge(4, 1), Edge(4, 2), Edge(4, 3)]
+  @test n_edges(pt) == 3
+  println(newick(pt))
+  @test Oscar.is_isomorphic(pt, phylogenetic_tree(QQFieldElem, "a:1,b:2,c:3;"))
 end
