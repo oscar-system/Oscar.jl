@@ -8,7 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 The combinatorics part of OSCAR provides functionality for handling:
 - [Graphs](@ref)
-- [Posets](@ref)
+- [Partially Ordered Sets](@ref)
 - [Matroids](@ref)
 - [Simplicial complexes](@ref)
 - [Phylogenetic trees](@ref)
