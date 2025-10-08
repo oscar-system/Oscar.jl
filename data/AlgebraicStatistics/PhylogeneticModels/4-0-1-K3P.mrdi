@@ -1,1 +1,0 @@
-{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.4.0-DEV-6bec27864ae1feefae5790467b5e6bcb87ba09b0"]},"_type":"Graph{Directed}","data":{"data":[[],[],[],[],[0,1,5],[2,3]],"_ns":{"polymake":["https://polymake.org","4.13"]},"_type":"common::GraphAdjacency<Directed>"}}
