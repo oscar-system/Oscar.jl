@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Partitions
+# [Partitions](@id partitions_chapter)
 
 A **partition** of a non-negative integer $n$ is a decreasing sequence $\lambda_1 \geq \lambda_2\geq \dots \geq \lambda_r$ of positive integers $\lambda_i$ such that $n = \lambda_1 + \dots + \lambda_r$.
 The $\lambda_i$ are called the **parts** of the partition and $r$ is called the **length**.

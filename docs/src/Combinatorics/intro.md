@@ -14,7 +14,7 @@ The combinatorics part of OSCAR provides functionality for handling:
 - [Phylogenetic trees](@ref)
 - [Combinations](@ref)
 - [Compositions](@ref)
-- [Partitions](@ref)
+- [Partitions](@ref partitions_chapter)
 - [Multipartitions](@ref)
 - [Tableaux](@ref)
 - [Schur polynomials](@ref)
