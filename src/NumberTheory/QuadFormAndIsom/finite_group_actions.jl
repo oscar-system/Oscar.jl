@@ -384,13 +384,13 @@ end
       check::Bool=true,
     ) -> Vector{QQMatrix}
 
-Given a primitive extension ``K\oplus N \subseteq L`` of even lattices,
+Given a primitive extension ``K\oplus N \subseteq L`` of integral lattices,
 and given two groups of isometries ``OK`` and ``ON`` of ``K`` and ``N``,
 respectively, return generators for the setwise stabilizer of ``L`` in
 ``OK\times ON``, seen as a group of isometries of the ambient space of ``L``.
 
 # Arguments
-- If `check` is set to `true`, the function tests whether ``L`` is even,
+- If `check` is set to `true`, the function tests whether ``L`` is integral,
   ``K`` and ``N`` are orthogonal and both primitive in ``L``, and
   ``K\oplus N`` and ``L`` are rationally equal.
 """
@@ -403,7 +403,7 @@ function stabilizer_in_diagonal_action(
     check::Bool=true,
   )
   if check
-    @req is_even(L) "Currently only available for even lattices"
+    @req is_integral(L) "Only available for integral lattices"
     @req is_primitive(L, N) && is_primitive(L, K) "Sublattices are not both primitive in L"
     @req iszero(basis_matrix(N) * gram_matrix(ambient_space(L)) * transpose(basis_matrix(K))) "Sublattices are not orthogonal"
     @req rank(N) + rank(K) == rank(L) "Incompatible ranks"
@@ -412,7 +412,6 @@ function stabilizer_in_diagonal_action(
   # Can speed up kernel computations
   is_finite(OK)
   is_finite(ON)
-  @req is_even(L) "Currently only available for even lattices"
 
   # Need the glue map to determine isometries of OK\times ON preserving L in
   # K^\vee\oplus N^\vee
@@ -460,17 +459,17 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given a primitive sublattice ``S`` of an even lattice ``L`` whose orthogonal
-complement ``K`` is definite or of rank 2, and given a group ``OS`` of
-isometries ``S``, return the largest group ``P`` of isometries of ``L``
+Given a primitive sublattice ``S`` of an integral lattice ``L`` whose
+orthogonal complement ``K`` is definite or of rank 2, and given a group``OS``
+of isometries ``S``, return the largest group ``P`` of isometries of ``L``
 preserving ``S`` and whose restriction to ``S`` is contained in ``OS``.
 
 By definition, ``P`` is the setwise stabilizer of ``L`` in ``O(K)\times OS``
 where ``O(K)`` is the full orthogonal group of ``K``.
 
 # Arguments
--  If `check` is set to `true`, the function tests whether ``L`` is even, ``S``
-  is primitive in ``L`` and ``K`` is definite or of rank 2.
+-  If `check` is set to `true`, the function tests whether ``L`` is integral,
+  ``S`` is primitive in ``L`` and ``K`` is definite or of rank 2.
 
 - The keyword arguments in `kwargs` are optional arguments for the computation
   of ``O(K)``; see [`isometry_group(::ZZLat)`](@ref).
@@ -484,7 +483,7 @@ function maximal_extension(
   )
   T = orthogonal_submodule(L, S)
   if check
-    @req is_even(L) "Currently only available for even lattices"
+    @req is_integral(L) "Only available for integral lattices"
     @req is_primitive(L, S) "Lattice S is not primitive in L"
     @req is_definite(T) || rank(T) == 2 "Orthogonal complement is not definite or of rank 2"
   end
@@ -511,7 +510,7 @@ end
 
 Given ``B`` a matrix with rational entries whose set of rows represent a finite
 collection ``F`` of vectors in the rational span ``L\otimes \mathbb{Q}`` of
-the even lattice ``L``, return the subgroup
+the integral lattice ``L``, return the subgroup
 
 ```math
 S_F := \{ f \in O(L) | \forall v\in F : f(v) = v\} \subseteq O(L)
@@ -533,8 +532,8 @@ orthogonal to ``B`` is definite or of rank 2.
   $S_F\cap O^\#(L)\cap SO(L)$.
 
 - If `check` is set to true, the function tests whether the lattice ``L`` is
-  even, the matrix ``B`` defines a set of vectors in $L\otimes \mathbb{Q}$ and
-  whether the lattice ``K`` is definite or of rank 2.
+  integral, the matrix ``B`` defines a set of vectors in $L\otimes \mathbb{Q}$
+  and whether the lattice ``K`` is definite or of rank 2.
 
 - The function first computes the orthogonal group of ``K``: the extra keyword
   arguments in `kwargs` are optional arguments in the computations of such a
@@ -569,7 +568,7 @@ function stabilizer_in_orthogonal_group(
   )
   K = orthogonal_submodule(L, B)
   if check
-    @req is_even(L) "Currently only available for even lattices"
+    @req is_integral(L) "Only available for integral lattices"
     @req can_solve(basis_matrix(L), B) "B does not define a subspace of the rational span of L"
     @req is_definite(K) || rank(K) == 2 "The orthogonal complement of B in L is not definite or of rank 2"
   end
@@ -608,7 +607,7 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given a sublattice ``S`` of an even lattice ``L``, return the subgroup
+Given a sublattice ``S`` of an integral lattice ``L``, return the subgroup
 
 ```math
 \{ f \in O(L) | \forall v\in S : f(v) = v\} \subseteq O(L)
@@ -666,7 +665,7 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given a sublattice ``S`` of an even lattice ``L``, or a generating set of
+Given a sublattice ``S`` of an integral lattice ``L``, or a generating set of
 vectors given as rows in a matrix with rational entries, return the subgroup
 
 ```math
@@ -679,7 +678,7 @@ sublattice ``S``.
 - The function requires that ``S`` and its orthogonal complement ``T`` in ``L``
   are both definite or of rank 2. However ``S`` need not be primitive in ``L``.
 
-- If `check` is set to `true`, the function tests whether ``L`` is even,
+- If `check` is set to `true`, the function tests whether ``L`` is integral,
   whether ``S`` is a sublattice of ``L``, and whether ``S`` and ``T`` are
   definite or of rank 2.
 
@@ -724,7 +723,7 @@ function setwise_stabilizer_in_orthogonal_group(
     kwargs...,
   )
   if check
-    @req is_even(L) "Currently only available for even lattices"
+    @req is_integral(L) "Only available for integral lattices"
     @req ambient_space(L) === ambient_space(S) "Lattices are not contained in the same quadratic space"
     @req is_sublattice(L, S) "Matrix does not define a sublattice"
     @req is_definite(S) || rank(S) == 2 "The lattice S is not definite or of rank 2"
@@ -775,7 +774,7 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given a sublattice ``S`` of an even lattice ``L``, or a generating set of
+Given a sublattice ``S`` of an integral lattice ``L``, or a generating set of
 vectors given as rows in a matrix with rational entries, return the
 pointwise stabilizer, in the orthogonal group of ``L``, of the orthogonal
 complement of ``S`` in ``L``.
@@ -784,7 +783,7 @@ complement of ``S`` in ``L``.
 - The function requires that ``S`` is definite or of rank 2. However
   ``S`` need not be primitive in ``L``.
 
-- If `check` is set to `true`, the function tests whether ``L`` is even,
+- If `check` is set to `true`, the function tests whether ``L`` is integral,
   whether ``S`` is a sublattice of ``L``, and whether ``S`` is definite or
   of rank 2.
 
@@ -850,10 +849,10 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given an even lattice ``L`` and a group of isometries ``G`` of ``L`` whose
-associated coinvariant sublattice ``S`` is definite or of rank 2, return the
-saturation of ``G`` in the orthogonal group ``O(L)`` of ``L``, that is the
-pointwize stabilizer in ``O(L)`` of its invariant sublattice.
+Given a lattice ``L`` and a group of isometries ``G`` of ``L`` whose associated
+coinvariant sublattice ``S`` is definite or of rank 2, return the saturation of
+``G`` in the orthogonal group ``O(L)`` of ``L``, that is the pointwize
+stabilizer in ``O(L)`` of its invariant sublattice.
 
 See [`pointwise_stabilizer_in_orthogonal_group`](@ref).
 
@@ -893,6 +892,10 @@ function saturation(
     @req is_isometry_group(L, G, ambient_representation; is_special=special, is_stable=stable) "Group does not define a group of isometries of the lattice L with the given properties"
   end
 
+  d = denominator(scale(L))
+  if d > 1
+    L = rescale(L, d)
+  end
   F = invariant_lattice(L, G; ambient_representation, check=false)
   Gsat = stabilizer_in_orthogonal_group(L, basis_matrix(F); check, special, stable, kwargs...)
 
@@ -913,7 +916,7 @@ end
       kwargs...,
     ) -> MatrixGroup
 
-Given an even lattice ``L`` and two finite group of isometries $H \leq G$
+Given a lattice ``L`` and two finite group of isometries $H \leq G$
 of ``L`` such that the coinvariant sublattice ``S`` of ``H`` is definite,
 return the saturation of ``H`` in the group ``G``, that is the pointwize
 stabilizer in ``G`` of its invariant sublattice associated to ``H``.
