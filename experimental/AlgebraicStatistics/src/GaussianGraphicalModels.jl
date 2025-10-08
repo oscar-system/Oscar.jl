@@ -53,7 +53,8 @@ julia> typeof(GM)
 GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
-function gaussian_graphical_model(G::AbstractGraph{T}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w") where T <: Union{Directed, Mixed}
+function gaussian_graphical_model(G::Graph{T}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w") where T <: Directed
+  @req is_acyclic(G) "$G must be acyclic"
   GaussianGraphicalModel(G, Dict{Symbol, VarName}(:s => s_varname, :l => l_varname, :w => w_varname))
 end
 
