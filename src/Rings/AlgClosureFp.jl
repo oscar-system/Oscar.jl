@@ -146,7 +146,7 @@ end
 #TODO: do we really want to support different types here? (implies different parents)
 *(a::AlgClosureElem{T}, b::AlgClosureElem{S}) where S where T = AlgClosureElem(op(*, a, b), parent(a))
 //(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(//, a, b), parent(a))
-divexact(a::AlgClosureElem, b::AlgClosureElem; check = true) = AlgClosureElem(op(divexact, a, b), parent(a))
+divexact(a::AlgClosureElem, b::AlgClosureElem; check::Bool = true) = AlgClosureElem(op(divexact, a, b), parent(a))
 ==(a::AlgClosureElem, b::AlgClosureElem) = op(==, a, b)
 iszero(a::AlgClosureElem) = iszero(data(a))
 isone(a::AlgClosureElem) = isone(data(a))

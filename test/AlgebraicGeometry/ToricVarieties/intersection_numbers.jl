@@ -49,14 +49,14 @@
   end
 
   @testset "Intersection numbers on dP3" begin
-    @test integrate(cohomology_class(dP3, e1*e1)) == -1
-    @test integrate(cohomology_class(dP3, e2*e2)) == -1
-    @test integrate(cohomology_class(dP3, e3*e3)) == -1
-    @test integrate(cohomology_class(dP3, x1*x1)) == -1
-    @test integrate(cohomology_class(dP3, x2*x2)) == -1
-    @test integrate(cohomology_class(dP3, x3*x3)) == -1
+    @test integrate(cohomology_class(dP3, e1 * e1)) == -1
+    @test integrate(cohomology_class(dP3, e2 * e2)) == -1
+    @test integrate(cohomology_class(dP3, e3 * e3)) == -1
+    @test integrate(cohomology_class(dP3, x1 * x1)) == -1
+    @test integrate(cohomology_class(dP3, x2 * x2)) == -1
+    @test integrate(cohomology_class(dP3, x3 * x3)) == -1
     @test integrate(c1) == 0
-    @test integrate(c1^2+c1-3//4*c1*c1) == -1//4
+    @test integrate(c1^2 + c1 - 3//4 * c1 * c1) == -1//4
     @test length(intersection_form(dP3)) == 21
   end
 end

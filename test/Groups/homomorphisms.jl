@@ -816,6 +816,15 @@ end
    test_kernel(G,H,f)
 end
 
+@testset "images and preimages of subgroups" begin
+   G = small_group(24, 12)
+   Q, epi = quo(G, pcore(G, 2)[1])
+   S = sylow_subgroup(G, 2)[1]
+   @test order(image(epi, S)[1]) == 2
+   S = sylow_subgroup(Q, 2)[1]
+   @test order(preimage(epi, S)[1]) == 8
+end
+
 @testset "Automorphism group of a perm. group or a (sub) pc group" begin
    for T in [PermGroup, PcGroup, SubPcGroup]
       G = small_group(T, 24, 12)

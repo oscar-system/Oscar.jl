@@ -138,7 +138,6 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
   return dict
 end
 
-
 function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
   # all containers have a Dict for their type description
   # with a name and a params key
@@ -226,13 +225,13 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
         upgraded_entry = upgrade(s, Dict(:_type => dict[:_type][:params][entry.first],
                                          :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
+        dict[:_type][:params][entry.first] = upgraded_entry[:_type]
       end
     end
   end
 end
 
 # following order is the order in which upgrades will happen
-
 include("0.11.3.jl")
 include("0.12.0.jl")
 include("0.12.2.jl")

@@ -171,7 +171,7 @@ julia> cophenetic_matrix(pt)
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
-  @req check && _is_tree(g) "Input must be a tree"
+  @req !check || _is_tree(g) "Input must be a tree"
   r = _root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
@@ -218,46 +218,10 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
     LABELS=la
   )
 
-  # load graph properties
-  pt.ADJACENCY
-
   return PhylogeneticTree{T}(pt, p)
 end
 
 phylogenetic_tree(g::Graph{Directed}; check=true) = phylogenetic_tree(QQFieldElem, g; check=check)
-
-@doc raw"""
-    newick(ptree::PhylogeneticTree)
-
-Return a Newick representation of the phylogenetic tree `ptree`.
-
-# Examples
-Make a phylogenetic tree from a matrix and print a Newick representation of it.
-
-```jldoctest
-julia> mat = [0. 2 8 6; 2 0 8 6; 8 8 0 8; 6 6 8 0]
-4×4 Matrix{Float64}:
- 0.0  2.0  8.0  6.0
- 2.0  0.0  8.0  6.0
- 8.0  8.0  0.0  8.0
- 6.0  6.0  8.0  0.0
-
-julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
-4-element Vector{String}:
- "Bonobo"
- "Chimpanzee"
- "Gorilla"
- "Human"
-
-julia> tree_mat = phylogenetic_tree(mat, tax);
-
-julia> newick(tree_mat)
-"Gorilla:4,(Human:3,(Bonobo:1,Chimpanzee:1):2):1;"
-```
-"""
-function newick(ptree::PhylogeneticTree)
-  return convert(String, pm_object(ptree).NEWICK)::String
-end
 
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)

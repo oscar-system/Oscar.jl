@@ -2,23 +2,23 @@
 # (1) Generic constructors
 ########################################################
 @doc raw"""
-    variety(X::AbsAffineScheme; is_reduced::false, check::Bool=true) -> AffineVariety
+    variety(X::AbsAffineScheme; is_reduced::Bool=false, check::Bool=true) -> AffineVariety
 
 Convert ``X`` to an affine variety.
 
 If `is_reduced` is set, assume that `X` is already reduced.
 """
-function variety(X::AbsAffineScheme{<:Field}; is_reduced=false, check::Bool=true)
-  X = algebraic_set(X, is_reduced=is_reduced, check=check)
-  return variety(X, check=check)
+function variety(X::AbsAffineScheme{<:Field}; is_reduced::Bool=false, check::Bool=true)
+  X = algebraic_set(X; is_reduced, check)
+  return variety(X; check)
 end
 
 function variety(X::AbsAffineAlgebraicSet; check::Bool=true)
-  return AffineVariety(X, check=check)
+  return AffineVariety(X; check)
 end
 
 @doc raw"""
-    variety(I::MPolyIdeal; check=true) -> AffineVariety
+    variety(I::MPolyIdeal; check::Bool=true) -> AffineVariety
 
 Return the affine variety defined by the ideal ``I``.
 
@@ -49,14 +49,14 @@ defined by ideal (x^3 + y + 1)
 
 ```
 """
-function variety(I::MPolyIdeal; is_radical=false, check=true)
-  X = algebraic_set(I, is_radical=is_radical, check=check)
-  return AffineVariety(X ,check=check)
+function variety(I::MPolyIdeal; is_radical::Bool=false, check::Bool=true)
+  X = algebraic_set(I; is_radical, check)
+  return AffineVariety(X; check)
 end
 
 
 @doc raw"""
-    variety(R::Ring; check=true)
+    variety(R::Ring; check::Bool=true)
 
 Return the affine variety with coordinate ring `R`.
 
@@ -76,10 +76,10 @@ defined by ideal (x, y)
 
 ```
 """
-variety(R::MPolyAnyRing; check=true) = variety(spec(R), check=check)
+variety(R::MPolyAnyRing; check::Bool=true) = variety(spec(R); check)
 
 @doc raw"""
-    variety(f::MPolyRingElem{<:Field}; check::Bool=true)
+    variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)
 
 Return the affine variety defined by the multivariate polynomial `f`.
 
@@ -108,7 +108,7 @@ function variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)
     g = ff[1]
     (length(g) == 1 || (length(g)==2 && isone(g[2]))) || error("polynomial is not absolutely irreducible")
   end
-  return variety(ideal([f]), check=false)
+  return variety(ideal([f]); check=false)
 end
 
 
@@ -119,7 +119,5 @@ end
 
 function closure(X::AffineVariety)
   Xcl = closure(X, ambient_space(X))
-  return algebraic_set(Xcl, check=false)
+  return algebraic_set(Xcl; check=false)
 end
-
-

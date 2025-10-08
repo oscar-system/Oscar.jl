@@ -612,6 +612,25 @@ julia> map(length, orbs)
 """
 @attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(natural_gset(G))
 
+"""
+    representative(Omega::GSet)
+
+Return a representative element of the G-set `Omega`.
+
+# Examples
+```jldoctest
+julia> G = @permutation_group(4, (1,2), (3,4))
+Permutation group of degree 4
+
+julia> Omega = natural_gset(G);
+
+julia> representative.(orbits(Omega))
+2-element Vector{Int64}:
+ 1
+ 3
+```
+"""
+representative(Omega::GSet)
 
 """
     stabilizer(Omega::GSet{T,S})
@@ -933,7 +952,7 @@ function action_homomorphism(G::PermGroup, Omega)
   return action_homomorphism(gset_by_type(G, Omega, eltype(Omega); closed = true))
 end
 
-function action_homomorphism(G::PermGroup, fun::Function, Omega; check = true)
+function action_homomorphism(G::PermGroup, fun::Function, Omega; check::Bool = true)
   return action_homomorphism(GSetByElements(G, fun, Omega, closed = true, check = check))
 end
 

@@ -112,3 +112,7 @@ export are_separated
 export is_ancestral
 export ancestral_closure
 export moralization
+
+# Multigradedimplicitization
+export components_of_kernel
+export jacobian

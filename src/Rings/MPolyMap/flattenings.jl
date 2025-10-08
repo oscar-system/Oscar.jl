@@ -51,7 +51,7 @@
     G = grading_group(S)
     w = degree.(gens(S))
     new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
-    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
+    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)); weights = new_w, cached = false)
     set_default_ordering!(S_flat, 
          matrix_ordering(S_flat, 
              block_diagonal_matrix(
@@ -109,7 +109,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)); weights = new_w, cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(
@@ -189,7 +189,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)); weights = new_w, cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(
@@ -258,7 +258,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)); weights = new_w, cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(

@@ -1870,18 +1870,18 @@ julia> K.color[1]
 ```
 """
 function graph_from_labeled_edges(::Type{T},
-                                  edge_labels::Dict{NTuple{2, Int}, <: V},
-                                  vertex_labels::Union{Dict{Int, <: V}, Nothing}=nothing;
+                                  edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
+                                  vertex_labels::Union{Dict{Int, <: GraphMapValueTypes}, Nothing}=nothing;
                                   name::Symbol=:label, 
-                                  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}, V <: GraphMapValueTypes}
+                                  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
   label!(G, edge_labels, vertex_labels; name=name)
 end
 
-function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, <: V},
-                                  vertex_labels::Union{Dict{Int, <: V}, Nothing}=nothing;
-                                  name::Symbol=:label, n_vertices::Int=-1) where V <: GraphMapValueTypes
+function graph_from_labeled_edges(edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
+                                  vertex_labels::Union{Dict{Int, <: GraphMapValueTypes}, Nothing}=nothing;
+                                  name::Symbol=:label, n_vertices::Int=-1)
   graph_from_labeled_edges(Undirected, edge_labels, vertex_labels; name=name, n_vertices=n_vertices)
 end
 
@@ -1986,7 +1986,7 @@ end
 @doc raw"""
     maximal_cliques(g::Graph{Undirected})
 
-Returns the maximal cliques of a graph `g` as a `Set{Set{Int}}`.
+Return the maximal cliques of a graph `g` as a `Set{Set{Int}}`.
 
 # Examples
 ```jldoctest

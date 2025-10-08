@@ -457,7 +457,7 @@ function minimal_parts(I::MPolyIdeal, w::Vector{ZZRingElem})
   @assert nvars(R) == length(w)
 
   w1 = push!(copy(w), ZZRingElem(-1))
-  S, t = graded_polynomial_ring(K, "t#" => 1:(nvars(R) + 1), w1)
+  S, t = graded_polynomial_ring(K, "t#" => 1:(nvars(R) + 1); weights=w1)
 
   Ihom = homogenize_at_last_variable(I, S)
 
@@ -487,7 +487,7 @@ function g_homogeneous_ideal(I::MPolyIdeal, weights::Vector{ZZRingElem}, order::
   R = base_ring(I)
 
   w = push!(copy(weights), ZZRingElem(1))
-  S, t = graded_polynomial_ring(coefficient_ring(R), "t#" => 1:(nvars(R) + 1), w)
+  S, t = graded_polynomial_ring(coefficient_ring(R), "t#" => 1:(nvars(R) + 1); weights=w)
 
   Ihom = homogenize_at_last_variable(I, S)
 
@@ -575,7 +575,7 @@ function new_generators_phase_2(
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
     T, _ = graded_polynomial_ring(
-      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)], weights
+      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)]; weights
     )
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
@@ -668,7 +668,7 @@ function relations(
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
     T, _ = graded_polynomial_ring(
-      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)], weights
+      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)]; weights
     )
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
@@ -678,8 +678,8 @@ function relations(
   gb = groebner_basis(Ihom; complete_reduction=true)
   T, _ = graded_polynomial_ring(
     coefficient_ring(S),
-    append!(["X$i" for i in 1:ngens(S)], ["Y$i" for i in 1:length(juniors)]),
-    degsRt,
+    append!(["X$i" for i in 1:ngens(S)], ["Y$i" for i in 1:length(juniors)]);
+    weights=degsRt,
   )
   @assert ngens(T) == ngens(base_ring(Ihom))
 
