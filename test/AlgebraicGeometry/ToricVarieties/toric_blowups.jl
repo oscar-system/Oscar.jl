@@ -25,9 +25,9 @@
   end
 
   amb = load(
-    joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv")
+    joinpath(Oscar.oscardir, "test", "AlgebraicGeometry", "ToricVarieties", "pr3006.ntv")
   )
-  (x1, x2, x3, x4, x, y, z) = gens(cox_ring(amb));
+  (x1, x2, x3, x4, x, y, z) = gens(cox_ring(amb))
 
   # The coordinates below correspond to the ideal `ideal([x, y, x1]`
   coords = [1, 0, 0, 0, 1, 1, 0]
@@ -85,7 +85,7 @@
     @test (
       minimal_supercone_coordinates_of_exceptional_ray(f)
       ==
-      QQFieldElem[1 // 2, 1 // 2]
+      QQFieldElem[1//2, 1//2]
     )
 
     # Now blowing up along an existing ray
@@ -103,7 +103,7 @@
     @test (
       minimal_supercone_coordinates_of_exceptional_ray(f)
       ==
-      QQFieldElem[1 // 2, 1 // 2, 1 // 2, 1 // 2]
+      QQFieldElem[1//2, 1//2, 1//2, 1//2]
     )
 
     # Now blowing up along an existing ray

@@ -1,5 +1,5 @@
 @doc raw"""
-    combinations(n::Int, k::Int)
+    combinations(n::IntegerUnion, k::IntegerUnion)
 
 Return an iterator over all $k$-combinations of ${1,...,n}$, produced in
 lexicographically ascending order.
@@ -18,10 +18,10 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::Int, k::Int) = Combinations(Base.OneTo(n), k)
+combinations(n::T, k::IntegerUnion) where T<:IntegerUnion = Combinations(Base.OneTo(n), n, T(k))
 
 @doc raw"""
-    combinations(v::AbstractVector, k::Int)
+    combinations(v::AbstractVector, k::IntegerUnion)
 
 Return an iterator over all `k`-combinations of a given vector `v` produced in
 lexicographically ascending order of the indices.
@@ -40,16 +40,14 @@ julia> collect(C)
  ['b', 'c', 'd']
 ```
 """
-function combinations(v::AbstractVector{T}, k::Int) where T
-  return Combinations(v, k)
-end
+combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
 
-Combinations(v::AbstractArray{T}, k::Int) where T = Combinations(v, length(v), k)
+Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 
-@inline function Base.iterate(C::Combinations, state = [min(C.k - 1, i) for i in 1:C.k])
+@inline function Base.iterate(C::Combinations{<:AbstractVector{T}}, state = [min(C.k - 1, i) for i in 1:C.k]) where T
   if C.k == 0 # special case to generate 1 result for k = 0
     if isempty(state)
-      return Combination(eltype(C.v)[]), [0]
+      return Combination{T}(T[]), [0]
     end
     return nothing
   end
@@ -66,12 +64,37 @@ Combinations(v::AbstractArray{T}, k::Int) where T = Combinations(v, length(v), k
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination(C.v[state]), state
+  return Combination{T}(C.v[state]), state
 end
 
-Base.length(C::Combinations) = binomial(C.n, C.k)
 
-Base.eltype(::Type{Combinations{T}}) where {T} = Combination{eltype(T)}
+@inline function Base.iterate(C::Combinations{Base.OneTo{T}, T}, state::Vector{T} = T[min(C.k - 1, i) for i in 1:C.k]) where {T<:IntegerUnion}
+  if C.k == 0 # special case to generate 1 result for k = 0
+    if isempty(state)
+      return Combination{T}(T[]), T[0]
+    end
+    return nothing
+  end
+  for i in C.k:-1:1
+    state[i] += 1
+    if state[i] > (C.n - (C.k - i))
+      continue
+    end
+    for j in i+1:C.k
+      state[j] = state[j - 1] + 1
+    end
+    break
+  end
+  if state[1] > C.n - C.k + 1
+    return nothing
+  end
+
+  return Combination{T}(copy(state)), state
+end
+
+Base.length(C::Combinations) = binomial(Int(C.n), Int(C.k))
+
+Base.eltype(::Type{<:Combinations{T}}) where {T} = Combination{eltype(T)}
 
 function Base.show(io::IO, C::Combinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
@@ -110,16 +133,16 @@ function Base.getindex(C::Combination, i::IntegerUnion)
   return getindex(data(C), Int(i))
 end
 
-function Base.copy(C::Combination)
-  return Combination(copy(data(C)))
+function Base.copy(C::Combination{T}) where T
+  return Combination{T}(copy(data(C)))
 end
 
 function Base.getindex(C::Combinations{Base.OneTo}, i::IntegerUnion)
-  return Oscar.combination(C.n, C.k, i)
+  return combination(C.n, C.k, i)
 end
 
 function Base.getindex(C::Combinations, i::IntegerUnion)
-  c = Oscar.combination(C.n, C.k, i)
+  c = combination(C.n, C.k, i)
   return C.v[data(c)]
 end
 
@@ -166,7 +189,7 @@ function linear_index(C::Combination, n::IntegerUnion)
 end
 
 @doc raw"""
-    combination(n::Int, k::Int, r::Int)
+    combination(n::IntegerUnion, k::IntegerUnion, r::IntegerUnion)
 
 Return the `r`th combination in the iteration over `combinations(n,k)`.
 
@@ -182,26 +205,26 @@ julia> C1 = Oscar.combination(15, 3, 13)
 [1, 2, 15]
 ```
 """
-function combination(n::Int, k::Int, r::Int)
-  @req 1 <= r <= binomial(n, k) "index out of range"
-  iszero(k) && return Combination(Int[])
-  isone(k) && return Combination([r])
-  n == k && return Combination(collect(1:n))
+function combination(n::T, k::IntegerUnion, r::IntegerUnion) where T<:IntegerUnion
+  @req 1 <= r <= binomial(Int(n), Int(k)) "index out of range"
+  iszero(k) && return Combination{T}(T[])
+  isone(k) && return Combination{T}(T[r])
+  n == k && return Combination{T}(collect(T(1):n))
 
-  C = zeros(Int, k)
-  r = binomial(n,k) - r
-  j = 1
+  C = zeros(T, k)
+  r = binomial(Int(n),Int(k)) - r
+  j = T(1)
   for i in 1:k
-    b = binomial(n - j, k - i + 1)
+    b = binomial(Int(n) - j, Int(k) - i + 1)
     while b > r
-      j += 1
-      b = binomial(n - j, k - i + 1)
+      j += T(1)
+      b = binomial(Int(n) - j, Int(k) - i + 1)
     end
     C[i] = j
-    j += 1
+    j += T(1)
     r -= b
   end
-  return Combination(C)
+  return Combination{T}(C)
 end
 
 
@@ -251,7 +274,7 @@ end
 function _wedge(a::Combination{T}, b::Combination{T}) where {T}
   c, sign = merge_sorted_with_sign(data(a), data(b))
   sign == 0 && return sign, c
-  return sign, Combination(c)
+  return sign, Combination{T}(c)
 end
 
 

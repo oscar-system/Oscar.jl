@@ -351,7 +351,7 @@ function _process_candidates(candidate_files::Vector{String})
   @req length(candidate_files) != 0 "We could not find any models matching the given model index"
   @req(length(candidate_files) == 1,
     begin
-      dicts = map(f -> JSON.parsefile(joinpath(@__DIR__, "Models/" * f)), candidate_files)
+      dicts = map(f -> JSON.parsefile(joinpath(@__DIR__, "Models", f)), candidate_files)
       dois = map(d -> get(d["journal_data"], "doi", nothing), dicts)
       ids = map(d -> get(d["arxiv_data"], "id", nothing), dicts)
       versions = map(d -> get(d["arxiv_data"], "version", nothing), dicts)
@@ -365,7 +365,7 @@ function _process_candidates(candidate_files::Vector{String})
       ]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
-  model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
+  model_dict = JSON.parsefile(joinpath(@__DIR__, "Models", candidate_files[1]))
   model_dict["literature_identifier"] = candidate_files[1][6:(end - 5)]
   return model_dict
 end
@@ -755,8 +755,7 @@ function _set_all_attributes(
 
   if haskey(model_dict, "birational_models")
     for m in model_dict["birational_models"]
-      model_directory = joinpath(@__DIR__, "Models/")
-      model_data = JSON.parsefile(model_directory * m)
+      model_data = JSON.parsefile(joinpath(@__DIR__, "Models", m))
       if model_data["model_descriptors"]["type"] == "weierstrass"
         set_attribute!(model, :weierstrass_model => m)
       end

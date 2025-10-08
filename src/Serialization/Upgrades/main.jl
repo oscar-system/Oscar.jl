@@ -138,7 +138,6 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
   return dict
 end
 
-
 function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
   # all containers have a Dict for their type description
   # with a name and a params key
@@ -233,7 +232,6 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
 end
 
 # following order is the order in which upgrades will happen
-
 include("0.11.3.jl")
 include("0.12.0.jl")
 include("0.12.2.jl")
