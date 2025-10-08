@@ -188,6 +188,8 @@ one(apr::ActionPolyRing) = apr(one(__upr(apr)))
 
 base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
+coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
+
 is_square(apre::ActionPolyRingElem) = is_square(data(apre))
 
 Base.sqrt(apre::ActionPolyRingElem; check::Bool = true) = parent(apre)(sqrt(data(apre); check = check))
@@ -226,6 +228,8 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 ##### Rings #####
 
 base_ring(apr::ActionPolyRing) = coefficient_ring(__upr(apr))
+
+coefficient_ring(apr::ActionPolyRing) = coefficient_ring(__upr(apr))
 
 @doc raw"""
     n_elementary_symbols(A::ActionPolyRing) -> Int
@@ -353,7 +357,7 @@ function to_univariate(apre::ActionPolyRingElem)
   end
   apr = parent(apre)
   x = symbols(apr)[var]
-  R, _ = base_ring(apr)[x]
+  R, _ = coefficient_ring(apr)[x]
   return to_univariate(R, apre)
 end
 
@@ -948,7 +952,7 @@ Base.iterate(x::ActionPolyTerms, state=0) = __iter_helper(term, x.poly, state)
 
 Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms}) = length(x.poly)
 
-Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT<:ActionPolyRingElem} = elem_type(base_ring_type(PolyT))
+Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT<:ActionPolyRingElem} = elem_type(coefficient_ring_type(PolyT))
 Base.eltype(::Type{ActionPolyExponentVectors{PolyT}}) where {PolyT<:ActionPolyRingElem} = Vector{Int}
 Base.eltype(::Type{ActionPolyMonomials{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT
 Base.eltype(::Type{ActionPolyTerms{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT

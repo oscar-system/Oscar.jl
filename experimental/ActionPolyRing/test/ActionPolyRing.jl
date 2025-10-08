@@ -28,11 +28,11 @@ using Test
   
   @testset "Check types" begin
     
-    @test base_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
     
-    @test base_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
 
@@ -164,8 +164,8 @@ using Test
         end
         
         @testset "Check public fields at construction" begin
-          @test base_ring(dpr) == ZZ
-          @test all(var -> base_ring(var) == ZZ, vars)
+          @test coefficient_ring(dpr) == ZZ
+          @test all(var -> coefficient_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
           @test n_action_maps(dpr) == 3
           @test n_elementary_symbols(dpr) == 3
@@ -267,8 +267,8 @@ using Test
           end
         
           @testset "Check public fields after adding variables" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
@@ -525,8 +525,8 @@ using Test
           end
         
           @testset "Check public fields after changing ranking" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
