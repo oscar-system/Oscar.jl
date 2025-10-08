@@ -10,7 +10,8 @@ The combinatorics part of OSCAR provides functionality for handling:
 
 
 General textbooks offering details on theory and algorithms include:
-
+- [Knu11](@cite)
+- [Aig97](@cite)
 
 ## Contact
 
