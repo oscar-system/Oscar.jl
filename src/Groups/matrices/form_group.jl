@@ -230,10 +230,10 @@ An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
 ```jldoctest
-    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 julia> G = sylow_subgroup(GL(3, 4), 2)[1];
 
 julia> length(invariant_hermitian_forms(G))

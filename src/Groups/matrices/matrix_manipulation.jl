@@ -169,8 +169,6 @@ Return `false` if `B` is not a square matrix, or the field has not even degree.
 # Examples
 ```jldoctest
 julia> F, z = finite_field(2, 2); x = matrix(F, [1 z; 0 1]);
-[1   o]
-[0   1]
 
 julia> is_hermitian(x)
 false
