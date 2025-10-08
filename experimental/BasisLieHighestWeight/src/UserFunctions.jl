@@ -958,7 +958,7 @@ The monomial ordering is fixed to `degrevlex`.
 
 # Examples
 ```jldoctest
-julia> mon_bases = basis_coordinate_ring_kodaira_demazure_ffl(:G, 2, [1,0],[1,2], 6)
+julia> mon_bases = basis_coordinate_ring_kodaira_demazure_ffl(:G, 2, [1,0], [1,2], 6)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
  (Monomial basis of a Demazure module with extremal weight [1, 0] * s1 * s2 over Lie algebra of type G2, [1, x5, x4])
  (Monomial basis of a Demazure module with extremal weight [2, 0] * s1 * s2 over Lie algebra of type G2, [])
