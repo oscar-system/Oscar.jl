@@ -26,7 +26,7 @@ General textbooks offering details on theory and algorithms include:
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* Enumerative Combinatorics: [Morgan Rodgers](https://cage.ugent.be/~mrodgers/)
+* Enumerative Combinatorics: [Morgan Rodgers](https://cage.ugent.be/~mrodgers/),
 * Simplicial complexes: [Michael Joswig](https://page.math.tu-berlin.de/~joswig/),
 * Graphs: [Lars Kastner](https://lkastner.github.io/),
 * Matroids:
