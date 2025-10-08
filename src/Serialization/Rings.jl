@@ -95,7 +95,6 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
-  base = base_ring(R)
   save_data_dict(s) do
     save_object(s, symbols(R), :symbols)
   end
