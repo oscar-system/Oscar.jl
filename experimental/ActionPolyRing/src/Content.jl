@@ -225,7 +225,7 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 
 ##### Rings #####
 
-base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
+base_ring(apr::ActionPolyRing) = coefficient_ring(__upr(apr))
 
 @doc raw"""
     n_elementary_symbols(A::ActionPolyRing) -> Int
