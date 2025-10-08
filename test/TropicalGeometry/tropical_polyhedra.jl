@@ -1,5 +1,3 @@
-polymake_version = pkgversion(Polymake.polymake_jll)
-
 @testset "TropicalPolyhedron{$minOrMax}" for (minOrMax, __sign, oo) in [(min, 1, inf), (max, -1, -inf)]
   TT = tropical_semiring(minOrMax)
   pts1_a = TT[0 -1__sign 0; 0 -4__sign -1__sign]
