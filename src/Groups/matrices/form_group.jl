@@ -755,17 +755,17 @@ is chosen heuristically depending on the rank of `L`. By default,
   bacher_depth::Int=0,
   kwargs...,
 )
-  # corner case
-  @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
+  # corner cases
   if rank(L) == 0
     G = matrix_group(identity_matrix(QQ, degree(L)))
-  end
-
-  if rank(L) <= 2
+  elseif rank(L) == 1
+    G = matrix_group(extend_to_ambient_space(L, -identity_matrix(QQ, rank(L)); check=false))
+  elseif rank(L) == 2
     gene = automorphism_group_generators(L)
     G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
   end
 
+  @req is_definite(L) "Lattice must be definite or of rank at most 2"
 
   if algorithm == :direct
     gens = automorphism_group_generators(L; depth, bacher_depth)
@@ -775,7 +775,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   elseif algorithm == :dispatch
     G, _ = _isometry_group_via_heuristics(L; depth, bacher_depth, kwargs...)
   else
-    error("Unknown algorithm: for the moment, we support :direct or :decomposition")
+    error("Unknown algorithm: for the moment, we only support :direct, :decomposition and :dispatch")
   end
   return G
 end
