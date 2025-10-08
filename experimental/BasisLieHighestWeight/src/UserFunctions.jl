@@ -863,7 +863,6 @@ If this is a weighted ordering, the height of the corresponding root is used as 
 
 # Examples
 ```jldoctest
-
 julia> mon_bases = basis_coordinate_ring_kodaira_demazure(:G, 2, [1,0], [1,2], 6; monomial_ordering = :invlex)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
  (Monomial basis of a Demazure module with extremal weight [1, 0] * s1 * s2 over Lie algebra of type G2, [1, x2, x1*x2])
@@ -872,7 +871,7 @@ julia> mon_bases = basis_coordinate_ring_kodaira_demazure(:G, 2, [1,0], [1,2], 6
  (Monomial basis of a Demazure module with extremal weight [4, 0] * s1 * s2 over Lie algebra of type G2, [])
  (Monomial basis of a Demazure module with extremal weight [5, 0] * s1 * s2 over Lie algebra of type G2, [])
  (Monomial basis of a Demazure module with extremal weight [6, 0] * s1 * s2 over Lie algebra of type G2, [])
-
+ 
 julia> mon_bases[end][1]
 Monomial basis of a Demazure module
   of extremal weight [6, 0] * s1 * s2
