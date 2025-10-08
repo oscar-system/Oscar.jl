@@ -383,6 +383,24 @@ matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
 are the Gram matrices of `f` and `g` respectively, and `C*` is the
 transpose-conjugate matrix of `C`. If such `C` does not exist, then return
 (`false`, `nothing`).
+
+# Examples
+```jldoctest
+julia> m1 = symmetric_form(matrix(GF(5), [1 0 2; 0 1 0; 2 0 1]))
+symmetric form with Gram matrix
+[1   0   2]
+[0   1   0]
+[2   0   1]
+
+julia> m2 = symmetric_form(matrix(GF(5), [1 4 2; 4 2 0; 2 0 0]))
+symmetric form with Gram matrix
+[1   4   2]
+[4   2   0]
+[2   0   0]
+
+julia> is_congruent( m1, m2 )
+(true, [1 0 0; 1 1 0; 3 3 1])
+```
 """
 function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 

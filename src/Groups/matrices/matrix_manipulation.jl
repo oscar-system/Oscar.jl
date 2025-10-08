@@ -21,6 +21,13 @@
 
 Return the matrix whose rows are the vectors in `A`.
 All vectors in `A` must have the same length and the same base ring.
+
+# Examples
+```jldoctest
+julia> V = vector_space(QQ, 2); matrix(gens(V))
+[1   0]
+[0   1]
+```
 """
 function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
    c = length(A[1].v)
@@ -38,6 +45,17 @@ end
 
 If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
 An exception is thrown if the base ring does not have even degree.
+
+# Examples
+```jldoctest
+julia> F, z = finite_field(2, 2); M = matrix(F, [0 z; 0 0])
+[0   o]
+[0   0]
+
+julia> conjugate_transpose(M)
+[    0   0]
+[o + 1   0]
+```
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
   e = degree(base_ring(x))
@@ -61,6 +79,21 @@ end
 
 Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is
 the direct sum of `U` and `W`.
+
+# Examples
+```jldoctest
+julia> V = vector_space(QQ, 2)
+Vector space of dimension 2 over QQ
+
+julia> U = sub(V,[V[1] + V[2]])[1]
+Subspace over QQ with 1 generator and no relations
+
+julia> C, emb = complement(V,U);
+
+julia> map(emb, gens(C))
+1-element Vector{AbstractAlgebra.Generic.FreeModuleElem{QQFieldElem}}:
+ (0, 1)
+```
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
    @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
@@ -104,7 +137,6 @@ julia> permutation_matrix(QQ, s)
 [0   0   1]
 [1   0   0]
 [0   1   0]
-
 ```
 """
 function permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion}; check::Bool = true)
@@ -133,6 +165,19 @@ permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
 Return `false` if `B` is not a square matrix, or the field has not even degree.
+
+# Examples
+```jldoctest
+julia> F, z = finite_field(2, 2); x = matrix(F, [1 z; 0 1]);
+[1   o]
+[0   1]
+
+julia> is_hermitian(x)
+false
+
+julia> is_hermitian(x + conjugate_transpose(x))
+true
+```
 """
 function is_hermitian(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)

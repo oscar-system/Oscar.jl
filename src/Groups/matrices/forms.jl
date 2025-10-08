@@ -64,30 +64,85 @@ SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 """
     is_alternating(f::SesquilinearForm)
 
-Return whether the form `f` is an alternating form,
-see [`is_alternating(B::MatElem)`](@ref).
+Return whether `f` has been created as an alternating form.
+
+The Gram matrix `M` of an alternating form satisfies `M = -transpose(M)`
+and `M` has zeros on the diagonal,
+see [`is_alternating(M::MatrixElem)`](@ref).
+
+# Examples
+```jldoctest
+julia> M = matrix(GF(2), [0 1; 1 0])
+[0   1]
+[1   0]
+
+julia> is_alternating(alternating_form(M))
+true
+
+julia> is_alternating(symmetric_form(M))
+false
+```
 """
 is_alternating(f::SesquilinearForm) = f.descr==:alternating
+
 
 """
     is_hermitian(f::SesquilinearForm)
 
-Return whether the form `f` is a hermitian form,
+Return whether `f` has been created as a hermitian form.
+
+The Gram matrix `M` of a hermitian form satisfies
+`M = conjugate_transpose(M)`,
 see [`is_hermitian(B::MatElem{T}) where T <: FinFieldElem`](@ref).
+
+# Examples
+```jldoctest
+julia> F, z = finite_field(2, 2); M = matrix(F, [0 z; z+1 0])
+[    0   o]
+[o + 1   0]
+
+julia> is_hermitian(hermitian_form(M))
+true
+```
 """
 is_hermitian(f::SesquilinearForm) = f.descr==:hermitian
 
 """
     is_quadratic(f::SesquilinearForm)
 
-Return whether the form `f` is a quadratic form.
+Return whether `f` has been created as a quadratic form.
+
+# Examples
+```jldoctest
+julia> M = matrix(GF(2), [0 1; 0 0])
+[0   1]
+[0   0]
+
+julia> is_quadratic(quadratic_form(M))
+true
+```
 """
 is_quadratic(f::SesquilinearForm) = f.descr==:quadratic
 
 """
     is_symmetric(f::SesquilinearForm)
 
-Return whether the form `f` is a symmetric form.
+Return whether `f` has been created as a symmetric form.
+The Gram matrix `M` of a symmetric form satisfies `M = transpose(M)`,
+see [`is_symmetric(M::MatrixElem)`](@ref).
+
+# Examples
+```jldoctest
+julia> M = matrix(GF(2), [0 1; 1 0])
+[0   1]
+[1   0]
+
+julia> is_symmetric(symmetric_form(M))
+true
+
+julia> is_symmetric(alternating_form(M))
+false
+```
 """
 is_symmetric(f::SesquilinearForm) = f.descr==:symmetric
 
@@ -261,7 +316,7 @@ end
 """
     corresponding_bilinear_form(Q::SesquilinearForm)
 
-Given a quadratic form `Q`, return the symmetric form with Gram matrix `B`
+Given a quadratic form `Q`, return the symmetric form `B`
 defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 
 # Examples
@@ -335,6 +390,14 @@ end
     gram_matrix(f::SesquilinearForm)
 
 Return the Gram matrix that defines `f`.
+
+# Examples
+```jldoctest
+julia> M = invariant_bilinear_forms(GO(3, 5))[1];
+
+julia> M == gram_matrix(symmetric_form(M))
+true
+```
 """
 function gram_matrix(f::SesquilinearForm)
    isdefined(f,:matrix) && return f.matrix
@@ -367,7 +430,18 @@ end
 """
     defining_polynomial(f::SesquilinearForm)
 
-Return the polynomial that defines `f`.
+Return the polynomial that defines `f`,
+where `f` must be a quadratic form.
+
+# Examples
+```jldoctest
+julia> g = GO(5, 2);
+
+julia> f = quadratic_form(invariant_quadratic_forms(g)[1]);
+
+julia> defining_polynomial(f)
+x1^2 + x2*x4 + x3*x5
+```
 """
 function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
@@ -534,6 +608,16 @@ witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(GapObj(f))
 
 Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic
 form is degenerate if the corresponding bilinear form is.
+
+# Examples
+```jldoctest
+julia> g = GO(5, 2);
+
+julia> f = symmetric_form(invariant_symmetric_forms(g)[1]);
+
+julia> is_degenerate(f)
+true
+```
 """
 function is_degenerate(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && return det(gram_matrix(f))==0
@@ -544,6 +628,16 @@ end
     is_singular(Q::SesquilinearForm{T})
 
 For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero radical.
+
+# Examples
+```jldoctest
+julia> G = GO(5, 2);
+
+julia> f = quadratic_form(invariant_quadratic_forms(G)[1]);
+
+julia> is_singular(f)
+false
+```
 """
 function is_singular(f::SesquilinearForm{T}) where T
    @req f.descr == :quadratic "The form is not quadratic"

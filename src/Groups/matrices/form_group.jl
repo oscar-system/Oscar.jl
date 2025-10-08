@@ -18,9 +18,17 @@
 """
     invariant_bilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of bilinear forms preserved by `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_bilinear_forms(G))
+2
+```
 """
 function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -44,12 +52,22 @@ end
 """
     invariant_sesquilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of sesquilinear forms
+preserved by the group `G`.
+
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_sesquilinear_forms(G))
+1
+```
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -75,9 +93,18 @@ end
 """
     invariant_quadratic_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
+Return a generating set for the vector space of quadratic forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_quadratic_forms(G))
+2
+```
 """
 function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -115,12 +142,21 @@ end
 """
     invariant_symmetric_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+Return a generating set for the vector space of symmetric forms
+preserved by the group `G`.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
     Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 3), 2)[1];
+
+julia> length(invariant_symmetric_forms(G))
+1
+```
 """
 invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) for x in invariant_quadratic_forms(G)]
 
@@ -129,9 +165,18 @@ invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) 
 """
     invariant_alternating_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of alternating forms preserved by the group `G`.
+Return a generating set for the vector space of alternating forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_alternating_forms(G))
+1
+```
 """
 function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -179,12 +224,21 @@ end
 """
     invariant_hermitian_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
+Return a generating set for the vector space of hermitian forms
+preserved by the group `G`.
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
+
+# Examples
+```jldoctest
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_hermitian_forms(G))
+1
+```
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -615,6 +669,16 @@ end
     isometry_group(f::SesquilinearForm{T})
 
 Return the group of isometries for the sesquilinear form `f`.
+
+# Examples
+```jldoctest
+julia> G = symplectic_group(4, 2);
+
+julia> f = alternating_form(invariant_alternating_forms(G)[1]);
+
+julia> isometry_group(f) == G
+true
+```
 """
 function isometry_group(f::SesquilinearForm{T}) where T
    B = gram_matrix(f)
