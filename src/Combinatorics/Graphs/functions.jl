@@ -10,7 +10,7 @@ function Base.:(==)(a::Graph{T}, b::Graph{T}) where {T <: Union{Directed, Undire
 end
 
 function Base.:(==)(a::MixedGraph, b::MixedGraph)
-  _directed_component(a) == _directed_component(b) &&
+  return _directed_component(a) == _directed_component(b) &&
     _undirected_component(a) == _undirected_component(b)
 end
 
@@ -19,8 +19,7 @@ function Base.hash(g::Graph, h::UInt)
 end
 
 function Base.hash(g::MixedGraph, h::UInt)
-  return hash(adjacency_matrix(_directed_component(g)),
-              hash(adjacency_matrix(_undirected_component(g)), h))
+  return hash(_directed_component(g), hash(_undirected_component(g), h))
 end
 
 _directed_component(G::MixedGraph) = G.directed_component
