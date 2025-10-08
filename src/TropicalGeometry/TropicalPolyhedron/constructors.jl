@@ -1,24 +1,30 @@
 const MinOrMax = Union{typeof(min), typeof(max)}
 
+@doc raw"""
+    TropicalPolyhedron{M<:MinOrMax}
+
+Type for tropical polyhedra in the tropical projective torus.
+
+See [`tropical_convex_hull(::MatElem{TropicalSemiringElem{M}})`](@ref) or
+[`tropical_polyhedron(::MatElem{TropicalSemiringElem{M}},::MatElem{TropicalSemiringElem{M}})](@ref) 
+for constructors.
+"""
 struct TropicalPolyhedron{M<:MinOrMax} <: PolyhedralObject{QQFieldElem}
   pm_tpolytope::Polymake.BigObject
 
-  @doc raw"""
-      TropicalPolyhedron{M}(p::Polymake.BigObject) where M<:MinOrMax
-
-  Constructs a `TropicalPolyhedron` corresponding to a `Polymake.BigObject` with tropical addition `M`.
-  """
   TropicalPolyhedron{M}(p::Polymake.BigObject) where {M<:MinOrMax} = new{M}(p)
 end
 
+@doc raw"""
+    TropicalPointConfiguration{M<:MinOrMax}
+
+Type for point configurations in the tropical projective torus.
+
+See [`tropical_point_configuration(::MatElem{TropicalSemiringElem{M}})`](@ref) for a constructor.
+"""
 struct TropicalPointConfiguration{M<:MinOrMax} <: PolyhedralObject{QQFieldElem}
   pm_tpolytope::Polymake.BigObject
 
-  @doc raw"""
-      TropicalPointConfiguration{M}(p::Polymake.BigObject) where M<:MinOrMax
-
-  Constructs a `TropicalPointConfiguration` corresponding to a `Polymake.BigObject` with tropical addition `M`.
-  """
   TropicalPointConfiguration{M}(p::Polymake.BigObject) where {M<:MinOrMax} = new{M}(p)
 end
 
