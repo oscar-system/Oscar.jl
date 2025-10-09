@@ -14,40 +14,43 @@
 ########################################################################
 
 """
-    multiplicative_jordan_decomposition(M::MatrixGroupElem)
+    multiplicative_jordan_decomposition(M::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
-    this is *NOT*, in general, equal to
-    `multiplicative_jordan_decomposition(matrix(M))`.
+    This is *NOT*, in general, equal to
+    `A, B = multiplicative_jordan_decomposition(matrix(M))`.
+    Note that `B * A` need not be equal to `matrix(M)`.
 
 # Examples
 ```jldoctest
 julia> m = matrix(GF(2), [0 0 1 1 0; 1 1 0 1 1; 1 0 1 0 0; 1 1 0 1 0; 0 1 1 0 0]);
 
-julia> g = GL(5, 2)(m);
+julia> M = GL(5, 2)(m);
 
-julia> A, B = multiplicative_jordan_decomposition(g)
+julia> S, U = multiplicative_jordan_decomposition(M)
 ([1 1 1 1 0; 0 0 0 1 1; 0 1 0 0 1; 1 1 0 1 0; 1 0 0 0 1], [1 0 1 0 1; 0 1 1 0 1; 1 1 1 0 0; 0 0 0 1 0; 1 1 0 0 1])
 
-julia> A * B == B * A == g
+julia> S * U == U * S == M
 true
 
-julia> is_semisimple(A) && is_unipotent(B)
+julia> is_semisimple(S) && is_unipotent(U)
 true
 
-julia> C, D = multiplicative_jordan_decomposition(m)
+julia> A, B = multiplicative_jordan_decomposition(m)
 ([0 0 1 1 0; 1 1 0 1 1; 0 1 1 0 0; 1 1 0 1 0; 1 0 1 0 0], [0 1 0 0 0; 1 0 0 0 0; 0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1])
+
+julia> B * A == m
+false
 ```
 """
-function multiplicative_jordan_decomposition(x::MatrixGroupElem)
+function multiplicative_jordan_decomposition(x::MatrixGroupElem{T}) where T <: FinFieldElem
    a = order(x)
    p = characteristic(base_ring(x))
    alpha = valuation(a,p)
    m = div(a, p^alpha)
    k = crt(ZZRingElem(0),ZZRingElem(p^alpha),ZZRingElem(1),ZZRingElem(m))
-#   a,b = multiplicative_jordan_decomposition(matrix(x))
    return x^k, x^(a+1-k)
 end
 
