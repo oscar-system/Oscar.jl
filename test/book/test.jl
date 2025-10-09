@@ -228,14 +228,12 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
-    osc_proj = dirname(Base.identify_package_env("Oscar")[2])
     try
       plots = mktempdir()
       Pkg.activate(plots; io=devnull)
       Pkg.add("Plots"; io=devnull)
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
-      pushfirst!(custom_load_path, osc_proj)
       # make sure stdlibs are in the load path (like in the normal repl)
       push!(custom_load_path, "@stdlib")
 

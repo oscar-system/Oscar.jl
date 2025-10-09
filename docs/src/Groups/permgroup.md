@@ -28,6 +28,10 @@ projective_unitary_group
 projective_special_unitary_group
 ```
 
+```@docs
+mathieu_group
+```
+
 ## Operations for permutation groups
 
 All operations, properties and attributes for general groups
@@ -113,6 +117,8 @@ smallest_moved_point
 largest_moved_point
 moved_points
 number_of_moved_points
+fixed_points
+number_of_fixed_points
 ```
 
 ## Cycle structures

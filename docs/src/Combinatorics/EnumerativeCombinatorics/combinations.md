@@ -25,7 +25,7 @@ julia> @time collect(combinations(Int8(20),10));
 ## Generating
 
 ```@docs
-combinations(n::IntegerUnion, k::IntegerUnion)
+combinations(n::T, k::T) where T<:IntegerUnion
 combinations(v::AbstractVector, k::IntegerUnion)
 ```
 

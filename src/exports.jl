@@ -627,6 +627,8 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
+export factoring_groebner_basis
+export factoring_standard_basis
 export factorizations
 export fano_matroid
 export fano_simplex
@@ -647,6 +649,7 @@ export fitting_ideal
 export fitting_subgroup
 export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
+export fixed_points
 export flag_pluecker_ideal
 export flats
 export forget_decoration
@@ -1331,6 +1334,7 @@ export number_of_complement_equations
 export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
+export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points

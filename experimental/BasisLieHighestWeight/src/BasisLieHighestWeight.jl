@@ -2,8 +2,12 @@ module BasisLieHighestWeight
 
 using ..Oscar
 using ..Oscar: IntegerUnion
-using ..Oscar: _is_weighted
 using ..Oscar: _root_system_type_string
+
+using ..Oscar.Orderings: _is_weighted
+using ..Oscar.Orderings: AbsGenOrdering
+using ..Oscar.Orderings: SymbOrdering
+using ..Oscar.Orderings: WSymbOrdering
 
 using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
 

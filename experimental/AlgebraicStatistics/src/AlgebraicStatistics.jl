@@ -1,3 +1,13 @@
+using Distributed: pmap
+
+# there will be more specific types of Dict that will
+# be coming in another AlgebraicStatisitics merge request
+# we should aggregate them and bring them into src where
+# they can be easily found and added to if necessary
+# leaving here for now
+include("DictTypes.jl")
+
+include("MultigradedImplicitization.jl")
 include("CI.jl")
 include("Markov.jl")
 include("GraphicalModels.jl")
@@ -40,3 +50,7 @@ export inverse_specialized_fourier_transform
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
+
+# Multigradedimplicitization
+export components_of_kernel
+export jacobian

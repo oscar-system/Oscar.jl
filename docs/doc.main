@@ -18,13 +18,13 @@
     "Combinatorics/phylogenetic_trees.md",
     "Enumerative combinatorics" => [
       "Combinatorics/EnumerativeCombinatorics/combinations.md",
+      "Combinatorics/EnumerativeCombinatorics/compositions.md",
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
       "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
-      "Combinatorics/EnumerativeCombinatorics/compositions.md",
+      "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md"
     ],
-    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
   ],
 
   "Groups" => [
@@ -305,10 +305,14 @@
   ],
 
   "Straight Line Programs" => [
-      "StraightLinePrograms/intro.md",
-      "StraightLinePrograms/gapslps.md",
-      "StraightLinePrograms/abstractalgebra.md",
+    "StraightLinePrograms/intro.md",
+    "StraightLinePrograms/gapslps.md",
+    "StraightLinePrograms/abstractalgebra.md",
    ],
+
+  "Experimental: Tools in the Making" => [
+    # rest is populated by code in docs/make_work.jl
+  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",

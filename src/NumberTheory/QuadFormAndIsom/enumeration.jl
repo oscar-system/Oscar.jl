@@ -956,7 +956,7 @@ function representatives_of_hermitian_type(
     allow_info && println("$(length(repre)) representative(s)")
     while !is_empty(repre)
       LL = pop!(repre)
-      push!(reps, integer_lattice_with_isometry(LL, f; check=false))
+      push!(reps, integer_lattice_with_isometry(LL, f; check=false, ambient_representation=false))
       first && return reps
     end
     return reps
@@ -2946,7 +2946,7 @@ function _divisors(d::T) where T <: RingElem
 
   res = T[]
   for b in Iterators.product(D...)
-    J = prod(B[i][1]^b[i] for i in 1:length(b))
+    J = prod(B[i][1]^b[i] for i in 1:length(b);init=one(d))
     push!(res, J)
   end
   return res

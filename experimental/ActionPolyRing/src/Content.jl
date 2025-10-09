@@ -134,7 +134,7 @@ end
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
 (apr::ActionPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
 (apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
-(apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(__upr(apr)(a))
+(apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
 ### Difference ###
 function (dpr::DifferencePolyRing{T})(a::DifferencePolyRingElem{T}) where {T}
@@ -184,9 +184,11 @@ zero(apr::ActionPolyRing) = apr()
 
 Return the multiplicitive identity of the action polynomial ring `A`.
 """
-one(apr::ActionPolyRing) = apr(one(__upr(apr)))
+one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
 
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
+base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = AbstractAlgebra.Generic.UniversalPolyRing{T}
+
+coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
 is_square(apre::ActionPolyRingElem) = is_square(data(apre))
 
@@ -196,7 +198,7 @@ is_irreducible(apre::ActionPolyRingElem) = is_irreducible(data(apre))
 
 is_unit(apre::ActionPolyRingElem) = is_unit(data(apre))
 
-characteristic(apr::ActionPolyRing) = characteristic(__upr(apr))
+characteristic(apr::ActionPolyRing) = characteristic(base_ring(apr))
 
 ###############################################################################
 #
@@ -225,7 +227,7 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 
 ##### Rings #####
 
-base_ring(apr::ActionPolyRing) = base_ring(__upr(apr))
+coefficient_ring(apr::ActionPolyRing) = coefficient_ring(base_ring(apr))
 
 @doc raw"""
     n_elementary_symbols(A::ActionPolyRing) -> Int
@@ -353,7 +355,7 @@ function to_univariate(apre::ActionPolyRingElem)
   end
   apr = parent(apre)
   x = symbols(apr)[var]
-  R, _ = base_ring(apr)[x]
+  R, _ = coefficient_ring(apr)[x]
   return to_univariate(R, apre)
 end
 
@@ -379,7 +381,7 @@ is valid but still untracked, return $0$. This method allows all versions descri
 """
 function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
-  upr = __upr(apr)
+  upr = base_ring(apr)
   @req __is_valid_jet(apr, i, jet) "Invalid jet variable"
   if is_zero(apre)
     return -1
@@ -553,9 +555,9 @@ julia> gens(dpr)
 """
 gens(apr::ActionPolyRing) = sort!(collect(values(deepcopy(__jtv(apr)))); rev = true)
 
-number_of_generators(apr::ActionPolyRing) = number_of_generators(__upr(apr))
+number_of_generators(apr::ActionPolyRing) = number_of_generators(base_ring(apr))
 
-number_of_variables(apr::ActionPolyRing) = number_of_variables(__upr(apr))
+number_of_variables(apr::ActionPolyRing) = number_of_variables(base_ring(apr))
 
 @doc raw"""
     getindex(A::ActionPolyRing, i::Int, jet::Vector{Int})
@@ -729,7 +731,7 @@ function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
     old_to_new_pos[jtu[(i, idx)]] = new_idx
   end 
 
-  upr = __upr(dpr)
+  upr = base_ring(dpr)
   upre = data(dpre)
   C = MPolyBuildCtx(upr)
 
@@ -778,7 +780,7 @@ function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
     old_to_new_pos[jtu[(i, idx)]] = new_idx
   end 
   
-  upr = __upr(dpr)
+  upr = base_ring(dpr)
   upre = data(dpre)
   C = MPolyBuildCtx(upr)
 
@@ -948,7 +950,7 @@ Base.iterate(x::ActionPolyTerms, state=0) = __iter_helper(term, x.poly, state)
 
 Base.length(x::Union{ActionPolyCoeffs, ActionPolyExponentVectors, ActionPolyMonomials, ActionPolyTerms}) = length(x.poly)
 
-Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT<:ActionPolyRingElem} = elem_type(base_ring_type(PolyT))
+Base.eltype(::Type{ActionPolyCoeffs{PolyT}}) where {PolyT<:ActionPolyRingElem} = elem_type(coefficient_ring_type(PolyT))
 Base.eltype(::Type{ActionPolyExponentVectors{PolyT}}) where {PolyT<:ActionPolyRingElem} = Vector{Int}
 Base.eltype(::Type{ActionPolyMonomials{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT
 Base.eltype(::Type{ActionPolyTerms{PolyT}}) where {PolyT<:ActionPolyRingElem} = PolyT
@@ -974,7 +976,7 @@ AbstractAlgebra.promote_rule(::Type{PolyT}, ::Type{PolyT}) where
 ###############################################################################
 
 rand(rng::AbstractRNG, apr::ActionPolyRing, term_range::AbstractUnitRange{Int},
-     exp_bound::AbstractUnitRange{Int}, v...) = apr(rand(rng, __upr(apr), term_range, exp_bound, v...))
+     exp_bound::AbstractUnitRange{Int}, v...) = apr(rand(rng, base_ring(apr), term_range, exp_bound, v...))
 
 rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng(), apr, term_range, exp_bound, v...)
 
@@ -993,7 +995,7 @@ ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem}) = rand(R, 0:
 #
 ###############################################################################
 
-symbols(apr::ActionPolyRing) = symbols(__upr(apr))[__perm_for_sort(apr)]
+symbols(apr::ActionPolyRing) = symbols(base_ring(apr))[__perm_for_sort(apr)]
 
 canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 
@@ -1013,7 +1015,7 @@ data(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.p
 __is_perm_up_to_date(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.is_perm_up_to_date
 
 # Ring getters
-__upr(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.upoly_ring
+base_ring(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.upoly_ring
 __jtv(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_var::Dict{Tuple{Int, Vector{Int}}, elem_type(dpr)}
 __vtj(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.var_to_jet::Dict{elem_type(dpr), Tuple{Int, Vector{Int}}}
 __jtu_idx(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.jet_to_upoly_idx
@@ -1052,7 +1054,7 @@ function __set_is_perm_up_to_date!(dpre::Union{DifferencePolyRingElem, Different
 end
 
 function __set_perm_for_sort!(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
-    dpr.permutation = sortperm(dpr.(gens(__upr(dpr))); rev = true)
+    dpr.permutation = sortperm(dpr.(gens(base_ring(dpr))); rev = true)
     __set_are_perms_up_to_date!(dpr, true)
 end
 
@@ -1087,7 +1089,7 @@ __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_element
 function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
   s_vec = map(jet_idx -> string(elementary_symbols(apr)[jet_idx[1]]) * "[" * join(jet_idx[2], ",") * "]", jet_idxs)::Vector{String}
-  upr = __upr(apr)
+  upr = base_ring(apr)
   ng = ngens(upr)
   new_vars = apr.(gens(upr, s_vec))
   for k in 1:length(new_vars)
