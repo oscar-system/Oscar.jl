@@ -222,8 +222,8 @@ end
   @test number_of_maximal_cones(sff1) == 3
 end
 
-@testset "Operations" begin
-  f = normal_fan(cube(2))
+@testset "Transformations" for P in (cube(2), dodecahedron(), n_gon(5))
+  f = normal_fan(P)
   fMinus = -f
   @test n_rays(fMinus) == n_rays(f)
   @test n_maximal_cones(fMinus) == n_maximal_cones(f)

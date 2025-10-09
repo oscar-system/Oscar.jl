@@ -152,9 +152,9 @@
     end
   end
 
-  @testset "Operators" begin
-    PC = polyhedral_complex(normal_fan(cube(2)))
-    PCshifted = PC + [1, 1]
+  @testset "Transformations" for P in (cube(2), dodecahedron(), n_gon(5))
+    PC = polyhedral_complex(normal_fan(P))
+    PCshifted = PC + fill(1, dim(P))
     @test dim(PCshifted) == dim(PC)
     @test ambient_dim(PCshifted) == ambient_dim(PC)
     @test lineality_dim(PCshifted) == lineality_dim(PC)
@@ -172,7 +172,7 @@
     @test dim(PCnegated) == dim(PCshifted)
     @test ambient_dim(PCnegated) == ambient_dim(PCshifted)
     @test lineality_dim(PCnegated) == lineality_dim(PCshifted)
-    @test issetequal(rays(PCnegated), rays(PCshifted))
+    @test issetequal(rays(PCnegated), -1 .* rays(PCshifted))
     @test n_maximal_polyhedra(PCnegated) == n_maximal_polyhedra(PCshifted)
   end
 end
