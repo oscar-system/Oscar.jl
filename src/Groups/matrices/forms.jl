@@ -5,19 +5,17 @@
 
 
 # descr is always defined
-# matrix is always defined except when descr="quadratic"; in such a case, at least one of matrix and pol is defined
+# matrix is always defined
 # NOTE: the field ring_iso is always defined if the field X is
 """
     SesquilinearForm{T<:RingElem}
 
 Type of alternating and symmetric bilinear forms, hermitian forms,
-and quadratic forms, defined by a Gram matrix
-(or, in the case of a quadratic form, alternatively by a polynomial).
+defined by a Gram matrix.
 """
 mutable struct SesquilinearForm{T<:RingElem}
    matrix::MatElem{T}
-   descr::Symbol       # quadratic, symmetric, alternating or hermitian
-   pol::MPolyRingElem{T}     # only for quadratic forms
+   descr::Symbol       # symmetric, alternating or hermitian
    X::GapObj
    ring_iso::MapFromFunc
 
@@ -28,30 +26,46 @@ mutable struct SesquilinearForm{T<:RingElem}
          @assert is_symmetric(B) "The matrix is not symmetric"
       elseif sym==:alternating
          @assert is_alternating(B) "The matrix does not correspond to an alternating form"
-      elseif sym != :quadratic
+      else
          error("Unsupported description")
       end
 
-      if sym==:quadratic
-         return new{T}(_upper_triangular_version(B),sym)
-      else
-         return new{T}(B,sym)
-      end
-   end
-
-   function SesquilinearForm{T}(f::MPolyRingElem{T},sym) where T
-      @assert sym==:quadratic "Only quadratic forms are described by polynomials"
-      @assert Set([total_degree(x) for x in AbstractAlgebra.monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
-      r = new{T}()
-      r.pol = f
-      r.descr = :quadratic
-      return r
+      return new{T}(B,sym)
    end
 end
 
 SesquilinearForm(B::MatElem{T}, sym) where T = SesquilinearForm{T}(B,sym)
-SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
+
+# descr is always defined
+# at least one of matrix and pol is defined
+# NOTE: the field ring_iso is always defined if the field X is
+"""
+    QuadraticForm{T<:RingElem}
+
+Type of quadratic forms, defined by a Gram matrix or by a polynomial.
+"""
+mutable struct QuadraticForm{T<:RingElem}
+   matrix::MatElem{T}
+   descr::Symbol  # perhaps unnecessary
+   pol::MPolyRingElem{T}
+   X::GapObj
+   ring_iso::MapFromFunc
+
+   function QuadraticForm{T}(B::MatElem{T}) where T
+      return new{T}(_upper_triangular_version(B))
+   end
+
+   function QuadraticForm{T}(f::MPolyRingElem{T}) where T
+      @assert Set([total_degree(x) for x in AbstractAlgebra.monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
+      r = new{T}()
+      r.pol = f
+      return r
+   end
+end
+
+QuadraticForm(B::MatElem{T}) where T = QuadraticForm{T}(B)
+QuadraticForm(f::MPolyRingElem{T}) where T = QuadraticForm{T}(f)
 
 
 ########################################################################
@@ -109,6 +123,7 @@ is_hermitian(f::SesquilinearForm) = f.descr==:hermitian
 
 """
     is_quadratic(f::SesquilinearForm)
+    is_quadratic(f::QuadraticForm)
 
 Return whether `f` has been created as a quadratic form.
 
@@ -122,7 +137,9 @@ julia> is_quadratic(quadratic_form(M))
 true
 ```
 """
-is_quadratic(f::SesquilinearForm) = f.descr==:quadratic
+is_quadratic(f::SesquilinearForm) = false
+is_quadratic(f::QuadraticForm) = true
+#T needed?
 
 """
     is_symmetric(f::SesquilinearForm)
@@ -242,7 +259,7 @@ julia> describe(isometry_group(f))
 "D8"
 ```
 """
-quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadratic)
+quadratic_form(B::MatElem{T}) where T <: FieldElem = QuadraticForm(B)
 
 """
     quadratic_form(f::MPolyRingElem{T}; check=true)
@@ -265,15 +282,15 @@ julia> describe(isometry_group(f))
 "D8"
 ```
 """
-quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
+quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = QuadraticForm(f)
 # TODO : neither is_homogeneous or is_homogeneous works for variables of type MPolyRingElem{T}
 
-# just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
+# just to allow quadratic forms over vector spaces of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyRingElem{T}) where T <: FieldElem
    @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homogeneous of degree 2"
    R1 = polynomial_ring(base_ring(f), [string(parent(f).S)]; cached=false)[1]
 
-   return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
+   return QuadraticForm(R1[1]^2*coefficients(f)[2])
 end
 
 ########################################################################
@@ -282,14 +299,15 @@ end
 #
 ########################################################################
 
-
 function Base.show(io::IO, f::SesquilinearForm)
    println(io, "$(f.descr) form with Gram matrix")
    show(io, "text/plain", gram_matrix(f))
 end
 
-
-
+function Base.show(io::IO, f::QuadraticForm)
+   println(io, "quadratic form with Gram matrix")
+   show(io, "text/plain", gram_matrix(f))
+end
 
 ########################################################################
 #
@@ -299,25 +317,26 @@ end
 
 #TODO: checking whether two quadratic forms coincide by checking their polynomials is not possible yet.
 ==(B::SesquilinearForm, C::SesquilinearForm) = B.descr == C.descr && gram_matrix(B) == gram_matrix(C)
+==(B::QuadraticForm, C::QuadraticForm) = gram_matrix(B) == gram_matrix(C)
 
-function Base.hash(f::SesquilinearForm, h::UInt)
+function Base.hash(f::Union{SesquilinearForm, QuadraticForm}, h::UInt)
    b = 0xf64440baac005f8c % UInt
    h = hash(f.descr, h)
    h = hash(gram_matrix(f), h)
    return xor(h, b)
 end
 
-function base_ring(B::SesquilinearForm)
-   if isdefined(B,:matrix) return base_ring(gram_matrix(B))
-   else return base_ring(B.pol)
-   end
+base_ring(B::SesquilinearForm) = base_ring(gram_matrix(B))
+
+function base_ring(B::QuadraticForm)
+   isdefined(B,:matrix) && return base_ring(gram_matrix(B))
+   return base_ring(B.pol)
 end
 
 """
-    corresponding_bilinear_form(Q::SesquilinearForm)
+    corresponding_bilinear_form(Q::QuadraticForm)
 
-Given a quadratic form `Q`, return the symmetric form `B`
-defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
+Return the symmetric form `B` defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 
 # Examples
 ```jldoctest; filter = r"[0-9]"
@@ -334,12 +353,11 @@ symmetric form with Gram matrix
 [0   0   2]
 ```
 """
-function corresponding_bilinear_form(B::SesquilinearForm)
-   @req B.descr==:quadratic "The form must be a quadratic form"
-   M = gram_matrix(B)+transpose(gram_matrix(B))
-   if characteristic(base_ring(B))==2 return alternating_form(M)
-   else return symmetric_form(M)
-   end
+function corresponding_bilinear_form(Q::QuadraticForm)
+   gram = gram_matrix(Q)
+   M = gram + transpose(gram)
+   characteristic(base_ring(Q)) == 2 && return alternating_form(M)
+   return symmetric_form(M)
 end
 
 """
@@ -388,6 +406,7 @@ end
 
 """
     gram_matrix(f::SesquilinearForm)
+    gram_matrix(f::QuadraticForm)
 
 Return the Gram matrix that defines `f`.
 
@@ -397,12 +416,18 @@ julia> M = invariant_bilinear_forms(GO(3, 5))[1];
 
 julia> M == gram_matrix(symmetric_form(M))
 true
+
+julia> M = invariant_quadratic_forms(GO(3, 5))[1];
+
+julia> M == gram_matrix(quadratic_form(M))
+true
 ```
 """
-function gram_matrix(f::SesquilinearForm)
-   isdefined(f,:matrix) && return f.matrix
+gram_matrix(f::SesquilinearForm) = f.matrix
 
-   @req f.descr==:quadratic && isdefined(f,:pol) "Cannot determine Gram matrix"
+function gram_matrix(f::QuadraticForm)
+   isdefined(f,:matrix) && return f.matrix
+   @req isdefined(f,:pol) "Cannot determine Gram matrix"
    d = nvars(parent(f.pol))
    B = zero_matrix( base_ring(f.pol), d, d )
    V = collect(AbstractAlgebra.exponent_vectors(f.pol))
@@ -428,10 +453,9 @@ function gram_matrix(f::SesquilinearForm)
 end
 
 """
-    defining_polynomial(f::SesquilinearForm)
+    defining_polynomial(f::QuadraticForm)
 
-Return the polynomial that defines `f`,
-where `f` must be a quadratic form.
+Return the polynomial that defines `f`.
 
 # Examples
 ```jldoctest
@@ -443,10 +467,8 @@ julia> defining_polynomial(f)
 x1^2 + x2*x4 + x3*x5
 ```
 """
-function defining_polynomial(f::SesquilinearForm)
+function defining_polynomial(f::QuadraticForm)
    isdefined(f,:pol) && return f.pol
-
-   @req f.descr == :quadratic "Polynomial defined only for quadratic forms"
    R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix); cached=false)[1]
    p = zero(R)
    for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
@@ -458,9 +480,7 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-  if f.descr == :quadratic
-    f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
-  elseif f.descr == :symmetric || f.descr == :alternating
+  if f.descr == :symmetric || f.descr == :alternating
     f.X = GAP.Globals.BilinearFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
   elseif f.descr == :hermitian
     f.X = GAP.Globals.HermitianFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
@@ -469,18 +489,19 @@ function assign_from_description(f::SesquilinearForm)
   end
 end
 
+function assign_from_description(f::QuadraticForm)
+  f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+end
 
-function _ring_iso(f::SesquilinearForm)
+function _ring_iso(f::Union{SesquilinearForm, QuadraticForm})
   if !isdefined(f, :ring_iso)
       f.ring_iso = iso_oscar_gap(base_ring(f))
   end
   return f.ring_iso
 end
 
-GAP.@install function GapObj(f::SesquilinearForm)
-  if !isdefined(f, :X)
-    assign_from_description(f)
-  end
+GAP.@install function GapObj(f::Union{SesquilinearForm, QuadraticForm})
+  !isdefined(f, :X) && assign_from_description(f)
   return f.X
 end
 
@@ -494,16 +515,23 @@ end
 function Base.:*(f::SesquilinearForm, l::FieldElem)
    @req l != 0 "Zero is not admitted"
    @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
+   return SesquilinearForm(l*gram_matrix(f), f.descr)
+end
+
+function Base.:*(f::QuadraticForm, l::FieldElem)
+   @req l != 0 "Zero is not admitted"
+   @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
    if !isdefined(f,:matrix)
       return SesquilinearForm(l*f.pol, f.descr)
    else
-      g = SesquilinearForm(l*gram_matrix(f), f.descr)
+      g = QuadraticForm(l*gram_matrix(f), f.descr)
       if isdefined(f,:pol) g.pol=f.pol end
+#T really???
       return g
    end
 end
 
-Base.:*(l::FieldElem, f::SesquilinearForm) = f*l
+Base.:*(l::FieldElem, f::Union{SesquilinearForm, QuadraticForm}) = f*l
 
 function Base.:^(f::SesquilinearForm{T}, x::MatElem{T}; check=false) where T <: RingElem
    @req base_ring(f)==base_ring(x) "Incompatible base rings"
@@ -518,11 +546,18 @@ function Base.:^(f::SesquilinearForm{T}, x::MatElem{T}; check=false) where T <: 
    return SesquilinearForm(m, f.descr)
 end
 
-Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
+function Base.:^(f::QuadraticForm{T}, x::MatElem{T}; check=false) where T <: RingElem
+   @req base_ring(f)==base_ring(x) "Incompatible base rings"
+   @req nrows(gram_matrix(f))==nrows(x) "Incompatible dimensions"
+
+   if check @assert rank(x)==nrows(x) "Matrix not invertible" end
+    m = x^-1*gram_matrix(f)*transpose(x^-1)
+   return QuadraticForm(m)
+end
+
+Base.:^(f::Union{SesquilinearForm{T}, QuadraticForm{T}}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
-   @req f.descr!=:quadratic "Quadratic forms requires only one argument"
-
    if f.descr==:hermitian
       w = conjugate_transpose(w.v)
    else
@@ -531,8 +566,7 @@ function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w
    return v.v*gram_matrix(f)*w
 end
 
-function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
-   @req f.descr==:quadratic "Sesquilinear forms requires two arguments"
+function (f::QuadraticForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    return v.v*gram_matrix(f)*transpose(v.v)
 end
 
@@ -546,6 +580,7 @@ end
 
 """
     radical(f::SesquilinearForm{T})
+    radical(f::QuadraticForm{T})
 
 Return `(U, emb)` where `U` is the radical of `f` and `emb` is the
 embedding of `U` into the full vector space on which `f` is defined.
@@ -569,7 +604,7 @@ julia> vector_space_dim(U)
 1
 ```
 """
-function radical(f::SesquilinearForm{T}) where T
+function radical(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
    V = vector_space(base_ring(f), nrows(gram_matrix(f)) )
    R = GAP.Globals.RadicalOfForm(GapObj(f))
    GAPWrap.Dimension(R) == 0 && return sub(V, [])
@@ -582,7 +617,8 @@ function radical(f::SesquilinearForm{T}) where T
 end
 
 """
-    witt_index(f::SesquilinearForm{T})
+    witt_index(f::SesquilinearForm)
+    witt_index(f::QuadraticForm)
 
 Return the Witt index of the form induced by `f` on `V/Rad(f)`.
 The Witt index is the dimension of a maximal totally isotropic
@@ -601,13 +637,14 @@ julia> witt_index(quadratic_form(invariant_quadratic_forms(g)[1]))
 2
 ```
 """
-witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(GapObj(f))
+witt_index(f::Union{SesquilinearForm, QuadraticForm}) = GAP.Globals.WittIndex(GapObj(f))
 
 """
-    is_degenerate(f::SesquilinearForm{T})
+    is_degenerate(f::SesquilinearForm)
+    is_degenerate(f::QuadraticForm)
 
-Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic
-form is degenerate if the corresponding bilinear form is.
+Return whether `f` is degenerate, i.e. `f` has nonzero radical.
+A quadratic form is degenerate if the corresponding bilinear form is.
 
 # Examples
 ```jldoctest
@@ -619,15 +656,17 @@ julia> is_degenerate(f)
 true
 ```
 """
-function is_degenerate(f::SesquilinearForm{T}) where T
-   f.descr != :quadratic && return det(gram_matrix(f))==0
-   return det(gram_matrix(f)+transpose(gram_matrix(f)))==0
+is_degenerate(f::SesquilinearForm) = det(gram_matrix(f)) == 0
+
+function is_degenerate(f::QuadraticForm)
+   gram = gram_matrix(f)
+   return det(gram + transpose(gram)) == 0
 end
 
 """
-    is_singular(Q::SesquilinearForm{T})
+    is_singular(Q::QuadraticForm)
 
-For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero radical.
+Return whether `Q` is singular, i.e. `Q` has nonzero radical.
 
 # Examples
 ```jldoctest
@@ -639,8 +678,4 @@ julia> is_singular(f)
 false
 ```
 """
-function is_singular(f::SesquilinearForm{T}) where T
-   @req f.descr == :quadratic "The form is not quadratic"
-   return GAPWrap.IsSingularForm(GapObj(f))
-end
-
+is_singular(f::QuadraticForm) = GAPWrap.IsSingularForm(GapObj(f))

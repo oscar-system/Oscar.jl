@@ -167,19 +167,21 @@ is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
 is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 ```
 
-## Sesquilinear forms
+## Sesquilinear and quadratic forms
 
 Sesquilinear forms are alternating and symmetric bilinear forms,
-hermitian forms, and quadratic forms.
+and hermitian forms.
 
 Sesquilinear forms in OSCAR have the type
 [`SesquilinearForm{T<:RingElem}`](@ref).
+Quadratic forms in OSCAR have the type
+[`QuadraticForm{T<:RingElem}`](@ref).
 
-A sesquilinear form can be created
-[from its Gram matrix](@ref "Create sesquilinear forms from Gram matrices")
+A sesquilinear or quadratic form can be created
+[from its Gram matrix](@ref "Create sesquilinear and quadratic forms from Gram matrices")
 or [as an invariant form of a matrix group](@ref "Invariant forms").
 
-## Create sesquilinear forms from Gram matrices
+## Create sesquilinear and quadratic forms from Gram matrices
 
 ```@docs
 alternating_form(B::MatElem{T}) where T <: FieldElem
@@ -191,7 +193,8 @@ quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem
 
 ## Invariant forms
 
-The following functions compute (Gram matrices of) sesquilinear forms
+The following functions compute (Gram matrices of)
+sesquilinear and quadratic forms
 that are invariant under the given matrix group.
 
 ```@docs
@@ -209,21 +212,20 @@ preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
 orthogonal_sign(G::MatrixGroup)
 ```
 
-## Functions for sesquilinear forms
+## Functions for sesquilinear and quadratic forms
 
 ```@docs
 is_alternating(f::SesquilinearForm)
 is_hermitian(f::SesquilinearForm)
-is_quadratic(f::SesquilinearForm)
 is_symmetric(f::SesquilinearForm)
-corresponding_bilinear_form(B::SesquilinearForm)
+corresponding_bilinear_form(Q::QuadraticForm)
 corresponding_quadratic_form(B::SesquilinearForm)
 gram_matrix(f::SesquilinearForm)
-defining_polynomial(f::SesquilinearForm)
+defining_polynomial(f::QuadraticForm)
 radical(f::SesquilinearForm{T}) where T
-witt_index(f::SesquilinearForm{T}) where T
-is_degenerate(f::SesquilinearForm{T}) where T
-is_singular(f::SesquilinearForm{T}) where T
+witt_index(f::SesquilinearForm)
+is_degenerate(f::SesquilinearForm)
+is_singular(f::QuadraticForm)
 is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 isometry_group(f::SesquilinearForm{T}) where T
 ```
@@ -253,4 +255,5 @@ MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
 SesquilinearForm{T<:RingElem}
+QuadraticForm{T<:RingElem}
 ```

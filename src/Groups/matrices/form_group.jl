@@ -558,7 +558,7 @@ the user may need to execute the operation more than once to find all invariant 
 """
 function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedQuadraticForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = QuadraticForm{S}[]
    for f_gap in L
       f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
@@ -666,9 +666,10 @@ end
 
 
 """
-    isometry_group(f::SesquilinearForm{T})
+    isometry_group(f::SesquilinearForm{T}) where T
+    isometry_group(f::QuadraticForm{T}) where T
 
-Return the group of isometries for the sesquilinear form `f`.
+Return the group of isometries for `f`.
 
 # Examples
 ```jldoctest
@@ -680,13 +681,13 @@ julia> isometry_group(f) == G
 true
 ```
 """
-function isometry_group(f::SesquilinearForm{T}) where T
+function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
    B = gram_matrix(f)
    n = nrows(B)
    F = base_ring(B)
    r=n
 
-   if f.descr==:quadratic
+   if f isa QuadraticForm
       W,phi = radical(f)
       V = vector_space(F,n)
       U,e = complement(V,W)
@@ -706,30 +707,41 @@ function isometry_group(f::SesquilinearForm{T}) where T
    end
 
    if r<n
-      fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      if f isa QuadraticForm
+         fn = QuadraticForm(C[1:r, 1:r])
+      else
+         fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      end
    else
       fn = f
    end
 
    e=0
-   if (fn.descr==:quadratic || fn.descr==:symmetric) && iseven(r)
+   if (fn isa QuadraticForm || fn.descr==:symmetric) && iseven(r)
       if witt_index(fn)== div(r,2)
          e = 1
       else
          e = -1
       end
    end
-   Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+
+   if fn isa QuadraticForm
+      Xf = is_congruent(QuadraticForm(preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(QuadraticForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      end
+   else
+      Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
-   if Xf === nothing && isodd(r)
-      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      end
    end
 
-
-   if f.descr === :hermitian
+   if f isa SesquilinearForm && f.descr === :hermitian
       G = GU(r,Int(characteristic(F)^div(degree(F),2)))
-   elseif f.descr === :alternating
+   elseif f isa SesquilinearForm && f.descr === :alternating
       G = Sp(r, F)
    elseif isodd(r)
       G = GO(0,r,F)
