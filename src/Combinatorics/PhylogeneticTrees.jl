@@ -472,10 +472,17 @@ end
      leaves(tree::PhylogeneticTree)
 
 Return the indices of the leaves of the `PhylogeneticTree`.
+
 # Examples
-
 ```jldoctest
+julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
+julia> leaves(ptree)
+4-element Vector{Int64}:
+ 3
+ 5
+ 6
+ 7
 ```
 """
 leaves(pt::PhylogeneticTree) = findall(iszero, outdegree(adjacency_tree(pt)))
