@@ -505,7 +505,7 @@ function basis_coordinate_ring_kodaira(
 end
 
 @doc raw"""
-    basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int)
 
 Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
 of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
@@ -943,7 +943,7 @@ function basis_coordinate_ring_kodaira_demazure(
 end
 
 @doc raw"""
-    basis_coordinate_ring_kodaira_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int)
 
 Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
 of the Kodaira embedding of a Schubert variety into the projective space of the Demazure module
