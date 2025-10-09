@@ -416,7 +416,7 @@ function Base.hash(G::IdealGens, h::UInt)
   h = hash(isdefined(G, :ord), h)
   h = hash(G.isGB, h)
   if isdefined(G, :ord)
-    h = hash(h, G.ord)
+    h = hash(G.ord, h)
   end
   h = hash(G.gensBiPolyArray, h)
   return h

@@ -1,0 +1,10 @@
+[
+   "Action Polynomial Rings" => [
+      "introduction.md",
+      "action_polynomial_rings.md",
+      "difference_polynomial_rings.md",
+      "differential_polynomial_rings.md",
+      "rankings.md"
+   ],  
+]
+

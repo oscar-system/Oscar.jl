@@ -11,8 +11,6 @@ DocTestSetup = Oscar.doctestsetup()
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.
 
 ```@docs
-PermGroup
-PermGroupElem
 symmetric_group
 alternating_group
 permutation_group
@@ -132,4 +130,11 @@ sign(::CycleType)
 
 ```@docs
 cycle_structures(G::PermGroup)
+```
+
+## Technicalities
+
+```@docs
+PermGroup
+PermGroupElem
 ```

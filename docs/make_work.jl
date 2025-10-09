@@ -61,7 +61,8 @@ add_prefix_to_experimental_docs(Oscar::Module, docs::Vector{T}, prefix::String) 
 
 
 function setup_experimental_package(Oscar::Module, package_name::String)
-  doc_main_path = joinpath(Oscar.oscardir, "experimental", package_name, "docs/doc.main")
+  oscardir = Base.pkgdir(Oscar)
+  doc_main_path = joinpath(oscardir, "experimental", package_name, "docs", "doc.main")
   if !isfile(doc_main_path)
     return []
   end
@@ -69,7 +70,7 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   # Assumes that a symbolic link from `experimental/package_name/docs/src`
   # to `docs/src/Experimental/package_name` has been created (or there is no
   # documentation for this package)
-  if !ispath(joinpath(Oscar.oscardir, "docs/src/Experimental", package_name))
+  if !ispath(joinpath(oscardir, "docs", "src", "Experimental", package_name))
     return []
   end
 
@@ -94,9 +95,10 @@ function doit(
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
 )
+  oscardir = Base.pkgdir(Oscar)
 
   # include the list of pages, performing substitutions
-  s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
+  s = read(joinpath(oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
 
   # Link experimental docs to `docs/src` and collect the documentation pages
@@ -112,14 +114,14 @@ function doit(
 
   # Load the bibliography
   bib = CitationBibliography(
-    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
+    joinpath(oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
   # Copy documentation from Hecke, Nemo, AbstractAlgebra
   other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
   for pkg in other_packages
     srcbase = normpath(Base.pkgdir(pkg), "docs", "src")
-    dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
+    dstbase = normpath(oscardir, "docs", "src", string(nameof(pkg)))
 
     # clear the destination directory first
     rm(dstbase; recursive=true, force=true)
@@ -162,7 +164,7 @@ function doit(
   heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
   singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
 
-  cd(joinpath(Oscar.oscardir, "docs")) do
+  cd(joinpath(oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive=true)
     DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra); recursive=true)
@@ -200,12 +202,12 @@ function doit(
 
   # remove the copied documentation again
   for pkg in other_packages
-    dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
+    dstbase = normpath(oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
   
   # postprocessing, for the search index
-  docspath = normpath(joinpath(Oscar.oscardir, "docs"))
+  docspath = normpath(joinpath(oscardir, "docs"))
   @info "Patching search index."
   # extract valid json from search_index.js
   run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it

@@ -919,7 +919,7 @@ julia> HSRing1,_ = polynomial_ring(ZZ, :t);
 julia> Oscar.HSNum_abbott(RmodI, HSRing1)
 -t^9 + 3*t^6 - 3*t^3 + 1
 
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z], [1 2 3; 3 2 1])
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z]; weights = [1 2 3; 3 2 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
