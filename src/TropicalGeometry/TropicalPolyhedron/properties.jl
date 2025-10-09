@@ -138,7 +138,7 @@ function points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {
 end
 
 @doc raw"""
-    n_vertices(P::TropicalPointConfiguration)
+    n_points(P::TropicalPointConfiguration)
 
 Return the number of points of `P`.
 
