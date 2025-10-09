@@ -898,7 +898,7 @@ function basis_coordinate_ring_kodaira_demazure(
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   degree::Int;
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
@@ -915,7 +915,7 @@ function basis_coordinate_ring_kodaira_demazure(
   weyl_group_elem::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Int};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
@@ -932,7 +932,7 @@ function basis_coordinate_ring_kodaira_demazure(
   weyl_group_elem::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Vector{Int}};
-  monomial_ordering::Symbol=:degrevlex,
+  monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
 )
   L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
