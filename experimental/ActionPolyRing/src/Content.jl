@@ -243,7 +243,6 @@ Return the elementary symbols of the action polynomial ring `A` as a vector.
 """
 elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
 
-
 @doc raw"""
     n_action_maps(A::ActionPolyRing) -> Int
 
@@ -308,56 +307,6 @@ is_monomial(apre::ActionPolyRingElem) = is_monomial(data(apre))
 Return `true` if `p` is a term, i.e. a non-zero multiple of a monomial, and `false` otherwise.
 """
 is_term(apre::ActionPolyRingElem) = is_term(data(apre))
-
-@doc raw"""
-    is_univariate(p::ActionPolyRingElem)
-
-Return `true` if `p` is a polynomial in a single jet variable and `false` otherwise.
-"""
-is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
-
-function is_univariate_with_data(apre::ActionPolyRingElem)
-  flag, gen_idx = is_univariate_with_data(data(apre))
-  if is_zero(gen_idx)
-    return (flag, gen_idx)
-  end
-  return (flag, findfirst(==(gen_idx), __perm_for_sort(parent(apre))))
-end
-
-@doc raw"""
-    is_univariate(p::ActionPolyRing)
-
-Return `false`, since an action polynomial ring cannot be univariate.
-"""
-is_univariate(apr::ActionPolyRing) = false
-
-@doc raw"""
-    to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
-
-Assuming the polynomial `p` is actually a univariate polynomial, convert the polynomial to a univariate polynomial in the
-given univariate polynomial ring `R`. An exception is raised if the polynomial `p` involves more than one jet variable.
-"""
-to_univariate(R::PolyRing{T}, apre::ActionPolyRingElem{T}) where {T <: RingElement} = to_univariate(R, data(apre))
-
-@doc raw"""
-    to_univariate(p::ActionPolyRingElem)
-
-Assuming the polynomial `p` is actually a univariate polynomial in the jet variable `x`, convert the polynomial to a univariate
-polynomial in a univariate polynomial ring over the same base ring in the variable `x`. If `p` is constant, it is considered
-to be a polynomial in the largest tracked jet variable of its parent. An exception is raised if the polynomial `p` involves
-more than one jet variable.
-"""
-function to_univariate(apre::ActionPolyRingElem)
-  flag, var = is_univariate_with_data(apre)
-  flag || error("Polynomial is not univariate.")
-  if is_zero(var)
-    var = 1
-  end
-  apr = parent(apre)
-  x = symbols(apr)[var]
-  R, _ = coefficient_ring(apr)[x]
-  return to_univariate(R, apre)
-end
 
 @doc raw"""
     length(p::ActionPolyRingElem) -> Int
@@ -691,6 +640,24 @@ derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre)
     diff_action(p::DifferencePolyRingElem, i::Int)
 
 Apply the `i`-th endomorphism to the polynomial `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
+
+julia> diff_action(3*a, 1)
+3*a[1,0]
+
+julia> diff_action(3*a, 2)
+3*a[0,1]
+
+julia> diff_action(f, 1)
+(3*b[1,0]^2 - 2*b[1,0])*a[1,0]
+
+julia> diff_action(f, 2)
+(3*b[0,1]^2 - 2*b[0,1])*a[0,1]
+```
 """
 function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
@@ -704,6 +671,24 @@ end
     diff_action(p::DifferentialPolyRingElem, i::Int)
 
 Apply the `i`-th derivation to the polynomial `p`.
+
+# Examples
+
+```jldoctests
+julia> dpr, (a,b,c) = differential_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
+
+julia> diff_action(3*a, 1)
+3*a[1,0]
+
+julia> diff_action(3*a, 2)
+3*a[0,1]
+
+julia> diff_action(f, 1)
+(3*b[0,0]^2 - 2*b[0,0])*a[1,0] + 6*b[1,0]*a[0,0]*b[0,0] - 2*b[1,0]*a[0,0]
+
+julia> diff_action(f, 2)
+(3*b[0,0]^2 - 2*b[0,0])*a[0,1] + 6*b[0,1]*a[0,0]*b[0,0] - 2*b[0,1]*a[0,0]
+```
 """
 function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
@@ -849,6 +834,203 @@ end
 
 ###############################################################################
 #
+#  Discriminant and resultant
+#
+###############################################################################
+
+function resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, var::ActionPolyRingElem)
+  check_parent(r1, r2) && check_parent(r1, var)
+  @req is_gen(var) "Not a jet variable"
+  return resultant(r1, r2, __vtj(parent(var))[var])
+end
+
+@doc raw"""
+    resultant(f::ActionPolyRingElem, g::ActionPolyRingElem, i::Int, jet::Vector{Int})
+
+Return the resultant of `f` and `g` regarded as univariate polynomials in the jet variable specified by `i` and
+`jet`. This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
+"""
+function resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, i::Int, jet::Vector{Int})
+  check_parent(r1, r2)
+  S = parent(r1)
+  @req __is_valid_jet(S, i, jet) "Invalid jet variable"
+  jtv = __jtv(S)
+  if haskey(jtv, (i, jet))
+    return S(resultant(data(r1), data(r2), data(jtv[(i, jet)])))
+  end
+  if is_zero(r1) || is_zero(r2)
+    return zero(S)
+  end
+  return one(S)
+end
+
+resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, jet_idx::Tuple{Int,Vector{Int}}) = resultant(r1, r2, jet_idx...)
+resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, i::Int) = resultant(r1, r2, gen(parent(r1), i))
+
+@doc raw"""
+    discriminant(p::ActionPolyRingElem)
+
+Return the discriminant of `p`.
+"""
+function discriminant(p::ActionPolyRingElem)
+  if is_constant(p)
+    return zero(parent(p))
+  end
+
+  ld = leader(p)
+  
+  if degree(p, ld) % 4 in [0,1]
+    return divexact(resultant(p, derivative(p, ld), ld), initial(p))
+  end
+  
+  return -divexact(resultant(p, derivative(p, ld), ld), initial(p))
+end
+
+###############################################################################
+#
+#  Univariate functionality 
+#
+###############################################################################
+
+@doc raw"""
+    is_univariate(p::ActionPolyRingElem)
+
+Return `true` if `p` is a polynomial in a single jet variable and `false` otherwise.
+"""
+is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
+
+function is_univariate_with_data(apre::ActionPolyRingElem)
+  flag, gen_idx = is_univariate_with_data(data(apre))
+  if is_zero(gen_idx)
+    return (flag, gen_idx)
+  end
+  return (flag, findfirst(==(gen_idx), __perm_for_sort(parent(apre))))
+end
+
+@doc raw"""
+    is_univariate(p::ActionPolyRing)
+
+Return `false`, since an action polynomial ring cannot be univariate.
+"""
+is_univariate(apr::ActionPolyRing) = false
+
+@doc raw"""
+    to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
+
+Assuming the polynomial `p` is actually a univariate polynomial, convert the polynomial to a univariate polynomial in the
+given univariate polynomial ring `R`. An exception is raised if the polynomial `p` involves more than one jet variable.
+"""
+to_univariate(R::PolyRing{T}, apre::ActionPolyRingElem{T}) where {T <: RingElement} = to_univariate(R, data(apre))
+
+@doc raw"""
+    to_univariate(p::ActionPolyRingElem)
+
+Assuming the polynomial `p` is actually a univariate polynomial in the jet variable `x`, convert the polynomial to a univariate
+polynomial in a univariate polynomial ring over the same coefficient ring in the variable `x`. If `p` is constant, it is considered
+to be a polynomial in the largest tracked jet variable of its parent. An exception is raised if the polynomial `p` involves
+more than one jet variable.
+"""
+function to_univariate(apre::ActionPolyRingElem)
+  flag, var = is_univariate_with_data(apre)
+  flag || error("Polynomial is not univariate.")
+  if is_zero(var)
+    var = 1
+  end
+  apr = parent(apre)
+  x = symbols(apr)[var]
+  R, _ = coefficient_ring(apr)[x]
+  return to_univariate(R, apre)
+end
+
+function univariate_coefficients(r::ActionPolyRingElem, var::ActionPolyRingElem)
+  check_parent(r, var)
+  @req is_gen(var) "Not a jet variable"
+  return univariate_coefficients(r, __vtj(parent(var))[var])
+end
+  
+@doc raw"""
+    univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) 
+
+Return the coefficient vector of `p` regarded as a univariate polynomial in the jet variable specified by `i` and
+`jet`, leading with the constant coefficient. This method allows all versions described in
+[Specifying jet variables](@ref specifying_jet_variables).
+"""
+function univariate_coefficients(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
+  d = degree(r, i, jet)
+  if d == 0
+    return [r]
+  end
+  res = [zero(r) for _ in 1:d+1]
+  var = __jtv(parent(r))[(i, jet)]
+  v_idx = var_index(var)
+  for (t, e) in zip(terms(r), exponents(r)) 
+    @inbounds res[e[v_idx] + 1] += remove(t, var)[2]
+  end
+  return res
+end
+
+univariate_coefficients(r::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = univariate_coefficients(r, jet_idx...)
+univariate_coefficients(r::ActionPolyRingElem, i::Int) = univariate_coefficients(r, gen(parent(r), i))
+
+###############################################################################
+#
+#  Evaluation
+#
+###############################################################################
+
+# We let UnivPoly handle the calculations, so we need to permute argument vectors
+function __permute_vals(S::ActionPolyRing, A::Vector{T}) where {T}
+  perm = invperm(__perm_for_sort(S))
+  n = nvars(S)
+  m = length(A) 
+  m > n && error("Too many values")
+  return vcat(A, [zero(T) for _ in 1:(n - m)])[perm]
+end
+
+# Full substitutions with zero padding
+evaluate(a::ActionPolyRingElem{T}, A::Vector{T}) where {T <: RingElement} = evaluate(data(a), __permute_vals(parent(a), A))
+
+@doc raw"""
+    evaluate(a::ActionPolyRingElem{T}, vals::Vector{V}) where {T <: RingElement, V <: Ringelement}
+
+Evaluate the polynomial expression by substituting in the supplied values in the array `vals` for each of the
+tracked jet variables. The evaluation will succeed if multiplication is defined between elements of the
+coefficient ring of `a` and elements of `vals`.
+"""
+evaluate(a::ActionPolyRingElem{T}, vals::Vector{V}) where {T <: RingElement, V <: RingElement} = evaluate(data(a), __permute_vals(parent(a), vals))
+
+(a::ActionPolyRingElem{T})() where {T <: RingElement} = evaluate(a, T[])
+(a::ActionPolyRingElem{T})(vals::T...) where {T <: RingElement} = evaluate(a, collect(vals))
+(a::ActionPolyRingElem{T})(val::V, vals::V...) where {T <: RingElement, V <: Union{Integer, Rational, AbstractFloat}} = evaluate(a, [val, vals...])
+(a::ActionPolyRingElem{T})(vals::Union{NCRingElem, RingElement}...) where {T <: RingElement} = evaluate(a, collect(vals))
+
+# Partial substitutions
+@doc raw"""
+    evaluate(a::ActionPolyRingElem{T}, vars::Vector{Int}, vals::Vector{V}) where {T <: RingElement, V <: Ringelement}
+
+Evaluate the polynomial expression by substituting in the supplied values in the array `vals` for
+the corresponding jet variables specified by the indices given by the array `vars`; see
+[Specifying jet variables](@ref specifying_jet_variables). The evaluation will succeed if
+multiplication is defined between elements of the coefficient ring of `a` and elements of `vals`.
+"""
+function evaluate(a::ActionPolyRingElem{T}, vars::Vector{Int}, vals::Vector{V}) where {T <: RingElement, V <: RingElement}
+    S = parent(a)
+  per = __perm_for_sort(S)
+  return S(evaluate(data(a), map(x -> per[x], vars), vals))
+end
+
+@doc raw"""
+    evaluate(a::PolyT, vars::Vector{PolyT}, vals::Vector{V}) where {PolyT <: ActionPolyRingElem, V <: Ringelement}
+
+Evaluate the polynomial expression by substituting in the supplied values in the array `vals` for
+the corresponding jet variables from the vector `vars`; see
+[Specifying jet variables](@ref specifying_jet_variables). The evaluation will succeed if
+multiplication is defined between elements of the coefficient ring of `a` and elements of `vals`.
+"""
+evaluate(a::PolyT, vars::Vector{PolyT}, vals::Vector{V}) where {PolyT <: ActionPolyRingElem, V <: RingElement} = parent(a)(evaluate(a, [var_index(x) for x in vars], vals))
+
+###############################################################################
+#
 #  Iterators
 #
 ###############################################################################
@@ -864,7 +1046,7 @@ Return an iterator for the coefficients of `p` with respect to the ranking of th
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> cf = coefficients(f)
-Coefficients iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+Coefficients iterator of 3*b[0,0,0,0]^2 - 2*a[0,0,0,0]*b[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
 
 julia> collect(cf)
 3-element Vector{ZZRingElem}:
@@ -886,7 +1068,7 @@ Return an iterator for the exponents of `p` with respect to the ranking of the p
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> ef = exponents(f)
-Exponents iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+Exponents iterator of 3*b[0,0,0,0]^2 - 2*a[0,0,0,0]*b[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
 
 julia> collect(ef)
 3-element Vector{Vector{Int64}}:
@@ -908,13 +1090,13 @@ Return an iterator for the monomials of `p` with respect to the ranking of the p
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> mf = monomials(f)
-Monomials iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+Monomials iterator of 3*b[0,0,0,0]^2 - 2*a[0,0,0,0]*b[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
 
 julia> collect(mf)
 3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
  b[0,0,0,0]^2
- b[0,0,0,0]*a[0,0,0,0]
- c[0,0,0,0]*a[0,0,0,0]
+ a[0,0,0,0]*b[0,0,0,0]
+ a[0,0,0,0]*c[0,0,0,0]
 ```
 """
 monomials(a::ActionPolyRingElem{T}) where {T} = ActionPolyMonomials{typeof(a)}(a)
@@ -930,13 +1112,13 @@ Return an iterator for the terms of `p` with respect to the ranking of the paren
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> tf = terms(f)
-Terms iterator of 3*b[0,0,0,0]^2 - 2*b[0,0,0,0]*a[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
+Terms iterator of 3*b[0,0,0,0]^2 - 2*a[0,0,0,0]*b[0,0,0,0] + c[0,0,0,0]*a[0,0,0,0]
 
 julia> collect(tf)
 3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
  3*b[0,0,0,0]^2
- -2*b[0,0,0,0]*a[0,0,0,0]
- c[0,0,0,0]*a[0,0,0,0]
+ -2*a[0,0,0,0]*b[0,0,0,0]
+ a[0,0,0,0]*c[0,0,0,0]
 ```
 """
 terms(a::ActionPolyRingElem{T}) where {T} = ActionPolyTerms{typeof(a)}(a)
