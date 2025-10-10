@@ -19,16 +19,19 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
     return dehomogenize_post_tropicalization(TropIh)
 end
 
+
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    R = base_ring(I)
-    singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
-                            "ideal I = "*join(string.(gens(I)), ",")*";",
-                            "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; };",
-                            "fan TropI = tropicalVariety(I);",
-                            "string TropIString = string(TropI);"])
-    Singular.call_interpreter(singularCommand)
-    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
+
+    name = "tropicalVariety_as_string"
+    sI = Oscar.singular_generators(I)
+    arguments = Any[ Singular.prepare_argument(sI)[1] ]
+    return_value = Singular.libSingular.call_singular_library_procedure(name, base_ring(sI).ptr, arguments);
+    if Singular.libSingular.have_error()
+        error(Singular.libSingular.get_and_clear_error())
+    end
+    TropIString = Singular.convert_return(return_value, ring)
+
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,false)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
@@ -40,6 +43,8 @@ end
 
 # p-adic valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+    phi = hom_rename_variables_singular_compatible(base_ring(I))
+    I = phi(I)
     R = base_ring(I)
     singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
                             "ideal I = "*join(string.(gens(I)), ",")*";",
@@ -121,7 +126,6 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
         coneIncidences = [ vcat(incidence,[originIndex]) for incidence in coneIncidences ]
         return polyhedral_complex(IncidenceMatrix(coneIncidences), rayGenerators, rayIndices, linealityGenerators)
     end
-
 end
 
 

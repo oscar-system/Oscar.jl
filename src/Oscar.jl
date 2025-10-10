@@ -178,6 +178,11 @@ function __init__()
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
   end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("proc tropicalVariety_as_string(ideal I) { return(string(tropicalVariety(I))); }")
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
