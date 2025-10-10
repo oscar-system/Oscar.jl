@@ -192,6 +192,11 @@ function __init__()
   if Oscar.is_dev
     Serialization.get_oscar_serialization_version()
   end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("proc tropicalVariety_as_string(ideal I) { return(string(tropicalVariety(I))); }")
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
