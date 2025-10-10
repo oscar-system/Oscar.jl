@@ -460,7 +460,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -478,14 +478,14 @@ julia> invariant_bilinear_form(Sp(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_bilinear_form(G::MatrixGroup)
+function invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
    return preimage_matrix(_ring_iso(G), B)
 end
 
 """
-    invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant sesquilinear (non bilinear) form for `G`.
 
@@ -505,7 +505,7 @@ julia> invariant_sesquilinear_form(GU(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_sesquilinear_form(G::MatrixGroup)
+function invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
@@ -513,7 +513,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -531,7 +531,7 @@ julia> invariant_quadratic_form(GO(1, 4, 2))
 [0   0   0   0]
 ```
 """
-function invariant_quadratic_form(G::MatrixGroup)
+function invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
    if iseven(characteristic(base_ring(G)))
       V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
@@ -549,16 +549,16 @@ end
 
 # TODO 3rd approach: using GAP package "forms"
 """
-    preserved_quadratic_forms(G::MatrixGroup)
+    preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms). 
 Since the procedure relies on a pseudo-random generator, 
 the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
-function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedQuadraticForms(GapObj(G))
-   R = QuadraticForm{S}[]
+   R = QuadraticForm{T}[]
    for f_gap in L
       f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
@@ -569,16 +569,16 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 end
 
 """
-    preserved_sesquilinear_forms(G::MatrixGroup)
+    preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms).
 Since the procedure relies on a pseudo-random generator,
 the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
-function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedSesquilinearForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = SesquilinearForm{T}[]
    for f_gap in L
       if GAPWrap.IsHermitianForm(f_gap)
          f = hermitian_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
@@ -597,10 +597,9 @@ end
 
 
 """
-    orthogonal_sign(G::MatrixGroup)
+    orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
 
-For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
-is a finite field, return
+For absolutely irreducible `G` of degree `n`, return
 - `nothing` if `G` does not preserve a nonzero quadratic form,
 - `0` if `n` is odd and `G` preserves a nonzero quadratic form,
 - `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
@@ -615,9 +614,8 @@ julia> orthogonal_sign(GO(-1, 4, 2))
 -1
 ```
 """
-function orthogonal_sign(G::MatrixGroup)
+function orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
     R = base_ring(G)
-    R isa FinField || error("G must be a matrix group over a finite field")
     M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)),
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)

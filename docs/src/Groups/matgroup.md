@@ -204,12 +204,12 @@ invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
 invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
 invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_bilinear_form(G::MatrixGroup)
-invariant_sesquilinear_form(G::MatrixGroup)
-invariant_quadratic_form(G::MatrixGroup)
-preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
-preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
-orthogonal_sign(G::MatrixGroup)
+invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
+invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
+invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
+preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
+preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
+orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
 ```
 
 ## Functions for sesquilinear and quadratic forms
