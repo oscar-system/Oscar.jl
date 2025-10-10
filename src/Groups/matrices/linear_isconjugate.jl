@@ -16,12 +16,14 @@
 """
     multiplicative_jordan_decomposition(M::MatrixGroupElem{T}) where T <: FinFieldElem
 
-Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
+Return `S` and `U` in the group `parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
-    This is *NOT*, in general, equal to
-    `A, B = multiplicative_jordan_decomposition(matrix(M))`.
-    Note that `B * A` need not be equal to `matrix(M)`.
+    `multiplicative_jordan_decomposition` can be called also with a matrix,
+    but the decomposition `S, U` is in general *not* compatible with
+    `A, B = multiplicative_jordan_decomposition(matrix(M))`,
+    in the sense that `S` and `U` are guaranteed to commute,
+    whereas `A` and `B` may not commute, see the example below.
 
 # Examples
 ```jldoctest
@@ -40,6 +42,9 @@ true
 
 julia> A, B = multiplicative_jordan_decomposition(m)
 ([0 0 1 1 0; 1 1 0 1 1; 0 1 1 0 0; 1 1 0 1 0; 1 0 1 0 0], [0 1 0 0 0; 1 0 0 0 0; 0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1])
+
+julia> A * B == m
+true
 
 julia> B * A == m
 false
