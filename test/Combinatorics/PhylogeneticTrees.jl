@@ -59,6 +59,5 @@
   @test Oscar.interior_nodes(pt) == [4]
   @test collect(edges(pt)) == [Edge(4, 1), Edge(4, 2), Edge(4, 3)]
   @test n_edges(pt) == 3
-  println(newick(pt))
   @test is_isomorphic(pt, phylogenetic_tree(QQFieldElem, "a:1,b:2,c:3;"))
 end
