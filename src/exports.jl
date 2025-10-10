@@ -1135,6 +1135,7 @@ export leading_module
 export leading_monomial
 export leading_term
 export least_element
+export leaves
 export lecture_hall_simplex
 export left_acting_group
 export left_coset
