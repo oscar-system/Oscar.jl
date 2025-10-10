@@ -1,11 +1,10 @@
 [
    "Algebraic Statistics" => [
-      "introduction.md",
-      "graphical_models.md",
-      "gaussian_graphical_models.md",
-      "ci.md",
-      "markov.md",
-      "phylogenetics.md",
-      "multigraded_implicitization.md",
+     "introduction.md",
+     "ci.md",
+     "gaussian_graphical_models.md",
+     "phylogenetics.md",
+     "graphical_models.md",
+     "multigraded_implicitization.md"
    ]
 ]

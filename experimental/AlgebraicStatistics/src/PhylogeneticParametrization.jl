@@ -4,15 +4,23 @@
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
-  tr_mat = transition_matrices(pm)
+  par_gens = parameter_ring_gens(pm)
+  tr_mat = transition_matrix(pm)
   root_dist = root_distribution(pm)
 
   r = root(gr)
   monomial = root_dist[states[r]]
-  for edge in edges(gr)
-    stateParent = states[src(edge)]
-    stateChild = states[dst(edge)]
-    monomial = monomial * tr_mat[edge][stateParent, stateChild]
+  
+  for (i, edge) in enumerate(edges(gr))
+    state_parent = states[src(edge)]
+    state_child = states[dst(edge)]
+    # get the symbolfrom the transition matrix signature
+    sym = tr_mat[state_parent, state_child]
+    # we can try and avoid this here if this becomes a bottle neck
+    # it's related to the comment below about using a polynomial context
+    # i.e., this is just the adding of exponents which are integer vectors
+    # which would be much faster than polynomial multiplication
+    monomial = monomial * par_gens[(sym, i)]
   end
 
   return monomial
@@ -86,7 +94,9 @@ function probability_map(pm::PhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(
+    Tuple(leaves_states) => probability_parametrization(pm, leaves_states)
+    for leaves_states in leaves_indices)
   return probability_coordinates
 end
 
@@ -218,6 +228,7 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
   polys = unique(collect(values(parametrization)))
   polys = polys[findall(!is_zero, polys)]
 
+  # dict poly => indices
   equivalent_keys = []
   for value in polys
       eqv_class = sort([key for key in keys(parametrization) if parametrization[key] == value])
@@ -231,6 +242,21 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
             k[1] => k for k in equivalent_keys)
             
   return (parametrization=param_classes, classes=classes)
+end
+
+function equivalent_classes(pm::GroupBasedPhylogeneticModel; coordinates::Symbol=:fourier)
+  if coordinates == :probabilities
+    parametrization = probability_map(pm)
+  elseif coordinates == :fourier
+    parametrization = fourier_map(pm)
+  end
+
+  compute_equivalent_classes(parametrization).classes
+end
+
+function equivalent_classes(pm::PhylogeneticModel)
+  parametrization = probability_map(pm)
+  compute_equivalent_classes(parametrization).classes
 end
 
 @doc raw"""
