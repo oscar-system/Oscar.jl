@@ -15,7 +15,7 @@ We use a bespoke type `Combination{T}` instead of a e.g. `Vector{T}` to
 ensure the semantics of such objects are clear.
 
 For the most basic usage of selecting $k$ values from the set $S = \{1,\ldots,n\}$,
-the entries are the values $\lambda_i$ in ascending order:
+the entries of a combination are the values $\lambda_i$ in ascending order:
 ```jldoctest
 julia> collect(combinations(4,2))
 6-element Vector{Combination{Int64}}:
