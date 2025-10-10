@@ -29,7 +29,9 @@ include("PhylogeneticModels-functions.jl")
 # include("PhylogeneticParametrization.jl")
 # include("PhylogeneticInvariants.jl")
 
-include("./serialization.jl")
+include("MultigradedImplicitization.jl")
+
+include("serialization.jl")
 
 # export Abstract Graphical Model
 export GraphicalModel

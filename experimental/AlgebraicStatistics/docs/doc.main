@@ -1,6 +1,7 @@
 [
    "Algebraic Statistics" => [
      "introduction.md",
+     "ci.md",
      "gaussian_graphical_models.md",
      "phylogenetics.md",
      "graphical_models.md",
