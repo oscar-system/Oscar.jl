@@ -29,7 +29,7 @@ julia> collect(combinations(4,2))
 Here `T` will be `Int` by default, but we allow using smaller
 integer types as this may improve performance or reduce memory consumption.
 ```jldoctest
-julia> collect(combinations(Int16(4), 2))
+julia> collect(combinations(Int16(4), Int16(2)))
 6-element Vector{Combination{Int16}}:
  Int16[1, 2]
  Int16[1, 3]
