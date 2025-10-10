@@ -54,6 +54,7 @@ function transitive_simplicial_complex(name::String,
   TransitiveSimplicialComplex(name, K, top_type)
 end
 
+# these functions should be described in a more detail documentation to come
 simplicial_complex(tsc::TransitiveSimplicialComplex) = tsc.complex
 automorphism_group(tsc::TransitiveSimplicialComplex) = tsc.aut_group
 dim(tsc::TransitiveSimplicialComplex) = tsc.dim
@@ -61,6 +62,9 @@ n_vertices(tsc::TransitiveSimplicialComplex) = tsc.n_vertices
 f_vector(tsc::TransitiveSimplicialComplex) = tsc.f_vector
 betti_numbers(tsc::TransitiveSimplicialComplex) = tsc.betti_numbers
 homology(tsc::TransitiveSimplicialComplex, i::Int) = homology(simplicial_complex(tsc), i)
-topological_type(tsc) = tsc.topological_type
+topological_type(tsc::TransitiveSimplicialComplex) = tsc.topological_type
+name(tsc::TransitiveSimplicialComplex) = tsc._id
 
-#TODO add docs and printing etc.
+function Base.show(io::IO, tsc::TransitiveSimplicialComplex)
+  println(io, "TransitiveSimplicialComplex: $(name(tsc))")
+end
