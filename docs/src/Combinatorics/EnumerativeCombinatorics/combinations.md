@@ -55,13 +55,6 @@ julia> collect(combinations([2,2,1,"a"], 2))
  Any[1, "a"]
 ```
 
-## Generating
-
-```@docs
-combinations(n::T, k::T) where T<:IntegerUnion
-combinations(v::AbstractVector, k::IntegerUnion)
-```
-
 Because `Combination` is a subtype of `AbstractVector`, many functions that can be used for vectors (1-dimensional arrays) can be used for combinations as well.
 For example:
 ```jldoctest
@@ -73,4 +66,12 @@ julia> length(C)
 
 julia> C[1]
 6
+```
+
+
+## Generating
+
+```@docs
+combinations(n::T, k::T) where T<:IntegerUnion
+combinations(v::AbstractVector, k::IntegerUnion)
 ```
