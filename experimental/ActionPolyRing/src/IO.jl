@@ -13,7 +13,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   print(io, "\n")
   print(io, "with $(n_action_maps(dpr)) commuting endomorphisms\n")
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(dpr))
+  print(io, "over ", Lowercase(), coefficient_ring(dpr))
   print(io, Dedent())
 end
 
@@ -23,7 +23,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
     print(io, "Difference polynomial ring")
   else
     print(io, "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
-    print(terse(io), Lowercase(), base_ring(dpr))
+    print(terse(io), Lowercase(), coefficient_ring(dpr))
   end
 end
 
@@ -36,7 +36,7 @@ function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   print(io, "\n")
   print(io, "with $(n_action_maps(dpr)) commuting derivations\n")
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(dpr))
+  print(io, "over ", Lowercase(), coefficient_ring(dpr))
   print(io, Dedent())
 end
 
@@ -46,7 +46,7 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
     print(io, "Differential polynomial ring")
   else
     print(io, "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
-    print(terse(io), Lowercase(), base_ring(dpr))
+    print(terse(io), Lowercase(), coefficient_ring(dpr))
   end
 end
 

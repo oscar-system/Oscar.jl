@@ -208,6 +208,8 @@ export ToricVanishingSet
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
+export TropicalPointConfiguration
+export TropicalPolyhedron
 export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
@@ -235,13 +237,13 @@ export add_edge!
 export add_gluing!
 export add_vertex!
 export add_vertices!
-export admissible_equivariant_primitive_extensions
-export admissible_triples
 export adjacency_matrix
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
+export admissible_equivariant_primitive_extensions
+export admissible_triples
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -490,6 +492,7 @@ export coroots
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export cotangent_sheaf
+export covector_decomposition
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -1209,6 +1212,7 @@ export maximal_cells
 export maximal_chains
 export maximal_cliques
 export maximal_cones
+export maximal_covectors
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
@@ -1281,6 +1285,7 @@ export n_maximal_cones
 export n_maximal_polyhedra
 export n_points
 export n_polyhedra
+export n_pseudovertices
 export n_rays
 export n_vertices
 export name
@@ -1495,6 +1500,7 @@ export projective_unitary_group
 export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
+export pseudovertices
 export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
@@ -1793,9 +1799,12 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
+export tropical_convex_hull
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
+export tropical_point_configuration
+export tropical_polyhedron
 export tropical_polynomial
 export tropical_prevariety
 export tropical_variety
@@ -1804,10 +1813,10 @@ export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_lifting
 export tutte_polynomial
-export type
 export twist
 export twisting_sheaf
 export two_sided_ideal
+export type
 export underlying_gluing
 export underlying_presheaf
 export underlying_quotient

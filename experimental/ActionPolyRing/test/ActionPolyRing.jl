@@ -2,7 +2,6 @@ using Test
 
 @testset "ActionPolyRing - all tests" verbose = true begin
    
-  __upr = Oscar.__upr
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
   __vtj = Oscar.__vtj
@@ -28,11 +27,11 @@ using Test
   
   @testset "Check types" begin
     
-    @test base_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
     
-    @test base_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
 
@@ -78,7 +77,7 @@ using Test
           @test data(u1) === u1.p
           @test data(u2) === u2.p
           @test data(u3) === u3.p
-          @test __upr(dpr) === dpr.upoly_ring
+          @test base_ring(dpr) === dpr.upoly_ring
           @test __jtv(dpr) === dpr.jet_to_var
           @test __jtu_idx(dpr) === dpr.jet_to_upoly_idx
           @test __are_perms_up_to_date(dpr) === dpr.are_perms_up_to_date
@@ -88,7 +87,7 @@ using Test
         end
 
         @testset "Check internals at construction" begin
-          upr = __upr(dpr)
+          upr = base_ring(dpr)
           u1p, u2p, u3p = data(u1), data(u2), data(u3)
           @test parent(u1p) === upr
           @test parent(u2p) === upr
@@ -164,8 +163,8 @@ using Test
         end
         
         @testset "Check public fields at construction" begin
-          @test base_ring(dpr) == ZZ
-          @test all(var -> base_ring(var) == ZZ, vars)
+          @test coefficient_ring(dpr) == ZZ
+          @test all(var -> coefficient_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
           @test n_action_maps(dpr) == 3
           @test n_elementary_symbols(dpr) == 3
@@ -245,7 +244,7 @@ using Test
           @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
         
           @testset "Check internals after adding variables" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -267,8 +266,8 @@ using Test
           end
         
           @testset "Check public fields after adding variables" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
@@ -503,7 +502,7 @@ using Test
 
           
           @testset "Check internals after changing ranking" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -525,8 +524,8 @@ using Test
           end
         
           @testset "Check public fields after changing ranking" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3

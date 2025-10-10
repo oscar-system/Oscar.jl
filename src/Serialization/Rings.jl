@@ -47,6 +47,7 @@ type_params(x::T) where T <: IdealUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
 type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
+type_params(R::T) where T <: PolyRingUnionType = TypeParams(T, coefficient_ring(R))
 type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
@@ -95,7 +96,6 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
-  base = base_ring(R)
   save_data_dict(s) do
     save_object(s, symbols(R), :symbols)
   end
