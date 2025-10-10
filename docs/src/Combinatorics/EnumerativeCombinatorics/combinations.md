@@ -72,6 +72,5 @@ julia> C[1]
 ## Generating
 
 ```@docs
-combinations(n::T, k::T) where T<:IntegerUnion
-combinations(v::AbstractVector, k::IntegerUnion)
+combinations
 ```
