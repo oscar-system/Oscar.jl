@@ -27,7 +27,7 @@ end
 function hom_rename_variables_singular_compatible(S::MPolyRing)
     n = nvars(S)
     l = ndigits(n)
-    newVarNames = [ "x" * lpad(string(i),l,'0') for i in 1:n ]
+    newVarNames = [Symbol(:x, lpad(string(i), l, '0')) for i in 1:n]
     R,x = polynomial_ring(base_ring(S), newVarNames)
     return hom(S,R,x)
 end
