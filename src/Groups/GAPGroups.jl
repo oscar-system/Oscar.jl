@@ -2341,10 +2341,8 @@ function _map_word_syllable_additive(vi::Int, genimgs::Vector, genimgs_inv::Vect
   vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
   vi = -vi
   @assert vi <= length(genimgs)
-  isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
-  res = -genimgs[vi]
-  genimgs_inv[vi] = res
-  return res
+  isassigned(genimgs_inv, vi) || genimgs_inv[vi] = -genimgs[vi]
+  return genimgs_inv[vi]
 end
 
 function _map_word_syllable_additive(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
@@ -2353,11 +2351,9 @@ function _map_word_syllable_additive(vi::Pair{Int, Int}, genimgs::Vector, genimg
   e = vi[2]
   e > 1 && return e * genimgs[x]
   e == 1 && return genimgs[x]
-  isassigned(genimgs_inv, x) && return (-e) * genimgs_inv[x]
-  res = -genimgs[x]
-  genimgs_inv[x] = res
-  e == -1 && return res
-  return (-e) * res
+  isassigned(genimgs_inv, x) || genimgs_inv[x] =  -genimgs[x]
+  e == -1 && return genimgs_inv[x]
+  return (-e) * genimgs_inv[x]
 end
 
 
