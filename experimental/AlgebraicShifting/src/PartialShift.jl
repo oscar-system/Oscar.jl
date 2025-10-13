@@ -8,6 +8,10 @@ const ComplexOrHypergraph = Union{UniformHypergraph, SimplicialComplex}
 # Matrix construction helper functions
 inversions(g::PermGroupElem) = [(i,j) for j in 2:degree(parent(g)) for i in 1:j-1 if g(i) > g(j)]
 
+# Omega = gset(G, cols)
+# inversions(Omega, g)
+
+inversions()
 function generic_unipotent_matrix(R::MPolyRing)
   x = gens(R)
   n_vars = length(x)
@@ -236,10 +240,6 @@ function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff
   c = compound_matrix(g, K)
   if matrix_base isa MPolyRing
     ref!(c)
-  elseif matrix_base isa MPolyQuoRing
-    lifted_c = lift.(c)
-    ref!(lifted_c)
-    c = simplify.(matrix_base.(lifted_c))
   else
     rref!(c) #TODO could use ref! with different heuristic
   end
@@ -382,19 +382,20 @@ function check_shifted(F::Field, src::UniformHypergraph,
 
   r = rothe_matrix(F, p)
 
-  # restricted columns is used when we know apriori that certain columns
+  # restricted columns is used when we know a priori that certain columns
   # cannot appear in the shifted complex.
   # for example when we know that a column corresponds to a face that contains
   # a lower dimensional non face
 
   # if the # of non zeros cols up to max_face_index is equal to the rank
   # we do not need to do any row reduction
+  n_dependent_columns = max_face_index - num_rows
   if !isnothing(restricted_cols)
     zero_cols_indices = findall(x -> !(Set(x) in restricted_cols), cols)
-    needs_check = max_face_index - length(zero_cols_indices) > num_rows
+    needs_check = n_dependent_columns - length(zero_cols_indices) > 0
   else
     zero_cols_indices = Int[]
-    needs_check = max_face_index > num_rows
+    needs_check = n_dependent_columns == 0
   end
   
   if needs_check
@@ -402,8 +403,8 @@ function check_shifted(F::Field, src::UniformHypergraph,
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
-    ref!(M)
-    nCk[independent_columns(M)] != target_faces[1:end - 1] && return false
+    col_ind = lex_min_col_basis(M; n_dependent_columns=n_dependent_columns)
+    nCk[col_ind] != target_faces[1:end - 1] && return false
   end
   return true
 end

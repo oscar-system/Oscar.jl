@@ -70,3 +70,50 @@ function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   return (best, i_best)
 end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
+
+function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T};
+                           n_dependent_columns::Int=-1) where T <: MPolyRingElem
+  v = identity_matrix(base_ring(m), size(m, 1))
+  r = 0
+  I = Int[]
+  n_current_dep_cols = 0
+  for j = 1:size(m, 2)
+    # Evaluate j-th column of m * v
+    c = v[r + 1:end, :] * m[:, j:j]
+    m[:, j:j] = zero(m[:, j:j])
+    if iszero(c)
+      n_current_dep_cols += 1
+      if n_dependent_columns == n_current_dep_cols
+        append!(I, j + 1: ncols(m))
+        break
+      end
+      continue
+    end
+    m[r + 1, j] = one(base_ring(m))
+    push!(I, j)
+    # Break if this is the last necessary column
+    if r + 1 == size(m, 1)
+      r += 1
+      break
+    end
+    # Find the shortest non-zero polynomial in c
+    _, i = efindmin(length, c[:,1]; filter=!iszero)
+    # Use that as pivot; move corresponding row into row r+1
+    if i > 1
+      swap_rows!(v, r+i, r+1)
+      swap_rows!(c,   i,   1)
+    end
+    # Eliminate other entries of c
+    for i in 2:size(m, 1)-r
+      if iszero(c[i])
+        continue
+      end
+      _, a, b = gcd_with_cofactors(c[i], c[1])
+      v[r+i,:] = b*v[r+i:r+i,:] - a*v[r+1:r+1,:]
+      v[r+i,:] = divexact(v[r+i:r+i,:], content(v[r+i:r+i,:]))
+    end
+    r += 1
+  end
+  return I
+end
+
