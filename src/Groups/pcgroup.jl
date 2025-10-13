@@ -923,3 +923,60 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
 end
 
 collector(G::PcGroup) = collector(ZZRingElem, G)
+
+# GAP wrappers for group encoding / decoding
+
+"""
+    code_pcgroup(G::PcGroup)
+
+Return the code (an `Int` vector) representing the polycyclic group `G`,
+using the same encoding as GAP's `CodePcGroup` and Magma's
+`SmallGroupEncoding`.
+
+# Examples
+```jldoctest
+julia> G = pc_group(small_group(12, 2))
+Pc group of order 12
+
+julia> code = code_pcgroup(G)
+12-element Vector{Int64}  # the actual numbers may vary, but should be consistent with GAP/Magma
+
+julia> H = pcgroup_code(code)
+Pc group of order 12
+
+julia> H == G
+true
+```
+"""
+
+function code_pcgroup(G::PcGroup)
+    return GAP.Globals.CodePcGroup(GapObj(G))
+end
+
+"""
+    pcgroup_code(code)
+
+Given a code (typically an integer vector), return the polycyclic
+group it encodes.  The accepted codes and resulting groups match
+those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
+
+# Examples
+```jldoctest
+julia> G = pc_group(small_group(12, 2))
+Pc group of order 12
+
+julia> code = code_pcgroup(G)
+12-element Vector{Int64}
+
+julia> H = pcgroup_code(code)
+Pc group of order 12
+
+julia> H == G
+true
+```
+"""
+
+function pcgroup_code(code)
+    obj = GAP.Globals.PcGroupCode(code)
+    return PcGroup(obj)
+end
