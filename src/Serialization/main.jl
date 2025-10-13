@@ -2,6 +2,7 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+import JSON
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
