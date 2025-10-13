@@ -376,7 +376,7 @@ end
 
 # Construct literature model over concrete base
 function _construct_literature_model_over_concrete_base(
-  model_dict::Dict{String,Any},
+  model_dict::AbstractDict{String,Any},
   base_space::FTheorySpace,
   defining_classes::Dict{String,<:Any},
   completeness_check::Bool,
@@ -962,32 +962,32 @@ Displays all literature models that satisfy the model_fields criteria. The field
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))
 Model 33:
-Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")
+JSON.Object{String, Any}("journal_section" => "3", "arxiv_page" => "67", "journal_page" => "67", "arxiv_id" => "1408.4808", "arxiv_equation" => "3.142", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP01(2015)142", "journal_equation" => "3.141", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")
 
 Model 34:
-Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "34", "type" => "hypersurface")
+JSON.Object{String, Any}("journal_section" => "3", "arxiv_page" => "67", "journal_page" => "67", "arxiv_id" => "1408.4808", "arxiv_equation" => "3.142", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP01(2015)142", "journal_equation" => "3.141", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "34", "type" => "hypersurface")
 
 Model 39:
-Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "39", "type" => "weierstrass")
+JSON.Object{String, Any}("journal_section" => "3", "arxiv_page" => "75", "journal_page" => "75", "arxiv_id" => "1408.4808", "arxiv_equation" => "3.168", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP01(2015)142", "journal_equation" => "3.167", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "39", "type" => "weierstrass")
 
 Model 40:
-Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "40", "type" => "hypersurface")
+JSON.Object{String, Any}("journal_section" => "3", "arxiv_page" => "75", "journal_page" => "75", "arxiv_id" => "1408.4808", "arxiv_equation" => "3.168", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP01(2015)142", "journal_equation" => "3.167", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "40", "type" => "hypersurface")
 
 Model 45:
-Dict{String, Any}("journal_section" => "", "arxiv_page" => "2", "arxiv_id" => "1903.00009", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_equation" => "2", "journal_page" => "2", "arxiv_equation" => "2", "journal_doi" => "10.1103/PhysRevLett.123.101601", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903_00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
+JSON.Object{String, Any}("journal_section" => "", "arxiv_page" => "2", "journal_page" => "2", "arxiv_id" => "1903.00009", "arxiv_equation" => "2", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_doi" => "10.1103/PhysRevLett.123.101601", "journal_equation" => "2", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903_00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
 
 julia> display_all_literature_models(Dict("gauge_algebra" => "e"))
 Model 8:
-Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(6)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.1", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-5.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "8", "type" => "tate")
+JSON.Object{String, Any}("journal_section" => "", "arxiv_page" => "49", "journal_page" => "", "arxiv_id" => "1212.2949", "arxiv_equation" => "5.1", "gauge_algebra" => Any["e(6)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP04(2013)061", "journal_equation" => "", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-5.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "8", "type" => "tate")
 
 Model 9:
-Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(7)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.7", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-6.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "9", "type" => "tate")
+JSON.Object{String, Any}("journal_section" => "", "arxiv_page" => "49", "journal_page" => "", "arxiv_id" => "1212.2949", "arxiv_equation" => "5.7", "gauge_algebra" => Any["e(7)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP04(2013)061", "journal_equation" => "", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-6.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "9", "type" => "tate")
 
 Model 10:
-Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(8)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.13", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-7.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "10", "type" => "tate")
+JSON.Object{String, Any}("journal_section" => "", "arxiv_page" => "49", "journal_page" => "", "arxiv_id" => "1212.2949", "arxiv_equation" => "5.13", "gauge_algebra" => Any["e(8)"], "arxiv_version" => "2", "journal_doi" => "10.1007/JHEP04(2013)061", "journal_equation" => "", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-7.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "10", "type" => "tate")
 
 Model 46:
-Dict{String, Any}("journal_section" => "2", "arxiv_page" => "3", "arxiv_id" => "1511.03209", "gauge_algebra" => Any["e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)"], "arxiv_version" => "3", "journal_equation" => "2.11", "journal_page" => "3", "arxiv_equation" => "2.11", "journal_doi" => "https://doi.org/10.1007/JHEP12(2015)164", "arxiv_section" => "2", "journal" => "JHEP", "file" => "model1511_03209.json", "arxiv_doi" => "10.48550/arXiv.1511.03209", "model_index" => "46", "type" => "tate")
+JSON.Object{String, Any}("journal_section" => "2", "arxiv_page" => "3", "journal_page" => "3", "arxiv_id" => "1511.03209", "arxiv_equation" => "2.11", "gauge_algebra" => Any["e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)"], "arxiv_version" => "3", "journal_doi" => "https://doi.org/10.1007/JHEP12(2015)164", "journal_equation" => "2.11", "arxiv_section" => "2", "journal" => "JHEP", "file" => "model1511_03209.json", "arxiv_doi" => "10.48550/arXiv.1511.03209", "model_index" => "46", "type" => "tate")
 ```
 """
 function display_all_literature_models(model_fields::Dict{String,<:Any}=Dict{String,Any}())
