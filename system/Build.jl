@@ -2,6 +2,10 @@ oscarpath = dirname(@__DIR__)
 
 using Pkg
 Pkg.activate(temp=true)
+target = Pkg.project().path
+source = source = "$(Oscar.oscardir)/test/Project.toml"
+run(`cp -v $(source) $(target)`, wait=true)
+run(`chmod -v +w $(target)`, wait=true)
 Pkg.develop(path="$(oscarpath)")
 using Oscar
 Pkg.add("PackageCompiler")
