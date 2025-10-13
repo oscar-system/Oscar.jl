@@ -273,9 +273,13 @@ end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_params to hang
+  # put_type_params to hang
   #obj = JSON3.read(io)
-  obj = JSON.parse(io; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
+  str = readuntil(io, '}'; keep=true)
+  while !JSON.isvalidjson(str)
+    str *= readuntil(io, '}'; keep=true)
+  end
+  obj = JSON.parse(str; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
 
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
