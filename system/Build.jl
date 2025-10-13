@@ -18,8 +18,6 @@ CO = joinpath(tmp, "CompileOscar.jl")
 
 
 write(CO, """
-using Pkg
-Pkg.develop(path="$(oscarpath)")
 using Oscar
 using Test
 Oscar.system("precompile.jl")
