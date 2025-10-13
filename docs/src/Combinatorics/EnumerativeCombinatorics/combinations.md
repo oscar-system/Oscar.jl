@@ -11,7 +11,7 @@ A general reference on combinations is [Knu11](@cite), Section 7.2.1.3.
 
 We represent combinations as objects of type `Combination{T}`, which is
 a subtype of `AbstractVector{T}`, and thus a vector-like object.
-We use a bespoke type `Combination{T}` instead of a e.g. `Vector{T}` to
+We use a bespoke type `Combination{T}` instead of for example a `Vector{T}` to
 ensure the semantics of such objects are clear.
 
 For the most basic usage of selecting $k$ values from the set $S = \{1,\ldots,n\}$,
