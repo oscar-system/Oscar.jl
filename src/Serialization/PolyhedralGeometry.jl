@@ -1,10 +1,11 @@
-using JSON
+import JSON
 
 function bigobject_to_jsonstr(bo::Polymake.BigObject)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, bo)
   return Polymake.call_function(:common, :encode_json, serialized)
 end
 
+# unused, is this needed?
 function bigobject_to_dict(bo::Polymake.BigObject)
   jsonstr = bigobject_to_jsonstr(bo)
   return JSON.parse(jsonstr)
