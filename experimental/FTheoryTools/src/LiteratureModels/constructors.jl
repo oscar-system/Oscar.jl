@@ -188,7 +188,7 @@ function literature_model(
 end
 
 function literature_model(
-  model_dict::Dict{String,Any};
+  model_dict::AbstractDict{String,Any};
   model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
   base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
   model_sections::Dict{String,<:Any}=Dict{String,Any}(),
