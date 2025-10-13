@@ -579,7 +579,7 @@ end
 #######################################################
 
 # Construct literature model over arbitrary base
-function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
+function _construct_literature_model_over_arbitrary_base(model_dict::AbstractDict{String,Any})
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "tunable_sections") "No base coordinates specified for model"
   vars = string.(model_dict["model_data"]["tunable_sections"])
@@ -675,7 +675,7 @@ end
 
 function _set_all_attributes(
   model::AbstractFTheoryModel,
-  model_dict::Dict{String,Any},
+  model_dict::AbstractDict{String,Any},
   model_parameters::Dict{String,<:Any},
 )
 
