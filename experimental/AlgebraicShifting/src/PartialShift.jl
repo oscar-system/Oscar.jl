@@ -8,10 +8,6 @@ const ComplexOrHypergraph = Union{UniformHypergraph, SimplicialComplex}
 # Matrix construction helper functions
 inversions(g::PermGroupElem) = [(i,j) for j in 2:degree(parent(g)) for i in 1:j-1 if g(i) > g(j)]
 
-# Omega = gset(G, cols)
-# inversions(Omega, g)
-
-inversions()
 function generic_unipotent_matrix(R::MPolyRing)
   x = gens(R)
   n_vars = length(x)
@@ -365,7 +361,6 @@ end
 # CAUTION! This function only works correctly if target is obtained as the shift of sry some matrix.
 function check_shifted(F::Field, src::UniformHypergraph,
                        target::UniformHypergraph, p::PermGroupElem;
-                       (ref!)=ModStdQt.ref_ff_rc!,
                        restricted_cols=nothing)
   target_faces = sort(faces(target))
   max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
@@ -395,15 +390,14 @@ function check_shifted(F::Field, src::UniformHypergraph,
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
   else
     zero_cols_indices = Int[]
-    needs_check = n_dependent_columns == 0
+    needs_check = n_dependent_columns > 0
   end
-  
   if needs_check
     M = compound_matrix(r, src)[collect(1:num_rows), 1:max_face_index - 1]
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
-    col_ind = lex_min_col_basis(M; n_dependent_columns=n_dependent_columns)
+    col_ind = lex_min_col_basis(M, n, k; n_dependent_columns=n_dependent_columns)
     nCk[col_ind] != target_faces[1:end - 1] && return false
   end
   return true
@@ -411,7 +405,7 @@ end
 
 # CAUTION! See the comment in the previous functions
 function check_shifted(F::Field, src::SimplicialComplex,
-                       target::SimplicialComplex, p::PermGroupElem; (ref!)=ModStdQt.ref_ff_rc!)
+                       target::SimplicialComplex, p::PermGroupElem)
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = 2
@@ -420,7 +414,6 @@ function check_shifted(F::Field, src::SimplicialComplex,
     uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
     uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
     !check_shifted(F, uhg_src, uhg_target, p;
-                   (ref!)=(ref!),
                    restricted_cols=restricted_cols) && return false
     non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
     restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(subsets(n, k + 1)))
@@ -442,10 +435,8 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # this might need to be changed based on the characteristic
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
-
   # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
   (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
-
   # Check if `shift` is the generic exterior shift of K
   prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
   n = n_vertices(K)

@@ -71,12 +71,31 @@ function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
 
-function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T};
+# uses permutation lemma to find other dependent columns
+function permuted_dependent_cols(omega::GSet, col_inds::Vector{Int})
+  G = acting_group(omega)
+  dependent_cols = Set{Int}()
+  for p in G
+    induced_p = permutation(omega, p)
+    max_col_ind = max(induced_p.(col_inds)...)
+    if max_col_ind  <= length(col_inds)
+      push!(dependent_cols, max_col_ind)
+    end
+  end
+  return dependent_cols
+end
+
+function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
+                           n::Int, k::Int;
                            n_dependent_columns::Int=-1) where T <: MPolyRingElem
   v = identity_matrix(base_ring(m), size(m, 1))
   r = 0
   I = Int[]
   n_current_dep_cols = 0
+  col_sets = sort(subsets(n, k))[1:ncols(m)]
+  G = symmetric_group(n)
+  omega = gset(G, col_sets)
+
   for j = 1:size(m, 2)
     # Evaluate j-th column of m * v
     c = v[r + 1:end, :] * m[:, j:j]
@@ -87,6 +106,9 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T};
         append!(I, j + 1: ncols(m))
         break
       end
+      println(j)
+      p_dependent_cols = permuted_dependent_cols(omega, [I..., j])
+      println(p_dependent_cols)
       continue
     end
     m[r + 1, j] = one(base_ring(m))
@@ -97,20 +119,20 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T};
       break
     end
     # Find the shortest non-zero polynomial in c
-    _, i = efindmin(length, c[:,1]; filter=!iszero)
+    _, i = efindmin(length, c[:, 1]; filter=!iszero)
     # Use that as pivot; move corresponding row into row r+1
     if i > 1
-      swap_rows!(v, r+i, r+1)
-      swap_rows!(c,   i,   1)
+      swap_rows!(v, r + i, r + 1)
+      swap_rows!(c,     i,     1)
     end
     # Eliminate other entries of c
-    for i in 2:size(m, 1)-r
+    for i in 2:size(m, 1) - r
       if iszero(c[i])
         continue
       end
       _, a, b = gcd_with_cofactors(c[i], c[1])
-      v[r+i,:] = b*v[r+i:r+i,:] - a*v[r+1:r+1,:]
-      v[r+i,:] = divexact(v[r+i:r+i,:], content(v[r+i:r+i,:]))
+      v[r + i, :] = b * v[r + i:r + i,:] - a * v[r + 1:r + 1, :]
+      v[r + i, :] = divexact(v[r + i:r + i,:], content(v[r + i:r + i, :]))
     end
     r += 1
   end
