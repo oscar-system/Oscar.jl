@@ -252,13 +252,13 @@ sort!(upgrade_scripts; by=version)
 const backref_sym = Symbol("#backref")
 
 @doc raw"""
-    upgrade(format_version::VersionNumber, dict::Dict)
+    upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
 
 Find the first version where an upgrade can be applied and then incrementally
 upgrades to each intermediate version until the structure of the current version
 has been achieved.
 """
-function upgrade(format_version::VersionNumber, dict::Dict)
+function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
   upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
