@@ -1,6 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
-  function upgrade_1_4_0(s::UpgradeState, dict::Dict)
+  function upgrade_1_4_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -10,7 +10,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
     end
     if haskey(dict, :_type)
-      if dict[:_type] isa Dict && haskey(dict[:_type], :name)
+      if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
         type_name = dict[:_type][:name]
       else
         type_name = dict[:_type]
@@ -159,7 +159,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         dict[:data] = dict[:data][:grading][:data]
       elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
-        dict[:_type] isa Dict && haskey(dict[:_type], :params) && return dict
+        dict[:_type] isa AbstractDict && haskey(dict[:_type], :params) && return dict
         dict[:_type] = Dict(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
@@ -190,7 +190,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :_instance => dict[:_type]
         )
 
-        if dict[:data] isa Dict
+        if dict[:data] isa AbstractDict
           dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
           dict[:data] = dict[:data][:def_pol][:data]
         end
@@ -350,7 +350,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         "Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
         "SubdivisionOfPoints"
         ]
-        if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
+        if !(dict[:_type][:params] isa AbstractDict) || dict[:_type][:params][:_type] == "QQBarField"
           pm_dict = dict[:data]
           pm_dict[:_type][:params][:key_params] = "Symbol"
           pm_dict[:_type][:params][:_polymake_type] = "String"
@@ -360,7 +360,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           delete!(pm_dict[:_type][:params], :_type)
           delete!(pm_dict[:data], :_type)
 
-          if !(dict[:_type][:params] isa Dict)
+          if !(dict[:_type][:params] isa AbstractDict)
             field = dict[:_type][:params]
           else
             field = Dict(:_type => "QQBarField")
@@ -502,7 +502,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
         end
       elseif type_name == "NormalToricVariety"
-        if dict[:data] isa Dict
+        if dict[:data] isa AbstractDict
           if haskey(dict[:data], :attrs)
             dict[:attrs] = dict[:data][:attrs]
             dict[:data] = dict[:data][:pm_data]
@@ -535,7 +535,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :modulus => dict[:data][:modulus][:data]
         )
       end
-    elseif haskey(dict, :data) && dict[:data] isa Dict
+    elseif haskey(dict, :data) && dict[:data] isa AbstractDict
       dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
 

@@ -22,7 +22,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.2",
-  function upgrade_0_12_2(s::UpgradeState, dict::Dict)
+  function upgrade_0_12_2(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     s.nested_level += 1
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
@@ -117,7 +117,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         # to the new terms format
         exponent = 0
         for coeff in upgraded_dict[:data][:coeffs][:data][:vector]
-          if !isa(coeff, Dict)
+          if !isa(coeff, AbstractDict)
             upgraded_coeff = coeff
           elseif haskey(coeff[:data], :polynomial)
             upgraded_coeff = upgrade_0_12_2(s, coeff[:data][:polynomial])[:data][:terms]
