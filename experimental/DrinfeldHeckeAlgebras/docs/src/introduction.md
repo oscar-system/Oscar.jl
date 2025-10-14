@@ -14,7 +14,7 @@ groups over general fields.
 
 Let $K$ be a field, $R$ a $K$-algebra and $G$ a finite matrix group over $K$
 acting on a $K$-vector space $V$ linearly. This setting is slightly
-more general than the one by Ram and Shepler [RS03](@cite), but Thiel [Thi14](@cite)[16.69]
+more general than the one by Ram and Shepler [RS03](@cite), but Thiel [Thi14; 16.69](@cite)
 has shown that the PBW Theorem also holds when working with modules
 over arbitrary rings.
 
@@ -30,7 +30,7 @@ $g,h\in G$.
 A Drinfeld--Hecke form is a sum
 $\kappa := \sum_{g\in G} \kappa_g \cdot g$
 of alternating bilinear forms $\kappa_g\colon V\times V \rightarrow R$
-such that the relations posed in [RS03](@cite)[Lemma 1.5] are satisfied:
+such that the relations posed in [RS03; Lemma 1.5](@cite) are satisfied:
 
 - $\kappa_g(u,v)(^gw-w)+\kappa_g(v,w)(^gu-u)+\kappa_g(w,u)(^gv-v) = 0$ for all $u,v,w\in V$ and $g\in G$
 - $\kappa_g(^hv,^hw)=\kappa_{h^{-1}gh}(v,w)$ for all $v,w\in V$ and $g, h\in G$
@@ -44,7 +44,7 @@ with $\kappa$ a Drinfeld--Hecke form.
 This project further provides methods for generating generic (i.e. parametrized) 
 Drinfeld--Hecke algebras using two strategies depending on the setup:
 - If $\text{char}(K) \neq 0$, the generic algebra is constructed directly from the relations above
-- If $\text{char}(K) = 0$, a generalized version of [RS03](@cite)[Theorem 1.9] is used to find generic algebras in a more efficient way. A proof for the generalized version was done in [Koe25](@cite).
+- If $\text{char}(K) = 0$, a generalized version of [RS03; Theorem 1.9](@cite) is used to find generic algebras in a more efficient way. A proof for the generalized version was done in [Koe25](@cite).
 
 Fixing a basis $(v_1,\dots,v_n)$ for $V$ allows us to think of $R\langle V\rangle$ as the non-commutative polynomial
 ring over this basis. Using the numbering $1,\dots,n$ as an order,
