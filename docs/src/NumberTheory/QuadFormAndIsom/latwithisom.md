@@ -10,7 +10,7 @@ We call *lattice with isometry* any pair $(L, f)$ consisting of an integer
 lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
 about [Integer Lattices](@ref) of the documentation for new users.
 
-In Oscar, such a pair is encoded in the type called `ZZLatWithIsom`:
+In OSCAR, such a pair is encoded in the type called `ZZLatWithIsom`:
 
 ```@docs
 ZZLatWithIsom
@@ -221,16 +221,6 @@ the so-called *invariant* and *coinvariant* lattices of $(L, f)$:
 coinvariant_lattice(::ZZLatWithIsom)
 invariant_lattice(::ZZLatWithIsom)
 invariant_coinvariant_pair(::ZZLatWithIsom)
-```
-
-Similarly, we provide the possibility to compute invariant and coinvariant
-sublattices given an orthogonal representation `G` in matrix form of a finite
-group on a given lattice `L`:
-
-```@docs
-coinvariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_coinvariant_pair(::ZZLat, ::MatrixGroup)
 ```
 
 ## Signatures

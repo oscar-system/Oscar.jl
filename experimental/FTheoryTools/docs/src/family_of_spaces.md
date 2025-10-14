@@ -36,16 +36,3 @@ dim(f::FamilyOfSpaces)
 irrelevant_ideal(f::FamilyOfSpaces)
 ideal_of_linear_relations(f::FamilyOfSpaces)
 ```
-
----
-
-## Printouts and Verbosity Control
-
-To receive diagnostic information whenever a `FamilyOfSpaces` object is used (e.g. for debugging or introspection),
-set the verbosity level as follows:
-
-```julia
-set_verbosity_level(:FTheoryModelPrinter, 1)
-```
-
-More details on verbosity settings are available in the [Hecke documentation](http://www.thofma.com/Hecke.jl/dev/features/macros/).

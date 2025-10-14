@@ -750,6 +750,20 @@ X_3  1  1  1
   @test character_table(alternating_group(5), 2) === nothing
 end
 
+@testset "create class functions" begin
+  g = symmetric_group(3)
+  tbl = character_table(g)
+  n = number_of_conjugacy_classes(tbl)
+  triv = trivial_character(tbl)
+  for X in [tbl, g]
+    @test triv == Oscar.class_function(X, [1 for i in 1:n])
+    @test triv == Oscar.class_function(X, GapObj(triv))
+    @test triv == Oscar.class_function(X, GapObj([1 for i in 1:n]))
+    @test_throws ArgumentError Oscar.class_function(X, GapObj([true]))
+    @test_throws ErrorException Oscar.class_function(X, GapObj([1 for i in 1:2*n]))
+  end
+end
+
 @testset "access fields in character tables" begin
   # table without group
   t = character_table("A5")
@@ -1352,4 +1366,19 @@ end
   @test ! is_solvable(t)
   @test ! is_sporadic_simple(t)
   @test ! is_supersolvable(t)
+end
+
+@testset "action  on class functions" begin
+  g = symmetric_group(4)
+  h = pcore(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test order(stabilizer(g, chi)[1]) == 8
+  chi = t[3]  # now the action on classes is already stored
+  @test order(stabilizer(g, chi)[1]) == 8
+
+  h = sylow_subgroup(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test_throws ArgumentError stabilizer(g, chi)
 end

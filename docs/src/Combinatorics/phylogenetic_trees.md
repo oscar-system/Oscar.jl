@@ -9,12 +9,15 @@ DocTestSetup = Oscar.doctestsetup()
 ## Introduction
 
 Phylogenetic trees represent the evolutionary history of some species of consideration.
-Here we consider phylogenetic trees with branch lengths as defined in [SS03](@cite).
+Here we consider phylogenetic (rooted) trees with branch lengths as defined in [SS03](@cite).
+
+The construction of tropical median consensus trees is one of the nontrivial algorithm here.
 
 ## Construction
 
 ```@docs
 phylogenetic_tree
+tropical_median_consensus
 ```
 
 ## Some Helpful Functions
@@ -25,5 +28,5 @@ is_equidistant
 cophenetic_matrix
 taxa
 newick
-tropical_median_consensus
+leaves
 ```

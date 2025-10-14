@@ -367,3 +367,10 @@ function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
+images_of_generators(phi::MPolyAnyMap) = _images(phi)
+
+identity_map(R::MPolyRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(R::MPolyQuoRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(Z::ZZRing) = AbstractAlgebra.identity_map(Z)

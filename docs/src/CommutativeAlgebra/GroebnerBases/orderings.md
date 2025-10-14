@@ -444,3 +444,24 @@ induced_ring_ordering(ord::ModuleOrdering)
 ```
 
 The comparison function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
+
+## Default Orderings in OSCAR
+
+!!! note
+    The OSCAR functions discussed in the sections 
+    [Gröbner/Standard Bases Over Fields](@ref gb_fields) and 
+    [Gröbner/Standard Bases Over $\mathbb Z$](@ref gb_integers) depend on a monomial
+    `ordering` which is entered as a keyword argument.  Given a polynomial ring $R$,
+    the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb
+    Z$-graded with positive weights. Then the corresponding `wdegrevlex` ordering is
+    used. Given a free $R$-module $F$, the `default_ordering` is
+    `default_ordering(R)*lex(gens(F))`.
+
+```@docs
+default_ordering(::MPolyRing)
+```
+
+Expert users may temporarily choose a different default ordering for a given ring.
+```@docs
+with_ordering
+```

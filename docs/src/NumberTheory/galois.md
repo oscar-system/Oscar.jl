@@ -47,8 +47,8 @@ recovering the true roots from this information.
 
 The main information is included in the number field chapter, see for example
 
-  - [`automorphism_list(::Hecke.NumFieldHom)`](@ref)
-  - [`automorphism_group(::NumField)`](@ref)
+  - [`automorphism_list(::NumField)`](@ref)
+  - [`automorphism_group(::AbsSimpleNumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
 
 ## Subfields

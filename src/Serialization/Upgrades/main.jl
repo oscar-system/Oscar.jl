@@ -51,7 +51,7 @@ function UpgradeState()
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
-                     dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
+                     dict::Dict{Symbol}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
 const upgrade_scripts_set = Set{UpgradeScript}()
@@ -60,8 +60,7 @@ const upgrade_scripts_set = Set{UpgradeScript}()
     upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
 
 `upgrade_data` is a helper function that provides functionality for
-recursing on the tree structure. It is independent of any particular
-file format version and can be used in any upgrade script.
+recursing on the tree structure. Used for upgrades up to 0.12.2.
 """
 function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   s.nested_level += 1
@@ -94,8 +93,13 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   return upgraded_dict
 end
 
-# upgrades all types in dict based on renamings
-function upgrade_types(dict::Dict, renamings::Dict{String, String})
+"""
+    rename_types(dict::Dict, renamings::Dict{String, String})
+
+Provides functionality for recursing on the tree structure of `dict`
+and replace all type names that occur as keys in renamings with the values. 
+"""
+function rename_types(dict::Dict, renamings::Dict{String, String})
   function upgrade_type(d::String)
     return get(renamings, d, d)
   end
@@ -134,6 +138,100 @@ function upgrade_types(dict::Dict, renamings::Dict{String, String})
   return dict
 end
 
+function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
+  # all containers have a Dict for their type description
+  # with a name and a params key
+  dict[:_type] isa String && return dict
+  if dict[:data] isa Vector{String}
+    ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
+    if !isnothing(ref_entry)
+      ref_entry = upgrade(s, ref_entry)
+      dict[:_type][:params] = ref_entry[:_type]
+    end
+  end
+  if dict[:_type][:name] in ["Vector", "Set", "Matrix"] 
+    subtype = dict[:_type][:params]
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for entry in dict[:data]
+      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    if !isnothing(upgraded_entry)
+      dict[:_type][:params] = upgraded_entry[:_type]
+    end
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+  elseif dict[:_type][:name] == "MultiDimArray"
+    subtype = dict[:_type][:params][:subtype_params]
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for entry in dict[:data]
+      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    if !isnothing(upgraded_entry)
+      dict[:_type][:params][:subtype_params] = upgraded_entry[:_type]
+    end
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+
+  elseif dict[:_type][:name] == "Tuple"
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for (type, entry) in zip(dict[:_type][:params], dict[:data])
+      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+
+  elseif dict[:_type][:name] == "NamedTuple"
+    upgraded_entries = Dict[]
+    upgraded_entry = nothing
+    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      push!(upgraded_entries, upgraded_entry)
+    end
+    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+  elseif dict[:_type][:name] == "Dict"
+    key_params = dict[:_type][:params][:key_params]
+
+    if haskey(dict[:_type][:params], :value_params)
+      value_params = dict[:_type][:params][:value_params]
+      upgraded_entry = nothing
+      upgraded_pairs = Tuple[]
+      for (k, v) in dict[:data]
+        upgraded_v = upgrade(s, Dict(:_type => value_params, :data => v))
+        upgraded_k = upgrade(s, Dict(:_type => key_params, :data => k))
+        push!(upgraded_pairs, (upgraded_k, upgraded_v))
+      end
+
+      if key_params in ["Symbol", "Int", "String"]
+        dict[:data] = Dict()
+        for (upgraded_k, upgraded_v) in upgraded_pairs
+          dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+        end
+      else
+        dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
+      end
+
+      if !isempty(upgraded_pairs)
+        first_pair = first(upgraded_pairs)
+        dict[:_type][:params][:key_params] = first_pair[1][:_type]
+        dict[:_type][:params][:value_params] = first_pair[2][:_type]
+      end
+    else
+      for entry in dict[:data]
+        upgraded_entry = upgrade(s, Dict(:_type => dict[:_type][:params][entry.first],
+                                         :data => entry.second))
+        dict[:data][entry.first] = upgraded_entry[:data]
+        dict[:_type][:params][entry.first] = upgraded_entry[:_type]
+      end
+    end
+  end
+end
+
+# following order is the order in which upgrades will happen
 include("0.11.3.jl")
 include("0.12.0.jl")
 include("0.12.2.jl")
@@ -143,6 +241,7 @@ include("1.1.0.jl")
 include("1.2.0.jl")
 include("1.3.0.jl")
 include("1.4.0.jl")
+include("1.6.0.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -170,8 +269,17 @@ function upgrade(format_version::VersionNumber, dict::Dict)
 
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load
-      # uses JSON3 which is read only 
+      # uses JSON3 which is read only
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
+      if script_version > v"0.13.0"
+        if haskey(upgraded_dict, :_refs)
+          upgraded_refs = Dict{Symbol, Any}()
+          for (k, v) in upgraded_dict[:_refs]
+            upgraded_refs[k] = upgrade_script(upgrade_state, v)
+          end
+          upgraded_dict[:_refs] = upgraded_refs
+        end
+      end
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

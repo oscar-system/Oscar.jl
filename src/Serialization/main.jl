@@ -16,7 +16,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
@@ -80,8 +81,13 @@ function get_oscar_serialization_version()
     return oscar_serialization_version[]
   end
   if Oscar.is_dev
+    next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
+    n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
+                       readdir(joinpath(@__DIR__, "Upgrades")))
+
+
     commit_hash = get(Oscar._get_oscar_git_info(), :commit, "unknown")
-    version_info = "$VERSION_NUMBER-$commit_hash"
+    version_info = iszero(n_upgrades) ? "$VERSION_NUMBER-$commit_hash" : "$VERSION_NUMBER-$n_upgrades-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
     )
@@ -115,6 +121,12 @@ function encode_type(::Type{T}) where T
   )
 end
 
+function decode_type(s::String)
+  return get(reverse_type_map, s) do
+    error("unsupported type '$s' for decoding")
+  end
+end
+
 function decode_type(s::DeserializerState)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
@@ -128,11 +140,7 @@ function decode_type(s::DeserializerState)
       s.obj = obj
       return T
     end
-
-    return get(reverse_type_map, s.obj) do
-      unsupported_type = s.obj
-      error("unsupported type '$unsupported_type' for decoding")
-    end
+    return decode_type(s.obj)
   end
 
   if type_key in keys(s.obj)
@@ -231,7 +239,6 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
-
   if with_attrs(s)
     attrs = attrs_list(T)
     !isempty(attrs) && save_attrs(s, x)
@@ -531,7 +538,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
@@ -610,6 +617,7 @@ include("LieTheory.jl")
 
 include("Upgrades/main.jl")
 include("parallel.jl")
+
 
 ################################################################################
 # Interacting with IO streams and files
@@ -857,6 +865,7 @@ export load_attrs
 export load_node
 export load_object
 export load_ref
+export params_all_equal
 export save
 export save_as_ref
 export save_attrs

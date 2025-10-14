@@ -18,7 +18,7 @@ a vector of elements in $F$;
 these elements are called the *defining relators* of $G$,
 see [`relators`](@ref).
 
-Finitely presented groups in Oscar have the type [`FPGroup`](@ref),
+Finitely presented groups in OSCAR have the type [`FPGroup`](@ref),
 their elements have the type [`FPGroupElem`](@ref).
 
 ## Basic Creation
@@ -48,13 +48,13 @@ then one chooses these defining relators, and then calls
 [`quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem`](@ref).
 
 ```jldoctest fpgroupxpl
-julia> rels = [f1^2, f2^3, f1*f2*f1*f2^2]
+julia> rel = [f1^2, f2^3, f1*f2*f1*f2^2]
 3-element Vector{FPGroupElem}:
  f1^2
  f2^3
  (f1*f2)^2*f2
 
-julia> G, epi = quo(F, rels)
+julia> G, epi = quo(F, rel)
 (Finitely presented group, Hom: F -> G)
 
 julia> gens(G)
@@ -76,7 +76,7 @@ julia> map(epi, gens(F)) == gens(G)
 true
 ```
 
-Subgroups of finitely presented groups in Oscar have the type
+Subgroups of finitely presented groups in OSCAR have the type
 [`SubFPGroup`](@ref),
 their elements have the type [`SubFPGroupElem`](@ref).
 We distinguish between full finitely presented groups and their subgroups

@@ -411,7 +411,7 @@ end
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
 
-Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
+Type of elements of a group of type `MatrixGroup{RE, T}`.
 """
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
    parent::MatrixGroup{RE, T}
@@ -525,16 +525,17 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  is_known_to_be_full::Bool
 
-  function AutomorphismGroup{T}(G::GapObj, H::T) where T
+  function AutomorphismGroup{T}(G::GapObj, H::T, full::Bool = false) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
-    z = new{T}(G, H)
+    z = new{T}(G, H, full)
     return z
   end
 end
 
-function AutomorphismGroup(G::GapObj, H::T) where T
-  return AutomorphismGroup{T}(G, H)
+function AutomorphismGroup(G::GapObj, H::T, full::Bool = false) where T
+  return AutomorphismGroup{T}(G, H, full)
 end
 
 (aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
@@ -659,6 +660,7 @@ function _oscar_group(G::GapObj)
         ring = codomain(iso)
         matgrp = matrix_group(ring, deg)
         matgrp.ring_iso = inv(iso)
+        set_attribute!(ring, :iso_oscar_gap, matgrp.ring_iso)
         matgrp.X = G
         return matgrp
       elseif pair[2] == AutomorphismGroup

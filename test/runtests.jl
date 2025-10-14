@@ -94,6 +94,9 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 test_subsets = Dict(
                :extra_long => [
                                "experimental/FTheoryTools/test/FTM-1511-03209.jl",
+                               "experimental/FTheoryTools/test/long_QSMs.jl",
+                               "experimental/FTheoryTools/test/singular_loci.jl",
+                               "experimental/FTheoryTools/test/paper_tests.jl",
                               ],
 
                     :long  => [
@@ -121,8 +124,9 @@ test_subsets = Dict(
                               ],
                      :book => [
                                "test/book/test.jl",
-                              ]
-                   )
+                     ],
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+)
 
 test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
 if haskey(ENV, "JULIA_PKGEVAL")
@@ -160,6 +164,13 @@ if test_subset == :long || test_subset == :default
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
+
+  if "AlgebraicStatistics" in Oscar.exppkgs
+    path = joinpath(Oscar.oscardir, "experimental", "AlgebraicStatistics", "test", "MultigradedImplicitization.jl")
+    println("Starting tests for $path")
+    push!(stats, Oscar._timed_include(path, Main))
+  end
+
 end
 
 # if many workers, distribute tasks across them

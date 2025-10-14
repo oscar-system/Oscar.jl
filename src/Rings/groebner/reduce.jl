@@ -390,7 +390,7 @@ function reduce_with_quotients(F::Vector{T}, G::IdealGens{T}; ordering::Monomial
   return q, r
 end
 
-function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = complete_reduction)
+function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
   R = base_ring(I)
   @assert base_ring(J) == R
   sI = singular_generators(I, ordering)

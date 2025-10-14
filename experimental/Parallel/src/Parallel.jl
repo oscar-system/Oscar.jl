@@ -1,5 +1,5 @@
 using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
-import Distributed: remotecall, workers, remotecall_fetch
+import Distributed: remotecall, workers, remotecall_fetch, pmap
 
 import .Serialization: put_type_params
 
@@ -244,6 +244,9 @@ end
 
 function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)
+  # this is inefficient and can clog up channels
+  # TODO only send params when necessary
+  # and/or figure out how to clear channels
   for a in args
     put_type_params(get_channel(wp, wid), a)
   end
@@ -253,6 +256,14 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   result = remotecall_fetch(f, wid, args...; kwargs...)
   put!(wp, wid)
   return result
+end
+
+# this is here so that setting batchsize still works
+type_params(p::Base.Iterators.Zip) = type_params(first(p))
+  
+function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
+  put_type_params(wp, c)
+  pmap(f, wp.wp, c; kwargs...)
 end
 
 export oscar_worker_pool

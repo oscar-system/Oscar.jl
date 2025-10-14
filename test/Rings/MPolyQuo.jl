@@ -140,7 +140,7 @@ end
   @test intersect(I,J,K) == ideal(Q, [y+1, x])
   @test intersect(I,J,K) == intersect([I,J,K])
 
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])

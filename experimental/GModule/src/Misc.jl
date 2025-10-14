@@ -278,14 +278,27 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
   return h, coordinates, rep_mat
 end
 
-Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
+Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:RingElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
 
-function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
+#over fields are modules are free (and have a known dimension and basis
+#hence this works)
+function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T <: FieldElem
   k = base_ring(F)
-  @assert base_ring(G) == k
-  H = free_module(k, rank(F)*rank(G))
+  @assert base_ring(G) =k
+  H = free_module(k, rank(F)*rank(G); cached = false)
   return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end
+
+#over rings, only free modules are easy.. (known free modules)
+#could be make to work over ZZ (see abelian groups in Hecke)
+#and possibly also for euclidean rings
+function Oscar.hom(F::AbstractAlgebra.Generic.FreeModule{T}, G::AbstractAlgebra.Generic.FreeModule{T}) where T <: RingElem
+  k = base_ring(F)
+  @assert base_ring(G) == k
+  H = free_module(k, rank(F)*rank(G); cached = false)
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+end
+
 
 function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
   A = free_abelian_group(rank(M))
@@ -384,6 +397,10 @@ end
 
 function Nemo.charpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
   return charpoly(matrix(h))
+end
+
+function Nemo.matrix(h::Oscar.GModuleHom{<:Any, <:AbstractAlgebra.FPModule{<:Any}})
+  return matrix(h.module_map)
 end
 
 end # module

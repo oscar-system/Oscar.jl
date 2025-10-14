@@ -80,7 +80,7 @@ end
   OT = orthogonal_group(T)
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
-  @test_throws ErrorException OT(fT) # this should not because fT does not preserve the bilinear form
+  @test_throws ArgumentError OT(fT) # this should not because fT does not preserve the bilinear form
   T = discriminant_group(root_lattice(:D, 13))
   Tsub, _ = sub(T, 4*gens(T))
   @test order(orthogonal_group(Tsub)) == 1

@@ -78,7 +78,7 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -144,7 +144,7 @@ jobs:
           - 'pre'
           - 'nightly'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -195,7 +195,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2
       - name: "Set up Julia"
@@ -234,7 +234,7 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -289,6 +289,72 @@ jobs:
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
           key: ${{ steps.julia-cache.outputs.cache-key }}
+
+  test-mongodb:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.julia-version == '1.12-nightly' || matrix.julia-version == 'nightly' }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.10'
+          - '1.11'
+          - '1.12-nightly'
+          - 'nightly'
+        os: ['ubuntu-latest']
+
+            # Service containers to run
+    services:
+      # Label used to access the service container
+      mongodb:
+        # Docker Hub image
+        image: mongo:6.0
+        # Provide the login data
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
+        ports:
+          # Maps tcp port 27017 on service container to the host
+          - 27017:27017
+    env:
+      JULIA_PKG_SERVER: ""
+      OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
+      OSCAR_TEST_SUBSET: "oscar_db"
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-scratchspaces: false
+      - name: "Fill OscarDB container"
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+          mongorestore --host localhost -u admin -p admin --port 27017 .github/oscardb_dump
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: "Process code coverage"
+        if: matrix.julia-version == '1.10'
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.10'
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
 
 # adapted from gap-system/gap
   slack-notification:
