@@ -56,7 +56,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       s.id_to_dict[Symbol(dict[:id])] = upgraded_dict
     elseif haskey(dict, :id)
       # remove ids for objects that dont require references
-      id = pop!(upgraded_dict, :id)
+      id = upgraded_dict[:id]
+      delete!(upgraded_dict, :id)
       s.id_to_dict[Symbol(id)] = upgraded_dict
     end
 

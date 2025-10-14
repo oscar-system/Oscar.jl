@@ -98,15 +98,15 @@ push!(upgrade_scripts_set, UpgradeScript(
         error("The upgrade script needs an update")
       end
 
-      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
+      upgraded_dict[:_type] = Dict{Symbol, Any}(:name => type_string, :params => params)
     elseif contains(type_string, "NamedTuple")
       upgraded_tuple = upgrade_0_13_0(s, dict[:data][:content])
 
-      params = Dict(
+      params = Dict{Symbol, Any}(
         :tuple_params => upgraded_tuple[:_type][:params],
         :names => dict[:data][:keys][:data][:content]
       )
-      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
+      upgraded_dict[:_type] = Dict{Symbol, Any}(:name => type_string, :params => params)
       upgraded_dict[:data] = upgraded_tuple[:data]
 
     elseif contains(type_string, "Nemo.fpField")
@@ -119,7 +119,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = string(dict[:data][:characteristic])
     elseif contains(type_string, "MPolyIdeal")
       upgraded_parent = upgrade_0_13_0(s, dict[:data][:parent])[:id]
-      upgraded_dict[:_type] = Dict(:name => type_string, :params => upgraded_parent)
+      upgraded_dict[:_type] = Dict{Symbol, Any}(:name => type_string, :params => upgraded_parent)
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
         push!(upgraded_gens, upgrade_0_13_0(s, gen)[:data])
@@ -153,11 +153,11 @@ push!(upgrade_scripts_set, UpgradeScript(
           push!(entry_data, dict[:data][:content][i])
         end
       end
-      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
+      upgraded_dict[:_type] = Dict{Symbol, Any}(:name => type_string, :params => params)
       upgraded_dict[:data] = entry_data
     elseif contains(type_string, "Matrix")
       params = dict[:data][:matrix][1][:data][:entry_type]
-      upgraded_dict[:_type] = Dict(:name => "Matrix", :params => params)
+      upgraded_dict[:_type] = Dict{Symbol, Any}(:name => "Matrix", :params => params)
       matrix_data = []
       for v in dict[:data][:matrix]
         push!(matrix_data, v[:data][:vector])
@@ -172,7 +172,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     if haskey(upgraded_dict, :refs)
-      upgraded_refs = Dict()
+      upgraded_refs = Dict{Symbol, Any}()
       for (k, v) in upgraded_dict[:refs]
         upgraded_refs[k] = upgrade_0_13_0(s, v)
       end

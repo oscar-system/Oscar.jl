@@ -6,14 +6,14 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     # Upgrades 
     if dict[:_type] == "PhylogeneticTree"
-      dict[:_type] = Dict(
+      dict[:_type] = Dict{Symbol, Any}(
         :name => "PhylogeneticTree",
-        :params => Dict(
+        :params => Dict{Symbol, Any}(
           :_type => dict[:data][:_type] == "graph::PhylogeneticTree<Float>" ? "Floats" : "QQField"
         )
       )
       n_vertices = length(dict[:data][:LABELS])
-      dict[:data] = Dict(
+      dict[:data] = Dict{Symbol, Any}(
         :pm_tree => dict[:data],
         :vertex_perm => string.(collect(1:n_vertices))
       )
