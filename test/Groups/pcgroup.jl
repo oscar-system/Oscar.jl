@@ -144,3 +144,20 @@ end
     @test is_bijective(f)
   end
 end
+
+@testset "pcgroup code and reconstruction" begin
+  import Oscar: code_pcgroup, pcgroup_code
+# First group: C12
+  G = pc_group(cyclic_group(12))
+  code = code_pcgroup(G)
+  H = pcgroup_code(code)
+
+  @test order(H) == order(G)
+
+  # Second group: C6
+  G2 = pc_group(cyclic_group(6))
+  code2 = code_pcgroup(G2)
+  H2 = pcgroup_code(code2)
+
+  @test H2 isa typeof(G2)
+end
