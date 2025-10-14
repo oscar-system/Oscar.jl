@@ -22,14 +22,8 @@ end
 
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    name = "tropicalVariety_as_string"
     sI = Oscar.singular_generators(I)
-    arguments = Any[ Singular.prepare_argument(sI)[1] ]
-    return_value = Singular.libSingular.call_singular_library_procedure(name, base_ring(sI).ptr, arguments);
-    if Singular.libSingular.have_error()
-        error(Singular.libSingular.get_and_clear_error())
-    end
-    TropIString = Singular.convert_return(return_value, ring)
+    TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", sI)
 
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,false)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
