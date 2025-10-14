@@ -1,5 +1,3 @@
-using JSON3
-
 ################################################################################
 # Type Serializers (converting types to strings)
 convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
@@ -231,7 +229,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
+  obj::Union{AbstractDict{Symbol, Any}, Vector, BasicTypeUnion, Nothing}
   key::Union{Symbol, Int, Nothing}
   refs::Union{AbstractDict{Symbol, Any}, Nothing}
   with_attrs::Bool
@@ -301,7 +299,7 @@ function serializer_open(
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
+  obj = JSON.parse(io; dicttype=JSON.Object{Symbol, Any})
   refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)

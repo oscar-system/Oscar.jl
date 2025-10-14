@@ -57,7 +57,7 @@ end
 function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
   graph_gen_dict = Dict{Union{Int, Edge}, MPolyRingElem}()
   load_array_node(s) do (_, (k, v))
-    if k isa Oscar.Serialization.JSON3.Array
+    if k isa Array
       key = load_object(s, Edge, 1)
     else
       key = load_object(s, Int, 1)
