@@ -384,6 +384,7 @@ julia> tax = ["Bonobo", "Chimpanzee", "Gorilla", "Human"]
  "Chimpanzee"
  "Gorilla"
  "Human"
+
 julia> tree_mat = phylogenetic_tree(mat, tax);
 
 julia> newick(tree_mat)
