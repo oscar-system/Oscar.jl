@@ -55,8 +55,8 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
     # Shift kappa_g into S using an homomorphism
     S_g = base_ring(kappa_g)
     next_index = current_parameter_index + ngens(S_g)
-    φ_g = hom(S_g, S, [S[i] for i in current_parameter_index:(next_index - 1)])
-    kappa_g = map(x -> φ_g(x), kappa_g)
+    phi_g = hom(S_g, S, [S[i] for i in current_parameter_index:(next_index - 1)])
+    kappa_g = map(x -> phi_g(x), kappa_g)
     current_parameter_index = next_index
     
     # Calculate all forms in conjugacy class and set everything to forms dictionary
