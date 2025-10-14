@@ -34,6 +34,7 @@ GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap Characteristic(x::Any)::GapInt
+GAP.@wrap CharacterDegrees(x::GapObj)::GapObj
 GAP.@wrap CharacterParameters(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj, y::GAP.Obj)::GapObj

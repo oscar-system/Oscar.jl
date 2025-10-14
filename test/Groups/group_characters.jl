@@ -1382,3 +1382,23 @@ end
   chi = t[2]
   @test_throws ArgumentError stabilizer(g, chi)
 end
+
+@testset "character degrees" begin
+  # for character tables
+  D = character_degrees(character_table("S5"))
+  @test sort(collect(D)) == [1, 1, 4, 4, 5, 5, 6]
+  @test D isa MSet{ZZRingElem}
+  D2 = character_degrees(Int, character_table("S5"))
+  @test sort(collect(D)) == sort(collect(D2))
+  @test D2 isa MSet{Int}
+  @test sort(collect(character_degrees(character_table("S5", 2)))) == [1, 4, 4]
+
+  # for groups
+  @test sort(collect(character_degrees(symmetric_group(5)))) == sort(collect(D))
+
+  # for invariant lists of abelian groups, and order of a finite field
+  D = character_degrees([3, 3, 5], 2)
+  @test sort(collect(D)) == sort(collect(MSet([1, 2, 4], [1, 4, 9])))
+  D = character_degrees([2, 4, 8], 3)
+  @test sort(collect(D)) == sort(collect(MSet([1, 2], [8, 28])))
+end

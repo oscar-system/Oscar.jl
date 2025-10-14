@@ -1833,6 +1833,113 @@ end
 
 
 @doc raw"""
+    character_degrees(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
+
+Return an `MSet{T, Int}` of the absolutely irreducible degrees of `tbl`
+and their multiplicities.
+
+# Examples
+```jldoctest
+julia> character_degrees(character_table("S5"))
+MSet{ZZRingElem} with 7 elements:
+  5 : 2
+  4 : 2
+  6
+  1 : 2
+```
+"""
+function character_degrees(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
+    degs = Vector{Vector{T}}(GAPWrap.CharacterDegrees(GapObj(tbl)))
+    return MSet(Dict{T, Int}(x[1] => x[2] for x in degs))
+end
+
+@attr MSet{ZZRingElem} character_degrees(tbl::GAPGroupCharacterTable) = character_degrees(ZZRingElem, tbl)
+
+
+function character_degrees(::Type{T}, G::GAPGroup) where T <: IntegerUnion
+    degs = Vector{Vector{T}}(GAPWrap.CharacterDegrees(GapObj(G)))
+    return MSet(Dict{T, Int}(x[1] => x[2] for x in degs))
+end
+
+@attr MSet{ZZRingElem} character_degrees(G::GAPGroup) = character_degrees(ZZRingElem, G)
+
+
+"""
+    character_degrees(::Type{T} = ZZRingElem, invariants::Vector{<:IntegerUnion}, q::IntegerUnion) where T <: IntegerUnion
+
+Return the `MSet{T, Int}` in which the multiplicity of `n` is the number of
+irreducible representations of degree `n` of `abelian_group(invariants)`
+over the finite field with `q` elements.
+
+(The degrees and their multiplicities are computed without creating the
+abelian group.)
+
+# Examples
+```jldoctest
+julia> character_degrees([3, 3, 5], 2)
+MSet{ZZRingElem} with 14 elements:
+  4 : 9
+  2 : 4
+  1
+
+julia> character_degrees([3, 3, 5], 4)
+MSet{ZZRingElem} with 27 elements:
+  2 : 18
+  1 : 9
+
+julia> character_degrees([3, 3, 5], 16)
+MSet{ZZRingElem} with 45 elements:
+  1 : 45
+```
+"""
+function character_degrees(::Type{T}, invariants::Vector{<:IntegerUnion}, q::IntegerUnion) where T <: IntegerUnion
+  # `q = l^f` for a prime `l`.
+  flag, f, l = is_prime_power_with_data(ZZRingElem(q))
+  @req flag "q must be a prime power"
+
+  # Switch to prime power invariants, remove the `l`-parts.
+  ab_inv = abelian_invariants(ZZRingElem, invariants)
+  ab_inv = [remove(x, l)[2] for x in ab_inv]
+
+  # Distribute `ab_inv` to the prime divisors `p` of the exponent `e`.
+  e = lcm(ab_inv)
+  D = Dict((p, ZZRingElem[]) for p in prime_divisors(e))
+  for a in ab_inv
+    flag, ff, p = is_prime_power_with_data(a)
+    flag && push!(D[p], ff)
+  end
+
+  # Precompute the cardinalities $|I_{p^i}(G_p)|$.
+  I = Dict{ZZRingElem, ZZRingElem}()
+  for p in prime_divisors(e)
+    as = D[p]
+    valp = p^length(as)
+    I[p] = (p == 2 ? valp : (valp - 1))
+    for i in 2:maximum(as)
+      valnext = prod([p^min(x, i) for x in as]; init = 1)
+      I[p^i] = valnext - valp
+      valp = valnext
+    end
+  end
+
+  # Compute the degrees `n` and their multiplicities `m`.
+  res = MSet{T}()
+  for d in (isodd(e) ? divisors(e) : 2 * divisors(div(e, 2)))
+    k = (d == 1 ? 1 : modord(l, d))
+    g = gcd(f, k)
+    num = prod([I[x[1]^x[2]] for x in factor(d)]; init = 1)
+    n = div(k, g)
+    m = Int(div(g*num, k))
+    push!(res, n, m)
+  end
+
+  return res
+end
+
+character_degrees(invariants::Vector{<:IntegerUnion}, q::IntegerUnion) = character_degrees(ZZRingElem, invariants, q)
+
+
+@doc raw"""
     names_of_fusion_sources(tbl::GAPGroupCharacterTable)
 
 Return the vector of strings that are identifiers of those character tables
