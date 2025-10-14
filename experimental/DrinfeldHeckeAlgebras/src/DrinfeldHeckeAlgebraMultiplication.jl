@@ -100,8 +100,8 @@ function multiply_m1_with_m2(m1::DrinfeldHeckeAlgebraElem, m2::DrinfeldHeckeAlge
   end
   
   # Otherwise a correctional term will come in when multiplying x and y
-  κ = form(A)
-  xy = A(y.element * x.element) - κ(y,x)
+  kappa = form(A)
+  xy = A(y.element * x.element) - kappa(y,x)
   (c, m, g, tail) = split_element(xy)
 
   # m1 * m2 = mm1 * (x * y) * mm2 = mm1 * (c * m * g + tail) * mm2 = c * mm1 * m * g * mm2 + mm1 * tail * mm2
@@ -206,7 +206,7 @@ end
 # Helper functions for multiplication
 #######################################
 
-(κ::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(κ(generator_to_vector(x), generator_to_vector(y)))
+(kappa::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(kappa(generator_to_vector(x), generator_to_vector(y)))
 
 function generator_to_vector(x::DrinfeldHeckeAlgebraElem)
   A = x.parent

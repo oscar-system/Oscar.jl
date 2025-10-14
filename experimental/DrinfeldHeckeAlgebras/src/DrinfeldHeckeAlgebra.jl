@@ -19,21 +19,21 @@ mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
   
   # Create from forms input
   function DrinfeldHeckeAlgebra(forms::Dict)
-    κ = DrinfeldHeckeForm(forms)
+    kappa = DrinfeldHeckeForm(forms)
 
-    return DrinfeldHeckeAlgebra(κ)
+    return DrinfeldHeckeAlgebra(kappa)
   end
 
   # Create the zero Drinfeld-Hecke algebra from a group and a ring
   function DrinfeldHeckeAlgebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
-    κ = DrinfeldHeckeForm(G, R)
+    kappa = DrinfeldHeckeForm(G, R)
 
-    return DrinfeldHeckeAlgebra(κ)
+    return DrinfeldHeckeAlgebra(kappa)
   end
 
   # Create from a Drinfeld-Hecke form
-  function DrinfeldHeckeAlgebra(κ::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem}
-    return new{T, S}(κ)
+  function DrinfeldHeckeAlgebra(kappa::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem}
+    return new{T, S}(kappa)
   end
 end
 
@@ -83,15 +83,15 @@ Matrix group of degree 2
 julia> R, (x,y) = polynomial_ring(QQ, ["x","y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> κ_1 = matrix(R, [0 x; -x 0])
+julia> kappa_1 = matrix(R, [0 x; -x 0])
 [ 0   x]
 [-x   0]
 
-julia> κ_g = matrix(R, [0 y; -y 0])
+julia> kappa_g = matrix(R, [0 y; -y 0])
 [ 0   y]
 [-y   0]
 
-julia> forms = Dict(one(G) => κ_1, G[1] => κ_g)
+julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
 Dict{MatrixGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
   [1 0; 0 1]   => [0 x; -x 0]
   [-1 0; 0 -1] => [0 y; -y 0]
@@ -197,9 +197,9 @@ given by alternating bilinear forms
 ```
 """
 function generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
-  κ = generic_drinfeld_hecke_form(G,R)
+  kappa = generic_drinfeld_hecke_form(G,R)
 
-  return DrinfeldHeckeAlgebra(κ)
+  return DrinfeldHeckeAlgebra(kappa)
 end
 
 #######################################
@@ -283,8 +283,8 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
 
   # Apply homomorphism to forms
   forms = Dict()
-  for (g, κ_g) in alternating_bilinear_forms(form(A))
-    forms[g] = map(λ, matrix(κ_g))
+  for (g, kappa_g) in alternating_bilinear_forms(form(A))
+    forms[g] = map(λ, matrix(kappa_g))
   end
   
   # Create new DH algebra from forms

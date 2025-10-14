@@ -8,9 +8,9 @@
 
   @testset "create drinfeld-hecke algebra from drinfeld-hecke form for C2" begin
     G = matrix_group(matrix(QQ, [-1 0;0 -1]))
-    κ_1 = matrix(QQ, [0 1; -1 0])
-    κ_g = matrix(QQ, [0 2//3; -2//3 0])
-    forms = Dict(one(G) => κ_1, G[1] => κ_g)
+    kappa_1 = matrix(QQ, [0 1; -1 0])
+    kappa_g = matrix(QQ, [0 2//3; -2//3 0])
+    forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
     A = drinfeld_hecke_algebra(forms)
     
     @test !is_trivial(A)
@@ -22,8 +22,8 @@
 
   @testset "can't create from non-alternating forms" begin
     G = matrix_group(matrix(QQ, [-1 0;0 -1]))
-    κ_1 = matrix(QQ, [1 1; -1 0])
-    forms = Dict(one(G) => κ_1)
+    kappa_1 = matrix(QQ, [1 1; -1 0])
+    forms = Dict(one(G) => kappa_1)
     
     @test_throws ArgumentError drinfeld_hecke_algebra(forms)
   end

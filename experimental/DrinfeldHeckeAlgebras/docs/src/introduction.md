@@ -153,15 +153,15 @@ given by alternating bilinear forms
 julia> R, (x,y) = polynomial_ring(QQ, ["x","y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> κ_1 = matrix(R, [0 x; -x 0])
+julia> kappa_1 = matrix(R, [0 x; -x 0])
 [ 0   x]
 [-x   0]
 
-julia> κ_g = matrix(R, [0 y; -y 0])
+julia> kappa_g = matrix(R, [0 y; -y 0])
 [ 0   y]
 [-y   0]
 
-julia> forms = Dict(one(G) => κ_1, G[1] => κ_g)
+julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
 Dict{MatrixGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
   [1 0; 0 1]   => [0 x; -x 0]
   [-1 0; 0 -1] => [0 y; -y 0]

@@ -12,8 +12,8 @@ function is_drinfeld_hecke_form(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) whe
     if length(forms) == 0 return true end
     
     # Otherwise we extract ring data
-    g, κ_g = first(forms)
-    R = base_ring(κ_g)
+    g, kappa_g = first(forms)
+    R = base_ring(kappa_g)
     
     if R isa Field && characteristic(R) == 0
       return is_drinfeld_hecke_form_local_strategy(forms)
@@ -32,9 +32,9 @@ function is_drinfeld_hecke_form_local_strategy(
   forms::Dict{MatrixGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
   # Extract group and ring data
-  g, κ_g = first(forms)
+  g, kappa_g = first(forms)
   G = parent(g)
-  R = base_ring(κ_g)
+  R = base_ring(kappa_g)
 
   # We iterate over the conjugacy classes
   for C in conjugacy_classes(G)
@@ -121,9 +121,9 @@ function is_drinfeld_hecke_form_global_strategy(
   forms::Dict{MatrixGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
   # Extract group and ring data
-  g, κ_g = first(forms)
+  g, kappa_g = first(forms)
   G = parent(g)
-  R = base_ring(κ_g)
+  R = base_ring(kappa_g)
   
   # Build relation matrix
   M, map = build_relation_matrix(G)

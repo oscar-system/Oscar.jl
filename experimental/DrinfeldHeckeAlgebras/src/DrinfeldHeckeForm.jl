@@ -26,18 +26,18 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     end
     
     S = elem_type(typeof(R))
-    κ = new{T, S}()
+    kappa = new{T, S}()
         
-    κ.group = G
-    κ.base_ring = R
-    κ.forms = Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}}()
+    kappa.group = G
+    kappa.base_ring = R
+    kappa.forms = Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}}()
   
     RV, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)])
     
-    κ.base_algebra = RV
-    κ.group_algebra = RV[G]
+    kappa.base_algebra = RV
+    kappa.group_algebra = RV[G]
     
-    return κ
+    return kappa
   end
 
   # Creates Drinfeld-Hecke form from non-empty forms input
@@ -49,9 +49,9 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
       ))
     end
   
-    g, κ_g = first(forms)
+    g, kappa_g = first(forms)
     G = parent(g)
-    R = base_ring(κ_g)
+    R = base_ring(kappa_g)
     
     T = elem_type(typeof(base_ring(G)))
     S = elem_type(typeof(R))
@@ -74,15 +74,15 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
       throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form."))
     end
   
-    κ = DrinfeldHeckeForm(G, R)
+    kappa = DrinfeldHeckeForm(G, R)
     
     for (g, m) in forms_safe
       if !is_zero(m)
-        κ.forms[g] = alternating_bilinear_form(m)
+        kappa.forms[g] = alternating_bilinear_form(m)
       end
     end
   
-    return κ
+    return kappa
   end
 end
 
@@ -98,8 +98,8 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) wh
   end
 
   # Filter nonzero forms
-  for (g, κ_g) in forms
-    if is_zero(κ_g)
+  for (g, kappa_g) in forms
+    if is_zero(kappa_g)
       delete!(forms, g)
     end
   end
@@ -110,38 +110,38 @@ function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) wh
   end
 
   # Otherwise extract ring data
-  g, κ_g = first(forms)
-  S = base_ring(κ_g)
+  g, kappa_g = first(forms)
+  S = base_ring(kappa_g)
   
   # Create form and set forms
-  κ = DrinfeldHeckeForm(forms)
+  kappa = DrinfeldHeckeForm(forms)
   
-  return κ
+  return kappa
 end
 
 #######################################
 # String I/O
 #######################################
 
-function show(io::IO, κ::DrinfeldHeckeForm)
+function show(io::IO, kappa::DrinfeldHeckeForm)
   println(io, "Drinfeld-Hecke form over base ring")
-  println(io, "   " * string(base_ring(κ)))
+  println(io, "   " * string(base_ring(kappa)))
 
-  if number_of_parameters(κ) > 0
+  if number_of_parameters(kappa) > 0
     println(io, "with parameters ")
-    println(io, "   " * join(parameters(κ), ", "))
+    println(io, "   " * join(parameters(kappa), ", "))
   end
 
-  if (length(κ.forms) == 0)
+  if (length(kappa.forms) == 0)
     print(io, "given by 0")
     return
   end
 
   println(io, "given by alternating bilinear forms")
-  n = degree(group(κ))
-  for (k,(g, κ_g)) in enumerate(κ.forms)
+  n = degree(group(kappa))
+  for (k,(g, kappa_g)) in enumerate(kappa.forms)
     A = matrix(g)
-    B = matrix(κ_g)
+    B = matrix(kappa_g)
     
     for i in 1:n
       print(io, "   [")
@@ -166,14 +166,14 @@ function show(io::IO, κ::DrinfeldHeckeForm)
         if j < n print(io, "   ") end
       end
     
-      if i == n && k == length(κ.forms)
+      if i == n && k == length(kappa.forms)
         print(io, "]")
       else
         println(io, "]")
       end
     end
   
-    if k < length(κ.forms)
+    if k < length(kappa.forms)
       println(io)
     end
   end
@@ -183,33 +183,33 @@ end
 # Generic functions
 #######################################
 
-is_zero(κ::DrinfeldHeckeForm) = length(κ.forms) == 0
-base_field(κ::DrinfeldHeckeForm) = base_ring(κ.group)
-base_ring(κ::DrinfeldHeckeForm) = κ.base_ring
-base_algebra(κ::DrinfeldHeckeForm) = κ.base_algebra
-group(κ::DrinfeldHeckeForm) = κ.group
-group_algebra(κ::DrinfeldHeckeForm) = κ.group_algebra
-alternating_bilinear_forms(κ::DrinfeldHeckeForm) = κ.forms
-number_of_forms(κ::DrinfeldHeckeForm) = length(κ.forms)
-nforms(κ::DrinfeldHeckeForm) = number_of_forms(κ)
-parameters(κ::DrinfeldHeckeForm) = if base_ring(κ) isa MPolyRing return gens(base_ring(κ)) else return [] end
-number_of_parameters(κ::DrinfeldHeckeForm) = length(parameters(κ))
-nparams(κ::DrinfeldHeckeForm) = number_of_parameters(κ)
+is_zero(kappa::DrinfeldHeckeForm) = length(kappa.forms) == 0
+base_field(kappa::DrinfeldHeckeForm) = base_ring(kappa.group)
+base_ring(kappa::DrinfeldHeckeForm) = kappa.base_ring
+base_algebra(kappa::DrinfeldHeckeForm) = kappa.base_algebra
+group(kappa::DrinfeldHeckeForm) = kappa.group
+group_algebra(kappa::DrinfeldHeckeForm) = kappa.group_algebra
+alternating_bilinear_forms(kappa::DrinfeldHeckeForm) = kappa.forms
+number_of_forms(kappa::DrinfeldHeckeForm) = length(kappa.forms)
+nforms(kappa::DrinfeldHeckeForm) = number_of_forms(kappa)
+parameters(kappa::DrinfeldHeckeForm) = if base_ring(kappa) isa MPolyRing return gens(base_ring(kappa)) else return [] end
+number_of_parameters(kappa::DrinfeldHeckeForm) = length(parameters(kappa))
+nparams(kappa::DrinfeldHeckeForm) = number_of_parameters(kappa)
 
 #######################################
 # Application of Drinfeld-Hecke form
 #######################################
 
-function (κ::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <: FieldElem, S <: RingElem}
-  RG = group_algebra(κ)
-  RV = base_algebra(κ)
+function (kappa::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <: FieldElem, S <: RingElem}
+  RG = group_algebra(kappa)
+  RV = base_algebra(kappa)
   
   res = RG()
   
   if v == w return res end
 
-  for (g, κ_g) in alternating_bilinear_forms(κ)
-    res = res + RV(κ_g(v,w)) * RG(g)
+  for (g, kappa_g) in alternating_bilinear_forms(kappa)
+    res = res + RV(kappa_g(v,w)) * RG(g)
   end
   
   return res

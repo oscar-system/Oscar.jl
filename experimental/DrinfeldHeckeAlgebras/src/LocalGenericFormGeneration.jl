@@ -3,13 +3,13 @@
 #
 # Over a field of characteristic 0, we have:
 #
-# For 1 != g ∈ G, there exists a Drinfeld-Hecke form with κ_g != 0 if and only if
-#   (a) ker κ_g = V^g where V^g = ker(1 - M)
+# For 1 != g ∈ G, there exists a Drinfeld-Hecke form with kappa_g != 0 if and only if
+#   (a) ker kappa_g = V^g where V^g = ker(1 - M)
 #   (b) codim(V^g) = 2
 #   (c) det h⊥ = 1 for all h ∈ ZG(g) where h⊥ is h restricted to (V^g)⊥ = im(1 - M)
 #
-# For 1 ∈ G, the Drinfeld-Hecke forms are just the G-invariant bilinear alternating forms, i.e κ_1 with
-#   (d) κ_1(v,w) = κ_1(gv,gw) for all g ∈ G and v,w ∈ V
+# For 1 ∈ G, the Drinfeld-Hecke forms are just the G-invariant bilinear alternating forms, i.e kappa_1 with
+#   (d) kappa_1(v,w) = kappa_1(gv,gw) for all g ∈ G and v,w ∈ V
 # (Theorem 1.9 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 #
 # Cassandra Koenen, 2025
@@ -27,15 +27,15 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
     g = representative(C)
     
     if is_one(g)
-      κ_g = calculate_generic_group_invariant_form(G, R)
+      kappa_g = calculate_generic_group_invariant_form(G, R)
     else
-      κ_g = calculate_generic_form_for_non_trivial_element(g, R)
+      kappa_g = calculate_generic_form_for_non_trivial_element(g, R)
     end
     
-    # if κ_g != 0, we save it and add the number of parameters
-    if !is_zero(κ_g)
-      nonzero_forms[(g, C)] = κ_g
-      number_of_parameters = number_of_parameters + ngens(base_ring(κ_g))
+    # if kappa_g != 0, we save it and add the number of parameters
+    if !is_zero(kappa_g)
+      nonzero_forms[(g, C)] = kappa_g
+      number_of_parameters = number_of_parameters + ngens(base_ring(kappa_g))
     end
   end
 
@@ -51,17 +51,17 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
   
   # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1
-  for ((g, C), κ_g) in nonzero_forms
-    # Shift κ_g into S using an homomorphism
-    S_g = base_ring(κ_g)
+  for ((g, C), kappa_g) in nonzero_forms
+    # Shift kappa_g into S using an homomorphism
+    S_g = base_ring(kappa_g)
     next_index = current_parameter_index + ngens(S_g)
     φ_g = hom(S_g, S, [S[i] for i in current_parameter_index:(next_index - 1)])
-    κ_g = map(x -> φ_g(x), κ_g)
+    kappa_g = map(x -> φ_g(x), kappa_g)
     current_parameter_index = next_index
     
     # Calculate all forms in conjugacy class and set everything to forms dictionary
     for c in C
-      forms[c] = calculate_form_for_conjugate(g, c, κ_g)
+      forms[c] = calculate_form_for_conjugate(g, c, kappa_g)
     end
   end
 
@@ -74,7 +74,7 @@ end
 function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
   form = calculate_form_for_non_trivial_element(g, K)
 
-  # We know that κ_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
+  # We know that kappa_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
   R, _ = polynomial_ring(K, ["t"])
   
   # Multiply form with t to parametrize it
@@ -135,7 +135,7 @@ function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field)
     end
   end
 
-  # Create matrix of κ_g in the basis {v1,v2}
+  # Create matrix of kappa_g in the basis {v1,v2}
   result = zero_matrix(K, n, n)
   result[1,2] = 1
   result[2,1] = -1
@@ -169,7 +169,7 @@ end
 
 #######################################
 # Translates the relations
-#   κ(gu, gv) = κ(u, v) for all g ∈ G and u, v ∈ V
+#   kappa(gu, gv) = kappa(u, v) for all g ∈ G and u, v ∈ V
 # into a matrix M representing the LES Mx = 0 such that x represents an alternating bilinear form
 #
 # For this note that
@@ -178,7 +178,7 @@ end
 # - if A = (a_ij) is the matrix corresponding to g in the given basis, then gvi = sum_l (a_li * vl). 
 #
 # With this the relations translate to
-#   sum_{l < k} (a_li a_kj − a_ki a_lj) κ(vl,vk) − κ(vi,vj) = 0
+#   sum_{l < k} (a_li a_kj − a_ki a_lj) kappa(vl,vk) − kappa(vi,vj) = 0
 # for all i < j
 #######################################
 function build_group_invariant_relation_matrix(G::MatrixGroup)
@@ -198,7 +198,7 @@ function build_group_invariant_relation_matrix(G::MatrixGroup)
     row = zero_matrix(K, 1, m)
   
     # The relations translate to the equation
-    # sum_{l < k} (a_li a_kj − a_ki a_lj) κ(vl,vk) − κ(vi,vj) = 0
+    # sum_{l < k} (a_li a_kj − a_ki a_lj) kappa(vl,vk) − kappa(vi,vj) = 0
     # for each i < j
     for i in 1:n, j in (i+1):n
       # Build the equation
@@ -222,14 +222,14 @@ end
 
 #######################################
 # Calculate form for conjugate c = h−1gh of g by formula 
-#   κ_h−1gh(v, w) = κ_g(hv, hw)
+#   kappa_h−1gh(v, w) = kappa_g(hv, hw)
 #######################################
 function calculate_form_for_conjugate(
   g::MatrixGroupElem{T},
   c::MatrixGroupElem{T},
-  κ_g::MatElem
+  kappa_g::MatElem
 ) where {T <: FieldElem}
-  if c == g return κ_g end
+  if c == g return kappa_g end
 
   is_conj, h = is_conjugate_with_data(parent(g), g, c)
   
@@ -239,18 +239,18 @@ function calculate_form_for_conjugate(
   
   A = matrix(h)
   n = nrows(g)
-  κ_c = zero_matrix(base_ring(κ_g), n, n)
+  kappa_c = zero_matrix(base_ring(kappa_g), n, n)
   
   for i in 1:n, j in (i+1):n
     # the i-th column of A is the result of letting h act on the i-th standard basis vector
     A_i = matrix(A[:,i])
     A_j = matrix(A[:,j])
 
-    κ_c[i,j] = (transpose(A_i) * κ_g * A_j)[1,1]
-    κ_c[j,i] = -κ_c[i,j]
+    kappa_c[i,j] = (transpose(A_i) * kappa_g * A_j)[1,1]
+    kappa_c[j,i] = -kappa_c[i,j]
   end
 
-  return κ_c
+  return kappa_c
 end
 
 #######################################
