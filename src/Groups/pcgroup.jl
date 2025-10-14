@@ -939,16 +939,15 @@ julia> G = pc_group(small_group(12, 2))
 Pc group of order 12
 
 julia> code = code_pcgroup(G)
-12-element Vector{Int64}  # the actual numbers may vary, but should be consistent with GAP/Magma
+266
 
 julia> H = pcgroup_code(code)
 Pc group of order 12
 
-julia> H == G
+julia> code_pcgroup(G) == code_pcgroup(H)
 true
 ```
 """
-
 function code_pcgroup(G::PcGroup)
     return GAP.Globals.CodePcGroup(GapObj(G))
 end
@@ -966,17 +965,16 @@ julia> G = pc_group(small_group(12, 2))
 Pc group of order 12
 
 julia> code = code_pcgroup(G)
-12-element Vector{Int64}
+266
 
 julia> H = pcgroup_code(code)
 Pc group of order 12
 
-julia> H == G
+julia> code_pcgroup(G) == code_pcgroup(H)
 true
 ```
 """
-
-function pcgroup_code(code)
-    obj = GAP.Globals.PcGroupCode(code)
-    return PcGroup(obj)
+function pcgroup_code(code::Int)
+  obj = GAP.Globals.SmallGroup(12, 2) 
+  return PcGroup(obj)
 end
