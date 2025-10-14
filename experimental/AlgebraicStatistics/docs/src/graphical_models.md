@@ -13,13 +13,13 @@ Graphical models are a parametrized abstract type `GraphicalModel{T, L}` where `
 ```@docs
 model_ring
 parameter_ring
-parametrization
+parametrization(M::GraphicalModel)
 ```
 
 ## Vanishing ideal
 
 ```@docs
-vanishing_ideal
+vanishing_ideal(M::GraphicalModel)
 ```
 # Extending functionality
 
