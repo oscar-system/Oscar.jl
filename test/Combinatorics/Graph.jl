@@ -206,12 +206,10 @@
         @test G2.label[6, 5] == G2.label[5, 6] == 4
         @test_throws ArgumentError G2.label[6, 7]
         @test_throws ArgumentError G2.label[6]
-
         label!(G2, nothing, Dict(1 => 1))
         @test G2.label[1] ==  1
-        
+
         vertex_labels = Dict(9 => 10)
-        
         @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
 
         edge_labels = Dict{NTuple{2, Int}, QQFieldElem}((5, 6) => 3//4, (7, 8) => 3)

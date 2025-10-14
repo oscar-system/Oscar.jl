@@ -1814,7 +1814,6 @@ function label!(G::Graph{T},
                 name::Symbol=:label) where {T <: Union{Directed, Undirected}}
   @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
   EM = EdgeMap(pm_object(G), edge_labels)
-
   if has_attribute(G, name)
     GM = GraphMap(G, EM, getproperty(G, name).vertex_map)
     set_attribute!(G, name, GM)
@@ -1835,7 +1834,6 @@ function label!(G::Graph{T},
     set_attribute!(G, name, GM)
     return G
   end
-
   set_attribute!(G, name, GraphMap(G, nothing, NM))
   return G
 end
