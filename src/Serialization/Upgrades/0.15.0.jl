@@ -35,7 +35,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     if haskey(dict, :_refs)
-      upgraded_refs = Dict()
+      upgraded_refs = Dict{Symbol, Any}()
       for (k, v) in dict[:_refs]
         upgraded_refs[k] = upgrade_0_15_0(s, v)
       end

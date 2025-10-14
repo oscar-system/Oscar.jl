@@ -64,10 +64,10 @@ push!(upgrade_scripts_set, UpgradeScript(
       # they are represented by strings, and we'll add the `entry_type`
       # to the vector data below...
       if upgraded_vector[1] isa AbstractDict
-        upgraded_dict = Dict(
+        upgraded_dict = Dict{Symbol, Any}(
           :type => "Vector",
           :id => dict[:id],
-          :data => Dict(
+          :data => Dict{Symbol, Any}(
             :vector => upgraded_vector
           )
         )
@@ -76,10 +76,10 @@ push!(upgrade_scripts_set, UpgradeScript(
         return upgraded_dict
       end
 
-      upgraded_dict = AbstractDict(
+      upgraded_dict = Dict{Symbol, Any}(
         :type => "Vector",
         :id => dict[:id],
-        :data => Dict(
+        :data => Dict{Symbol, Any}(
           :vector => upgraded_vector,
           :entry_type => entry_type
         )
@@ -125,7 +125,7 @@ push!(upgrade_scripts_set, UpgradeScript(
 
 
     upgraded_data = upgrade_0_11_3(s, dict[:data])
-    upgraded_dict = Dict(
+    upgraded_dict = Dict{Symbol, Any}(
       :type => dict_type,
       :data => upgraded_data,
       :id => dict[:id]
