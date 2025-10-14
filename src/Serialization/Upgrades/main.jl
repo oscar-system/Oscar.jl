@@ -51,7 +51,7 @@ function UpgradeState()
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
-                     dict::Dict{Symbol}) = script(u_s)(s, dict)
+                     dict::AbstractDict{Symbol, Any}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
 const upgrade_scripts_set = Set{UpgradeScript}()

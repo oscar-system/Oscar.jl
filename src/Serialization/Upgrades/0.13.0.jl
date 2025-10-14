@@ -38,11 +38,11 @@ end
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",
-  function upgrade_0_13_0(s::UpgradeState, dict::Dict)
+  function upgrade_0_13_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     upgraded_dict = dict
     if !haskey(dict, :type)
       # this section deals will PolyRings and MPolyRings
-      if haskey(dict, :base_ring) && dict[:base_ring] isa Dict
+      if haskey(dict, :base_ring) && dict[:base_ring] isa AbstractDict
         if dict[:base_ring][:type] == "#backref"
           upgraded_dict[:base_ring] = dict[:base_ring][:id]
         else
@@ -55,7 +55,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:base_ring][:_type] = dict[:base_ring][:type]
         end
         if haskey(dict, :symbols)
-          if dict[:symbols] isa Dict
+          if dict[:symbols] isa AbstractDict
             upgraded_dict[:symbols] = dict[:symbols][:data][:vector]
           end
         end
@@ -79,7 +79,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     # type has already been updated
-    if haskey(dict, :_type) && dict[:_type] isa Dict
+    if haskey(dict, :_type) && dict[:_type] isa AbstractDict
       return dict
     end
     if contains(type_string, "Vector")
@@ -87,7 +87,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       # which was our primary focus, this may be updated upon request
       error("The upgrade script needs an update")
     elseif contains(type_string, "PolyRingElem")
-      if dict[:data] isa Dict && haskey(dict[:data], :parents)
+      if dict[:data] isa AbstractDict && haskey(dict[:data], :parents)
         # this currently only handles one parent
         upgraded_parent = dict[:data][:parents][end]
         params = upgraded_parent[:id]
@@ -126,13 +126,13 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data] = upgraded_gens
     elseif contains(type_string, "MPolyRing")
-      if dict[:data][:base_ring] isa Dict
+      if dict[:data][:base_ring] isa AbstractDict
         if dict[:data][:base_ring][:type] == "#backref"
           upgraded_dict[:data][:base_ring] = dict[:data][:base_ring][:id]
         end
       end
       # has already been updated
-      if !(dict[:data][:symbols] isa Dict)
+      if !(dict[:data][:symbols] isa AbstractDict)
         return dict
       end
       upgraded_dict[:data][:symbols] = dict[:data][:symbols][:data][:vector]
@@ -166,7 +166,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     if contains(type_string, "Field")
-      if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)
+      if dict[:data] isa AbstractDict && haskey(dict[:data], :def_pol)
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
       end
     end

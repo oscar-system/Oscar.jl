@@ -1,6 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.6.0",
-  function upgrade_1_6_0(s::UpgradeState, dict::Dict)
+  function upgrade_1_6_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     # recurse upgrade on containers
     upgrade_containers(upgrade_1_6_0, s, dict)
 
