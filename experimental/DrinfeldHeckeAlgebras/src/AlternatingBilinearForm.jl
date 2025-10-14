@@ -69,6 +69,6 @@ function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector)::T where T <: Rin
     throw(ArgumentError("The given vectors can not be cast into vectors over the base ring."))
   end
 
-  return dot(v, B*w)
+  return dot(v_safe, B*w_safe)
 end
 
