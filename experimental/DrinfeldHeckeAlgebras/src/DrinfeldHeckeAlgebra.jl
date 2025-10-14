@@ -626,30 +626,6 @@ end
 -(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) - a.parent(b)
 
 #######################################
-# Unsafe operators
-#######################################
-
-function zero!(a::DrinfeldHeckeAlgebraElem)
-  a = zero(a.parent)
-  return a
-end
-
-function mul!(c::DrinfeldHeckeAlgebraElem, a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
-  c = a * b
-  return c
-end
-
-function add!(c::DrinfeldHeckeAlgebraElem, a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
-  c = a + b
-  return c
-end
-
-function addeq!(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
-  a = a + b
-  return a
-end
-
-#######################################
 # Random generation
 #######################################
 
