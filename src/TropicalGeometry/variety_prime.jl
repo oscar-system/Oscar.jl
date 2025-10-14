@@ -34,6 +34,19 @@ function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{
     return TropI
 end
 
+# Given a polynomial ring S, return a map into an isomorphic polynomial ring S->R
+# but with variables renamed to be Singular compatible.
+# The new names are x1, ..., xn if nvars(R)<10, x01, ..., x10 if nvar(R)<100, etc.
+# zero padding is necessary because Singular interpreter does not like variable names
+# that are substrings of other variable names.
+function hom_rename_variables_singular_compatible(S::MPolyRing)
+    n = nvars(S)
+    l = ndigits(n)
+    newVarNames = [Symbol(:x, lpad(string(i), l, '0')) for i in 1:n]
+    R,x = polynomial_ring(base_ring(S), newVarNames)
+    return hom(S,R,x)
+end
+
 # p-adic valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
     phi = hom_rename_variables_singular_compatible(base_ring(I))
