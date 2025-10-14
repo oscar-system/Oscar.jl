@@ -285,7 +285,6 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
-
 end
   
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
