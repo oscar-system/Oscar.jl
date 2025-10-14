@@ -263,7 +263,7 @@ function serializer_open(
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
-  obj = JSON.parse(io)
+  obj = JSON.parse(io; dicttype=JSON.Object{Symbol, Any})
   refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
