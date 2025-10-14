@@ -124,7 +124,9 @@ test_subsets = Dict(
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
-                               "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticParameter.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/MoebiusTransformations.jl",
                               ],
                      :book => [
                                "test/book/test.jl",
