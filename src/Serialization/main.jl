@@ -57,7 +57,7 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::AbstractDict{String, Any})
+function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
   if version_info isa JSON.Object
