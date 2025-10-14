@@ -82,7 +82,7 @@
 
         # general ideals, see doctests
         I = grassmann_pluecker_ideal(2, 5)
-        TropI = tropical_variety(I)
+        TropI = tropical_variety(I; skip_saturation=true, skip_decomposition=true)
         @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
     end
 
