@@ -468,10 +468,28 @@ function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
   return tropical_median_consensus(collect(trees))
 end
 
+@doc raw"""
+    leaves(tree::PhylogeneticTree)
+
+Return the indices of the leaves of the `PhylogeneticTree`.
+
+# Examples
+```jldoctest
+julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
+
+julia> leaves(ptree)
+4-element Vector{Int64}:
+ 3
+ 5
+ 6
+ 7
+```
+"""
 leaves(pt::PhylogeneticTree) = findall(iszero, outdegree(adjacency_tree(pt)))
+
 interior_nodes(pt::PhylogeneticTree) = findall(>(1), outdegree(adjacency_tree(pt)))
 edges(pt::PhylogeneticTree) = edges(adjacency_tree(pt))
 n_edges(pt::PhylogeneticTree) = n_edges(adjacency_tree(pt))
 is_isomorphic(pt::PhylogeneticTree, g::Graph) = is_isomorphic(adjacency_tree(pt), g)
 is_isomorphic(g::Graph, pt::PhylogeneticTree) = is_isomorphic(pt, g)
-is_isomorphic(pt1::PhylogeneticTree, pt2::PhylogeneticTree) = is_isomorphic(adjacency_tree(pt1), adjacency_tree(pt))
+is_isomorphic(pt1::PhylogeneticTree, pt2::PhylogeneticTree) = is_isomorphic(adjacency_tree(pt1), adjacency_tree(pt2))
