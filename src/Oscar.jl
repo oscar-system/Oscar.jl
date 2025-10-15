@@ -195,8 +195,9 @@ function __init__()
 
   # Temporary workaround to allow access to Singular's tropicalVariety command
   # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  # see TropicalGeometry/variety_prime.jl
   Singular.libSingular.load_library("tropical.lib")
-  Singular.call_interpreter("proc tropicalVariety_as_string(ideal I, list #) { if(size(#)==0) { return(string(tropicalVariety(I))); }; return(string(tropicalVariety(I,#[1]))); }")
+  Singular.call_interpreter("proc tropicalVariety_as_string(ideal I, list #) { if(size(#)==0) { return(string(tropicalVariety(I))); }; return(string(tropicalVariety(I,number(#[1])))); }")
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
