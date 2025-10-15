@@ -468,14 +468,14 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 ## Examples
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 julia> M = gaussian_graphical_model(graph_from_edges([[1,2], [2,3]]))
 Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges
 
 julia> gaussian_ring(M)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 ```
@@ -493,7 +493,7 @@ end
 
 gaussian_ring(n::Int; s_var_name::VarName=:s, cached=false) = gaussian_ring(QQ, n; s_var_name=s_var_name, cached=cached)
 
-gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM), covariance_matrix(GM))
+gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM)[1], covariance_matrix(GM))
 
 covariance_matrix(R::GaussianRing) = R.covariance_matrix
 
@@ -535,7 +535,7 @@ Return all the `CIStmt` objects which can be formed on the `random_variables(R)`
 
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 julia> ci_statements(R)
