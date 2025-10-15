@@ -52,6 +52,15 @@ end
 
 A constructor for creating a `PhylogeneticNetwork` from a directed graph `G`.
 It automatically detects hybrid nodes and edges.
+
+# Example
+```jldoctest
+julia> G = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
+
+julia> N = Oscar.phylogenetic_network(G)
+Level-1 phylogenetic network with hybrid nodes {4} and edges
+  (4, 1)(5, 2)(5, 4)(5, 6)(6, 3)(6, 4)
+```
 """
 function phylogenetic_network(G::Graph{Directed})
     return PhylogeneticNetwork(G, nothing)
@@ -69,6 +78,14 @@ end
     level(::PhylogeneticNetwork{N, L}) where {N, L}
 
 Return the level `L` of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> level(N)
+1
+```
 """
 level(::PhylogeneticNetwork{N, L}) where {N, L} = L
 
@@ -76,6 +93,14 @@ level(::PhylogeneticNetwork{N, L}) where {N, L} = L
     n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L}
 
 Return the number of hybrid nodes `N` in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_hybrid(N)
+1 
+```
 """
 n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
 
@@ -83,6 +108,15 @@ n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
     graph(N::PhylogeneticNetwork)
 
 Return the underlying `Graph{Directed}` of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> graph(N)
+Directed graph with 6 nodes and the following edges:
+(4, 1)(5, 2)(5, 4)(5, 6)(6, 3)(6, 4)
+```
 """
 graph(N::PhylogeneticNetwork) = N.graph
 
@@ -90,12 +124,30 @@ graph(N::PhylogeneticNetwork) = N.graph
     hybrids(N::PhylogeneticNetwork)
 
 Return the dictionary mapping hybrid vertex IDs to their incoming hybrid edges.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrids(N)
+Dict{Int64, Vector{Edge}} with 1 entry:
+  4 => [Edge(5, 4), Edge(6, 4)]
+```
 """
 hybrids(N::PhylogeneticNetwork) = N.hybrids
 @doc raw"""
     hybrid_vertices(N::PhylogeneticNetwork)
 
 Return a list of the hybrid vertices in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrid_vertices(N)
+1-element Vector{Int64}:
+ 4
+```
 """
 hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
 
@@ -103,6 +155,15 @@ hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
     hybrid_edges(N::PhylogeneticNetwork)
 
 Return a list of all hybrid edges in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrid_edges(N)
+1-element Vector{Vector{Edge}}:
+ [Edge(5, 4), Edge(6, 4)]
+```
 """
 hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
 
@@ -110,6 +171,14 @@ hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
     n_edges(N::PhylogeneticNetwork)
 
 Return the total number of edges in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_edges(N)
+6
+```
 """
 n_edges(N::PhylogeneticNetwork) = n_edges(graph(N))
 
@@ -117,6 +186,14 @@ n_edges(N::PhylogeneticNetwork) = n_edges(graph(N))
     n_leaves(N::PhylogeneticNetwork)
 
 Return the number of leaves in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_leaves(N)
+3
+```
 """
 n_leaves(N::PhylogeneticNetwork) = n_leaves(graph(N))
 
@@ -124,6 +201,17 @@ n_leaves(N::PhylogeneticNetwork) = n_leaves(graph(N))
     leaves(N::PhylogeneticNetwork)
 
 Return the leaf nodes of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> leaves(N)
+3-element Vector{Int64}:
+ 1
+ 2
+ 3
+```
 """
 leaves(N::PhylogeneticNetwork) = leaves(graph(N))
 
@@ -131,6 +219,23 @@ leaves(N::PhylogeneticNetwork) = leaves(graph(N))
     edges(N::PhylogeneticNetwork)
 
 Return an iterator over the edges of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> edges(N)
+Oscar.EdgeIterator(Polymake.LibPolymake.GraphEdgeIteratorAllocated{Directed}(Ptr{Nothing} @0x00000003a2279a80), 6) 
+
+julia> collect(edges(N))
+6-element Vector{Edge}:
+ Edge(4, 1)
+ Edge(5, 2)
+ Edge(5, 4)
+ Edge(5, 6)
+ Edge(6, 3)
+ Edge(6, 4)
+```
 """
 edges(N::PhylogeneticNetwork) = edges(graph(N))
 
