@@ -23,8 +23,10 @@
 end
 
 @doc raw"""
-    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName=:s, l_varname::VarName=:ll, w_varname::VarName=:w)
-    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName=:s, k_varname::VarName=:k)
+    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName=:w)
+    gaussian_graphical_model(G::MixedGraph; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", k_varname::VarName="k")
+
 Given a graph `G` construct a gaussian graphical model for `G`. Optionally one can set the letter used for the variable of the covariance matrix by setting `s_varname`. 
 
 ## Examples
@@ -158,7 +160,7 @@ end
 end
 
 @doc raw"""
-    directed_edges_matrix(M::GaussianGraphicalModel{Graph{T}, L}) where {T <: Union{Directed, Mixed}, L}
+    directed_edges_matrix(M::GaussianGraphicalModel{<:AbstractGraph{T}}) where {T <: Union{Mixed, Directed}}
 
 Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
 
