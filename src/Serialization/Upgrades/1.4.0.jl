@@ -265,7 +265,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
         subtype = dict[:_type][:params]
-        if dict[:data] isa Vector{String}
+        if isempty(dict[:data])
+          # do nothing
+        elseif all(e -> e isa String, dict[:data])
           dict[:data] = dict[:data]
 
           ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
