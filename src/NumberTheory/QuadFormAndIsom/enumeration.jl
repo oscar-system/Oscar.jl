@@ -1418,13 +1418,7 @@ true
 julia> is_of_same_type(Lf, reps[2]^2)
 true
 ```
-"""
-splitting_of_hermitian_type(
-    args...;
-    eiglat_cond::Dict{Int, Vector{Int}},
-    kwargs...
-  ) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...) 
-  
+""" 
 function splitting_of_hermitian_type(
     Lf::ZZLatWithIsom,
     p::IntegerUnion,
@@ -1488,7 +1482,13 @@ function splitting_of_hermitian_type(
     append!(reps, tmp)
   end
   return reps
-end 
+end
+  
+splitting_of_hermitian_type(
+    args...;
+    eiglat_cond::Dict{Int, Vector{Int}},
+    kwargs...
+  ) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
   
 function __splitting_of_hermitian_type(
     Lf::ZZLatWithIsom,
@@ -1788,8 +1788,6 @@ negative signature.
       generator as input.
 
 """
-splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
-
 function splitting_of_pure_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int;
@@ -1855,6 +1853,9 @@ function splitting_of_pure_mixed_prime_power(
   end
   return reps
 end
+  
+splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+
 
 @doc raw"""
     splitting_of_mixed_prime_power(
@@ -1939,8 +1940,6 @@ julia> all(LL -> is_of_same_type(Lf, LL^2), reps)
 true
 ```
 """
-splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
-
 function splitting_of_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
@@ -2001,6 +2000,9 @@ function splitting_of_mixed_prime_power(
   return reps
 end
 
+splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+
+  
 ###############################################################################
 #
 #  Generic functions
