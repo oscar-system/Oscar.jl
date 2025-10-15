@@ -1829,8 +1829,7 @@ function label!(G::Graph{T},
   @req all(Base.Fix1(_has_node, G), keys(vertex_labels)) "Vertex does not exist for a given label"
   NM = NodeMap(pm_object(G), vertex_labels)
   if has_attribute(G, name)
-    getproperty(G, name).vertex_map = EM
-    set_attribute!(G, name, GM)
+    getproperty(G, name).vertex_map = NM
     return G
   end
   set_attribute!(G, name, GraphMap(G, nothing, NM))
