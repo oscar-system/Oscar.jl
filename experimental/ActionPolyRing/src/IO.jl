@@ -70,9 +70,7 @@ end
 
 function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = nothing)
   es = exponents(a)
-  if length(es) == 0
-    return Expr(:call, :+)
-  end
+  length(es) == 0 && return Expr(:call, :+)
 
   # Find index and highest exponent of the leader of a
   ld_ind, cur_exp = (0, 0)
