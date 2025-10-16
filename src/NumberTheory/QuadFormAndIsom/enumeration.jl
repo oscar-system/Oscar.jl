@@ -2002,7 +2002,6 @@ end
 
 splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
 
-  
 ###############################################################################
 #
 #  Generic functions
