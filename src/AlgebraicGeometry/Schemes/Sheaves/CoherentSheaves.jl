@@ -174,7 +174,7 @@ identifications given by the gluings in the `default_covering`.
                                                                SpaceType, OpenType,
                                                                OutputType, RestrictionType
                                                               }
-  ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
+  ID::IdDict{<:AbsAffineScheme, <:ModuleFP} # the modules on the basic patches of the default covering
   MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
   # `affine_charts` of `X` such that
   # A = MG[(U, V)] has entries aᵢⱼ with
@@ -189,9 +189,10 @@ identifications given by the gluings in the `default_covering`.
               # `default_covering` of this sheaf ℱ.
 
   ### Sheaves of modules on covered schemes
-  function SheafOfModules(X::AbsCoveredScheme,
-      MD::IdDict{AbsAffineScheme, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
-      MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}; # A dictionary for pairs `(U, V)` of
+  function SheafOfModules(
+      X::AbsCoveredScheme,
+      MD::IdDict{<:AbsAffineScheme, <:ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
+      MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
                                                        # `affine_charts` of `X` such that
                                                        # A = MG[(U, V)] has entries aᵢⱼ with
                                                        # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
@@ -1395,5 +1396,44 @@ end
 
 function Base.hash(X::AbsCoherentSheaf, u::UInt)
   return u
+end
+
+@attributes mutable struct StrictTransformSheaf{SpaceType, OpenType, OutputType,
+                                                RestrictionType
+                                           } <: AbsCoherentSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  bl::AbsCoveredSchemeMorphism # actually AbsSimpleBlowupMorphism, but that is only defined later
+  orig_sheaf::AbsCoherentSheaf
+  pullback_sheaf::AbsCoherentSheaf
+  underlying_sheaf::PreSheafOnScheme
+
+  function StrictTransformSheaf(bl::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+    X = domain(bl)
+    Y = codomain(bl)
+    @req scheme(M) === Y "sheaf of modules needs to be given on the codomain of the blowup"
+
+    und = PreSheafOnScheme(X, 
+                           OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                           RestrictionType=Map,
+                           is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                          )
+    pb = pullback(bl, M)
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(bl, M, pb, und)
+  end
+end
+
+### forwarding and implementing the required getters
+underlying_presheaf(M::StrictTransformSheaf) = M.underlying_sheaf
+morphism(M::StrictTransformSheaf) = M.bl
+original_sheaf(M::StrictTransformSheaf) = M.orig_sheaf
+pullback_sheaf(M::StrictTransformSheaf) = M.pullback_sheaf
+
+function Base.show(io::IO, M::StrictTransformSheaf)
+  print(io, "strict transform of $(original_sheaf(M)) along $(morphism(M))")
+end
+function Base.show(io::IO, ::MIME"text/plain", M::StrictTransformSheaf)
+  print(io, "strict transform of $(original_sheaf(M)) along $(morphism(M))")
 end
 

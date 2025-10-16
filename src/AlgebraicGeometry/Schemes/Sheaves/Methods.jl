@@ -655,13 +655,18 @@ function produce_object(FF::PullbackSheaf, U::AbsAffineScheme)
   # See whether U is a patch of the domain covering and pull back directly
   if haskey(morphisms(fcov), U)
     floc = morphisms(fcov)[U]
+    M_patch = M(codomain(floc))
+    @assert all(v == repres(w) for (v, w) in zip(gens(ambient_free_module(M_patch)), gens(M_patch))) "the modules on the patches must be presented as cokernels"
     MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
     pullbacks_on_patches(FF)[U] = map
     return MU
   end
 
-  # We are in case 3).
-  error("case not implemented")
+  # otherwise pull back from such a patch.
+  V = __find_chart(U, domain(fcov))
+  pb = OOX(V, U)
+  res, _ = change_base_ring(pb, FF(V))
+  return res
 end
 
 function produce_object(FF::PullbackSheaf,
@@ -679,7 +684,7 @@ function produce_object(FF::PullbackSheaf,
   if haskey(morphisms(fcov), U)
     floc = morphisms(fcov)[U]
     MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-    pullbacks[U] = map
+    pullbacks_on_patches(FF)[U] = map
     return MU
   end
 
@@ -720,31 +725,96 @@ end
 # 4) If V is a node hanging below some patch in `domain(ϕ)` and
 #    U is a subset, restrict as usual.
 
-function restriction_func(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   f = morphism(F)
   M = original_sheaf(F)
   OOY = sheaf_of_rings(M)
+  X = domain(f)
   OOX = OO(X)
   fcov = covering_morphism(f)::CoveringMorphism
   CX = domain(fcov)::Covering
   CY = codomain(fcov)::Covering
-  if haskey(morphisms(fcov), V)
-    if haskey(morphisms(fcov), U)
-      # case 1)
-      f_V = morphisms(fcov)[V]
-      f_U = morphisms(fcov)[U]
-      MYV = M(codomain(f_V))
-      MYU = M(codomain(f_U))
-      res_Y = M(codomain(f_V), codomain(f_U))
-      result = hom(F(V), F(U),
-                   (pullbacks[U]).(res_Y.(gens(MYV))),
-                   OOX(V, U))
-      return result
-    end
 
-    # case 2)
-    error("restriction map should have been cached by production")
+  V_up = __find_chart(V, CX)
+  U_up = __find_chart(U, CX)
+
+  if V_up === U_up
+    return hom(F(V), F(U), gens(F(U)), OOX(V, U))
   end
-  error("case not implemented")
+
+  glue = CX[V_up, U_up]
+  VU_up, UV_up = gluing_domains(glue)
+
+  if V === VU_up && U === UV_up
+    f_V = fcov[V_up]
+    f_U = fcov[U_up]
+    V_cod = codomain(f_V)
+    U_cod = codomain(f_U)
+    cod_glue = CY[V_cod, U_cod]
+    VU_cod, UV_cod = gluing_domains(cod_glue)
+    pb_U = pullbacks_on_patches(F)[U_up]
+    res_cod = M(VU_cod, UV_cod)
+    img_gens = images_of_generators(res_cod)
+    pb_img_gens = images_of_generators(pb_U)
+    pb_img_gens = F(U_up, U).(pb_img_gens)
+    res = OOX(UV_up, U)
+    pb_f = pullback(f_U)
+    img_gens = [sum(res(pb_f(lifted_numerator(c))*inv(pb_f(lifted_denominator(c))))*pb_img_gens[i] for (i, c) in coordinates(v); init=zero(F(U))) for v in img_gens]
+    return hom(F(V), F(U), img_gens, OOX(V, U))
+  end
+
+  pb_glue = F(VU_up, UV_up)
+  res_glue = F(UV_up, U)
+  img_gens = gens(F(VU_up))
+  img_gens = pb_glue.(img_gens)
+  img_gens = res_glue.(img_gens)
+  return hom(F(V), F(U), img_gens, OOX(V, U))
+end
+
+### production for StrictTransformSheaf
+
+function produce_object(
+    FF::StrictTransformSheaf, 
+    U::AbsAffineScheme
+  )
+  bl = morphism(FF)
+  M = original_sheaf(FF)
+  pb_M = pullback_sheaf(FF)
+  E = exceptional_divisor(bl)
+  I = ideal_sheaf(E)
+  N = pb_M(U)
+  @assert all(repres(g) == v for (g, v) in zip(gens(N), gens(ambient_free_module(N))))
+  return _strict_transform(N, I(U))
+end
+
+# custom methods to perform the strict transform for different types of rings
+function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T}
+  sat_sub = _saturation(M.quo, I)
+  res, _ = quo(ambient_free_module(M), gens(sat_sub))
+  return res
+end
+
+function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T<:MPolyQuoLocRingElem}
+  L = base_ring(M)::MPolyQuoLocRing
+  A = underlying_quotient(L)::MPolyQuoRing
+  P = base_ring(A)::MPolyRing
+  M_poly = pre_saturated_module(M)
+  F = ambient_free_module(M)
+  FA = free_module(A, ngens(F))
+  U = SubModuleOfFreeModule(FA, elem_type(FA)[sum(A(c)*FA[i] for (i, c) in coordinates(v); init=zero(FA)) for v in gens(M_poly.quo)])
+  sat_sub = _saturation(U, ideal(A, elem_type(A)[A(lifted_numerator(x)) for x in gens(I)]))
+  res, _ = quo(F, elem_type(F)[sum(L(c)*F[i] for (i, c) in coordinates(v); init=zero(F)) for v in gens(sat_sub)])
+  return res
+end
+
+
+function restriction_map(F::StrictTransformSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+  pb_M = pullback_sheaf(F)
+  pb_res = pb_M(V, U)
+  X = scheme(F)
+  return hom(F(V), F(U), 
+             elem_type(F(U))[F(U)(repres(g)) for g in images_of_generators(pb_res)], 
+             OO(X)(V, U)
+            )
 end
 
