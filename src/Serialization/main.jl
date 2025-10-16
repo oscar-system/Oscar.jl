@@ -49,7 +49,7 @@ end
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
-    obj = JSON.parse(io)
+    obj = JSON.parse(io; dicttype=Dict{Symbol, Any}) # TODO: check if JSON.Object works here
     println(JSON.json(obj[:meta], 2))
   end
 end
