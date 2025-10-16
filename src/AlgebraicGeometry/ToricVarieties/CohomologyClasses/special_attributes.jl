@@ -13,14 +13,25 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-@attr MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function cohomology_ring(v::NormalToricVarietyType; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+@attr MPolyQuoRing{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}} function cohomology_ring(
+  v::NormalToricVarietyType;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
   if check isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :cohomology_ring)
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :cohomology_ring,
+      )
       completeness_check = check
     else
-       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -34,7 +45,6 @@ julia> ngens(cohomology_ring(p2))
   stanley_reisner = stanley_reisner_ideal(R, v)
   return quo(R, linear_relations + stanley_reisner)[1]
 end
-
 
 @doc raw"""
     volume_form(v::NormalToricVariety)
@@ -54,36 +64,40 @@ julia> polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
 ```
 """
 @attr CohomologyClass function volume_form(v::NormalToricVariety)
-    mc = ray_indices(maximal_cones(v))
-    exponents = [ZZRingElem(mc[1, i]) for i in 1:length(mc[1, :])]
-    indets = gens(cohomology_ring(v))
-    poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
-    @req !iszero(poly) && degree(poly)[1] == dim(v) "The volume class does not exist"
-    return CohomologyClass(v, poly, true)
+  mc = ray_indices(maximal_cones(v))
+  exponents = [ZZRingElem(mc[1, i]) for i in 1:length(mc[1, :])]
+  indets = gens(cohomology_ring(v))
+  poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
+  @req !iszero(poly) && degree(poly)[1] == dim(v) "The volume class does not exist"
+  return CohomologyClass(v, poly, true)
 end
-
 
 @attr Any function _intersection_form_via_exponents(v::NormalToricVariety)
-    # extract the cohomology classes corresponding to the torus-invariant prime divisors
-    generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
-    
-    # find combinations of those classes that we have to integrate
-    S, _ = graded_polynomial_ring(QQ, "g#" => 1:length(generators); cached=false)
-    hc = homogeneous_component(S, [dim(v)])
-    monoms = [hc[2](x) for x in gens(hc[1])]
-    combinations = reduce(vcat, [[[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for m in monoms])
-    
-    # perform the integrals
-    intersection_dict = Dict{ZZMatrix, QQFieldElem}()
-    for expos in combinations
-        cc = prod(generators[k]^expos[k] for k in 1:length(generators))
-        intersection_dict[matrix(ZZ, [expos])] = integrate(cc)
-    end
-    
-    # return the dictionary
-    return intersection_dict
-end
+  # extract the cohomology classes corresponding to the torus-invariant prime divisors
+  generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
 
+  # find combinations of those classes that we have to integrate
+  S, _ = graded_polynomial_ring(QQ, "g#" => 1:length(generators); cached=false)
+  hc = homogeneous_component(S, [dim(v)])
+  monoms = [hc[2](x) for x in gens(hc[1])]
+  combinations = reduce(
+    vcat,
+    [
+      [[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for
+      m in monoms
+    ],
+  )
+
+  # perform the integrals
+  intersection_dict = Dict{ZZMatrix,QQFieldElem}()
+  for expos in combinations
+    cc = prod(generators[k]^expos[k] for k in 1:length(generators))
+    intersection_dict[matrix(ZZ, [expos])] = integrate(cc)
+  end
+
+  # return the dictionary
+  return intersection_dict
+end
 
 @doc raw"""
     intersection_form(v::NormalToricVariety)
@@ -101,16 +115,17 @@ julia> length(intersection_form(F3))
 ```
 """
 function intersection_form(v::NormalToricVariety)
-    intersection_dict = _intersection_form_via_exponents(v)
-    monoms_of_prime_divisors = gens(cox_ring(v))
-    intersection_dict_for_user = Dict{MPolyRingElem, QQFieldElem}()
-    for (expos, v) in intersection_dict
-        monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))
-        intersection_dict_for_user[monom] = v
-    end
-    return intersection_dict_for_user
+  intersection_dict = _intersection_form_via_exponents(v)
+  monoms_of_prime_divisors = gens(cox_ring(v))
+  intersection_dict_for_user = Dict{MPolyRingElem,QQFieldElem}()
+  for (expos, v) in intersection_dict
+    monom = prod(
+      monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors)
+    )
+    intersection_dict_for_user[monom] = v
+  end
+  return intersection_dict_for_user
 end
-
 
 @doc raw"""
     chern_class(v::NormalToricVariety)
@@ -137,14 +152,26 @@ julia> integrate(chern_class(F3, 2), completeness_check = false)
 4
 ```
 """
-function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+function chern_class(
+  v::NormalToricVariety,
+  k::Int;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
   if check isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
       completeness_check = check
     else
-       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -156,7 +183,7 @@ function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bo
 
   # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector and catch degenerate cases
   if !has_attribute(v, :chern_classes)
-    cs = Dict{Int64, CohomologyClass}()
+    cs = Dict{Int64,CohomologyClass}()
     cs[0] = cohomology_class(v, one(cohomology_ring(v; completeness_check)))
     cs[1] = cohomology_class(v, sum(gens(cohomology_ring(v; completeness_check))))
     set_attribute!(v, :chern_classes, cs)
@@ -166,9 +193,9 @@ function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bo
       return cs[1]
     end
   end
-  
+
   # Check if the Chern class in question is known
-  cs = get_attribute(v, :chern_classes)::Dict{Int64, CohomologyClass}
+  cs = get_attribute(v, :chern_classes)::Dict{Int64,CohomologyClass}
   if haskey(cs, k)
     return cs[k]
   end
@@ -178,10 +205,10 @@ function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bo
   if completeness_check
     @req is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
   end
-  
+
   # Preparation to check if we can discard a set in the following iteration that computes the Chern class
   mnf = _minimal_nonfaces(v)
-  indices = [Set(Vector{Int}(Polymake.row(mnf,i))) for i in 1:Polymake.nrows(mnf)]
+  indices = [Set(Vector{Int}(Polymake.row(mnf, i))) for i in 1:Polymake.nrows(mnf)]
   function can_be_ignored(my_set)
     for k in 1:length(indices)
       if is_subset(indices[k], my_set)
@@ -204,12 +231,13 @@ function chern_class(v::NormalToricVariety, k::Int; completeness_check::Union{Bo
     end
     push_term!(my_builder, one(QQ), exps)
   end
-  desired_class = CohomologyClass(v, cohomology_ring(v; completeness_check)(finish(my_builder)), true)
+  desired_class = CohomologyClass(
+    v, cohomology_ring(v; completeness_check)(finish(my_builder)), true
+  )
   cs[k] = desired_class
   set_attribute!(v, :chern_classes, cs)
   return cs[k]
 end
-
 
 @doc raw"""
     chern_classes(v::NormalToricVariety)
@@ -238,14 +266,25 @@ julia> integrate(cs[2])
 4
 ```
 """
-function chern_classes(v::NormalToricVariety; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+function chern_classes(
+  v::NormalToricVariety;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
   if check isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
       completeness_check = check
     else
-       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -257,9 +296,8 @@ function chern_classes(v::NormalToricVariety; completeness_check::Union{Bool,Not
   for k in 0:dim(v)
     chern_class(v, k; completeness_check)
   end
-  return get_attribute(v, :chern_classes)::Dict{Int64, CohomologyClass}
+  return get_attribute(v, :chern_classes)::Dict{Int64,CohomologyClass}
 end
-
 
 @doc raw"""
     basis_of_h4(v::NormalToricVariety)
@@ -295,14 +333,25 @@ julia> betti_number(Y, 4) == length(h4_basis)
 true
 ```
 """
-@attr Vector{CohomologyClass} function basis_of_h4(v::NormalToricVariety; completeness_check::Union{Bool,Nothing}=nothing, check::Union{Bool,Nothing}=nothing)
+@attr Vector{CohomologyClass} function basis_of_h4(
+  v::NormalToricVariety;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  check::Union{Bool,Nothing}=nothing,
+)
   if check isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `check` is deprecated; use `completeness_check` instead.", :chern_class)
+      Base.depwarn(
+        "The keyword argument `check` is deprecated; use `completeness_check` instead.",
+        :chern_class,
+      )
       completeness_check = check
     else
-       throw(ArgumentError("Cannot use both `check` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `check` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value

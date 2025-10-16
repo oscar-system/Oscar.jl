@@ -11,7 +11,7 @@ export differential_polynomial_ring
 export elementary_symbols
 export index_ordering_matrix
 export leader
-export ndiffs
+export n_action_maps
 export n_elementary_symbols
 export partition
 export ranking

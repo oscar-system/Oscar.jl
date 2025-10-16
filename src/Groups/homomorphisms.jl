@@ -346,17 +346,17 @@ function image(f::GAPGroupHomomorphism)
 end
 
 """
-    image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
-    (f::GAPGroupHomomorphism{S, T})(H::S)
+    image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
+    (f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup)
 
 Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
 """
-function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
+function image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
   H1 = GAPWrap.Image(GapObj(f), GapObj(H))
   return _as_subgroup(codomain(f), H1)
 end
 
-(f::GAPGroupHomomorphism{S, T})(H::S) where S <: GAPGroup where T <: GAPGroup = image(f,H)
+(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup) = image(f,H)
 
 """
     cokernel(f::GAPGroupHomomorphism)
@@ -408,12 +408,12 @@ end
 
 
 """
-    preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+    preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
 
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+function preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
   H1 = GAP.Globals.PreImage(GapObj(f), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
@@ -805,7 +805,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
      if is_diagonal(rels(A))
        exponents = diagonal(rels(A))
        A2 = A
-       A2_to_A = identity_map(A)
+       A2_to_A = id_hom(A)
      else
        exponents = elementary_divisors(A)
        A2, A2_to_A = snf(A)

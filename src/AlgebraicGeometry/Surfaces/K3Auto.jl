@@ -232,7 +232,7 @@ Return the ``L|S``-chamber with the given Weyl vector.
 The lattices ``L`` and ``S`` are stored in `data`.
 Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check=true)
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check::Bool=true)
   if check
     @req _is_weyl_vector(data.gramL, weyl_vector) "not a weyl vector"
   end
@@ -262,7 +262,7 @@ function _is_weyl_vector(gram_matrix::ZZMatrix, weyl_vector::ZZMatrix)
   return true
 end
 
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check=true)
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check::Bool=true)
   if check
     @req _is_weyl_vector(data.gramL, weyl_vector)  "not a weyl vector"
   end

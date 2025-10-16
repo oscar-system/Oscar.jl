@@ -18,9 +18,17 @@
 """
     invariant_bilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of bilinear forms preserved by `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_bilinear_forms(G))
+2
+```
 """
 function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -44,12 +52,22 @@ end
 """
     invariant_sesquilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of sesquilinear forms
+preserved by the group `G`.
+
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_sesquilinear_forms(G))
+1
+```
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -75,9 +93,18 @@ end
 """
     invariant_quadratic_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
+Return a generating set for the vector space of quadratic forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_quadratic_forms(G))
+2
+```
 """
 function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -115,12 +142,21 @@ end
 """
     invariant_symmetric_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+Return a generating set for the vector space of symmetric forms
+preserved by the group `G`.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
     Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 3), 2)[1];
+
+julia> length(invariant_symmetric_forms(G))
+1
+```
 """
 invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) for x in invariant_quadratic_forms(G)]
 
@@ -129,9 +165,18 @@ invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) 
 """
     invariant_alternating_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of alternating forms preserved by the group `G`.
+Return a generating set for the vector space of alternating forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_alternating_forms(G))
+1
+```
 """
 function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -179,12 +224,21 @@ end
 """
     invariant_hermitian_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
+Return a generating set for the vector space of hermitian forms
+preserved by the group `G`.
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_hermitian_forms(G))
+1
+```
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -406,7 +460,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -424,14 +478,14 @@ julia> invariant_bilinear_form(Sp(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_bilinear_form(G::MatrixGroup)
+function invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
    return preimage_matrix(_ring_iso(G), B)
 end
 
 """
-    invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant sesquilinear (non bilinear) form for `G`.
 
@@ -451,7 +505,7 @@ julia> invariant_sesquilinear_form(GU(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_sesquilinear_form(G::MatrixGroup)
+function invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
@@ -459,7 +513,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -477,7 +531,7 @@ julia> invariant_quadratic_form(GO(1, 4, 2))
 [0   0   0   0]
 ```
 """
-function invariant_quadratic_form(G::MatrixGroup)
+function invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
    if iseven(characteristic(base_ring(G)))
       V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
@@ -495,16 +549,16 @@ end
 
 # TODO 3rd approach: using GAP package "forms"
 """
-    preserved_quadratic_forms(G::MatrixGroup)
+    preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms). 
 Since the procedure relies on a pseudo-random generator, 
 the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
-function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedQuadraticForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = QuadraticForm{T}[]
    for f_gap in L
       f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
@@ -515,16 +569,16 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 end
 
 """
-    preserved_sesquilinear_forms(G::MatrixGroup)
+    preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms).
 Since the procedure relies on a pseudo-random generator,
 the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
-function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedSesquilinearForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = SesquilinearForm{T}[]
    for f_gap in L
       if GAPWrap.IsHermitianForm(f_gap)
          f = hermitian_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
@@ -543,10 +597,9 @@ end
 
 
 """
-    orthogonal_sign(G::MatrixGroup)
+    orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
 
-For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
-is a finite field, return
+For absolutely irreducible `G` of degree `n`, return
 - `nothing` if `G` does not preserve a nonzero quadratic form,
 - `0` if `n` is odd and `G` preserves a nonzero quadratic form,
 - `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
@@ -561,9 +614,8 @@ julia> orthogonal_sign(GO(-1, 4, 2))
 -1
 ```
 """
-function orthogonal_sign(G::MatrixGroup)
+function orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
     R = base_ring(G)
-    R isa FinField || error("G must be a matrix group over a finite field")
     M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)),
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)
@@ -612,17 +664,28 @@ end
 
 
 """
-    isometry_group(f::SesquilinearForm{T})
+    isometry_group(f::SesquilinearForm{T}) where T
+    isometry_group(f::QuadraticForm{T}) where T
 
-Return the group of isometries for the sesquilinear form `f`.
+Return the group of isometries for `f`.
+
+# Examples
+```jldoctest
+julia> G = symplectic_group(4, 2);
+
+julia> f = alternating_form(invariant_alternating_forms(G)[1]);
+
+julia> isometry_group(f) == G
+true
+```
 """
-function isometry_group(f::SesquilinearForm{T}) where T
+function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
    B = gram_matrix(f)
    n = nrows(B)
    F = base_ring(B)
    r=n
 
-   if f.descr==:quadratic
+   if f isa QuadraticForm
       W,phi = radical(f)
       V = vector_space(F,n)
       U,e = complement(V,W)
@@ -642,30 +705,41 @@ function isometry_group(f::SesquilinearForm{T}) where T
    end
 
    if r<n
-      fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      if f isa QuadraticForm
+         fn = QuadraticForm(C[1:r, 1:r])
+      else
+         fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      end
    else
       fn = f
    end
 
    e=0
-   if (fn.descr==:quadratic || fn.descr==:symmetric) && iseven(r)
+   if (fn isa QuadraticForm || fn.descr==:symmetric) && iseven(r)
       if witt_index(fn)== div(r,2)
          e = 1
       else
          e = -1
       end
    end
-   Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+
+   if fn isa QuadraticForm
+      Xf = is_congruent(QuadraticForm(preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(QuadraticForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      end
+   else
+      Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
-   if Xf === nothing && isodd(r)
-      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      end
    end
 
-
-   if f.descr === :hermitian
+   if f isa SesquilinearForm && f.descr === :hermitian
       G = GU(r,Int(characteristic(F)^div(degree(F),2)))
-   elseif f.descr === :alternating
+   elseif f isa SesquilinearForm && f.descr === :alternating
       G = Sp(r, F)
    elseif isodd(r)
       G = GO(0,r,F)
@@ -759,24 +833,6 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
     error("Unknown algorithm: for the moment, we support :direct or :decomposition")
   end
   return G
-end
-
-"""
-    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
-
-Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
-
-The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
-
-First computes the orthogonal group of ``K`` and then its subgroup 
-consisting of isometries extending to ``L``.
-"""
-function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
-  V = lattice(ambient_space(L),v)
-  K = orthogonal_submodule(L, V)
-  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
-  OK = orthogonal_group(K; kwargs...)
-  return stabilizer(OK, L, on_lattices)[1]
 end
 
 """
@@ -947,3 +1003,99 @@ orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 
 unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 
+@doc raw"""
+    stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $O^\#(L)$ of the orthogonal group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A5 = root_lattice(:A, 5);
+
+julia> H, _ = stable_orthogonal_group(A5);
+
+julia> order(H)
+720
+```
+"""
+function stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return stable_subgroup(L, OL; check=false)
+end
+
+@doc raw"""
+    special_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO(L)$ of the orthogonal group of $L$ consisting of isometries
+with determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> D5 = root_lattice(:D, 5);
+
+julia> H, _ = special_orthogonal_group(D5);
+
+julia> order(H)
+1920
+```
+"""
+function special_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return special_subgroup(L, OL; check=false)
+end
+
+# We do not export this one, it is just a shortcut
+@doc raw"""
+    _special_stable_orthogonal_group(
+      L::ZZLat;
+      kwargs...,
+    ) -> MatrixGroup, GAPGroupHomomorphism
+
+Given an integer lattice $L$ which is definite or of rank 2, return the
+subgroup $SO^\#(L)$ of the orthogonal group of $L$ consisting of isometries
+acting trivially on the discriminant group of $L$ and of determinant ``1``.
+
+The function first computes the orthogonal group of ``L``: the extra keyword
+arguments in `kwargs` are optional arguments in the computations of such a
+group (see [`isometry_group(::ZZLat)`](@ref)).
+
+# Examples
+```jldoctest
+julia> A6 = root_lattice(:A, 6);
+
+julia> H, _ = Oscar._special_stable_orthogonal_group(A6);
+
+julia> describe(H)
+"A7"
+```
+"""
+function _special_stable_orthogonal_group(
+    L::ZZLat;
+    kwargs...,
+  )
+  OL = orthogonal_group(L; kwargs...)
+  return Oscar._special_stable_subgroup(L, OL; check=false)
+end

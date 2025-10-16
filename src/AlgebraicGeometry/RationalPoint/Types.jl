@@ -3,6 +3,25 @@ struct RationalPointSet{P<:AbsAffineScheme, T<:Scheme} <: AbsRationalPointSet{P,
   codomain::T
 end
 
+@doc raw"""
+    FiniteRationalPointSet{P<:AbsAffineScheme, X<:Scheme, C<:Vector)
+
+Iterator over a finite set of RationalPoints, each in terms of a vector of coordinates.
+"""
+struct FiniteRationalPointSet{P<:AbsAffineScheme, T<:Scheme, C<:Vector} <:AbsRationalPointSet{P,T}
+  domain::P
+  codomain::T
+  coordinates_list::C
+
+  function FiniteRationalPointSet(over::P,in::T,coord_list::C; check::Bool=true) where {P<:AbsAffineScheme,T<:Scheme,C<:Vector}
+    r = new{P,T,C}(over, in, coord_list)
+    @check begin
+      F = coefficient_ring(ambient_coordinate_ring(in))
+      all(all(Oscar.parent(x) == F for x in coord_list[i]) for i in 1:length(coord_list)) || error("coordinates do not lie in the base ring")
+    end
+    return r
+  end
+end
 
 @doc raw"""
     AffineRationalPoint{CoeffType<:RingElem, ParentType<:RationalPointSet}
@@ -46,7 +65,7 @@ end
 
 
 @doc raw"""
-    ProjectiveRationalPoint{CoeffType<:RingElem, ParentType<:AbsProjectiveScheme}
+    ProjectiveRationalPoint{CoeffType<:RingElem, ParentType<:AbsRationalPointSet}
 
 Type for rational points in projective varieties.
 

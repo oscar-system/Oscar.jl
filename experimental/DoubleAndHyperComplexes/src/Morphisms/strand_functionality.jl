@@ -3,7 +3,9 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  return FreeMod(kk, length(all_exponents(fac.orig[i], fac.d)))
+  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d)))
+  fac.mapping_dicts[i] = cod_dict
+  return FreeMod(kk, length(cod_dict))
 end
 
 function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
@@ -24,24 +26,28 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d)))
+  cod_dict = chain_factory(c).mapping_dicts[next]
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
+  kk = coefficient_ring(R)
   vv = gens(R)
-  for (e, i) in all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
-    m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i]
+  img_gens_res = Vector{elem_type(cod)}(undef, ngens(dom))
+  for ((e, i), k) in chain_factory(c).mapping_dicts[i] # all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
+    # m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i] # replaced by the more efficient line below
+    m = R([one(kk)], [e])*orig_dom[i]
     v = orig_map(m) # map the monomial
     # take preimage of the result using the previously built dictionary.
     # TODO: Iteration over the terms of v is VERY slow due to its suboptimal implementation.
     # We have to iterate manually. This saves us roughly 2/3 of the memory consumption and 
     # it also runs three times as fast. 
-    w = zero(cod)
+    w_coords = sparse_row(kk)
     for (i, b) in coordinates(v)
-      #g = orig_cod[i]
-      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
+      for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b))
+        w_coords = Hecke.add_scaled_row!(coordinates(cod[cod_dict[(n, i)]]), w_coords, c)
+      end
     end
-    push!(img_gens_res, w)
+    img_gens_res[k] = cod(w_coords)
   end
   return hom(dom, cod, img_gens_res)
 end

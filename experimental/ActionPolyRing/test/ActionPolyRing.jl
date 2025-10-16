@@ -2,7 +2,6 @@ using Test
 
 @testset "ActionPolyRing - all tests" verbose = true begin
    
-  __upr = Oscar.__upr
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
   __vtj = Oscar.__vtj
@@ -28,11 +27,11 @@ using Test
   
   @testset "Check types" begin
     
-    @test base_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
     
-    @test base_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
 
@@ -78,7 +77,7 @@ using Test
           @test data(u1) === u1.p
           @test data(u2) === u2.p
           @test data(u3) === u3.p
-          @test __upr(dpr) === dpr.upoly_ring
+          @test base_ring(dpr) === dpr.upoly_ring
           @test __jtv(dpr) === dpr.jet_to_var
           @test __jtu_idx(dpr) === dpr.jet_to_upoly_idx
           @test __are_perms_up_to_date(dpr) === dpr.are_perms_up_to_date
@@ -88,7 +87,7 @@ using Test
         end
 
         @testset "Check internals at construction" begin
-          upr = __upr(dpr)
+          upr = base_ring(dpr)
           u1p, u2p, u3p = data(u1), data(u2), data(u3)
           @test parent(u1p) === upr
           @test parent(u2p) === upr
@@ -164,10 +163,10 @@ using Test
         end
         
         @testset "Check public fields at construction" begin
-          @test base_ring(dpr) == ZZ
-          @test all(var -> base_ring(var) == ZZ, vars)
+          @test coefficient_ring(dpr) == ZZ
+          @test all(var -> coefficient_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-          @test ndiffs(dpr) == 3
+          @test n_action_maps(dpr) == 3
           @test n_elementary_symbols(dpr) == 3
           @test all(var -> parent(var) === dpr, vars)
 
@@ -227,6 +226,11 @@ using Test
           @test gens(dpr) == [u1_010, u1_100, u1, u2_100, u2, u3_111, u3]
           @test all(var -> is_gen(var), gens(dpr))
             
+          #Permutations
+          @test !__are_perms_up_to_date(dpr)
+          @test __perm_for_sort(dpr) == [5,4,1,6,2,7,3]
+          @test __are_perms_up_to_date(dpr)
+          
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -234,9 +238,13 @@ using Test
             @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
             @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
+          Rtmp0 = parent(to_univariate(dpr(0)))
+          Rtmp1 = parent(to_univariate(dpr(1)))
+          @test gen(Rtmp0) == gen(Rtmp1)
+          @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
         
           @testset "Check internals after adding variables" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -255,17 +263,13 @@ using Test
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
           
-            #Permutations
-            @test !__are_perms_up_to_date(dpr)
-            @test __perm_for_sort(dpr) == [5,4,1,6,2,7,3]
-            @test __are_perms_up_to_date(dpr)
           end
         
           @testset "Check public fields after adding variables" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-            @test ndiffs(dpr) == 3
+            @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
 
             ran = ranking(dpr)
@@ -479,6 +483,11 @@ using Test
           @test gens(dpr) == [u3_111, u2_100, u2, u3, u1_100, u1_010, u1]
           @test all(var -> is_gen(var), gens(dpr))
             
+          #Permutations
+          @test !__are_perms_up_to_date(dpr)
+          @test __perm_for_sort(dpr) == [7,6,2,3,4,5,1]
+          @test __are_perms_up_to_date(dpr)
+            
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -486,9 +495,14 @@ using Test
             @test to_univariate(Rtmp, gen(dpr, i)) == gen(Rtmp)
             @test to_univariate(gen(dpr, i)) isa ZZPolyRingElem
           end
+          Rtmp0 = parent(to_univariate(dpr(0)))
+          Rtmp1 = parent(to_univariate(dpr(1)))
+          @test gen(Rtmp0) == gen(Rtmp1)
+          @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
+
           
           @testset "Check internals after changing ranking" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -507,17 +521,13 @@ using Test
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
           
-            #Permutations
-            @test !__are_perms_up_to_date(dpr)
-            @test __perm_for_sort(dpr) == [7,6,2,3,4,5,1]
-            @test __are_perms_up_to_date(dpr)
           end
         
           @testset "Check public fields after changing ranking" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
-            @test ndiffs(dpr) == 3
+            @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
           
             ran = ranking(dpr)
@@ -763,9 +773,9 @@ using Test
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
             @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
             @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
             @test diff_action(dpr(-2), 1) == dpr(-2)
             @test diff_action(dpr(-2), [0,0,0]) == dpr(-2)
             @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
@@ -794,9 +804,9 @@ using Test
           end
           if dpr isa DifferentialPolyRing
             @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), ndiffs(dpr)))
+            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
             @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), ndiffs(dpr) + 1)
+            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
             @test is_zero(diff_action(dpr(-2), 1))
             @test diff_action(dpr(-2), [0,0,0]) == -2
             @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 

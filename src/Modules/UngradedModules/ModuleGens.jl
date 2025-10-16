@@ -386,7 +386,11 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
 
-  return coords_wrt_groebner_basis * SA
+  result = sparse_row(Rx)
+  for (i, c) in coords_wrt_groebner_basis
+    result = Hecke.add_scaled_row!(SA[i], result, c)
+  end
+  return result #coords_wrt_groebner_basis * SA
 end
 
 @doc raw"""

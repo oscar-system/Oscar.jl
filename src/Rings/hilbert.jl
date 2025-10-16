@@ -117,22 +117,19 @@ end
 
 function lcm(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  nvars = length(t1)
-  expv = [@inbounds max(t1[i], t2[i]) for i in 1:nvars]
+  expv = [@inbounds max(t1[i], t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
 function gcd(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
-  nvars = length(t1)
-  expv = [@inbounds min(t1[i], t2[i]) for i in 1:nvars]
+  expv = [@inbounds min(t1[i], t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
 function gcd3(t1::PP, t2::PP, t3::PP)
   # ASSUMES: length(t1) == length(t2) == length(t3)
-  nvars = length(t1)
-  expv = [@inbounds min(t1[i], t2[i], t3[i]) for i in 1:nvars]
+  expv = [@inbounds min(t1[i], t2[i], t3[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
@@ -140,8 +137,7 @@ end
 # Computes t1/gcd(t1,t2)
 function colon(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  nvars = length(t1)
-  expv = [@inbounds max(0, t1[i]-t2[i]) for i in 1:nvars]
+  expv = [@inbounds max(0, t1[i]-t2[i]) for i in 1:length(t1)]
   return PP(expv)
 end
 
@@ -149,16 +145,13 @@ end
 # Computes t1/gcd(t1,t2^infty)
 function saturatePP(t1::PP, t2::PP)
   # ASSUMES: length(t1) == length(t2)
-  nvars = length(t1)
-  expv = [@inbounds t2[i] == 0 ? t1[i] : 0 for i in 1:nvars]
+  expv = [@inbounds t2[i] == 0 ? t1[i] : 0 for i in 1:length(t1)]
   return PP(expv)
 end
 
 # Computes radical = product of vars which divide t
 function radical(t::PP)
-  nvars = length(t)
-  expv = [@inbounds t[i] > 0 ? 1 : 0 for i in 1:nvars]
-  return PP(expv)
+  return PP(sign.(t.expv))
 end
 
 
@@ -216,14 +209,7 @@ function interreduce(L::Vector{PP})
   sort!(L, by=degree)
   MinGens = PP[]
   for t in L
-    discard = false
-    for s in MinGens
-      if is_divisible(t,s)
-        discard = true
-        break
-      end
-    end
-    if !discard
+    if not_mult_of_any(MinGens, t)
       push!(MinGens, t)
     end
   end
@@ -380,7 +366,6 @@ function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, 
   HSNum_combined = prod(HSNumList)
   if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T)
-    ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy)
   end
   return HSNum_combined
 end
@@ -403,7 +388,6 @@ function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector
   HSNum_combined = prod(HSNumList)
   if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T)
-    ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy)
   end
   return HSNum_combined
 end
@@ -444,8 +428,8 @@ function rev_lex_max(L::Vector{PP})
 end
 
 function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}) where {RET <: RingElem}
-  ##println("HSNum_BS: Simple:    $(SimplePPs)")
-  ##println("HSNum_BS: NonSimple: $(NonSimplePPs)")
+  ##@vprintln(:hilbert,1, "HSNum_BS: Simple:    $(SimplePPs)")
+  ##@vprintln(:hilbert,1, "HSNum_BS: NonSimple: $(NonSimplePPs)")
   # Maybe sort the gens???
   if isempty(NonSimplePPs)
     return HSNum_base_SimplePowers(SimplePPs, T)
@@ -460,7 +444,7 @@ function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   #VERY SLOW?!?    BSPivot = rev_lex_max(vcat(SimplePPs,NonSimplePPs)) # VERY SLOW on Hilbert-test-rnd6.jl
   @vprintln :hilbert 2 "BSPivot = $(BSPivot)"
   NonSPP = filter(!=(BSPivot), NonSimplePPs)
-  SPP = SimplePPs#filter((t -> (t != BSPivot)), SimplePPs)
+  SPP = SimplePPs #filter((t -> (t != BSPivot)), SimplePPs)
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman)
   ReducedPPs = interreduce([colon(t,BSPivot)  for t in vcat(SPP,NonSPP)])
   NewSimplePPs, NewNonSimplePPs = SeparateSimplePPs(ReducedPPs)
@@ -600,7 +584,7 @@ function HSNum_choose_pivot_gcd3simple(MostFreq::Vector{Int64}, gens::Vector{PP}
     t = gcd(cand[1], cand[2])
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)]
-    t = gcd3(pick3...) ##    t = gcd3(pick3[1], pick3[2], pick3[3])
+    t = gcd3(pick3...)
   end
   # t is gcd of 3 rnd PPs (or of 2 if there are only 2)
   # Now set all exps to 0 except the first max one.
@@ -629,7 +613,7 @@ function HSNum_choose_pivot_gcd3max(MostFreq::Vector{Int64}, gens::Vector{PP})
     t = gcd(cand[1], cand[2])
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)]
-    t = gcd3(pick3...)  ##    t = gcd3(pick3[1], pick3[2], pick3[3])
+    t = gcd3(pick3...)
   end
   d = maximum(t.expv)
   # Now set to 0 all exps which are less than the max
@@ -665,7 +649,6 @@ end
 function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
   @vprintln  :hilbert 1 "HSNum_loop: SimplePPs=$(SimplePPs)"
   @vprintln  :hilbert 1 "HSNum_loop: NonSimplePPs=$(NonSimplePPs)"
-#  @vprintln  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))"
   # Check if we have base case 0
   if  isempty(NonSimplePPs)
     @vprintln :hilbert  1 "HSNum_loop:  --> delegate base case 0"
@@ -936,7 +919,7 @@ julia> HSRing1,_ = polynomial_ring(ZZ, :t);
 julia> Oscar.HSNum_abbott(RmodI, HSRing1)
 -t^9 + 3*t^6 - 3*t^3 + 1
 
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z], [1 2 3; 3 2 1])
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y,:z]; weights = [1 2 3; 3 2 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
@@ -953,7 +936,8 @@ julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 function HSNum_abbott(PmodI::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol = :auto)
   I = modulus(PmodI)
   P = base_ring(I)
-  grading_dim = length(gens(parent(degree(gen(P,1))))) # better way???
+  is_graded(P) || error("Ring must be quotient of graded ring")
+  grading_dim = ngens(grading_group(P))
   weights = degree.(gens(P))
   W = [[Int(d[j]) for d in weights] for j in 1:grading_dim]
   LTs = gens(leading_ideal(I))

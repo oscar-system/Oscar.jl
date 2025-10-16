@@ -81,11 +81,28 @@ end
 ## Phylogenetic Trees
 ###############################################################################
 @register_serialization_type PhylogeneticTree 
+type_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeParams(
+  PhylogeneticTree, T == QQFieldElem ? QQ : AbstractAlgebra.Floats{Float64}())
 
 function save_object(s::SerializerState, PT::PhylogeneticTree)
-  save_object(s, pm_object(PT))
+  save_data_dict(s) do
+    save_object(s, pm_object(PT), :pm_tree)
+    save_object(s, PT.vertex_perm, :vertex_perm)
+  end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree})
-  load_from_polymake(Dict(s.obj))
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
+  inner_object = load_node(s, :pm_tree) do _
+    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+  end
+  vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
+  PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
+end
+
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
+  inner_object = load_node(s, :pm_tree) do _
+    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+  end
+  vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
+  PhylogeneticTree{Float64}(inner_object, vertex_perm)
 end

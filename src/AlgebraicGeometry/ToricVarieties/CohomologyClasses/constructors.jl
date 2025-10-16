@@ -3,14 +3,15 @@
 #############################
 
 @attributes mutable struct CohomologyClass
-    v::NormalToricVarietyType
-    p::MPolyQuoRingElem
-    function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem, completeness_check::Bool)
-        @req parent(p) == cohomology_ring(v; completeness_check) "The polynomial must reside in the cohomology ring of the toric variety"
-        return new(v, p)
-    end
+  v::NormalToricVarietyType
+  p::MPolyQuoRingElem
+  function CohomologyClass(
+    v::NormalToricVarietyType, p::MPolyQuoRingElem, completeness_check::Bool
+  )
+    @req parent(p) == cohomology_ring(v; completeness_check) "The polynomial must reside in the cohomology ring of the toric variety"
+    return new(v, p)
+  end
 end
-
 
 ######################
 # 2: Generic constructors
@@ -36,21 +37,32 @@ julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
 ```
 """
-function cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+function cohomology_class(
+  v::NormalToricVarietyType,
+  p::MPolyQuoRingElem;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  quick::Union{Bool,Nothing}=nothing,
+)
   if quick isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      Base.depwarn(
+        "The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.",
+        :cohomology_class,
+      )
       completeness_check = !quick
     else
-       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
   end
   return CohomologyClass(v, p, completeness_check)
 end
-
 
 @doc raw"""
     cohomology_class(d::ToricDivisor)
@@ -74,14 +86,25 @@ julia> cohomology_class(d)
 Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3
 ```
 """
-function cohomology_class(d::ToricDivisor; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+function cohomology_class(
+  d::ToricDivisor;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  quick::Union{Bool,Nothing}=nothing,
+)
   if quick isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      Base.depwarn(
+        "The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.",
+        :cohomology_class,
+      )
       completeness_check = !quick
     else
-       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -92,8 +115,6 @@ function cohomology_class(d::ToricDivisor; completeness_check::Union{Bool,Nothin
   poly = R(sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)))
   return CohomologyClass(toric_variety(d), poly, completeness_check)
 end
-
-
 
 @doc raw"""
     cohomology_class(d::ToricDivisorClass)
@@ -117,21 +138,31 @@ julia> cohomology_class(tdc)
 Cohomology class on a normal toric variety given by 2*x1
 ```
 """
-function cohomology_class(d::ToricDivisorClass; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+function cohomology_class(
+  d::ToricDivisorClass;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  quick::Union{Bool,Nothing}=nothing,
+)
   if quick isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      Base.depwarn(
+        "The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.",
+        :cohomology_class,
+      )
       completeness_check = !quick
     else
-       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
   end
   return cohomology_class(toric_divisor(d); completeness_check=completeness_check)
 end
-
 
 @doc raw"""
     cohomology_class(l::ToricLineBundle)
@@ -155,14 +186,25 @@ julia> polynomial(cohomology_class(l))
 2*x1
 ```
 """
-function cohomology_class(l::ToricLineBundle; completeness_check::Union{Bool,Nothing}=nothing, quick::Union{Bool,Nothing}=nothing)
+function cohomology_class(
+  l::ToricLineBundle;
+  completeness_check::Union{Bool,Nothing}=nothing,
+  quick::Union{Bool,Nothing}=nothing,
+)
   if quick isa Bool
     if completeness_check === nothing
-      Base.depwarn("The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.", :cohomology_class)
+      Base.depwarn(
+        "The keyword argument `quick` is deprecated; use `completeness_check` with the opposite meaning instead.",
+        :cohomology_class,
+      )
       completeness_check = !quick
     else
-       throw(ArgumentError("Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."))
-     end
+      throw(
+        ArgumentError(
+          "Cannot use both `quick` and `completeness_check`. Use only `completeness_check`."
+        ),
+      )
+    end
   end
   if completeness_check === nothing
     completeness_check = true # default value
@@ -170,64 +212,68 @@ function cohomology_class(l::ToricLineBundle; completeness_check::Union{Bool,Not
   return cohomology_class(toric_divisor(l); completeness_check=completeness_check)
 end
 
-
 #################################
 # 3: Addition, subtraction and scalar multiplication
 #################################
 
 function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
-    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
-    ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(ring, cc1) + polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly, true)
+  @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
+  ring = cohomology_ring(toric_variety(cc1))
+  poly = polynomial(ring, cc1) + polynomial(ring, cc2)
+  return CohomologyClass(toric_variety(cc1), poly, true)
 end
-
 
 function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
-    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
-    ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(ring, cc1) - polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly, true)
+  @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
+  ring = cohomology_ring(toric_variety(cc1))
+  poly = polynomial(ring, cc1) - polynomial(ring, cc2)
+  return CohomologyClass(toric_variety(cc1), poly, true)
 end
 
-
-Base.:*(c::QQFieldElem, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
-Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
-Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true)
-
+Base.:*(c::QQFieldElem, cc::CohomologyClass) = CohomologyClass(
+  toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true
+)
+Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(
+  toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true
+)
+Base.:*(c::T, cc::CohomologyClass) where {T<:IntegerUnion} = CohomologyClass(
+  toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc), true
+)
 
 #################################
 # 4: Wedge product
 #################################
 
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
-    @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
-    ring = cohomology_ring(toric_variety(cc1), completeness_check = false)
-    poly = polynomial(ring, cc1) * polynomial(ring, cc2)
-    return CohomologyClass(toric_variety(cc1), poly, true)
+  @req toric_variety(cc1) === toric_variety(cc2) "The cohomology classes must be defined on the same toric variety"
+  ring = cohomology_ring(toric_variety(cc1); completeness_check=false)
+  poly = polynomial(ring, cc1) * polynomial(ring, cc2)
+  return CohomologyClass(toric_variety(cc1), poly, true)
 end
 
-
-Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), polynomial(cc)^p, true)
-
+Base.:^(cc::CohomologyClass, p::T) where {T<:IntegerUnion} = CohomologyClass(
+  toric_variety(cc), polynomial(cc)^p, true
+)
 
 ########################
 # 5: Equality and hash
 ########################
 
-function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass) 
-    toric_variety(cc1) === toric_variety(cc2) && polynomial(cc1) == polynomial(cc2)
+function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
+  toric_variety(cc1) === toric_variety(cc2) && polynomial(cc1) == polynomial(cc2)
 end
 
-function Base.hash(cc::CohomologyClass, h::UInt) 
-    b = 0x4de32042e67d89c8 % UInt
-    h = hash(toric_variety(cc), h)
-    h = hash(polynomial(cc), h)
-    return xor(h, b)
+function Base.hash(cc::CohomologyClass, h::UInt)
+  b = 0x4de32042e67d89c8 % UInt
+  h = hash(toric_variety(cc), h)
+  h = hash(polynomial(cc), h)
+  return xor(h, b)
 end
 
 ######################
 # 6: Display
 ######################s
 
-Base.show(io::IO, cc::CohomologyClass) = join(io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))")
+Base.show(io::IO, cc::CohomologyClass) = join(
+  io, "Cohomology class on a normal toric variety given by $(string(polynomial(cc)))"
+)

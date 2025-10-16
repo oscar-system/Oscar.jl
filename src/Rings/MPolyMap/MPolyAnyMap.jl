@@ -369,3 +369,8 @@ end
 
 images_of_generators(phi::MPolyAnyMap) = _images(phi)
 
+identity_map(R::MPolyRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(R::MPolyQuoRing) = AbstractAlgebra.identity_map(R)
+
+identity_map(Z::ZZRing) = AbstractAlgebra.identity_map(Z)

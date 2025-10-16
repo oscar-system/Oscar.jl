@@ -37,7 +37,7 @@
     L1 = special_linear_lie_algebra(QQ, 3)
     L2 = general_linear_lie_algebra(QQ, 3)
 
-    h = identity_map(L1)
+    h = id_hom(L1)
     @test domain(h) == L1
     @test codomain(h) == L1
     @test matrix(h) == identity_matrix(QQ, dim(L1))
@@ -97,8 +97,8 @@
 
     @test !is_isomorphism(h)
 
-    @test is_isomorphism(identity_map(L1))
-    @test identity_map(L1) == inv(identity_map(L1))
+    @test is_isomorphism(id_hom(L1))
+    @test id_hom(L1) == inv(id_hom(L1))
 
     @test !is_isomorphism(zero_map(L1))
   end
@@ -109,7 +109,7 @@
     h = hom(L, L, [-f, -e, -h])
     @test is_isomorphism(h)
     @test h == inv(h)
-    @test identity_map(L) == compose(h, inv(h))
-    @test identity_map(L) == compose(inv(h), h)
+    @test id_hom(L) == compose(h, inv(h))
+    @test id_hom(L) == compose(inv(h), h)
   end
 end

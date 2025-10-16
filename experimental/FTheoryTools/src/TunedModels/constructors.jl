@@ -20,13 +20,15 @@ preserving model flexibility and reversibility.
 
 # Examples
 ```jldoctest
+julia> using Random;
+
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false, rng = Random.Xoshiro(1234))
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
 
 julia> x1, x2, x3 = gens(coordinate_ring(base_space(w)))
@@ -81,7 +83,9 @@ julia> is_zero(explicit_model_sections(tuned_w3)["c2"])
 false
 ```
 """
-function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+function tune(
+  w::WeierstrassModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+)
   # Consistency checks
   @req base_space(w) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return w
@@ -109,10 +113,19 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
     vars = [string(k) for k in symbols(R)]
-    images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+    images = [
+      if k in secs_names
+        explicit_secs[k]
+      elseif k == "Kbar"
+        eval_poly("0", S)
+      else
+        eval_poly(k, S)
+      end for k in vars
+    ]
     map = hom(R, S, images)
     for section in weierstrass_sections
-      haskey(def_secs_param, section) && (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
+      haskey(def_secs_param, section) &&
+        (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
     end
   end
 
@@ -130,43 +143,53 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
 
   # 4. There could be unused model sections...
   if !isempty(parametrization_keys)
-    polys = [eval_poly(string(def_secs_param[section]), R) for section in weierstrass_sections if haskey(def_secs_param, section)]
+    polys = [
+      eval_poly(string(def_secs_param[section]), R) for
+      section in weierstrass_sections if haskey(def_secs_param, section)
+    ]
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
     potentially_redundant_sections = gens(R)
     for k in 1:length(potentially_redundant_sections)
       string(potentially_redundant_sections[k]) in weierstrass_sections && continue
-      is_used = any(all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents))
+      is_used = any(
+        all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents)
+      )
       is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
     end
   end
-  
+
   # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
   if !isempty(def_secs_param)
     naive_vars = string.(gens(parent(first(values(def_secs_param)))))
     filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
-    desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
+    desired_ring, _ = polynomial_ring(QQ, filtered_vars; cached=false)
     for (key, value) in def_secs_param
       def_secs_param[key] = eval_poly(string(value), desired_ring)
     end
   end
 
   # 6. Build the new model
-  resulting_model = weierstrass_model(base_space(w), explicit_secs, def_secs_param; completeness_check)
+  resulting_model = weierstrass_model(
+    base_space(w), explicit_secs, def_secs_param; completeness_check
+  )
 
   # 7. Copy the classes of model sections
-  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  new_classes_of_model_sections = Dict{String,ToricDivisorClass}()
   for (key, value) in classes_of_model_sections(w)
     m = divisor_class(value).coeff
     @req nrows(m) == 1 "Encountered inconsistency"
-    new_classes_of_model_sections[key] = toric_divisor_class(base_space(resulting_model), m[1, :])
+    new_classes_of_model_sections[key] = toric_divisor_class(
+      base_space(resulting_model), m[1, :]
+    )
   end
-  set_attribute!(resulting_model, :classes_of_model_sections => new_classes_of_model_sections)
+  set_attribute!(
+    resulting_model, :classes_of_model_sections => new_classes_of_model_sections
+  )
 
   # 8. Return the model
   return resulting_model
 end
-
 
 @doc raw"""
     tune(t::GlobalTateModel, input_sections::Dict{String, <:Any})
@@ -186,13 +209,15 @@ without loss of structure.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> using Random;
+
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> x1, x2, x3, x4 = gens(coordinate_ring(base_space(t)))
@@ -250,7 +275,9 @@ julia> is_zero(explicit_model_sections(tuned_t3)["a1"])
 false
 ```
 """
-function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+function tune(
+  t::GlobalTateModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+)
   # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return t
@@ -278,10 +305,19 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
     vars = [string(k) for k in symbols(R)]
-    images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+    images = [
+      if k in secs_names
+        explicit_secs[k]
+      elseif k == "Kbar"
+        eval_poly("0", S)
+      else
+        eval_poly(k, S)
+      end for k in vars
+    ]
     map = hom(R, S, images)
     for section in tate_sections
-      haskey(def_secs_param, section) && (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
+      haskey(def_secs_param, section) &&
+        (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
     end
   end
 
@@ -299,44 +335,53 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
 
   # 4. There could be unused model sections...
   if !isempty(parametrization_keys)
-    polys = [eval_poly(string(def_secs_param[section]), R) for section in tate_sections if haskey(def_secs_param, section)]
+    polys = [
+      eval_poly(string(def_secs_param[section]), R) for
+      section in tate_sections if haskey(def_secs_param, section)
+    ]
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
     potentially_redundant_sections = gens(R)
     for k in 1:length(potentially_redundant_sections)
       string(potentially_redundant_sections[k]) in tate_sections && continue
-      is_used = any(all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents))
+      is_used = any(
+        all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents)
+      )
       is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
     end
   end
-  
+
   # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
   if !isempty(def_secs_param)
     naive_vars = string.(gens(parent(first(values(def_secs_param)))))
     filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
-    desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
+    desired_ring, _ = polynomial_ring(QQ, filtered_vars; cached=false)
     for (key, value) in def_secs_param
       def_secs_param[key] = eval_poly(string(value), desired_ring)
     end
   end
-  
+
   # 6. Build the new model
-  resulting_model = global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
+  resulting_model = global_tate_model(
+    base_space(t), explicit_secs, def_secs_param; completeness_check
+  )
 
   # 7. Copy the classes of model sections, but only of those sections that are used!
-  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  new_classes_of_model_sections = Dict{String,ToricDivisorClass}()
   for key in keys(explicit_model_sections(resulting_model))
     m = divisor_class(classes_of_model_sections(t)[key]).coeff
     @req nrows(m) == 1 "Encountered inconsistency"
-    new_classes_of_model_sections[key] = toric_divisor_class(base_space(resulting_model), m[1, :])
+    new_classes_of_model_sections[key] = toric_divisor_class(
+      base_space(resulting_model), m[1, :]
+    )
   end
-  set_attribute!(resulting_model, :classes_of_model_sections => new_classes_of_model_sections)
+  set_attribute!(
+    resulting_model, :classes_of_model_sections => new_classes_of_model_sections
+  )
 
   # 8. Return the model
   return resulting_model
-
 end
-
 
 @doc raw"""
     tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any})
@@ -355,13 +400,15 @@ or `classes_of_model_sections`.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> using Random;
+
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> x1, x2, x3 = gens(coordinate_ring(base_space(h)))
@@ -413,7 +460,9 @@ julia> is_zero(explicit_model_sections(tuned_h3)["c0"])
 false
 ```
 """
-function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+function tune(
+  h::HypersurfaceModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+)
   # Consistency checks
   @req base_space(h) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return h
@@ -434,22 +483,37 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
     end
     explicit_secs[x] = input_sections[x]
   end
-  
+
   # 2. Compute the new hypersurface equation
   parametrized_hypersurface_equation = hypersurface_equation_parametrization(h)
   R = parent(parametrized_hypersurface_equation)
   vars = string.(symbols(R))
   S = coordinate_ring(ambient_space(h))
-  images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+  images = [
+    if k in secs_names
+      eval_poly(string(explicit_secs[k]), S)
+    elseif k == "Kbar"
+      eval_poly("0", S)
+    else
+      eval_poly(k, S)
+    end for k in vars
+  ]
   map = hom(R, S, images; check=false)
   new_hypersurface_equation = map(parametrized_hypersurface_equation)
 
   # 3. Build the new model
-  model = HypersurfaceModel(explicit_secs, parametrized_hypersurface_equation, new_hypersurface_equation, base_space(h), ambient_space(h), fiber_ambient_space(h))
+  model = HypersurfaceModel(
+    explicit_secs,
+    parametrized_hypersurface_equation,
+    new_hypersurface_equation,
+    base_space(h),
+    ambient_space(h),
+    fiber_ambient_space(h),
+  )
   set_attribute!(model, :partially_resolved, false)
 
   # 4. Copy the classes of model sections, but only of those sections that are used!
-  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  new_classes_of_model_sections = Dict{String,ToricDivisorClass}()
   for key in keys(explicit_model_sections(model))
     m = divisor_class(classes_of_model_sections(h)[key]).coeff
     @req nrows(m) == 1 "Encountered inconsistency"
@@ -460,7 +524,6 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   # 5. Return the model
   return model
 end
-
 
 # FIXME: The below tune function is not consistent with our other "tune" functions (it does not correspond mathematically to a tuning)
 # and produces an undesired form for explicit_model_sections. To be improved at a later date.
@@ -478,13 +541,15 @@ end
 
 # # Examples
 # ```jldoctest
+# julia> using Random;
+
 # julia> B3 = projective_space(NormalToricVariety, 3)
 # Normal toric variety
 
 # julia> w = torusinvariant_prime_divisors(B3)[1]
 # Torus-invariant, prime divisor on a normal toric variety
 
-# julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+# julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false, rng = Random.Xoshiro(1234))
 # Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 # julia> x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t)))

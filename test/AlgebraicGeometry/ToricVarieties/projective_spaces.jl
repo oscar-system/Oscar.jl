@@ -1,5 +1,4 @@
 @testset "(Weighted) projective space" begin
-  
   P2 = projective_space(NormalToricVariety, 2)
   WPS1 = weighted_projective_space(NormalToricVariety, [2, 3, 1])
   WPS2 = weighted_projective_space(NormalToricVariety, [1, 2, 3])
@@ -18,7 +17,7 @@
     @test is_simplicial(P2) == true
     @test has_torusfactor(P2) == false
   end
-  
+
   @testset "Basic attributes of P2" begin
     @test betti_number(P2, 0) == 1
     @test betti_number(P2, 1) == 0
@@ -28,17 +27,27 @@
     @test ngens(cox_ring(P2)) == 3
     @test length(stanley_reisner_ideal(P2).gens) == 1
     @test length(irrelevant_ideal(P2).gens) == 3
-    @test transpose(matrix(ZZ,rays(P2))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2))
-    @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) == character_lattice(P2)
-    @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_weil_divisor_group(P2)
-    @test domain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) == torusinvariant_cartier_divisor_group(P2)
-    @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) == picard_group_with_map(P2)[1]
-    @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_cartier_divisor_group(P2)
-    @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)) == torusinvariant_weil_divisor_group(P2)
-    @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(P2)) == matrix(ZZ, [[1], [1], [1]])
+    @test transpose(matrix(ZZ, rays(P2))) ==
+      matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2))
+    @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) ==
+      character_lattice(P2)
+    @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(P2)) ==
+      torusinvariant_weil_divisor_group(P2)
+    @test domain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) ==
+      torusinvariant_cartier_divisor_group(P2)
+    @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(P2)) ==
+      picard_group_with_map(P2)[1]
+    @test domain(
+      map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)
+    ) == torusinvariant_cartier_divisor_group(P2)
+    @test codomain(
+      map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(P2)
+    ) == torusinvariant_weil_divisor_group(P2)
+    @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(P2)) ==
+      matrix(ZZ, [[1], [1], [1]])
     @test coordinate_names(P2) == [:x1, :x2, :x3]
   end
-  
+
   @testset "Weighted projective space" begin
     @test is_smooth(WPS1) == false
     @test ngens(cox_ring(WPS1)) == 3

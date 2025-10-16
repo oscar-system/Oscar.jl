@@ -81,6 +81,12 @@ end
   cgg = GAP.getbangproperty(x, :collector)
   @test GAP.Globals.IsMutable(cgg)
   @test cgg !== c.X
+
+  # limitations
+  c = collector(2, Int);
+  @test_throws ArgumentError set_relative_orders!(c, [3, 4])
+  set_relative_order!(c, 1, 4)
+  @test_throws ArgumentError set_relative_order!(c, 2, 3)
 end
 
 @testset "create letters from polycyclic group elements" begin
