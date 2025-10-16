@@ -401,7 +401,7 @@ function augment(field, vec::AbstractVector, val)
   h = field(val)
   targettype = elem_type(field)
   fvec = field.(vec)
-  res = Vector{targettype}(undef, s[1] + 1,)
+  res = Vector{targettype}(undef, s[1] + 1)
   res[1] = h
   res[2:end] = fvec
   return assure_vector_polymake(res)
