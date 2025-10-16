@@ -249,13 +249,18 @@ assure_vector_polymake(v::AbstractVector{<:FieldElem}) =
 
 assure_vector_polymake(v::AbstractVector{<:_polymake_compatible_scalars}) = v
 
-affine_matrix_for_polymake(f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:AbstractVector}) =
+affine_matrix_for_polymake(
+  f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:AbstractVector}
+) =
   augment(f, unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
-affine_matrix_for_polymake(f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:Any}) = homogenized_matrix(f, x[1], -x[2])
+affine_matrix_for_polymake(f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:Any}) =
+  homogenized_matrix(f, x[1], -x[2])
 
 _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{QQFieldElem},typeof(x)})
 
-linear_matrix_for_polymake(f::scalar_type_or_field, x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
+linear_matrix_for_polymake(
+  f::scalar_type_or_field, x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}
+) =
   assure_matrix_polymake(x)
 
 linear_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:AbstractVector}) =
@@ -416,14 +421,24 @@ function augment(field, mat::AbstractMatrix, vec::AbstractVector)
   return assure_matrix_polymake(res)
 end
 
-homogenize(field, vec::AbstractVector, val::Union{Number,scalar_types_extended}=0) = augment(field, vec, val)
-homogenize(field, mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=1) = augment(field, mat, fill(val, size(mat, 1)))
-homogenize(field, mat::MatElem, val::Union{Number,scalar_types_extended}=1) = homogenize(field, Matrix(mat), val)
+homogenize(field, vec::AbstractVector, val::Union{Number,scalar_types_extended}=0) =
+  augment(field, vec, val)
+homogenize(field, mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=1) =
+  augment(field, mat, fill(val, size(mat, 1)))
+homogenize(field, mat::MatElem, val::Union{Number,scalar_types_extended}=1) =
+  homogenize(field, Matrix(mat), val)
 homogenize(field, nothing, val::Union{Number,scalar_types_extended}) = nothing
-homogenized_matrix(field, x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Union{Number,scalar_types_extended}) =
+homogenized_matrix(
+  field,
+  x::Union{AbstractVecOrMat,MatElem,Nothing},
+  val::Union{Number,scalar_types_extended},
+) =
   homogenize(field, x, val)
-homogenized_matrix(field, x::AbstractVector, val::Union{Number,scalar_types_extended}) = permutedims(homogenize(field, x, val))
-homogenized_matrix(field, x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}) =
+homogenized_matrix(field, x::AbstractVector, val::Union{Number,scalar_types_extended}) =
+  permutedims(homogenize(field, x, val))
+homogenized_matrix(
+  field, x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}
+) =
   stack(field, [homogenize(field, x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
@@ -471,9 +486,12 @@ julia> stack([1 2], [])
 stack(::scalar_type_or_field, A::AbstractMatrix, ::Nothing) = A
 stack(::scalar_type_or_field, ::Nothing, B::AbstractMatrix) = B
 stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractMatrix) = T[A; B]
-stack(A::AbstractArray, B::AbstractArray) = stack(eltype(A) !== Any ? eltype(A) : eltype(B), A, B)
-stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A : T[A; permutedims(B)]
-stack(T::scalar_type_or_field, A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : T[permutedims(A); B]
+stack(A::AbstractArray, B::AbstractArray) =
+  stack(eltype(A) !== Any ? eltype(A) : eltype(B), A, B)
+stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractVector) =
+  isempty(B) ? A : T[A; permutedims(B)]
+stack(T::scalar_type_or_field, A::AbstractVector, B::AbstractMatrix) =
+  isempty(A) ? B : T[permutedims(A); B]
 stack(T::scalar_type_or_field, A::AbstractVector, B::AbstractVector) =
   isempty(A) ? B : T[permutedims(A); permutedims(B)]
 stack(::scalar_type_or_field, A::AbstractVector, ::Nothing) = permutedims(A)

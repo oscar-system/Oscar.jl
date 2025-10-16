@@ -40,7 +40,8 @@ function mixed_integer_linear_program(
   cf = coefficient_field(P)
   objective = cf.(objective)
   milp = Polymake.polytope.MixedIntegerLinearProgram{_scalar_type_to_polymake(T)}(;
-    LINEAR_OBJECTIVE=homogenize(cf, objective, k), INTEGER_VARIABLES=Vector(integer_variables)
+    LINEAR_OBJECTIVE=homogenize(cf, objective, k),
+    INTEGER_VARIABLES=Vector(integer_variables),
   )
   if convention == :max
     Polymake.attach(milp, "convention", "max")

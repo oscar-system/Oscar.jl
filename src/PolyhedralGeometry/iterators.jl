@@ -394,20 +394,28 @@ Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where {T}
 Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) =
   assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
 
-function homogenized_matrix(field, x::SubObjectIterator{<:PointVector}, v::Union{Number,scalar_types_extended}=1)
+function homogenized_matrix(
+  field, x::SubObjectIterator{<:PointVector}, v::Union{Number,scalar_types_extended}=1
+)
   @req isone(v) "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
   return matrix_for_polymake(x; homogenized=true)
 end
-function homogenized_matrix(field, x::SubObjectIterator{<:RayVector}, v::Union{Number,scalar_types_extended}=0)
+function homogenized_matrix(
+  field, x::SubObjectIterator{<:RayVector}, v::Union{Number,scalar_types_extended}=0
+)
   @req iszero(v) "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
   return matrix_for_polymake(x; homogenized=true)
 end
 
-function homogenized_matrix(field, x::AbstractVector{<:PointVector}, v::Union{Number,scalar_types_extended}=1)
+function homogenized_matrix(
+  field, x::AbstractVector{<:PointVector}, v::Union{Number,scalar_types_extended}=1
+)
   @req isone(v) "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
   return stack(field, [homogenize(coefficient_field(x[i]), x[i], v) for i in 1:length(x)])
 end
-function homogenized_matrix(field, x::AbstractVector{<:RayVector}, v::Union{Number,scalar_types_extended}=0)
+function homogenized_matrix(
+  field, x::AbstractVector{<:RayVector}, v::Union{Number,scalar_types_extended}=0
+)
   @req iszero(v) "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
   return stack(field, [homogenize(coefficient_field(x[i]), x[i], v) for i in 1:length(x)])
 end
@@ -520,9 +528,13 @@ const AbstractCollection = Dict{UnionAll,Union}([
 
 affine_matrix_for_polymake(f::scalar_type_or_field, x::Union{Halfspace,Hyperplane}) =
   stack(f, augment(f, normal_vector(x), -negbias(x)))
-affine_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+affine_matrix_for_polymake(
+  f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}
+) =
   stack(f, [affine_matrix_for_polymake(f, x[i]) for i in 1:length(x)])
 linear_matrix_for_polymake(f::scalar_type_or_field, x::Union{Halfspace,Hyperplane}) =
   negbias(x) == 0 ? stack(f, normal_vector(x)) : throw(ArgumentError("Input not linear."))
-linear_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+linear_matrix_for_polymake(
+  f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}
+) =
   stack(f, [linear_matrix_for_polymake(f, x[i]) for i in 1:length(x)])

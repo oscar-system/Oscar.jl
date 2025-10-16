@@ -2407,9 +2407,12 @@ julia> zonotope_vertices_fukuda_matrix([1 1 0; 1 1 1])
 """
 function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
   parent_field, _ = _determine_parent_and_scalar(_guess_fieldelem_type(M), M)
-  return matrix(parent_field, dehomogenize(
-    Polymake.polytope.zonotope_vertices_fukuda(homogenized_matrix(parent_field, M, 1))
-  ))
+  return matrix(
+    parent_field,
+    dehomogenize(
+      Polymake.polytope.zonotope_vertices_fukuda(homogenized_matrix(parent_field, M, 1))
+    ),
+  )
 end
 
 @doc raw"""

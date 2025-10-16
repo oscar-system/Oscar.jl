@@ -76,7 +76,11 @@ _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:sca
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) =
-  homogenized ? homogenize(coefficient_field(PF), pm_object(PF).RAYS, 0) : pm_object(PF).RAYS
+  if homogenized
+    homogenize(coefficient_field(PF), pm_object(PF).RAYS, 0)
+  else
+    pm_object(PF).RAYS
+  end
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
@@ -739,7 +743,11 @@ _lineality_fan(
   ray_vector(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_fan}, PF::_FanLikeType; homogenized=false) =
-  homogenized ? homogenize(coefficient_field(PF), pm_object(PF).LINEALITY_SPACE, 0) : pm_object(PF).LINEALITY_SPACE
+  if homogenized
+    homogenize(coefficient_field(PF), pm_object(PF).LINEALITY_SPACE, 0)
+  else
+    pm_object(PF).LINEALITY_SPACE
+  end
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 

@@ -609,7 +609,11 @@ _lineality_cone(
   ray_vector(coefficient_field(C), view(pm_object(C).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_cone}, C::Cone; homogenized=false) =
-  homogenized ? homogenize(coefficient_field(C), pm_object(C).LINEALITY_SPACE, 0) : pm_object(C).LINEALITY_SPACE
+  if homogenized
+    homogenize(coefficient_field(C), pm_object(C).LINEALITY_SPACE, 0)
+  else
+    pm_object(C).LINEALITY_SPACE
+  end
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
