@@ -1,3 +1,39 @@
+################################################################################
+######## Scalar types
+################################################################################
+const scalar_types = Union{FieldElem,Float64}
+
+const scalar_type_to_oscar = Dict{String,Type}([
+  ("Rational", QQFieldElem),
+  ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+  ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+  ("Float", Float64),
+])
+
+const scalar_types_extended = Union{scalar_types,ZZRingElem}
+
+const scalar_type_or_field = Union{Type{<:scalar_types},Field}
+
+_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{Float64}) = Float64
+
+const _polymake_scalars = Union{
+  Polymake.Integer,
+  Polymake.Rational,
+  Polymake.QuadraticExtension,
+  Polymake.OscarNumber,
+  Float64,
+  Polymake.TropicalNumber,
+}
+const _polymake_compatible_scalars = Union{
+  QQFieldElem,ZZRingElem,Base.Integer,Base.Rational,_polymake_scalars
+}
+
+################################################################################
+######## IncidenceMatrix
+################################################################################
+
 import Polymake: IncidenceMatrix
 
 @doc raw"""
@@ -170,17 +206,9 @@ Set{Int64} with 1 element:
 """
 column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
-const _polymake_scalars = Union{
-  Polymake.Integer,
-  Polymake.Rational,
-  Polymake.QuadraticExtension,
-  Polymake.OscarNumber,
-  Float64,
-  Polymake.TropicalNumber,
-}
-const _polymake_compatible_scalars = Union{
-  QQFieldElem,ZZRingElem,Base.Integer,Base.Rational,_polymake_scalars
-}
+################################################################################
+######## matrix and number conversion helpers
+################################################################################
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any},AbstractMatrix{FieldElem}})
   a, b = size(m)
@@ -500,26 +528,6 @@ coefficient_field(x::PolyhedralObject{QQFieldElem}) = QQ
 
 _get_scalar_type(::PolyhedralObject{T}) where {T} = T
 _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
-
-################################################################################
-######## Scalar types
-################################################################################
-const scalar_types = Union{FieldElem,Float64}
-
-const scalar_type_to_oscar = Dict{String,Type}([
-  ("Rational", QQFieldElem),
-  ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
-  ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
-  ("Float", Float64),
-])
-
-const scalar_types_extended = Union{scalar_types,IntegerUnion}
-
-const scalar_type_or_field = Union{Type{<:scalar_types},Field}
-
-_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
-_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
-_scalar_type_to_polymake(::Type{Float64}) = Float64
 
 ####################################################################
 # Parent Fields
