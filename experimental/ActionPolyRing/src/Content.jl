@@ -1008,7 +1008,7 @@ the corresponding jet variables specified by the indices given by the array `var
 multiplication is defined between elements of the coefficient ring of `a` and elements of `vals`.
 """
 function evaluate(a::ActionPolyRingElem{T}, vars::Vector{Int}, vals::Vector{V}) where {T <: RingElement, V <: RingElement}
-    S = parent(a)
+  S = parent(a)
   per = __perm_for_sort(S)
   return S(evaluate(data(a), map(x -> per[x], vars), vals))
 end
