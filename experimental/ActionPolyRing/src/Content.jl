@@ -903,11 +903,6 @@ function is_univariate_with_data(apre::ActionPolyRingElem)
   return flag, findfirst(==(gen_idx), __perm_for_sort(parent(apre)))
 end
 
-@doc raw"""
-    is_univariate(p::ActionPolyRing)
-
-Return `false`, since an action polynomial ring cannot be univariate.
-"""
 is_univariate(apr::ActionPolyRing) = false
 
 @doc raw"""

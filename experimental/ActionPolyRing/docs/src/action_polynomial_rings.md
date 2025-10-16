@@ -210,7 +210,6 @@ evaluate(a::PolyT, vars::Vector{PolyT}, vals::Vector{V}) where {PolyT <: ActionP
 ### Univariate polynomials
 
 ```@docs
-is_univariate(A::ActionPolyRing)
 is_univariate(p::ActionPolyRingElem)
 to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
 to_univariate(p::ActionPolyRingElem)
