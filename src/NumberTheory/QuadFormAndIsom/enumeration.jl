@@ -1475,7 +1475,7 @@ function splitting_of_hermitian_type(
 
   for cond in eiglat_cond_trimmed
     condp = _conditions_after_power(cond, p)
-    if !all(V[i]==get(condp,i,[-1])[1]||-1==get(condp,i,[-1])[1] for i in keys(V))
+    if !all(get(condp, i, [-1])[1] == V[i] || get(condp, i, [-1])[1] == -1 for i in keys(V))
       continue
     end
     tmp = __splitting_of_hermitian_type(Lf, p, b; eiglat_cond=cond, fix_root, genusDB, root_test, check, info_depth, discriminant_annihilator, _local)
