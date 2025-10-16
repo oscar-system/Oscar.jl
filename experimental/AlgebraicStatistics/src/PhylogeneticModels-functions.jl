@@ -151,17 +151,10 @@ function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}
   entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
-# Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
 entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge) = entry_transition_matrix(phylogenetic_model(PM), i, j, e)
 entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int) = entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
-
-
-function entry_root_distribution(PM::PhylogeneticModel, i::Int)
-  parameter_ring(PM)[3][i]
-end
-
+entry_root_distribution(PM::PhylogeneticModel, i::Int) = parameter_ring(PM)[3][i]
 entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int) = entry_root_distribution(phylogenetic_model(PM), i)
-
 
 function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)

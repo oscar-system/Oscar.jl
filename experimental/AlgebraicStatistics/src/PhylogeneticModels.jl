@@ -90,8 +90,6 @@ base field (e.g., `QQ` for rational numbers).
 * `model_parameter_name::VarName`: The symbolic name for the variables of the model ring.
 """
 @attributes mutable struct PhylogeneticModel{GT, L, M, R} <: GraphicalModel{GT, L}
-  # do need to for T to be directed here? YES!
-  # do we need binary trees/networs? Check if works otherwise!
   base_field::Field
   graph::GT
   labelings::L
@@ -731,7 +729,7 @@ Phylogenetic tree with QQFieldElem type coefficients
 
 ```
 """
-graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph # ? Antony
+graph(PM::GroupBasedPhylogeneticModel) = graph(phylogenetic_model(PM))
 
 @doc raw"""
     phylogenetic_model(PM::GroupBasedPhylogeneticModel)
@@ -861,9 +859,9 @@ julia> fourier_parameters(PM)
 """
 fourier_parameters(PM::GroupBasedPhylogeneticModel) = PM.fourier_param_structure
 
-varnames_probabilities(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.model_parameter_name # ? Antony
+varnames_probabilities(PM::GroupBasedPhylogeneticModel) = varnames(phylogenetic_model(PM))
 
-varnames_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name # ? Antony
+varnames_fourier(PM::GroupBasedPhylogeneticModel) = PM.model_parameter_name
 
 @doc raw"""
     varnames(PM::GroupBasedPhylogeneticModel)
@@ -1119,17 +1117,6 @@ function parametrization(PM::PhylogeneticModel)
   hom(R, S, reduce(vcat, map))
 end
 
-function parametrization(PM::PhylogeneticModel)
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  # TODO: need to double check the order of the keys here is consitent,
-  # otherwise we need to add a sort
-  lvs_indices = keys(gens(R))
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-end
-
 @doc raw"""
     parametrization(PM::GroupBasedPhylogeneticModel)
 
@@ -1361,11 +1348,7 @@ function jukes_cantor_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
        :b :a :b :b;
        :b :b :a :b;
        :b :b :b :a]
-  # x = [Symbol("x[1]"), Symbol("x[2]"), Symbol("x[2]"), Symbol("x[2]")]
-  # x = [:x1, :x2, :x2, :x2] #? Antony
   x = [:x, :y, :y, :y] 
-  
-  #PhylogeneticModel(G, M)
   GroupBasedPhylogeneticModel(G, M, x) 
 end
 
