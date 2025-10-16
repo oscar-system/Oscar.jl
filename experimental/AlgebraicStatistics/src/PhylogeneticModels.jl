@@ -534,7 +534,6 @@ julia> varnames(PM)
 """
 varnames(PM::PhylogeneticModel) = PM.model_parameter_name
 
-## ??? --> used to simplify constructor of GBPhyloModel
 _label_type(::PhylogeneticModel{GT, L, M, R}) where {GT, L, M, R} = L
 
 @doc raw"""
@@ -1229,26 +1228,6 @@ function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwor
   print(io, "$(PM.fourier_param_structure).")
 
 end
-
-function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticNetwork})
-  gr = graph(PM)
-
-  nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
-  root_dist = join(root_distribution(PM), ", " )
-
-  print(io, "Phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")
-  print(io, "$(nl) leaves  \nand $(ne) edges ") # \n )
-  print(io, "with root distribution [$(root_dist)] ")
-  print(io, "and transition matrices of the form \n ")
-
-  M = string(PM.trans_matrix_structure)
-  M = split(M, "[", limit=2)[2]
-  print(io, "[", replace(M, ";" => ";\n "))
-  print(io, ". ")
-end
-
-
 ###################################################################################
 #
 #       Parametrizations
