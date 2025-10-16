@@ -1437,3 +1437,38 @@ function Base.show(io::IO, ::MIME"text/plain", M::StrictTransformSheaf)
   print(io, "strict transform of $(original_sheaf(M)) along $(morphism(M))")
 end
 
+@attributes mutable struct SimplifiedSheaf{SpaceType, OpenType, OutputType,
+                                                RestrictionType
+                                           } <: AbsCoherentSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  orig_sheaf::AbsCoherentSheaf
+  identifying_maps::IdDict{<:AbsAffineScheme, <:ModuleFPHom}
+  underlying_sheaf::PreSheafOnScheme
+
+  function SimplifiedSheaf(orig::AbsCoherentSheaf)
+    X = scheme(orig)
+    und = PreSheafOnScheme(X, 
+                           OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                           RestrictionType=Map,
+                           is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                          )
+    cache = IdDict{AbsAffineScheme, ModuleFPHom}()
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(orig, cache, und)
+  end
+end
+
+### forwarding and implementing the required getters
+underlying_presheaf(M::SimplifiedSheaf) = M.underlying_sheaf
+original_sheaf(M::SimplifiedSheaf) = M.orig_sheaf
+identifying_maps(M::SimplifiedSheaf) = M.identifying_maps
+
+function Base.show(io::IO, M::SimplifiedSheaf)
+  print(io, "simplification of $(original_sheaf(M))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", M::SimplifiedSheaf)
+  print(io, "simplification of $(original_sheaf(M))")
+end
+
