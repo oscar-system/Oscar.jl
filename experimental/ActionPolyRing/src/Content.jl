@@ -873,9 +873,7 @@ resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, i::Int) = resultant(r1
 Return the discriminant of `p`.
 """
 function discriminant(p::ActionPolyRingElem)
-  if is_constant(p)
-    return zero(parent(p))
-  end
+  is_constant(p) && return zero(parent(p))
 
   ld = leader(p)
   
