@@ -200,6 +200,7 @@
         edge_labels = Dict((1, 2) => 1, (3, 4) => 2)
         label!(G1, edge_labels, nothing; name=:color)
         @test G1.color[1, 2] == 1
+        @test G1.color[1] == 2
         
         edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
         G2 = graph_from_labeled_edges(edge_labels)
@@ -208,6 +209,7 @@
         @test_throws ArgumentError G2.label[6]
         label!(G2, nothing, Dict(1 => 1))
         @test G2.label[1] ==  1
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
 
         vertex_labels = Dict(9 => 10)
         @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
