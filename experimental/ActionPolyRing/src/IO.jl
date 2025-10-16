@@ -64,8 +64,8 @@ function __expressify_coeff_monomial!(coeff_prod::Expr, x, e, ld_ind)
       push!(coeff_prod.args, Expr(:call, :^, x[i], e[i]))
     elseif e[i] == 1
       push!(coeff_prod.args, x[i])
-    end 
-  end 
+    end
+  end
 end
 
 function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = nothing)
