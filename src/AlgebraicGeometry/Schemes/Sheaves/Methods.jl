@@ -818,3 +818,28 @@ function restriction_map(F::StrictTransformSheaf, V::AbsAffineScheme, U::AbsAffi
             )
 end
 
+function produce_object(
+    FF::SimplifiedSheaf, 
+    U::AbsAffineScheme
+  )
+  M = original_sheaf(FF)
+  res, id = simplify(M(U))
+  identifying_maps(FF)[U] = id
+  return res
+end
+
+function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+  M = original_sheaf(F)
+  # fill the cache
+  dom = F(V)
+  cod = F(U)
+  id_dom = identifying_maps(F)[V]
+  id_cod = identifying_maps(F)[U]
+  res_M = M(V, U)
+  @assert dom === domain(id_dom)
+  img_gens = images_of_generators(id_dom)
+  img_gens = res_M.(img_gens)
+  img_gens = elem_type(cod)[preimage(id_cod, v) for v in img_gens]
+  return hom(dom, cod, img_gens, OO(scheme(F))(V, U))
+end
+
