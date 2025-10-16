@@ -4,8 +4,8 @@ push!(upgrade_scripts_set, UpgradeScript(
     # recurse upgrade on containers
     upgrade_containers(upgrade_1_6_0_1, s, dict)
 
-    # Upgrades 
-    if haskey(dict[:_type], :name) && dict[:_type][:name] == "RationalFunctionField"
+    # Upgrades
+    if dict[:_type] isa Dict && dict[:_type][:name] == "RationalFunctionField"
       if dict[:data][:symbols] isa String
         dict[:data][:symbol] = dict[:data][:symbols]
         delete!(dict[:data], :symbols)
