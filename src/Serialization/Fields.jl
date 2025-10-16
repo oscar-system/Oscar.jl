@@ -286,21 +286,20 @@ function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
   save_data_dict(s) do
     syms = symbols(RF)
-    save_object(s, syms, :symbols)
+
+    if isone(length(syms))
+      save_object(s, syms[1], :symbol)
+    else
+      save_object(s, syms, :symbols)
+    end
   end
 end
 
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, R::Ring)
-  # ensure proper types of univariate case on load
-  symbols = load_node(s, :symbols) do symbols_data
-    if symbols_data isa Vector
-      return Symbol.(symbols_data)
-    else
-      return Symbol(symbols_data)
-    end
-  end
-  return rational_function_field(R, symbols, cached=false)[1]
+  haskey(s, :symbol) && return   return rational_function_field(R, load_object(s, Symbol, :symbol), cached=false)[1]
+
+  return rational_function_field(R, load_object(s, Vector{Symbol}, :symbols), cached=false)[1]
 end
 
 #elements
