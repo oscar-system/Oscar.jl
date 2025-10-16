@@ -142,7 +142,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
   # all containers have a Dict for their type description
   # with a name and a params key
   dict[:_type] isa String && return dict
-  if dict[:data] isa Vector{String}
+  if !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
     ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
     if !isnothing(ref_entry)
       ref_entry = upgrade(s, ref_entry)
