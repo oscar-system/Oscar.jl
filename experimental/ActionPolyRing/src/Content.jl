@@ -953,9 +953,7 @@ Return the coefficient vector of `p` regarded as a univariate polynomial in the 
 """
 function univariate_coefficients(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
-  if d == 0
-    return [r]
-  end
+  d == 0 && return [r]
   res = [zero(r) for _ in 1:d+1]
   var = __jtv(parent(r))[(i, jet)]
   v_idx = var_index(var)
