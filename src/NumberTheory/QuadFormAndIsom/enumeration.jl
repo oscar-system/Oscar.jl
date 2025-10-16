@@ -1418,7 +1418,7 @@ true
 julia> is_of_same_type(Lf, reps[2]^2)
 true
 ```
-""" 
+"""
 function splitting_of_hermitian_type(
     Lf::ZZLatWithIsom,
     p::IntegerUnion,
