@@ -900,7 +900,7 @@ is_univariate(apre::ActionPolyRingElem) = is_univariate(data(apre))
 function is_univariate_with_data(apre::ActionPolyRingElem)
   flag, gen_idx = is_univariate_with_data(data(apre))
   is_zero(gen_idx) && return flag, gen_idx
-  return (flag, findfirst(==(gen_idx), __perm_for_sort(parent(apre))))
+  return flag, findfirst(==(gen_idx), __perm_for_sort(parent(apre)))
 end
 
 @doc raw"""
