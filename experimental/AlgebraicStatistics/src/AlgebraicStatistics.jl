@@ -52,6 +52,7 @@ export general_time_reversible_model
 
 #export phylogenetic models attributes
 export phylogenetic_model
+export group_based_phylogenetic_model
 export n_states
 export transition_matrix
 export fourier_parameters
@@ -59,6 +60,7 @@ export root_distribution
 export entry_transition_matrix
 export entry_root_distribution
 export entry_fourier_parameter
+export entry_hybrid_parameter
 
 # export equivalent classes
 export equivalent_classes
@@ -74,6 +76,17 @@ export reduced_model_ring
 
 #export auxiliary graph functions
 export n_leaves
+export leaves
+
+#export PhylogeneticNetwork
+export PhylogeneticNetwork
+export phylogenetic_network
+export level
+export n_hybrid
+export hybrid_vertices
+export hybrids
+export hybrid_edges
+
 
 
 # Gaussian Graphical Model Exports
