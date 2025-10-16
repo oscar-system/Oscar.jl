@@ -10,7 +10,7 @@ const scalar_type_to_oscar = Dict{String,Type}([
   ("Float", Float64),
 ])
 
-const scalar_types_extended = Union{scalar_types,ZZRingElem}
+const scalar_types_extended = Union{scalar_types,IntegerUnion}
 
 const scalar_type_or_field = Union{Type{<:scalar_types},Field}
 
