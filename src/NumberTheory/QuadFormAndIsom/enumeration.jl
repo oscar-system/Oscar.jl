@@ -3034,7 +3034,6 @@ function _annihilator(
   D = domain(f)
   J = _annihilator(D; parent)
   P = base_ring(J)
-  c = exponent(D)
   m = minpoly(Hecke.Globals.Zx, matrix(f))
   x = gen(parent,1)
   m = m(x)
