@@ -8,7 +8,22 @@
 #       Phylogenetic Networks
 #
 ###################################################################################
+@doc raw"""
+    PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
+    PhylogeneticNetwork(G::Graph{Directed}, hybrid_edgs::Union{Nothing, Vector{Edge}} = nothing)
 
+A data structure representing a phylogenetic network.
+
+A phylogenetic network is a directed acyclic graph where leaves (nodes with out-degree 0) represent observed species, and internal nodes represent ancestral species. Hybrid nodes (nodes with in-degree greater than 1) represent reticulation events like hybridization.
+
+**Type Parameters:**
+* `N`: The number of hybrid nodes in the network.
+* `L`: The level of the phylogenetic network.
+
+**Fields:**
+* `graph::Graph{Directed}`: The underlying directed graph representing the network topology.
+* `hybrids::Dict{Int, Vector{Edge}}`: A dictionary mapping each hybrid vertex ID to its incoming hybrid edges.
+"""
 struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
   graph::Graph{Directed}
   hybrids::Dict{Int, Vector{Edge}}
@@ -23,8 +38,8 @@ struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
     end
 
     if !is_phylogenetic_network(G)
-      error("The graph `$(edges(G))` with `$(length(hybrid_edgs))` 
-            hybrid nodes is not a phylogenetic network.")
+      error("The graph `$(collect(edges(G)))` 
+        with $(length(hybrid_edgs)) hybrid nodes is not a phylogenetic network.")
     end
 
     level = level_phylogenetic_network(G)
@@ -32,30 +47,208 @@ struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
   end
 end
 
+@doc raw"""
+    phylogenetic_network(G::Graph{Directed})
+
+A constructor for creating a `PhylogeneticNetwork` from a directed graph `G`.
+It automatically detects hybrid nodes and edges.
+
+# Example
+```jldoctest
+julia> G1 = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
+
+julia> phylogenetic_network(G1)
+Level-1 phylogenetic network with hybrid nodes {4} and edges
+  (4, 1)(5, 2)(5, 4)(5, 6)(6, 3)(6, 4)
+
+julia> G2 = graph_from_edges(Directed,[[7,2], [8,7], [7,6], [8,6], [9,8], [10,9], [11,10], [11,12], [12,10], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+
+julia> phylogenetic_network(G2)
+Level-1 phylogenetic network with hybrid nodes {6, 10} and edges
+  (6, 1)(7, 2)(7, 6)(8, 6)(8, 7)(9, 3)(9, 8)(10, 9)(11, 4)(11, 10)(11, 12)(12, 5)(12, 10)
+
+julia> G3 = graph_from_edges(Directed,[[6,2], [6,7], [6,5], [7,5], [5,4], [7,8], [8,4], [4,1], [8,3]]);
+
+julia> phylogenetic_network(G3)
+Level-2 phylogenetic network with hybrid nodes {4, 5} and edges
+  (4, 1)(5, 4)(6, 2)(6, 5)(6, 7)(7, 5)(7, 8)(8, 3)(8, 4)
+```
+"""
 function phylogenetic_network(G::Graph{Directed})
     return PhylogeneticNetwork(G, nothing)
 end
 
-function Base.show(io::IO, N::PhylogeneticNetwork)
-  G = N.graph
-  print(io, "Phylogenetic network $G")  
+function Base.show(io::IO,  m::MIME"text/plain", N::PhylogeneticNetwork)
+  l = level(N)
+  E = join(["($(src(e)), $(dst(e)))" for e in edges(N)])
+  hybN = join(hybrid_vertices(N), ", ")
+  print(io, "Level-$l phylogenetic network with hybrid nodes {$hybN} and edges
+  $E")  
 end
 
-function Base.show(io::IO, m::MIME"text/plain", N::PhylogeneticNetwork) 
-  print(io, "Phylogenetic network")
-end
+@doc raw"""
+    level(::PhylogeneticNetwork{N, L}) where {N, L}
 
+Return the level `L` of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> level(N)
+1
+```
+"""
 level(::PhylogeneticNetwork{N, L}) where {N, L} = L
+
+@doc raw"""
+    n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L}
+
+Return the number of hybrid nodes `N` in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_hybrid(N)
+1 
+```
+"""
 n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
+
+@doc raw"""
+    graph(N::PhylogeneticNetwork)
+
+Return the underlying `Graph{Directed}` of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> graph(N)
+Directed graph with 6 nodes and the following edges:
+(4, 1)(5, 2)(5, 4)(5, 6)(6, 3)(6, 4)
+```
+"""
 graph(N::PhylogeneticNetwork) = N.graph
 
+@doc raw"""
+    hybrids(N::PhylogeneticNetwork)
+
+Return the dictionary mapping hybrid vertex IDs to their incoming hybrid edges.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrids(N)
+Dict{Int64, Vector{Edge}} with 1 entry:
+  4 => [Edge(5, 4), Edge(6, 4)]
+```
+"""
 hybrids(N::PhylogeneticNetwork) = N.hybrids
+@doc raw"""
+    hybrid_vertices(N::PhylogeneticNetwork)
+
+Return a list of the hybrid vertices in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrid_vertices(N)
+1-element Vector{Int64}:
+ 4
+```
+"""
 hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
+
+@doc raw"""
+    hybrid_edges(N::PhylogeneticNetwork)
+
+Return a list of all hybrid edges in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> hybrid_edges(N)
+1-element Vector{Vector{Edge}}:
+ [Edge(5, 4), Edge(6, 4)]
+```
+"""
 hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
 
+@doc raw"""
+    n_edges(N::PhylogeneticNetwork)
+
+Return the total number of edges in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_edges(N)
+6
+```
+"""
 n_edges(N::PhylogeneticNetwork) = n_edges(graph(N))
+
+@doc raw"""
+    n_leaves(N::PhylogeneticNetwork)
+
+Return the number of leaves in the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> n_leaves(N)
+3
+```
+"""
 n_leaves(N::PhylogeneticNetwork) = n_leaves(graph(N))
+
+@doc raw"""
+    leaves(N::PhylogeneticNetwork)
+
+Return the leaf nodes of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> leaves(N)
+3-element Vector{Int64}:
+ 1
+ 2
+ 3
+```
+"""
 leaves(N::PhylogeneticNetwork) = leaves(graph(N))
+
+@doc raw"""
+    edges(N::PhylogeneticNetwork)
+
+Return an iterator over the edges of the phylogenetic network.
+
+# Example
+```jldoctest
+julia> N = Oscar.phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
+
+julia> edges(N)
+Oscar.EdgeIterator(Polymake.LibPolymake.GraphEdgeIteratorAllocated{Directed}(Ptr{Nothing} @0x00000003a2279a80), 6) 
+
+julia> collect(edges(N))
+6-element Vector{Edge}:
+ Edge(4, 1)
+ Edge(5, 2)
+ Edge(5, 4)
+ Edge(5, 6)
+ Edge(6, 3)
+ Edge(6, 4)
+```
+"""
 edges(N::PhylogeneticNetwork) = edges(graph(N))
 
 ###################################################################################
@@ -65,7 +258,7 @@ edges(N::PhylogeneticNetwork) = edges(graph(N))
 ###################################################################################
 
 @doc raw"""
-    PhylogeneticModel{GT, M, L, T}
+    PhylogeneticModel{GT, L, M, R}
     PhylogeneticModel(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
 
 A data structure representing a general phylogenetic model on a directed tree.
@@ -92,7 +285,7 @@ base field (e.g., `QQ` for rational numbers).
 @attributes mutable struct PhylogeneticModel{GT, L, M, R} <: GraphicalModel{GT, L}
   base_field::Field
   graph::GT
-  labelings::L
+  labelings::L ## Do we need this?
   trans_matrix_structure::Matrix{M}
   root_distribution::Vector{R}
   n_states::Int
@@ -100,11 +293,11 @@ base field (e.g., `QQ` for rational numbers).
 
   # Constructor for PhylogeneticTree
   function PhylogeneticModel(F::Field,
-                             G::T,
+                             G::T, # Is it ok to just have  G <: PhylogeneticTree ?
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p") where T <: PhylogeneticTree
-    print("hola")
+
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
@@ -128,6 +321,15 @@ base field (e.g., `QQ` for rational numbers).
                              varnames::VarName="p") where N <: PhylogeneticNetwork
 
     ## TODO: If N::PhylogeneticNetwork{0,0} --> convert it into a PhylogeneticTree 
+
+    if n_hybrid(G) == 0
+      @warn("The phylogenetic network has no hybrid nodes and is therefore a phylogenetic tree. Consider converting it to a PhylogeneticTree for efficiency.")
+    end
+
+    #  error("The graph `$(collect(edges(G)))` 
+    #     with $(length(hybrid_edgs)) hybrid nodes is not a phylogenetic network.")
+
+
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
       root_distribution = F.(repeat([1//n_states], outer = n_states))
@@ -152,27 +354,17 @@ base field (e.g., `QQ` for rational numbers).
                              root_distribution::Union{Nothing, Vector} = nothing,
                              varname::VarName="p")
 
-    #TODO: this does not work - fix it!
-    # if _is_tree(G)
-    #   pt = phylogenetic_tree(QQFieldElem, G)
-    #   return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
-    # end
-
-    #TODO
-    # turn G into a network
-    # and this below should be in the constructor
-    n_states = size(trans_matrix_structure)[1]
-    if isnothing(root_distribution)
-      root_distribution = F.(repeat([1//n_states], outer = n_states))
+    if _is_tree(G)
+      pt = phylogenetic_tree(QQFieldElem, G)
+      return PhylogeneticModel(F, pt, trans_matrix_structure, root_distribution, varname)
     end
-    graph_maps = NamedTuple(_graph_maps(G))
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    return new{
-      Graph{Directed},
-      typeof(graph_maps),
-      typeof(first(trans_matrix_structure)), 
-      typeof(first(root_distribution))
-    }(F, G, graph_maps, trans_matrix_structure, root_distribution, n_states, varname)
+
+    if is_phylogenetic_network(G)
+      N = phylogenetic_network(G)
+      return PhylogeneticModel(F, N, trans_matrix_structure, root_distribution, varname)
+    end
+
+    error("$G is not a phylogenetic tree nor a phylogenetic network")
   end
 
   function PhylogeneticModel(G::AbstractGraph{Directed},
@@ -201,29 +393,48 @@ base field (e.g., `QQ` for rational numbers).
 end
 
 @doc raw"""
-      phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
-      phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
-      phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+    phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
+    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
+    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, R <: MPolyRing}
       
-Construct a `PhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
+Construct a `PhylogeneticModel` from a field `F`, a graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
+
+`G` can either be of type `Graph{Directed}`, `PhylogeneticTree` or `PhylogeneticNetwork`.
+
 If `root_distribution` is not provided, a uniform distribution is assumed. If `F` is not provided, it constructs a `PhylogeneticModel` using the default rational field (`QQ`).
 
 If `trans_matrix_structure` is a `Matrix{<: MPolyRing{<:MPolyRingElem}}` and `root_distribution` is a `Vector{<: MPolyRing}`, then the constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
+
+# Example
+```jldoctest
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> M = [:m11 :m12; :m21 :m22];
+
+julia> root_dist = [:r1, :r2];
+
+julia> PM = phylogenetic_model(tree, M, root_dist)
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+with root distribution [r1, r2] 
+and transition matrices of the form 
+ [:m11 :m12;
+  :m21 :m22].
+```
 """
-function phylogenetic_model(F::Field, G::Union{PhylogeneticTree, PhylogeneticNetwork},
+function phylogenetic_model(F::Field, G::AbstractGraph{Directed},
                             trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork}, trans_matrix_structure::Matrix{M},
+function phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{M},
                             root_distribution::Vector{T},
                             varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
   PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
 
-function phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork}, trans_matrix_structure::Matrix,
+function phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
                             varnames::VarName="p")
   return PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
@@ -236,7 +447,9 @@ Return the number of states in the phylogenetic model.
 
 # Example
 ```jldoctest
-julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = general_markov_model(tree);
 
 julia> n_states(PM)
 4
@@ -251,7 +464,9 @@ Return the structure of the transition matrices of the model.
 
 # Example
 ```jldoctest
-julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = general_markov_model(tree);
 
 julia> transition_matrix(PM)
 4×4 Matrix{Symbol}:
@@ -271,7 +486,9 @@ Return the root distribution vector of the model.
 
 # Example
 ```jldoctest
-julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = general_markov_model(tree);
 
 julia> root_distribution(PM)
 4-element Vector{Symbol}:
@@ -290,7 +507,9 @@ Return the base field of the model's rings.
 
 # Example
 ```jldoctest
-julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = general_markov_model(tree);
 
 julia> base_field(PM)
 Rational field
@@ -305,7 +524,9 @@ Return the symbolic name for the probability coordinates.
 
 # Example
 ```jldoctest
-julia> PM = general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = general_markov_model(tree);
 
 julia> varnames(PM)
 "p"
@@ -313,15 +534,14 @@ julia> varnames(PM)
 """
 varnames(PM::PhylogeneticModel) = PM.model_parameter_name
 
+## ??? --> used to simplify constructor of GBPhyloModel
+_label_type(::PhylogeneticModel{GT, L, M, R}) where {GT, L, M, R} = L
 
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L}; cached=false) where {L}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
-    parameter_ring(PM::PhylogeneticModel{Graph{Directed}, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
-
-Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}`.
+    parameter_ring(PM::PhylogeneticModel; cached=false)
+   
+Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}` where
+`GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`.
 
 If `M  <: VarName`, returns a tuple containing:
   1.  The polynomial ring.
@@ -334,11 +554,9 @@ If `M  <: MPolyRingElem`, then returns a tuple containing:
       transition matrix ring to the new parameter ring.
   3.  The root distribution vector.
 
-If GT::PhylogeneticNetwork it additionally returns:
+If `GT <: PhylogeneticNetwork` it additionally returns:
   4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
 """
-
-### parameter_ring for PhylogeneticModel{Graph{Directed}} TODO: Change to PhylogeneticTrees
 @attr Tuple{
   MPolyRing, 
   GraphTransDict,
@@ -435,8 +653,7 @@ end
   R, dict_maps, root_vars
 end
 
-
-# ### parameter_ring for PhylogeneticModel{PhylogeneticNetwork}
+## PhyloNetwork
 
 @attr Tuple{
   MPolyRing, 
@@ -563,7 +780,7 @@ end
   R, dict_maps, root_vars, Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
 end
 
-function Base.show(io::IO, PM::PhylogeneticModel)
+function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   nl = length(leaves(gr))
@@ -571,7 +788,25 @@ function Base.show(io::IO, PM::PhylogeneticModel)
   root_dist = join(root_distribution(PM), ", " )
  
   print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
-  print(io, "with root distribution [$(root_dist)] \n")
+  print(io, "with root distribution [$(root_dist)] ")
+  print(io, "and transition matrices of the form \n ")
+
+  M = string(PM.trans_matrix_structure)
+  M = split(M, "[", limit=2)[2]
+  print(io, "[", replace(M, ";" => ";\n "))
+  print(io, ". ")
+end
+
+function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticNetwork})
+  gr = graph(PM)
+
+  nl = length(leaves(gr))
+  ne = length(collect(edges(gr)))
+  root_dist = join(root_distribution(PM), ", " )
+
+  print(io, "Phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")
+  print(io, "$(nl) leaves and $(ne) edges \n") # \n )
+  print(io, "with root distribution [$(root_dist)] ")
   print(io, "and transition matrices of the form \n ")
 
   M = string(PM.trans_matrix_structure)
@@ -587,8 +822,11 @@ end
 #
 ###################################################################################
 
+
 @doc raw"""
     GroupBasedPhylogeneticModel{GT, L} <: GraphicalModel{GT, L}
+    GroupBasedPhylogeneticModel(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+    GroupBasedPhylogeneticModel(G::AbstractGraph{Directed},trans_matrix_structure::Matrix{<: VarName},fourier_param_structure::Vector{<: VarName},group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,root_distribution::Union{Nothing, Vector} = nothing,varnames_phylo_model::VarName="p",varnames_group_based::VarName="q")
 
 A data structure representing a group-based phylogenetic model.
 
@@ -625,51 +863,40 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
     new{GT, L}(pm, fourier_param_structure, group, varnames_group_based)
   end
   
+
+  ## I changed this function, so we don't have to define different functions
+  ## for phylotree / phylonetwork / directed graph. Is that ok?
   function GroupBasedPhylogeneticModel(F::Field, 
-                                       G::PhylogeneticTree,
+                                       G::AbstractGraph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
                                        varnames_phylo_model::VarName="p",
                                        varnames_group_based::VarName="q")
-    if isnothing(group)
-      group = collect(abelian_group(2,2))
-      group = [group[1],group[3],group[2],group[4]]
-    end
-
-    graph_maps = NamedTuple(_graph_maps(adjacency_tree(G; add_labels=false)))
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    pm = PhylogeneticModel(F, G, trans_matrix_structure, 
+    PM = PhylogeneticModel(F, G, trans_matrix_structure, 
                            root_distribution,
                            varnames_phylo_model)
-    return GroupBasedPhylogeneticModel(pm, fourier_param_structure, group, varnames_group_based)
-  end
-
-   function GroupBasedPhylogeneticModel(F::Field, 
-                                       N::PhylogeneticNetwork,
-                                       trans_matrix_structure::Matrix{<: VarName},
-                                       fourier_param_structure::Vector{<: VarName},
-                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
-                                       root_distribution::Union{Nothing, Vector} = nothing,
-                                       varnames_phylo_model::VarName="p",
-                                       varnames_group_based::VarName="q")
+    graph_maps_type = _label_type(PM)
+    n = n_states(PM)
     if isnothing(group)
-      group = collect(abelian_group(2,2))
-      group = [group[1],group[3],group[2],group[4]]
+      # this looks odd, can we use a matrix to create the abelian group so we get the order we want
+      if n == 4
+        group = collect(abelian_group(2,2))
+        group = [group[1],group[3],group[2],group[4]]
+      elseif n == 2
+        group = collect(abelian_group(2))
+        group = [group[1],group[2]]
+      else
+        error("No default group available for a model with $n states. Please provide a vector of group elements.")
+      end
     end
-
-    graph_maps = NamedTuple(_graph_maps(graph(N)))
-    graph_maps = isempty(graph_maps) ? nothing : graph_maps
-    pm = PhylogeneticModel(F, N, trans_matrix_structure, 
-                           root_distribution,
-                           varnames_phylo_model)
-
-    return new{typeof(graph(pm)), typeof(graph_maps)}(
-      pm, fourier_param_structure, group, varnames_group_based)
+    
+    return new{typeof(graph(PM)), graph_maps_type}(
+      PM, fourier_param_structure, group, varnames_group_based)
   end
 
-  function GroupBasedPhylogeneticModel(G::Union{PhylogeneticTree, PhylogeneticNetwork},
+  function GroupBasedPhylogeneticModel(G::AbstractGraph{Directed},
                                        trans_matrix_structure::Matrix{<: VarName},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -684,15 +911,33 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
 end
 
 @doc raw"""
-    group_based_phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
-    group_based_phylogenetic_model(G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+    group_based_phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q"))
+    group_based_phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
 
+Construct a `GroupBasedPhylogeneticModel` from a field `F`, a graph `G` (of type `Graph{Directed}`, `PhylogeneticTree` or `PhylogeneticNetwork`), a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution. 
 
-Construct a `GroupBasedPhylogeneticModel` from a field `F`, a directed graph `G`, a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution. If `F` is not provided it constructs a `GroupBasedPhylogeneticModel` using the default rational field (`QQ`).
+If the `group` is not provided, a default is used based on the number of states: the group $Z_2$ for 2-state models, and the Klein four-group ($Z_2 \times Z_2$) for 4-state models. For other numbers of states, a group must be specified.
+If the `root_distribution` is not provided, a uniform distribution is assumed. If `F` is not provided, the model is constructed over the default rational field (`QQ`).
+
+# Example
+```jldoctest
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> M = [:a :b; :b :a];
+
+julia> fourier_params = [:x, :y];
+
+julia> PM = group_based_phylogenetic_model(tree, M, fourier_params)
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [1//2, 1//2],
+transition matrices of the form
+ [:a :b;
+  :b :a]
+and fourier parameters of the form [:x, :y].
+```
 """
-
 function group_based_phylogenetic_model(F::Field, 
-                                      G::Union{PhylogeneticTree, PhylogeneticNetwork},
+                                      G::AbstractGraph{Directed},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -703,7 +948,7 @@ function group_based_phylogenetic_model(F::Field,
                                root_distribution, varnames_phylo_model, varnames_group_based)
 end
 
-function group_based_phylogenetic_model(G::Union{PhylogeneticTree, PhylogeneticNetwork},
+function group_based_phylogenetic_model(G::AbstractGraph{Directed},
                                       trans_matrix_structure::Matrix{<: VarName},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
@@ -722,11 +967,12 @@ Return the graph of the underlying phylogenetic model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> graph(PM)
 Phylogenetic tree with QQFieldElem type coefficients
-
 ```
 """
 graph(PM::GroupBasedPhylogeneticModel) = graph(phylogenetic_model(PM))
@@ -738,7 +984,9 @@ Return the underlying `PhylogeneticModel`.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> phylogenetic_model(PM)
 Phylogenetic model on a tree with 3 leaves and 3 edges 
@@ -760,7 +1008,9 @@ Return the number of states of the underlying phylogenetic model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> n_states(PM)
 4
@@ -775,7 +1025,9 @@ Return the structure of the transition matrices of the model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> transition_matrix(PM)
 4×4 Matrix{Symbol}:
@@ -794,7 +1046,9 @@ Return the base field of the underlying phylogenetic model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> base_field(PM)
 Rational field
@@ -809,7 +1063,9 @@ Return the root distribution of the underlying phylogenetic model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> root_distribution(PM)
 4-element Vector{QQFieldElem}:
@@ -828,7 +1084,9 @@ Return the finite abelian group associated with the model.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> group(PM)
 4-element Vector{FinGenAbGroupElem}:
@@ -847,7 +1105,9 @@ Return the symbolic structure of the Fourier parameters.
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> fourier_parameters(PM)
 4-element Vector{Symbol}:
@@ -870,7 +1130,9 @@ Return the variable name for the Fourier coordinates (alias for `varnames_fourie
 
 # Example
 ```jldoctest
-julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
 
 julia> varnames(PM)
 "q"
@@ -887,6 +1149,9 @@ Create the polynomial ring for the Fourier parameters of the model.
 Returns a tuple containing:
 1.  The polynomial ring.
 2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+
+If `GT <: PhylogeneticNetwork` it additionally returns:
+  4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
 """
 @attr Tuple{
   MPolyRing,
@@ -922,7 +1187,7 @@ end
 
 end
 
-function Base.show(io::IO, PM::GroupBasedPhylogeneticModel)
+function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticTree})
 
   gr = graph(PM)
 
@@ -943,6 +1208,46 @@ function Base.show(io::IO, PM::GroupBasedPhylogeneticModel)
 
 end
 
+function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwork})
+
+  gr = graph(PM)
+
+  nl = length(leaves(gr))
+  ne = length(collect(edges(gr)))
+  root_dist = join(PM.phylo_model.root_distribution, ", " )
+ 
+  print(io, "Group-based phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")
+  print(io, "$(nl) leaves  \nand $(ne) edges ") # \n )
+  print(io, "with root distribution [$(root_dist)], \n")
+  print(io, "transition matrices of the form \n ")
+
+  M = string(PM.phylo_model.trans_matrix_structure)
+  print(io, replace(M, ";" => ";\n "))
+  print(io, "\n")
+
+  print(io, "and fourier parameters of the form ")
+  print(io, "$(PM.fourier_param_structure).")
+
+end
+
+function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticNetwork})
+  gr = graph(PM)
+
+  nl = length(leaves(gr))
+  ne = length(collect(edges(gr)))
+  root_dist = join(root_distribution(PM), ", " )
+
+  print(io, "Phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")
+  print(io, "$(nl) leaves  \nand $(ne) edges ") # \n )
+  print(io, "with root distribution [$(root_dist)] ")
+  print(io, "and transition matrices of the form \n ")
+
+  M = string(PM.trans_matrix_structure)
+  M = split(M, "[", limit=2)[2]
+  print(io, "[", replace(M, ";" => ";\n "))
+  print(io, ". ")
+end
+
 
 ###################################################################################
 #
@@ -953,9 +1258,10 @@ end
 @doc raw"""
     full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
 
-Creates the full model ring for the probability distributions at the leaves (probability coordinates) for a `PhylogeneticModel`.
-Equivalently, creates the full model ring in the Fourier coordinates for a `GroupBasedPhylogeneticModel`.
+Creates the full model ring _probability coordinates_ for a `PhylogeneticModel`. Equivalently, creates the full model ring in the _Fourier coordinates_ for a `GroupBasedPhylogeneticModel`.
 This ring has a generator for every possible state configuration at the leaves.
+
+
 """
 @attr Tuple{
   ModelRing{T, U}, 
@@ -967,21 +1273,22 @@ This ring has a generator for every possible state configuration at the leaves.
 end
 
 @doc raw"""
-    full_parametrization(PM::PhylogeneticModel)
+    full_parametrization(PM::PhylogeneticModel{<:PhylogeneticTree})
+    full_parametrization(PM::PhylogeneticModel{<:PhylogeneticNetwork})
 
 Constructs the parametrization map from the full model ring in _probability_ coordinates (with generators for all leaf probability
 configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
-# TODO: Change Graph{Directed} to PhylogeneticTree
-@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{PhylogeneticTree})
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = sort(leaves(gr))
   lvs_indices = leaves_indices(PM)
 
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  map = [leaves_probability(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
@@ -991,6 +1298,7 @@ end
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = sort(leaves(N))
   lvs_indices = leaves_indices(PM)
   h_indices = hybrid_indices(PM)
 
@@ -1001,42 +1309,45 @@ end
   map = [0 for i in lvs_indices]
 
   for idx in h_indices
-      subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
-      subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
+    subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
+    subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
 
-      l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-      map_subtree = [Oscar.leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
-      map = map + l.*map_subtree
+    l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
+    map_subtree = [Oscar.leaves_probability(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+    map = map + l.*map_subtree
   end
 
   hom(R, S, reduce(vcat, map))
 end
 
 @doc raw"""
-    full_parametrization(PM::GroupBasedPhylogeneticModel)
+    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
+    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
 
 Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
 configurations) to the parameter ring (with generators from the Fourier parameters).
 """
-function full_parametrization(PM::GroupBasedPhylogeneticModel{PhylogeneticTree})
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = sort(leaves(gr))
   lvs_indices = leaves_indices(PM)
 
-  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  map = [leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 
 end
 
-function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
 
+  lvs = sort(leaves(N))
   lvs_indices = leaves_indices(PM)
   h_indices = hybrid_indices(PM)
 
@@ -1051,7 +1362,7 @@ function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetw
       subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
 
       l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-      map_subtree = [Oscar.leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+      map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
       map = map + l.*map_subtree
   end
 
@@ -1100,35 +1411,23 @@ This ring has a generator for each unique polynomial (i.e., each equivalence cla
   return model_ring(base_field(PM), varnames(PM) => ec_indices; cached=cached)
 end
 
+# TODO fix docs 
 @doc raw"""
-    parametrization(PM::PhylogeneticModel)
+    parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
 
 Constructs the parametrization map from the reduced model ring of probability coordinates (with generators for
 each equivalence class) to the parameter ring.
-"""
-function parametrization(PM::PhylogeneticModel)
-  R, _ = model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  # TODO: need to double check the order of the keys here is consitent,
-  # otherwise we need to add a sort
-  lvs_indices = keys(gens(R))
-  map = [leaves_probability(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
-  hom(R, S, reduce(vcat, map))
-end
-
-@doc raw"""
-    parametrization(PM::GroupBasedPhylogeneticModel)
-
 Constructs the parametrization map from the reduced model of Fourier coordinates ring to the Fourier parameter ring.
 """
-function parametrization(PM::GroupBasedPhylogeneticModel)
+function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+  _, p = full_model_ring(PM)
+  f = full_parametrization(PM)
+
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
-  
-  lvs_indices = keys(gens(R))
 
-  map = [leaves_fourier(PM, Dict(i => k[i] for i in 1:n_leaves(graph(PM)))) for k in lvs_indices]
+  lvs_indices = keys(gens(R))
+  map = [f(p[k...]) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
@@ -1136,8 +1435,25 @@ end
     affine_parametrization(PM::PhylogeneticModel)
 
 Constructs an affine parametrization of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
+
+# Example
+```jldoctest
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = phylogenetic_model(jukes_cantor_model(tree));
+
+julia> affine_parametrization(PM)
+Ring homomorphism
+  from multivariate polynomial ring in 5 variables over QQ
+  to multivariate polynomial ring in 6 variables over QQ
+defined by
+  p[1,2,3] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] - 3//4*b[1]*b[3] + 1//4*b[1] + 1//4*b[2]*b[3]
+  p[1,2,2] -> 2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] - 3//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[3]
+  p[1,2,1] -> -6*b[1]*b[2]*b[3] + 9//4*b[1]*b[2] + 9//4*b[1]*b[3] - 3//4*b[1] + 9//4*b[2]*b[3] - 3//4*b[2] - 3//4*b[3] + 1//4
+  p[1,1,2] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] + 1//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[2]
+  p[1,1,1] -> -2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] + 1//4*b[1]*b[3] + 1//4*b[2]*b[3]
+```
 """
-# TODO: this is for trees. Fix and add function for networks
 function affine_parametrization(PM::PhylogeneticModel)
   R, p = model_ring(PM) 
   S, _ = parameter_ring(PM)
@@ -1159,6 +1475,24 @@ end
 
 Constructs an affine parametrization of the group-based model by setting the first
 Fourier parameters to 1.
+
+# Example
+```jldoctest
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> PM = jukes_cantor_model(tree);
+
+julia> affine_parametrization(PM)
+Ring homomorphism
+  from multivariate polynomial ring in 5 variables over QQ
+  to multivariate polynomial ring in 6 variables over QQ
+defined by
+  q[2,3,4] -> y[1]*y[3]
+  q[2,2,1] -> 1
+  q[2,1,2] -> y[1]*y[2]*y[3]
+  q[1,2,2] -> y[2]*y[3]
+  q[1,1,1] -> y[1]*y[2]
+```
 """
 function affine_parametrization(PM::GroupBasedPhylogeneticModel)
   R, q = model_ring(PM)
@@ -1295,7 +1629,7 @@ end
 ###################################################################################
 
 @doc raw"""
-    cavender_farris_neyman_model(G::Graph{Directed})
+    cavender_farris_neyman_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
 a 2-state model with a single transition probability per edge.
@@ -1312,7 +1646,7 @@ and fourier parameters of the form [:x, :y].
 ```
 
 """
-function cavender_farris_neyman_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function cavender_farris_neyman_model(G::AbstractGraph{Directed})
   M = [:a :b;
        :b :a]
   x = [:x, :y] 
@@ -1325,14 +1659,16 @@ function cavender_farris_neyman_model(G::Union{PhylogeneticTree, PhylogeneticNet
 end
 
 @doc raw"""
-    jukes_cantor_model(G::Graph{Directed})
+    jukes_cantor_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
 a 4-state model where all non-diagonal transition probabilities are equal.
 
 Example
 ```jldoctest
-julia> jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> jukes_cantor_model(tree)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [1//4, 1//4, 1//4, 1//4], 
 transition matrices of the form 
@@ -1343,7 +1679,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :y, :y].
 ```
 """
-function jukes_cantor_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function jukes_cantor_model(G::AbstractGraph{Directed})
   M = [:a :b :b :b;
        :b :a :b :b;
        :b :b :a :b;
@@ -1353,14 +1689,16 @@ function jukes_cantor_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 end
 
 @doc raw"""
-    kimura2_model(G::Graph{Directed})
+    kimura2_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
 a 4-state model with two non-diagonal transition probabilities.
 
 Example
 ```jldoctest
-julia> kimura2_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> kimura2_model(tree)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [1//4, 1//4, 1//4, 1//4], 
 transition matrices of the form 
@@ -1371,7 +1709,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :z].
 ```
 """
-function kimura2_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function kimura2_model(G::AbstractGraph{Directed})
   M = [:a :b :c :b;
        :b :a :b :c;
        :c :b :a :b;
@@ -1382,14 +1720,16 @@ function kimura2_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 end
 
 @doc raw"""
-    kimura3_model(G::Graph{Directed})
+    kimura3_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
 a 4-state model with three non-diagonal different transition probabilities.
 
 Example
 ```jldoctest
-julia> kimura3_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> kimura3_model(tree)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [1//4, 1//4, 1//4, 1//4], 
 transition matrices of the form 
@@ -1400,7 +1740,7 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :t].
 ```
 """
-function kimura3_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function kimura3_model(G::AbstractGraph{Directed})
   M = [:a :b :c :d;
        :b :a :d :c;
        :c :d :a :b;
@@ -1411,14 +1751,16 @@ function kimura3_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 end
   
 @doc raw"""
-    general_markov_model(G::Graph{Directed})
+    general_markov_model(G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
 
 Example
 ```jldoctest
-julia> general_markov_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
+julia> general_markov_model(tree)
 Phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [π1, π2, π3, π4] 
 and transition matrices of the form 
@@ -1428,7 +1770,7 @@ and transition matrices of the form
   :m41 :m42 :m43 :m44]. 
 ```
 """
-function general_markov_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function general_markov_model(G::AbstractGraph{Directed})
 
   M = [:m11 :m12 :m13 :m14;
        :m21 :m22 :m23 :m24;
@@ -1441,24 +1783,25 @@ function general_markov_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
 end
 
 @doc raw"""
-    general_markov_model(G::Graph{Directed})
+    general_time_reversible_model(G::AbstractGraph{Directed})
 
-Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
+Constructs a `PhylogeneticModel` corresponding to a general time reversible model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
 
 Example
 ```jldoctest
+julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
+
 julia> general_time_reversible_model(tree)
-Phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [r[1], r[2], r[3], r[4]] 
-and transition matrices of the form 
+Phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form
  [r[1]*a r[2]*b r[3]*c r[4]*d;
   r[1]*b r[2]*a r[3]*e r[4]*f;
   r[1]*c r[2]*e r[3]*a r[4]*g;
-  r[1]*d r[2]*f r[3]*g r[4]*a]. 
+  r[1]*d r[2]*f r[3]*g r[4]*a].
 ```
 """
-function general_time_reversible_model(G::Union{PhylogeneticTree, PhylogeneticNetwork})
+function general_time_reversible_model(G::AbstractGraph{Directed})
 
   Rp, r = polynomial_ring(QQ, :r => 1:4);
   RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);

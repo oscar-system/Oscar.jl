@@ -16,8 +16,8 @@ Two main types of models can be constructed: a general `PhylogeneticModel` and a
 A `PhylogeneticModel` is defined by a directed tree, a base field, the symbolic structure of the transition matrices for each edge, and a probability distribution at the root.
 
 ```@docs
-PhylogeneticModel{GT, M, L, T}
-phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
+PhylogeneticModel
+phylogenetic_model
 ```
 
 Here are some examples of how to construct phylogenetic models. The Jukes Cantor model on a 3-leaf tree can be constructed:
@@ -47,15 +47,16 @@ julia> Rp, r = rational_function_field(QQ, :r => 1:4);
 
 julia> RM, (a, b, c, d) = polynomial_ring(Rp, [:a, :b, :c, :d]);
 
-julia> M_F81 = [a*r[1] c*r[2] b*r[3] b*r[4];
+julia> M_TN93 = [a*r[1] c*r[2] b*r[3] b*r[4];
                 c*r[1] a*r[2] b*r[3] b*r[4];
                 b*r[1] b*r[2] a*r[3] d*r[4];
                 b*r[1] b*r[2] d*r[3] a*r[4]];
 
-julia> PM_Felsenstein81 = PhylogeneticModel(tree, M_F81, r)
-Phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [r[1], r[2], r[3], r[4]] 
-and transition matrices of the form 
+julia> PM_TN93 = PhylogeneticModel(tree, M_TN93, r)
+Phylogenetic model on a tree with 3 leaves and 3 
+edges 
+with root distribution [r[1], r[2], r[3], 
+r[4]] and transition matrices of the form 
  [r[1]*a r[2]*c r[3]*b r[4]*b;
   r[1]*c r[2]*a r[3]*b r[4]*b;
   r[1]*b r[2]*b r[3]*a r[4]*d;
@@ -67,8 +68,8 @@ and transition matrices of the form
 For models exhibiting symmetries that can be captured by a finite abelian group, the `GroupBasedPhylogeneticModel` is used. This structure requires the symbolic Fourier parameters and the associated group, in addition to the standard phylogenetic model components.
 
 ```@docs
-GroupBasedPhylogeneticModel{GT, L}
-group_based_phylogenetic_model(F::Field, G::Graph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+GroupBasedPhylogeneticModel
+group_based_phylogenetic_model
 ```
 
 For example, the Jukes-Cantor model can be defined as a group-based model:
@@ -83,7 +84,7 @@ julia> M = [:a :b :b :b;
 julia>   x = [:x, :y, :y, :y]; 
 
 julia>   GroupBasedPhylogeneticModel(tree, M, x) 
-Phylogenetic model on a tree with 3 leaves and 3 edges 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [1//4, 1//4, 1//4, 1//4], 
 transition matrices of the form 
  [:a :b :b :b;
@@ -106,35 +107,23 @@ general_time_reversible_model(G::Graph{Directed})
 ```
 
 ## Properties
-The properties of a model can be accessed using the following functions.
-
-#### `PhylogeneticModel` properties
-
-```@docs
-n_states(PM::PhylogeneticModel)
-transition_matrix(PM::PhylogeneticModel)
-root_distribution(PM::PhylogeneticModel)
-base_field(PM::PhylogeneticModel)
-varnames(PM::PhylogeneticModel)
-```
-
-#### `GroupBasedPhylogeneticModel` properties
 
 Objects of type `GroupBasedPhylogeneticModel` are built upon a `PhylogeneticModel`, which can be accessed directly:
 ```@docs
 phylogenetic_model(PM::GroupBasedPhylogeneticModel)
 ```
 
-Additionally, `GroupBasedPhylogeneticModel` has its own properties, many of which are aliases for the underlying phylogenetic model's properties.
+Other properties of a `PhylogeneticModel` and a `GroupBasedPhylogeneticModel` can be accessed using the following functions.
 
 ```@docs
-n_states(PM::GroupBasedPhylogeneticModel)
-transition_matrix(PM::GroupBasedPhylogeneticModel)
-root_distribution(PM::GroupBasedPhylogeneticModel) 
+n_states
+transition_matrix
+root_distribution
+base_field(PM::PhylogeneticModel)
 base_field(PM::GroupBasedPhylogeneticModel)
 group(PM::GroupBasedPhylogeneticModel)
-fourier_parameters(PM::GroupBasedPhylogeneticModel)
-varnames(PM::GroupBasedPhylogeneticModel)
+fourier_parameters
+varnames
 ```
 
 ## Phylogenetic rings
@@ -144,8 +133,17 @@ Two main rings are associated with any phylogenetic model: the _parameter ring_,
 The parameter ring's generators correspond to the symbolic parameters of the model. For a `PhylogeneticModel`, these are the entries of the transition matrices and root distribution. For a `GroupBasedPhylogeneticModel`, they are the Fourier parameters.
 
 ```@docs
-parameter_ring(PM::PhylogeneticModel{Graph{Directed}, <: VarName, L, T}; cached=false) where {L, T <: FieldElem}
+parameter_ring(PM::PhylogeneticModel; cached=false)
 parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+```
+
+To access specific parameters (entries of the treansition matrices, fourier parameters, entry of the root distriution or paramters associated to hybrid nodes in phylo networks) you can use the following functions:
+
+```@docs
+entry_root_distribution
+entry_transition_matrix
+entry_fourier_parameter
+entry_hybrid_parameter
 ```
 
 For example
@@ -171,15 +169,26 @@ Multivariate polynomial ring in 9 variables x[1], x[2], x[3], y[1], ..., z[3]
 
 julia> S_gens
 Dict{Tuple{Union{Char, AbstractString, Symbol}, Edge}, MPolyRingElem} with 9 entries:
-  (:z, Edge(4, 2)) => z[2]
-  (:x, Edge(4, 3)) => x[3]
-  (:y, Edge(4, 3)) => y[3]
-  (:y, Edge(4, 1)) => y[1]
-  (:y, Edge(4, 2)) => y[2]
-  (:z, Edge(4, 3)) => z[3]
-  (:x, Edge(4, 1)) => x[1]
-  (:z, Edge(4, 1)) => z[1]
-  (:x, Edge(4, 2)) => x[2]
+ (:z, Edge(4, 2)) => z[2]
+ (:x, Edge(4, 3)) => x[3]
+ (:y, Edge(4, 3)) => y[3]
+ (:x, Edge(4, 2)) => x[2]
+ (:x, Edge(4, 3)) => x[3]
+ (:z, Edge(4, 3)) => z[3]
+ (:y, Edge(4, 1)) => y[1]
+ (:z, Edge(4, 2)) => z[2]
+ (:y, Edge(4, 2)) => y[2]
+ (:z, Edge(4, 1)) => z[1]
+ (:x, Edge(4, 1)) => x[1]
+
+julia> entry_root_distribution(pm, 1)
+1//4
+
+julia> entry_transition_matrix(pm, 3, 3, Edge(4,1))
+a[1]
+
+julia> entry_fourier_parameter(pm, 4, Edge(4,1))
+z[1]
 ```
 
 ### Model Ring and Equivalence Classes
@@ -200,17 +209,14 @@ A parametrization is a ring homomorphism from the model ring (representing obser
 There are two versions: `full_parametrization` maps from the `full_model_ring`, while `parametrization` maps from the reduced `model_ring`.
 
 ```@docs
-full_parametrization(PM::PhylogeneticModel)
-full_parametrization(PM::GroupBasedPhylogeneticModel)
-parametrization(PM::PhylogeneticModel)
-parametrization(PM::GroupBasedPhylogeneticModel)
+full_parametrization
+parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
 ```
 
 *Affine Parametrization:* 
 Sometimes one wants to work on an affine variety by imposing constraints, such as the rows of the transition matrices summing to one. `affine_parametrization` provides these constrained maps.
 ```@docs
-affine_parametrization(PM::PhylogeneticModel)
-affine_parametrization(PM::GroupBasedPhylogeneticModel)
+affine_parametrization
 ```
 
 Example of a full workflow:
@@ -263,10 +269,119 @@ q[1,1,1]
 ```
 
 
-## Contact
+## Phylogenetic Networks
 
-Please direct questions about this part of OSCAR to the following people:
-* [Marina Garrote López](https://sites.google.com/view/marinagarrotelopez)
+The `PhylogeneticNetwork` structure provides a way to represent and manipulate **phylogenetic networks**, which are directed acyclic graphs (DAGs) that generalizes phylogenetic trees by allowing hybrid nodes — nodes with multiple incoming edges — that represent genetic mixing events between lineages.
 
-You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
-Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+```@docs
+PhylogeneticNetwork
+phylogenetic_network
+```
+
+You can access specific properties of a `PhylogeneticNetwork`, like its level and hybrid nodes, using these functions:
+
+```@docs
+level(N::PhylogeneticNetwork)
+n_hybrid
+hybrids
+hybrid_vertices
+hybrid_edges
+```
+
+General graph properties can be accessed with the following functions:
+```@docs
+graph(N::PhylogeneticNetwork)
+n_edges
+edges
+n_leaves
+leaves
+```
+
+All model constructors, including `PhylogeneticModel`, `GroupBasedPhylogeneticModel`, and the classic pre-defined models, can be applied to phylogenetic networks in the same way they are applied to trees. The resulting model object will be defined on the network, incorporating its specific topology. Consequently, all network property functions (e.g., graph, level, hybrids) can be called directly on the model object.
+
+### Example: CFN model on a Level-1 Network
+The following example demonstrates this by creating a Cavender-Farris-Neyman model on a level-1 network. It shows how to inspect the model's underlying graph and access the algebraic parameters.
+
+
+```jldoctest phylo_network
+julia> G = graph_from_edges(Directed,[[7,6], [7,8], [6,5], [8,5], [5,1], [6,2], [7,3], [8,4]]);
+
+julia> PM = cavender_farris_neyman_model(G)
+Group-based phylogenetic model on a level-1 network with 1 hybrid node, 4 leaves  
+and 8 edges with root distribution [1//2, 1//2], 
+transition matrices of the form 
+ [:a :b;
+  :b :a]
+and fourier parameters of the form [:x, :y].
+
+julia> graph(PM)
+Level-1 phylogenetic network with hybrid nodes {5} and edges
+  (5, 1)(6, 2)(6, 5)(7, 3)(7, 6)(7, 8)(8, 4)(8, 5)
+
+julia> S, x_gens, l_gens = parameter_ring(PM);
+
+julia> x_gens
+Dict{Tuple{Union{Char, AbstractString, Symbol}, Edge}, MPolyRingElem} with 16 entries:
+  (:x, Edge(8, 5)) => x[8]
+  (:y, Edge(7, 6)) => y[6]
+  (:y, Edge(7, 3)) => y[3]
+  (:y, Edge(8, 4)) => y[4]
+  (:x, Edge(7, 8)) => x[7]
+  (:x, Edge(7, 6)) => x[6]
+  (:x, Edge(8, 4)) => x[4]
+  (:y, Edge(6, 5)) => y[5]
+  (:y, Edge(7, 8)) => y[7]
+  (:y, Edge(6, 2)) => y[2]
+  (:y, Edge(8, 5)) => y[8]
+  (:x, Edge(6, 2)) => x[2]
+  (:x, Edge(6, 5)) => x[5]
+  (:x, Edge(5, 1)) => x[1]
+  (:y, Edge(5, 1)) => y[1]
+  (:x, Edge(7, 3)) => x[3]
+
+julia> l_gens
+Dict{Edge, MPolyRingElem} with 2 entries:
+  Edge(8, 5) => l[1, 2]
+  Edge(6, 5) => l[1, 1]
+
+julia> entry_fourier_parameter(PM, 1, Edge(6,5))
+x[5]
+
+julia> entry_hybrid_parameter(PM, Edge(6,5))
+l[1, 1]
+
+julia> R, q = full_model_ring(PM);
+
+julia> f = full_parametrization(PM);
+
+julia> f(q[1,1,1,1])
+l[1, 1]*x[1]*x[2]*x[3]*x[4]*x[5]*x[6]*x[7] + l[1, 2]*x[1]*x[2]*x[3]*x[4]*x[6]*x[7]*x[8]
+
+julia> parametrization(PM)
+Ring homomorphism
+  from multivariate polynomial ring in 8 variables over QQ
+  to multivariate polynomial ring in 18 variables over QQ
+defined by
+  q[2,2,2,2] -> l[1, 1]*x[6]*y[1]*y[2]*y[3]*y[4]*y[5]*y[7] + l[1, 2]*x[7]*y[1]*y[2]*y[3]*y[4]*y[6]*y[8]
+  q[2,2,1,1] -> l[1, 1]*x[2]*x[4]*x[7]*y[1]*y[3]*y[5]*y[6] + l[1, 2]*x[2]*x[4]*x[6]*y[1]*y[3]*y[7]*y[8]
+  q[2,1,2,1] -> l[1, 1]*x[1]*x[3]*x[5]*y[2]*y[4]*y[6]*y[7] + l[1, 2]*x[1]*x[3]*x[8]*y[2]*y[4]*y[6]*y[7]
+  q[2,1,1,2] -> l[1, 1]*x[1]*x[2]*x[3]*x[4]*x[5]*x[6]*x[7] + l[1, 2]*x[1]*x[2]*x[3]*x[4]*x[6]*x[7]*x[8]
+  q[1,2,2,1] -> l[1, 1]*x[3]*x[4]*x[6]*x[7]*y[1]*y[2]*y[5] + l[1, 2]*x[3]*x[4]*y[1]*y[2]*y[6]*y[7]*y[8]
+  q[1,2,1,2] -> l[1, 1]*x[2]*x[3]*y[1]*y[4]*y[5]*y[6]*y[7] + l[1, 2]*x[2]*x[3]*x[6]*x[7]*y[1]*y[4]*y[8]
+  q[1,1,2,2] -> l[1, 1]*x[1]*x[4]*x[5]*x[7]*y[2]*y[3]*y[6] + l[1, 2]*x[1]*x[4]*x[7]*x[8]*y[2]*y[3]*y[6]
+  q[1,1,1,1] -> l[1, 1]*x[1]*x[2]*x[5]*x[6]*y[3]*y[4]*y[7] + l[1, 2]*x[1]*x[2]*x[6]*x[8]*y[3]*y[4]*y[7]
+
+julia> coordinate_change(PM)
+Ring homomorphism
+  from multivariate polynomial ring in 8 variables over QQ
+  to multivariate polynomial ring in 8 variables over QQ
+defined by
+  q[2,2,2,2] -> -p[1,2,2,2] + p[1,2,2,1] + p[1,2,1,2] - p[1,2,1,1] + p[1,1,2,2] - p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
+  q[2,2,1,1] -> -p[1,2,2,2] - p[1,2,2,1] - p[1,2,1,2] - p[1,2,1,1] + p[1,1,2,2] + p[1,1,2,1] + p[1,1,1,2] + p[1,1,1,1]
+  q[2,1,2,1] -> -p[1,2,2,2] - p[1,2,2,1] + p[1,2,1,2] + p[1,2,1,1] - p[1,1,2,2] - p[1,1,2,1] + p[1,1,1,2] + p[1,1,1,1]
+  q[2,1,1,2] -> -p[1,2,2,2] + p[1,2,2,1] - p[1,2,1,2] + p[1,2,1,1] - p[1,1,2,2] + p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
+  q[1,2,2,1] -> p[1,2,2,2] + p[1,2,2,1] - p[1,2,1,2] - p[1,2,1,1] - p[1,1,2,2] - p[1,1,2,1] + p[1,1,1,2] + p[1,1,1,1]
+  q[1,2,1,2] -> p[1,2,2,2] - p[1,2,2,1] + p[1,2,1,2] - p[1,2,1,1] - p[1,1,2,2] + p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
+  q[1,1,2,2] -> p[1,2,2,2] - p[1,2,2,1] - p[1,2,1,2] + p[1,2,1,1] + p[1,1,2,2] - p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
+  q[1,1,1,1] -> p[1,2,2,2] + p[1,2,2,1] + p[1,2,1,2] + p[1,2,1,1] + p[1,1,2,2] + p[1,1,2,1] + p[1,1,1,2] + p[1,1,1,1]
+```
