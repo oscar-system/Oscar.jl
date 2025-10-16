@@ -64,8 +64,7 @@ undirected graphs.
 
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
-Discrete graphical model on an undirected graph with edges
-(2, 1), (3, 2) and states [2, 2, 2]
+Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
 julia> model_ring(M)[2]
 Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:

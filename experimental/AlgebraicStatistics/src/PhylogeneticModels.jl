@@ -727,8 +727,7 @@ Return the graph of the underlying phylogenetic model.
 julia> PM = jukes_cantor_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
 julia> graph(PM)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
+Phylogenetic tree with QQFieldElem type coefficients
 
 ```
 """

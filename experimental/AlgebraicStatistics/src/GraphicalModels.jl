@@ -40,7 +40,6 @@ graph(M::GraphicalModel) = M.graph
     model_ring(GM::GraphicalModel)
 
 Returns a polynomial ring where the indeterminants correspond to the defining parameters of the model.
-```
 """
 model_ring(M::T) where T <: GraphicalModel = error("Please implement the method model_ring for $T")
 

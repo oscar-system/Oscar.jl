@@ -23,8 +23,10 @@
 end
 
 @doc raw"""
-    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName=:s, l_varname::VarName=:ll, w_varname::VarName=:w)
-    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName=:s, k_varname::VarName=:k)
+    gaussian_graphical_model(G::Graph{Directed}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName=:w)
+    gaussian_graphical_model(G::MixedGraph; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w")
+    gaussian_graphical_model(G::Graph{Undirected}; s_varname::VarName="s", k_varname::VarName="k")
+
 Given a graph `G` construct a gaussian graphical model for `G`. Optionally one can set the letter used for the variable of the covariance matrix by setting `s_varname`. 
 
 ## Examples
@@ -158,7 +160,7 @@ end
 end
 
 @doc raw"""
-    directed_edges_matrix(M::GaussianGraphicalModel{Graph{T}, L}) where {T <: Union{Directed, Mixed}, L}
+    directed_edges_matrix(M::GaussianGraphicalModel{<:AbstractGraph{T}}) where {T <: Union{Mixed, Directed}}
 
 Create the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
 
@@ -466,14 +468,14 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 ## Examples
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 julia> M = gaussian_graphical_model(graph_from_edges([[1,2], [2,3]]))
 Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges
 
 julia> gaussian_ring(M)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 ```
@@ -491,7 +493,7 @@ end
 
 gaussian_ring(n::Int; s_var_name::VarName=:s, cached=false) = gaussian_ring(QQ, n; s_var_name=s_var_name, cached=cached)
 
-gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM), covariance_matrix(GM))
+gaussian_ring(GM::GaussianGraphicalModel) = GaussianRing(model_ring(GM)[1], covariance_matrix(GM))
 
 covariance_matrix(R::GaussianRing) = R.covariance_matrix
 
@@ -533,7 +535,7 @@ Return all the `CIStmt` objects which can be formed on the `random_variables(R)`
 
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 julia> ci_statements(R)

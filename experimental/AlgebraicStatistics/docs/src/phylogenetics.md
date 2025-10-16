@@ -30,12 +30,9 @@ julia> M_JC = [:a :b :b :b;
                :b :b :b :a];
 
 julia> PM_jukesCantor = phylogenetic_model(tree, M_JC)
-Phylogenetic model on a tree with 3 leaves and 3 
-edges 
-with root distribution [1//4, 1//4, 1//4, 
-1//4] 
-and transition matrices of the 
- form 
+Phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [1//4, 1//4, 1//4, 1//4]
+and transition matrices of the form
  [:a :b :b :b;
   :b :a :b :b;
   :b :b :a :b;
@@ -157,9 +154,9 @@ For example
 julia> tree = graph_from_edges(Directed,[[4,1], [4,2], [4,3]]);
 
 julia> pm = kimura2_model(tree)
-Phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [1//4, 1//4, 1//4, 1//4], 
-transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [1//4, 1//4, 1//4, 1//4],
+transition matrices of the form
  [:a :b :c :b;
   :b :a :b :c;
   :c :b :a :b;
@@ -174,15 +171,15 @@ Multivariate polynomial ring in 9 variables x[1], x[2], x[3], y[1], ..., z[3]
 
 julia> S_gens
 Dict{Tuple{Union{Char, AbstractString, Symbol}, Edge}, MPolyRingElem} with 9 entries:
+  (:z, Edge(4, 2)) => z[2]
+  (:x, Edge(4, 3)) => x[3]
   (:y, Edge(4, 3)) => y[3]
-│ (:x, Edge(4, 2)) => x[2]
-│ (:x, Edge(4, 3)) => x[3]
-│ (:z, Edge(4, 3)) => z[3]
-│ (:y, Edge(4, 1)) => y[1]
-│ (:z, Edge(4, 2)) => z[2]
-│ (:y, Edge(4, 2)) => y[2]
-│ (:z, Edge(4, 1)) => z[1]
-│ (:x, Edge(4, 1)) => x[1]
+  (:y, Edge(4, 1)) => y[1]
+  (:y, Edge(4, 2)) => y[2]
+  (:z, Edge(4, 3)) => z[3]
+  (:x, Edge(4, 1)) => x[1]
+  (:z, Edge(4, 1)) => z[1]
+  (:x, Edge(4, 2)) => x[2]
 ```
 
 ### Model Ring and Equivalence Classes

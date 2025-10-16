@@ -72,7 +72,7 @@ Base.hash(stmt::CIStmt, h::UInt) =
   foldr(hash, [stmt.I, stmt.J, stmt.K]; init=hash(CIStmt, h))
 
 @doc raw"""
-    CI"I...,J...|K..."
+    @CI_str
 
 A literal syntax for denoting CI statements is provided for cases in which
 all variables consist of a single digit. If `I` and `J` only consist of a
@@ -82,10 +82,10 @@ are extracted, `ci_stmt` is called with default values for its options.
 ## Examples
 
 ```jldoctest
-julia> CI"12|3"
+julia> @CI_str "12|3"
 [1 _||_ 2 | 3]
 
-julia> CI"1,23|5424"
+julia> @CI_str "1,23|5424"
 [1 _||_ 3 | {2, 4, 5}]
 ```
 """
@@ -140,11 +140,7 @@ julia> ci_statements([1, 2, 3, 4])
  [1 _||_ 3 | {2, 4}]
  [1 _||_ 4 | {}]
  [1 _||_ 4 | 2]
- [1 _||_ 4 | 3]
- [1 _||_ 4 | {2, 3}]
- [2 _||_ 3 | {}]
- [2 _||_ 3 | 1]
- [2 _||_ 3 | 4]
+ ⋮
  [2 _||_ 3 | {1, 4}]
  [2 _||_ 4 | {}]
  [2 _||_ 4 | 1]
