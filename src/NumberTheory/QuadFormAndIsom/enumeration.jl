@@ -1680,7 +1680,7 @@ function splitting_of_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
     b::Int = 0;
-    eiglat_cond=[Dict{Int, Vector{Int}}()],
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
