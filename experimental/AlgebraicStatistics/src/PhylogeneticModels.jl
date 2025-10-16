@@ -55,11 +55,23 @@ It automatically detects hybrid nodes and edges.
 
 # Example
 ```jldoctest
-julia> G = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
+julia> G1 = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
 
-julia> N = Oscar.phylogenetic_network(G)
+julia> phylogenetic_network(G1)
 Level-1 phylogenetic network with hybrid nodes {4} and edges
   (4, 1)(5, 2)(5, 4)(5, 6)(6, 3)(6, 4)
+
+julia> G2 = graph_from_edges(Directed,[[7,2], [8,7], [7,6], [8,6], [9,8], [10,9], [11,10], [11,12], [12,10], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+
+julia> phylogenetic_network(G2)
+Level-1 phylogenetic network with hybrid nodes {6, 10} and edges
+  (6, 1)(7, 2)(7, 6)(8, 6)(8, 7)(9, 3)(9, 8)(10, 9)(11, 4)(11, 10)(11, 12)(12, 5)(12, 10)
+
+julia> G3 = graph_from_edges(Directed,[[6,2], [6,7], [6,5], [7,5], [5,4], [7,8], [8,4], [4,1], [8,3]]);
+
+julia> phylogenetic_network(G3)
+Level-2 phylogenetic network with hybrid nodes {4, 5} and edges
+  (4, 1)(5, 4)(6, 2)(6, 5)(6, 7)(7, 5)(7, 8)(8, 3)(8, 4)
 ```
 """
 function phylogenetic_network(G::Graph{Directed})
@@ -906,12 +918,11 @@ julia> M = [:a :b; :b :a];
 julia> fourier_params = [:x, :y];
 
 julia> PM = group_based_phylogenetic_model(tree, M, fourier_params)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [1//2, 1//2], 
-transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [1//2, 1//2],
+transition matrices of the form
  [:a :b;
   :b :a]
-
 and fourier parameters of the form [:x, :y].
 ```
 """
@@ -951,9 +962,7 @@ julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]])
 julia> PM = jukes_cantor_model(tree);
 
 julia> graph(PM)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-
+Phylogenetic tree with QQFieldElem type coefficients
 ```
 """
 graph(PM::GroupBasedPhylogeneticModel) = PM.phylo_model.graph 
@@ -1429,8 +1438,7 @@ Ring homomorphism
 defined by
   p[1,2,3] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] - 3//4*b[1]*b[3] + 1//4*b[1] + 1//4*b[2]*b[3]
   p[1,2,2] -> 2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] - 3//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[3]
-  p[1,2,1] -> -6*b[1]*b[2]*b[3] + 9//4*b[1]*b[2] + 9//4*b[1]*b[3] - 3//4*b[1] + 9//4*b[2]*b[3] - 3//4*b[2] - 3//
-  4*b[3] + 1//4
+  p[1,2,1] -> -6*b[1]*b[2]*b[3] + 9//4*b[1]*b[2] + 9//4*b[1]*b[3] - 3//4*b[1] + 9//4*b[2]*b[3] - 3//4*b[2] - 3//4*b[3] + 1//4
   p[1,1,2] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] + 1//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[2]
   p[1,1,1] -> -2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] + 1//4*b[1]*b[3] + 1//4*b[2]*b[3]
 ```
@@ -1714,7 +1722,7 @@ Example
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
-julia> kimura3_model(graph_from_edges(tree)
+julia> kimura3_model(tree)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
 with root distribution [1//4, 1//4, 1//4, 1//4], 
 transition matrices of the form 
@@ -1768,9 +1776,9 @@ function general_markov_model(G::AbstractGraph{Directed})
 end
 
 @doc raw"""
-    general_markov_model(G::AbstractGraph{Directed})
+    general_time_reversible_model(G::AbstractGraph{Directed})
 
-Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
+Constructs a `PhylogeneticModel` corresponding to a general time reversible model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
 
 Example
@@ -1778,13 +1786,12 @@ Example
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
 julia> general_time_reversible_model(tree)
-Phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [r[1], r[2], r[3], r[4]] 
-and transition matrices of the form 
+Phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form
  [r[1]*a r[2]*b r[3]*c r[4]*d;
   r[1]*b r[2]*a r[3]*e r[4]*f;
   r[1]*c r[2]*e r[3]*a r[4]*g;
-  r[1]*d r[2]*f r[3]*g r[4]*a]. 
+  r[1]*d r[2]*f r[3]*g r[4]*a].
 ```
 """
 function general_time_reversible_model(G::AbstractGraph{Directed})

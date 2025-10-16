@@ -132,7 +132,14 @@ end
 #
 ###################################################################################
 
+"""
+    entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, e::Edge)
+    entry_transition_matrix(PM::PhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
 
+
+Return the `(i, j)`-th entry of the transition matrix associated with edge `e` (or equivalently `Edge(u,v)`) in the phylogenetic model `PM`.
+
+"""
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: VarName, T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
   parameter_ring(PM)[2][tr_mat[i,j], e]
@@ -152,15 +159,34 @@ function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}
 end
 
 # Is this fine or entry_transition_matrix should only be defined for a PhyloModel?
+"""
+    entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge)
+    entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int)
+
+Return the `(i, j)`-th entry of the transition matrix associated with edge `e` (or equivalently `Edge(u,v)`) of the underlying `PhylogeneticModel` contained within a `GroupBasedPhylogeneticModel`.
+"""
 entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, e::Edge) = entry_transition_matrix(phylogenetic_model(PM), i, j, e)
 entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int, v::Int) = entry_transition_matrix(phylogenetic_model(PM), i, j, u, v)
 
+"""
+    entry_root_distribution(PM::PhylogeneticModel, i::Int)
+    entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int)
+
+Return the `i`-th entry of the root distribution parameter for the phylogenetic model associated to `PM`.
+
+"""
 function entry_root_distribution(PM::PhylogeneticModel, i::Int)
   parameter_ring(PM)[3][i]
 end
 
 entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int) = entry_root_distribution(phylogenetic_model(PM), i)
 
+"""
+    entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
+
+Return the `i`-th Fourier parameter associated with edge `e` (or equivalently `Edge(u,v)`) in a group-based phylogenetic model.
+
+"""
 function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)
   parameter_ring(PM)[2][x[i], e]
@@ -168,6 +194,13 @@ end
 
 entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int) = entry_fourier_parameter(PM, i, Edge(u,v))
 
+"""
+    entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, PhylogeneticModel{<: PhylogeneticNetwork}}, e::Edge)
+    entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, PhylogeneticModel{<: PhylogeneticNetwork}}, u::Int, v::Int)
+
+Return the parameter associated with a *hybrid edge* `e` (or edge `Edge(u,v)`) in a phylogenetic model or groupd-based model `PM`.
+
+"""
 function entry_hybrid_parameter(PM::PhylogeneticModel{<: PhylogeneticNetwork}, e::Edge)
   if !(dst(e) in collect(keys(hybrids(graph(PM)))))
     error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
@@ -184,7 +217,7 @@ function entry_hybrid_parameter(PM::GroupBasedPhylogeneticModel{<: PhylogeneticN
   parameter_ring(PM)[3][e]
 end
 
-function entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel, PhylogeneticModel}, u::Int, v::Int)
+function entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, PhylogeneticModel{<: PhylogeneticNetwork}}, u::Int, v::Int)
   entry_hybrid_parameter(PM, Edge(u,v))
 end
 
