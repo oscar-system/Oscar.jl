@@ -401,7 +401,7 @@ function augment(field, vec::AbstractVector, val)
   h = field(val)
   targettype = elem_type(field)
   fvec = field.(vec)
-  res = similar(vec, targettype, (s[1] + 1,))
+  res = Vector{targettype}(undef, s[1] + 1,)
   res[1] = h
   res[2:end] = fvec
   return assure_vector_polymake(res)
@@ -415,7 +415,7 @@ function augment(field, mat::AbstractMatrix, vec::AbstractVector)
   targettype = elem_type(field)
   fvec = field.(vec)
   fmat = field.(mat)
-  res = similar(mat, targettype, (s[1], s[2] + 1))
+  res = Matrix{targettype}(undef, s[1], s[2] + 1)
   res[:, 1] = fvec
   res[:, 2:end] = fmat
   return assure_matrix_polymake(res)
