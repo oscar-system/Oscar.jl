@@ -37,9 +37,10 @@ function mixed_integer_linear_program(
     integer_variables = 1:ambDim
   end
   size(objective, 1) == ambDim || error("objective has wrong dimension.")
-  objective = coefficient_field(P).(objective)
+  cf = coefficient_field(P)
+  objective = cf.(objective)
   milp = Polymake.polytope.MixedIntegerLinearProgram{_scalar_type_to_polymake(T)}(;
-    LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables)
+    LINEAR_OBJECTIVE=homogenize(cf, objective, k), INTEGER_VARIABLES=Vector(integer_variables)
   )
   if convention == :max
     Polymake.attach(milp, "convention", "max")
@@ -47,7 +48,7 @@ function mixed_integer_linear_program(
     Polymake.attach(milp, "convention", "min")
   end
   Polymake.add(pm_object(P), "MILP", milp)
-  MixedIntegerLinearProgram{T}(P, milp, convention, coefficient_field(P))
+  MixedIntegerLinearProgram{T}(P, milp, convention, cf)
 end
 
 function mixed_integer_linear_program(

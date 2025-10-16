@@ -14,7 +14,7 @@ end
 function topcom_regular_triangulations(
   pts::AbstractCollection[PointVector]; full::Bool=false
 )
-  input = homogenized_matrix(pts, 1)
+  input = homogenized_matrix(QQ, pts, 1)
   PC = Polymake.polytope.PointConfiguration(; POINTS=input)
   result = if full
     Polymake.polytope.topcom_fine_and_regular_triangulations(PC)
@@ -27,7 +27,7 @@ end
 function topcom_regular_triangulation(
   pts::AbstractCollection[PointVector]; full::Bool=false
 )
-  input = homogenized_matrix(pts, 1)
+  input = homogenized_matrix(QQ, pts, 1)
   inputstr = join(["[" * join(input[i, :], ",") * "]" for i in 1:nrows(input)], ",\n")
   in = Pipe()
   out = Pipe()
@@ -139,7 +139,7 @@ julia> all_triangulations(V)
 ```
 """
 function all_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
-  input = homogenized_matrix(pts, 1)
+  input = homogenized_matrix(QQ, pts, 1)
   PC = Polymake.polytope.PointConfiguration(; POINTS=input)
   PC.FULL_DIM::Bool || error("Input points must have full rank.")
   result = if full
@@ -292,7 +292,7 @@ julia> regular_triangulations(V)
 ```
 """
 function regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
-  input = homogenized_matrix(pts, 1)
+  input = homogenized_matrix(QQ, pts, 1)
   PC = Polymake.polytope.PointConfiguration(; POINTS=input)
   PC.FULL_DIM::Bool || error("Input points must have full rank.")
   return topcom_regular_triangulations(pts; full=full)
@@ -369,7 +369,7 @@ julia> regular_triangulation(V)
 ```
 """
 function regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
-  input = homogenized_matrix(pts, 1)
+  input = homogenized_matrix(QQ, pts, 1)
   PC = Polymake.polytope.PointConfiguration(; POINTS=input)
   PC.FULL_DIM::Bool || error("Input points must have full rank.")
   return topcom_regular_triangulation(pts; full=full)

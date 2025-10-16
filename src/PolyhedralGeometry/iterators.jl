@@ -394,25 +394,25 @@ Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where {T}
 Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) =
   assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
 
-function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number=1)
-  @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
+function homogenized_matrix(field, x::SubObjectIterator{<:PointVector}, v::Union{Number,scalar_types_extended}=1)
+  @req isone(v) "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
   return matrix_for_polymake(x; homogenized=true)
 end
-function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number=0)
-  @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
+function homogenized_matrix(field, x::SubObjectIterator{<:RayVector}, v::Union{Number,scalar_types_extended}=0)
+  @req iszero(v) "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
   return matrix_for_polymake(x; homogenized=true)
 end
 
-function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number=1)
-  @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
-  return stack((homogenize(x[i], v) for i in 1:length(x))...)
+function homogenized_matrix(field, x::AbstractVector{<:PointVector}, v::Union{Number,scalar_types_extended}=1)
+  @req isone(v) "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
+  return stack(field, [homogenize(coefficient_field(x[i]), x[i], v) for i in 1:length(x)])
 end
-function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number=0)
-  @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
-  return stack((homogenize(x[i], v) for i in 1:length(x))...)
+function homogenized_matrix(field, x::AbstractVector{<:RayVector}, v::Union{Number,scalar_types_extended}=0)
+  @req iszero(v) "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
+  return stack(field, [homogenize(coefficient_field(x[i]), x[i], v) for i in 1:length(x)])
 end
 
-homogenized_matrix(::SubObjectIterator, v::Number) =
+homogenized_matrix(field, ::SubObjectIterator, v::Union{Number,scalar_types_extended}) =
   throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
 
 unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
@@ -518,11 +518,11 @@ const AbstractCollection = Dict{UnionAll,Union}([
   ),
 ])
 
-affine_matrix_for_polymake(x::Union{Halfspace,Hyperplane}) =
-  stack(augment(normal_vector(x), -negbias(x)))
-affine_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
-  stack((affine_matrix_for_polymake(x[i]) for i in 1:length(x))...)
-linear_matrix_for_polymake(x::Union{Halfspace,Hyperplane}) =
-  negbias(x) == 0 ? stack(normal_vector(x)) : throw(ArgumentError("Input not linear."))
-linear_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
-  stack((linear_matrix_for_polymake(x[i]) for i in 1:length(x))...)
+affine_matrix_for_polymake(f::scalar_type_or_field, x::Union{Halfspace,Hyperplane}) =
+  stack(f, augment(f, normal_vector(x), -negbias(x)))
+affine_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+  stack(f, [affine_matrix_for_polymake(f, x[i]) for i in 1:length(x)])
+linear_matrix_for_polymake(f::scalar_type_or_field, x::Union{Halfspace,Hyperplane}) =
+  negbias(x) == 0 ? stack(f, normal_vector(x)) : throw(ArgumentError("Input not linear."))
+linear_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+  stack(f, [linear_matrix_for_polymake(f, x[i]) for i in 1:length(x)])
