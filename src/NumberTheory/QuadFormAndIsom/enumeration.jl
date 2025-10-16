@@ -1862,7 +1862,7 @@ splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwa
       Lf::ZZLatWithIsom,
       p::IntegerUnion,
       b::Int = 1;
-      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
+      eiglat_cond::Union{Dict{Int, Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
