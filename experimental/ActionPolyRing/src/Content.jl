@@ -879,7 +879,7 @@ function discriminant(p::ActionPolyRingElem)
 
   ld = leader(p)
   
-  if degree(p, ld) % 4 in [0,1]
+  if degree(p, ld) % 4 in (0,1)
     return divexact(resultant(p, derivative(p, ld), ld), initial(p))
   end
   
