@@ -125,8 +125,6 @@ test_subsets = Dict(
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/NumberTheory/QuadFormAndIsom/spaces_with_isometry.jl",
                                "test/PolyhedralGeometry/timing.jl",
-                               "experimental/FTheoryTools/test/weierstrass.jl",
-                               "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
                               ],
                      :book => [
                                "test/book/test.jl",
