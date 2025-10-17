@@ -22,7 +22,7 @@ deprecations.
 ```
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",
-  function upgrade_0_13_0(s::UpgradeState, dict::Dict)
+  function upgrade_0_13_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
       ...
   end
 ))
@@ -51,18 +51,18 @@ function UpgradeState()
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
-                     dict::Dict{Symbol}) = script(u_s)(s, dict)
+                     dict::AbstractDict{Symbol, Any}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
 const upgrade_scripts_set = Set{UpgradeScript}()
 
 """
-    upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
+    upgrade_data(upgrade::Function, s::UpgradeState, dict::AbstractDict)
 
 `upgrade_data` is a helper function that provides functionality for
 recursing on the tree structure. Used for upgrades up to 0.12.2.
 """
-function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
+function upgrade_data(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   s.nested_level += 1
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
@@ -71,7 +71,7 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   for (key, dict_value) in dict
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
-    elseif dict_value isa Dict
+    elseif dict_value isa AbstractDict
       s.nested_level += 1
       upgraded_dict[key] = upgrade(s, dict_value)
       s.nested_level -= 1
@@ -94,12 +94,12 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
 end
 
 """
-    rename_types(dict::Dict, renamings::Dict{String, String})
+    rename_types(dict::AbstractDict, renamings::Dict{String, String})
 
 Provides functionality for recursing on the tree structure of `dict`
 and replace all type names that occur as keys in renamings with the values. 
 """
-function rename_types(dict::Dict, renamings::Dict{String, String})
+function rename_types(dict::AbstractDict, renamings::Dict{String, String})
   function upgrade_type(d::String)
     return get(renamings, d, d)
   end
@@ -108,7 +108,7 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
     return map(upgrade_type, v)
   end
   
-  function upgrade_type(d::Dict)
+  function upgrade_type(d::AbstractDict)
     upg_d = d
 
     if haskey(d, :name)
@@ -118,7 +118,7 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
       return upg_d
     end
     
-    if d[:params] isa Dict
+    if d[:params] isa AbstractDict
       if haskey(d[:params], :_type)
         upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
       else
@@ -138,11 +138,11 @@ function rename_types(dict::Dict, renamings::Dict{String, String})
   return dict
 end
 
-function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
+function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   # all containers have a Dict for their type description
   # with a name and a params key
   dict[:_type] isa String && return dict
-  if dict[:data] isa Vector{String}
+  if !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
     ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
     if !isnothing(ref_entry)
       ref_entry = upgrade(s, ref_entry)
@@ -151,10 +151,10 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
   end
   if dict[:_type][:name] in ["Vector", "Set", "Matrix"] 
     subtype = dict[:_type][:params]
-    upgraded_entries = Dict[]
+    upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for entry in dict[:data]
-      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => subtype, :data => entry))
       push!(upgraded_entries, upgraded_entry)
     end
     if !isnothing(upgraded_entry)
@@ -163,10 +163,10 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif dict[:_type][:name] == "MultiDimArray"
     subtype = dict[:_type][:params][:subtype_params]
-    upgraded_entries = Dict[]
+    upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for entry in dict[:data]
-      upgraded_entry = upgrade(s, Dict(:_type => subtype, :data => entry))
+      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => subtype, :data => entry))
       push!(upgraded_entries, upgraded_entry)
     end
     if !isnothing(upgraded_entry)
@@ -175,20 +175,20 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
   elseif dict[:_type][:name] == "Tuple"
-    upgraded_entries = Dict[]
+    upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for (type, entry) in zip(dict[:_type][:params], dict[:data])
-      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
       push!(upgraded_entries, upgraded_entry)
     end
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
   elseif dict[:_type][:name] == "NamedTuple"
-    upgraded_entries = Dict[]
+    upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
-      upgraded_entry = upgrade(s, Dict(:_type => type, :data => entry))
+      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
       push!(upgraded_entries, upgraded_entry)
     end
     dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
@@ -201,13 +201,13 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
       upgraded_entry = nothing
       upgraded_pairs = Tuple[]
       for (k, v) in dict[:data]
-        upgraded_v = upgrade(s, Dict(:_type => value_params, :data => v))
-        upgraded_k = upgrade(s, Dict(:_type => key_params, :data => k))
+        upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
+        upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
         push!(upgraded_pairs, (upgraded_k, upgraded_v))
       end
 
       if key_params in ["Symbol", "Int", "String"]
-        dict[:data] = Dict()
+        dict[:data] = Dict{Symbol, Any}()
         for (upgraded_k, upgraded_v) in upgraded_pairs
           dict[:data][upgraded_k[:data]] = upgraded_v[:data]
         end
@@ -222,7 +222,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::Dict)
       end
     else
       for entry in dict[:data]
-        upgraded_entry = upgrade(s, Dict(:_type => dict[:_type][:params][entry.first],
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][entry.first],
                                          :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
         dict[:_type][:params][entry.first] = upgraded_entry[:_type]
@@ -252,13 +252,13 @@ sort!(upgrade_scripts; by=version)
 const backref_sym = Symbol("#backref")
 
 @doc raw"""
-    upgrade(format_version::VersionNumber, dict::Dict)
+    upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
 
 Find the first version where an upgrade can be applied and then incrementally
 upgrades to each intermediate version until the structure of the current version
 has been achieved.
 """
-function upgrade(format_version::VersionNumber, dict::Dict)
+function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
   upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)

@@ -49,7 +49,7 @@ end
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
-    obj = JSON3.read(io)
+    obj = JSON.parse(io; dicttype=Dict{Symbol, Any}) # TODO: check if JSON.Object works here
     println(JSON.json(obj[:meta], 2))
   end
 end
@@ -57,10 +57,10 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Union{JSON3.Object, Dict})
+function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON3.Object
+  if version_info isa JSON.Object
     return version_number(Dict(version_info))
   end
   return version_number(version_info)
@@ -376,7 +376,7 @@ function load_type_params(s::DeserializerState, T::Type)
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+      if obj isa Vector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
@@ -390,7 +390,7 @@ function load_type_params(s::DeserializerState, T::Type)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
           params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+            if obj isa Vector
               return load_type_array_params(s)
             end
             
@@ -642,8 +642,8 @@ julia> save("fourtitwo.mrdi", 42; metadata=meta);
 julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
-  "name": "42",
-  "description": "The meaning of life, the universe and everything"
+  "description": "The meaning of life, the universe and everything",
+  "name": "42"
 }
 
 julia> load("fourtitwo.mrdi")
@@ -672,7 +672,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON3.write(metadata), :meta)
+      save_json(s, JSON.json(metadata), :meta)
     end
   end
   serializer_close(s)
@@ -789,7 +789,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON3.write(jsondict)
+    jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
