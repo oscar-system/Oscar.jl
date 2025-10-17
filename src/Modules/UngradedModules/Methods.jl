@@ -677,7 +677,7 @@ julia> vector_space_basis(M,0)
  e[2]
 
 julia> vector_space_basis(M)
-6-element Vector{Any}:
+6-element Vector{FreeModElem{QQMPolyRingElem}}:
  e[2]
  x*e[2]
  y*e[2]
@@ -700,13 +700,12 @@ function vector_space_basis(M::SubquoModule)
   has_monomials_on_all_axes(LM) || error("not a finite dimensional vector space")
   
   d = 0
-  all_mons=[]
-  temp_mons = vector_space_basis(M,0)
+  vdim = vector_space_dim(M)
+  all_mons = vector_space_basis(M,0)
 
-  while length(temp_mons) > 0
-    append!(all_mons,temp_mons)
-    d = d+1
-    temp_mons=vector_space_basis(M,d)
+  while length(all_mons) < vdim
+    d += 1
+    append!(all_mons, vector_space_basis(M,d))
   end
 
   return all_mons
