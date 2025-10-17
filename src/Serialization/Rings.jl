@@ -1,10 +1,8 @@
 ################################################################################
 # Common union types
 
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
-                               SMat, TropicalSemiringElem}
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
-                                FreeAssociativeAlgebra, TropicalSemiring}
+const RingMatElemUnion = Union{NCRingElem, MatElem, SMat}
+const RingMatSpaceUnion = Union{NCRing, MatSpace, SMatSpace}
 const ModRingUnion = Union{zzModRing, ZZModRing}
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
