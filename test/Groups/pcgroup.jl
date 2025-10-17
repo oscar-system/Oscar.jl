@@ -152,18 +152,25 @@ end
 end
 
 @testset "pcgroup code and reconstruction" begin
-  import Oscar: code_pcgroup, pcgroup_code
-# First group: C12
-  G = pc_group(cyclic_group(12))
-  code = code_pcgroup(G)
-  H = pcgroup_code(code)
+  # Define the groups
+  groups = [
+      cyclic_group(6),
+      cyclic_group(12),
+      dihedral_group(10),
+      small_group(PcGroup, 12, 2)  
+  ]
 
-  @test order(H) == order(G)
+  for G in groups
+      # Get the code from the group
+      code = code_pcgroup(G)
 
-  # Second group: C6
-  G2 = pc_group(cyclic_group(6))
-  code2 = code_pcgroup(G2)
-  H2 = pcgroup_code(code2)
+      # Decode the code depending on its type
+      H = isa(code, Int) ? pcgroup_code(code, G) : pcgroup_code(code)
 
-  @test H2 isa typeof(G2)
+      # Test that the original and reconstructed groups are isomorphic
+      @test is_isomorphic(G, H)
+
+      # Test that encoding the reconstructed group gives the same code
+      @test code_pcgroup(H) == code
+  end
 end

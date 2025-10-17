@@ -929,9 +929,8 @@ collector(G::PcGroup) = collector(ZZRingElem, G)
 """
     code_pcgroup(G::PcGroup)
 
-Return the code (an `Int` vector) representing the polycyclic group `G`,
-using the same encoding as GAP's `CodePcGroup` and Magma's
-`SmallGroupEncoding`.
+Return the code representing the polycyclic group `G`, using the same
+encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
 
 # Examples
 ```jldoctest
@@ -941,7 +940,7 @@ Pc group of order 12
 julia> code = code_pcgroup(G)
 266
 
-julia> H = pcgroup_code(code)
+julia> H = pcgroup_code(code, order(G))
 Pc group of order 12
 
 julia> code_pcgroup(G) == code_pcgroup(H)
@@ -955,9 +954,8 @@ end
 """
     pcgroup_code(code)
 
-Given a code (typically an integer vector), return the polycyclic
-group it encodes.  The accepted codes and resulting groups match
-those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
+Given a code (either a single integer or an integer vector), return the polycyclic group it encodes.
+The accepted codes and resulting groups match those of GAP's PcGroupCode and Magma's SmallGroupDecoding.
 
 # Examples
 ```jldoctest
@@ -967,14 +965,53 @@ Pc group of order 12
 julia> code = code_pcgroup(G)
 266
 
-julia> H = pcgroup_code(code)
+julia> H1 = pcgroup_code(code, order(G))
 Pc group of order 12
 
-julia> code_pcgroup(G) == code_pcgroup(H)
+julia> H2 = pcgroup_code(code, G)
+Pc group of order 12
+
+julia> code_pcgroup(G) == code_pcgroup(H1)
+true
+
+julia> code_pcgroup(G) == code_pcgroup(H2)
+true
+
+julia> vec_code = code_pcgroup(G)  
+266
+
+julia> vec_code = vec(code_pcgroup(G)) 
+1-element Vector{Int64}:
+ 266
+
+julia> H3 = pcgroup_code(vec_code, order(G))
+Pc group of order 12
+
+julia> code_pcgroup(H3) == code_pcgroup(G)
 true
 ```
 """
-function pcgroup_code(code::Int)
-  obj = GAP.Globals.SmallGroup(12, 2) 
-  return PcGroup(obj)
+# 1. Integer code + PcGroup
+function pcgroup_code(code::Int64, G::PcGroup)
+  pcgroup_code(code, Int64(order(G)))
+end
+
+# 2. Integer code + integer size
+function pcgroup_code(code::Int64, size::Integer)
+  PcGroup(GAP.Globals.PcGroupCode(code, Int64(size)))
+end
+
+# 3. Vector code + integer size
+function pcgroup_code(code::Vector{<:Integer}, size::Integer)
+  PcGroup(GAP.Globals.PcGroupCode(code, Int64(size)))
+end
+
+# 4. Integer code + generic size (convert to Int64)
+function pcgroup_code(code::Int64, size)
+  pcgroup_code(code, Int64(size))
+end
+
+# 5. Vector code + PcGroup
+function pcgroup_code(code::Vector{<:Integer}, G::PcGroup)
+  pcgroup_code(code, Int64(order(G)))
 end
