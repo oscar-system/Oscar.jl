@@ -749,7 +749,6 @@ function default_ordering(M::SubquoModule)
   if !isdefined(M.sub, :default_ordering)
     ord = default_ordering(ambient_free_module(M))
     set_default_ordering!(M, ord)
-    return default_ordering(M.sub)
   end
   return default_ordering(M.sub)
 end
