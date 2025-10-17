@@ -31,12 +31,11 @@ julia> M_JC = [:a :b :b :b;
 
 julia> PM_jukesCantor = phylogenetic_model(tree, M_JC)
 Phylogenetic model on a tree with 3 leaves and 3 edges
-with root distribution [1//4, 1//4, 1//4, 1//4]
-and transition matrices of the form
+with root distribution [1//4, 1//4, 1//4, 1//4] and transition matrices of the form
  [:a :b :b :b;
   :b :a :b :b;
   :b :b :a :b;
-  :b :b :b :a]. 
+  :b :b :b :a].
 ```
 
 And the Tamura-Nei model (TN93) in the same tree can be constructed as follows:
@@ -53,14 +52,12 @@ julia> M_TN93 = [a*r[1] c*r[2] b*r[3] b*r[4];
                 b*r[1] b*r[2] d*r[3] a*r[4]];
 
 julia> PM_TN93 = PhylogeneticModel(tree, M_TN93, r)
-Phylogenetic model on a tree with 3 leaves and 3 
-edges 
-with root distribution [r[1], r[2], r[3], 
-r[4]] and transition matrices of the form 
+Phylogenetic model on a tree with 3 leaves and 3 edges
+with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form
  [r[1]*a r[2]*c r[3]*b r[4]*b;
   r[1]*c r[2]*a r[3]*b r[4]*b;
   r[1]*b r[2]*b r[3]*a r[4]*d;
-  r[1]*b r[2]*b r[3]*d r[4]*a]. 
+  r[1]*b r[2]*b r[3]*d r[4]*a].
 ```
 
 #### `GroupBasedPhylogeneticModel`
@@ -161,33 +158,19 @@ transition matrices of the form
   :b :c :b :a]
 and fourier parameters of the form [:x, :y, :z, :z].
 
-julia> S, S_gens = parameter_ring(pm);
+julia> S, - = parameter_ring(pm);
 
 julia> S
 Multivariate polynomial ring in 9 variables x[1], x[2], x[3], y[1], ..., z[3]
   over rational field
 
-julia> S_gens
-Dict{Tuple{Union{Char, AbstractString, Symbol}, Edge}, MPolyRingElem} with 9 entries:
- (:z, Edge(4, 2)) => z[2]
- (:x, Edge(4, 3)) => x[3]
- (:y, Edge(4, 3)) => y[3]
- (:x, Edge(4, 2)) => x[2]
- (:x, Edge(4, 3)) => x[3]
- (:z, Edge(4, 3)) => z[3]
- (:y, Edge(4, 1)) => y[1]
- (:z, Edge(4, 2)) => z[2]
- (:y, Edge(4, 2)) => y[2]
- (:z, Edge(4, 1)) => z[1]
- (:x, Edge(4, 1)) => x[1]
-
 julia> entry_root_distribution(pm, 1)
 1//4
 
-julia> entry_transition_matrix(pm, 3, 3, Edge(4,1))
+julia> entry_transition_matrix(pm, 3, 3, Edge(4, 1))
 a[1]
 
-julia> entry_fourier_parameter(pm, 4, Edge(4,1))
+julia> entry_fourier_parameter(pm, 4, Edge(4, 1))
 z[1]
 ```
 
@@ -257,11 +240,13 @@ julia> CFN = cavender_farris_neyman_model(tree);
 
 julia> cc = coordinate_change(CFN);
 
+julia> cc_inv = inverse_coordinate_change(CFN);
+
 julia> Rq, q = model_ring(CFN);
 
 julia> Rp, p = model_ring(phylogenetic_model(CFN));
 
-julia> cc(q[(1, 1)])
+julia> cc(q[(1, 1, 1)])
 p[1,2,2] + p[1,2,1] + p[1,1,2] + p[1,1,1]
 
 julia> cc_inv(cc(q[(1, 1, 1)]))
@@ -291,10 +276,10 @@ hybrid_edges
 General graph properties can be accessed with the following functions:
 ```@docs
 graph(N::PhylogeneticNetwork)
-n_edges
-edges
-n_leaves
-leaves
+n_edges(N::PhylogeneticNetwork)
+edges(N::PhylogeneticNetwork)
+n_leaves(N::PhylogeneticNetwork)
+leaves(N::PhylogeneticNetwork)
 ```
 
 All model constructors, including `PhylogeneticModel`, `GroupBasedPhylogeneticModel`, and the classic pre-defined models, can be applied to phylogenetic networks in the same way they are applied to trees. The resulting model object will be defined on the network, incorporating its specific topology. Consequently, all network property functions (e.g., graph, level, hybrids) can be called directly on the model object.
@@ -318,36 +303,16 @@ julia> graph(PM)
 Level-1 phylogenetic network with hybrid nodes {5} and edges
   (5, 1)(6, 2)(6, 5)(7, 3)(7, 6)(7, 8)(8, 4)(8, 5)
 
-julia> S, x_gens, l_gens = parameter_ring(PM);
+julia> S, - = parameter_ring(PM);
 
-julia> x_gens
-Dict{Tuple{Union{Char, AbstractString, Symbol}, Edge}, MPolyRingElem} with 16 entries:
-  (:x, Edge(8, 5)) => x[8]
-  (:y, Edge(7, 6)) => y[6]
-  (:y, Edge(7, 3)) => y[3]
-  (:y, Edge(8, 4)) => y[4]
-  (:x, Edge(7, 8)) => x[7]
-  (:x, Edge(7, 6)) => x[6]
-  (:x, Edge(8, 4)) => x[4]
-  (:y, Edge(6, 5)) => y[5]
-  (:y, Edge(7, 8)) => y[7]
-  (:y, Edge(6, 2)) => y[2]
-  (:y, Edge(8, 5)) => y[8]
-  (:x, Edge(6, 2)) => x[2]
-  (:x, Edge(6, 5)) => x[5]
-  (:x, Edge(5, 1)) => x[1]
-  (:y, Edge(5, 1)) => y[1]
-  (:x, Edge(7, 3)) => x[3]
+julia> S
+Multivariate polynomial ring in 18 variables l[1, 1], l[1, 2], x[1], x[2], ..., y[8]
+  over rational field
 
-julia> l_gens
-Dict{Edge, MPolyRingElem} with 2 entries:
-  Edge(8, 5) => l[1, 2]
-  Edge(6, 5) => l[1, 1]
-
-julia> entry_fourier_parameter(PM, 1, Edge(6,5))
+julia> entry_fourier_parameter(PM, 1, Edge(6, 5))
 x[5]
 
-julia> entry_hybrid_parameter(PM, Edge(6,5))
+julia> entry_hybrid_parameter(PM, Edge(6, 5))
 l[1, 1]
 
 julia> R, q = full_model_ring(PM);
