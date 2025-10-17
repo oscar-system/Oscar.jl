@@ -1,3 +1,5 @@
+# the purpose of this file is to handle any helper that need to be included before any upgrade test
+
 import Downloads
 import CodecZlib
 import Tar
