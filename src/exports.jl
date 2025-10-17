@@ -378,6 +378,7 @@ export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
+export character_degrees
 export character_field
 export character_lattice
 export character_parameters
