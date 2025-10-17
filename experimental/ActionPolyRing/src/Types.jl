@@ -204,3 +204,4 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   end
   
 end
+

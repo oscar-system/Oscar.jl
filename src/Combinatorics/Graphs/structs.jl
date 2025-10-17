@@ -21,10 +21,10 @@ end
 
 const GraphMapValueTypes = Union{String, Bool, Int, QQFieldElem, Float64}
 
-struct GraphMap{T, S <: Union{Nothing, EdgeMap}, U <: Union{Nothing, NodeMap}}
+mutable struct GraphMap{T}
   graph::Graph{T}
-  edge_map::S
-  vertex_map::U
+  edge_map::Union{Nothing, EdgeMap}
+  vertex_map::Union{Nothing, NodeMap}
 end
 
 @attributes mutable struct MixedGraph <: AbstractGraph{Mixed}
