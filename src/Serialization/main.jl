@@ -653,8 +653,8 @@ julia> save("fourtitwo.mrdi", 42; metadata=meta);
 julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
-  "name": "42",
-  "description": "The meaning of life, the universe and everything"
+  "description": "The meaning of life, the universe and everything",
+  "name": "42"
 }
 
 julia> load("fourtitwo.mrdi")
