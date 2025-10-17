@@ -104,7 +104,7 @@ end
       # The dimension should be dims[RR]
 
       for RR in decorated_rings
-        @test (RR in graded_rings) == Oscar.is_graded(RR)
+        @test (RR in graded_rings) == is_graded(RR)
         @test (RR in filtered_rings) == Oscar.is_filtered(RR)
         polys = _random_poly(RR, 4) # create 4 random polynomials
         @test ngens(RR) == length(gens(RR))
@@ -145,7 +145,7 @@ end
         end
 
         @test Oscar.is_filtered(R_quo) == Oscar.is_filtered(RR)
-        @test Oscar.is_graded(R_quo) == Oscar.is_graded(RR)
+        @test is_graded(R_quo) == is_graded(RR)
 
         @test grading_group(R_quo) == grading_group(RR)
 
