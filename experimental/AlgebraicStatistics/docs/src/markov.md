@@ -15,16 +15,10 @@ with the ambient polynomial ring in these ``p`` variables, special forms
 in them like marginals, and conditional independence ideals.
 
 ```@docs
-markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)
-tensor_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)
+markov_ring
 ring(R::MarkovRing)
 random_variables(R::MarkovRing)
-ci_statements(R::MarkovRing)
-unknowns(R::MarkovRing)
 gens(R::MarkovRing)
-find_random_variables(R::MarkovRing, K)
-find_state(R::MarkovRing, K, x)
 state_space(R::MarkovRing, K=random_variables(R))
 marginal(R::MarkovRing, K, x)
-ci_ideal(R::MarkovRing, stmts)
 ```

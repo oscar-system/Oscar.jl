@@ -25,32 +25,9 @@ oscar_worker_pool(1) do wp
     elG = collect(G)
     T = graph_from_edges(Directed, [[6, 5], [5, 1], [5, 2], [6, 3], [6, 4]])
     M = kimura3_model(T)
-
-    inds = [g for g in collect(Iterators.product([elG for _ in 1:4]...)) if sum(g) == elG[1]]
-    S, p = polynomial_ring(QQ, "q" => inds)
-    q = Dict()
-    for i in 1:length(p)
-      q[inds[i]] = p[i]
-    end
-
-    param_inds = [(i, g) for i in 1:8 for g in elG]
-    R, b = polynomial_ring(QQ, "a" => param_inds)
-    a = Dict()
-    for i in 1:length(param_inds)
-      ind = param_inds[i]
-      a[ind[1], ind[2]] = b[i]
-    end
-
-    images = []
-
-    for g in inds
-
-      im = a[1, g[1]]*a[2, g[2]]*a[3, g[3]]*a[4, g[4]]*(a[5, g[1]]*a[6, g[1]+g[2]]*a[7, g[4]] + a[6, g[2]]*a[7, g[2]+g[3]]*a[8, g[1]])
-      push!(images, im)
-    end
-
-    phi = hom(S, R, images);
+    phi = parametrization(M)
+    _, q = model_ring(M)
     comps = components_of_kernel(2, phi; wp=wp)
-    @test isone(first(exponents(comps[1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2][1]))[16])
+    @test comps[1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] == [q[4,4,1,1]*q[3,3,1,1] - q[3,1,3,1]*q[1,1,2,2]]
   end
 end
