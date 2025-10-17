@@ -1516,8 +1516,18 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   
-  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  fq = gens(Oscar._orthogonal_group(q, TorQuadModuleMap[f]; check=false))[1]
+  Ld = cover(q)
+  L = relations(q)
+  fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
+  T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
+  S = elem_type(T)
+  iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
+  fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
+  fq1 = iso*fT*inv(iso)
+  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(fq1)]; check=false))[1]
+
+  # f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+  #fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
   return q, fq
 end
 
@@ -1843,7 +1853,7 @@ function special_subgroup(
   end
   mu = matrix_group(QQMatrix[QQ[-1;]])
   j = one(mu)
-  d = hom(G, mu, [Int(det(m))*j for m in gens(G)])
+  d = hom(G, mu, [Int(det(m))*j for m in gens(G)]; check=false)
   return kernel(d)
 end
 
