@@ -293,7 +293,7 @@ end
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField{<:FieldElem, <: PolyRingElem})
   save_data_dict(s) do
-    save_object(s, symbols(RF)[1], :symbol)
+    save_object(s, only(symbols(RF)), :symbol)
   end
 end
 
