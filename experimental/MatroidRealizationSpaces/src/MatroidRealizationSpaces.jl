@@ -1,4 +1,5 @@
 include("realization_space.jl")
+include("SelfProjectingMatroids.jl")
 
 ### Methods for realization spaces of matroids
 function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoLocRing}
@@ -17,3 +18,4 @@ export is_realizable
 export realization
 export realization_matrix
 export realization_space
+export defining_ideal
