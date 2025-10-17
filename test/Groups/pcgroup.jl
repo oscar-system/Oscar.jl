@@ -150,3 +150,27 @@ end
     @test is_bijective(f)
   end
 end
+
+@testset "pcgroup code and reconstruction" begin
+  # Define the groups
+  groups = [
+      cyclic_group(6),
+      cyclic_group(12),
+      dihedral_group(10),
+      small_group(PcGroup, 12, 2)  
+  ]
+
+  for G in groups
+      # Get the code from the group
+      code = code_pcgroup(G)
+
+      # Decode the code depending on its type
+      H = isa(code, Int) ? pcgroup_code(code, G) : pcgroup_code(code)
+
+      # Test that the original and reconstructed groups are isomorphic
+      @test is_isomorphic(G, H)
+
+      # Test that encoding the reconstructed group gives the same code
+      @test code_pcgroup(H) == code
+  end
+end

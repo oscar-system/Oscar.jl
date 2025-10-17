@@ -412,6 +412,7 @@ export cobases
 export cochain_complex
 export cocircuits
 export cocycle_matroid
+export code_pcgroup
 export codim
 export codomain
 export codomain_covering
@@ -1409,6 +1410,7 @@ export partitions
 export patches
 export pbw_algebra
 export pc_group
+export pcgroup_code
 export pcore
 export pentagonal_hexecontahedron
 export pentagonal_icositetrahedron
