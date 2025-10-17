@@ -113,14 +113,13 @@ phylogenetic_model(PM::GroupBasedPhylogeneticModel)
 Other properties of a `PhylogeneticModel` and a `GroupBasedPhylogeneticModel` can be accessed using the following functions.
 
 ```@docs
-n_states
-transition_matrix
-root_distribution
 base_field(PM::PhylogeneticModel)
-base_field(PM::GroupBasedPhylogeneticModel)
-group(PM::GroupBasedPhylogeneticModel)
+n_states
+root_distribution
+transition_matrix
 fourier_parameters
-varnames
+group(PM::GroupBasedPhylogeneticModel)
+varnames(PM::PhylogeneticModel)
 ```
 
 ## Phylogenetic rings
@@ -148,7 +147,7 @@ For example
 ```jldoctest Example_JC:
 julia> tree = graph_from_edges(Directed,[[4,1], [4,2], [4,3]]);
 
-julia> pm = kimura2_model(tree)
+julia> PM = kimura2_model(tree)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges
 with root distribution [1//4, 1//4, 1//4, 1//4],
 transition matrices of the form
@@ -158,19 +157,19 @@ transition matrices of the form
   :b :c :b :a]
 and fourier parameters of the form [:x, :y, :z, :z].
 
-julia> S, - = parameter_ring(pm);
+julia> S, - = parameter_ring(PM);
 
 julia> S
 Multivariate polynomial ring in 9 variables x[1], x[2], x[3], y[1], ..., z[3]
   over rational field
 
-julia> entry_root_distribution(pm, 1)
+julia> entry_root_distribution(PM, 1)
 1//4
 
-julia> entry_transition_matrix(pm, 3, 3, Edge(4, 1))
+julia> entry_transition_matrix(PM, 3, 3, Edge(4, 1))
 a[1]
 
-julia> entry_fourier_parameter(pm, 4, Edge(4, 1))
+julia> entry_fourier_parameter(PM, 4, Edge(4, 1))
 z[1]
 ```
 
