@@ -234,7 +234,6 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
                         # ordering does not matter. Then this field here can be used. 
   any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
-  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
