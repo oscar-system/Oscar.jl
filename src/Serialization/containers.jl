@@ -235,6 +235,11 @@ function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) wher
   end
 end
 
+function load_object(s::DeserializerState, T::Type{Array{S, N}}, key::Union{Int, Symbol}) where {S, N}
+  return load_node(s, key) do _
+    load_object(s, T)
+  end
+end
 
 ################################################################################
 # Saving and loading Tuple
@@ -373,10 +378,10 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
     )
   end
   key_params = Oscar.type_params.(collect(keys(obj)))
-  @req params_all_equal(key_params) "Not all params of keys in $obj are the same"
+  @req params_all_equal(key_params) "Not all type parameters of keys in $obj are the same"
 
   value_params = type_params.(collect(values(obj)))
-  @req params_all_equal(value_params) "Not all params of values in $obj are the same"
+  @req params_all_equal(value_params) "Not all type parameters of values in $obj are the same"
 
   return TypeParams(
     T, 
