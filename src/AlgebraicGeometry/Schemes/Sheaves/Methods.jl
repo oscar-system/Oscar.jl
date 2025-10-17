@@ -823,10 +823,13 @@ function produce_object(
     U::AbsAffineScheme
   )
   M = original_sheaf(FF)
-  res, id = simplify(M(U))
+  res, id = _simplify(M(U))
   identifying_maps(FF)[U] = id
   return res
 end
+
+_simplify(M::SubquoModule) = simplify(M)
+_simplify(F::FreeMod) = F, id_hom(F)
 
 function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   M = original_sheaf(F)
@@ -841,5 +844,26 @@ function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineSch
   img_gens = res_M.(img_gens)
   img_gens = elem_type(cod)[preimage(id_cod, v) for v in img_gens]
   return hom(dom, cod, img_gens, OO(scheme(F))(V, U))
+end
+
+@attr Covering function trivializing_covering(M::SimplifiedSheaf; covering::Covering=default_covering(scheme(M)))
+  new_patches = patches(covering)
+  ind = findfirst(!(M(U) isa FreeMod || is_zero(relations(M(U)))) for U in new_patches)
+  while !isnothing(ind)
+    U = popat!(new_patches, ind)
+    MU = M(U)
+    I = ideal(OO(U), reduce(vcat, [elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]))
+    one(OO(U)) in I || error("module is not locally free")
+    c = coordinates(one(OO(U)), I)
+    non_zero_entries = [(i, c[i]) for i in 1:ngens(I) if !is_zero(c[i])]
+    for i in 1:ngens(I)
+      h = c[i]
+      is_zero(h) && continue
+      push!(new_patches, PrincipalOpenSubset(U, h))
+    end
+  end
+  new_cov = Covering(new_patches)
+  inherit_gluings!(new_cov, covering)
+  return new_cov
 end
 
