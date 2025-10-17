@@ -120,7 +120,7 @@ false
 ```
 """
 @attr Bool has_torusfactor(v::NormalToricVarietyType) =
-  Polymake.common.rank(rays(v)) < ambient_dim(v)
+  Polymake.common.rank(matrix_for_polymake(rays(v))) < ambient_dim(v)
 
 @doc raw"""
     is_orbifold(v::NormalToricVarietyType)

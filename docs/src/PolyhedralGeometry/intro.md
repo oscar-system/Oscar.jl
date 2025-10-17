@@ -27,16 +27,9 @@ OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/Polyhedr
 
 The objects from polyhedral geometry operate on a given type, which (usually) resembles a field. This is indicated by the template parameter, e.g. the properties of a `Polyhedron{QQFieldElem}` are rational numbers of type `QQFieldElem`, if applicable.
 Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
-When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
+When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type will be deduced from the input data and defaults to `QQFieldElem` for primitive types like `Int64`.
 
-The parent `Field` of the coefficients of an object `O` with coefficients of type `T` can be retrieved with the `coefficient_field` function, and it holds `elem_type(coefficient_field(O)) == T`.
-
-```@docs
-coefficient_field(x::PolyhedralObject)
-```
-
-!!! warning
-    Support for fields other than the rational numbers is currently in an experimental stage.
+The parent `Field` of the coefficients of an object `O` with coefficients of type `T` can be retrieved with the [`coefficient_field`](@ref) function, and it holds `elem_type(coefficient_field(O)) == T`.
 
 These three lines result in the same polytope over rational numbers. Besides the general support mentioned above, naming a `Field` explicitly is encouraged because it allows user control and increases efficiency.
 ```jldoctest
@@ -48,7 +41,49 @@ true
 
 julia> P == convex_hull([1 0 0; 0 0 1]) # `Field` defaults to `QQ`
 true
+```
 
+Working with polytopes over algebraic number fields requires an embedded number field. This can be constructed with [`embedded_number_field`](@ref) from a polynomial and a choice for the root.
+
+```jldoctest
+julia> Qx, x = QQ[:x];
+
+julia> F,a = embedded_number_field(x^2-3//4, 0.866)
+(Embedded field
+Number field of degree 2 over QQ
+at
+Real embedding with 0.87 of number field, a)
+
+julia> triangle = convex_hull(F, [0 0; 1 0; 1//2 a])
+Polyhedron in ambient dimension 2 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> volume(triangle)
+1//2*a (0.43)
+```
+
+The algebraic closure of the rational numbers also comes with an embedding.
+
+```jldoctest
+julia> K = algebraic_closure(QQ);
+
+julia> h = sqrt(K(3//4))
+{a2: 0.866025}
+
+julia> mat = matrix(K, [0 0; 1 0; 1//2 h])
+[    {a1: 0}       {a1: 0}]
+[ {a1: 1.00}       {a1: 0}]
+[{a1: 0.500}   {a2: 0.866}]
+
+julia> triangle = convex_hull(mat)
+Polyhedron in ambient dimension 2 with QQBarFieldElem type coefficients
+
+julia> volume(triangle)
+{a2: 0.433013}
+```
+
+```@docs
+coefficient_field(x::PolyhedralObject)
+embedded_number_field
 ```
 
 ## Type compatibility
