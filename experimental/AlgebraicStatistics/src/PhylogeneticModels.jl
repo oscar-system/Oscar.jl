@@ -1213,6 +1213,7 @@ function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwor
   print(io, "$(PM.fourier_param_structure).")
 
 end
+
 ###################################################################################
 #
 #       Parametrizations
@@ -1224,8 +1225,6 @@ end
 
 Creates the full model ring _probability coordinates_ for a `PhylogeneticModel`. Equivalently, creates the full model ring in the _Fourier coordinates_ for a `GroupBasedPhylogeneticModel`.
 This ring has a generator for every possible state configuration at the leaves.
-
-
 """
 @attr Tuple{
   ModelRing{T, U}, 
