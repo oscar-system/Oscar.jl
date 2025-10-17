@@ -51,7 +51,7 @@ function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
 end
 
 @doc raw"""
-    @attr Tuple{ModelRing, GenDict} model_ring(M::DiscreteGraphicalModel; cached=false)
+    model_ring(M::DiscreteGraphicalModel; cached=false)
 
 Return the ring in which the statistical model lives, together with a
 Dict for indexing its generators. This is the same for directed and for
@@ -87,7 +87,7 @@ function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
 end
 
 @doc raw"""
-  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
+    parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
@@ -158,7 +158,7 @@ defined by
 function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
-  images = []
+  images = elem_type(R)[]
   for p in gens(_ring(S))
     s = S[p] # get label of the variable
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[k[1]]))
@@ -193,7 +193,6 @@ of the node i given its parents.
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3,4]]), [2,2,2,2])
 Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with states [2, 2, 2, 2]
-
 ```
 """
 function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q", p_var_name::String="p")
@@ -203,7 +202,7 @@ function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var
 end
 
 @doc raw"""
-  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false)
+    parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
@@ -293,7 +292,7 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
   S, pd = model_ring(M)
   R, qd = parameter_ring(M)
   h = last(gens(R))
-  images = []
+  images = elem_type(R)[]
   for p in gens(_ring(S))
     s = collect(S[p]) # get label of the variable but as a vector for type reasons
     push!(images, prod(qd[(i, s[i], s[parents(G, i)])] for i in 1:n))
