@@ -111,7 +111,7 @@ t[1, 2](2, 2)
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
   gen_names = sort([varnames(M)[:t] * string(C) * string(x) for (C, x) in params])
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = Dict((C, x) => t[i] for (i, (C, x)) in enumerate(params))
+  gens_dict = Dict(zip(params, t))
   return (R, gens_dict)
 end
 
@@ -126,7 +126,7 @@ function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
 end
 
 @doc raw"""
-  parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
+    parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the
 undirected discrete graphical model `M`. It sends each probability generator
