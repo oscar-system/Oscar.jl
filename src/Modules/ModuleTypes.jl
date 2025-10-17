@@ -227,7 +227,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   F::FreeMod{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   gens::ModuleGens{T}
-  default_ordering::ModuleOrdering
+  default_ordering::ModuleOrdering{FreeMod{T}}
   any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
                         # Lookups in the above dictionary is tentatively expensive. 
                         # So this field stores any gb for cases where the actual 
