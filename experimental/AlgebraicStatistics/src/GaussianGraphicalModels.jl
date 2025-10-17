@@ -40,7 +40,7 @@ julia> GM = gaussian_graphical_model(G)
 Gaussian Graphical Model on a Directed graph with 3 nodes and 2 edges
 
 julia> typeof(GM)
-GaussianGraphicalModel{Directed, Nothing}
+GaussianGraphicalModel{Graph{Directed}, Nothing}
 
 julia> CG = graph_from_labeled_edges(Dict((1, 2) => "red", (2, 3) => "green"); name=:color)
 Undirected graph with 3 nodes and the following labeling(s):
@@ -50,9 +50,6 @@ label: color
 
 julia> GM = gaussian_graphical_model(CG)
 Gaussian Graphical Model on a Undirected graph with 3 nodes and 2 edges with labeling(s) [:color]
-
-julia> typeof(GM)
-GaussianGraphicalModel{Undirected, @NamedTuple{color::Oscar.GraphMap{Undirected, Polymake.LibPolymake.EdgeMapAllocated{Undirected, CxxWrap.StdLib.StdString}, Nothing}}}
 ```
 """
 function gaussian_graphical_model(G::Graph{T}; s_varname::VarName="s", l_varname::VarName="l", w_varname::VarName="w") where T <: Directed
@@ -174,7 +171,6 @@ julia> directed_edges_matrix(GM)
 [0   l[1, 2]         0]
 [0         0   l[2, 3]]
 [0         0         0]
-
 ```
 """
 function directed_edges_matrix(M::GaussianGraphicalModel{<:AbstractGraph{T}}) where {T <: Union{Mixed, Directed}}
@@ -182,7 +178,8 @@ function directed_edges_matrix(M::GaussianGraphicalModel{<:AbstractGraph{T}}) wh
   R, gens_dict = parameter_ring(M)
   n =  n_vertices(G)
   lambda = zero_matrix(R, n, n)
-  for e in edges(G, Directed)
+  edgs = T == Mixed ? edges(G, Directed) : edges(G)
+  for e in edgs
     lambda[src(e), dst(e)] = gens_dict[e]
   end
   return lambda
@@ -559,7 +556,7 @@ Return the ideal for the conditional independence statements given by `stmts`.
 
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
 julia> ci_ideal(R, [CI"1,2|", CI"1,2|3"])
@@ -591,10 +588,10 @@ elementary CI statement `stmt`. If a `GaussianRing` is given, its
 
 ```jldoctest
 julia> R = gaussian_ring(3)
-Gaussian ring over Rational field in 6 variables
+GaussianRing over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 
-julia> ci_polynomial(R, [CI"1,2|3"])
+julia> ci_polynomial(R, CI"1,2|3")
 s[1, 2]*s[3, 3] - s[1, 3]*s[2, 3]
 ```
 """

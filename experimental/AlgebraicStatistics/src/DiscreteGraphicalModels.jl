@@ -23,14 +23,9 @@ The parametric statistical model associated to an undirected graph.
 It contains an undirected graph `G`, a MarkovRing `S` where the vanishing ideal of the model naturally lives, 
 and a parameter ring whose variables `t[C](i_1, i_2, ..., i_#C)` correspond to potential functions of each clique. 
 
-# TODO refactor
-
-
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
-Discrete graphical model on an undirected graph with edges
-(2, 1), (3, 2) and states [2, 2, 2]
-
+Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 ```
 """
 function discrete_graphical_model(G::Graph{Undirected}, states::Vector{Int}; t_var_name::String="t", p_var_name::String="p")
@@ -56,7 +51,7 @@ function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
 end
 
 @doc raw"""
-    @attr Tuple{ModelRing, GenDict} model_ring(M::DiscreteGraphicalModel; cached=false)
+    model_ring(M::DiscreteGraphicalModel; cached=false)
 
 Return the ring in which the statistical model lives, together with a
 Dict for indexing its generators. This is the same for directed and for
@@ -66,16 +61,13 @@ undirected graphs.
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
 Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
-julia> model_ring(M)[2]
-Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 8 entries:
-  (1, 2, 1) => p[1, 2, 1]
-  (1, 1, 1) => p[1, 1, 1]
-  (2, 2, 1) => p[2, 2, 1]
-  (1, 2, 2) => p[1, 2, 2]
-  (2, 1, 1) => p[2, 1, 1]
-  (1, 1, 2) => p[1, 1, 2]
-  (2, 2, 2) => p[2, 2, 2]
-  (2, 1, 2) => p[2, 1, 2]
+julia> _, MR_gens = model_ring(M);
+
+julia> MR_gens[1, 2, 1]
+p[1,2,1]
+
+julia> MR_gens[(1, 2, 1)]
+p[1,2,1]
 ```
 """
 @attr Tuple{
@@ -95,26 +87,19 @@ function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
 end
 
 @doc raw"""
-  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
+    parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
 
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
-Discrete graphical model on an undirected graph with edges
-(2, 1), (3, 2) and states [2, 2, 2]
+Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
-julia> parameter_ring(M)[2]
-Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
-  ([2, 3], (1, 2)) => t[2, 3](1, 2)
-  ([2, 1], (1, 2)) => t[2, 1](1, 2)
-  ([2, 3], (1, 1)) => t[2, 3](1, 1)
-  ([2, 1], (1, 1)) => t[2, 1](1, 1)
-  ([2, 3], (2, 2)) => t[2, 3](2, 2)
-  ([2, 1], (2, 2)) => t[2, 1](2, 2)
-  ([2, 3], (2, 1)) => t[2, 3](2, 1)
-  ([2, 1], (2, 1)) => t[2, 1](2, 1)
+julia> _, PR_gens = parameter_ring(M);
+
+julia> PR_gens[[1, 2], (2, 2)]
+t[1, 2](2, 2)
 ```
 """
 @attr Tuple{
@@ -126,7 +111,7 @@ Dict{Tuple{Vector{Int64}, Tuple{Int64, Int64}}, QQMPolyRingElem} with 8 entries:
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
   gen_names = sort([varnames(M)[:t] * string(C) * string(x) for (C, x) in params])
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = Dict((C, x) => t[i] for (i, (C, x)) in enumerate(params))
+  gens_dict = Dict(zip(params, t))
   return (R, gens_dict)
 end
 
@@ -141,7 +126,7 @@ function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
 end
 
 @doc raw"""
-  parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
+    parameterization(M::DiscreteGraphicalModel{Graph{Undirected}, L})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the
 undirected discrete graphical model `M`. It sends each probability generator
@@ -153,8 +138,7 @@ graph and `sp` is a marginal state of the random vector.
 
 ``` jldoctest
 julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
-Discrete graphical model on an undirected graph with edges
-(2, 1), (3, 2) and states [2, 2, 2]
+Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
 julia> parametrization(M)
 Ring homomorphism
@@ -174,7 +158,7 @@ defined by
 function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
-  images = []
+  images = elem_type(R)[]
   for p in gens(_ring(S))
     s = S[p] # get label of the variable
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[k[1]]))
@@ -209,7 +193,6 @@ of the node i given its parents.
 ``` jldoctest 
 julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3,4]]), [2,2,2,2])
 Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with states [2, 2, 2, 2]
-
 ```
 """
 function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q", p_var_name::String="p")
@@ -219,7 +202,7 @@ function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var
 end
 
 @doc raw"""
-  @attr Tuple{MPolyRing, GenDict} parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false)
+    parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
@@ -301,6 +284,7 @@ defined by
 julia> I = kernel(phi)
 Ideal generated by
   -p[1,1,1]*p[2,2,1] - p[1,1,1]*p[2,2,2] + p[2,1,1]*p[1,2,1] + p[2,1,1]*p[1,2,2] + p[1,2,1]*p[2,1,2] - p[2,2,1]*p[1,1,2] - p[1,1,2]*p[2,2,2] + p[2,1,2]*p[1,2,2]
+```
 """
 function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
   G = graph(M)
@@ -308,7 +292,7 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
   S, pd = model_ring(M)
   R, qd = parameter_ring(M)
   h = last(gens(R))
-  images = []
+  images = elem_type(R)[]
   for p in gens(_ring(S))
     s = collect(S[p]) # get label of the variable but as a vector for type reasons
     push!(images, prod(qd[(i, s[i], s[parents(G, i)])] for i in 1:n))
