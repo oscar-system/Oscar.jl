@@ -2,6 +2,7 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+import JSON
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -49,7 +50,7 @@ end
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
-    println(json(obj[:meta], 2))
+    println(JSON.json(obj[:meta], 2))
   end
 end
 
