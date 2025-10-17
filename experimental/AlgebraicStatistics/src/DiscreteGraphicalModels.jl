@@ -266,6 +266,7 @@ node given its parents. The conditional probability parameters are subject to li
 
 ``` jldoctest
 julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3]]), [2,2,2])
+Discrete Graphical Model on a Directed graph with 3 nodes and 2 edges with states [2, 2, 2]
 
 julia> phi = parametrization(M)
 Ring homomorphism

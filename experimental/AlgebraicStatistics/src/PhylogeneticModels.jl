@@ -642,7 +642,7 @@ julia> transition_matrix(cavender_farris_neyman_model(tree))
 """
 transition_matrix(PM::PhylogeneticModel) = PM.trans_matrix_structure
 
-transition_matrix(PM::GroupBasedPhylogeneticModel) = transition_matrix(phylo_model(PM))
+transition_matrix(PM::GroupBasedPhylogeneticModel) = transition_matrix(phylogenetic_model(PM))
 
 @doc raw"""
     root_distribution(PM::PhylogeneticModel)
@@ -709,7 +709,7 @@ julia> PM = general_markov_model(tree);
 julia> varnames(PM)
 "p"
 
-julia> varnames(jukes_cantor_model(tree));
+julia> varnames(jukes_cantor_model(tree))
 "q"
 ```
 """
@@ -1338,7 +1338,7 @@ This ring has a generator for each unique polynomial (i.e., each equivalence cla
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
-R, q = model_ring(cavender_farris_neyman_model(tree));
+julia> R, q = model_ring(cavender_farris_neyman_model(tree));
 
 julia> q[1,1,1]
 q[1,1,1]
