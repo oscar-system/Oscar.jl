@@ -292,4 +292,45 @@
       entry_transition_matrix(PM, 1, 3, 4, 1)
     end
   end
+
+  @testset "Networks" begin
+    G1 = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
+    N1 = phylogenetic_network(G1)
+
+    @test level(N1) == 1
+    @test n_hybrid(N1) == 1
+    @test Set(hybrid_edges(N1)[1]) == Set([Edge(6, 5), Edge(8, 5)])
+
+    G2 = graph_from_edges(Directed,[[7,2], [8,7], [7,6], [8,6], [9,8], [10,9], [11,10], [11,12], [12,10], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+    N2 = phylogenetic_network(G2)
+
+    @test level(N2) == 1
+    @test n_hybrid(N2) == 2
+    @test Set(hybrids(N2)[6]) == Set([Edge(7, 6), Edge(8, 6)])
+    @test Set(hybrids(N2)[10]) == Set([Edge(11, 10), Edge(12, 10)])
+    
+    G3 = graph_from_edges(Directed,[[6,2], [6,7], [6,5], [7,5], [5,4], [7,8], [8,4], [4,1], [8,3]]);
+    N3 = phylogenetic_network(G3)
+    @test level(N3) == 2
+    @test n_hybrid(N3) == 2
+    @test Set(hybrid_vertices(N3)) == Set([4,5])
+
+    PM1 = cavender_farris_neyman_model(N1)
+    PM2 = cavender_farris_neyman_model(N2)
+    PM3 = cavender_farris_neyman_model(N3)
+    
+    @test n_generators(parameter_ring(PM1)[1]) == length(edges(N1))*2 + n_hybrid(N1)*2
+    @test n_generators(parameter_ring(PM2)[1]) == length(edges(N2))*2 + n_hybrid(N2)*2
+    @test n_generators(parameter_ring(PM3)[1]) == length(edges(N3))*2 + n_hybrid(N3)*2
+
+    @test ngens(full_model_ring(PM1)[1]) == 2^length(leaves(N1))
+    @test ngens(full_model_ring(PM2)[1]) == 2^length(leaves(N2))
+    @test ngens(full_model_ring(PM3)[1]) == 2^length(leaves(N3))
+
+    #TODO: Check some entry of parametrization:
+    # f1 = parametrization(PM1)
+    # f1 = parametrization(PM2)
+    # f1 = parametrization(PM3)
+
+  end
 end
