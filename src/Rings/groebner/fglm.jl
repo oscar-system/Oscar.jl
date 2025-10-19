@@ -51,7 +51,8 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
   SR_destination, = Singular.polynomial_ring(base_ring(G.gensBiPolyArray.Sx), symbols(G.gensBiPolyArray.Sx); ordering = singular(ordering))
 
   ptr = Singular.libSingular.fglmzero(SG.ptr, G.gensBiPolyArray.Sx.ptr, SR_destination.ptr)
-  return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
+  T = typeof(SG)  # Singular.sideal{Singular.spoly}
+  return IdealGens(base_ring(G), T(SR_destination, ptr, true))
 end
 
 @doc raw"""
