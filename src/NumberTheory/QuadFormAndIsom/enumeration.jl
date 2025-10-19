@@ -1447,16 +1447,17 @@ function splitting_of_hermitian_type(
     @req is_of_hermitian_type(Lf) "Lattice with isometry must be of hermitian type"
   end
 
+  reps = ZZLatWithIsom[]
   k = p*n
   # If p divides n, then any output is still of hermitian type since taking pth
   # power decreases the order of the isometry
   if iszero(mod(n, p))
-    cond = unique!([get(i, k, Int[-1, -1, -1]) for i in eiglat_cond])
-    reps = representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator)
+    for cond in unique!([get(i, k, Int[-1, -1, -1]) for i in eiglat_cond])
+      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator))
+    end
     return reps
   end
 
-  reps = ZZLatWithIsom[]
   V = _from_cyclotomic_polynomial_to_dict(characteristic_polynomial(Lf))
   for i in keys(V)
     V[i] = euler_phi(i)*V[i]
@@ -1484,12 +1485,7 @@ function splitting_of_hermitian_type(
   return reps
 end
   
-splitting_of_hermitian_type(
-    args...;
-    eiglat_cond::Dict{Int, Vector{Int}},
-    kwargs...
-  ) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
-  
+
 function __splitting_of_hermitian_type(
     Lf::ZZLatWithIsom,
     p::IntegerUnion,
@@ -1854,8 +1850,6 @@ function splitting_of_pure_mixed_prime_power(
   return reps
 end
   
-splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
-
 
 @doc raw"""
     splitting_of_mixed_prime_power(
@@ -1999,8 +1993,6 @@ function splitting_of_mixed_prime_power(
   end
   return reps
 end
-
-splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
 
 ###############################################################################
 #
@@ -2412,7 +2404,7 @@ function splitting_by_prime_power!(
     Np::Vector{ZZLatWithIsom},
     p::Int,
     v::Int;
-    eiglat_cond=Dict{Int, Vector{Int}}(),
+    eiglat_cond::Union{Dict{Int,Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=Dict{Int, Vector{Int}}(),
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -3059,3 +3051,16 @@ function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
 
+######################################################################################
+#
+# Legacy interface ... to be deprecated at some point
+#
+######################################################################################
+  
+splitting_of_hermitian_type(args...; eiglat_cond::Dict{Int, Vector{Int}}, kwargs...) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
+  
+splitting_of_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
