@@ -129,12 +129,12 @@
     @test model isa PhylogeneticModel
 
     # Model parameters PHYLO MODEL
-    @test Oscar.n_states(model) == 4
-    @test_skip @test Oscar.n_states(general_markov_model(tree; number_states = 20)) == 20
+    @test n_states(model) == 4
+    # @test_skip @test Oscar.n_states(general_markov_model(tree; number_states = 20)) == 20
     @test model.root_distribution[1] isa Symbol
     @test typeof(entry_root_distribution(model, 2)) <: MPolyRingElem
     @test allunique([entry_root_distribution(model, i) for i in 1:4])
-    @test allunique([Oscar.entry_transition_matrix(model, i, j, Edge(4,3)) for i in 1:4 for j in 1:4])
+    @test allunique([entry_transition_matrix(model, i, j, Edge(4,3)) for i in 1:4 for j in 1:4])
 
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  4 + 16(n_edges(tree))
@@ -226,18 +226,12 @@
     vanishing_ideal(model) == ideal( -q[2, 3, 4]^2*q[1, 1, 1] + q[2, 2, 1]*q[2, 1, 2]*q[1, 2 , 2])
   end
 
-  @test_skip @testset "Affine parametrization" begin
-    #Probability map
-    p = probability_map(affine_phylogenetic_model!(model))
-    @test sum(collect(values(p))) == 1
+  @testset "Affine parametrization" begin
+    p = full_affine_parametrization(phylogenetic_model(model))
+    @test sum(p.img_gens) == 1
 
-    #Fourier map
-    q = fourier_map(affine_phylogenetic_model!(model))
-    @test q[1,1,1] == 1
-
-    # GMM model
-    p = probability_map(affine_phylogenetic_model!(general_markov_model(tree)))
-    @test sum(collect(values(p))) == 1
+    # q = affine_parametrization(model)
+    # @test q[1,1,1] == 1
   end
 
   @testset "Transition Matrix Types" begin
@@ -294,7 +288,7 @@
   end
 
   @testset "Networks" begin
-    G1 = graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]);
+    G1 = graph_from_edges(Directed,[[5,1], [6,5], [7,6], [7,8], [8,5], [6,2], [7,3], [8,4]]);
     N1 = phylogenetic_network(G1)
 
     @test level(N1) == 1

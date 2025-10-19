@@ -1371,15 +1371,16 @@ function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticMode
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
 
-  lvs_indices = keys(gens(R))
+  lvs_indices = [R.gen_to_index[i] for i in gens(_ring(R))]
   map = [f(p[k...]) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
 
 @doc raw"""
     affine_parametrization(PM::PhylogeneticModel)
+    full_affine_parametrization(PM::PhylogeneticModel)
 
-Constructs an affine parametrization of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
+Constructs an affine parametrization (reduced or full) of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
 
 # Example
 ```jldoctest
@@ -1412,8 +1413,26 @@ function affine_parametrization(PM::PhylogeneticModel)
 
   map = [evaluate(f(p[k...]), vars, vals) for k in ind]
   hom(R, S, reduce(vcat, map))
+  #TODO: make π sum to one as well. 
+end
+
+function full_affine_parametrization(PM::PhylogeneticModel)
+  R, p = full_model_ring(PM) 
+  S, _ = parameter_ring(PM)
+  f = full_parametrization(PM)
+  ind = keys(gens(R))
+
+  edgs = collect(edges(graph(PM)))
+  vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
+  vals = unique([(1 - (sum([entry_transition_matrix(PM, i, j, e) for j in 1:n_states(PM)]) - entry_transition_matrix(PM, i, i, e)))  
+          for i in 1:n_states(PM) for e in edgs])
+
+  map = [evaluate(f(p[k...]), vars, vals) for k in ind]
+  hom(R, S, reduce(vcat, map))
 
 end
+
+## TODO: Add affine_parametrization for GroupBased models!!
 
 @doc raw"""
     affine_parametrization(PM::GroupBasedPhylogeneticModel)

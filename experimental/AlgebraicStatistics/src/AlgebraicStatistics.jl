@@ -26,6 +26,7 @@ export parameter_ring
 export parametrization
 export full_parametrization
 export affine_parametrization
+export full_affine_parametrization
 export graph
 export vanishing_ideal
 export varnames
