@@ -48,9 +48,10 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.")
   SG = singular_generators(G)
   Singular.dimension(SG) == 0 || error("Dimension of corresponding ideal must be zero.")
-  SR_destination, = Singular.polynomial_ring(base_ring(G.gensBiPolyArray.Sx), symbols(G.gensBiPolyArray.Sx); ordering = singular(ordering))
+  Sx = base_ring(SG)
+  SR_destination, = Singular.polynomial_ring(base_ring(Sx), symbols(Sx); ordering = singular(ordering))
 
-  ptr = Singular.libSingular.fglmzero(SG.ptr, G.gensBiPolyArray.Sx.ptr, SR_destination.ptr)
+  ptr = Singular.libSingular.fglmzero(SG.ptr, Sx.ptr, SR_destination.ptr)
   T = typeof(SG)  # Singular.sideal{Singular.spoly}
   return IdealGens(base_ring(G), T(SR_destination, ptr, true))
 end
