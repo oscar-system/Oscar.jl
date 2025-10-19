@@ -1345,7 +1345,7 @@ end
       Lf::ZZLatWithIsom,
       p::IntegerUnion,
       b::Int = 0;
-      eiglat_cond::Union{Dict{Int, Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=[Dict{Int, Vector{Int}}()],
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1609,7 +1609,7 @@ end
       Lf::ZZLatWithIsom,
       p::Int,
       b::Int = 0;
-      eiglat_cond::Union{Dict{Int, Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=[Dict{Int, Vector{Int}}()],
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1740,7 +1740,7 @@ end
     splitting_of_pure_mixed_prime_power(
       Lf::ZZLatWithIsom,
       p::Int;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1856,7 +1856,7 @@ end
       Lf::ZZLatWithIsom,
       p::IntegerUnion,
       b::Int = 1;
-      eiglat_cond::Union{Dict{Int, Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=[Dict{Int, Vector{Int}}()],
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1938,7 +1938,7 @@ function splitting_of_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
     b::Int = 1;
-    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}()],
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}[]],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -2012,7 +2012,7 @@ end
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -2204,7 +2204,7 @@ end
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -2355,7 +2355,7 @@ end
       Np::Vector{ZZLatWithIsom},
       p::Int,
       v::Int;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}(),
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -2404,7 +2404,7 @@ function splitting_by_prime_power!(
     Np::Vector{ZZLatWithIsom},
     p::Int,
     v::Int;
-    eiglat_cond::Union{Dict{Int,Vector{Int}}, Vector{Dict{Int,Vector{Int}}}}=Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int,Vector{Int}}}=Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -3056,7 +3056,8 @@ end
 # Legacy interface ... to be deprecated at some point
 #
 ######################################################################################
-  
+splitting_by_prime_power!(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_by_prime_power!(args;eiglat_cond=[eiglat_cond], kwargs...)
+
 splitting_of_hermitian_type(args...; eiglat_cond::Dict{Int, Vector{Int}}, kwargs...) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
   
 splitting_of_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
@@ -3064,3 +3065,7 @@ splitting_of_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = s
 splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
 
 splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting(args;eiglat_cond=[eiglat_cond], kwargs...)
+
+enumerate_classes_of_lattices_with_isometry(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = enumerate_classes_of_lattices_with_isometry(args;eiglat_cond=[eiglat_cond], kwargs...)
