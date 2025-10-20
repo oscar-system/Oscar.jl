@@ -50,7 +50,7 @@ multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
 MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombinations(v, T(length(v)), k)
 
 
-@inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = (s = ones(U, C.k); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}
+@inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = C.k == 0 ? U[] : (s = ones(U, C.k); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}
   if is_zero(C.k) # special case to generate 1 result for k = 0
     if isempty(state)
       return Combination{T}(T[]), U[0]
