@@ -753,13 +753,19 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
     cod_glue = CY[V_cod, U_cod]
     VU_cod, UV_cod = gluing_domains(cod_glue)
     pb_U = pullbacks_on_patches(F)[U_up]
-    res_cod = M(VU_cod, UV_cod)
+    res_cod = M(V_cod, UV_cod)
     img_gens = images_of_generators(res_cod)
+    res_cod2 = M(U_cod, UV_cod)
+    img_coords = coordinates.(img_gens)
+    if !all(v == g for (v, g) in zip(images_of_generators(res_cod2), gens(M(UV_cod))))
+      img, _ = image(res_cod2)
+      img_coords = [coordinates(img(repres(v))) for v in img_gens]
+    end
     pb_img_gens = images_of_generators(pb_U)
     pb_img_gens = F(U_up, U).(pb_img_gens)
     res = OOX(UV_up, U)
     pb_f = pullback(f_U)
-    img_gens = [sum(res(pb_f(lifted_numerator(c))*inv(pb_f(lifted_denominator(c))))*pb_img_gens[i] for (i, c) in coordinates(v); init=zero(F(U))) for v in img_gens]
+    img_gens = [sum(res(pb_f(lifted_numerator(c))*inv(pb_f(lifted_denominator(c))))*pb_img_gens[i] for (i, c) in coords; init=zero(F(U))) for coords in img_coords]
     return hom(F(V), F(U), img_gens, OOX(V, U))
   end
 
@@ -846,6 +852,9 @@ function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineSch
   return hom(dom, cod, img_gens, OO(scheme(F))(V, U))
 end
 
+sheaf_of_rings(M::SimplifiedSheaf) = sheaf_of_rings(original_sheaf(M))
+sheaf_of_rings(M::StrictTransformSheaf) = sheaf_of_rings(original_sheaf(M))
+
 @attr Covering function trivializing_covering(M::SimplifiedSheaf; covering::Covering=default_covering(scheme(M)))
   new_patches = patches(covering)
   ind = findfirst(!(M(U) isa FreeMod || is_zero(relations(M(U)))) for U in new_patches)
@@ -864,6 +873,9 @@ end
   end
   new_cov = Covering(new_patches)
   inherit_gluings!(new_cov, covering)
+  if has_decomposition_info(covering)
+    inherit_decomposition_info!(scheme(M), new_cov; covering)
+  end
   return new_cov
 end
 
