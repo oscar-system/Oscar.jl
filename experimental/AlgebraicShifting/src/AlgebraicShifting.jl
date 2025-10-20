@@ -72,16 +72,23 @@ end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
 
 # uses permutation lemma to find other dependent columns
-function permuted_dependent_cols(omega::GSet, col_inds::Vector{Int})
-  G = acting_group(omega)
-  dependent_cols = Set{Int}()
-  for p in G
-    induced_p = permutation(omega, p)
-    max_col_ind = max(induced_p.(col_inds)...)
-    if max_col_ind  <= length(col_inds)
-      push!(dependent_cols, max_col_ind)
+function permuted_dependent_cols(omega::GSet,
+                                 cols::Vector{Vector{Int}},
+                                 lex_min_indep_sets::Vector{Vector{Int}},
+                                 max_col::Vector{Int})
+  dependent_cols = Set{Vector{Int}}()
+  I = first(cols)
+  S, _ = stabilizer(omega, I)
+  
+  for (j, J) in enumerate(cols[2:end])
+    exists, g = is_conjugate_with_data(omega, I, J)
+    for p in right_coset(S, g)
+      if exists && all(<(sort(p.(J))), sort.(on_sets(lex_min_indep_sets, p)))
+        p.(J) <= max_col && push!(dependent_cols, p.(J))
+      end
     end
   end
+  println(dependent_cols)
   return dependent_cols
 end
 
@@ -94,8 +101,9 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
   n_current_dep_cols = 0
   col_sets = sort(subsets(n, k))[1:ncols(m)]
   G = symmetric_group(n)
-  omega = gset(G, col_sets)
-
+  omega = gset(G, on_sets, col_sets)
+  max_col = col_sets[end]
+  println(max_col)
   for j = 1:size(m, 2)
     # Evaluate j-th column of m * v
     c = v[r + 1:end, :] * m[:, j:j]
@@ -106,9 +114,11 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
         append!(I, j + 1: ncols(m))
         break
       end
-      println(j)
-      p_dependent_cols = permuted_dependent_cols(omega, [I..., j])
-      println(p_dependent_cols)
+      p_dependent_cols = permuted_dependent_cols(omega, col_sets[j:end], col_sets[I], max_col)
+      p_dep_ind = [findfirst(==(p_J), col_sets) for p_J in p_dependent_cols]
+      println(col_sets)
+      println(p_dep_ind, j)
+      # m[:, p_dependent_cols] = zero(m[:, p_dependent_cols])
       continue
     end
     m[r + 1, j] = one(base_ring(m))
@@ -136,6 +146,7 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
     end
     r += 1
   end
+  println(I)
   return I
 end
 
