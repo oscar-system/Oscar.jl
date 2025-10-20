@@ -142,7 +142,14 @@ julia> basis(S)
  [1]
  [c1, h]
  [c2, c1^2, h*c1, h^2]
+```
 
+A priori, it looks like there are too many generators for the top degree of our surface:
+we expect there to be a unique point class, but there are 4 basis elements in that degree.
+The reason is that `h`, `c1`, and `c2` are completely formal variables,
+and we have not specified their relationship.
+
+```julia
 julia> h, c1, c2 = gens(S)
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  h
