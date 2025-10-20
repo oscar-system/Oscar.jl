@@ -1843,7 +1843,7 @@ function special_subgroup(
   end
   mu = matrix_group(QQMatrix[QQ[-1;]])
   j = one(mu)
-  d = hom(G, mu, [Int(det(m))*j for m in gens(G)])
+  d = hom(G, mu, [Int(det(m))*j for m in gens(G)]; check=false)
   return kernel(d)
 end
 
