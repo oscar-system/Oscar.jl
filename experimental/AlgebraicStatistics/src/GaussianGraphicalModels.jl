@@ -71,10 +71,10 @@ function Base.show(io::IO, M::GaussianGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
   if is_terse(io)
     print(io, "Gaussian Graphical Model on a")
-    !(L == Nothing) && print(io, " labelled")
-    print(io, " $T")
+    L !== Nothing && print(io, " labelled")
+    print(io, " ", T)
   else
-    print(io, "Gaussian Graphical Model on a $(graph(M))")
+    print(io, "Gaussian Graphical Model on a ", graph(M))
   end
 end
 
