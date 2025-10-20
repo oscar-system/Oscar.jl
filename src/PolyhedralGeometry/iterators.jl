@@ -380,6 +380,7 @@ function affine_matrix_for_polymake(iter::SubObjectIterator)
     )
   elseif hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
     return homogenize(
+      coefficient_field(iter.Obj),
       _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...),
       0,
     )
