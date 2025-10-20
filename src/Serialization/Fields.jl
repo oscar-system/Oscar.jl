@@ -74,7 +74,7 @@ end
 # SimpleNumField
 
 @register_serialization_type Hecke.RelSimpleNumField uses_id
-@register_serialization_type AbsSimpleNumField uses_id
+@register_serialization_type AbsSimpleNumField uses_id [:cyclo]
 const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
 type_params(obj::T) where T <: SimpleNumField = TypeParams(T, parent(defining_polynomial(obj)))
