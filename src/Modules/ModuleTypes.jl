@@ -674,7 +674,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       for (i, b) in coordinates(x)
         pre_res = Hecke.add_scaled_row!(coordinates(a[i]), pre_res, h(b))
       end
-      return FreeModElem(pre_res, G)
+      return G(pre_res)
     end
     function pr_func(x)
       @assert parent(x) === G
