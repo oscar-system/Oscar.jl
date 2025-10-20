@@ -135,7 +135,7 @@
   @test unwrap(x) == omega
   @test unwrap(omega) == omega
   @test x^g == Omega(permuted(omega, g))  # action via `^` is defined for `x`
-  @test_throws ErrorException omega^g  # ... but not for the unwrapped object
+  @test_throws ArgumentError omega^g  # ... but not for the unwrapped object
   orb = orbit(x)
   @test length(orb) == 6
   @test isa(orb, GSet)
