@@ -28,6 +28,5 @@ oscar_worker_pool(1) do wp
     phi = parametrization(M)
     _, q = model_ring(M)
     comps = components_of_kernel(2, phi; wp=wp)
-    @test comps[1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] == [q[4,4,1,1]*q[3,3,1,1] - q[3,1,3,1]*q[1,1,2,2]]
-  end
+    @test comps[1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] == [q[4,4,4,4]*q[1,1,1,1] - q[4,4,1,1]*q[1,1,4,4]]  end
 end
