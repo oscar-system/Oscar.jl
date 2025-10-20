@@ -1266,7 +1266,7 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
-export combinations
+export multicombinations
 export multipartition
 export multipartitions
 export multiplication_induced_morphism
