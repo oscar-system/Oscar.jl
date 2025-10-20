@@ -263,3 +263,16 @@ julia> euler_characteristic(OO(Bl, 2H - e))
 5
 ```
 
+The cubic fourfold `Z` is a special cubic fourfold of discriminant 14, see [Has00](@cite), Section 4.1.3.
+We can verify this as follows:
+
+```@julia
+julia> H², S = basis(Z)[3];
+
+julia> M = map(integral, matrix([[H² * H², H² * S], [H² * S, S * S]]))
+[3    5]
+[5   13]
+
+julia> det(M)
+14
+```
