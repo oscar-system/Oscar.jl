@@ -1938,7 +1938,7 @@ function splitting_of_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
     b::Int = 1;
-    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}[]],
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -3056,16 +3056,16 @@ end
 # Legacy interface ... to be deprecated at some point
 #
 ######################################################################################
-splitting_by_prime_power!(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_by_prime_power!(args;eiglat_cond=[eiglat_cond], kwargs...)
+splitting_by_prime_power!(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_by_prime_power!(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
 splitting_of_hermitian_type(args...; eiglat_cond::Dict{Int, Vector{Int}}, kwargs...) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
   
-splitting_of_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+splitting_of_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
-splitting_of_pure_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+splitting_of_pure_mixed_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
-splitting_of_mixed_prime_power(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args;eiglat_cond=[eiglat_cond], kwargs...)
+splitting_of_mixed_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
-splitting(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting(args;eiglat_cond=[eiglat_cond], kwargs...)
+splitting(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
-enumerate_classes_of_lattices_with_isometry(args;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = enumerate_classes_of_lattices_with_isometry(args;eiglat_cond=[eiglat_cond], kwargs...)
+enumerate_classes_of_lattices_with_isometry(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = enumerate_classes_of_lattices_with_isometry(args...;eiglat_cond=[eiglat_cond], kwargs...)
