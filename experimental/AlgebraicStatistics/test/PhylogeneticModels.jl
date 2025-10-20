@@ -214,7 +214,7 @@
     end
   end
 
-  R, q = Oscar.model_ring(model)
+  R, q = model_ring(model)
   @testset "Coordinate change Prob - Fourier" begin
     f = coordinate_change(model)
     f1 = inverse_coordinate_change(model)
@@ -230,8 +230,7 @@
     p = full_affine_parametrization(phylogenetic_model(model))
     @test sum(p.img_gens) == 1
 
-    R, q = model_ring(pm)
-    f = affine_parametrization(pm)
+    f = affine_parametrization(model)
     @test f(q[1,1,1]) == 1
   end
 

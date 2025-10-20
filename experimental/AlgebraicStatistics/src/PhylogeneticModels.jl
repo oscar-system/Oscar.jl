@@ -1393,11 +1393,11 @@ Ring homomorphism
   from multivariate polynomial ring in 5 variables over QQ
   to multivariate polynomial ring in 6 variables over QQ
 defined by
-  p[1,2,3] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] - 3//4*b[1]*b[3] + 1//4*b[1] + 1//4*b[2]*b[3]
-  p[1,2,2] -> 2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] - 3//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[3]
-  p[1,2,1] -> -6*b[1]*b[2]*b[3] + 9//4*b[1]*b[2] + 9//4*b[1]*b[3] - 3//4*b[1] + 9//4*b[2]*b[3] - 3//4*b[2] - 3//4*b[3] + 1//4
-  p[1,1,2] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] + 1//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[2]
-  p[1,1,1] -> -2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] + 1//4*b[1]*b[3] + 1//4*b[2]*b[3]
+  p[1,2,3] -> -2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] + 1//4*b[1]*b[3] + 1//4*b[2]*b[3]
+  p[1,2,2] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] - 3//4*b[1]*b[3] + 1//4*b[1] + 1//4*b[2]*b[3]
+  p[1,2,1] -> 2*b[1]*b[2]*b[3] - 3//4*b[1]*b[2] + 1//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[2]
+  p[1,1,2] -> 2*b[1]*b[2]*b[3] + 1//4*b[1]*b[2] - 3//4*b[1]*b[3] - 3//4*b[2]*b[3] + 1//4*b[3]
+  p[1,1,1] -> -6*b[1]*b[2]*b[3] + 9//4*b[1]*b[2] + 9//4*b[1]*b[3] - 3//4*b[1] + 9//4*b[2]*b[3] - 3//4*b[2] - 3//4*b[3] + 1//4
 ```
 """
 function affine_parametrization(PM::PhylogeneticModel)
@@ -1449,11 +1449,11 @@ Ring homomorphism
   from multivariate polynomial ring in 5 variables over QQ
   to multivariate polynomial ring in 6 variables over QQ
 defined by
-  q[2,3,4] -> y[1]*y[3]
-  q[2,2,1] -> 1
-  q[2,1,2] -> y[1]*y[2]*y[3]
+  q[2,3,4] -> y[1]*y[2]*y[3]
+  q[2,2,1] -> y[1]*y[2]
+  q[2,1,2] -> y[1]*y[3]
   q[1,2,2] -> y[2]*y[3]
-  q[1,1,1] -> y[1]*y[2]
+  q[1,1,1] -> 1
 ```
 """
 function affine_parametrization(PM::GroupBasedPhylogeneticModel)
