@@ -7,15 +7,16 @@
     abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
     abstract_bundle(X::AbstractVariety, r::RingElement, c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return an abstract vector bundle on `X` by specifying its Chern character `ch`. Equivalently, specify its rank `r` and
-total Chern class `c`.
+Return an abstract vector bundle on `X` by specifying its Chern character `ch`.
+Equivalently, specify its rank `r` and total Chern class `c`.
 
 # Examples
 
-We show two ways of constructing the Horrocks-Mumford bundle `F` [HM73](@cite). First, we create `F` as the
-cohomology bundle of its Beilinson monad
+We show two ways of constructing the Horrocks-Mumford bundle `F` [HM73](@cite).
+First, we create `F` as the cohomology bundle of its Beilinson monad
+(see Equation (2.1) in [HM73](@cite)):
 
-$0 \rightarrow \mathcal O_{\mathbb P^4} ^5(2)\rightarrow \Lambda^2 T^*_{\mathbb P^4}(5)
+$0 \rightarrow \mathcal O_{\mathbb P^4}^5(2)\rightarrow \bigwedge^2\mathrm{T}^*_{\mathbb P^4}(5)
 \rightarrow \mathcal O_{\mathbb P^4}^5(3)\rightarrow 0.$
 
 Then, we show the constructor above at work.
@@ -79,7 +80,7 @@ Return the Chern character of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -101,7 +102,7 @@ Return the total Chern class of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -433,7 +434,7 @@ the generators of the Chow ring of `Y`.
     In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
     present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
     a modified version of `Y` will be created, with extra classes added so that one can
-    pushforward all classes on `X`. See the subsection [Example: Cubic Fourfolds](@ref)
+    pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
     of the documentation for an example.
 
 # Examples
@@ -1600,6 +1601,7 @@ true
 ```
 """
 det(F::AbstractBundle) = AbstractBundle(F.parent, 1, 1 + chern_class(F, 1))
+
 function _coerce(F::AbstractBundle, G::AbstractBundle)
   X, Y = F.parent, G.parent
   X == Y && return F, G
