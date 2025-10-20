@@ -62,7 +62,7 @@ parametrization(M::T) where T <: GraphicalModel = error("Please implement the me
 numerator(f::MPolyRingElem) = f
 denominator(f::MPolyRingElem) = parent(f)(1)
 
-#TODO update docs with an example?
+#TODO update docs with an example? and with info about all possible algorithms
 @doc raw"""
     vanishing_ideal(M::GraphicalModel; algorithm::Symbol = :eliminate)
 
