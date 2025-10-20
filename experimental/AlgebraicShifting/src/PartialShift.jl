@@ -397,7 +397,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
-    col_ind = lex_min_col_basis(M, n, k; n_dependent_columns=n_dependent_columns)
+    col_ind = lex_min_col_basis_cf(M, n, k; n_dependent_columns=n_dependent_columns)
     nCk[col_ind] != target_faces[1:end - 1] && return false
   end
   return true

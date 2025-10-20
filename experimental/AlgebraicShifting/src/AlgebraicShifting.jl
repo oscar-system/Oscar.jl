@@ -76,54 +76,169 @@ function permuted_dependent_cols(omega::GSet,
                                  cols::Vector{Vector{Int}},
                                  lex_min_indep_sets::Vector{Vector{Int}},
                                  max_col::Vector{Int})
+  println("permuted")
   dependent_cols = Set{Vector{Int}}()
   I = first(cols)
   S, _ = stabilizer(omega, I)
-  
-  for (j, J) in enumerate(cols[2:end])
+  println("# of possible dependent cols", length(cols[2:end]))
+  for (index, J) in enumerate(cols[2:end])
+    println(index)
     exists, g = is_conjugate_with_data(omega, I, J)
-    for p in right_coset(S, g)
-      if exists && all(<(sort(p.(J))), sort.(on_sets(lex_min_indep_sets, p)))
-        p.(J) <= max_col && push!(dependent_cols, p.(J))
+     for p in right_coset(S, g)
+       if exists && all(<(J), sort.(on_sets(lex_min_indep_sets, p)))
+         J <= max_col && push!(dependent_cols, J)
+         break
       end
-    end
+     end
   end
-  println(dependent_cols)
   return dependent_cols
 end
 
-function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
-                           n::Int, k::Int;
-                           n_dependent_columns::Int=-1) where T <: MPolyRingElem
-  v = identity_matrix(base_ring(m), size(m, 1))
-  r = 0
+function lex_min_col_basis_cf(m::AbstractAlgebra.Generic.MatSpaceElem{T},
+                              n::Int, k::Int;
+                              n_dependent_columns::Int=-1) where T <: MPolyRingElem
+  for i=1:nrows(m)
+    c = content(m[i:i, :])
+    if !isone(c)
+      m[i, :] = divexact(m[i:i, :], c)
+    end
+  end
+
   I = Int[]
+  dep_col_ind = Set{Int}([])
   n_current_dep_cols = 0
   col_sets = sort(subsets(n, k))[1:ncols(m)]
   G = symmetric_group(n)
   omega = gset(G, on_sets, col_sets)
   max_col = col_sets[end]
-  println(max_col)
+
+  j = 1
+  for i=1:nrows(m)
+    println(j)
+    best_j = 0
+    best_t = typemax(Int)
+    while j <= ncols(m) 
+      best_i = 0
+      best_t = 0
+      for ii = i:nrows(m)
+        if is_zero_entry(m, ii, j)
+          continue
+        end
+        if best_i == 0
+          best_i = ii
+          best_t = length(m[ii,j])
+        elseif best_t > length(m[ii, j])
+          best_t = length(m[ii, j])
+          best_i = ii
+        end
+      end
+      if best_i == 0
+        # dependent col
+        println("n_dependent", n_dependent_columns)
+        n_current_dep_cols += 1
+        if j in dep_col_ind
+          n_current_dep_cols += 1
+        end
+        if n_dependent_columns == n_current_dep_cols
+          append!(I, j + 1:ncols(m))
+          return I
+        end
+
+        if j in dep_col_ind
+          continue
+        end
+        # 
+        # # use permutation to find other dependent cols
+        target_cols = col_sets[[i for i in j:ncols(m) if !(i in dep_col_ind)]]
+        p_dependent_cols = permuted_dependent_cols(omega, target_cols, col_sets[I], max_col)
+        isempty(p_dependent_cols) && continue
+        # 
+        # # get the columnn indices
+        p_dep_ind = [findfirst(==(J), col_sets) for J in p_dependent_cols]
+        # 
+        # # update set of dependent columns and the number of them
+        dep_col_ind = union(dep_col_ind, p_dep_ind)
+        println(dep_col_ind, " ", j, " ", n_dependent_columns)
+        # n_current_dep_cols = length(dep_col_ind)
+        # if n_current_dep_cols == n_dependent_columns
+          # println(dep_col_ind)
+          # break
+        # end
+        # println()
+
+        m[:, p_dep_ind] = zero(m[:, p_dep_ind])
+        j += 1
+        continue
+      end
+      if best_i > i
+        m = swap_rows!(m, i, best_i)
+      end
+      break
+    end
+    if j > ncols(m)
+      return I
+    end
+    push!(I, j)
+
+    for k=i+1:nrows(m)
+      if iszero(m[k, j])
+        continue
+      end
+      g, a, b = gcd_with_cofactors(m[k, j], m[i, j])
+      m[k, :] = b*m[k:k, :] - a * m[i:i, :]
+      m[k, :] = divexact(m[k:k, :], content(m[k:k, :]))
+    end
+    j += 1
+  end
+  return I
+end
+
+function lex_min_col_basis_fl(m::AbstractAlgebra.Generic.MatSpaceElem{T},
+                              n::Int, k::Int;
+                              n_dependent_columns::Int=-1) where T <: MPolyRingElem
+  v = identity_matrix(base_ring(m), size(m, 1))
+  r = 0
+  I = Int[]
+  dep_col_ind = Set{Int}([])
+  n_current_dep_cols = 0
+  col_sets = sort(subsets(n, k))[1:ncols(m)]
+  G = symmetric_group(n)
+  omega = gset(G, on_sets, col_sets)
+  max_col = col_sets[end]
   for j = 1:size(m, 2)
     # Evaluate j-th column of m * v
+    j in dep_col_ind && continue
     c = v[r + 1:end, :] * m[:, j:j]
     m[:, j:j] = zero(m[:, j:j])
     if iszero(c)
       n_current_dep_cols += 1
+      push!(dep_col_ind, j)
       if n_dependent_columns == n_current_dep_cols
-        append!(I, j + 1: ncols(m))
-        break
+        append!(I, j + 1:ncols(m))
+        return I
       end
-      p_dependent_cols = permuted_dependent_cols(omega, col_sets[j:end], col_sets[I], max_col)
-      p_dep_ind = [findfirst(==(p_J), col_sets) for p_J in p_dependent_cols]
-      println(col_sets)
-      println(p_dep_ind, j)
-      # m[:, p_dependent_cols] = zero(m[:, p_dependent_cols])
+      
+      # use permutation to find other dependent cols
+      p_dependent_cols = permuted_dependent_cols(omega, col_sets[j:end], col_sets[I], max_col)#
+      isempty(p_dependent_cols) && continue
+      # 
+      # # get the columnn indices
+      p_dep_ind = [findfirst(==(J), col_sets) for J in p_dependent_cols]
+      # 
+      # # update set of dependent columns and the number of them
+      # dep_col_ind = union(dep_col_ind, p_dep_ind)
+      # n_current_dep_cols = length(dep_col_ind)
+
+      # if n_current_dep_cols == n_dependent_columns
+      #   append!(I, j + 1:ncols(m))
+      #   return collect(symdiff(Set(I), dep_col_ind))
+      # end
+      m[:, p_dep_ind] = zero(m[:, p_dep_ind])
       continue
     end
     m[r + 1, j] = one(base_ring(m))
-    push!(I, j)
     # Break if this is the last necessary column
+    push!(I, j)
     if r + 1 == size(m, 1)
       r += 1
       break
@@ -146,7 +261,6 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
     end
     r += 1
   end
-  println(I)
   return I
 end
 
