@@ -1592,9 +1592,11 @@ end
 
 @doc raw"""
     cavender_farris_neyman_model(G::AbstractGraph{Directed})
+    cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
-a 2-state model with a single transition probability per edge.
+a 2-state model with a single transition probability per edge. 
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1608,7 +1610,7 @@ and fourier parameters of the form [:x, :y].
 ```
 
 """
-function cavender_farris_neyman_model(G::AbstractGraph{Directed})
+function cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b;
        :b :a]
   x = [:x, :y] 
@@ -1617,14 +1619,17 @@ function cavender_farris_neyman_model(G::AbstractGraph{Directed})
   group = [group[1],group[2]]
   
   #PhylogeneticModel(G, M)
-  GroupBasedPhylogeneticModel(G, M, x, group) 
+  GroupBasedPhylogeneticModel(F, G, M, x, group) 
 end
+cavender_farris_neyman_model(G::AbstractGraph{Directed}) = cavender_farris_neyman_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
     jukes_cantor_model(G::AbstractGraph{Directed})
+    jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
 a 4-state model where all non-diagonal transition probabilities are equal.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1641,20 +1646,24 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :y, :y].
 ```
 """
-function jukes_cantor_model(G::AbstractGraph{Directed})
+function jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :b :b;
        :b :a :b :b;
        :b :b :a :b;
        :b :b :b :a]
   x = [:x, :y, :y, :y] 
-  GroupBasedPhylogeneticModel(G, M, x) 
+  GroupBasedPhylogeneticModel(F, G, M, x) 
 end
+
+jukes_cantor_model(G::AbstractGraph{Directed}) = jukes_cantor_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
     kimura2_model(G::AbstractGraph{Directed})
+    kimura2_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
 a 4-state model with two non-diagonal transition probabilities.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1671,21 +1680,25 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :z].
 ```
 """
-function kimura2_model(G::AbstractGraph{Directed})
+function kimura2_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :c :b;
        :b :a :b :c;
        :c :b :a :b;
        :b :c :b :a]
   x = [:x, :y, :z, :z] 
   
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(F, G, M, x)
 end
+
+kimura2_model(G::AbstractGraph{Directed}) = kimura2_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
     kimura3_model(G::AbstractGraph{Directed})
+    kimura3_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
 a 4-state model with three non-diagonal different transition probabilities.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1702,21 +1715,25 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :t].
 ```
 """
-function kimura3_model(G::AbstractGraph{Directed})
+function kimura3_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :c :d;
        :b :a :d :c;
        :c :d :a :b;
        :d :c :b :a]
   x = [:x, :y, :z, :t] 
   
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(F, G, M, x)
 end
-  
+
+kimura3_model(G::AbstractGraph{Directed}) = kimura3_model(QQ, G::AbstractGraph{Directed})
+
 @doc raw"""
     general_markov_model(G::AbstractGraph{Directed})
+    general_markov_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1732,7 +1749,7 @@ with root distribution [π1, π2, π3, π4] and transition matrices of the form
 
 ```
 """
-function general_markov_model(G::AbstractGraph{Directed})
+function general_markov_model(F::Field, G::AbstractGraph{Directed})
 
   M = [:m11 :m12 :m13 :m14;
        :m21 :m22 :m23 :m24;
@@ -1741,14 +1758,19 @@ function general_markov_model(G::AbstractGraph{Directed})
   
   root_distr = [:π1, :π2, :π3, :π4]
   
-  PhylogeneticModel(G, M, root_distr)
+  PhylogeneticModel(F, G, M, root_distr)
 end
+
+general_markov_model(G::AbstractGraph{Directed}) = general_markov_model(QQ, G::AbstractGraph{Directed})
+
 
 @doc raw"""
     general_time_reversible_model(G::AbstractGraph{Directed})
+    general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general time reversible model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1763,8 +1785,7 @@ with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the f
   r[1]*d r[2]*f r[3]*g r[4]*a].
 ```
 """
-function general_time_reversible_model(G::AbstractGraph{Directed})
-
+function general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
   Rp, r = polynomial_ring(QQ, :r => 1:4);
   RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);
 
@@ -1774,6 +1795,9 @@ function general_time_reversible_model(G::AbstractGraph{Directed})
        d*r[1] f*r[2] g*r[3] a*r[4]
   ];
 
-  PM = PhylogeneticModel(G, M, r)
+  PM = PhylogeneticModel(F, G, M, r)
 end
+
+general_time_reversible_model(G::AbstractGraph{Directed}) = general_time_reversible_model(QQ, G::AbstractGraph{Directed})
+
 
