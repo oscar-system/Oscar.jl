@@ -929,8 +929,9 @@ collector(G::PcGroup) = collector(ZZRingElem, G)
 """
     code_pcgroup(G::PcGroup)
 
-Return the code representing the polycyclic group `G`, using the same
+Return a `ZZRingElem` representing the polycyclic group `G`, using the same
 encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
+Currently only defined for `PcGroup`, not `SubPcGroup`.
 
 # Examples
 ```jldoctest
@@ -948,7 +949,7 @@ true
 ```
 """
 function code_pcgroup(G::PcGroup)
-    return GAP.Globals.CodePcGroup(GapObj(G))
+  return ZZ(GAP.Globals.CodePcGroup(GapObj(G))::GapInt)
 end
 
 """
@@ -991,27 +992,22 @@ julia> code_pcgroup(H3) == code_pcgroup(G)
 true
 ```
 """
-# 1. Integer code + PcGroup
-function pcgroup_code(code::Int64, G::PcGroup)
-  pcgroup_code(code, Int64(order(G)))
+# 1. Integer code + size object
+function pcgroup_code(code, size)
+  PcGroup(GAP.Globals.PcGroupCode(Int(code), Int(size)))
 end
 
-# 2. Integer code + integer size
-function pcgroup_code(code::Int64, size::Integer)
-  PcGroup(GAP.Globals.PcGroupCode(code, Int64(size)))
+# 2. Integer code + PcGroup
+function pcgroup_code(code, G::PcGroup)
+  pcgroup_code(code, order(G))
 end
 
-# 3. Vector code + integer size
-function pcgroup_code(code::Vector{<:Integer}, size::Integer)
-  PcGroup(GAP.Globals.PcGroupCode(code, Int64(size)))
+# 3. Vector of integers code + size object
+function pcgroup_code(code::Vector{<:Integer}, size)
+  PcGroup(GAP.Globals.PcGroupCode(code, Int(size)))
 end
 
-# 4. Integer code + generic size (convert to Int64)
-function pcgroup_code(code::Int64, size)
-  pcgroup_code(code, Int64(size))
-end
-
-# 5. Vector code + PcGroup
+# 4. Vector of integers code + PcGroup
 function pcgroup_code(code::Vector{<:Integer}, G::PcGroup)
-  pcgroup_code(code, Int64(order(G)))
+  pcgroup_code(code, order(G))
 end
