@@ -434,7 +434,7 @@ the generators of the Chow ring of `Y`.
     In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
     present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
     a modified version of `Y` will be created, with extra classes added so that one can
-    pushforward all classes on `X`. See the subsection [Example: Cubic Fourfolds](@ref)
+    pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
     of the documentation for an example.
 
 # Examples
