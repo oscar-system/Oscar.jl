@@ -285,6 +285,10 @@ f1*f3
 """
 const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
 
+function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
+  return hash(letters(x), hash(parent(x), h))
+end
+
 
 """
     FPGroup
@@ -382,6 +386,10 @@ finitely presented groups, see [`FPGroupElem`](@ref).
 """
 const SubFPGroupElem = BasicGAPGroupElem{SubFPGroup}
 
+function Base.hash(x::Union{FPGroupElem,SubFPGroupElem}, h::UInt)
+  return hash(letters(x), hash(parent(x), h))
+end
+
 
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
@@ -430,6 +438,10 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
       z.X = x_gap
       return z
    end
+end
+
+function Base.hash(x::MatrixGroupElem, h::UInt)
+  return hash(matrix(x), hash(parent(x), h))
 end
 
 ################################################################################
