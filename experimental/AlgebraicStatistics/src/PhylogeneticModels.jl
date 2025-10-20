@@ -1404,7 +1404,7 @@ function affine_parametrization(PM::PhylogeneticModel)
   R, p = model_ring(PM) 
   S, _ = parameter_ring(PM)
   f = parametrization(PM)
-  ind = keys(gens(R))
+  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
 
   edgs = collect(edges(graph(PM)))
   vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
@@ -1420,7 +1420,7 @@ function full_affine_parametrization(PM::PhylogeneticModel)
   R, p = full_model_ring(PM) 
   S, _ = parameter_ring(PM)
   f = full_parametrization(PM)
-  ind = keys(gens(R))
+  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
 
   edgs = collect(edges(graph(PM)))
   vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
@@ -1431,8 +1431,6 @@ function full_affine_parametrization(PM::PhylogeneticModel)
   hom(R, S, reduce(vcat, map))
 
 end
-
-## TODO: Add affine_parametrization for GroupBased models!!
 
 @doc raw"""
     affine_parametrization(PM::GroupBasedPhylogeneticModel)
@@ -1462,7 +1460,7 @@ function affine_parametrization(PM::GroupBasedPhylogeneticModel)
   R, q = model_ring(PM)
   S, _ = parameter_ring(PM)
   f = parametrization(PM)
-  ind = keys(gens(R))
+  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
 
   edgs = collect(edges(graph(PM)))
   vars = [entry_fourier_parameter(PM, 1, e) for e in edgs]

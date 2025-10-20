@@ -230,8 +230,9 @@
     p = full_affine_parametrization(phylogenetic_model(model))
     @test sum(p.img_gens) == 1
 
-    # q = affine_parametrization(model)
-    # @test q[1,1,1] == 1
+    R, q = model_ring(pm)
+    f = affine_parametrization(pm)
+    @test f(q[1,1,1]) == 1
   end
 
   @testset "Transition Matrix Types" begin
