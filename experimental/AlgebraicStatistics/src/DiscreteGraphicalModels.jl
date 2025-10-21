@@ -116,7 +116,7 @@ julia> PR_gens[first(C), (1, 2)]
   cliques = maximal_cliques(graph(M))
   Xs = [state_space(M, C) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
-  gen_names = sort([varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params])
+  gen_names = [varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params]
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = Dict(zip(params, t))
   return (R, gens_dict)
