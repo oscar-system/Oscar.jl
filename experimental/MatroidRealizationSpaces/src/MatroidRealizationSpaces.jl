@@ -19,3 +19,5 @@ export realization
 export realization_matrix
 export realization_space
 export defining_ideal
+export is_selfprojecting
+export selfprojecting_realization_space
