@@ -193,3 +193,27 @@ function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   @req p == q "exponents must agree"
   return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
+
+function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}, p::Int; 
+    domain::ModuleFP=exterior_power(domain(phi), p)[1],
+    codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
+  )
+  orig_img_gens = images_of_generators(phi)
+  dec = wedge_generator_decompose_function(domain)
+  dom_gens_dec = Vector{elem_type(Oscar.domain(phi))}[collect(dec(g)) for g in gens(domain)]
+  img_gens = elem_type(codomain)[wedge(phi.(v); parent=codomain) for v in dom_gens_dec]
+  return hom(domain, codomain, img_gens)
+end
+
+# with coefficient map
+function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP}, p::Int; 
+    domain::ModuleFP=exterior_power(domain(phi), p)[1],
+    codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
+  )
+  orig_img_gens = images_of_generators(phi)
+  dec = wedge_generator_decompose_function(domain)
+  dom_gens_dec = Vector{elem_type(Oscar.domain(phi))}[collect(dec(g)) for g in gens(domain)]
+  img_gens = elem_type(codomain)[wedge(phi.(v); parent=codomain) for v in dom_gens_dec]
+  return hom(domain, codomain, img_gens, base_ring_map(phi))
+end
+
