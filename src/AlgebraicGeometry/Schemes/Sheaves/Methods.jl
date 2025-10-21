@@ -856,20 +856,30 @@ sheaf_of_rings(M::SimplifiedSheaf) = sheaf_of_rings(original_sheaf(M))
 sheaf_of_rings(M::StrictTransformSheaf) = sheaf_of_rings(original_sheaf(M))
 
 @attr Covering function trivializing_covering(M::SimplifiedSheaf; covering::Covering=default_covering(scheme(M)))
-  new_patches = patches(covering)
-  ind = findfirst(!(M(U) isa FreeMod || is_zero(relations(M(U)))) for U in new_patches)
+  new_patches = copy(patches(covering))
+  ind = findfirst(!(M(U) isa FreeMod || all(is_zero, relations(M(U)))) for U in new_patches)
   while !isnothing(ind)
+    @show length(new_patches)
+    @show ind
+    readline()
     U = popat!(new_patches, ind)
     MU = M(U)
-    I = ideal(OO(U), reduce(vcat, [elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]))
+    @show MU
+    @show relations(MU)
+    ideal(OO(U), one(OO(U)))
+    I = ideal(OO(U), reduce(vcat, Vector{elem_type(OO(U))}[elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]; init=elem_type(OO(U))[]))
+    @show I
     one(OO(U)) in I || error("module is not locally free")
+    @show one(OO(U)) in I
     c = coordinates(one(OO(U)), I)
     non_zero_entries = [(i, c[i]) for i in 1:ngens(I) if !is_zero(c[i])]
     for i in 1:ngens(I)
       h = c[i]
       is_zero(h) && continue
-      push!(new_patches, PrincipalOpenSubset(U, h))
+      @show i, gen(I, i)
+      push!(new_patches, PrincipalOpenSubset(U, gen(I, i)))
     end
+    ind = findfirst(!(M(U) isa FreeMod || all(is_zero, relations(M(U)))) for U in new_patches)
   end
   new_cov = Covering(new_patches)
   inherit_gluings!(new_cov, covering)
@@ -879,3 +889,102 @@ sheaf_of_rings(M::StrictTransformSheaf) = sheaf_of_rings(original_sheaf(M))
   return new_cov
 end
 
+
+function module_as_sheaf(M::SubquoModule{T}; scheme::AbsCoveredScheme=covered_scheme(spec(base_ring(M)))) where {T<:RingElem}
+  X = first(affine_charts(scheme))
+  MM = SheafOfModules(scheme, IdDict(X=>M), IdDict((X, X) => one(matrix_space(OO(X), 1, 1))))
+  return MM
+end
+
+function resolve_module(M::SubquoModule{T}; r0::Union{Int, Nothing}=nothing) where {T<:RingElem}
+  is_projective(M)[1] && return covered_scheme(spec(base_ring(M))), AbsCoveredSchemeMorphism[]
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  @assert all(repres(v) == g for (v, g) in zip(gens(M), gens(F))) "module must be presented as cokernel"
+  Y = spec(R)
+  I = ideal(R, reduce(vcat, [elem_type(R)[c[i] for i in 1:ngens(F) if !is_zero(c[i])] for c in relations(M)]))
+  I = ideal(R, small_generating_set(I))
+  bl = blow_up(Y, I)
+  MM = SimplifiedSheaf(module_as_sheaf(M; scheme=codomain(bl)))
+  st_M = StrictTransformSheaf(bl, MM)
+  return _resolve_module(SimplifiedSheaf(st_M), AbsCoveredSchemeMorphism[bl]; r0)
+end
+
+function resolve_module(M::AbsCoherentSheaf; r0::Union{Int, Nothing}=nothing)
+  X = scheme(M)
+  is_locally_free(M) && return M, AbsCoveredSchemeMorphism[]
+  return _resolve_module(SimplifiedSheaf(M), AbsCoveredSchemeMorphism[]; r0)
+end
+
+function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredSchemeMorphism}; r0::Union{Int, Nothing}=nothing)
+  @show "call to _resolve_module"
+  # We first look for some non-trivial fitting ideal, either from above or from 
+  # below, depending on whether or not `r0` is `nothing`. 
+  # In case the Fitting ideals jump from 0 to 1 (or the other way around), 
+  # the module is actually locally free and we can stop. Otherwise, we blow up 
+  # the first non-trivial fitting ideal from above. 
+  fitts = AbsIdealSheaf[]
+  if isnothing(r0)
+    p = 0
+    while true
+      fitt = FittingIdealSheaf(M, p)
+      @show p
+      @show is_zero(fitt)
+      @show is_one(fitt)
+      push!(fitts, fitt)
+      if is_zero(fitt)
+        p += 1
+        continue
+      end
+      if is_one(fitt)
+        return M, blowdows
+      end
+      break
+    end
+  else
+    p = r0
+    while true
+      fitt = FittingIdealSheaf(M, p)
+      @show p
+      @show is_zero(fitt)
+      @show is_one(fitt)
+      push!(fitts, fitt)
+      if is_one(fitt)
+        p -= 1
+        continue
+      end
+      if is_zero(fitt)
+        return M, blowdowns
+      end
+      break
+    end
+  end
+  @show p
+  @show M
+  X = scheme(M)
+  simp_cov = simplified_covering(X)
+  I = simplify(radical(fitts[end]))
+  @show is_zero(I) 
+  for U in patches(simp_cov)
+    @show U
+    @show M(U)
+    @show gens(I(U))
+  end
+  bl = blow_up(I; covering=simplified_covering(X))
+  st_M = SimplifiedSheaf(StrictTransformSheaf(bl, M))
+  return _resolve_module(st_M, push!(blowdowns, bl); r0)
+end
+
+function produce_object(M::ExteriorPowerSheaf, U::AbsAffineScheme)
+  return exterior_power(original_sheaf(M)(U), exponent(M))[1]
+end
+
+function produce_restriction_map(M::ExteriorPowerSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+  N = original_sheaf(M)
+  res = N(V, U)
+  return exterior_power(res, exponent(M); domain=M(V), codomain=M(U))
+end
+
+function trivializing_covering(M::ExteriorPowerSheaf; covering::Covering=default_covering(scheme(M)))
+  return trivializing_covering(original_sheaf(M); covering)
+end
