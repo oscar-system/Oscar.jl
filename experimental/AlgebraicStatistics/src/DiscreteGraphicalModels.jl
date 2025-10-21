@@ -36,7 +36,6 @@ end
 varnames(M::DiscreteGraphicalModel) = M.varnames
 states(M::DiscreteGraphicalModel) = M.states
 n_states(M::DiscreteGraphicalModel) = length(states(M))
-maximal_cliques(M::DiscreteGraphicalModel) = maximal_cliques(graph(M))
 
 function Base.show(io::IO, M::DiscreteGraphicalModel{T, L}) where {T, L}
   io = pretty(io)
@@ -82,7 +81,8 @@ p[1,2,1]
   return model_ring(QQ, varnames(M)[:p] => varindices)
 end
 
-function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
+
+function state_space(M::DiscreteGraphicalModel, C::Set{Int})
   return length(C) == 1 ? (1:states(M)[C[1]]) : Iterators.product([1:states(M)[i] for i in C]...)
 end
 
@@ -92,24 +92,31 @@ end
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
 
-``` jldoctest 
-julia> M = discrete_graphical_model(graph_from_edges([[1,2], [2,3]]), [2,2,2])
+``` jldoctest
+julia> G = graph_from_edges([[1,2], [2,3]]);
+
+julia> M = discrete_graphical_model(, [2,2,2])
 Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
 julia> _, PR_gens = parameter_ring(M);
 
 julia> PR_gens[[1, 2], (2, 2)]
-t[1, 2](2, 2)
+t{1, 2}(2, 2)
+
+julia> C = maximal_cliques(G);
+
+julia> PR_gens[first(C), (1, 2)]
+
 ```
 """
 @attr Tuple{
   MPolyRing,
   GenDict
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
-  cliques = sort(sort.(collect.(maximal_cliques(graph(M)))))
-  Xs = [sort(vec(collect(state_space(M, C)))) for C in cliques]
+  cliques = maximal_cliques(graph(M))
+  Xs = [state_space(M, C) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
-  gen_names = sort([varnames(M)[:t] * string(C) * string(x) for (C, x) in params])
+  gen_names = sort([varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params])
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = Dict(zip(params, t))
   return (R, gens_dict)
