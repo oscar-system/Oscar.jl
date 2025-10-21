@@ -1,5 +1,5 @@
 @testset "LieAlgebras.Combinatorics" begin
-    @testset "permutations" begin
+  @testset "permutations" begin
     permutations = Oscar.LieAlgebras.permutations
 
     for n in 1:6
