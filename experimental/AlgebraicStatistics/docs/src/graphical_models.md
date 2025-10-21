@@ -25,7 +25,7 @@ In can be the case that certain graphical models will benefit from certain algor
 In all other cases the vanishing ideal computation will fallback to this general function.
 There is a keyword argument for setting algorithm which is set to `:eliminate` by default, other possibilities are `:f4` and `:markov`.
 
-If you are only interested in generators up to a certain degree, considering using [`componens_of_kernel`](@ref) with `parametrization`.
+If you are only interested in generators up to a certain degree, considering using [`components_of_kernel`](@ref) with `parametrization`.
 ```@docs
 vanishing_ideal(M::GraphicalModel; algorithm::Symbol = :eliminate)
 ```
