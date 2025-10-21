@@ -867,26 +867,27 @@ end
 
 ### PhylogeneticModel & PhylogeneticTree
 
-#TODO: add explanation sorted_edges in the docs
 @doc raw"""
     parameter_ring(PM::PhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
    
 Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}` where
-`GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`.
+`GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`. 
+
+The optional `sorted_edges` argument is a vector of `Edge`s that specifies a precise ordering for the edges when creating the polynomial variables for the model parameters. If `sorted_edges` is not provided (`nothing`), a default order is applied: the pendant edges corresponding to leaves 1 through n are listed first, followed by the internal edges, which are sorted based on their descendant nodes.
 
 If `M  <: VarName`, returns a tuple containing:
-  1.  The polynomial ring.
-  2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
-  3.  The root distribution vector.
+  -  The polynomial ring.
+  -  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+  -  The root distribution vector.
 
 If `M  <: MPolyRingElem`, then returns a tuple containing:
-  1.  The polynomial ring.
-  2.  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original
-      transition matrix ring to the new parameter ring.
-  3.  The root distribution vector.
+  -  The polynomial ring.
+  -  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original transition matrix ring to the new parameter ring.
+  -  The root distribution vector.
 
-If `GT <: PhylogeneticNetwork` it additionally returns:
-  4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+  If `GT <: PhylogeneticNetwork` it additionally returns:
+  - A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+
 """
 @attr Tuple{
   MPolyRing, 
@@ -1125,12 +1126,14 @@ end
 
 Create the polynomial ring for the Fourier parameters of the model.
 
+The optional `sorted_edges` argument is a vector of `Edge`s that specifies a precise ordering for the edges when creating the polynomial variables for the model parameters. If `sorted_edges` is not provided (`nothing`), a default order is applied: the pendant edges corresponding to leaves 1 through n are listed first, followed by the internal edges, which are sorted based on their descendant nodes.
+
 Returns a tuple containing:
-1.  The polynomial ring.
-2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+-  The polynomial ring.
+-  A dictionary mapping parameter variables and edges to the corresponding ring generators.
 
 If `GT <: PhylogeneticNetwork` it additionally returns:
-  4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+  - A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
 """
 @attr Tuple{
   MPolyRing,
@@ -1610,8 +1613,8 @@ end
 ###################################################################################
 
 @doc raw"""
-    cavender_farris_neyman_model(G::AbstractGraph{Directed})
     cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
+    cavender_farris_neyman_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
 a 2-state model with a single transition probability per edge. 
@@ -1627,7 +1630,6 @@ transition matrices of the form
   :b :a]
 and fourier parameters of the form [:x, :y].
 ```
-
 """
 function cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b;
@@ -1643,8 +1645,8 @@ end
 cavender_farris_neyman_model(G::AbstractGraph{Directed}) = cavender_farris_neyman_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
-    jukes_cantor_model(G::AbstractGraph{Directed})
     jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
+    jukes_cantor_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
 a 4-state model where all non-diagonal transition probabilities are equal.
@@ -1677,9 +1679,9 @@ end
 jukes_cantor_model(G::AbstractGraph{Directed}) = jukes_cantor_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
-    kimura2_model(G::AbstractGraph{Directed})
     kimura2_model(F::Field, G::AbstractGraph{Directed})
-
+    kimura2_model(G::AbstractGraph{Directed})
+    
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
 a 4-state model with two non-diagonal transition probabilities.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
@@ -1712,8 +1714,8 @@ end
 kimura2_model(G::AbstractGraph{Directed}) = kimura2_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
-    kimura3_model(G::AbstractGraph{Directed})
     kimura3_model(F::Field, G::AbstractGraph{Directed})
+    kimura3_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
 a 4-state model with three non-diagonal different transition probabilities.
@@ -1747,8 +1749,8 @@ end
 kimura3_model(G::AbstractGraph{Directed}) = kimura3_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
-    general_markov_model(G::AbstractGraph{Directed})
     general_markov_model(F::Field, G::AbstractGraph{Directed})
+    general_markov_model(G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
@@ -1782,10 +1784,9 @@ end
 
 general_markov_model(G::AbstractGraph{Directed}) = general_markov_model(QQ, G::AbstractGraph{Directed})
 
-
 @doc raw"""
-    general_time_reversible_model(G::AbstractGraph{Directed})
     general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
+    general_time_reversible_model(G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general time reversible model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
