@@ -868,7 +868,7 @@ end
 ### PhylogeneticModel & PhylogeneticTree
 
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+    parameter_ring(PM::PhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
    
 Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}` where
 `GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`. 
@@ -893,8 +893,7 @@ If `M  <: MPolyRingElem`, then returns a tuple containing:
   MPolyRing, 
   GraphTransDict,
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, 
-                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -1122,7 +1121,7 @@ end
 
 ### GroupBasedPhylogeneticModel & PhylogeneticTree
 @doc raw"""
-    parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+    parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
 
 Create the polynomial ring for the Fourier parameters of the model.
 
@@ -1138,8 +1137,7 @@ If `GT <: PhylogeneticNetwork` it additionally returns:
 @attr Tuple{
   MPolyRing,
   GraphTransDict
-} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false,
-                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
   vars = unique(fourier_parameters(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -1155,7 +1153,7 @@ end
   GraphTransDict,
   GenDict
 } function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}; cached=false,
-                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+                          sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
   N = graph(PM)
 
   vars = unique(fourier_parameters(PM))

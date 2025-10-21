@@ -95,12 +95,12 @@ and fourier parameters of the form [:x, :y, :y, :y].
 ### Classic phylogenetic models
 Several classic phylogenetic models are pre-defined for convenience.
 ```@docs
-cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
-jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
-kimura2_model(F::Field, G::AbstractGraph{Directed})
-kimura3_model(F::Field, G::AbstractGraph{Directed})
-general_markov_model(F::Field, G::AbstractGraph{Directed})
-general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
+cavender_farris_neyman_model
+jukes_cantor_model
+kimura2_model
+kimura3_model
+general_markov_model
+general_time_reversible_model
 ```
 
 ## Properties
@@ -129,8 +129,8 @@ Two main rings are associated with any phylogenetic model: the _parameter ring_,
 The parameter ring's generators correspond to the symbolic parameters of the model. For a `PhylogeneticModel`, these are the entries of the transition matrices and root distribution. For a `GroupBasedPhylogeneticModel`, they are the Fourier parameters.
 
 ```@docs
-parameter_ring(PM::PhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
-parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
+parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
 ```
 
 To access specific parameters (entries of the treansition matrices, fourier parameters, entry of the root distriution or paramters associated to hybrid nodes in phylo networks) you can use the following functions:

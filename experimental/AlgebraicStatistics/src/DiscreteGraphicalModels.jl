@@ -88,7 +88,7 @@ end
 state_space(M::DiscreteGraphicalModel, C::Set{Int}) = state_space(M, collect(C))
 
 @doc raw"""
-    parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
+    parameter_ring(M::DiscreteGraphicalModel; cached=false)
 
 Return the ring of parameters of the statistical model, together with a
 Dict for indexing its generators.
@@ -96,7 +96,7 @@ Dict for indexing its generators.
 ``` jldoctest
 julia> G = graph_from_edges([[1,2], [2,3]]);
 
-julia> M = discrete_graphical_model(, [2,2,2])
+julia> M = discrete_graphical_model(G, [2,2,2])
 Discrete Graphical Model on a Undirected graph with 3 nodes and 2 edges with states [2, 2, 2]
 
 julia> _, PR_gens = parameter_ring(M);
@@ -107,7 +107,7 @@ t{1, 2}(2, 2)
 julia> C = maximal_cliques(G);
 
 julia> PR_gens[first(C), (1, 2)]
-
+t{2,3}(1, 2)
 ```
 """
 @attr Tuple{
