@@ -12,16 +12,16 @@ Iterator over the 2-combinations of 1:4 with repetition
 
 julia> collect(C)
 10-element Vector{Combination{Int64}}:
-[1, 1]
-[1, 2]
-[1, 3]
-[1, 4]
-[2, 2]
-[2, 3]
-[2, 4]
-[3, 3]
-[3, 4]
-[4, 4]
+ [1, 1]
+ [1, 2]
+ [1, 3]
+ [1, 4]
+ [2, 2]
+ [2, 3]
+ [2, 4]
+ [3, 3]
+ [3, 4]
+ [4, 4]
 ```
 """
 multicombinations(n::T, k::T) where T<:IntegerUnion = MultiCombinations(Base.oneto(n), n, k)
@@ -37,12 +37,12 @@ The order of the combinations is lexicographic.
 ```jldoctest
 julia> collect(multicombinations(['a', 'b', 'c'], 2))
 6-element Vector{Combination{Char}}:
-['a', 'a']
-['a', 'b']
-['a', 'c']
-['b', 'b']
-['b', 'c']
-['c', 'c']
+ ['a', 'a']
+ ['a', 'b']
+ ['a', 'c']
+ ['b', 'b']
+ ['b', 'c']
+ ['c', 'c']
 ```
 """
 multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
