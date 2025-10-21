@@ -20,7 +20,7 @@
     @test eltype(C) === Combination{Int16}
 
     C = multicombinations('a':'c', 3)
-    @test length(C) == 4
+    @test length(C) == 10
     @test collect(C) == [['a', 'a', 'a'],
                          ['a', 'a', 'b'],
                          ['a', 'a', 'c'],
