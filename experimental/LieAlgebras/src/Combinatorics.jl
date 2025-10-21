@@ -2,7 +2,6 @@
 # Most implementations here are quite slow and should be replaced by a
 # more efficient implementation.
 
-
 function permutations(n::Integer)
   return map(Vector{Int}, AbstractAlgebra.SymmetricGroup(n))
 end
