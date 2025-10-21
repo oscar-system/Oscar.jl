@@ -16,7 +16,7 @@
     end
 
     # Model parameters G-B PHYLO MODEL
-      for e in edges(graph(model))
+    for e in edges(graph(model))
       @test allunique([entry_fourier_parameter(model, i, e) for i in 1:2])
     end
     G = group(model)
