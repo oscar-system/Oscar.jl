@@ -37,11 +37,11 @@ dim(f::AbstractVarietyMap)
 ```
 
 ```@docs
-pullback(f::AbstractVarietyMap, y::MPolyDecRingElem)
+pullback(f::AbstractVarietyMap, y::MPolyDecRingOrQuoElem)
 ```
 
 ```@docs
-pushforward(f::AbstractVarietyMap, x::MPolyDecRingElem)
+pushforward(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem)
 ```
 
 ```@docs
