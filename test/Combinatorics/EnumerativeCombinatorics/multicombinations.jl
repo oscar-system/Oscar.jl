@@ -35,11 +35,11 @@
   end
 
   for n in 1:5, k in 1:n
-    @test collect(multicombinations(n, k)) == collect(combinations(1:n, k))
+    @test collect(multicombinations(n, k)) == collect(multicombinations(1:n, k))
   end
 
-  @test collect(combinations(["1", "2", "3", "4"], 0)) == [String[]]
-  @test collect(combinations(["1", "2", "3", "4"], 1)) == [["1"], ["2"], ["3"], ["4"]]
+  @test collect(multicombinations(["1", "2", "3", "4"], 0)) == [String[]]
+  @test collect(multicombinations(["1", "2", "3", "4"], 1)) == [["1"], ["2"], ["3"], ["4"]]
   @test collect(multicombinations(["1", "2", "3", "4"], 2)) == [
     ["1", "1"],
     ["1", "2"],
