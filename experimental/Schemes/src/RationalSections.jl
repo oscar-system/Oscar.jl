@@ -72,4 +72,50 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
   # one is caught above
   return produce_rational_section(s, U)
 end
-      
+
+function check_codim(U,I)
+    n = dim(U)
+    @assert base_ring(I) == OO(U) "The provided ideal is not an ideal of the provided ring"
+    n - dim(I) == 1
+end
+    
+
+function div(s::Oscar.RationalSection)
+    X = Oscar.scheme(s)
+    F = Oscar.sheaf(s)
+    triv_cov = trivializing_covering(F)
+    simp_num = algebraic_cycle(X,ZZ)
+    simp_denom = algebraic_cycle(X,ZZ)
+    for U in triv_cov
+        num = s(U)[1]
+        denom = s(U)[2]
+        n = dim(OO(X)(U))
+        if !is_unit(num)
+            N = minimal_primes(ideal(OO(X)(U),num))
+            for p in N
+                if check_codim(U,p)
+                    if !any(map(t -> t(U) == p,components(simp_num)))
+                        stalk = localization(OO(U),complement_of_prime_ideal(p))
+                        fp = ideal(stalk[1],stalk[2](num))
+                        multp = length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
+                        simp_num = simp_num + multp*algebraic_cycle(Oscar.PrimeIdealSheafFromChart(X,U,p))
+                    end
+                end
+            end
+        end
+        if !is_unit(denom)
+            D = minimal_primes(ideal(OO(X)(U),denom))
+            for p in D
+                if check_codim(U,p)
+                    if !any(map(t -> t(U) == p,components(simp_denom)))
+                        stalk = localization(OO(U),complement_of_prime_ideal(p))
+                        fp = ideal(stalk[1],stalk[2](num))
+                        multp = length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
+                        simp_denom = simp_denom + multp*algebraic_cycle(Oscar.PrimeIdealSheafFromChart(X,U,p))
+                    end
+                end
+            end
+        end
+    end
+    simp_num - simp_denom
+end
