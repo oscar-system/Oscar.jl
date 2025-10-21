@@ -866,38 +866,42 @@ end
 ###################################################################################
 
 ### PhylogeneticModel & PhylogeneticTree
+
 @doc raw"""
-    parameter_ring(PM::PhylogeneticModel; cached=false)
+    parameter_ring(PM::PhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
    
 Create the polynomial ring for the parameters of a phylogenetic model `PhylogeneticModel{GT, L, M, T}` where
-`GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`.
+`GT <: PhylogeneticTree` or `GT <: PhylogeneticNetwork`. 
+
+The optional `sorted_edges` argument is a vector of `Edge`s that specifies a precise ordering for the edges when creating the polynomial variables for the model parameters. If `sorted_edges` is not provided (`nothing`), a default order is applied: the pendant edges corresponding to leaves 1 through n are listed first, followed by the internal edges, which are sorted based on their descendant nodes.
 
 If `M  <: VarName`, returns a tuple containing:
-  1.  The polynomial ring.
-  2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
-  3.  The root distribution vector.
+  -  The polynomial ring.
+  -  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+  -  The root distribution vector.
 
 If `M  <: MPolyRingElem`, then returns a tuple containing:
-  1.  The polynomial ring.
-  2.  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original
-      transition matrix ring to the new parameter ring.
-  3.  The root distribution vector.
+  -  The polynomial ring.
+  -  A dictionary mapping each edge to a homomorphism (`Oscar.MPolyAnyMap`) from the original transition matrix ring to the new parameter ring.
+  -  The root distribution vector.
 
-If `GT <: PhylogeneticNetwork` it additionally returns:
-  4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+  If `GT <: PhylogeneticNetwork` it additionally returns:
+  - A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+
 """
 @attr Tuple{
   MPolyRing, 
   GraphTransDict,
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, 
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem} 
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
   
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-      (j,e) in enumerate(sort_edges(graph(PM)))
+      (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
       ), root_distribution(PM)
 end
 
@@ -905,7 +909,8 @@ end
   MPolyRing,
   GraphTransDict,
   Vector{<:MPolyRingElem}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName}; cached=false) where {L}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM),
@@ -914,7 +919,7 @@ end
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-      (j,e) in enumerate(sort_edges(graph(PM)))
+      (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
       ), r
 end
 
@@ -922,7 +927,8 @@ end
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
 
@@ -930,7 +936,7 @@ end
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
   
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, map)
   end
@@ -942,7 +948,8 @@ end
   MPolyRing, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: MPolyRingElem}
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -953,7 +960,7 @@ end
   coef_map = hom(coefficient_ring(trans_ring), R, rv)
 
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, coef_map, map)
   end
@@ -965,8 +972,8 @@ end
   MPolyRing{RT}, 
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem} 
-  #function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem} 
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
@@ -975,7 +982,7 @@ end
   R, x... = polynomial_ring(coefficient_ring(trans_ring), edge_gens..., ; cached=cached)
 
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
     map = [x[i][j] for i in 1:length(transition_vars)]
     dict_maps[e] = hom(trans_ring, R, map)
   end
@@ -988,7 +995,8 @@ end
   GraphTransDict,
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName, RT}; cached=false) where {L, RT <: FieldElem} 
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem} 
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
@@ -1000,7 +1008,7 @@ end
   hyb = hybrids(N)
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-      (j,e) in enumerate(sort_edges(N))
+      (j,e) in enumerate(sort_edges(N, sorted_edges))
       ), root_distribution(PM), 
       Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
 end
@@ -1010,11 +1018,12 @@ end
   GraphTransDict,
   Vector{<:MPolyRingElem},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName}; cached=false)  where {L}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)  where {L}
   N = graph(PM)
 
   vars = unique(transition_matrix(PM))
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
+  edge_gens = [x => 1:n_edges(N) for x in vars]
   h_nodes = hybrid_vertices(N)
   R, r, l, x... = polynomial_ring(base_field(PM),
                                root_distribution(PM),
@@ -1024,7 +1033,7 @@ end
   hyb = hybrids(N)                               
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
-      (j,e) in enumerate(sort_edges(graph(PM)))
+      (j,e) in enumerate(sort_edges(N, sorted_edges))
       ), r, Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
 end
 
@@ -1033,18 +1042,19 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
 
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+  edge_gens = [x => 1:n_edges(N) for x in Symbol.(transition_vars)]
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes), 1:2), edge_gens...; cached=cached)
   
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, map)
   end
@@ -1058,21 +1068,22 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: MPolyRingElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: MPolyRingElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
 
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+  edge_gens = [x => 1:n_edges(N) for x in Symbol.(transition_vars)]
   h_nodes = hybrid_vertices(N)
   R, rv, l, x... = polynomial_ring(base_field(PM), Symbol.(root_vars), :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
 
   coef_map = hom(coefficient_ring(trans_ring), R, rv)
 
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, coef_map, map)
   end
@@ -1087,19 +1098,20 @@ end
   Dict{Edge, Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   N = graph(PM)
 
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
 
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
+  edge_gens = [x => 1:n_edges(N) for x in Symbol.(transition_vars)]
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(coefficient_ring(trans_ring), :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
 
   dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
-  for (j,e) in enumerate(Oscar.sort_edges(graph(PM)))
+  for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
     map = [x[i][j] for i in 1:length(transition_vars)]
     dict_maps[e] = hom(trans_ring, R, map)
   end
@@ -1110,27 +1122,30 @@ end
 
 ### GroupBasedPhylogeneticModel & PhylogeneticTree
 @doc raw"""
-    parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false)
+    parameter_ring(PM::GroupBasedPhylogeneticModel; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
 
 Create the polynomial ring for the Fourier parameters of the model.
 
+The optional `sorted_edges` argument is a vector of `Edge`s that specifies a precise ordering for the edges when creating the polynomial variables for the model parameters. If `sorted_edges` is not provided (`nothing`), a default order is applied: the pendant edges corresponding to leaves 1 through n are listed first, followed by the internal edges, which are sorted based on their descendant nodes.
+
 Returns a tuple containing:
-1.  The polynomial ring.
-2.  A dictionary mapping parameter variables and edges to the corresponding ring generators.
+-  The polynomial ring.
+-  A dictionary mapping parameter variables and edges to the corresponding ring generators.
 
 If `GT <: PhylogeneticNetwork` it additionally returns:
-  4. A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
+  - A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
 """
 @attr Tuple{
   MPolyRing,
   GraphTransDict
-} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false)
+} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
   vars = unique(fourier_parameters(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))
+    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
   )
 end
 
@@ -1139,11 +1154,12 @@ end
   MPolyRing,
   GraphTransDict,
   GenDict
-} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}; cached=false)
+} function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
   N = graph(PM)
 
   vars = unique(fourier_parameters(PM))
-  edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
+  edge_gens = [x => 1:n_edges(N) for x in vars]
   h_nodes = hybrid_vertices(N)
 
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes),1:2), edge_gens...; cached=cached)
@@ -1151,7 +1167,7 @@ end
 
   hyb = hybrids(N)
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-     (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM)))),
+     (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(N, sorted_edges))),
      Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
 
 end
@@ -1210,6 +1226,9 @@ end
 
 @attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
+  if level(N) > 1
+    error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
+  end
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -1259,6 +1278,9 @@ end
 
 @attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
+  if level(N) > 1
+    error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
+  end
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -1591,10 +1613,12 @@ end
 ###################################################################################
 
 @doc raw"""
+    cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
     cavender_farris_neyman_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-Neyman model,
-a 2-state model with a single transition probability per edge.
+a 2-state model with a single transition probability per edge. 
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1606,9 +1630,8 @@ transition matrices of the form
   :b :a]
 and fourier parameters of the form [:x, :y].
 ```
-
 """
-function cavender_farris_neyman_model(G::AbstractGraph{Directed})
+function cavender_farris_neyman_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b;
        :b :a]
   x = [:x, :y] 
@@ -1617,14 +1640,17 @@ function cavender_farris_neyman_model(G::AbstractGraph{Directed})
   group = [group[1],group[2]]
   
   #PhylogeneticModel(G, M)
-  GroupBasedPhylogeneticModel(G, M, x, group) 
+  GroupBasedPhylogeneticModel(F, G, M, x, group) 
 end
+cavender_farris_neyman_model(G::AbstractGraph{Directed}) = cavender_farris_neyman_model(QQ, G::AbstractGraph{Directed})
 
 @doc raw"""
+    jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
     jukes_cantor_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor model,
 a 4-state model where all non-diagonal transition probabilities are equal.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1641,20 +1667,24 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :y, :y].
 ```
 """
-function jukes_cantor_model(G::AbstractGraph{Directed})
+function jukes_cantor_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :b :b;
        :b :a :b :b;
        :b :b :a :b;
        :b :b :b :a]
   x = [:x, :y, :y, :y] 
-  GroupBasedPhylogeneticModel(G, M, x) 
+  GroupBasedPhylogeneticModel(F, G, M, x) 
 end
 
-@doc raw"""
-    kimura2_model(G::AbstractGraph{Directed})
+jukes_cantor_model(G::AbstractGraph{Directed}) = jukes_cantor_model(QQ, G::AbstractGraph{Directed})
 
+@doc raw"""
+    kimura2_model(F::Field, G::AbstractGraph{Directed})
+    kimura2_model(G::AbstractGraph{Directed})
+    
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-parameter model,
 a 4-state model with two non-diagonal transition probabilities.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1671,21 +1701,25 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :z].
 ```
 """
-function kimura2_model(G::AbstractGraph{Directed})
+function kimura2_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :c :b;
        :b :a :b :c;
        :c :b :a :b;
        :b :c :b :a]
   x = [:x, :y, :z, :z] 
   
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(F, G, M, x)
 end
 
+kimura2_model(G::AbstractGraph{Directed}) = kimura2_model(QQ, G::AbstractGraph{Directed})
+
 @doc raw"""
+    kimura3_model(F::Field, G::AbstractGraph{Directed})
     kimura3_model(G::AbstractGraph{Directed})
 
 Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-parameter model,
 a 4-state model with three non-diagonal different transition probabilities.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1702,21 +1736,25 @@ transition matrices of the form
 and fourier parameters of the form [:x, :y, :z, :t].
 ```
 """
-function kimura3_model(G::AbstractGraph{Directed})
+function kimura3_model(F::Field, G::AbstractGraph{Directed})
   M = [:a :b :c :d;
        :b :a :d :c;
        :c :d :a :b;
        :d :c :b :a]
   x = [:x, :y, :z, :t] 
   
-  GroupBasedPhylogeneticModel(G, M, x)
+  GroupBasedPhylogeneticModel(F, G, M, x)
 end
-  
+
+kimura3_model(G::AbstractGraph{Directed}) = kimura3_model(QQ, G::AbstractGraph{Directed})
+
 @doc raw"""
+    general_markov_model(F::Field, G::AbstractGraph{Directed})
     general_markov_model(G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general Markov model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1732,7 +1770,7 @@ with root distribution [π1, π2, π3, π4] and transition matrices of the form
 
 ```
 """
-function general_markov_model(G::AbstractGraph{Directed})
+function general_markov_model(F::Field, G::AbstractGraph{Directed})
 
   M = [:m11 :m12 :m13 :m14;
        :m21 :m22 :m23 :m24;
@@ -1741,14 +1779,18 @@ function general_markov_model(G::AbstractGraph{Directed})
   
   root_distr = [:π1, :π2, :π3, :π4]
   
-  PhylogeneticModel(G, M, root_distr)
+  PhylogeneticModel(F, G, M, root_distr)
 end
 
+general_markov_model(G::AbstractGraph{Directed}) = general_markov_model(QQ, G::AbstractGraph{Directed})
+
 @doc raw"""
+    general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
     general_time_reversible_model(G::AbstractGraph{Directed})
 
 Constructs a `PhylogeneticModel` corresponding to a general time reversible model with four states.
 All transition matrix entries and root distribution entries are treated as independent parameters.
+If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
 Example
 ```jldoctest
@@ -1763,8 +1805,7 @@ with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the f
   r[1]*d r[2]*f r[3]*g r[4]*a].
 ```
 """
-function general_time_reversible_model(G::AbstractGraph{Directed})
-
+function general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
   Rp, r = polynomial_ring(QQ, :r => 1:4);
   RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);
 
@@ -1774,6 +1815,9 @@ function general_time_reversible_model(G::AbstractGraph{Directed})
        d*r[1] f*r[2] g*r[3] a*r[4]
   ];
 
-  PM = PhylogeneticModel(G, M, r)
+  PM = PhylogeneticModel(F, G, M, r)
 end
+
+general_time_reversible_model(G::AbstractGraph{Directed}) = general_time_reversible_model(QQ, G::AbstractGraph{Directed})
+
 

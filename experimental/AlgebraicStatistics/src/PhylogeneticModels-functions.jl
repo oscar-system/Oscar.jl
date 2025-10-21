@@ -19,14 +19,21 @@ end
 root(graph::Graph) = roots(graph)[1]
 
 
-function sort_edges(graph::Graph)
+function sort_edges(graph::Graph, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
+  if !isnothing(sorted_edges) 
+    if Set(collect(edges(graph))) == Set(sorted_edges)
+      return sorted_edges
+    else
+      @warn("Expected edges $(collect(edges(graph))) and got $sorted_edges")
+    end
+  end
   edgs = collect(edges(graph))
   leaves_idx = findall(edge -> dst(edge) in leaves(graph), edgs)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
 end
 
-sort_edges(N::PhylogeneticNetwork) = sort_edges(graph(N))
-sort_edges(pt::PhylogeneticTree) = sort_edges(adjacency_tree(pt))
+sort_edges(N::PhylogeneticNetwork{M,L}, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {M, L} = sort_edges(graph(N), sorted_edges)
+sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) = sort_edges(adjacency_tree(pt), sorted_edges)
 
 function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
   lvs = leaves(gr)

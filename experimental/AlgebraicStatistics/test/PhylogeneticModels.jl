@@ -321,10 +321,72 @@
     @test ngens(full_model_ring(PM2)[1]) == 2^length(leaves(N2))
     @test ngens(full_model_ring(PM3)[1]) == 2^length(leaves(N3))
 
-    #TODO: Check some entry of parametrization:
-    # f1 = parametrization(PM1)
-    # f1 = parametrization(PM2)
-    # f1 = parametrization(PM3)
+    @testset "parametrizations Networks" begin
+      # N1
+      SS = parameter_ring(PM1)
+      RR = model_ring(PM1)
+      q = RR[2]
+      fN1 = parametrization(PM1)
+
+
+      T1 = graph_from_edges(Directed,[[5,1], [6,5], [7,6], [7,8], [6,2], [7,3], [8,4]]);
+      T2 = graph_from_edges(Directed,[[5,1], [7,6], [7,8], [8,5], [6,2], [7,3], [8,4]]);
+
+      PMT1 = cavender_farris_neyman_model(T1)
+      PMT2 = cavender_farris_neyman_model(T2)
+
+      set_attribute!(PMT1, :parameter_ring, SS[1:2])
+      set_attribute!(PMT2, :parameter_ring, SS[1:2])
+
+      set_attribute!(PMT1, :model_ring, RR)
+      set_attribute!(PMT2, :model_ring, RR)
+
+      f1 = parametrization(PMT1)
+      f2 = parametrization(PMT2)
+
+      @test fN1(q[1, 1, 1, 1]) == SS[3][Edge(6,5)]*f1(q[1, 1, 1, 1]) + SS[3][Edge(8,5)]*f2(q[1, 1, 1, 1]) 
+      @test fN1(q[1, 2, 1, 2]) == SS[3][Edge(6,5)]*f1(q[1, 2, 1, 2]) + SS[3][Edge(8,5)]*f2(q[1, 2, 1, 2]) 
+
+      # N2
+      SS = parameter_ring(PM2)
+      RR = model_ring(PM2)
+      q = RR[2]
+      fN2 = parametrization(PM2)
+
+      T1 = graph_from_edges(Directed,[[7,2], [8,7], [7,6], [9,8], [10,9], [11,10], [11,12], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+      T2 = graph_from_edges(Directed,[[7,2], [8,7], [7,6], [9,8], [10,9], [11,12], [12,10], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+      T3 = graph_from_edges(Directed,[[7,2], [8,7], [8,6], [9,8], [10,9], [11,10], [11,12], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+      T4 = graph_from_edges(Directed,[[7,2], [8,7], [8,6], [9,8], [10,9], [11,12], [12,10], [7,2], [6,1], [9,3], [11,4], [12,5]]);
+
+      PMT1 = cavender_farris_neyman_model(T1)
+      PMT2 = cavender_farris_neyman_model(T2)
+      PMT3 = cavender_farris_neyman_model(T3)
+      PMT4 = cavender_farris_neyman_model(T4)
+
+      set_attribute!(PMT1, :parameter_ring, SS[1:2])
+      set_attribute!(PMT2, :parameter_ring, SS[1:2])
+      set_attribute!(PMT3, :parameter_ring, SS[1:2])
+      set_attribute!(PMT4, :parameter_ring, SS[1:2])
+
+      set_attribute!(PMT1, :model_ring, RR)
+      set_attribute!(PMT2, :model_ring, RR)
+      set_attribute!(PMT3, :model_ring, RR)
+      set_attribute!(PMT4, :model_ring, RR)
+
+      f1 = parametrization(PMT1)
+      f2 = parametrization(PMT2)
+      f3 = parametrization(PMT3)
+      f4 = parametrization(PMT4)
+
+      l11 = SS[3][Edge(7,6)]
+      l12 = SS[3][Edge(8,6)]
+      l21 = SS[3][Edge(11,10)]
+      l22 = SS[3][Edge(12,10)]
+
+      @test fN2(q[1, 1, 1, 1, 1]) == l11*l21*f1(q[1, 1, 1, 1, 1]) + l11*l22*f2(q[1, 1, 1, 1, 1]) + l12*l21*f3(q[1, 1, 1, 1, 1]) + l12*l22*f4(q[1, 1, 1, 1, 1]) 
+      @test fN2(q[1, 1, 2, 2, 1]) == l11*l21*f1(q[1, 1, 2, 2, 1]) + l11*l22*f2(q[1, 1, 2, 2, 1]) + l12*l21*f3(q[1, 1, 2, 2, 1]) + l12*l22*f4(q[1, 1, 2, 2, 1]) 
+
+    end
 
   end
 end

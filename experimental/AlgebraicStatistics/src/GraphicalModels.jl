@@ -62,7 +62,7 @@ parametrization(M::T) where T <: GraphicalModel = error("Please implement the me
 numerator(f::MPolyRingElem) = f
 denominator(f::MPolyRingElem) = parent(f)(1)
 
-#TODO update docs with an example?
+#TODO update docs with an example? and with info about all possible algorithms
 @doc raw"""
     vanishing_ideal(M::GraphicalModel; algorithm::Symbol = :eliminate)
 
@@ -97,6 +97,7 @@ function vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
       invariants = eliminate(I, elim_gens[1:ngens(R)])
     elseif algorithm == :f4
       invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
+      return invariants
     elseif algorithm == :markov
       o = lex(elim_ring)
       groebner_basis(I; ordering=o, algorithm=:markov)
