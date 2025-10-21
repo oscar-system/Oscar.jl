@@ -34,7 +34,7 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
       e = first(gens(F(V)))
       res = F(V, U)
       new_num = res(num*e)[1]
-      new_den = res(den*e)[1]
+      new_den = OO(X)(V, U)(den)
       return new_num, new_den
     end
   end
@@ -48,7 +48,7 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
         trans = F(V, UV)
         e = first(gens(F(V)))
         new_num = trans(num*e)[1]
-        new_den = trans(den*e)[1]
+        new_den = OO(X)(V, UV)(den)
         frac = (lifted_numerator(new_num)*lifted_denominator(new_den))//(lifted_denominator(new_num)*lifted_numerator(new_den))
         res = F(U, UV)
         comp = matrix(res)[1, 1]
@@ -57,9 +57,13 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
       else
         VV = __find_chart(V, triv_cov)
         res = F(VV, V)
-        e = first(gens(F(V)))
-        new_num = preimage(res, num*e)[1]
-        new_den = preimage(res, den*e)[1]
+        mat_res = matrix(res)[1, 1]
+        num_res = OO(X)(VV, V)(num)
+        den_res = OO(X)(VV, V)(den)
+        frac = (lifted_numerator(num_res)*lifted_denominator(den_res))//(lifted_denominator(num_res)*lifted_numerator(den_res))
+        frac = (numerator(frac)*lifted_denominator(mat_res))//(denominator(frac)*lifted_numerator(mat_res))
+        new_num = numerator(frac)
+        new_den = denominator(frac)
         s.cache[VV] = (new_num, new_den)
         return produce_rational_section(s, U)
       end
@@ -71,6 +75,53 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
   # cache has been filled by the previous call so that the next 
   # one is caught above
   return produce_rational_section(s, U)
+end
+
+function weil_divisor(s::RationalSection; ring::Ring=ZZ)
+  M = sheaf(s)
+  X = scheme(M)
+  cov = trivializing_covering(M)
+  #decomp_info = decomposition_info(cov)
+  result = weil_divisor(X, ring)
+
+  for U in patches(cov)
+    num, den = s(U)
+    num_ideal = ideal(num)
+    den_ideal = ideal(den)
+    num_primes = [P for P in minimal_primes(num_ideal) if dim(P) == dim(X) - 1]
+    den_primes = [P for P in minimal_primes(den_ideal) if dim(P) == dim(X) - 1]
+    num_mults = Dict{Ideal, Int}(P=>_colength_in_localization(num_ideal, P) for P in num_primes)
+    den_mults = Dict{Ideal, Int}(P=>_colength_in_localization(den_ideal, P) for P in den_primes)
+    for (P, k) in den_mults
+      if haskey(num_mults, P)
+        e = num_mults[P]
+        e = e - k
+        if is_zero(e)
+          delete!(num_mults, P)
+        else
+          num_mults[P] = e
+        end
+      else
+        num_mults[P] = -k
+      end
+    end
+
+    for (P, k) in num_mults
+      found = false
+      for Q in components(result) 
+        if Q(U) == P
+          @assert k == result[Q]
+          found = true
+          break
+        end
+      end
+      found && continue
+      PP = PrimeIdealSheafFromChart(X, U, P)
+      inc = k*weil_divisor(PP, ring)
+      result = result + inc
+    end
+  end
+  return result
 end
 
 function check_codim(U,I)
