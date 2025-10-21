@@ -11,6 +11,10 @@ function Base.getindex(D::GenDict{Tuple{Set{Int}, T}}, s::Vector{Int}, t::T) whe
   return D[Set{Int}(s), t]
 end
 
+function Base.getindex(D::GenDict{Tuple{Int, Int, Set{Int}}}, i::Int, j::Int, s::Vector{Int})
+  return D[i, j, Set{Int}(s)]
+end
+
 const GraphTransDict = Dict{Tuple{VarName, Edge}, T} where T <: MPolyRingElem
 
 function Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int)

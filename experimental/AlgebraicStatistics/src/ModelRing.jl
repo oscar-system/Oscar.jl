@@ -21,6 +21,7 @@ struct ModelRing{T, U}
 end
 
 _ring(R::ModelRing) = R.R
+elem_type(R::ModelRing) = elem_type(_ring(R))
 gens(R::ModelRing) = R.index_to_gen
 ngens(R::ModelRing) = ngens(_ring(R))
 

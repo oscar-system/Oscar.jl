@@ -81,10 +81,11 @@ p[1,2,1]
   return model_ring(QQ, varnames(M)[:p] => varindices)
 end
 
-
-function state_space(M::DiscreteGraphicalModel, C::Set{Int})
+function state_space(M::DiscreteGraphicalModel, C::Vector{Int})
   return length(C) == 1 ? (1:states(M)[C[1]]) : Iterators.product([1:states(M)[i] for i in C]...)
 end
+
+state_space(M::DiscreteGraphicalModel, C::Set{Int}) = state_space(M, collect(C))
 
 @doc raw"""
     parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false)
@@ -221,24 +222,13 @@ obtained via `last(gens(R))` but is not listed in the dictionary of generators.
 julia> M = discrete_graphical_model(graph_from_edges(Directed, [[1,3], [2,3], [3,4]]), [2,2,2,2])
 Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with states [2, 2, 2, 2]
 
-julia> parameter_ring(M)[2]
-Dict{Tuple{Int64, Int64, Vector{Int64}}, QQMPolyRingElem} with 16 entries:
-  (4, 2, [1])    => q[4](2 | 1)
-  (3, 1, [2, 2]) => q[3](1 | 2, 2)
-  (2, 2, [])     => q[2](2)
-  (3, 1, [1, 2]) => q[3](1 | 2, 1)
-  (4, 1, [2])    => q[4](1 | 2)
-  (1, 1, [])     => q[1](1)
-  (3, 2, [2, 2]) => q[3](2 | 2, 2)
-  (3, 2, [1, 2]) => q[3](2 | 2, 1)
-  (4, 2, [2])    => q[4](2 | 2)
-  (1, 2, [])     => q[1](2)
-  (3, 1, [2, 1]) => q[3](1 | 1, 2)
-  (3, 1, [1, 1]) => q[3](1 | 1, 1)
-  (4, 1, [1])    => q[4](1 | 1)
-  (2, 1, [])     => q[2](1)
-  (3, 2, [2, 1]) => q[3](2 | 1, 2)
-  (3, 2, [1, 1]) => q[3](2 | 1, 1)
+julia> _, PR_gens = parameter_ring(M);
+
+julia> PR_gens[2, 1, [2]]
+q[2](1 | 2)
+
+julia> PR_gens[1, 1, Set{Int}()]
+q[1](1)
 ```
 """
 @attr Tuple{
@@ -246,16 +236,16 @@ Dict{Tuple{Int64, Int64, Vector{Int64}}, QQMPolyRingElem} with 16 entries:
   GenDict
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false) where T
   G = graph(M)
-  params = []
+  params = Tuple{Int, Int, Set{Int}}[]
   for i in 1:n_vertices(G)
     pa = parents(G, i);
     if length(pa) == 0
-      append!(params, (i, x, Int64[]) for x in state_space(M, [i]))
+      append!(params, (i, x, Set{Int}([])) for x in state_space(M, [i]))
     else
-      append!(params, (i, x, collect(Iterators.flatten([y]))) for x in state_space(M, [i]) for y in state_space(M, pa))
+      append!(params, (i, x, Set{Int}(Iterators.flatten([y]))) for x in state_space(M, [i]) for y in state_space(M, pa))
     end
   end
-  gen_names = sort([varnames(M)[:q] * "[" * string(i) * "](" * string(x) * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params])
+  gen_names = [varnames(M)[:q] * "[" * string(i) * "](" * string(x) * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params]
   push!(gen_names, "_h")
   R, q = polynomial_ring(QQ, gen_names; cached=cached);
   gens_dict = Dict(p => q[k] for (k, p) in enumerate(params))
@@ -303,18 +293,18 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}, T}) where T
   images = elem_type(R)[]
   for p in gens(_ring(S))
     s = collect(S[p]) # get label of the variable but as a vector for type reasons
-    push!(images, prod(qd[(i, s[i], s[parents(G, i)])] for i in 1:n))
+    push!(images, prod(qd[i, s[i], s[parents(G, i)]] for i in 1:n))
   end
   # There are linear constraints to enforce on the `images`. Instead of
   # doing this by hand, we employ a Gröbner basis of the linear ideal.
-  condprob = []
+  condprob = elem_type(S)[]
   for i in 1:n
     pa = parents(G, i)
     if length(pa) == 0
-      push!(condprob, h - sum(qd[(i, x, Int64[])] for x in state_space(M, [i])))
+      push!(condprob, h - sum(qd[i, x, Int64[]] for x in state_space(M, [i])))
     else
       for y in state_space(M, pa)
-        push!(condprob, h - sum(qd[(i, x, collect(Iterators.flatten([y])))] for x in state_space(M, [i])))
+        push!(condprob, h - sum(qd[i, x, collect(Iterators.flatten([y]))] for x in state_space(M, [i])))
       end
     end
   end
