@@ -53,19 +53,14 @@ julia> V, f = galois_module(K); OK = ring_of_integers(K); M = f(OK);
 
 julia> fl, c = is_free_with_basis(M); # the elements of c form a basis
 
-julia> b = preimage(f, c[1]) # the element may be different per session
-a^3
+julia> b = preimage(f, c[1]); # the element may be different per session
 
 julia> A, mA = automorphism_group(K);
 
-julia> X = matrix(ZZ, [coordinates(OK(mA(s)(b))) for s in A])
-[0    0    0    1]
-[1   -1    1   -1]
-[0    0   -1    0]
-[0    1    0    0]
+julia> X = matrix(ZZ, [coordinates(OK(mA(s)(b))) for s in A]);
 
-julia> det(X)
--1
+julia> is_unit(det(X))
+true
 
 julia> k, = number_field(x^4 - 13*x^2 + 16); candidates = []; for F in abelian_normal_extensions(k, [2], ZZ(10)^13)
          K, = absolute_simple_field(number_field(F))
