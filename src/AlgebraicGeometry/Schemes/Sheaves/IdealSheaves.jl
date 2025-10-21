@@ -2364,3 +2364,36 @@ function is_zero(II::PrimeIdealSheafFromChart)
   return is_zero(II(original_chart(II)))
 end
 
+original_sheaf(I::FittingIdealSheaf) = I.M
+scheme(I::FittingIdealSheaf) = I.X
+underlying_presheaf(I::FittingIdealSheaf) = I.F
+
+function produce_object_on_affine_chart(I::FittingIdealSheaf, U::AbsAffineScheme)
+  MM = original_sheaf(I)
+  M = MM(U)
+  return fitting_ideal(M, I.k)
+end
+
+function fitting_ideal(F::FreeMod, i::Int)
+  R = base_ring(F)
+  ngens(F)-i > 0 && return ideal(R, elem_type(R)[])
+  return ideal(R, one(R))
+end
+
+function fitting_ideal(M::SubquoModule, i::Int)
+  F = ambient_free_module(M)
+  R = base_ring(M)
+  @show length(relations(M)), ngens(M)-i
+  ngens(M)-i <= 0 && return ideal(R, one(R))
+  if !all(repres(v) == g for (v, g) in zip(gens(M), gens(F)))
+    return fitting_ideal(simplify(M)[1], i) # presents the module as a cokernel
+  end
+  smat = sparse_matrix(R, 0, ngens(F))
+  for v in relations(M)
+    push!(smat, coordinates(v))
+  end
+  res = ideal(R, minors(matrix(smat), ngens(M)-i))
+  @show "done"
+  return res
+end
+

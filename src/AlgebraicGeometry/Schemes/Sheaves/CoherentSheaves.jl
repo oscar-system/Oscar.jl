@@ -1472,3 +1472,57 @@ function Base.show(io::IO, ::MIME"text/plain", M::SimplifiedSheaf)
   print(io, "simplification of $(original_sheaf(M))")
 end
 
+@attributes mutable struct FittingIdealSheaf{SpaceType, OpenType, OutputType,
+                                                    RestrictionType
+                                                   } <: AbsIdealSheaf{
+                                                                      SpaceType, OpenType,
+                                                                      OutputType, RestrictionType
+                                                                     }
+  X::AbsCoveredScheme
+  M::AbsCoherentSheaf
+  k::Int
+  F::PreSheafOnScheme
+
+  function FittingIdealSheaf(
+      M::AbsCoherentSheaf,
+      k::Int
+    )
+    Ipre = PreSheafOnScheme(scheme(M),
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(scheme(M))
+                     )
+    X = scheme(M)
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, M, k, Ipre)
+    return I
+  end
+end
+
+
+@attributes mutable struct ExteriorPowerSheaf{SpaceType, OpenType, OutputType,
+                                    RestrictionType
+                                   } <: AbsCoherentSheaf{
+                                                         SpaceType, OpenType,
+                                                         OutputType, RestrictionType
+                                                        }
+  M::AbsCoherentSheaf
+  p::Int
+  und::PreSheafOnScheme
+
+  function ExteriorPowerSheaf(M::AbsCoherentSheaf, p::Int)
+    X = scheme(M)
+
+    und = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    return new{typeof(X), AbsAffineScheme, ModuleFP, Map}(M, p, und)
+  end
+end
+
+original_sheaf(M::ExteriorPowerSheaf) = M.M
+scheme(M::ExteriorPowerSheaf) = scheme(original_sheaf(M))
+exponent(M::ExteriorPowerSheaf) = M.p
+underlying_presheaf(M::ExteriorPowerSheaf) = M.und
+
