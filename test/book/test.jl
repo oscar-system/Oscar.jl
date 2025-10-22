@@ -155,6 +155,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       stdin_write = input.in
       out_stream = IOContext(output.in, :displaysize=>dispsize)
       options = REPL.Options(confirm_exit=false, hascolor=false)
+      @static if VERSION > v"1.13.0-DEV.1328"
+        # disable automatic bracket on recent nightly
+        options.auto_insert_closing_bracket = false
+      end
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options
       Base.active_repl = repl
@@ -244,7 +248,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul", "JULIA_PKG_PRECOMPILE_AUTO" => "false") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
