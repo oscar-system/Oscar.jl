@@ -142,6 +142,11 @@ It is displayed as product of disjoint cycles.
 """
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
+function Base.hash(x::PermGroupElem, h::UInt)
+  b = UInt(GAPWrap.HashPermutation(GapObj(x)))
+  return xor(h, b)
+end
+
 
 """
     PcGroup
