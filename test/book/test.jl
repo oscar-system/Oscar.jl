@@ -155,6 +155,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       stdin_write = input.in
       out_stream = IOContext(output.in, :displaysize=>dispsize)
       options = REPL.Options(confirm_exit=false, hascolor=false)
+      @static if VERSION > v"1.13.0-DEV.1328"
+        # disable automatic bracket on recent nightly
+        options.auto_insert_closing_bracket = false
+      end
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options
       Base.active_repl = repl
