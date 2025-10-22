@@ -264,6 +264,8 @@ function save_object(s::SerializerState, I::T) where T <: IdealUnionType
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
+  isempty(s.obj) && return ideal(parent_ring, [])
+
   gens = elem_type(parent_ring)[]
   load_array_node(s) do _
     push!(gens, load_object(s, elem_type(parent_ring), parent_ring))

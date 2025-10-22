@@ -310,11 +310,11 @@ function dimension(MRS::MatroidRealizationSpace)::Int
 end
 
 # Exports
-# export MatroidRealizationSpace_SelfProj
-# export inequations
-# export is_realizable
-# export realization
-# export realization_matrix
-# export realization_space
-# export underlying_scheme
-# export selfproj_realization_ideal
+export MatroidRealizationSpace_SelfProj
+export inequations
+export is_realizable
+export realization
+export realization_matrix
+export realization_space
+export underlying_scheme
+export selfproj_realization_ideal
