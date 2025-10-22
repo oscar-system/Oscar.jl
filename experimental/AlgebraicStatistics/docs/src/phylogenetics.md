@@ -130,7 +130,7 @@ The parameter ring's generators correspond to the symbolic parameters of the mod
 
 ```@docs
 parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
-parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
+parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
 ```
 
 To access specific parameters (entries of the treansition matrices, fourier parameters, entry of the root distriution or paramters associated to hybrid nodes in phylo networks) you can use the following functions:
