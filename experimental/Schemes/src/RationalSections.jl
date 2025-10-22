@@ -168,7 +168,7 @@ function div(s::RationalSection)
           in_num = true
           break
         end
-        (in_num || any(map(t -> t[1](U) == p,simp_denom))) & continue
+        (in_num || any(map(t -> t[1](U) == p,simp_denom))) && continue
         multp = ord_f_in_p(U,denom,p)
         push!(simp_denom,[Oscar.PrimeIdealSheafFromChart(X,U,p),multp])
       end
