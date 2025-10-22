@@ -2028,11 +2028,11 @@ julia> g = graph_from_edges(Directed, [[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
 Directed graph with 4 nodes and the following edges:
 (1, 2)(1, 3)(2, 3)(2, 4)(3, 4)
 
-julia> is_acylic(g)
+julia> is_acyclic(g)
 true
 ```
 """
-function is_acylic(G::Graph{Directed})
+function is_acyclic(G::Graph{Directed})
   a = adjacency_matrix(G)
 
   S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))
