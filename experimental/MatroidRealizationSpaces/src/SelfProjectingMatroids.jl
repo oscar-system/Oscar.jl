@@ -100,7 +100,7 @@ ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
 
 
 
-##Can we cahnge the following to a function for selfrpojecting_realizations?
+# #Can we cahnge the following to a function for selfrpojecting_realizations?
 # @doc raw"""
 #     is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
@@ -206,7 +206,7 @@ julia> M = fano_matroid();
 """
 
 function selfproj_realization_ideal(m::Matroid)::Ideal
-    print("Warning: This function is slow for...? \n")
+    @warn "This function is slow for...?"
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
     end
@@ -228,12 +228,14 @@ function selfproj_realization_ideal(m::Matroid)::Ideal
     DL = diagonal_matrix(S,[l[i] for i in 1:n])
     V = M*DL*transpose(M)
     IS = ideal(S,[V[i,j] for i in 1:k for j in 1:k]) + ideal(S,[F(gens(I)[i]) for i in 1:length(gens(I))])
-    J = saturation(IS,L)
+    J = stepwise_saturation(IS,l) 
     E = eliminate(J,l) 
-    if gens(E)[1] == 0
+    if is_zero(E)
       return ideal(ambient_ring(RS),[0]);
+    elseif is_one(E)
+      return ideal(ambient_ring(RS),[1]);
     else
-      return ideal(R,[G(gens(E)[i]) for i in 1:length(gens(E))])
+      return ideal(R,G.(gens(E)))
     end
 end
 @doc raw"""
@@ -242,6 +244,11 @@ end
     Function to compute the defining_ideal of a selfprojecting realization space
 """
 
+#this function computes the minors of a given matrix for the bases in a given list.
+function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector
+    R = base_ring(M);
+    return [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+end
 
 function selfprojecting_realization_space(m::Matroid)::MatroidRealizationSpace_SelfProj
   println("Warning:selfproj_realization_matrix is not yet fully implemented. The current implmenation returns simply the realization_matrix")
@@ -251,6 +258,7 @@ function selfprojecting_realization_space(m::Matroid)::MatroidRealizationSpace_S
   RS = realization_space(m,char=0,simplify = true, saturate = true)
   R = ambient_ring(RS)
   I = selfproj_realization_ideal(m);
+  M =selfproj_realization_matrix(m)
   Ineqs = basisminors(M,bases(m));
   ##include a check for realizable, how does the set_attribute!(MRS, :is_realizable, :false) even work for me?
 
@@ -260,98 +268,47 @@ function selfprojecting_realization_space(m::Matroid)::MatroidRealizationSpace_S
   ##R is ambient_ring(RS) where RS is the standard realization space
   ##ground_ring hardcoded as QQ
   ##do I need boo the boolean for one_realization_sp?
-  return MatroidRealizationSpace_SelfProj(I, Ineqs, R, realization_matrix(RS), 0, nothing, QQ)
+  return MatroidRealizationSpace_SelfProj(I, Ineqs, R, M, 0, nothing, QQ)
   
 end
 
-#this function computes the minors of a given matrix for the bases in a given list.
-function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector
-    R = base_ring(M);
-    return [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
-end
+
 
 ###################
 #B are the given columns that will be the identity matrix
 # it might be easier for me to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
-function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring, I::Union{Ideal,Nothing})
+function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   #include a check that M is realizable & selfproj
-  if !is_selfprojecting(m) 
+  if !is_selfprojecting(M) 
     error("The given matroid is not self-projecting.")
   end
-  if !(is_realizable(m))
+  if !(is_realizable(M))
     return nothing
   end
   RSM = realization_space_matrix(M,B,F)
   X = RSM[2];
-  #If the selfprojecting ideal is the same as the realization ideal, we can directly return X
-  if gens(selfproj_realization_ideal)[1] == 0
+    I = selfproj_realization_ideal(M);
+    if is_zero(I)
     return X
-  end
-  if gens(selfproj_realization_ideal)[1] == 1 #this means the matrix is not realizable by self-projecting points
+    end
+    if is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
-  end
+    end
+    R = RSM[1]
+    xs = gens(R)
+    cR = coefficient_ring(R)
+    nr, nc = size(X)
+    QR, phi = quo(R,I)
+    return phi.(X)
+
+  #If the selfprojecting ideal is the same as the realization ideal, we can directly return X
+  
   #Do we give the ideal or compute it? Can I make it optional?
   #Idea: use methods from the simplify part of the original code to take the matrix of realization space and adjust by the selfproj_realization_ideal. 
-  #Change and adjust the following code!
-  R = RSM[1]
-  xs = gens(R)
-  cR = coefficient_ring(R)
-  nr, nc = size(X)
-  ####
-  Igens = gens(I) #generators of the selfproj_realization_ideal
-  Sgens = basisminors(X,bases(M))
-
-  xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)] #question: what is elim?
-
-  if length(xnew_str) == 0
-    phi = hom(R, cR, [cR(0) for i in 1:length(xs)])
-    ambR = codomain(phi)
-
-    if length(Igens) == 0
-      Inew = ideal(ambR, [ambR(0)])
-    else
-      Inew = ideal(ambR, phi.(Igens))
-    end
-    normal_Sgens = phi.(Sgens)
-    # This is a hack as phi.(Sgens) returns a list without types on the empty list
-    if normal_Sgens == Any[]
-      normal_Sgens = Vector{RingElem}()
-    end
-  else
-    Rnew, xnew = polynomial_ring(coefficient_ring(R), length(xnew_str))
-
-    zero_elim_var = elem_type(Rnew)[]
-    j = 1
-    for i in 1:length(xs)
-      if xs[i] in elim
-        push!(zero_elim_var, Rnew(0))
-      else
-        push!(zero_elim_var, xnew[j])
-        j += 1
-      end
-    end
-
-    phi = hom(R, Rnew, zero_elim_var)
-
-    ambR = codomain(phi)
-    if length(Igens) == 0
-      Inew = ideal(ambR, ambR(0))
-    else
-      Inew = ideal(ambR, phi.(Igens))
-    end
-
-    if length(Sgens) == 0
-      normal_Sgens = Vector{RingElem}()
-    else
-      Sgens_new = phi.(Sgens)
-      normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
-      if !(ambR(0) in normal_Sgens)
-        normal_Sgens = gens_2_prime_divisors(Sgens_new)
-      end
-    end
+  #Change and adjust the following code! 
 end
 
-
+#function dimension
 # Exports
 export MatroidRealizationSpace_SelfProj
 export inequations
