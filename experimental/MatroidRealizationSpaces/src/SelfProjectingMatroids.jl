@@ -144,7 +144,6 @@ ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
 # """
 selfproj_realization_matrix(RS::MatroidRealizationSpace_SelfProj) = RS.selfproj_realization_matrix
 
-
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     dmat = dual_matroid(mat)
     boo = false
@@ -287,34 +286,35 @@ function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   end
   RSM = realization_space_matrix(M,B,F)
   X = RSM[2];
-    I = selfproj_realization_ideal(M);
-    if is_zero(I)
+  I = selfproj_realization_ideal(M);
+  if is_zero(I)
     return X
-    end
-    if is_one(I) #this means the matrix is not realizable by self-projecting points
+  end
+  if is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
-    end
-    R = RSM[1]
-    xs = gens(R)
-    cR = coefficient_ring(R)
-    nr, nc = size(X)
-    QR, phi = quo(R,I)
-    return phi.(X)
-
-  #If the selfprojecting ideal is the same as the realization ideal, we can directly return X
-  
-  #Do we give the ideal or compute it? Can I make it optional?
-  #Idea: use methods from the simplify part of the original code to take the matrix of realization space and adjust by the selfproj_realization_ideal. 
-  #Change and adjust the following code! 
+  end
+  R = RSM[1]
+  xs = gens(R)
+  cR = coefficient_ring(R)
+  nr, nc = size(X)
+  QR, phi = quo(R,I)
+  return phi.(X)
 end
 
-#function dimension
+function dimension(MRS::MatroidRealizationSpace_SelfProj)::Int
+  return dim(defining_ideal(MRS))
+end
+
+function dimension(MRS::MatroidRealizationSpace)::Int
+  return dim(defining_ideal(MRS))
+end
+
 # Exports
-export MatroidRealizationSpace_SelfProj
-export inequations
-export is_realizable
-export realization
-export realization_matrix
-export realization_space
-export underlying_scheme
-export selfproj_realization_ideal
+# export MatroidRealizationSpace_SelfProj
+# export inequations
+# export is_realizable
+# export realization
+# export realization_matrix
+# export realization_space
+# export underlying_scheme
+# export selfproj_realization_ideal
