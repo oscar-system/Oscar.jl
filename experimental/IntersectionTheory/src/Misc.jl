@@ -38,8 +38,8 @@ function Base.getindex(x::MPolyDecRingOrQuoElem, d::Int)
 end
 
 function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{FinGenAbGroupElem})
-  comps = _homogeneous_components(x, degs)
-  return collect(values(comps))
+  comp_dict = _homogeneous_components(x, degs)
+  return [comp_dict[d] for d in degs]
 end
 
 function Base.getindex(x::MPolyDecRingOrQuoElem, I::AbstractUnitRange)
