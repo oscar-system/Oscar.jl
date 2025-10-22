@@ -153,14 +153,14 @@ Ring homomorphism
   from multivariate polynomial ring in 8 variables over QQ
   to multivariate polynomial ring in 8 variables over QQ
 defined by
-  p[1,1,1] -> t[1, 2](1, 1)*t[2, 3](1, 1)
-  p[2,1,1] -> t[1, 2](2, 1)*t[2, 3](1, 1)
-  p[1,2,1] -> t[1, 2](1, 2)*t[2, 3](2, 1)
-  p[2,2,1] -> t[1, 2](2, 2)*t[2, 3](2, 1)
-  p[1,1,2] -> t[1, 2](1, 1)*t[2, 3](1, 2)
-  p[2,1,2] -> t[1, 2](2, 1)*t[2, 3](1, 2)
-  p[1,2,2] -> t[1, 2](1, 2)*t[2, 3](2, 2)
-  p[2,2,2] -> t[1, 2](2, 2)*t[2, 3](2, 2)
+  p[1,1,1] -> t{2,3}(1, 1)*t{1,2}(1, 1)
+  p[2,1,1] -> t{2,3}(1, 1)*t{1,2}(1, 2)
+  p[1,2,1] -> t{2,3}(2, 1)*t{1,2}(2, 1)
+  p[2,2,1] -> t{2,3}(2, 1)*t{1,2}(2, 2)
+  p[1,1,2] -> t{2,3}(1, 2)*t{1,2}(1, 1)
+  p[2,1,2] -> t{2,3}(1, 2)*t{1,2}(1, 2)
+  p[1,2,2] -> t{2,3}(2, 2)*t{1,2}(2, 1)
+  p[2,2,2] -> t{2,3}(2, 2)*t{1,2}(2, 2)
 ```
 """
 function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
