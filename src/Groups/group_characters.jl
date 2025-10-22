@@ -1000,6 +1000,34 @@ end
 
 ##############################################################################
 #
+#  only for tests:
+#  Sort a given character table heuristically,
+#  in order to achieve a more stable ordering of rows and columns.
+#  Note that the ordering of columns depends on the method that was chosen
+#  for computing the conjugacy classes of the group,
+#  and the ordering of rows depends on the method that was chosen to compute
+#  the irreducible characters.
+#
+function _sort_for_stable_tests(tbl::GAPGroupCharacterTable)
+  @req is_zero(characteristic(tbl)) "only for ordinary character tables"
+  sorttbl = GAPWrap.CharacterTableWithSortedClasses(GapObj(tbl))
+  pi = GAPWrap.SortingPerm(GAPWrap.Irr(sorttbl))
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl, pi)
+  # The trivial character shall be at the first position.
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl)
+
+  res = GAPGroupCharacterTable(sorttbl, 0)
+  if isdefined(tbl, :group)
+    res.group = tbl.group
+    res.isomorphism = tbl.isomorphism
+  end
+
+  return res
+end
+
+
+##############################################################################
+#
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
 number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
 number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
