@@ -349,6 +349,7 @@ function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring, I::Uni
         normal_Sgens = gens_2_prime_divisors(Sgens_new)
       end
     end
+  end
 end
 
 

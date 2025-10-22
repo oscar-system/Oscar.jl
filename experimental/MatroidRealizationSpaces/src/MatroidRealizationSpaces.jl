@@ -1,5 +1,6 @@
 include("realization_space.jl")
 include("SelfProjectingMatroids.jl")
+include("serialization.jl")
 
 ### Methods for realization spaces of matroids
 function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoLocRing}
