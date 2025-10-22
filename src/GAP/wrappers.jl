@@ -133,6 +133,7 @@ GAP.@wrap HasClassParameters(x::GapObj)::Bool
 GAP.@wrap HasConjugacyClassesSubgroups(x::GapObj)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap HasGrp(x::GapObj)::Bool
+GAP.@wrap HashPermutation(x::GapObj)::Int
 GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForSimpleGroup(x::GapObj)::Bool
