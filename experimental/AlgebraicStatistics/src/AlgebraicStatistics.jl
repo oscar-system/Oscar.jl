@@ -61,7 +61,6 @@ export inverse_coordinate_change
 # export structs for GroupBasedPhylogeneticModel,PhylogeneticModel
 export PhylogeneticModel
 export GroupBasedPhylogeneticModel
-export reduced_model_ring
 
 #export auxiliary graph functions
 export n_leaves
