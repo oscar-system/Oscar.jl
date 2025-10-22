@@ -1000,15 +1000,21 @@ end
 
 ##############################################################################
 #
-#  for tests: sort a given character table heuristically,
-#  in order to achieve a more stable ordering of rows and columns
+#  only for tests:
+#  Sort a given character table heuristically,
+#  in order to achieve a more stable ordering of rows and columns.
+#  Note that the ordering of columns depends on the method that was chosen
+#  for computing the conjugacy classes of the group,
+#  and the ordering of rows depends on the method that was chosen to compute
+#  the irreducible characters.
 #
-function _sort(tbl::GAPGroupCharacterTable)
+function _sort_for_stable_tests(tbl::GAPGroupCharacterTable)
   @req is_zero(characteristic(tbl)) "only for ordinary character tables"
-  sorttbl = GAP.Globals.CharacterTableWithSortedClasses(GapObj(tbl))::GapObj
-  pi = GAP.Globals.SortingPerm(GAP.Globals.Irr(sorttbl))::GapObj
-  sorttbl = GAP.Globals.CharacterTableWithSortedCharacters(sorttbl, pi)::GapObj
-  sorttbl = GAP.Globals.CharacterTableWithSortedCharacters(sorttbl)::GapObj
+  sorttbl = GAPWrap.CharacterTableWithSortedClasses(GapObj(tbl))
+  pi = GAPWrap.SortingPerm(GAPWrap.Irr(sorttbl))
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl, pi)
+  # The trivial character shall be at the first position.
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl)
 
   res = GAPGroupCharacterTable(sorttbl, 0)
   if isdefined(tbl, :group)
