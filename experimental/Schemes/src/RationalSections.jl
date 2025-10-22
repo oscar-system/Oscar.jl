@@ -140,7 +140,6 @@ function div(s::Oscar.RationalSection)
     for U in triv_cov
         num = s(U)[1]
         denom = s(U)[2]
-        n = dim(OO(X)(U))
         if !is_unit(num)
             N = minimal_primes(ideal(OO(X)(U),num))
             for p in N
@@ -160,7 +159,7 @@ function div(s::Oscar.RationalSection)
                 if check_codim(U,p)
                     if !any(map(t -> t(U) == p,components(simp_denom)))
                         stalk = localization(OO(U),complement_of_prime_ideal(p))
-                        fp = ideal(stalk[1],stalk[2](num))
+                        fp = ideal(stalk[1],stalk[2](denom))
                         multp = length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
                         simp_denom = simp_denom + multp*algebraic_cycle(Oscar.PrimeIdealSheafFromChart(X,U,p))
                     end
