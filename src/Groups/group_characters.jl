@@ -1078,7 +1078,7 @@ stored on these tables.
 
 # Examples
 ```jldoctest
-julia> println(maxes(character_table("M11")))
+julia> println(maxes(character_table("O12+(3)")))
 ["A6.2_3", "L2(11)", "3^2:Q8.2", "A5.2", "2.S4"]
 
 julia> maxes(character_table("M")) === nothing  # not (yet) known
@@ -2863,7 +2863,7 @@ the values of `chi`.
 
 # Examples
 ```jldoctest
-julia> tbl = character_table(alternating_group(4));
+julia> tbl = character_table("A4");
 
 julia> println([findfirst(==(conj(x)), tbl) for x in tbl])
 [1, 3, 2, 4]
