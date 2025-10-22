@@ -246,7 +246,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul", "JULIA_PKG_PRECOMPILE_AUTO" => "false") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
