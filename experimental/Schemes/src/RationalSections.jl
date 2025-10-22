@@ -131,24 +131,29 @@ function check_codim(U,I)
 end
     
 
+function ord_f_in_p(X,f,p)
+    stalk = localization(OO(X),complement_of_prime_ideal(p))
+    fp = ideal(stalk[1],stalk[2](f))
+    length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
+end
+
 function div(s::Oscar.RationalSection)
     X = Oscar.scheme(s)
     F = Oscar.sheaf(s)
     triv_cov = trivializing_covering(F)
-    simp_num = algebraic_cycle(X,ZZ)
-    simp_denom = algebraic_cycle(X,ZZ)
+    simp_num = []
+    simp_denom = []
     for U in triv_cov
         num = s(U)[1]
         denom = s(U)[2]
+        n = dim(OO(X)(U))
         if !is_unit(num)
             N = minimal_primes(ideal(OO(X)(U),num))
             for p in N
                 if check_codim(U,p)
-                    if !any(map(t -> t(U) == p,components(simp_num)))
-                        stalk = localization(OO(U),complement_of_prime_ideal(p))
-                        fp = ideal(stalk[1],stalk[2](num))
-                        multp = length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
-                        simp_num = simp_num + multp*algebraic_cycle(Oscar.PrimeIdealSheafFromChart(X,U,p))
+                    if is_empty(simp_num) || !any(map(t -> t[1](U) == p,simp_num))
+                        multp = ord_f_in_p(U,num,p)
+                        push!(simp_num, [Oscar.PrimeIdealSheafFromChart(X,U,p),multp])
                     end
                 end
             end
@@ -157,15 +162,32 @@ function div(s::Oscar.RationalSection)
             D = minimal_primes(ideal(OO(X)(U),denom))
             for p in D
                 if check_codim(U,p)
-                    if !any(map(t -> t(U) == p,components(simp_denom)))
-                        stalk = localization(OO(U),complement_of_prime_ideal(p))
-                        fp = ideal(stalk[1],stalk[2](denom))
-                        multp = length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
-                        simp_denom = simp_denom + multp*algebraic_cycle(Oscar.PrimeIdealSheafFromChart(X,U,p))
+                    in_num = false
+                    for t in simp_num
+                        if t[1](U) == p
+                            multp = ord_f_in_p(U,denom,p)
+                            t[2] = t[2] - multp
+                            in_num = true
+                            break
+                        end
+                    end
+                    if !in_num & !any(map(t -> t[1](U) == p,simp_denom))
+                        multp = ord_f_in_p(U,denom,p)
+                        push!(simp_denom,[Oscar.PrimeIdealSheafFromChart(X,U,p),multp])
                     end
                 end
             end
         end
+    end
+    if !is_empty(simp_denom) 
+        simp_denom = reduce(+,map(t -> t[2]*algebraic_cycle(t[1]),simp_denom))
+    else
+        simp_denom = algebraic_cycle(X,ZZ)
+    end
+    if !is_empty(simp_num)
+        simp_num = reduce(+,map(t -> t[2]*algebraic_cycle(t[1]),simp_num))
+    else
+        simp_num = algebraic_cycle(X,ZZ)
     end
     simp_num - simp_denom
 end
