@@ -124,20 +124,20 @@ function weil_divisor(s::RationalSection; ring::Ring=ZZ)
   return result
 end
 
-function check_codim(U,I)
+function check_codim(U::AbsAffineScheme,I::Ideal)
     n = dim(U)
     @assert base_ring(I) == OO(U) "The provided ideal is not an ideal of the provided ring"
     n - dim(I) == 1
 end
     
 
-function ord_f_in_p(X,f,p)
+function ord_f_in_p(X::AbsAffineScheme,f::RingElem,p::Ideal)
     stalk = localization(OO(X),complement_of_prime_ideal(p))
     fp = ideal(stalk[1],stalk[2](f))
     length(quotient_ring_as_module(quo(stalk[1],fp)[1]))
 end
 
-function div(s::Oscar.RationalSection)
+function div(s::RationalSection)
     X = Oscar.scheme(s)
     F = Oscar.sheaf(s)
     triv_cov = trivializing_covering(F)
