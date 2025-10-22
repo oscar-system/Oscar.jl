@@ -3,7 +3,7 @@
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
-  realization_matrix::Union{MatElem,Nothing}
+  selfproj_realization_matrix::Union{MatElem,Nothing}
   char::Union{Int,Nothing}
   q::Union{Int,Nothing}
   ground_ring::Ring
@@ -48,6 +48,7 @@ function underlying_scheme(RS::MatroidRealizationSpace_SelfProj{BRT, RT}) where 
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 
+
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace_SelfProj)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
     if RS.char === nothing && RS.q === nothing
@@ -65,7 +66,7 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace_SelfP
       println(io, "The selfprojecting realization space is")
     end
     print(io, Oscar.Indent())
-    show(io, MIME("text/plain"), RS.realization_matrix)
+    show(io, MIME("text/plain"), RS.selfproj_realization_matrix)
     print(io, "\n", Oscar.Dedent(), "in the ", Oscar.Lowercase(), RS.ambient_ring)
     I = RS.defining_ideal
     if !iszero(I)
@@ -136,12 +137,12 @@ ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
 # end
 
 
-# @doc raw"""
-#     realization_matrix_sp(RS::MatroidRealizationSpace_SelfProj)
+@doc raw"""
+    selfproj_realization_matrix(RS::MatroidRealizationSpace_SelfProj)
 
-# A matrix with entries in ambient_ring_sp(RS) whose columns, when filled in with values satisfying equalities
-# from `defining_ideal_sp(RS)` and inequations_sp from `inequations_sp(RS)`, form a realization for the matroid.
-# """
+A matrix with entries in ambient_ring_sp(RS) whose columns, when filled in with values satisfying equalities
+from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a self-projecting realization for the matroid.
+"""
 selfproj_realization_matrix(RS::MatroidRealizationSpace_SelfProj) = RS.selfproj_realization_matrix
 
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
@@ -204,7 +205,7 @@ julia> M = fano_matroid();
 ```
 """
 
-function selfproj_realization_ideal(m::Matroid)::Ideal
+function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     @warn "This function is slow for...?"
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
@@ -229,6 +230,9 @@ function selfproj_realization_ideal(m::Matroid)::Ideal
     IS = ideal(S,[V[i,j] for i in 1:k for j in 1:k]) + ideal(S,[F(gens(I)[i]) for i in 1:length(gens(I))])
     J = stepwise_saturation(IS,l) 
     E = eliminate(J,l) 
+    if saturate 
+      E = stepwise_saturation(E,inequations(RS))
+    end
     if is_zero(E)
       return ideal(ambient_ring(RS),[0]);
     elseif is_one(E)
@@ -248,30 +252,6 @@ function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector
     R = base_ring(M);
     return [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
 end
-
-function selfprojecting_realization_space(m::Matroid)::MatroidRealizationSpace_SelfProj
-  println("Warning:selfproj_realization_matrix is not yet fully implemented. The current implmenation returns simply the realization_matrix")
-  if !is_selfprojecting(m) 
-    error("The given matroid is not self-projecting.")
-  end
-  RS = realization_space(m,char=0,simplify = true, saturate = true)
-  R = ambient_ring(RS)
-  I = selfproj_realization_ideal(m);
-  M =selfproj_realization_matrix(m)
-  Ineqs = basisminors(M,bases(m));
-  ##include a check for realizable, how does the set_attribute!(MRS, :is_realizable, :false) even work for me?
-
-  #M = selfproj_realization_matrix(m,b,R)
-
-  ##need to find reference basis b for the identity matrix in the realizatio matrix
-  ##R is ambient_ring(RS) where RS is the standard realization space
-  ##ground_ring hardcoded as QQ
-  ##do I need boo the boolean for one_realization_sp?
-  return MatroidRealizationSpace_SelfProj(I, Ineqs, R, M, 0, nothing, QQ)
-  
-end
-
-
 
 ###################
 #B are the given columns that will be the identity matrix
@@ -293,7 +273,8 @@ function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   if is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
   end
-  R = RSM[1]
+  #need to test this!
+  R = RSM[1] 
   xs = gens(R)
   cR = coefficient_ring(R)
   nr, nc = size(X)
@@ -301,6 +282,41 @@ function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   return phi.(X)
 end
 
+
+function selfprojecting_realization_space(m::Matroid;
+  B::Union{GroundsetType,Nothing}=nothing)::MatroidRealizationSpace_SelfProj
+  if !is_selfprojecting(m) 
+    error("The given matroid is not self-projecting.")
+  end
+  RS = realization_space(m,char=0,simplify = true, saturate = true)
+  R = ambient_ring(RS)
+  I = selfproj_realization_ideal(m);
+  n = length(matroid_groundset(m))
+  goodM = isomorphic_matroid(m, [i for i in 1:n])
+  Bs = bases(goodM)
+  if !isnothing(B)
+    goodB = sort!(Int.([M.gs2num[j] for j in B]))
+  else
+    goodB = find_good_basis_heuristically(goodM)
+  end
+  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #do I want selfproj_realization_matrix to returna tuple of ring and matrix? Currently just the matrix, since this is what i need most urgently
+  Ineqs = basisminors(M,bases(m));
+  ##include a check for realizable, how does the set_attribute!(MRS, :is_realizable, :false) even work for me?
+
+  #M = selfproj_realization_matrix(m,b,R)
+
+  ##need to find reference basis b for the identity matrix in the realizatio matrix
+  ##R is ambient_ring(RS) where RS is the standard realization space
+  ##ground_ring hardcoded as QQ
+  ##do I need boo the boolean for one_realization_sp?
+  return MatroidRealizationSpace_SelfProj(I, Ineqs, R, M, 0, nothing, QQ)
+  
+end
+
+
+
+
+#the 2 functions below need to be tested 
 function dimension(MRS::MatroidRealizationSpace_SelfProj)::Int
   return dim(defining_ideal(MRS))
 end
@@ -312,9 +328,7 @@ end
 # Exports
 export MatroidRealizationSpace_SelfProj
 export inequations
-export is_realizable
-export realization
-export realization_matrix
-export realization_space
+export defining_ideal
 export underlying_scheme
 export selfproj_realization_ideal
+export dimension
