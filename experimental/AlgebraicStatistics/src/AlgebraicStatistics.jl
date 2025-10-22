@@ -76,8 +76,6 @@ export hybrid_vertices
 export hybrids
 export hybrid_edges
 
-
-
 # Gaussian Graphical Model Exports
 export GaussianGraphicalModel
 export covariance_matrix
@@ -89,7 +87,7 @@ export gaussian_ring, GaussianRing
 # Discrete graphical models
 export DiscreteGraphicalModel
 export discrete_graphical_model
-export states, varnames, maximal_cliques
+export states, varnames
 export state_space
 export marginal
 export markov_ring, tensor_ring, MarkovRing

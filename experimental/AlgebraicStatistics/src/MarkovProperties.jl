@@ -158,21 +158,6 @@ children(G::Graph{Directed}, i::Int) = outneighbors(G, i)
 # TODO: There is some amount of code duplication because all of these
 # algorithms are variants of depth-first search.
 
-function is_acyclic(G::Graph{Directed})::Bool
-  V = vertices(G)
-  todo = [ [setdiff(V, i), [i, i]] for i in V ]
-  while !isempty(todo)
-    cur = pop!(todo)
-    W = cur[1]
-    p = cur[2]
-    if has_edge(G, p[2], p[1])
-      return false
-    end
-    append!(todo, [ [setdiff(W, w), [p[1], w]] for w in children(G, p[2]) if w in W])
-  end
-  return true
-end
-
 function topological_sort(G::Graph{Directed})::Vector{Int}
   @req is_acyclic(G) "the digraph must be acyclic"
   degrees = indegree(G)
