@@ -1,4 +1,4 @@
-using JSON
+import JSON
 using TOPCOM_jll
 
 function _postprocess_polymake_triangs(

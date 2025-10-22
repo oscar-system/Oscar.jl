@@ -140,7 +140,7 @@ of `type_params` whenever saving a type `T`. By default `type_params` will retur
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
 For example if `obj` is of type `RingElem` than it is expected that `type_params`
-should contain at least 
+should contain at least `parent(obj)`.
 
 #### `save_object` / `load_object`
 
