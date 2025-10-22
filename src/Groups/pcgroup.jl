@@ -969,45 +969,24 @@ julia> code = code_pcgroup(G)
 julia> H1 = pcgroup_code(code, order(G))
 Pc group of order 12
 
-julia> H2 = pcgroup_code(code, G)
-Pc group of order 12
-
 julia> code_pcgroup(G) == code_pcgroup(H1)
 true
 
-julia> code_pcgroup(G) == code_pcgroup(H2)
-true
-
-julia> vec_code = code_pcgroup(G)  
-266
-
-julia> vec_code = vec(code_pcgroup(G)) 
+julia> vec_code = vec(code_pcgroup(G))
 1-element Vector{Int64}:
  266
 
-julia> H3 = pcgroup_code(vec_code, order(G))
+julia> H2 = pcgroup_code(vec_code, order(G))
 Pc group of order 12
 
-julia> code_pcgroup(H3) == code_pcgroup(G)
+julia> code_pcgroup(G) == code_pcgroup(H2)
 true
 ```
 """
-# 1. Integer code + size object
-function pcgroup_code(code, size)
+function pcgroup_code(code, size) 
   PcGroup(GAP.Globals.PcGroupCode(Int(code), Int(size)))
 end
 
-# 2. Integer code + PcGroup
-function pcgroup_code(code, G::PcGroup)
-  pcgroup_code(code, order(G))
-end
-
-# 3. Vector of integers code + size object
-function pcgroup_code(code::Vector{<:Integer}, size)
+function pcgroup_code(code::Vector{<:Integer}, size) 
   PcGroup(GAP.Globals.PcGroupCode(code, Int(size)))
-end
-
-# 4. Vector of integers code + PcGroup
-function pcgroup_code(code::Vector{<:Integer}, G::PcGroup)
-  pcgroup_code(code, order(G))
 end
