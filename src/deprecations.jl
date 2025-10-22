@@ -179,4 +179,5 @@ end
 
 @deprecate vector_space_dimension vector_space_dim
 
+# deprecated for 1.6
 @deprecate is_acylic is_acyclic
