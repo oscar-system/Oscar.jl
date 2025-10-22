@@ -1350,19 +1350,24 @@ z
 """
 function homogeneous_component(a::MPolyDecRingElem, g::FinGenAbGroupElem)
   R = forget_decoration(parent(a))
-  r = R(0)
+  D = grading_group(parent(a))
   d = parent(a).d
-  for (c, m) = Base.Iterators.zip(MPolyCoeffs(forget_decoration(a)), Generic.MPolyMonomials(forget_decoration(a)))
-    e = exponent_vector(m, 1)
-    u = parent(a).D[0]
-    for i=1:length(e)
-      u += e[i]*d[i]
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
+  tmat = zero_matrix(ZZ, 1, nvars(R))
+  res_mat = zero_matrix(ZZ, 1, ncols(dmat))
+  aa = forget_decoration(a)
+  ctx = MPolyBuildCtx(R)
+  for (c, e) in Base.Iterators.zip(AbstractAlgebra.coefficients(aa), AbstractAlgebra.exponent_vectors(aa))
+    for i in 1:length(e)
+      tmat[1, i] = e[i]
     end
+    mul!(res_mat, tmat, dmat)
+    u = FinGenAbGroupElem(D, res_mat)
     if u == g
-      r += c*m
+      push_term!(ctx, c, e)
     end
   end
-  return parent(a)(r)
+  return parent(a)(finish(ctx))
 end
 
 function homogeneous_component(a::MPolyDecRingElem, g::IntegerUnion)
