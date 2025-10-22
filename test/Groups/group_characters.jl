@@ -9,9 +9,9 @@ raw"""
 ```jldoctest group_characters.test
 julia> using Oscar
 
-julia> t_a4 = Oscar._sort(character_table(alternating_group(4)));
+julia> t_a4 = Oscar._sort_for_stable_tests(character_table(alternating_group(4)));
 
-julia> t_a5 = Oscar._sort(character_table("A5"));
+julia> t_a5 = Oscar._sort_for_stable_tests(character_table("A5"));
 
 julia> t_a4_2 = mod(t_a4, 2);
 
