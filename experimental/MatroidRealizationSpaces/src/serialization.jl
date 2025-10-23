@@ -69,3 +69,35 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpace_Self
  # RS.one_realization = load_object(s, Bool, :one_realization)
   return MatroidRealizationSpace_SelfProj(I, Ineqs, R, RMat, char, q, GR)
 end
+
+@register_serialization_type MatroidRealizations uses_id
+# type_params(M::MatroidRealizations) = TypeParams(Matroid, MatroidRealizationSpace,       MatroidRealizationSpace_SelfProj, 
+#                                         :matrix_space=>parent(selfproj_realization_matrix(M)), :ground_ring=>M.ground_ring)
+
+function save_object(s::SerializerState, M::MatroidRealizations) 
+  save_data_dict(s) do
+    save_object(s, M.name, :name)
+    save_object(s, M.matroid, :matroid)
+    save_object(s, M.rk, :rk)
+    save_object(s, M.length_groundset, :length_groundset)
+    save_object(s, M.realization_space, :realization_space)
+    save_object(s, M.dim_r, :dim_r)
+    save_object(s, M.selfproj_realization_space, :selfproj_realization_space)
+    save_object(s, M.dim_s, :dim_s)
+    save_object(s, M.equal, :equal)
+  end
+end
+
+
+function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::Dict)
+    str = load_object(s, String, :name)
+    m = load_object(s, Matroid, :matroid)
+    rk = load_object(s, Int, :rk)
+    n = load_object(s, Int, :length_groundset)
+    RS = load_object(s, MatroidRealizationSpace, :realization_space)
+    dimR = load_object(s, Int, :dim_r)
+    RSSP = load_object(s, MatroidRealizationSpace_SelfProj, :selfproj_realization_space)
+    dimS = load_object(s, Int, :dim_s)
+    boo = load_object(s, Bool, :equal)
+  return MatroidRealizations(str, m, rk, n, RS, dimR, RSSP, dimS, boo)
+end

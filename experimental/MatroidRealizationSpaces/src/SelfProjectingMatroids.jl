@@ -326,9 +326,9 @@ function dimension(MRS::MatroidRealizationSpace)::Int
 end
 
 # Exports
-export MatroidRealizationSpace_SelfProj
-export inequations
-export defining_ideal
-export underlying_scheme
-export selfproj_realization_ideal
-export dimension
+# export MatroidRealizationSpace_SelfProj
+# export inequations
+# export defining_ideal
+# export underlying_scheme
+# export selfproj_realization_ideal
+# export dimension
