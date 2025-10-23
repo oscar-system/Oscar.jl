@@ -1937,13 +1937,26 @@ function _saturation(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by gen
   error("not implemented for the given types of modules.")
 end
 
-function _saturation(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+function _saturation(U::SubModuleOfFreeModule{T}, J::Ideal; iteration::Bool = false) where T <: MPolyRingElem
   F = ambient_free_module(U)
   SgU = singular_generators(U.gens)
   SgJ = singular_generators(J.gens)
   SQ, _ = Singular.saturation(SgU, SgJ)
   MG = ModuleGens(F, SQ)
   return SubModuleOfFreeModule(F, MG)
+end
+
+function _saturation(U::SubModuleOfFreeModule{T}, J::Ideal; iteration::Bool = false) where T <: MPolyQuoRingElem
+  A = base_ring(U)
+  @req base_ring(J) === A "wrong base rings"
+  P = base_ring(A)::MPolyRing
+  F = ambient_free_module(U)
+  FP = free_module(P, ngens(F))
+  UP = SubModuleOfFreeModule(FP, elem_type(FP)[sum(lift(c)*FP[i] for (i, c) in coordinates(v); init=zero(FP)) for v in gens(U)])
+  UP = UP + SubModuleOfFreeModule(FP, elem_type(FP)[g*v for g in gens(modulus(A)) for v in gens(FP)])
+  IP = ideal(P, elem_type(P)[lift(g) for g in gens(J)])
+  res_P = _saturation(UP, IP)
+  return SubModuleOfFreeModule(F, filter!(!is_zero, elem_type(F)[F(map_entries(A, coordinates(v))) for v in gens(res_P)]))
 end
 
 @doc raw"""
