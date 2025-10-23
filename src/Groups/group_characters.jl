@@ -1109,7 +1109,7 @@ stored on these tables.
 julia> println(maxes(character_table("M11")))
 ["A6.2_3", "L2(11)", "3^2:Q8.2", "A5.2", "2.S4"]
 
-julia> maxes(character_table(""O12+(3)"")) === nothing  # not (yet) known
+julia> maxes(character_table("O12+(3)")) === nothing  # not (yet) known
 true
 ```
 """
