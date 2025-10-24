@@ -70,10 +70,14 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpace_Self
   return MatroidRealizationSpace_SelfProj(I, Ineqs, R, RMat, char, q, GR)
 end
 
+
 @register_serialization_type MatroidRealizations uses_id
-type_params(M::MatroidRealizations) = TypeParams(MatroidRealizations,   
-                                                 :selfproj_mrs=>selfproj_realization_space(M),
-                                                 :mrs=>realization_space(M))
+type_params(M::MatroidRealizations) = TypeParams(MatroidRealizations, 
+                                        :matrix_space_mrs => parent(realization_matrix(realization_space(M))), 
+                                        :matrix_space_sp_mrs => parent(selfproj_realization_matrix(selfproj_realization_space(M))),
+                                        :ground_ring => realization_space(M).ground_ring,
+                                        :ground_ring_s => selfproj_realization_space(M).ground_ring,
+)
 
 function save_object(s::SerializerState, M::MatroidRealizations) 
   save_data_dict(s) do
@@ -84,14 +88,19 @@ function save_object(s::SerializerState, M::MatroidRealizations)
     save_object(s, M.dim_r, :dim_r)
     save_object(s, M.dim_s, :dim_s)
     save_object(s, M.equal, :equal)
+    save_object(s, M.realization_space, :realization_space)
+    save_object(s, M.selfproj_realization_space, :selfproj_realization_space)
   end
 end
 
 
 function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::Dict)
-  RS = dict[:mrs]
-  RSSP = dict[:selfproj_mrs]
-
+  dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs])
+  dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs])
+#  GR = dict[:ground_ring]
+#  GRS = dict[:ground_ring_s]
+#  R_MRS = dict[:matrix_space_mrs]
+#  RSP_MRS = dict[:matrix_space_sp_mrs]
   str = load_object(s, String, :name)
   m = load_object(s, Matroid, :matroid)
   rk = load_object(s, Int, :rk)
@@ -99,6 +108,7 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::
   dimR = load_object(s, Int, :dim_r)
   dimS = load_object(s, Int, :dim_s)
   boo = load_object(s, Bool, :equal)
-  
+  RS = load_object(s, MatroidRealizationSpace, dictionary_r, :realization_space)
+  RSSP = load_object(s, MatroidRealizationSpace_SelfProj, dictionary_s, :selfproj_realization_space)
   return MatroidRealizations(str, m, rk, n, RS, dimR, RSSP, dimS, boo)
 end
