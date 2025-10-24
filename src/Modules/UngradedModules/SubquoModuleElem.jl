@@ -435,6 +435,8 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
+  a === b && return true
+  repres(a) == repres(b) && return true
   return iszero(a-b)
 end
 
