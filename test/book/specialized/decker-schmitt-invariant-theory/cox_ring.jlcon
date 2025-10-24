@@ -9,7 +9,11 @@ julia> G = matrix_group(g1, g2)
 Matrix group of degree 3
   over cyclotomic field of order 3
 
-julia> chi = character_table(G)[6];
+julia> tbl = character_table(G);  F, _ = abelian_closure(QQ);
+
+julia> p = x -> order(kernel(x)[1]) == 8 && x(G(g2)) == F(z_3);
+
+julia> chi = iterate(x for x in tbl if p(x))[1];
 
 julia> RG = invariant_ring(G)
 Invariant ring
