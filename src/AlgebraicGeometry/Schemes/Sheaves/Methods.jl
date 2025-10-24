@@ -657,6 +657,9 @@ function produce_object(FF::PullbackSheaf, U::AbsAffineScheme)
     floc = morphisms(fcov)[U]
     M_patch = M(codomain(floc))
     @assert all(v == repres(w) for (v, w) in zip(gens(ambient_free_module(M_patch)), gens(M_patch))) "the modules on the patches must be presented as cokernels"
+    V = codomain(floc)
+    @assert base_ring(M(V)) === OO(V)
+    @assert domain(pullback(floc)) === OO(V)
     MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
     pullbacks_on_patches(FF)[U] = map
     return MU
@@ -669,37 +672,102 @@ function produce_object(FF::PullbackSheaf, U::AbsAffineScheme)
   return res
 end
 
-function produce_object(FF::PullbackSheaf,
-    U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
-  )
-  f = morphism(FF)
-  M = original_sheaf(FF)
-  OOY = sheaf_of_rings(M)
-  X = scheme(FF)
-  OOX = OO(X)
-  fcov = covering_morphism(f)::CoveringMorphism
-  CX = domain(fcov)::Covering
-  CY = codomain(fcov)::Covering
-  # See whether U is a patch of the domain covering and pull back directly
-  if haskey(morphisms(fcov), U)
-    floc = morphisms(fcov)[U]
-    MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-    pullbacks_on_patches(FF)[U] = map
-    return MU
-  end
+default_covering(FF::PullbackSheaf) = domain(covering_morphism(morphism(FF)))
 
-  # If not, check whether we are hanging below such a patch in the
-  # refinement tree.
-  if has_ancestor(y->any(x->(x===y), patches(domain(fcov))), U)
-    V = __find_chart(U, domain(fcov))
-    MU, res = change_base_ring(OOX(V, U), FF(V))
-    add_incoming_restriction!(FF, V, MU, res)
-    return MU
+#=
+# The following are methods overwriting the construction of modules for 
+# sheaves so that internal plausibility checks are done on creation. 
+# Usually these should not be necessary, but they can be activated for 
+# debugging.
+function (FF::PullbackSheaf)(U::AbsAffineScheme)
+  haskey(object_cache(FF), U) && return object_cache(FF)[U]
+  res = produce_object(FF, U)
+  object_cache(FF)[U] = res
+  check = FF.check
+  cov = default_covering(FF)
+  check && !(U in cov) && return res
+  @check begin
+    @show "checking for pullback sheaf"
+    for (W, N) in object_cache(FF)
+      W in cov || continue
+      UW, WU = gluing_domains(cov[U, W])
+      phi = FF(UW, WU)
+      psi = FF(WU, UW)
+      @assert all(x == phi(psi(x)) for x in gens(FF(WU)))
+      @assert all(x == psi(phi(x)) for x in gens(FF(UW)))
+    end
+    @show "check done"
   end
-
-  # We are in case 3)
-  error("case not implemented")
+  return res
 end
+
+function (FF::StrictTransformSheaf)(U::AbsAffineScheme)
+  haskey(object_cache(FF), U) && return object_cache(FF)[U]
+  res = produce_object(FF, U)
+  object_cache(FF)[U] = res
+  cov = default_covering(FF)
+  if FF.check && U in cov
+    @show "checking for strict transform sheaf"
+    for (W, N) in object_cache(FF)
+      W in cov || continue
+      UW, WU = gluing_domains(cov[U, W])
+      phi = FF(UW, WU)
+      psi = FF(WU, UW)
+      @assert all(x == phi(psi(x)) for x in gens(FF(WU)))
+      @assert all(x == psi(phi(x)) for x in gens(FF(UW)))
+    end
+    @show "check done"
+  end
+  return res
+end
+
+function (FF::SimplifiedSheaf)(U::AbsAffineScheme)
+  haskey(object_cache(FF), U) && return object_cache(FF)[U]
+  res = produce_object(FF, U)
+  object_cache(FF)[U] = res
+  check = FF.check
+  cov = default_covering(FF)
+  check && !(U in cov) && return res
+  @check begin
+    M = original_sheaf(FF)
+    @show "checking for simplified sheaf"
+    for (W, N) in object_cache(FF)
+      W in cov || continue
+      UW, WU = gluing_domains(cov[U, W])
+      X = scheme(FF)
+      FF(UW)
+      FF(WU)
+      phi = M(UW, WU)
+      psi = M(WU, UW)
+      @assert ring_map(phi) !== nothing
+      @assert ring_map(psi) !== nothing
+      @assert all(x == phi(psi(x)) for x in gens(M(WU)))
+      @assert all(x == psi(phi(x)) for x in gens(M(UW)))
+      id_UW = identifying_maps(FF)[UW]
+      id_WU = identifying_maps(FF)[WU]
+      @assert isnothing(ring_map(id_UW))
+      @assert isnothing(ring_map(id_WU))
+      @assert domain(id_UW) === FF(UW)
+      @assert codomain(id_UW) === M(UW)
+      @assert domain(id_WU) === FF(WU)
+      @assert codomain(id_WU) === M(WU)
+      @assert all(x == inv(id_UW)(id_UW(x)) for x in gens(FF(UW)))
+      @assert all(x == inv(id_WU)(id_WU(x)) for x in gens(FF(WU)))
+      @assert all(x == id_UW(inv(id_UW)(x)) for x in gens(M(UW)))
+      @assert all(x == id_WU(inv(id_WU)(x)) for x in gens(M(WU)))
+      @show "mutual inverses of the identifying maps checked"
+      phi_simp = FF(UW, WU)
+      psi_simp = FF(WU, UW)
+      @assert !isnothing(ring_map(phi_simp))
+      @assert !isnothing(ring_map(psi_simp))
+      @assert all(x == phi_simp(psi_simp(x)) for x in gens(FF(WU)))
+      @assert all(x == psi_simp(phi_simp(x)) for x in gens(FF(UW)))
+    end
+    @show "check done"
+  end
+  return res
+end
+=#
 
 ### Restriction for pulled back sheaves of modules
 #
@@ -726,6 +794,7 @@ end
 #    U is a subset, restrict as usual.
 
 function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+  check = F.check
   f = morphism(F)
   M = original_sheaf(F)
   OOY = sheaf_of_rings(M)
@@ -739,7 +808,9 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
   U_up = __find_chart(U, CX)
 
   if V_up === U_up
-    return hom(F(V), F(U), gens(F(U)), OOX(V, U))
+    res = hom(F(V), F(U), gens(F(U)), OOX(V, U))
+    #@check is_welldefined(res)
+    return res
   end
 
   glue = CX[V_up, U_up]
@@ -752,12 +823,13 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
     U_cod = codomain(f_U)
     cod_glue = CY[V_cod, U_cod]
     VU_cod, UV_cod = gluing_domains(cod_glue)
+    F(U_up)
     pb_U = pullbacks_on_patches(F)[U_up]
     res_cod = M(V_cod, UV_cod)
     img_gens = images_of_generators(res_cod)
     res_cod2 = M(U_cod, UV_cod)
     img_coords = coordinates.(img_gens)
-    if !all(v == g for (v, g) in zip(images_of_generators(res_cod2), gens(M(UV_cod))))
+    if !all(repres(v) == repres(g) for (v, g) in zip(images_of_generators(res_cod2), gens(M(UV_cod))))
       img, _ = image(res_cod2)
       img_coords = [coordinates(img(repres(v))) for v in img_gens]
     end
@@ -765,8 +837,10 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
     pb_img_gens = F(U_up, U).(pb_img_gens)
     res = OOX(UV_up, U)
     pb_f = pullback(f_U)
-    img_gens = [sum(res(pb_f(lifted_numerator(c))*inv(pb_f(lifted_denominator(c))))*pb_img_gens[i] for (i, c) in coords; init=zero(F(U))) for coords in img_coords]
-    return hom(F(V), F(U), img_gens, OOX(V, U))
+    img_gens = [sum(res(res(pb_f(lifted_numerator(c)))*inv(res(pb_f(lifted_denominator(c)))))*pb_img_gens[i] for (i, c) in coords; init=zero(F(U))) for coords in img_coords]
+    res = hom(F(V), F(U), img_gens, OOX(V, U))
+    #@check is_welldefined(res)
+    return res
   end
 
   pb_glue = F(VU_up, UV_up)
@@ -774,7 +848,9 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
   img_gens = gens(F(VU_up))
   img_gens = pb_glue.(img_gens)
   img_gens = res_glue.(img_gens)
-  return hom(F(V), F(U), img_gens, OOX(V, U))
+  res = hom(F(V), F(U), img_gens, OOX(V, U))
+  #@check is_welldefined(res)
+  return res
 end
 
 ### production for StrictTransformSheaf
@@ -794,7 +870,7 @@ function produce_object(
 end
 
 # custom methods to perform the strict transform for different types of rings
-function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T}
+function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}}
   sat_sub = _saturation(M.quo, I)
   res, _ = quo(ambient_free_module(M), gens(sat_sub))
   return res
@@ -803,13 +879,22 @@ end
 function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T<:MPolyQuoLocRingElem}
   L = base_ring(M)::MPolyQuoLocRing
   A = underlying_quotient(L)::MPolyQuoRing
-  P = base_ring(A)::MPolyRing
-  M_poly = pre_saturated_module(M)
   F = ambient_free_module(M)
   FA = free_module(A, ngens(F))
-  U = SubModuleOfFreeModule(FA, elem_type(FA)[sum(A(c)*FA[i] for (i, c) in coordinates(v); init=zero(FA)) for v in gens(M_poly.quo)])
-  sat_sub = _saturation(U, ideal(A, elem_type(A)[A(lifted_numerator(x)) for x in gens(I)]))
-  res, _ = quo(F, elem_type(F)[sum(L(c)*F[i] for (i, c) in coordinates(v); init=zero(F)) for v in gens(sat_sub)])
+  poly_gens = elem_type(FA)[]
+  for v in relations(M)
+    den = lcm([lifted_denominator(c) for (_, c) in coordinates(v)]...)
+    vv = sum(den*lifted_numerator(c)*FA[i] for (i, c) in coordinates(v); init=zero(FA))
+    push!(poly_gens, vv)
+  end
+  #@assert all(is_zero(M(sum(c*F[i] for (i, c) in coordinates(v); init=zero(F)))) for v in poly_gens)
+  U = SubModuleOfFreeModule(FA, poly_gens)
+  poly_gens_id = elem_type(A)[numerator(f) for f in gens(I)]
+  IA = ideal(A, poly_gens_id)
+  poly_sat = _saturation(U, IA)
+  #@assert all(g in poly_sat for g in gens(U))
+  res, _ = quo(F, elem_type(F)[sum(L(c)*F[i] for (i, c) in coordinates(v); init=zero(F)) for v in gens(poly_sat)])
+  #@assert all(is_zero(res(v)) for v in relations(M))
   return res
 end
 
@@ -817,11 +902,15 @@ end
 function restriction_map(F::StrictTransformSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   pb_M = pullback_sheaf(F)
   pb_res = pb_M(V, U)
+  check = F.check
+  #@check is_welldefined(pb_res)
   X = scheme(F)
-  return hom(F(V), F(U), 
+  res = hom(F(V), F(U), 
              elem_type(F(U))[F(U)(repres(g)) for g in images_of_generators(pb_res)], 
              OO(X)(V, U)
             )
+  #@check is_welldefined(res)
+  return res
 end
 
 function produce_object(
@@ -830,12 +919,21 @@ function produce_object(
   )
   M = original_sheaf(FF)
   res, id = _simplify(M(U))
+  @assert domain(id) === res
+  @assert codomain(id) === M(U)
+  check = FF.check
+  @check begin
+    all(x == preimage(id, id(x)) for x in gens(res))
+    all(x == id(preimage(id, x)) for x in gens(M(U)))
+  end
   identifying_maps(FF)[U] = id
   return res
 end
 
 _simplify(M::SubquoModule) = simplify(M)
 _simplify(F::FreeMod) = F, id_hom(F)
+
+default_covering(F::SimplifiedSheaf) = default_covering(original_sheaf(F))
 
 function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   M = original_sheaf(F)
@@ -846,37 +944,36 @@ function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineSch
   id_cod = identifying_maps(F)[U]
   res_M = M(V, U)
   @assert dom === domain(id_dom)
+  @assert cod === domain(id_cod)
   img_gens = images_of_generators(id_dom)
   img_gens = res_M.(img_gens)
-  img_gens = elem_type(cod)[preimage(id_cod, v) for v in img_gens]
-  return hom(dom, cod, img_gens, OO(scheme(F))(V, U))
+  id_cod_inv = inv(id_cod)
+  img_gens = elem_type(cod)[id_cod_inv(x) for x in img_gens]
+  #img_gens = elem_type(cod)[preimage(id_cod, v) for v in img_gens]
+  res =  hom(dom, cod, img_gens, OO(scheme(F))(V, U))
+  check = F.check
+  #@check is_welldefined(res)
+  return res
 end
 
 sheaf_of_rings(M::SimplifiedSheaf) = sheaf_of_rings(original_sheaf(M))
 sheaf_of_rings(M::StrictTransformSheaf) = sheaf_of_rings(original_sheaf(M))
+default_covering(M::StrictTransformSheaf) = domain(covering_morphism(morphism(M)))
 
 @attr Covering function trivializing_covering(M::SimplifiedSheaf; covering::Covering=default_covering(scheme(M)))
-  new_patches = copy(patches(covering))
+  new_patches = Vector{AbsAffineScheme}(copy(patches(covering)))
   ind = findfirst(!(M(U) isa FreeMod || all(is_zero, relations(M(U)))) for U in new_patches)
   while !isnothing(ind)
-    @show length(new_patches)
-    @show ind
-    readline()
     U = popat!(new_patches, ind)
     MU = M(U)
-    @show MU
-    @show relations(MU)
     ideal(OO(U), one(OO(U)))
     I = ideal(OO(U), reduce(vcat, Vector{elem_type(OO(U))}[elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]; init=elem_type(OO(U))[]))
-    @show I
     one(OO(U)) in I || error("module is not locally free")
-    @show one(OO(U)) in I
     c = coordinates(one(OO(U)), I)
     non_zero_entries = [(i, c[i]) for i in 1:ngens(I) if !is_zero(c[i])]
     for i in 1:ngens(I)
       h = c[i]
       is_zero(h) && continue
-      @show i, gen(I, i)
       push!(new_patches, PrincipalOpenSubset(U, gen(I, i)))
     end
     ind = findfirst(!(M(U) isa FreeMod || all(is_zero, relations(M(U)))) for U in new_patches)
@@ -896,8 +993,11 @@ function module_as_sheaf(M::SubquoModule{T}; scheme::AbsCoveredScheme=covered_sc
   return MM
 end
 
-function resolve_module(M::SubquoModule{T}; r0::Union{Int, Nothing}=nothing) where {T<:RingElem}
-  is_projective(M)[1] && return covered_scheme(spec(base_ring(M))), AbsCoveredSchemeMorphism[]
+function resolve_module(M::SubquoModule{T}; 
+    r0::Union{Int, Nothing}=nothing,
+    scheme::AbsCoveredScheme=covered_scheme(spec(base_ring(M)))
+  ) where {T<:RingElem}
+  is_projective(M)[1] && return scheme, AbsCoveredSchemeMorphism[]
   R = base_ring(M)
   F = ambient_free_module(M)
   @assert all(repres(v) == g for (v, g) in zip(gens(M), gens(F))) "module must be presented as cokernel"
@@ -905,19 +1005,16 @@ function resolve_module(M::SubquoModule{T}; r0::Union{Int, Nothing}=nothing) whe
   I = ideal(R, reduce(vcat, [elem_type(R)[c[i] for i in 1:ngens(F) if !is_zero(c[i])] for c in relations(M)]))
   I = ideal(R, small_generating_set(I))
   bl = blow_up(Y, I)
-  MM = SimplifiedSheaf(module_as_sheaf(M; scheme=codomain(bl)))
-  st_M = StrictTransformSheaf(bl, MM)
+  MM = SimplifiedSheaf(module_as_sheaf(M; scheme=codomain(bl)); check=false)
+  st_M = StrictTransformSheaf(bl, MM; check=false)
   return _resolve_module(SimplifiedSheaf(st_M), AbsCoveredSchemeMorphism[bl]; r0)
 end
 
 function resolve_module(M::AbsCoherentSheaf; r0::Union{Int, Nothing}=nothing)
-  X = scheme(M)
-  is_locally_free(M) && return M, AbsCoveredSchemeMorphism[]
-  return _resolve_module(SimplifiedSheaf(M), AbsCoveredSchemeMorphism[]; r0)
+  return _resolve_module(SimplifiedSheaf(M; check=false), AbsCoveredSchemeMorphism[]; r0)
 end
 
 function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredSchemeMorphism}; r0::Union{Int, Nothing}=nothing)
-  @show "call to _resolve_module"
   # We first look for some non-trivial fitting ideal, either from above or from 
   # below, depending on whether or not `r0` is `nothing`. 
   # In case the Fitting ideals jump from 0 to 1 (or the other way around), 
@@ -928,9 +1025,6 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
     p = 0
     while true
       fitt = FittingIdealSheaf(M, p)
-      @show p
-      @show is_zero(fitt)
-      @show is_one(fitt)
       push!(fitts, fitt)
       if is_zero(fitt)
         p += 1
@@ -945,9 +1039,6 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
     p = r0
     while true
       fitt = FittingIdealSheaf(M, p)
-      @show p
-      @show is_zero(fitt)
-      @show is_one(fitt)
       push!(fitts, fitt)
       if is_one(fitt)
         p -= 1
@@ -959,19 +1050,11 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
       break
     end
   end
-  @show p
-  @show M
   X = scheme(M)
   simp_cov = simplified_covering(X)
   I = simplify(radical(fitts[end]))
-  @show is_zero(I) 
-  for U in patches(simp_cov)
-    @show U
-    @show M(U)
-    @show gens(I(U))
-  end
   bl = blow_up(I; covering=simplified_covering(X))
-  st_M = SimplifiedSheaf(StrictTransformSheaf(bl, M))
+  st_M = SimplifiedSheaf(StrictTransformSheaf(bl, M; check=false); check=false)
   return _resolve_module(st_M, push!(blowdowns, bl); r0)
 end
 
@@ -988,3 +1071,5 @@ end
 function trivializing_covering(M::ExteriorPowerSheaf; covering::Covering=default_covering(scheme(M)))
   return trivializing_covering(original_sheaf(M); covering)
 end
+
+sheaf_of_rings(M::ExteriorPowerSheaf) = sheaf_of_rings(original_sheaf(M))
