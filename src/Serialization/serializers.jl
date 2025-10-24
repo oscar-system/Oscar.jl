@@ -142,7 +142,7 @@ function save_data_basic(s::SerializerState, x::Any,
   !isnothing(key) && set_key(s, key)
   begin_node(s)
   str = string(x)
-  JSON.show_string(s.io, str)
+  JSON.json(s.io, str)
   nothing
 end
 
@@ -200,7 +200,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
+  obj::Union{Dict{Symbol, Any}, JSON.Object{String, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
   with_attrs::Bool
@@ -273,9 +273,13 @@ end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_params to hang
+  # put_type_params to hang
   #obj = JSON3.read(io)
-  obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
+  str = readuntil(io, '}'; keep=true)
+  while !JSON.isvalidjson(str)
+    str *= readuntil(io, '}'; keep=true)
+  end
+  obj = JSON.parse(str; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
 
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end

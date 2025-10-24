@@ -2,6 +2,7 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+import JSON
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -16,7 +17,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
@@ -48,7 +50,7 @@ end
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
-    println(json(obj[:meta], 2))
+    println(JSON.json(obj[:meta], 2))
   end
 end
 
@@ -80,8 +82,13 @@ function get_oscar_serialization_version()
     return oscar_serialization_version[]
   end
   if Oscar.is_dev
+    next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
+    n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
+                       readdir(joinpath(@__DIR__, "Upgrades")))
+
+
     commit_hash = get(Oscar._get_oscar_git_info(), :commit, "unknown")
-    version_info = "$VERSION_NUMBER-$commit_hash"
+    version_info = iszero(n_upgrades) ? "$VERSION_NUMBER-$commit_hash" : "$VERSION_NUMBER-$n_upgrades-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
     )
@@ -192,7 +199,7 @@ function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
     print(io, "Type parameters for $T")
   else
     io = pretty(io)
-    print(io, "Type parameter for $T ")
+    print(io, "Type parameters for $T ")
     print(terse(io), Lowercase(), params(tp))
   end
 end
@@ -233,7 +240,6 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
-
   if with_attrs(s)
     attrs = attrs_list(T)
     !isempty(attrs) && save_attrs(s, x)
@@ -270,15 +276,11 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     T = type(tp)
     type_encoding = encode_type(T)
     if reverse_type_map[type_encoding] isa Dict
-      # here we get "$T" = "fpField"
-      # see comment in register_serialization_type
       save_object(s, convert_type_to_string(T), :_instance)
     end
     
     save_object(s, type_encoding, :name)
-    # this branching needs to be better understood,
-    # seems like params(tp) wont be a TypeParams if
-    # the type is not some container type
+    # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
     else
@@ -613,6 +615,7 @@ include("LieTheory.jl")
 include("Upgrades/main.jl")
 include("parallel.jl")
 
+
 ################################################################################
 # Interacting with IO streams and files
 
@@ -630,20 +633,20 @@ See [`load`](@ref).
 
 # Examples
 
-```jldoctest
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
 Oscar.Serialization.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
-julia> save("/tmp/fourtitwo.mrdi", 42; metadata=meta);
+julia> save("fourtitwo.mrdi", 42; metadata=meta);
 
-julia> read_metadata("/tmp/fourtitwo.mrdi")
+julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
   "name": "42",
   "description": "The meaning of life, the universe and everything"
 }
 
-julia> load("/tmp/fourtitwo.mrdi")
+julia> load("fourtitwo.mrdi")
 42
 ```
 """
@@ -717,13 +720,13 @@ See [`save`](@ref).
 
 # Examples
 
-```jldoctest
-julia> save("/tmp/fourtitwo.mrdi", 42);
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> save("fourtitwo.mrdi", 42);
 
-julia> load("/tmp/fourtitwo.mrdi")
+julia> load("fourtitwo.mrdi")
 42
 
-julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
+julia> load("fourtitwo.mrdi"; type=Int64)
 42
 
 julia> R, x = QQ[:x]
@@ -732,17 +735,17 @@ julia> R, x = QQ[:x]
 julia> p = x^2 - x + 1
 x^2 - x + 1
 
-julia> save("/tmp/p.mrdi", p)
+julia> save("p.mrdi", p)
 
-julia> p_loaded = load("/tmp/p.mrdi", params=R)
+julia> p_loaded = load("p.mrdi", params=R)
 x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
 
-julia> save("/tmp/p_v.mrdi", [p, p])
+julia> save("p_v.mrdi", [p, p])
 
-julia> loaded_p_v = load("/tmp/p_v.mrdi", params=R)
+julia> loaded_p_v = load("p_v.mrdi", params=R)
 2-element Vector{QQPolyRingElem}:
  x^2 - x + 1
  x^2 - x + 1
@@ -793,6 +796,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
   
   try
+    if params isa TypeParams
+      params = _convert_override_params(params)
+    end
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
       # If they are identical, just proceed. If not, then we assume that either
@@ -804,7 +810,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         decode_type(s)
       end
       
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
@@ -850,6 +856,60 @@ function load(filename::String; params::Any = nothing,
   end
 end
 
+_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
+
+_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
+
+
+function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
+  vp_pair = filter(x -> :value_params == x.first, params(tp))
+  kp_pair = filter(x -> :key_params == x.first, params(tp))
+  if !isempty(vp_pair)
+    ov_params = Dict(k => _convert_override_params(v) for (k, v) in params(tp))
+    if type(first(kp_pair).second) <: Union{Symbol, String, Int}
+      return _convert_override_params(first(vp_pair).second)
+    end
+  else
+    return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
+  end
+end
+
+_convert_override_params(obj::Any) = obj
+
+#handles empty tuple ambiguity
+_convert_override_params(obj::Tuple{}) = ()
+
+_convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
+
+function _convert_override_params(t::Tuple{Vararg{Pair}})
+  map(x -> x.first => _convert_override_params(x.second), t)
+end
+
+# handle special polyhedral case
+function _convert_override_params(tp::TypeParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
+  # special treatement for the polymake parameters
+  poly_params = Dict()
+  for (k, v) in params(tp)
+    if k == :pm_params
+      poly_params[k] = Dict()
+      for (pm_k, pm_v) in params(v)
+        poly_params[k][pm_k] = (type(pm_v), _convert_override_params(params(pm_v)))
+      end
+    else
+      poly_params[k] = v
+    end
+  end
+  return poly_params
+end
+
+# handle monomial ordering
+_convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
+
+
 export @register_serialization_type
 export DeserializerState
 export encode_type
@@ -859,7 +919,6 @@ export load_attrs
 export load_node
 export load_object
 export load_ref
-export params_all_equal
 export save
 export save_as_ref
 export save_attrs

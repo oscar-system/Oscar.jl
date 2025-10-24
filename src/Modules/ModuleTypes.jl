@@ -227,14 +227,13 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   F::FreeMod{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   gens::ModuleGens{T}
-  default_ordering::ModuleOrdering
+  default_ordering::ModuleOrdering{FreeMod{T}}
   any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
                         # Lookups in the above dictionary is tentatively expensive. 
                         # So this field stores any gb for cases where the actual 
                         # ordering does not matter. Then this field here can be used. 
   any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
-  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
@@ -259,26 +258,23 @@ option is set in suitable functions.
 @attributes mutable struct SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
-  sub::SubModuleOfFreeModule
-  quo::SubModuleOfFreeModule
-  sum::SubModuleOfFreeModule
 
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
 
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
+  sub::SubModuleOfFreeModule{T}
+  quo::SubModuleOfFreeModule{T}
+  sum::SubModuleOfFreeModule{T}
+
   function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
-    r = new{R}()
-    r.F = F
-
-    r.groebner_basis = Dict()
-    
-    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-
-    return r
+    return new{R}(F,
+                  Dict(),  # groebner_basis
+                  WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}(), # incoming
+                  WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}(), # outgoing
+                  )
   end
 end
 

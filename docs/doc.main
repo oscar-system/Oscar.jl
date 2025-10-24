@@ -10,26 +10,45 @@
      "General/complex.md",
   ],
 
+  "Combinatorics" => [
+    "Combinatorics/graphs.md",
+    "Combinatorics/posets.md",
+    "Combinatorics/matroids.md",
+    "Combinatorics/simplicialcomplexes.md",
+    "Combinatorics/phylogenetic_trees.md",
+    "Enumerative combinatorics" => [
+      "Combinatorics/EnumerativeCombinatorics/combinations.md",
+      "Combinatorics/EnumerativeCombinatorics/compositions.md",
+      "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
+      "Combinatorics/EnumerativeCombinatorics/tableaux.md",
+      "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
+      "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md"
+    ],
+  ],
+
   "Groups" => [
      "Groups/intro.md",
      "Groups/basics.md",
+     "Kinds of groups" => [
+         "Groups/permgroup.md",
+         "Groups/fpgroup.md",
+         "Groups/pcgroup.md",
+         "Groups/matgroup.md",
+         "Abelian Groups" => [
+            "Introduction" => "Hecke/manual/abelian/introduction.md",
+            "Elements" => "Hecke/manual/abelian/elements.md",
+            "Morphisms" => "Hecke/manual/abelian/maps.md",
+            "Structural Computations" => "Hecke/manual/abelian/structural.md",
+         ],
+         "Groups/autgroup.md",
+      ],
      "Groups/subgroups.md",
      "Groups/quotients.md",
      "Groups/products.md",
-     "Groups/permgroup.md",
-     "Groups/fpgroup.md",
-     "Groups/pcgroup.md",
-     "Groups/matgroup.md",
      "Groups/action.md",
      "Groups/grouphom.md",
-     "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Abelian Groups" => [
-        "Introduction" => "Hecke/manual/abelian/introduction.md",
-        "Elements" => "Hecke/manual/abelian/elements.md",
-        "Morphisms" => "Hecke/manual/abelian/maps.md",
-        "Structural Computations" => "Hecke/manual/abelian/structural.md",
-     ],
      "Groups/group_characters.md",
      "Groups/recog.md",
      "Groups/tom.md",
@@ -123,7 +142,8 @@
       "NumberTheory/QuadFormAndIsom/spacewithisom.md",
       "NumberTheory/QuadFormAndIsom/latwithisom.md",
       "NumberTheory/QuadFormAndIsom/enumeration.md",
-      "NumberTheory/QuadFormAndIsom/primembed.md"
+      "NumberTheory/QuadFormAndIsom/primembed.md",
+      "NumberTheory/QuadFormAndIsom/fingrpact.md",
     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
@@ -263,6 +283,7 @@
      "TropicalGeometry/groebner_theory.md",
      "TropicalGeometry/tropicalization.md",
      "TropicalGeometry/positive_variety.md",
+     "TropicalGeometry/tropical_polyhedra.md",
   ],
 
   "Noncommutative Algebra" => [
@@ -284,28 +305,15 @@
     "LieTheory/weyl_groups.md",
   ],
 
-  "Combinatorics" => [
-    "Combinatorics/graphs.md",
-    "Combinatorics/posets.md",
-    "Combinatorics/matroids.md",
-    "Combinatorics/simplicialcomplexes.md",
-    "Combinatorics/phylogenetic_trees.md",
-    "Enumerative combinatorics" => [
-      "Combinatorics/EnumerativeCombinatorics/combinations.md",
-      "Combinatorics/EnumerativeCombinatorics/partitions.md",
-      "Combinatorics/EnumerativeCombinatorics/multipartitions.md",
-      "Combinatorics/EnumerativeCombinatorics/tableaux.md",
-      "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
-      "Combinatorics/EnumerativeCombinatorics/compositions.md",
-    ],
-    "Multi-sets and subset iterators" => "Hecke/manual/misc/mset.md",
-  ],
-
   "Straight Line Programs" => [
-      "StraightLinePrograms/intro.md",
-      "StraightLinePrograms/gapslps.md",
-      "StraightLinePrograms/abstractalgebra.md",
+    "StraightLinePrograms/intro.md",
+    "StraightLinePrograms/gapslps.md",
+    "StraightLinePrograms/abstractalgebra.md",
    ],
+
+  "Experimental: Tools in the Making" => [
+    # rest is populated by code in docs/make_work.jl
+  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",

@@ -1525,8 +1525,12 @@ Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRi
 ```
 """
 function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  return _homogeneous_components(a, nothing)
+end
+
+function _homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}})
   simplify(a)
-  h = homogeneous_components(a.f)
+  h = _homogeneous_components(a.f, degs)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
