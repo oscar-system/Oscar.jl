@@ -141,6 +141,8 @@ function div(s::RationalSection)
   X= Oscar.scheme(s)
   F = Oscar.sheaf(s)
   triv_cov = trivializing_covering(F)
+  res_dict = Dict{AbsIdealSheaf, Int}()
+  new_dict = Dict{AbsIdealSheaf, Int}()
   simp_num = []
   simp_denom = []
   for U in triv_cov
@@ -151,38 +153,27 @@ function div(s::RationalSection)
       N = minimal_primes(ideal(OO(X)(U),num))
       for p in N
         check_codim(U,p) || continue
-        (is_empty(simp_num) || !any(map(t -> t[1](U) == p,simp_num))) || continue
+        P = PrimeIdealSheafFromChart(X, U, p)
+        P in keys(res_dict) && continue
         multp = ord_f_in_p(U,num,p)
-        push!(simp_num, [Oscar.PrimeIdealSheafFromChart(X,U,p),multp])
+        new_dict[P] = multp
       end
     end
     if !is_unit(denom)
       D = minimal_primes(ideal(OO(X)(U),denom))
       for p in D
         check_codim(U,p) || continue
-        in_num = false
-        for t in simp_num
-          (t[1](U) == p) || continue
-          multp = ord_f_in_p(U,denom,p)
-          t[2] = t[2] - multp
-          in_num = true
-          break
+        P = PrimeIdealSheafFromChart(X, U, p)
+        P in keys(res_dict) && continue
+        num_mult = get!(new_dict, P) do
+          0
         end
-        (in_num || any(map(t -> t[1](U) == p,simp_denom))) && continue
         multp = ord_f_in_p(U,denom,p)
-        push!(simp_denom,[Oscar.PrimeIdealSheafFromChart(X,U,p),multp])
+        new_dict[P] = num_mult - multp
       end
     end
+    res_dict = merge(res_dict, new_dict)
   end
-  if !is_empty(simp_denom) 
-    simp_denom = reduce(+,map(t -> t[2]*algebraic_cycle(t[1]),simp_denom))
-  else
-    simp_denom = algebraic_cycle(X,ZZ)
-  end
-  if !is_empty(simp_num)
-    simp_num = reduce(+,map(t -> t[2]*algebraic_cycle(t[1]),simp_num))
-  else
-    simp_num = algebraic_cycle(X,ZZ)
-  end
-  simp_num - simp_denom
+  return sum(m*weil_divisor(P) for (P, m) in res_dict; init=weil_divisor(X, ZZ))
 end
+
