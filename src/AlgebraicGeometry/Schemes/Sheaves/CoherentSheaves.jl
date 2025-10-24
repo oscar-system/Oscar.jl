@@ -961,8 +961,9 @@ PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
   pullback_of_sections::IdDict{AbsAffineScheme, Union{Map, Nothing}} # a dictionary caching the natural
                                                                    # pullback maps along the maps in the `covering_morphism` of f
   F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
+  check::Bool
 
-  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf; check::Bool=true)
     X = domain(f)
     Y = codomain(f)
     Y === scheme(M) || error("sheaf must be defined over the domain of the embedding")
@@ -980,7 +981,7 @@ PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber)
+    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber, check)
     return MY
   end
 end
@@ -1408,8 +1409,9 @@ end
   orig_sheaf::AbsCoherentSheaf
   pullback_sheaf::AbsCoherentSheaf
   underlying_sheaf::PreSheafOnScheme
+  check::Bool
 
-  function StrictTransformSheaf(bl::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+  function StrictTransformSheaf(bl::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf; check::Bool=true)
     X = domain(bl)
     Y = codomain(bl)
     @req scheme(M) === Y "sheaf of modules needs to be given on the codomain of the blowup"
@@ -1420,7 +1422,7 @@ end
                            is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                           )
     pb = pullback(bl, M)
-    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(bl, M, pb, und)
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(bl, M, pb, und, check)
   end
 end
 
@@ -1446,8 +1448,9 @@ end
   orig_sheaf::AbsCoherentSheaf
   identifying_maps::IdDict{<:AbsAffineScheme, <:ModuleFPHom}
   underlying_sheaf::PreSheafOnScheme
+  check::Bool
 
-  function SimplifiedSheaf(orig::AbsCoherentSheaf)
+  function SimplifiedSheaf(orig::AbsCoherentSheaf; check::Bool=true)
     X = scheme(orig)
     und = PreSheafOnScheme(X, 
                            OpenType=AbsAffineScheme, OutputType=ModuleFP,
@@ -1455,7 +1458,7 @@ end
                            is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                           )
     cache = IdDict{AbsAffineScheme, ModuleFPHom}()
-    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(orig, cache, und)
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(orig, cache, und, check)
   end
 end
 
