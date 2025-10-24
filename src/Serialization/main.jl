@@ -57,10 +57,10 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Union{JSON3.Object, Dict})
+function serialization_version_info(obj::AbstractDict{String, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON3.Object
+  if version_info isa JSON.Object
     return version_number(Dict(version_info))
   end
   return version_number(version_info)
