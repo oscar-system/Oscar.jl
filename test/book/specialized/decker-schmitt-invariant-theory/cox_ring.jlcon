@@ -11,9 +11,7 @@ Matrix group of degree 3
 
 julia> tbl = character_table(G);  F, _ = abelian_closure(QQ);
 
-julia> p = x -> order(kernel(x)[1]) == 8 && x(G(g2)) == F(z_3);
-
-julia> chi = iterate(x for x in tbl if p(x))[1];
+julia> chi = only(x for x in tbl if order(kernel(x)[1]) == 8 && x(G(g2)) == F(z_3));
 
 julia> RG = invariant_ring(G)
 Invariant ring
