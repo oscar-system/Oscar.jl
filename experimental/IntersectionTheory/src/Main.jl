@@ -2702,8 +2702,15 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String =
   @assert k < n
   d = k*(n-k)
   R, c = graded_polynomial_ring(base, symbol => 1:k; weights = 1:k)
-  inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
+
+  l =[-sum(c)]
+  for i=1:n-1
+    push!(l, l[1]*l[end])
+  end
+  inv_c = sum(l) # this is c(Q) since c(S)⋅c(Q) = 1
+
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
+
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
   c = gens(AGr)
   Gr = AbstractVariety(d, AGr)
