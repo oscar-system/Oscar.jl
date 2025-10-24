@@ -60,9 +60,6 @@ end
 function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON.Object
-    return version_number(Dict(version_info))
-  end
   return version_number(version_info)
 end
 
@@ -71,7 +68,7 @@ function version_number(v_number::String)
 end
 
 # needed for older versions
-function version_number(dict::Dict)
+function version_number(dict::AbstractDict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
