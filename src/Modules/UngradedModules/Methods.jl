@@ -417,7 +417,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
 end
 
 function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
-  domain(f) == base_ring(M) || error("ring map not compatible with the module")
+  domain(f) === base_ring(M) || error("ring map not compatible with the module")
   S = codomain(f)
   F = ambient_free_module(M)
   R = base_ring(M)
