@@ -2104,9 +2104,9 @@ function cheap_sub_ideal(I::PullbackIdealSheaf, U::AbsAffineScheme)
   return OO(X)(V, U)(cheap_sub_ideal(I, V))
 end
 
-function sub(I::AbsIdealSheaf)
+function sub(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  inc = CoveredClosedEmbedding(X, I)
+  inc = CoveredClosedEmbedding(X, I; covering)
   return domain(inc), inc
 end
 
@@ -2367,11 +2367,13 @@ end
 original_sheaf(I::FittingIdealSheaf) = I.M
 scheme(I::FittingIdealSheaf) = I.X
 underlying_presheaf(I::FittingIdealSheaf) = I.F
+default_covering(I::FittingIdealSheaf) = default_covering(original_sheaf(I))
 
 function produce_object_on_affine_chart(I::FittingIdealSheaf, U::AbsAffineScheme)
   MM = original_sheaf(I)
   M = MM(U)
-  return fitting_ideal(M, I.k)
+  res = fitting_ideal(M, I.k)
+  return res
 end
 
 function fitting_ideal(F::FreeMod, i::Int)
@@ -2383,7 +2385,6 @@ end
 function fitting_ideal(M::SubquoModule, i::Int)
   F = ambient_free_module(M)
   R = base_ring(M)
-  @show length(relations(M)), ngens(M)-i
   ngens(M)-i <= 0 && return ideal(R, one(R))
   if !all(repres(v) == g for (v, g) in zip(gens(M), gens(F)))
     return fitting_ideal(simplify(M)[1], i) # presents the module as a cokernel
@@ -2392,8 +2393,7 @@ function fitting_ideal(M::SubquoModule, i::Int)
   for v in relations(M)
     push!(smat, coordinates(v))
   end
-  res = ideal(R, minors(matrix(smat), ngens(M)-i))
-  @show "done"
+  res = ideal(R, minors(matrix(smat), ngens(F)-i))
   return res
 end
 
