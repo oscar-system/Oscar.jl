@@ -955,7 +955,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   #compute irreducible resolution of shifted module
   a_shift = compute_shift(M, i+1)
   M_a = twist(M, -G(a_shift))
-  irr_res = irreducible_resolution(M_a,i)
+  irr_res = irreducible_resolution(M_a)
 
   #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
   inj_modules = Vector{InjMod}()
