@@ -1841,10 +1841,12 @@ by submodule with 3 generators
 function quotient(M::SubquoModule, J::Ideal)
   @assert base_ring(M) == base_ring(J)
   M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
-  U = M.sub+M.quo
+  U = M.sub+M_quo
   UF = _quotient(U, J)
   res = SubquoModule(UF)
-  res.quo = M.quo
+  if isdefined(M, :quo)
+    res.quo = M.quo
+  end
   return simplify_light(res)[1]
 end
 
@@ -1926,10 +1928,12 @@ by submodule with 3 generators
 function saturation(M::SubquoModule, J::Ideal = ideal(base_ring(M), gens(base_ring(M))); iteration::Bool = false)
   @assert base_ring(M) == base_ring(J)
   M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
-  U = M.sub+M.quo
+  U = M.sub+M_quo
   UF = _saturation(U, J; iteration = iteration)
   res = SubquoModule(UF)
-  res.quo = M.quo
+  if isdefined(M, :quo)
+    res.quo = M.quo
+  end
   return simplify_light(res)[1]
 end
 
@@ -2054,10 +2058,12 @@ julia> L[2]
 function saturation_with_index(M::SubquoModule, J::Ideal = ideal(base_ring(M), gens(base_ring(M))); iteration::Bool = false)
 @assert base_ring(M) == base_ring(J)
   M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{elem_type(ambient_free_module(M))}())
-  U = M.sub+M.quo
+  U = M.sub+M_quo
   UF, k = _saturation_with_index(U, J; iteration = iteration)
   res = SubquoModule(UF)
-  res.quo = M.quo
+  if isdefined(M, :quo)
+    res.quo = M.quo
+  end
   return simplify_light(res)[1], k
 end
 
