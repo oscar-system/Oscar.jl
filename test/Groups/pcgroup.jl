@@ -160,8 +160,8 @@ end
   ]
 
   for G in groups
-      code = code_pcgroup(G)  
-      H = pcgroup_code(code, G)  
+      code = code_pcgroup(G)
+      H = pcgroup_code(code, order(G))
       @test hom(G, H, gens(H)) isa Map
       @test order(G) == order(H)
       @test code_pcgroup(H) == code

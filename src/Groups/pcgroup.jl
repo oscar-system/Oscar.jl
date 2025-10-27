@@ -966,20 +966,10 @@ Pc group of order 12
 julia> code = code_pcgroup(G)
 266
 
-julia> H1 = pcgroup_code(code, order(G))
+julia> H = pcgroup_code(code, order(G))
 Pc group of order 12
 
-julia> code_pcgroup(G) == code_pcgroup(H1)
-true
-
-julia> vec_code = vec(code_pcgroup(G))
-1-element Vector{Int64}:
- 266
-
-julia> H2 = pcgroup_code(vec_code, order(G))
-Pc group of order 12
-
-julia> code_pcgroup(G) == code_pcgroup(H2)
+julia> code_pcgroup(G) == code_pcgroup(H)
 true
 ```
 """
