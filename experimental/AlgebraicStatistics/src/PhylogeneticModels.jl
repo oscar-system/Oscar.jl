@@ -1182,7 +1182,7 @@ end
 
 Creates the full model ring in _probability coordinates_ for a `PhylogeneticModel`. Equivalently, creates the full model ring in the _Fourier coordinates_ for a `GroupBasedPhylogeneticModel`.
 
-The output consist on a tuple containing a `ModelRing` and a `Dict` mapping a tuple of states at the leaves to the corresponding coordinate in the ring. This ring has a generator for every possible state configuration at the leaves.
+The output consist on a tuple containing a `IndexedRing` and a `Dict` mapping a tuple of states at the leaves to the corresponding coordinate in the ring. This ring has a generator for every possible state configuration at the leaves.
 
 # Example
 ```jldoctest
@@ -1195,7 +1195,7 @@ p[1,2,4]
 ```
 """
 @attr Tuple{
-  ModelRing{T, U}, 
+  IndexedRing{T, U}, 
   Dict{T, U}
 } where {T, U} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   l_indices = leaves_indices(PM)
@@ -1366,7 +1366,7 @@ q[1,1,1]
 
 """
 @attr Tuple{
-  ModelRing{T, U}, 
+  IndexedRing{T, U}, 
   Dict{T, U}
 } where {T, U} function model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   eq_classes = equivalent_classes(PM)

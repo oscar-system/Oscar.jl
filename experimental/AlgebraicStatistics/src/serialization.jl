@@ -159,7 +159,6 @@ function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
 end
 
 function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, params::Dict)
-  println(typeof(params[:phylo_model]))
   GroupBasedPhylogeneticModel(params[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, Vector{FinGenAbGroupElem}, params[:group], :group_elems),
