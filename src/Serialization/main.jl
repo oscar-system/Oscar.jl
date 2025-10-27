@@ -861,9 +861,8 @@ _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dic
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-
+_convert_override_params(tp::TypeParams{T, Nothing}) where T <: Oscar.AbstractGraph = T
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
-
 
 function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
   vp_pair = filter(x -> :value_params == x.first, params(tp))

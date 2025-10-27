@@ -3,7 +3,7 @@
 
 const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
                                SMat, TropicalSemiringElem}
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
+const RingMatSpaceUnion = Union{NCRing, MatSpace, SMatSpace,
                                 FreeAssociativeAlgebra, TropicalSemiring}
 const ModRingUnion = Union{zzModRing, ZZModRing}
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
