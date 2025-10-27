@@ -70,7 +70,7 @@ p[1,2,1]
 ```
 """
 @attr Tuple{
-  ModelRing,
+  IndexedRing,
   GenDict{<: Tuple, QQMPolyRingElem}
 } function model_ring(M::DiscreteGraphicalModel; cached=false)
   random_variables = 1:n_states(M)
@@ -78,7 +78,7 @@ p[1,2,1]
   varindices = collect(Iterators.product(state_spaces...))
 
   # TODO: the base ring should come from the model, leaving as QQ for now
-  return model_ring(QQ, varnames(M)[:p] => varindices)
+  return indexed_ring(QQ, varnames(M)[:p] => varindices)
 end
 
 function state_space(M::DiscreteGraphicalModel, C::Vector{Int})

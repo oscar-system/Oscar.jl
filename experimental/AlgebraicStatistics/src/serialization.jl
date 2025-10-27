@@ -13,7 +13,7 @@ function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   end
   
   value_params = type_params.(collect(values(obj)))
-  @req Oscar.Serialization.params_all_equal(value_params) "Not all params of values in $obj are the same"
+  @req allequal(value_params) "Not all params of values in $obj are the same"
   
   return TypeParams(
     T,
@@ -62,24 +62,36 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
 end
 
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
+@register_serialization_type DiscreteGraphicalModel uses_id [:parameter_ring, :model_ring]
 
 function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
   # this should only be the graph type not the whole graph
   # need to make adjustments to TypeParams functionality
-  TypeParams(S, graph(GM))
+  TypeParams(S, :graph_type => TypeParams(typeof(graph(GM)), nothing))
 end
 
 function save_object(s::SerializerState, M::GraphicalModel)
+  save_object(s, graph(M))
+end
+
+function load_object(s::DeserializerState, ::Type{GaussianGraphicalModel}, params::Dict)
+  g = load_object(s, params[:graph_type])
+  gaussian_graphical_model(g)
+end
+
+function save_object(s::SerializerState, M::DiscreteGraphicalModel)
   save_data_dict(s) do
-    # needs an empty dict here
-    # this requires a known issue with current general serialization
+    save_object(s, graph(M), :graph)
+    save_object(s, states(M), :states)
   end
 end
 
-load_object(s::DeserializerState,
-            ::Type{GaussianGraphicalModel},
-            g::AbstractGraph) = gaussian_graphical_model(g)
-
+function load_object(s::DeserializerState, ::Type{DiscreteGraphicalModel}, params::Dict)
+  discrete_graphical_model(
+    load_object(s, params[:graph_type], :graph),
+    load_object(s, Vector{Int}, :states)
+  )
+end
 
 @register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
                                                         :model_ring,
@@ -89,10 +101,11 @@ load_object(s::DeserializerState,
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
-  :graph => graph(pm))
+  :graph_type => TypeParams(typeof(graph(GM)), nothing))
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
   save_data_dict(s) do
+    save_object(s, graph(pm), :graph)
     save_object(s, transition_matrix(pm), :transition_matrix)
     save_object(s, varnames(pm), :model_parameter_name)
     save_object(s, n_states(pm), :n_states)
@@ -103,7 +116,7 @@ end
 function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Dict)
   return PhylogeneticModel(
     params[:base_field],
-    params[:graph],
+    g = load_object(s, params[:graph_type], :graph),
     # TODO need to change Symbol to VarName  at some point
     load_object(s, Matrix{Symbol}, :transition_matrix),
     load_object(s, Vector{QQFieldElem}, :root_distribution),
@@ -138,3 +151,16 @@ function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, 
 end
 
 
+@register_serialization_type IndexedRing uses_id
+
+function save_object(s::SerializerState, R::IndexedRing)
+  save_data_dict(s) do
+    save_object(s, symbols(R), :symbols)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:IndexedRing}, R::NCRing)
+  syms = load_object(s, Vector{Symbol}, :symbols)
+
+  return indexed_ring(R, syms; cached=false)[1]
+end

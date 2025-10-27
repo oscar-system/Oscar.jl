@@ -1,6 +1,6 @@
 include("DictTypes.jl")
 
-include("ModelRing.jl")
+include("IndexedRing.jl")
 include("CI.jl")
 include("MarkovProperties.jl")
 include("Markov.jl")
@@ -10,13 +10,12 @@ include("DiscreteGraphicalModels.jl")
 
 include("PhylogeneticModels.jl")
 include("PhylogeneticModels-functions.jl")
-# include("PhylogeneticAuxiliary.jl")
-# include("PhylogeneticParametrization.jl")
-# include("PhylogeneticInvariants.jl")
 
 include("MultigradedImplicitization.jl")
 
 include("serialization.jl")
+
+export indexed_ring
 
 # export Abstract Graphical Model
 export GraphicalModel

@@ -1200,7 +1200,7 @@ p[1,2,4]
 } where {T, U} function full_model_ring(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}; cached=false)
   l_indices = leaves_indices(PM)
 
-  return model_ring(base_field(PM), varnames(PM) => l_indices; cached=cached)
+  return indexed_ring(base_field(PM), varnames(PM) => l_indices; cached=cached)
 end
 
 @doc raw"""
@@ -1372,7 +1372,7 @@ q[1,1,1]
   eq_classes = equivalent_classes(PM)
   ec_indices = sort(collect(keys(eq_classes)), rev = true)
 
-  return model_ring(base_field(PM), varnames(PM) => ec_indices; cached=cached)
+  return indexed_ring(base_field(PM), varnames(PM) => ec_indices; cached=cached)
 end
 
 @doc raw"""
@@ -1543,8 +1543,8 @@ end
 Constructs the map from probability coordinates to Fourier coordinates. This is a homomorphism between the model rings.
 """
 function coordinate_change(PM::GroupBasedPhylogeneticModel)
-  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, _ = Oscar.model_ring(PM)
+  Rp, _ = model_ring(phylogenetic_model(PM))
+  Rq, _ = model_ring(PM)
   
   M = fourier_transform(PM)
   hom(Rq, Rp, M * gens(_ring(Rp)))
@@ -1556,14 +1556,14 @@ end
 Computes the matrix that transforms Fourier coordinates back to probability coordinates.
 """
 function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
-  FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
-  FRq, q = Oscar.full_model_ring(PM)
+  FRp, p = full_model_ring(phylogenetic_model(PM))
+  FRq, q = full_model_ring(PM)
 
-  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, _ = Oscar.model_ring(PM)
+  Rp, _ = model_ring(phylogenetic_model(PM))
+  Rq, _ = model_ring(PM)
 
-  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
-  q_classes = Oscar.equivalent_classes(PM)
+  p_classes = equivalent_classes(phylogenetic_model(PM))
+  q_classes = equivalent_classes(PM)
 
   np = length(p_classes)
   nq = length(q_classes)
@@ -1596,8 +1596,8 @@ end
 Constructs the map from Fourier coordinates to probability coordinates. This is the inverse of `coordinate_change`.
 """
 function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
-  Rp, _ = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, _ = Oscar.model_ring(PM)
+  Rp, _ = model_ring(phylogenetic_model(PM))
+  Rq, _ = model_ring(PM)
   
   M = inverse_fourier_transform(PM)
   hom(Rp, Rq, M*gens(_ring(Rq)))
