@@ -30,8 +30,7 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
   UG = complete_bipartite_graph(1, 2)
   @testset "Undirected" begin
     M3 = gaussian_graphical_model(UG)
-    #TODO fix this when algorithm = :eliminate ?
-    V3 = vanishing_ideal(M3; algorithm=:kernel)
+    V3 = @time vanishing_ideal(M3; algorithm=:eliminate)
     cov_mat = covariance_matrix(M3)
     @test V3 == ideal([
       -cov_mat[1, 1] * cov_mat[2, 3] + cov_mat[1, 2] * cov_mat[1, 3]])

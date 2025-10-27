@@ -1,10 +1,10 @@
 import Oscar.Serialization: save_object, load_object,
   type_params
 
-@register_serialization_type GraphGenDict 
+@register_serialization_type GraphDict 
 @register_serialization_type GraphTransDict
 
-function type_params(obj::T) where T <: Union{GraphGenDict, GraphTransDict}
+function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   if isempty(obj)
     return TypeParams(
       T,
@@ -30,7 +30,7 @@ end
 
 load_object(s::DeserializerState, ::Type{Edge}) = Edge(load_object(s, Vector{Int})...)
 
-function save_object(s::SerializerState, d::T) where T <: Union{GraphGenDict, GraphTransDict}
+function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, GraphTransDict}
   save_data_array(s) do
     for (k, v) in d
       save_object(s, (k, v))
@@ -38,7 +38,8 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphGenDict, Gr
   end
 end
 
-function load_object(s::DeserializerState, ::Type{GraphGenDict}, R::Ring)
+#TODO still need to handle other GraphDict cases
+function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
   graph_gen_dict = Dict{Union{Int, Edge}, MPolyRingElem}()
   load_array_node(s) do (_, (k, v))
     if k isa Oscar.Serialization.JSON3.Array

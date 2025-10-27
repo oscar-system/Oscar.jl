@@ -890,15 +890,15 @@ If `M  <: MPolyRingElem`, then returns a tuple containing:
 
 """
 @attr Tuple{
-  MPolyRing, 
-  GraphTransDict,
+  MPolyRing{RT}, 
+  GraphTransDict{MPolyRingElem{RT}},
   Vector{RT}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
   
-  R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+  R, Dict{Tuple{VarName, Edge}, MPolyRingElem{RT}}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
       (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
       ), root_distribution(PM)
@@ -924,7 +924,7 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
@@ -945,7 +945,7 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: MPolyRingElem}
@@ -969,7 +969,7 @@ end
 
 @attr Tuple{
   MPolyRing{RT}, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem} 
@@ -1038,7 +1038,7 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
@@ -1064,7 +1064,7 @@ end
 
 @attr Tuple{
   MPolyRing, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
@@ -1094,7 +1094,7 @@ end
 
 @attr Tuple{
   MPolyRing{R}, 
-  Dict{Edge, Oscar.MPolyAnyMap}, 
+  GraphDict{Oscar.MPolyAnyMap}, 
   Vector{RT},
   GenDict
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,

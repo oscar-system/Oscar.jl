@@ -1,9 +1,9 @@
 ################################################################################
 # important dict type, leaving here for now
-const GraphGenDict = Dict{Union{Int, Edge}, T} where T <: MPolyRingElem
-const GenDict{S} = Dict{S, T} where {S, T <: MPolyRingElem}
+const GraphDict{T} = Dict{<:Union{Int, Edge}, T}
+const GenDict{S, T} = Dict{S, T} where {S, T <: MPolyRingElem}
 
-function Base.getindex(D::GraphGenDict, i::Int, j::Int)
+function Base.getindex(D::GraphDict, i::Int, j::Int)
   return D[Edge(i, j)]
 end
 
@@ -15,7 +15,7 @@ function Base.getindex(D::GenDict{Tuple{Int, Int, Set{Int}}}, i::Int, j::Int, s:
   return D[i, j, Set{Int}(s)]
 end
 
-const GraphTransDict = Dict{Tuple{VarName, Edge}, T} where T <: MPolyRingElem
+const GraphTransDict{T} = Dict{Tuple{VarName, Edge}, T} where T <: MPolyRingElem
 
 function Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int)
   return D[(s, Edge(i, j))]

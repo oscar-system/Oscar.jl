@@ -80,7 +80,7 @@ end
 
 #TODO do the gens returned here need to be a dict? we'll need to be consisted across all models
 @attr Tuple{
-  MPolyRing,
+  QQMPolyRing,
   Vector{QQMPolyRingElem}
 } function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
@@ -129,8 +129,8 @@ end
 ###################################################################################
 
 @attr Tuple{
-  MPolyRing,
-  GraphGenDict
+  QQMPolyRing,
+  GraphDict{QQMPolyRingElem}
 } function parameter_ring(GM::GaussianGraphicalModel{Graph{Directed}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G)],
@@ -138,12 +138,12 @@ end
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
-  return R, Dict{Union{Int, Edge}, MPolyRingElem}(gens_dict)
+  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
 end
 
 @attr Tuple{
-  MPolyRing,
-  GraphGenDict
+  QQMPolyRing,
+  GraphDict{QQMPolyRingElem}
 } function parameter_ring(GM::GaussianGraphicalModel{MixedGraph, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:l])[$(src(e)), $(dst(e))]" for e in edges(G, Directed)],
@@ -153,7 +153,7 @@ end
   gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Directed))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)),
                     Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Undirected))))
-  return R, Dict{Union{Int, Edge}, MPolyRingElem}(gens_dict)
+  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
 end
 
 @doc raw"""
@@ -333,7 +333,7 @@ end
 ###################################################################################
 @attr Tuple{
   MPolyRing,
-  GraphGenDict
+  GraphDict{QQMPolyRingElem}
 } function parameter_ring(GM::GaussianGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
@@ -341,7 +341,7 @@ end
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
-  return R, Dict{Union{Int, Edge}, MPolyRingElem}(gens_dict)
+  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
 end
 
 @doc raw"""
