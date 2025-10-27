@@ -1,5 +1,17 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params
+  type_params, _convert_override_params
+
+function _convert_override_params(tp::TypeParams{<:GraphicalModel{T}, <:Tuple{Vararg{Pair}}}) where T <: Oscar.AbstractGraph
+  param_dict = Dict()
+  for p in Oscar.Serialization.params(tp)
+    if p.first == :graph_type
+      param_dict[:graph_type] = Oscar.Serialization.type(p.second)
+    else
+      param_dict[p.first] = p.second
+    end
+  end
+  return param_dict
+end
 
 @register_serialization_type GraphDict 
 @register_serialization_type GraphTransDict
@@ -101,7 +113,10 @@ end
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
-  :graph_type => TypeParams(typeof(graph(GM)), nothing))
+  # needed until serialization can handle types as parameters
+  :graph_type => TypeParams(typeof(graph(pm)), nothing), 
+  :graph_params => type_params(graph(pm))
+)
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
   save_data_dict(s) do
@@ -116,8 +131,8 @@ end
 function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Dict)
   return PhylogeneticModel(
     params[:base_field],
-    g = load_object(s, params[:graph_type], :graph),
-    # TODO need to change Symbol to VarName  at some point
+    load_object(s, params[:graph_type], params[:graph_params], :graph),
+    # TODO need to change Symbol to VarName  at some pointy
     load_object(s, Matrix{Symbol}, :transition_matrix),
     load_object(s, Vector{QQFieldElem}, :root_distribution),
     #TODO also needs to be come VarName
@@ -144,6 +159,7 @@ function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
 end
 
 function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, params::Dict)
+  println(typeof(params[:phylo_model]))
   GroupBasedPhylogeneticModel(params[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, Vector{FinGenAbGroupElem}, params[:group], :group_elems),

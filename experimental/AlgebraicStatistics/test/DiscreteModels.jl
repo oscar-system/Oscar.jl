@@ -17,6 +17,10 @@
       V2 = vanishing_ideal(M)
       _, p = model_ring(M)
       @test gens(V2) == [p[2,1,1] * p[2,2,2] - p[2,2,1] * p[2,1,2],  p[1,1,1]*p[1,2,2] - p[1,2,1]*p[1,1,2]]
+
+      test_save_load_roundtrip(path, M) do loaded
+        @test loaded == M
+      end
     end
   end
 end

@@ -24,9 +24,14 @@
 
     # Polynomial rings
     @test ngens(parameter_ring(model)[1]) ==  
-          ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
+      ngens(parameter_ring(phylogenetic_model(model))[1]) == 2(n_edges(tree))
     @test ngens(full_model_ring(model)[1]) ==
-          ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+      ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
+
+    test_save_load_roundtrip(path, model) do loaded
+      @test ngens(full_model_ring(loaded)[1]) ==
+        ngens(full_model_ring(phylogenetic_model(loaded))[1]) ==  n_states(loaded)^(n_leaves(tree))
+    end
   end
 
   @testset "Jukes Cantor" begin

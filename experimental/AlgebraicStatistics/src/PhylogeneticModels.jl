@@ -456,7 +456,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
   group::Vector{FinGenAbGroupElem}
   model_parameter_name::VarName
 
-  function GroupBasedPhylogeneticModel(pm::PhylogeneticModel{GT, <: VarName, L, <: RingElem},
+  function GroupBasedPhylogeneticModel(pm::PhylogeneticModel{GT, L},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        varnames_group_based::VarName="q") where {GT, L}
