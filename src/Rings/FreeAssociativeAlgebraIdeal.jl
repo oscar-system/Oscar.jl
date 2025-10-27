@@ -105,7 +105,7 @@ true
 ```
 """
 function ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1)
-  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(normal_form(a, I.gb))
+  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(_f4ncgb_ideal_membership(a, collect(I.gb), deg_bound))
   groebner_basis(I, deg_bound)
   return ideal_membership(a, I, deg_bound)
 end
@@ -116,7 +116,50 @@ function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssocia
   R = parent(a)
   @req all(x -> parent(x) == R, I) "parent mismatch"
   gb = groebner_basis(I, deg_bound)
-  return iszero(normal_form(a, gb))
+  x = _f4ncgb_ideal_membership(a, gb, deg_bound)
+  return iszero(_f4ncgb_ideal_membership(a, gb, deg_bound))
+end
+
+#=
+Example 
+I = quantum_symmetric_group(5)
+R = base_ring(I)
+g = collect(groebner_basis(I));
+g[1] in I
+R[1]*R[2]-R[2]*R[1] in I
+ideal_membership(R[1]*R[2]-R[2]*R[1], I)
+x = Oscar._f4ncgb_ideal_membership(g[1], g)
+y = Oscar._f4ncgb_ideal_membership(R[1]*R[2]-R[2]*R[1], g)
+
+iszero(ans)
+=#
+function _f4ncgb_ideal_membership(
+  a::FreeAssociativeAlgebraElem,
+  g::Vector{<:FreeAssociativeAlgebraElem},
+  deg_bound::Int=-1;
+  probabilistic::Bool = false
+) 
+  @req length(g) > 0 "Vector must not be empty"
+  R = parent(g[1])
+  handle = f4ncgb_init()
+  userdata = nothing
+  try
+    f4ncgb_set_nvars(handle, UInt32(ngens(R)))
+    f4ncgb_set_blocks(handle, UInt32[ngens(R)])
+    f4ncgb_set_threads(handle, UInt32(1))
+    f4ncgb_set_tracer(handle, probabilistic)
+    f4ncgb_set_maxiter(handle, UInt32(typemax(Int32)))
+
+    deg_bound > 0 && f4ncgb_set_maxdeg(handle, UInt32(deg_bound))
+
+    f4ncgb_add.(Ref(handle), g)
+    f4ncgb_add(handle, a)
+    userdata = f4ncgb_polys_helper(R)
+    f4ncgb_reduce(handle, userdata)
+  finally
+    f4ncgb_free(handle)
+  end
+  return userdata.gens[1]
 end
 
 function Base.in(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal)
