@@ -337,7 +337,7 @@ function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    return PermGroupElem(g, x)
 end
 
-function _make_gap_perm(deg::Int, L::Vector{<:IntegerUnion})
+function _make_gap_perm(deg::Int, L::AbstractVector{<:IntegerUnion})
   @req 0 <= deg "degree is $deg, must be non-negative"
   @req deg < 2^32 "degree is $deg, must be less than 2^32"
   @req length(L) <= deg "length(L) = $(length(L)) exceeds degree bound $deg"
@@ -349,7 +349,7 @@ function _make_gap_perm(deg::Int, L::Vector{<:IntegerUnion})
   return x
 end
 
-function _make_gap_perm(::Type{T}, deg::Int, L::Vector{<:IntegerUnion}) where {T <: Union{UInt16, UInt32}}
+function _make_gap_perm(::Type{T}, deg::Int, L::AbstractVector{<:IntegerUnion}) where {T <: Union{UInt16, UInt32}}
   if T === UInt16
     perm = @ccall GAP.libgap.NEW_PERM2(deg::Cint)::GapObj
   else
