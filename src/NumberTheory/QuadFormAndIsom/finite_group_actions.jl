@@ -851,7 +851,7 @@ end
 
 Given a lattice ``L`` and a group of isometries ``G`` of ``L`` whose associated
 coinvariant sublattice ``S`` is definite or of rank 2, return the saturation of
-``G`` in the orthogonal group ``O(L)`` of ``L``, that is the pointwize
+``G`` in the orthogonal group ``O(L)`` of ``L``, that is the pointwise
 stabilizer in ``O(L)`` of its invariant sublattice.
 
 See [`pointwise_stabilizer_in_orthogonal_group`](@ref).
@@ -918,7 +918,7 @@ end
 
 Given a lattice ``L`` and two finite group of isometries $H \leq G$
 of ``L`` such that the coinvariant sublattice ``S`` of ``H`` is definite,
-return the saturation of ``H`` in the group ``G``, that is the pointwize
+return the saturation of ``H`` in the group ``G``, that is the pointwise
 stabilizer in ``G`` of its invariant sublattice associated to ``H``.
 
 See [`saturation(::ZZLat, ::MatrixGroup)`](@ref).
@@ -965,7 +965,7 @@ end
 Given a lattice ``L`` and a group of isometries ``H`` of ``L`` with
 definite coinvariant sublattice``S`` , return whether the group ``H`` is
 saturated in the orthogonal group ``O(L)`` of ``L``, meaning ``H`` is the
-pointwize stabilizer in ``O(L)`` of its invariant sublattice. The second
+pointwise stabilizer in ``O(L)`` of its invariant sublattice. The second
 returned output is the saturation of ``H`` in ``O(L)``.
 
 Alternatively, one can ask whether ``H`` is saturated in a given finite group
