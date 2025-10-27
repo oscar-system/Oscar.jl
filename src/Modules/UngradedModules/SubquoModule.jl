@@ -1925,7 +1925,7 @@ by submodule with 3 generators
 """
 function saturation(M::SubquoModule, J::Ideal = ideal(base_ring(M), gens(base_ring(M))); iteration::Bool = false)
   @assert base_ring(M) == base_ring(J)
-  UF = _saturation((M.sum, J; iteration = iteration)
+  UF = _saturation(M.sum, J; iteration = iteration)
   res = SubquoModule(UF)
   if isdefined(M, :quo)
     res.quo = M.quo
