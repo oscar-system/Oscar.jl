@@ -1029,7 +1029,7 @@ function representatives_of_hermitian_type(
     gene = representative.(orbits(omega))
   end
 
-  allow_info &&  println("All possible hermitian genera: $(length(gene))")
+  allow_info &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
   for g in gene
     if is_integral(G) && !is_integral(DE*scale(g))
       continue
@@ -1345,7 +1345,7 @@ end
       Lf::ZZLatWithIsom,
       p::IntegerUnion,
       b::Int = 0;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1423,7 +1423,7 @@ function splitting_of_hermitian_type(
     Lf::ZZLatWithIsom,
     p::IntegerUnion,
     b::Int = 0;
-    eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -1447,14 +1447,62 @@ function splitting_of_hermitian_type(
     @req is_of_hermitian_type(Lf) "Lattice with isometry must be of hermitian type"
   end
 
+  reps = ZZLatWithIsom[]
   k = p*n
   # If p divides n, then any output is still of hermitian type since taking pth
   # power decreases the order of the isometry
   if iszero(mod(n, p))
-    reps = representatives_of_hermitian_type(Lf, p, fix_root; cond=get(eiglat_cond, k, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator)
+    for cond in unique!([get(i, k, Int[-1, -1, -1]) for i in eiglat_cond])
+      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator))
+    end
     return reps
   end
 
+  V = _from_cyclotomic_polynomial_to_dict(characteristic_polynomial(Lf))
+  for i in keys(V)
+    V[i] = euler_phi(i)*V[i]
+  end
+  
+  # avoid overcounting
+  eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
+  for cond in eiglat_cond
+    T = Dict{Int64,Vector{Int64}}()
+    T[n] = get(cond, n, Int[-1, -1, -1])
+    T[k] = get(cond, k, Int[-1, -1, -1])
+    push!(eiglat_cond_trimmed, T)
+  end 
+  unique!(eiglat_cond_trimmed)
+
+
+  for cond in eiglat_cond_trimmed
+    condp = _conditions_after_power(cond, p)
+    if !all(get(condp, i, [-1])[1] == V[i] || get(condp, i, [-1])[1] == -1 for i in keys(V))
+      continue
+    end
+    tmp = __splitting_of_hermitian_type(Lf, p, b; eiglat_cond=cond, fix_root, genusDB, root_test, check, info_depth, discriminant_annihilator, _local)
+    append!(reps, tmp)
+  end
+  return reps
+end
+  
+
+function __splitting_of_hermitian_type(
+    Lf::ZZLatWithIsom,
+    p::IntegerUnion,
+    b::Int = 0;
+    eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+    fix_root::Int=-1,
+    genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
+    root_test::Bool=false,
+    check::Bool=true,
+    info_depth::Int=1,
+    discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
+    _local::Bool=false,
+  )
+  n = order_of_isometry(Lf)
+  k = p*n
+  
+  @req b == 0 || b == 1 "b must be an integer equal to 0 or 1"
   if fix_root == k
     Sk = Int[i for i in 1:k if isone(gcd(i, k))]
   end
@@ -1470,6 +1518,7 @@ function splitting_of_hermitian_type(
   phi_n = euler_phi(n)
   phi_k = euler_phi(k)
   rL = rank(Lf)
+
   rA, pA, nA = get(eiglat_cond, n, Int[-1, -1, -1])
   intrA::AbstractVector{Int} = rA >= 0 ? Int[rA] : 0:phi_n:rL
   rB, pB, nB = get(eiglat_cond, k, Int[-1, -1, -1])
@@ -1560,7 +1609,7 @@ end
       Lf::ZZLatWithIsom,
       p::Int,
       b::Int = 0;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1627,7 +1676,7 @@ function splitting_of_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
     b::Int = 0;
-    eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -1691,7 +1740,7 @@ end
     splitting_of_pure_mixed_prime_power(
       Lf::ZZLatWithIsom,
       p::Int;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1738,7 +1787,7 @@ negative signature.
 function splitting_of_pure_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int;
-    eiglat_cond::Dict{Int, Vector{Int}} = Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -1756,11 +1805,15 @@ function splitting_of_pure_mixed_prime_power(
 
   pd = prime_divisors(n)
 
+  reps = ZZLatWithIsom[]
   @req length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime divisors"
   # In that case (L, f) is of hermitian type, so we can call the appropriate
   # function
   if length(pd) == 1
-    return representatives_of_hermitian_type(Lf, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator, _local)
+    for cond in unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
+      append!(reps, representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local))
+    end
+    return reps
   end
 
   q = pd[1] == p ? pd[2] : pd[1]
@@ -1772,8 +1825,6 @@ function splitting_of_pure_mixed_prime_power(
 
   @req is_divisible_by(chi, phi) "Minimal polynomial is not of the correct form"
 
-  reps = ZZLatWithIsom[]
-
   bool, r = divides(phi, cyclotomic_polynomial(n, parent(phi)))
   @hassert :ZZLatWithIsom 1 bool
 
@@ -1783,7 +1834,11 @@ function splitting_of_pure_mixed_prime_power(
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
   # Compute this one first because it is faster to decide whether it is empty
-  RB = representatives_of_hermitian_type(B0, p, fix_root; cond=get(eiglat_cond, p*n, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator=q*discriminant_annihilator, _local)
+  condB = unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
+  RB = ZZLatWithIsom[]
+  for cond in condB
+    append!(RB, representatives_of_hermitian_type(B0, p, fix_root; cond=cond, genusDB, root_test, info_depth, discriminant_annihilator=q*discriminant_annihilator, _local))
+  end
   is_empty(RB) && return reps
   RA = splitting_of_pure_mixed_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
@@ -1794,13 +1849,14 @@ function splitting_of_pure_mixed_prime_power(
   end
   return reps
 end
+  
 
 @doc raw"""
     splitting_of_mixed_prime_power(
       Lf::ZZLatWithIsom,
       p::IntegerUnion,
       b::Int = 1;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1882,7 +1938,7 @@ function splitting_of_mixed_prime_power(
     Lf::ZZLatWithIsom,
     p::Int,
     b::Int = 1;
-    eiglat_cond::Dict{Int, Vector{Int}} = Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -1951,10 +2007,12 @@ end
       b::Int = 0;
       char_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
       min_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
+      char_polys::Vector=[nothing],
+      min_polys::Vector=[nothing],
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -1972,8 +2030,9 @@ would enforce every $(M, g)$ in output to satisfy that $g$ has order $p*m$.
 
 For every $(M, g)$ in output, one may decide on the minimal polynomial (resp.
 the characteristic polynomial) of $g$ by setting the keyword argument `min_poly`
-(resp. `char_poly`) to the desired value. Moreover, one can also decide on the
-rank, positive signature and negative signature of the eigenlattices of $(M, g)$
+(resp. `char_poly`) to the desired value (or `char_polys` resp. `min_poly` 
+to a list of possibilities). Moreover, one can also decide on the rank, 
+positive signature and negative signature of the eigenlattices of $(M, g)$
 using the keyword arguments `rks`, `pos_sigs` and `neg_sigs` respectively. Each
 list should consist of tuples $(k, i)$ where $k$ is a divisor of $p*m$ and $i$
 is the value to be assigned for the given property (rank, positive/negative
@@ -2021,10 +2080,12 @@ function splitting(
     b::Int = 0;
     char_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
+    char_polys::Vector=[nothing],
+    min_polys::Vector=[nothing],
     rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-    eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+    eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}= Dict{Int64, Vector{Int64}}[],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -2050,13 +2111,20 @@ function splitting(
       min_poly = _radical(char_poly)
     end
   end
+  
   # If the user does not already input a dictionary of conditions on the
   # eigenlattices, we create one based on the conditions imposed on the
   # characteristic/minimal polynomials, on the ranks and on the signatures
-  if isempty(eiglat_cond)
-    eiglat_cond = _conditions_from_input(p*n, char_poly, min_poly, rks, pos_sigs, neg_sigs)
+  if char_poly !== nothing
+    char_polys = [char_poly]
+  end 
+  if min_poly !==nothing
+    min_polys=[min_poly]
   end
-
+  if isempty(eiglat_cond)
+    eiglat_cond = [_conditions_from_input(p*n, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
+  end
+  
   pds = prime_divisors(n)
   # If the order of the isometry f is a prime power, or a power of p times
   # another prime power, then we can call the machinery from [BH23].
@@ -2136,7 +2204,7 @@ end
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -2210,10 +2278,12 @@ function enumerate_classes_of_lattices_with_isometry(
     m::Int;
     char_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem, Nothing}=nothing,
+    char_polys::Vector=[nothing],
+    min_polys::Vector=[nothing],
     rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-    eiglat_cond::Dict{Int64, Vector{Int64}}=Dict{Int64, Vector{Int64}}(),
+    eiglat_cond::Vector{Dict{Int64, Vector{Int64}}} = Dict{Int64, Vector{Int64}}[],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -2228,13 +2298,23 @@ function enumerate_classes_of_lattices_with_isometry(
   # If the user does not already input a dictionary of conditions on the
   # eigenlattices, we create one based on the conditions imposed on the
   # characteristic/minimal polynomials, on the ranks and on the signatures
-  if isempty(eiglat_cond)
-    eiglat_cond = _conditions_from_input(m, char_poly, min_poly, rks, pos_sigs, neg_sigs)
+  if char_poly !== nothing
+    char_polys = [char_poly]
+  end 
+  if min_poly !==nothing
+    min_polys=[min_poly]
   end
+  if length(eiglat_cond) == 0
+    eiglat_cond = [_conditions_from_input(m, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
+  end
+
   allow_info && println("Conditions computed") 
 
   if m == 1
-    reps = representatives_of_hermitian_type(L, 1, fix_root; cond=get(eiglat_cond, 1, Int[-1, -1, -1]), genusDB, root_test, info_depth, discriminant_annihilator, _local)
+    reps = ZZLatWithIsom[]
+    for cond in unique!([get(i, 1, Int[-1, -1, -1]) for i in eiglat_cond])
+      append!(reps, representatives_of_hermitian_type(L, 1, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local))
+    end
     return reps
   end
 
@@ -2275,7 +2355,7 @@ end
       Np::Vector{ZZLatWithIsom},
       p::Int,
       v::Int;
-      eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}(),
       fix_root::Int=-1,
       genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
       root_test::Bool=false,
@@ -2324,7 +2404,7 @@ function splitting_by_prime_power!(
     Np::Vector{ZZLatWithIsom},
     p::Int,
     v::Int;
-    eiglat_cond::Dict{Int, Vector{Int}}=Dict{Int, Vector{Int}}(),
+    eiglat_cond::Vector{Dict{Int,Vector{Int}}}=Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
     genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
     root_test::Bool=false,
@@ -2513,6 +2593,13 @@ function _conditions_after_power(
   end
   return V
 end
+
+function _conditions_after_power(
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}},
+    p::Int,
+  )
+  return unique!([_conditions_after_power(i, p) for i in eiglat_cond])
+end 
 
 ###############################################################################
 #
@@ -2922,6 +3009,16 @@ function _annihilator(
   return ideal(P, [P(d)])
 end
 
+raw"""
+  _annihilator(
+  f::AutomorphismGroupElem{TorQuadModule}; parent=polynomial_ring(ZZ, [:x]; cached=false)[1])
+
+Return some ideal ``I \subseteq \ZZ[x]`` such that 
+``g(f)=0`` for all ``g \in I``. 
+  
+!warning
+  ``I`` is merely contained in the annihilator but may not be equal to it.
+"""
 function _annihilator(
   f::AutomorphismGroupElem{TorQuadModule};
   parent=polynomial_ring(ZZ, [:x]; cached=false)[1],
@@ -2930,12 +3027,10 @@ function _annihilator(
   J = _annihilator(D; parent)
   P = base_ring(J)
   m = minpoly(Hecke.Globals.Zx, matrix(f))
-  m = m(gen(P, 1))
-  for d in _divisors(m)
-    if is_annihilated(f, d)
-      J = J + ideal(P, [d])
-    end
-  end
+  x = gen(parent,1)
+  m = m(x)
+  J = J + ideal(parent, m) + ideal(parent, x^order(f) - 1)
+  # a bound for the discriminant annihilator .... but I don't think that it is everything.
   return J
 end
 
@@ -2956,3 +3051,21 @@ function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
 
+######################################################################################
+#
+# Legacy interface ... to be deprecated at some point
+#
+######################################################################################
+splitting_by_prime_power!(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_by_prime_power!(args...;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting_of_hermitian_type(args...; eiglat_cond::Dict{Int, Vector{Int}}, kwargs...) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
+  
+splitting_of_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting_of_pure_mixed_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_pure_mixed_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting_of_mixed_prime_power(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_of_mixed_prime_power(args...;eiglat_cond=[eiglat_cond], kwargs...)
+
+splitting(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting(args...;eiglat_cond=[eiglat_cond], kwargs...)
+
+enumerate_classes_of_lattices_with_isometry(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = enumerate_classes_of_lattices_with_isometry(args...;eiglat_cond=[eiglat_cond], kwargs...)
