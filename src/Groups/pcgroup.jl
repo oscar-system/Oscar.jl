@@ -953,9 +953,9 @@ function code_pcgroup(G::PcGroup)
 end
 
 """
-    pcgroup_code(code)
+   pcgroup_code(code, size)
 
-Given a code (either a single integer or an integer vector), return the polycyclic group it encodes.
+Given an integer `code` and order `size` , return the polycyclic group it encodes.
 The accepted codes and resulting groups match those of GAP's PcGroupCode and Magma's SmallGroupDecoding.
 
 # Examples
@@ -975,8 +975,4 @@ true
 """
 function pcgroup_code(code, size) 
   PcGroup(GAP.Globals.PcGroupCode(Int(code), Int(size)))
-end
-
-function pcgroup_code(code::Vector{<:Integer}, size) 
-  PcGroup(GAP.Globals.PcGroupCode(code, Int(size)))
 end
