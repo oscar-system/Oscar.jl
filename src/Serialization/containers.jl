@@ -1,17 +1,15 @@
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}} where T
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
-function type_params(obj::S) where {T, S <:MatVecType{T}}
-  if isempty(obj)
-    return TypeParams(S, TypeParams(T, nothing))
-  end
+function type_params(obj::S) where {T, S <: MatVecType{T}}
+  isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
   
   params = type_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
   return TypeParams(S, params[1])
 end
 
-function type_params(obj::S) where {N, T, S <:Array{T, N}}
+function type_params(obj::S) where {N, T, S <: Array{T, N}}
   if isempty(obj)
     return TypeParams(S, :subtype_params => TypeParams(T, nothing), :dims => N)
   end
@@ -21,27 +19,21 @@ function type_params(obj::S) where {N, T, S <:Array{T, N}}
   return TypeParams(S, :subtype_params => params[1], :dims => N)
 end
 
-function has_empty_entries(obj::T) where T
-  return false
-end
+has_empty_entries(obj) = false
 
-function has_empty_entries(obj::T) where T <: ContainerTypes
-  isempty(obj) && return true
-  any(has_empty_entries, obj)  && return true
-  return false
-end
+has_empty_entries(obj::ContainerTypes) = isempty(obj) || any(has_empty_entries, obj)
 
 function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
   non_empty_entries = filter(!has_empty_entries, obj)
+  params = type_params.(non_empty_entries)
+  @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
 
   # need to check if any of the inner containers are non empty, and if there is at least one
   # then we can use that one to get the type for the entire nested container
-  isempty(non_empty_entries) && return TypeParams(S, type_params(first(obj)))
-  params = type_params.(non_empty_entries)
-  @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
+  isempty(params) && return TypeParams(S, type_params(first(obj)))
   return TypeParams(S, params[1])
 end
 
