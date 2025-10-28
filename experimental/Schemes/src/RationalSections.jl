@@ -177,3 +177,5 @@ function div(s::RationalSection)
   return sum(m*weil_divisor(P) for (P, m) in res_dict; init=weil_divisor(X, ZZ))
 end
 
+det(A::MatrixElem{T}) where {T<:Union{MPolyQuoRingElem, MPolyQuoLocRingElem}} = base_ring(A)(det(map_entries(lift, A)))
+

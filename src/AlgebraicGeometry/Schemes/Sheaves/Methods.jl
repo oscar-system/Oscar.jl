@@ -1025,7 +1025,7 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
         p += 1
         continue
       end
-      if is_one(fitt)
+      if is_one(fitt; covering=simplified_covering(X))
         return M, blowdows
       end
       break
@@ -1036,7 +1036,7 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
       fitt = FittingIdealSheaf(M, p)
       @vprint :NashResolutions 2 "computing $p-th sheaf of Fitting ideals\n"
       push!(fitts, fitt)
-      if is_one(fitt)
+      if is_one(fitt; covering=simplified_covering(X))
         @vprint :NashResolutions 2 "... which is the unit ideal\n"
         p -= 1
         continue
