@@ -830,6 +830,7 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
     res_cod2 = M(U_cod, UV_cod)
     img_coords = coordinates.(img_gens)
     if !all(repres(v) == repres(g) for (v, g) in zip(images_of_generators(res_cod2), gens(M(UV_cod))))
+      @show UV_cod
       img, _ = image(res_cod2)
       img_coords = [coordinates(img(repres(v))) for v in img_gens]
     end
@@ -997,17 +998,8 @@ function resolve_module(M::SubquoModule{T};
     r0::Union{Int, Nothing}=nothing,
     scheme::AbsCoveredScheme=covered_scheme(spec(base_ring(M)))
   ) where {T<:RingElem}
-  is_projective(M)[1] && return scheme, AbsCoveredSchemeMorphism[]
-  R = base_ring(M)
-  F = ambient_free_module(M)
-  @assert all(repres(v) == g for (v, g) in zip(gens(M), gens(F))) "module must be presented as cokernel"
-  Y = spec(R)
-  I = ideal(R, reduce(vcat, [elem_type(R)[c[i] for i in 1:ngens(F) if !is_zero(c[i])] for c in relations(M)]))
-  I = ideal(R, small_generating_set(I))
-  bl = blow_up(Y, I)
-  MM = SimplifiedSheaf(module_as_sheaf(M; scheme=codomain(bl)); check=false)
-  st_M = StrictTransformSheaf(bl, MM; check=false)
-  return _resolve_module(SimplifiedSheaf(st_M), AbsCoveredSchemeMorphism[bl]; r0)
+  MM = SimplifiedSheaf(module_as_sheaf(M; scheme); check=false)
+  return resolve_module(MM; r0)
 end
 
 function resolve_module(M::AbsCoherentSheaf; r0::Union{Int, Nothing}=nothing)
@@ -1021,6 +1013,9 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
   # the module is actually locally free and we can stop. Otherwise, we blow up 
   # the first non-trivial fitting ideal from above. 
   fitts = AbsIdealSheaf[]
+  X = scheme(M)
+  @vprint :NashResolutions 1 "call to resolve_module on $X\n"
+  simp_cov = simplified_covering(X)
   if isnothing(r0)
     p = 0
     while true
@@ -1039,20 +1034,22 @@ function _resolve_module(M::AbsCoherentSheaf, blowdowns::Vector{AbsCoveredScheme
     p = r0
     while true
       fitt = FittingIdealSheaf(M, p)
+      @vprint :NashResolutions 2 "computing $p-th sheaf of Fitting ideals\n"
       push!(fitts, fitt)
       if is_one(fitt)
+        @vprint :NashResolutions 2 "... which is the unit ideal\n"
         p -= 1
         continue
       end
       if is_zero(fitt)
+        @vprint :NashResolutions 2 "... which is the zero ideal! Finishing now.\n"
         return M, blowdowns
       end
       break
     end
   end
-  X = scheme(M)
-  simp_cov = simplified_covering(X)
   I = simplify(radical(fitts[end]))
+  @vprint :NashResolutions 2 "blowing up in $I...\n"
   bl = blow_up(I; covering=simplified_covering(X))
   st_M = SimplifiedSheaf(StrictTransformSheaf(bl, M; check=false); check=false)
   return _resolve_module(st_M, push!(blowdowns, bl); r0)
