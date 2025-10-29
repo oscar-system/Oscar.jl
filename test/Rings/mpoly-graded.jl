@@ -128,7 +128,7 @@ end
 
         for k in 1:length(polys[4])
           @test coeff(polys[4],k) * Oscar.monomial(polys[4], k) ==
-                finish(push_term!(MPolyBuildCtx(RR), collect(Oscar.MPolyCoeffs(polys[4]))[k], collect(Oscar.MPolyExponentVectors(polys[4]))[k]))
+                finish(push_term!(MPolyBuildCtx(RR), collect(AbstractAlgebra.coefficients(polys[4]))[k], collect(AbstractAlgebra.exponent_vectors(polys[4]))[k]))
         end
 
         hom_polys = _homogeneous_polys(polys)
