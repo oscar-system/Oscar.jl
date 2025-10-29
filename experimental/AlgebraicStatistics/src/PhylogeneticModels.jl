@@ -934,7 +934,7 @@ end
   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
   
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  dict_maps = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, map)
@@ -958,7 +958,8 @@ end
 
   coef_map = hom(coefficient_ring(trans_ring), R, rv)
 
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  # the union here is used to ensure it's a GraphDict
+  dict_maps = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, coef_map, map)
@@ -980,7 +981,7 @@ end
   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
   R, x... = polynomial_ring(coefficient_ring(trans_ring), edge_gens..., ; cached=cached)
 
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  dict_maps = Dict{Union{Int, Edge}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(graph(PM), sorted_edges))
     map = [x[i][j] for i in 1:length(transition_vars)]
     dict_maps[e] = hom(trans_ring, R, map)
@@ -1052,7 +1053,7 @@ end
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes), 1:2), edge_gens...; cached=cached)
   
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  dict_map = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, map)
@@ -1081,7 +1082,7 @@ end
 
   coef_map = hom(coefficient_ring(trans_ring), R, rv)
 
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  dict_maps = Dict{Union{Int, Edge}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, coef_map, map)
@@ -1109,7 +1110,7 @@ end
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(coefficient_ring(trans_ring), :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
 
-  dict_maps = Dict{Edge, Oscar.MPolyAnyMap}()
+  dict_maps = Dict{Union{Int, Edge}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
     map = [x[i][j] for i in 1:length(transition_vars)]
     dict_maps[e] = hom(trans_ring, R, map)
