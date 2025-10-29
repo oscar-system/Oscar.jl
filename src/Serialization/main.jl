@@ -669,7 +669,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON3.write(metadata), :meta)
+      save_json(s, JSON.json(metadata), :meta)
     end
   end
   serializer_close(s)
@@ -786,7 +786,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON3.write(jsondict)
+    jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
