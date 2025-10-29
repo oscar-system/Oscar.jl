@@ -935,7 +935,7 @@ Currently only defined for `PcGroup`, not `SubPcGroup`.
 
 # Examples
 ```jldoctest
-julia> G = pc_group(small_group(12, 2))
+julia> G = small_group(12, 2)
 Pc group of order 12
 
 julia> code = code_pcgroup(G)
@@ -956,11 +956,11 @@ end
    pcgroup_code(code, size)
 
 Given an integer `code` and order `size` , return the polycyclic group it encodes.
-The accepted codes and resulting groups match those of GAP's PcGroupCode and Magma's SmallGroupDecoding.
+The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
 
 # Examples
 ```jldoctest
-julia> G = pc_group(small_group(12, 2))
+julia> G = small_group(12, 2)
 Pc group of order 12
 
 julia> code = code_pcgroup(G)
