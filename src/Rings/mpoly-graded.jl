@@ -981,8 +981,8 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
-MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(forget_decoration(f))
+AbstractAlgebra.coefficients(f::MPolyDecRingElem) = AbstractAlgebra.coefficients(forget_decoration(f))
+AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem) = AbstractAlgebra.exponent_vectors(forget_decoration(f))
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1106,7 +1106,7 @@ function degree(a::MPolyDecRingElem; check::Bool=true)
   w = W.D[0]
   first = true
   d = W.d
-  for c = MPolyExponentVectors(forget_decoration(a))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(a))
     u = W.D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1180,7 +1180,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   d = parent(F).d
   S = nothing
   u = zero(D)
-  for c = MPolyExponentVectors(forget_decoration(F))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(F))
     u = zero!(u)
     for i=1:length(c)
       u = addmul_delayed_reduction!(u, d[i], c[i])

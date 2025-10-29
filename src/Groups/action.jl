@@ -295,7 +295,7 @@ function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   @assert ngens(parent(f)) == degree(G)
 
   g = Generic.MPolyBuildCtx(parent(f))
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     s_e = zeros(Int, degree(G))
     for i=1:degree(G)
       s_e[s(i)] = e[i]
