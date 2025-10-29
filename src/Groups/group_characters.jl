@@ -1000,6 +1000,34 @@ end
 
 ##############################################################################
 #
+#  only for tests:
+#  Sort a given character table heuristically,
+#  in order to achieve a more stable ordering of rows and columns.
+#  Note that the ordering of columns depends on the method that was chosen
+#  for computing the conjugacy classes of the group,
+#  and the ordering of rows depends on the method that was chosen to compute
+#  the irreducible characters.
+#
+function _sort_for_stable_tests(tbl::GAPGroupCharacterTable)
+  @req is_zero(characteristic(tbl)) "only for ordinary character tables"
+  sorttbl = GAPWrap.CharacterTableWithSortedClasses(GapObj(tbl))
+  pi = GAPWrap.SortingPerm(GAPWrap.Irr(sorttbl))
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl, pi)
+  # The trivial character shall be at the first position.
+  sorttbl = GAPWrap.CharacterTableWithSortedCharacters(sorttbl)
+
+  res = GAPGroupCharacterTable(sorttbl, 0)
+  if isdefined(tbl, :group)
+    res.group = tbl.group
+    res.isomorphism = tbl.isomorphism
+  end
+
+  return res
+end
+
+
+##############################################################################
+#
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
 number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
 number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GapObj(tbl))::Int
@@ -1081,7 +1109,7 @@ stored on these tables.
 julia> println(maxes(character_table("M11")))
 ["A6.2_3", "L2(11)", "3^2:Q8.2", "A5.2", "2.S4"]
 
-julia> maxes(character_table("M")) === nothing  # not (yet) known
+julia> maxes(character_table("O12+(3)")) === nothing  # not (yet) known
 true
 ```
 """
@@ -2863,7 +2891,7 @@ the values of `chi`.
 
 # Examples
 ```jldoctest
-julia> tbl = character_table(alternating_group(4));
+julia> tbl = character_table("A4");
 
 julia> println([findfirst(==(conj(x)), tbl) for x in tbl])
 [1, 3, 2, 4]
