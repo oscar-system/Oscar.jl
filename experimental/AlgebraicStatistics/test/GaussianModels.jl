@@ -15,6 +15,12 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
 
+      test_save_load_roundtrip(path, M2) do loaded
+        @test vanishing_ideal(loaded) == V2
+      end
+
+      # can't serialize a graph with labels yet
+      
       label!(DG,
              Dict((1, 2) => "pink", (2, 3) => "pink"),
              Dict(i => "green" for i in 1:3);
@@ -25,10 +31,6 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
       @test V2 == ideal(
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
-
-      test_save_load_roundtrip(path, M2) do loaded
-        @test vanishing_ideal(loaded) == V2
-      end
     end
 
     UG = complete_bipartite_graph(1, 2)

@@ -1,6 +1,6 @@
 ################################################################################
 # important dict type, leaving here for now
-const GraphDict{T} = Dict{<:Union{Int, Edge}, T}
+const GraphDict{T} = Dict{Union{Int, Edge}, T}
 const GenDict{S, T} = Dict{S, T} where {S, T <: MPolyRingElem}
 
 function Base.getindex(D::GraphDict, i::Int, j::Int)
