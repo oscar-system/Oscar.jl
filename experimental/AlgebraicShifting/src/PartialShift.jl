@@ -114,35 +114,55 @@ julia> rothe_matrix(Fx, perm([1, 3, 2, 5, 4]))
 [0         0   0         1   0]
 ```
 """
-function rothe_matrix(F::Field, w::WeylGroupElem)
+function rothe_matrix(F::Field, w::WeylGroupElem; kw...)
   W = parent(w)
   phi = isomorphism(PermGroup, W)
-  return rothe_matrix(F, phi(w))
+  return rothe_matrix(F, phi(w); kw...)
 end
 
-function rothe_matrix(F::Field, p::PermGroupElem)
+function rothe_matrix(F::Field, p::PermGroupElem; kw...)
   n = degree(parent(p))
   Fx, _ = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
-  return rothe_matrix(Fx, p)
+  return rothe_matrix(Fx, p; kw...)
 end
 
-function rothe_matrix(R::MPolyRing{T}, w::WeylGroupElem) where T
+function rothe_matrix(R::MPolyRing{T}, w::WeylGroupElem; kw...) where T
   W = parent(w)
   phi = isomorphism(PermGroup, W)
   return rothe_matrix(R, phi(w))
 end
 
-function rothe_matrix(R::MPolyRing{T}, p::PermGroupElem) where T
+function rothe_matrix(R::MPolyRing{T}, p::PermGroupElem;
+                      uhg::Union{UniformHypergraph, Nothing}=nothing) where T
   n = degree(parent(p))
   @req ngens(R) == n^2 "The number of generators of the ring should match the square of the degree of the permutation group"
   u = identity_matrix(R, n)
   x = reshape(gens(R), n, n)
   for (i, j) in inversions(p)
-    u[i, j] = x[i, j]
+    u[i, j] = !isnothing(uhg) && _set_to_zero(uhg, (i, j)) ? zero(R) : x[i, j]
   end
   return u * permutation_matrix(R, p)
 end
 
+################################################################################
+function rothe_matrix_inv(R::MPolyRing{T}, p::PermGroupElem) where T
+  n = degree(parent(p))
+  @req ngens(R) == n^2 "The number of generators of the ring should match the square of the degree of the permutation group"
+  u = zero_matrix(R, n, n)
+  x = reshape(gens(R), n, n)
+  for (i, j) in inversions(p)
+    u[i, j] = - x[i, j]
+  end
+  return permutation_matrix(R, inv(p)) * (identity_matrix(R, n) + sum([u^k for k in 1:n - 1]))
+end
+
+function rothe_matrix_inv(R::MPolyRing{T}, w::WeylGroupElem) where T
+  W = parent(w)
+  phi = isomorphism(PermGroup, W)
+  return rothe_matrix_inv(R, phi(w))
+end
+
+################################################################################
 @doc raw"""
     compound_matrix(m::MatElem, k::Int)
     compound_matrix(p::PermGroupElem, k::Int)
@@ -206,7 +226,6 @@ function compound_matrix(w::WeylGroupElem, k::Int)
   return compound_matrix(permutation_matrix(ZZ, iso(w)), k)
 end
 
-# this might be removed (currently is not used)
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
   row, col = indices
   row == col && return false
@@ -375,7 +394,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
   # limits the columns by the max face of source
   cols = nCk[1:max_face_index - 1]
 
-  r = rothe_matrix(F, p)
+  r = rothe_matrix(F, p; uhg=src)
 
   # restricted columns is used when we know a priori that certain columns
   # cannot appear in the shifted complex.
@@ -397,7 +416,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
-    col_ind = lex_min_col_basis_cf(M, n, k; n_dependent_columns=n_dependent_columns)
+    col_ind = lex_min_col_basis(M, src, n_dependent_columns)
     nCk[col_ind] != target_faces[1:end - 1] && return false
   end
   return true

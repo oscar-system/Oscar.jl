@@ -71,16 +71,6 @@ function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
 
-function _domination(s1::Vector{Int}, s2::Vector{Int})
-  v1 = sort(s1)
-  v2 = sort(s2)
-  return all([v1[i] <= v2[i] for i in 1:length(v1)])
-end
-
-function larger_cols(c::Vector{Int}, col_sets::Vector{Vector{Int}})
-  col_sets[findall(x -> _domination(c, x), col_sets)]
-end
-
 # uses permutation lemma to find other dependent columns
 function permuted_dependent_cols(omega::GSet,
                                  src_col::Vector{Int},
@@ -102,9 +92,43 @@ function permuted_dependent_cols(omega::GSet,
   return dependent_cols
 end
 
-function lex_min_col_basis_cf(m::AbstractAlgebra.Generic.MatSpaceElem{T},
-                              n::Int, k::Int;
-                              n_dependent_columns::Int=-1) where T <: MPolyRingElem
+function _domination(s1::Combination{Int}, s2::Combination{Int})
+  v1 = sort(s1)
+  v2 = sort(s2)
+  return all([v1[i] <= v2[i] for i in 1:length(v1)])
+end
+
+function larger_cols(c::Combination{Int}, col_sets::Vector{Combination{Int}})
+  col_sets[findall(x -> _domination(c, x), col_sets)]
+end
+
+function _check_schur_complements(M::MatElem)
+  n = ncols(M)
+  P = M[1:n - 1, 1:n - 1]
+  Q = M[1:n - 1, n]
+
+  F = fraction_field(base_ring(M))
+  y = solve(F.(P), F.(Q); side=:right)
+
+  non_singular = false
+  best_i = -1
+  sum_terms = typemax(Int)
+  for i in n:nrows(M)
+    r = M[i, 1:n - 1]
+    s = M[i, n]
+    if !iszero(dot(r, y) - s)
+      non_singular = true
+      s = sum(length.(M[i, :]))
+      if sum_terms > s
+        best_i, sum_terms = i, s
+      end
+    end
+  end
+  return non_singular, best_i
+end
+
+function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
+                           uhg::UniformHypergraph, n_dependent_columns::Int) where T <: MPolyRingElem
   for i=1:nrows(m)
     c = content(m[i:i, :])
     if !isone(c)
@@ -112,13 +136,17 @@ function lex_min_col_basis_cf(m::AbstractAlgebra.Generic.MatSpaceElem{T},
     end
   end
 
+  n = n_vertices(uhg)
+  k = face_size(uhg)
   I = Int[]
   dep_col_ind = Set{Int}([])
   n_current_dep_cols = 0
-  col_sets = sort(subsets(n, k))[1:ncols(m)]
-  G = symmetric_group(n)
-  omega = gset(G, on_sets, col_sets)
+  col_sets = collect(combinations(n, k))[1:ncols(m)]
   max_col = col_sets[end]
+
+  # G = symmetric_group(n)
+  # omega = gset(G, on_sets, col_sets)
+  
   j = 1
   for i=1:nrows(m)
     best_j = 0
