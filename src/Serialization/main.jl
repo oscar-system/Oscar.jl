@@ -608,6 +608,7 @@ include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
 include("LieTheory.jl")
+include("SparseModules.jl")
 
 include("Upgrades/main.jl")
 include("parallel.jl")
