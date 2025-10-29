@@ -493,7 +493,7 @@ false
   try
     homogeneous_component(R, zero(G))
   catch e
-    if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
       return false
     else
       rethrow(e)
