@@ -7,7 +7,7 @@ function Base.getindex(D::GraphDict, i::Int, j::Int)
   return D[Edge(i, j)]
 end
 
-function Base.getindex(D::GenDict{Tuple{Set{Int}, T}}, s::Vector{Int}, t::T) where T <: Tuple{Vararg{Int}}
+function Base.getindex(D::GenDict{Tuple{Set{Int}, Tuple}}, s::Vector{Int}, t::Tuple)
   return D[Set{Int}(s), t]
 end
 
