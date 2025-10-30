@@ -19,16 +19,13 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
     return dehomogenize_post_tropicalization(TropIh)
 end
 
+
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    R = base_ring(I)
-    singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
-                            "ideal I = "*join(string.(gens(I)), ",")*";",
-                            "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; };",
-                            "fan TropI = tropicalVariety(I);",
-                            "string TropIString = string(TropI);"])
-    Singular.call_interpreter(singularCommand)
-    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
+
+    sI = Oscar.singular_generators(I)
+    TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", sI)
+
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,false)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
@@ -40,14 +37,8 @@ end
 
 # p-adic valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    R = base_ring(I)
-    singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
-                            "ideal I = "*join(string.(gens(I)), ",")*";",
-                            "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; };",
-                            "fan TropI = tropicalVariety(I,number("*string(uniformizer(nu))*"));",
-                            "string TropIString = string(TropI);"])
-    Singular.call_interpreter(singularCommand)
-    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
+    sI = Oscar.singular_generators(I)
+    TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", sI, Int(uniformizer_ring(nu)))
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,true)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
@@ -121,7 +112,6 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
         coneIncidences = [ vcat(incidence,[originIndex]) for incidence in coneIncidences ]
         return polyhedral_complex(IncidenceMatrix(coneIncidences), rayGenerators, rayIndices, linealityGenerators)
     end
-
 end
 
 
