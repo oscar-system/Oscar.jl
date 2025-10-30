@@ -43,25 +43,8 @@ function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
         for e in mb_exponents]
       push!(A, col)
     end
-    C = matrix(Fy, reduce(hcat, A))
-    Oscar.ModStdQt.ref_ff_rc!(C)
-    smallest_basis_el = z[r]^r
-    smallest_index = findfirst(a -> a == smallest_basis_el, mb)
-    col_indices = filter(x -> x >= smallest_index, independent_columns(C))
-    monomial_exponents = first.(exponents.(mb[col_indices]))
-
-    # adjustment to convert monomial to simplex
-    for me in monomial_exponents
-      shifted_set = Int[]
-      index_count = 1
-      for (i, e) in enumerate(me)
-        for j in 1:e
-          push!(shifted_set, i - (r - index_count))
-          index_count += 1
-        end
-      end
-      push!(input_faces, shifted_set)
-    end
+    g = matrix(Fy, reduce(hcat, A))
+    append!(input_faces, symmetric_shift(K, g))
   end
 
   return simplicial_complex(input_faces)
@@ -70,4 +53,53 @@ end
 function symmetric_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
   iso = isomorphism(PermGroup, parent(w))
   return symmetric_shift(F, K, iso(w))
+end
+
+function symmetric_shift(K::UniformHypergraph, g::MatElem)
+  faces = Vector{Int}[]
+  Oscar.ModStdQt.ref_ff_rc!(g)
+  smallest_basis_el = z[r]^r
+  smallest_index = findfirst(a -> a == smallest_basis_el, mb)
+  col_indices = filter(x -> x >= smallest_index, independent_columns(g))
+  monomial_exponents = first.(exponents.(mb[col_indices]))
+
+  # adjustment to convert monomial to simplex
+  for me in monomial_exponents
+    shifted_set = Int[]
+    index_count = 1
+    for (i, e) in enumerate(me)
+      for j in 1:e
+        push!(shifted_set, i - (r - index_count))
+        index_count += 1
+      end
+    end
+    push!(faces, shifted_set)
+  end
+  return faces
+end
+
+# function random_rep_bruhat_cell(F::QQField, p::PermGroupElem; n_samples==100, timed=false, kw..)
+#   
+# end
+
+function symmetric_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
+  # this might need to be changed based on the characteristic
+  # we expect that the larger the characteristic the smaller the sample needs to be
+  # setting to 100 now for good measure
+  # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
+  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rep_bruhat_cell(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
+  # Check if `shift` is the generic exterior shift of K
+  prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
+  n = n_vertices(K)
+  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+  
+  if timed
+    if is_correct_shift
+      return shift, (i, stats.time, stats.bytes, stats2.time, stats2.bytes)
+    else
+      return nothing, (">$n_samples", stats.time, stats.bytes, stats2.time, stats2.bytes)
+    end
+  else
+    return is_correct_shift ? shift : nothing
+  end
 end
