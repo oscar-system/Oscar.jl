@@ -129,7 +129,7 @@ Two main rings are associated with any phylogenetic model: the _parameter ring_,
 The parameter ring's generators correspond to the symbolic parameters of the model. For a `PhylogeneticModel`, these are the entries of the transition matrices and root distribution. For a `GroupBasedPhylogeneticModel`, they are the Fourier parameters.
 
 ```@docs
-parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
+parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <:Union{NamedTuple, Nothing}, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing) where RT <: FieldElem
 parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
 ```
 

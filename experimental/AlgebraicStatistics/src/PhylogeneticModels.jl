@@ -887,13 +887,12 @@ If `M  <: MPolyRingElem`, then returns a tuple containing:
 
   If `GT <: PhylogeneticNetwork` it additionally returns:
   - A dictionary mapping hybrid edges to the corresponding hybrid parameter in the ring.
-
 """
 @attr Tuple{
   MPolyRing{RT}, 
   GraphTransDict{MPolyRingElem{RT}},
   Vector{RT}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <:Union{NamedTuple, Nothing}, <: VarName, RT}; cached=false, sorted_edges::Union{Vector{Edge}, Nothing}=nothing) where RT <: FieldElem
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
@@ -908,8 +907,8 @@ end
   MPolyRing,
   GraphTransDict,
   Vector{<:MPolyRingElem}
-} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, L, <: VarName}; cached=false,
-                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L}
+} function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticTree, <: Union{NamedTuple, Nothing}, <: VarName}; cached=false,
+                          sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, r, x... = polynomial_ring(base_field(PM),
