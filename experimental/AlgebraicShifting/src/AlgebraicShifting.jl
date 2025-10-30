@@ -162,9 +162,9 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
         if best_i == 0
           best_i = ii
           best_t = length(m[ii,j])
-        #elseif is_unit(m[ii, j])
-        #  best_i = ii
-        #  break
+        elseif is_unit(m[ii, j])
+          best_i = ii
+          break
         elseif best_t > length(m[ii, j]) 
           best_t = length(m[ii, j])
           best_i = ii

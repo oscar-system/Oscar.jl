@@ -163,6 +163,7 @@ function rothe_matrix_inv(R::MPolyRing{T}, w::WeylGroupElem) where T
 end
 
 ################################################################################
+#TODO we should add bounds so that we dont have to compute determinants we don't need
 @doc raw"""
     compound_matrix(m::MatElem, k::Int)
     compound_matrix(p::PermGroupElem, k::Int)
@@ -412,33 +413,37 @@ function check_shifted(F::Field,
     needs_check = n_dependent_columns > 0
   end
   if needs_check
-    first_dep_col = findfirst(c -> !(c in faces(target)), collect(Iterators.take(nCk, length(cols))))
-    # we have proof that the columns whose indices are less than the first_dep_col are independent
-    
+    # first_dep_col = findfirst(c -> !(c in faces(target)), collect(Iterators.take(nCk, length(cols))))
+    # # we have proof that the columns whose indices are less than the first_dep_col are independent
+    # 
     # generic_rows = faces(src)[first_dep_col:end]
     # rothe_indeterminants = Set{NTuple{2, Int}}([])
     # for g_row in generic_rows
-      # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in g_row, j in 1:n]))
+      # # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in g_row, j in 1:n]))
     # end
     # generic_cols = cols[first_dep_col:end]
     # for g_col in generic_cols
       # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in 1:n, j in g_col]))
     # end
-
-    r = rothe_matrix(F, p) #uhg=src)
+    # 
     # rothe_m = rothe_matrix(F, p; uhg=src)
     # r = matrix(base_ring(rothe_m), r_random)
+    # 
     # for (i, j) in rothe_indeterminants
-    #   r[i, j] = rothe_m[i, j]
+      # r[i, j] = rothe_m[i, j]
     # end
-
+    # 
+    # for i in 1:nrows(r), j in 1:ncols(r)
+      # if iszero(rothe_m[i,j])
+        # r[i, j] = zero(base_ring(rothe_m))
+      # end
+    # end
+    r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(cols)]
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
     col_ind = lex_min_col_basis(M, src, n_dependent_columns)
-    println(cols[col_ind])
-    println(target_faces[1:end - 1])
     cols[col_ind] != target_faces[1:end - 1] && return false
   end
   return true
