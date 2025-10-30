@@ -1384,3 +1384,24 @@ end
   chi = t[2]
   @test_throws ArgumentError stabilizer(g, chi)
 end
+
+@testset "character degrees" begin
+  # for character tables
+  D = character_degrees(character_table("S5"))
+  @test D == multiset(ZZRingElem[1, 4, 5, 6], [2, 2, 2, 1])
+  @test D isa MSet{ZZRingElem}
+  D2 = character_degrees(Int, character_table("S5"))
+  @test sort(collect(D)) == sort(collect(D2))
+  @test_throws ArgumentError D == D2
+  @test D2 isa MSet{Int}
+  @test character_degrees(character_table("S5", 2)) == multiset(ZZRingElem[1, 4], [1, 2])
+
+  # for groups
+  @test character_degrees(symmetric_group(5)) == D
+
+  # for invariant lists of abelian groups, and order of a finite field
+  @test character_degrees([3, 3, 5], 2) == multiset(ZZRingElem[1, 2, 4], [1, 4, 9])
+  @test character_degrees([3, 3, 5], 4) == multiset(ZZRingElem[1, 2], [9, 18])
+  @test character_degrees([3, 3, 5], 16) == multiset(ZZRingElem[1], [45])
+  @test character_degrees([2, 4, 8], 3) == multiset(ZZRingElem[1, 2], [8, 28])
+end
