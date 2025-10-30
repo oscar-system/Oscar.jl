@@ -189,8 +189,8 @@
       @test volume(p) == 379 * sre2//36 + 1349//108
     end
 
-    cc = positive_hull(ENF, Oscar.homogenized_matrix(vertices(c), 1))
-    dc = positive_hull(Oscar.homogenized_matrix(vertices(d), 1))
+    cc = positive_hull(ENF, Oscar.homogenized_matrix(ENF, vertices(c), 1))
+    dc = positive_hull(Oscar.homogenized_matrix(ENF, vertices(d), 1))
     @test intersect(cc, dc) isa Cone{T}
     let p = intersect(cc, dc)
       @test f_vector(p) == f_vector(c)
