@@ -150,3 +150,20 @@ end
     @test is_bijective(f)
   end
 end
+
+@testset "pcgroup code and reconstruction" begin
+  groups = [
+      cyclic_group(6),
+      cyclic_group(12),
+      dihedral_group(10),
+      small_group(PcGroup, 12, 2)
+  ]
+
+  for G in groups
+      code = code_pcgroup(G)
+      H = pcgroup_code(code, order(G))
+      @test hom(G, H, gens(H)) isa Map
+      @test order(G) == order(H)
+      @test code_pcgroup(H) == code
+  end
+end
