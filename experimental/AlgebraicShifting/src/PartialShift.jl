@@ -362,7 +362,7 @@ function random_rothe_matrix(F::QQField, p::PermGroupElem)
   n = degree(parent(p))
   u = identity_matrix(F, n)
   for (i, j) in inversions(p)
-    u[i, j] = F(Rational(rand() - 0.5))
+    u[i, j] = F(Int(ceil(100 * rand())))
   end
   return u * permutation_matrix(F, p)
 end
@@ -396,7 +396,6 @@ function check_shifted(F::Field,
   nCk = combinations(n, k)
   # limits the columns by the max face of source
   cols = [c for c in nCk if c < max_face]
-
   # restricted columns is used when we know a priori that certain columns
   # cannot appear in the shifted complex.
   # for example when we know that a column corresponds to a face that contains
@@ -413,32 +412,28 @@ function check_shifted(F::Field,
     needs_check = n_dependent_columns > 0
   end
   if needs_check
-    # first_dep_col = findfirst(c -> !(c in faces(target)), collect(Iterators.take(nCk, length(cols))))
+    println("checking")
+    first_dep_col = findfirst(c -> !(c in faces(target)), collect(Iterators.take(nCk, length(cols))))
     # # we have proof that the columns whose indices are less than the first_dep_col are independent
-    # 
-    # generic_rows = faces(src)[first_dep_col:end]
-    # rothe_indeterminants = Set{NTuple{2, Int}}([])
-    # for g_row in generic_rows
-      # # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in g_row, j in 1:n]))
-    # end
-    # generic_cols = cols[first_dep_col:end]
-    # for g_col in generic_cols
-      # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in 1:n, j in g_col]))
-    # end
-    # 
-    # rothe_m = rothe_matrix(F, p; uhg=src)
-    # r = matrix(base_ring(rothe_m), r_random)
-    # 
-    # for (i, j) in rothe_indeterminants
-      # r[i, j] = rothe_m[i, j]
-    # end
-    # 
-    # for i in 1:nrows(r), j in 1:ncols(r)
-      # if iszero(rothe_m[i,j])
-        # r[i, j] = zero(base_ring(rothe_m))
-      # end
-    # end
-    r = rothe_matrix(F, p; uhg=src)
+    #  so we can use the values that guarantee that all larger cols are still generic
+    rothe_indeterminants = Set{NTuple{2, Int}}([])
+    generic_cols = cols[first_dep_col:end]
+    for g_col in generic_cols
+      rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in 1:n, j in g_col]))
+    end
+    
+    rothe_m = rothe_matrix(F, p; uhg=src)
+    r = matrix(base_ring(rothe_m), r_random)
+    
+    for (i, j) in rothe_indeterminants
+      r[i, j] = rothe_m[i, j]
+    end
+    
+    for i in 1:nrows(r), j in 1:ncols(r)
+      if iszero(rothe_m[i,j])
+        r[i, j] = zero(base_ring(rothe_m))
+      end
+    end
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(cols)]
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
@@ -485,12 +480,13 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
   # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
-  random_r = random_rothe_matrix(F, p)
-  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_r; kw...) for i in 1:n_samples); lt=isless_lex)
+  random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
+  (shift, i), stats... = @timed efindmin((exterior_shift(K, r; kw...) for (i, r) in enumerate(random_matrices)); lt=isless_lex)
+  random_r = random_matrices[i]
   # Check if `shift` is the generic exterior shift of K
   prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
   n = n_vertices(K)
-  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p, random_r; kw...)
+  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(F, K, shift, p, random_r; kw...)
   
   if timed
     if is_correct_shift
