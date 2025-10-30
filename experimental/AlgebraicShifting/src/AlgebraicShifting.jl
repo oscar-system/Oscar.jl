@@ -146,7 +146,8 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
 
   # G = symmetric_group(n)
   # omega = gset(G, on_sets, col_sets)
-  
+  # println("n of rows $(nrows(m))")
+  # println("n dependent cols $n_dependent_columns")
   j = 1
   for i=1:nrows(m)
     best_j = 0
@@ -161,25 +162,31 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
         if best_i == 0
           best_i = ii
           best_t = length(m[ii,j])
-        elseif best_t > length(m[ii, j])
+        #elseif is_unit(m[ii, j])
+        #  best_i = ii
+        #  break
+        elseif best_t > length(m[ii, j]) 
           best_t = length(m[ii, j])
           best_i = ii
         end
       end
       if best_i == 0
         # dependent col
+        # println("dep col found")
         push!(dep_col_ind, j)
         n_current_dep_cols = length(dep_col_ind)
         if n_dependent_columns == n_current_dep_cols
           append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
           return I
         end
-
+        # println("finding larger cols")
         possible_col_ind = [i for i in j + 1:ncols(m) if !(i in dep_col_ind)]
         l_cols = larger_cols(col_sets[j], col_sets[possible_col_ind])
         
         if !isempty(l_cols)
+          # println("finding index")
           l_dep_ind = [findfirst(==(J), col_sets) for J in l_cols]
+          # println("done")
           dep_col_ind = union(dep_col_ind, l_dep_ind)
           m[:, l_dep_ind] = zero(m[:, l_dep_ind])
           
@@ -191,33 +198,35 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
           j = collect(j + 1:ncols(m))[next_j_index]
           continue
         end
-
+        
+        # # println("trying to use group")
         # # use permutation to find other dependent cols
-        target_cols = col_sets[[i for i in j:ncols(m) if !(i in dep_col_ind)]]
-        src_col = col_sets[j]
-        p_dependent_cols = permuted_dependent_cols(omega, src_col, target_cols, col_sets[I])
-        isempty(p_dependent_cols) && continue
-
-        # # get the columnn indices
-        p_dep_ind = [findfirst(==(J), col_sets) for J in p_dependent_cols]
-
+        # target_cols = col_sets[[i for i in j:ncols(m) if !(i in dep_col_ind)]]
+        # src_col = col_sets[j]
+        # p_dependent_cols = permuted_dependent_cols(omega, src_col, target_cols, col_sets[I])
+        # isempty(p_dependent_cols) && continue
+        # 
+        # # # get the columnn indices
+        # p_dep_ind = [findfirst(==(J), col_sets) for J in p_dependent_cols]
+        
         # # update set of dependent columns and the number of them
-        dep_col_ind = union(dep_col_ind, p_dep_ind)
-        m[:, p_dep_ind] = zero(m[:, p_dep_ind])
-
-        next_j_index = findfirst(!in(dep_col_ind), j + 1:ncols(m))
-        if isnothing(next_j_index)
-          append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
-          return I
-        end
-        j = collect(j + 1:ncols(m))[next_j_index]
-        continue
+        # dep_col_ind = union(dep_col_ind, p_dep_ind)
+        # m[:, p_dep_ind] = zero(m[:, p_dep_ind])
+        # 
+        # next_j_index = findfirst(!in(dep_col_ind), j + 1:ncols(m))
+        # if isnothing(next_j_index)
+          # append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
+          # return I
+        # end
+        # j = collect(j + 1:ncols(m))[next_j_index]
+        # continue
       end
       if best_i > i
         m = swap_rows!(m, i, best_i)
       end
       break
     end
+    # println("independent col ", j)
     push!(I, j)
 
     for k=i+1:nrows(m)

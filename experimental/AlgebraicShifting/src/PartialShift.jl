@@ -378,9 +378,13 @@ end
 
 # returns true if the target is the partial shift of src with respect to p
 # CAUTION! This function only works correctly if target is obtained as the shift of sry some matrix.
-function check_shifted(F::Field, src::UniformHypergraph,
-                       target::UniformHypergraph, p::PermGroupElem;
+function check_shifted(F::Field,
+                       src::UniformHypergraph,
+                       target::UniformHypergraph,
+                       p::PermGroupElem,
+                       r_random::MatElem;
                        restricted_cols=nothing)
+  # need to check if this sort can be removed
   target_faces = sort(faces(target))
   max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
   # currently number of faces of src and target are the same
@@ -388,13 +392,9 @@ function check_shifted(F::Field, src::UniformHypergraph,
   num_rows = length(faces(src))
   n = n_vertices(src)
   k = face_size(src)
-
-  nCk = sort(subsets(n, k))
-  max_face_index = findfirst(x -> x == max_face, nCk)
+  nCk = combinations(n, k)
   # limits the columns by the max face of source
-  cols = nCk[1:max_face_index - 1]
-
-  r = rothe_matrix(F, p; uhg=src)
+  cols = [c for c in nCk if c < max_face]
 
   # restricted columns is used when we know a priori that certain columns
   # cannot appear in the shifted complex.
@@ -403,7 +403,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
 
   # if the # of non zeros cols up to max_face_index is equal to the rank
   # we do not need to do any row reduction
-  n_dependent_columns = max_face_index - num_rows
+  n_dependent_columns = length(cols) + 1 - num_rows
   if !isnothing(restricted_cols)
     zero_cols_indices = findall(x -> !(Set(x) in restricted_cols), cols)
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
@@ -412,19 +412,44 @@ function check_shifted(F::Field, src::UniformHypergraph,
     needs_check = n_dependent_columns > 0
   end
   if needs_check
-    M = compound_matrix(r, src)[collect(1:num_rows), 1:max_face_index - 1]
+    first_dep_col = findfirst(c -> !(c in faces(target)), collect(Iterators.take(nCk, length(cols))))
+    # we have proof that the columns whose indices are less than the first_dep_col are independent
+    
+    # generic_rows = faces(src)[first_dep_col:end]
+    # rothe_indeterminants = Set{NTuple{2, Int}}([])
+    # for g_row in generic_rows
+      # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in g_row, j in 1:n]))
+    # end
+    # generic_cols = cols[first_dep_col:end]
+    # for g_col in generic_cols
+      # rothe_indeterminants = union(rothe_indeterminants, Set{NTuple{2, Int}}([(i, j) for i in 1:n, j in g_col]))
+    # end
+
+    r = rothe_matrix(F, p) #uhg=src)
+    # rothe_m = rothe_matrix(F, p; uhg=src)
+    # r = matrix(base_ring(rothe_m), r_random)
+    # for (i, j) in rothe_indeterminants
+    #   r[i, j] = rothe_m[i, j]
+    # end
+
+    M = compound_matrix(r, src)[collect(1:num_rows), 1:length(cols)]
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= 0
     end
     col_ind = lex_min_col_basis(M, src, n_dependent_columns)
-    nCk[col_ind] != target_faces[1:end - 1] && return false
+    println(cols[col_ind])
+    println(target_faces[1:end - 1])
+    cols[col_ind] != target_faces[1:end - 1] && return false
   end
   return true
 end
 
 # CAUTION! See the comment in the previous functions
-function check_shifted(F::Field, src::SimplicialComplex,
-                       target::SimplicialComplex, p::PermGroupElem)
+function check_shifted(F::Field,
+                       src::SimplicialComplex,
+                       target::SimplicialComplex,
+                       p::PermGroupElem,
+                       r::MatElem)
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = 2
@@ -432,7 +457,7 @@ function check_shifted(F::Field, src::SimplicialComplex,
   while k <= length(f_vec)
     uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
     uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
-    !check_shifted(F, uhg_src, uhg_target, p;
+    !check_shifted(F, uhg_src, uhg_target, p, r;
                    restricted_cols=restricted_cols) && return false
     non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
     restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(subsets(n, k + 1)))
@@ -455,11 +480,12 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
   # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
-  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
+  random_r = random_rothe_matrix(F, p)
+  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_r; kw...) for i in 1:n_samples); lt=isless_lex)
   # Check if `shift` is the generic exterior shift of K
   prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
   n = n_vertices(K)
-  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p, random_r; kw...)
   
   if timed
     if is_correct_shift
