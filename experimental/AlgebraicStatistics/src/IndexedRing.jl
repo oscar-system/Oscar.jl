@@ -4,16 +4,16 @@ struct IndexedRing{T, U} <: NCRing
   index_to_gen::Dict{T, U}
   gen_to_index::Dict{U, T}
 
-  function IndexedRing(S::Ring, varnames::Vector{<:VarName}; cached=cached)
-    R, x =  polynomial_ring(S, varnames; cached=cached)
+  function IndexedRing(S::Ring, varnames::Vector{<:VarName}; kw...)
+    R, x =  polynomial_ring(S, varnames; kw...)
     index_to_gen = Dict{Int, elem_type(R)}(i => x[i] for i in 1:ngens(R))
     gen_to_index = Dict{elem_type(R), Int}(v => k for (k, v) in index_to_gen)
     return new{Int, elem_type(R)}(R, index_to_gen, gen_to_index)
   end
 
-  function IndexedRing(S::Ring, varnames::Pair{String, <: Array{T}}; cached=cached) where T
+  function IndexedRing(S::Ring, varnames::Pair{String, <: Array{T}}; kw...) where T
     gen_names = ["$(varnames.first)[$(join(x, ","))]" for x in varnames.second]
-    R, r =  polynomial_ring(S, gen_names; cached=cached)
+    R, r =  polynomial_ring(S, gen_names; kw...)
     U = elem_type(R)
     index_to_gen = Dict{T, U}(t => r[i] for (i, t) in enumerate(varnames.second))
     gen_to_index = Dict{U, T}(v => k for (k, v) in index_to_gen)
@@ -33,8 +33,40 @@ function Base.getindex(R::IndexedRing, r::RingElem)
   return R.gen_to_index[r]
 end
 
-function indexed_ring(R::Ring, varnames; cached=false)
-  MR = IndexedRing(R, varnames; cached=cached)
+@doc raw"""
+     indexed_ring(R::Ring, varnames::Vector{<:VarName}; kw...)
+     indexed_ring(R::Ring, varnames::Pair{String, <:Array{T}}; kw...) where T
+
+Returns a polynomial ring with coefficient ring `R` and the generators as a `Dict`.
+The keyword arguments `kw` will be passed to the underlying [`polynomial_ring`](@ref) function.
+Additional to the usual polynomial ring functionality one can also ask for the index of a given generator.
+
+#Examples
+```jldoctest
+julia> R, x = indexed_ring(QQ, "x" => collect(Iterators.product(1:5, 1:3)));
+
+julia> x[1, 2]
+x[1,2]
+
+julia> x[(1, 2)]
+x[1,2]
+
+julia> R[x[1, 2]]
+(1, 2)
+
+julia> R, (y, z) = indexed_ring(QQ, [:y, :z]);
+
+julia> R, d = indexed_ring(QQ, [:y, :z]);
+
+julia> d[1]
+y
+
+julia> R[d[1]]
+1
+```
+"""
+function indexed_ring(R::Ring, varnames; kw...)
+  MR = IndexedRing(R, varnames; kw...)
   return MR, gens(MR)
 end
 

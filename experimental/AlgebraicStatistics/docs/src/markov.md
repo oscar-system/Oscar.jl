@@ -22,4 +22,5 @@ gens(R::MarkovRing)
 state_space(R::MarkovRing, K=random_variables(R))
 parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
 marginal(R::MarkovRing, K, x)
+indexed_ring(R::Ring, varnames; kw...)
 ```
