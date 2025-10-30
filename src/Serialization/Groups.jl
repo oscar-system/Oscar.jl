@@ -90,8 +90,6 @@ using Oscar: GAPGroup, _coeff
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = TypeParams(T, parent(p))
-
 #############################################################################
 # attributes handling
 const GAPGroup_attributes = [

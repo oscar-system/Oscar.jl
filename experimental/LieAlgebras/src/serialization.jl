@@ -127,8 +127,6 @@ end
 @register_serialization_type LinearLieAlgebraElem
 @register_serialization_type DirectSumLieAlgebraElem
 
-type_params(x::T) where {T<:LieAlgebraElem} = TypeParams(T, parent(x))
-
 function save_object(s::SerializerState, x::LieAlgebraElem)
   save_object(s, coefficients(x))
 end
@@ -221,8 +219,6 @@ function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::D
 end
 
 @register_serialization_type LieAlgebraModuleElem
-
-type_params(x::T) where {T<:LieAlgebraModuleElem} = TypeParams(T, parent(x))
 
 function save_object(s::SerializerState, x::LieAlgebraModuleElem)
   save_object(s, coefficients(x))
