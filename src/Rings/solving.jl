@@ -156,12 +156,12 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   R = base_ring(I)
   K = base_ring(R)
   @req dim(I) == 0 "Dimension must be zero"
-  # note that what follows does not assume shape position of the points any more
+  # note that what follows does not assume shape position of the points
   G = groebner_basis(I; ordering = lex(R))
   if 1 in G
     return elem_type(K)[]
   end
-  xs = collect(gens(R))
+  xs = gens(R)
   n  = length(xs)
   Qx, t = polynomial_ring(K; cached = false)
   occurs_only_from_i(f, i) = all(degree(f, xs[j]) == 0 for j in 1:(i-1))
@@ -173,16 +173,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
     new_rts = Vector{Vector{elem_type(Qx)}}()
     for r in rts
       r[i] = t
-      first = true
-      h = zero(Qx)
-      for f in Gi
-        p = evaluate(f, r)
-        if first
-          h = p; first = false
-        else
-          h = gcd(h, p)
-        end
-      end
+      h = mapreduce(f -> evaluate(f, r), gcd, Gi)
       h == 0 && error("Unexpected zero polynomial")
       for a in roots(h)
         r[i] = Qx(a)
@@ -191,6 +182,8 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
     end
     rts = new_rts
   end
+  # now we have a bunch of constant polynomials, replace them by
+  # their constant coefficient
   sols = [elem_type(K)[constant_coefficient(x) for x in r] for r in rts]
   return unique(sols)
 end
