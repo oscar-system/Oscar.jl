@@ -20,7 +20,7 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   A::CoeffRingType
   graded_complex::AbsHyperComplex
   pages::Dict{Int, CSSPage}
-  pfctx::Union{PushForwardCtx, ToricCtx}
+  pfctx::Union{PushForwardCtx, ToricCtx, ToricCtxWithParams}
 
 @doc raw"""
     CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
@@ -100,6 +100,14 @@ Module homomorphism
     ctx = ToricCtx(X)
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
+  end
+  
+  function CohomologySpectralSequence(X::NormalToricVariety, transfer::Map, comp::AbsHyperComplex)
+    @assert isone(dim(comp)) "complex must be 1-dimensional"
+    ctx = ToricCtxWithParams(X, transfer)
+    S = graded_ring(ctx)
+    R = coefficient_ring(S)
+    return new{typeof(S), typeof(R)}(S, R, comp, Dict{Int, CSSPage}(), ctx)
   end
 end
 
@@ -736,14 +744,74 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
-  d1 = d0 + degree(p; check=false)
-  dom_cplx = ctx[e0, d0]
-  cod_cplx = ctx[e0, d1]
-  dom = dom_cplx[j]
-  cod = cod_cplx[j]
-  dom_strand_inc = inclusion_map(dom_cplx)[j]
-  cod_strand_pr = projection_map(cod_cplx)[j]
-  return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
+  cache = get!(ctx.mult_map_cache, (e0, d0, j)) do
+    WeakKeyDict{typeof(p), Map}()
+  end
+  neg_res = get(cache, -p, nothing)
+  !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  return get!(cache, p) do
+    d1 = d0 + degree(p; check=false)
+    dom_cplx = ctx[e0, d0]
+    cod_cplx = ctx[e0, d1]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+    dom_strand_inc = inclusion_map(dom_cplx)[j]
+    cod_strand_pr = projection_map(cod_cplx)[j]
+    return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
+  end
+end
+
+function multiplication_map(
+    ctx::ToricCtxWithParams,
+    p::MPolyDecRingElem,
+    e0::Vector{Int}, d0::FinGenAbGroupElem, 
+    j::Int
+  )
+  cache = get!(ctx.mult_map_cache, (e0, d0, j)) do
+    WeakKeyDict{typeof(p), Map}()
+  end
+  neg_res = get(cache, -p, nothing)
+  !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  return get!(cache, p) do
+    d1 = d0 + degree(p; check=false)
+    dom_cplx = ctx[e0, d0]
+    cod_cplx = ctx[e0, d1]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+
+    img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
+    S = cox_ring(toric_variety(ctx))
+    R = base_ring(cod)
+    internal_cache = Dict{Tuple{Int, Vector{Int}}, sparse_row_type(R)}()
+    return MapFromFunc(dom, cod, function(v)
+                         res_coords = sparse_row(R)
+                         for (i, q) in coordinates(v)
+                           for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
+                             row = get!(internal_cache, (i, e)) do
+                               mon = S([one(QQ)], [e])
+                               mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+                               mon_gen = domain(mon_mult)[i]
+                               map_entries(R, coordinates(mon_mult(mon_gen)))
+                             end
+                             res_coord = Hecke.add_scaled_row!(row, res_coords, c*q)
+                           end
+                         end
+                         return cod(res_coords)
+                       end
+                      )
+    for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
+      mon = S([one(QQ)], [e])
+      mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+      for (i, g) in enumerate(gens(domain(mon_mult)))
+        v = mon_mult(g)
+        is_zero(v) && continue
+        # tuned version of 
+        # img_gens[i] += c*FreeModElem(map_entries(ctx.R, coordinates(v)), cod)
+        img_gens[i] = FreeModElem(Hecke.add_scaled_row!(map_entries(ctx.R, coordinates(v)), coordinates(img_gens[i]), c), cod) 
+      end
+    end
+    return hom(dom, cod, img_gens; check=false)
+  end
 end
 
 function stable_index(css::CohomologySpectralSequence, i::Int, j::Int)
