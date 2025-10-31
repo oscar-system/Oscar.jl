@@ -881,25 +881,6 @@ end
 toric_variety(ctx::ToricCtxWithParams) = toric_variety(ctx.pure_ctx)
 graded_ring(ctx::ToricCtxWithParams) = codomain(ctx.transfer)
 
-#=
-function ring_as_hypercomplex(ctx::ToricCtxWithParams)
-  if !isdefined(ctx, :S1)
-    S = graded_ring(ctx)
-    ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
-  end
-  return ctx.S1
-end
-=#
-
-#=
-function cech_complex_generators(ctx::ToricCtxWithParams)
-  if !isdefined(ctx, :cech_gens)
-    ctx.cech_gens = [transfer(g) for g in gens(irrelevant_ideal(toric_variety(ctx)))]
-  end
-  return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
-end
-=#
-
 function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int})
   return get!(ctx.truncated_cech_complexes, alpha) do
     res, tr = change_base_ring(ctx.transfer, ctx.pure_ctx[alpha])
