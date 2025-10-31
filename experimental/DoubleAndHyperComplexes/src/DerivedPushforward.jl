@@ -454,10 +454,11 @@ mutable struct ToricCtx
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   proportionality_factors::Union{Tuple{Int, Int}, Nothing}
-  exp_vec_cache::Dict{FinGenAbGroupElem, Vector{Int}}
+  exp_vec_cache::Dict{FinGenAbGroupElem, Vector{Int}} # Caching the _minimal_exponent_vector s
   S1::AbsHyperComplex
   cech_gens::Vector{<:MPolyRingElem}
-  fixed_exponent_vector::Vector{Int}
+  fixed_exponent_vector::Vector{Int} # If this field is set, then it is used for all computations
+  D::Dict # An auxiliary cache; see `_minimal_exponent_vector` for more info.
 
   function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext)
     S = cox_ring(X)
@@ -549,6 +550,91 @@ function cohomology_model_projection(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int
   return from_orig[i]
 end
 
+function get_lattice_points(A::Any, Q::BitVector, m::Vector{Int}, n::Int)
+  minus_indices = findall(x -> x != 0, Q)
+  W = copy(A); W[:, minus_indices] = -W[:,minus_indices]
+  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,m + A*Q))#First tuples is an affine halfspace that specifies that all exponents are non-negative
+  #Second tuple is a hyperplane that specifies that the degree of the corresponding rationome is m
+  points = Vector{Vector{Int}}()
+  list = try 
+    collect(lattice_points(P))#It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
+  catch
+    Vector{Vector{Int}}()
+  end
+  for point in list
+    point = Vector{Int}(point)
+    point[minus_indices] = -(point[minus_indices] .+ 1)
+    push!(points, point)
+  end
+  return points
+end
+
+function traverse_SR_ideal(v::NormalToricVariety)
+#This traverses the whole powerset of the Stanley-Reisner ideal
+  D=Dict{BitVector, Vector{Int}}()
+  SR = [BitVector(collect(exponents(p))[1]) for p in gens(stanley_reisner_ideal(v))]
+  n_coords = length(SR[1])
+  n_sr = length(SR)
+  for k in 0:length(SR)
+    P_k = subsets(SR,k)#Subsets of size k
+    for S in P_k
+      !is_empty(S) ? Q = reduce(.|, S) : Q = falses(n_rays(v))
+      if !haskey(D,Q)
+        D[Q] = zeros(Int, n_sr + n_coords)
+      end
+      N = sum(Q) - k #This element will contribute to the N-th cohomology group
+
+      D[Q][N+1+n_sr] += 1
+    end
+  end
+  return D
+end
+
+function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#returns vectors of exponents of rationoms that generate the cohomologies of the line bundle O(m) of v
+  #m should be in the class group of v
+
+  Classes=[divisor_class(toric_divisor_class(x)) for x in torusinvariant_prime_divisors(v)]
+  Classes=[Int.(getindex(x,collect(1:length(m)))) for x in Classes]#Using this one needs to be sure that m is valid
+
+  A = hcat(Classes...)
+  m_lift = solve(matrix(ZZ,A), ZZ.(m), side=:right)
+  m_dual = Vector{Int}(matrix(ZZ,A)*(-m_lift .- 1))
+
+  if isempty(D)
+    D = traverse_SR_ideal(v)
+  end
+  list = Dict{BitVector, Vector{Vector{Int}}}()
+
+  for (Q,c_degrees) in D
+    list[Q] = get_lattice_points(A, Q, m, n_rays(v))
+  end
+
+  for (Q,c_degrees) in D
+    if !isempty(list[Q])
+
+      Q_rest = .~Q
+      if length(findall(x -> x!=0,c_degrees)) > 1
+        if !haskey(D, Q_rest)
+          list[Q] = []#The dual subset wasn't in the list so we omit any lattice points
+          continue
+        end
+
+        #This could omit a small amount of lattice points, which could improve the optimal_k bound very slightly, but could be outcommented for some performance
+        ########
+        list_rest = get_lattice_points(A, Q_rest, m_dual, n_rays(v))
+        if length(list_rest)==0
+          list[Q] = []#The dual subset was in the list, but had 0 or inf dual lattice points, so for Serre duality to make sense, this subset of SR cannot contribute
+          continue
+        end
+        ########
+      end
+    end
+  end
+
+  filter!(x -> !isempty(x[2]), list)
+  return collect(Iterators.flatten(values(list))), D
+end
+
 function set_global_exponent_vector!(ctx::ToricCtx, v::Vector{Int})
   @assert length(v) == length(cech_complex_generators(ctx)) "exponent vector needs to have the same length as the generators for the `irrelevant_ideal`"
   ctx.fixed_exponent_vector = v
@@ -564,20 +650,35 @@ function _minimal_exponent_vector(ctx::ToricCtx, d::FinGenAbGroupElem)
   if isdefined(ctx, :fixed_exponent_vector)
     return ctx.fixed_exponent_vector
   end
-  error("dynamic exponent vectors are currently not supported in the toric context; consider manually setting one via `set_global_exponent_vector!`")
+  # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
+  # but only part of the algorithm is executed and explicit lattice points are 
+  # calculated for each polyhedron.
   return get!(ctx.exp_vec_cache, d) do
-    # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
-    p, q = _proportionality_factors(ctx)
-    G = grading_group(graded_ring(ctx))
-    k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
-    if !is_zero(rem)
-      k0 += 1
-    end
-    Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
+    rationoms, ctx.D = cohomology_support(toric_variety(ctx), Int[d[i] for i in 1:rank(parent(d))]; D=get_chamber_dict(ctx))
+    k = -minimum(hcat(rationoms...); init=-1)
+    n = ngens(irrelevant_ideal(toric_variety(ctx)))
+    return Int[k for i in 1:n]
   end
+  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+  # TODO: Remove this?
+  p, q = _proportionality_factors(ctx)
+  G = grading_group(graded_ring(ctx))
+  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+  if !is_zero(rem)
+    k0 += 1
+  end
+  return Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
+end
+
+function get_chamber_dict(ctx::ToricCtx)
+  if !isdefined(ctx, :D)
+    ctx.D = Dict()
+  end
+  return ctx.D
 end
 
 # See [CLS11](@cite), Theorem 9.5.10
+# TODO: Remove this?
 function _proportionality_factors(ctx::ToricCtx)
   if isnothing(ctx.proportionality_factors)
     S = graded_ring(ctx)

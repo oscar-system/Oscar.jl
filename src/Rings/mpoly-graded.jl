@@ -981,8 +981,8 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
-MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(forget_decoration(f))
+AbstractAlgebra.coefficients(f::MPolyDecRingElem) = AbstractAlgebra.coefficients(forget_decoration(f))
+AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem) = AbstractAlgebra.exponent_vectors(forget_decoration(f))
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1106,7 +1106,7 @@ function degree(a::MPolyDecRingElem; check::Bool=true)
   w = W.D[0]
   first = true
   d = W.d
-  for c = MPolyExponentVectors(forget_decoration(a))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(a))
     u = W.D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1180,7 +1180,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   d = parent(F).d
   S = nothing
   u = zero(D)
-  for c = MPolyExponentVectors(forget_decoration(F))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(F))
     u = zero!(u)
     for i=1:length(c)
       u = addmul_delayed_reduction!(u, d[i], c[i])
@@ -1193,6 +1193,61 @@ function is_homogeneous(F::MPolyDecRingElem)
     end
   end
   return true
+end
+
+# Return a dictionary with the homogeneous components of a corresponding to the
+# degrees in degs. If degs === nothing, all homogeneous components of a are
+# computed. degs may contain degrees for which the homogeneous component is 0.
+function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}}) where {T, S}
+  W = parent(a)
+  R = forget_decoration(W)
+  D = grading_group(W)
+  d = generator_degrees(W)
+
+  # First assemble the homogeneous components into the build contexts.
+  # Afterwards compute the polynomials.
+  h = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
+  tmat = zero_matrix(ZZ, 1, nvars(R))
+  res_mat = zero_matrix(ZZ, 1, ncols(dmat))
+  aa = forget_decoration(a)
+
+  if !isnothing(degs)
+    # We are asked for specific degrees
+    for u in degs
+      h[u] = MPolyBuildCtx(R)
+    end
+  end
+
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa), AbstractAlgebra.exponent_vectors(aa))
+    # this is non-allocating
+    for i in 1:length(e)
+      tmat[1, i] = e[i]
+    end
+    mul!(res_mat, tmat, dmat)
+    u = FinGenAbGroupElem(D, res_mat)
+    if haskey(h, u)
+      ctx = h[u]
+      push_term!(ctx, c, e)
+    else
+      # If we are only asked for the degrees in degs, we don't add any others
+      !isnothing(degs) && continue
+
+      # We put u in the dictionary
+      # Make a fresh res_mat, which can be used the for the next u
+      res_mat = deepcopy(res_mat)
+      ctx = MPolyBuildCtx(R)
+      push_term!(ctx, c, e)
+      h[u] = ctx
+    end
+  end
+
+  hh = Dict{elem_type(D), typeof(a)}()
+  for (u, C) in h
+    hh[u] = W(finish(C))
+  end
+
+  return hh
 end
 
 @doc raw"""
@@ -1236,42 +1291,7 @@ Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 e
 ```
 """
 function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
-  D = parent(a).D
-  d = parent(a).d
-  h = Dict{elem_type(D), typeof(a)}()
-  W = parent(a)
-  R = forget_decoration(W)
-  # First assemble the homogeneous components into the build contexts.
-  # Afterwards compute the polynomials.
-  hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
-  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
-  tmat = zero_matrix(ZZ, 1, nvars(R))
-  res_mat = zero_matrix(ZZ, 1, ncols(dmat))
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
-    # this is non-allocating
-    for i in 1:length(e)
-      tmat[1, i] = e[i]
-    end
-    mul!(res_mat, tmat, dmat)
-    u = FinGenAbGroupElem(D, res_mat)
-    if haskey(hh, u)
-      ctx = hh[u]
-      push_term!(ctx, c, e)
-    else
-      # We put u in the dictionary
-      # Make a fresh res_mat, which can be used the for the next u
-      res_mat = deepcopy(res_mat)
-      ctx = MPolyBuildCtx(R)
-      push_term!(ctx, c, e)
-      hh[u] = ctx
-    end
-  end
-  hhh = Dict{elem_type(D), typeof(a)}()
-  for (u, C) in hh
-    hhh[u] = W(finish(C))
-  end
-
-  return hhh
+  return _homogeneous_components(a, nothing)
 end
 
 @doc raw"""
@@ -1349,20 +1369,8 @@ z
 ```
 """
 function homogeneous_component(a::MPolyDecRingElem, g::FinGenAbGroupElem)
-  R = forget_decoration(parent(a))
-  r = R(0)
-  d = parent(a).d
-  for (c, m) = Base.Iterators.zip(MPolyCoeffs(forget_decoration(a)), Generic.MPolyMonomials(forget_decoration(a)))
-    e = exponent_vector(m, 1)
-    u = parent(a).D[0]
-    for i=1:length(e)
-      u += e[i]*d[i]
-    end
-    if u == g
-      r += c*m
-    end
-  end
-  return parent(a)(r)
+  comp_dict = _homogeneous_components(a, [g])
+  return comp_dict[g]
 end
 
 function homogeneous_component(a::MPolyDecRingElem, g::IntegerUnion)

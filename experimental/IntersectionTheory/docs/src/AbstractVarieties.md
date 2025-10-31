@@ -171,10 +171,10 @@ product(X::AbstractVariety, Y::AbstractVariety)
 integral(c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
-Given an element `c` of the Chow ring of an abstract variety `X`, say, return the integral of `c`.
+Given an element `c` of the Chow ring of an abstract variety, return the integral of `c`.
 
 !!! note
-    If the abstract variety has been given a point class, and `length(basis(X, dim(X)) == 1`,
+    If the abstract variety has been given a (unique) point class,
     then the integral will be an element of the coefficient ring of the Chow ring.
     That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
     of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
