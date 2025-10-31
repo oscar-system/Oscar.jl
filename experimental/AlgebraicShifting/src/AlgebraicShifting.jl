@@ -71,27 +71,6 @@ function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 end
 efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
 
-# uses permutation lemma to find other dependent columns
-function permuted_dependent_cols(omega::GSet,
-                                 src_col::Vector{Int},
-                                 target_cols::Vector{Vector{Int}},
-                                 lex_min_indep_sets::Vector{Vector{Int}})
-
-  dependent_cols = Set{Vector{Int}}()
-  S, _ = stabilizer(omega, src_col)
-  for J in target_cols
-    exists, g = is_conjugate_with_data(omega, src_col, J)
-    !exists && continue
-    for p in right_coset(S, g)
-      if all(<(J), sort.(on_sets(lex_min_indep_sets, p)))
-        push!(dependent_cols, J)
-        break
-      end
-    end
-  end
-  return dependent_cols
-end
-
 function _domination(s1::Combination{Int}, s2::Combination{Int})
   v1 = sort(s1)
   v2 = sort(s2)
@@ -100,6 +79,21 @@ end
 
 function larger_cols(c::Combination{Int}, col_sets::Vector{Combination{Int}})
   col_sets[findall(x -> _domination(c, x), col_sets)]
+end
+
+function _find_evaluations(dep_col_index::Int,
+                           cols::Vector{Combination{Int}},
+                           generic_rothe::AbstractAlgebra.Generic.MatSpaceElem{<:MPolyRingElem{T}},
+                           random_rothe::MatElem{T}) where T <: FieldElem
+  evaluations = Set{Tuple{NTuple{2, Int}, MPolyRingElem{T}, T}}([])
+  generic_cols = cols[1:dep_col_index - 1]
+  for g_col in generic_cols
+    for i in 1:nrows(generic_rothe), j in g_col
+      (is_unit(generic_rothe[i, j]) || iszero(generic_rothe[i, j])) && continue
+      push!(evaluations, ((i, j), generic_rothe[i, j], random_rothe[i, j]))
+    end
+  end
+  return evaluations
 end
 
 function _check_schur_complements(M::MatElem)
@@ -128,7 +122,8 @@ function _check_schur_complements(M::MatElem)
 end
 
 function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
-                           uhg::UniformHypergraph, n_dependent_columns::Int) where T <: MPolyRingElem
+                           uhg::UniformHypergraph,
+                           n_dependent_columns::Int) where T <: MPolyRingElem
   for i=1:nrows(m)
     c = content(m[i:i, :])
     if !isone(c)
@@ -140,6 +135,7 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
   k = face_size(uhg)
   I = Int[]
   dep_col_ind = Set{Int}([])
+  #n_dependent_columns = length(dependent_columns)
   n_current_dep_cols = 0
   col_sets = collect(combinations(n, k))[1:ncols(m)]
   max_col = col_sets[end]
