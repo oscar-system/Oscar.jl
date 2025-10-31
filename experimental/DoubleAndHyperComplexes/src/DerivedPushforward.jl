@@ -701,8 +701,8 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
   # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
   # but only part of the algorithm is executed and explicit lattice points are 
   # calculated for each polyhedron.
-  return get!(ctx.exp_vec_cache, d) do
-    rationoms, ctx.D = cohomology_support(toric_variety(ctx), Int[d[i] for i in 1:rank(parent(d))]; D=get_chamber_dict(ctx))
+  return get!(ctx.exp_vec_cache, m) do
+    rationoms, ctx.D = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
     k = -minimum(hcat(rationoms...); init=-1)
     n = ngens(irrelevant_ideal(toric_variety(ctx)))
     return Int[k for i in 1:n]
