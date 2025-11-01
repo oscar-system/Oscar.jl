@@ -154,16 +154,25 @@ function polyhedron(
   end
 
   if non_redundant
+    if !isnothing(is_bounded)
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+        FACETS=remove_zero_rows(IM), AFFINE_HULL=remove_zero_rows(EM), BOUNDED=is_bounded
+      )
+    else
       result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
         FACETS=remove_zero_rows(IM), AFFINE_HULL=remove_zero_rows(EM)
       )
+    end
   else
+    if !isnothing(is_bounded)
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+        INEQUALITIES=remove_zero_rows(IM), EQUATIONS=remove_zero_rows(EM), BOUNDED=is_bounded
+      )
+    else
       result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
         INEQUALITIES=remove_zero_rows(IM), EQUATIONS=remove_zero_rows(EM)
       )
-  end
-  if !isnothing(is_bounded)
-    Polymake.take(result, "BOUNDED", is_bounded)
+    end
   end
   return Polyhedron{scalar_type}(result, parent_field)
 end
