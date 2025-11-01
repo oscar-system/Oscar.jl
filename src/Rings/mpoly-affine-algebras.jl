@@ -34,7 +34,7 @@ as a `K`-vector space, `false` otherwise.
 
 !!! note 
     `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
-    less or equal zero. This condition is checked by the function.
+    less or equal to zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -63,7 +63,7 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -108,7 +108,7 @@ such that the residue classes of these monomials form a basis of `A` as a `K`-ve
 space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -147,10 +147,10 @@ end
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
-Given an affine algebra `A` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
+Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`, 
+and which is defined over a field `K`, say, and given an element `g` of the free group,
 return a vector of monomials of `R` such that the residue classes of
-these monomials form a `K`-basis of the graded part of `A` of degree `g`.
+these monomials form a `K`-basis of the graded component of `A` of degree `g`.
 
     monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
 
@@ -165,7 +165,11 @@ an integer `d`, convert `d` into an element `g` of the grading
 group of `A` and proceed as above.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    The function first computes a monomial basis of the `g`-graded component of `base_ring(A)`.
+    If this component is infinite dimensional, an error message will be thrown. This does not
+    neccessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
+    In the case where `A` has Krull dimension zero, you may alternatively enter `monomial_basis(A)`
+    to obtain a monomial basis for all of `A`.
 
 # Examples
 ```jldoctest
@@ -188,7 +192,15 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  L = monomial_basis(R, g)
+  L = try
+    monomial_basis(R, g)
+  catch e
+    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
+      rethrow(ArgumentError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
   LI = leading_ideal(A.I)
   ### TODO: Decide whether we should check whether a GB with respect
     ### to whatever <ordering is already available
