@@ -12,7 +12,7 @@
   X = normal_toric_variety(reduce( minkowski_sum, Q) );
   S = cox_ring(X);
 
-  x = gens(S_ext);
+  x = gens(S);
 
   # Ray generators in fan of toric variety
   U = map(primitive_generator, rays(X));
