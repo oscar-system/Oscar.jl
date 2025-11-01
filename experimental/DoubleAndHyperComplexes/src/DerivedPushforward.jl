@@ -486,6 +486,9 @@ end
 toric_variety(ctx::ToricCtx) = ctx.X
 graded_ring(ctx::ToricCtx) = ctx.S
 
+# outer constructor
+toric_ctx_object(X::NormalToricVariety) = ToricCtx(X)
+
 function ring_as_hypercomplex(ctx::ToricCtx)
   if !isdefined(ctx, :S1)
     S = graded_ring(ctx)
