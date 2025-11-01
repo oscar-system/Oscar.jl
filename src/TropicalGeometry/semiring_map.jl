@@ -1,23 +1,78 @@
 ################################################################################
 #
-#  Tropical semiring maps
-#  ======================
-#  maps from a field K to a tropical semiring T with the purpose of encoding
-#    - a valuation on K
-#    - a choice of min- or max-convention
+#  Tropical semiring map
 #
 ################################################################################
-struct TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}
-    valued_field::typeofValuedField
+
+@doc raw"""
+    TropicalSemiringMap{DomainType, UniformizerType, MinOrMax}
+
+A structure representing a map from a valued field or ring to a tropical
+semiring, encoding a valuation and a choice of min- or max-convention.
+
+# Parameters
+- `DomainType`: type of valued field (if specified)
+    or type of valued ring (if valued field unspecified)
+- `UniformizerType`: type of uniformizer in valued ring
+- `MinOrMax`: either `typeof(min)` or `typeof(max)` depending on convention
+
+# Fields
+- `valued_field`: the valued field. can be `nothing` if valued field unspecified
+- `uniformizer_field`: the uniformizer as element in the valued field
+    can be `nothing` if valued field unspecified or valuation trivial
+- `valued_ring`: the valued ring, either specified by user or
+    inferred from the valued field specified by user
+- `uniformizer_ring`: the uniformizer as element in the valued ring specified by user
+    can be `nothing` if valuation trivial
+- `residue_field`: the residue field, inferred from fields above
+- `tropical_semiring`: either `tropical_semiring(min)` or `tropical_semiring(max)`
+    depending on convention
+"""
+struct TropicalSemiringMap{DomainType, UniformizerType, MinOrMax}
+    valued_field::Union{Nothing,Field}
     uniformizer_field::Union{Nothing,FieldElem}
     valued_ring::Ring
-    uniformizer_ring::typeofUniformizer
+    uniformizer_ring::Union{Nothing,RingElem}
     residue_field::Field
-    tropical_semiring::TropicalSemiring{minOrMax}
+    tropical_semiring::TropicalSemiring{MinOrMax}
 
-    # Constructor with empty dictionaries
-    function TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}(valuedField::typeofValuedField,uniformizerField::Union{Nothing,FieldElem},valuedRing::Ring,uniformizerRing::typeofUniformizer,residueField::Field,tropicalSemiring::TropicalSemiring{minOrMax}) where {typeofValuedField<:Field,typeofUniformizer<:Union{Nothing,RingElem},minOrMax<:Union{typeof(min),typeof(max)}}
-        return new{typeofValuedField,typeofUniformizer,minOrMax}(valuedField,uniformizerField,valuedRing,uniformizerRing,residueField,tropicalSemiring)
+    function TropicalSemiringMap{DomainType, UniformizerType, MinOrMax}(
+        valuedField::Union{Nothing,Field},
+        uniformizerField::Union{Nothing,FieldElem},
+        valuedRing::Ring,
+        uniformizerRing::Union{Nothing,RingElem},
+        residueField::Field,
+        tropicalSemiring::TropicalSemiring{MinOrMax}
+        ) where {
+            DomainType <: Ring,
+            UniformizerType <: Union{Nothing,RingElem},
+            MinOrMax <: Union{typeof(min),typeof(max)}
+        }
+
+        # if valuedField is unspecified, check that uniformizerField is unspecified
+        # if uniformizerRing is unspecified, check that uniformizerField is unspecified
+        @req !isnothing(valuedField) || isnothing(uniformizerField) "valuedField / uniformizerField mismatch"
+        @req !isnothing(uniformizerRing) || isnothing(uniformizerField) "uniformizerRing / uniformizerField mismatch"
+
+        # if no valued field specified, first parameter captures the valued ring
+        if isnothing(valuedField)
+            return new{typeof(valuedRing),typeof(uniformizerRing),MinOrMax}(
+                valuedField,
+                uniformizerField,
+                valuedRing,
+                uniformizerRing,
+                residueField,
+                tropicalSemiring)
+        end
+
+        # otherwise, first parameter captures the valued field
+        return new{typeof(valuedField),typeof(uniformizerRing),MinOrMax}(
+            valuedField,
+            uniformizerField,
+            valuedRing,
+            uniformizerRing,
+            residueField,
+            tropicalSemiring)
     end
 end
 
