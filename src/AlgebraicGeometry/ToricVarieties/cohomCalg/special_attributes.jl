@@ -78,7 +78,8 @@ Compute the dimension of all sheaf cohomologies of the
 toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
 [BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
 [Jow11](@cite) and [BJRR12](@cite)). It is also possible to specify algorithm = "chamber counting"
-in which case the chamber counting algorithm will be used [CLS11](@cite) p.398 .
+in which case the chamber counting algorithm will be used [CLS11](@cite) p.398, 
+or to use local cohomology as in [CLS11](@cite), Section 9.5.
 
 # Examples
 ```jldoctest
@@ -225,6 +226,11 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
   elseif occursin("chamber", lowercase(algorithm))
     @req (is_complete(v) && is_simplicial(v)) "the chamber counting algorithm only applies to toric varieties that are simplicial and complete"
     return _all_cohomologies_via_cech(l)
+  elseif occursin("local", lowercase(algorithm))
+    ctx = toric_ctx_object(v)
+    d = divisor_class(toric_divisor_class(l))
+    coh = cohomology_model(ctx, d)
+    return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:-dim(v)]
   end
 end
 

@@ -56,6 +56,11 @@
     @test all_cohomologies(l6; algorithm="chamber counting") == [21, 0, 0, 0]
   end
 
+  @testset "Cohomology with local cohomology" begin
+    l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
+    @test all_cohomologies(l5; algorithm="local cohomology") == [0, 2, 0]
+  end
+
   @testset "Toric vanishing sets of dP3" begin
     @test is_projective_space(toric_variety(vs[1])) == false
     @test length(polyhedra(vs[1])) == 1
