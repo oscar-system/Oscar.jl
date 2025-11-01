@@ -8,11 +8,11 @@ struct AllModuleMonomials{ModuleType<:FreeMod, DegreeType<:Union{Int, FinGenAbGr
   # Since the computation is expensive, we don't want to do it over and over again. 
   exp_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}}
 
-  function AllModuleMonomials(F::FreeMod{T}, d::Int) where {T <: MPolyDecRingElem}
+  function AllModuleMonomials(F::FreeMod{T}, d::Int; check::Bool=true) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
     S = base_ring(F)
     is_standard_graded(S) || error("iterator implemented only for the standard graded case")
-    return new{typeof(F), Int}(F, d, false)
+    return new{typeof(F), Int}(F, d, false) # check flag can be ignored for the standard grading.
   end
   function AllModuleMonomials(F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true) where {T <: MPolyDecRingElem}
     is_graded(F) || error("module must be graded")
@@ -86,7 +86,7 @@ function Base.iterate(
     i === nothing && return nothing
     d_loc = d - Int(degree(F[i]; check=false)[1])
 
-    mon_it = monomials_of_degree(R, d_loc; check=amm.check)
+    mon_it = monomials_of_degree(R, d_loc)
     res_loc = iterate(mon_it, nothing)
     res_loc === nothing && i == ngens(F) && return nothing
 
