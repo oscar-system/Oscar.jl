@@ -379,6 +379,9 @@ julia> groebner_basis(I,nu,w)
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
+    @req !isnothing(valued_field(nu)) "valuation must be defined on a field"
+    @req valued_field(nu)==coefficient_ring(I) "coefficient ring of ideal does not match valued field of valuation"
+
     G = gens(I)
     # Principal ideal shortcut, return G
     if isone(length(G))
