@@ -1513,7 +1513,7 @@ an integer `d`, convert `d` into an element `g` of the grading group of `R`
 proceed as above.
 
 !!! note
-    If the component is infinite dimensional, an error will be thrown.
+    If the component is not finite dimensional, an error will be thrown.
 
 # Examples
 ```jldoctest
