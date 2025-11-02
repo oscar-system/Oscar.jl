@@ -14,7 +14,11 @@
 
 ################################################################################
 #
-#  Caching of polynomial rings over valued rings
+#  Caching of polynomial rings
+#
+#  Tropical Groebner basis computations are done via standard basis computations
+#  in a different polynomial ring (that depends on the valuation). We cache
+#  these polynomial rings as a dictionary in the original polynomial ring
 #
 ################################################################################
 function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap)
@@ -383,8 +387,7 @@ function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVecto
     @req valued_field(nu)==coefficient_ring(I) "coefficient ring of ideal does not match valued field of valuation"
 
     G = gens(I)
-    # Principal ideal shortcut, return G
-    if isone(length(G))
+    if isone(length(G)) # for principal ideals, just return generator
         return G
     end
 
