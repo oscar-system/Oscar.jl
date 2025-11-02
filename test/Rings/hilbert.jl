@@ -120,7 +120,7 @@ end
   I = ideal(R, [x]);
   RmodI, _ = quo(R, I);
   @test_throws ArgumentError  hilbert_series(RmodI);  # weights must be non-neg
-  @test_throws ErrorException  multi_hilbert_series(RmodI); # possible infinite dimension
+  @test_throws ArgumentError  multi_hilbert_series(RmodI); # possible infinite dimension
 end
 
 @testset "Hilbert series part 4" begin
