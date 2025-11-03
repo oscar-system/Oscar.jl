@@ -767,7 +767,7 @@ end
 function im_func(f::MPolyRingElem, S::MPolyRing, i::Vector{Int})
   O = base_ring(S)
   g = MPolyBuildCtx(S)
-  for (c, e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     f = zeros(Int, nvars(S))
     for j=1:length(e)
       if i[j] == 0

@@ -296,8 +296,8 @@ end
    y = G([z+1,0,0,z+2])
    @test parent(x)==G
    H,f = sub(G,[x,y])
-   @test isdefined(H,:gens)
    @test gens(H)==[x,y]
+   @test isdefined(H,:gens)
    @test typeof(gens(H)) == Vector{elem_type(H)}
    @test H==SL(2,F)
    @test parent(x)==G

@@ -39,12 +39,12 @@ end
 
 #= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
  =     Next step is to re-enable modular Singular.std and modular f4 again. =#
-function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
-  if isdefined(I, :gb) && ord == :degrevlex
-    return collect(I.gb)
+function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ordering::MonomialOrdering; use_hilbert::Bool = false, Proof::Bool = true)
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
   end
   if Proof
-    return Oscar.standard__basis_with_transform(I, ord)[1]
+    return _compute_standard_basis_with_transform(I, ord)[1]
   end
 
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
@@ -112,9 +112,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degr
         d *= ZZRingElem(p)
         stable -= 1
         if stable <= 0
-          if ord == :degrevlex
-            I.gb[degrevlex(gens(Qt))] = IdealGens(gd, keep_ordering = false, isGB = true)
-          end
+          # TODO: perhaps store the computed basis somewhere in `I.gb` ?
           return gd
         end
       end
@@ -224,8 +222,8 @@ end
  =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
  = end
  =  =#
- function Oscar._compute_standard_basis_with_transform(I::MPolyIdeal{QQMPolyRingElem}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
-   return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
+function Oscar._compute_standard_basis_with_transform(I::MPolyIdeal{QQMPolyRingElem}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
+  return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 
 function Oscar.lift(R::Ring, f::Union{fpMPolyRingElem, zzModMPolyRingElem})
@@ -258,9 +256,8 @@ function induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZ
   return finish(mu), d*p
 end
 
-function exp_groebner_basis(I::MPolyIdeal{QQMPolyRingElem}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  H = exp_groebner_assure(I, ord)
-  return H
+function exp_groebner_basis(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  return exp_groebner_assure(I, ordering)
 end
 
 

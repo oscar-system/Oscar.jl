@@ -271,13 +271,13 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("Combinatorics/SimplicialComplexes.jl")
-include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
 include("Combinatorics/PartiallyOrderedSet/structs.jl")
 include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+include("Groups/subspaces.jl") # needs EnumerativeCombinatorics
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

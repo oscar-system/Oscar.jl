@@ -1330,7 +1330,7 @@ is_bounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 @doc raw"""
     is_simple(P::Polyhedron)
 
-Check whether `P` is simple.
+Check whether `P` is simple, i.e., each vertex figure is a simplex.
 
 # Examples
 ```jldoctest
@@ -1346,9 +1346,45 @@ is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 @doc raw"""
     is_simplicial(P::Polyhedron)
 
-Check whether `P` is simplicial.
+Check whether `P` is simplicial, i.e., each proper face is a simplex.
 """
 is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
+
+@doc raw"""
+    is_neighborly(P::Polyhedron)
+
+Check whether `P` is neighborly, i.e., if the dimension is $d$, each $\lfloor d/2 \rfloor$-subset of the vertices forms a face.
+Neighborly polytopes in even dimension are necessarily simplicial.
+
+# Examples
+
+A 4-polytope is neighborly if and only if the vertex-edge graph is complete.
+
+```jldoctest
+julia> is_neighborly(cyclic_polytope(4,8))
+true
+```
+"""
+is_neighborly(P::Polyhedron) = pm_object(P).NEIGHBORLY::Bool
+
+@doc raw"""
+    is_cubical(P::Polyhedron)
+
+Check whether `P` is cubical, i.e., each proper face is combinatorially equivalent to a cube.
+
+# Examples
+
+For details concerning the following construction see [JZ00](@cite).
+
+```jldoctest
+julia> Q = cube(2,-1,1); Q2 = cube(2,-2,2); P = convex_hull(product(Q,Q2), product(Q2,Q))
+Polyhedron in ambient dimension 4
+
+julia> is_cubical(P)
+true
+```
+"""
+is_cubical(P::Polyhedron) = pm_object(P).CUBICAL::Bool
 
 @doc raw"""
     is_fulldimensional(P::Polyhedron)

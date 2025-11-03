@@ -295,7 +295,7 @@ function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   @assert ngens(parent(f)) == degree(G)
 
   g = Generic.MPolyBuildCtx(parent(f))
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     s_e = zeros(Int, degree(G))
     for i=1:degree(G)
       s_e[s(i)] = e[i]
@@ -668,6 +668,41 @@ function stabilizer(G::MatrixGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Functio
     map_entries(iso, pnt),
     GAP.Globals.OnSubspacesByCanonicalBasis))
 end
+
+# action of a group G on class functions of a group H that is normalized by G,
+# defined by $\chi^g: h \mapsto \chi(conj(h, inv(g)))$
+function stabilizer(G::GAPGroup, chi::GAPGroupClassFunction)
+  tbl = parent(chi)
+  actions = get_attribute!(IdDict{GAPGroup,GAPGroupHomomorphism}, tbl,
+                           :actions_on_classes)
+  if haskey(actions, G)
+    phi = actions[G]
+    img = codomain(phi)
+  else
+    ccl = conjugacy_classes(tbl)
+    n = length(ccl)
+    sym = symmetric_group(n)
+    imgs = PermGroupElem[]
+    reps = map(representative, ccl)
+    Ggens = gens(G)
+    for g in Ggens
+      l = Int[]
+      for r in reps
+        y = r^g
+        pos = findfirst(c -> y in c, ccl)
+        @req pos !== nothing "G does not normalize the group of chi"
+        push!(l, pos)
+      end
+      push!(imgs, perm(sym, l))
+    end
+    img = permutation_group(n, imgs)
+    phi = hom(G, img, Ggens, imgs)
+    actions[G] = phi
+  end
+
+  return preimage(phi, stabilizer(img, values(chi), permuted)[1])
+end
+
 
 """
     right_coset_action(G::GAPGroup, U::GAPGroup)
