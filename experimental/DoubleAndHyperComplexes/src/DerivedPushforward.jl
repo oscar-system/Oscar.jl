@@ -348,7 +348,7 @@ end
 
 function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
   get!(ctx.cohomology_models, d) do
-    simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
+    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
   end
 end
 
@@ -581,7 +581,7 @@ end
 
 function cohomology_model(ctx::ToricCtx, d::FinGenAbGroupElem)
   get!(ctx.cohomology_models, d) do
-    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
+    simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
   end
 end
 
