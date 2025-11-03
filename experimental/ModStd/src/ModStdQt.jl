@@ -78,7 +78,7 @@ end
 Hecke.rem!(a::T, b::T, c::T) where {T <: RingElem} = rem(b, c)
 
 function Oscar.rational_reconstruction(f::PolyRingElem, I::InterpolateCtx; error_tolerant::Bool = false)
-  return rational_reconstruction(f, prod(I.C), error_tolerant = error_tolerant)
+  return rational_reconstruction(f, I.C.pr[end], error_tolerant = error_tolerant)
 end
 
 """
