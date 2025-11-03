@@ -87,9 +87,12 @@ valued_field(nu::TropicalSemiringMap) = nu.valued_field
 uniformizer_field(nu::TropicalSemiringMap) = nu.uniformizer_field
 valued_ring(nu::TropicalSemiringMap) = nu.valued_ring
 uniformizer_ring(nu::TropicalSemiringMap) = nu.uniformizer_ring
-uniformizer(nu::TropicalSemiringMap) = uniformizer_ring(nu)
 residue_field(nu::TropicalSemiringMap) = nu.residue_field
 tropical_semiring(nu::TropicalSemiringMap) = nu.tropical_semiring
+
+domain(nu::TropicalSemiringMap) = isnothing(valued_field(nu)) ? valued_ring(nu) : valued_field(nu)
+codomain(nu::TropicalSemiringMap) = tropical_semiring(nu)
+uniformizer(nu::TropicalSemiringMap) = uniformizer_ring(nu)
 
 convention(::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(min)}) where {typeofValuedField,typeofUniformizer} = min
 convention(::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(max)}) where {typeofValuedField,typeofUniformizer} = max
