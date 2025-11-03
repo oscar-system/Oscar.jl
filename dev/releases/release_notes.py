@@ -335,25 +335,33 @@ which we think might affect some users directly.
 
 def split_pr_into_changelog(prs: List):
     childprlist = []
+    toremovelist = []
     for pr in prs:
         if has_label(pr, 'release notes: use body'):
             mdstring = body_to_release_notes(pr).strip()
             mdlines = mdstring.split('\r\n')
-            pattern = r'\{package: .*\}'
+            pattern = r'\{.*\}$'
             for line in mdlines:
-                if not '{package: ' in line:
-                    continue
                 mans = re.search(pattern, line)
-                packagestring = mans.group()[1:-1]
+                if not mans:
+                    # maybe actually raise an error instead of just continue
+                    continue
+                label_list = mans.group().strip('{').strip('}').split(',')
                 cpr = copy.deepcopy(pr)
-                mindex = line.find('{package:')
+                for label in label_list:
+                    label = label.strip()
+                    if not (label in prtypes or label in topics):
+                        # error
+                        exit()
+                    cpr['labels'].append({'name': label})
+                mindex = mans.span()[0]
                 line = line[0:mindex]
-                cpr['labels'].append({'name': packagestring})
                 cpr['body'] = f'---\r\n## Release Notes\r\n{line}\r\n---'
                 childprlist.append(cpr)
-        prs.remove(pr)    
+            toremovelist.append(pr)
     prs.extend(childprlist)
-    return prs
+    prlist = [pr for pr in prs if pr not in toremovelist]
+    return prlist
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
