@@ -303,12 +303,12 @@ If this is a weighted ordering, the height of the corresponding root is used as 
 ```jldoctest
 julia> mon_bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
- (Monomial basis of a highest weight module with highest weight w_1 over abstract Lie algebra, [1, x1, x3, x1*x3, x1^2*x3, x3*x4, x1*x3*x4])
- (Monomial basis of a highest weight module with highest weight 2*w_1 over abstract Lie algebra, [x4, x1*x4, x4^2, x3*x4^2, x1*x3*x4^2])
- (Monomial basis of a highest weight module with highest weight 3*w_1 over abstract Lie algebra, [x1^2*x4^2, x4^3, x1*x4^3, x4^4, x1*x4^4, x3*x4^4, x5, x2*x5, x1*x2*x5, x1^2*x2*x5, x3^2*x5, x1*x3^2*x5, x3^3*x5, x1*x3^3*x5])
- (Monomial basis of a highest weight module with highest weight 4*w_1 over abstract Lie algebra, [x4^5, x1*x4^5, x4^6, x3^2*x4*x5, x1*x3^2*x4*x5, x3^2*x4^2*x5, x3^3*x4^2*x5])
- (Monomial basis of a highest weight module with highest weight 5*w_1 over abstract Lie algebra, [x1^2*x4^6, x4^7, x1*x4^7, x2*x4^3*x5, x1*x2*x4^3*x5, x2*x3*x4^3*x5, x1*x2*x3*x4^3*x5, x1^2*x2*x3*x4^3*x5, x2*x3^2*x4^3*x5, x1*x2*x3^2*x4^3*x5, x1^2*x2*x3^2*x4^3*x5, x2*x4^4*x5])
- (Monomial basis of a highest weight module with highest weight 6*w_1 over abstract Lie algebra, [x4^9, x1*x3*x4^4*x5, x2*x4^5*x5, x3*x4^5*x5, x3^2*x4^5*x5, x2*x3^2*x4^5*x5, x1*x2*x3^2*x4^5*x5, x3^4*x4*x5^2])
+ (Monomial basis of a highest weight module with highest weight w_1 over abstract Lie algebra of type G2 over QQ, [1, x1, x3, x1*x3, x1^2*x3, x3*x4, x1*x3*x4])
+ (Monomial basis of a highest weight module with highest weight 2*w_1 over abstract Lie algebra of type G2 over QQ, [x4, x1*x4, x4^2, x3*x4^2, x1*x3*x4^2])
+ (Monomial basis of a highest weight module with highest weight 3*w_1 over abstract Lie algebra of type G2 over QQ, [x1^2*x4^2, x4^3, x1*x4^3, x4^4, x1*x4^4, x3*x4^4, x5, x2*x5, x1*x2*x5, x1^2*x2*x5, x3^2*x5, x1*x3^2*x5, x3^3*x5, x1*x3^3*x5])
+ (Monomial basis of a highest weight module with highest weight 4*w_1 over abstract Lie algebra of type G2 over QQ, [x4^5, x1*x4^5, x4^6, x3^2*x4*x5, x1*x3^2*x4*x5, x3^2*x4^2*x5, x3^3*x4^2*x5])
+ (Monomial basis of a highest weight module with highest weight 5*w_1 over abstract Lie algebra of type G2 over QQ, [x1^2*x4^6, x4^7, x1*x4^7, x2*x4^3*x5, x1*x2*x4^3*x5, x2*x3*x4^3*x5, x1*x2*x3*x4^3*x5, x1^2*x2*x3*x4^3*x5, x2*x3^2*x4^3*x5, x1*x2*x3^2*x4^3*x5, x1^2*x2*x3^2*x4^3*x5, x2*x4^4*x5])
+ (Monomial basis of a highest weight module with highest weight 6*w_1 over abstract Lie algebra of type G2 over QQ, [x4^9, x1*x3*x4^4*x5, x2*x4^5*x5, x3*x4^5*x5, x3^2*x4^5*x5, x2*x3^2*x4^5*x5, x1*x2*x3^2*x4^5*x5, x3^4*x4*x5^2])
 
 julia> [length(mon_basis[2]) for mon_basis in mon_bases]
 6-element Vector{Int64}:
@@ -397,12 +397,12 @@ The monomial ordering is fixed to `degrevlex`.
 ```jldoctest
 julia> mon_bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
- (Monomial basis of a highest weight module with highest weight w_1 over abstract Lie algebra, [1, x6, x4, x3, x2, x1, x1*x6])
- (Monomial basis of a highest weight module with highest weight 2*w_1 over abstract Lie algebra, [])
- (Monomial basis of a highest weight module with highest weight 3*w_1 over abstract Lie algebra, [])
- (Monomial basis of a highest weight module with highest weight 4*w_1 over abstract Lie algebra, [])
- (Monomial basis of a highest weight module with highest weight 5*w_1 over abstract Lie algebra, [])
- (Monomial basis of a highest weight module with highest weight 6*w_1 over abstract Lie algebra, [])
+ (Monomial basis of a highest weight module with highest weight w_1 over abstract Lie algebra of type G2 over QQ, [1, x6, x4, x3, x2, x1, x1*x6])
+ (Monomial basis of a highest weight module with highest weight 2*w_1 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a highest weight module with highest weight 3*w_1 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a highest weight module with highest weight 4*w_1 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a highest weight module with highest weight 5*w_1 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a highest weight module with highest weight 6*w_1 over abstract Lie algebra of type G2 over QQ, [])
 
 julia> [length(mon_basis[2]) for mon_basis in mon_bases]
 6-element Vector{Int64}:
@@ -675,12 +675,12 @@ If this is a weighted ordering, the height of the corresponding root is used as 
 ```jldoctest
 julia> mon_bases = basis_coordinate_ring_kodaira_demazure(:G, 2, [1,0], [1,2,1,2], 6; monomial_ordering = :invlex)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
- (Monomial basis of a Demazure module with extremal weight (w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [1, x2, x1*x2, x1^2*x2, x3^2, x1*x3^2])
- (Monomial basis of a Demazure module with extremal weight (2*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [x3^3, x1*x3^3])
- (Monomial basis of a Demazure module with extremal weight (3*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [x3^4*x4])
- (Monomial basis of a Demazure module with extremal weight (4*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (5*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (6*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra, [])
+ (Monomial basis of a Demazure module with extremal weight (w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [1, x2, x1*x2, x1^2*x2, x3^2, x1*x3^2])
+ (Monomial basis of a Demazure module with extremal weight (2*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [x3^3, x1*x3^3])
+ (Monomial basis of a Demazure module with extremal weight (3*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [x3^4*x4])
+ (Monomial basis of a Demazure module with extremal weight (4*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (5*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (6*w_1) * s1 * s2 * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
 
 julia> mon_bases[end][1]
 Monomial basis of a Demazure module
@@ -763,12 +763,12 @@ The monomial ordering is fixed to `degrevlex`.
 ```jldoctest
 julia> mon_bases = basis_coordinate_ring_kodaira_demazure_ffl(:G, 2, [1,0], [1,2], 6)
 6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
- (Monomial basis of a Demazure module with extremal weight (w_1) * s1 * s2 over abstract Lie algebra, [1, x5, x4])
- (Monomial basis of a Demazure module with extremal weight (2*w_1) * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (3*w_1) * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (4*w_1) * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (5*w_1) * s1 * s2 over abstract Lie algebra, [])
- (Monomial basis of a Demazure module with extremal weight (6*w_1) * s1 * s2 over abstract Lie algebra, [])
+ (Monomial basis of a Demazure module with extremal weight (w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [1, x5, x4])
+ (Monomial basis of a Demazure module with extremal weight (2*w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (3*w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (4*w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (5*w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
+ (Monomial basis of a Demazure module with extremal weight (6*w_1) * s1 * s2 over abstract Lie algebra of type G2 over QQ, [])
 
 julia> mon_bases[end][1]
 Monomial basis of a Demazure module

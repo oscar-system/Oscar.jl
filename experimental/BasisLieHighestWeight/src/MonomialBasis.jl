@@ -68,7 +68,7 @@ function Base.show(io::IO, basis::MonomialBasis{<:SimpleModuleData})
       io,
       "Monomial basis of a highest weight module with highest weight $(highest_weight(basis)) over ",
     )
-    print(terse(io), Lowercase(), base_lie_algebra(basis))
+    print(io, Lowercase(), base_lie_algebra(basis))
   end
 end
 
@@ -105,6 +105,6 @@ function Base.show(io::IO, basis::MonomialBasis{<:DemazureModuleData})
       io,
       "Monomial basis of a Demazure module with extremal weight ($(highest_weight(basis.V))) * $(weyl_group_elem(basis.V)) over ",
     )
-    print(terse(io), Lowercase(), base_lie_algebra(basis))
+    print(io, Lowercase(), base_lie_algebra(basis))
   end
 end
