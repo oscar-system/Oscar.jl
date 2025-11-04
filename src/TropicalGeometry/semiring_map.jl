@@ -115,7 +115,9 @@ polynomial_rings_for_initial(nu::TropicalSemiringMap) = nu.polynomial_rings_for_
 @doc raw"""
     tropical_semiring_map(K::Field, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Return a map `nu` from `K` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=one(T)` for `c` non-zero.  In other words, `nu` extends the trivial valuation on `K`.
+Return a map `nu` from `K` to the min (default) or max tropical semiring `T`
+such that `nu(0)=zero(T)` and `nu(c)=one(T)` for `c` non-zero.  In other words,
+`nu` represents the trivial valuation on `K`.
 
 # Examples
 ```jldoctest
