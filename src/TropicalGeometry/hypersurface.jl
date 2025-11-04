@@ -121,10 +121,8 @@ Min tropical hypersurface
 
 ```
 """
-function tropical_hypersurface(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing;
+function tropical_hypersurface(f::MPolyRingElem, nu::TropicalSemiringMap=tropical_semiring_map(coefficient_ring(f));
                                weighted_polyhedral_complex_only::Bool=false)
-    # initialize nu as the trivial valuation if not specified by user
-    isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(f)))
 
     tropf = tropical_polynomial(f,nu)
     TropH = tropical_hypersurface(tropf,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
