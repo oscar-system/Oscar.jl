@@ -160,7 +160,6 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
   for j=1:ncols(m)
     c = content(m[:, j:j])
     if !isone(c)
-      println("dividing")
       m[:, j] = divexact(m[:, j:j], c)
     end
   end

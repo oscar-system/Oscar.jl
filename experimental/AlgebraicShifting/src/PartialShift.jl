@@ -440,7 +440,6 @@ function check_shifted(F::Field,
   if needs_check
     r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(col_sets)]
-    println(col_sets[zero_cols_indices])
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= zero(F)
     end
@@ -489,7 +488,6 @@ function check_shifted(F::Field,
     !check_shifted(F, uhg_src, uhg_target, p;
                    restricted_cols=restricted_cols) && return false
     non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
-    println(non_faces)
     restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(subsets(n, k + 1)))
     k += 1
   end
