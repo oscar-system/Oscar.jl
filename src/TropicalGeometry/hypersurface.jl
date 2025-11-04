@@ -124,6 +124,8 @@ Min tropical hypersurface
 function tropical_hypersurface(f::MPolyRingElem, nu::TropicalSemiringMap=tropical_semiring_map(coefficient_ring(f));
                                weighted_polyhedral_complex_only::Bool=false)
 
+    @req (coefficient_ring(f) isa Field) "coefficient ring of polynomial must be a field"
+
     tropf = tropical_polynomial(f,nu)
     TropH = tropical_hypersurface(tropf,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 
