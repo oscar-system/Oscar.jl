@@ -18,11 +18,11 @@ semiring, encoding a valuation and a choice of min- or max-convention.
 
 # Fields
 - `valued_field`: the valued field. can be `nothing` if valued field unspecified
-- `uniformizer_field`: the uniformizer as element in the valued field
+- `uniformizer_in_field`: the uniformizer as element in the valued field
     can be `nothing` if valued field unspecified or valuation trivial
 - `valued_ring`: the valued ring, either specified by user or
     inferred from the valued field specified by user
-- `uniformizer_ring`: the uniformizer as element in the valued ring specified by user
+- `uniformizer_in_ring`: the uniformizer as element in the valued ring specified by user
     can be `nothing` if valuation trivial
 - `residue_field`: the residue field, inferred from fields above
 - `tropical_semiring`: either `tropical_semiring(min)` or `tropical_semiring(max)`
@@ -30,9 +30,9 @@ semiring, encoding a valuation and a choice of min- or max-convention.
 """
 struct TropicalSemiringMap{DomainType, UniformizerType, MinOrMax}
     valued_field::Union{Nothing,Field}
-    uniformizer_field::Union{Nothing,FieldElem}
+    uniformizer_in_field::Union{Nothing,FieldElem}
     valued_ring::Ring
-    uniformizer_ring::Union{Nothing,RingElem}
+    uniformizer_in_ring::Union{Nothing,RingElem}
     residue_field::Field
     tropical_semiring::TropicalSemiring{MinOrMax}
 
@@ -84,15 +84,15 @@ end
 #
 ################################################################################
 valued_field(nu::TropicalSemiringMap) = nu.valued_field
-uniformizer_field(nu::TropicalSemiringMap) = nu.uniformizer_field
+uniformizer_in_field(nu::TropicalSemiringMap) = nu.uniformizer_in_field
 valued_ring(nu::TropicalSemiringMap) = nu.valued_ring
-uniformizer_ring(nu::TropicalSemiringMap) = nu.uniformizer_ring
+uniformizer_in_ring(nu::TropicalSemiringMap) = nu.uniformizer_in_ring
 residue_field(nu::TropicalSemiringMap) = nu.residue_field
 tropical_semiring(nu::TropicalSemiringMap) = nu.tropical_semiring
 
 domain(nu::TropicalSemiringMap) = isnothing(valued_field(nu)) ? valued_ring(nu) : valued_field(nu)
 codomain(nu::TropicalSemiringMap) = tropical_semiring(nu)
-uniformizer(nu::TropicalSemiringMap) = uniformizer_ring(nu)
+uniformizer(nu::TropicalSemiringMap) = uniformizer_in_ring(nu)
 
 convention(::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(min)}) where {typeofValuedField,typeofUniformizer} = min
 convention(::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(max)}) where {typeofValuedField,typeofUniformizer} = max
@@ -232,7 +232,7 @@ function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{QQ
     # return residue field zero if c is zero
     #   and the correct non-zero residue otherwise
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
-    c *= uniformizer_field(nu)^(-valuation(c,uniformizer(nu)))
+    c *= uniformizer_in_field(nu)^(-valuation(c,uniformizer(nu)))
     return residue_field(nu)(c)
 end
 
@@ -311,6 +311,6 @@ function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt
     # return residue field zero if c is zero
     #   and the correct non-zero residue otherwise
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
-    c *= uniformizer_field(nu)^(-t_adic_valuation(c,uniformizer(nu)))
+    c *= uniformizer_in_field(nu)^(-t_adic_valuation(c,uniformizer(nu)))
     return evaluate(numerator(c),0)
 end
