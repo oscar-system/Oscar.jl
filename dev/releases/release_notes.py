@@ -167,10 +167,12 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
 def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
-    title = pr["title"]
-    mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
+    if has_label(pr, 'release notes: use body'):
+        mdstring = pr['body']
+    else:
+        title = pr["title"]
+        mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
     if has_label(pr,'release notes: use body'):
-        mdstring = body_to_release_notes(pr)
         mdstring = mdstring.replace("- ", f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ")
     return mdstring
 
@@ -181,7 +183,7 @@ def body_to_release_notes(pr):
         ## not found
         ## complain and return fallback
         print(f"Release notes section not found in PR number {pr['number']}!!")
-        return mdstring
+        return body
     index2 = body.find('---', index1)
     # there are 17 characters from index 1 until the next line
     mdstring = body[index1+17:index2]
@@ -356,7 +358,7 @@ def split_pr_into_changelog(prs: List):
                     cpr['labels'].append({'name': label})
                 mindex = mans.span()[0]
                 line = line[0:mindex]
-                cpr['body'] = f'---\r\n## Release Notes\r\n{line}\r\n---'
+                cpr['body'] = f'{line.strip()}\n'
                 childprlist.append(cpr)
             toremovelist.append(pr)
     prs.extend(childprlist)
