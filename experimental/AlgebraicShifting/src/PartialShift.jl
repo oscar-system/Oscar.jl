@@ -440,27 +440,36 @@ function check_shifted(F::Field,
   if needs_check
     r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(col_sets)]
+    println(col_sets[zero_cols_indices])
     if !isempty(zero_cols_indices)
       M[:, zero_cols_indices] .= zero(F)
     end
-
+    
     dep_col_inds = [i for (i, c) in enumerate(col_sets) if !(c in faces(target))]
-    cols_to_check = [i for i in dep_col_inds if !iszero(M[:, i])]
+    cols_to_check = Int[]
+    for (i, j) in enumerate(dep_col_inds)
+      if !iszero(M[:, j])
+        any(x -> _domination(col_sets[x], col_sets[j]), dep_col_inds[1:i - 1]) && continue
+        push!(cols_to_check, j)
+      end
+    end
 
     if full_shift
       for col in zero_cols_indices
-        cols_to_check = [i for i in cols_to_check if col != i && _domination(col_sets[i], col_sets[col])]
+        cols_to_check = [i for i in cols_to_check if col != i && !_domination(col_sets[col], col_sets[i])]
       end
+      
       for i in dep_col_inds
         i in cols_to_check && continue
         M[:, i] .= zero(base_ring(M))
       end
+
     end
-    iszero(length(cols_to_check)) && return true
+    isempty(cols_to_check) && return true
 
     #return check_dep_cols(M, cols_to_check, dep_col_inds, col_sets)
     max_col = max(cols_to_check...)
-    return lex_min_col_basis(M[:, 1:max_col], src, cols_to_check, dep_col_inds; full_shift=full_shift)
+    !lex_min_col_basis(M[:, 1:max_col], src, cols_to_check, dep_col_inds; full_shift=full_shift) && return false
   end
   return true
 end
@@ -480,6 +489,7 @@ function check_shifted(F::Field,
     !check_shifted(F, uhg_src, uhg_target, p;
                    restricted_cols=restricted_cols) && return false
     non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
+    println(non_faces)
     restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(subsets(n, k + 1)))
     k += 1
   end

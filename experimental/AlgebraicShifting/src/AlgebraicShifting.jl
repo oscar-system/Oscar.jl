@@ -157,6 +157,14 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
       m[i, :] = divexact(m[i:i, :], c)
     end
   end
+  for j=1:ncols(m)
+    c = content(m[:, j:j])
+    if !isone(c)
+      println("dividing")
+      m[:, j] = divexact(m[:, j:j], c)
+    end
+  end
+
   n = n_vertices(uhg)
   k = face_size(uhg)
   col_sets = collect(combinations(n, k))[1:ncols(m)]
@@ -184,19 +192,16 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
         end
       end
       if best_i == 0
-        # j is dependent
+        # j is dependent on the columns before it
         m[:, j] .= zero(base_ring(m))
-
-        iszero(m[:, cols_to_check]) && return true
-
         if full_shift
           for col in cols_to_check
             if _domination(col_sets[j], col_sets[col])
               m[:, col] .= zero(base_ring(m))
             end
           end
-          iszero(M[:, cols_to_check]) && return true
         end
+        iszero(m[:, cols_to_check]) && return true
         j += 1
         continue
       end
@@ -214,6 +219,16 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
       m[k, :] = b*m[k:k, :] - a * m[i:i, :]
       m[k, :] = divexact(m[k:k, :], content(m[k:k, :]))
     end
+
+    iszero(m[:, cols_to_check]) && return true
+
+    for j=1:ncols(m)
+      c = content(m[:, j:j])
+      if !isone(c)
+        m[:, j] = divexact(m[:, j:j], c)
+      end
+    end
+
     j += 1
   end
 
@@ -281,6 +296,7 @@ function rank_dropped(M::MatElem{<:MPolyRingElem})
         return true
       end
     end
+    
     j += 1
   end
   return false
