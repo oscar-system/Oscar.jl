@@ -22,7 +22,7 @@
 #
 ################################################################################
 function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap)
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    @req coefficient_ring(R)==domain(nu) "coefficient ring is not valued field"
 
     if !has_attribute(R, :tropical_geometry_polynomial_rings_for_groebner)
         set_attribute!(R, :tropical_geometry_polynomial_rings_for_groebner, Dict{TropicalSemiringMap,MPolyRing}())
@@ -34,7 +34,7 @@ end
 
 # special function for trivial valuation to ensure reusing original ring
 function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    @req coefficient_ring(R)==domain(nu) "coefficient ring is not valued field"
     return R
 end
 
@@ -290,7 +290,7 @@ function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalS
 
     # map everything from simulation ring to the specified polynomial ring
     # whilst substituting first variable tsim by uniformizer
-    desimulation_map = hom(S, R, valued_field(nu), vcat(uniformizer_field(nu),gens(R)))
+    desimulation_map = hom(S, R, domain(nu), vcat(uniformizer_field(nu),gens(R)))
     G = desimulation_map.(sG)
     # filter for nonzero elements
     G = filter(!iszero,G)
@@ -383,8 +383,8 @@ julia> groebner_basis(I,nu,w)
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
-    @req !isnothing(valued_field(nu)) "valuation must be defined on a field"
-    @req valued_field(nu)==coefficient_ring(I) "coefficient ring of ideal does not match valued field of valuation"
+    @req domain(nu) isa Field "valuation must be defined on a field"
+    @req domain(nu)==coefficient_ring(I) "coefficient ring of ideal does not match valued field of valuation"
 
     G = gens(I)
     if isone(length(G)) # for principal ideals, just return generator

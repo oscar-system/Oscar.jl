@@ -153,14 +153,14 @@ end
 
 # Print string
 function Base.show(io::IO, nu::TropicalSemiringMap{K,Nothing,minOrMax} where {K<:Ring, minOrMax<:Union{typeof(min),typeof(max)}})
-    print(io, "Map into $(tropical_semiring(nu)) encoding the trivial valuation on $(valued_field(nu))")
+    print(io, "Map into $(tropical_semiring(nu)) encoding the trivial valuation on $(domain(nu))")
 end
 
 # Mapping an element of the valued field or ring to the tropical semiring
 function (nu::TropicalSemiringMap{K,Nothing,minOrMax})(c::Union{RingElem,Integer,Rational}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
     # return tropical zero if c is zero
     #   and tropical one otherwise
-    return (iszero(valued_field(nu)(c)) ? zero(tropical_semiring(nu)) : one(tropical_semiring(nu)))
+    return (iszero(domain(nu)(c)) ? zero(tropical_semiring(nu)) : one(tropical_semiring(nu)))
 end
 
 # Mapping an element of the valued field or ring to the residue field
@@ -215,12 +215,12 @@ end
 
 # Print string
 function Base.show(io::IO, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
-    print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(valued_field(nu))")
+    print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(domain(nu))")
 end
 
 # Mapping an element of the valued field or ring to the tropical semiring
 function (nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax})(c::Union{RingElem,Integer,Rational}) where minOrMax<:Union{typeof(min),typeof(max)}
-    c = valued_field(nu)(c)
+    c = domain(nu)(c)
     # return tropical zero if c is zero
     #   and p-adic valuation otherwise
     # preserve_ordering ensures that valuation is negated if convention(nu)==max
@@ -230,7 +230,7 @@ end
 
 # Mapping an element of the valued field or ring to the residue field
 function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where minOrMax<:Union{typeof(min),typeof(max)}
-    c = valued_field(nu)(c)
+    c = domain(nu)(c)
     # return residue field zero if c is zero
     #   and the correct non-zero residue otherwise
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
@@ -290,7 +290,7 @@ end
 
 # Print String
 function Base.show(io::IO, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
-    print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(valued_field(nu))")
+    print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(domain(nu))")
 end
 
 # Mapping an element of the valued field or ring to the tropical semiring
@@ -299,7 +299,7 @@ function t_adic_valuation(c::Generic.RationalFunctionFieldElem, t::PolyRingElem)
 end
 
 function (nu::TropicalSemiringMap{Kt,t,minOrMax})(c::Union{RingElem,Integer,Rational}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
-    c = valued_field(nu)(c)
+    c = domain(nu)(c)
     # return tropical zero if c is zero
     #   and p-adic valuation otherwise
     # preserve_ordering ensures that valuation is negated if convention(nu)==max
@@ -309,7 +309,7 @@ end
 
 # Mapping an element of the valued field or ring to the residue field
 function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
-    c = valued_field(nu)(c)
+    c = domain(nu)(c)
     # return residue field zero if c is zero
     #   and the correct non-zero residue otherwise
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
