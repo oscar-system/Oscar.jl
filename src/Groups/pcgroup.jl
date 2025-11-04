@@ -953,10 +953,10 @@ function code_pcgroup(G::PcGroup)
 end
 
 """
-    pcgroup_code(code::IntegerUnion, size::IntegerUnion)
+   pcgroup_code(code::IntegerUnion, order::IntegerUnion)
 
-Given an integer `code` and order `size` , return the polycyclic group it encodes.
-Both `code` and `size` can be of type `Int`, `BigInt`, or `ZZRingElem`. Internally, these are converted to `GapInt` before calling the GAP function `PcGroupCode`.
+Given an integer `code` and an integer `order`, return the polycyclic group it encodes.
+Both `code` and `order` can be of type `Int`, `BigInt`, or `ZZRingElem`. Internally, these are converted to `GapInt` before calling the GAP function `PcGroupCode`.
 The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
 
 # Examples
@@ -974,6 +974,6 @@ julia> code_pcgroup(G) == code_pcgroup(H)
 true
 ```
 """
-function pcgroup_code(code::IntegerUnion, size::IntegerUnion)
-  return PcGroup(GAP.Globals.PcGroupCode(Int(code), Int(size)))
+function pcgroup_code(code::IntegerUnion, order::IntegerUnion)
+  return PcGroup(GAP.Globals.PcGroupCode(Int(code), Int(order)))
 end
