@@ -157,6 +157,7 @@ julia> factor(characteristic_polynomial(Lf))
 ```
 """
 characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))
+characteristic_polynomial(R::QQPolyRing, Lf::ZZLatWithIsom) = characteristic_polynomial(R, isometry(Lf))
 
 @doc raw"""
     minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
@@ -1516,18 +1517,20 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   
-  Ld = cover(q)
-  L = relations(q)
-  fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
-  T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
-  S = elem_type(T)
-  iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
-  fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
-  fq1 = iso*fT*inv(iso)
-  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(fq1)]; check=false))[1]
-
-  # f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  #fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  if has_attribute(Lf,:qSalem)
+    Ld = cover(q)
+    L = relations(q)
+    fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
+    T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
+    S = elem_type(T)
+    iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
+    fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
+    fq1 = iso*fT*inv(iso)
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(fq1)]; check=false))[1]
+  else
+    f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  end
   return q, fq
 end
 
@@ -2019,14 +2022,14 @@ Integer lattice of rank 4 and degree 5
 """
 kernel_lattice(::ZZLatWithIsom, ::Union{ZZPolyRingElem, QQPolyRingElem})
 
-function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
+function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem; check=true)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = isometry(Lf)
   M = p(f)
   d = denominator(M)
   K = kernel(change_base_ring(ZZ, d*M); side=:left)
-  return lattice(ambient_space(Lf), K*basis_matrix(L))
+  return lattice(ambient_space(Lf), K*basis_matrix(L); check=check)
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -2184,7 +2187,7 @@ function coinvariant_lattice(Lf::ZZLatWithIsom)
       chi = divexact(chi, x-1)
     end
   end
-  return kernel_lattice(Lf, chi)
+  return kernel_lattice(Lf, chi; check=false)
 end
 
 @doc raw"""
