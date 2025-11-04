@@ -294,7 +294,7 @@ jobs:
 
   test-mongodb:
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.julia-version == '1.13-nightly' || matrix.julia-version == 'nightly' }}
+    continue-on-error: ${{ contains(matrix.julia-version, 'nightly') }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
