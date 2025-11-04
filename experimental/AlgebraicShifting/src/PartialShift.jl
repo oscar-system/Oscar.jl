@@ -227,6 +227,32 @@ function compound_matrix(w::WeylGroupElem, k::Int)
   return compound_matrix(permutation_matrix(ZZ, iso(w)), k)
 end
 
+function compound_matrix(F::Field, subspace_dimension::Int, ambient_dimension::Int, uhg::UniformHypergraph)
+  combs = collect(combinations(ambient_dimension, subspace_dimension))
+  n_combs = length(combs)
+  vars = ["x_$i" => combs for i in 1:n_combs]
+  R, R_gens... = polynomial_ring(F, vars...)
+
+  I_gens = MPolyDecRingElem[]
+  row_indices = Int[]
+  for i in 0:n_combs - 1
+    # handle row relations
+    if collect(combs[i + 1]) in faces(uhg)
+      indices = collect(map(j -> j + i, 1:n_combs:n_combs^2))
+      append!(I_gens, gens(grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension; gen_indices=indices)))
+      push!(row_indices, i + 1)
+    end
+
+    #handle column relations
+    indices = collect(1 + i * n_combs:(i + 1) * n_combs)
+    append!(I_gens, gens(grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension; gen_indices=indices)))
+  end
+  I = ideal(I_gens)
+  graded_R = base_ring(I)
+  R_mod_I, phi = quo(graded_R, I)
+  return phi.(matrix(graded_R, reshape(graded_R.(reduce(vcat, R_gens)), n_combs, n_combs)))[row_indices, :]
+end
+
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
   row, col = indices
   row == col && return false
@@ -392,6 +418,7 @@ function check_shifted(F::Field,
   num_rows = length(faces(src))
   n = n_vertices(src)
   k = face_size(src)
+  full_shift = (p == perm(reverse(1:n)))
   nCk = combinations(n, k)
   # limits the columns by the max face of source
   col_sets = [c for c in nCk if c < max_face]
@@ -411,26 +438,29 @@ function check_shifted(F::Field,
     needs_check = n_dependent_columns > 0
   end
   if needs_check
-    println("checking")
     r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(col_sets)]
     if !isempty(zero_cols_indices)
-      M[:, zero_cols_indices] .= 0
-    end
-    dep_col_inds = [i for (i, c) in enumerate(col_sets) if !(c in faces(target))]
-    for dep_col_ind in dep_col_inds
-      possible_col_ind = [i for i in dep_col_ind + 1:ncols(M) if !(i in dep_col_ind)]
-      l_cols = larger_cols(col_sets[dep_col_ind], col_sets[possible_col_ind])
-      if !isempty(l_cols)
-        l_dep_ind = [findfirst(==(J), col_sets) for J in l_cols]
-        M[:, l_dep_ind] = zero(M[:, l_dep_ind])
-      end
+      M[:, zero_cols_indices] .= zero(F)
     end
 
-    #return check_dep_cols(M, dep_col_inds, col_sets)
-    
-    col_ind = lex_min_col_basis(M, src, dep_col_inds)
-    col_sets[col_ind] != target_faces[1:end - 1] && return false
+    dep_col_inds = [i for (i, c) in enumerate(col_sets) if !(c in faces(target))]
+    cols_to_check = [i for i in dep_col_inds if !iszero(M[:, i])]
+
+    if full_shift
+      for col in zero_cols_indices
+        cols_to_check = [i for i in cols_to_check if col != i && _domination(col_sets[i], col_sets[col])]
+      end
+      for i in dep_col_inds
+        i in cols_to_check && continue
+        M[:, i] .= zero(base_ring(M))
+      end
+    end
+    iszero(length(cols_to_check)) && return true
+
+    #return check_dep_cols(M, cols_to_check, dep_col_inds, col_sets)
+    max_col = max(cols_to_check...)
+    return lex_min_col_basis(M[:, 1:max_col], src, cols_to_check, dep_col_inds; full_shift=full_shift)
   end
   return true
 end
@@ -488,13 +518,3 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   end
 end
 
-# function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
-#   shift = random_shift(F, K, p)
-#   count = 1
-#   while !check_shifted(F, K, shift, p)
-#     count += 1
-#     shift = random_shift(F, K, p)
-#   end
-#   @vprint :AlgebraicShifting 1 "Number of random shifts computed: $count\n"
-#   return shift
-# end

@@ -122,10 +122,11 @@ function _check_schur_complements(M::MatElem)
 end
 
 function check_dep_cols(m::AbstractAlgebra.Generic.MatSpaceElem{T},
+                        cols_to_check::Vector{Int},
                         dependent_columns::Vector{Int},
                         col_sets::Vector{Combination{Int}}) where T <: MPolyRingElem
 
-  for col in dependent_columns
+  for col in cols_to_check
     if !iszero(m[:, col])
       col_indices = [col_index for col_index in 1:col if !(col_index in dependent_columns)]
       push!(col_indices, col)
@@ -137,7 +138,6 @@ function check_dep_cols(m::AbstractAlgebra.Generic.MatSpaceElem{T},
       for i=1:nrows(m)
         c = content(m[i:i, :])
         if !isone(c)
-          println("dividing")
           m[i, :] = divexact(m[i:i, :], c)
         end
       end
@@ -148,22 +148,18 @@ end
 
 function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
                            uhg::UniformHypergraph,
-                           dependent_columns::Vector{Int}) where T <: MPolyRingElem
+                           cols_to_check::Vector{Int},
+                           dependent_columns::Vector{Int};
+                           full_shift=false) where T <: MPolyRingElem
   for i=1:nrows(m)
     c = content(m[i:i, :])
     if !isone(c)
       m[i, :] = divexact(m[i:i, :], c)
     end
   end
-
   n = n_vertices(uhg)
   k = face_size(uhg)
-  I = Int[]
-  dep_col_ind = Set{Int}([])
-  n_dependent_columns = length(dependent_columns)
-  n_current_dep_cols = 0
   col_sets = collect(combinations(n, k))[1:ncols(m)]
-  max_col = col_sets[end]
 
   j = 1
   for i=1:nrows(m)
@@ -188,30 +184,20 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
         end
       end
       if best_i == 0
-        push!(dep_col_ind, j)
-        n_current_dep_cols = length(dep_col_ind)
-        if n_dependent_columns == n_current_dep_cols
-          append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
-          return I
-        end
-        possible_col_ind = [i for i in j + 1:ncols(m) if !(i in dep_col_ind)]
-        l_cols = larger_cols(col_sets[j], col_sets[possible_col_ind])
-        if !isempty(l_cols)
-          l_dep_ind = [findfirst(==(J), col_sets) for J in l_cols]
-          dep_col_ind = union(dep_col_ind, l_dep_ind)
-          m[:, l_dep_ind] = zero(m[:, l_dep_ind])
-          
-          next_j_index = findfirst(!in(dep_col_ind), j + 1:ncols(m))
-          if isnothing(next_j_index)
-            append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
-            return I
+        # j is dependent
+        m[:, j] .= zero(base_ring(m))
+
+        iszero(m[:, cols_to_check]) && return true
+
+        if full_shift
+          for col in cols_to_check
+            if _domination(col_sets[j], col_sets[col])
+              m[:, col] .= zero(base_ring(m))
+            end
           end
-          j = collect(j + 1:ncols(m))[next_j_index]
-          println(1)
-        else
-          println("2")
-          j += 1
+          iszero(M[:, cols_to_check]) && return true
         end
+        j += 1
         continue
       end
       if best_i > i
@@ -219,7 +205,6 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
       end
       break
     end
-    push!(I, j)
 
     for k=i+1:nrows(m)
       if iszero(m[k, j])
@@ -232,18 +217,17 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
     j += 1
   end
 
-  append!(I, [i for i in j + 1:ncols(m) if !(i in dep_col_ind)])
-  return I
+  return false
 end
 
 function rank_dropped(M::MatElem{<:MPolyRingElem})
   rk = 0
-  for i=1:nrows(M)
-    c = content(M[i:i, :])
-    if !isone(c)
-      M[i, :] = divexact(M[i:i, :], c)
-    end
-  end
+  #for i=1:nrows(M)
+  #  c = content(M[i:i, :])
+  #  if !isone(c)
+  #    M[i, :] = divexact(M[i:i, :], c)
+  #  end
+  #end
   j = 1
   for i=1:nrows(M)
     best_j = 0
@@ -256,16 +240,16 @@ function rank_dropped(M::MatElem{<:MPolyRingElem})
           continue
         end
         if best_i == [0]
-          best_i = [ii]
+          best_i = ii
           best_t = length(M[ii,j])
         elseif is_unit(M[ii, j])
-          best_i = [ii]
+          best_i = ii
           break
         elseif best_t > length(M[ii, j])
           best_t = length(M[ii, j])
-          best_i = [ii]
-        elseif best_t == length(M[ii, j])
-          push!(best_i, ii)
+          best_i = ii
+        # elseif best_t == length(M[ii, j])
+          # push!(best_i, ii)
         end
       end
 
@@ -273,7 +257,8 @@ function rank_dropped(M::MatElem{<:MPolyRingElem})
         j += 1
         continue
       end
-      best_row_index = eargmin(ii -> -sum(iszero.(M[ii, j:end])), best_i;)
+      best_row_index = best_i
+      # best_row_index = eargmin(ii -> -sum(iszero.(M[ii, j:end])), best_i;)
       if best_row_index > i
         M = swap_rows!(M, i, best_row_index)
       end
