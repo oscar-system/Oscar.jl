@@ -345,20 +345,25 @@ def split_pr_into_changelog(prs: List):
                 mans = re.search(pattern, line)
                 if not mans:
                     # maybe actually raise an error instead of just continue
+                    warning(f"PR number #{pr['number']} is tagged as \"Use Body\", but the body "
+                            "does not provide tags! This will result in TODO changelog items!")
                     continue
                 label_list = mans.group().strip('{').strip('}').split(',')
                 cpr = copy.deepcopy(pr)
                 for label in label_list:
                     label = label.strip()
                     if not (label in prtypes or label in topics):
-                        # error
-                        exit()
+                        warning(f"PR number #{pr['number']}'s changelog body has label {label}, "
+                                "which is not a label we recognize ! We are ignoring this label. "
+                                "This might result in a TODO changelog item!")
+                        continue
                     cpr['labels'].append({'name': label})
                 mindex = mans.span()[0]
                 line = line[0:mindex]
                 cpr['body'] = f'{line.strip()}\n'
                 childprlist.append(cpr)
-            toremovelist.append(pr)
+                if pr not in toremovelist:
+                    toremovelist.append(pr)
     prs.extend(childprlist)
     prlist = [pr for pr in prs if pr not in toremovelist]
     return prlist
