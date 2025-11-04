@@ -168,12 +168,10 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     if has_label(pr, 'release notes: use body'):
-        mdstring = pr['body']
+        mdstring = pr['body'].replace("- ", f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ")
     else:
         title = pr["title"]
-        mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
-    if has_label(pr,'release notes: use body'):
-        mdstring = mdstring.replace("- ", f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ")
+        mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"        
     return mdstring
 
 def body_to_release_notes(pr):
