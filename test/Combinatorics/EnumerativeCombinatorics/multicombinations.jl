@@ -80,5 +80,6 @@
   @test allunique(v)
 
   @test collect(multicombinations(0, 0)) == [Int[]]
+  @test collect(multicombinations(0, 1)) == []
 
 end
