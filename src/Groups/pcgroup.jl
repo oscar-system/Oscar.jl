@@ -975,5 +975,5 @@ true
 ```
 """
 function pcgroup_code(code::IntegerUnion, order::IntegerUnion)
-  return PcGroup(GAP.Globals.PcGroupCode(GAP.GapInt(Int(code)), GAP.GapInt(Int(order))))
+  return PcGroup(GAP.Globals.PcGroupCode(GAP.GapInt(BigInt(code)),GAP.GapInt(BigInt(order))))
 end
