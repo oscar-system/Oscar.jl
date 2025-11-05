@@ -390,10 +390,6 @@ finitely presented groups, see [`FPGroupElem`](@ref).
 """
 const SubFPGroupElem = BasicGAPGroupElem{SubFPGroup}
 
-function Base.hash(x::Union{FPGroupElem,SubFPGroupElem}, h::UInt)
-  return hash(letters(x), hash(parent(x), h))
-end
-
 
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
