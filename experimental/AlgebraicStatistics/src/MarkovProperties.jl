@@ -173,17 +173,18 @@ end
 
 function descendants(G::Graph{Directed}, i::Int)::Set{Int}
   V = vertices(G)
-  d = Set{Int}(i)
-  todo = [ [setdiff(V, i), i] ]
-  while !isempty(todo)
-    cur = pop!(todo)
-    W = cur[1]
-    v = cur[2]
-    C = children(G, v)
-    union!(d, C)
-    append!(todo, [ [setdiff(W, w), w] for w in C if w in W])
+  queue = [i]
+  visited = Set{Int}([i])
+  current_index = 1
+  while current_index <= length(queue)
+    v = queue[current_index]
+    C = Oscar.children(G, v)
+    append!(queue, [c for c in C if !(c in visited)])
+
+    visited = union(visited, C)
+    current_index += 1
   end
-  return d
+  return Set(queue)
 end
 
 nondescendants(G::Graph{Directed}, i::Int) = setdiff(vertices(G), descendants(G, i))
