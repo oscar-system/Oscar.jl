@@ -41,8 +41,8 @@ mutable struct SubfieldLattice{T}
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
 
     r.l = Dict(POSetElem(r.P, 1) =>(K, id_hom(K)),
-               POSetElem(r.P, 2) => (base_ring(K),
-                           embedding_hom(base_ring(K), K)))
+               POSetElem(r.P, 2) => (base_field(K),
+                           embedding_hom(base_field(K), K)))
     return r
   end
 end
@@ -248,7 +248,7 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
   pow = copy(beta)
 
   K = field(S)
-  k = base_ring(K)
+  k = base_field(K)
   if !isa(k, AbstractAlgebra.Field)
     k = QQ
   end
