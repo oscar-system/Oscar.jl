@@ -35,9 +35,6 @@ monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 
 birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
-used_highest_weight_modules(basis::MonomialBasis) =
-  [Oscar._vec(coefficients(gen)) for gen in get_attribute(basis, :minkowski_gens)]
-
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis{<:SimpleModuleData})
   io = pretty(io)
   print(io, "Monomial basis of a highest weight module")
