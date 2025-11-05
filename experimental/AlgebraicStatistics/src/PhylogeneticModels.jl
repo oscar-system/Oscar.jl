@@ -785,7 +785,7 @@ function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   nl = length(leaves(gr))
-  ne = n_edges(gr)i
+  ne = n_edges(gr)
   root_dist = join(root_distribution(PM), ", " )
  
   print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )

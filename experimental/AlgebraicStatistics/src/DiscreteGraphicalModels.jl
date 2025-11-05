@@ -239,7 +239,7 @@ q[1](1)
   G = graph(M)
   params = Tuple{Int, Int, Set{Int}}[]
   for i in 1:n_vertices(G)
-    pa = parents(G, i);
+    pa = parents(G, i)
     if length(pa) == 0
       append!(params, (i, x, Set{Int}([])) for x in state_space(M, [i]))
     else
