@@ -30,12 +30,12 @@ julia> M_JC = [:a :b :b :b;
                :b :b :b :a];
 
 julia> PM_jukesCantor = phylogenetic_model(tree, M_JC)
-Phylogenetic model on a tree with 3 leaves and 3 edges
-with root distribution [1//4, 1//4, 1//4, 1//4] and transition matrices of the form
- [:a :b :b :b;
-  :b :a :b :b;
-  :b :b :a :b;
-  :b :b :b :a].
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+  with root distribution [1//4, 1//4, 1//4, 1//4] and transition matrices of the form 
+   [:a :b :b :b;
+    :b :a :b :b;
+    :b :b :a :b;
+    :b :b :b :a].
 ```
 
 And the Tamura-Nei model (TN93) in the same tree can be constructed as follows:
@@ -52,12 +52,12 @@ julia> M_TN93 = [a*r[1] c*r[2] b*r[3] b*r[4];
                 b*r[1] b*r[2] d*r[3] a*r[4]];
 
 julia> PM_TN93 = PhylogeneticModel(tree, M_TN93, r)
-Phylogenetic model on a tree with 3 leaves and 3 edges
-with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form
- [r[1]*a r[2]*c r[3]*b r[4]*b;
-  r[1]*c r[2]*a r[3]*b r[4]*b;
-  r[1]*b r[2]*b r[3]*a r[4]*d;
-  r[1]*b r[2]*b r[3]*d r[4]*a].
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+  with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form 
+   [r[1]*a r[2]*c r[3]*b r[4]*b;
+    r[1]*c r[2]*a r[3]*b r[4]*b;
+    r[1]*b r[2]*b r[3]*a r[4]*d;
+    r[1]*b r[2]*b r[3]*d r[4]*a]. 
 ```
 
 #### `GroupBasedPhylogeneticModel`
@@ -78,19 +78,18 @@ julia> M = [:a :b :b :b;
             :b :b :a :b;
             :b :b :b :a];
 
-julia>   x = [:x, :y, :y, :y]; 
+ julia> x = [:x, :y, :y, :y]; 
 
-julia>   GroupBasedPhylogeneticModel(tree, M, x) 
+julia> GroupBasedPhylogeneticModel(tree, M, x)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-with root distribution [1//4, 1//4, 1//4, 1//4], 
-transition matrices of the form 
- [:a :b :b :b;
-  :b :a :b :b;
-  :b :b :a :b;
-  :b :b :b :a]
-and fourier parameters of the form [:x, :y, :y, :y].
+  with root distribution [1//4, 1//4, 1//4, 1//4], 
+    transition matrices of the form 
+   [:a :b :b :b;
+    :b :a :b :b;
+    :b :b :a :b;
+    :b :b :b :a]
+  and fourier parameters of the form [:x, :y, :y, :y].
 ```
-
 
 ### Classic phylogenetic models
 Several classic phylogenetic models are pre-defined for convenience.
@@ -148,14 +147,14 @@ For example
 julia> tree = graph_from_edges(Directed,[[4,1], [4,2], [4,3]]);
 
 julia> PM = kimura2_model(tree)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges
-with root distribution [1//4, 1//4, 1//4, 1//4],
-transition matrices of the form
- [:a :b :c :b;
-  :b :a :b :c;
-  :c :b :a :b;
-  :b :c :b :a]
-and fourier parameters of the form [:x, :y, :z, :z].
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+  with root distribution [1//4, 1//4, 1//4, 1//4], 
+    transition matrices of the form 
+   [:a :b :c :b;
+    :b :a :b :c;
+    :c :b :a :b;
+    :b :c :b :a]
+  and fourier parameters of the form [:x, :y, :z, :z].
 
 julia> S, - = parameter_ring(PM);
 
@@ -331,11 +330,11 @@ julia> G = graph_from_edges(Directed,[[7,6], [7,8], [6,5], [8,5], [5,1], [6,2], 
 
 julia> PM = cavender_farris_neyman_model(G)
 Group-based phylogenetic model on a level-1 network with 1 hybrid node, 4 leaves  
-and 8 edges with root distribution [1//2, 1//2], 
-transition matrices of the form 
- [:a :b;
-  :b :a]
-and fourier parameters of the form [:x, :y].
+  and 8 edges with root distribution [1//2, 1//2], 
+    transition matrices of the form 
+   [:a :b;
+    :b :a]
+  and fourier parameters of the form [:x, :y].
 
 julia> graph(PM)
 Level-1 phylogenetic network with hybrid nodes {5} and edges
@@ -399,6 +398,4 @@ defined by
   q[1,2,1,2] -> p[1,2,2,2] - p[1,2,2,1] + p[1,2,1,2] - p[1,2,1,1] - p[1,1,2,2] + p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
   q[1,1,2,2] -> p[1,2,2,2] - p[1,2,2,1] - p[1,2,1,2] + p[1,2,1,1] + p[1,1,2,2] - p[1,1,2,1] - p[1,1,1,2] + p[1,1,1,1]
   q[1,1,1,1] -> p[1,2,2,2] + p[1,2,2,1] + p[1,2,1,2] + p[1,2,1,1] + p[1,1,2,2] + p[1,1,2,1] + p[1,1,1,2] + p[1,1,1,1]
-
-
 ```
