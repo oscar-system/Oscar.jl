@@ -537,7 +537,7 @@ julia> fourier_params = [:x, :y];
 julia> PM = group_based_phylogenetic_model(tree, M, fourier_params)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges
   with root distribution [1//2, 1//2],
-  transition matrices of the form
+    transition matrices of the form
    [:a :b;
     :b :a]
   and fourier parameters of the form [:x, :y].
@@ -1626,9 +1626,9 @@ If the field `F` is not provided, the model is constructed over the default rati
 Example
 ```jldoctest
 julia> cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-  with root distribution [1//2, 1//2], 
-  transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+  with root distribution [1//2, 1//2],
+    transition matrices of the form
    [:a :b;
     :b :a]
   and fourier parameters of the form [:x, :y].
@@ -1660,9 +1660,9 @@ Example
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
 julia> jukes_cantor_model(tree)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-  with root distribution [1//4, 1//4, 1//4, 1//4], 
-  transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+  with root distribution [1//4, 1//4, 1//4, 1//4],
+    transition matrices of the form
    [:a :b :b :b;
     :b :a :b :b;
     :b :b :a :b;
@@ -1694,9 +1694,9 @@ Example
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
 julia> kimura2_model(tree)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-  with root distribution [1//4, 1//4, 1//4, 1//4], 
-  transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+  with root distribution [1//4, 1//4, 1//4, 1//4],
+    transition matrices of the form
    [:a :b :c :b;
     :b :a :b :c;
     :c :b :a :b;
@@ -1729,9 +1729,9 @@ Example
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
 julia> kimura3_model(tree)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
-  with root distribution [1//4, 1//4, 1//4, 1//4], 
-  transition matrices of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+  with root distribution [1//4, 1//4, 1//4, 1//4],
+    transition matrices of the form
    [:a :b :c :d;
     :b :a :d :c;
     :c :d :a :b;
