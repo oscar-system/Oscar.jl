@@ -78,7 +78,7 @@ julia> M = [:a :b :b :b;
             :b :b :a :b;
             :b :b :b :a];
 
- julia> x = [:x, :y, :y, :y]; 
+julia> x = [:x, :y, :y, :y]; 
 
 julia> GroupBasedPhylogeneticModel(tree, M, x)
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
