@@ -314,15 +314,15 @@
       N3 = phylogenetic_network(G3)
       @test level(N3) == 2
       @test n_hybrid(N3) == 2
-      @test Set(hybrid_vertices(N3)) == Set([4,5])
+      @test issetequal(hybrid_vertices(N3), [4,5])
 
       PM1 = cavender_farris_neyman_model(N1)
       PM2 = cavender_farris_neyman_model(N2)
       PM3 = cavender_farris_neyman_model(N3)
       
-      @test n_generators(parameter_ring(PM1)[1]) == length(edges(N1))*2 + n_hybrid(N1)*2
-      @test n_generators(parameter_ring(PM2)[1]) == length(edges(N2))*2 + n_hybrid(N2)*2
-      @test n_generators(parameter_ring(PM3)[1]) == length(edges(N3))*2 + n_hybrid(N3)*2
+      @test n_generators(parameter_ring(PM1)[1]) == n_edges(N1) * 2 + n_hybrid(N1)*2
+      @test n_generators(parameter_ring(PM2)[1]) == n_edges(N2) * 2 + n_hybrid(N2)*2
+      @test n_generators(parameter_ring(PM3)[1]) == n_edges(N3) * 2 + n_hybrid(N3)*2
 
       @test ngens(full_model_ring(PM1)[1]) == 2^length(leaves(N1))
       @test ngens(full_model_ring(PM2)[1]) == 2^length(leaves(N2))
@@ -334,7 +334,6 @@
         RR = model_ring(PM1)
         q = RR[2]
         fN1 = parametrization(PM1)
-
 
         T1 = graph_from_edges(Directed,[[5,1], [6,5], [7,6], [7,8], [6,2], [7,3], [8,4]]);
         T2 = graph_from_edges(Directed,[[5,1], [7,6], [7,8], [8,5], [6,2], [7,3], [8,4]]);

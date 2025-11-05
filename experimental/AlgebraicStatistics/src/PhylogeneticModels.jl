@@ -785,7 +785,7 @@ function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
+  ne = n_edges(gr)i
   root_dist = join(root_distribution(PM), ", " )
  
   print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
@@ -802,7 +802,7 @@ function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticNetwork})
   gr = graph(PM)
 
   nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
+  ne = n_edges(gr)i
   root_dist = join(root_distribution(PM), ", " )
 
   print(io, "Phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")
@@ -817,11 +817,9 @@ function Base.show(io::IO, PM::PhylogeneticModel{<:PhylogeneticNetwork})
 end
 
 function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticTree})
-
   gr = graph(PM)
-
   nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
+  ne = n_edges(gr)
   root_dist = join(PM.phylo_model.root_distribution, ", " )
  
   print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n") # \n )
@@ -842,7 +840,7 @@ function Base.show(io::IO, PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwor
   gr = graph(PM)
 
   nl = length(leaves(gr))
-  ne = length(collect(edges(gr)))
+  ne = n_edges(gr)i
   root_dist = join(PM.phylo_model.root_distribution, ", " )
  
   print(io, "Group-based phylogenetic model on a level-$(level(gr)) network with $(n_hybrid(gr)) hybrid node, ")

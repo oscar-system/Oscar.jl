@@ -35,27 +35,7 @@ end
 sort_edges(N::PhylogeneticNetwork{M,L}, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {M, L} = sort_edges(graph(N), sorted_edges)
 sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) = sort_edges(adjacency_tree(pt), sorted_edges)
 
-function vertex_descendants(gr::Graph{Directed}, v::Int, desc::Vector{Any} = [])
-  lvs = leaves(gr)
-  outn = outneighbors(gr, v)
-  if v in lvs
-    return [v]
-  end
-
-  innodes = setdiff(outn, lvs)
-  d = unique(append!(desc, intersect(outn, lvs)))
-  
-  if length(innodes) > 0
-    for i in innodes
-      d = vertex_descendants(gr, i, d)
-    end
-    return d 
-  end
-
-  return d
-end
-
-vertex_descendants(pt::PhylogeneticTree, v::Int, desc::Vector{Any} = []) = vertex_descendants(adjacency_tree(pt), v, desc)
+descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
 
 function biconnected_components(g::Graph{Undirected})
     im = Polymake.call_function(:graph, :biconnected_components, pm_object(g))::IncidenceMatrix
@@ -331,7 +311,7 @@ function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}, l
   monomial = 1
   
   for edge in edges(gr)
-    dsc = vertex_descendants(gr, dst(edge))
+    dsc = descendants(gr, dst(edge))
     dsc_states = filter(pair -> pair.first in dsc, leaves_states)
     group_elem = group_sum(PM, dsc_states)
     monomial = monomial * entry_fourier_parameter(PM, which_group_element(PM, group_elem), edge)
@@ -343,7 +323,7 @@ function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}
   monomial = 1
   
   for edge in edges(subtree)
-    dsc = vertex_descendants(subtree, dst(edge))
+    dsc = descendants(subtree, dst(edge))
     dsc_states = filter(pair -> pair.first in dsc, leaves_states)
     group_elem = group_sum(PM, dsc_states)
     monomial = monomial * entry_fourier_parameter(PM, which_group_element(PM, group_elem), edge)
