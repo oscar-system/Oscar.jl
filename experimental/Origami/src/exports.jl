@@ -26,7 +26,6 @@ export cylinders
 export deck_group
 export elevator_origami
 export from_GAP_origami
-export GapObj
 export generalized_cyclic_torus_cover
 export has_spin_structure
 export homology
