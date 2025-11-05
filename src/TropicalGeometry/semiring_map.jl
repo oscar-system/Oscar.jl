@@ -55,18 +55,8 @@ struct TropicalSemiringMap{DomainType, UniformizerType, MinOrMax}
         @req !isnothing(uniformizerRing) || isnothing(uniformizerField) "uniformizerRing / uniformizerField mismatch"
 
         # if no valued field specified, first parameter captures the valued ring
-        if isnothing(valuedField)
-            return new{typeof(valuedRing),typeof(uniformizerRing),MinOrMax}(
-                valuedField,
-                uniformizerField,
-                valuedRing,
-                uniformizerRing,
-                residueField,
-                tropicalSemiring)
-        end
-
         # otherwise, first parameter captures the valued field
-        return new{typeof(valuedField),typeof(uniformizerRing),MinOrMax}(
+        return new{isnothing(valuedField) ? typeof(valuedRing) : typeof(valuedField), typeof(uniformizerRing),MinOrMax}(
             valuedField,
             uniformizerField,
             valuedRing,
