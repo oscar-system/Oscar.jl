@@ -17,16 +17,16 @@ new functionality.
 - [X] Conditional independence models
   - [X] Gaussian ideals
   - [X] Discrete ideals
-- [ ] Directed graphical models (Bayesian networks)
-  - [ ] Markov properties
-  - [ ] Trek separation
-  - [X] Gaussian parametrization
-  - [ ] Discrete parametrization
-- [X] Undirected graphical models (Markov networks)
-  - [ ] Markov properties
+- [X] Directed graphical models (Bayesian networks)
+  - [X] Markov properties
+  - [X] Trek separation
   - [X] Gaussian parametrization
   - [X] Discrete parametrization
-- [ ] Phylogenetics
+- [X] Undirected graphical models (Markov networks)
+  - [X] Markov properties
+  - [X] Gaussian parametrization
+  - [X] Discrete parametrization
+- [X] Phylogenetics
   - [X] Cavender--Farris--Neyman model
   - [X] Jukes--Cantor model
   - [X] Kimura2 / Kimura3
