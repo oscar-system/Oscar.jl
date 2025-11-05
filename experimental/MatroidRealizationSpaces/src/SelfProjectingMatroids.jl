@@ -48,23 +48,27 @@ function underlying_scheme(RS::MatroidRealizationSpace_SelfProj{BRT, RT}) where 
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 
-
+#I need to understand how is_realizable and how one_realization works or I rewrite this entirely!
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace_SelfProj)
-  if has_attribute(RS, :is_realizable) && !is_realizable(RS)
-    if RS.char === nothing && RS.q === nothing
-      print(io, "The matroid does not have a self-projecting realization.")
-    else
-      print(io, "The matroid does not have a self-projecting realization over the specified field or characteristic.")
-    end
-  else
+  if isone(defining_ideal(RS))
+    print(io, "The matroid does not have a self-projecting realization over characteristic zero.")
+  # if has_attribute(RS, :is_realizable) && !is_realizable(RS)
+  #   if RS.char === nothing && RS.q === nothing
+  #     print(io, "The matroid does not have a self-projecting realization.")
+  #   else
+  #     print(io, "The matroid does not have a self-projecting realization over the specified field or characteristic.")
+  #   end
+  # else
+    # io = Oscar.pretty(io)
+    # if RS.one_realization
+    #   println(io, "One selfprojecting realization is given by")
+    # elseif has_attribute(RS, :is_realizable) && is_realizable(RS)
+    #   println(io, "The selfprojecting realizations are parametrized by")
+    # elseif !has_attribute(RS, :is_realizable)
+  else 
     io = Oscar.pretty(io)
-    if RS.one_realization
-      println(io, "One selfprojecting realization is given by")
-    elseif has_attribute(RS, :is_realizable) && is_realizable(RS)
-      println(io, "The selfprojecting ealizations are parametrized by")
-    elseif !has_attribute(RS, :is_realizable)
-      println(io, "The selfprojecting realization space is")
-    end
+    println(io, "The selfprojecting realization space is")
+    # end
     print(io, Oscar.Indent())
     show(io, MIME("text/plain"), RS.selfproj_realization_matrix)
     print(io, "\n", Oscar.Dedent(), "in the ", Oscar.Lowercase(), RS.ambient_ring)
@@ -210,8 +214,8 @@ function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
     end
-    if !is_realizable(m)
-      #What to do? Error? or "empty" What is the default for MRS?
+    if !is_realizable(m,char = 0)
+      return defining_ideal(realization_space(m,char =0, QQ))#What to do? Error? or "empty" What is the default for MRS?
     end
     RS = realization_space(m,char =0,simplify = true, saturate = true); 
     R = ambient_ring(RS); #I can't call on the variables of R.
@@ -290,6 +294,10 @@ function selfprojecting_realization_space(m::Matroid;
   end
   RS = realization_space(m,char=0,simplify = true, saturate = true)
   R = ambient_ring(RS)
+  if !is_realizable(m,char=0)
+    RS = MatroidRealizationSpace_SelfProj(defining_ideal(RS), inequations(RS), R, nothing, 0, nothing, QQ)
+    return RS
+  end
   I = selfproj_realization_ideal(m);
   n = length(matroid_groundset(m))
   goodM = isomorphic_matroid(m, [i for i in 1:n])
