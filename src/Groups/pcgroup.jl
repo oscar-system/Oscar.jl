@@ -927,10 +927,10 @@ collector(G::PcGroup) = collector(ZZRingElem, G)
 # GAP wrappers for group encoding / decoding
 
 """
-    code_pcgroup(G::PcGroup)
+   encode(G::PcGroup)
 
-Return a `ZZRingElem` representing the polycyclic group `G`, using the same
-encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
+Return a `ZZRingElem` representing the polycyclic group `G`,
+using the same encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
 Currently only defined for `PcGroup`, not `SubPcGroup`.
 
 # Examples
@@ -938,25 +938,25 @@ Currently only defined for `PcGroup`, not `SubPcGroup`.
 julia> G = small_group(12, 2)
 Pc group of order 12
 
-julia> code = code_pcgroup(G)
+julia> code = encode(G)
 266
 
-julia> H = pcgroup_code(code, order(G))
+julia> H = pc_group(order(G), code)
 Pc group of order 12
 
-julia> code_pcgroup(G) == code_pcgroup(H)
+julia> encode(G) == encode(H)
 true
 ```
 """
-function code_pcgroup(G::PcGroup)
+function encode(G::PcGroup)
   return ZZ(GAP.Globals.CodePcGroup(GapObj(G))::GapInt)
 end
 
 """
-   pcgroup_code(code::IntegerUnion, order::IntegerUnion)
+   pc_group(order::IntegerUnion, code::IntegerUnion)
 
-Given an integer `code` and an integer `order`, return the polycyclic group it encodes.
-Both `code` and `order` can be of type `Int`, `BigInt`, or `ZZRingElem`. Internally, these are converted to `GapInt` before calling the GAP function `PcGroupCode`.
+Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
+Both `order` and `code` can be of type `Int`, `BigInt`, or `ZZRingElem`.
 The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
 
 # Examples
@@ -964,16 +964,16 @@ The accepted codes and resulting groups match those of GAP's `PcGroupCode` and M
 julia> G = small_group(12, 2)
 Pc group of order 12
 
-julia> code = code_pcgroup(G)
+julia> code = encode(G)
 266
 
-julia> H = pcgroup_code(code, order(G))
+julia> H = pc_group(order(G), code)
 Pc group of order 12
 
-julia> code_pcgroup(G) == code_pcgroup(H)
+julia> encode(G) == encode(H)
 true
 ```
 """
-function pcgroup_code(code::IntegerUnion, order::IntegerUnion)
+function pc_group(order::IntegerUnion, code::IntegerUnion)
   return PcGroup(GAP.Globals.PcGroupCode(GAP.GapInt(BigInt(code)),GAP.GapInt(BigInt(order))))
 end

@@ -412,7 +412,6 @@ export cobases
 export cochain_complex
 export cocircuits
 export cocycle_matroid
-export code_pcgroup
 export codim
 export codomain
 export codomain_covering
@@ -599,6 +598,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export encode
 export enriques_surface_automorphism_group
 export enumerate_classes_of_lattices_with_isometry
 export epimorphism_from_free_group
@@ -1410,7 +1410,6 @@ export partitions
 export patches
 export pbw_algebra
 export pc_group
-export pcgroup_code
 export pcore
 export pentagonal_hexecontahedron
 export pentagonal_icositetrahedron
