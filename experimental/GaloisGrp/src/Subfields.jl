@@ -249,9 +249,6 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
 
   K = field(S)
   k = base_field(K)
-  if !isa(k, AbstractAlgebra.Field)
-    k = QQ
-  end
   fl, v = isinteger(G, B, sum(beta))
   fl || return nothing
   tr = [k(v)]
