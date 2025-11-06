@@ -437,6 +437,7 @@ function check_shifted(F::Field,
     zero_cols_indices = Int[]
     needs_check = n_dependent_columns > 0
   end
+  
   if needs_check
     r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(col_sets)]
@@ -483,13 +484,21 @@ function check_shifted(F::Field,
   k = 2
   restricted_cols = nothing
   while k <= length(f_vec)
-    uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
-    uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
+    uhg_src = uniform_hypergraph(src, k)
+    uhg_target = uniform_hypergraph(target, k)
     !check_shifted(F, uhg_src, uhg_target, p;
                    restricted_cols=restricted_cols) && return false
     non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
-    restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(subsets(n, k + 1)))
     k += 1
+
+    if k <= length(f_vec)
+      restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(combinations(n, k)))
+
+
+      println(setdiff(faces(uniform_hypergraph(target, k)), [union(1, f) for f in faces(uhg_target) if !(1 in f)]))
+      #println([collect(c) for c in combinations(n, k + 1) if !(c in ) && 1 in c && (c in restricted_cols)])
+    end
+
   end
   return true
 end
