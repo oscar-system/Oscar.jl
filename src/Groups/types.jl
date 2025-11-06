@@ -143,7 +143,9 @@ It is displayed as product of disjoint cycles.
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
 function Base.hash(x::PermGroupElem, h::UInt)
-  return UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(h)))
+  d = hash(degree(x), h)
+  modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
+  return GAPWrap.HashPermutation(GapObj(x), GapInt(d % modulus))
 end
 
 

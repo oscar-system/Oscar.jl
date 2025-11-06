@@ -463,3 +463,25 @@ end
   z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
   @test number_of_fixed_points(z) == 1 # only point 4 is fixed
 end
+
+@testset "hashing permutations" begin
+  g = symmetric_group(4)
+  a = perm(g, [2, 3, 4, 1])
+  b = perm(g, [2, 3, 4, 1])
+  c = perm(g, [1, 2, 3, 4])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) != hash(one(g))
+  @test hash(a) == hash(b)
+
+  h = sylow_subgroup(g, 3)[1]
+  a = perm(h, [3, 1, 2])
+  a_bar = @perm (1, 3, 2)
+  b = perm(h, [3, 1, 2])
+  c = perm(g, [1, 2, 3])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) != hash(one(h))
+  @test hash(a) == hash(b) # same degree
+  @test hash(a) != hash(a_bar) # differing degrees
+end
