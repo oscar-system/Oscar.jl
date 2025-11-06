@@ -167,11 +167,16 @@ struct TypeParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, args::Pair...)
-    return new{T, typeof(args)}(T, args)
+  function TypeParams(T::Type, params)
+    if Base.issingletontype(T)
+      return new{T, Nothing}(T, nothing)
+    else
+      return new{T, typeof(params)}(T, params)
+    end
   end
-  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
 end
+
+TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 
 params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
