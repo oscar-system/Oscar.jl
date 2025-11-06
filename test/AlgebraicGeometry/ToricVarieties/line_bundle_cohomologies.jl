@@ -42,12 +42,12 @@
   R, _ = polynomial_ring(QQ, 3)
 
   @testset "Cohomology with cohomCalg on dP3" begin
-    @test cohomology(l, 0) == 0
+    @test sheaf_cohomology(l, 0) == 0
     @test sheaf_cohomology(l) == [0, 16, 0]
   end
 
   @testset "Cohomology with cohomCalg on F5" begin
-    @test cohomology(l2, 0) == 1
+    @test sheaf_cohomology(l2, 0) == 1
     @test sheaf_cohomology(l2) == [1, 0, 0]
   end
 
