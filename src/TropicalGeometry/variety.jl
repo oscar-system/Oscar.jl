@@ -221,6 +221,7 @@ julia> vertices(TropI_3)
 ```
 """
 function tropical_variety(I::MPolyIdeal, nu::TropicalSemiringMap=tropical_semiring_map(coefficient_ring(I)); weighted_polyhedral_complex_only::Bool=false, skip_saturation::Bool=false, skip_decomposition::Bool=false)
+
     if !skip_saturation
         ###
         # If saturation requested, saturate `I`

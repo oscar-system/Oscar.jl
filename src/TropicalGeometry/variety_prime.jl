@@ -19,7 +19,6 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
     return dehomogenize_post_tropicalization(TropIh)
 end
 
-
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
     sI = Oscar.singular_generators(I)
