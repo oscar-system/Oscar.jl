@@ -956,7 +956,6 @@ end
    pc_group(order::IntegerUnion, code::IntegerUnion)
 
 Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
-Both `order` and `code` can be of type `Int`, `BigInt`, or `ZZRingElem`.
 The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
 
 # Examples
@@ -975,5 +974,5 @@ true
 ```
 """
 function pc_group(order::IntegerUnion, code::IntegerUnion)
-  return PcGroup(GAP.Globals.PcGroupCode(GAP.GapInt(BigInt(code)),GAP.GapInt(BigInt(order))))
+  return PcGroup(GAP.Globals.PcGroupCode(GapInt(code), GapInt(order)))
 end
