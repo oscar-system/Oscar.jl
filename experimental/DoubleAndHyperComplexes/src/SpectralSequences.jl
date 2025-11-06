@@ -94,10 +94,10 @@ Module homomorphism
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}())
   end
   
-  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex)
+  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex; algorithm::Symbol=:ext)
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     S = cox_ring(X)
-    ctx = ToricCtx(X)
+    ctx = ToricCtx(X; algorithm)
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
   end
@@ -357,7 +357,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     exps = Vector{Int}[v[i][1] for (i, c) in u_coords]
     exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(inter_degs)])
     exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(cod_degs)])
-    sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:ngens(S)]
+    sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:length(cech_complex_generators(ctx))]
 
     buckets = Tuple{Int, FreeModElem}[]
     # ∂ₚ₋₁(u) = 0, so the linear combination for `u` in the generators of `Zₚ₋₁` 

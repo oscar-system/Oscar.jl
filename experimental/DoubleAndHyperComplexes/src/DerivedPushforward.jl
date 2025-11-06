@@ -381,7 +381,8 @@ function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
       result[j] = -di < dimension(ctx, i) ? 0 : -di - dimension(ctx, i)
     end
   end
-  result
+  @assert length(result) == length(cech_complex_generators(ctx))
+  return result
 end
 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
@@ -510,12 +511,17 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int})
     cod = ring_as_hypercomplex(ctx)
     cech_gens = cech_complex_generators(ctx)
     n = length(cech_gens)
-    K = hom(free_resolution(SimpleFreeResolution, 
-                            ideal(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)]))[1],
-            cod)
-    return K
-    kosz = hom(shift(HomogKoszulComplex(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)])[1:n], 1), cod)
-    return kosz
+    if ctx.algorithm == :ext
+      K = hom(free_resolution(SimpleFreeResolution, 
+                              ideal(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)]))[1],
+              cod)
+      return K
+    elseif ctx.algorithm == :cech
+      kosz = hom(shift(HomogKoszulComplex(S, elem_type(S)[x^i for (x, i) in zip(cech_gens, alpha)])[1:n], 1), cod)
+      return kosz
+    else
+      error("algorithm not recognized")
+    end
   end
 end
 
@@ -699,6 +705,9 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
   if isdefined(ctx, :fixed_exponent_vector)
     return ctx.fixed_exponent_vector
   end
+  if ctx.algorithm == :cech
+    error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
+  end
   # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
   # but only part of the algorithm is executed and explicit lattice points are 
   # calculated for each polyhedron.
@@ -746,6 +755,7 @@ function _proportionality_factors(ctx::ToricCtx)
 end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
+  @assert length(alpha) == length(beta) == length(cech_complex_generators(ctx))
   @assert all(a <= b for (a, b) in zip(alpha, beta))
   if ctx.algorithm == :ext
     return get!(ctx.inclusions, (alpha, beta)) do
@@ -786,6 +796,7 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
 end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
+  @assert length(alpha) == length(beta) == length(cech_complex_generators(ctx))
   if all(a <= b for (a, b) in zip(alpha, beta))
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
       strand(ctx[alpha, beta], d; domain=ctx[alpha, d], codomain=ctx[beta, d])
