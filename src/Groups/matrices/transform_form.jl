@@ -373,6 +373,7 @@ end
 
 """
     is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+    is_congruent(f::QuadraticForm{T}, g::QuadraticForm{T}) where T <: RingElem
 
 If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
 matrix `C` such that `f^C = ag` for some scalar `a`. If such `C` does not
@@ -383,6 +384,24 @@ matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
 are the Gram matrices of `f` and `g` respectively, and `C*` is the
 transpose-conjugate matrix of `C`. If such `C` does not exist, then return
 (`false`, `nothing`).
+
+# Examples
+```jldoctest
+julia> m1 = symmetric_form(matrix(GF(5), [1 0 2; 0 1 0; 2 0 1]))
+symmetric form with Gram matrix
+[1   0   2]
+[0   1   0]
+[2   0   1]
+
+julia> m2 = symmetric_form(matrix(GF(5), [1 4 2; 4 2 0; 2 0 0]))
+symmetric form with Gram matrix
+[1   4   2]
+[4   2   0]
+[2   0   0]
+
+julia> is_congruent( m1, m2 )
+(true, [1 0 0; 1 1 0; 3 3 1])
+```
 """
 function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
@@ -392,37 +411,44 @@ function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <:
    n = nrows(gram_matrix(f))
    F = base_ring(f)
 
-   if f.descr==:quadratic
-      if iseven(characteristic(F))            # in this case we use the GAP algorithms
-         Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(GapObj(g)))
-         Bf = preimage_matrix(_ring_iso(f), GAP.Globals.BaseChangeToCanonical(GapObj(f)))
+   rank_f = rank(gram_matrix(f))
+   rank_f==rank(gram_matrix(g)) || return false, nothing
+   if rank_f<n
+      degF=0
+      if f.descr==:hermitian degF=div(degree(F),2) end
+      Cf,Af,d = _find_radical(gram_matrix(f),F,n,n; e=degF, _is_symmetric=true)
+      Cg,Ag,_ = _find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
+      _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
+      _is_true || return false, nothing
+      Z1 = identity_matrix(F,n)
+      Z1[1:nrows(Z), 1:ncols(Z)] = Z
+      return true, Af^-1*Z1*Ag
+   else
+      return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)
+   end
 
-         UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
-         UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))
-         if _is_scalar_multiple_mat(UTf, UTg)[1]
-            return true, Bf^-1*Bg
-         else
-            return false, nothing
-         end
+   return false, nothing
+end
+
+function is_congruent(f::QuadraticForm{T}, g::QuadraticForm{T}) where T <: RingElem
+   @req base_ring(f)==base_ring(g) "The forms have not the same base ring"
+   @req nrows(gram_matrix(f))==nrows(gram_matrix(g)) "The forms act on vector spaces of different dimensions"
+   n = nrows(gram_matrix(f))
+   F = base_ring(f)
+
+   if iseven(characteristic(F))            # in this case we use the GAP algorithms
+      Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(GapObj(g)))
+      Bf = preimage_matrix(_ring_iso(f), GAP.Globals.BaseChangeToCanonical(GapObj(f)))
+
+      UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
+      UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))
+      if _is_scalar_multiple_mat(UTf, UTg)[1]
+         return true, Bf^-1*Bg
       else
-         return is_congruent(corresponding_bilinear_form(f), corresponding_bilinear_form(g))
+         return false, nothing
       end
    else
-      rank_f = rank(gram_matrix(f))
-      rank_f==rank(gram_matrix(g)) || return false, nothing
-      if rank_f<n
-         degF=0
-         if f.descr==:hermitian degF=div(degree(F),2) end
-         Cf,Af,d = _find_radical(gram_matrix(f),F,n,n; e=degF, _is_symmetric=true)
-         Cg,Ag,_ = _find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
-         _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
-         _is_true || return false, nothing
-         Z1 = identity_matrix(F,n)
-         Z1[1:nrows(Z), 1:ncols(Z)] = Z
-         return true, Af^-1*Z1*Ag
-      else
-         return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)
-      end
+      return is_congruent(corresponding_bilinear_form(f), corresponding_bilinear_form(g))
    end
 
    return false, nothing

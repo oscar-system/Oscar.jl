@@ -14,21 +14,48 @@
 ########################################################################
 
 """
-    multiplicative_jordan_decomposition(M::MatrixGroupElem)
+    multiplicative_jordan_decomposition(M::MatrixGroupElem{T}) where T <: FinFieldElem
 
-Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
+Return `S` and `U` in the group `parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
-    this is *NOT*, in general, equal to
-    `multiplicative_jordan_decomposition(matrix(M))`.
+    `multiplicative_jordan_decomposition` can be called also with a matrix,
+    but the decomposition `S, U` is in general *not* compatible with
+    `A, B = multiplicative_jordan_decomposition(matrix(M))`,
+    in the sense that `S` and `U` are guaranteed to commute,
+    whereas `A` and `B` may not commute, see the example below.
+
+# Examples
+```jldoctest
+julia> m = matrix(GF(2), [0 0 1 1 0; 1 1 0 1 1; 1 0 1 0 0; 1 1 0 1 0; 0 1 1 0 0]);
+
+julia> M = GL(5, 2)(m);
+
+julia> S, U = multiplicative_jordan_decomposition(M)
+([1 1 1 1 0; 0 0 0 1 1; 0 1 0 0 1; 1 1 0 1 0; 1 0 0 0 1], [1 0 1 0 1; 0 1 1 0 1; 1 1 1 0 0; 0 0 0 1 0; 1 1 0 0 1])
+
+julia> S * U == U * S == M
+true
+
+julia> is_semisimple(S) && is_unipotent(U)
+true
+
+julia> A, B = multiplicative_jordan_decomposition(m)
+([0 0 1 1 0; 1 1 0 1 1; 0 1 1 0 0; 1 1 0 1 0; 1 0 1 0 0], [0 1 0 0 0; 1 0 0 0 0; 0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1])
+
+julia> A * B == m
+true
+
+julia> B * A == m
+false
+```
 """
-function multiplicative_jordan_decomposition(x::MatrixGroupElem)
+function multiplicative_jordan_decomposition(x::MatrixGroupElem{T}) where T <: FinFieldElem
    a = order(x)
    p = characteristic(base_ring(x))
    alpha = valuation(a,p)
    m = div(a, p^alpha)
    k = crt(ZZRingElem(0),ZZRingElem(p^alpha),ZZRingElem(1),ZZRingElem(m))
-#   a,b = multiplicative_jordan_decomposition(matrix(x))
    return x^k, x^(a+1-k)
 end
 
@@ -36,6 +63,17 @@ end
     is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
+
+# Examples
+```jldoctest
+julia> g = GO(3, 3);
+
+julia> is_semisimple(gen(g,1))
+true
+
+julia> is_semisimple(gen(g,2))
+false
+```
 """
 is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
 
@@ -43,12 +81,20 @@ is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(
     is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
+
+# Examples
+```jldoctest
+julia> g = SU(3,5)
+SU(3,5)
+
+julia> is_unipotent(gen(g,2))
+false
+
+julia> is_unipotent(gen(g,2)^3)
+true
+```
 """
 is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_perfect_power_with_data(order(Int, x))[2]==Int(characteristic(x.parent.ring))
-
-
-
-
 
 
 ########################################################################
@@ -56,7 +102,6 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_per
 # MyIsConjugate
 #
 ########################################################################
-
 
 
 # return an element in the centralizer of x in GL(n,F) with determinant d
@@ -123,6 +168,25 @@ end
 
 Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan
 blocks (corresponding to irreducible polynomials).
+
+# Examples
+```jldoctest
+julia> M = permutation_matrix(GF(2), [2, 3, 4, 1]);
+
+julia> A, B = generalized_jordan_form(matrix(M));
+
+julia> A
+[1   1   0   0]
+[0   1   1   0]
+[0   0   1   1]
+[0   0   0   1]
+
+julia> B
+[1   0   0   0]
+[1   1   0   0]
+[1   0   1   0]
+[1   1   1   1]
+```
 """
 function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
    V = pol_elementary_divisors(A)
@@ -133,6 +197,7 @@ function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
    else return GJ, gj^-1*a
    end
 end
+#TODO: why don't we always return also `V`, since we have it anyhow?
 
 
 function is_conjugate_with_data_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)

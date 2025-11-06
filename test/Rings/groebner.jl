@@ -297,6 +297,8 @@ end
   @test is_groebner_basis(I.gb[degrevlex(R)], ordering = degrevlex(R))
   @test all(iszero, Oscar.reduce(groebner_basis(I), gb))
   @test all(iszero, Oscar.reduce(gb, groebner_basis(I)))
+  gb = Oscar.groebner_basis_modular(I, ordering = lex(R))
+  @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3, x*y + 32771*y^2, x^2]
   J = ideal(R, [x+y^2, x*y+y^3])
   J.gb[degrevlex(R)] = Oscar.IdealGens(R, [x^3])
   @test Oscar._certify_modular_groebner_basis(J, degrevlex(R)) == false
@@ -323,3 +325,36 @@ end
   @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
 end
 
+@testset "factoring standard resp. groebner bases" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_standard_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+
+  R, (x, y, z) = polynomial_ring(GF(32003), [:x, :y, :z])
+  I = ideal(R,[x*y*z,y*z+x])
+
+  L = factoring_standard_basis(I)
+
+  @test length(L) == 1
+  @test gens(L[1]) == FqMPolyRingElem[x, y*z+x]
+
+  L = factoring_standard_basis(I, ordering=lex(R))
+
+  @test length(L) == 2
+  @test gens(L[1]) == FqMPolyRingElem[z, x + y*z]
+  @test gens(L[2]) == FqMPolyRingElem[y, x + y*z]
+
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_groebner_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+
+  @test_throws ErrorException L = factoring_groebner_basis(I, ordering=neglex(R))
+end

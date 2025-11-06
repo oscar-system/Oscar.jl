@@ -275,6 +275,15 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
 !!! note
     The strategy behind the `groebner_basis` function and the strategy behind the function `groebner_basis_with_transformation_matrix` differ. As a consequence, the computed generators may differ. Even if `complete_reduction` is set to `true`, the generators might still only agree up to multiplication by units.
 
+### Factoring Gröbner Basis Algorithm
+
+```@docs
+factoring_groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
+```
+```@docs
+factoring_standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
+```
+
 ### Gröbner Basis Conversion Algorithms
 
 The performance of Buchberger's Gröbner basis algorithm is sensitive to the choice of monomial ordering.

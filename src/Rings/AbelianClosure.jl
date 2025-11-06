@@ -168,8 +168,7 @@ elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbFieldElem{AbsNonSimpleN
 parent_type(::Type{QQAbFieldElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
 parent(::QQAbFieldElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
 
-base_ring(::QQAbField) = Union{}
-base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
+base_ring_type(::Type{<:QQAbField}) = Union{}
 
 ################################################################################
 #

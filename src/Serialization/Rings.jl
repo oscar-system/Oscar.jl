@@ -1,10 +1,8 @@
 ################################################################################
 # Common union types
 
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
-                               SMat, TropicalSemiringElem}
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
-                                FreeAssociativeAlgebra, TropicalSemiring}
+const RingMatElemUnion = Union{NCRingElem, MatElem, SMat}
+const RingMatSpaceUnion = Union{NCRing, MatSpace, SMatSpace}
 const ModRingUnion = Union{zzModRing, ZZModRing}
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
@@ -12,14 +10,6 @@ const PolyRingUnionType = Union{UniversalPolyRing,
                             MPolyRing,
                             PolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-
-const IdealUnionType = Union{MPolyIdeal,
-                                MPolyQuoIdeal,
-                                MPolyLocalizedIdeal,
-                                MPolyQuoLocalizedIdeal,
-                                LaurentMPolyIdeal,
-                                FreeAssociativeAlgebraIdeal
-                            }
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
                                       QQRelPowerSeriesRing,
@@ -43,10 +33,11 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 
 type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
 type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
-type_params(x::T) where T <: IdealUnionType = TypeParams(T, base_ring(x))
+type_params(x::T) where T <: Ideal = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
 type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
+type_params(R::T) where T <: PolyRingUnionType = TypeParams(T, coefficient_ring(R))
 type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
@@ -95,7 +86,6 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
-  base = base_ring(R)
   save_data_dict(s) do
     save_object(s, symbols(R), :symbols)
   end
@@ -144,7 +134,7 @@ end
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
   # we use this line instead of typeof(coeff(p, 1)) to catch the 0 polynomial
-  coeff_type = elem_type(base_ring(parent(p)))
+  coeff_type = elem_type(coefficient_ring(p))
   save_data_array(s) do
     for i in 1:length(p)
       save_data_array(s) do 
@@ -208,13 +198,13 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
       push!(exponents, e)
     end
     degree = max(exponents...)
-    base = base_ring(parent_ring)
-    loaded_terms = zeros(base, degree)
-    coeff_type = elem_type(base)
+    coeff_ring = coefficient_ring(parent_ring)
+    loaded_terms = zeros(coeff_ring, degree)
+    coeff_type = elem_type(coeff_ring)
     for (i, exponent) in enumerate(exponents)
       load_node(s, i) do _
         load_node(s, 2) do _
-          loaded_terms[exponent] = load_object(s, coeff_type, base)
+          loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
         end
       end
     end
@@ -228,12 +218,12 @@ function load_object(s::DeserializerState,
                      parent_ring::PolyRingUnionType)
   load_node(s) do terms
     exponents = [term[1] for term in terms]
-    base = base_ring(parent_ring)
+    coeff_ring = coefficient_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
-    coeff_type = elem_type(base)
+    coeff_type = elem_type(coeff_ring)
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
-        c = load_object(s, coeff_type, base, 2)
+        c = load_object(s, coeff_type, coeff_ring, 2)
         e_int = load_array_node(s, 1) do _
           load_object(s, Int)
         end
@@ -257,13 +247,13 @@ end
 @register_serialization_type MPolyQuoLocalizedIdeal
 @register_serialization_type MPolyQuoIdeal
 
-function save_object(s::SerializerState, I::T) where T <: IdealUnionType
+function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb
   # in the future
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
+function load_object(s::DeserializerState, ::Type{<: Ideal}, parent_ring::NCRing)
   gens = elem_type(parent_ring)[]
   load_array_node(s) do _
     push!(gens, load_object(s, elem_type(parent_ring), parent_ring))

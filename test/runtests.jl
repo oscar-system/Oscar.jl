@@ -116,16 +116,23 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
                                "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
-                               "test/NumberTheory/QuadFormAndIsom.jl",
+                               "test/NumberTheory/QuadFormAndIsom/embeddings.jl",
+                               "test/NumberTheory/QuadFormAndIsom/enumeration.jl",
+                               "test/NumberTheory/QuadFormAndIsom/finite_group_actions.jl",
+                               "test/NumberTheory/QuadFormAndIsom/lattices_with_isometry.jl",
+                               "test/NumberTheory/QuadFormAndIsom/spaces_with_isometry.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
-                               "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticParameter.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/MoebiusTransformations.jl",
                               ],
                      :book => [
                                "test/book/test.jl",
-                              ]
-                   )
+                     ],
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+)
 
 test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
 if haskey(ENV, "JULIA_PKGEVAL")
@@ -163,6 +170,13 @@ if test_subset == :long || test_subset == :default
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
+
+  if "AlgebraicStatistics" in Oscar.exppkgs
+    path = joinpath(Oscar.oscardir, "experimental", "AlgebraicStatistics", "test", "MultigradedImplicitization.jl")
+    println("Starting tests for $path")
+    push!(stats, Oscar._timed_include(path, Main))
+  end
+
 end
 
 # if many workers, distribute tasks across them

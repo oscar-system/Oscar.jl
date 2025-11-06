@@ -162,6 +162,66 @@ julia> length(moved_points(gen(s, 1)))
 """
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
 
+@doc """
+    fixed_points(x::PermGroupElem) -> Vector{Int}
+    fixed_points(G::PermGroup) -> Vector{Int}
+
+Return the vector of points in `1:degree(x)` or `1:degree(G)` that are
+fixed by all elements (for groups) or by `x` (for elements).
+
+# Examples
+
+```jldoctest
+julia> g = symmetric_group(4)
+Symmetric group of degree 4
+
+julia> s = sylow_subgroup(g, 3)[1];
+
+julia> fixed_points(s)
+1-element Vector{Int64}:
+ 4
+
+julia> fixed_points(one(s))
+4-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+
+julia> x = g([1,2,4,3])
+(3,4)
+
+julia> fixed_points(x)
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
+function fixed_points(G::Union{PermGroup, PermGroupElem})
+  points = 1:degree(G)
+  return setdiff(points, moved_points(G))
+end
+
+@doc raw"""
+    number_of_fixed_points(x::PermGroupElem) -> Int
+    number_of_fixed_points(G::PermGroup) -> Int
+
+Return the number of points in `1:degree(x)` or `1:degree(G)` that are
+fixed by all elements (for groups) or by `x` (for elements).
+  
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> number_of_fixed_points(s)
+1
+
+julia> number_of_fixed_points(one(s))
+4
+```
+"""
+number_of_fixed_points(x::Union{PermGroupElem, PermGroup}) = degree(x) - number_of_moved_points(x)
+
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
     number_of_moved_points(G::PermGroup) -> Int

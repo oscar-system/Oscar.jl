@@ -222,6 +222,17 @@ end
   @test number_of_maximal_cones(sff1) == 3
 end
 
+@testset "Transformations" for P in (cube(2), dodecahedron(), n_gon(5))
+  f = normal_fan(P)
+  fMinus = -f
+  @test n_rays(fMinus) == n_rays(f)
+  @test n_maximal_cones(fMinus) == n_maximal_cones(f)
+
+  fMinus = -1 * f
+  @test n_rays(fMinus) == n_rays(f)
+  @test n_maximal_cones(fMinus) == n_maximal_cones(f)
+end
+
 @testset "Defining polynomial of hyperplane arrangement from matrix" begin
   A = identity_matrix(QQ, 3)
   L = arrangement_polynomial(A)

@@ -336,3 +336,19 @@ end
   C, _ = Oscar.GModuleFromGap.ghom(C, C)
   @test dim(C) == 49
 end
+
+@testset "_irred_abelian" begin
+  G = abelian_group(PcGroup, [3, 3, 5])
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(2))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 1, 2 => 4, 4 => 9))
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(2, 2))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 9, 2 => 18))
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(2, 4))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 45))
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 1, 4 => 1))
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 2))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 1, 2 => 2))
+  reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 4))
+  @test multiset(map(dim, reps)) == multiset(Dict(1 => 5))
+end

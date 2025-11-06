@@ -1,0 +1,244 @@
+module OscarDB
+
+using ..Oscar
+using ..Oscar.Serialization
+
+import Oscar.Serialization: load_object, save_object, type_params
+
+# Transitivesimplicialcomplex imports
+import Oscar:
+  simplicial_complex,
+  dim,
+  f_vector,
+  automorphism_group,
+  homology,
+  betti_numbers,
+  n_vertices
+
+# for ca certificates
+import NetworkOptions
+import Mongoc: Mongoc, find, find_one
+
+const OSCAR_DB = "oscar"
+const OSCAR_DEV_DB = "oscar-dev"
+
+"""
+    Database
+
+Type for referencing a specific database (usually the `OscarDB`)
+"""
+struct Database
+  mdb::Mongoc.Database
+end
+
+"""
+    Collection
+
+Type for referencing a specific collection.
+`T<:Union{Polymake.BigObject, Mongoc.BSON}` defines the template and/or element types
+returned by operations applied on objects of this type.
+"""
+struct Collection
+  mcol::Mongoc.Collection
+end
+
+"""
+    Cursor
+
+Type for representing the results of a query.
+Can be iterated, but the iterator can not be reset. For that, one has to query again.
+"""
+struct Cursor
+  mcursor::Mongoc.Cursor{Mongoc.Collection}
+end
+
+@doc raw"""
+    get_db()
+
+Connect to the `OscarDB` and return `Database` instance.
+
+The uri of the server can be set in advance by writing its `String` representation
+into ENV["OSCARDB_TEST_URI"].
+(used to connect to the github services container for testing)
+# Examples
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> typeof(db)
+Oscar.OscarDB.Database
+```
+"""
+function get_db(;dev=false)
+  # we explicitly set the cacert file, otherwise we might get connection errors because the certificate cannot be validated
+  username = "oscar-pub"
+  password = "oShea%2FfooC%24ie6h"
+  client = Mongoc.Client(get(ENV, "OSCARDB_TEST_URI", "mongodb://$username:$password@db.oscar-system.org/oscar?directConnection=true&authSource=users&tls=true&appName=mongosh+2.4.2&sslCertificateAuthorityFile=$(NetworkOptions.ca_roots_path())"))
+  return Database(client[dev ? OSCAR_DEV_DB : OSCAR_DB])
+end
+
+"""
+    getindex(db::Database, name::AbstractString)
+
+Return a `Oscar.OscarDB.Collection` instance
+from `db` with the given `name`.
+
+# Examples
+```julia-repl
+julia> Oscar.OscarDB.get_collection_names(db)
+4-element Vector{String}:
+ "zzlattices"
+ "LeechPairs"
+ "Surfaces"
+ "TransitiveSimplicialComplexes"
+
+julia> c = db["LeechPairs"];
+
+julia> length(c)
+290
+```
+"""
+Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
+
+"""
+    length(c::Collection, d::Dict=Dict())
+
+Count documents in a collection `c` matching the criteria given by `d`.
+
+# Examples
+
+Same as above, but faster.
+
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
+
+julia> length(tscit)
+63
+```
+"""
+function Base.length(c::Collection, d::Dict=Dict())
+  return Base.length(c.mcol, Mongoc.BSON(d))
+end
+
+@doc raw"""
+    find(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
+
+Returns an iterator over documents in the collection `c` which match the criteria given by `d`.
+Apply search options `opts`.
+
+# Examples
+
+Here we show how to find all vertex-transitive 3-dimensional rational homology spheres in that database (i.e., with up to 15 vertices). 
+
+The dimension $d$ of the manifold is here implicitly given as the length of the vector of Betti numbers less one.
+
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
+
+julia> length([tsc for tsc in tscit])
+63
+```
+"""
+function Mongoc.find(c::Collection, d::Dict=Dict();
+                     opts::Union{Nothing, Dict}=nothing)
+  return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
+end
+
+@doc raw"""
+    find_one(c::Collection{T}, d::Dict=Dict(); opts::Union{Nothing, Dict})
+
+Return one document from a collection `c` matching the criteria given by `d`.
+`T` can be chosen from `Polymake.BigObject` and `Mongoc.BSON`.
+Apply search options `opts`.
+
+# Examples
+
+Here we show how to find one vertex-transitive combinatorial surface with reduced rational Betti numbers $\tilde\beta_0 = \beta_1 = \beta_2 = 0$.
+The dimension of the manifold is here implicitly given as the length of the vector of Betti numbers less one.
+
+In this case we find the unique six-vertex triangulation of the real projective plane.
+
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
+
+julia> n_facets(simplicial_complex(tsc))
+35
+```
+"""
+function find_one(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
+  p = Mongoc.find_one(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts)))
+  return isnothing(p) ? nothing : parse_document(p)
+end
+
+"""
+    parse_document(bson::Mongoc.BSON)
+
+Create an Oscar object from the data given by `bson`.
+"""
+function parse_document(bson::Mongoc.BSON)
+  # This is a hook for future, we would like to be able override the parent
+  # of objects on load, for example forcing an ideal to live in a certain Ring
+  str = Mongoc.as_json(bson)
+  return Oscar.load(IOBuffer(str))
+end
+
+"""
+    get_collection_names(db::Database)
+
+Return a `Vector{String}` containing the names of all collections in the
+OscarDB, excluding meta collections.
+# Examples
+```julia-repl
+julia> db = Oscar.OscarDB.get_db();
+
+julia> Oscar.OscarDB.get_collection_names(db)
+4-element Vector{String}:
+ "zzlattices"
+ "LeechPairs"
+ "Surfaces"
+ "TransitiveSimplicialComplexes"
+```
+"""
+function get_collection_names(db::Database)
+   opts = Mongoc.BSON("authorizedCollections" => true, "nameOnly" => true)
+   return Mongoc.get_collection_names(db.mdb;options=opts)
+end
+# Iterator
+
+Base.IteratorSize(::Type{<:Cursor}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{<:Collection}) = Base.SizeUnknown()
+
+# functions for `BSON` iteration
+Base.iterate(cursor::Cursor, state::Nothing=nothing) =
+  iterate(cursor.mcursor, state)
+
+Base.iterate(coll::Collection) =
+  iterate(coll.mcol)
+
+Base.iterate(coll::Collection, state::Mongoc.Cursor) =
+  iterate(coll.mcol, state)
+
+# shows information about a specific Collection
+function Base.show(io::IO, coll::Collection)
+  db = Database(coll.mcol.database)
+  print(io, typeof(coll), ": ", coll.mcol.name)
+end
+
+include("exports.jl")
+
+include("LeechPairs.jl")
+include("TransitiveSimplicialComplex.jl")
+include("serialization.jl")
+
+
+end # Module
+
+using .OscarDB
+
+include("exports.jl")
+

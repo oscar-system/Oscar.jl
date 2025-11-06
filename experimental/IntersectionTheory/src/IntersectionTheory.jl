@@ -4,12 +4,13 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
+import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map, fixed_points, number_of_fixed_points
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
 import ..Oscar: localization
+import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
 
 
@@ -72,6 +73,11 @@ export schubert_classes
 export schur_functor
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -84,10 +90,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
@@ -171,6 +179,11 @@ export schubert_classes
 export schur_functor
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -183,10 +196,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle

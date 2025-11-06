@@ -1,3 +1,15 @@
+function ConformanceTests.generate_element(Q::MPolyQuoRing)
+  return Q(ConformanceTests.generate_element(base_ring(Q)))
+end
+
+@testset "MPolyQuoRing.conformance" begin
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
+  f = y^2+y+x^2
+  C = ideal(R, [f])
+  Q, = quo(R, C)
+  ConformanceTests.test_Ring_interface_recursive(Q; reps = 3)
+end
+
 @testset "MPolyQuoRing" begin
   R, (x,y) = polynomial_ring(QQ, [:x, :y])
   f = y^2+y+x^2

@@ -28,4 +28,5 @@ is_equidistant
 cophenetic_matrix
 taxa
 newick
+leaves
 ```

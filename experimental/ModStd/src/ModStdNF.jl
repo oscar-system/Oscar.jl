@@ -21,33 +21,34 @@ function stdhilb(I::Singular.sideal, h::Vector{Int32}; complete_reduction::Bool=
   return z
 end
 
-function Oscar.binomial(a::RingElem, k::Int)
-  p = parent(a)
-  return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
-end
-
 function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_poly_ring(base_ring(B), ord)
     hdata = convert(Int32,h.coeffs)
     hdata = push!(hdata,0)
-    i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), hdata, complete_reduction = complete_reduction)
+    i = stdhilb(Singular.Ideal(R, [R(x) for x = B]), hdata, complete_reduction = complete_reduction)
     return IdealGens(base_ring(B), i)
   end
   if !isdefined(B.gensBiPolyArray, :S)
-    B.gensBiPolyArray.S = Singular.Ideal(B.gensBiPolyArray.Sx, [convert(B.gensBiPolyArray.Sx, x) for x in oscar_generators(B)])
+    Sx = B.gensBiPolyArray.Sx
+    B.gensBiPolyArray.S = Singular.Ideal(Sx, [Sx(x) for x in oscar_generators(B)])
   end 
   return IdealGens(base_ring(B), stdhilb(B.gensBiPolyArray.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
 end
+
+function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  error("not implemented")
+end
+
 
 #TODO (to dream)
 #  the groeber bases in Singular in parallel
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
-function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
-  if isdefined(I, :gb) && ord == :degrevlex
-    return I.gb
+function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, ordering::MonomialOrdering; use_hilbert::Bool = false)
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
   end
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
@@ -81,7 +82,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}
     @vtime :ModStdNF 2 for fp = Ip
       if use_hilbert
         if very_first
-          @show H = HilbertData(fp)
+          @show H = HilbertData(fp)  # FIXME: only works if the ring is Z-graded (i.e., is_z_graded returns true)
           very_first = false
         end
         push!(Jp, exp_groebner_basis(fp, H, ord = ord, complete_reduction = true))
@@ -130,9 +131,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}
         d *= ZZRingElem(p)
         stable -= 1
         if stable <= 0
-          if ord == :degrevlex
-            I.gb = IdealGens(gd, keep_ordering = false, isGB = true)
-          end
+          # TODO: perhaps store the computed basis somewhere in `I.gb` ?
           return gd
         end
       end
@@ -141,8 +140,8 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}
   end
 end
 
-function exp_groebner_basis(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
-  return Oscar.exp_groebner_assure(I, ord)
+function exp_groebner_basis(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = true)
+  return exp_groebner_assure(I, ordering)
 end
 
 
@@ -175,7 +174,7 @@ end
 function homogenize(f::MPolyRingElem, S::MPolyRing)
   d = total_degree(f)
   g = MPolyBuildCtx(S)
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, c, push!(e, d-sum(e)))
   end
   return finish(g)

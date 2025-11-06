@@ -2,7 +2,6 @@ using Test
 
 @testset "ActionPolyRing - all tests" verbose = true begin
    
-  __upr = Oscar.__upr
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
   __vtj = Oscar.__vtj
@@ -28,11 +27,11 @@ using Test
   
   @testset "Check types" begin
     
-    @test base_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
     
-    @test base_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
+    @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
 
@@ -78,7 +77,7 @@ using Test
           @test data(u1) === u1.p
           @test data(u2) === u2.p
           @test data(u3) === u3.p
-          @test __upr(dpr) === dpr.upoly_ring
+          @test base_ring(dpr) === dpr.upoly_ring
           @test __jtv(dpr) === dpr.jet_to_var
           @test __jtu_idx(dpr) === dpr.jet_to_upoly_idx
           @test __are_perms_up_to_date(dpr) === dpr.are_perms_up_to_date
@@ -88,7 +87,7 @@ using Test
         end
 
         @testset "Check internals at construction" begin
-          upr = __upr(dpr)
+          upr = base_ring(dpr)
           u1p, u2p, u3p = data(u1), data(u2), data(u3)
           @test parent(u1p) === upr
           @test parent(u2p) === upr
@@ -164,8 +163,8 @@ using Test
         end
         
         @testset "Check public fields at construction" begin
-          @test base_ring(dpr) == ZZ
-          @test all(var -> base_ring(var) == ZZ, vars)
+          @test coefficient_ring(dpr) == ZZ
+          @test all(var -> coefficient_ring(var) == ZZ, vars)
           @test elementary_symbols(dpr) == [:u1, :u2, :u3]
           @test n_action_maps(dpr) == 3
           @test n_elementary_symbols(dpr) == 3
@@ -245,7 +244,7 @@ using Test
           @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
         
           @testset "Check internals after adding variables" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -267,8 +266,8 @@ using Test
           end
         
           @testset "Check public fields after adding variables" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
@@ -503,7 +502,7 @@ using Test
 
           
           @testset "Check internals after changing ranking" begin
-            upr = __upr(dpr)
+            upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
           
             #Dictionaries
@@ -525,8 +524,8 @@ using Test
           end
         
           @testset "Check public fields after changing ranking" begin
-            @test base_ring(dpr) == ZZ
-            @test all(var -> base_ring(var) == ZZ, vars)
+            @test coefficient_ring(dpr) == ZZ
+            @test all(var -> coefficient_ring(var) == ZZ, vars)
             @test elementary_symbols(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
             @test n_elementary_symbols(dpr) == 3
@@ -647,14 +646,10 @@ using Test
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             @test dpr(data(f)) == f
             @test dpr(data(f)) !== f
-            @test dpr(data(data(f))) == f
-            @test dpr(data(data(f))) !== f
             @test dpr(f) === f
 
             @test dpr(data(g)) == g
             @test dpr(data(g)) !== g
-            @test dpr(data(data(g))) == g
-            @test dpr(data(data(g))) !== g
             @test dpr(g) === g
 
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
@@ -771,6 +766,95 @@ using Test
           @test is_zero(derivative(g, (2, [10,4,2]))) && ngens(dpr) == 3
         end
 
+        @testset "resultant" begin
+          @test resultant(f, f, (1, [0,0,0])) == 0
+          @test resultant(f, f, (2, [0,0,0])) == 0
+          @test resultant(f, f, (3, [0,0,0])) == 1 
+          @test resultant(f, f, (1, [1,1,1])) == 1
+
+          @test resultant(f, g, 1) == 4*u2^3
+          @test resultant(g, f, 1) == 4*u2^3
+
+          @test resultant(f, g, 2) == -3*u1^3*u3
+          @test resultant(g, f, 2) == 3*u1^3*u3
+
+          @test resultant(f, g, 3) == u1*u2
+          @test resultant(g, f, 3) == u1*u2
+
+          @test resultant(u1^5, dpr(2), u1) == 2^5
+          @test resultant(u1^2 -2*u1 + 1, (u1 - 1)*u2*u3^2, 1) == 0
+
+          @test_throws ArgumentError resultant(u1^5, dpr(2), u1^5)
+          @test_throws ArgumentError resultant(f, g, (0, [1,1,1]))
+          @test_throws ArgumentError resultant(f, g, (1, [1,1,1,1]))
+          @test_throws ArgumentError resultant(f, g, (1, [1,1]))
+          @test_throws ArgumentError resultant(f, g, (1, [1,-1,1]))
+        end
+
+        @testset "discriminant" begin
+          # degree -1
+          @test discriminant(zero(dpr)) == 0
+          
+          # degree 0
+          @test discriminant(one(dpr)) == 0
+          @test discriminant(dpr(-17)) == 0
+          
+          # degree 1
+          @test discriminant(f) == 1
+          @test discriminant(u1) == 1
+          @test discriminant(u1*u2*u3) == 1
+          @test discriminant(-47*u2 + 45*u3 - 2) == 1
+          
+          # degree 2
+          @test discriminant(g) == 48*u2*u3
+          @test discriminant(4*u1^2*u2^2*u3 - 6*u1*u2*u3 + 9*u3) == -108*u2^2*u3^2
+          @test discriminant(4*u1^2*u2^2*u3 - 12*u1*u2*u3 + 9*u3) == 0
+
+          # degree 3
+          h = u2^4*u1^6*u3^8 - 4*u2^3*u1^4*u3^6 - 34*u2^2*u1^6*u3^4 + 4*u2^2*u1^2*u3^4 + 68*u2*u1^4*u3^2 + 289*u1^6
+          @test discriminant(h) == 0
+          @test discriminant(h + 1) == -65536*u2^22*u3^44 - 110592*u2^21*u3^42 + 8866240*u2^20*u3^40 + 16920576*u2^19*u3^38 -
+                                        522385792*u2^18*u3^36 - 1150599168*u2^17*u3^34 + 17424027328*u2^16*u3^32 + 45640433664*u2^15*u3^30 -
+                                        355647746560*u2^14*u3^28 - 1163831058432*u2^13*u3^26 + 4392579194752*u2^12*u3^24 +
+                                        19785127993344*u2^11*u3^22 - 27598930471168*u2^10*u3^20 - 224231450591232*u2^9*u3^18 -
+                                        21358465855616*u2^8*u3^16 + 1633686282878976*u2^7*u3^14 + 1840208095645184*u2^6*u3^12 -
+                                        6943166702235648*u2^5*u3^10 - 14645742262528320*u2^4*u3^8 + 13114870437556224*u2^3*u3^6 +
+                                        55328359658440320*u2^2*u3^4 - 94058211419348544
+        end
+
+        @testset "evaluation" begin
+          @test f(0) == 0
+          @test f(1,1,1) == 1
+          @test f(1,1,2) == 1
+          @test evaluate(f, [1,3], [1,0]) == u2
+          @test evaluate(f, [2,3], [2,3]) == 2*u1
+          @test evaluate(f, [u1, u3], [-5,2]) == -5*u2
+          @test evaluate(f, Int[], Int[]) == f
+          @test evaluate(g, Int[], Int[]) == g
+        end
+
+        @testset "univariate coefficients" begin
+          #f = u1*u2
+          #g = -3*u1^2*u3 + 4*u2
+          @test univariate_coefficients(f, u1) == [zero(dpr), u2]
+          @test univariate_coefficients(f, u2) == [zero(dpr), u1]
+          @test univariate_coefficients(f, u3) == [u1*u2]
+          @test univariate_coefficients(f, (1, [0,0,0])) == [zero(dpr), u2]
+          @test univariate_coefficients(f, (2, [0,0,0])) == [zero(dpr), u1]
+          @test univariate_coefficients(f, (3, [0,0,0])) == [u1*u2]
+          @test univariate_coefficients(f, 1) == [zero(dpr), u2]
+          @test univariate_coefficients(f, 2) == [zero(dpr), u1]
+          @test univariate_coefficients(f, 3) == [u1*u2]
+          @test_throws ArgumentError univariate_coefficients(f, (0, [0,0,0]))
+          @test_throws ArgumentError univariate_coefficients(f, (1, [0,-1,0]))
+          @test_throws ArgumentError univariate_coefficients(f, (1, [0,0,0,0]))
+
+          @test univariate_coefficients(g, 1) == [4*u2, zero(dpr), -3*u3]
+          @test univariate_coefficients(g, 2) == [-3*u1^2*u3, dpr(4)]
+          @test univariate_coefficients(g, 3) == [4*u2, -3*u1^2]
+          @test univariate_coefficients(g, (1, [1,1,1])) == [g]
+        end
+
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
             @test is_zero(diff_action(dpr(), 1))
@@ -844,6 +928,6 @@ using Test
         end
       end #End for loop
     end #End further constructions
-  end #Construction and basic field acces
+  end #Construction and basic field access
 
 end #All tests

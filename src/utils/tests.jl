@@ -264,9 +264,12 @@ end
     test_experimental_module(project::AbstractString; file::AbstractString="",
       new::Bool=true, timed::Bool=false, ignore=[])
 
-Run the Oscar tests in `experimental/<project>/test/<path>`:
-- if `path` is empty then all tests in that module are run, either via `runtests.jl` or directly.
-- if `path` or `path.jl` is a file in that directory only this file is run.
+Run the Oscar tests of the experimental module `project`:
+- if `file` is empty, run the entire test suite in `experimental/<project>/test`
+- if `experimental/<project>/test/<file>` is a directory which contains a `runtests.jl`,
+  run this file, otherwise run all test files in that directory and below
+- if `experimental/<project>/test/<file>` or `experimental/<project>/test/<file>.jl`
+  is a file, run this file
 
 The default is to run the entire test suite of the module `project`.
 

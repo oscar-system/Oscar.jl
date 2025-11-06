@@ -4,8 +4,6 @@
 # Free associative algebra serialization
 @register_serialization_type FreeAssociativeAlgebra uses_id
 
-type_params(R::T) where T <: FreeAssociativeAlgebra = TypeParams(T, base_ring(R))
-
 function save_object(s::SerializerState, A::FreeAssociativeAlgebra)
   save_data_dict(s) do
     save_object(s, symbols(A), :symbols)

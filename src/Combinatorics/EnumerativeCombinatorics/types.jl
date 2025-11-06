@@ -401,14 +401,24 @@ end
 #
 ################################################################################
 
-struct Combinations{T}
+struct Combinations{T, U<:IntegerUnion}
   v::T
-  n::Int
-  k::Int
+  n::U
+  k::U
 end
 
 struct Combination{T} <: AbstractVector{T}
-  v::Vector{T} 
+  v::Vector{T}
 end
 
+################################################################################
+#
+#  Multicombination(s)
+#
+################################################################################
 
+struct MultiCombinations{T, U<:IntegerUnion}
+  v::T
+  n::U
+  k::U
+end

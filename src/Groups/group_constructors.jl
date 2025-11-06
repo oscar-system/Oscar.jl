@@ -296,7 +296,22 @@ function is_elementary_abelian(G::FinGenAbGroup)
   return e == 1 || is_prime(e)
 end
 
+@doc raw"""
+    mathieu_group(n::Int)
 
+Return the Mathieu group of degree `n`,
+where `n` must be one of `9, 10, 11, 12, 21, 22, 23, 24`.
+The group is represented as a permutation group.
+
+# Examples
+```jldoctest
+julia> g = mathieu_group(10)
+Permutation group of degree 10 and order 720
+
+julia> order(g)
+720
+```
+"""
 function mathieu_group(n::Int)
   @req 9 <= n <= 12 || 21 <= n <= 24 "n must be a 9-12 or 21-24"
   return PermGroup(GAP.Globals.MathieuGroup(n), n)

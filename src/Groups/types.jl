@@ -411,7 +411,7 @@ end
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
 
-Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
+Type of elements of a group of type `MatrixGroup{RE, T}`.
 """
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
    parent::MatrixGroup{RE, T}

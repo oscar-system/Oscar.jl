@@ -1,10 +1,11 @@
-using JSON
+import JSON
 
 function bigobject_to_jsonstr(bo::Polymake.BigObject)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, bo)
   return Polymake.call_function(:common, :encode_json, serialized)
 end
 
+# unused, is this needed?
 function bigobject_to_dict(bo::Polymake.BigObject)
   jsonstr = bigobject_to_jsonstr(bo)
   return JSON.parse(jsonstr)
@@ -21,7 +22,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   dict = Dict{Symbol, Any}(s.obj)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(dict))
   return bigobject
 end
 
@@ -136,7 +137,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_node(s, :lpcoeffs) do lpcoeffs
-    Polymake.call_function(:common, :deserialize_json_string, json(lpcoeffs))
+    Polymake.call_function(:common, :deserialize_json_string, JSON.json(lpcoeffs))
   end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
@@ -219,14 +220,14 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      json(coeffs)
+      JSON.json(coeffs)
     )
   end
   int_vars = load_node(s, :int_vars) do vars
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      json(vars)
+      JSON.json(vars)
     )
   end
 

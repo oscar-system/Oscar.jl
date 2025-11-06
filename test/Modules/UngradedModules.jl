@@ -1927,3 +1927,20 @@ end
   @test I !== kernel(phi)[1]
 end
 
+@testset "Issue #5490" begin
+  # This is about saturation not working properly over quotient rings
+  P, (a, b, x, y, z) = QQ[:a, :b, :x, :y, :z]
+  I = ideal(P, [x^3 + x*y^2 - z^2, a*y - b*z, b*x - y, a*x - z, -a*z + x^2 + y^2, -a^2 + b*y + x, -a^3 + b^2*z + z, -a^2*b + b^2*y + y])
+  A, _ = quo(P, I)
+
+  FA = free_module(A, 8)
+  rel_mat = [0 0 0 3*a*z - 2*y^2 2*x*y -2*z 0 0; 0 0 0 0 3*a*z - 2*y^2 0 2*x*y -2*z; -6*a*z^2 + 4*y^2*z -4*x*y*z 4*z^2 -6*x*z -4*y*z 3*a*z - 2*y^2 -2*x*z 2*x*y; 0 0 0 6*x*y^2 - 9*z^2 2*y^3 6*x*z 4*x*y^2 -4*y*z; 0 0 0 -3*a*z + 2*y^2 -2*x*y 2*z 0 0; 0 0 0 0 -2*x*y^2 + 3*z^2 0 2*b*z^2 - 2*y^3 -2*x*z; 4*x*y^2*z - 6*z^3 -4*b*z^3 + 4*y^3*z 4*x*z^2 -6*a*z^2 + 6*y^2*z -4*x*y*z -2*x*y^2 + 3*z^2 -2*a*z^2 + 2*y^2*z 2*b*z^2 - 2*y^3; 0 0 0 -6*x*y^2 + 9*z^2 -2*y^3 -6*x*z -4*x*y^2 4*y*z]
+  rel_mat = matrix_space(A, 8, 8)(rel_mat)
+  U, inc_U = sub(FA, rel_mat)
+
+  J = ideal(A, x)
+  U_sat = Oscar._saturation(U.sub, J)
+  U_sat, _ = sub(FA, gens(U_sat))
+  @test all(x in U_sat for x in gens(U))
+end
+

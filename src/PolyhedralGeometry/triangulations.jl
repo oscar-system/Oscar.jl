@@ -1,4 +1,4 @@
-using JSON
+import JSON
 using TOPCOM_jll
 
 function _postprocess_polymake_triangs(
@@ -428,6 +428,8 @@ Polytope in ambient dimension 8
 ```
 """
 function secondary_polytope(P::Polyhedron{T}) where {T<:scalar_types}
+  @req is_bounded(P) "secondary_polytope only works for polytopes, i.e. bounded polyhedra."
+  @req is_fulldimensional(P) "Polytope must be full-dimensional, use a projection."
   return Polyhedron{T}(
     Polymake.polytope.secondary_polytope(pm_object(P)), coefficient_field(P)
   )
