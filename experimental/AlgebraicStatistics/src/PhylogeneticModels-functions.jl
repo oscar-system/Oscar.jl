@@ -332,25 +332,21 @@ function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}
 end
 
 function leaves_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}, leaves_states::Dict{Int, Int})
-  
   if is_zero_group_sum(PM, leaves_states) 
     return monomial_fourier(PM, leaves_states)
   end 
 
   S = parameter_ring(PM)[1]
-  return S(0)
-  
+  return zero(S)
 end 
 
 function leaves_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed})
-  
   if is_zero_group_sum(PM, leaves_states) 
     return monomial_fourier(PM, leaves_states, subtree)
   end 
 
   S = parameter_ring(PM)[1]
-  return S(0)
-  
+  return zero(S)
 end 
   
 
