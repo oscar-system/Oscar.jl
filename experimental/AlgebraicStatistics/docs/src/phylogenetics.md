@@ -156,7 +156,7 @@ Group-based phylogenetic model on a tree with 3 leaves and 3 edges
     :b :c :b :a]
   and fourier parameters of the form [:x, :y, :z, :z].
 
-julia> S, - = parameter_ring(PM);
+julia> S, _ = parameter_ring(PM);
 
 julia> S
 Multivariate polynomial ring in 9 variables x[1], x[2], x[3], y[1], ..., z[3]
@@ -340,7 +340,7 @@ julia> graph(PM)
 Level-1 phylogenetic network with hybrid nodes {5} and edges
   (5, 1)(6, 2)(6, 5)(7, 3)(7, 6)(7, 8)(8, 4)(8, 5)
 
-julia> S, - = parameter_ring(PM);
+julia> S, _ = parameter_ring(PM);
 
 julia> S
 Multivariate polynomial ring in 18 variables l[1, 1], l[1, 2], x[1], x[2], ..., y[8]
