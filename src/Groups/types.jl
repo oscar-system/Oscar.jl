@@ -292,7 +292,8 @@ f1*f3
 const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
 
 function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
-  return hash(letters(x), hash(parent(x), h))
+  G = full_group(parent(x))
+  return hash(letters(x), hash(G, h))
 end
 
 
