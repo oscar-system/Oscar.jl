@@ -122,7 +122,7 @@ function stratum(o::Origami)
     commutator = comm(h, v)
     cycs = cycles(commutator)
     unsorted_stratum = [length(c) - 1 for c in cycs if length(c) > 1]
-    return sort(unsorted_stratum, rev=true)
+    return sort!(unsorted_stratum, rev=true)
 end
 
 @doc raw"""
