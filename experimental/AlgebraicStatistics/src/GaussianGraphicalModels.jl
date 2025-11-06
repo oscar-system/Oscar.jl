@@ -436,8 +436,8 @@ end
 Return the set of elementary CI statements which are satisfied by every distribution in the
 graphical model. This is the same as the `global_markov` property of the underlying graph.
 """
-function ci_structure(M::GaussianGraphicalModel{Graph{Undirected}, T}) where T
-  global_markov(graph(M))
+function ci_structure(M::GaussianGraphicalModel{Graph{Undirected}})
+  return global_markov(graph(M))
 end
 
 ###################################################################################
@@ -597,7 +597,7 @@ s[1, 2]*s[3, 3] - s[1, 3]*s[2, 3]
 """
 function ci_polynomial(A::Generic.MatSpaceElem, stmt::CIStmt)
   @req is_elementary(stmt) "only elementary CI statements give polynomials - for non-elementary statements use ci_ideal"
-  det(A[vcat(stmt.I, stmt.K), vcat(stmt.J, stmt.K)])
+  return det(A[vcat(stmt.I, stmt.K), vcat(stmt.J, stmt.K)])
 end
 
 ci_polynomial(R::GaussianRing, stmt::CIStmt) = ci_polynomial(covariance_matrix(R), stmt)
