@@ -140,7 +140,7 @@ julia> genus(o)
 ```
 """
 function genus(o::Origami)
-    return ZZ((sum(stratum(o)) + 2) * 0.5)
+    return ZZ((sum(stratum(o)) + 2) / 2)
 end
 
 function veech_group(O::Origami)
