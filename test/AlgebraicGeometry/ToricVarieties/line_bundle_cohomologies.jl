@@ -61,9 +61,21 @@
     @test sheaf_cohomology(l5; algorithm="local cohomology") == [0, 2, 0]
     l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
     @test sheaf_cohomology(l5, 1; algorithm="local cohomology") == 2
+    
+    # We test for different caching patterns here
     delete!(X.__attrs, :anticanonical_bundle)
     l6 = anticanonical_bundle(X)
     @test sheaf_cohomology(l6, 0; algorithm="local cohomology") == 21
+
+    delete!(X.__attrs, :anticanonical_bundle)
+    l6 = anticanonical_bundle(X)
+    [sheaf_cohomology(l6, i; algorithm="local cohomology") for i in 0:dim(X)]
+    @test sheaf_cohomology(l6) == [21, 0, 0, 0]
+    
+    delete!(X.__attrs, :anticanonical_bundle)
+    l6 = anticanonical_bundle(X)
+    sheaf_cohomology(l6) == [21, 0, 0, 0]
+    @test [sheaf_cohomology(l6, i; algorithm="local cohomology") for i in 0:dim(X)] == [21, 0, 0, 0]
   end
 
   @testset "Toric vanishing sets of dP3" begin
