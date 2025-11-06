@@ -246,7 +246,7 @@ q[1](1)
       append!(params, (i, x, Set{Int}(Iterators.flatten([y]))) for x in state_space(M, [i]) for y in state_space(M, pa))
     end
   end
-  gen_names = [varnames(M)[:q] * "[" * string(i) * "](" * string(x) * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params]
+  gen_names = [varnames(M)[:q] * "[$i]($x" * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params]
   push!(gen_names, "_h")
   R, q = polynomial_ring(QQ, gen_names; cached=cached);
   gens_dict = Dict(p => q[k] for (k, p) in enumerate(params))

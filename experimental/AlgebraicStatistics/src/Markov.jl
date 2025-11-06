@@ -49,8 +49,8 @@ markov_ring(states::Int...; unknown::VarName="p", cached=false) =
 const tensor_ring = markov_ring
 
 function Base.show(io::IO, R::MarkovRing)
-  coeffs = base_ring(R.ring)
-  print(io, "$(typeof(R)) over $(coeffs) for $(length(R.state_spaces)) random variables and states ",
+  io = pretty(io)
+  print(io, "Markov ring over ", Lowercase(), base_ring(R.ring), " for $(length(R.state_spaces)) random variables and states ",
     "(" * join([string(length(x)) for x in R.state_spaces], ", ") * ")",
   )
 end

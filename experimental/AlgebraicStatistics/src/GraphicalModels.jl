@@ -108,5 +108,5 @@ function vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
     project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
     invariants = project_S(invariants)
   end
-  invariants
+  return invariants
 end
