@@ -378,6 +378,7 @@ export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
+export character_degrees
 export character_field
 export character_lattice
 export character_parameters
@@ -874,7 +875,7 @@ export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
-export is_acylic
+export is_acyclic
 export is_admissible_ordering
 export is_admissible_triple
 export is_affine
@@ -1267,6 +1268,7 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multicombinations
 export multipartition
 export multipartitions
 export multiplication_induced_morphism

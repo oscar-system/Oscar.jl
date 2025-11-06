@@ -218,7 +218,6 @@ function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   probabilistic::Bool = false
   )
   gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
-  gb = Generic.FreeAssociativeAlgebraElem{QQFieldElem}[x for x in gb]
   return IdealGens(gb)
 end
 

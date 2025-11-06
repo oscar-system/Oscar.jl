@@ -156,26 +156,28 @@ mutable struct BiPolyArray{S}
   f #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
-  function BiPolyArray(O::Vector{T}) where {T <: NCRingElem}
+  function BiPolyArray(Ox::T) where {T <: NCRing}
+    if T <: MPolyQuoRing
+      return new{elem_type(base_ring_type(T))}(Ox)
+    end
+    return new{elem_type(T)}(Ox)
+  end
+
+  function BiPolyArray(O::Vector{<: NCRingElem})
     return BiPolyArray(parent(O[1]), O)
   end
 
-  function BiPolyArray(Ox::NCRing, O::Vector{T}) where {T <: NCRingElem}
-    r = new{T}(Ox, O)
+  function BiPolyArray(Ox::NCRing, O::Vector{<: NCRingElem})
+    r = BiPolyArray(Ox)
+    r.O = O
     return r
   end
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
-      Sx = base_ring(S)
-      if T <: MPolyQuoRing
-          r = new{typeof(Ox).parameters[1]}()
-      else
-          r = new{elem_type(T)}()
-      end
-      r.Sx = Sx
-      r.S = S
-      r.Ox = Ox
-      return r
+    r = BiPolyArray(Ox)
+    r.Sx = base_ring(S)
+    r.S = S
+    return r
   end
 end
 
@@ -186,6 +188,11 @@ mutable struct IdealGens{S}
   ord::Orderings.MonomialOrdering
   keep_ordering::Bool
 
+  # internal constructor
+  function IdealGens(B::BiPolyArray{S}, isGB::Bool, isReduced::Bool) where S
+    return new{S}(B, isGB, isReduced)
+  end
+
   function IdealGens(O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
     return IdealGens(parent(O[1]), O; keep_ordering = keep_ordering)
   end
@@ -195,36 +202,27 @@ mutable struct IdealGens{S}
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false, isReduced::Bool = false) where {T <: NCRingElem}
-    r = new{T}(BiPolyArray(Ox, O))
+    r = IdealGens(BiPolyArray(Ox, O), isGB, isReduced)
     r.ord = ordering
-    r.isGB = isGB
-    r.isReduced = isReduced
     r.keep_ordering = keep_ordering
     return r
   end
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
-    r = new{T}(BiPolyArray(Ox, O))
-    r.isGB = false
+    r = IdealGens(BiPolyArray(Ox, O), false, false)
     r.keep_ordering = keep_ordering
     return r
   end
 
   function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
-      if T <: MPolyQuoRing
-          r = new{typeof(Ox).parameters[1]}()
-          r.ord = Ox.ordering
-      else
-          r = new{elem_type(T)}()
-      end
-      r.gensBiPolyArray = BiPolyArray(Ox, S)
-      r.isGB = S.isGB
-      r.isReduced = isReduced
-      if T <: MPolyRing
-          r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
-      end
-      r.keep_ordering = true
-      return r
+    r = IdealGens(BiPolyArray(Ox, S), S.isGB, isReduced)
+    if T <: MPolyQuoRing
+      r.ord = Ox.ordering
+    else
+      r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
+    end
+    r.keep_ordering = true
+    return r
   end
 end
 
@@ -767,7 +765,7 @@ end
 function im_func(f::MPolyRingElem, S::MPolyRing, i::Vector{Int})
   O = base_ring(S)
   g = MPolyBuildCtx(S)
-  for (c, e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     f = zeros(Int, nvars(S))
     for j=1:length(e)
       if i[j] == 0

@@ -32,7 +32,7 @@
       @test_throws ArgumentError F3(a) # wrong char
 
       R, (x, y) = polynomial_ring(F, [:x, :y])
-      @test Oscar.singular_poly_ring(R) isa Singular.PolyRing{Singular.n_transExt}
+      @test Oscar.singular_poly_ring(R) isa Singular.PolyRing{<:Singular.n_transExt}
 
       @test k(F(1)) isa elem_type(k)
       @test_throws InexactError k(a)
