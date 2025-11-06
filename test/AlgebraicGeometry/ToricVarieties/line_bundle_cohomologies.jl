@@ -43,22 +43,27 @@
 
   @testset "Cohomology with cohomCalg on dP3" begin
     @test cohomology(l, 0) == 0
-    @test all_cohomologies(l) == [0, 16, 0]
+    @test sheaf_cohomology(l) == [0, 16, 0]
   end
 
   @testset "Cohomology with cohomCalg on F5" begin
     @test cohomology(l2, 0) == 1
-    @test all_cohomologies(l2) == [1, 0, 0]
+    @test sheaf_cohomology(l2) == [1, 0, 0]
   end
 
   @testset "Cohomology with chamber counting" begin
-    @test all_cohomologies(l5; algorithm="chamber counting") == [0, 2, 0]
-    @test all_cohomologies(l6; algorithm="chamber counting") == [21, 0, 0, 0]
+    @test sheaf_cohomology(l5; algorithm="chamber counting") == [0, 2, 0]
+    @test sheaf_cohomology(l6; algorithm="chamber counting") == [21, 0, 0, 0]
   end
 
   @testset "Cohomology with local cohomology" begin
     l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
-    @test all_cohomologies(l5; algorithm="local cohomology") == [0, 2, 0]
+    @test sheaf_cohomology(l5; algorithm="local cohomology") == [0, 2, 0]
+    l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
+    @test sheaf_cohomology(l5, 1; algorithm="local cohomology") == 2
+    delete!(X.__attrs, :anticanonical_bundle)
+    l6 = anticanonical_bundle(X)
+    @test sheaf_cohomology(l6, 0; algorithm="local cohomology") == 21
   end
 
   @testset "Toric vanishing sets of dP3" begin
@@ -102,7 +107,7 @@
   end
 
   @testset "Sections of anticanonical bundle" begin
-    @test all_cohomologies(l4) == [4551, 0, 0, 0, 0, 0]
+    @test sheaf_cohomology(l4) == [4551, 0, 0, 0, 0, 0]
     @test length(basis_of_global_sections(l4)) == 4551
   end
 end

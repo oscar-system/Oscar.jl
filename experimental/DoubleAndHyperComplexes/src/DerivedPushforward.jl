@@ -486,8 +486,6 @@ end
 toric_variety(ctx::ToricCtx) = ctx.X
 graded_ring(ctx::ToricCtx) = ctx.S
 
-# outer constructor
-toric_ctx_object(X::NormalToricVariety) = ToricCtx(X)
 
 function ring_as_hypercomplex(ctx::ToricCtx)
   if !isdefined(ctx, :S1)
@@ -1032,5 +1030,10 @@ end
 
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
   return _minimal_exponent_vector(ctx.pure_ctx, m)
+end
+
+# outer constructor
+@attr ToricCtx function local_cohomology_context_object(X::NormalToricVariety; algorithm::Symbol=:ext)
+  return ToricCtx(X; algorithm)
 end
 

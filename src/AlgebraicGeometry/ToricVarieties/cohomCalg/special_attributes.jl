@@ -72,7 +72,7 @@ end
 ###########################
 
 @doc raw"""
-    all_cohomologies(l::ToricLineBundle)
+    sheaf_cohomology(l::ToricLineBundle)
 
 Compute the dimension of all sheaf cohomologies of the 
 toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
@@ -86,32 +86,32 @@ or to use local cohomology as in [CLS11](@cite), Section 9.5.
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal toric variety
 
-julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
+julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]))
 3-element Vector{ZZRingElem}:
  0
  16
  0
 
-julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = "chamber counting")
+julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = "chamber counting")
 3-element Vector{ZZRingElem}:
  0
  16
  0
 
-julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]))
+julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]))
 3-element Vector{ZZRingElem}:
  0
  2
  0
 
-julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "chamber counting")
+julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "chamber counting")
 3-element Vector{ZZRingElem}:
  0
  2
  0
 ```
 """
-@attr Vector{ZZRingElem} function all_cohomologies(
+@attr Vector{ZZRingElem} function sheaf_cohomology(
   l::ToricLineBundle; algorithm::String="cohomCalg"
 )
   v = toric_variety(l)
@@ -227,7 +227,7 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
     @req (is_complete(v) && is_simplicial(v)) "the chamber counting algorithm only applies to toric varieties that are simplicial and complete"
     return _all_cohomologies_via_cech(l)
   elseif occursin("local", lowercase(algorithm))
-    ctx = toric_ctx_object(v)
+    ctx = local_cohomology_context_object(v)
     d = divisor_class(toric_divisor_class(l))
     coh = cohomology_model(ctx, d)
     return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:-dim(v)]
@@ -235,7 +235,7 @@ julia> all_cohomologies(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
 end
 
 @doc raw"""
-    cohomology(l::ToricLineBundle, i::Int)
+    sheaf_cohomology(l::ToricLineBundle, i::Int)
 
 Compute the dimension of the i-th sheaf cohomology of the
 toric line bundle `l` by use of the cohomCalg algorithm
@@ -247,11 +247,21 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal toric variety
 
-julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12
 ```
 """
-function cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg")
+function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg")
+  has_attribute(l, :sheaf_cohomology) && return get_attribute(l, :sheaf_cohomology)::Vector{ZZRingElem}[i]
+  table = get_attribute!(l, :sheaf_cohomology_table) do
+    Dict{Int, ZZRingElem}()
+  end
+  return get!(table, i) do
+    _sheaf_cohomology(l, i; algorithm)
+  end
+end
+
+function _sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg")
   v = toric_variety(l)
   if has_attribute(v, :vanishing_sets)
     tvs = vanishing_sets(v)[i + 1]
@@ -260,8 +270,14 @@ function cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg")
     end
   end
   if occursin("cohomcalg", lowercase(algorithm))
-    return all_cohomologies(l; algorithm="cohomCalg")[i + 1]
+    return sheaf_cohomology(l; algorithm="cohomCalg")[i + 1]
   elseif occursin("chamber", lowercase(algorithm))
-    return all_cohomologies(l; algorithm="chamber")[i + 1]
+    return sheaf_cohomology(l; algorithm="chamber")[i + 1]
+  elseif occursin("local", lowercase(algorithm))
+    ctx = local_cohomology_context_object(v)
+    d = divisor_class(toric_divisor_class(l))
+    coh = cohomology_model(ctx, d)
+    return ZZ(ngens(coh[-i]))
   end
 end
+
