@@ -419,7 +419,7 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 # The load mechanism first checks if the type needs to load necessary
-# parameters before loading it's data, if so a type tree is traversed
+# parameters before loading its data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   Base.issingletontype(T) && return T()
@@ -702,7 +702,7 @@ Load the object stored in the given io stream
 respectively in the file `filename`.
 
 If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of Rings this
+either will attempt a load using these parameters. In the case of rings this
 results in setting its parent, or in the case of a container of ring types such as
 `Vector` or `Tuple`, then the parent of the entries will be set using their
  `params`.
