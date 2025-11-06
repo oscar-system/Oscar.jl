@@ -184,7 +184,7 @@ t*x2 + (s^2 + s + 1)*x1 + x3
 ```
 """
 function tighten_simulation(f::MPolyRingElem, nu::TropicalSemiringMap)
-    # substitute first variable tsim by uniformizer_ring
+    # substitute first variable tsim by uniformizer_in_ring
     # so that all monomials have distinct x-monomials
     f = evaluate(f,[1],[uniformizer(nu)])
 
@@ -290,7 +290,7 @@ function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalS
 
     # map everything from simulation ring to the specified polynomial ring
     # whilst substituting first variable tsim by uniformizer
-    desimulation_map = hom(S, R, domain(nu), vcat(uniformizer_field(nu),gens(R)))
+    desimulation_map = hom(S, R, domain(nu), vcat(uniformizer_in_field(nu),gens(R)))
     G = desimulation_map.(sG)
     # filter for nonzero elements
     G = filter(!iszero,G)
