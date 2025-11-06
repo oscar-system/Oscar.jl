@@ -145,7 +145,7 @@ const PermGroupElem = BasicGAPGroupElem{PermGroup}
 function Base.hash(x::PermGroupElem, h::UInt)
   d = hash(degree(x), h)
   modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
-  return GAPWrap.HashPermutation(GapObj(x), GapInt(d % modulus))
+  return UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(d % modulus)))
 end
 
 
