@@ -414,7 +414,7 @@ struct Combinations{T, U<:IntegerUnion}
   inplace::Bool # Whether all generated combinations share the same array in
                 # memory
 
-  function Combinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+  function Combinations(v::T, n::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
     return new{T,U}(v, n, k, inplace)
   end
 end
@@ -436,7 +436,7 @@ struct MultiCombinations{T, U<:IntegerUnion}
   inplace::Bool # Whether all generated combinations share the same array in
                 # memory
 
-  function MultiCombinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+  function MultiCombinations(v::T, n::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
     return new{T,U}(v, n, k, inplace)
   end
 end
