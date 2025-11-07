@@ -468,6 +468,7 @@ end
 
 mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
+    pmg::Polymake.Graph{T} where {T <: Union{Directed, Undirected}}
     l::Int64
 end
 Base.length(eitr::EdgeIterator) = eitr.l
@@ -602,7 +603,7 @@ julia> collect(edges(mg, Directed))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
+  return EdgeIterator(Polymake.edgeiterator(pm_object(g)), pm_object(g), n_edges(g))
 end
 
 edges(g::MixedGraph, ::Type{Directed}) = edges(_directed_component(g))
