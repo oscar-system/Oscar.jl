@@ -381,7 +381,6 @@ function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
       result[j] = -di < dimension(ctx, i) ? 0 : -di - dimension(ctx, i)
     end
   end
-  @assert length(result) == length(cech_complex_generators(ctx))
   return result
 end
 
