@@ -18,7 +18,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::T, k::T) where T<:IntegerUnion = Combinations(Base.oneto(n), n, k)
+combinations(n::T, k::T; inplace::Bool = false) where T<:IntegerUnion = Combinations(Base.oneto(n), n, k, inplace)
 
 @doc raw"""
     combinations(v::AbstractVector, k::IntegerUnion)
@@ -41,8 +41,6 @@ julia> collect(C)
 ```
 """
 combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
-
-Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 
 @inline function Base.iterate(C::Combinations{<:AbstractVector{T}, U}, state::Vector{U} = U[min(C.k - 1, i) for i in Base.oneto(C.k)]) where {T, U<:IntegerUnion}
   if is_zero(C.k) # special case to generate 1 result for k = 0

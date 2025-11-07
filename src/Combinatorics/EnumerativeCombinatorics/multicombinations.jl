@@ -24,7 +24,7 @@ julia> collect(C)
  [4, 4]
 ```
 """
-multicombinations(n::T, k::T) where T<:IntegerUnion = MultiCombinations(Base.oneto(n), n, k)
+multicombinations(n::T, k::T; inplace::Bool = false) where T<:IntegerUnion = MultiCombinations(Base.oneto(n), n, k, inplace)
 
 
 @doc raw"""
@@ -46,8 +46,6 @@ julia> collect(multicombinations(['a', 'b', 'c'], 2))
 ```
 """
 multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
-
-MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombinations(v, T(length(v)), k)
 
 
 @inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = C.k == 0 ? U[] : (s = ones(U, C.k); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}

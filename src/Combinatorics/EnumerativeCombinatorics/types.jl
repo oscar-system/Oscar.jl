@@ -401,24 +401,44 @@ end
 #
 ################################################################################
 
-struct Combinations{T, U<:IntegerUnion}
-  v::T
-  n::U
-  k::U
-end
-
 struct Combination{T} <: AbstractVector{T}
   v::Vector{T}
 end
 
+# Iterator type: all combinations of k elements from the vector v
+struct Combinations{T, U<:IntegerUnion}
+  v::T
+  n::U
+  k::U
+
+  inplace::Bool # Whether all generated combinations share the same array in
+                # memory
+
+  function Combinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+    return new{T}(v, n, k, inplace)
+  end
+end
+
+
+Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
 ################################################################################
 #
 #  Multicombination(s)
 #
 ################################################################################
 
+# Iterator type: all combinations of k elements from the vector v with repetition
 struct MultiCombinations{T, U<:IntegerUnion}
   v::T
   n::U
   k::U
+
+  inplace::Bool # Whether all generated combinations share the same array in
+                # memory
+
+  function MultiCombinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+    return new{T}(v, n, k, inplace)
+  end
 end
+
+MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombinations(v, T(length(v)), k)
