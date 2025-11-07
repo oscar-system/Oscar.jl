@@ -415,7 +415,7 @@ struct Combinations{T, U<:IntegerUnion}
                 # memory
 
   function Combinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
-    return new{T}(v, n, k, inplace)
+    return new{T,U}(v, n, k, inplace)
   end
 end
 
@@ -437,7 +437,7 @@ struct MultiCombinations{T, U<:IntegerUnion}
                 # memory
 
   function MultiCombinations(v::T, k::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
-    return new{T}(v, n, k, inplace)
+    return new{T,U}(v, n, k, inplace)
   end
 end
 
