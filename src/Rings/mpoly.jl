@@ -181,7 +181,7 @@ mutable struct BiPolyArray{S}
   end
 end
 
-mutable struct IdealGens{S}
+mutable struct IdealGens{S} <: AbstractVector{S}
   gensBiPolyArray::BiPolyArray{S}
   isGB::Bool
   isReduced::Bool
@@ -300,23 +300,19 @@ end
 
 Base.getindex(A::IdealGens, i::Int) = gen(A, i)
 
-
-function Base.length(A::IdealGens)
-  return length(A.gensBiPolyArray)
-end
-
 function base_ring(A::IdealGens)
   return A.gensBiPolyArray.Ox
 end
 
-function Base.iterate(A::IdealGens, s::Int = 1)
-  if s > length(A)
-    return nothing
-  end
-  return gen(A, s), s+1
+function Base.size(A::IdealGens)
+  return (length(A.gensBiPolyArray),)
 end
 
-Base.eltype(::Type{IdealGens{S}}) where S = S
+function Base.IndexStyle(::Type{<:IdealGens})
+  return Base.IndexLinear()
+end
+
+# length, iterate, eltype are inherited from AbstractVector interface
 
 function gens(I::IdealGens)
   return collect(I)
