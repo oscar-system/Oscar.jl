@@ -62,7 +62,8 @@ combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination{T}(C.v[state]), state
+  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[state])
+  return c, state
 end
 
 Base.length(C::Combinations) = binomial(Int(C.n), Int(C.k))

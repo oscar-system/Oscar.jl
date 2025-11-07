@@ -68,7 +68,9 @@ multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
   if state[1] > C.n
     return nothing
   end
-  return Combination{T}(C.v[state]), state
+
+  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[state])
+  return c, state
 end
 
 Base.length(C::MultiCombinations) = binomial(Int(C.n)+Int(C.k)-1, Int(C.k))
