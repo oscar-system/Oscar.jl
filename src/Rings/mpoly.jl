@@ -181,7 +181,7 @@ mutable struct BiPolyArray{S}
   end
 end
 
-mutable struct IdealGens{S}
+mutable struct IdealGens{S} <: AbstractVector{S}
   gensBiPolyArray::BiPolyArray{S}
   isGB::Bool
   isReduced::Bool
@@ -304,6 +304,8 @@ Base.getindex(A::IdealGens, i::Int) = gen(A, i)
 function Base.length(A::IdealGens)
   return length(A.gensBiPolyArray)
 end
+
+Base.size(A::IdealGens) = (length(A),)
 
 function base_ring(A::IdealGens)
   return A.gensBiPolyArray.Ox
