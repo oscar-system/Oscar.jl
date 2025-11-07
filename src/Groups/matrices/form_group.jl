@@ -799,6 +799,7 @@ function _isometry_group_via_heuristics(
   direct::Bool=true,
   depth::Int=-1,
   bacher_depth::Int=0,
+  set_nice_mono::Bool=true,
 )
   if gram_matrix(L)[1,1] < 0
     L_int = rescale(L, -1)
@@ -820,11 +821,11 @@ function _isometry_group_via_heuristics(
   m2 = maximum(d)
 
   if m2 <= 2*m1 || rank(L) <= 10
-    gens = automorphism_group_generators(L; depth, bacher_depth)
+    gens = automorphism_group_generators(L_int; depth, bacher_depth)
     G = matrix_group(gens)
     sv = Vector{QQFieldElem}[]
   else
-    G, sv = _isometry_group_via_decomposition(L_int; depth, bacher_depth, closed, direct)
+    G, sv = _isometry_group_via_decomposition(L_int; use_heuristics=true, depth, bacher_depth, closed, direct, set_nice_mono)
   end
   return G, sv
 end
@@ -849,6 +850,7 @@ function _isometry_group_via_decomposition(
   direct::Bool=true,
   depth::Int=-1,
   bacher_depth::Int=0,
+  set_nice_mono::Bool=true,
 )
   # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
@@ -873,7 +875,7 @@ function _isometry_group_via_decomposition(
   sv1 = Vector{QQFieldElem}[v*bL for v in _sv1]
   h = _row_span!(_sv1)*bL
   M1 = lattice(V, h)
-  if closed
+  if set_nice_mono && closed
     # basically doubles the memory usage of this function
     # a more elegant way could be to work with the corresponding projective representation
     append!(sv1, [-v for v in sv1])
@@ -897,7 +899,9 @@ function _isometry_group_via_decomposition(
  =#
 
   O1 = matrix_group(automorphism_group_generators(M1primitive; depth, bacher_depth))
-  _set_nice_monomorphism!(O1, sv1; closed)
+  if set_nice_mono
+    _set_nice_monomorphism!(O1, sv1; closed)
+  end
   if rank(M1) == rank(L)
     @hassert :Lattice 2 M1primitive == L
     return O1, sv1
@@ -909,12 +913,12 @@ function _isometry_group_via_decomposition(
   @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
   # recursion
   if use_heuristics
-    O2, sv2 = _isometry_group_via_heuristics(M2; closed, direct, depth, bacher_depth)
+    O2, sv2 = _isometry_group_via_heuristics(M2; closed, direct, depth, bacher_depth, set_nice_mono)
   else
-    O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth)
+    O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth, set_nice_mono)
   end
 
-  if isempty(sv2)
+  if set_nice_mono && isempty(sv2)
     _sv2 = shortest_vectors(M2)
     sv2 = Vector{QQFieldElem}[v*basis_matrix(M2) for v in _sv2]
     if closed
@@ -928,14 +932,13 @@ function _isometry_group_via_decomposition(
     gens12 = vcat(gens(O1), gens(O2))
     G = matrix_group(gens12)
     S, _ = stabilizer(G, L, on_lattices)
-    _set_nice_monomorphism!(S, sv; closed)
-    return S, sv
   else
-    gensS = stabilizer_in_diagonal_action(L, M1primitive, M2, O1, O2; check=false)
+    gensS = stabilizer_in_diagonal_action(L, M1primitive, M2, O1, O2; check=false, is_finite_known=(true, true))
     S = matrix_group(gensS)
   end
-
-  _set_nice_monomorphism!(S, sv; closed)
+  if set_nice_mono
+    _set_nice_monomorphism!(S, sv; closed)
+  end
   return S, sv
 end
 
@@ -973,12 +976,12 @@ function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
   GAP.Globals.SetNiceMonomorphism(GapObj(G), phi.map)
 end
 
-function _row_span!(L::Vector{Vector{ZZRingElem}})
+function _row_span!(L::Vector{Vector{Int}})
   l = length(L)
   d = length(L[1])
   m = min(2*d,l)
-  B = sparse_matrix(matrix(ZZ, m, d, reduce(vcat, L[1:m])))
-  h = matrix(hnf(B; truncate = true))
+  B = sparse_matrix(matrix(ZZ, L))
+  h = matrix(hnf!(B))
   for i in (m+1):l
     b = matrix(ZZ, 1, d, L[i])
     Hecke.reduce_mod_hnf_ur!(b, h)
@@ -989,7 +992,7 @@ function _row_span!(L::Vector{Vector{ZZRingElem}})
       hnf!(h)
     end
   end
-  return h[1:rank(h),:]
+  return h[1:rank(h), :]
 end
 
 automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)

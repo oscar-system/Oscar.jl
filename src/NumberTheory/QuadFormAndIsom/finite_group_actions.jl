@@ -401,6 +401,7 @@ function stabilizer_in_diagonal_action(
     OK::MatrixGroup,
     ON::MatrixGroup;
     check::Bool=true,
+    is_finite_known=(false, false),
   )
   if check
     @req is_integral(L) "Only available for integral lattices"
@@ -410,8 +411,17 @@ function stabilizer_in_diagonal_action(
   end
 
   # Can speed up kernel computations
-  is_finite(OK)
-  is_finite(ON)
+  if is_finite_known[1]
+    set_is_finite(OK, true)
+  else
+    is_finite(OK)
+  end
+
+  if is_finite_known[2]
+    set_is_finite(ON, true)
+  else
+    is_finite(ON)
+  end
 
   # Need the glue map to determine isometries of OK\times ON preserving L in
   # K^\vee\oplus N^\vee
