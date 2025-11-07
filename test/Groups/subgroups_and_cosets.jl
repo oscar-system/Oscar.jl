@@ -305,11 +305,20 @@ end
    dc = double_coset(H, x, K)
    @test !isassigned(dc.X)
    @test !isassigned(dc.size)
+   @test !isassigned(dc.right_coset_reps)
    GapObj(dc)
    @test isassigned(dc.X)
    order(dc)
    @test isassigned(dc.size)
+   @test x in dc
+   @test isassigned(dc.right_coset_reps)
    @test GapObj([dc]; recursive = true) isa GapObj
+
+   @test !(y in dc)
+   @test !decompose(dc, y)[1]
+   r = rand(dc)
+   flag, u, v = decompose(dc, r)
+   @test flag && (r == u*x*v)
 end
 
 @testset "Predicates for groups" begin

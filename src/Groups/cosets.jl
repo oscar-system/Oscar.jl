@@ -592,7 +592,7 @@ the set $HgK = \{ hgk; h \in H, k \in K \}$ is a $H-K$-double coset in $G$.
 
 - [`left_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
 
-- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
+- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $K$.
 
 - [`representative(C::GroupDoubleCoset)`](@ref) returns an element
   (the same element for each call) of `C`.
@@ -607,9 +607,11 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    repr::S
    X::Ref{GapObj}
    size::Ref{ZZRingElem}
+   right_coset_reps::Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}
 
    function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
-     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}())
+     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}(),
+                      Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}())
    end
 end
 
@@ -874,9 +876,89 @@ function Base.in(g::GAPGroupElem, C::GroupCoset)
 end
 
 function Base.in(g::GAPGroupElem, C::GroupDoubleCoset)
-  return GapObj(g) in GapObj(C)
-#TODO: avoid delegation to GAP?
-# (GAP uses `RepresentativesContainedRightCosets`, `CanonicalRightCosetElement`)
+  if !isassigned(C.right_coset_reps)
+    C.right_coset_reps[] = _right_coset_reps(C)
+  end
+  canon = GAP.Globals.CanonicalRightCosetElement(GapObj(left_acting_group(C)), GapObj(g))
+  return haskey(C.right_coset_reps[], group_element(group(C), canon))
+end
+
+"""
+    decompose(C::GroupDoubleCoset, x::GAPGroupElem)
+
+Return `flag, u, v` such that `flag` is `true` if `x` is an element
+of `C`, and `false` otherwise.
+
+If `flag = true` then `x = u*g*v` holds where `g` is `representative(C)`,
+`u` is an element of `left_acting_group(C)`,
+and `v` is an element of `right_acting_group(C)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> H = sylow_subgroup(G, 2)[1]; K = sylow_subgroup(G, 3)[1];
+
+julia> x = gen(G, 1); C = double_coset(H, x, K);
+
+julia> d = decompose(C, x^3)
+(true, (1,3)(2,4), (1,3,2))
+
+julia> d[2] * x * d[3] == x^3
+true
+
+julia> decompose(C, x^2)
+(false, (), ())
+```
+"""
+function decompose(C::GroupDoubleCoset, x::GAPGroupElem)
+  G = group(C)
+  U = left_acting_group(C)
+  if !isassigned(C.right_coset_reps)
+    C.right_coset_reps[] = _right_coset_reps(C)
+  end
+  GAP_x = GapObj(x)
+  GAP_y = GAP.Globals.CanonicalRightCosetElement(GapObj(U), GAP_x)
+  y = group_element(G, GAP_y)
+  haskey(C.right_coset_reps[], y) || return false, one(U), one(right_acting_group(C))
+  u, v = C.right_coset_reps[][y]
+  return true, group_element(U, GAP_x/GAP_y)*u, v
+end
+
+# Compute the data for the (constructive) membership test.
+function _right_coset_reps(C::GroupDoubleCoset)
+  # `C = UxV`
+  G = group(C)
+  U = left_acting_group(C)
+  V = right_acting_group(C)
+  Gx = representative(C)
+  x = GapObj(Gx)
+  GAP_U = GapObj(U)
+
+  # `C` is a disjoint union of right cosets `Ur`
+  # where each representative `r` is canonical and has the form `u_r*x*v_r`,
+  # with `u_r` in `U` and `v_r` in `V`.
+  # `data` stores `(u_r, v_r)` at the key `r`.
+  y = GAP.Globals.CanonicalRightCosetElement(GAP_U, x)
+  Gy = group_element(G, y)
+  data = Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}(Gy => (group_element(U, y/x), one(V)))
+  orb = [Gy]
+  for Gr in orb
+    r = GapObj(Gr)
+    for v in gens(V)
+      rv = r*GapObj(v)
+      k = GAP.Globals.CanonicalRightCosetElement(GAP_U, rv)
+      Gk = group_element(G, k)
+      if !(Gk in orb)
+        # `k = u*r*v` for some `u` in `U`
+        # `r = u_r*x*v_r` means `u_k = u*u_r`, `v_k = v_r*v`.
+        u_r, v_r = data[Gr]
+        data[Gk] = (group_element(U, k/rv)*u_r, v_r*v)
+        push!(orb, Gk)
+      end
+    end
+  end
+  return data
 end
 
 Base.IteratorSize(::Type{<:GroupCoset{TG, TH, S}}) where {TG, TH, S} = Base.IteratorSize(TH)
