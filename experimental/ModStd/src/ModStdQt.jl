@@ -322,7 +322,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
       @vprint :ModStdQt 2 "using evaluation point $pt\n"
       @vtime :ModStdQt 2 for g = gens(I)
         G = MPolyBuildCtx(Qy)
-        for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+        for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
           push_term!(G, evaluate(c, pt, error_tolerant = true), e)
         end
         push!(gens_J, finish(G))
@@ -335,7 +335,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
         for _g = gJ
           g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
           f = []
-          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
             push!(f, (e, Vals(Vector{T}[[c]])))
           end
           push!(lst, f)
@@ -346,7 +346,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
           g = gJ[ig]
           g *= inv(AbstractAlgebra.leading_coefficient(g))
           jg = 1
-          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
               @assert lst[ig][jg][1] == e
 #              @show ig, jg

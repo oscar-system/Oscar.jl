@@ -493,7 +493,7 @@ false
   try
     homogeneous_component(R, zero(G))
   catch e
-    if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
       return false
     else
       rethrow(e)
@@ -981,8 +981,8 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
-MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(forget_decoration(f))
+AbstractAlgebra.coefficients(f::MPolyDecRingElem) = AbstractAlgebra.coefficients(forget_decoration(f))
+AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem) = AbstractAlgebra.exponent_vectors(forget_decoration(f))
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1106,7 +1106,7 @@ function degree(a::MPolyDecRingElem; check::Bool=true)
   w = W.D[0]
   first = true
   d = W.d
-  for c = MPolyExponentVectors(forget_decoration(a))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(a))
     u = W.D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1180,7 +1180,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   d = parent(F).d
   S = nothing
   u = zero(D)
-  for c = MPolyExponentVectors(forget_decoration(F))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(F))
     u = zero!(u)
     for i=1:length(c)
       u = addmul_delayed_reduction!(u, d[i], c[i])
@@ -1459,7 +1459,17 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
      #Ax = b, Cx >= 0
      C = identity_matrix(ZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)
+
+     k = try
+       solve_mixed(transpose(A), transpose(d.coeff), C)
+     catch e
+       if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+         rethrow(ArgumentError("The considered graded component is infinite-dimensional"))
+       else
+         rethrow(e)
+       end
+     end
+
      for ee = 1:nrows(k)
        e = k[ee, :]
        a = MPolyBuildCtx(forget_decoration(W))
@@ -1503,7 +1513,7 @@ an integer `d`, convert `d` into an element `g` of the grading group of `R`
 proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error will be thrown.
+    If the component is infinite dimensional, an error will be thrown.
 
 # Examples
 ```jldoctest
