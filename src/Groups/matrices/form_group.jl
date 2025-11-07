@@ -784,7 +784,7 @@ end
     _isometry_group_via_heuristics(
       L::ZZLat;
       closed::Bool=true,
-      discriminant_action::Bool=false,
+      direct::Bool=true,
       depth::Int=-1,
       bacher_depth::Int=0,
     ) -> MatrixGroup, Vector{QQMatrix}
@@ -796,7 +796,7 @@ matrix of `L`.
 function _isometry_group_via_heuristics(
   L::ZZLat;
   closed::Bool=true,
-  discriminant_action::Bool=false,
+  direct::Bool=true,
   depth::Int=-1,
   bacher_depth::Int=0,
   set_nice_mono::Bool=true,
@@ -825,7 +825,7 @@ function _isometry_group_via_heuristics(
     G = matrix_group(gens)
     sv = Vector{QQFieldElem}[]
   else
-    G, sv = _isometry_group_via_decomposition(L_int; use_heuristics=true, depth, bacher_depth, closed, discriminant_action, set_nice_mono)
+    G, sv = _isometry_group_via_decomposition(L_int; use_heuristics=true, depth, bacher_depth, closed, direct, set_nice_mono)
   end
   return G, sv
 end
@@ -835,7 +835,7 @@ end
       L::ZZLat;
       use_heuristics::Bool=false,
       closed::Bool=true,
-      discriminant_action::Bool=false,
+      direct::Bool=true,
       depth::Int=-1,
       bacher_depth::Int=0,
     ) -> MatrixGroup, Vector{QQMatrix}
@@ -847,7 +847,7 @@ function _isometry_group_via_decomposition(
   L::ZZLat;
   use_heuristics::Bool=false,
   closed::Bool=true,
-  discriminant_action::Bool=false,
+  direct::Bool=true,
   depth::Int=-1,
   bacher_depth::Int=0,
   set_nice_mono::Bool=true,
@@ -859,7 +859,7 @@ function _isometry_group_via_decomposition(
     L = rescale(L, -1)
   end
 
-  if discriminant_action
+  if !direct
     d = denominator(scale(L))
     if d > 1
       L = rescale(L, d)
@@ -913,9 +913,9 @@ function _isometry_group_via_decomposition(
   @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
   # recursion
   if use_heuristics
-    O2, sv2 = _isometry_group_via_heuristics(M2; closed, discriminant_action, depth, bacher_depth, set_nice_mono)
+    O2, sv2 = _isometry_group_via_heuristics(M2; closed, direct, depth, bacher_depth, set_nice_mono)
   else
-    O2, sv2 = _isometry_group_via_decomposition(M2; closed, discriminant_action, depth, bacher_depth, set_nice_mono)
+    O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth, set_nice_mono)
   end
 
   if set_nice_mono && isempty(sv2)
@@ -928,7 +928,7 @@ function _isometry_group_via_decomposition(
   sv = append!(sv1, sv2)
 
   # In what follows we compute the stabilizer of L in O1 x O2
-  if !discriminant_action
+  if direct
     gens12 = vcat(gens(O1), gens(O2))
     G = matrix_group(gens12)
     S, _ = stabilizer(G, L, on_lattices)
