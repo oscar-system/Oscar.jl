@@ -41,3 +41,39 @@
   @test !is_zero(map(css[p], 3, -2))
 end
 
+@testset "Cech complex vs. local cohomology" begin
+  m = 1
+  n = 1
+  X = projective_space(NormalToricVariety, m)*projective_space(NormalToricVariety, n)
+  S = cox_ring(X)
+  I = ideal(S, gens(S)[1:m+1])
+  J = ideal(S, gens(S)[m+2:end])
+  M1 = quotient_ring_as_module(I)
+  M2 = quotient_ring_as_module(J*J)
+  res1, _ = free_resolution(Oscar.SimpleFreeResolution, M1)
+  res2, _ = free_resolution(Oscar.SimpleFreeResolution, M2)
+  res3, _ = free_resolution(Oscar.SimpleFreeResolution, quotient_ring_as_module(I*J*J))
+  res = total_complex(tensor_product(res1, res2))
+
+  css = Oscar.CohomologySpectralSequence(X, res3; algorithm=:ext);
+  @assert !is_zero(map(css[3], 3, -2))
+
+  css = Oscar.CohomologySpectralSequence(X, res; algorithm=:ext);
+  @assert !is_zero(map(css[2], 2, -1))
+  @assert !is_zero(map(css[2], 4, -2))
+
+  css = Oscar.CohomologySpectralSequence(X, res3; algorithm=:cech);
+  ctx = css.pfctx;
+  ctx.fixed_exponent_vector = [5 for _ in 1:length(Oscar.cech_complex_generators(ctx))]
+  p=1
+  [ngens(css[p, i, j]) for j in 0:-1:-dim(X), i in 0:dim(X)+1]
+  @test !all(is_zero, [css[p, i, j] for j in 0:-1:-dim(X), i in 0:dim(X)+1])
+  p=m + n + 2
+  @test all(is_zero, [css[p, i, j] for j in 0:-1:-dim(X), i in 0:dim(X)+1])
+  
+  css = Oscar.CohomologySpectralSequence(X, res; algorithm=:cech);
+  ctx = css.pfctx;
+  ctx.fixed_exponent_vector = [5 for _ in 1:length(Oscar.cech_complex_generators(ctx))]
+  @test all(is_zero, [css[p, i, j] for j in 0:-1:-dim(X), i in 0:dim(X)+1])
+end
+
