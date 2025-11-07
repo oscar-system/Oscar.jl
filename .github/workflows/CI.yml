@@ -46,7 +46,8 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -219,7 +220,8 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'
@@ -292,7 +294,7 @@ jobs:
 
   test-mongodb:
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.julia-version == '1.12-nightly' || matrix.julia-version == 'nightly' }}
+    continue-on-error: ${{ contains(matrix.julia-version, 'nightly') }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -300,7 +302,8 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
 

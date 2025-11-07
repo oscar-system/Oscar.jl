@@ -64,7 +64,7 @@ gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
 number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
-base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = base_ring_type(S)
+base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = parent_type(S)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
