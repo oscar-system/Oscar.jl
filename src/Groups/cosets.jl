@@ -884,7 +884,7 @@ function Base.in(g::GAPGroupElem, C::GroupDoubleCoset)
 end
 
 """
-    decompose(C::GroupDoubleCoset, x::GAPGroupElem)
+   _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
 
 Return `flag, u, v` such that `flag` is `true` if `x` is an element
 of `C`, and `false` otherwise.
@@ -901,17 +901,14 @@ julia> H = sylow_subgroup(G, 2)[1]; K = sylow_subgroup(G, 3)[1];
 
 julia> x = gen(G, 1); C = double_coset(H, x, K);
 
-julia> d = decompose(C, x^3)
+julia> d =Oscar._decompose(C, x^3)
 (true, (1,3)(2,4), (1,3,2))
 
 julia> d[2] * x * d[3] == x^3
 true
 
-julia> decompose(C, x^2)
+julia> Oscar._decompose(C, x^2)
 (false, (), ())
-```
-"""
-function decompose(C::GroupDoubleCoset, x::GAPGroupElem)
   G = group(C)
   U = left_acting_group(C)
   if !isassigned(C.right_coset_reps)
