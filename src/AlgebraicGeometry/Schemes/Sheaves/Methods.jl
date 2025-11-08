@@ -830,7 +830,6 @@ function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSchem
     res_cod2 = M(U_cod, UV_cod)
     img_coords = coordinates.(img_gens)
     if !all(repres(v) == repres(g) for (v, g) in zip(images_of_generators(res_cod2), gens(M(UV_cod))))
-      @show UV_cod
       img, _ = image(res_cod2)
       img_coords = [coordinates(img(repres(v))) for v in img_gens]
     end
