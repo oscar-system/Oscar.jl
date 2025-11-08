@@ -315,9 +315,9 @@ end
    @test GapObj([dc]; recursive = true) isa GapObj
 
    @test !(y in dc)
-   @test !decompose(dc, y)[1]
+   @test !Oscar._decompose(dc, y)[1]
    r = rand(dc)
-   flag, u, v = decompose(dc, r)
+   flag, u, v = Oscar._decompose(dc, r)
    @test flag && (r == u*x*v)
 end
 
