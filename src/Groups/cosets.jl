@@ -909,6 +909,8 @@ true
 
 julia> Oscar._decompose(C, x^2)
 (false, (), ())
+"""
+function _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
   G = group(C)
   U = left_acting_group(C)
   if !isassigned(C.right_coset_reps)
