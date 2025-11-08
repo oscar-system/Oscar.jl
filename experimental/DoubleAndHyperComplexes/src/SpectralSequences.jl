@@ -767,11 +767,23 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
+  # we store the multiplication maps in weak dictionaries. 
+  # The same polynomial tends to appear multiple times in the matrices of a 
+  # given complex; for instance, the Koszul complex has the same `n` polynomials 
+  # all over itself, but with different signs. Using weak dictionaries should 
+  # prevent us from memory overflows. 
   cache = get!(ctx.mult_map_cache, (e0, d0, j)) do
     WeakKeyDict{typeof(p), Map}()
   end
+  # If the map is already known for the negative of a given polynomial, use that.
   neg_res = get(cache, -p, nothing)
   !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  # We want to use as little cache as possible while still providing reasonable speed. 
+  # The bases of the free modules in question are usually quite big. Storing a list of 
+  # images of generators is therefore rather costly, even though they will be sparse. 
+  # Given the nature of the setup, the relevant information to compute the image of an 
+  # element is already stored in a format which allows for fast evaluation by means 
+  # different from taking a linear combination. 
   return get!(cache, p) do
     d1 = d0 + degree(p; check=false)
     dom_cplx = ctx[e0, d0]
@@ -779,38 +791,35 @@ function multiplication_map(
     dom = dom_cplx[j]
     cod = cod_cplx[j]
 
-    img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
     S = cox_ring(toric_variety(ctx))
     R = base_ring(cod)
-    internal_cache = Dict{Tuple{Int, Vector{Int}}, sparse_row_type(R)}()
+    mult_cache = Dict{Int, sparse_row_type(R)}() # store the image of the `i`-th generator
     return MapFromFunc(dom, cod, function(v)
                          res_coords = sparse_row(R)
                          for (i, q) in coordinates(v)
-                           for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
-                             row = get!(internal_cache, (i, e)) do
+                           # `q` will be an element of `R`, the parameter ring.
+                           img_gen = get!(mult_cache, i) do
+                             new_row = sparse_row(R)
+                             for (c, e) in zip(AbstractAlgebra.coefficients(p), 
+                                               AbstractAlgebra.exponent_vectors(p))
+                               # While the coefficient `c` is in `R`, the multiplication
+                               # map ϕₑfor the monomial for `e` is determined in the ring 
+                               # `S` over `kk`. We need to construct ϕₑ ⊗ R.
                                mon = S([one(QQ)], [e])
                                mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+                               # `domain(mon_mult)` and `dom` have generating sets so that 
+                               # `dom[i] = domain(mon_mult)[i] ⊗ R`. 
                                mon_gen = domain(mon_mult)[i]
-                               map_entries(R, coordinates(mon_mult(mon_gen)))
+                               row = map_entries(R, coordinates(mon_mult(mon_gen)))
+                               new_row = Hecke.add_scaled_row!(row, new_row, c)
                              end
-                             res_coord = Hecke.add_scaled_row!(row, res_coords, c*q)
+                             new_row
                            end
+                           res_coords = Hecke.add_scaled_row!(img_gen, res_coords, q)
                          end
                          return cod(res_coords)
                        end
                       )
-    for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
-      mon = S([one(QQ)], [e])
-      mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
-      for (i, g) in enumerate(gens(domain(mon_mult)))
-        v = mon_mult(g)
-        is_zero(v) && continue
-        # tuned version of 
-        # img_gens[i] += c*FreeModElem(map_entries(ctx.R, coordinates(v)), cod)
-        img_gens[i] = FreeModElem(Hecke.add_scaled_row!(map_entries(ctx.R, coordinates(v)), coordinates(img_gens[i]), c), cod) 
-      end
-    end
-    return hom(dom, cod, img_gens; check=false)
   end
 end
 
@@ -852,6 +861,6 @@ end
 
 function set_global_exponent_vector!(css::CohomologySpectralSequence, k::Int)
   @assert css.pfctx isa ToricCtx "manual setting of exponent vectors is only supported in the toric setup"
-  return set_global_exponent_vector!(css.pfctx, k)
+  return set_global_exponent_vector!(css.pfctx, Int[k for _ in 1:length(cech_complex_generators(css.pfctx))])
 end
 
