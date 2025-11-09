@@ -220,8 +220,6 @@ end
 function cylinder_structure(o::Origami)
   gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
   cyl_lists = Vector{Vector{Int}}(gap_obj)
-  # TODO do we want the structure as a list of length-two lists or as
-  # a list of tuples? Current solution uses tuples.
   cyl_tuples = [(l[1], l[2]) for l in cyl_lists]
   return cyl_tuples
 end
