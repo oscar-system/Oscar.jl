@@ -121,7 +121,7 @@ function stratum(o::Origami)
   commutator = comm(h, v)
   cycs = cycles(commutator)
   unsorted_stratum = [length(c) - 1 for c in cycs if length(c) > 1]
-  return sort!(unsorted_stratum, rev=true)
+  return sort!(unsorted_stratum; rev=true)
 end
 
 @doc raw"""
@@ -208,11 +208,11 @@ function is_hyperelliptic(o::Origami)
     # fixpoints
     b = 0
     b = b + length(list_diff(degree_list, moved_points(sigma)))
-    b = b + length(list_diff(degree_list, moved_points(sigma*x)))
-    b = b + length(list_diff(degree_list, moved_points(sigma*y)))
+    b = b + length(list_diff(degree_list, moved_points(sigma * x)))
+    b = b + length(list_diff(degree_list, moved_points(sigma * y)))
 
     for i in degree_list
-      if i^(sigma * x^-1 * y^-1) == i^(y*x*(x*y)^-1)
+      if i^(sigma * x^-1 * y^-1) == i^(y * x * (x * y)^-1)
         b = b + 1
       end
     end
