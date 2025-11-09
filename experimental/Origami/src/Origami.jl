@@ -158,22 +158,13 @@ end
 function translations(o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
-  G = normalform_conjugators(o)
 
-  O = (i -> origami(i^-1 * h * i, i^-1 * v * i)).(G)
-  list = [cperm([degree(o)])]
-
-  l = length(O)
-  for i in 1:l
-    positions = findall(item -> item == O[i], O)
-    if length(positions) != 1
-      for j in positions
-        push!(list, G[i] * G[j]^-1)
-      end
-    end
+  function act_on_tuples_by_conj(tup::Vector{PermGroupElem}, g::PermGroupElem)
+    return [tup[1]^g, tup[2]^g]
   end
 
-  return collect(Set(list))
+  S = stabilizer(symmetric_group(degree(o)), [h, v], act_on_tuples_by_conj)[1]
+  return elements(S)
 end
 
 function is_hyperelliptic(o::Origami)
