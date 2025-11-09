@@ -1,16 +1,15 @@
 # Add your new types, functions, and methods here.
 
-
 module OrigamiHelper
 
 using ..GAP
 
 function __init__()
-    mod_p = "https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g"
-    ori_p = "https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g"
-    GAP.Packages.install(mod_p)
-    GAP.Packages.install(ori_p)
-    GAP.Packages.load("Origami")
+  mod_p = "https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g"
+  ori_p = "https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g"
+  GAP.Packages.install(mod_p)
+  GAP.Packages.install(ori_p)
+  GAP.Packages.load("Origami")
 end
 
 end
@@ -48,51 +47,51 @@ Origami ((1,2),(2,3), 3)
 ```
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
-    d = max(degree(h), degree(v))
-    G = symmetric_group(d)
-    obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
-    return Origami(obj, G(h), G(v), d)
+  d = max(degree(h), degree(v))
+  G = symmetric_group(d)
+  obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
+  return Origami(obj, G(h), G(v), d)
 end
 
 # ugly workaround
 function from_GAP_origami(o::GapObj)
-    d = GAP.Globals.DegreeOrigami(o)::Int
-    G = symmetric_group(d)
-    h = PermGroupElem(G, GAP.Globals.HorizontalPerm(o))
-    v = PermGroupElem(G, GAP.Globals.VerticalPerm(o))
-    return origami(h, v)
+  d = GAP.Globals.DegreeOrigami(o)::Int
+  G = symmetric_group(d)
+  h = PermGroupElem(G, GAP.Globals.HorizontalPerm(o))
+  v = PermGroupElem(G, GAP.Globals.VerticalPerm(o))
+  return origami(h, v)
 end
 
 function origami_disconnected(h::PermGroupElem, v::PermGroupElem, d::Integer)
-    return Origami(GAP.Globals.OrigamiNC(GapObj(h), GapObj(v), d), h, v, d)
+  return Origami(GAP.Globals.OrigamiNC(GapObj(h), GapObj(v), d), h, v, d)
 end
 
 function Base.:(==)(a::Origami, b::Origami)
-    # TODO rewrite this? for now use Gap equality
-    return (a.h == b.h) && (a.v == b.v)
+  # TODO rewrite this? for now use Gap equality
+  return (a.h == b.h) && (a.v == b.v)
 end
 
 function Base.hash(o::Origami, h::UInt=0x000000000)
-    return hash(o.h, hash(o.v, hash(o.d, h)))
+  return hash(o.h, hash(o.v, hash(o.d, h)))
 end
 
 function horizontal_perm(o::Origami)
-    return o.h
+  return o.h
 end
 
 function vertical_perm(o::Origami)
-    return o.v
+  return o.v
 end
 
 function degree(o::Origami)
-    return o.d
+  return o.d
 end
 
 function Base.show(io::IO, o::Origami)
-    h = horizontal_perm(o)
-    v = vertical_perm(o)
-    d = degree(o)
-    print(io, "Origami ($(h),$(v), $(d))")
+  h = horizontal_perm(o)
+  v = vertical_perm(o)
+  d = degree(o)
+  print(io, "Origami ($(h),$(v), $(d))")
 end
 
 GapObj(O::Origami) = O.o
@@ -117,12 +116,12 @@ julia> stratum(o)
 ```
 """
 function stratum(o::Origami)
-    h = horizontal_perm(o)
-    v = vertical_perm(o)
-    commutator = comm(h, v)
-    cycs = cycles(commutator)
-    unsorted_stratum = [length(c) - 1 for c in cycs if length(c) > 1]
-    return sort!(unsorted_stratum, rev=true)
+  h = horizontal_perm(o)
+  v = vertical_perm(o)
+  commutator = comm(h, v)
+  cycs = cycles(commutator)
+  unsorted_stratum = [length(c) - 1 for c in cycs if length(c) > 1]
+  return sort!(unsorted_stratum, rev=true)
 end
 
 @doc raw"""
@@ -140,194 +139,193 @@ julia> genus(o)
 ```
 """
 function genus(o::Origami)
-    return ZZ((sum(stratum(o)) + 2) / 2)
+  return ZZ((sum(stratum(o)) + 2) / 2)
 end
 
 function veech_group(O::Origami)
-    # TODO use hashtables or not? Implement modular subgroup?
-    GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))
+  # TODO use hashtables or not? Implement modular subgroup?
+  GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))
 end
 
 function index_monodromy_group(o::Origami)
-    return GAP.Globals.IndexOfMonodromyGroup(GapObj(o))::Int
+  return GAP.Globals.IndexOfMonodromyGroup(GapObj(o))::Int
 end
 
 function sum_of_lyapunov_exponents(o::Origami)
-    return QQFieldElem(GAP.Globals.SumOfLyapunovExponents(GapObj(o)))
+  return QQFieldElem(GAP.Globals.SumOfLyapunovExponents(GapObj(o)))
 end
 
 function translations(o::Origami)
-    h = horizontal_perm(o)
-    v = vertical_perm(o)
-    G = normalform_conjugators(o)
+  h = horizontal_perm(o)
+  v = vertical_perm(o)
+  G = normalform_conjugators(o)
 
-    O = (i -> origami(i^-1 * h * i, i^-1 * v * i)).(G)
-    list = [cperm([degree(o)])]
+  O = (i -> origami(i^-1 * h * i, i^-1 * v * i)).(G)
+  list = [cperm([degree(o)])]
 
-    l = length(O)
-    for i in 1:l
-        positions = findall(item -> item == O[i], O)
-        if length(positions) != 1
-            for j in positions
-                push!(list, G[i] * G[j]^-1)
-            end
-        end
+  l = length(O)
+  for i in 1:l
+    positions = findall(item -> item == O[i], O)
+    if length(positions) != 1
+      for j in positions
+        push!(list, G[i] * G[j]^-1)
+      end
     end
+  end
 
-    return collect(Set(list))
+  return collect(Set(list))
 end
 
 function is_hyperelliptic(o::Origami)
-    # check whether -1 is in the veech group
-	if !veech_group_is_even(o) 
-        return false
-    end
-
-    n = 2
-    n_inv = 1 / 2
-	x = horizontal_perm(o)
-	y = vertical_perm(o)
-	g = genus(o)
-
-    L = point_reflections(o)
-	L = filter(i -> order(i) == 2, L)
-
-	if L == []
-        return false
-    end
-
-    # helper to find all elements in x that are not in y
-    function list_diff(x, y)
-        set_1 = Set(x)
-        set_2 = Set(y)
-        diff = setdiff(set_1, set_2)
-        return collect(diff)
-    end
-
-    degree_list = collect(1:degree(o))
-    for sigma in L
-        # fixpoints
-        b = 0
-        b = b + length(list_diff(degree_list, moved_points(sigma)))
-        b = b + length(list_diff(degree_list, moved_points(sigma*x)))
-        b = b + length(list_diff(degree_list, moved_points(sigma*y)))
-
-        for i in degree_list
-            if i^(sigma * x^-1 * y^-1) == i^(y*x*(x*y)^-1)
-                b = b + 1
-            end
-        end
-
-        # TODO can n_inv yields floating point errors?
-        if n_inv * (g - 1 - b * 0.5) + 1 == 0
-            return true
-        end
-    end
-
+  # check whether -1 is in the veech group
+  if !veech_group_is_even(o)
     return false
+  end
+
+  n = 2
+  n_inv = 1 / 2
+  x = horizontal_perm(o)
+  y = vertical_perm(o)
+  g = genus(o)
+
+  L = point_reflections(o)
+  L = filter(i -> order(i) == 2, L)
+
+  if L == []
+    return false
+  end
+
+  # helper to find all elements in x that are not in y
+  function list_diff(x, y)
+    set_1 = Set(x)
+    set_2 = Set(y)
+    diff = setdiff(set_1, set_2)
+    return collect(diff)
+  end
+
+  degree_list = collect(1:degree(o))
+  for sigma in L
+    # fixpoints
+    b = 0
+    b = b + length(list_diff(degree_list, moved_points(sigma)))
+    b = b + length(list_diff(degree_list, moved_points(sigma*x)))
+    b = b + length(list_diff(degree_list, moved_points(sigma*y)))
+
+    for i in degree_list
+      if i^(sigma * x^-1 * y^-1) == i^(y*x*(x*y)^-1)
+        b = b + 1
+      end
+    end
+
+    # TODO can n_inv yields floating point errors?
+    if n_inv * (g - 1 - b * 0.5) + 1 == 0
+      return true
+    end
+  end
+
+  return false
 end
 
 function cylinder_structure(o::Origami)
-    gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
-    cyl_lists = Vector{Vector{Int}}(gap_obj)
-    # TODO do we want the structure as a list of length-two lists or as
-    # a list of tuples? Current solution uses tuples.
-    cyl_tuples = [(l[1], l[2]) for l in cyl_lists]
-    return cyl_tuples
+  gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
+  cyl_lists = Vector{Vector{Int}}(gap_obj)
+  # TODO do we want the structure as a list of length-two lists or as
+  # a list of tuples? Current solution uses tuples.
+  cyl_tuples = [(l[1], l[2]) for l in cyl_lists]
+  return cyl_tuples
 end
 
 function veech_group_and_orbit(o::Origami)
-    return GAP.Globals.VeechGroupAndOrbit(GapObj(o))
+  return GAP.Globals.VeechGroupAndOrbit(GapObj(o))
 end
 
 function veech_group_is_even(o::Origami)
-    return GAP.Globals.VeechGroupIsEven(GapObj(o))::Bool
+  return GAP.Globals.VeechGroupIsEven(GapObj(o))::Bool
 end
 
 function are_equivalent(o1::Origami, o2::Origami)
-    return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))::Bool
+  return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))::Bool
 end
 
 # TODO why is this not in canonical.jl?
 function normalform_conjugators(o::Origami)
-    x = horizontal_perm(o)
-    y = vertical_perm(o)
-    n = degree(o)
-    G = []
+  x = horizontal_perm(o)
+  y = vertical_perm(o)
+  n = degree(o)
+  G = []
 
-    # Starting from each of the vertices found above, do a breadth-first search
-	# and list the vertices in the order they appear.
-	# This defines a permutation l with which we conjugate x and y.
-	# From the resulting list of pairs of permutations (all of which are by
-	# definition simultaneously conjugated to (x,y)) we choose the
-	# lexicographically smallest one as the canonical form.
-    for i in 1:n
-        L = fill(0, n)
-        seen = fill(false, n)
-        Q = [i]
-        seen[i] = true
-        numSeen = 1
-        L[i] = 1
-        while numSeen < n
-            v = popfirst!(Q)
-            wx = v^x
-            wy = v^y
-            if !seen[wx]
-                push!(Q, wx)
-                seen[wx] = true
-                numSeen = numSeen + 1
-                L[wx] = numSeen
-            end
-            if !seen[wy]
-                push!(Q, wy)
-                seen[wy] = true
-                numSeen = numSeen + 1
-                L[wy] = numSeen
-            end
-        end
-        push!(G, L)
+  # Starting from each of the vertices found above, do a breadth-first search
+  # and list the vertices in the order they appear.
+  # This defines a permutation l with which we conjugate x and y.
+  # From the resulting list of pairs of permutations (all of which are by
+  # definition simultaneously conjugated to (x,y)) we choose the
+  # lexicographically smallest one as the canonical form.
+  for i in 1:n
+    L = fill(0, n)
+    seen = fill(false, n)
+    Q = [i]
+    seen[i] = true
+    numSeen = 1
+    L[i] = 1
+    while numSeen < n
+      v = popfirst!(Q)
+      wx = v^x
+      wy = v^y
+      if !seen[wx]
+        push!(Q, wx)
+        seen[wx] = true
+        numSeen = numSeen + 1
+        L[wx] = numSeen
+      end
+      if !seen[wy]
+        push!(Q, wy)
+        seen[wy] = true
+        numSeen = numSeen + 1
+        L[wy] = numSeen
+      end
     end
+    push!(G, L)
+  end
 
-    return perm.(G)
+  return perm.(G)
 end
 
 function point_reflections(o::Origami)
-    if !veech_group_is_even(o)
-        throw("VeechGroup must contain -1")
-    end
+  if !veech_group_is_even(o)
+    throw("VeechGroup must contain -1")
+  end
 
-    h = horizontal_perm(o)
-    v = vertical_perm(o)
-    o1 = origami(h^-1, v^-1)
-    h1 = horizontal_perm(o1)
-    v1 = vertical_perm(o1)
-    G = normalform_conjugators(o)
-    G1 = normalform_conjugators(o1)
+  h = horizontal_perm(o)
+  v = vertical_perm(o)
+  o1 = origami(h^-1, v^-1)
+  h1 = horizontal_perm(o1)
+  v1 = vertical_perm(o1)
+  G = normalform_conjugators(o)
+  G1 = normalform_conjugators(o1)
 
-    f(i) = origami(i^-1 * h * i, i^-1 * v * i)
-    f1(i) = origami(i^-1 * h1 * i, i^-1 * v1 * i)
+  f(i) = origami(i^-1 * h * i, i^-1 * v * i)
+  f1(i) = origami(i^-1 * h1 * i, i^-1 * v1 * i)
 
-    # origamis derived from the permutations above
-    O = f.(G)
-    # we need to calculate these to test find k s.t.
-    # sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
-    O1 = f1.(G1)
+  # origamis derived from the permutations above
+  O = f.(G)
+  # we need to calculate these to test find k s.t.
+  # sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
+  O1 = f1.(G1)
 
-    # fitting the permuations together
-    result::Vector{PermGroupElem} = []
+  # fitting the permuations together
+  result::Vector{PermGroupElem} = []
 
-    l = length(O)
-    for i in 1:l
-        index = findfirst(item -> item == O[i], O1)
-        push!(result, G[i] * (G1[index])^-1)
-    end
+  l = length(O)
+  for i in 1:l
+    index = findfirst(item -> item == O[i], O1)
+    push!(result, G[i] * (G1[index])^-1)
+  end
 
-    # Remove duplicates - TODO better solution?
-    return collect(Set(result))
+  # Remove duplicates - TODO better solution?
+  return collect(Set(result))
 end
 
 function automorphisms(o::Origami)
-    # TODO is this structure useful?
-    return (translations(o),1), (point_reflections(o),-1)
+  # TODO is this structure useful?
+  return (translations(o), 1), (point_reflections(o), -1)
 end
-
