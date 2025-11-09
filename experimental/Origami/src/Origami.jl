@@ -282,8 +282,8 @@ function point_reflections(o::Origami)
   G = normalform_conjugators(o)
   G1 = normalform_conjugators(o1)
 
-  f(i) = origami(i^-1 * h * i, i^-1 * v * i)
-  f1(i) = origami(i^-1 * h1 * i, i^-1 * v1 * i)
+  f(i) = origami(h^i, v^i)
+  f1(i) = origami(h1^i, v1^i)
 
   # origamis derived from the permutations above
   O = f.(G)
@@ -292,7 +292,7 @@ function point_reflections(o::Origami)
   O1 = f1.(G1)
 
   # fitting the permuations together
-  result::Vector{PermGroupElem} = []
+  result = PermGroupElem[]
 
   l = length(O)
   for i in 1:l
@@ -300,8 +300,7 @@ function point_reflections(o::Origami)
     push!(result, G[i] * (G1[index])^-1)
   end
 
-  # Remove duplicates - TODO better solution?
-  return collect(Set(result))
+  return unique!(result)
 end
 
 function automorphisms(o::Origami)
