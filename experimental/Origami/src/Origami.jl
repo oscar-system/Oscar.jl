@@ -230,7 +230,8 @@ function normalform_conjugators(o::Origami)
   x = horizontal_perm(o)
   y = vertical_perm(o)
   n = degree(o)
-  G = []
+  G = PermGroupElem[]
+  sym = parent(x)
 
   # Starting from each of the vertices found above, do a breadth-first search
   # and list the vertices in the order they appear.
@@ -262,10 +263,10 @@ function normalform_conjugators(o::Origami)
         L[wy] = numSeen
       end
     end
-    push!(G, L)
+    push!(G, perm(sym, L))
   end
 
-  return perm.(G)
+  return G
 end
 
 function point_reflections(o::Origami)
