@@ -173,8 +173,6 @@ function is_hyperelliptic(o::Origami)
     return false
   end
 
-  n = 2
-  n_inv = 1 / 2
   x = horizontal_perm(o)
   y = vertical_perm(o)
   g = genus(o)
@@ -182,34 +180,25 @@ function is_hyperelliptic(o::Origami)
   L = point_reflections(o)
   L = filter(i -> order(i) == 2, L)
 
-  if L == []
-    return false
-  end
-
-  # helper to find all elements in x that are not in y
-  function list_diff(x, y)
-    set_1 = Set(x)
-    set_2 = Set(y)
-    diff = setdiff(set_1, set_2)
-    return collect(diff)
-  end
+  isempty(L) && return false
 
   degree_list = collect(1:degree(o))
   for sigma in L
     # fixpoints
-    b = 0
-    b = b + length(list_diff(degree_list, moved_points(sigma)))
-    b = b + length(list_diff(degree_list, moved_points(sigma * x)))
-    b = b + length(list_diff(degree_list, moved_points(sigma * y)))
+    b =
+      length(setdiff(degree_list, moved_points(sigma))) +
+      length(setdiff(degree_list, moved_points(sigma * x))) +
+      length(setdiff(degree_list, moved_points(sigma * y)))
 
+    p1 = sigma * x^-1 * y^-1
+    p2 = y * x * (x * y)^-1
     for i in degree_list
-      if i^(sigma * x^-1 * y^-1) == i^(y * x * (x * y)^-1)
-        b = b + 1
+      if i^p1 == i^p2
+        b += 1
       end
     end
 
-    # TODO can n_inv yields floating point errors?
-    if n_inv * (g - 1 - b * 0.5) + 1 == 0
+    if 2 * g + 2 - b == 0
       return true
     end
   end
