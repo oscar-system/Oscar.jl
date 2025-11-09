@@ -1867,7 +1867,7 @@ Return an `MSet{T, Int}` of the absolutely irreducible degrees of `tbl`
 and their multiplicities.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> character_degrees(character_table("S5"))
 MSet{ZZRingElem} with 7 elements:
   5 : 2
@@ -1903,7 +1903,7 @@ over the finite field with `q` elements.
 abelian group.)
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> character_degrees([3, 3, 5], 2)
 MSet{ZZRingElem} with 14 elements:
   4 : 9
