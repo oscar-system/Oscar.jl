@@ -253,13 +253,13 @@ function normalform_conjugators(o::Origami)
       if !seen[wx]
         push!(Q, wx)
         seen[wx] = true
-        numSeen = numSeen + 1
+        numSeen += 1
         L[wx] = numSeen
       end
       if !seen[wy]
         push!(Q, wy)
         seen[wy] = true
-        numSeen = numSeen + 1
+        numSeen += 1
         L[wy] = numSeen
       end
     end
