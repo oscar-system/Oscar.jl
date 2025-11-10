@@ -901,7 +901,7 @@ julia> H = sylow_subgroup(G, 2)[1]; K = sylow_subgroup(G, 3)[1];
 
 julia> x = gen(G, 1); C = double_coset(H, x, K);
 
-julia> d =Oscar._decompose(C, x^3)
+julia> d = Oscar._decompose(C, x^3)
 (true, (1,3)(2,4), (1,3,2))
 
 julia> d[2] * x * d[3] == x^3
@@ -910,6 +910,7 @@ true
 julia> Oscar._decompose(C, x^2)
 (false, (), ())
 """
+```
 function _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
   G = group(C)
   U = left_acting_group(C)
@@ -941,7 +942,7 @@ function _right_coset_reps(C::GroupDoubleCoset)
   y = GAP.Globals.CanonicalRightCosetElement(GAP_U, x)
   Gy = group_element(G, y)
   data = Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}(Gy => (group_element(U, y/x), one(V)))
-  orb = [Gy]
+  orb = IndexedSet([Gy])
   for Gr in orb
     r = GapObj(Gr)
     for v in gens(V)
