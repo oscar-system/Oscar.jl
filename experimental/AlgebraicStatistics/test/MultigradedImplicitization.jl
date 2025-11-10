@@ -21,8 +21,6 @@ oscar_worker_pool(1) do wp
   end
 
   @testset "K3P" begin
-    G = abelian_group(2, 2)
-    elG = collect(G)
     T = graph_from_edges(Directed, [[6, 5], [5, 1], [5, 2], [6, 3], [6, 4]])
     M = kimura3_model(T)
     phi = parametrization(M)

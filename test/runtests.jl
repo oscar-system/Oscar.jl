@@ -170,13 +170,6 @@ if test_subset == :long || test_subset == :default
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
-
-  if "AlgebraicStatistics" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "AlgebraicStatistics", "test", "MultigradedImplicitization.jl")
-    println("Starting tests for $path")
-    push!(stats, Oscar._timed_include(path, Main))
-  end
-
 end
 
 # if many workers, distribute tasks across them

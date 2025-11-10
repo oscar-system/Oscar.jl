@@ -1342,8 +1342,8 @@ julia> class[1,2,2]
   _, ps = full_model_ring(PM)
   f = full_parametrization(PM);
   
-  polys = unique(f.img_gens)
-  polys = polys[findall(!is_zero, polys)]
+  polys = f.img_gens[findall(!is_zero, f.img_gens)]
+  unique!(polys)
 
   equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
   for poly in polys
