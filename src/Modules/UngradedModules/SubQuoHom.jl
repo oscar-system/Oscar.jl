@@ -522,7 +522,7 @@ Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubquoModuleElem)
   @assert a.parent === domain(f)
-  iszero(a) && return zero(codomain(f))
+  #iszero(a) && return zero(codomain(f))
   # The code in the comment below was an attempt to make
   # evaluation of maps faster. However, it turned out that
   # for the average use case the comparison was more expensive
