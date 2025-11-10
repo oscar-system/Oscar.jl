@@ -914,19 +914,23 @@ julia> Oscar._decompose(C, x^2)
 function _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
   G = group(C)
   U = left_acting_group(C)
-  if !isassigned(C.right_coset_reps)
-    C.right_coset_reps[] = _right_coset_reps(C)
-  end
+  rcr = _right_coset_reps(C)
   GAP_x = GapObj(x)
   GAP_y = GAP.Globals.CanonicalRightCosetElement(GapObj(U), GAP_x)
   y = group_element(G, GAP_y)
-  haskey(C.right_coset_reps[], y) || return false, one(U), one(right_acting_group(C))
-  u, v = C.right_coset_reps[][y]
+  haskey(rcr, y) || return false, one(U), one(right_acting_group(C))
+  u, v = rcr[y]
   return true, group_element(U, GAP_x/GAP_y)*u, v
 end
 
+function _right_coset_reps(C)
+  if !isassigned(C.right_coset_reps)
+    C.right_coset_reps[] = _compute_right_coset_reps(C)
+  end
+  return C.right_coset_reps[]
+end
 # Compute the data for the (constructive) membership test.
-function _right_coset_reps(C::GroupDoubleCoset)
+function _compute_right_coset_reps(C::GroupDoubleCoset)
   # `C = UxV`
   G = group(C)
   U = left_acting_group(C)
