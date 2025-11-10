@@ -198,6 +198,10 @@ function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}, p::In
     domain::ModuleFP=exterior_power(domain(phi), p)[1],
     codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
   )
+  if ngens(Oscar.domain(phi)) == ngens(Oscar.codomain(phi)) == p
+    return hom(domain, codomain, [det(matrix(phi))*codomain[1]]; check=false)
+  end
+
   orig_img_gens = images_of_generators(phi)
   dec = wedge_generator_decompose_function(domain)
   dom_gens_dec = Vector{elem_type(Oscar.domain(phi))}[collect(dec(g)) for g in gens(domain)]
@@ -210,6 +214,9 @@ function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP}, p::Int;
     domain::ModuleFP=exterior_power(domain(phi), p)[1],
     codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
   )
+  if ngens(Oscar.domain(phi)) == ngens(Oscar.codomain(phi)) == p
+    return hom(domain, codomain, [det(matrix(phi))*codomain[1]], base_ring_map(phi))
+  end
   orig_img_gens = images_of_generators(phi)
   dec = wedge_generator_decompose_function(domain)
   dom_gens_dec = Vector{elem_type(Oscar.domain(phi))}[collect(dec(g)) for g in gens(domain)]
