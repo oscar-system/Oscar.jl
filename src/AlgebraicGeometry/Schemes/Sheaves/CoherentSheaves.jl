@@ -1485,10 +1485,12 @@ end
   M::AbsCoherentSheaf
   k::Int
   F::PreSheafOnScheme
+  default_covering::Covering
 
   function FittingIdealSheaf(
       M::AbsCoherentSheaf,
-      k::Int
+      k::Int;
+      covering::Covering=default_covering(M)
     )
     Ipre = PreSheafOnScheme(scheme(M),
                       OpenType=AbsAffineScheme, OutputType=Ideal,
@@ -1496,7 +1498,7 @@ end
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(scheme(M))
                      )
     X = scheme(M)
-    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, M, k, Ipre)
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, M, k, Ipre, covering)
     return I
   end
 end
