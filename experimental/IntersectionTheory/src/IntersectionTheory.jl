@@ -4,12 +4,13 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
+import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map, fixed_points, number_of_fixed_points
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
 import ..Oscar: localization
+import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
 
 

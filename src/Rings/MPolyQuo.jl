@@ -64,7 +64,7 @@ gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
 number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
-base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = base_ring_type(S)
+base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = parent_type(S)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
@@ -1525,8 +1525,12 @@ Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRi
 ```
 """
 function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  return _homogeneous_components(a, nothing)
+end
+
+function _homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}})
   simplify(a)
-  h = homogeneous_components(a.f)
+  h = _homogeneous_components(a.f, degs)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
@@ -1600,25 +1604,23 @@ end
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
 where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
-that group, return the homogeneous component of `A` of degree `g`. Additionally, return
-the embedding of the component into `A`.
+that group, return the `g`-graded component of `A` as a standard vector space. Additionally,
+return the embedding of the vector space into `A`.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `A`, and return the homogeneous component of `A` whose degree 
-is that element. Additionally, return the embedding of the component into `A`.
+group of `A`, and proceed as above.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
 
 Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given an integer `g`, convert `g` into an element of the grading group of `A`, 
-and return the homogeneous component of `A` whose degree is that element.
-Additionally, return the embedding of the component into `A`.
+and proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error message will be thrown.
+    If the component is infinite dimensional, an error message will be thrown.
 
 # Examples
 ```jldoctest
@@ -1727,7 +1729,16 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbG
   @assert D == grading_group(W)
   R = base_ring(W)
 
-  H, mH = homogeneous_component(R, d)
+  H, mH = try
+    homogeneous_component(R, d)
+  catch e
+    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
+      rethrow(ArgumentError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
+
   I = modulus(W)
   M = gens(leading_ideal(I))
   cache = Dict{typeof(d), typeof(mH)}()

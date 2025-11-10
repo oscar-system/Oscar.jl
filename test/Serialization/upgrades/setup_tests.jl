@@ -1,3 +1,5 @@
+# the purpose of this file is to handle any helper that need to be included before any upgrade test
+
 import Downloads
 import CodecZlib
 import Tar
@@ -6,7 +8,7 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   !isdir(Main.serialization_upgrade_test_path) ||
   !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
 
-  serialization_upgrade_test_path = let commit_hash = "051f76410adb7cefdb30fa8238c5c28434cf7720"
+  serialization_upgrade_test_path = let commit_hash = "ce778d995ea63dd73307e7a9ecde1bf5b215ba22"
     tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
 
     destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io

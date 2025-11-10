@@ -208,6 +208,8 @@ export ToricVanishingSet
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
+export TropicalPointConfiguration
+export TropicalPolyhedron
 export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
@@ -235,13 +237,13 @@ export add_edge!
 export add_gluing!
 export add_vertex!
 export add_vertices!
-export admissible_equivariant_primitive_extensions
-export admissible_triples
 export adjacency_matrix
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
+export admissible_equivariant_primitive_extensions
+export admissible_triples
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -376,6 +378,7 @@ export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
+export character_degrees
 export character_field
 export character_lattice
 export character_parameters
@@ -490,6 +493,7 @@ export coroots
 export corresponding_bilinear_form
 export corresponding_quadratic_form
 export cotangent_sheaf
+export covector_decomposition
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -627,6 +631,8 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
+export factoring_groebner_basis
+export factoring_standard_basis
 export factorizations
 export fano_matroid
 export fano_simplex
@@ -647,6 +653,7 @@ export fitting_ideal
 export fitting_subgroup
 export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
+export fixed_points
 export flag_pluecker_ideal
 export flats
 export forget_decoration
@@ -867,7 +874,7 @@ export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
-export is_acylic
+export is_acyclic
 export is_admissible_ordering
 export is_admissible_triple
 export is_affine
@@ -1129,6 +1136,7 @@ export leading_module
 export leading_monomial
 export leading_term
 export least_element
+export leaves
 export lecture_hall_simplex
 export left_acting_group
 export left_coset
@@ -1206,6 +1214,7 @@ export maximal_cells
 export maximal_chains
 export maximal_cliques
 export maximal_cones
+export maximal_covectors
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
@@ -1258,6 +1267,7 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multicombinations
 export multipartition
 export multipartitions
 export multiplication_induced_morphism
@@ -1278,6 +1288,7 @@ export n_maximal_cones
 export n_maximal_polyhedra
 export n_points
 export n_polyhedra
+export n_pseudovertices
 export n_rays
 export n_vertices
 export name
@@ -1331,6 +1342,7 @@ export number_of_complement_equations
 export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
+export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
@@ -1491,6 +1503,7 @@ export projective_unitary_group
 export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
+export pseudovertices
 export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
@@ -1789,9 +1802,12 @@ export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export trivializing_covering
+export tropical_convex_hull
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
+export tropical_point_configuration
+export tropical_polyhedron
 export tropical_polynomial
 export tropical_prevariety
 export tropical_variety
@@ -1800,10 +1816,10 @@ export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_lifting
 export tutte_polynomial
-export type
 export twist
 export twisting_sheaf
 export two_sided_ideal
+export type
 export underlying_gluing
 export underlying_presheaf
 export underlying_quotient

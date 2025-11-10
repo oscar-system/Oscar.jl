@@ -16,8 +16,8 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
  #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
  #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
- #   __upr(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
  #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
+ #   base_ring(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
  #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.Generic.UnivPoly{T}
  #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
  #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
@@ -36,7 +36,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   end
  #
  #   function __set_perm_for_sort!(R::MyActionPolyRing)
- #     R.permutation = sortperm(R.(gens(__upr(R))); rev = true)
+ #     R.permutation = sortperm(R.(gens(base_ring(R))); rev = true)
  #     __set_are_perms_up_to_date!(R, true)
  #   end
  #
@@ -106,12 +106,6 @@ mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
-  function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
-  end
-
 end
 
 ### Differential ###
@@ -159,12 +153,6 @@ mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
-  function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
-  end
-
 end
 
 ###############################################################################
@@ -204,3 +192,4 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   end
   
 end
+
