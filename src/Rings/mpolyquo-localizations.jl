@@ -844,7 +844,8 @@ function isone(a::MPolyQuoLocRingElem)
 end
 
 function iszero(a::MPolyQuoLocRingElem)
-  return lift(a) in modulus(parent(a))
+  is_zero(lifted_numerator(a)) && return true
+  return lifted_numerator(a) in modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal})
