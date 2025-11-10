@@ -9,6 +9,7 @@ interior_nodes(graph::Graph) = findall(>=(1), outdegree(graph))
 leaves(graph::Graph) = findall(iszero, outdegree(graph))
 n_leaves(graph::Graph) = length(leaves(graph))
 n_leaves(pt::PhylogeneticTree) = n_leaves(adjacency_tree(pt))
+root(pt::PhylogeneticTree) = _root(adjacency_tree(pt))
 
 
 function roots(graph::Graph)
@@ -230,80 +231,33 @@ function hybrid_indices(PM::Union{GroupBasedPhylogeneticModel{GT}, PhylogeneticM
   return hyb_indices
 end
 
-function fully_observed_probability(PM::PhylogeneticModel{<:PhylogeneticTree}, vertices_states::Dict{Int, Int}) 
-  gr = graph(PM)
-
-  r = root(PM)
-  monomial = entry_root_distribution(PM, vertices_states[r])
-  
-  for edge in edges(gr)
+function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int}, tree::AbstractGraph{Directed}) 
+  r = root(tree)
+  coeff = entry_root_distribution(PM, vertices_states[r])
+  exponent = zeros(Int, ngens(parameter_ring(PM)[1]))
+  for edge in edges(tree)
     state_parent = vertices_states[src(edge)]
     state_child = vertices_states[dst(edge)]
-    # get the symbolfrom the transition matrix signature
-    sym = entry_transition_matrix(PM, state_parent, state_child, edge)
-    # we can try and avoid this here if this becomes a bottle neck
-    # it's related to the comment below about using a polynomial context
-    # i.e., this is just the adding of exponents which are integer vectors
-    # which would be much faster than polynomial multiplication
-    monomial = monomial * sym
+    gen = entry_transition_matrix(PM, state_parent, state_child, edge)
+    exponent += first(exponents(gen))
   end
-
-  return monomial
+  return coeff, exponent
 end
 
-function fully_observed_probability(PM::PhylogeneticModel{<:PhylogeneticNetwork}, vertices_states::Dict{Int, Int}, subtree::Graph{Directed}) 
-
-  r = root(subtree)
-  monomial = entry_root_distribution(PM, vertices_states[r])
-  
-  for edge in edges(subtree)
-    state_parent = vertices_states[src(edge)]
-    state_child = vertices_states[dst(edge)]
-    # get the symbolfrom the transition matrix signature
-    sym = entry_transition_matrix(PM, state_parent, state_child, edge)
-    # we can try and avoid this here if this becomes a bottle neck
-    # it's related to the comment below about using a polynomial context
-    # i.e., this is just the adding of exponents which are integer vectors
-    # which would be much faster than polynomial multiplication
-    monomial = monomial * sym
-  end
-
-  return monomial
-end
-
-function leaves_probability(PM::PhylogeneticModel{<:PhylogeneticTree}, leaves_states::Dict{Int, Int})
-  gr = graph(PM)
-  int_nodes = interior_nodes(gr)
+function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}, tree::AbstractGraph{Directed})
+  int_nodes = interior_nodes(tree)
 
   interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
   vertices_states = leaves_states
 
-  poly = 0
-  # Might be useful in the future to use a polynomial ring context
+  poly = MPolyBuildCtx(parameter_ring(PM)[1])
   for labels in interior_indices
     for (int_node, label) in zip(int_nodes, labels)
       vertices_states[int_node] = label
     end
-    poly = poly + fully_observed_probability(PM, vertices_states)
+    push_term!(poly, fully_observed_probability(PM, vertices_states, tree)...)
   end 
-  return poly
-end 
-
-function leaves_probability(PM::PhylogeneticModel{<:PhylogeneticNetwork}, leaves_states::Dict{Int, Int}, subtree::Graph{Directed})
-  int_nodes = interior_nodes(subtree)
-
-  interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
-  vertices_states = leaves_states
-
-  poly = 0
-  # Might be useful in the future to use a polynomial ring context
-  for labels in interior_indices
-    for (int_node, label) in zip(int_nodes, labels)
-      vertices_states[int_node] = label
-    end
-    poly = poly + fully_observed_probability(PM, vertices_states, subtree)
-  end 
-  return poly
+  return finish(poly)
 end 
 
 function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}, leaves_states::Dict{Int, Int})
