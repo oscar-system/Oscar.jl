@@ -831,12 +831,12 @@ is chosen heuristically depending on the rank of `L`. By default,
 )
   # corner cases
   if rank(L) == 0
-    G = matrix_group(identity_matrix(QQ, degree(L)))
+    return matrix_group(identity_matrix(QQ, degree(L)))
   elseif rank(L) == 1
-    G = matrix_group(extend_to_ambient_space(L, -identity_matrix(QQ, rank(L)); check=false))
+    return matrix_group(extend_to_ambient_space(L, -identity_matrix(QQ, rank(L)); check=false))
   elseif rank(L) == 2
     gene = automorphism_group_generators(L)
-    G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
+    return matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
   end
 
   @req is_definite(L) "Lattice must be definite or of rank at most 2"
