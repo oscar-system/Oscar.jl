@@ -146,7 +146,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
 
   #get the injective modules J^{i-1} -> J^i -> J^{i+1}
   Ji_ = inj_res.inj_mods[i]
-  Ji = inj_res.inj_mods[i + 1]
+  Ji = inj_res.inj_mods[i+1]
 
   if inj_res.upto > i # J^{i+1} ≠ 0
     Ji_1 = inj_res.inj_mods[i + 2]
@@ -155,10 +155,10 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
   end
 
   #get maps _phi: J^{i-1} -> J^i and _psi: J^i -> J^{i+1}
-  _phi = get_scalar_matrix(kQ, inj_res.cochain_maps[i])
+  _phi = get_scalar_matrix(kQ, inj_res.cochain_maps[i+1])
 
   if inj_res.upto > i
-    _psi = get_scalar_matrix(kQ, inj_res.cochain_maps[i + 1])
+    _psi = get_scalar_matrix(kQ, inj_res.cochain_maps[i + 2])
   else # map is zero 
     _psi = zero_matrix(k,length(Ji.indec_injectives), 1)
   end
@@ -419,7 +419,7 @@ function sector_partition(
       poly_tuple = intersect(_delta...)
       if dim(poly_tuple) < 0
         continue
-      elseif dim(poly_tuple) == 0 && length(lattice_points(poly_tuple)) == 0
+      elseif dim(poly_tuple) == 0 && is_bounded(poly_tuple) && length(lattice_points(poly_tuple)) == 0
         continue
       end
 
@@ -460,9 +460,9 @@ function _local_cohomology_sector(
   _A = [A_0, A_1, A_2]
 
   # define vector spaces J_{S_A0}, J_{S_A1} and J_{S_A2}
-  F_0 = free_module(field, length(A_0))
-  F_1 = free_module(field, length(A_1))
-  F_2 = free_module(field, length(A_2))
+  F_0 = vector_space(field, length(A_0))
+  F_1 = vector_space(field, length(A_1))
+  F_2 = vector_space(field, length(A_2))
 
   #compute the maps by deleting rows and columns in phi and psi
   #phi
