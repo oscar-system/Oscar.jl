@@ -438,7 +438,8 @@ function cokernel(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
-  return quo(codomain(f), representing_matrix(f))
+  I, inc = image(f)
+  return quo(codomain(f), I)
 end
 
 function image(
@@ -448,7 +449,7 @@ function image(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
-  return sub(codomain(f), representing_matrix(f))
+  return sub(codomain(f), images_of_generators(f))
 end
 
 function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
