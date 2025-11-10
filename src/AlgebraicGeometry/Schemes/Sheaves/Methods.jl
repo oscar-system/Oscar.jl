@@ -793,7 +793,7 @@ end
 # 4) If V is a node hanging below some patch in `domain(ϕ)` and
 #    U is a subset, restrict as usual.
 
-function restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+function produce_restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   check = F.check
   f = morphism(F)
   M = original_sheaf(F)
@@ -899,7 +899,7 @@ function _strict_transform(M::SubquoModule{T}, I::Ideal) where {T<:MPolyQuoLocRi
 end
 
 
-function restriction_map(F::StrictTransformSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+function produce_restriction_map(F::StrictTransformSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   pb_M = pullback_sheaf(F)
   pb_res = pb_M(V, U)
   check = F.check
@@ -959,7 +959,7 @@ _simplify(F::FreeMod) = F, id_hom(F)
 
 default_covering(F::SimplifiedSheaf) = default_covering(original_sheaf(F))
 
-function restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+function produce_restriction_map(F::SimplifiedSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   M = original_sheaf(F)
   # fill the cache
   dom = F(V)
@@ -1055,7 +1055,7 @@ default_covering(M::StrictTransformSheaf) = domain(covering_morphism(morphism(M)
   new_cov = Covering(new_patches)
   inherit_gluings!(new_cov, covering)
   if has_decomposition_info(covering)
-    inherit_decomposition_info!(scheme(M), new_cov; covering)
+    inherit_decomposition_info!(scheme(M), new_cov; orig_cov=covering)
   end
   return new_cov
 end
@@ -1115,7 +1115,7 @@ end
   new_cov = Covering(done_patches)
   inherit_gluings!(new_cov, covering)
   if has_decomposition_info(covering)
-    inherit_decomposition_info!(scheme(M), new_cov; covering)
+    inherit_decomposition_info!(scheme(M), new_cov; orig_cov=covering)
   end
   return new_cov
 end
