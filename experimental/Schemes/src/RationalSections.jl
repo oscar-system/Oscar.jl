@@ -40,9 +40,9 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
   end
 
   triv_cov = trivializing_covering(F)
-  if any(x->(x===U), patches(triv_cov))
+  if U in triv_cov
     for (V, (num, den)) in s.cache
-      if any(x->x===V, patches(triv_cov))
+      if V in triv_cov
         glue = triv_cov[V, U]
         VU, UV = gluing_domains(glue)
         trans = F(V, UV)
