@@ -252,15 +252,29 @@ end
 """
 
 #this function computes the minors of a given matrix for the bases in a given list.
-function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector
+#this list is not reduced, i.e. there are no repetitions but the polynomials are not reduced, i.e. the list might contain x+1 and y-2 and their product
+function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
     R = base_ring(M);
-    return [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+    candidates = [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+    ineqs = [R(0)]
+    for i in 1:length(candidates)
+      if isone(candidates[i]) || isone(-candidates[i]) 
+      elseif candidates[i] == 0
+        error("a basis has vanishing minor")
+      else
+        if !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
+          #one possibility is to take out all products of existing ineqs
+          push!(ineqs,R(candidates[i]))
+        end
+      end
+    end
+    return ineqs[2:length(ineqs)]
 end
 
 ###################
 #B are the given columns that will be the identity matrix
 # it might be easier for me to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
-function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
+function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   #include a check that M is realizable & selfproj
   if !is_selfprojecting(M) 
     error("The given matroid is not self-projecting.")
@@ -268,17 +282,18 @@ function selfproj_realization_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   if !(is_realizable(M))
     return nothing
   end
-  RSM = realization_space_matrix(M,B,F)
-  X = RSM[2];
+  #RSM
+  X = realization_matrix(realization_space(M,B=Bas)) #this matrix should be simplified
+  #X = RSM[2];
   I = selfproj_realization_ideal(M);
   if is_zero(I)
-    return X
+    return X #In this case S = R, I need to use the simplified X to make the output nice
   end
   if is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
   end
   #need to test this!
-  R = RSM[1] 
+  R = base_ring(X)
   xs = gens(R)
   cR = coefficient_ring(R)
   nr, nc = size(X)
@@ -308,7 +323,11 @@ function selfprojecting_realization_space(m::Matroid;
     goodB = find_good_basis_heuristically(goodM)
   end
   M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #do I want selfproj_realization_matrix to returna tuple of ring and matrix? Currently just the matrix, since this is what i need most urgently
-  Ineqs = basisminors(M,bases(m));
+  if M == nothing 
+    Ineqs = inequations(RS);
+  else
+    Ineqs = basisminors(M,bases(m));
+  end
   ##include a check for realizable, how does the set_attribute!(MRS, :is_realizable, :false) even work for me?
 
   #M = selfproj_realization_matrix(m,b,R)
@@ -321,8 +340,22 @@ function selfprojecting_realization_space(m::Matroid;
   
 end
 
-
-
+#do we need this function to make something faster? or should it just be included in case someone wants to test something?
+function veronese2(M::MatElem)
+    R = base_ring(M)
+    newCols = Vector{Vector{elem_type(R)}}()
+    for j in 1:ncols(M)
+        v = M[:, j]
+        col = elem_type(R)[]
+        for i in 1:nrows(M)
+            for k in i:nrows(M)
+                push!(col, v[i] * v[k])
+            end
+        end
+        push!(newCols, col)
+    end
+    return transpose(matrix(R, hcat(newCols...)))
+end
 
 #the 2 functions below need to be tested 
 function dimension(MRS::MatroidRealizationSpace_SelfProj)::Int
