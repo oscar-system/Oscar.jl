@@ -1023,11 +1023,11 @@ end
 
 If `a` is bijective, return its inverse.
 """
-function inv(H::ModuleFPHom)
+function inv(H::ModuleFPHom; check::Bool=true)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
-  @assert is_bijective(H)
+  @check is_bijective(H) "morphism is not bijective"
   N = domain(H)
   M = codomain(H)
 
