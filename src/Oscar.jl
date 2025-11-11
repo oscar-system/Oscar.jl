@@ -107,6 +107,7 @@ function __init__()
      "ferret",   # backtrack in permutation groups
      "fga",      # dealing with free groups
      "forms",    # bilinear/sesquilinear/quadratic forms
+     "origami",  # for experimental/Origami
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
@@ -123,7 +124,6 @@ function __init__()
   # also those that are triggered from GAP packages.
   __GAP_info_messages_off()
   __init_group_libraries()
-  OrigamiHelper.__init_Origami()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)

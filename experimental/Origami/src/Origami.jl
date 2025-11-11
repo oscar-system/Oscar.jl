@@ -5,14 +5,12 @@ module OrigamiHelper
 using ..Oscar
 using LazyArtifacts
 
-# this is not an __init__ function because we want it to run after the __init__ of Oscar
-# (and __init__ functions of submodules are run before the __init__ of the parent module)
-function __init_Origami()
+function __init__()
   GAP.Globals.ExtendPackageDirectories(GapObj([
     abspath(artifact"GAP_pkg_modulargroup"),
     abspath(artifact"GAP_pkg_origami")
   ]; recursive = true))
-  GAP.Packages.load("Origami")
+  # the packages get loaded in Oscar.__init__()
 end
 
 end
