@@ -461,6 +461,13 @@ mutable struct ToricCtx
   D::Dict # An auxiliary cache; see `_minimal_exponent_vector` for more info.
 
   function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext)
+    @req is_projective(X) && is_simplicial(X) "Currently only implemented for projective, simplicial toric varieties"
+
+    # Check for some further potential inconsistencies
+    # Generators of the irrelevant ideal + consistency check
+    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(X)
+    @req all(g -> any(!=(0), g) && all(>=(0), g), exponent_vectors_irrelevant_ideal) "Inconsistency encountered"
+
     S = cox_ring(X)
     G = grading_group(S)
     return new(X, S, algorithm,
@@ -705,19 +712,15 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
     return ctx.fixed_exponent_vector
   end
   if ctx.algorithm == :cech
-    error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
+    #error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
   end
   # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
   # but only part of the algorithm is executed and explicit lattice points are 
   # calculated for each polyhedron.
   return get!(ctx.exp_vec_cache, m) do
-    @req is_projective(toric_variety(ctx)) && is_simplicial(toric_variety(ctx)) "Currently only implemented for projective, simplicial toric varieties"
-
-    # Generators of the irrelevant ideal + consistency check
-    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
-    @req all(g -> any(!=(0), g) && all(>=(0), g), exponent_vectors_irrelevant_ideal) "Inconsistency encountered"
 
     # Identify all "true" rationoms, i.e. with denominator. If there are none, then we can already return
+    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
     rationoms, _ = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
     neg_rationoms = [r for r in rationoms if any(<(0), r)]
     isempty(neg_rationoms) && return fill(1, length(exponent_vectors_irrelevant_ideal))
