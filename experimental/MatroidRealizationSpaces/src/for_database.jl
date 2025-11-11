@@ -7,7 +7,7 @@ struct MatroidRealizations
   length_groundset::Int
   realization_space::MatroidRealizationSpace
   dim_r::Int
-  selfproj_realization_space::MatroidRealizationSpace_SelfProj
+  selfproj_realization_space::MatroidRealizationSpaceSelfProjecting
   dim_s::Int
   equal::Bool
 end

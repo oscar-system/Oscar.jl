@@ -14,6 +14,7 @@ function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Rin
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 
+
 # Exports
 export inequations
 export is_realizable
@@ -26,11 +27,10 @@ export defining_ideal
 export is_selfprojecting
 export satisfies_disjointbasisproperty
 export selfprojecting_realization_space
-export MatroidRealizationSpace_SelfProj
+export MatroidRealizationSpaceSelfProjecting
 export underlying_scheme
 export selfproj_realization_ideal
 export selfproj_realization_matrix
-export MatroidRealizationSpace_SelfProj
 export inequations
 export defining_ideal
 export underlying_scheme
@@ -49,3 +49,5 @@ export name
 export length_groundset
 export rk
 export MatroidRealizations
+export save_object
+export load_object
