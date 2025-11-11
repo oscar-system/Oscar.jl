@@ -98,6 +98,7 @@ mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
   P::MPolyQuoRing{S}
   simplified::Bool
+  inverse_rep::S # for caching the inverse of a unit
 
   function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}, simplified = false) where {S}
     @assert parent(f) === base_ring(P)
@@ -1123,6 +1124,15 @@ julia> f*g
 ```
 """
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
+  isdefined(a, :inverse_rep) && return true, parent(a)(a.inverse_rep)
+  rep = a.f
+  is_unit(rep) && return true, parent(a)(inv(rep))
+  A = parent(a)
+  I = ideal(A, a)
+  one(A) in I || return false, a
+  c = coordinates(one(A), I)
+  a.inverse_rep = c[1].f
+  return true, c[1]
   # TODO:
   # Eventually, the code below should be replaced
   # by a call to `coordinates` over the ring `parent(a)`.
@@ -1146,7 +1156,9 @@ function is_invertible_with_inverse(a::MPolyQuoRingElem)
   return false, a
 end
 
-is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
+function is_unit(a::MPolyQuoRingElem)
+  is_invertible_with_inverse(a)[1]
+end
 
 @doc raw"""
     inv(f::MPolyQuoRingElem)
