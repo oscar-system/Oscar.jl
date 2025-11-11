@@ -711,10 +711,24 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
   # but only part of the algorithm is executed and explicit lattice points are 
   # calculated for each polyhedron.
   return get!(ctx.exp_vec_cache, m) do
-    rationoms, ctx.D = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
-    k = -minimum(hcat(rationoms...); init=-1)
-    n = ngens(irrelevant_ideal(toric_variety(ctx)))
-    return Int[k for i in 1:n]
+    @req is_projective(toric_variety(ctx)) && is_simplicial(toric_variety(ctx)) "Currently only implemented for projective, simplicial toric varieties"
+
+    # Generators of the irrelevant ideal + consistency check
+    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
+    @req all(g -> any(!=(0), g) && all(>=(0), g), exponent_vectors_irrelevant_ideal) "Inconsistency encountered"
+
+    # Identify all "true" rationoms, i.e. with denominator. If there are none, then we can already return
+    rationoms, _ = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
+    neg_rationoms = [r for r in rationoms if any(<(0), r)]
+    isempty(neg_rationoms) && return fill(1, length(exponent_vectors_irrelevant_ideal))
+
+    # For each g: k_g = max over r of max_i ceildiv(-r[i], g[i]) with mask g[i]>0 && r[i]<0 (defaults to 1)
+    ks = [maximum(begin
+                        mask = (g .> 0) .& (r .< 0)
+                        any(mask) ? maximum(cld.(-r[mask], g[mask])) : 1
+                      end for r in neg_rationoms)
+              for g in exponent_vectors_irrelevant_ideal]
+    return fill(maximum(ks), length(exponent_vectors_irrelevant_ideal))
   end
   # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
   # TODO: Remove this?
