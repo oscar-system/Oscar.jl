@@ -1,8 +1,12 @@
 @doc raw"""
-    combinations(n::IntegerUnion, k::IntegerUnion)
+    combinations(n::IntegerUnion, k::IntegerUnion; inplace::Bool=false)
 
 Return an iterator over all $k$-combinations of ${1,...,n}$, produced in
 lexicographically ascending order.
+
+If `inplace` is `true`, the elements of the iterator may share their memory. This
+means that an element returned by the iterator may be overwritten 'in place' in
+the next iteration step. This may result in significantly fewer memory allocations.
 
 # Examples
 
