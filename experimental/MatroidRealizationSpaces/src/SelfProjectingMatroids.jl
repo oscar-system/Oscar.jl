@@ -1,5 +1,5 @@
 #Fix the following: KamelCase for struct and snake_case for functions! #Other naming options: SelfProjectingMRS or MatroidRealizationSpaceSelfProjecting
-@attributes mutable struct MatroidRealizationSpace_SelfProj{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
+@attributes mutable struct MatroidRealizationSpaceSelfProjecting{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
@@ -13,7 +13,7 @@
   # Fields for caching
   underlying_scheme::AbsAffineScheme{BaseRingType, RingType}
 
-  function MatroidRealizationSpace_SelfProj(
+  function MatroidRealizationSpaceSelfProjecting(
     I::Union{Ideal,NumFieldOrderIdeal},
     ineqs::Vector{<:RingElem},
     R::Ring,
@@ -38,7 +38,7 @@
   end
 end
 
-function underlying_scheme(RS::MatroidRealizationSpace_SelfProj{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoLocRing}
+function underlying_scheme(RS::MatroidRealizationSpaceSelfProjecting{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoLocRing}
   isdefined(RS, :underlying_scheme) && return RS.underlying_scheme::AffineScheme{BRT, RT}
 
   P = ambient_ring(RS)::MPolyRing
@@ -49,7 +49,7 @@ function underlying_scheme(RS::MatroidRealizationSpace_SelfProj{BRT, RT}) where 
 end
 
 #I need to understand how is_realizable and how one_realization works or I rewrite this entirely!
-function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace_SelfProj)
+function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpaceSelfProjecting)
   if isone(defining_ideal(RS))
     print(io, "The matroid does not have a self-projecting realization over characteristic zero.")
   # if has_attribute(RS, :is_realizable) && !is_realizable(RS)
@@ -82,26 +82,26 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace_SelfP
   end
 end
 @doc raw"""
-    defining_ideal(RS::MatroidRealizationSpace_SelfProj)
+    defining_ideal(RS::MatroidRealizationSpaceSelfProjecting)
 
 The ideal of the matroid realization space `RS`.
 """
-defining_ideal(RS::MatroidRealizationSpace_SelfProj) = RS.defining_ideal
+defining_ideal(RS::MatroidRealizationSpaceSelfProjecting) = RS.defining_ideal
 
 @doc raw"""
-    inequations(RS::MatroidRealizationSpace_SelfProj)
+    inequations(RS::MatroidRealizationSpaceSelfProjecting)
 
 Generators of the localizing semigroup of `RS`.
 These are the polynomials that need to be nonzero in any realization.
 """
-inequations(RS::MatroidRealizationSpace_SelfProj) = RS.inequations
+inequations(RS::MatroidRealizationSpaceSelfProjecting) = RS.inequations
 
 @doc raw"""
-    ambient_ring(RS::MatroidRealizationSpace_SelfProj)
+    ambient_ring(RS::MatroidRealizationSpaceSelfProjecting)
 
 The polynomial ring containing the ideal `defining_ideal_sp(RS)` and the polynomials in `inequations(RS)`.
 """
-ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
+ambient_ring(RS::MatroidRealizationSpaceSelfProjecting) = RS.ambient_ring
 
 
 
@@ -127,7 +127,7 @@ ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
 #   return is_realizable_sp(RS)
 # end
 
-# @attr Bool function is_realizable_sp(RS::MatroidRealizationSpace_SelfProj)
+# @attr Bool function is_realizable_sp(RS::MatroidRealizationSpaceSelfProjecting)
 #   if !(RS.ambient_ring_sp isa MPolyRing)
 #     return true
 #   end
@@ -142,12 +142,12 @@ ambient_ring(RS::MatroidRealizationSpace_SelfProj) = RS.ambient_ring
 
 
 @doc raw"""
-    selfproj_realization_matrix(RS::MatroidRealizationSpace_SelfProj)
+    selfproj_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting)
 
 A matrix with entries in ambient_ring_sp(RS) whose columns, when filled in with values satisfying equalities
 from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a self-projecting realization for the matroid.
 """
-selfproj_realization_matrix(RS::MatroidRealizationSpace_SelfProj) = RS.selfproj_realization_matrix
+selfproj_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = RS.selfproj_realization_matrix
 
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     dmat = dual_matroid(mat)
@@ -298,10 +298,9 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   I = selfproj_realization_ideal(M);
   if is_zero(I)
     return X #In this case S = R, I need to use the simplified X to make the output nice
-  end
-  if is_one(I) #this means the matrix is not realizable by self-projecting points
+  elseif is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
-  end
+  else
   #need to test this!
   R = base_ring(X)
   xs = gens(R)
@@ -309,18 +308,19 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   nr, nc = size(X)
   QR, phi = quo(R,I)
   return phi.(X)
+  end
 end
 
 
 function selfprojecting_realization_space(m::Matroid;
-  B::Union{GroundsetType,Nothing}=nothing)::MatroidRealizationSpace_SelfProj
+  B::Union{GroundsetType,Nothing}=nothing)::MatroidRealizationSpaceSelfProjecting
   if !is_selfprojecting(m) 
     error("The given matroid is not self-projecting.")
   end
   RS = realization_space(m,char=0,simplify = true, saturate = true)
   R = ambient_ring(RS)
   if !is_realizable(m,char=0)
-    RS = MatroidRealizationSpace_SelfProj(defining_ideal(RS), inequations(RS), R, nothing, 0, nothing, QQ)
+    RS = MatroidRealizationSpaceSelfProjecting(defining_ideal(RS), inequations(RS), R, nothing, 0, nothing, QQ)
     return RS
   end
   I = selfproj_realization_ideal(m);
@@ -346,7 +346,7 @@ function selfprojecting_realization_space(m::Matroid;
   ##R is ambient_ring(RS) where RS is the standard realization space
   ##ground_ring hardcoded as QQ
   ##do I need boo the boolean for one_realization_sp?
-  return MatroidRealizationSpace_SelfProj(I, Ineqs, R, M, 0, nothing, QQ)
+  return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, M, 0, nothing, QQ)
   
 end
 
@@ -367,8 +367,8 @@ function veronese2(M::MatElem)
     return transpose(matrix(R, hcat(newCols...)))
 end
 
-#the 2 functions below need to be tested 
-function dimension(MRS::MatroidRealizationSpace_SelfProj)::Int
+#the 2 functions below need to be tested, they do not seem to give the correct answer!
+function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
   return dim(defining_ideal(MRS))
 end
 
@@ -377,7 +377,7 @@ function dimension(MRS::MatroidRealizationSpace)::Int
 end
 
 # Exports
-# export MatroidRealizationSpace_SelfProj
+# export MatroidRealizationSpaceSelfProjecting
 # export inequations
 # export defining_ideal
 # export underlying_scheme
