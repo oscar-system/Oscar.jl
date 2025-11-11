@@ -117,7 +117,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
   v = toric_variety(l)
 
   if has_attribute(v, :sheaf_cohomology_table)
-    table = get_attribute(v, :sheaf_cohomology_table)::Dict{Int, ZZRingElem}
+    table = get_attribute(v, :sheaf_cohomology_table)::Dict{Int,ZZRingElem}
     all(haskey(table, i) for i in 0:dim(v)) && return ZZRingElem[table[i] for i in 0:dim(v)]
   end
 
@@ -236,7 +236,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = "cham
     ctx = local_cohomology_context_object(v)
     d = divisor_class(toric_divisor_class(l))
     coh = cohomology_model(ctx, d)
-    return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:-dim(v)]
+    return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
   end
 end
 
@@ -258,11 +258,11 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 ```
 """
 function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg")
-  if has_attribute(l, :sheaf_cohomology) 
-    return ((get_attribute(l, :sheaf_cohomology)::Vector{ZZRingElem})[i+1])::ZZRingElem
+  if has_attribute(l, :sheaf_cohomology)
+    return ((get_attribute(l, :sheaf_cohomology)::Vector{ZZRingElem})[i + 1])::ZZRingElem
   end
   table = get_attribute!(l, :sheaf_cohomology_table) do
-    Dict{Int, ZZRingElem}()
+    Dict{Int,ZZRingElem}()
   end
   return get!(table, i) do
     _sheaf_cohomology(l, i; algorithm)
@@ -288,4 +288,3 @@ function _sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomC
     return ZZ(ngens(coh[-i]))
   end
 end
-

@@ -5,7 +5,7 @@ function solve_mixed(
   C::ZZMatrix,
   d::ZZMatrix;
   permit_unbounded=false,
-  check::Bool=true
+  check::Bool=true,
 )
   @req ncols(A) == ncols(C) "solve_mixed(A,b,C,d): A and C must have the same number of columns."
   @req nrows(A) == nrows(b) "solve_mixed(A,b,C,d): A and b must have the same number of rows."
@@ -13,9 +13,12 @@ function solve_mixed(
   @req ncols(b) == 1 "solve_mixed(A,b,C,d): b must be a matrix with a single column."
   @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
 
-  permit_unbounded && return (pm_object(polyhedron((-C, _vec(-d)), (A, _vec(b)))).LATTICE_POINTS_GENERATORS)[1][:, 2:end]
+  permit_unbounded &&
+    return (pm_object(polyhedron((-C, _vec(-d)), (A, _vec(b)))).LATTICE_POINTS_GENERATORS)[1][
+      :, 2:end
+    ]
 
-  P = polyhedron((-C, _vec(-d)), (A, _vec(b)); is_bounded= check ? nothing : true)
+  P = polyhedron((-C, _vec(-d)), (A, _vec(b)); is_bounded=check ? nothing : true)
   return lattice_points(P; check)
 end
 
@@ -26,9 +29,11 @@ function solve_mixed(
   C::ZZMatrix,
   d::ZZMatrix;
   permit_unbounded=false,
-  check::Bool=true
+  check::Bool=true,
 )
-  LP = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d; permit_unbounded, check)
+  LP = solve_mixed(
+    SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d; permit_unbounded, check
+  )
   return matrix(ZZ, LP)
 end
 
@@ -82,7 +87,9 @@ solve_mixed(
   as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false
 ) where {T} = solve_mixed(T, A, b, C, d; permit_unbounded)
 solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false) =
-  solve_mixed(ZZMatrix, A, b, C, d; permit_unbounded)
+  solve_mixed(
+    ZZMatrix, A, b, C, d; permit_unbounded
+  )
 
 @doc raw"""
     solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
@@ -130,11 +137,15 @@ julia> for x in it
 ```
 """
 solve_mixed(
-  as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false, check::Bool=true
+  as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false,
+  check::Bool=true,
 ) where {T} = solve_mixed(T, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded, check)
 
-solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false, check::Bool=true) =
-  solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded, check)
+solve_mixed(
+  A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false, check::Bool=true
+) = solve_mixed(
+  ZZMatrix, A, b, C, zero_matrix(ZZ, nrows(C), 1); permit_unbounded, check
+)
 
 @doc raw"""
     solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
@@ -180,8 +191,9 @@ solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) where 
     -b;
     permit_unbounded,
   )
-solve_ineq(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) =
-  solve_ineq(ZZMatrix, A, b; permit_unbounded)
+solve_ineq(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) = solve_ineq(
+  ZZMatrix, A, b; permit_unbounded
+)
 
 @doc raw"""
     solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
@@ -221,5 +233,6 @@ SubObjectIterator{PointVector{ZZRingElem}}
 solve_non_negative(
   as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false
 ) where {T} = solve_mixed(T, A, b, identity_matrix(ZZ, ncols(A)); permit_unbounded)
-solve_non_negative(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) =
-  solve_non_negative(ZZMatrix, A, b; permit_unbounded)
+solve_non_negative(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) = solve_non_negative(
+  ZZMatrix, A, b; permit_unbounded
+)
