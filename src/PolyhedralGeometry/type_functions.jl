@@ -72,7 +72,7 @@ function halfspace_matrix_pair(
       Polyhedron{QQFieldElem},
       Cone{QQFieldElem},
       Pair{Matrix{QQFieldElem},QQFieldElem},
-    }
+    },
   };
   integral_bias::Bool=true,
 )
