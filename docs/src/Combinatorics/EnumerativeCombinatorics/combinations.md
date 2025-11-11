@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Combinations
+# Combinations and multicombinations
 
 A **combination** from a set $S$ is a selection $\lambda_1, \lambda_2 \dots \lambda_r$ of elements of $S$ taken without repetition; the order of the elements is considered not to matter. A $k$-combination is a combination consisting of $k$ elements.
 A general reference on combinations is [Knu11](@cite), Section 7.2.1.3.
@@ -69,8 +69,9 @@ julia> C[1]
 ```
 
 
-## Generating
+## Generating and counting
 
 ```@docs
 combinations
+number_of_combinations
 ```
