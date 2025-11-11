@@ -18,6 +18,8 @@ abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem
 
 ## Underlying Data of an Abstract Bundle
 
+An abstract bundle is made up from (a selection of) the data discussed here:
+
 ```@docs
 parent(F::AbstractBundle)
 ```

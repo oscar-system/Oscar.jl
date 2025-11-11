@@ -10,6 +10,7 @@ import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
 import ..Oscar: localization
+import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
 
 

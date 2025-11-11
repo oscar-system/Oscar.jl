@@ -1814,6 +1814,10 @@ function label!(G::Graph{T},
                 name::Symbol=:label) where {T <: Union{Directed, Undirected}}
   @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
   EM = EdgeMap(pm_object(G), edge_labels)
+  if has_attribute(G, name)
+    getproperty(G, name).edge_map = EM
+    return G
+  end
   set_attribute!(G, name, GraphMap(G, EM, nothing))
   return G
 end
@@ -1824,6 +1828,10 @@ function label!(G::Graph{T},
                 name::Symbol=:label) where T <: Union{Directed, Undirected}
   @req all(Base.Fix1(_has_node, G), keys(vertex_labels)) "Vertex does not exist for a given label"
   NM = NodeMap(pm_object(G), vertex_labels)
+  if has_attribute(G, name)
+    getproperty(G, name).vertex_map = NM
+    return G
+  end
   set_attribute!(G, name, GraphMap(G, nothing, NM))
   return G
 end
@@ -2020,11 +2028,11 @@ julia> g = graph_from_edges(Directed, [[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
 Directed graph with 4 nodes and the following edges:
 (1, 2)(1, 3)(2, 3)(2, 4)(3, 4)
 
-julia> is_acylic(g)
+julia> is_acyclic(g)
 true
 ```
 """
-function is_acylic(G::Graph{Directed})
+function is_acyclic(G::Graph{Directed})
   a = adjacency_matrix(G)
 
   S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))

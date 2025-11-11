@@ -74,7 +74,7 @@ end
 # SimpleNumField
 
 @register_serialization_type Hecke.RelSimpleNumField uses_id
-@register_serialization_type AbsSimpleNumField uses_id
+@register_serialization_type AbsSimpleNumField uses_id [:cyclo]
 const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
 type_params(obj::T) where T <: SimpleNumField = TypeParams(T, parent(defining_polynomial(obj)))
@@ -283,24 +283,25 @@ end
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
 
 function save_object(s::SerializerState,
-                     RF::AbstractAlgebra.Generic.RationalFunctionField)
+                     RF::AbstractAlgebra.Generic.RationalFunctionField{<: FieldElem, <: MPolyRingElem})
   save_data_dict(s) do
     syms = symbols(RF)
     save_object(s, syms, :symbols)
   end
 end
 
+function save_object(s::SerializerState,
+                     RF::AbstractAlgebra.Generic.RationalFunctionField{<:FieldElem, <: PolyRingElem})
+  save_data_dict(s) do
+    save_object(s, only(symbols(RF)), :symbol)
+  end
+end
+
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, R::Ring)
-  # ensure proper types of univariate case on load
-  symbols = load_node(s, :symbols) do symbols_data
-    if symbols_data isa Vector
-      return Symbol.(symbols_data)
-    else
-      return Symbol(symbols_data)
-    end
-  end
-  return rational_function_field(R, symbols, cached=false)[1]
+  haskey(s, :symbol) && return rational_function_field(R, load_object(s, Symbol, :symbol), cached=false)[1]
+
+  return rational_function_field(R, load_object(s, Vector{Symbol}, :symbols), cached=false)[1]
 end
 
 #elements

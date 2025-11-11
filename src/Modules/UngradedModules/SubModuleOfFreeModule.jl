@@ -143,7 +143,6 @@ end
 Get the default ordering of `M`.
 """
 function default_ordering(M::SubModuleOfFreeModule)
-  return default_ordering(ambient_free_module(M))
   if !isdefined(M, :default_ordering)
     ord = default_ordering(ambient_free_module(M))
     set_default_ordering!(M, ord)

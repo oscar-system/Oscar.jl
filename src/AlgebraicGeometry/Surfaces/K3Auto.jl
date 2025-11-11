@@ -1630,7 +1630,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     E8 = R0
     # normalize the basis
     e8 = rescale(root_lattice(:E,8), -1)
-    _, T = is_isometric_with_isometry(e8, E8, ambient_representation=false)
+    _, T = is_isometric_with_isometry(e8, E8)
     E8 = lattice(V, T * basis_matrix(E8))
     B = vcat(basis_matrix(U), basis_matrix(E8))
     Bdual = inv(gram_matrix(V) * transpose(B))
@@ -1645,7 +1645,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     while true
       R = Hecke.orthogonal_submodule(L,U)
       @vprint :K3Auto 1 "starting isometry test\n"
-      isiso, T = is_isometric_with_isometry(e8e8, R, ambient_representation=false)
+      isiso, T = is_isometric_with_isometry(e8e8, R)
       @vprint :K3Auto 1 "done\n"
       if isiso
         E8E8 = R
