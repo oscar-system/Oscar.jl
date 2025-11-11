@@ -41,6 +41,50 @@ function produce_rational_section(s::RationalSection, U::AbsAffineScheme)
 
   triv_cov = trivializing_covering(F)
   if U in triv_cov
+    # assess the complexity
+    accessible_patches = Tuple{AbsAffineScheme, Int}[]
+    function _complexity(g::AbsGluing)
+      return 50000
+    end
+    function _complexity(g::SimpleGluing)
+      f, g = gluing_morphisms(g)
+      return sum(length(lifted_numerator(p)) + length(lifted_denominator(p)) for p in pullback(g).(gens(OO(codomain(g)))); init=0)
+    end
+    function _complexity(g::LazyGluing)
+      !is_computed(g) && return 5000
+      return _complexity(underlying_gluing(g))
+    end
+
+    # first try to find the easily accessible options
+
+    i_U = first(indexin(U, triv_cov))
+    for V in keys(s.cache)
+      if !(V in triv_cov) 
+        V = __find_chart(V, triv_cov)
+      end
+      i_V = first(indexin(V, triv_cov))
+      glue = triv_cov[U, V]
+      other = triv_cov[V, U]
+      push!(accessible_patches, (V, abs(i_U - i_V) + minimum([_complexity(glue), _complexity(other)])))
+    end
+    accessible_patches = sort!(accessible_patches; by=x->x[2])
+    for (V, _) in accessible_patches
+      num, den = s(V)
+      glue = triv_cov[V, U]
+      VU, UV = gluing_domains(glue)
+      trans = F(V, UV)
+      e = first(gens(F(V)))
+      new_num = trans(num*e)[1]
+      new_den = OO(X)(V, UV)(den)
+      frac = (lifted_numerator(new_num)*lifted_denominator(new_den))//(lifted_denominator(new_num)*lifted_numerator(new_den))
+      res = F(U, UV)
+      comp = matrix(res)[1, 1]
+      frac = frac*(lifted_denominator(comp)//lifted_numerator(comp))
+      return OO(U)(numerator(frac)), OO(U)(denominator(frac))
+    end
+
+    # now go for the second option
+
     for (V, (num, den)) in s.cache
       if V in triv_cov
         glue = triv_cov[V, U]
