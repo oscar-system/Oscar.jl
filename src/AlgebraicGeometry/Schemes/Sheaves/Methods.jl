@@ -1077,7 +1077,6 @@ end
     U = popfirst!(new_patches)
     @vprint :NashResolutions 4 "  Looking at patch with $(ngens(M(U))) generators..."
     MU = M(U)
-    @show isempty(U)
     I = ideal(OO(U), reduce(vcat, Vector{elem_type(OO(U))}[elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]; init=elem_type(OO(U))[]))
 
     if !(one(OO(U)) in I)
@@ -1097,8 +1096,6 @@ end
       h = gen(I, i)
       is_zero(h) && continue
       fac = factor(lifted_numerator(h))
-      @show h
-      @show collect(fac)
       push!(descendants, PrincipalOpenSubset(U, [x for (x, _) in fac]))
     end
 
@@ -1154,7 +1151,7 @@ function _resolve_module(
   fitts = AbsIdealSheaf[]
   X = scheme(M)
   Z, inc_Z = sub(focus; covering=simplified_covering(X))
-  pb_M = SimplifiedSheaf(pullback(inc_Z, M))
+  pb_M = SimplifiedSheaf(pullback(inc_Z, original_sheaf(M)))
   @vprint :NashResolutions 1 "call to resolve_module on $X\n"
   simp_cov = simplified_covering(pb_M; covering=simplified_covering(Z))
   #simp_cov = simplified_covering(X)
@@ -1195,6 +1192,24 @@ function _resolve_module(
     @vprint :NashResolutions 2 "  $(ngens(pb_M(U)))\n"
   end
   @vprint :NashResolutions 2 "blowing up in the $p-th Fitting ideal.\n"
+  comps = AbsIdealSheaf[simplify(pushforward(inc_Z, p)) for p in maximal_associated_points(fitts[end])]
+  Y = X
+  st_M = M
+  while !is_empty(comps)
+    @vprint :NashResolutions 1 "$(length(comps)) points remaining...\n"
+    p = pop!(comps)
+    for V in simplified_covering(Y)
+      @vprint :NashResolutions 1 "$(ngens(OO(V))) -> $(gens(p(V)))\n"
+    end
+    bl = blow_up(p; covering=simplified_covering(Y))
+    st_M = StrictTransformSheaf(bl, st_M; check=false)
+    push!(blowdowns, bl)
+    focus = pullback(bl, focus)
+    Y = domain(bl)
+    comps = AbsIdealSheaf[strict_transform(bl, p) for p in comps]
+  end
+  return _resolve_module(SimplifiedSheaf(st_M), blowdowns; r0, focus)
+
   I = simplify(radical(pushforward(inc_Z, fitts[end])))
   @vprint :NashResolutions 2 "blowing up in $I on patches\n"
   for U in simplified_covering(X)
@@ -1204,7 +1219,7 @@ function _resolve_module(
   @show is_zero(I)
   bl = blow_up(I; covering=simplified_covering(X))
   st_M = SimplifiedSheaf(StrictTransformSheaf(bl, M; check=false); check=false)
-  return _resolve_module(st_M, push!(blowdowns, bl); r0, focus=ideal_sheaf(exceptional_divisor(bl)))
+  return _resolve_module(st_M, push!(blowdowns, bl); r0, focus=radical(pullback(bl, focus)))
 end
 
 function produce_object(M::ExteriorPowerSheaf, U::AbsAffineScheme)
