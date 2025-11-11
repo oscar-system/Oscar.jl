@@ -800,9 +800,11 @@ end
     isometry_group(
       L::ZZLat;
       algorithm::Symbol=:direct,
+      closed::Bool=true,
+      direct::Bool=true,
       depth::Int=-1,
       bacher_depth::Int=0,
-      kwargs...,
+      set_nice_mono::Bool=true,
      ) -> MatrixGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
@@ -824,7 +826,7 @@ is chosen heuristically depending on the rank of `L`. By default,
 """
 @attr QQMatrixGroup function isometry_group(
   L::ZZLat;
-  algorithm=:direct,
+  algorithm::Symbol=:direct,
   closed::Bool=true,
   direct::Bool=true,
   depth::Int=-1,
@@ -851,7 +853,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   elseif algorithm == :default
     G, _ = _isometry_group_via_heuristics(L; depth, bacher_depth, closed, direct, set_nice_mono)
   else
-    error("Unknown algorithm: for the moment, we only support :direct, :decomposition and :dispatch")
+    error("Unknown algorithm: for the moment, we only support :direct, :decomposition and :default")
   end
   return G
 end
