@@ -85,12 +85,7 @@
   @testset "inplace iteration" begin
     Ci = multicombinations(5,3, inplace=true)
     Cf = multicombinations(5,3)
-    si = sf = nothing
-    for i in 1:number_of_multicombinations(5,3)
-      ci, si = iterate(Ci, si)
-      cf, sf = iterate(Cf, sf)
-      @test ci == cf
-    end
+    @test all(splat(==), zip(Ci, Cf))
   end
 
 end
