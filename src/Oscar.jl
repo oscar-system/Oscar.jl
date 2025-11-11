@@ -123,6 +123,7 @@ function __init__()
   # also those that are triggered from GAP packages.
   __GAP_info_messages_off()
   __init_group_libraries()
+  OrigamiHelper.__init_Origami()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)

@@ -4,7 +4,9 @@ module OrigamiHelper
 
 using ..GAP
 
-function __init__()
+# this is not an __init__ function because we want it to run after the __init__ of Oscar
+# (and __init__ functions of submodules are run before the __init__ of the parent module)
+function __init_Origami()
   mod_p = "https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g"
   ori_p = "https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g"
   GAP.Packages.install(mod_p)
