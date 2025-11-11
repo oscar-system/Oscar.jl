@@ -51,6 +51,17 @@
 
   @test collect(combinations(0, 0)) == [Int[]]
 
+  @testset "inplace iteration" begin
+    Ci = combinations(5,3, inplace=true)
+    Cf = combinations(5,3)
+    si = sf = nothing
+    for i in 1:binomial(5,3)
+      ci, si = iterate(Ci, si)
+      cf, sf = iterate(Cf, sf)
+      @test ci == cf
+    end
+  end
+
   @testset "ranking/unranking" begin
     @test Oscar.combination(0,0,1) == Combination([])
     @test Oscar.combination(3,3,1) == Combination(collect(1:3))

@@ -82,4 +82,15 @@
   @test collect(multicombinations(0, 0)) == [Int[]]
   @test collect(multicombinations(0, 1)) == []
 
+  @testset "inplace iteration" begin
+    Ci = multicombinations(5,3, inplace=true)
+    Cf = multicombinations(5,3)
+    si = sf = nothing
+    for i in 1:binomial(7,3)
+      ci, si = iterate(Ci, si)
+      cf, sf = iterate(Cf, sf)
+      @test ci == cf
+    end
+  end
+
 end
