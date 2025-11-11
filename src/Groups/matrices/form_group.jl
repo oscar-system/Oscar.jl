@@ -814,7 +814,7 @@ only support the following algorithms:
   Plesken--Souvignier;
 - `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
   $O(L)$-stable sublattices;
-- `:dispatch`: compute $O(L)$ using heuristics which dispatch (iteratively) to
+- `:default`: compute $O(L)$ using heuristics which dispatch (iteratively) to
   the best algorithm between `:direct` and `:decomposition`
 
 Setting the parameters `depth` and `bacher_depth` to a positive value may
@@ -825,9 +825,11 @@ is chosen heuristically depending on the rank of `L`. By default,
 @attr QQMatrixGroup function isometry_group(
   L::ZZLat;
   algorithm=:direct,
+  closed::Bool=true,
+  direct::Bool=true,
   depth::Int=-1,
   bacher_depth::Int=0,
-  kwargs...,
+  set_nice_mono::Bool=true,
 )
   # corner cases
   if rank(L) == 0
@@ -845,9 +847,9 @@ is chosen heuristically depending on the rank of `L`. By default,
     gens = automorphism_group_generators(L; depth, bacher_depth)
     G = matrix_group(gens)
   elseif algorithm == :decomposition
-    G, _ = _isometry_group_via_decomposition(L; depth, bacher_depth, kwargs...)
-  elseif algorithm == :dispatch
-    G, _ = _isometry_group_via_heuristics(L; depth, bacher_depth, kwargs...)
+    G, _ = _isometry_group_via_decomposition(L; depth, bacher_depth, closed, direct, set_nice_mono)
+  elseif algorithm == :default
+    G, _ = _isometry_group_via_heuristics(L; depth, bacher_depth, closed, direct, set_nice_mono)
   else
     error("Unknown algorithm: for the moment, we only support :direct, :decomposition and :dispatch")
   end
@@ -861,6 +863,7 @@ end
       direct::Bool=true,
       depth::Int=-1,
       bacher_depth::Int=0,
+      set_nice_mono::Bool=true,
     ) -> MatrixGroup, Vector{QQMatrix}
 
 Compute the group of isometries of the definite lattice `L` by dispatching
@@ -907,11 +910,12 @@ end
 """
     _isometry_group_via_decomposition(
       L::ZZLat;
+      depth::Int=-1,
+      bacher_depth::Int=0,
       use_heuristics::Bool=false,
       closed::Bool=true,
       direct::Bool=true,
-      depth::Int=-1,
-      bacher_depth::Int=0,
+      set_nice_mono::Bool=true,
     ) -> MatrixGroup, Vector{QQMatrix}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal
@@ -919,11 +923,11 @@ decomposition.
 """
 function _isometry_group_via_decomposition(
   L::ZZLat;
+  depth::Int=-1,
+  bacher_depth::Int=0,
   use_heuristics::Bool=false,
   closed::Bool=true,
   direct::Bool=true,
-  depth::Int=-1,
-  bacher_depth::Int=0,
   set_nice_mono::Bool=true,
 )
   # TODO: adapt the direct decomposition approach for AbstractLat
