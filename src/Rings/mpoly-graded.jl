@@ -1463,7 +1463,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
      k = try
        solve_mixed(transpose(A), transpose(d.coeff), C)
      catch e
-       if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+       if e isa ErrorException && e.msg == "Polyhedron not bounded"
          rethrow(ArgumentError("The considered graded component is infinite-dimensional"))
        else
          rethrow(e)
@@ -1513,7 +1513,7 @@ an integer `d`, convert `d` into an element `g` of the grading group of `R`
 proceed as above.
 
 !!! note
-    If the component is infinite dimensional, an error will be thrown.
+    If the component is not finite dimensional, an error will be thrown.
 
 # Examples
 ```jldoctest

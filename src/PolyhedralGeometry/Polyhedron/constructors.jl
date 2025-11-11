@@ -21,8 +21,8 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
 end
 
 # default scalar type: guess from input and fall back to `QQFieldElem`
-polyhedron(A, b) = polyhedron(_guess_fieldelem_type(A, b), A, b)
-polyhedron(A) = polyhedron(_guess_fieldelem_type(A), A)
+polyhedron(A, b; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing) = polyhedron(_guess_fieldelem_type(A, b), A, b; non_redundant, is_bounded)
+polyhedron(A; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing) = polyhedron(_guess_fieldelem_type(A), A; non_redundant, is_bounded)
 
 @doc raw"""
     polyhedron(P::Polymake.BigObject)
@@ -67,32 +67,34 @@ Polyhedron in ambient dimension 2
 ```
 """
 polyhedron(
-  f::scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector; non_redundant::Bool=false
-) = polyhedron(f, (A, b); non_redundant=non_redundant)
+           f::scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing
+) = polyhedron(f, (A, b); non_redundant, is_bounded)
 
-polyhedron(f::scalar_type_or_field, A::AbstractVector, b::Any; non_redundant::Bool=false) =
-  polyhedron(f, ([A], [b]); non_redundant=non_redundant)
+polyhedron(f::scalar_type_or_field, A::AbstractVector, b::Any; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing) =
+  polyhedron(f, ([A], [b]); non_redundant, is_bounded)
 
 polyhedron(
-  f::scalar_type_or_field, A::AbstractVector, b::AbstractVector; non_redundant::Bool=false
-) = polyhedron(f, ([A], b); non_redundant=non_redundant)
+  f::scalar_type_or_field, A::AbstractVector, b::AbstractVector; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing
+) = polyhedron(f, ([A], b); non_redundant, is_bounded)
 
 polyhedron(
   f::scalar_type_or_field,
   A::AbstractVector{<:AbstractVector},
   b::Any;
   non_redundant::Bool=false,
-) = polyhedron(f, (A, [b]); non_redundant=non_redundant)
+  is_bounded::Union{Bool, Nothing}=nothing,
+) = polyhedron(f, (A, [b]); non_redundant, is_bounded)
 
 polyhedron(
   f::scalar_type_or_field,
   A::AbstractVector{<:AbstractVector},
   b::AbstractVector;
   non_redundant::Bool=false,
-) = polyhedron(f, (A, b); non_redundant=non_redundant)
+  is_bounded::Union{Bool, Nothing}=nothing,
+) = polyhedron(f, (A, b); non_redundant, is_bounded)
 
-polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::Any; non_redundant::Bool=false) =
-  polyhedron(f, A, [b]; non_redundant=non_redundant)
+polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::Any; non_redundant::Bool=false, is_bounded::Union{Bool, Nothing}=nothing) =
+  polyhedron(f, A, [b]; non_redundant, is_bounded)
 
 @doc raw"""
     polyhedron(::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
@@ -136,6 +138,7 @@ function polyhedron(
   I::Union{Nothing,AbstractCollection[AffineHalfspace]},
   E::Union{Nothing,AbstractCollection[AffineHyperplane]}=nothing;
   non_redundant::Bool=false,
+  is_bounded::Union{Bool, Nothing}=nothing,
 )
   parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
   if isnothing(I) || _isempty_halfspace(I)
@@ -151,20 +154,27 @@ function polyhedron(
   end
 
   if non_redundant
-    return Polyhedron{scalar_type}(
-      Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+    if !isnothing(is_bounded)
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+        FACETS=remove_zero_rows(IM), AFFINE_HULL=remove_zero_rows(EM), BOUNDED=is_bounded
+      )
+    else
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
         FACETS=remove_zero_rows(IM), AFFINE_HULL=remove_zero_rows(EM)
-      ),
-      parent_field,
-    )
+      )
+    end
   else
-    return Polyhedron{scalar_type}(
-      Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+    if !isnothing(is_bounded)
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
+        INEQUALITIES=remove_zero_rows(IM), EQUATIONS=remove_zero_rows(EM), BOUNDED=is_bounded
+      )
+    else
+      result = Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(;
         INEQUALITIES=remove_zero_rows(IM), EQUATIONS=remove_zero_rows(EM)
-      ),
-      parent_field,
-    )
+      )
+    end
   end
+  return Polyhedron{scalar_type}(result, parent_field)
 end
 
 """
