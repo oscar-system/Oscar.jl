@@ -55,7 +55,7 @@
     Ci = combinations(5,3, inplace=true)
     Cf = combinations(5,3)
     si = sf = nothing
-    for i in 1:binomial(5,3)
+    for i in 1:number_of_combinations(5,3)
       ci, si = iterate(Ci, si)
       cf, sf = iterate(Cf, sf)
       @test ci == cf

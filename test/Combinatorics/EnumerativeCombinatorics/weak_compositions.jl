@@ -12,7 +12,7 @@
     Ci = weak_compositions(T(5),T(3), inplace=true)
     Cf = weak_compositions(T(5),T(3))
     si = sf = nothing
-    for i in 1:number_of_compositions(5,3)
+    for i in 1:number_of_weak_compositions(5,3)
       ci, si = iterate(Ci, si)
       cf, sf = iterate(Cf, sf)
       @test ci == cf

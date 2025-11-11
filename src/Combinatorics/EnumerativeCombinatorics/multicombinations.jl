@@ -73,9 +73,22 @@ multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
   return c, state
 end
 
-Base.length(C::MultiCombinations) = binomial(Int(C.n)+Int(C.k)-1, Int(C.k))
-
 Base.eltype(::Type{<:MultiCombinations{T}}) where {T} = Combination{eltype(T)}
+
+@doc raw"""
+    number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
+
+Return the number of $k$-combinations of ${1, \ldots, n}$.
+If `n < 0` or `k < 0`, return `0`.
+"""
+function number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
+  if n < 0 || k < 0
+    return ZZ(0)
+  end
+  return binomial(ZZ(n) + ZZ(k) - 1, ZZ(k))
+end
+
+Base.length(C::MultiCombinations) = BigInt(number_of_multicombinations(C.n, C.k))
 
 function Base.show(io::IO, C::MultiCombinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n, " with repetition")
