@@ -935,7 +935,10 @@ zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
-  res, aug = free_resolution(SimpleFreeResolution, M)
+  #res, aug = free_resolution(SimpleFreeResolution, M)
+  pres = presentation(M)
+  aug = map(pres, 0)
+  res = SimpleComplexWrapper(pres[0:1])
   simp = simplify(res)
   simp_to_orig = map_to_original_complex(simp)
   orig_to_simp = map_from_original_complex(simp)
@@ -943,9 +946,11 @@ function simplify(M::SubquoModule)
   Z0, inc_Z0 = kernel(simp, 0)
 
   result_to_M = hom(result, M, 
-                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
+                    elem_type(M)[aug(simp_to_orig[0](repres(x))) for x in gens(result)]; check=false)
+                    #elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
   M_to_result = hom(M, result,
-                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
+                    elem_type(result)[result(x; check=false) for x in images_of_generators(orig_to_simp[0])]; check=false)
+                    #elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
   set_attribute!(M_to_result, :inverse=>result_to_M)
   set_attribute!(result_to_M, :inverse=>M_to_result)
   #return result, M_to_result, result_to_M
