@@ -253,17 +253,27 @@ end
 
 #this function computes the minors of a given matrix for the bases in a given list.
 #this list is not reduced, i.e. there are no repetitions but the polynomials are not reduced, i.e. the list might contain x+1 and y-2 and their product
+function sort_by_degree(polys::Vector{<:RingElem})::Vector{<:RingElem}
+    deg(p) = hasmethod(total_degree, Tuple{typeof(p)}) ? total_degree(p) : 0
+    return sort(polys, by=deg)
+end
+
 function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
     R = base_ring(M);
-    candidates = [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+    candidates = sort_by_degree([R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)])
+    multiplicativeSet= nothing
     ineqs = [R(0)]
     for i in 1:length(candidates)
       if isone(candidates[i]) || isone(-candidates[i]) 
-      elseif candidates[i] == 0
+      elseif iszero(candidates[i])
         error("a basis has vanishing minor")
       else
-        if !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
+        if isnothing(multiplicativeSet) && !(candidates[i] in ineqs[2:length(ineqs)]) && !(-candidates[i] in ineqs[2:length(ineqs)])
+          multiplicativeSet = powers_of_element(candidates[i])
+          push!(ineqs,R(candidates[i]))
+        elseif !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)]) && !(candidates[i] in multiplicativeSet)  && !(-candidates[i] in multiplicativeSet)# !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
           #one possibility is to take out all products of existing ineqs
+          multiplicativeSet = product(multiplicativeSet,powers_of_element(candidates[i]));
           push!(ineqs,R(candidates[i]))
         end
       end
