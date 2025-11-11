@@ -159,7 +159,7 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   unUsedRowsForOnes = collect(2:rk)
   for col in 1:(n - rk), row in 1:rk
     circ = circs[col]
-    if !(B[row] == minimum(circ)) && B[row] in circ
+    if !(B[row] == minimum(circ; init=0)) && B[row] in circ
       if row in unUsedRowsForOnes
         unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
       else
@@ -191,7 +191,7 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
     circ = circs[col]
     c = nonIdCols[col]
 
-    if B[row] == minimum(circ)
+    if B[row] == minimum(circ; init=0)
       mat[row, c] = R(1)
     elseif B[row] in circ
       if row in unUsedRowsForOnes
@@ -850,6 +850,7 @@ function reduce_realization_space(
 
   for j in 1:n
     g = gcd(Xnew[:, j]...)
+    is_zero(g) && continue
     prime_divisors = poly_2_prime_divisors(g)
     for f in prime_divisors
       if f in normal_Sgens
