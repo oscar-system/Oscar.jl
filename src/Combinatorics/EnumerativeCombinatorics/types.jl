@@ -421,6 +421,7 @@ end
 
 
 Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
+
 ################################################################################
 #
 #  Multicombination(s)
