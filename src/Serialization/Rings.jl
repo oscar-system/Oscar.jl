@@ -14,11 +14,11 @@ const PolyRingUnionType = Union{UniversalPolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
 
 const IdealUnionType = Union{MPolyIdeal,
-                                MPolyQuoIdeal,
-                                MPolyLocalizedIdeal,
-                                MPolyQuoLocalizedIdeal,
-                                LaurentMPolyIdeal,
-                                FreeAssociativeAlgebraIdeal
+                             MPolyQuoIdeal,
+                             MPolyLocalizedIdeal,
+                             MPolyQuoLocalizedIdeal,
+                             LaurentMPolyIdeal,
+                             FreeAssociativeAlgebraIdeal
                             }
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
@@ -43,7 +43,7 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 
 type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
 type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
-type_params(x::T) where T <: IdealUnionType = TypeParams(T, base_ring(x))
+type_params(x::T) where T <: Ideal = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
 type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
@@ -256,6 +256,7 @@ end
 @register_serialization_type MPolyLocalizedIdeal
 @register_serialization_type MPolyQuoLocalizedIdeal
 @register_serialization_type MPolyQuoIdeal
+@register_serialization_type Hecke.PIDIdeal
 
 function save_object(s::SerializerState, I::T) where T <: IdealUnionType
   # we might want to serialize generating_system(I) and I.gb
