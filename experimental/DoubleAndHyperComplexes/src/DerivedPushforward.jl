@@ -712,7 +712,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
     return ctx.fixed_exponent_vector
   end
   if ctx.algorithm == :cech
-    #error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
+    error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
   end
   # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
   # but only part of the algorithm is executed and explicit lattice points are 
