@@ -43,7 +43,7 @@ Additional to the usual polynomial ring functionality one can also ask for the i
 
 #Examples
 ```jldoctest
-julia> R, x, d = indexed_ring(QQ, "x" => collect(Iterators.product(1:5, 1:3)));
+julia> R, x = indexed_ring(QQ, "x" => collect(Iterators.product(1:5, 1:3)));
 
 julia> x[1, 2]
 x[1,2]
@@ -51,12 +51,12 @@ x[1,2]
 julia> x[(1, 2)]
 x[1,2]
 
-julia> d[x[1, 2]]
+julia> Oscar.gen_index(R, x[1, 2])
 (1, 2)
 
-julia> R, (y, z), d = indexed_ring(QQ, [:y, :z]);
+julia> R, (y, z) = indexed_ring(QQ, [:y, :z]);
 
-julia> d[y]
+julia> Oscar.gen_index(R, y)
 1
 ```
 """
