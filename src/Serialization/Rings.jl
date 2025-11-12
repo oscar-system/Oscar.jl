@@ -1,10 +1,8 @@
 ################################################################################
 # Common union types
 
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
-                               SMat, TropicalSemiringElem}
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
-                                FreeAssociativeAlgebra, TropicalSemiring}
+const RingMatElemUnion = Union{NCRingElem, MatElem, SMat}
+const RingMatSpaceUnion = Union{NCRing, MatSpace, SMatSpace}
 const ModRingUnion = Union{zzModRing, ZZModRing}
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
@@ -12,14 +10,6 @@ const PolyRingUnionType = Union{UniversalPolyRing,
                             MPolyRing,
                             PolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-
-const IdealUnionType = Union{MPolyIdeal,
-                             MPolyQuoIdeal,
-                             MPolyLocalizedIdeal,
-                             MPolyQuoLocalizedIdeal,
-                             LaurentMPolyIdeal,
-                             FreeAssociativeAlgebraIdeal
-                            }
 
 const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
                                       QQRelPowerSeriesRing,
@@ -222,7 +212,6 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
   end
 end
 
-
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
@@ -249,6 +238,11 @@ function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ri
   return parent_ring(poly)
 end
 
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRingElem)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
+  return parent_ring(poly)
+end
+
 ################################################################################
 # Polynomial Ideals
 @register_serialization_type MPolyIdeal
@@ -258,15 +252,13 @@ end
 @register_serialization_type MPolyQuoIdeal
 @register_serialization_type Hecke.PIDIdeal
 
-function save_object(s::SerializerState, I::T) where T <: IdealUnionType
+function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb
   # in the future
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
-  isempty(s.obj) && return ideal(parent_ring, [])
-
+function load_object(s::DeserializerState, ::Type{<: Ideal}, parent_ring::NCRing)
   gens = elem_type(parent_ring)[]
   load_array_node(s) do _
     push!(gens, load_object(s, elem_type(parent_ring), parent_ring))

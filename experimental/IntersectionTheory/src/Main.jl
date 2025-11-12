@@ -7,15 +7,16 @@
     abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
     abstract_bundle(X::AbstractVariety, r::RingElement, c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return an abstract vector bundle on `X` by specifying its Chern character `ch`. Equivalently, specify its rank `r` and
-total Chern class `c`.
+Return an abstract vector bundle on `X` by specifying its Chern character `ch`.
+Equivalently, specify its rank `r` and total Chern class `c`.
 
 # Examples
 
-We show two ways of constructing the Horrocks-Mumford bundle `F` [HM73](@cite). First, we create `F` as the
-cohomology bundle of its Beilinson monad
+We show two ways of constructing the Horrocks-Mumford bundle `F` [HM73](@cite).
+First, we create `F` as the cohomology bundle of its Beilinson monad
+(see Equation (2.1) in [HM73](@cite)):
 
-$0 \rightarrow \mathcal O_{\mathbb P^4} ^5(2)\rightarrow \Lambda^2 T^*_{\mathbb P^4}(5)
+$0 \rightarrow \mathcal O_{\mathbb P^4}^5(2)\rightarrow \bigwedge^2\mathrm{T}^*_{\mathbb P^4}(5)
 \rightarrow \mathcal O_{\mathbb P^4}^5(3)\rightarrow 0.$
 
 Then, we show the constructor above at work.
@@ -79,7 +80,7 @@ Return the Chern character of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -101,7 +102,7 @@ Return the total Chern class of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -423,17 +424,30 @@ end
 @doc raw"""
     map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
-Return an abstract variety map `X` $\rightarrow$ `Y` by specifying the pullbacks of
-the generators of the Chow ring of `Y`.
+Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of 
+the Chow ring $N^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map $N^*(X)_{\mathbb Q} \rightarrow N^*(Y)_{\mathbb Q}.$
 
 !!! note
-    The corresponding pushforward will be automatically computed in certain cases.
+    The pullback is relatively easy to describe since it is functorial, while the pushforward is usually more complicated.   
+    In some cases, the pushforward of an element $x \in N^*(X)_{\mathbb Q}$ can be automatically computed via pullback.
+    Specifically, the projection formula tells us that
+
+    $f_\ast(f^\ast(y)\cdot x) = f_\ast(x)\cdot y \;\text{ for all }\; x\in N^*(X)_{\mathbb Q}, y\in N^*(Y)_{\mathbb Q}.$
+
+    Since we are working with numerical equivalence, to determine $f_\ast(x)$, it suffices to know all its intersection numbers,
+    which can readily be computed via pullback, provided that all classes in $N^*(Y)_{\mathbb Q}$ are known (or at least those
+    classes having non-zero intersection numbers with $f_\ast(x)$).
+    This is the case in the following situations:
+    - When $Y$ is a point or a curve.
+    - When all classes in $N^*(Y)_{\mathbb Q}$ are known.
+    - When `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in $N^*(X)_{\mathbb Q}$ are known.
+    In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
-    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
-    present in the Chow ring of `Y`, use the argument `extend_inclusion = true`. Then,
+    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in $N^*(Y)_{\mathbb Q}$
+    is not known, use the argument `extend_inclusion = true`. Then,
     a modified version of `Y` will be created, with extra classes added so that one can
-    pushforward all classes on `X`. See the subsection [Example: Cubic Fourfolds](@ref)
+    pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
     of the documentation for an example.
 
 # Examples
@@ -461,6 +475,9 @@ k + l
 
 julia> pushforward(Se, k+l)
 6*h^5
+
+julia> pushforward(Se, pullback(Se, h)*(k+l)) == h*pushforward(Se, k+l)
+true
 
 ```
 """
@@ -546,7 +563,7 @@ Return the Todd class of the relative tangent bundle of `f`.
 todd_class(f::AbstractVarietyMap) = todd_class(f.T)
 
 @doc raw"""
-    pullback(f::AbstractVarietyMap, y::MPolyDecRingElem)
+    pullback(f::AbstractVarietyMap, y::MPolyDecRingOrQuoElem)
 
 Return the pullback of `y` via `f`.
 
@@ -573,7 +590,7 @@ julia> pullback(i, H)
 
 ```
 """
-pullback(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pullback(x)
+pullback(f::AbstractVarietyMap, y::MPolyDecRingOrQuoElem) = f.pullback(y)
 
 @doc raw"""
     pullback(f::AbstractVarietyMap, F::AbstractBundle)
@@ -606,7 +623,7 @@ julia> total_chern_class(E)
 pullback(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.domain, f.pullback(chern_character(F)))
 
 @doc raw"""
-    pushforward(f::AbstractVarietyMap, x::MPolyDecRingElem)
+    pushforward(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem)
 
 Return the pushforward of `x` via `f`.
 
@@ -648,14 +665,17 @@ AbstractVariety of dim 5
 julia> h = gens(P2)[1]
 h
 
-julia> i = map(P2, P5, [2*h])
+julia> f = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> E = pushforward(i, OO(P2,1))
-AbstractBundle of rank 0 on AbstractVariety of dim 5
+julia> F = OO(P2,1)
+AbstractBundle of rank 1 on AbstractVariety of dim 2
 
-julia> total_chern_class(E)
-168*H^5 + 42*H^4 + 8*H^3 + 1
+julia> c = pushforward(f, chern_character(F) * todd_class(f))
+7*H^5 - 7*H^4 + 4*H^3
+
+julia> chern_character(pushforward(f, F)) == c # Grothendieck-Riemann-Roch
+true
 
 ```
 """
@@ -750,7 +770,10 @@ end
 Return an abstract variety by specifying its dimension `n` and Chow ring `A`.
 
 !!! note
-    We allow graded polynomial rings here since for the construction of a new abstract variety it is occasionally useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    We allow graded polynomial rings here since for the construction of a new abstract variety, the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+
+!!! note
+    In addition to the dimension and the Chow ring, further data making up an abstract variety can be set. See the corresponding setter functions in the section [Some Particular Constructions](@ref) of the documentation.
 
 # Examples
 ```jldoctest
@@ -1600,6 +1623,7 @@ true
 ```
 """
 det(F::AbstractBundle) = AbstractBundle(F.parent, 1, 1 + chern_class(F, 1))
+
 function _coerce(F::AbstractBundle, G::AbstractBundle)
   X, Y = F.parent, G.parent
   X == Y && return F, G
@@ -1777,10 +1801,10 @@ betti_numbers(X::AbstractVariety) = length.(basis(X))
 @doc raw"""
     integral(c:::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `c` of the Chow ring of an abstract variety `X`, say, return the integral of `c`.
+Given an element `c` of the Chow ring of an abstract variety, say, `X`, return the integral of `c`.
 
 !!! note
-    If the abstract variety has been given a point class, and `length(basis(X, dim(X)) == 1`,
+    If `X` has been given a (unique) point class,
     then the integral will be an element of the coefficient ring of the Chow ring.
     That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
     of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
@@ -2261,8 +2285,8 @@ end
     complete_intersection(X::AbstractVariety, degs::Int...)
     complete_intersection(X::AbstractVariety, degs::Vector{Int})
 
-Return the complete intersection in `X` of general hypersurfaces with
-the given degrees.
+If `X` has been given a polarization, return the complete intersection in
+`X` of general hypersurfaces with the degrees given by `degs`.
 
 # Examples
 ```jldoctest
@@ -2678,8 +2702,15 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String =
   @assert k < n
   d = k*(n-k)
   R, c = graded_polynomial_ring(base, symbol => 1:k; weights = 1:k)
-  inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
+
+  l =[-sum(c)]
+  for i=1:n-1
+    push!(l, l[1]*l[end])
+  end
+  inv_c = sum(l) # this is c(Q) since c(S)⋅c(Q) = 1
+
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
+
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
   c = gens(AGr)
   Gr = AbstractVariety(d, AGr)

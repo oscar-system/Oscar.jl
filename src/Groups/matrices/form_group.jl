@@ -797,66 +797,165 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
 end
 
 @doc raw"""
-    isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
+    isometry_group(
+      L::ZZLat;
+      algorithm::Symbol=:direct,
+      closed::Bool=true,
+      direct::Bool=true,
+      depth::Int=-1,
+      bacher_depth::Int=0,
+      set_nice_mono::Bool=true,
+     ) -> MatrixGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 isometry group $O(L)$ of $L$.
 
 One can choose which algorithm to use to compute $O(L)$. For now, we
 only support the following algorithms:
-- `:direct`: compute generators of $O(L)$ using Plesken-Souvignier;
+- `:direct`: compute generators of $O(L)$ using an algorithm of
+  Plesken--Souvignier;
 - `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
-  invariant sublattices.
+  $O(L)$-stable sublattices;
+- `:default`: compute $O(L)$ using heuristics which dispatch (iteratively) to
+  the best algorithm between `:direct` and `:decomposition`
 
-Setting the parameters `depth` and `bacher_depth` to a positive value may improve
-performance. If set to `-1` (default), the used value of `depth` is chosen
-heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
+Setting the parameters `depth` and `bacher_depth` to a positive value may
+improve performance. If set to `-1` (default), the used value of `depth`
+is chosen heuristically depending on the rank of `L`. By default,
+`bacher_depth` is set to `0`.
 """
-@attr QQMatrixGroup function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
-  # corner case
-  @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
+@attr QQMatrixGroup function isometry_group(
+  L::ZZLat;
+  algorithm::Symbol=:direct,
+  closed::Bool=true,
+  direct::Bool=true,
+  depth::Int=-1,
+  bacher_depth::Int=0,
+  set_nice_mono::Bool=true,
+)
+  # corner cases
   if rank(L) == 0
-    G = matrix_group(identity_matrix(QQ, degree(L)))
+    return matrix_group(identity_matrix(QQ, degree(L)))
+  elseif rank(L) == 1
+    return matrix_group(extend_to_ambient_space(L, -identity_matrix(QQ, rank(L)); check=false))
+  elseif rank(L) == 2
+    gene = automorphism_group_generators(L)
+    return matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
   end
 
-  if !is_definite(L) && (rank(L) == 2)
-    gene = automorphism_group_generators(L)
-    G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
-  end
+  @req is_definite(L) "Lattice must be definite or of rank at most 2"
 
   if algorithm == :direct
-    gens = automorphism_group_generators(L; depth=depth, bacher_depth=bacher_depth)
+    gens = automorphism_group_generators(L; depth, bacher_depth)
     G = matrix_group(gens)
   elseif algorithm == :decomposition
-    G, _ = _isometry_group_via_decomposition(L; depth=depth, bacher_depth=bacher_depth)
+    G, _ = _isometry_group_via_decomposition(L; depth, bacher_depth, closed, direct, set_nice_mono)
+  elseif algorithm == :default
+    G, _ = _isometry_group_via_heuristics(L; depth, bacher_depth, closed, direct, set_nice_mono)
   else
-    error("Unknown algorithm: for the moment, we support :direct or :decomposition")
+    error("Unknown algorithm: for the moment, we only support :direct, :decomposition and :default")
   end
   return G
 end
 
 """
-    _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
+    _isometry_group_via_heuristics(
+      L::ZZLat;
+      closed::Bool=true,
+      direct::Bool=true,
+      depth::Int=-1,
+      bacher_depth::Int=0,
+      set_nice_mono::Bool=true,
+    ) -> MatrixGroup, Vector{QQMatrix}
 
-Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
+Compute the group of isometries of the definite lattice `L` by dispatching
+to Plesken--Souvignier or the decomposition algorithm, depending on the Gram
+matrix of `L`.
 """
-function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true, depth::Int = -1, bacher_depth::Int = 0)
+function _isometry_group_via_heuristics(
+  L::ZZLat;
+  closed::Bool=true,
+  direct::Bool=true,
+  depth::Int=-1,
+  bacher_depth::Int=0,
+  set_nice_mono::Bool=true,
+)
+  if gram_matrix(L)[1,1] < 0
+    L_int = rescale(L, -1)
+  else
+    L_int = L
+  end
+
+  if !direct
+    d = denominator(scale(L_int))
+    if d > 1
+      L_int = rescale(L_int, d)
+    end
+  end
+
+  # for now we use very naive heuristics
+  L_int = lll(L_int)
+  d = diagonal(gram_matrix(L_int))
+  m1 = minimum(d)
+  m2 = maximum(d)
+
+  if m2 <= 2*m1 || rank(L) <= 10
+    gens = automorphism_group_generators(L_int; depth, bacher_depth)
+    G = matrix_group(gens)
+    sv = Vector{QQFieldElem}[]
+  else
+    G, sv = _isometry_group_via_decomposition(L_int; use_heuristics=true, depth, bacher_depth, closed, direct, set_nice_mono)
+  end
+  return G, sv
+end
+
+"""
+    _isometry_group_via_decomposition(
+      L::ZZLat;
+      depth::Int=-1,
+      bacher_depth::Int=0,
+      use_heuristics::Bool=false,
+      closed::Bool=true,
+      direct::Bool=true,
+      set_nice_mono::Bool=true,
+    ) -> MatrixGroup, Vector{QQMatrix}
+
+Compute the group of isometries of the definite lattice `L` using an orthogonal
+decomposition.
+"""
+function _isometry_group_via_decomposition(
+  L::ZZLat;
+  depth::Int=-1,
+  bacher_depth::Int=0,
+  use_heuristics::Bool=false,
+  closed::Bool=true,
+  direct::Bool=true,
+  set_nice_mono::Bool=true,
+)
   # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
   if gram_matrix(L)[1,1] < 0
     L = rescale(L, -1)
   end
+
+  if !direct
+    d = denominator(scale(L))
+    if d > 1
+      L = rescale(L, d)
+    end
+  end
+
   # construct the sublattice M1 of L generated by the shortest vectors
   V = ambient_space(L)
   # for simplicity we work with the ambient representation
   # TODO: Swap to action on vectors once Hecke 0.15.3 is released
-  sv = shortest_vectors(L)
+  _sv1 = shortest_vectors(L)
   bL = basis_matrix(L)
-  sv1 = Vector{QQFieldElem}[v*bL for v in sv]
-  h = _row_span!(sv)*bL
+  sv1 = Vector{QQFieldElem}[v*bL for v in _sv1]
+  h = _row_span!(_sv1)*bL
   M1 = lattice(V, h)
-  if closed
+  if set_nice_mono && closed
     # basically doubles the memory usage of this function
     # a more elegant way could be to work with the corresponding projective representation
     append!(sv1, [-v for v in sv1])
@@ -865,7 +964,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true,
   # base case of the recursion
   M1primitive = primitive_closure(L, M1)
 
-  #=
+ #=
   # the following is slower than computing the automorphism_group generators of
   # M1primitive outright
   gensOM1 = automorphism_group_generators(M1, depth = depth, bacher_depth = bacher_depth)
@@ -877,9 +976,12 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true,
     @vprint :Lattice 3 "Computing overlattice stabilizers \n"
     O1,_ = stabilizer(OM1, M1primitive, on_lattices)
   end
-  =#
-  O1 = matrix_group(automorphism_group_generators(M1primitive, depth = depth, bacher_depth = bacher_depth))
-  _set_nice_monomorphism!(O1, sv1; closed)
+ =#
+
+  O1 = matrix_group(automorphism_group_generators(M1primitive; depth, bacher_depth))
+  if set_nice_mono
+    _set_nice_monomorphism!(O1, sv1; closed)
+  end
   if rank(M1) == rank(L)
     @hassert :Lattice 2 M1primitive == L
     return O1, sv1
@@ -890,56 +992,34 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true,
 
   @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
   # recursion
-  O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth)
+  if use_heuristics
+    O2, sv2 = _isometry_group_via_heuristics(M2; closed, direct, depth, bacher_depth, set_nice_mono)
+  else
+    O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth, set_nice_mono)
+  end
 
+  if set_nice_mono && isempty(sv2)
+    _sv2 = shortest_vectors(M2)
+    sv2 = Vector{QQFieldElem}[v*basis_matrix(M2) for v in _sv2]
+    if closed
+      append!(sv2, [-v for v in sv2])
+    end
+  end
+  sv = append!(sv1, sv2)
 
   # In what follows we compute the stabilizer of L in O1 x O2
   if direct
     gens12 = vcat(gens(O1), gens(O2))
     G = matrix_group(gens12)
-    sv = append!(sv1, sv2)
-    S,_ = stabilizer(G, L, on_lattices)
-    _set_nice_monomorphism!(S, sv; closed)
-    return S, sv
+    S, _ = stabilizer(G, L, on_lattices)
+  else
+    gensS = stabilizer_in_diagonal_action(L, M1primitive, M2, O1, O2; check=false, is_finite_known=(true, true))
+    S = matrix_group(gensS)
   end
-
-  phi, i1, i2 = glue_map(L, M1primitive, M2)
-  H1 = domain(phi)
-  H2 = codomain(phi)
-
-
-  @vprint :Lattice 2 "glue order: $(order(H1))\n"
-  # the stabilizer and kernel computations are expensive
-  # alternatively we could first project to the orthogonal group of the
-  # discriminant group and create an on_subgroup action
-  @vprint :Lattice 3 "Computing glue stabilizers \n"
-  G1, _ = stabilizer(O1, cover(H1), on_lattices)
-  G2, _ = stabilizer(O2, cover(H2), on_lattices)
-  # _set_nice_monomorphism!(G1, sv1, closed=closed)
-  # _set_nice_monomorphism!(G2, sv2, closed=closed)
-
-  # now we may alter sv1
-  sv = append!(sv1, sv2)
-
-  G1q =  _orthogonal_group(H1, ZZMatrix[matrix(hom(H1, H1, TorQuadModuleElem[H1(lift(x) * matrix(g)) for x in gens(H1)])) for g in gens(G1)]; check = false)
-  G2q =  _orthogonal_group(H2, ZZMatrix[matrix(hom(H2, H2, TorQuadModuleElem[H2(lift(x) * matrix(g)) for x in gens(H2)])) for g in gens(G2)]; check = false)
-
-  psi1 = hom(G1, G1q, gens(G1q); check=false)
-  psi2 = hom(G2, G2q, gens(G2q); check=false)
-  @vprint :Lattice 2 "Computing the kernel of $(psi1)\n"
-  K = gens(kernel(psi1)[1])
-  @vprint :Lattice 2 "Computing the kernel of $(psi2)\n"
-  append!(K, gens(kernel(psi2)[1]))
-  @vprint :Lattice 2 "Lifting \n"
-
-  T = _orthogonal_group(H1, ZZMatrix[matrix(phi * hom(g) * inv(phi)) for g in gens(G2q)]; check = false)
-  S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(GapObj(T), GapObj(G1q)))
-  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi; check = false)) for g in gens(S)])
-  G = matrix_group(matrix.(K))
-  @hassert :Lattice 2 all(on_lattices(L, g) == L for g in gens(G))
-  _set_nice_monomorphism!(G, sv; closed)
-  @vprint :Lattice 2 "Done \n"
-  return G, sv
+  if set_nice_mono
+    _set_nice_monomorphism!(S, sv; closed)
+  end
+  return S, sv
 end
 
 function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
@@ -980,8 +1060,8 @@ function _row_span!(L::Vector{Vector{ZZRingElem}})
   l = length(L)
   d = length(L[1])
   m = min(2*d,l)
-  B = sparse_matrix(matrix(ZZ, m, d, reduce(vcat, L[1:m])))
-  h = matrix(hnf(B; truncate = true))
+  B = sparse_matrix(matrix(ZZ, L))
+  h = matrix(hnf(B; truncate=true))
   for i in (m+1):l
     b = matrix(ZZ, 1, d, L[i])
     Hecke.reduce_mod_hnf_ur!(b, h)
@@ -992,7 +1072,7 @@ function _row_span!(L::Vector{Vector{ZZRingElem}})
       hnf!(h)
     end
   end
-  return h[1:rank(h),:]
+  return h[1:rank(h), :]
 end
 
 automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
