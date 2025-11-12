@@ -157,7 +157,7 @@
       f = full_parametrization(pm)
 
       @test codomain(f) == parameter_ring(pm)[1]
-      @test domain(f) == Oscar._ring(R)
+      @test domain(f) == base_ring(R)
 
       @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
@@ -191,7 +191,7 @@
       f = full_parametrization(model)
 
       @test codomain(f) == parameter_ring(model)[1]
-      @test domain(f) == Oscar._ring(R)
+      @test domain(f) == base_ring(R)
 
       @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 

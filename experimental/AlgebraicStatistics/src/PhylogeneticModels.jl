@@ -1396,7 +1396,7 @@ function parametrization(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticMode
   R, _ = model_ring(PM)
   S, _ = parameter_ring(PM)
 
-  lvs_indices = [R.gen_to_index[i] for i in gens(_ring(R))]
+  lvs_indices = [gen_index(R, x) for x in gens(R)]
   map = [f(p[k...]) for k in lvs_indices]
   hom(R, S, reduce(vcat, map))
 end
@@ -1429,7 +1429,7 @@ function affine_parametrization(PM::PhylogeneticModel)
   R, p = model_ring(PM) 
   S, _ = parameter_ring(PM)
   f = parametrization(PM)
-  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
+  ind = [gen_index(R, x) for x in gens(R)]
 
   edgs = collect(edges(graph(PM)))
   vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
@@ -1445,7 +1445,7 @@ function full_affine_parametrization(PM::PhylogeneticModel)
   R, p = full_model_ring(PM) 
   S, _ = parameter_ring(PM)
   f = full_parametrization(PM)
-  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
+  ind = [gen_index(R, x) for x in gens(R)]
 
   edgs = collect(edges(graph(PM)))
   vars = unique([entry_transition_matrix(PM, i, i, e) for i in 1:n_states(PM) for e in edgs])
@@ -1485,7 +1485,7 @@ function affine_parametrization(PM::GroupBasedPhylogeneticModel)
   R, q = model_ring(PM)
   S, _ = parameter_ring(PM)
   f = parametrization(PM)
-  ind = [R.gen_to_index[i] for i in gens(_ring(R))]
+  ind = [gen_index(R, x) for x in gens(R)]
 
   edgs = collect(edges(graph(PM)))
   vars = [entry_fourier_parameter(PM, 1, e) for e in edgs]
@@ -1529,12 +1529,12 @@ function fourier_transform(PM::GroupBasedPhylogeneticModel)
   H = Rp.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
   M = Rp.(Int.(zeros(nq, np)))
   
-  for (i, q_index) in enumerate(sort(collect(keys(gens(Rq))); rev=true))
+  for (i, q_index) in enumerate(sort(collect(keys(rq)); rev=true))
     current_fourier_class = q_classes[q_index]
-    for (j, p_index) in enumerate(sort(collect(keys(gens(Rp))); rev=true))
+    for (j, p_index) in enumerate(sort(collect(keys(rp)); rev=true))
       current_prob_class = p_classes[p_index]
-      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(FRp[pp], FRq[qq])]) for pp in current_prob_class, qq in current_fourier_class]
-      M[i,j] = Rp.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entries_in_M))
+      current_entries_in_M = [prod([H[y,x] for (x,y) in zip(gen_index(FRp, pp), gen_index(FRq, qq))]) for pp in current_prob_class, qq in current_fourier_class]
+      M[i,j] = Rp.(1 // (length(current_prob_class) * length(current_fourier_class)) * sum(current_entries_in_M))
     end
   end
   
@@ -1552,7 +1552,7 @@ function coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rq, _ = model_ring(PM)
   
   M = fourier_transform(PM)
-  hom(Rq, Rp, M * gens(_ring(Rp)))
+  hom(Rq, Rp, M * gens(Rp))
 end
 
 @doc raw"""
@@ -1564,8 +1564,8 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   FRp, p = full_model_ring(phylogenetic_model(PM))
   FRq, q = full_model_ring(PM)
 
-  Rp, _ = model_ring(phylogenetic_model(PM))
-  Rq, _ = model_ring(PM)
+  Rp, rp = model_ring(phylogenetic_model(PM))
+  Rq, rq = model_ring(PM)
 
   p_classes = equivalent_classes(phylogenetic_model(PM))
   q_classes = equivalent_classes(PM)
@@ -1582,13 +1582,13 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   Hinv = 1//n_states(PM) * H
 
   M = Rq.(Int.(zeros(np, nq)))
-  for (i, p_index) in enumerate(sort(collect(keys(gens(Rp))); rev=true))
+  for (i, p_index) in enumerate(sort(collect(keys(rp)); rev=true))
     current_prob_class = p_classes[p_index]
-    for (j, q_index) in enumerate(sort(collect(keys(gens(Rq))); rev=true))
+    for (j, q_index) in enumerate(sort(collect(keys(rq)); rev=true))
       current_fourier_class = q_classes[q_index]
       current_entries_in_M = [
-        prod([Hinv[x,y] for (x,y) in zip(FRp[pp],FRq[qq])
-                ]) for pp in current_prob_class, qq in current_fourier_class]
+      prod([Hinv[x,y] for (x,y) in zip(gen_index(FRp,pp), gen_index(FRq,qq))])
+              for pp in current_prob_class, qq in current_fourier_class]
       M[i,j] = Rq.(sum(current_entries_in_M))
     end
   end
@@ -1605,7 +1605,7 @@ function inverse_coordinate_change(PM::GroupBasedPhylogeneticModel)
   Rq, _ = model_ring(PM)
   
   M = inverse_fourier_transform(PM)
-  hom(Rp, Rq, M*gens(_ring(Rq)))
+  hom(Rp, Rq, M*gens(Rq))
 end
 
 

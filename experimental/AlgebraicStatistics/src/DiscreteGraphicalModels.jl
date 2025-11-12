@@ -167,8 +167,8 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
   images = elem_type(R)[]
-  for p in gens(_ring(S))
-    s = S[p] # get label of the variable
+  for p in gens(S)
+    s = gen_index(S, p) # get label of the variable
     k = first(keys(td))
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[collect(k[1])]))
   end
@@ -292,8 +292,8 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Directed}})
   R, qd = parameter_ring(M)
   h = last(gens(R))
   images = elem_type(R)[]
-  for p in gens(_ring(S))
-    s = collect(S[p]) # get label of the variable but as a vector for type reasons
+  for p in gens(S)
+    s = collect(gen_index(S, p))# get label of the variable but as a vector for type reasons
     push!(images, prod(qd[i, s[i], s[parents(G, i)]] for i in 1:n))
   end
   # There are linear constraints to enforce on the `images`. Instead of

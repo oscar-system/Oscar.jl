@@ -1,5 +1,5 @@
 # this should find a home outside of AlgStats at some point
-struct IndexedRing{T, U} <: NCRing
+struct IndexedRing{T, U}
   R::Ring
   index_to_gen::Dict{T, U}
   gen_to_index::Dict{U, T}
@@ -21,14 +21,14 @@ struct IndexedRing{T, U} <: NCRing
   end
 end
 
-_ring(R::IndexedRing) = R.R
-symbols(R::IndexedRing) = symbols(_ring(R))
-base_ring(R::IndexedRing) = base_ring(_ring(R))
-elem_type(R::IndexedRing) = elem_type(_ring(R))
-gens(R::IndexedRing) = R.index_to_gen
-ngens(R::IndexedRing) = ngens(_ring(R))
+base_ring(R::IndexedRing) = R.R
+symbols(R::IndexedRing) = symbols(base_ring(R))
+coefficient_ring(R::IndexedRing) = coefficient_ring(base_ring(R))
+elem_type(R::IndexedRing) = elem_type(base_ring(R))
+gens(R::IndexedRing) = gens(base_ring(R))
+ngens(R::IndexedRing) = ngens(base_ring(R))
 
-function Base.getindex(R::IndexedRing, r::RingElem)
+function gen_index(R::IndexedRing, r::RingElem)
   @req r in keys(R.gen_to_index) "$r is not a generator of $R"
   return R.gen_to_index[r]
 end
@@ -43,7 +43,7 @@ Additional to the usual polynomial ring functionality one can also ask for the i
 
 #Examples
 ```jldoctest
-julia> R, x = indexed_ring(QQ, "x" => collect(Iterators.product(1:5, 1:3)));
+julia> R, x, d = indexed_ring(QQ, "x" => collect(Iterators.product(1:5, 1:3)));
 
 julia> x[1, 2]
 x[1,2]
@@ -51,27 +51,22 @@ x[1,2]
 julia> x[(1, 2)]
 x[1,2]
 
-julia> R[x[1, 2]]
+julia> d[x[1, 2]]
 (1, 2)
 
-julia> R, (y, z) = indexed_ring(QQ, [:y, :z]);
+julia> R, (y, z), d = indexed_ring(QQ, [:y, :z]);
 
-julia> R, d = indexed_ring(QQ, [:y, :z]);
-
-julia> d[1]
-y
-
-julia> R[d[1]]
+julia> d[y]
 1
 ```
 """
 function indexed_ring(R::Ring, varnames; kw...)
   MR = IndexedRing(R, varnames; kw...)
-  return MR, gens(MR)
+  return MR, MR.index_to_gen
 end
 
-hom(R::IndexedRing, S::NCRing, images::Vector; check::Bool = true) =  hom(_ring(R), S, images)
-hom(R::IndexedRing, S::IndexedRing, images::Vector; check::Bool = true) = hom(R, _ring(S), images)
+hom(R::IndexedRing, S::NCRing, images::Vector; check::Bool = true) =  hom(base_ring(R), S, images)
+hom(R::IndexedRing, S::IndexedRing, images::Vector; check::Bool = true) = hom(R, base_ring(S), images)
 
-(MR::IndexedRing)(r) = _ring(MR)(r)
+(MR::IndexedRing)(r) = base_ring(MR)(r)
 

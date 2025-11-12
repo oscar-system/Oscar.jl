@@ -132,10 +132,9 @@ function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Di
   return PhylogeneticModel(
     params[:base_field],
     load_object(s, params[:graph_type], params[:graph_params], :graph),
-    # TODO need to change Symbol to VarName  at some pointy
+
     load_object(s, Matrix{Symbol}, :transition_matrix),
     load_object(s, Vector{QQFieldElem}, :root_distribution),
-    #TODO also needs to be come VarName
     load_object(s, Symbol, :model_parameter_name)
   )
 end
@@ -168,13 +167,15 @@ end
 
 @register_serialization_type IndexedRing uses_id
 
+type_params(IR::IndexedRing) = TypeParams(IndexedRing, coefficient_ring(IR))
+
 function save_object(s::SerializerState, R::IndexedRing)
   save_data_dict(s) do
     save_object(s, symbols(R), :symbols)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:IndexedRing}, R::NCRing)
+function load_object(s::DeserializerState, ::Type{<:IndexedRing}, R::Ring)
   syms = load_object(s, Vector{Symbol}, :symbols)
 
   return indexed_ring(R, syms; cached=false)[1]
