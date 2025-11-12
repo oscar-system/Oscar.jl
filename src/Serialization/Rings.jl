@@ -238,11 +238,6 @@ function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ri
   return parent_ring(poly)
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRingElem)
-  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
-end
-
 ################################################################################
 # Polynomial Ideals
 @register_serialization_type MPolyIdeal
