@@ -368,13 +368,13 @@ function veronese2(M::MatElem)
 end
 
 #the 2 functions below need to be tested, they do not seem to give the correct answer!
-function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
-  return dim(defining_ideal(MRS))
-end
+# function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
+#   return dim(defining_ideal(MRS))
+# end
 
-function dimension(MRS::MatroidRealizationSpace)::Int
-  return dim(defining_ideal(MRS))
-end
+# function dimension(MRS::MatroidRealizationSpace)::Int
+#   return dim(defining_ideal(MRS))
+# end
 
 # Exports
 # export MatroidRealizationSpaceSelfProjecting
