@@ -174,7 +174,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], startdate: str, new_version: str
+    prs: List[Dict[str, Any]], timestamp: str, new_version: str
 ) -> None:
     """Writes files with information for release notes."""
 
@@ -338,7 +338,7 @@ def main(new_version: str) -> None:
         extra = f'label:"backport {major}.{minor}.x done"'
 
     if release_type == 2:
-        startdate = get_tag_date(basetag)
+        timestamp = get_tag_date(basetag)
     else:
         # Find the timestamp of the last shared commit
         shared_commit = subprocess.run([
@@ -354,20 +354,18 @@ def main(new_version: str) -> None:
             "--format=\"%cI\"",
             shared_commit
         ], shell=False, check=True, capture_output=True).stdout.decode().strip().replace('"', '')
-        # date is first 10 characters of timestamp
-        startdate = timestamp[0:10]
     print("Base tag is", basetag)
-    print("Last common commit at ", startdate)
+    print("Last common commit at ", timestamp)
 
     print("Downloading filtered PR list")
-    prs = get_pr_list(startdate, extra)
+    prs = get_pr_list(timestamp, extra)
     # print(json.dumps(prs, sort_keys=True, indent=4))
 
     # reset changelog file to state tracked in git
     
     subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
-    changes_overview(prs, startdate, new_version)
+    changes_overview(prs, timestamp, new_version)
 
 
 if __name__ == "__main__":
