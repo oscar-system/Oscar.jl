@@ -247,7 +247,7 @@ which we think might affect some users directly.
                     pr for pr in prs_with_use_title if has_label(pr, typeobject)
                 ]
                 len(matches_type)
-                print("PRs with label '" + priorityobject + "' and type '" + typeobject + "': ", len(matches_type))
+                print("PRs with type '" + typeobject + "': ", len(matches_type))
                 if len(matches_type) == 0:
                     continue
                 relnotes_file.write("#### " + prtypes[typeobject] + "\n\n")
