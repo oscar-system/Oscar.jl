@@ -834,7 +834,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   # G is represented w.r.t the basis of L
   G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, set_nice_mono)
   Gamb = extend_to_ambient_space(L, G; check=false)
-  if set_nice_mono
+  if set_nice_mono && is_definite(L)
     _sv = _short_vector_generators(L)
     sv = [i*basis_matrix(L) for i in _sv]
     append!(sv, [-i for i in sv])
