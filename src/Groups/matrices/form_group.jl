@@ -1045,7 +1045,7 @@ function _isometry_group_via_decomposition(
   if set_nice_mono
     _set_nice_monomorphism!(S, sv)
   end
-  @hassert :Isometry 2 is_isometry_group(L, S; ambient_representation=false)
+  @hassert :Isometry 2 is_isometry_group(L, S, false)
   return S, sv
 end
 
