@@ -27,9 +27,12 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpace}, di
   Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
   Mat = load_object(s, MatElem, MS, :realization_matrix)
   RMat = isempty(Mat) ? nothing : Mat
-  char = characteristic(coefficient_ring(R))
+  if R isa MPolyRing
+    char = characteristic(coefficient_ring(R))
+  else #in this case the realization space is zero dimensional
+    char = characteristic(R)
+  end
   q = !iszero(char) ? order(coefficient_ring(R)) : nothing
-
   RS = MatroidRealizationSpace(I, Ineqs, R, RMat, char, q, GR)
   RS.one_realization = load_object(s, Bool, :one_realization)
   
@@ -64,7 +67,11 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpaceSelfP
   Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
   Mat = load_object(s, MatElem, MS, :selfproj_realization_matrix)
   RMat = isempty(Mat) ? nothing : Mat
-  char = characteristic(coefficient_ring(R))
+  if R isa MPolyRing
+    char = characteristic(coefficient_ring(R))
+  else #in this case R = QQ
+    char = characteristic(R)
+  end
   q = !iszero(char) ? order(coefficient_ring(R)) : nothing
  # RS.one_realization = load_object(s, Bool, :one_realization)
   return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, RMat, char, q, GR)
