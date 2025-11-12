@@ -57,7 +57,9 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
   d = ZZRingElem(p)
   done = false
   local final_gb
+  local test_gb
   lft = 60
+  test_gb = nothing
   final_gb = QQMPolyRingElem[]
   prime_cnt = 0
   while !done
@@ -127,14 +129,28 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
     if any(iszero, final_gb)
       continue
     end
-
-    (!certify || _certify_modular_groebner_basis(I, ordering)) && break 
+    test_gb = IdealGens(final_gb, ordering);
+    (!certify || _certify_modular_groebner_basis(I, test_gb)) && break
   end
-  I.gb[ordering] = IdealGens(final_gb, ordering)
+  I.gb[ordering] = test_gb
   I.gb[ordering].isGB = true
   return I.gb[ordering]
 end
 
+function groebner_basis_modular_singular(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                                certify::Bool = false)
+  SG = Singular.LibModstd.modStd(Oscar.singular_generators(I, ordering), Int(certify))
+
+  G = IdealGens(base_ring(I), SG)
+  G.isGB = true
+  G.ord = ordering
+  if isdefined(G, :S)
+     G.S.isGB  = true
+  end
+  I.gb[ordering] = G
+  I.gb[ordering].isGB = true
+  return I.gb[ordering]
+end
 
 function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem; parent = 1)
   g = MPolyBuildCtx(parent)
@@ -150,11 +166,10 @@ function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem; paren
   return true, finish(g)
 end
 
-function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
-  @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
-  singular_generators(I.gb[ordering])
-  SR = I.gb[ordering].gensBiPolyArray.Sx
-  SG = I.gb[ordering].gensBiPolyArray.S
+function _certify_modular_groebner_basis(I::MPolyIdeal, G::IdealGens)
+  SR = singular_polynomial_ring(G, G.ord)
+  SG = singular_generators(G, G.ord)
+  SG.isGB = true
 
   #= test if I is included in <G> =#
   for f in I.gens
@@ -164,5 +179,5 @@ function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrderi
   end
 
   #= test if G is a standard basis of <G> w.r.t. ordering =#
-  return is_standard_basis(I.gb[ordering], ordering=ordering)
+  return is_standard_basis(G, ordering=G.ord)
 end
