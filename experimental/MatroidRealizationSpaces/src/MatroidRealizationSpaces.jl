@@ -41,13 +41,13 @@ export basisminors
 #Exports from for_database.jl
 export matroid 
 export realization_space
-export selfproj_realization_space
+export selfprojecting_realization_space
 export dim_r
 export dim_s
-export equal
+export equality_of_realizationspaces
 export name
 export length_groundset
-export rk
+export rank
 export MatroidRealizations
 export save_object
 export load_object
