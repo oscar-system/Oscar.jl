@@ -119,8 +119,11 @@ file, see <https://editorconfig.org> for more information about this.
 To ensure consistent formatting, we employ the package `JuliaFormatter.jl`. The
 `.JuliaFormatter.toml` file in the repository defines the desired formatting style.
 
-To format your files, first add the `JuliaFormatter.jl` package in Julia. You
-can then format individual files via:
+To format your files, first add version 1 of the `JuliaFormatter.jl` package in Julia.
+```julia
+Pkg.add(name="JuliaFormatter", version="1")
+```
+You can then format individual files via:
 ```julia
 using JuliaFormatter
 format_file("path/to/file/file.jl")
