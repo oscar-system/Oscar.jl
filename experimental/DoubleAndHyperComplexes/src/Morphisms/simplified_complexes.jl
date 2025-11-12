@@ -6,13 +6,18 @@ struct SimplifiedChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   maps_from_original::Dict{Int, <:Map}
   with_homotopy_maps::Bool
   homotopy_maps::Dict{Int, <:Map}
+  pivots::Union{Nothing, Dict{Int, <:Any}}
 
-  function SimplifiedChainFactory(orig::AbsHyperComplex{ChainType}; with_homotopy_maps::Bool=false) where {ChainType}
+  function SimplifiedChainFactory(
+      orig::AbsHyperComplex{ChainType}; 
+      with_homotopy_maps::Bool=false,
+      pivots::Union{Nothing, Dict{Int, <:Any}}=nothing
+    ) where {ChainType}
     d = Dict{Int, Tuple{SMat, SMat}}()
     out_maps = Dict{Int, Map}()
     in_maps = Dict{Int, Map}()
     homotopy_maps = Dict{Int, Map}()
-    return new{ChainType}(orig, d, out_maps, in_maps, with_homotopy_maps, homotopy_maps)
+    return new{ChainType}(orig, d, out_maps, in_maps, with_homotopy_maps, homotopy_maps, pivots)
   end
 end
 
@@ -73,11 +78,14 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     # Simplify for the outgoing morphism
     A = sparse_matrix(outgoing)
-    S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
-    @assert nrows(Tinv) == ncols(Tinv) == ncols(A)
-    @assert nrows(T) == ncols(T) == ncols(A)
-    @assert nrows(Sinv) == ncols(Sinv) == nrows(A)
-    @assert nrows(S) == ncols(S) == nrows(A)
+    find_pivot = nothing
+    @show fac.pivots
+    if !isnothing(fac.pivots)
+      @show fac.pivots
+      @show i
+      find_pivot = get(fac.pivots::Dict, i, nothing)
+    end
+    S, Sinv, T, Tinv, ind = _simplify_matrix!(A; find_pivot=isnothing(fac.pivots) ? nothing : get(fac.pivots, i, nothing))
     fac.base_change_cache[i] = S, Sinv, T, Tinv, ind
 
     m = nrows(A)
@@ -216,7 +224,14 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     # Simplify for the incoming morphism
     A = sparse_matrix(incoming)
-    S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
+    find_pivot = nothing
+    @show fac.pivots
+    if !isnothing(fac.pivots)
+      @show fac.pivots
+      @show prev
+      find_pivot = get(fac.pivots::Dict, prev, nothing)
+    end
+    S, Sinv, T, Tinv, ind = _simplify_matrix!(A; find_pivot=isnothing(fac.pivots) ? nothing : get(fac.pivots, prev, nothing))
 
     m = nrows(A)
     n = ncols(A)
@@ -640,10 +655,11 @@ end
 
 function simplify(
     c::AbsHyperComplex{ChainType, MorphismType};
-    with_homotopy_maps::Bool=false
+    with_homotopy_maps::Bool=false,
+    pivots::Union{Nothing, Dict{Int, Any}}=nothing
   ) where {ChainType, MorphismType}
   @assert dim(c) == 1 "complex must be one-dimensional"
-  chain_fac = SimplifiedChainFactory(c; with_homotopy_maps)
+  chain_fac = SimplifiedChainFactory(c; with_homotopy_maps, pivots)
   mor_fac = SimplifiedMapFactory(c)
   upper_bounds = [has_upper_bound(c, 1) ? upper_bound(c, 1) : nothing]
   lower_bounds = [has_lower_bound(c, 1) ? lower_bound(c, 1) : nothing]
@@ -934,12 +950,18 @@ The simplification is heuristical and includes steps like for example removing
 zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
-function simplify(M::SubquoModule)
+function simplify(M::SubquoModule; pivot=nothing)
+  @show "simplifying subquotient with $pivot"
   #res, aug = free_resolution(SimpleFreeResolution, M)
   pres = presentation(M)
   aug = map(pres, 0)
   res = SimpleComplexWrapper(pres[0:1])
-  simp = simplify(res)
+  prep_pivot = nothing
+  if !isnothing(pivot)
+    @show "strategy is not nothing"
+    prep_pivot = Dict{Int, Any}(1=>pivot)
+  end
+  simp = simplify(res; pivots=prep_pivot)
   simp_to_orig = map_to_original_complex(simp)
   orig_to_simp = map_from_original_complex(simp)
   result, Z0_to_result = homology(simp, 0)
