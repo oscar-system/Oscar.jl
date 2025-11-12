@@ -1019,7 +1019,7 @@ function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatr
 end
 
 """
-    _set_nice_monomorphism!(G::MatrixGroup, short_vectors
+    _set_nice_monomorphism!(G::MatrixGroup, short_vectors)
 
 Use the permutation action of `G` on `short_vectors` to represent `G` as a
 finite permutation group.
