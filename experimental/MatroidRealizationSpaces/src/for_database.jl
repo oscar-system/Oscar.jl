@@ -3,24 +3,24 @@
 struct MatroidRealizations
   name::String #name will be of the form "rk_3_n_6_index_1"
   matroid::Matroid 
-  rk::Int
+  rank::Int
   length_groundset::Int
   realization_space::MatroidRealizationSpace
   dim_r::Int
-  selfproj_realization_space::MatroidRealizationSpaceSelfProjecting
-  dim_s::Int
-  equal::Bool
+  selfprojecting_realization_space::Union{MatroidRealizationSpaceSelfProjecting,Nothing} # in case that the computation of the selfprojecting realization space did not terminate the value will be nothing, as for dim_s and equal
+  dim_s::Union{Int,Nothing}
+  equality_of_realizationspaces::Union{Bool,Nothing}
 end
 
 matroid(MR::MatroidRealizations) = MR.matroid
 realization_space(MR::MatroidRealizations) = MR.realization_space
-selfproj_realization_space(MR::MatroidRealizations) = MR.selfproj_realization_space
+selfprojecting_realization_space(MR::MatroidRealizations) = MR.selfprojecting_realization_space
 dim_r(MR::MatroidRealizations) = MR.dim_r
 dim_s(MR::MatroidRealizations) = MR.dim_s
-equal(MR::MatroidRealizations) = MR.equal
+equality_of_realizationspaces(MR::MatroidRealizations) = MR.equality_of_realizationspaces
 name(MR::MatroidRealizations) = MR.name
 length_groundset(MR::MatroidRealizations) = MR.length_groundset
-rk(MR::MatroidRealizations) = MR.rk
+rank(MR::MatroidRealizations) = MR.rank
 
 # #Export
 # export matroid 
