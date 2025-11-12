@@ -54,9 +54,12 @@ x[1,2]
 julia> Oscar.gen_index(R, x[1, 2])
 (1, 2)
 
-julia> R, (y, z) = indexed_ring(QQ, [:y, :z]);
+julia> R, d = indexed_ring(QQ, [:y, :z]);
 
-julia> Oscar.gen_index(R, y)
+julia> d[1]
+y
+
+julia> Oscar.gen_index(R, d[1])
 1
 ```
 """
