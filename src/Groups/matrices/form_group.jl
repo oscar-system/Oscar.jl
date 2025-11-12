@@ -1045,7 +1045,7 @@ function _isometry_group_via_decomposition(
   if set_nice_mono
     _set_nice_monomorphism!(S, sv)
   end
-  @hassert :Isometry 2 is_isometry_group(S, L; ambient_representation=false)
+  @hassert :Isometry 2 is_isometry_group(L, S; ambient_representation=false)
   return S, sv
 end
 
@@ -1109,7 +1109,7 @@ _as_perm(w, g::QQMatrix, X::Vector{ZZMatrix}) = _as_perm(w, ZZ.(g), X)
 
 function _nice_hom(G, _short_vectors::Vector{ZZMatrix})
   _short_vectors = copy(_short_vectors)
-  sort!(_short_vectors, lt=Hecke._isless)
+  sort!(_short_vectors, lt=Hecke._isless);
   w = similar(_short_vectors[1])
   n = length(_short_vectors)
   Sn = symmetric_group(n)
