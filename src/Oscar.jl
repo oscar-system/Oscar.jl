@@ -126,7 +126,10 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
-  
+
+  add_verbosity_scope(:IsometryGroup)
+  add_assertion_scope(:IsometryGroup)
+
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
