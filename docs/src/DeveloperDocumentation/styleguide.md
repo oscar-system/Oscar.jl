@@ -134,8 +134,8 @@ Ultimately, we aim to use the workflow provided by
 [julia-actions/julia-format](https://github.com/julia-actions/julia-format). Instead of
 performing a single large reformatting of the entire OSCAR code base, we are extending
 coverage incrementally. A custom CI job ensures that already-compliant parts of OSCAR
-remain consistent with the defined style. Whenever the scope of this CI is extended
-- for example, to verify that code in a new experimental module meets our formatting
+remain consistent with the defined style. Whenever the scope of this CI is extended -
+for example, to verify that code in a new experimental module meets our formatting
 requirements - special care must be taken. Details on how to extend the scope of this
 CI mechanism are described in `etc/format_code.jl`. All other formatting changes can be
 handled like regular commits.
