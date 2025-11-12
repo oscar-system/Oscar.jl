@@ -924,7 +924,40 @@ function produce_object(
   FFV = FF(V)
   rest = OO(X)(V, U)
   FFV_res, rest_map = change_base_ring(rest, FFV)
-  res, simp_map = _simplify(FFV_res)
+  pivot = get_attribute(U, :pivot, nothing)
+  @show "found easter egg $pivot"
+  res, simp_map = _simplify(FFV_res; 
+                            pivot=isnothing(pivot) ? 
+                            # default strategy giving priority to constant entries
+                            function(A::SMat, done_rows::Vector{Int}, done_columns::Vector{Int}) 
+                              for (i, row) in enumerate(A)
+                                i in done_rows && continue
+                                for (j, c) in row
+                                  j in done_columns && continue
+                                  is_constant(lifted_numerator(c)) && return i, j
+                                end
+                              end
+                              candidates = Vector{Tuple{Int, Int, Int}}()
+                              for (i, row) in enumerate(A)
+                                i in done_rows && continue
+                                for (j, c) in row
+                                  j in done_columns && continue
+                                  push!(candidates, (i, j, length(lifted_numerator(c)) + length(lifted_denominator(c))))
+                                end
+                              end
+                              candidates = sort!(candidates; by=x->x[3])
+                              for (i, j, _) in candidates
+                                is_unit(A[i, j]) && return i, j
+                              end
+                              return nothing
+                            end
+                            :
+                            # If a particular unit is already indicated, use that one.
+                            function(::SMat, done_rows::Vector{Int}, done_columns::Vector{Int}) 
+                                !is_empty(done_rows) && return nothing
+                                return pivot
+                            end
+                           )
   full_res = compose(rest_map, inv(simp_map; check=false))
   add_incoming_restriction!(FF, V, res, full_res)
   for (V, res) in incoming_restrictions(FF, V)
@@ -942,7 +975,30 @@ end
 
 function _simplify_from_original(FF::SimplifiedSheaf, U::AbsAffineScheme)
   M = original_sheaf(FF)
-  res, id = _simplify(M(U))
+  res, id = _simplify(M(U); pivot =
+                      function(A::SMat, done_rows::Vector{Int}, done_columns::Vector{Int}) 
+                        for (i, row) in enumerate(A)
+                          i in done_rows && continue
+                          for (j, c) in row
+                            j in done_columns && continue
+                            is_constant(lifted_numerator(c)) && return i, j
+                          end
+                        end
+                        candidates = Vector{Tuple{Int, Int, Int}}()
+                        for (i, row) in enumerate(A)
+                          i in done_rows && continue
+                          for (j, c) in row
+                            j in done_columns && continue
+                            push!(candidates, (i, j, length(lifted_numerator(c)) + length(lifted_denominator(c))))
+                          end
+                        end
+                        candidates = sort!(candidates; by=x->x[3])
+                        for (i, j, _) in candidates
+                          is_unit(A[i, j]) && return i, j
+                        end
+                        return nothing
+                      end
+                     )
   @assert domain(id) === res
   @assert codomain(id) === M(U)
   check = FF.check
@@ -954,8 +1010,8 @@ function _simplify_from_original(FF::SimplifiedSheaf, U::AbsAffineScheme)
   return res
 end
 
-_simplify(M::SubquoModule) = simplify(M)
-_simplify(F::FreeMod) = F, id_hom(F)
+_simplify(M::SubquoModule; pivot=nothing) = simplify(M; pivot)
+_simplify(F::FreeMod; pivot=nothing) = F, id_hom(F)
 
 default_covering(F::SimplifiedSheaf) = default_covering(original_sheaf(F))
 
@@ -1077,7 +1133,7 @@ end
     U = popfirst!(new_patches)
     @vprint :NashResolutions 4 "  Looking at patch with $(ngens(M(U))) generators..."
     MU = M(U)
-    I = ideal(OO(U), reduce(vcat, Vector{elem_type(OO(U))}[elem_type(OO(U))[c for (_, c) in coordinates(v)] for v in relations(MU)]; init=elem_type(OO(U))[]))
+    I = ideal(OO(U), reduce(vcat, Vector{elem_type(OO(U))}[elem_type(OO(U))[v[i] for i in 1:ngens(MU) #=c for (_, c) in coordinates(v)=#] for v in relations(MU)]; init=elem_type(OO(U))[]))
 
     if !(one(OO(U)) in I)
       @vprint :NashResolutions 4 " first non-trivial Fitting ideal is not the unit ideal.\n"
@@ -1096,7 +1152,12 @@ end
       h = gen(I, i)
       is_zero(h) && continue
       fac = factor(lifted_numerator(h))
-      push!(descendants, PrincipalOpenSubset(U, [x for (x, _) in fac]))
+      desc = PrincipalOpenSubset(U, [x for (x, _) in fac])
+      row_ind, col_ind = divrem(i, ngens(MU))
+      @assert h == relations(MU)[row_ind][col_ind]
+      set_attribute!(desc, :pivot=>(row_ind, col_ind))
+      @show "set pivot to $row_ind, $col_ind"
+      push!(descendants, desc)
     end
 
     for V in descendants
