@@ -14,6 +14,14 @@ function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Rin
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 
+function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoRing}
+  isdefined(RS, :underlying_scheme) && return RS.underlying_scheme::AffineScheme{BRT, RT}
+
+  RS.underlying_scheme = spec(ambient_ring(RS)) # for some reason this is an MPolyQuoRing already
+  return RS.underlying_scheme::AffineScheme{BRT, RT}
+end
+
+
 
 # Exports
 export inequations
