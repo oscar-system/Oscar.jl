@@ -241,6 +241,52 @@ function components_of_kernel(d::Int,
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
+function degree_over_simplex(R::MPolyDecRing, ng::Int, d::Int)
+  lattice_basis = Vector{Int}[]
+  for i in 2:d
+    v = zeros(Int, d)
+    v[1] = -1
+    v[i] = 1
+    push!(lattice_basis, v)
+  end
+  init = zeros(Int, d)
+  init[1] = d
+  combis = combinations(ng, d)
+  all_mon = elem_type(R)[]
+  all_deg = FinGenAbGroupElem[]
+  for c in combis
+    e = zeros(Int, ng)
+    e[c] = init
+    lb_ng = Tuple{Vector{Int}, FinGenAbGroupElem}[]
+    for lb in lattice_basis
+      bb = zeros(Int, ng)
+      bb[c] = lb
+      push!(lb_ng, (bb, sum(generator_degrees(R)[c] .* lb)))
+    end
+
+    m = monomial(R, e)
+    c_init = (e, degree(m))
+    push!(all_mon, m)
+    push!(all_deg, c_init[2])
+    queue = [c_init]
+    
+    while length(queue) > 0
+      p = popfirst!(queue)
+      for lb in lb_ng
+        e = p[1] + lb[1]
+        any(<(0), e) && continue
+        m = monomial(R, e)
+        deg = p[2] + lb[2]
+        push!(all_mon, m)
+        push!(all_deg, deg)
+        push!(queue, (e, deg))
+      end
+    end
+  end
+
+  return all_mon, all_deg
+end
+
 function components_of_kernel(d::Int, 
     phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
     wp::Union{OscarWorkerPool, Nothing}=nothing,
@@ -259,8 +305,20 @@ function components_of_kernel(d::Int,
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
   for i in 1:d
-    all_mons = domain(phi).(monomial_basis(total_deg_dom, [i]))
-    all_degs = degree.(all_mons)
+    all_mons, all_degs = degree_over_simplex(domain(phi), ngens(domain(phi)), i)
+    # all_mons = elem_type(total_deg_dom)[]
+    # all_degs = FinGenAbGroupElem[]
+    # combis = combinations(ngens(total_deg_dom), i)
+    # for lp in lattice_points(i * convex_hull(identity_matrix(ZZ, i)))
+    #   for c in combis
+    #     e = zeros(Int, ngens(total_deg_dom))
+    #     e[c] = lp
+    #     m = monomial(domain(phi), e)
+    #     push!(all_mons, m)
+    #     push!(all_degs, degree(m))
+    #   end
+    # end
+
     mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
 
     # avoid redundant degree computation
