@@ -195,8 +195,8 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   L = try
     monomial_basis(R, g)
   catch e
-    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
-      rethrow(ArgumentError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
     else
       rethrow(e)
     end
