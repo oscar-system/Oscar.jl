@@ -493,7 +493,7 @@ false
   try
     homogeneous_component(R, zero(G))
   catch e
-    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
+    if e isa AbstractAlgebra.InfiniteDimensionError
       return false
     else
       rethrow(e)
@@ -1464,7 +1464,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
        solve_mixed(transpose(A), transpose(d.coeff), C)
      catch e
        if e isa ErrorException && e.msg == "Polyhedron not bounded"
-         rethrow(ArgumentError("The considered graded component is infinite-dimensional"))
+         rethrow(AbstractAlgebra.InfiniteDimensionError("The considered graded component is infinite-dimensional"))
        else
          rethrow(e)
        end

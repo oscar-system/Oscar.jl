@@ -31,7 +31,7 @@ f4ncgb_jll = "160f184c-7e1a-5d95-af1f-70d62a450302"
 lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
 [compat]
-AbstractAlgebra = "0.47.3"
+AbstractAlgebra = "0.47.4"
 AlgebraicSolving = "0.10.0"
 Compat = "4.13.0"
 Distributed = "1.6"
