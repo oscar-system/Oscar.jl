@@ -149,14 +149,13 @@ Computes a basis for the elements in the kernel of a polynomial map
 $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
 lie in the homogeneous component corresponding to `mon_basis`. 
 """
-function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
+function compute_kernel_component(mon_basis_imgs::Vector{Vector{Tuple{QQFieldElem, Vector{Int}}}})
   SM = sparse_matrix(QQ)
   count = 1
   cols = Dict{Vector{Int}, Int}()
-  for m in mon_basis
+  for img in mon_basis_imgs
     row = Tuple{Int, QQFieldElem}[]
-    img = phi(m)
-    for (c, e) in zip(AbstractAlgebra.coefficients(img), AbstractAlgebra.exponent_vectors(img))
+    for (c, e) in img
       col = get(cols, e, nothing)
       if isnothing(col)
         count += 1
@@ -169,7 +168,7 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
   end
   K = kernel(SM)
   
-  return mon_basis * transpose(K)
+  return Matrix(transpose(K))
 end
 
 @doc raw"""
@@ -298,19 +297,18 @@ function components_of_kernel(d::Int,
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
-      if isnothing(wp)
-        results = pmap(compute_kernel_component, map(deg -> mon_bases[deg], remain_degs),
-                       [phi for _ in remain_degs];
-                       distributed=false)
+      imgs = [phi.(mon_bases[k]) for k in remain_degs]
+      mon_bases_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
+      if isnothing(wp) || length(mon_bases_imgs) < 1000
+        results = pmap(compute_kernel_component, mon_bases_imgs, distributed=false)
       else
-        results = pmap(compute_kernel_component, wp, map(deg -> mon_bases[deg], remain_degs),
-                       [phi for _ in remain_degs]; batch_size=batch_size)
+        results = pmap(compute_kernel_component, wp, mon_bases_imgs; batch_size=batch_size)
       end
     else
-      results =[]
+      results = []
     end
-
-    merge!(gens_dict, Dict(zip(remain_degs, results)))
+    
+    merge!(gens_dict, Dict(deg => mon_bases[deg] * matrix(domain(phi), results[i]) for (i, deg) in enumerate(remain_degs)))
   end
 
   return gens_dict
