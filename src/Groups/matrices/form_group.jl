@@ -837,7 +837,6 @@ is chosen heuristically depending on the rank of `L`. By default,
   if set_nice_mono && is_definite(L) && rank(L) > 2
     _sv = _short_vector_generators(L)
     sv = [i*basis_matrix(L) for i in _sv]
-    append!(sv, [-i for i in sv])
     _set_nice_monomorphism!(Gamb, sv)
   end 
   return Gamb
@@ -857,13 +856,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if set_nice_mono
-      Llll = lll(L)
-      gram = gram_matrix(Llll)
-      diag_gram = abs.(diagonal(gram))
-      ma = maximum(diag_gram)
-      mi = minimum(diag_gram)
-      sv = first.(short_vectors(L, ma))
-      append!(sv, [-i for i in sv])
+      sv = _short_vector_generators(L)
       _set_nice_monomorphism!(G, sv)
     end
     return G
@@ -1277,8 +1270,11 @@ function _shortest_vector_primitive_sublattice(L::ZZLat)
   return lll(M1), lll(M1primitive), sv
 end 
 
-function _short_vector_generators(L::ZZLat)
+function _short_vector_generators(L::ZZLat; up_to_sign::Bool=false)
   sv = shortest_vectors(L)
+  if !up_to_sign
+    append!(sv, [-i for i in sv])
+  end
   B = _row_span!(sv)*basis_matrix(L) 
   if nrows(B) == rank(L)
     return sv
