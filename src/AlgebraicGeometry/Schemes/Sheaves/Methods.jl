@@ -929,7 +929,7 @@ function produce_object(
   res, simp_map = _simplify(FFV_res; 
                             pivot=isnothing(pivot) ? 
                             # default strategy giving priority to constant entries
-                            function(A::SMat, done_rows::Vector{Int}, done_columns::Vector{Int}) 
+                            function(A::SMat, done_rows::Vector{Int}, done_columns::Vector{Int})
                               for (i, row) in enumerate(A)
                                 i in done_rows && continue
                                 for (j, c) in row
@@ -937,10 +937,31 @@ function produce_object(
                                   is_constant(lifted_numerator(c)) && return i, j
                                 end
                               end
+                              # first round: We only look at entries below the `done_rows`.
+                              # This way we avoid checking the same ones over and over again,
+                              # while new ones are likely to be in the undiscovered area.
                               candidates = Vector{Tuple{Int, Int, Int}}()
                               for (i, row) in enumerate(A)
+                                !is_empty(done_rows) && i <= done_rows[end] && continue
                                 i in done_rows && continue
                                 for (j, c) in row
+                                  j in done_columns && continue
+                                  push!(candidates, (i, j, length(lifted_numerator(c)) + length(lifted_denominator(c))))
+                                end
+                              end
+                              candidates = sort!(candidates; by=x->x[3])
+                              for (i, j, _) in candidates
+                                is_unit(A[i, j]) && return i, j
+                              end
+                              # second round: No units were found below the last `done_row`.
+                              # We start looking again from the beginning to be sure we have 
+                              # not missed anything. 
+                              candidates = Vector{Tuple{Int, Int, Int}}()
+                              for (i, row) in enumerate(A)
+                                !is_empty(done_rows) && i > done_rows[end] && break
+                                i in done_rows && continue
+                                for (j, c) in row
+                                  !is_empty(done_columns) && j > done_columns[end] && break
                                   j in done_columns && continue
                                   push!(candidates, (i, j, length(lifted_numerator(c)) + length(lifted_denominator(c))))
                                 end
