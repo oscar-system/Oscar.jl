@@ -1333,18 +1333,22 @@ julia> class[1,2,2]
 ```
 """
 @attr Dict{
-      Tuple{Vararg{Int64}}, 
-      Vector{MPolyRingElem}
-} function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
-  _, ps = full_model_ring(PM)
+  Tuple{Vararg{Int64}}, 
+  Vector{MPolyRingElem}
+} function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel})
+  FMR, ps = full_model_ring(PM)
   f = full_parametrization(PM);
-  polys = f.img_gens[findall(!is_zero, f.img_gens)]
-  unique!(polys)
+
+  poly_to_indexes = Dict{MPolyRingElem, Vector{Int}}()
+  for (i, poly) in enumerate(Oscar._images(f))
+    bucket = get!(poly_to_indexes, poly, Int[])
+    push!(bucket, i)
+  end
 
   equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
-  for poly in polys
-    println(preimage(f, poly))
-    eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
+  for (poly, indexes) in poly_to_indexes
+    iszero(poly) && continue
+    eqv_class = sort([gen_index(FMR, g) for g in gens(base_ring(FMR))[indexes]]; rev=false)
     equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
   end
   return equivalent_classes
