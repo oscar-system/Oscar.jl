@@ -842,6 +842,18 @@ is chosen heuristically depending on the rank of `L`. By default,
   return Gamb
 end
 
+# Algorithm selection in `isometry_group` and `is_isometric_with_isometry` 
+function _direct_is_faster(L::ZZLat)
+    Llll = lll(L)
+    G = gram_matrix(Llll)
+    diagG = diagonal(G)
+    ma = maximum(diagG)
+    mi = minimum(diagG)
+    r = rank(L)
+    b =(r < 5 && ma <10*mi) || (r < 8 && ma < 4*mi) || (r < 12 && ma < 3*mi)|| (ma < 2*mi)
+    return b
+end 
+  
 # We overwrite the function in Hecke in order that 
 # Hecke has access to the better algorithms in Oscar
 function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat; 
@@ -872,18 +884,13 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   
   if algorithm == :default
     # Select an algorithm
-    Llll = lll(L)
-    G = gram_matrix(Llll)
-    diagG = diagonal(G)
-    ma = maximum(diagG)
-    mi = minimum(diagG)
-    r = rank(L)
-    if (r < 5 && ma <10*mi) || (r < 8 && ma < 4*mi) || (r < 12 && ma < 3*mi)|| (ma < 2*mi)
+    if _direct_is_faster(L::ZZLat)
       algorithm = :direct
     else
       algorithm = :decomposition
     end
-  end 
+  end
+  
   if algorithm == :direct
     Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo)
     _gens = L.automorphism_group_generators
@@ -909,7 +916,6 @@ end
       L::ZZLat;
       depth::Int=-1,
       bacher_depth::Int=0,
-      use_heuristics::Bool=false
       direct::Bool=true,
       set_nice_mono::Bool=true,
     ) -> MatrixGroup, Vector{QQMatrix}
@@ -921,7 +927,6 @@ function _isometry_group_via_decomposition(
   L::ZZLat;
   depth::Int=-1,
   bacher_depth::Int=0,
-  use_heuristics::Bool=false,
   direct::Bool=true,
   set_nice_mono::Bool=true
 )
@@ -951,12 +956,8 @@ function _isometry_group_via_decomposition(
   # a more elegant way could be to work with the corresponding projective representation
   append!(sv1, [-v for v in sv1]) # given in the coordinates of L
     
-  # prepare to select algorithm
-  GM = gram_matrix(M1primitive)
-  diagGM = diagonal(GM)
-  ma = maximum(diagGM)
-  mi = minimum(diagGM)
-  if ma < 2*mi
+  # select algorithm
+  if _direct_is_faster(M1primitive)
     # compute O(M1primitive) directly in Hecke
     @vprintln :Isometry 3 "Computing orthogonal group in Hecke"
     Hecke.__assert_has_automorphisms(M1primitive; depth, bacher_depth) # avoid an infinite recursion
@@ -1298,13 +1299,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, L2::Z
   
   # algorithm selection
   
-  L1lll = lll(L1)
-  G = gram_matrix(L1lll)
-  diagG = diagonal(G)
-  ma = maximum(diagG)
-  mi = minimum(diagG)
-  r = rank(L1)
-  if r < 4 || (r < 5 && ma <50*mi) || (r < 8 && ma < 4*mi) || (r < 12 && ma < 3*mi)|| (ma < 2*mi)
+  if _direct_is_faster(L1)
     b,fL = Hecke.__is_isometric_with_isometry_definite(L1, L2; depth, bacher_depth)
     @hassert :Isometry 3 fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
     return b, fL
@@ -1318,11 +1313,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, L2::Z
   M2s, M2 = _shortest_vector_primitive_sublattice(L2)
   
   # algorithm selection
-  G = gram_matrix(M1)
-  diagG = diagonal(G)
-  mi = minimum(diagG)
-  ma = maximum(diagG)
-  if ma >= 2*mi
+  if _direct_is_faster(M1)
+    b, fM = Hecke.__is_isometric_with_isometry_definite(M1, M2;  depth, bacher_depth)
+    b || return false, zero_matrix(QQ, 0, 0)
+  else 
     b, fMs = Hecke.__is_isometric_with_isometry_definite(M1s, M2s;  depth, bacher_depth)
     b || return false, zero_matrix(QQ, 0, 0)
     OM1s,_ = _isometry_group_via_decomposition(M1s)
@@ -1345,9 +1339,6 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, L2::Z
     T1 = solve(basis_matrix(M1), basis_matrix(M1s); side=:left)
     T2 = solve(basis_matrix(M2), basis_matrix(M2s); side=:left)
     fM = inv(T1)*matrix(dM1s\tmp)*fMs*T2
-  else 
-    b, fM = Hecke.__is_isometric_with_isometry_definite(M1, M2;  depth, bacher_depth)
-    b || return false, zero_matrix(QQ, 0, 0)
   end
   @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
   
