@@ -388,7 +388,7 @@ character table of W(B3)
 Currently the following series are supported.
 
 | Series | Parameter |
-| ------ | ---------------- |
+|:------ |:---------------- |
 | `:Cyclic` | pos. integer |
 | `:Dihedral` | even pos. integer |
 | `:Symmetric` | pos. integer |
