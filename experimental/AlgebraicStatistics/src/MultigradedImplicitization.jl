@@ -292,6 +292,9 @@ function degree_over_simplex(lower_visited::Dict{Vector{Int}, Tuple{FinGenAbGrou
       isnothing(i) && continue
       for lb in lattice_basis[i:end]
         next_e = next_exp + lb[1]
+        # can we avoid all collisions here?
+        next_e in keys(visited) && continue
+
         next_d = next_deg + lb[2]
         next_m = monomial(R, next_e)
         visited[next_e] = (next_d, next_m)
