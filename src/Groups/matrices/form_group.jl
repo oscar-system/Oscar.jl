@@ -896,8 +896,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if set_nice_mono
-      sv = first.(short_vectors(L, ma))
-      append!(sv, [-i for i in sv])
+      sv = _short_vector_generators(L)
       _set_nice_monomorphism!(G, sv)
     end
   elseif algorithm == :decomposition
@@ -1319,7 +1318,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, L2::Z
   else 
     b, fMs = Hecke.__is_isometric_with_isometry_definite(M1s, M2s;  depth, bacher_depth)
     b || return false, zero_matrix(QQ, 0, 0)
-    OM1s,_ = _isometry_group_via_decomposition(M1s)
+    OM1s,_ = _isometry_group_via_decomposition(M1s; depth, bacher_depth)
     # make it work for now. Go through hecke later?
     @vprint :Isometry 2 "computing orbit of an overlattice..."
     DM1s = discriminant_group(M1s)
@@ -1362,8 +1361,8 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, L2::Z
 
   
   # modify (fM,fN) so that it extends to L
-  @vtime :Isometry 4 OM1,_ = _isometry_group_via_decomposition(M1)
-  @vtime :Isometry 4 ON1,_ = _isometry_group_via_decomposition(N1)
+  @vtime :Isometry 4 OM1,_ = _isometry_group_via_decomposition(M1; depth, bacher_depth)
+  @vtime :Isometry 4 ON1,_ = _isometry_group_via_decomposition(N1; depth, bacher_depth)
   
   DM1 = discriminant_group(M1)
   dM1 = discriminant_representation(M1, OM1; check=false, full=false, ambient_representation=false)
