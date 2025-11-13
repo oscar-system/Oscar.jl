@@ -834,7 +834,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   # G is represented w.r.t the basis of L
   G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, set_nice_mono)
   Gamb = extend_to_ambient_space(L, G; check=false)
-  if set_nice_mono && is_definite(L)
+  if set_nice_mono && is_definite(L) && rank(L) > 2
     _sv = _short_vector_generators(L)
     sv = [i*basis_matrix(L) for i in _sv]
     append!(sv, [-i for i in sv])
@@ -1030,15 +1030,15 @@ function _isometry_group_via_decomposition(
     S = matrix_group(_gens)
     
     #=
-    O1amb = extend_to_ambient_space(M1primitive, O1;check=false)
-    O2amb = extend_to_ambient_space(M2 ,O2;check=false)
     gens12 = vcat(gens(O1amb),gens(O2amb))
     G = matrix_group(gens12)
     (_S, _) = stabilizer(G, L, on_lattices)
     S = matrix_group([ZZ.(matrix(i)) for i in gens(_S)])
     =#
   else
-    gensS = stabilizer_in_diagonal_action(L, M1primitive, M2, O1, O2; check=false, is_finite_known=(true, true))
+    O1amb = extend_to_ambient_space(M1primitive, O1;check=false)
+    O2amb = extend_to_ambient_space(M2 ,O2;check=false)
+    gensS = stabilizer_in_diagonal_action(L, M1primitive, M2, O1amb, O2amb; check=false, is_finite_known=(true, true))
     S = matrix_group(gensS)
   end
 
@@ -1064,33 +1064,43 @@ function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatr
 end
 
 """
-    _set_nice_monomorphism!(G::MatrixGroup, short_vectors)
-
-Use the permutation action of `G` on `short_vectors` to represent `G` as a
-finite permutation group.
+    _set_nice_monomorphism!(G::GAPGroup, nice_hom::GAPGroupHomomorphism)
 
 Internally this sets a `NiceMonomorphism` for the underlying gap group.
-No input checks whatsoever are performed.
-
 It is assumed that the corresponding action homomorphism is injective.
+No input checks whatsoever are performed.
 """
 #
-function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; julia::Bool=true)
-  short_vectors = ZZMatrix[matrix(ZZ,1, degree(G), i) for i in short_vectors]
-  if julia 
-    phi = _nice_hom(G, short_vectors)
-  else 
-    phi = action_homomorphism(gset(G, on_vector, short_vectors; closed=true))
-  end
-  GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
-  GAP.Globals.SetIsHandledByNiceMonomorphism(GapObj(G), true)
-  GAP.Globals.SetNiceMonomorphism(GapObj(G), phi.map)
+function _set_nice_monomorphism!(G::GAPGroup, nice_hom::GAPGroupHomomorphism)
+  @req domain(nice_hom) === G "the domain of nice_hom must be G"
+  f = GapObj(nice_hom)
+  g = GapObj(G)
+  GAP.Globals.SetIsInjective(f, true) # fixes an infinite recursion
+  GAP.Globals.SetIsHandledByNiceMonomorphism(g, true)
+  GAP.Globals.SetNiceMonomorphism(g, f)
+  return nothing
 end
 
-_set_nice_monomorphism(G, _short_vectors) = _set_nice_monomorphism(G, [matrix(ZZ,1,d,i) for i in short_vectors])
-# return X as permutation on X
+function _set_nice_monomorphism!(G::MatrixGroup{<:RingElem,T}, short_vectors::Vector{T}) where T<: Union{ZZMatrix,QQMatrix}
+  nice_hom = _nice_hom!(G, copy(short_vectors))
+  _set_nice_monomorphism!(G, nice_hom)
+end 
+
+function _set_nice_monomorphism!(G::MatrixGroup{S,T}, short_vectors::Vector{Vector{S}}) where {S<:Union{ZZRingElem, QQFieldElem}, T <: Union{ZZMatrix,QQMatrix}}
+  R = base_ring(G)
+  _short_vectors = T[matrix(R, 1, degree(G), i) for i in short_vectors]
+  nice_hom = _nice_hom!(G, _short_vectors)
+  _set_nice_monomorphism!(G, nice_hom)
+end 
+
+function _set_nice_monomorphism!(G::MatrixGroup{QQFieldElem,QQMatrix}, short_vectors::Vector{QQMatrix})
+  nice_hom = _nice_hom!(G, copy(short_vectors))
+  _set_nice_monomorphism!(G, nice_hom)
+end 
+  
+# return g as permutation on X
 # assumes that X is sorted
-function _as_perm(w, g::ZZMatrix, X::Vector{ZZMatrix})
+function _as_perm(w, g::T, X::Vector{T}) where T <: Union{ZZMatrix, QQMatrix}
   n = length(X)
   per = Vector{Int}(undef, n)
   i = 0
@@ -1103,13 +1113,9 @@ function _as_perm(w, g::ZZMatrix, X::Vector{ZZMatrix})
   return per
 end 
 
-# inefficient conversion...
-_as_perm(w, g::QQMatrix, X::Vector{ZZMatrix}) = _as_perm(w, ZZ.(g), X)
-
-
-function _nice_hom(G, _short_vectors::Vector{ZZMatrix})
-  _short_vectors = copy(_short_vectors)
-  sort!(_short_vectors, lt=Hecke._isless);
+# sorts the _short_vectors !
+function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:Union{ZZRingElem, QQFieldElem}, T<:Union{ZZMatrix, QQMatrix}}
+  sort!(_short_vectors, lt=Hecke._isless)
   w = similar(_short_vectors[1])
   n = length(_short_vectors)
   Sn = symmetric_group(n)
