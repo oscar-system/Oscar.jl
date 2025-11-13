@@ -238,7 +238,7 @@ function components_of_kernel(d::Int,
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
-_is_monomial_map(phi::MPolyAnyMap{<:MPolyDecRing}) = all(is_one, length.(_images(phi)))
+_is_monomial_map(phi::MPolyAnyMap) = all(is_one, length.(_images(phi)))
 
 function map_monomial(phi::MPolyAnyMap{<:MPolyDecRing}, m::MPolyDecRingElem; check=true)
   check && @req _is_monomial_map(phi) "$phi is not a monomial map"

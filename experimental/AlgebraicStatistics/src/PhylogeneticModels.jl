@@ -1254,8 +1254,8 @@ end
     map_subtree = [Oscar.leaves_probability(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
     map = map + l .* map_subtree
   end
-
-  hom(R, S, reduce(vcat, map))
+  
+  return hom(R, S, reduce(vcat, map))
 end
 
 @doc raw"""
@@ -1341,14 +1341,14 @@ julia> class[1,2,2]
 } function equivalent_classes(PM::Union{PhylogeneticModel, GroupBasedPhylogeneticModel}) 
   _, ps = full_model_ring(PM)
   f = full_parametrization(PM);
-  
   polys = f.img_gens[findall(!is_zero, f.img_gens)]
   unique!(polys)
 
   equivalent_classes = Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}()
   for poly in polys
-      eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
-      equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
+    println(preimage(f, poly))
+    eqv_class = sort([i for i in keys(ps) if f(ps[i]) == poly], rev = false)
+    equivalent_classes[eqv_class[1]] = [ps[i...] for i in eqv_class]
   end
   return equivalent_classes
 end
