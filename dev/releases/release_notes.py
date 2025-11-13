@@ -174,7 +174,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], timestamp: str, new_version: str
+    prs: List[Dict[str, Any]], new_version: str
 ) -> None:
     """Writes files with information for release notes."""
 
@@ -364,7 +364,7 @@ def main(new_version: str) -> None:
     
     subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
-    changes_overview(prs, timestamp, new_version)
+    changes_overview(prs, new_version)
 
 
 if __name__ == "__main__":
