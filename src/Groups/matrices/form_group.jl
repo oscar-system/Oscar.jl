@@ -799,7 +799,7 @@ end
 @doc raw"""
     isometry_group(
       L::ZZLat;
-      algorithm::Symbol=:direct
+      algorithm::Symbol=:default,
       direct::Bool=true,
       depth::Int=-1,
       bacher_depth::Int=0,
@@ -815,8 +815,8 @@ support the following algorithms:
   Plesken--Souvignier;
 - `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
   $O(L)$-stable sublattices;
-- `:default`: compute $O(L)$ use a heuristic to choose the best algorithm 
-  between `:direct` and `:decomposition`
+- `:default`: compute $O(L)$ using a heuristic to choose the best algorithm 
+  between `:direct` and `:decomposition`.
 
 Setting the parameters `depth` and `bacher_depth` to a positive value may
 improve performance. If set to `-1` (default), the used value of `depth`
@@ -867,7 +867,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
       _set_nice_monomorphism!(G, sv)
     end
     return G
-    end
+  end
 
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
@@ -901,7 +901,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
       _set_nice_monomorphism!(G, sv)
     end
   elseif algorithm == :decomposition
-    G, _ = _isometry_group_via_decomposition(L; depth=depth, bacher_depth=bacher_depth)
+    G, _ = _isometry_group_via_decomposition(L; depth, bacher_depth)
     # fill the cache
     L.automorphism_group_order = order(G)
     L.automorphism_group_generators = ZZMatrix[change_base_ring(ZZ,matrix(g)) for g in gens(G)]
@@ -998,7 +998,7 @@ function _isometry_group_via_decomposition(
     @hassert :Isometry 2 is_isometry_group(L, O1, false)
     return O1, sv1
   end
-  
+ 
   # decompose as a primitive extension: M1primitive + M2 \subseteq L
   M2 = orthogonal_submodule(L, M1)
 
