@@ -1299,16 +1299,13 @@ end
   map = [0 for i in lvs_indices]
 
   for idx in h_indices
-      subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
-      subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
-
-      l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-      map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
-      map = map + l.*map_subtree
+    subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
+    subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
+    l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
+    map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+    map = map + l.*map_subtree
   end
-
   hom(R, S, reduce(vcat, map))
-
 end
 
 @doc raw"""
