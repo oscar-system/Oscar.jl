@@ -75,7 +75,7 @@ function max_grade_domain(phi::MPolyAnyMap)
   A = homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
   
   # grade the domain
-  graded_dom = grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
+  return grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
 end
 
 function max_grade_domain(phi::MPolyAnyMap{<:MPolyDecRing})
@@ -113,9 +113,8 @@ julia> jacobian(phi)
 [   0   s[1]      0   s[2]]
 ```
 """
-function jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing})
-  jacobian_matrix(codomain(phi), _images_of_generators(phi))
-end
+jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing}) = jacobian_matrix(codomain(phi), _images_of_generators(phi))
+
 
 # compute the jacobian at a random point with parameters sampled from a finite field
 function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
@@ -138,9 +137,7 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
 end
 
 # find the indices of the variable support of all monomials in mon_basis
-function component_support(mon_basis::Vector{<: MPolyDecRingElem})
-  findall(!iszero, eachcol(matrix(first.(AbstractAlgebra.exponent_vectors.(mon_basis)))))
-end
+component_support(mon_basis::Vector{<: MPolyDecRingElem}) = findall(!iszero, eachcol(matrix(first.(AbstractAlgebra.exponent_vectors.(mon_basis)))))
 
 @doc raw"""
     compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
@@ -241,39 +238,68 @@ function components_of_kernel(d::Int,
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
-function degree_over_simplex(R::MPolyDecRing, ng::Int, d::Int)
-  lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
-  for i in 2:ng
-    v = zeros(Int, ng)
-    v[1] = -1
-    v[i] = 1
-    deg = generator_degrees(R)[1] - generator_degrees(R)[i]
-    push!(lattice_basis, (v, deg))
-  end
-  e = zeros(Int, ng)
-  e[1] = d
-  m = monomial(R, e)
-  deg = degree(m)
+_is_monomial_map(phi::MPolyAnyMap{<:MPolyDecRing}) = all(is_one, length.(_images(phi)))
 
-  all_mon = elem_type(R)[m]
-  all_deg = FinGenAbGroupElem[deg]
-  visited = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}(e => (deg, m))
-  stack = [(e, deg, m)]
-  
-  while length(stack) > 0
-    (e, deg, mon) = pop!(stack)
-    for lb in lattice_basis
-      next_e = e + lb[1]
-      any(<(0), next_e) && continue
-      next_e in keys(visited) && continue
-      next_mon = monomial(R, next_e)
-      next_deg = deg + lb[2]
-      visited[next_e] = (next_deg, next_mon)
-      push!(stack, (next_e, next_deg, next_mon))
+function map_monomial(phi::MPolyAnyMap{<:MPolyDecRing}, m::MPolyDecRingElem; check=true)
+  check && @req _is_monomial_map(phi) "$phi is not a monomial map"
+  check && @req isone(length(exponents(m))) "$m is not a monomial"
+  # sum the weighted exponents of the image of each generator in the monomial
+  # e is the exponent of the ith generator in the domain
+  img_e = zeros(Int, ngens(codomain(phi)))
+  img_c = one(codomain(phi))
+  for (gen_i, e) in enumerate(first(exponents(m)))
+    iszero(e) && continue
+    img_gen = _images(phi)[gen_i]
+    img_e += first(exponents(img_gen))
+    img_c *= first(coefficients(img_gen))
+  end
+  return img_c * monomial(codomain(phi), img_e)
+end
+
+function degree_over_simplex(lower_visited::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
+                             R::MPolyDecRing,
+                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
+  e = zeros(Int, ngens(R))
+  e[1] = 1
+  m = monomial(R, e)
+  d = degree(m)
+
+  if isempty(lower_visited)
+    visited = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}(e => (d, m))
+    stack = [(e, d, m)]
+    while length(stack) > 0
+      (exp, deg, mon) = pop!(stack)
+      for lb in lattice_basis
+        next_e = exp + lb[1]
+        any(<(0), next_e) && continue
+        next_e in keys(visited) && continue
+        next_mon = monomial(R, next_e)
+        next_deg = deg + lb[2]
+        visited[next_e] = (next_deg, next_mon)
+        push!(stack, (next_e, next_deg, next_mon))
+      end
+    end
+  else
+    visited = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
+    for (exp, (deg, mon)) in lower_visited
+      next_exp = exp + e
+      next_deg = deg + d
+      mon = monomial(R, next_exp)
+      visited[next_exp] = (next_deg, mon)
+      iszero(next_exp[2:end]) && continue
+
+      i = findfirst(!iszero, next_exp[2:end])
+      isnothing(i) && continue
+      for lb in lattice_basis[i:end]
+        next_e = next_exp + lb[1]
+        next_d = next_deg + lb[2]
+        next_m = monomial(R, next_e)
+        visited[next_e] = (next_d, next_m)
+      end
     end
   end
-
-  return return values(visited)
+#
+  return visited
 end
 
 function components_of_kernel(d::Int, 
@@ -292,16 +318,24 @@ function components_of_kernel(d::Int,
 
   # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+  deg_mon_dict = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
+    
+  lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
+  for i in 2:ngens(domain(phi))
+    v = zeros(Int, ngens(domain(phi)))
+    v[1] = -1
+    v[i] = 1
+    deg = generator_degrees(domain(phi))[1] - generator_degrees(domain(phi))[i]
+    push!(lattice_basis, (v, deg))
+  end
 
   for i in 1:d
-    deg_mon_tuples = degree_over_simplex(domain(phi), ngens(domain(phi)), i)
+    deg_mon_dict = degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
     mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
 
     # avoid redundant degree computation
-    for (d, m) in deg_mon_tuples
-      bucket = get!(mon_bases, d) do
-        sizehint!(typeof(m)[], 1)
-      end
+    for (_, (d, m)) in deg_mon_dict
+      bucket = get!(mon_bases, d, typeof(m)[])
       push!(bucket, m)
     end
 
@@ -331,7 +365,11 @@ function components_of_kernel(d::Int,
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
-      imgs = [phi.(mon_bases[k]) for k in remain_degs]
+      if _is_monomial_map(phi)
+        imgs = [[map_monomial(phi, m; check=false) for m in mon_bases[k]] for k in remain_degs]
+      else
+        imgs = [phi.(mon_bases[k]) for k in remain_degs]
+      end
       mon_bases_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
       if isnothing(wp) || length(mon_bases_imgs) < 1000
         results = pmap(compute_kernel_component, mon_bases_imgs, distributed=false)
