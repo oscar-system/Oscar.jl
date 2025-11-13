@@ -986,7 +986,6 @@ function _isometry_group_via_decomposition(
     Binv = inv(B) 
     O1 = matrix_group([Binv*matrix(i)*B for i in gens(O1)])
     if set_nice_mono
-      @show sv1
       _set_nice_monomorphism!(O1, sv1)
     end
     @hassert :Isometry 2 is_isometry_group(L, O1, false)
