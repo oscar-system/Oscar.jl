@@ -69,7 +69,7 @@ function _direct_is_faster(L::ZZLat)
     ma = maximum(diagG)
     mi = minimum(diagG)
     r = rank(L)
-    b =(r < 5 && ma <10*mi) || (r < 8 && ma < 4*mi) || (r < 12 && ma < 3*mi)|| (ma < 2*mi)
+    b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
     return b
 end 
   
