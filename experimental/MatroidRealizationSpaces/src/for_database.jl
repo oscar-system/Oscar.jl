@@ -22,6 +22,24 @@ name(MR::MatroidRealizations) = MR.name
 length_groundset(MR::MatroidRealizations) = MR.length_groundset
 rank(MR::MatroidRealizations) = MR.rank
 
+function Base.show(io::IO, ::MIME"text/plain", MR::MatroidRealizations)
+  io = Oscar.pretty(io)
+  print(io, "The matroid is of rank ", MR.rank, " on ", MR.length_groundset, " elements.\n")
+  show(io, MIME("text/plain"),realization_space(MR))
+  print(io, "\n")
+  if !isnothing(selfprojecting_realization_space(MR))
+    show(io, MIME("text/plain"),selfprojecting_realization_space(MR))
+    print(io, "\nThe closures of the realization space and the self-projecting realization space are ")
+    if equality_of_realizationspaces(MR)
+      print(io, "equal.")
+    elseif !equality_of_realizationspaces(MR)
+      print(io, "not equal.")
+    end
+  else
+    print(io, "The computation of the self-projecting realization space did not terminate.")
+  end
+end
+
 # #Export
 # export matroid 
 # export realization_space
