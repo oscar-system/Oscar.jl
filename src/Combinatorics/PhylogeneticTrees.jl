@@ -197,7 +197,6 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
     end
   end
   lv = Polymake.Map{Polymake.CxxWrap.StdLib.StdString,Int}(lvd)
-  la = Polymake.NodeMap{Undirected,String}(undir_g.pm_graph, lad)
 
   eld = Dict{NTuple{2, Int}, T}()
   for e in edges(g)
@@ -209,14 +208,16 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
     end
   end
 
-  el = Polymake.EdgeMap{Undirected,Polymake.convert_to_pm_type(T)}(undir_g.pm_graph, eld)
+  el = Polymake.EdgeMap{Undirected,Polymake.convert_to_pm_type(T)}(pm_object(undir_g), eld)
+  la = Polymake.NodeMap{Undirected,String}(pm_object(undir_g), lad)
 
-  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(
-    ADJACENCY=undir_g.pm_graph,
-    LEAVES=lv,
-    EDGE_LENGTHS=el,
-    LABELS=la
-  )
+  pt = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}()
+
+  Polymake.take(pt, "ADJACENCY", pm_object(undir_g))
+  Polymake._take_graph_map(pt, "ADJACENCY", "EDGE_LENGTHS", el)
+  Polymake._take_graph_map(pt, "ADJACENCY", "LABELS", la)
+  Polymake.take(pt, "LEAVES", lv)
+  Polymake.call_method(pt, :commit)
 
   return PhylogeneticTree{T}(pt, p)
 end
