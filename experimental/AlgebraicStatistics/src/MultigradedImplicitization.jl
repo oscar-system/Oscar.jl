@@ -232,7 +232,7 @@ function components_of_kernel(d::Int,
     batch_size=100
   )
   # grade the domain
-  graded_dom = max_grade_domain(phi)
+  graded_dom = Oscar.max_grade_domain(phi)
   graded_cod, _ = grade(codomain(phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
@@ -256,7 +256,7 @@ function map_monomial(phi::MPolyAnyMap{<:MPolyDecRing}, m::MPolyDecRingElem; che
   return img_c * monomial(codomain(phi), img_e)
 end
 
-function degree_over_simplex(lower_visited::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
+function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
                              R::MPolyDecRing,
                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
   e = zeros(Int, ngens(R))
@@ -264,45 +264,36 @@ function degree_over_simplex(lower_visited::Dict{Vector{Int}, Tuple{FinGenAbGrou
   m = monomial(R, e)
   d = degree(m)
 
-  if isempty(lower_visited)
-    visited = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}(e => (d, m))
-    stack = [(e, d, m)]
-    while length(stack) > 0
-      (exp, deg, mon) = pop!(stack)
-      for lb in lattice_basis
-        next_e = exp + lb[1]
-        any(<(0), next_e) && continue
-        next_e in keys(visited) && continue
-        next_mon = monomial(R, next_e)
-        next_deg = deg + lb[2]
-        visited[next_e] = (next_deg, next_mon)
-        push!(stack, (next_e, next_deg, next_mon))
-      end
+  if isempty(lower_simplex)
+    mon_deg_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}(e => (d, m))
+    for lb in lattice_basis
+      next_e = e + lb[1]
+      next_m = monomial(R, next_e)
+      next_d = d + lb[2]
+      mon_deg_simplex[next_e] = (next_d, next_m)
     end
   else
-    visited = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
-    for (exp, (deg, mon)) in lower_visited
+    mon_deg_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
+    for (exp, (deg, mon)) in lower_simplex
+      # builds an open dim + 1 simplex from lower_simplex
       next_exp = exp + e
       next_deg = deg + d
-      mon = monomial(R, next_exp)
-      visited[next_exp] = (next_deg, mon)
-      iszero(next_exp[2:end]) && continue
+      next_mon = monomial(R, next_exp)
+      mon_deg_simplex[next_exp] = (next_deg, next_mon)
 
-      i = findfirst(!iszero, next_exp[2:end])
-      isnothing(i) && continue
-      for lb in lattice_basis[i:end]
-        next_e = next_exp + lb[1]
-        # can we avoid all collisions here?
-        next_e in keys(visited) && continue
-
-        next_d = next_deg + lb[2]
-        next_m = monomial(R, next_e)
-        visited[next_e] = (next_d, next_m)
+      # adds the missing face
+      if iszero(exp[1])
+        for lb in lattice_basis
+          next_e = next_exp + lb[1]
+          next_m = monomial(R, next_e)
+          next_d = next_deg + lb[2]
+          mon_deg_simplex[next_e] = (next_d, next_m)
+        end
       end
     end
   end
-#
-  return visited
+
+  return mon_deg_simplex
 end
 
 function components_of_kernel(d::Int, 
@@ -328,12 +319,12 @@ function components_of_kernel(d::Int,
     v = zeros(Int, ngens(domain(phi)))
     v[1] = -1
     v[i] = 1
-    deg = generator_degrees(domain(phi))[1] - generator_degrees(domain(phi))[i]
+    deg = Oscar.generator_degrees(domain(phi))[i] - Oscar.generator_degrees(domain(phi))[1]
     push!(lattice_basis, (v, deg))
   end
 
   for i in 1:d
-    deg_mon_dict = degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
+    deg_mon_dict = Oscar.degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
     mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
 
     # avoid redundant degree computation
@@ -348,7 +339,6 @@ function components_of_kernel(d::Int,
     else
       prev_gens = reduce(vcat, values(gens_dict))
     end
-
     # first filter out all easy cases
     # this could be improved to do some load-balancing
     if isnothing(wp)
