@@ -54,6 +54,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, _set_nice_mono, _howell)
   Gamb = extend_to_ambient_space(L, G; check=false)
   if _set_nice_mono && is_definite(L) && rank(L) > 2
+    set_order(Gamb, order(G))
     _sv = Hecke._short_vector_generators(L)
     sv = [i*basis_matrix(L) for i in _sv]
     _set_nice_monomorphism!(Gamb, sv)
