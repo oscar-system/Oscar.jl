@@ -1247,7 +1247,7 @@ function _resolve_module(
         continue
       end
       if is_one(fitt; covering=simp_cov)
-        return M, blowdows
+        return M, blowdowns
       end
       break
     end
