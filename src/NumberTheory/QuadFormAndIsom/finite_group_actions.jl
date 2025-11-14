@@ -97,7 +97,7 @@ Return whether ``f`` defines an isometry of the lattice ``L``.
 """
 function is_isometry(
     L::ZZLat,
-    f::QQMatrix,
+    f::Union{ZZMatrix,QQMatrix},
     ambient_representation::Bool = false;
     is_special::Bool=false,
     is_stable::Bool=false,
@@ -116,7 +116,7 @@ function is_isometry(
       return false
     end
   end
-  if !ok || !isone(denominator(fL))
+  if !ok || !isone(_denominator(fL))
     return false
   elseif !(rank(L) == nrows(fL) == ncols(fL))
     return false
@@ -127,6 +127,9 @@ function is_isometry(
   fq = hom(q, q, elem_type(q)[q(solve(basis_matrix(L), lift(t))*fL*basis_matrix(L)) for t in gens(q)])
   return isone(matrix(fq))
 end
+  
+_denominator(X::ZZMatrix) = one(base_ring(X))
+_denominator(X::QQMatrix) = denominator(X)
 
 @doc raw"""
     is_isometry_list(
@@ -215,24 +218,24 @@ extend_to_ambient_space
 
 function extend_to_ambient_space(
     L::ZZLat,
-    f::QQMatrix;
+    f::T;
     check::Bool=true,
-  )
+  ) where T <: Union{ZZMatrix,QQMatrix}
   @req !check || is_isometry(L, f, false) "Matrix does not define an isometry of the lattice"
   V = ambient_space(L)
   B = basis_matrix(L)
   B2 = orthogonal_complement(V, B)
   C = vcat(B, B2)
-  f_ambient = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
+  f_ambient = block_diagonal_matrix(QQMatrix[QQ.(f), identity_matrix(QQ, nrows(B2))])
   f_ambient = inv(C)*f_ambient*C
   return f_ambient
 end
 
 function extend_to_ambient_space(
     L::ZZLat,
-    F::Vector{QQMatrix};
+    F::Vector{T};
     check::Bool=true,
-  )
+  ) where T <: Union{QQMatrix,ZZMatrix}
   @req !check || is_isometry_list(L, F, false) "Matrices do not define isometries of the lattice"
   V = ambient_space(L)
   B = basis_matrix(L)
@@ -240,9 +243,9 @@ function extend_to_ambient_space(
   C = vcat(B, B2)
   iC = inv(C)
   I = identity_matrix(QQ, nrows(B2))
-  F_ambient = eltype(F)[]
+  F_ambient = QQMatrix[]
   for f in F
-    f_ambient = iC*block_diagonal_matrix(QQMatrix[f, I])*C
+    f_ambient = iC*block_diagonal_matrix(QQMatrix[QQ.(f), I])*C
     push!(F_ambient, f_ambient)
   end
   return F_ambient
@@ -250,7 +253,7 @@ end
 
 function extend_to_ambient_space(
     L::ZZLat,
-    F::MatrixGroup{QQFieldElem, QQMatrix};
+    F::Union{MatrixGroup{QQFieldElem, QQMatrix},MatrixGroup{ZZRingElem, ZZMatrix}};
     check::Bool=true,
   )
   F_ambient_gens = extend_to_ambient_space(L, matrix.(gens(F)); check)
