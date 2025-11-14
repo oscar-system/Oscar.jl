@@ -86,24 +86,8 @@ Return a dictionary for indexing the generators of `R` by their states.
 julia> R = markov_ring(2,2,2,2)
 Markov ring over rational field for 4 random variables and states (2, 2, 2, 2)
 
-julia> gens(R)
-Dict{NTuple{4, Int64}, QQMPolyRingElem} with 16 entries:
-  (2, 2, 2, 2) => p[2, 2, 2, 2]
-  (2, 2, 2, 1) => p[2, 2, 2, 1]
-  (1, 2, 1, 2) => p[1, 2, 1, 2]
-  (1, 2, 1, 1) => p[1, 2, 1, 1]
-  (2, 2, 1, 2) => p[2, 2, 1, 2]
-  (2, 2, 1, 1) => p[2, 2, 1, 1]
-  (1, 1, 2, 2) => p[1, 1, 2, 2]
-  (1, 1, 2, 1) => p[1, 1, 2, 1]
-  (2, 1, 2, 2) => p[2, 1, 2, 2]
-  (2, 1, 2, 1) => p[2, 1, 2, 1]
-  (1, 1, 1, 2) => p[1, 1, 1, 2]
-  (1, 1, 1, 1) => p[1, 1, 1, 1]
-  (1, 2, 2, 2) => p[1, 2, 2, 2]
-  (1, 2, 2, 1) => p[1, 2, 2, 1]
-  (2, 1, 1, 2) => p[2, 1, 1, 2]
-  (2, 1, 1, 1) => p[2, 1, 1, 1]
+julia> gens(R)[1, 1, 2, 1]
+p[1, 1, 2, 1]
 ```
 """
 function gens(R::MarkovRing)

@@ -106,7 +106,10 @@ t{1,2}(2, 2)
 
 julia> C = maximal_cliques(G);
 
-julia> PR_gens[first(C), (1, 2)]
+julia> PR_gens[Set([2, 3]), (1, 2)]
+t{2,3}(1, 2)
+
+julia> PR_gens[[2, 3], (1, 2)]
 t{2,3}(1, 2)
 ```
 """
@@ -114,7 +117,7 @@ t{2,3}(1, 2)
   QQMPolyRing,
   GenDict{Tuple{Set{Int}, Tuple}, QQMPolyRingElem}
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
-  cliques = maximal_cliques(graph(M))
+  cliques = sort(collect(maximal_cliques(graph(M))); by=x -> sort(collect(x)))
   Xs = [state_space(M, C) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
   gen_names = [varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params]
@@ -153,14 +156,14 @@ Ring homomorphism
   from multivariate polynomial ring in 8 variables over QQ
   to multivariate polynomial ring in 8 variables over QQ
 defined by
-  p[1,1,1] -> t{2,3}(1, 1)*t{1,2}(1, 1)
-  p[2,1,1] -> t{2,3}(1, 1)*t{1,2}(1, 2)
-  p[1,2,1] -> t{2,3}(2, 1)*t{1,2}(2, 1)
-  p[2,2,1] -> t{2,3}(2, 1)*t{1,2}(2, 2)
-  p[1,1,2] -> t{2,3}(1, 2)*t{1,2}(1, 1)
-  p[2,1,2] -> t{2,3}(1, 2)*t{1,2}(1, 2)
-  p[1,2,2] -> t{2,3}(2, 2)*t{1,2}(2, 1)
-  p[2,2,2] -> t{2,3}(2, 2)*t{1,2}(2, 2)
+  p[1,1,1] -> t{1,2}(1, 1)*t{2,3}(1, 1)
+  p[2,1,1] -> t{1,2}(1, 2)*t{2,3}(1, 1)
+  p[1,2,1] -> t{1,2}(2, 1)*t{2,3}(2, 1)
+  p[2,2,1] -> t{1,2}(2, 2)*t{2,3}(2, 1)
+  p[1,1,2] -> t{1,2}(1, 1)*t{2,3}(1, 2)
+  p[2,1,2] -> t{1,2}(1, 2)*t{2,3}(1, 2)
+  p[1,2,2] -> t{1,2}(2, 1)*t{2,3}(2, 2)
+  p[2,2,2] -> t{1,2}(2, 2)*t{2,3}(2, 2)
 ```
 """
 function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
