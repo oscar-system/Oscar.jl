@@ -1094,7 +1094,6 @@ end
 
   hyb = hybrids(N)
   R, dict_maps, rv, Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
-
 end
 
 @attr Tuple{
@@ -1167,14 +1166,11 @@ end
 
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes),1:2), edge_gens...; cached=cached)
   
-
   hyb = hybrids(N)
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
      (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(N, sorted_edges))),
      Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
-
 end
-
 
 ###################################################################################
 #

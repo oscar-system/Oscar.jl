@@ -143,8 +143,21 @@
       @test allunique([entry_transition_matrix(model, i, j, Edge(4,3)) for i in 1:4 for j in 1:4])
 
       # Polynomial rings
-      @test ngens(parameter_ring(model)[1]) ==  4 + 16(n_edges(tree))
-      @test ngens(full_model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
+      PR, pv, rv = parameter_ring(model)
+      @test ngens(PR) == 16(n_edges(tree))
+      @test ngens(coefficient_ring(PR)) == 4
+      @test ngens(full_model_ring(model)) == n_states(model)^(n_leaves(tree))
+
+      phi = parametrization(model)
+      MR, mr_gens = model_ring(model)
+      π1*m11[1]*m11[3]*m12[2] + π2*m21[1]*m21[3]*m22[2] + π3*m31[1]*m31[3]*m32[2] + π4*m41[1]*m41[3
+]*m42[2]
+
+      @test phi(mr_gens[1, 2, 1]) == ( rv[1] * pv[:m11, 4, 1] * pv[:m11, 4, 3] * pv[:m12, 4, 2]
+                                       + rv[2] * pv[:m21, 4, 1] * pv[:m21, 4, 3] * pv[:m22, 4, 2] 
+                                       + rv[3] * pv[:m31, 4, 1] * pv[:m31, 4, 3] * pv[:m32, 4, 2] 
+                                       + rv[4] * pv[:m41, 4, 1] * pv[:m41, 4, 3] * pv[:m42, 4, 2] )
+      
     end
 
     # Test parametrizations for a specific tree and model
