@@ -283,7 +283,9 @@ function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGrou
 
       # adds the missing face
       if iszero(exp[1])
-        for lb in lattice_basis
+        i = findfirst(!iszero, exp)
+        
+        for lb in lattice_basis[1: i-1]
           next_e = next_exp + lb[1]
           next_m = monomial(R, next_e)
           next_d = next_deg + lb[2]
