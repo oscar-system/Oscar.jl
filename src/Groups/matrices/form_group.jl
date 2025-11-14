@@ -1072,6 +1072,7 @@ function _set_nice_monomorphism!(G::GAPGroup, nice_hom::GAPGroupHomomorphism)
   @req domain(nice_hom) === G "the domain of nice_hom must be G"
   f = GapObj(nice_hom)
   g = GapObj(G)
+  set_is_finite(G, true)
   GAP.Globals.SetIsInjective(f, true) # fixes an infinite recursion
   GAP.Globals.SetIsHandledByNiceMonomorphism(g, true)
   GAP.Globals.SetNiceMonomorphism(g, f)
