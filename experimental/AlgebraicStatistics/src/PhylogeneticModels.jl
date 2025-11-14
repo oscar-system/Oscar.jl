@@ -916,9 +916,8 @@ end
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
-  R, r, x... = polynomial_ring(base_field(PM),
-                               root_distribution(PM),
-                               edge_gens...; cached=cached)
+  CR, r = polynomial_ring(base_field(PM), root_distribution(PM); cached=false)
+  R, x... = polynomial_ring(CR, edge_gens...; cached=cached)
 
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
@@ -958,9 +957,10 @@ end
   root_vars = gens(coefficient_ring(trans_ring))
 
   edge_gens = [x => 1:n_edges(graph(PM)) for x in Symbol.(transition_vars)]
-  R, rv, x... = polynomial_ring(base_field(PM), Symbol.(root_vars), edge_gens..., ; cached=cached)
+  CR, rv = polynomial_ring(base_field(PM), Symbol.(root_vars); cached=cached)
+  R, x... = polynomial_ring(CR, edge_gens..., ; cached=cached)
 
-  coef_map = hom(coefficient_ring(trans_ring), R, rv)
+  coef_map = hom(coefficient_ring(trans_ring), CR, rv)
 
   # the union here is used to ensure it's a GraphDict
   dict_maps = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
@@ -1030,9 +1030,9 @@ end
   edge_gens = [x => 1:n_edges(N) for x in vars]
   h_nodes = hybrid_vertices(N)
   R, r, l, x... = polynomial_ring(base_field(PM),
-                               root_distribution(PM),
-                               :l => (1:length(h_nodes), 1:2),
-                               edge_gens...; cached=cached)
+                                  root_distribution(PM),
+                                  :l => (1:length(h_nodes), 1:2),
+                                  edge_gens...; cached=cached)
 
   hyb = hybrids(N)                               
   R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(

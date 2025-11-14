@@ -161,7 +161,6 @@
 
       @test length(f.img_gens) == n_states(model)^n_leaves(tree)
 
-
       # Test some entries of the joint distribution vector
       a = gens(parameter_ring(pm)[1])[1:3]
       b = gens(parameter_ring(pm)[1])[4:6]
