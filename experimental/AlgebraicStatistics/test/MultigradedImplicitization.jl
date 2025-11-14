@@ -9,12 +9,9 @@ oscar_worker_pool(1) do wp
     
     comps = components_of_kernel(2, phi)
     G = parent(first(keys(comps)))
-    @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y11 * y22 - y12 * y21]
+    @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y12 * y21 - y11 * y22]
     @test comps[G([1, 1, 1, 1, 0, 0, 0, 0])] == [x11 * x22 - x12 * x21]
 
-    G = parent(first(keys(comps)))
-    @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y11 * y22 - y12 * y21]
-    @test comps[G([1, 1, 1, 1, 0, 0, 0, 0])] == [x11 * x22 - x12 * x21]
     for (d, v) in comps
       @test all(parent(p) === R for p in v)
     end
