@@ -150,14 +150,11 @@
 
       phi = parametrization(model)
       MR, mr_gens = model_ring(model)
-      π1*m11[1]*m11[3]*m12[2] + π2*m21[1]*m21[3]*m22[2] + π3*m31[1]*m31[3]*m32[2] + π4*m41[1]*m41[3
-]*m42[2]
 
       @test phi(mr_gens[1, 2, 1]) == ( rv[1] * pv[:m11, 4, 1] * pv[:m11, 4, 3] * pv[:m12, 4, 2]
                                        + rv[2] * pv[:m21, 4, 1] * pv[:m21, 4, 3] * pv[:m22, 4, 2] 
                                        + rv[3] * pv[:m31, 4, 1] * pv[:m31, 4, 3] * pv[:m32, 4, 2] 
                                        + rv[4] * pv[:m41, 4, 1] * pv[:m41, 4, 3] * pv[:m42, 4, 2] )
-      
     end
 
     # Test parametrizations for a specific tree and model
