@@ -346,12 +346,16 @@ end
 function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat)
   _BL = coordinates(basis_matrix(L),S)
   n = denominator(_BL) 
+  if n == 1
+    # trivial nothing to do
+    return G, hom(G,G,gens(G);check=false)
+  end 
   BL = ZZ.(n*_BL)
   R,iR = residue_ring(ZZ, Int(n))
   BLmod = change_base_ring(R, BL)
   howell_form!(BLmod)
-  tmp = similar(BLmod)
-  return stabilizer(G, BLmod, on_howell_form)
+  stab = stabilizer(G, BLmod, on_howell_form)
+  return stab
 end 
 
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
@@ -359,6 +363,7 @@ function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
   howell_form!(Mg)
   return Mg
 end 
+
 
 automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
 
