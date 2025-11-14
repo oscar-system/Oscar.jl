@@ -359,9 +359,9 @@ function components_of_kernel(d::Int,
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
       if _is_monomial_map(phi)
-        imgs = [[map_monomial(phi, m; check=false) for m in mon_bases[k]] for k in remain_degs]
+        imgs = [[map_monomial(phi, m; check=false) for m in sort(mon_bases[k]; by=x->first(exponents(x)))] for k in remain_degs]
       else
-        imgs = [phi.(mon_bases[k]) for k in remain_degs]
+        imgs = [phi.(sort(mon_bases[k]; by=x->first(exponents(x)))) for k in remain_degs]
       end
       mon_bases_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
       if isnothing(wp) || length(mon_bases_imgs) < 1000
