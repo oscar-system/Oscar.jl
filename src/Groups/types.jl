@@ -293,7 +293,9 @@ const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
 
 function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
   G = full_group(parent(x))[1]
-  return hash(letters(x), hash(G, h))
+  h = is_finite_order(x) ? hash(order(x), h) : h
+  h = hash(is_finite(G), hash(G, h))
+  return hash(syllables(x), h)
 end
 
 
