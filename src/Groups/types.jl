@@ -446,7 +446,7 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
 end
 
 function Base.hash(x::MatrixGroupElem, h::UInt)
-  return hash(matrix(x), hash(parent(x), h))
+  return hash(matrix(x), hash(base_ring(parent(x)), h))
 end
 
 ################################################################################

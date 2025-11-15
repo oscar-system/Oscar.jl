@@ -824,3 +824,16 @@ end
      @test h * v == mat * v
    end
 end
+
+@testset "hashing matrix elements" begin
+   matrices = [matrix(ZZ, [0 -1; 1 -1]), matrix(ZZ, [0 1; 1 0])]
+   G = matrix_group(matrices)
+   A = matrix(ZZ, [1 -1; 0 -1])
+   B = matrix(ZZ, [-1 0; -1 1])
+   C = G([1 0; 0 1])
+
+   @test hash(C) == hash(one(G))
+   @test hash(G(A)) != hash(one(G))
+   @test hash(G(A)) == hash(G(A))
+   @test hash(G(A)) != hash(G(B))
+end
