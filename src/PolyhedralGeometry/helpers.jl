@@ -604,8 +604,11 @@ function _determine_parent_and_scalar(f::Union{Field,ZZRing}, x...)
   return (f, elem_type(f))
 end
 
+function _determine_parent_and_scalar(::Type{QQFieldElem}, x...)
+  return (QQ, QQFieldElem)
+end
+
 function _determine_parent_and_scalar(::Type{T}, x...) where {T<:scalar_types}
-  T == QQFieldElem && return (QQ, QQFieldElem)
   p = _parent_or_coefficient_field(T, x...)
   @req p !== missing "Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data."
   _check_field_polyhedral(elem_type(p))
