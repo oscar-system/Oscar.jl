@@ -146,7 +146,7 @@
       PR, pv, rv = parameter_ring(model)
       @test ngens(PR) == 16(n_edges(tree))
       @test ngens(coefficient_ring(PR)) == 4
-      @test ngens(full_model_ring(model)) == n_states(model)^(n_leaves(tree))
+      @test ngens(full_model_ring(model)[1]) == n_states(model)^(n_leaves(tree))
 
       phi = parametrization(model)
       MR, mr_gens = model_ring(model)
