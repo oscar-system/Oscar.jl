@@ -148,7 +148,7 @@ lie in the homogeneous component corresponding to `mon_basis`.
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
   if _is_monomial_map(phi)
-    imgs = [map_monomial(phi, m; check=false) for m in mon_bases[k]]
+    imgs = [map_monomial(phi, m; check=false) for m in mon_basis]
   else
     imgs = phi.(mon_basis) 
   end
@@ -172,7 +172,7 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
   end
   K = kernel(SM)
   
-  return mon_basis * transpose(K)
+  return transpose(K)
 end
 
 @doc raw"""
