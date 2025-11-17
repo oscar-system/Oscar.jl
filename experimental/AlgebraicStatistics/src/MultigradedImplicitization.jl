@@ -226,7 +226,7 @@ defined by
   x[1, 2] -> s[2]*t[1]
   x[2, 2] -> s[2]*t[2]
 
-julia> d = Oscar.components_of_kernel(2, phi);
+julia> d = components_of_kernel(2, phi);
 
 julia> d[1, 1, 1, 1]
 1-element Vector{QQMPolyRingElem}:
@@ -363,18 +363,20 @@ function components_of_kernel(d::Int,
     else
       prev_gens = reduce(vcat, values(gens_dict))
     end
+    # fix ordering of deg across julia versions
+    degrees = sort(collect(keys(mon_bases)); by=x->first(eachrow(_coeff(x))))
+    
     # first filter out all easy cases
-    # this could be improved to do some load-balancing
     if isnothing(wp) || length(mon_bases) < 30000
       filter_results = pmap(filter_component,
-                            [deg for deg in keys(mon_bases)],
-                            [mon_bases[deg] for deg in keys(mon_bases)],
-                            [jac for _ in keys(mon_bases)]; distributed=false)
+                            [deg for deg in degrees],
+                            [mon_bases[deg] for deg in degrees],
+                            [jac for _ in degrees]; distributed=false)
     else
       filter_results = pmap(filter_component, wp,
-                            [deg for deg in keys(mon_bases)],
-                            [mon_bases[deg] for deg in keys(mon_bases)],
-                            [jac for _ in keys(mon_bases)]; batch_size=batch_size)
+                            [deg for deg in degrees],
+                            [mon_bases[deg] for deg in degrees],
+                            [jac for _ in degrees]; batch_size=batch_size)
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]
