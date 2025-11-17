@@ -2614,7 +2614,7 @@ about it becomes known to Oscar may yield different outputs.
 The following notation is used in the returned string.
 
 | Description | Syntax |
-| ----------- | ----------- |
+|:----------- |:----------- |
 | trivial group | 1 |
 | finite cyclic group | C<size> |
 | infinite cyclic group | Z |

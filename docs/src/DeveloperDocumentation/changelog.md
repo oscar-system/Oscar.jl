@@ -48,7 +48,7 @@ labelled. We have the following labels, along with how they are meant to be appl
 ### Primary Labels: Release Notes Behaviour
 
 | Label | Meaning |
-|-------|---------|
+|:------|:--------|
 | `release notes: added`        | The release notes for this PR were manually added to the changelog, and should be ignored by the script |
 | `release notes: not needed`   | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
 | `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn \$TITLE from the PR to `[#xyz] $TITLE` |
@@ -69,7 +69,7 @@ on to the next topic, which are also grouped by types, and so on.
 ##### PR Topics
 
 | Label                         | Changelog Category |
-|-------------------------------|--------------------|
+|:------------------------------|:-------------------|
 | `release notes: highlight`    | Highlights |
 | `topic: algebraic geometry`   | Changes related to Algebraic Geometry |
 | `topic: combinatorics`        | Changes related to Combinatorics |
@@ -92,7 +92,7 @@ on to the next topic, which are also grouped by types, and so on.
 ##### PR Types
 
 | Label                         | Changelog Category |
-|-------------------------------|--------------------|
+|:------------------------------|:-------------------|
 | `renaming`                    | Items being renamed |
 | `serialization`               | Changes related to serializing data in the MRDI file format |
 | `enhancement`                 | New features or extended functionality |
@@ -138,7 +138,7 @@ In general the description of each change should start with a verb in present
 tense. Here are some more concrete suggestions.
 
 | Change                        | Example |
-|-------------------------------|--------------------|
+|:------------------------------|:-------------------|
 | move from experimental to src/ | Graduate bla from experimental to officially supported |
 | feature added                 | Add `bla` for `blub `/ Support `bla` for `blub` / Implement `bla`
 | renaming things               | Rename `bla` to `blub`
