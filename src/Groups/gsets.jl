@@ -508,7 +508,7 @@ Symmetric group of degree 3
 
 julia> x = [1,3,1];
 
-julia> orb = orbit(symg, permuted, x)
+julia> orb = orbit(G, permuted, x)
 G-set of
   symmetric group of degree 3
   with seeds [[1, 3, 1]]
