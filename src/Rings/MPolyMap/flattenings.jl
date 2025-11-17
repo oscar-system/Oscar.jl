@@ -495,7 +495,7 @@ end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
 @attr Any function flatten(
-    f::MPolyAnyMap{QQMPolyRing, 
+    f::MPolyAnyMap{MPolyRing,
                    <:MPolyRing{RingElemType},
                    Nothing
                   }
