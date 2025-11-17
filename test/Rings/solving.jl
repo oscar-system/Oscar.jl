@@ -103,3 +103,11 @@ end
     @test length(rational_solutions(algebraic_closure(QQ), i)) == 2
   end
 end
+
+@testset "Jacobian" begin
+  R,(x,y) = polynomial_ring(algebraic_closure(QQ), [:x,:y])
+  g = (x^2+y^2-1)*y*(x-3*y)
+  si = ideal([g]) + jacobian_ideal(g)
+  v=rational_solutions(si)
+  @test length(v) == 5
+end

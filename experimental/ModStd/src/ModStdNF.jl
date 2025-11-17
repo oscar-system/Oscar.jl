@@ -174,7 +174,7 @@ end
 function homogenize(f::MPolyRingElem, S::MPolyRing)
   d = total_degree(f)
   g = MPolyBuildCtx(S)
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, c, push!(e, d-sum(e)))
   end
   return finish(g)

@@ -126,7 +126,10 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
-  
+
+  add_verbosity_scope(:Isometry)
+  add_assertion_scope(:Isometry)
+
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
@@ -170,6 +173,8 @@ function __init__()
   add_verbosity_scope(:IdealSheaves)
 
   add_verbosity_scope(:SchurIndices)
+
+  add_verbosity_scope(:DirectImages)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)

@@ -869,11 +869,11 @@ function tutte_connectivity(M::Matroid)
     r = rank(M)
     n = length(M)
     #if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
-    if pm_object(M).N_BASES==binomial(n,r)
+    if pm_object(M).N_BASES::Int == binomial(n,r)
         if n>=2r+2 
             return r+1 
         elseif n<=2r-2 
-            n-r+1
+            return n-r+1
         else
             return inf
         end
