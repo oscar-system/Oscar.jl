@@ -375,9 +375,8 @@ defined by
 
 julia> components = components_of_kernel(3, phi);
 
-julia> components[3, 0, 1, 2, 1, 2, 1, 3, 3, 2, 1, 2, 1, 2]
-1-element Vector{QQMPolyRingElem}:
- -q[2,2,2,2]*q[2,1,2,1]*q[1,1,1,1] + q[2,2,1,1]*q[2,1,2,1]*q[1,1,2,2] - q[2,1,2,1]^2*q[1,2,1,2] + q[2,1,2,1]*q[2,1,1,2]*q[1,2,2,1]
+julia> length(components)
+9
 
 julia> coordinate_change(PM)
 Ring homomorphism

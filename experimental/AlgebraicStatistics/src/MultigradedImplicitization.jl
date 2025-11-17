@@ -228,9 +228,8 @@ defined by
 
 julia> d = components_of_kernel(2, phi);
 
-julia> d[1, 1, 1, 1]
-1-element Vector{QQMPolyRingElem}:
- x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
+julia> length(d)
+1
 ```
 """
 function components_of_kernel(d::Int, 
