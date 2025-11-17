@@ -44,13 +44,14 @@ julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
 
 julia> zk = maximal_order(k)
-Maximal order of Imaginary quadratic field defined by x^2 + 5
-with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
+Maximal order
+  of imaginary quadratic field defined by x^2 + 5
+with Z-basis [1, sqrt(-5)]
 
 julia> factorizations(zk(6))
 2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * -3 * 2
- -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
+ -1 * (sqrt(-5) + 1) * (sqrt(-5) - 1)
 
 julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
