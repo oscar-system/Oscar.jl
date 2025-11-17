@@ -172,7 +172,7 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
   end
   K = kernel(SM)
   
-  return transpose(K)
+  return mon_basis * transpose(K)
 end
 
 @doc raw"""
@@ -335,7 +335,7 @@ function components_of_kernel(d::Int,
   # create a dictionary to store the generators by their degree
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
   deg_mon_dict = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
-    
+  
   lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
   for i in 2:ngens(domain(phi))
     v = zeros(Int, ngens(domain(phi)))
@@ -378,7 +378,6 @@ function components_of_kernel(d::Int,
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
-      println("# remaining degs ", length(remain_degs))
       if isnothing(wp) || length(remain_degs) < 1000
         results = pmap(compute_kernel_component,
                        [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
@@ -390,7 +389,7 @@ function components_of_kernel(d::Int,
       results = []
     end
     
-    merge!(gens_dict, Dict(deg => mon_bases[deg] * matrix(domain(phi), results[i]) for (i, deg) in enumerate(remain_degs)))
+    merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs)))
   end
 
   return gens_dict
