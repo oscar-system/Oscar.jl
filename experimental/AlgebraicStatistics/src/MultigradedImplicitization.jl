@@ -364,7 +364,7 @@ function components_of_kernel(d::Int,
       prev_gens = reduce(vcat, values(gens_dict))
     end
     # fix ordering of deg across julia versions
-    degrees = sort(collect(keys(mon_bases)); by=x->first(eachrow(_coeff(x))))
+    degrees = keys(mon_bases)
     
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30000

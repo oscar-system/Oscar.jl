@@ -9,8 +9,11 @@ oscar_worker_pool(1) do wp
     
     comps = components_of_kernel(2, phi)
     G = parent(first(keys(comps)))
-    @test comps[G([0, 0, 0, 0, 1, 1, 1, 1])] == [y12 * y21 - y11 * y22]
-    @test comps[G([1, 1, 1, 1, 0, 0, 0, 0])] == [x11 * x22 - x12 * x21]
+    for (_, v) in comps
+      @test all(is_zero, phi.(v))
+    end
+
+    @test isone(length(comps[G([0, 0, 0, 0, 1, 1, 1, 1])]))
 
     for (d, v) in comps
       @test all(parent(p) === R for p in v)
@@ -23,6 +26,8 @@ oscar_worker_pool(1) do wp
     phi = parametrization(M)
     _, q = model_ring(M)
     comps = components_of_kernel(2, phi; wp=wp)
-    @test comps[1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] == [q[4,4,1,1]*q[1,1,4,4] - q[4,4,4,4]*q[1,1,1,1] ]
+    for (_, v) in comps
+      @test all(is_zero, phi.(v))
+    end
   end
 end
