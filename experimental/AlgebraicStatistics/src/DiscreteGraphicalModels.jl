@@ -170,9 +170,9 @@ function parametrization(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where 
   S, pd = model_ring(M)
   R, td = parameter_ring(M)
   images = elem_type(R)[]
+  k = first(sort(collect(keys(td)); by=x ->sort(collect(x[1]))))
   for p in gens(S)
     s = gen_index(S, p) # get label of the variable
-    k = first(keys(td))
     push!(images, prod(td[k] for k in keys(td) if k[2] == s[collect(k[1])]))
   end
   hom(S, R, images)

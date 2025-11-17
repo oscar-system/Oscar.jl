@@ -276,6 +276,10 @@ function map_monomial(phi::MPolyAnyMap{<:MPolyDecRing}, m::MPolyDecRingElem; che
   return img_c * monomial(codomain(phi), img_e)
 end
 
+# recursively computes the degrees over the scale simplex,
+# increasing the scaling factor by one on each iteration
+# expects the lattice basis to be precomputed and passed
+# where the lattice basis is a vector of tuples (exponent vector, deg)
 function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
                              R::MPolyDecRing,
                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
