@@ -146,7 +146,14 @@ Computes a basis for the elements in the kernel of a polynomial map
 $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
 lie in the homogeneous component corresponding to `mon_basis`. 
 """
-function compute_kernel_component(mon_basis_imgs::Vector{Vector{Tuple{QQFieldElem, Vector{Int}}}})
+function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
+  if _is_monomial_map(phi)
+    imgs = [map_monomial(phi, m; check=false) for m in mon_bases[k]]
+  else
+    imgs = phi.(mon_basis) 
+  end
+  mon_basis_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
+  
   SM = sparse_matrix(QQ)
   count = 1
   cols = Dict{Vector{Int}, Int}()
@@ -165,14 +172,14 @@ function compute_kernel_component(mon_basis_imgs::Vector{Vector{Tuple{QQFieldEle
   end
   K = kernel(SM)
   
-  return Matrix(transpose(K))
+  return mon_basis * transpose(K)
 end
 
 @doc raw"""
     filter_component(deg::FinGenAbGroupElem, mon_basis::Vector{<: MPolyDecRingElem}, jac::MatElem)
 
 This function is used to skip homogeneous components which cannot contain an element of the kernel by checking if the variables in that component are independent
-in the matroid defined by the jacboian of a polynomial map. If the submatrix of the jacobian corresponding to a subset of the variables in the codomain is full rank, then
+in the matroid defined by the jacobian of a polynomial map. If the submatrix of the jacobian corresponding to a subset of the variables in the codomain is full rank, then
 there cannot be a relation in the kernel involving only those variables. 
 ```
 """
@@ -226,6 +233,19 @@ julia> d[1, 1, 1, 1]
  x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
 ```
 """
+function components_of_kernel(d::Int, 
+    phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
+    wp::Union{OscarWorkerPool, Nothing}=nothing,
+    batch_size=100
+  )
+  new_phi = flatten(phi)
+  # grade the domain
+  graded_dom = Oscar.max_grade_domain(new_phi)
+  graded_cod, _ = grade(codomain(new_phi)) # standard grading
+  phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(new_phi)))
+  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+end
+
 function components_of_kernel(d::Int, 
     phi::MPolyAnyMap; # Morphism between ungraded rings
     wp::Union{OscarWorkerPool, Nothing}=nothing,
@@ -301,7 +321,7 @@ end
 function components_of_kernel(d::Int, 
     phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
     wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size::Int=100
+    batch_size::Int=1000
   )
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
@@ -328,13 +348,11 @@ function components_of_kernel(d::Int,
   for i in 1:d
     deg_mon_dict = Oscar.degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
     mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
-
     # avoid redundant degree computation
     for (_, (d, m)) in deg_mon_dict
       bucket = get!(mon_bases, d, typeof(m)[])
       push!(bucket, m)
     end
-
     # find the previous generators 
     if isempty(gens_dict)
       prev_gens = elem_type(domain(phi))[]
@@ -343,7 +361,7 @@ function components_of_kernel(d::Int,
     end
     # first filter out all easy cases
     # this could be improved to do some load-balancing
-    if isnothing(wp)
+    if isnothing(wp) || length(mon_bases) < 30000
       filter_results = pmap(filter_component,
                             [deg for deg in keys(mon_bases)],
                             [mon_bases[deg] for deg in keys(mon_bases)],
@@ -360,16 +378,13 @@ function components_of_kernel(d::Int,
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
-      if _is_monomial_map(phi)
-        imgs = [[map_monomial(phi, m; check=false) for m in sort(mon_bases[k]; by=x->first(exponents(x)))] for k in remain_degs]
+      println("# remaining degs ", length(remain_degs))
+      if isnothing(wp) || length(remain_degs) < 1000
+        results = pmap(compute_kernel_component,
+                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
       else
-        imgs = [phi.(sort(mon_bases[k]; by=x->first(exponents(x)))) for k in remain_degs]
-      end
-      mon_bases_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
-      if isnothing(wp) || length(mon_bases_imgs) < 1000
-        results = pmap(compute_kernel_component, mon_bases_imgs, distributed=false)
-      else
-        results = pmap(compute_kernel_component, wp, mon_bases_imgs; batch_size=batch_size)
+        results = pmap(compute_kernel_component, wp,
+                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
       end
     else
       results = []
