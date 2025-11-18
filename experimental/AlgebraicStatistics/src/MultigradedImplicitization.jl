@@ -122,7 +122,6 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   
   # randomly sample parameter values in the finite field
   pt = rand(K, ngens(codomain(phi)))
-
   for f in jacobian(phi)
     if any(is_zero(K(denominator(c))) for c in AbstractAlgebra.coefficients(f))
       return jacobian_at_rand_point(phi; char=next_prime(char))
@@ -147,11 +146,7 @@ $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
 lie in the homogeneous component corresponding to `mon_basis`. 
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
-  if _is_monomial_map(phi)
-    imgs = [map_monomial(phi, m; check=false) for m in mon_basis]
-  else
-    imgs = phi.(mon_basis) 
-  end
+  imgs = phi.(mon_basis)
   mon_basis_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
   
   SM = sparse_matrix(QQ)
@@ -162,17 +157,16 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     for (c, e) in img
       col = get(cols, e, nothing)
       if isnothing(col)
-        count += 1
         cols[e] = count
         col = count
+        count += 1
       end
       push!(row, (col, c))
     end
     push!(SM, sparse_row(QQ, row))
   end
   K = kernel(SM)
-  
-  return mon_basis * transpose(K)
+  return  K * mon_basis
 end
 
 @doc raw"""
@@ -255,24 +249,6 @@ function components_of_kernel(d::Int,
   graded_cod, _ = grade(codomain(new_phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(new_phi)))
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
-end
-
-_is_monomial_map(phi::MPolyAnyMap) = all(is_one, length.(_images(phi)))
-
-function map_monomial(phi::MPolyAnyMap{<:MPolyDecRing}, m::MPolyDecRingElem; check=true)
-  check && @req _is_monomial_map(phi) "$phi is not a monomial map"
-  check && @req isone(length(exponents(m))) "$m is not a monomial"
-  # sum the weighted exponents of the image of each generator in the monomial
-  # e is the exponent of the ith generator in the domain
-  img_e = zeros(Int, ngens(codomain(phi)))
-  img_c = one(codomain(phi))
-  for (gen_i, e) in enumerate(first(exponents(m)))
-    iszero(e) && continue
-    img_gen = _images(phi)[gen_i]
-    img_e += first(exponents(img_gen))
-    img_c *= first(coefficients(img_gen))
-  end
-  return img_c * monomial(codomain(phi), img_e)
 end
 
 # recursively computes the degrees over the scale simplex,
@@ -364,7 +340,7 @@ function components_of_kernel(d::Int,
     end
     # fix ordering of deg across julia versions
     degrees = keys(mon_bases)
-    
+
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30000
       filter_results = pmap(filter_component,
@@ -379,7 +355,6 @@ function components_of_kernel(d::Int,
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]
-
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
