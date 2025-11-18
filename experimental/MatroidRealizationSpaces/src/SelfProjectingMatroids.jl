@@ -1,4 +1,3 @@
-#Fix the following: KamelCase for struct and snake_case for functions! #Other naming options: SelfProjectingMRS or MatroidRealizationSpaceSelfProjecting
 @attributes mutable struct MatroidRealizationSpaceSelfProjecting{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
@@ -9,7 +8,6 @@
   ground_ring::Ring
   one_realization::Bool
 
-# Do I need underlying_scheme for my struct?  
   # Fields for caching
   underlying_scheme::AbsAffineScheme{BaseRingType, RingType}
 
@@ -47,28 +45,20 @@ function underlying_scheme(RS::MatroidRealizationSpaceSelfProjecting{BRT, RT}) w
   RS.underlying_scheme = spec(P, I, U)
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
+function underlying_scheme(RS::MatroidRealizationSpaceSelfProjecting{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoRing}
+  isdefined(RS, :underlying_scheme) && return RS.underlying_scheme::AffineScheme{BRT, RT}
 
-#I need to understand how is_realizable and how one_realization works or I rewrite this entirely!
+  RS.underlying_scheme = spec(ambient_ring(RS)) # for some reason this is an MPolyQuoRing already
+  return RS.underlying_scheme::AffineScheme{BRT, RT}
+end
+
+#I need currently have no analogue for is_realizable and one_realization for MatroidRealizationSpaceSelfProjecting
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpaceSelfProjecting)
   if isone(defining_ideal(RS))
     print(io, "The matroid does not have a self-projecting realization over characteristic zero.")
-  # if has_attribute(RS, :is_realizable) && !is_realizable(RS)
-  #   if RS.char === nothing && RS.q === nothing
-  #     print(io, "The matroid does not have a self-projecting realization.")
-  #   else
-  #     print(io, "The matroid does not have a self-projecting realization over the specified field or characteristic.")
-  #   end
-  # else
-    # io = Oscar.pretty(io)
-    # if RS.one_realization
-    #   println(io, "One selfprojecting realization is given by")
-    # elseif has_attribute(RS, :is_realizable) && is_realizable(RS)
-    #   println(io, "The selfprojecting realizations are parametrized by")
-    # elseif !has_attribute(RS, :is_realizable)
   else 
     io = Oscar.pretty(io)
     println(io, "The selfprojecting realization space is")
-    # end
     print(io, Oscar.Indent())
     show(io, MIME("text/plain"), RS.selfproj_realization_matrix)
     print(io, "\n", Oscar.Dedent(), "in the ", Oscar.Lowercase(), RS.ambient_ring)
@@ -103,42 +93,6 @@ The polynomial ring containing the ideal `defining_ideal_sp(RS)` and the polynom
 """
 ambient_ring(RS::MatroidRealizationSpaceSelfProjecting) = RS.ambient_ring
 
-
-
-# #Can we cahnge the following to a function for selfrpojecting_realizations?
-# @doc raw"""
-#     is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
-
-# * If char = nothing, then this function determines whether the matroid is realizable over some field.
-
-# * If `char == 0`, then this function determines whether the matroid is realizable over some field of
-#     characteristic 0.
-
-# * If char = p is prime, this function determines whether the matroid is realizable
-#     over the finite field ``GF(p)``.
-
-# * If `char == p` and `q` is a power of `p`, this function determines whether the matroid is realizable over the
-#     finite field ``GF(q)``.
-# """
-# function is_realizable_sp(
-#   M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing
-# )::Bool
-#   RS = realization_space(M; char=char, q=q)
-#   return is_realizable_sp(RS)
-# end
-
-# @attr Bool function is_realizable_sp(RS::MatroidRealizationSpaceSelfProjecting)
-#   if !(RS.ambient_ring_sp isa MPolyRing)
-#     return true
-#   end
-#   for p in minimal_primes(RS.defining_ideal_sp)
-#     component_non_trivial = all(!in(p), RS.inequations_sp)
-#     if component_non_trivial
-#       return true
-#     end
-#   end
-#   return false
-# end
 
 
 @doc raw"""
@@ -209,16 +163,17 @@ julia> M = fano_matroid();
 ```
 """
 
+#this function is not properly tested, since it did not terminate for intersting examples.
 function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
-    @warn "This function is slow for...?"
+    @warn "This function is very, very slow!"
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
     end
     if !is_realizable(m,char = 0)
-      return defining_ideal(realization_space(m,char =0, QQ))#What to do? Error? or "empty" What is the default for MRS?
+      return defining_ideal(realization_space(m,char =0, QQ))
     end
     RS = realization_space(m,char =0,simplify = true, saturate = true); 
-    R = ambient_ring(RS); #I can't call on the variables of R.
+    R = ambient_ring(RS); 
     I = defining_ideal(RS);
     n = length(matroid_groundset(m))
     k = rank(m)
@@ -282,8 +237,9 @@ function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
 end
 
 ###################
-#B are the given columns that will be the identity matrix
-# it might be easier for me to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
+#Bas are the given columns that will be the identity matrix
+# it might be easier to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
+#this function is not properly tested, since it did not terminate for intersting examples.
 function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   #include a check that M is realizable & selfproj
   if !is_selfprojecting(M) 
@@ -301,7 +257,7 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   elseif is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
   else
-  #need to test this!
+  #need to test this! -> so far no interesting example terminated!
   R = base_ring(X)
   xs = gens(R)
   cR = coefficient_ring(R)
@@ -311,7 +267,7 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   end
 end
 
-
+#function to compute the self-projecting realization space
 function selfprojecting_realization_space(m::Matroid;
   B::Union{GroundsetType,Nothing}=nothing)::MatroidRealizationSpaceSelfProjecting
   if !is_selfprojecting(m) 
@@ -332,22 +288,13 @@ function selfprojecting_realization_space(m::Matroid;
   else
     goodB = find_good_basis_heuristically(goodM)
   end
-  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #do I want selfproj_realization_matrix to returna tuple of ring and matrix? Currently just the matrix, since this is what i need most urgently
+  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space 
   if M == nothing 
     Ineqs = inequations(RS);
   else
     Ineqs = basisminors(M,bases(m));
   end
-  ##include a check for realizable, how does the set_attribute!(MRS, :is_realizable, :false) even work for me?
-
-  #M = selfproj_realization_matrix(m,b,R)
-
-  ##need to find reference basis b for the identity matrix in the realizatio matrix
-  ##R is ambient_ring(RS) where RS is the standard realization space
-  ##ground_ring hardcoded as QQ
-  ##do I need boo the boolean for one_realization_sp?
   return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, M, 0, nothing, QQ)
-  
 end
 
 #do we need this function to make something faster? or should it just be included in case someone wants to test something?
@@ -375,11 +322,3 @@ end
 # function dimension(MRS::MatroidRealizationSpace)::Int
 #   return dim(defining_ideal(MRS))
 # end
-
-# Exports
-# export MatroidRealizationSpaceSelfProjecting
-# export inequations
-# export defining_ideal
-# export underlying_scheme
-# export selfproj_realization_ideal
-# export dimension

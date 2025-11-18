@@ -22,6 +22,7 @@ name(MR::MatroidRealizations) = MR.name
 length_groundset(MR::MatroidRealizations) = MR.length_groundset
 rank(MR::MatroidRealizations) = MR.rank
 
+#function to deal with a nice display of the Matroid realizations
 function Base.show(io::IO, ::MIME"text/plain", MR::MatroidRealizations)
   io = Oscar.pretty(io)
   print(io, "The matroid is of rank ", MR.rank, " on ", MR.length_groundset, " elements.\n")
@@ -39,14 +40,3 @@ function Base.show(io::IO, ::MIME"text/plain", MR::MatroidRealizations)
     print(io, "The computation of the self-projecting realization space did not terminate.")
   end
 end
-
-# #Export
-# export matroid 
-# export realization_space
-# export selfproj_realization
-# export dim_r
-# export dim_s
-# export equal
-# export name
-# export length_groundset
-# export rk

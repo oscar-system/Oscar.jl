@@ -104,10 +104,6 @@ end
 function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::Dict)
   dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs])
   dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs])
-#  GR = dict[:ground_ring]
-#  GRS = dict[:ground_ring_s]
-#  R_MRS = dict[:matrix_space_mrs]
-#  RSP_MRS = dict[:matrix_space_sp_mrs]
   str = load_object(s, String, :name)
   m = load_object(s, Matroid, :matroid)
   rk = load_object(s, Int, :rank)
