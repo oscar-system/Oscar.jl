@@ -927,7 +927,7 @@ collector(G::PcGroup) = collector(ZZRingElem, G)
 # GAP wrappers for group encoding / decoding
 
 """
-   encode(G::PcGroup)
+    encode(G::PcGroup)
 
 Return a `ZZRingElem` representing the polycyclic group `G`,
 using the same encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
@@ -953,7 +953,7 @@ function encode(G::PcGroup)
 end
 
 """
-   pc_group(order::IntegerUnion, code::IntegerUnion)
+    pc_group(order::IntegerUnion, code::IntegerUnion)
 
 Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
 The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
