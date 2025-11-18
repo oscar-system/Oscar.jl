@@ -61,8 +61,9 @@ function oscar_worker_pool(f::Function, n::Int)
   catch e
     rethrow(e)
   finally
-    close!(wp)    
+    close!(wp)
   end
+  yield()
   return results
 end
 
