@@ -187,7 +187,7 @@ function __init__()
   # call git subprocess here to avoid conflicts with
   # IPC communication serialization
   if Oscar.is_dev
-    get_oscar_serialization_version()
+    Serialization.get_oscar_serialization_version()
   end
 end
 
