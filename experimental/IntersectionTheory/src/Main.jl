@@ -767,10 +767,10 @@ end
 @doc raw"""
      abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
 
-Return an abstract variety by specifying its dimension `n` and Chow ring `A`.
+Return an abstract variety by specifying its dimension `n` and its Chow ring `A`.
 
 !!! note
-    We allow graded polynomial rings here since for the construction of a new abstract variety, the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    We allow (graded) polynomial rings here since for the construction of a new abstract variety, the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
 
 !!! note
     In addition to the dimension and the Chow ring, further data making up an abstract variety can be set. See the corresponding setter functions in the section [Some Particular Constructions](@ref) of the documentation.

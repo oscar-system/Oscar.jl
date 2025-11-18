@@ -5,7 +5,7 @@ JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 
 [compat]
-Documenter = "1.9.0"
+Documenter = "1.16.0"
 DocumenterCitations = "~1.3.4"
 JSON = "1.0.1"
 

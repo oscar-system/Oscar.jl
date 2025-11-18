@@ -1,8 +1,6 @@
 ################################################################################
 # Common union types
 
-const RingMatElemUnion = Union{NCRingElem, MatElem, SMat}
-const RingMatSpaceUnion = Union{NCRing, MatSpace, SMatSpace}
 const ModRingUnion = Union{zzModRing, ZZModRing}
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
@@ -31,14 +29,18 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
-type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
+# element types by default use their parent as reference object
+type_params(x::T) where T <: SetElem = TypeParams(T, parent(x))
+type_params(x::T) where T <: SMat = TypeParams(T, parent(x))
+
+# rings, groups etc. default have no reference object
+type_params(R::T) where T <: AbstractAlgebra.Set = TypeParams(T, nothing)
+
+# ideals and matrix spaces have their base ring as reference object
 type_params(x::T) where T <: Ideal = TypeParams(T, base_ring(x))
-# exclude from ring union
-type_params(::ZZRing) = TypeParams(ZZRing, nothing)
-type_params(::ZZRingElem) = TypeParams(ZZRingElem, nothing)
-type_params(R::T) where T <: PolyRingUnionType = TypeParams(T, coefficient_ring(R))
-type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
+type_params(x::T) where T <: MatSpace = TypeParams(T, base_ring(x))
+type_params(x::T) where T <: SMatSpace = TypeParams(T, base_ring(x))
+
 
 ################################################################################
 # ring of integers (singleton type)
@@ -84,6 +86,9 @@ end
 @register_serialization_type UniversalPolyRing uses_id
 @register_serialization_type MPolyDecRing uses_id
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
+
+# polynomial-like rings use their coefficient ring as reference object
+type_params(R::T) where T <: PolyRingUnionType = TypeParams(T, coefficient_ring(R))
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
   save_data_dict(s) do
@@ -378,6 +383,7 @@ end
 # Power Series
 @register_serialization_type SeriesRing uses_id
 
+type_params(R::T) where T <: SeriesRing = TypeParams(T, base_ring(R))
 
 function save_object(s::SerializerState, R::RelPowerSeriesUnionType)
   save_data_dict(s) do
@@ -496,6 +502,8 @@ end
 @register_serialization_type Generic.LaurentSeriesRing "LaurentSeriesRing" uses_id
 @register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
 @register_serialization_type ZZLaurentSeriesRing uses_id
+
+type_params(R::T) where T <: LaurentUnionType = TypeParams(T, base_ring(R))
 
 function save_object(s::SerializerState, R::LaurentUnionType)
   save_data_dict(s) do
@@ -702,8 +710,6 @@ end
 
 @register_serialization_type MPolyLocRingElem
 
-type_params(a::MPolyLocRingElem) = TypeParams(MPolyLocRingElem, parent(a))
-
 function save_object(s::SerializerState, a::MPolyLocRingElem)
   # `save_type_params` will store the output of type_params
   # in this case the parent ring
@@ -741,8 +747,6 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRing}, params::Di
 end
 
 @register_serialization_type MPolyQuoLocRingElem
-
-type_params(a::T) where {T<:MPolyQuoLocRingElem} = TypeParams(T, parent(a))
 
 function save_object(s::SerializerState, a::MPolyQuoLocRingElem)
  save_object(s, [lifted_numerator(a), lifted_denominator(a)])

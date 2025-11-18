@@ -277,7 +277,7 @@ julia> cones(PF)
 function cones(PF::_FanLikeType; trivial::Bool=true)
   pmo = pm_object(PF)
   n_maximal_cones(PF) == 0 && return IncidenceMatrix(0, 0)
-  ncones = pmo.HASSE_DIAGRAM.N_NODES - 1
+  ncones = pmo.HASSE_DIAGRAM.N_NODES::Int - 1
   cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:ncones]
   filter!(x -> !(-1 in x), cones)
   trivial || filter!(!isempty, cones)

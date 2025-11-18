@@ -463,7 +463,7 @@ julia> n_maximal_polyhedra(PC)
 2
 ```
 """
-n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
+n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES::Int
 
 @doc raw"""
     is_simplicial(PC::PolyhedralComplex)
@@ -708,7 +708,7 @@ julia> n_rays(PC)
 ```
 """
 n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
-_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
+_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)::Int
 
 @doc raw"""
     n_vertices(PC::PolyhedralComplex)
@@ -730,7 +730,7 @@ julia> n_vertices(PC)
 ```
 """
 n_vertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_vertices(PC) : 0
-_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _n_rays(PC)
+_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES::Int - _n_rays(PC)
 
 @doc raw"""
     n_polyhedra(PC::PolyhedralComplex)
