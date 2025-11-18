@@ -183,8 +183,18 @@ def body_to_release_notes(pr):
         print(f"Release notes section not found in PR number {pr['number']}!!")
         return body
     index2 = body.find('\n', index1) + 1 # the first line after the release notes line
-    index3 = body.find('---', index1) # the end of release notes section, mandeted by syntax
-    mdstring = body[index2:index3]
+    bodylines = body[index2:].splitlines()
+    mdstring = ""
+    for line in bodylines:
+        line = line.rstrip()
+        if not line:
+            continue
+        elif line.startswith('- '):
+            mdstring = f"{mdstring}\n{line}"
+        else:
+            break
+    if not mdstring:
+        warning(f"Empty release notes section for PR #{pr['number']} !")
     return mdstring
 
 
@@ -339,7 +349,7 @@ def split_pr_into_changelog(prs: List):
     for pr in prs:
         if has_label(pr, 'release notes: use body'):
             mdstring = body_to_release_notes(pr).strip()
-            mdlines = mdstring.split('\r\n')
+            mdlines = mdstring.split('\n')
             pattern = r'\{.*\}$'
             for line in mdlines:
                 mans = re.search(pattern, line)
