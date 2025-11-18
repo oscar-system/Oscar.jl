@@ -61,32 +61,27 @@ labelled. We have the following labels, along with how they are meant to be appl
 It is possible to manually supply release notes in the body of the PR (the body of the PR is the
 first comment in the PR, created at the same time as the PR is created; it is also sometimes call
 the "description" of the PR). To do this, make a section in your PR body by putting a second level
-heading named `Release Notes` between two horizontal lines, then adding release note entries as a
-list. This allows for having multiple entries in the changelog for a single PR. It is possible to
-label each of the entries with their own topic / pr type labels.
+heading named `Release Notes`, then adding release note entries as a list. This allows for having
+multiple entries in the changelog for a single PR. It is possible to label each of the entries with
+their own topic / pr type labels.
 
 The syntax is the following:
 
 ```md
----
+
 ## Release Notes
 - item1 {label1, label2}
 - item2 {label3, label4, label5}
 - item3 {label5}
-
----
 ```
 
 As an example, the following body in the PR is rendered as follows :
 
 ```md
----
 ## Release Notes
 - Does abc {package: AbstractAlgebra, renaming}
 - Does 123 {package: Nemo, documentation}
 - Questions 42 {package: Singular, serialization}
-
----
 ```
 
 >
