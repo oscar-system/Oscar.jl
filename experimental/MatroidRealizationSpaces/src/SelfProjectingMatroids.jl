@@ -177,7 +177,7 @@ function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     I = defining_ideal(RS);
     n = length(matroid_groundset(m))
     k = rank(m)
-    RR, x,l = polynomial_ring(QQ, :x=> 1:length(gens(R)), :l=>1:n)
+    RR, x,l = polynomial_ring(QQ, :x=> 1:length(gens(R)), :l=>1:n; cached=false)
     F = hom(R, RR,x) #use this to move ideals into RR
     G = hom(RR, R, vcat(gens(R),[0 for i in 1:n])) #use this to move them back again into the ambient ring of RS #Careful! this sets all occurences of l to zero! Use only when l is eliminated !
     L = ideal(RR, prod(l[i] for i in 1:n))
