@@ -29,5 +29,8 @@ oscar_worker_pool(1) do wp
     for (_, v) in comps
       @test all(is_zero, phi.(v))
     end
+    # help kill workers
+    sleep(2)
+    yield()
   end
 end
