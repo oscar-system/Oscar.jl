@@ -1,0 +1,1 @@
+This website accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon. It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elments over characteristic zero for (k,n) in {(2,4},...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
