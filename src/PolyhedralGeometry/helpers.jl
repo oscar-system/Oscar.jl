@@ -608,33 +608,40 @@ end
 _find_elem_type(x::Nothing) = Any
 _find_elem_type(x::Any) = typeof(x)
 _find_elem_type(x::Type) = x
-_find_elem_type(x::Polymake.Rational) = QQFieldElem
-_find_elem_type(x::Polymake.Integer) = ZZRingElem
-_find_elem_type(x::AbstractArray) = collect(reshape(_find_elem_type.(x), :))
-_find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
-_find_elem_type(x::AbstractArray{<:AbstractArray}) =
-  reduce(vcat, _find_elem_type.(x); init=[])
-_find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
-_find_elem_type(x::SMat) = [elem_type(base_ring(x))]
+_find_elem_type(x::Type{Polymake.Rational}) = QQFieldElem
+_find_elem_type(x::Type{Polymake.Integer}) = ZZRingElem
 
-function _guess_fieldelem_type(x...)
-  types = filter(!=(Any), _find_elem_type(x))
+_find_elem_type(x::MatElem) = elem_type(base_ring_type(x))
+_find_elem_type(x::SMat) = elem_type(base_ring_type(x))
+_find_elem_type(x::Type{<:AbstractArray}) = _find_elem_type(eltype(x))
+
+function _find_elem_type(x::Union{Tuple,AbstractArray})
+  T = eltype(x)
+  if isconcretetype(T) && T <: RingElem
+    t = _find_elem_type(T)
+    t === Float64 && return Float64
+    return promote_type(t, QQFieldElem)
+  end
+
   T = QQFieldElem
-  for t in types
-    if t == Float64
-      return Float64
-    elseif promote_type(t, T) != T
-      T = t
-    end
+  for y in x
+    t = _find_elem_type(y)
+    t === Any && continue
+    t === Float64 && return Float64
+    T = promote_type(t, T)
   end
   return T
+end
+
+function _guess_fieldelem_type(x...)
+  return _find_elem_type(x)
 end
 
 _parent_or_coefficient_field(::Type{Float64}, x...) = AbstractAlgebra.Floats{Float64}()
 _parent_or_coefficient_field(::Type{ZZRingElem}, x...) = ZZ
 
 _parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem,ZZRingElem}}, x...) =
-  parent(r.x)
+  parent(r[])
 _parent_or_coefficient_field(v::AbstractArray{T}) where {T<:Union{FieldElem,ZZRingElem}} =
   _parent_or_coefficient_field(T, v)
 
