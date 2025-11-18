@@ -58,12 +58,12 @@ labelled. We have the following labels, along with how they are meant to be appl
 
 #### Release Notes: Use Body
 
-It is possible to manually supply release notes in the body of the PR (the first
-comment in the PR). To do this, make a section in your PR title by putting a
-second level heading named `Release Notes` between two horizontal lines, then
-adding release note entries as a list. This allows for having multiple entries
-in the changelog for a single PR. It is possible to label each of the entries
-with their own topic / pr type labels.
+It is possible to manually supply release notes in the body of the PR (the body of the PR is the
+first comment in the PR, created at the same time as the PR is created; it is also sometimes call
+the "description" of the PR). To do this, make a section in your PR body by putting a second level
+heading named `Release Notes` between two horizontal lines, then adding release note entries as a
+list. This allows for having multiple entries in the changelog for a single PR. It is possible to
+label each of the entries with their own topic / pr type labels.
 
 The syntax is the following :
 
