@@ -74,11 +74,11 @@ end
 
 const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
 
-function get_oscar_serialization_version()
+function get_oscar_serialization_version(;IPC=false)
   if isassigned(oscar_serialization_version)
     return oscar_serialization_version[]
   end
-  if Oscar.is_dev
+  if Oscar.is_dev && !IPC # don't need hash for IPC
     next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
     n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
                        readdir(joinpath(@__DIR__, "Upgrades")))
@@ -653,7 +653,8 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   s = serializer_open(io, serializer, with_attrs)
   save_data_dict(s) do 
     # write out the namespace first
-    save_header(s, get_oscar_serialization_version(), :_ns)
+    IPC = s isa IPCSerializer
+    save_header(s, get_oscar_serialization_version(IPC=IPC), :_ns)
 
     save_typed_object(s, obj)
 
