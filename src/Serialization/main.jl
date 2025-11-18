@@ -74,11 +74,11 @@ end
 
 const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
 
-function get_oscar_serialization_version(;IPC=false)
+function get_oscar_serialization_version()
   if isassigned(oscar_serialization_version)
     return oscar_serialization_version[]
   end
-  if Oscar.is_dev && !IPC # don't need hash for IPC
+  if Oscar.is_dev
     next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
     n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
                        readdir(joinpath(@__DIR__, "Upgrades")))
