@@ -65,7 +65,7 @@ heading named `Release Notes` between two horizontal lines, then adding release 
 list. This allows for having multiple entries in the changelog for a single PR. It is possible to
 label each of the entries with their own topic / pr type labels.
 
-The syntax is the following :
+The syntax is the following:
 
 ```md
 ---
