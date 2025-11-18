@@ -25,7 +25,7 @@ oscar_worker_pool(1) do wp
     M = kimura3_model(T)
     phi = parametrization(M)
     _, q = model_ring(M)
-    comps = components_of_kernel(2, phi; wp=wp)
+    comps = components_of_kernel(2, phi; wp=wp, batch_size=1)
     for (_, v) in comps
       @test all(is_zero, phi.(v))
     end
