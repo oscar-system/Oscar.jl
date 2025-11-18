@@ -178,10 +178,9 @@ pc_group(c::GAP_Collector)
 collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
 ```
 
-# Encoding and reconstruction of pc groups
+## Encoding and reconstruction of pc groups
 
-The following functions provide conversions between polycyclic groups and their integer encodings,
-compatible with GAP's `CodePcGroup` and `PcGroupCode`.
+The following functions provide conversions between polycyclic groups and their integer encodings.
 
 ```@docs
 encode(::PcGroup)
