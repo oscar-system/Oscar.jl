@@ -165,7 +165,7 @@ julia> M = fano_matroid();
 
 #this function is not properly tested, since it did not terminate for intersting examples.
 function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
-    @warn "This function is very, very slow!"
+    @warn "This function is slow except for small matroids!"
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
     end
@@ -177,20 +177,19 @@ function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     I = defining_ideal(RS);
     n = length(matroid_groundset(m))
     k = rank(m)
-    RR, x = polynomial_ring(QQ, :x=> 1:length(gens(R)))
-    F = hom(R, RR,gens(RR)) #use this to move ideals into RR
-    G = hom(RR, R, gens(R)) #use this to move them back again into the ambient ring of RS
-    S, l = polynomial_ring(RR, :l => 1:n)
-    L = ideal(S, prod(l[i] for i in 1:n))
+    RR, x,l = polynomial_ring(QQ, :x=> 1:length(gens(R)), :l=>1:n)
+    F = hom(R, RR,x) #use this to move ideals into RR
+    G = hom(RR, R, vcat(gens(R),[0 for i in 1:n])) #use this to move them back again into the ambient ring of RS #Careful! this sets all occurences of l to zero! Use only when l is eliminated !
+    L = ideal(RR, prod(l[i] for i in 1:n))
     MRS = realization_matrix(RS)
     M = matrix(RR,nrows(MRS),ncols(MRS),[F(MRS[i,j]) for i in 1:nrows(MRS) for j in 1:ncols(MRS)])
-    DL = diagonal_matrix(S,[l[i] for i in 1:n])
+    DL = diagonal_matrix(RR,[l[i] for i in 1:n])
     V = M*DL*transpose(M)
-    IS = ideal(S,[V[i,j] for i in 1:k for j in 1:k]) + ideal(S,[F(gens(I)[i]) for i in 1:length(gens(I))])
+    IS = ideal(RR,[V[i,j] for i in 1:k for j in 1:k]) + ideal(RR,[F(gens(I)[i]) for i in 1:length(gens(I))])
     J = stepwise_saturation(IS,l) 
     E = eliminate(J,l) 
     if saturate 
-      E = stepwise_saturation(E,inequations(RS))
+      E = stepwise_saturation(E,F.(inequations(RS)))
     end
     if is_zero(E)
       return ideal(ambient_ring(RS),[0]);
@@ -218,6 +217,17 @@ function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
     candidates = sort_by_degree([R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)])
     multiplicativeSet= nothing
     ineqs = [R(0)]
+    if R isa MPolyQuoRing #in this case I cannot make the multiplicativeSet using the powers_of_element so we currently use the lesser choice: here there might be double entries or products of polynomials in the list - is there a better solution for this?
+      for i in 1:length(candidates)
+        if isone(candidates[i]) || isone(-candidates[i]) 
+        elseif iszero(candidates[i])
+          error("a basis has vanishing minor")
+        elseif !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
+          push!(ineqs,R(candidates[i]))
+        end
+      end
+      return ineqs[2:length(ineqs)]
+    end
     for i in 1:length(candidates)
       if isone(candidates[i]) || isone(-candidates[i]) 
       elseif iszero(candidates[i])
@@ -249,7 +259,7 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
     return nothing
   end
   #RSM
-  X = realization_matrix(realization_space(M,B=Bas)) #this matrix should be simplified
+  X = realization_matrix(realization_space(M,B=Bas,ground_ring=QQ)) #this matrix should be simplified
   #X = RSM[2];
   I = selfproj_realization_ideal(M);
   if is_zero(I)
@@ -257,11 +267,10 @@ function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   elseif is_one(I) #this means the matrix is not realizable by self-projecting points
     return nothing
   else
-  #need to test this! -> so far no interesting example terminated!
   R = base_ring(X)
-  xs = gens(R)
-  cR = coefficient_ring(R)
-  nr, nc = size(X)
+ # xs = gens(R)
+ # cR = coefficient_ring(R)
+ # nr, nc = size(X)
   QR, phi = quo(R,I)
   return phi.(X)
   end
@@ -272,6 +281,9 @@ function selfprojecting_realization_space(m::Matroid;
   B::Union{GroundsetType,Nothing}=nothing)::MatroidRealizationSpaceSelfProjecting
   if !is_selfprojecting(m) 
     error("The given matroid is not self-projecting.")
+  end
+  if length(loops(m))>0
+    error("This method is currently not implemented matroids with loops.")
   end
   RS = realization_space(m,char=0,simplify = true, saturate = true)
   R = ambient_ring(RS)
@@ -288,7 +300,7 @@ function selfprojecting_realization_space(m::Matroid;
   else
     goodB = find_good_basis_heuristically(goodM)
   end
-  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space 
+  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space #inorder to avoid calling selfproj_realization_ideal twice, one could modify the function to give it the already computed ideal, maybe optionally?
   if M == nothing 
     Ineqs = inequations(RS);
   else
