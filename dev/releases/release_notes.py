@@ -235,7 +235,6 @@ which we think might affect some users directly.
                     relnotes_file.write(pr_to_md(pr))
                     prs_with_use_title.remove(pr)
                     matches.remove(pr)
-                    matches_type.remove(pr)
                 relnotes_file.write('\n')
         print(f"Remaining PRs: {totalPRs - countedPRs}")
         # The remaining PRs have no "kind" or "topic" label from the priority list
