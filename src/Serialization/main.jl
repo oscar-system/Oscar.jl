@@ -653,8 +653,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   s = serializer_open(io, serializer, with_attrs)
   save_data_dict(s) do 
     # write out the namespace first
-    IPC = s isa IPCSerializer
-    save_header(s, get_oscar_serialization_version(IPC=IPC), :_ns)
+    save_header(s, get_oscar_serialization_version(), :_ns)
 
     save_typed_object(s, obj)
 
