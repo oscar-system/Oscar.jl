@@ -2626,7 +2626,7 @@ _roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
 
 @doc raw"""
     oscar_genus_representatives(
-      G::ZZGenus,
+      G::Union{ZZGenus,Vector{ZZLat}},
       algorithm::Symbol = :default;
       rand_neigh::Int = 10,
       invariant_function::Function=Hecke.default_invariant_function,
@@ -2675,7 +2675,11 @@ There are possible extra optional arguments:
     stops after the specified amount of vain iterations without finding a new
     isometry class is reached;
   * `max_lat::IntExt` (default = `inf`) -> the algorithm stops after finding
-    `max` isometry classes.
+    `max` isometry classes
+  * `_local::Bool` (default= `false`);
+  * `distinct::Bool` (default= `false`) if set to true, believe blindly that all elements 
+    of `G::Vector{ZZLat}` are pairwise non-isometric;
+  * `add_spinor_generators::Bool` add spinor generators to the given list of known lattices.
 
 !!! warning
     The algorithm uses the mass by default, in order to use the codes of
