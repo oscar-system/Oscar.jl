@@ -8,7 +8,6 @@ export action_s_inv
 export action_sl2
 export action_t
 export action_t_inv
-export all_combinations
 export all_normal_origamis_by_degree
 export all_normal_origamis_from_group
 export are_equivalent

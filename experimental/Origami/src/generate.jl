@@ -9,10 +9,10 @@ struct CylinderDiagram
   cycles_count::Int
   separatrix_count::Int
   function CylinderDiagram(bot::Vector{Vector{Int}}, top::Vector{Vector{Int}})
-    max::Int = 1;
+    max = 1
     for cycle in bot
       for i in cycle
-        if (i > max)
+        if i > max
           max = i
         end
       end
@@ -21,9 +21,9 @@ struct CylinderDiagram
   end
 end
 
-function cylinders(cylinder_diagram::CylinderDiagram)::Vector{Vector{Vector{Int}}}
+function cylinders(cylinder_diagram::CylinderDiagram)
   result = Vector{Vector{Vector{Int}}}()
-  for i in 1:cylinder_diagram.cycles_count
+  for i in 1:(cylinder_diagram.cycles_count)
     push!(result, [cylinder_diagram.bot[i], cylinder_diagram.top[i]])
   end
   return result
@@ -48,7 +48,7 @@ end
 # give possible lengths for the separatrix of the cylinder diagram
 # i.e. the resulting surface exists
 function compute_rays(equations, separatrix_count::Int)::Vector{Vector{Int}}
-  if (is_zero(equations))
+  if is_zero(equations)
     n = separatrix_count
     return [Int[i == j for j in 1:n] for i in 1:n]
   end
@@ -108,7 +108,7 @@ end
 
 # based on Donald E. Knuth The Art of Computer Programming Algorithm H p.300
 # implementation from Sage
-function product_gray_code(m::Vector{Int})::Vector{Tuple{Int,Int}}
+function product_gray_code(m::Vector{Int})
   n = 0
   k = 0
   # assumes each radix is >= 2
@@ -156,7 +156,7 @@ function origami_from_cylinder_coordinates(
 )
   # the total width of each cylinder is the sum of the lengths of the separatrices
   widths = [sum(lengths[i + 1] for i in bot) for bot in cyl_diagram.bot]
-  areas = [heights[i] * widths[i] for i in 1:cyl_diagram.cycles_count]
+  areas = [heights[i] * widths[i] for i in 1:(cyl_diagram.cycles_count)]
 
   v = [0]
   for a in areas
@@ -175,7 +175,7 @@ function origami_from_cylinder_coordinates(
 
   # horizontal permutation
   lx = collect(1:v[end])
-  for i in 1:cyl_diagram.cycles_count
+  for i in 1:(cyl_diagram.cycles_count)
     for j in v[i]:widths[i]:(v[i + 1] - 1)
       lx[j + widths[i]] = j
     end
@@ -183,7 +183,7 @@ function origami_from_cylinder_coordinates(
   lx = perm([x + 1 for x in lx])
 
   ly = Int[]
-  for i in 1:cyl_diagram.cycles_count
+  for i in 1:(cyl_diagram.cycles_count)
     append!(ly, (v[i] + widths[i]):(v[i + 1] - 1))
     append!(ly, zeros(Int64, widths[i]))
   end
@@ -200,13 +200,13 @@ function origami_from_cylinder_coordinates(
   no_twist = normal_form(origami(lx, perm([x + 1 for x in ly])))
   results = Set{Origami}([no_twist])
 
-  ly = [x+1 for x in ly]
+  ly = [x + 1 for x in ly]
 
   for (i, o) in product_gray_code(widths)
     if o == 1
-      insert!(ly, v[i + 1]-widths[i]+1, popat!(ly, v[i + 1]))
+      insert!(ly, v[i + 1] - widths[i] + 1, popat!(ly, v[i + 1]))
     else
-      insert!(ly, v[i + 1], popat!(ly, v[i + 1]-widths[i]+1))
+      insert!(ly, v[i + 1], popat!(ly, v[i + 1] - widths[i] + 1))
     end
     new_entry = normal_form(origami(lx, perm(ly)))
     push!(results, new_entry)
@@ -275,7 +275,7 @@ function possible_lengths_and_heights(cyl_diagram::CylinderDiagram, degree::Int)
   for h in potential_heights
     for l in potential_lengths
       square_count = 0
-      for i in 1:cyl_diagram.cycles_count
+      for i in 1:(cyl_diagram.cycles_count)
         length_sum = sum(l[j + 1] for j in cyls[i][1])
         square_count += length_sum * h[i]
       end
