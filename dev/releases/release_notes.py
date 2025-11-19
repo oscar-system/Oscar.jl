@@ -265,6 +265,14 @@ which we think might affect some users directly.
                     prs_with_use_title.remove(pr)
                     matches.remove(pr)
                 relnotes_file.write('\n')
+            # Items without a type label
+            if len(matches) > 0:
+                relnotes_file.write("#### General changes\n\n")
+                for pr in matches:
+                    relnotes_file.write(pr_to_md(pr))
+                    prs_with_use_title.remove(pr)
+                relnotes_file.write('\n')
+                
         print(f"Remaining PRs: {totalPRs - countedPRs}")
         # The remaining PRs have no "kind" or "topic" label from the priority list
         # (may have other "kind" or "topic" label outside the priority list).
@@ -302,19 +310,11 @@ which we think might affect some users directly.
         if len(prs_with_use_title) > 0:
             relnotes_file.write(
                 "### **TODO** insufficient labels for automatic classification\n\n"
-                "The following PRs only have a topic label assigned to them, not a PR type. Either "
-                "assign a type label to them (e.g., `enhancement`), or manually move them to the "
-                "general section of the topic section in the changelog.\n\n")
+                "The following PRs have neither a topic label assigned to them, nor a PR type. \n"
+                "**Manual intervention required.**\n\n")
             for pr in prs_with_use_title:
-                for topic in topics:
-                    matches = [pr for pr in prs_with_use_title if has_label(pr, topic)]
-                    if len(matches) == 0:
-                        continue
-                    relnotes_file.write(f'#### {topics[topic]}\n\n')
-                    for match in matches:
-                        relnotes_file.write(pr_to_md(match))
-                        prs_with_use_title.remove(match)
-                    relnotes_file.write('\n')
+                relnotes_file.write(pr_to_md(pr))
+                relnotes_file.write('\n')
             relnotes_file.write('\n')
 
         # remove PRs already handled earlier
