@@ -166,7 +166,8 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     push!(SM, sparse_row(QQ, row))
   end
   K = kernel(SM)
-  return  K * mon_basis
+  
+  return K * mon_basis
 end
 
 @doc raw"""
@@ -227,10 +228,10 @@ julia> length(d)
 ```
 """
 function components_of_kernel(d::Int,
-    phi::MPolyAnyMap; # Morphism between ungraded rings
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size=100
-  )
+                              phi::MPolyAnyMap; # Morphism between ungraded rings
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size=100
+                              )
   # grade the domain
   graded_dom = Oscar.max_grade_domain(phi)
   graded_cod, _ = grade(codomain(phi)) # standard grading
@@ -239,10 +240,10 @@ function components_of_kernel(d::Int,
 end
 
 function components_of_kernel(d::Int,
-    phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size=100
-  )
+                              phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size=100
+                              )
   new_phi = flatten(phi)
   # grade the domain
   graded_dom = Oscar.max_grade_domain(new_phi)
@@ -251,57 +252,72 @@ function components_of_kernel(d::Int,
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
-# recursively computes the degrees over the scale simplex,
+function lifted_monomials(deg::FinGenAbGroupElem, gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
+  for (gen_deg, gens) in gens_dict
+    deg - gen_deg
+  end
+end
+
+# recursively computes the degrees over the scaled simplex,
 # increasing the scaling factor by one on each iteration
 # expects the lattice basis to be precomputed and passed
 # where the lattice basis is a vector of tuples (exponent vector, deg)
-function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
-                             R::MPolyDecRing,
-                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
+function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
+                              t_degree::Int,
+                              R::MPolyDecRing,
+                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
   e = zeros(Int, ngens(R))
   e[1] = 1
   m = monomial(R, e)
   d = degree(m)
 
   if isempty(lower_simplex)
-    mon_deg_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}(e => (d, m))
+    lower_simplex[d] = [m]
     for lb in lattice_basis
       next_e = e + lb[1]
       next_m = monomial(R, next_e)
       next_d = d + lb[2]
-      mon_deg_simplex[next_e] = (next_d, next_m)
+      lower_simplex[next_d] = [next_m]
     end
+    return lower_simplex
   else
-    mon_deg_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
-    for (exp, (deg, mon)) in lower_simplex
-      # builds an open dim + 1 simplex from lower_simplex
-      next_exp = exp + e
-      next_deg = deg + d
-      next_mon = monomial(R, next_exp)
-      mon_deg_simplex[next_exp] = (next_deg, next_mon)
+    t_deg_simplex = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    for (deg, mons) in lower_simplex
+      total_degree(first(mons)) < t_degree - 1 && continue
+      for mon in mons
+        exp = first(exponents(mon))
+        # builds an open dim + 1 simplex from lower_simplex
+        next_exp = exp + e
+        next_deg = deg + d
+        next_mon = monomial(R, next_exp)
+        next_mons = get!(t_deg_simplex, next_deg, typeof(next_mon)[])
+        push!(next_mons, next_mon)
 
-      # adds the missing face
-      if iszero(exp[1])
-        i = findfirst(!iszero, exp)
+        # adds the missing face
+        if iszero(exp[1])
+          i = findfirst(!iszero, exp)
 
-        for lb in lattice_basis[1: i-1]
-          next_e = next_exp + lb[1]
-          next_m = monomial(R, next_e)
-          next_d = next_deg + lb[2]
-          mon_deg_simplex[next_e] = (next_d, next_m)
+          for lb in lattice_basis[1: i-1]
+            next_e = next_exp + lb[1]
+            next_m = monomial(R, next_e)
+            next_d = next_deg + lb[2]
+            next_mons = get!(t_deg_simplex, next_d, typeof(next_m)[])
+            push!(next_mons, next_m)
+          end
         end
       end
     end
-  end
 
-  return mon_deg_simplex
+    merge!(lower_simplex, t_deg_simplex)
+    return t_deg_simplex    
+  end
 end
 
 function components_of_kernel(d::Int,
-    phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size::Int=1000
-  )
+                              phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size::Int=1000
+                              )
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
 
@@ -312,9 +328,13 @@ function components_of_kernel(d::Int,
   jac = jacobian_at_rand_point(phi)
 
   # create a dictionary to store the generators by their degree
+  # this is what will be returned
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
-  deg_mon_dict = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}}()
 
+  # keeps track of computed degrees and the monomials in that degree
+  deg_mon_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+
+  # compute the basis and it's degrees once
   lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
   for i in 2:ngens(domain(phi))
     v = zeros(Int, ngens(domain(phi)))
@@ -325,19 +345,17 @@ function components_of_kernel(d::Int,
   end
 
   for i in 1:d
-    deg_mon_dict = Oscar.degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
-    mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
+    mon_bases = degree_over_simplex!(deg_mon_dict, i, domain(phi), lattice_basis)
+
     # avoid redundant degree computation
-    for (_, (deg, m)) in deg_mon_dict
-      bucket = get!(mon_bases, deg, typeof(m)[])
-      push!(bucket, m)
-    end
     # find the previous generators
-    if isempty(gens_dict)
-      prev_gens = elem_type(domain(phi))[]
-    else
-      prev_gens = reduce(vcat, values(gens_dict))
-    end
+    #if isempty(gens_dict)
+    #  lifted_monomials = Dict{FinGenAbGroupElem, MPolyDecRingElem}()
+    #else
+    #  for (deg, mons) in gens_dict
+    #    
+    #  end
+    #end
     # fix ordering of deg across julia versions
     degrees = keys(mon_bases)
 
@@ -372,5 +390,5 @@ function components_of_kernel(d::Int,
     merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs)))
   end
 
-  return gens_dict
+  return FinAbGroupElemDict{elem_type(domain(phi))}(gens_dict)
 end

@@ -73,12 +73,12 @@ function hybrid_vertices(G::Graph{Directed})
   indegrees = sum(A[i,:] for i in 1:size(A)[1])
   outdegrees = sum(A[:,i] for i in 1:size(A)[1])
 
-  findall((indegrees .== 2) .& (outdegrees .== 1))
+  return findall((indegrees .== 2) .& (outdegrees .== 1))
 end
 
 function hybrid_edges(G::Graph{Directed})
   hybrid_nodes = hybrid_vertices(G)
-  [[Edge(j, i) for j in sort(inneighbors(G, i))] for i in hybrid_nodes]
+  return [[Edge(j, i) for j in sort(inneighbors(G, i))] for i in hybrid_nodes]
 end
 
 function hybrid_edges(G::Graph{Directed}, i)
@@ -86,7 +86,7 @@ function hybrid_edges(G::Graph{Directed}, i)
   if !(i in hybrid_nodes)
     error("$i is not a hybrid node.")
   end
-  [Edge(j, i) for j in sort(inneighbors(G, i))]
+  return [Edge(j, i) for j in sort(inneighbors(G, i))]
 end
 
 function level_phylogenetic_network(G::Graph{Directed})
@@ -97,13 +97,13 @@ function level_phylogenetic_network(G::Graph{Directed})
   h_nodes = hybrid_vertices(G)
   bicon_comps = biconnected_components(graph_from_edges(Undirected,edges(G)))
 
-  maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
+  return maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
 end
 
 function tree_edges(N::PhylogeneticNetwork)
   hyb = hybrids(N)
   egdes_N = collect(edges(N))
-  egdes_N[findall(e -> !(dst(e) in collect(keys(hyb))), egdes_N)]
+  return egdes_N[findall(e -> !(dst(e) in collect(keys(hyb))), egdes_N)]
 end
 
 ###################################################################################
@@ -122,20 +122,20 @@ Return the `(i, j)`-th entry of the transition matrix associated with edge `e` (
 """
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: VarName, T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][tr_mat[i,j], e]
+  return parameter_ring(PM)[2][tr_mat[i,j], e]
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: VarName, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
-  entry_transition_matrix(PM, i, j, Edge(u,v))
+  return entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: MPolyRingElem, <: T}, i::Int, j::Int, e::Edge) where {L, T}
   tr_mat = transition_matrix(PM)
-  parameter_ring(PM)[2][e](tr_mat[i,j])
+  return parameter_ring(PM)[2][e](tr_mat[i,j])
 end
 
 function entry_transition_matrix(PM::PhylogeneticModel{<:AbstractGraph{Directed}, L, <: MPolyRingElem, T}, i::Int, j::Int, u::Int, v::Int) where {L, T}
-  entry_transition_matrix(PM, i, j, Edge(u,v))
+  return entry_transition_matrix(PM, i, j, Edge(u,v))
 end
 
 """
@@ -153,9 +153,7 @@ entry_transition_matrix(PM::GroupBasedPhylogeneticModel, i::Int, j::Int, u::Int,
 
 Return the `i`-th entry of the root distribution parameter for the phylogenetic model associated to `PM`.
 """
-function entry_root_distribution(PM::PhylogeneticModel, i::Int)
-  parameter_ring(PM)[3][i]
-end
+entry_root_distribution(PM::PhylogeneticModel, i::Int) = parameter_ring(PM)[3][i]
 
 entry_root_distribution(PM::GroupBasedPhylogeneticModel, i::Int) = entry_root_distribution(phylogenetic_model(PM), i)
 
@@ -166,7 +164,7 @@ Return the `i`-th Fourier parameter associated with edge `e` (or equivalently `E
 """
 function entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, e::Edge)
   x = fourier_parameters(PM)
-  parameter_ring(PM)[2][x[i], e]
+  return parameter_ring(PM)[2][x[i], e]
 end
 
 entry_fourier_parameter(PM::GroupBasedPhylogeneticModel, i::Int, u::Int, v::Int) = entry_fourier_parameter(PM, i, Edge(u,v))
@@ -179,24 +177,17 @@ Return the parameter associated with a *hybrid edge* `e` (or edge `Edge(u,v)`) i
 
 """
 function entry_hybrid_parameter(PM::PhylogeneticModel{<: PhylogeneticNetwork}, e::Edge)
-  if !(dst(e) in collect(keys(hybrids(graph(PM)))))
-    error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
-  end
+  @req dst(e) in keys(hybrids(graph(PM))) "Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))"
 
-  parameter_ring(PM)[4][e]
+  return parameter_ring(PM)[4][e]
 end
 
 function entry_hybrid_parameter(PM::GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, e::Edge) 
-  if !(dst(e) in collect(keys(hybrids(graph(PM)))))
-    error("Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))")
-  end
-
-  parameter_ring(PM)[3][e]
+  @req dst(e) in keys(hybrids(graph(PM))) "Edge $e id not a hybrid edge in the Phylogenetic network $(graph(PM))"
+  return parameter_ring(PM)[3][e]
 end
 
-function entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, PhylogeneticModel{<: PhylogeneticNetwork}}, u::Int, v::Int)
-  entry_hybrid_parameter(PM, Edge(u,v))
-end
+entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetwork}, PhylogeneticModel{<: PhylogeneticNetwork}}, u::Int, v::Int) = entry_hybrid_parameter(PM, Edge(u,v))
 
 ###################################################################################
 #
@@ -308,8 +299,7 @@ function group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   return sum(G[collect(values(states))])
 end
 
-is_zero_group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int}) =  iszero(group_sum(PM, states))
-
+is_zero_group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int}) = iszero(group_sum(PM, states))
 
 function which_group_element(PM::GroupBasedPhylogeneticModel, elem::FinGenAbGroupElem)
   G = group(PM)

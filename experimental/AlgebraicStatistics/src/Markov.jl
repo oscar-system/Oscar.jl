@@ -2,7 +2,7 @@
 
 struct MarkovRing
   ring::MPolyRing
-  gens::Dict{<:Tuple, <:MPolyRingElem}
+  gens::GenDict{<:Tuple}
   state_spaces::Vector{AbstractArray}
 end
 
@@ -39,7 +39,7 @@ function markov_ring(F::Field, states::Int...; unknown::VarName="p", cached=fals
   varindices = collect(Iterators.product(state_spaces...))
   varnames = [["$(unknown)[$(join(i, ", "))]" for i in varindices]...]
   R, p = polynomial_ring(F, varnames; cached=cached)
-  d = Dict([varindices[i] => p[i] for i in 1:length(varindices)])
+  d = GenDict{typeof(first(varindices))}(Dict([varindices[i] => p[i] for i in 1:length(varindices)]))
   return MarkovRing(R, d, state_spaces)
 end
 

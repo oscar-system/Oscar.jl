@@ -122,7 +122,7 @@ t{2,3}(1, 2)
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
   gen_names = [varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params]
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = Dict{Tuple{Set{Int}, Tuple}, QQMPolyRingElem}(zip(params, t))
+  gens_dict = GenDict{Tuple{Set{Int}, Tuple}}(Dict(zip(params, t)))
   return (R, gens_dict)
 end
 
@@ -252,7 +252,7 @@ q[1](1)
   gen_names = [varnames(M)[:q] * "[$i]($x" * (length(y) > 0 ? " | " * join(y, ", ") : "") * ")" for (i, x, y) in params]
   push!(gen_names, "_h")
   R, q = polynomial_ring(QQ, gen_names; cached=cached);
-  gens_dict = Dict(p => q[k] for (k, p) in enumerate(params))
+  gens_dict = GenDict{Tuple{Int, Int, Set{Int}}}(Dict(p => q[k] for (k, p) in enumerate(params)))
   return (R, gens_dict)
 end
 
