@@ -390,5 +390,5 @@ function components_of_kernel(d::Int,
     merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs)))
   end
 
-  return FinAbGroupElemDict{elem_type(domain(phi))}(gens_dict)
+  return FinAbGroupElemDict{Vector{elem_type(domain(phi))}}(gens_dict)
 end
