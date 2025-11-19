@@ -500,6 +500,25 @@ julia> length(orbit(G, [1, 2]))
 julia> length(orbit(G, on_sets, [1, 2]))
 6
 ```
+
+Orbit of a vector under permutation action:
+```jldoctest
+julia> G = symmetric_group(3)
+Symmetric group of degree 3
+
+julia> x = [1,3,1];
+
+julia> orb = orbit(G, permuted, x)
+G-set of
+  symmetric group of degree 3
+  with seeds [[1, 3, 1]]
+
+julia> sort(collect(orb))
+3-element Vector{Vector{Int64}}:
+ [1, 1, 3]
+ [1, 3, 1]
+ [3, 1, 1]
+```
 """
 orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
