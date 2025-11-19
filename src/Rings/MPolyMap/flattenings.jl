@@ -493,6 +493,23 @@ end
   return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
+### Computation of induced morphisms on flattened towers of polynomial rings
+@attr Any function flatten(
+    f::MPolyAnyMap{MPolyRing,
+                   <:MPolyRing{RingElemType},
+                   Nothing
+                  }
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                 <:MPolyQuoLocRingElem
+                                }
+          }
+  S = domain(f)
+  T = codomain(f)
+  flat_T = flatten(T)
+  imgs = flat_T.(f.(gens(S)))
+  return hom(S, codomain(flat_T), imgs, check=false)
+end
+
 @attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType}
