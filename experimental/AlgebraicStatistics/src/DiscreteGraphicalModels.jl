@@ -71,7 +71,7 @@ p[1,2,1]
 """
 @attr Tuple{
   IndexedRing,
-  GenDict{<: Tuple, QQMPolyRingElem}
+  Dict{<: Tuple, <:MPolyRingElem}
 } function model_ring(M::DiscreteGraphicalModel; cached=false)
   random_variables = 1:n_states(M)
   state_spaces = [1:s for s in states(M)]
@@ -115,14 +115,14 @@ t{2,3}(1, 2)
 """
 @attr Tuple{
   QQMPolyRing,
-  GenDict{Tuple{Set{Int}, Tuple}, QQMPolyRingElem}
+  GenDict
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   cliques = sort(collect(maximal_cliques(graph(M))); by=x -> sort(collect(x)))
   Xs = [state_space(M, C) for C in cliques]
   params = [(C, x) for (C, X) in Iterators.zip(cliques, Xs) for x in X]
   gen_names = [varnames(M)[:t] * "{" *join(string.(sort(collect(C))), ",") * "}" * string(x) for (C, x) in params]
   R, t = polynomial_ring(QQ, gen_names; cached=cached)
-  gens_dict = GenDict{Tuple{Set{Int}, Tuple}}(Dict(zip(params, t)))
+  gens_dict = GenDict(Dict(zip(params, t)))
   return (R, gens_dict)
 end
 
@@ -210,7 +210,7 @@ Discrete Graphical Model on a Directed graph with 4 nodes and 3 edges with state
 function discrete_graphical_model(G::Graph{Directed}, states::Vector{Int}; q_var_name::String="q", p_var_name::String="p")
   @req length(states) == n_vertices(G) "need one and only one random variable in per graph vertex"
   @req is_acyclic(G) "$G must be an acyclic graph"
-  DiscreteGraphicalModel(G, states, Dict{Symbol, VarName}(:q => q_var_name, :p => p_var_name))
+  return DiscreteGraphicalModel(G, states, Dict{Symbol, VarName}(:q => q_var_name, :p => p_var_name))
 end
 
 @doc raw"""
@@ -237,7 +237,7 @@ q[1](1)
 """
 @attr Tuple{
   QQMPolyRing,
-  GenDict{<: Tuple, QQMPolyRingElem}
+  GenDict{<: Tuple}
 } function parameter_ring(M::DiscreteGraphicalModel{Graph{Directed}, T}; cached=false) where T
   G = graph(M)
   params = Tuple{Int, Int, Set{Int}}[]

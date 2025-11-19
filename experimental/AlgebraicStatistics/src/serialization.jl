@@ -15,8 +15,9 @@ end
 
 @register_serialization_type GraphDict 
 @register_serialization_type GraphTransDict
+@register_serialization_type GenDict
 
-function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
+function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict, GenDict}
   if isempty(obj)
     return TypeParams(
       T,
@@ -42,7 +43,7 @@ end
 
 load_object(s::DeserializerState, ::Type{Edge}) = Edge(load_object(s, Vector{Int})...)
 
-function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, GraphTransDict}
+function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, GraphTransDict, GenDict}
   save_data_array(s) do
     for (k, v) in d
       save_object(s, (k, v))
@@ -61,7 +62,7 @@ function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
     end
     graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
-  return graph_gen_dict
+  return GraphDict(graph_gen_dict)
 end
 
 function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
@@ -70,7 +71,7 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
     key = load_object(s, Tuple{Symbol, Edge}, 1)
     graph_trans_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
-  return graph_trans_dict
+  return GraphTransDict(graph_trans_dict)
 end
 
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]

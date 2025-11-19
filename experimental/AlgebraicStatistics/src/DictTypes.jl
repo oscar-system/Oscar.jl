@@ -35,6 +35,8 @@ end
 
 Base.getindex(D::GraphTransDict, arg::Tuple{VarName, Edge}) = D.d[arg]
 
+Base.getindex(D::GraphTransDict, s::VarName, e::Edge) = D.d[(s, e)]
+
 Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int) = D.d[(s, Edge(i, j))]
 
 ################################################################################
@@ -59,6 +61,9 @@ const SpecialDictUnion = Union{GraphDict, GenDict, GraphTransDict, FinAbGroupEle
 Base.keys(D::T) where T <: SpecialDictUnion = keys(D.d)
 Base.values(D::T) where T <: SpecialDictUnion = values(D.d)
 Base.isempty(D::T) where T <: SpecialDictUnion = isempty(D.d)
+Base.length(D::T) where T <: SpecialDictUnion = length(D.d)
+Base.iterate(D::T) where T <: SpecialDictUnion = iterate(D.d)
+Base.iterate(D::T, i::Int) where T <: SpecialDictUnion = iterate(D.d, i)
 
 function Base.show(io::IO,  m::MIME"text/plain", D::T) where T <: SpecialDictUnion
   io = pretty(io)

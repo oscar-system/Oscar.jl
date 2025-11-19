@@ -138,7 +138,7 @@ end
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
-  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
+  return R, GraphDict(Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict))
 end
 
 @attr Tuple{
@@ -153,7 +153,7 @@ end
   gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Directed))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)),
                     Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Undirected))))
-  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
+  return R, GraphDict(Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict))
 end
 
 @doc raw"""
@@ -341,7 +341,7 @@ end
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
-  return R, Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict)
+  return R, GraphDict(Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict))
 end
 
 @doc raw"""
