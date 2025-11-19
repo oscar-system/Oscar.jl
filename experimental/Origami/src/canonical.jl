@@ -1,7 +1,7 @@
 function normal_form(o::Origami)
   n = degree(o)
-  sym = symmetric_group(n)
 
+  sym = perm_group(o)
   x = sym(horizontal_perm(o))
   y = sym(vertical_perm(o))
 
@@ -50,7 +50,7 @@ function normal_form(o::Origami)
     push!(G, perm(sym, L))
   end
 
-  G2 = [(x ^ i, y ^ i) for i in G]
+  G2 = [(x^i, y^i) for i in G]
   # no need to check if surface connected
   min_entry = minimum(G2)
   return origami_disconnected(min_entry[1], min_entry[2], n)

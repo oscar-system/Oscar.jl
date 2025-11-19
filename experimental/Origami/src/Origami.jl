@@ -87,6 +87,10 @@ function degree(o::Origami)
   return o.d
 end
 
+function perm_group(o::Origami)
+  return symmetric_group(o.d)
+end
+
 function Base.show(io::IO, o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
@@ -163,7 +167,7 @@ function translations(o::Origami)
     return [tup[1]^g, tup[2]^g]
   end
 
-  S = stabilizer(symmetric_group(degree(o)), [h, v], act_on_tuples_by_conj)[1]
+  S = stabilizer(perm_group(o), [h, v], act_on_tuples_by_conj)[1]
   return elements(S)
 end
 
@@ -231,7 +235,7 @@ function normalform_conjugators(o::Origami)
   y = vertical_perm(o)
   n = degree(o)
   G = PermGroupElem[]
-  sym = parent(x)
+  sym = perm_group(o)
 
   # Starting from each of the vertices found above, do a breadth-first search
   # and list the vertices in the order they appear.
