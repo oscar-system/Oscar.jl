@@ -599,6 +599,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export encode
 export enriques_surface_automorphism_group
 export enumerate_classes_of_lattices_with_isometry
 export epimorphism_from_free_group

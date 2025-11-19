@@ -13,6 +13,8 @@
 
 import json
 import os
+import re
+import copy
 import subprocess
 import sys
 from datetime import datetime
@@ -84,38 +86,38 @@ def warning(s):
 # the given label is put into the corresponding section; each PR is put into only one section, the first one
 # one from this list it fits in.
 # See also <https://github.com/gap-system/gap/issues/4257>.
-topics = [
-    ["release notes: highlight",    "Highlights"],
-    ["topic: algebraic geometry",   "Algebraic Geometry"],
-    ["topic: combinatorics",        "Combinatorics"],
-    ["topic: commutative algebra",  "Commutative Algebra"],
-    ["topic: FTheoryTools",         "F-Theory Tools"],
-    ["topic: groups",               "Groups"],
-    ["topic: lie theory",           "Lie Theory"],
-    ["topic: number theory",        "Number Theory"],
-    ["topic: polyhedral geometry",  "Polyhedral Geometry"],
-    ["topic: toric geometry",       "Toric Geometry"],
-    ["topic: tropical geometry",    "Tropical Geometry"],
-    ["package: AbstractAlgebra",    "Changes related to the package AbstractAlgebra"],
-    ["package: AlgebraicSolving",   "Changes related to the package AlgebraicSolving"],
-    ["package: GAP",                "Changes related to the package GAP"],
-    ["package: Hecke",              "Changes related to the package Hecke"],
-    ["package: Nemo",               "Changes related to the package Nemo"],
-    ["package: Polymake",           "Changes related to the package Polymake"],
-    ["package: Singular",           "Changes related to the package Singular"],
-]
-prtypes = [
-    ["renaming",                    "Renamings"],
-    ["serialization",               "Changes related to serializing data in the MRDI file format"],
-    ["enhancement",                 "New features or extended functionality"],
-    ["experimental",                "Only changes experimental parts of OSCAR"],
-    ["optimization",                "Performance improvements or improved testing"],
-    ["bug: wrong result",           "Fixed bugs that returned incorrect results"],
-    ["bug: crash",                  "Fixed bugs that could lead to crashes"],
-    ["bug: unexpected error",       "Fixed bugs that resulted in unexpected errors"],
-    ["bug",                         "Other fixed bugs"],
-    ["documentation",               "Improvements or additions to documentation"],
-]
+topics = {
+    "release notes: highlight":    "Highlights",
+    "topic: algebraic geometry":   "Algebraic Geometry",
+    "topic: combinatorics":        "Combinatorics",
+    "topic: commutative algebra":  "Commutative Algebra",
+    "topic: FTheoryTools":         "F-Theory Tools",
+    "topic: groups":               "Groups",
+    "topic: lie theory":           "Lie Theory",
+    "topic: number theory":        "Number Theory",
+    "topic: polyhedral geometry":  "Polyhedral Geometry",
+    "topic: toric geometry":       "Toric Geometry",
+    "topic: tropical geometry":    "Tropical Geometry",
+    "package: AbstractAlgebra":    "Changes related to the package AbstractAlgebra",
+    "package: AlgebraicSolving":   "Changes related to the package AlgebraicSolving",
+    "package: GAP":                "Changes related to the package GAP",
+    "package: Hecke":              "Changes related to the package Hecke",
+    "package: Nemo":               "Changes related to the package Nemo",
+    "package: Polymake":           "Changes related to the package Polymake",
+    "package: Singular":           "Changes related to the package Singular",
+}
+prtypes = {
+    "renaming":                    "Renamings",
+    "serialization":               "Changes related to serializing data in the MRDI file format",
+    "enhancement":                 "New features or extended functionality",
+    "experimental":                "Only changes experimental parts of OSCAR",
+    "optimization":                "Performance improvements or improved testing",
+    "bug: wrong result":           "Fixed bugs that returned incorrect results",
+    "bug: crash":                  "Fixed bugs that could lead to crashes",
+    "bug: unexpected error":       "Fixed bugs that resulted in unexpected errors",
+    "bug":                         "Other fixed bugs",
+    "documentation":               "Improvements or additions to documentation",
+}
 
 
 def get_tag_date(tag: str) -> str:
@@ -149,7 +151,7 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
             "--search",
             query,
             "--json",
-            "number,title,closedAt,labels,mergedAt",
+            "number,title,closedAt,labels,mergedAt,body",
             "--limit",
             "200",
         ],
@@ -165,8 +167,35 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
 def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
-    title = pr["title"]
-    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
+    if has_label(pr, 'release notes: use body'):
+        mdstring = re.sub(r'^- ', f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) ", pr["body"])
+    else:
+        title = pr["title"]
+        mdstring = f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"        
+    return mdstring
+
+def body_to_release_notes(pr):
+    body = pr['body']
+    index1 = body.lower().find("## release notes")
+    if index1 == -1:
+        ## not found
+        ## complain and return fallback
+        print(f"Release notes section not found in PR number {pr['number']}!!")
+        return body
+    index2 = body.find('\n', index1) + 1 # the first line after the release notes line
+    bodylines = body[index2:].splitlines()
+    mdstring = ""
+    for line in bodylines:
+        line = line.rstrip()
+        if not line:
+            continue
+        elif line.startswith('- '):
+            mdstring = f"{mdstring}\n{line}"
+        else:
+            break
+    if not mdstring:
+        warning(f"Empty release notes section for PR #{pr['number']} !")
+    return mdstring
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
@@ -174,7 +203,7 @@ def has_label(pr: Dict[str, Any], label: str) -> bool:
 
 
 def changes_overview(
-    prs: List[Dict[str, Any]], startdate: str, new_version: str
+    prs: List[Dict[str, Any]], new_version: str
 ) -> None:
     """Writes files with information for release notes."""
 
@@ -185,7 +214,7 @@ def changes_overview(
     notice("Writing release notes into file " + newfile)
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
-            pr for pr in prs if has_label(pr, "release notes: use title")
+            pr for pr in prs if has_label(pr, "release notes: use title") or has_label(pr, "release notes: use body")
         ]
         # Write out all PRs with 'use title'
         relnotes_file.write(
@@ -209,33 +238,32 @@ which we think might affect some users directly.
         countedPRs = 0
         for priorityobject in topics:
             matches = [
-                pr for pr in prs_with_use_title if has_label(pr, priorityobject[0])
+                pr for pr in prs_with_use_title if has_label(pr, priorityobject)
             ]
-            print("PRs with label '" + priorityobject[0] + "': ", len(matches))
+            print("PRs with label '" + priorityobject + "': ", len(matches))
             print(matches)
             countedPRs = countedPRs + len(matches)
             if len(matches) == 0:
                 continue
-            relnotes_file.write("### " + priorityobject[1] + "\n\n")
-            if priorityobject[1] == 'Highlights':
+            relnotes_file.write("### " + topics[priorityobject] + "\n\n")
+            if topics[priorityobject] == 'Highlights':
                 itervar = topics
             else:
                 itervar = prtypes
             for typeobject in itervar:
-                if typeobject[1] == priorityobject[1]:
+                if typeobject == priorityobject:
                     continue
                 matches_type = [
-                    pr for pr in matches if has_label(pr, typeobject[0])
+                    pr for pr in matches if has_label(pr, typeobject)
                 ]
-                print("PRs with label '" + priorityobject[0] + "' and type '" + typeobject[0] + "': ", len(matches_type))
+                print("PRs with label '" + priorityobject + "' and type '" + typeobject + "': ", len(matches_type))
                 if len(matches_type) == 0:
                     continue
-                relnotes_file.write(f"#### {typeobject[1]}\n\n")
+                relnotes_file.write(f"#### {itervar[typeobject]}\n\n")
                 for pr in matches_type:
                     relnotes_file.write(pr_to_md(pr))
                     prs_with_use_title.remove(pr)
                     matches.remove(pr)
-                    matches_type.remove(pr)
                 relnotes_file.write('\n')
         print(f"Remaining PRs: {totalPRs - countedPRs}")
         # The remaining PRs have no "kind" or "topic" label from the priority list
@@ -244,15 +272,14 @@ which we think might affect some users directly.
         if len(prs_with_use_title) > 0:
             relnotes_file.write("### Other changes\n\n")
             for typeobject in prtypes:
-                print(typeobject)
                 matches_type = [
-                    pr for pr in prs_with_use_title if has_label(pr, typeobject[0])
+                    pr for pr in prs_with_use_title if has_label(pr, typeobject)
                 ]
                 len(matches_type)
-                print("PRs with label '" + priorityobject[0] + "' and type '" + typeobject[0] + "': ", len(matches_type))
+                print("PRs with type '" + typeobject + "': ", len(matches_type))
                 if len(matches_type) == 0:
                     continue
-                relnotes_file.write("#### " + typeobject[1] + "\n\n")
+                relnotes_file.write("#### " + prtypes[typeobject] + "\n\n")
 
                 for pr in matches_type:
                     relnotes_file.write(pr_to_md(pr))
@@ -280,10 +307,10 @@ which we think might affect some users directly.
                 "general section of the topic section in the changelog.\n\n")
             for pr in prs_with_use_title:
                 for topic in topics:
-                    matches = [pr for pr in prs_with_use_title if has_label(pr, topic[0])]
+                    matches = [pr for pr in prs_with_use_title if has_label(pr, topic)]
                     if len(matches) == 0:
                         continue
-                    relnotes_file.write(f'#### {topic[1]}\n\n')
+                    relnotes_file.write(f'#### {topics[topic]}\n\n')
                     for match in matches:
                         relnotes_file.write(pr_to_md(match))
                         prs_with_use_title.remove(match)
@@ -294,6 +321,7 @@ which we think might affect some users directly.
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
         prs = [pr for pr in prs if not has_label(pr, "release notes: added")]
         prs = [pr for pr in prs if not has_label(pr, "release notes: use title")]
+        prs = [pr for pr in prs if not has_label(pr, "release notes: use body")]
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
         if len(prs) > 0:
@@ -316,6 +344,40 @@ which we think might affect some users directly.
         # finally copy over this new file to changelog.md
         os.rename(newfile, finalfile)
 
+def split_pr_into_changelog(prs: List):
+    childprlist = []
+    toremovelist = []
+    for pr in prs:
+        if has_label(pr, 'release notes: use body'):
+            mdstring = body_to_release_notes(pr).strip()
+            mdlines = mdstring.split('\n')
+            pattern = r'\{.*\}$'
+            for line in mdlines:
+                cpr = copy.deepcopy(pr)
+                mans = re.search(pattern, line)
+                if mans:
+                    label_list = mans.group().strip('{').strip('}').split(',')
+                    for label in label_list:
+                        label = label.strip()
+                        if not (label in prtypes or label in topics):
+                            warning(f"PR number #{pr['number']}'s changelog body has label {label}, "
+                                    "which is not a label we recognize ! We are ignoring this label. "
+                                    "This might result in a TODO changelog item!")
+                            continue
+                        cpr['labels'].append({'name': label})
+                    mindex = mans.span()[0]
+                    line = line[0:mindex]
+                    pass
+                else:
+                    warning(f"PR number #{pr['number']} is tagged as \"Use Body\", but the body "
+                            "does not provide tags! This will result in TODO changelog items!")
+                cpr['body'] = f'{line.strip()}\n'
+                childprlist.append(cpr)
+                if pr not in toremovelist:
+                    toremovelist.append(pr)
+    prs.extend(childprlist)
+    prlist = [pr for pr in prs if pr not in toremovelist]
+    return prlist
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
@@ -339,7 +401,7 @@ def main(new_version: str) -> None:
         extra = f'label:"backport {major}.{minor}.x done"'
 
     if release_type == 2:
-        startdate = get_tag_date(basetag)
+        timestamp = get_tag_date(basetag)
     else:
         # Find the timestamp of the last shared commit
         shared_commit = subprocess.run([
@@ -355,20 +417,19 @@ def main(new_version: str) -> None:
             "--format=\"%cI\"",
             shared_commit
         ], shell=False, check=True, capture_output=True).stdout.decode().strip().replace('"', '')
-        # date is first 10 characters of timestamp
-        startdate = timestamp[0:10]
     print("Base tag is", basetag)
-    print("Last common commit at ", startdate)
+    print("Last common commit at ", timestamp)
 
     print("Downloading filtered PR list")
-    prs = get_pr_list(startdate, extra)
+    prs = get_pr_list(timestamp, extra)
+    prs = split_pr_into_changelog(prs)
     # print(json.dumps(prs, sort_keys=True, indent=4))
 
     # reset changelog file to state tracked in git
     
     subprocess.run(f'git checkout -- {finalfile}'.split(), check=True)
 
-    changes_overview(prs, startdate, new_version)
+    changes_overview(prs, new_version)
 
 
 if __name__ == "__main__":
