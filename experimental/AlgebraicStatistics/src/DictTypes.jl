@@ -56,9 +56,9 @@ end
 # dict functions
 const SpecialDictUnion = Union{GraphDict, GenDict, GraphTransDict, FinAbGroupElemDict}
 
-keys(D::T) where T <: SpecialDictUnion = keys(D.d)
-values(D::T) where T <: SpecialDictUnion = values(D.d)
-isempty(D::T) where T <: SpecialDictUnion = isempty(D.d)
+Base.keys(D::T) where T <: SpecialDictUnion = keys(D.d)
+Base.values(D::T) where T <: SpecialDictUnion = values(D.d)
+Base.isempty(D::T) where T <: SpecialDictUnion = isempty(D.d)
 
 function Base.show(io::IO,  m::MIME"text/plain", D::T) where T <: SpecialDictUnion
   io = pretty(io)
