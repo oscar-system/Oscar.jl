@@ -75,7 +75,7 @@ The syntax is the following:
 - item3 {label5}
 ```
 
-As an example, the following body in the PR is rendered as follows :
+As an example, consider the following body of a hypothetical PR with number `nnnn`:
 
 ```md
 ## Release Notes
@@ -83,6 +83,8 @@ As an example, the following body in the PR is rendered as follows :
 - Does 123 {package: Nemo, documentation}
 - Questions 42 {package: Singular, serialization}
 ```
+
+That body would result in the following changelog content:
 
 >
 > ### Changes related to the package AbstractAlgebra
