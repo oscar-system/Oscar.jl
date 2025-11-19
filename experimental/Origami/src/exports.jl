@@ -45,6 +45,7 @@ export origamis
 export origamis_in_h11
 export parse_cycle
 export partition_degree
+export perm_group
 export point_reflections
 export possible_lengths_and_heights
 export product_gray_code
