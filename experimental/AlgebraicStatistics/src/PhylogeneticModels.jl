@@ -1182,7 +1182,7 @@ end
 @attr Tuple{
   MPolyRing,
   GraphTransDict,
-  GenDict
+  GraphDict
 } function parameter_ring(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing}=nothing)
   N = graph(PM)
@@ -1198,7 +1198,7 @@ end
     Dict{Tuple{VarName, Edge}, MPolyRingElem}(
       (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(N, sorted_edges)))
   ),
-  GenDict{MPolyRingElem}(
+  GraphDict{MPolyRingElem}(
     Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
   )
 end

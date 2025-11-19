@@ -33,11 +33,9 @@ struct GraphTransDict{T}
   d::Dict{Tuple{VarName, Edge}, T}
 end
 
-Base.getindex(D::GraphTransDict, arg::Tuple{VarName, Edge}) = D.[arg]
+Base.getindex(D::GraphTransDict, arg::Tuple{VarName, Edge}) = D.d[arg]
 
-function Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int)
-  return D.d[(s, Edge(i, j))]
-end
+Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int) = D.d[(s, Edge(i, j))]
 
 ################################################################################
 # FinGenAbGroupElemDict
@@ -61,6 +59,13 @@ const SpecialDictUnion = Union{GraphDict, GenDict, GraphTransDict, FinAbGroupEle
 keys(D::T) where T <: SpecialDictUnion = keys(D.d)
 values(D::T) where T <: SpecialDictUnion = values(D.d)
 isempty(D::T) where T <: SpecialDictUnion = isempty(D.d)
-show(D::T) where T <: SpecialDictUnion = show(D.d)
+
+function Base.show(io::IO,  m::MIME"text/plain", D::T) where T <: SpecialDictUnion
+  io = pretty(io)
+  println(io, "$T with underlying Dict")
+  print(io, Indent())
+  show(io,  m, D.d)
+  print(io, Dedent())
+end
 
 
