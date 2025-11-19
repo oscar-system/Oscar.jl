@@ -2715,7 +2715,7 @@ function oscar_genus_representatives(
   invariant_function::Function=Hecke.default_invariant_function,
   save_partial::Bool=false,
   save_path::Union{IO, String, Nothing}=nothing,
-  stop_after::IntExt=2000,
+  stop_after::IntExt=1000,
   max_lat::IntExt=inf,
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
   root_test::Bool=false,
