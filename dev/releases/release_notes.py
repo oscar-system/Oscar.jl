@@ -352,24 +352,24 @@ def split_pr_into_changelog(prs: List):
             mdlines = mdstring.split('\n')
             pattern = r'\{.*\}$'
             for line in mdlines:
+                cpr = copy.deepcopy(pr)
                 mans = re.search(pattern, line)
-                if not mans:
-                    # maybe actually raise an error instead of just continue
+                if mans:
+                    label_list = mans.group().strip('{').strip('}').split(',')
+                    for label in label_list:
+                        label = label.strip()
+                        if not (label in prtypes or label in topics):
+                            warning(f"PR number #{pr['number']}'s changelog body has label {label}, "
+                                    "which is not a label we recognize ! We are ignoring this label. "
+                                    "This might result in a TODO changelog item!")
+                            continue
+                        cpr['labels'].append({'name': label})
+                    mindex = mans.span()[0]
+                    line = line[0:mindex]
+                    pass
+                else:
                     warning(f"PR number #{pr['number']} is tagged as \"Use Body\", but the body "
                             "does not provide tags! This will result in TODO changelog items!")
-                    continue
-                label_list = mans.group().strip('{').strip('}').split(',')
-                cpr = copy.deepcopy(pr)
-                for label in label_list:
-                    label = label.strip()
-                    if not (label in prtypes or label in topics):
-                        warning(f"PR number #{pr['number']}'s changelog body has label {label}, "
-                                "which is not a label we recognize ! We are ignoring this label. "
-                                "This might result in a TODO changelog item!")
-                        continue
-                    cpr['labels'].append({'name': label})
-                mindex = mans.span()[0]
-                line = line[0:mindex]
                 cpr['body'] = f'{line.strip()}\n'
                 childprlist.append(cpr)
                 if pr not in toremovelist:
