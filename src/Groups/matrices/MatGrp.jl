@@ -729,7 +729,10 @@ function is_finite(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, Q
   try
     compute_order(G)
   catch e
-    return false
+    if e isa InfiniteOrderError
+      return false
+    end
+    rethrow()
   end
   return true
 end

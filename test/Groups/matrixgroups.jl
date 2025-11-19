@@ -107,7 +107,10 @@ end
 @testset "faithful reduction from char. zero to finite fields" begin
 
    M = matrix(QQ, [ 2 0; 0 2 ])
-   @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
+   G = matrix_group([M])
+   @test !has_is_finite(G)
+   @test_throws InfiniteOrderError Oscar.isomorphic_group_over_finite_field(G)
+   @test has_is_finite(G)
 
    K, a = cyclotomic_field(5, "a")
    L, b = cyclotomic_field(3, "b")
@@ -121,8 +124,10 @@ end
 
    @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
      G0 = matrix_group(mats)
+     @test !has_is_finite(G0)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
 
+     @test has_is_finite(G0)
      @test has_order(G)
      @test has_order(G0)
      @test order(G0) == order(G)
