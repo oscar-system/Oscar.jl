@@ -322,7 +322,7 @@ function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
     error("Stratum not supported!")
   end
 
-  file_path = joinpath(dirname(@__FILE__), "..", "cylinder_diagrams", file_name)
+  file_path = joinpath(@__DIR__, "..", "cylinder_diagrams", file_name)
   diagrams::Vector{CylinderDiagram} = read_cylinder_diagrams(file_path)
 
   origamis = Set{Origami}()

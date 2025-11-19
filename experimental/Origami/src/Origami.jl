@@ -71,7 +71,7 @@ function Base.:(==)(a::Origami, b::Origami)
   return (a.h == b.h) && (a.v == b.v)
 end
 
-function Base.hash(o::Origami, h::UInt=0x000000000)
+function Base.hash(o::Origami, h::UInt)
   return hash(o.h, hash(o.v, hash(o.d, h)))
 end
 
@@ -212,8 +212,7 @@ end
 
 function cylinder_structure(o::Origami)
   gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
-  cyl_lists = Vector{Vector{Int}}(gap_obj)
-  cyl_tuples = [(l[1], l[2]) for l in cyl_lists]
+  cyl_tuples = Vector{Tuple{Int,Int}}(gap_obj)
   return cyl_tuples
 end
 
