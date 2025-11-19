@@ -257,7 +257,8 @@ end
 # where the lattice basis is a vector of tuples (exponent vector, deg)
 function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, MPolyDecRingElem}},
                              R::MPolyDecRing,
-                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
+                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}},
+                             gens_dict::Dict)
   e = zeros(Int, ngens(R))
   e[1] = 1
   m = monomial(R, e)
@@ -278,7 +279,7 @@ function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGrou
       next_exp = exp + e
       next_deg = deg + d
       next_mon = monomial(R, next_exp)
-      mon_deg_simplex[next_exp] = (next_deg, next_mon)
+      deg in keys(gens_dict) && continue
 
       # adds the missing face
       if iszero(exp[1])
@@ -325,7 +326,7 @@ function components_of_kernel(d::Int,
   end
 
   for i in 1:d
-    deg_mon_dict = Oscar.degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis)
+    deg_mon_dict = Oscar.degree_over_simplex(deg_mon_dict, domain(phi), lattice_basis, gens_dict)
     mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
     # avoid redundant degree computation
     for (_, (d, m)) in deg_mon_dict
