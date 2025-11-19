@@ -214,7 +214,7 @@ def changes_overview(
     notice("Writing release notes into file " + newfile)
     with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
-            pr for pr in prs if has_label(pr, "release notes: use title")
+            pr for pr in prs if has_label(pr, "release notes: use title") or has_label(pr, "release notes: use body")
         ]
         # Write out all PRs with 'use title'
         relnotes_file.write(
@@ -321,6 +321,7 @@ which we think might affect some users directly.
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
         prs = [pr for pr in prs if not has_label(pr, "release notes: added")]
         prs = [pr for pr in prs if not has_label(pr, "release notes: use title")]
+        prs = [pr for pr in prs if not has_label(pr, "release notes: use body")]
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
         if len(prs) > 0:
