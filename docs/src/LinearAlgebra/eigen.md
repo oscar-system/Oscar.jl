@@ -99,7 +99,7 @@ Dict{QQBarFieldElem, AbstractAlgebra.Generic.MatSpaceElem{QQBarFieldElem}} with 
   {a2: -1.00*im} => [{a2: 1.00000*im} {a1: 1.00000} {a1: 0}]
   
 ```
-
+We note that eigenspaces for floating point matrices are not well defined and their computation therefore forbidden in OSCAR. 
 
 
 ```@docs
