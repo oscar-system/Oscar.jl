@@ -43,7 +43,7 @@ julia> eigenvalues(A_K)
  {a2: 1.00000*im}
  {a2: -1.00000*im}
 ```
-In the following, we ask OSCAR to compute the rounded eigenvalues of a matrix over the complex numbers with a given precision.
+In the following, we ask OSCAR to compute approximations of the eigenvalues of a matrix over the complex numbers with given precision and error bounds.
 ```jldoctest
 julia> B = AcbField(100)[0 2; 1 0]
 [                               0   2.000000000000000000000000000000]
