@@ -19,7 +19,11 @@ end
 
 Base.getindex(D::GenDict{S}, arg::S) where S = D.d[arg]
 
-function Base.getindex(D::GenDict{Tuple{Set{Int}, Tuple}}, s::Vector{Int}, t::Tuple)
+function Base.getindex(D::GenDict{Tuple{Set{Int}, S}}, s::Set{Int}, t::S) where S <: Tuple
+  return D.d[s, t]
+end
+
+function Base.getindex(D::GenDict{Tuple{Set{Int}, S}}, s::Vector{Int}, t::S) where S <: Tuple
   return D.d[Set{Int}(s), t]
 end
 
@@ -27,17 +31,21 @@ function Base.getindex(D::GenDict{Tuple{Int, Int, Set{Int}}}, i::Int, j::Int, s:
   return D.d[i, j, Set{Int}(s)]
 end
 
+function Base.getindex(D::GenDict{Tuple{Int, Int, Set{Int}}}, i::Int, j::Int, s::Set{Int})
+  return D.d[i, j, s]
+end
+
 ################################################################################
 # GenTransDict
 struct GraphTransDict{T}
-  d::Dict{Tuple{VarName, Edge}, T}
+  d::Dict{Tuple{S, Edge}, T} where S <: VarName
 end
 
-Base.getindex(D::GraphTransDict, arg::Tuple{VarName, Edge}) = D.d[arg]
+Base.getindex(D::GraphTransDict, arg::Tuple{<:VarName, Edge}) = D.d[arg]
 
-Base.getindex(D::GraphTransDict, s::VarName, e::Edge) = D.d[(s, e)]
+Base.getindex(D::GraphTransDict, s::S, e::Edge) where S <: VarName = D.d[(s, e)]
 
-Base.getindex(D::GraphTransDict, s::VarName, i::Int, j::Int) = D.d[(s, Edge(i, j))]
+Base.getindex(D::GraphTransDict, s::S, i::Int, j::Int) where S <:VarName = D.d[(s, Edge(i, j))]
 
 ################################################################################
 # FinGenAbGroupElemDict
