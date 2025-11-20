@@ -285,7 +285,7 @@ function selfprojecting_realization_space(m::Matroid;
   if length(loops(m))>0
     error("This method is currently not implemented matroids with loops.")
   end
-  RS = realization_space(m,char=0,simplify = true, saturate = true)
+  RS = realization_space(m,char=0,simplify = true, saturate = true,ground_ring = QQ)
   R = ambient_ring(RS)
   if !is_realizable(m,char=0)
     RS = MatroidRealizationSpaceSelfProjecting(defining_ideal(RS), inequations(RS), R, nothing, 0, nothing, QQ)
