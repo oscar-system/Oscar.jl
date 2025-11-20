@@ -17,14 +17,21 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
         perturbation = rand(Int,ambient_dim(TropV1))
     end
 
+    # computing the expected dimension of the stable intersection
     n = ambient_dim(TropV1)
+    expectedDimension = n - codim(TropV1) - codim(TropV2)
+
     Sigma12 = Polyhedron{QQFieldElem}[]
     mults12 = ZZRingElem[]
-
-    # todo: check that perturbation is actually generic
     for (sigma1,m1) in maximal_polyhedra_and_multiplicities(TropV1)
         for (sigma2,m2) in maximal_polyhedra_and_multiplicities(TropV2)
-            if dim(sigma1+sigma2)==n && intersect_after_perturbation(sigma1,sigma2,perturbation)
+            intersectAfterPerturbation, intersectionDimension = intersect_after_perturbation_with_dimension(sigma1,sigma2,perturbation)
+            if intersectAfterPerturbation && intersectionDimension>expectedDimension
+                # non-generic intersection, rerun everything with new random perturbation
+                println("non-generic intersection, rerunning with new perturbation")
+                return stable_intersection(TropV1, TropV2, rand(Int,ambient_dim(TropV1)))
+            end
+            if dim(sigma1+sigma2)==n && intersectAfterPerturbation
                 sigma12 = intersect(sigma1, sigma2)
                 i = findfirst(isequal(sigma12), Sigma12)
                 if isnothing(i)
@@ -47,10 +54,10 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
     return tropical_variety(Sigma12,mults12,convention(TropV1))
 end
 
-function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::Polyhedron{QQFieldElem}, perturbation::Vector{Int})
+function intersect_after_perturbation_with_dimension(sigma1::Polyhedron{QQFieldElem}, sigma2::Polyhedron{QQFieldElem}, perturbation::Vector{Int})
 
     if dim(intersect(sigma1,sigma2))<0
-        return false
+        return false, -1
     end
 
     # construct sigma1Prime = sigma1 x RR in RR^(n+1)
@@ -66,14 +73,19 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     N = affine_equation_matrix(affine_hull(sigma2))
     N = hcat(N, zero_matrix(QQ, nrows(N), 1))
     v = zero_matrix(QQ, 1, ncols(N))
-    v[1,end] = 1 # v = last unit vector
+    v[1,end] = 1 # v = last unit vector as a row vector
     N = vcat(N, v)
     sigma2Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
 
     sigma12Prime = intersect(sigma1Prime, sigma2Prime)
-    # @req codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
 
-    return dim(sigma12Prime)>0 && last(relative_interior_point(sigma12Prime))>0
+    intersectAfterPerturbation = (last(relative_interior_point(sigma12Prime))>0)
+    intersectionDimension = dim(sigma12Prime)-1
+
+    @assert dim(sigma12Prime)>=0
+    @assert (!intersectAfterPerturbation || dim(sigma12Prime)>0)
+
+    return intersectAfterPerturbation, intersectionDimension
 end
 
 
