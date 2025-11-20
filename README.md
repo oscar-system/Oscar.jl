@@ -38,7 +38,7 @@ julia> using Oscar
 | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
  \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information
 o--------o-----o-----o--------o  | Documentation: https://docs.oscar-system.org
-  S Y M B O L I C   T O O L S    | Version 1.5.0
+  S Y M B O L I C   T O O L S    | Version 1.5.1
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
