@@ -256,24 +256,26 @@ function lifted_monomials(deg::FinGenAbGroupElem,
                           lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
                           gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
   lifted_m = Set{MPolyDecRingElem}([])
-  gen_shifts = MPolyDecRingElem[]
   for (gen_deg, gens) in gens_dict
+    gen_shifts = MPolyDecRingElem[]
     R = parent(first(gens))
     if haskey(lower_simplex, deg - gen_deg)
       append!(gen_shifts, reduce(vcat, [[g * m for m in lower_simplex[deg - gen_deg]] for g in gens_dict[gen_deg]]))
     end
+    isempty(gen_shifts) && continue
+
+    mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+    M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+    rref!(M)
+    mon_indices = Int[]
+    for j in ncols(M)
+      rows = findall(!iszero, M[:, j])
+      isnothing(rows) && continue
+      isone(length(rows)) && push!(mon_indices, only(rows))
+    end
+    lifted_m = union(lifted_m, mons[mon_indices])
   end
-  isempty(gen_shifts) && return lifted_m
-  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
-  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
-  rref!(M)
-  mon_indices = Int[]
-  for j in ncols(M)
-    rows = findall(!iszero, M[:, j])
-    isnothing(rows) && continue
-    isone(length(rows)) && push!(mon_indices, only(rows))
-  end
-  return Set(mons[mon_indices])
+  return lifted_m
 end
 
 # recursively computes the degrees over the scaled simplex,
@@ -302,7 +304,6 @@ function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MP
   else
     t_deg_simplex = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
     for (deg, mons) in lower_simplex
-      
       total_degree(first(mons)) < t_degree - 1 && continue
       for mon in mons
         exp = only(exponents(mon))
