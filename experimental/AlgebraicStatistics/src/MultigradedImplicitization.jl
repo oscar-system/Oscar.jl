@@ -252,10 +252,28 @@ function components_of_kernel(d::Int,
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
-function lifted_monomials(deg::FinGenAbGroupElem, gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
+function lifted_monomials(deg::FinGenAbGroupElem,
+                          lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
+                          gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
+  lifted_m = Set{MPolyDecRingElem}([])
+  gen_shifts = MPolyDecRingElem[]
   for (gen_deg, gens) in gens_dict
-    deg - gen_deg
+    R = parent(first(gens))
+    if haskey(lower_simplex, deg - gen_deg)
+      append!(gen_shifts, reduce(vcat, [[g * m for m in lower_simplex[deg - gen_deg]] for g in gens_dict[gen_deg]]))
+    end
   end
+  isempty(gen_shifts) && return lifted_m
+  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+  rref!(M)
+  mon_indices = Int[]
+  for j in ncols(M)
+    rows = findall(!iszero, M[:, j])
+    isnothing(rows) && continue
+    isone(length(rows)) && push!(mon_indices, only(rows))
+  end
+  return Set(mons[mon_indices])
 end
 
 # recursively computes the degrees over the scaled simplex,
@@ -265,7 +283,8 @@ end
 function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
                               t_degree::Int,
                               R::MPolyDecRing,
-                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
+                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}},
+                              prev_gens::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
   e = zeros(Int, ngens(R))
   e[1] = 1
   m = monomial(R, e)
@@ -283,15 +302,17 @@ function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MP
   else
     t_deg_simplex = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
     for (deg, mons) in lower_simplex
+      
       total_degree(first(mons)) < t_degree - 1 && continue
       for mon in mons
-        exp = first(exponents(mon))
+        exp = only(exponents(mon))
         # builds an open dim + 1 simplex from lower_simplex
         next_exp = exp + e
         next_deg = deg + d
         next_mon = monomial(R, next_exp)
         next_mons = get!(t_deg_simplex, next_deg, typeof(next_mon)[])
-        push!(next_mons, next_mon)
+
+        !(next_mon in lifted_monomials(next_deg, lower_simplex, prev_gens)) && push!(next_mons, next_mon)
 
         # adds the missing face
         if iszero(exp[1])
@@ -302,7 +323,7 @@ function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MP
             next_m = monomial(R, next_e)
             next_d = next_deg + lb[2]
             next_mons = get!(t_deg_simplex, next_d, typeof(next_m)[])
-            push!(next_mons, next_m)
+            !(next_m in lifted_monomials(next_d, lower_simplex, prev_gens)) && push!(next_mons, next_m)
           end
         end
       end
@@ -345,18 +366,7 @@ function components_of_kernel(d::Int,
   end
 
   for i in 1:d
-    mon_bases = degree_over_simplex!(deg_mon_dict, i, domain(phi), lattice_basis)
-
-    # avoid redundant degree computation
-    # find the previous generators
-    #if isempty(gens_dict)
-    #  lifted_monomials = Dict{FinGenAbGroupElem, MPolyDecRingElem}()
-    #else
-    #  for (deg, mons) in gens_dict
-    #    
-    #  end
-    #end
-    # fix ordering of deg across julia versions
+    mon_bases = degree_over_simplex!(deg_mon_dict, i, domain(phi), lattice_basis, gens_dict)
     degrees = keys(mon_bases)
 
     # first filter out all easy cases
@@ -387,7 +397,7 @@ function components_of_kernel(d::Int,
       results = []
     end
 
-    merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs)))
+    merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs) if !isempty(results[i])))
   end
 
   return FinAbGroupElemDict{Vector{elem_type(domain(phi))}}(gens_dict)

@@ -1173,9 +1173,11 @@ If `GT <: PhylogeneticNetwork` it additionally returns:
   edge_gens = [x => 1:n_edges(graph(PM)) for x in vars]
   R, x... = polynomial_ring(base_field(PM), edge_gens...; cached=cached)
 
-  return R, GraphTransDict{MPolyRingElem}(Dict{Tuple{VarName, Edge}, MPolyRingElem}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
-  ))
+  return R, GraphTransDict(
+    Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+      (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(graph(PM), sorted_edges))
+        )
+  )
 end
 
 ### GroupBasedPhylogeneticModel & PhylogeneticNetwork
@@ -1194,11 +1196,12 @@ end
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes),1:2), edge_gens...; cached=cached)
   
   hyb = hybrids(N)
-  return R, GraphTransDict{MPolyRingElem}(
-    Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+  return R,
+  GraphTransDict(
+    Dict{Tuple{<:VarName, Edge}, MPolyRingElem}(
       (vars[i], e) => x[i][j] for i in 1:length(vars), (j,e) in enumerate(sort_edges(N, sorted_edges)))
   ),
-  GraphDict{MPolyRingElem}(
+  GraphDict(
     Dict{Edge, MPolyRingElem}(hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2)
   )
 end
