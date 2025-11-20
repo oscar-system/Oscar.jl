@@ -332,6 +332,18 @@ function _as_perm(w, g::T, X::Vector{T}) where T <: Union{ZZMatrix, QQMatrix}
   return per
 end 
 
+# faster for big X
+function _as_perm(w, g::T, X::IndexedSet{T}) where T <: Union{ZZMatrix, QQMatrix}
+  n = length(X)
+  per = Vector{Int}(undef, n)
+  i = 0
+  for i in 1:n
+    mul!(w, X[i], g)
+    per[i] = X(w)
+  end 
+  return per
+end 
+
 # sorts the _short_vectors !
 function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:Union{ZZRingElem, QQFieldElem}, T<:Union{ZZMatrix, QQMatrix}}
   sort!(_short_vectors, lt=Hecke._isless)
@@ -349,18 +361,35 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
   if n == 1
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
+  end
+  if is_prime(n)
+    # up to 20% less allocations and slightly faster
+    p = n
+    BL = ZZ.(n*_BL)
+    R = fpField(UInt(p))
+    BLmod = change_base_ring(R, BL)
+    r = rref!(BLmod)
+    BLmod = BLmod[1:r,:]
+    stab = stabilizer(G, BLmod, on_rref)
+  else 
+    BL = ZZ.(n*_BL)
+    R,iR = residue_ring(ZZ, Int(n))
+    BLmod = change_base_ring(R, BL)
+    howell_form!(BLmod)
+    stab = stabilizer(G, BLmod, on_howell_form)
   end 
-  BL = ZZ.(n*_BL)
-  R,iR = residue_ring(ZZ, Int(n))
-  BLmod = change_base_ring(R, BL)
-  howell_form!(BLmod)
-  stab = stabilizer(G, BLmod, on_howell_form)
   return stab
 end 
 
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
   Mg = M*matrix(g)
   howell_form!(Mg)
+  return Mg
+end 
+
+function on_rref(M::fpMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
+  Mg = M*matrix(g)
+  rref!(Mg)
   return Mg
 end 
 
@@ -498,6 +527,9 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   M1s, M1,_ = Hecke._shortest_vectors_sublattice(L1; check=false)
   M2s, M2,_ = Hecke._shortest_vectors_sublattice(L2; check=false)
   
+  # avoid that Hecke enters a possibly expensive computation
+  # the minimum is known anyways
+  minimum(L1) == minimum(L2) || return false, zero_matrix(QQ, 0, 0)
   # algorithm selection
   if _direct_is_faster(M1)
     b, fM = Hecke.__is_isometric_with_isometry_definite(M1, M2;  depth, bacher_depth)
