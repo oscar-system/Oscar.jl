@@ -283,7 +283,7 @@ Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
   k = base_ring(F)
   @assert base_ring(G) == k
-  H = free_module(k, rank(F)*rank(G))
+  H = free_module(k, rank(F)*rank(G); cached=false)
   return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end
 

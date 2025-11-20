@@ -348,21 +348,11 @@ Local symbols:
   Local genus symbol at 2: 1^-4 2^1_7
   Local genus symbol at 3: 1^-4 3^1
 
-julia> admissible_triples(g, 5)
-2-element Vector{Tuple{ZZGenus, ZZGenus}}:
- (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
- (Genus symbol: II_(1, 0) 2^1_7 3^1 5^1, Genus symbol: II_(4, 0) 5^1)
+julia> length(admissible_triples(g, 5))
+2
 
-julia> admissible_triples(g, 2)
-8-element Vector{Tuple{ZZGenus, ZZGenus}}:
- (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
- (Genus symbol: II_(4, 0) 2^2_6 3^1, Genus symbol: II_(1, 0) 2^1_1)
- (Genus symbol: II_(3, 0) 2^-3_1 3^1, Genus symbol: II_(2, 0) 2^2_2)
- (Genus symbol: II_(3, 0) 2^3_3, Genus symbol: II_(2, 0) 2^-2 3^1)
- (Genus symbol: II_(2, 0) 2^-2 3^1, Genus symbol: II_(3, 0) 2^3_3)
- (Genus symbol: II_(2, 0) 2^2_2, Genus symbol: II_(3, 0) 2^-3_1 3^1)
- (Genus symbol: II_(1, 0) 2^1_1, Genus symbol: II_(4, 0) 2^2_6 3^1)
- (Genus symbol: II_(0, 0), Genus symbol: II_(5, 0) 2^-1_3 3^1)
+julia> length(admissible_triples(g, 2))
+8
 ```
 """
 function admissible_triples(

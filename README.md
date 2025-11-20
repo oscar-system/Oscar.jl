@@ -38,19 +38,20 @@ julia> using Oscar
 | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
  \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information
 o--------o-----o-----o--------o  | Documentation: https://docs.oscar-system.org
-  S Y M B O L I C   T O O L S    | Version 1.5.0
+  S Y M B O L I C   T O O L S    | Version 1.5.1
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
 
 julia> zk = maximal_order(k)
-Maximal order of Imaginary quadratic field defined by x^2 + 5
-with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
+Maximal order
+  of imaginary quadratic field defined by x^2 + 5
+with Z-basis [1, sqrt(-5)]
 
 julia> factorizations(zk(6))
 2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * -3 * 2
- -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
+ -1 * (sqrt(-5) + 1) * (sqrt(-5) - 1)
 
 julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])

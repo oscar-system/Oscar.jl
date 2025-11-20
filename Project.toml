@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["The OSCAR Team <oscar@oscar-system.org>"]
-version = "1.5.0"
+version = "1.5.1"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -38,7 +38,7 @@ JSON = "^0.20, ^0.21"
 JSON3 = "1.13.2"
 LazyArtifacts = "1.6"
 Markdown = "1.6"
-Nemo = "0.52.1"
+Nemo = "0.52.3"
 Pkg = "1.6"
 Polymake = "0.13.1"
 ProgressMeter = "1.10.2"

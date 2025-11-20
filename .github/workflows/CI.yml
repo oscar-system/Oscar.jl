@@ -46,7 +46,8 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -219,7 +220,8 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'

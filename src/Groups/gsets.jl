@@ -500,6 +500,25 @@ julia> length(orbit(G, [1, 2]))
 julia> length(orbit(G, on_sets, [1, 2]))
 6
 ```
+
+Orbit of a vector under permutation action:
+```jldoctest
+julia> G = symmetric_group(3)
+Symmetric group of degree 3
+
+julia> x = [1,3,1];
+
+julia> orb = orbit(G, permuted, x)
+G-set of
+  symmetric group of degree 3
+  with seeds [[1, 3, 1]]
+
+julia> sort(collect(orb))
+3-element Vector{Vector{Int64}}:
+ [1, 1, 3]
+ [1, 3, 1]
+ [3, 1, 1]
+```
 """
 orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
@@ -612,6 +631,25 @@ julia> map(length, orbs)
 """
 @attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(natural_gset(G))
 
+"""
+    representative(Omega::GSet)
+
+Return a representative element of the G-set `Omega`.
+
+# Examples
+```jldoctest
+julia> G = @permutation_group(4, (1,2), (3,4))
+Permutation group of degree 4
+
+julia> Omega = natural_gset(G);
+
+julia> representative.(orbits(Omega))
+2-element Vector{Int64}:
+ 1
+ 3
+```
+"""
+representative(Omega::GSet)
 
 """
     stabilizer(Omega::GSet{T,S})

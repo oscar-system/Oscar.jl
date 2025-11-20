@@ -65,7 +65,7 @@ function compute_zero_coordinates(
     if !isdisjoint(
       non_zeros, findall(!iszero, coefficients(operator_as_root(bir_sequence, c)))
     )
-      union!(non_zeros, findall(<(0), coefficients(operator_as_weight(bir_sequence, c))))
+      union!(non_zeros, findall(!=(0), coefficients(operator_as_weight(bir_sequence, c))))
     else
       push!(zero_coordinates, c)
     end
