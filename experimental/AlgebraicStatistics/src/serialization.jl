@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, _convert_override_params
+  type_params, _convert_override_params, params, load_type_params, decode_type
 
 function _convert_override_params(tp::TypeParams{<:GraphicalModel{T}, <:Tuple{Vararg{Pair}}}) where T <: Oscar.AbstractGraph
   param_dict = Dict()
@@ -17,7 +17,7 @@ end
 @register_serialization_type GraphTransDict
 @register_serialization_type GenDict
 
-function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict, GenDict}
+function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   if isempty(obj)
     return TypeParams(
       T,
@@ -33,6 +33,8 @@ function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict, GenDict
     first(value_params)
   )
 end
+
+type_params(D::GenDict) = TypeParams(GenDict, params(type_params(D.d)))
 
 function save_object(s::SerializerState, e::Edge)
   save_data_array(s) do
@@ -72,6 +74,26 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
     graph_trans_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
   return GraphTransDict(graph_trans_dict)
+end
+
+function load_type_params(s::DeserializerState, T::Type{GenDict})
+  subtype, params = load_node(s, :params) do obj
+    S, key_params = load_node(s, :key_params) do params
+      params isa String && return decode_type(s), nothing
+      load_type_params(s, decode_type(s))
+    end
+
+    _, value_params = load_node(s, :value_params) do _
+      load_type_params(s, decode_type(s))
+    end
+
+    return S, Dict(:key_params => key_params, :value_params => value_params)
+  end
+  return GenDict{subtype}, params
+end
+
+function load_object(s::DeserializerState, T::Type{GenDict{S}}, params::Dict) where S
+  return GenDict(load_object(s, Dict{S, MPolyRingElem}, params))
 end
 
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
