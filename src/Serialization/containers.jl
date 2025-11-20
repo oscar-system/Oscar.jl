@@ -1,6 +1,7 @@
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}} where T
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
+# handle Vector and Matrix instances, i.e. Array instances with 1 or 2 dimensions
 function type_params(obj::S) where {T, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
   
@@ -9,10 +10,9 @@ function type_params(obj::S) where {T, S <: MatVecType{T}}
   return TypeParams(S, params[1])
 end
 
+# handle Array instances with >= 3 dimensions
 function type_params(obj::S) where {N, T, S <: Array{T, N}}
-  if isempty(obj)
-    return TypeParams(S, :subtype_params => TypeParams(T, nothing), :dims => N)
-  end
+  isempty(obj) && return TypeParams(S, :subtype_params => TypeParams(T, nothing), :dims => N)
   
   params = type_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
@@ -23,6 +23,7 @@ has_empty_entries(obj) = false
 
 has_empty_entries(obj::ContainerTypes) = isempty(obj) || any(has_empty_entries, obj)
 
+# handle Vector and Matrix instances containing other containers
 function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
   isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
@@ -63,7 +64,7 @@ function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecTy
       end
        
       dims = load_object(s, Int, :dims)
-      subtype, params =  load_type_params(s, U, :subtype_params)
+      subtype, params = load_type_params(s, U, :subtype_params)
       return T{subtype, dims}, params
     else
       U = decode_type(s)
@@ -299,11 +300,11 @@ end
 function type_params(obj::T) where T <: NamedTuple
   return TypeParams(
     T, 
-    NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+    NamedTuple(x.first => type_params(x.second) for x in pairs(obj))
   )
 end
 
-# Named Tuples need to preserve order so they are handled seperate from Dict
+# Named Tuples need to preserve order so they are handled separate from Dict
 function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
   T = type(tp)
   save_data_dict(s) do
@@ -353,7 +354,7 @@ function type_params(obj::T) where {S <: Union{Symbol, Int, String},
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
-    map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
+    (x.first => type_params(x.second) for x in pairs(obj))...
   )
 end
 
@@ -374,7 +375,7 @@ function type_params(obj::T) where {U, S, T <: Dict{S, U}}
   return TypeParams(
     T, 
     :key_params => first(key_params),
-    :value_params => first(value_params)
+    :value_params => first(value_params),
   )
 end
 
@@ -564,9 +565,7 @@ end
 @register_serialization_type Set
 
 function type_params(obj::T) where {S, T <: Set{S}}
-  if isempty(obj)
-    return TypeParams(T, TypeParams(S, nothing))
-  end
+  isempty(obj) && return TypeParams(T, TypeParams(S, nothing))
   return TypeParams(T, type_params(first(obj)))
 end
 
