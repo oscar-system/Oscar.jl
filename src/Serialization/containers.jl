@@ -46,9 +46,9 @@ function save_type_params(s::SerializerState,
       for (k, v) in params(tp)
         if k == :dims
           save_object(s, v, k)
-          continue
+        else
+          save_type_params(s, v, k)
         end
-        save_type_params(s, v, k)
       end
     end
   end
