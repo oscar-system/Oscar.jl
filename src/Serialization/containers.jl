@@ -113,7 +113,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
       isempty(s.obj) && return params[]
       loaded_v = load_array_node(s) do _
         load_object(s, params)
-      end
+      end::Vector{params}
     end
     return loaded_v
   end
