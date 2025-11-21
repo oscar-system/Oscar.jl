@@ -94,6 +94,7 @@
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_spaces.md",
      "AbstractAlgebra/linear_solving.md",
+     "LinearAlgebra/eigen.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
      "Modules" => [
