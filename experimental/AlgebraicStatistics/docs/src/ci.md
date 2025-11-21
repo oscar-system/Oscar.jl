@@ -22,7 +22,7 @@ on the ambient ring ([`markov_ring`](@ref) or [`gaussian_ring`](@ref)).
 
 ```@docs
 ci_stmt
-CI_str
+@CI_str
 ci_statements
 ci_ideal
 make_elementary(stmt::CIStmt; semigaussoid=false)
