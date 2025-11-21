@@ -61,8 +61,9 @@ function oscar_worker_pool(f::Function, n::Int)
   catch e
     rethrow(e)
   finally
-    close!(wp)    
+    close!(wp)
   end
+  yield()
   return results
 end
 
@@ -108,7 +109,7 @@ function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
   end
 end
 
-close!(wp::OscarWorkerPool) = map(rmprocs, workers(wp))
+close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
 
 # extend functionality so that `pmap` works with Oscar stuff
 

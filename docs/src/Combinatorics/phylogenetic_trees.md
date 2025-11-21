@@ -28,5 +28,6 @@ is_equidistant
 cophenetic_matrix
 taxa
 newick
-leaves
+leaves(pt::PhylogeneticTree)
+n_leaves(pt::PhylogeneticTree)
 ```

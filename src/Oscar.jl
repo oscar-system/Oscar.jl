@@ -183,6 +183,12 @@ function __init__()
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
   end
+
+  # call git subprocess here to avoid conflicts with
+  # IPC communication serialization
+  if Oscar.is_dev
+    Serialization.get_oscar_serialization_version()
+  end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
