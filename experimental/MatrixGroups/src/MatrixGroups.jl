@@ -50,7 +50,12 @@ GAP: <group with 2 generators>
 """
 function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
      # Compute the reduction map to a matrix group over a finite field `F`.
-     G, G_to_fin_pres, F, OtoFq = Oscar._isomorphic_group_over_finite_field(matrices, check = check)
+     flag, res = Oscar._isomorphic_group_over_finite_field(matrices, check = check)
+
+     if !flag
+       error("Group is not finite")
+     end
+     G, _, F, OtoFq = res
 
      # Map the generating matrices over `F` to GAP matrices, create a GAP group.
      matrices_Fq = [matrix(x) for x in gens(G)]  # Oscar matrices over F

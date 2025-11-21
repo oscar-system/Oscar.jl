@@ -102,6 +102,15 @@ matrix_group(V::Union{MatElem,MatrixGroupElem}...; check::Bool=true) = matrix_gr
 matrix_group(m::Int, R::Ring) = matrix_group(R, m)
 matrix_group(m::Int, R::Ring, V; check::Bool = true) = matrix_group(R, m, V, check = check)
 
+# the natural place to set additional information in the `GapObj`
+# of a matrix group for which `_isomorphic_group_over_finite_field` works
+function Base.setproperty!(G::MatrixGroup{T, S}, X::Symbol, GapG::GapObj) where {T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem, QQAbFieldElem}, S}
+  setfield!(G, X, GapG)
+  X === :X || return
+  # set the flag and the info in GapG
+  GAP.Globals.SetJuliaData(GapG, G)
+  GAP.Globals.SetFilterObj(GapG, GAP.Globals.MayBeHandledByNiceMonomorphism)
+end
 
 # `MatrixGroup`: compare types, dimensions, and coefficient rings
 function check_parent(G::T, g::GAPGroupElem) where T <: MatrixGroup
@@ -721,6 +730,20 @@ function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    end::ZZRingElem
    return T(res)::T
 end
+
+# Use the reduction to a finite field as a finiteness test.
+function is_finite(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
+  try
+    compute_order(G)
+  catch e
+    if e isa InfiniteOrderError
+      return false
+    end
+    rethrow()
+  end
+  return true
+end
+
 
 """
     map_entries(f, G::MatrixGroup)
