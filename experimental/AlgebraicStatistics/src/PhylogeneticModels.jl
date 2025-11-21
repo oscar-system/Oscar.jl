@@ -1609,7 +1609,7 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
   Hinv = 1//n_states(PM) * H
 
-  M = zeros(Rq, np, nq)
+  M = zeros(base_ring(Rq), np, nq)
   for (i, p_index) in enumerate(sort(collect(keys(rp)); rev=true))
     current_prob_class = p_classes[p_index]
     for (j, q_index) in enumerate(sort(collect(keys(rq)); rev=true))

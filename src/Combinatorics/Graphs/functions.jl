@@ -2110,7 +2110,7 @@ Return the indices of the leaves of the a `Directed{Graph}`.
 
 # Examples
 ```jldoctest
-julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]])
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]]);
 
 julia> leaves(G)
 3-element Vector{Int64}:
@@ -2128,7 +2128,7 @@ Return the indices of the number of leaves of the a `Directed{Graph}`.
 
 # Examples
 ```jldoctest
-julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]])
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]]);
 
 julia> n_leaves(G)
 3
