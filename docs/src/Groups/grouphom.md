@@ -6,118 +6,73 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Group homomorphisms
 
-In OSCAR, a group homomorphism from `G` to `H` is an object of parametric type `GAPGroupHomomorphism{S,T}`, where `S` and `T` are the types of `G` and `H` respectively.
+A *group homomorphism* from a group $G$ to a group $H$ is a map $f$ with
+domain $G$ and codomain $H$ that respects the group structure,
+that is, $(g*h)^f = g^f * h^f$ and $(g^{-1})^f = (g^f)^{-1}$ hold for
+all $g, h \in G$.
 
-A homomorphism from `G` to `H` can be defined in two ways.
+## Creation of group homomorphisms
 
-* Writing explicitly the images of the generators of `G`:
-```julia
-f = hom(G,H,[x1,x2,...],[y1,y2,...])
-```
-Here, `[x1,x2,...]` must be a generating set for `G` (not necessarily minimal) and `[y1,y2,...]` is a vector of elements of `H` of the same length of `[x1,x2,...]`. This assigns to `f` the value of the group homomorphism sending `x_i` into `y_i`.
+A homomorphism from $G$ to $H$ can be defined
+by prescribing the images of some generators of $G$
+(see [`hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)`](@ref)
+or by prescribing a Julia function that maps the elements as required
+(see [`hom(G::GAPGroup, H::GAPGroup, img::Function)`](@ref).
 
-An exception is thrown if such a homomorphism does not exist.
+For homomorphisms to permutation groups that are defined by the action
+of $G$ on a set, see [`action_homomorphism`](@ref).
 
-* Taking an existing function `g` satisfying the group homomorphism properties:
-```julia
-f = hom(G,H,g)
-```
-An exception is thrown if the function `g` does not define a group homomorphism.
+For the special cases of an identity mapping between groups
+or the mapping whose image is a trivial group,
+use [`id_hom(G::GAPGroup)`](@ref)
+and [`trivial_morphism(G::GAPGroup, H::GAPGroup = G)`](@ref),
+respectively.
 
-  **Example:**
-The following procedures define the same homomorphism (conjugation by `x`) in the two ways explained above.
-```jldoctest
-julia> S = symmetric_group(4)
-Symmetric group of degree 4
-
-julia> x = S[1]
-(1,2,3,4)
-
-julia> f = hom(S, S, [S[1]^x, S[2]^x])
-Group homomorphism
-  from symmetric group of degree 4
-  to symmetric group of degree 4
-
-julia> g = hom(S, S, y -> y^x)
-Group homomorphism
-  from symmetric group of degree 4
-  to symmetric group of degree 4
-
-julia> f == g
-true
-```
+The restriction of a homomorphism to a subgroup of its domain is given by
+[`restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)`](@ref),
 
 ```@docs
 hom(G::GAPGroup, H::GAPGroup, img::Function)
 hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
-image(f::GAPGroupHomomorphism, x::GAPGroupElem)
-preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+id_hom(G::GAPGroup)
+trivial_morphism(G::GAPGroup, H::GAPGroup = G)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
-OSCAR has also the following standard homomorphism.
+## Applying group homomorphisms
+
+Group homomorphisms can be used to compute images and preimages of
+elements and subgroups.
+
+For a group homomorphism `f` and a group element `x`,
+the image of `x` under `f` can be computed as
+[`image(f::GAPGroupHomomorphism, x::GAPGroupElem)`](@ref)
+or `f(x)` or `x^f`,
+and the preimage of an element `y` in the image can be computed as
+[`preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)`](@ref).
+
 ```@docs
-id_hom(G::GAPGroup)
-trivial_morphism(G::GAPGroup, H::GAPGroup = G)
-```
-
-To evaluate the homomorphism `f` in the element `x` of `G`, it is possible to use the instruction
-```julia
-image(f,x)
-```
-or the more compact notations `f(x)` and `x^f`.
-
-  **Example:**
-```jldoctest
-julia> S = symmetric_group(4)
-Symmetric group of degree 4
-
-julia> f = hom(S, S, x->x^S[1])
-Group homomorphism
-  from symmetric group of degree 4
-  to symmetric group of degree 4
-
-julia> x = cperm(S, [1,2])
-(1,2)
-
-julia> image(f, x)
-(2,3)
-
-julia> f(x)
-(2,3)
-
-julia> x^f
-(2,3)
-```
-
-A sort of "inverse" of the evaluation is the following
-```@docs
+image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+preimage(f::Union{GAPGroupHomomorphism, GAPGroupEmbedding}, x::GAPGroupElem)
 has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
-```
-  **Example:**
-```jldoctest
-julia> S=symmetric_group(4);
-
-julia> f=hom(S,S,x->x^S[1]);
-
-julia> x=cperm(S,[1,2]);
-
-julia> has_preimage_with_preimage(f,x)
-(true, (1,4))
 ```
 
 ## Operations on homomorphisms
 
 OSCAR supports the following operations on homomorphisms.
 
-* `inv(f)` = the inverse of `f`.
+* `inv(f)` is the inverse of `f`.
   An exception is thrown if `f` is not bijective.
-* `f^n` = the homomorphism `f` composed `n` times with itself.
+* `f^n` is the homomorphism `f` composed `n` times with itself.
   An exception is thrown if the domain and the codomain of `f` do not coincide
-  (unless `n=1`). If `n` is negative, the result is the inverse of `f` composed `n` times with itself.
-* `compose(f, g)` = composition of `f` and `g`. This works only if the codomain of `f` coincides with the domain of `g`. Shorter equivalent expressions are `f*g` and `g(f)`.
+  (unless `n=1`).
+  If `n` is negative, the result is the inverse of `f` composed `n` times
+  with itself.
+* `compose(f, g)` is the composition of `f` and `g`.
+  This works only if the codomain of `f` coincides with the domain of `g`.
+  A shorter equivalent expressions is `f*g`.
 
-  **Example:**
+### Examples
 ```jldoctest
 julia> S = symmetric_group(4)
 Symmetric group of degree 4
@@ -188,4 +143,11 @@ isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```@docs
 isomorphism(::Type{T}, G::Group) where T <: Group
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
+```
+
+## Technicalities
+
+```@docs
+GAPGroupHomomorphism
+GAPGroupEmbedding
 ```

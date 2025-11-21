@@ -500,10 +500,18 @@ abstract type GroupConjClass{T,S} <: GSet{T,S} end
 #
 #  Group Homomorphism
 #
+#  We support the following types of homomorphism objects.
+#
 ################################################################################
 
 abstract type GAPMap <: SetMap end
 
+"""
+    GAPGroupHomomorphism{S<:GAPGroup, T<:GAPGroup}
+
+An object of the type `GAPGroupHomomorphism` stores a homomorphism object
+as its `GapObj` value, and delegates all computations to it.
+"""
 struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupHomomorphism{S,T}}
    domain::S
    codomain::T
@@ -514,7 +522,38 @@ struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGro
    end
 end
 
+"""
+    GAPGroupEmbedding{S<:GAPGroup, T<:GAPGroup}
+
+An object `emb` of the type `GAPGroupEmbedding` knows that
+the corresponding map on the GAP side is the identity map
+on the GAP object corresponding to `domain(emb)`.
+
+A corresponding homomorphism `GapObj(emb)` on the GAP side
+is created only on demand, in many situations this is not needed.
+
+Many natural embeddings between `GapGroup` objects are realized as
+`GAPGroupEmbedding` objects.
+"""
+struct GAPGroupEmbedding{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupEmbedding{S,T}}
+   domain::S
+   codomain::T
+   map::Ref{GapObj} # may be missing
+
+   function GAPGroupEmbedding(G::S, H::T) where {S<: GAPGroup, T<: GAPGroup}
+     return new{S, T}(G, H, Ref{GapObj}())
+   end
+end
+
 GapObj(f::GAPGroupHomomorphism) = f.map
+
+function GapObj(f::GAPGroupEmbedding)
+  isassigned(f.map) && return f.map[]::GapObj
+  mp = GAPWrap.GroupHomomorphismByFunction(GapObj(f.domain), GapObj(f.codomain),
+           GAP.Globals.IdFunc, false, GAP.Globals.IdFunc)
+  f.map[] = mp
+  return mp
+end
 
 
 """

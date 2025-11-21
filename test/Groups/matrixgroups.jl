@@ -671,6 +671,24 @@ end
    @test length(@inferred maximal_subgroup_classes(G))==3
 end
 
+@testset "centralizers in matrix groups" begin
+   # Oscar computes the centralizer and its order
+   G = GL(6, 2)
+   x = gen(G, 1)
+   C, emb = centralizer(G, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test order(C) == 10321920
+   @test !isdefined(C, :X)
+
+   # GAP computes the centralizer
+   U, _ = sylow_subgroup(GL(4, 2), 2)
+   x = gen(U, 1)
+   C, emb = centralizer(U, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test isdefined(C, :X)
+   @test order(C) == 16
+end
+
 @testset "Jordan structure" begin
    F = GF(3, 1)
    R,t = polynomial_ring(F,:t)
