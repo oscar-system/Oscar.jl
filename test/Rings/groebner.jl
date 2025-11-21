@@ -21,7 +21,7 @@
     # uses multi-modular implementation in Oscar applying Singular finite field
     # computations
     groebner_basis(I, ordering=lex(R), algorithm=:modular)
-    @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3 + 1, x + y^2]
+    @test gens(I.gb[lex(R)]) == QQMPolyRingElem[x + y^2, y^3 + 1]
     T = @polynomial_ring(QQ, :t)
     R = @polynomial_ring(T, [:x, :y])
     I = ideal(R, [x^2+y,y*x-1])
@@ -298,10 +298,10 @@ end
   @test all(iszero, Oscar.reduce(groebner_basis(I), gb))
   @test all(iszero, Oscar.reduce(gb, groebner_basis(I)))
   gb = Oscar.groebner_basis_modular(I, ordering = lex(R))
-  @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3, x*y + 32771*y^2, x^2]
+  @test gens(I.gb[lex(R)]) == QQMPolyRingElem[x^2, x*y + 32771*y^2, y^3]
   J = ideal(R, [x+y^2, x*y+y^3])
-  J.gb[degrevlex(R)] = Oscar.IdealGens(R, [x^3])
-  @test Oscar._certify_modular_groebner_basis(J, degrevlex(R)) == false
+  J.gb[degrevlex(R)] = Oscar.IdealGens(R, [x^3], degrevlex(R))
+  @test Oscar._certify_modular_groebner_basis(J, J.gb[degrevlex(R)]) == false
   groebner_basis_modular(J, ordering=wdegrevlex(R,[2,1]), certify=true)
   @test gens(J.gb[wdegrevlex([x, y], [2, 1])]) == QQMPolyRingElem[x+y^2]
 end
