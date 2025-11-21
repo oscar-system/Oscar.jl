@@ -61,7 +61,7 @@ label!
 degree(g::Graph, v::Int)
 indegree(g::Graph{Directed}, v::Int)
 outdegree(g::Graph{Directed}, v::Int)
-leaves
+leaves(g::Graph{Directed})
 ```
 
 ### Connectivity
