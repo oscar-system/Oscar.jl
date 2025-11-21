@@ -205,7 +205,7 @@ julia> S = symmetric_group(4);
 
 julia> x = S[1];
 
-julia> f = hom(S, S, [y^x for y in gens(S)]
+julia> f = hom(S, S, [y^x for y in gens(S)])
 Group homomorphism
   from symmetric group of degree 4
   to symmetric group of degree 4
