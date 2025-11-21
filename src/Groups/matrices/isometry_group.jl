@@ -242,6 +242,9 @@ function _isometry_group_via_decomposition(
     SL = lattice_in_same_ambient_space(L, B)
     _sv = Hecke._short_vector_generators(SL)
     _set_nice_monomorphism!(O1timesO2, _sv) # results in a vast speedup
+    #@show order(O1timesO2)
+    #@show SL 
+    #@show L
     @vtime :Isometry 3 (_S,_) = _overlattice_stabilizer(O1timesO2, SL, L)
     BBs = solve_init(BB)
     # transform _S to the basis of L 
@@ -266,7 +269,7 @@ function _isometry_group_via_decomposition(
   @hassert :Isometry 2 is_isometry_group(L, S, false)
   return S, sv
 end
-
+    
 function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
   return lattice(V, basis_matrix(L) * matrix(g); check=false)
@@ -351,7 +354,29 @@ function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:U
   n = length(_short_vectors)
   Sn = symmetric_group(n)
   act_func(g) = perm(Sn, _as_perm(w, matrix(g), _short_vectors))
-  return hom(G, Sn, act_func)
+  # construct the inverse of act_func
+  basis_indices = Int[1]
+  b = first(_short_vectors)
+  r = 1
+  # find a QQ-basis
+  for (i,v) in enumerate(_short_vectors)
+    btmp = vcat(b,v)
+    if rank(btmp) > r
+      push!(basis_indices,i)
+      b = btmp 
+      r = r+1
+    end
+    if r == degree(G) 
+      break 
+    end 
+  end
+  b_solve = solve_init(b)
+  function act_func_inv(p::PermGroupElem)
+    imgs = reduce(vcat,_short_vectors[p(i)] for i in basis_indices)
+    f = solve(b_solve,imgs;side=:right)
+    return G(f)
+  end
+  return hom(G, Sn, act_func, act_func_inv) # results in difficult gap bugs
 end 
 
 # stabilizer of L in G < O(L)
