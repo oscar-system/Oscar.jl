@@ -120,7 +120,7 @@ n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
 
 Return the underlying `Graph{Directed}` of the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -136,7 +136,7 @@ graph(N::PhylogeneticNetwork) = N.graph
 
 Return the dictionary mapping hybrid vertex IDs to their incoming hybrid edges.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -151,7 +151,7 @@ hybrids(N::PhylogeneticNetwork) = N.hybrids
 
 Return a list of the hybrid vertices in the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -167,7 +167,7 @@ hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
 
 Return a list of all hybrid edges in the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -183,7 +183,7 @@ hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
 
 Return the total number of edges in the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -198,7 +198,7 @@ n_edges(N::PhylogeneticNetwork) = n_edges(graph(N))
 
 Return the number of leaves in the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -213,7 +213,7 @@ n_leaves(N::PhylogeneticNetwork) = n_leaves(graph(N))
 
 Return the leaf nodes of the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -231,7 +231,7 @@ leaves(N::PhylogeneticNetwork) = leaves(graph(N))
 
 Return an iterator over the edges of the phylogenetic network.
 
-# Example
+# Examples
 ```jldoctest
 julia> N = phylogenetic_network(graph_from_edges(Directed,[[5,6], [5,4], [6,4], [5,2], [6,3], [4,1]]));
 
@@ -396,7 +396,7 @@ If `root_distribution` is not provided, a uniform distribution is assumed. If `F
 
 If `trans_matrix_structure` is a `Matrix{<: MPolyRing{<:MPolyRingElem}}` and `root_distribution` is a `Vector{<: MPolyRing}`, then the constructor ensures the rings of the root distribution parameters and the transition matrices are compatible.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -526,7 +526,7 @@ Construct a `GroupBasedPhylogeneticModel` from a field `F`, a graph `G` (of type
 If the `group` is not provided, a default is used based on the number of states: the group $Z_2$ for 2-state models, and the Klein four-group ($Z_2 \times Z_2$) for 4-state models. For other numbers of states, a group must be specified.
 If the `root_distribution` is not provided, a uniform distribution is assumed. If `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -577,7 +577,7 @@ _label_type(::PhylogeneticModel{GT, L, M, R}) where {GT, L, M, R} = L
 
 Return the underlying `PhylogeneticModel`.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -601,7 +601,7 @@ phylogenetic_model(PM::GroupBasedPhylogeneticModel) = PM.phylo_model
 
 Return the number of states of the underlying phylogenetic model.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -623,7 +623,7 @@ n_states(PM::GroupBasedPhylogeneticModel) = n_states(phylogenetic_model(PM))
 
 Return the structure of the transition matrices of the underlying phylogenetic model.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -650,7 +650,7 @@ transition_matrix(PM::GroupBasedPhylogeneticModel) = transition_matrix(phylogene
 
 Return the root distribution vector of the underlying phylogenetic model.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -700,7 +700,7 @@ base_field(PM::GroupBasedPhylogeneticModel) = base_field(phylogenetic_model(PM))
 
 Return the symbolic name for the probability coordinates if `PM` is a `PhylogeneticModel` and for the Fourier corrdinates if `PM` is a `GroupBasedPhylogeneticModel`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -727,7 +727,7 @@ varnames_fourier(PM::GroupBasedPhylogeneticModel) = varnames(PM)
 
 Return the graph of the underlying phylogenetic model.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -744,7 +744,7 @@ graph(PM::GroupBasedPhylogeneticModel) = graph(phylogenetic_model(PM))
 
 Return the finite abelian group associated with the model.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -765,7 +765,7 @@ group(PM::GroupBasedPhylogeneticModel) = PM.group
 
 Return the symbolic structure of the Fourier parameters.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1219,7 +1219,7 @@ Creates the full model ring in _probability coordinates_ for a `PhylogeneticMode
 
 The output consist on a tuple containing a `IndexedRing` and a `Dict` mapping a tuple of states at the leaves to the corresponding coordinate in the ring. This ring has a generator for every possible state configuration at the leaves.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1344,7 +1344,7 @@ Calculates the equivalence classes of the model's parametrizations. Equivalent p
 are those that are identical under the chosen parametrization. This is a crucial step for
 dimension reduction in the model's algebraic variety.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1389,7 +1389,7 @@ end
 Creates a reduced model ring based on the equivalence classes of the parametrizations.
 This ring has a generator for each unique polynomial (i.e., each equivalence class).
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1437,7 +1437,7 @@ end
 
 Constructs an affine parametrization (reduced or full) of the model by imposing the transition matrices rows sum to one and the root distribution sums to one.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1492,7 +1492,7 @@ end
 Constructs an affine parametrization of the group-based model by setting the first
 Fourier parameters to 1.
 
-# Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1609,7 +1609,7 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
   Hinv = 1//n_states(PM) * H
 
-  M = Rq.(Int.(zeros(np, nq)))
+  M = zeros(Rq, np, nq)
   for (i, p_index) in enumerate(sort(collect(keys(rp)); rev=true))
     current_prob_class = p_classes[p_index]
     for (j, q_index) in enumerate(sort(collect(keys(rq)); rev=true))
@@ -1651,7 +1651,7 @@ Constructs a `GroupBasedPhylogeneticModel` corresponding to the Cavender-Farris-
 a 2-state model with a single transition probability per edge. 
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+# Examples
 ```jldoctest
 julia> cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
 Group-based phylogenetic model on a tree with 3 leaves and 3 edges
@@ -1683,7 +1683,7 @@ Constructs a `GroupBasedPhylogeneticModel` corresponding to the Jukes-Cantor mod
 a 4-state model where all non-diagonal transition probabilities are equal.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1717,7 +1717,7 @@ Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 2-paramet
 a 4-state model with two non-diagonal transition probabilities.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1752,7 +1752,7 @@ Constructs a `GroupBasedPhylogeneticModel` corresponding to the Kimura 3-paramet
 a 4-state model with three non-diagonal different transition probabilities.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1787,7 +1787,7 @@ Constructs a `PhylogeneticModel` corresponding to a general Markov model with fo
 All transition matrix entries and root distribution entries are treated as independent parameters.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 
@@ -1822,7 +1822,7 @@ Constructs a `PhylogeneticModel` corresponding to a general time reversible mode
 All transition matrix entries and root distribution entries are treated as independent parameters.
 If the field `F` is not provided, the model is constructed over the default rational field (`QQ`).
 
-Example
+# Examples
 ```jldoctest
 julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]));
 

@@ -17,7 +17,7 @@ function roots(graph::Graph)
   return findall(iszero, n_parents)
 end
 
-root(graph::Graph) = roots(graph)[1]
+root(graph::Graph) = only(roots(graph))
 
 
 function sort_edges(graph::Graph, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
