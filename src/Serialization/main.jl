@@ -49,7 +49,7 @@ end
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
-    obj = JSON3.read(io)
+    obj = JSON.parse(io; dicttype=Dict{Symbol, Any}) # TODO: check if JSON.Object works here
     println(JSON.json(obj[:meta], 2))
   end
 end
@@ -378,7 +378,7 @@ function load_type_params(s::DeserializerState, T::Type)
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+      if obj isa Vector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
@@ -392,7 +392,7 @@ function load_type_params(s::DeserializerState, T::Type)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
           params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+            if obj isa Vector
               return load_type_array_params(s)
             end
             
@@ -644,8 +644,8 @@ julia> save("fourtitwo.mrdi", 42; metadata=meta);
 julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
-  "name": "42",
-  "description": "The meaning of life, the universe and everything"
+  "description": "The meaning of life, the universe and everything",
+  "name": "42"
 }
 
 julia> load("fourtitwo.mrdi")
