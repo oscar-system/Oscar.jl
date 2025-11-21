@@ -2626,7 +2626,7 @@ _roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
 
 @doc raw"""
     oscar_genus_representatives(
-      G::ZZGenus,
+      G::Union{ZZGenus,Vector{ZZLat}},
       algorithm::Symbol = :default;
       rand_neigh::Int = 10,
       invariant_function::Function=Hecke.default_invariant_function,
@@ -2675,7 +2675,11 @@ There are possible extra optional arguments:
     stops after the specified amount of vain iterations without finding a new
     isometry class is reached;
   * `max_lat::IntExt` (default = `inf`) -> the algorithm stops after finding
-    `max` isometry classes.
+    `max` isometry classes
+  * `_local::Bool` (default= `false`);
+  * `distinct::Bool` (default= `false`) if set to true, believe blindly that all elements 
+    of `G::Vector{ZZLat}` are pairwise non-isometric;
+  * `add_spinor_generators::Bool` add spinor generators to the given list of known lattices.
 
 !!! warning
     The algorithm uses the mass by default, in order to use the codes of
@@ -2709,7 +2713,7 @@ The `default_invariant_function` currently computes:
       case, the enumeration is skipped.
 """
 function oscar_genus_representatives(
-  G::ZZGenus,
+  known::Vector{ZZLat},
   algorithm::Symbol = :default;
   rand_neigh::Int=10,
   invariant_function::Function=Hecke.default_invariant_function,
@@ -2720,8 +2724,11 @@ function oscar_genus_representatives(
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
   root_test::Bool=false,
   info_depth::Int=1,
-  _local::Bool=false
+  _local::Bool=false,
+  distinct::Bool=false,
+  add_spinor_generators::Bool=true,
 )
+  G = genus(known[1])
   if _local
     return [representative(G)]
   end
@@ -2756,11 +2763,11 @@ function oscar_genus_representatives(
   # where after `stop_after` vain iterations we do not find any new isometry
   # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
-  l = enumerate_definite_genus(G, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat)
+  l, mm = enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
   length(l) == max_lat && return l
 
   # Part of the mass of G which is missing
-  mm = mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
+  @assert mm == mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
 
   # If `mm` is nonzero, we are missing some isometry classes
   if !iszero(mm)
@@ -2876,6 +2883,8 @@ function oscar_genus_representatives(
   end
   return l
 end
+    
+oscar_genus_representatives(G::ZZGenus, algorithm::Symbol=:default;kwargs...) = oscar_genus_representatives([representative(G)], algorithm; kwargs...)
 
 ###############################################################################
 #
