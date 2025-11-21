@@ -49,7 +49,7 @@ function ci_stmt(I::Vector{Int}, J::Vector{Int}, K::Vector{Int}; symmetric=true,
     I = setdiff(I, K)
     J = setdiff(J, K)
   end
-  CIStmt(sort(I), sort(J), sort(unique(K)))
+  CIStmt(I, J, sort(unique(K)))
 end
 
 ci_stmt(i::Int, j::Int, K::Vector{Int}; symmetric=true, disjoint=true) =

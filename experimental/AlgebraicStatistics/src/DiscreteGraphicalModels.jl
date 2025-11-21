@@ -257,7 +257,7 @@ q[1](1)
 end
 
 @doc raw"""
-  parameterization(M::DiscreteGraphicalModel{Graph{Directed}})
+    parameterization(M::DiscreteGraphicalModel{Graph{Directed}})
 
 Creates the polynomial map which parameterizes the vanishing ideal of the directed discrete graphical model `M`.
 Every probability coordinate in the `model_ring` is expressed as the product of conditional densities of each
