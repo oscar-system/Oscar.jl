@@ -2101,3 +2101,55 @@ function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_l
   end
   return og
 end
+
+
+@doc raw"""
+    leaves(G::Graph{Directed})
+
+Return the indices of the leaves of the a `Directed{Graph}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]])
+
+julia> leaves(ptree)
+3-element Vector{Int64}:
+ 2
+ 3
+ 4
+```
+"""
+leaves(graph::Graph{Directed}) = findall(iszero, outdegree(graph))
+
+@doc raw"""
+    n_leaves(G::Graph{Directed})
+
+Return the indices of the number of leaves of the a `Directed{Graph}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]])
+
+julia> n_leaves(ptree)
+3
+```
+"""
+n_leaves(graph::Graph{Directed}) = length(leaves(graph))
+
+# these have not been exported yet
+
+function roots(graph::Graph{Directed})
+  n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
+  return findall(iszero, n_parents)
+end
+
+root(graph::Graph{Directed}) = only(roots(graph))
+
+interior_nodes(graph::Graph{Directed}) = findall(>=(1), outdegree(graph))
+function biconnected_components(g::Graph{Undirected})
+  im = Polymake.call_function(:graph, :biconnected_components, pm_object(g))::IncidenceMatrix
+  return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+_is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
+

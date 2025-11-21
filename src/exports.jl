@@ -1346,6 +1346,7 @@ export number_of_factors
 export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
+export number_of_leaves
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_multipartitions
 export number_of_partitions

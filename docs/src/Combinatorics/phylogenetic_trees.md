@@ -29,4 +29,5 @@ cophenetic_matrix
 taxa
 newick
 leaves
+n_leaves
 ```

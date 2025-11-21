@@ -18,6 +18,7 @@ function is_equidistant end
 function vertex_edge_graph end
 
 function number_of_compositions end
+function number_of_leaves end
 function number_of_partitions end
 function number_of_patches end
 function number_of_positive_roots end
@@ -47,6 +48,7 @@ function primitive_generator end
 @alias number_of_vertices n_vertices
 
 @alias n_compositions number_of_compositions
+@alias n_leaves number_of_leaves
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
 @alias n_positive_roots number_of_positive_roots

@@ -22,9 +22,7 @@ on the ambient ring ([`markov_ring`](@ref) or [`gaussian_ring`](@ref)).
 
 ```@docs
 ci_stmt
-@CI_str
-Base.:(==)(lhs::CIStmt, rhs::CIStmt)
-Base.hash(stmt::CIStmt, h::UInt)
+CI_str
 ci_statements
 ci_ideal
 make_elementary(stmt::CIStmt; semigaussoid=false)

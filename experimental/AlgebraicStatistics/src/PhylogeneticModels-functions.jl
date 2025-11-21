@@ -4,21 +4,6 @@
 #
 ###################################################################################
 
-interior_nodes(graph::Graph) = findall(>=(1), outdegree(graph))
-
-leaves(graph::Graph) = findall(iszero, outdegree(graph))
-n_leaves(graph::Graph) = length(leaves(graph))
-n_leaves(pt::PhylogeneticTree) = n_leaves(adjacency_tree(pt))
-root(pt::PhylogeneticTree) = _root(adjacency_tree(pt))
-
-
-function roots(graph::Graph)
-  n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
-  return findall(iszero, n_parents)
-end
-
-root(graph::Graph) = only(roots(graph))
-
 
 function sort_edges(graph::Graph, sorted_edges::Union{Vector{Edge}, Nothing} = nothing)
   if !isnothing(sorted_edges) 
@@ -37,11 +22,6 @@ sort_edges(N::PhylogeneticNetwork{M,L}, sorted_edges::Union{Vector{Edge}, Nothin
 sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) = sort_edges(adjacency_tree(pt), sorted_edges)
 
 descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
-
-function biconnected_components(g::Graph{Undirected})
-    im = Polymake.call_function(:graph, :biconnected_components, pm_object(g))::IncidenceMatrix
-    return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
-end
 
 ###################################################################################
 #

@@ -55,24 +55,14 @@ end
 ci_stmt(i::Int, j::Int, K::Vector{Int}; symmetric=true, disjoint=true) =
   ci_stmt([i], [j], K; symmetric=symmetric, disjoint=disjoint)
 
-@doc raw"""
-    Base.:(==)(lhs::CIStmt, rhs::CIStmt)
-
-Compares `CIStmt`s for identity in all their three fields.
-"""
 Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
   lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
 
-@doc raw"""
-    Base.hash(stmt::CIStmt, h::UInt)
-
-Compute the hash of a `CIStmt`.
-"""
 Base.hash(stmt::CIStmt, h::UInt) =
   foldr(hash, [stmt.I, stmt.J, stmt.K]; init=hash(CIStmt, h))
 
 @doc raw"""
-    @CI_str
+     CI"I...,J...|K..."
 
 A literal syntax for denoting CI statements is provided for cases in which
 all variables consist of a single digit. If `I` and `J` only consist of a
@@ -82,10 +72,10 @@ are extracted, `ci_stmt` is called with default values for its options.
 ## Examples
 
 ```jldoctest
-julia> @CI_str "12|3"
+julia> CI"12|3"
 [1 _||_ 2 | 3]
 
-julia> @CI_str "1,23|5424"
+julia> CI"1,23|5424"
 [1 _||_ 3 | {2, 4, 5}]
 ```
 """

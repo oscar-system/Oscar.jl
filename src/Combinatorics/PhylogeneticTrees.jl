@@ -1,8 +1,3 @@
-_is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
-function _root(g::Graph{Directed})
-  findfirst(isempty, Base.Fix1(inneighbors, g).(1:n_vertices(g)))
-end
-
 struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}} <: AbstractGraph{Directed}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
   vertex_perm::Vector{Int}
@@ -172,7 +167,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}},
                            g::Graph{Directed};
                            check=true)
   @req !check || _is_tree(g) "Input must be a tree"
-  r = _root(g)
+  r = root(g)
   p = collect(1:n_vertices(g))
   # root needs to be labeled by 1, se we just transpose 2 vertices
   # for the underlying polymake graph
@@ -283,6 +278,9 @@ function adjacency_tree(ptree::PhylogeneticTree{T}; add_labels=true) where T
                          v => pm_object(ptree).LABELS[vertex_perm(ptree)[v]] for v in 1:n ); name=:leaves)
   return dir_tree
 end
+
+# not exported yet
+root(pt::PhylogeneticTree) = root(adjacency_tree(pt))
 
 function Base.show(io::IO, m::MIME"text/plain", ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
@@ -494,3 +492,19 @@ n_edges(pt::PhylogeneticTree) = n_edges(adjacency_tree(pt))
 is_isomorphic(pt::PhylogeneticTree, g::Graph) = is_isomorphic(adjacency_tree(pt), g)
 is_isomorphic(g::Graph, pt::PhylogeneticTree) = is_isomorphic(pt, g)
 is_isomorphic(pt1::PhylogeneticTree, pt2::PhylogeneticTree) = is_isomorphic(adjacency_tree(pt1), adjacency_tree(pt2))
+
+@doc raw"""
+    n_leaves(tree::PhylogeneticTree)
+
+Return the indices of the leaves of the `PhylogeneticTree`.
+
+# Examples
+```jldoctest
+julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
+
+julia> n_leaves(ptree)
+4
+```
+"""
+n_leaves(pt::PhylogeneticTree) = n_leaves(adjacency_tree(pt))
+
