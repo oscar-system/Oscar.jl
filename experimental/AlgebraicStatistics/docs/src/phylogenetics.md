@@ -376,7 +376,7 @@ defined by
 julia> components = components_of_kernel(3, phi);
 
 julia> length(components)
-9
+1
 
 julia> coordinate_change(PM)
 Ring homomorphism
