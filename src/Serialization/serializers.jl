@@ -76,7 +76,17 @@ function begin_node(s::SerializerState)
   end
 end
 
-function begin_dict_node(s::SerializerState)
+function set_key(s::SerializerState, key::Symbol)
+  @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
+  s.key = key
+end
+
+## operations for an in-order tree traversals
+## all nodes (dicts or arrays) contain all child nodes
+
+function save_data_dict(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   begin_node(s)
   if s.pretty_print
     println(s.io, "{")
@@ -84,9 +94,8 @@ function begin_dict_node(s::SerializerState)
   else
     write(s.io, "{")
   end
-end
-
-function end_dict_node(s::SerializerState)
+  s.new_level_entry = true
+  f()
   if s.pretty_print
     println(s.io, "")
     print(s.io, Dedent(), "}")
@@ -100,7 +109,9 @@ function end_dict_node(s::SerializerState)
   end
 end
 
-function begin_array_node(s::SerializerState)
+function save_data_array(f::Function, s::SerializerState,
+                         key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   begin_node(s)
   if s.pretty_print
     println(s.io, "[")
@@ -108,9 +119,8 @@ function begin_array_node(s::SerializerState)
   else
     write(s.io, "[")
   end
-end
-
-function end_array_node(s::SerializerState)
+  s.new_level_entry = true
+  f()
   if s.pretty_print
     println(s.io, "")
     print(s.io, Dedent(), "]")
@@ -121,44 +131,6 @@ function end_array_node(s::SerializerState)
   if s.new_level_entry
     # makes sure that entries after empty arrays add comma
     s.new_level_entry = false
-  end
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
-end
-
-function set_key(s::SerializerState, key::Symbol)
-  @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
-  s.key = key
-end
-
-## operations for an in-order tree traversals
-## all nodes (dicts or arrays) contain all child nodes
-
-function save_data_dict(f::Function, s::SerializerState,
-                        key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_dict(s) do
-    s.new_level_entry = true
-    f()
-  end
-end
-
-function save_data_array(f::Function, s::SerializerState,
-                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_array(s) do
-    s.new_level_entry = true
-    f()
   end
 end
 
