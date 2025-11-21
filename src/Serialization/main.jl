@@ -127,15 +127,15 @@ end
 
 function decode_type(s::DeserializerState)
   if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      id = s.obj
-      obj = s.obj
+    uuid = tryparse(UUID, s.obj)
+    if !isnothing(uuid)
       if isnothing(s.refs)
-        return typeof(global_serializer_state.id_to_obj[UUID(id)])
+        return typeof(global_serializer_state.id_to_obj[uuid])
       end
+      id = s.obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      s.obj = obj
+      s.obj = id
       return T
     end
     return decode_type(s.obj)
@@ -282,6 +282,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     end
     
     save_object(s, type_encoding, :name)
+
     # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
