@@ -363,7 +363,7 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
     return G, hom(G,G,gens(G);check=false)
   end
   if is_prime(n)
-    # up to 20% less allocations and slightly faster
+    # up to 20% fewer allocations and slightly faster
     p = n
     BL = ZZ.(n*_BL)
     R = fpField(UInt(p))
