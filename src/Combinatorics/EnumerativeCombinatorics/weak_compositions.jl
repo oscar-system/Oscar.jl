@@ -82,6 +82,9 @@ Using a smaller integer type for `n` (e.g. `Int8`) may increase performance.
 If `inplace` is `true`, the elements of the iterator may share their memory. This
 means that an element returned by the iterator may be overwritten 'in place' in
 the next iteration step. This may result in significantly fewer memory allocations.
+However, using the in-place version is only meaningful
+if just one element of the iterator is needed at any time.
+For example, calling `collect` on thisiterator will not give useful results.
 
 By a weak composition of `n` into `k` parts we mean a sequence of `k` non-negative
 integers whose sum is `n`.

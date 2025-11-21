@@ -7,6 +7,9 @@ lexicographically ascending order.
 If `inplace` is `true`, the elements of the iterator may share their memory. This
 means that an element returned by the iterator may be overwritten 'in place' in
 the next iteration step. This may result in significantly fewer memory allocations.
+However, using the in-place version is only meaningful
+if just one element of the iterator is needed at any time.
+For example, calling `collect` on thisiterator will not give useful results.
 
 # Examples
 
