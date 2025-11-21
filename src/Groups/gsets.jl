@@ -407,7 +407,7 @@ That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times
 and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with action function
 $\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
 """
-function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+function induce(Omega::GSetByElements{T, S}, phi::Union{GAPGroupHomomorphism{U, T}, GAPGroupEmbedding{U, T}}) where {T<:Group, U<:Group, S}
   return _induce(Omega, phi)
 end
 
@@ -927,7 +927,7 @@ function induced_action_function(Omega::GSetBySubgroupTransversal{TG, TH, S}, ph
   return induced_action(action_function(Omega), phi)
 end
 
-function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::Union{GAPGroupHomomorphism{U, TG}, GAPGroupEmbedding{U, TG}}) where {TG<:Group, TH<:Group, U<:Group, S}
   @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
   return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
 end
