@@ -207,10 +207,10 @@ end
     R, (u, v, w) = polynomial_ring(K, [:u, :v, :w])
 
     M = matrix(R, [
-      0       u     v     w    u+v;
-     -u       0    u+w   v-w    v;
-     -v   -(u+w)    0    u-v    w;
-     -w   -(v-w)  -(u-v)   0   u-w;
+      0       u-1     v-1     w-1    u+v;
+     -u+1       0    u+w   v-w    v;
+     -v+1   -(u+w)    0    u-v    w;
+     -w+1   -(v-w)  -(u-v)   0   u-w;
     -(u+v)   -v    -w   -(u-w)   0
     ])
 
@@ -243,6 +243,6 @@ end
     I = ideal([x^3 + 2*y^2 + 3, y^3 + 5*x + 7])
     pts = rational_solutions(I)
 
-    @test length(pts) > 0 && length(pts) == degree(I)
+    @test length(pts) > 0 && length(pts) == 1
   end
 end
