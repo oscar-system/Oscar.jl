@@ -165,9 +165,8 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     end
     push!(SM, sparse_row(QQ, row))
   end
-  K = kernel(SM)
-  
-  return K * mon_basis
+  K = kernel(transpose(SM); side=:right)
+  return mon_basis * K
 end
 
 @doc raw"""
@@ -255,84 +254,68 @@ end
 function lifted_monomials(deg::FinGenAbGroupElem,
                           lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
                           gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
-  lifted_m = Set{MPolyDecRingElem}([])
+  gen_shifts = MPolyDecRingElem[]
   for (gen_deg, gens) in gens_dict
-    gen_shifts = MPolyDecRingElem[]
-    R = parent(first(gens))
     if haskey(lower_simplex, deg - gen_deg)
       append!(gen_shifts, reduce(vcat, [[g * m for m in lower_simplex[deg - gen_deg]] for g in gens_dict[gen_deg]]))
     end
-    isempty(gen_shifts) && continue
-
-    mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
-    M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
-    rref!(M)
-    mon_indices = Int[]
-    for j in ncols(M)
-      rows = findall(!iszero, M[:, j])
-      isnothing(rows) && continue
-      isone(length(rows)) && push!(mon_indices, only(rows))
-    end
-    lifted_m = union(lifted_m, mons[mon_indices])
   end
-  return lifted_m
+  isempty(gen_shifts) && return Set{MPolyDecRingElem}([])
+  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+  rref!(M)
+  mon_indices = Int[]
+  for j in 1:ncols(M)
+    rows = findall(!iszero, M[:, j])
+    isnothing(rows) && continue
+    isone(length(rows)) && push!(mon_indices, only(rows))
+  end
+  return Set(mons[mon_indices])
 end
 
 # recursively computes the degrees over the scaled simplex,
 # increasing the scaling factor by one on each iteration
 # expects the lattice basis to be precomputed and passed
 # where the lattice basis is a vector of tuples (exponent vector, deg)
-function degree_over_simplex!(lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
-                              t_degree::Int,
-                              R::MPolyDecRing,
-                              lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}},
-                              prev_gens::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
+function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}},
+                             R::MPolyDecRing,
+                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
   e = zeros(Int, ngens(R))
   e[1] = 1
   m = monomial(R, e)
   d = degree(m)
-
+  degree_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}()
   if isempty(lower_simplex)
-    lower_simplex[d] = [m]
+    degree_simplex[e] = (d, m)
     for lb in lattice_basis
       next_e = e + lb[1]
       next_m = monomial(R, next_e)
       next_d = d + lb[2]
-      lower_simplex[next_d] = [next_m]
+      degree_simplex[next_e] = (next_d, next_m)
     end
-    return lower_simplex
   else
-    t_deg_simplex = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
-    for (deg, mons) in lower_simplex
-      total_degree(first(mons)) < t_degree - 1 && continue
-      for mon in mons
-        exp = only(exponents(mon))
-        # builds an open dim + 1 simplex from lower_simplex
-        next_exp = exp + e
-        next_deg = deg + d
-        next_mon = monomial(R, next_exp)
-        next_mons = get!(t_deg_simplex, next_deg, typeof(next_mon)[])
+    for (exp, (deg, mon)) in lower_simplex
+      # builds an open dim + 1 simplex from lower_simplex
+      next_exp = exp + e
+      next_deg = deg + d
+      next_mon = monomial(R, next_exp)
+      degree_simplex[next_exp] = (next_deg, next_mon)
 
-        !(next_mon in lifted_monomials(next_deg, lower_simplex, prev_gens)) && push!(next_mons, next_mon)
+      # adds the missing face
+      if iszero(exp[1])
+        i = findfirst(!iszero, exp)
 
-        # adds the missing face
-        if iszero(exp[1])
-          i = findfirst(!iszero, exp)
-
-          for lb in lattice_basis[1: i-1]
-            next_e = next_exp + lb[1]
-            next_m = monomial(R, next_e)
-            next_d = next_deg + lb[2]
-            next_mons = get!(t_deg_simplex, next_d, typeof(next_m)[])
-            !(next_m in lifted_monomials(next_d, lower_simplex, prev_gens)) && push!(next_mons, next_m)
-          end
+        for lb in lattice_basis[1: i - 1]
+          next_e = next_exp + lb[1]
+          next_m = monomial(R, next_e)
+          next_d = next_deg + lb[2]
+          degree_simplex[next_e] = (next_d, next_m)
         end
       end
     end
-
-    merge!(lower_simplex, t_deg_simplex)
-    return t_deg_simplex    
   end
+
+  return degree_simplex
 end
 
 function components_of_kernel(d::Int,
@@ -354,7 +337,8 @@ function components_of_kernel(d::Int,
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
   # keeps track of computed degrees and the monomials in that degree
-  deg_mon_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+  simplex_monomials = Dict{Int,
+                           Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}}()
 
   # compute the basis and it's degrees once
   lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
@@ -367,9 +351,26 @@ function components_of_kernel(d::Int,
   end
 
   for i in 1:d
-    mon_bases = degree_over_simplex!(deg_mon_dict, i, domain(phi), lattice_basis, gens_dict)
-    degrees = keys(mon_bases)
+    lower_simplex = get!(simplex_monomials, i - 1, Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}())
+    simplex_monomials[i] = degree_over_simplex(lower_simplex, domain(phi), lattice_basis)
+    all_degrees = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    for sm in values(simplex_monomials)
+      for (_, (deg, m)) in sm
+        b = get!(all_degrees, deg, typeof(m)[])
+        push!(b, m)
+      end
+    end
+    l_monomials = Dict{FinGenAbGroupElem, Set{<:MPolyDecRingElem}}()
+    mon_bases = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    for (_, (deg, m)) in simplex_monomials[i]
+      if !haskey(l_monomials, deg)
+        l_monomials[deg] = lifted_monomials(deg, all_degrees, gens_dict)
+      end
+      b = get!(mon_bases, deg, typeof(m)[])
+      !(m in l_monomials[deg]) && push!(b, m)
+    end
 
+    degrees = collect(keys(mon_bases))
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30 * batch_size
       filter_results = pmap(filter_component,
@@ -401,5 +402,5 @@ function components_of_kernel(d::Int,
     merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs) if !isempty(results[i])))
   end
 
-  return FinAbGroupElemDict{Vector{elem_type(domain(phi))}}(gens_dict)
+  return gens_dict
 end
