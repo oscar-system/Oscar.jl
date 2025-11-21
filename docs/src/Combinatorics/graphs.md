@@ -88,7 +88,7 @@ has_edge
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-n_leaves(graph::Graph{Directedy})
+n_leaves(graph::Graph{Directed})
 n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -101,7 +101,6 @@ is_bipartite(g::Graph{Undirected})
 is_acyclic(G::Graph{Directed})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
-
 ```
 
 ### Edges
