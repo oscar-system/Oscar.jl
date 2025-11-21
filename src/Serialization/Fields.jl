@@ -185,7 +185,7 @@ end
 @register_serialization_type AbsNonSimpleNumField uses_id
 
 function type_params(K::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField}
-  TypeParams(T, parent(defining_polynomials(K)[1]))
+  return TypeParams(T, parent(defining_polynomials(K)[1]))
 end
 
 function save_object(s::SerializerState, K::NonSimpleNumField)
@@ -409,17 +409,14 @@ const FieldEmbeddingTypes = Union{
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  tp = TypeParams(T, K)
+  base_field(K) isa QQField && return TypeParams(T, K)
 
-  if !(base_field(K) isa QQField)
-    base_field_emb = restrict(E, base_K)
-    tp = TypeParams(
-      T, 
-      :num_field => K,
-      :base_field_emb => base_field_emb
-    )
-  end
-  return tp
+  base_field_emb = restrict(E, base_K)
+  return TypeParams(
+    T,
+    :num_field => K,
+    :base_field_emb => base_field_emb,
+  )
 end
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
