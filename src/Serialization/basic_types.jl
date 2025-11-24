@@ -1,3 +1,17 @@
+################################################################################
+# Nothing
+@register_serialization_type Nothing 
+
+
+function save_object(s::SerializerState, ::Nothing)
+  save_data_json(s, JSON.json(nothing))
+end
+
+function load_object(s::DeserializerState, ::Type{Nothing})
+  return nothing
+end
+################################################################################
+  
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
   save_data_basic(s, x)
 end
