@@ -205,6 +205,7 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -373,6 +374,7 @@ export cellular_primary_decomposition
 export center, has_center, set_center
 export central_character
 export centralizer
+export centralizer_in_orthogonal_group
 export chain_complex
 export chain_polytope
 export chain_range
@@ -1779,6 +1781,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
@@ -1822,6 +1825,7 @@ export twisting_sheaf
 export two_sided_ideal
 export type
 export underlying_gluing
+export underlying_module
 export underlying_presheaf
 export underlying_quotient
 export underlying_word

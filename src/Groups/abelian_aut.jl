@@ -410,6 +410,16 @@ function embedding_orthogonal_group(i::TorQuadModuleMap)
   return OAtoOD::GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}
 end
 
+function centralizer_in_orthogonal_group(
+  T::TorQuadModule,
+  f::Union{TorQuadModuleMap, FinGenAbGroupHom, ZZMatrix, MatrixGroupElem{QQFieldElem, QQMatrix}};
+  check::Bool=true,
+)
+  OT = orthogonal_group(T)
+  fT = OT(f; check)
+  return centralizer(OT, fT)
+end
+
 ###############################################################################
 #
 #  Action on injections

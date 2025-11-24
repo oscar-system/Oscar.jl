@@ -209,3 +209,30 @@ endowed with an isometry.
     return new(Vf, Lb, f, n)
   end
 end
+
+@doc raw"""
+    TorQuadModuleWithIsom
+
+A container type for pairs $(T, f)$ consisting of a torsion quadratic module
+$T$ of type `TorQuadModule` and an isometry $f$ given as a `TorQuadModuleMap`.
+
+We store the order of $f$ too.
+
+To construct an object of type `TorQuadModuleWithIsom`, see the set of functions
+called [`torsion_quadratic_module_with_isometry`](@ref)
+
+# Examples
+```jldoctest
+```
+"""
+@attributes mutable struct TorQuadModuleWithIsom
+  T::TorQuadModule
+  f::TorQuadModuleMap
+
+  function TorQuadModuleWithIsom(
+      T::TorQuadModule,
+      f::TorQuadModuleMap,
+    )
+    return new(T, f)
+  end
+end
