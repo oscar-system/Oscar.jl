@@ -2,7 +2,11 @@ import Oscar.Serialization: save_object, load_object, type_params
 
 @register_serialization_type MatroidRealizationSpace uses_id
 type_params(M::MatroidRealizationSpace) = TypeParams(MatroidRealizationSpace,
-                                                     :matrix_space=>parent(realization_matrix(M)),
+                                                     :matrix_space => begin
+                                                      mat = realization_matrix(M)
+                                                      isnothing(mat) ? nothing : parent(mat)
+                                                      end,
+                                                      :ideal_ring => base_ring(defining_ideal(M)),
                                                      :ground_ring=>M.ground_ring)
 
 function save_object(s::SerializerState, M::MatroidRealizationSpace) 
@@ -10,7 +14,7 @@ function save_object(s::SerializerState, M::MatroidRealizationSpace)
     save_object(s, defining_ideal(M), :defining_ideal)
     save_object(s, inequations(M), :inequations)
     if isnothing(realization_matrix(M))
-      save_object(s, matrix(ambient_ring(M),0,0,[]), :realization_matrix)
+      save_object(s, nothing, :realization_matrix)
     else
       save_object(s, realization_matrix(M), :realization_matrix)
     end
@@ -20,13 +24,12 @@ end
 
 
 function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpace}, dict::Dict)
-  MS = dict[:matrix_space];
-  R = base_ring(MS)
+  MS = dict[:matrix_space]; #this might be nothing
+  R = dict[:ideal_ring];
   GR = dict[:ground_ring];
   I = load_object(s, MPolyIdeal, R, :defining_ideal)
   Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
-  Mat = load_object(s, MatElem, MS, :realization_matrix)
-  RMat = isempty(Mat) ? nothing : Mat
+  RMat = isnothing(MS) ? nothing : load_object(s, MatElem, MS, :realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case the realization space is zero dimensional
@@ -42,17 +45,21 @@ end
 
 @register_serialization_type MatroidRealizationSpaceSelfProjecting uses_id
 type_params(M::MatroidRealizationSpaceSelfProjecting) = TypeParams(MatroidRealizationSpaceSelfProjecting,
-                                                     :matrix_space=>parent(selfproj_realization_matrix(M)),
+                                                     :matrix_space => begin
+                                                      mat = selfprojecting_realization_matrix(M)
+                                                      isnothing(mat) ? nothing : parent(mat)
+                                                      end,
+                                                      :ideal_ring => base_ring(defining_ideal(M)),
                                                      :ground_ring=>M.ground_ring)
 
 function save_object(s::SerializerState, M::MatroidRealizationSpaceSelfProjecting) 
   save_data_dict(s) do
     save_object(s, defining_ideal(M), :defining_ideal)
     save_object(s, inequations(M), :inequations)
-    if isnothing(selfproj_realization_matrix(M))
-      save_object(s, matrix(ambient_ring(M),0,0,[]), :selfproj_realization_matrix)
+    if isnothing(selfprojecting_realization_matrix(M))
+      save_object(s, nothing, :selfprojecting_realization_matrix)
     else
-      save_object(s, selfproj_realization_matrix(M), :selfproj_realization_matrix)
+      save_object(s, selfprojecting_realization_matrix(M), :selfprojecting_realization_matrix)
     end
 #    save_object(s, M.one_realization, :one_realization)
   end
@@ -60,13 +67,12 @@ end
 
 
 function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpaceSelfProjecting}, dict::Dict)
-  MS = dict[:matrix_space];
-  R = base_ring(MS)
+  MS = dict[:matrix_space]; #this could be nothing
+  R = dict[:ideal_ring];
   GR = dict[:ground_ring];
   I = load_object(s, MPolyIdeal, R, :defining_ideal)
   Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
-  Mat = load_object(s, MatElem, MS, :selfproj_realization_matrix)
-  RMat = isempty(Mat) ? nothing : Mat
+  RMat = isnothing(MS) ? nothing : load_object(s, MatElem, MS, :realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case R = QQ
@@ -80,11 +86,15 @@ end
 
 @register_serialization_type MatroidRealizations uses_id
 function type_params(M::MatroidRealizations)
-  rs = realization_space(M)
-  sprs = selfprojecting_realization_space(M)
+  rs = realization_space(M);
+  matrix_rs = isnothing(rs) ? nothing : realization_matrix(rs);
+  sprs = selfprojecting_realization_space(M);
+  matrix_sprs = isnothing(sprs) ? nothing : selfprojecting_realization_matrix(sprs);
   TypeParams(MatroidRealizations, 
-             :matrix_space_mrs => isnothing(rs) ? nothing : parent(realization_matrix(rs)), 
-             :matrix_space_sp_mrs => isnothing(sprs) ? nothing : parent(selfproj_realization_matrix(sprs)),
+             :matrix_space_mrs => isnothing(matrix_rs) ? nothing : parent(realization_matrix(rs)), 
+             :matrix_space_sp_mrs => isnothing(matrix_sprs) ? nothing : parent(selfprojecting_realization_matrix(sprs)),
+             :ideal_ring_rs => isnothing(rs) ? nothing : base_ring(defining_ideal(rs)),
+             :ideal_ring_sprs => isnothing(sprs) ? nothing : base_ring(defining_ideal(sprs)),
              :ground_ring => isnothing(rs) ? nothing : rs.ground_ring,
              :ground_ring_s => isnothing(sprs) ? nothing : sprs.ground_ring,
              )
@@ -106,8 +116,8 @@ end
 
 
 function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::Dict)
-  dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs])
-  dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs])
+  dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs], :ideal_ring => dict[:ideal_ring_rs])
+  dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs], :ideal_ring => dict[:ideal_ring_sprs])
   str = load_object(s, String, :name)
   m = load_object(s, Matroid, :matroid)
   rk = load_object(s, Int, :rank)
