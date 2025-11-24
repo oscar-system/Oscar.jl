@@ -79,12 +79,16 @@ end
 
 
 @register_serialization_type MatroidRealizations uses_id
-type_params(M::MatroidRealizations) = TypeParams(MatroidRealizations, 
-                                        :matrix_space_mrs => parent(realization_matrix(realization_space(M))), 
-                                        :matrix_space_sp_mrs => parent(selfproj_realization_matrix(selfprojecting_realization_space(M))),
-                                        :ground_ring => realization_space(M).ground_ring,
-                                        :ground_ring_s => selfprojecting_realization_space(M).ground_ring,
-)
+function type_params(M::MatroidRealizations)
+  rs = realization_space(M)
+  sprs = selfprojecting_realization_space(M)
+  TypeParams(MatroidRealizations, 
+             :matrix_space_mrs => isnothing(rs) ? nothing : parent(realization_matrix(rs)), 
+             :matrix_space_sp_mrs => isnothing(sprs) ? nothing : parent(selfproj_realization_matrix(sprs)),
+             :ground_ring => isnothing(rs) ? nothing : rs.ground_ring,
+             :ground_ring_s => isnothing(sprs) ? nothing : sprs.ground_ring,
+             )
+end
 
 function save_object(s::SerializerState, M::MatroidRealizations) 
   save_data_dict(s) do
