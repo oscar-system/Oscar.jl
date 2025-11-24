@@ -41,7 +41,8 @@ Corresponding author of this page: Alheydis Geiger,
 <a href="mailto:geiger\@mis.mpg.com">geiger\@mis.mpg.de</a>
 
  
-Software used: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 0.11.0), GNU Parallel, Macaulay2 (version 1.24.11)
+Software used: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 0.11.0), 
+GNU parallel 20221122, Macaulay2 (version 1.24.11)
 
 Last updated 18/11/2025.
 
