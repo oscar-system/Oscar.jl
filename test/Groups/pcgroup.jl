@@ -81,6 +81,12 @@ end
   cgg = GAP.getbangproperty(x, :collector)
   @test GAP.Globals.IsMutable(cgg)
   @test cgg !== c.X
+
+  # limitations
+  c = collector(2, Int);
+  @test_throws ArgumentError set_relative_orders!(c, [3, 4])
+  set_relative_order!(c, 1, 4)
+  @test_throws ArgumentError set_relative_order!(c, 2, 3)
 end
 
 @testset "create letters from polycyclic group elements" begin
@@ -142,5 +148,22 @@ end
     gc = pc_group(c)
     f = hom(g, gc, gens(gc))
     @test is_bijective(f)
+  end
+end
+
+@testset "pcgroup code and reconstruction" begin
+  groups = [
+      cyclic_group(6),
+      cyclic_group(12),
+      dihedral_group(10),
+      small_group(PcGroup, 12, 2)
+  ]
+
+  for G in groups
+      code = encode(G)
+      H = pc_group(order(G), code)
+      @test hom(G, H, gens(H)) isa Map
+      @test order(G) == order(H)
+      @test encode(H) == code
   end
 end

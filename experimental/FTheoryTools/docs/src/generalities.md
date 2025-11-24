@@ -52,20 +52,20 @@ The Chern classes of the variety can be computed—or retrieved if precomputed (
 [Literature Models](@ref literature_models))—using:
 
 ```@docs
-chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
-chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+chern_class(m::AbstractFTheoryModel, k::Int)
+chern_classes(m::AbstractFTheoryModel)
 ```
 
 These classes allow for a consistency check on the Calabi–Yau condition:
 
 ```@docs
-is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
+is_calabi_yau(m::AbstractFTheoryModel)
 ```
 
 The Euler characteristic is obtained by integrating the top Chern class:
 
 ```@docs
-euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+euler_characteristic(m::AbstractFTheoryModel)
 ```
 
 ---
@@ -88,7 +88,7 @@ Once algorithmic computation is implemented, these same functions will trigger i
 If Hodge numbers are available, they can be used to verify the Euler characteristic independently:
 
 ```@docs
-verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel)
 ```
 
 ---
@@ -111,10 +111,10 @@ This number is of ample importance to the F-theory QSMs introduced in [CHLLT19](
 These methods allow the user to modify tunable sections or instantiate a model over a concrete base.
 
 ```@docs
-put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
-tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
-tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any})
+tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem})
+tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any})
+tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any})
 ```
 
 ---

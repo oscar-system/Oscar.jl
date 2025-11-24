@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Group characters
+# Characters and character tables
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
 be a group homomorphism, for some ring ``R``.
@@ -93,7 +93,6 @@ can be fetched as `parent(chi)`.
 
 
 ```@docs
-GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
@@ -132,6 +131,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 
 ```@docs
 block_distribution
+character_degrees
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters
@@ -269,4 +269,10 @@ class_positions_of_normal_subgroups
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 class_positions_of_solvable_residuum
+```
+
+## Technicalities
+
+```@docs
+GAPGroupCharacterTable
 ```

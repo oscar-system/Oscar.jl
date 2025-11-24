@@ -305,11 +305,20 @@ end
    dc = double_coset(H, x, K)
    @test !isassigned(dc.X)
    @test !isassigned(dc.size)
+   @test !isassigned(dc.right_coset_reps)
    GapObj(dc)
    @test isassigned(dc.X)
    order(dc)
    @test isassigned(dc.size)
+   @test x in dc
+   @test isassigned(dc.right_coset_reps)
    @test GapObj([dc]; recursive = true) isa GapObj
+
+   @test !(y in dc)
+   @test !Oscar._decompose(dc, y)[1]
+   r = rand(dc)
+   flag, u, v = Oscar._decompose(dc, r)
+   @test flag && (r == u*x*v)
 end
 
 @testset "Predicates for groups" begin
@@ -453,6 +462,7 @@ end
 @testset "Some specific subgroups" begin
    G = GL(2,3)
    S = symmetric_group(4)
+   F = free_group(2)
 
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
@@ -463,6 +473,9 @@ end
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test solvable_radical(S)[1]==S
+   @test torsion_subgroup(S)[1]==S
+   @test torsion_subgroup(F)==sub(F,[one(F)])
+   
    S = symmetric_group(5)
    @test solvable_radical(S)==sub(S,[one(S)])
 end

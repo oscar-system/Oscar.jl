@@ -5,6 +5,16 @@ function change_base_ring(phi::Any, C::AbsHyperComplex)
   return res, red_map
 end
 
+function change_base_ring(
+    bc::Any, phi::AbsHyperComplexMorphism;
+    domain::BaseChangeComplex=change_base_ring(bc, domain(phi))[1],
+    codomain::BaseChangeComplex=change_base_ring(bc, codomain(phi))[1],
+    check::Bool=true
+  )
+  result = InducedBaseChangeMorphism(bc, phi; domain, codomain, check)
+  return result, base_change_map(domain), base_change_map(codomain)
+end
+
 function base_change_map(comp::BaseChangeComplex)
   # The field is not set when using the internal constructor of the type.
   if !isdefined(comp, :red_map)

@@ -1,3 +1,15 @@
+function ConformanceTests.generate_element(Q::MPolyQuoRing)
+  return Q(ConformanceTests.generate_element(base_ring(Q)))
+end
+
+@testset "MPolyQuoRing.conformance" begin
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
+  f = y^2+y+x^2
+  C = ideal(R, [f])
+  Q, = quo(R, C)
+  ConformanceTests.test_Ring_interface_recursive(Q; reps = 3)
+end
+
 @testset "MPolyQuoRing" begin
   R, (x,y) = polynomial_ring(QQ, [:x, :y])
   f = y^2+y+x^2
@@ -140,7 +152,7 @@ end
   @test intersect(I,J,K) == ideal(Q, [y+1, x])
   @test intersect(I,J,K) == intersect([I,J,K])
 
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])

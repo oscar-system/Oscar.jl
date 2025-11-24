@@ -4,7 +4,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.15.0",
-  function upgrade_0_15_0(s::UpgradeState, dict::Dict)
+  function upgrade_0_15_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     renamings = Dict{String,String}([
       ("FlintPadicField", "PadicField"),
       ("padic", "PadicFieldElem"),
@@ -28,14 +28,14 @@ push!(upgrade_scripts_set, UpgradeScript(
       ("EmbeddedElem", "EmbeddedNumFieldElem"),
     ])
 
-    upgraded_dict = upgrade_types(dict, renamings)
+    upgraded_dict = rename_types(dict, renamings)
     
-    if haskey(dict, :data) && dict[:data] isa Dict
+    if haskey(dict, :data) && dict[:data] isa AbstractDict
       upgraded_dict[:data] = upgrade_0_15_0(s, dict[:data])
     end
 
     if haskey(dict, :_refs)
-      upgraded_refs = Dict()
+      upgraded_refs = Dict{Symbol, Any}()
       for (k, v) in dict[:_refs]
         upgraded_refs[k] = upgrade_0_15_0(s, v)
       end

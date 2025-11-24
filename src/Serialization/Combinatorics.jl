@@ -15,7 +15,7 @@ end
 
 
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
   return g(smallobj)
 end
 
@@ -36,11 +36,13 @@ function save_object(s::SerializerState, m::Matroid)
 end
 
 
-function load_object(s::DeserializerState, m::Type{Matroid})
+function load_object(s::DeserializerState, m::Type{<:Matroid})
+  # TODO: for now only objects of type `Matroid{Int}` are supported, to preserve
+  # backwards compatibility.
   mt = load_object(s, Polymake.BigObject, :matroid)
   grds = load_object(s, Vector{Int}, :groundset)
   gs2num = load_object(s, Dict{Int,Int}, :gs2num)
-  return m(mt, grds, gs2num)
+  return Matroid{Int}(mt, grds, gs2num)
 end
 
 
@@ -56,7 +58,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
   return IM
 end
 
@@ -71,7 +73,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
   return K(bigobject)
 end
 
@@ -79,11 +81,28 @@ end
 ## Phylogenetic Trees
 ###############################################################################
 @register_serialization_type PhylogeneticTree 
+type_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeParams(
+  PhylogeneticTree, T == QQFieldElem ? QQ : AbstractAlgebra.Floats{Float64}())
 
 function save_object(s::SerializerState, PT::PhylogeneticTree)
-  save_object(s, pm_object(PT))
+  save_data_dict(s) do
+    save_object(s, pm_object(PT), :pm_tree)
+    save_object(s, PT.vertex_perm, :vertex_perm)
+  end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree})
-  load_from_polymake(Dict(s.obj))
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
+  inner_object = load_node(s, :pm_tree) do _
+    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+  end
+  vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
+  PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
+end
+
+function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
+  inner_object = load_node(s, :pm_tree) do _
+    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+  end
+  vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
+  PhylogeneticTree{Float64}(inner_object, vertex_perm)
 end

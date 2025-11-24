@@ -18,9 +18,17 @@
 """
     invariant_bilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of bilinear forms preserved by `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_bilinear_forms(G))
+2
+```
 """
 function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -44,12 +52,22 @@ end
 """
     invariant_sesquilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
+Return a generating set for the vector space of sesquilinear forms
+preserved by the group `G`.
+
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_sesquilinear_forms(G))
+1
+```
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -75,9 +93,18 @@ end
 """
     invariant_quadratic_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
+Return a generating set for the vector space of quadratic forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 2), 2)[1];
+
+julia> length(invariant_quadratic_forms(G))
+2
+```
 """
 function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -115,12 +142,21 @@ end
 """
     invariant_symmetric_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+Return a generating set for the vector space of symmetric forms
+preserved by the group `G`.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
     Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 3), 2)[1];
+
+julia> length(invariant_symmetric_forms(G))
+1
+```
 """
 invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) for x in invariant_quadratic_forms(G)]
 
@@ -129,9 +165,18 @@ invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) 
 """
     invariant_alternating_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of alternating forms preserved by the group `G`.
+Return a generating set for the vector space of alternating forms
+preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_alternating_forms(G))
+1
+```
 """
 function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -179,12 +224,21 @@ end
 """
     invariant_hermitian_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
+Return a generating set for the vector space of hermitian forms
+preserved by the group `G`.
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(GL(3, 4), 2)[1];
+
+julia> length(invariant_hermitian_forms(G))
+1
+```
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -406,7 +460,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -424,14 +478,14 @@ julia> invariant_bilinear_form(Sp(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_bilinear_form(G::MatrixGroup)
+function invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
    return preimage_matrix(_ring_iso(G), B)
 end
 
 """
-    invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant sesquilinear (non bilinear) form for `G`.
 
@@ -451,7 +505,7 @@ julia> invariant_sesquilinear_form(GU(4, 2))
 [1   0   0   0]
 ```
 """
-function invariant_sesquilinear_form(G::MatrixGroup)
+function invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
    V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
@@ -459,7 +513,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -477,7 +531,7 @@ julia> invariant_quadratic_form(GO(1, 4, 2))
 [0   0   0   0]
 ```
 """
-function invariant_quadratic_form(G::MatrixGroup)
+function invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
    if iseven(characteristic(base_ring(G)))
       V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
@@ -495,16 +549,16 @@ end
 
 # TODO 3rd approach: using GAP package "forms"
 """
-    preserved_quadratic_forms(G::MatrixGroup)
+    preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms). 
 Since the procedure relies on a pseudo-random generator, 
 the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
-function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedQuadraticForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = QuadraticForm{T}[]
    for f_gap in L
       f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
@@ -515,16 +569,16 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 end
 
 """
-    preserved_sesquilinear_forms(G::MatrixGroup)
+    preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
 
 Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar
 (i.e. such that `G` is a group of similarities for the forms).
 Since the procedure relies on a pseudo-random generator,
 the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
-function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+function preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
    L = GAP.Globals.PreservedSesquilinearForms(GapObj(G))
-   R = SesquilinearForm{S}[]
+   R = SesquilinearForm{T}[]
    for f_gap in L
       if GAPWrap.IsHermitianForm(f_gap)
          f = hermitian_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
@@ -543,10 +597,9 @@ end
 
 
 """
-    orthogonal_sign(G::MatrixGroup)
+    orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
 
-For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
-is a finite field, return
+For absolutely irreducible `G` of degree `n`, return
 - `nothing` if `G` does not preserve a nonzero quadratic form,
 - `0` if `n` is odd and `G` preserves a nonzero quadratic form,
 - `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
@@ -561,9 +614,8 @@ julia> orthogonal_sign(GO(-1, 4, 2))
 -1
 ```
 """
-function orthogonal_sign(G::MatrixGroup)
+function orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
     R = base_ring(G)
-    R isa FinField || error("G must be a matrix group over a finite field")
     M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)),
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)
@@ -612,17 +664,28 @@ end
 
 
 """
-    isometry_group(f::SesquilinearForm{T})
+    isometry_group(f::SesquilinearForm{T}) where T
+    isometry_group(f::QuadraticForm{T}) where T
 
-Return the group of isometries for the sesquilinear form `f`.
+Return the group of isometries for `f`.
+
+# Examples
+```jldoctest
+julia> G = symplectic_group(4, 2);
+
+julia> f = alternating_form(invariant_alternating_forms(G)[1]);
+
+julia> isometry_group(f) == G
+true
+```
 """
-function isometry_group(f::SesquilinearForm{T}) where T
+function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
    B = gram_matrix(f)
    n = nrows(B)
    F = base_ring(B)
    r=n
 
-   if f.descr==:quadratic
+   if f isa QuadraticForm
       W,phi = radical(f)
       V = vector_space(F,n)
       U,e = complement(V,W)
@@ -642,30 +705,41 @@ function isometry_group(f::SesquilinearForm{T}) where T
    end
 
    if r<n
-      fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      if f isa QuadraticForm
+         fn = QuadraticForm(C[1:r, 1:r])
+      else
+         fn = SesquilinearForm(C[1:r, 1:r],f.descr)
+      end
    else
       fn = f
    end
 
    e=0
-   if (fn.descr==:quadratic || fn.descr==:symmetric) && iseven(r)
+   if (fn isa QuadraticForm || fn.descr==:symmetric) && iseven(r)
       if witt_index(fn)== div(r,2)
          e = 1
       else
          e = -1
       end
    end
-   Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+
+   if fn isa QuadraticForm
+      Xf = is_congruent(QuadraticForm(preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(QuadraticForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(:quadratic, e, r, F))), fn)[2]
+      end
+   else
+      Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
-   if Xf === nothing && isodd(r)
-      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      if Xf === nothing && isodd(r)
+         Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      end
    end
 
-
-   if f.descr === :hermitian
+   if f isa SesquilinearForm && f.descr === :hermitian
       G = GU(r,Int(characteristic(F)^div(degree(F),2)))
-   elseif f.descr === :alternating
+   elseif f isa SesquilinearForm && f.descr === :alternating
       G = Sp(r, F)
    elseif isodd(r)
       G = GO(0,r,F)
@@ -704,246 +778,4 @@ function isometry_group(f::SesquilinearForm{T}) where T
       return G^Xf
    end
 end
-
-"""
-    isometry_group(L::AbstractLat; depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
-
-Return the group of isometries of the lattice `L`.
-
-The transformations are represented with respect to the ambient space of `L`.
-
-Setting the parameters `depth` and `bacher_depth` to a positive value may improve
-performance. If set to `-1` (default), the used value of `depth` is chosen
-heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
-"""
-@attr matrix_group_type(S) function isometry_group(L::Hecke.AbstractLat{S}; depth::Int=-1, bacher_depth::Int=0) where S
-  gens = automorphism_group_generators(L; depth, bacher_depth)
-  G = matrix_group(gens)
-  return G
-end
-
-@doc raw"""
-    isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
-
-Given an integer lattice $L$ which is definite or of rank 2, return the
-isometry group $O(L)$ of $L$.
-
-One can choose which algorithm to use to compute $O(L)$. For now, we
-only support the following algorithms:
-- `:direct`: compute generators of $O(L)$ using Plesken-Souvignier;
-- `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
-  invariant sublattices.
-
-Setting the parameters `depth` and `bacher_depth` to a positive value may improve
-performance. If set to `-1` (default), the used value of `depth` is chosen
-heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
-"""
-@attr QQMatrixGroup function isometry_group(L::ZZLat; algorithm=:direct, depth::Int=-1, bacher_depth::Int=0)
-  # corner case
-  @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
-  if rank(L) == 0
-    G = matrix_group(identity_matrix(QQ, degree(L)))
-  end
-
-  if !is_definite(L) && (rank(L) == 2)
-    gene = automorphism_group_generators(L)
-    G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
-  end
-
-  if algorithm == :direct
-    gens = automorphism_group_generators(L; depth=depth, bacher_depth=bacher_depth)
-    G = matrix_group(gens)
-  elseif algorithm == :decomposition
-    G, _ = _isometry_group_via_decomposition(L; depth=depth, bacher_depth=bacher_depth)
-  else
-    error("Unknown algorithm: for the moment, we support :direct or :decomposition")
-  end
-  return G
-end
-
-"""
-    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
-
-Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
-
-The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
-
-First computes the orthogonal group of ``K`` and then its subgroup 
-consisting of isometries extending to ``L``.
-"""
-function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
-  V = lattice(ambient_space(L),v)
-  K = orthogonal_submodule(L, V)
-  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
-  OK = orthogonal_group(K; kwargs...)
-  return stabilizer(OK, L, on_lattices)[1]
-end
-
-"""
-    _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
-
-Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
-"""
-function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true, depth::Int = -1, bacher_depth::Int = 0)
-  # TODO: adapt the direct decomposition approach for AbstractLat
-  # in most examples `direct=true` seems to be faster by a factor of 7
-  # but in some examples it is also slower ... up to a factor of 15
-  if gram_matrix(L)[1,1] < 0
-    L = rescale(L, -1)
-  end
-  # construct the sublattice M1 of L generated by the shortest vectors
-  V = ambient_space(L)
-  # for simplicity we work with the ambient representation
-  # TODO: Swap to action on vectors once Hecke 0.15.3 is released
-  sv = shortest_vectors(L)
-  bL = basis_matrix(L)
-  sv1 = Vector{QQFieldElem}[v*bL for v in sv]
-  h = _row_span!(sv)*bL
-  M1 = lattice(V, h)
-  if closed
-    # basically doubles the memory usage of this function
-    # a more elegant way could be to work with the corresponding projective representation
-    append!(sv1, [-v for v in sv1])
-  end
-
-  # base case of the recursion
-  M1primitive = primitive_closure(L, M1)
-
-  #=
-  # the following is slower than computing the automorphism_group generators of
-  # M1primitive outright
-  gensOM1 = automorphism_group_generators(M1, depth = depth, bacher_depth = bacher_depth)
-  OM1 = matrix_group(gensOM1)
-  if M1primitive == M1
-    O1 = OM1
-  else
-    # M1 is generated by its shortest vectors only up to finite index
-    @vprint :Lattice 3 "Computing overlattice stabilizers \n"
-    O1,_ = stabilizer(OM1, M1primitive, on_lattices)
-  end
-  =#
-  O1 = matrix_group(automorphism_group_generators(M1primitive, depth = depth, bacher_depth = bacher_depth))
-  _set_nice_monomorphism!(O1, sv1; closed)
-  if rank(M1) == rank(L)
-    @hassert :Lattice 2 M1primitive == L
-    return O1, sv1
-  end
-
-  # decompose as a primitive extension: M1primitive + M2 \subseteq L
-  M2 = orthogonal_submodule(L, M1)
-
-  @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
-  # recursion
-  O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth)
-
-
-  # In what follows we compute the stabilizer of L in O1 x O2
-  if direct
-    gens12 = vcat(gens(O1), gens(O2))
-    G = matrix_group(gens12)
-    sv = append!(sv1, sv2)
-    S,_ = stabilizer(G, L, on_lattices)
-    _set_nice_monomorphism!(S, sv; closed)
-    return S, sv
-  end
-
-  phi, i1, i2 = glue_map(L, M1primitive, M2)
-  H1 = domain(phi)
-  H2 = codomain(phi)
-
-
-  @vprint :Lattice 2 "glue order: $(order(H1))\n"
-  # the stabilizer and kernel computations are expensive
-  # alternatively we could first project to the orthogonal group of the
-  # discriminant group and create an on_subgroup action
-  @vprint :Lattice 3 "Computing glue stabilizers \n"
-  G1, _ = stabilizer(O1, cover(H1), on_lattices)
-  G2, _ = stabilizer(O2, cover(H2), on_lattices)
-  # _set_nice_monomorphism!(G1, sv1, closed=closed)
-  # _set_nice_monomorphism!(G2, sv2, closed=closed)
-
-  # now we may alter sv1
-  sv = append!(sv1, sv2)
-
-  G1q =  _orthogonal_group(H1, ZZMatrix[matrix(hom(H1, H1, TorQuadModuleElem[H1(lift(x) * matrix(g)) for x in gens(H1)])) for g in gens(G1)]; check = false)
-  G2q =  _orthogonal_group(H2, ZZMatrix[matrix(hom(H2, H2, TorQuadModuleElem[H2(lift(x) * matrix(g)) for x in gens(H2)])) for g in gens(G2)]; check = false)
-
-  psi1 = hom(G1, G1q, gens(G1q); check=false)
-  psi2 = hom(G2, G2q, gens(G2q); check=false)
-  @vprint :Lattice 2 "Computing the kernel of $(psi1)\n"
-  K = gens(kernel(psi1)[1])
-  @vprint :Lattice 2 "Computing the kernel of $(psi2)\n"
-  append!(K, gens(kernel(psi2)[1]))
-  @vprint :Lattice 2 "Lifting \n"
-
-  T = _orthogonal_group(H1, ZZMatrix[matrix(phi * hom(g) * inv(phi)) for g in gens(G2q)]; check = false)
-  S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(GapObj(T), GapObj(G1q)))
-  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi; check = false)) for g in gens(S)])
-  G = matrix_group(matrix.(K))
-  @hassert :Lattice 2 all(on_lattices(L, g) == L for g in gens(G))
-  _set_nice_monomorphism!(G, sv; closed)
-  @vprint :Lattice 2 "Done \n"
-  return G, sv
-end
-
-function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
-  V = ambient_space(L)
-  return lattice(V, basis_matrix(L) * matrix(g); check=false)
-end
-
-"""
-    on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
-
-Return `x*g`.
-"""
-function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
-  return x*matrix(g)
-end
-
-"""
-    _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
-
-Use the permutation action of `G` on `short_vectors` to represent `G` as a
-finite permutation group.
-
-Internally this sets a `NiceMonomorphism` for the underlying gap group.
-No input checks whatsoever are performed.
-
-It is assumed that the corresponding action homomorphism is injective.
-Setting `closed = true` assumes that `G` actually preserves `short_vectors`.
-"""
-#
-function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
-  phi = action_homomorphism(gset(G, on_vector, short_vectors; closed))
-  GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
-  GAP.Globals.SetIsHandledByNiceMonomorphism(GapObj(G), true)
-  GAP.Globals.SetNiceMonomorphism(GapObj(G), phi.map)
-end
-
-function _row_span!(L::Vector{Vector{ZZRingElem}})
-  l = length(L)
-  d = length(L[1])
-  m = min(2*d,l)
-  B = sparse_matrix(matrix(ZZ, m, d, reduce(vcat, L[1:m])))
-  h = matrix(hnf(B; truncate = true))
-  for i in (m+1):l
-    b = matrix(ZZ, 1, d, L[i])
-    Hecke.reduce_mod_hnf_ur!(b, h)
-    if iszero(b)
-      continue
-    else
-      h = vcat(h, b)
-      hnf!(h)
-    end
-  end
-  return h[1:rank(h),:]
-end
-
-automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
-
-orthogonal_group(L::Hecke.ZZLat; kwargs...) = isometry_group(L; kwargs...)
-
-orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
-
-unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 

@@ -40,6 +40,7 @@ vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
 graph_from_labeled_edges
+induced_subgraph
 ```
 
 ### Modifying graphs
@@ -95,6 +96,7 @@ signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 is_bipartite(g::Graph{Undirected})
+is_acyclic(G::Graph{Directed})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 ```
@@ -110,6 +112,7 @@ src(e::Edge)
 ```@docs
 visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
+
 ## Saving and loading
 
 Objects of type `Graph` can be saved to a file and loaded with the methods

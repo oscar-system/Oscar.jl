@@ -41,8 +41,8 @@ mutable struct SubfieldLattice{T}
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
 
     r.l = Dict(POSetElem(r.P, 1) =>(K, id_hom(K)),
-               POSetElem(r.P, 2) => (base_ring(K),
-                           embedding_hom(base_ring(K), K)))
+               POSetElem(r.P, 2) => (base_field(K),
+                           embedding_hom(base_field(K), K)))
     return r
   end
 end
@@ -248,10 +248,7 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
   pow = copy(beta)
 
   K = field(S)
-  k = base_ring(K)
-  if !isa(k, AbstractAlgebra.Field)
-    k = QQ
-  end
+  k = base_field(K)
   fl, v = isinteger(G, B, sum(beta))
   fl || return nothing
   tr = [k(v)]
@@ -339,7 +336,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   f = divexact(f, content(f))
 
   p, ct = find_prime(Hecke.Globals.Qx(f), pStart = pStart, prime = prime,
-                                          filter_pattern = x->any(t->degree(t) == 1, keys(x.fac)))
+                                          filter_pattern = x->any(t->degree(t) == 1, first.(collect(x))))
   n = degree(K)
   if primitive_by_shape(ct, n)
     return nothing

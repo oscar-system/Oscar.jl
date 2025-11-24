@@ -160,7 +160,7 @@ function _extend_free_resolution_to_the_left_by_zeros(cc::Hecke.ComplexOfMorphis
   if idx > first(r)
     for j = first(r):idx-1
       cod =  domain(first(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       pushfirst!(cc.maps, phi)
     end
   end
@@ -192,7 +192,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end
@@ -258,7 +258,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     error("Unsupported algorithm $algorithm")
   end
 
-  for j in 1:Singular.length(res)
+  slen = Singular.length(res)
+  slen =  slen > len_missing ? len_missing : slen #TODO check why the numbers may differ (Singular.jl)
+  for j in 1:slen
     cod = domain(first(cc.maps))
     I = SubModuleOfFreeModule(cod, res[j]) # convert to an Oscar module
     phi = is_graded(cod) ? graded_map(cod, gens(I); check=false) : hom(free_module(R, ngens(I)), cod, gens(I))
@@ -269,7 +271,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       return first(cc.maps)
     end
   end
-  if is_zero(res[Singular.length(res)+1])
+  if is_zero(res[slen+1]) #TODO check why this is defined (Singular.jl)
     cod = domain(first(cc.maps))
     pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
     cc.complete = true
@@ -575,7 +577,7 @@ function free_resolution(M::SubquoModule{T};
   end
 
   if length != 0
-    slen =  slen > length ? length : slen
+    slen =  slen > length ? length : slen #TODO check why the numbers may differ (Singular.jl)
   end
 
   #= Add maps from free resolution computation, start with second entry
@@ -616,7 +618,7 @@ function free_resolution(M::SubquoModule{T};
   if cc_complete == true
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
   end
-  if algorithm == :mres && !is_graded(cc[-1]) # TODO: include local case once :mres is available there
+  if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
     set_attribute!(cc, :minimal=>true)
   end
   cc.fill     = _extend_free_resolution
@@ -894,7 +896,7 @@ function _extend_free_resolution_via_kernels(cc::Hecke.ComplexOfMorphisms, idx::
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end

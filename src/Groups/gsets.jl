@@ -500,6 +500,25 @@ julia> length(orbit(G, [1, 2]))
 julia> length(orbit(G, on_sets, [1, 2]))
 6
 ```
+
+Orbit of a vector under permutation action:
+```jldoctest
+julia> G = symmetric_group(3)
+Symmetric group of degree 3
+
+julia> x = [1,3,1];
+
+julia> orb = orbit(G, permuted, x)
+G-set of
+  symmetric group of degree 3
+  with seeds [[1, 3, 1]]
+
+julia> sort(collect(orb))
+3-element Vector{Vector{Int64}}:
+ [1, 1, 3]
+ [1, 3, 1]
+ [3, 1, 1]
+```
 """
 orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
@@ -612,6 +631,25 @@ julia> map(length, orbs)
 """
 @attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(natural_gset(G))
 
+"""
+    representative(Omega::GSet)
+
+Return a representative element of the G-set `Omega`.
+
+# Examples
+```jldoctest
+julia> G = @permutation_group(4, (1,2), (3,4))
+Permutation group of degree 4
+
+julia> Omega = natural_gset(G);
+
+julia> representative.(orbits(Omega))
+2-element Vector{Int64}:
+ 1
+ 3
+```
+"""
+representative(Omega::GSet)
 
 """
     stabilizer(Omega::GSet{T,S})
@@ -933,7 +971,7 @@ function action_homomorphism(G::PermGroup, Omega)
   return action_homomorphism(gset_by_type(G, Omega, eltype(Omega); closed = true))
 end
 
-function action_homomorphism(G::PermGroup, fun::Function, Omega; check = true)
+function action_homomorphism(G::PermGroup, fun::Function, Omega; check::Bool = true)
   return action_homomorphism(GSetByElements(G, fun, Omega, closed = true, check = check))
 end
 
@@ -1627,19 +1665,15 @@ ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
-  F = base_ring(G)
   n = degree(G)
-  q = GAP.Obj(order(F))
-  V = vector_space(F, n)
+  V = vector_space(base_ring(G), n)
   k == 0 && return [(sub(V, [])[1], G)]
-  # Note that GAP anyhow unpacks all subspaces.
-  l = GAP.Globals.AsSSortedList(GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))::GapObj
-  ll = GAP.Globals.List(l,
-         GAP.UnwrapJuliaFunc(x -> GAP.Globals.BasisVectors(GAP.Globals.CanonicalBasis(x))))
-  orbs = GAP.Globals.Orbits(GapObj(G), ll, GAP.Globals.OnSubspacesByCanonicalBasis)::GapObj
+
+  Omega = gset(G, on_echelon_form_mats, Oscar.bases_of_subspaces(V, k))
+  orbs = orbits(Omega)
   orbreps = [orb[1] for orb in orbs]
-  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
-  orbreps1 = [[[F(x) for x in v] for v in bas] for bas in orbreps]::Vector{Vector{Vector{elem_type(F)}}}
-  orbreps2 = [sub(V, [V(v) for v in bas])[1] for bas in orbreps1]
+  orbreps_gap = [map_entries(_ring_iso(G), omega) for omega in orbreps]
+  orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
+  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end

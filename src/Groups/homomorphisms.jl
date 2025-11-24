@@ -121,9 +121,9 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool 
   vgens = GapObj(gensG; recursive = true)
   vimgs = GapObj(imgs; recursive = true)
   if check
-    mp = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GapObj(H), vgens, vimgs)
+    mp = GAPWrap.GroupHomomorphismByImages(GapObj(G), GapObj(H), vgens, vimgs)
   else
-    mp = GAP.Globals.GroupHomomorphismByImagesNC(GapObj(G), GapObj(H), vgens, vimgs)
+    mp = GAPWrap.GroupHomomorphismByImagesNC(GapObj(G), GapObj(H), vgens, vimgs)
   end
   @req mp !== GAP.Globals.fail "Invalid input"
   return GAPGroupHomomorphism(G, H, mp)
@@ -346,17 +346,17 @@ function image(f::GAPGroupHomomorphism)
 end
 
 """
-    image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
-    (f::GAPGroupHomomorphism{S, T})(H::S)
+    image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
+    (f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup)
 
 Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
 """
-function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
+function image(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup}, H::GAPGroup)
   H1 = GAPWrap.Image(GapObj(f), GapObj(H))
   return _as_subgroup(codomain(f), H1)
 end
 
-(f::GAPGroupHomomorphism{S, T})(H::S) where S <: GAPGroup where T <: GAPGroup = image(f,H)
+(f::GAPGroupHomomorphism{<:GAPGroup, <:GAPGroup})(H::GAPGroup) = image(f,H)
 
 """
     cokernel(f::GAPGroupHomomorphism)
@@ -408,12 +408,12 @@ end
 
 
 """
-    preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+    preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
 
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
+function preimage(f::GAPGroupHomomorphism{<: GAPGroup, <: GAPGroup}, H::GAPGroup)
   H1 = GAP.Globals.PreImage(GapObj(f), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
@@ -716,7 +716,7 @@ function isomorphism(T::Type{PcGroup}, G::GAPGroup; on_gens::Bool=false)
          Cpcgs = GAP.Globals.PcgsByPcSequence(fam, Ggens)::GapObj
          CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
          CCpcgs = GAPWrap.FamilyPcgs(CC)
-         f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), CC, Cpcgs, CCpcgs)::GapObj
+         f = GAPWrap.GroupHomomorphismByImages(GapObj(G), CC, Cpcgs, CCpcgs)
          return GAPGroupHomomorphism(G, T(CC), f)
        else
          f = GAP.Globals.IsomorphismPcpGroup(GapObj(G))::GapObj
@@ -743,7 +743,7 @@ error("do not know how to create a pcp group on given generators in GAP")
            CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
            CCpcgs = GAP.Globals.Pcp(CC)::GapObj
          end
-         switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
+         switch = GAPWrap.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)
          f = GAP.Globals.CompositionMapping(switch, f)::GapObj
        end
      end
@@ -805,7 +805,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
      if is_diagonal(rels(A))
        exponents = diagonal(rels(A))
        A2 = A
-       A2_to_A = identity_map(A)
+       A2_to_A = id_hom(A)
      else
        exponents = elementary_divisors(A)
        A2, A2_to_A = snf(A)

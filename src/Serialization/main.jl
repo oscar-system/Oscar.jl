@@ -2,6 +2,7 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+import JSON
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -16,7 +17,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
@@ -48,19 +50,16 @@ end
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
-    println(json(obj[:meta], 2))
+    println(JSON.json(obj[:meta], 2))
   end
 end
 
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Union{JSON3.Object, Dict})
+function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON3.Object
-    return version_number(Dict(version_info))
-  end
   return version_number(version_info)
 end
 
@@ -69,7 +68,7 @@ function version_number(v_number::String)
 end
 
 # needed for older versions
-function version_number(dict::Dict)
+function version_number(dict::AbstractDict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
@@ -80,8 +79,13 @@ function get_oscar_serialization_version()
     return oscar_serialization_version[]
   end
   if Oscar.is_dev
+    next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
+    n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
+                       readdir(joinpath(@__DIR__, "Upgrades")))
+
+
     commit_hash = get(Oscar._get_oscar_git_info(), :commit, "unknown")
-    version_info = "$VERSION_NUMBER-$commit_hash"
+    version_info = iszero(n_upgrades) ? "$VERSION_NUMBER-$commit_hash" : "$VERSION_NUMBER-$n_upgrades-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
     )
@@ -163,11 +167,16 @@ struct TypeParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, args::Pair...)
-    return new{T, typeof(args)}(T, args)
+  function TypeParams(T::Type, params)
+    if Base.issingletontype(T)
+      return new{T, Nothing}(T, nothing)
+    else
+      return new{T, typeof(params)}(T, params)
+    end
   end
-  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
 end
+
+TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 
 params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
@@ -192,7 +201,7 @@ function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
     print(io, "Type parameters for $T")
   else
     io = pretty(io)
-    print(io, "Type parameter for $T ")
+    print(io, "Type parameters for $T ")
     print(terse(io), Lowercase(), params(tp))
   end
 end
@@ -233,7 +242,6 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
-
   if with_attrs(s)
     attrs = attrs_list(T)
     !isempty(attrs) && save_attrs(s, x)
@@ -270,15 +278,11 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     T = type(tp)
     type_encoding = encode_type(T)
     if reverse_type_map[type_encoding] isa Dict
-      # here we get "$T" = "fpField"
-      # see comment in register_serialization_type
       save_object(s, convert_type_to_string(T), :_instance)
     end
     
     save_object(s, type_encoding, :name)
-    # this branching needs to be better understood,
-    # seems like params(tp) wont be a TypeParams if
-    # the type is not some container type
+    # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
     else
@@ -420,7 +424,7 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 # The load mechanism first checks if the type needs to load necessary
-# parameters before loading it's data, if so a type tree is traversed
+# parameters before loading its data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   Base.issingletontype(T) && return T()
@@ -613,6 +617,7 @@ include("LieTheory.jl")
 include("Upgrades/main.jl")
 include("parallel.jl")
 
+
 ################################################################################
 # Interacting with IO streams and files
 
@@ -630,20 +635,20 @@ See [`load`](@ref).
 
 # Examples
 
-```jldoctest
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
 Oscar.Serialization.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
-julia> save("/tmp/fourtitwo.mrdi", 42; metadata=meta);
+julia> save("fourtitwo.mrdi", 42; metadata=meta);
 
-julia> read_metadata("/tmp/fourtitwo.mrdi")
+julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
   "name": "42",
   "description": "The meaning of life, the universe and everything"
 }
 
-julia> load("/tmp/fourtitwo.mrdi")
+julia> load("fourtitwo.mrdi")
 42
 ```
 """
@@ -669,7 +674,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON3.write(metadata), :meta)
+      save_json(s, JSON.json(metadata), :meta)
     end
   end
   serializer_close(s)
@@ -702,7 +707,7 @@ Load the object stored in the given io stream
 respectively in the file `filename`.
 
 If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of Rings this
+either will attempt a load using these parameters. In the case of rings this
 results in setting its parent, or in the case of a container of ring types such as
 `Vector` or `Tuple`, then the parent of the entries will be set using their
  `params`.
@@ -717,13 +722,13 @@ See [`save`](@ref).
 
 # Examples
 
-```jldoctest
-julia> save("/tmp/fourtitwo.mrdi", 42);
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> save("fourtitwo.mrdi", 42);
 
-julia> load("/tmp/fourtitwo.mrdi")
+julia> load("fourtitwo.mrdi")
 42
 
-julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
+julia> load("fourtitwo.mrdi"; type=Int64)
 42
 
 julia> R, x = QQ[:x]
@@ -732,17 +737,17 @@ julia> R, x = QQ[:x]
 julia> p = x^2 - x + 1
 x^2 - x + 1
 
-julia> save("/tmp/p.mrdi", p)
+julia> save("p.mrdi", p)
 
-julia> p_loaded = load("/tmp/p.mrdi", params=R)
+julia> p_loaded = load("p.mrdi", params=R)
 x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
 
-julia> save("/tmp/p_v.mrdi", [p, p])
+julia> save("p_v.mrdi", [p, p])
 
-julia> loaded_p_v = load("/tmp/p_v.mrdi", params=R)
+julia> loaded_p_v = load("p_v.mrdi", params=R)
 2-element Vector{QQPolyRingElem}:
  x^2 - x + 1
  x^2 - x + 1
@@ -786,13 +791,16 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON3.write(jsondict)
+    jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
   end
   
   try
+    if params isa TypeParams
+      params = _convert_override_params(params)
+    end
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
       # If they are identical, just proceed. If not, then we assume that either
@@ -804,7 +812,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         decode_type(s)
       end
       
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
@@ -849,6 +857,60 @@ function load(filename::String; params::Any = nothing,
     return load(file; params=params, type=type, serializer=serializer)
   end
 end
+
+_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
+
+_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
+
+
+function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
+  vp_pair = filter(x -> :value_params == x.first, params(tp))
+  kp_pair = filter(x -> :key_params == x.first, params(tp))
+  if !isempty(vp_pair)
+    ov_params = Dict(k => _convert_override_params(v) for (k, v) in params(tp))
+    if type(first(kp_pair).second) <: Union{Symbol, String, Int}
+      return _convert_override_params(first(vp_pair).second)
+    end
+  else
+    return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
+  end
+end
+
+_convert_override_params(obj::Any) = obj
+
+#handles empty tuple ambiguity
+_convert_override_params(obj::Tuple{}) = ()
+
+_convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
+
+function _convert_override_params(t::Tuple{Vararg{Pair}})
+  map(x -> x.first => _convert_override_params(x.second), t)
+end
+
+# handle special polyhedral case
+function _convert_override_params(tp::TypeParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
+  # special treatement for the polymake parameters
+  poly_params = Dict()
+  for (k, v) in params(tp)
+    if k == :pm_params
+      poly_params[k] = Dict()
+      for (pm_k, pm_v) in params(v)
+        poly_params[k][pm_k] = (type(pm_v), _convert_override_params(params(pm_v)))
+      end
+    else
+      poly_params[k] = v
+    end
+  end
+  return poly_params
+end
+
+# handle monomial ordering
+_convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
+
 
 export @register_serialization_type
 export DeserializerState

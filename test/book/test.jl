@@ -155,6 +155,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       stdin_write = input.in
       out_stream = IOContext(output.in, :displaysize=>dispsize)
       options = REPL.Options(confirm_exit=false, hascolor=false)
+      @static if VERSION > v"1.13.0-DEV.1328"
+        # disable automatic bracket on recent nightly
+        options.auto_insert_closing_bracket = false
+      end
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options
       Base.active_repl = repl
@@ -228,23 +232,21 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
-    osc_proj = dirname(Base.identify_package_env("Oscar")[2])
     try
       plots = mktempdir()
       Pkg.activate(plots; io=devnull)
       Pkg.add("Plots"; io=devnull)
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
-      pushfirst!(custom_load_path, osc_proj)
       # make sure stdlibs are in the load path (like in the normal repl)
       push!(custom_load_path, "@stdlib")
 
-      oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
+      oefile = joinpath(Oscar.oscardir, "test", "book", "ordered_examples.json")
       ordered_examples = load(oefile)
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul", "JULIA_PKG_PRECOMPILE_AUTO" => "false") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
@@ -256,7 +258,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
-            auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            auxmain = joinpath(Oscar.oscardir, "test", "book", chapter, "auxiliary_code", "main.jl")
             # run from temp dir
             temp = mktempdir()
             cd(temp)

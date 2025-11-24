@@ -4,12 +4,15 @@ struct SimplifiedChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   base_change_cache::Dict{Int, Tuple{<:SMat, <:SMat, <:SMat, <:SMat, Vector{Tuple{Int, Int}}}}
   maps_to_original::Dict{Int, <:Map}
   maps_from_original::Dict{Int, <:Map}
+  with_homotopy_maps::Bool
+  homotopy_maps::Dict{Int, <:Map}
 
-  function SimplifiedChainFactory(orig::AbsHyperComplex{ChainType}) where {ChainType}
+  function SimplifiedChainFactory(orig::AbsHyperComplex{ChainType}; with_homotopy_maps::Bool=false) where {ChainType}
     d = Dict{Int, Tuple{SMat, SMat}}()
     out_maps = Dict{Int, Map}()
     in_maps = Dict{Int, Map}()
-    return new{ChainType}(orig, d, out_maps, in_maps)
+    homotopy_maps = Dict{Int, Map}()
+    return new{ChainType}(orig, d, out_maps, in_maps, with_homotopy_maps, homotopy_maps)
   end
 end
 
@@ -25,15 +28,16 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
   #      d_{i-1} ←   d_i  ←  d_{i+1}  --- simplified complex
   #              g'       f'
   # 
-  # We start out by taking the matrix A for f, look for units 
-  # and other entries using row- and column operations.
+  # We start out by taking the matrix A for f and look for units.
+  # Once we found one, we apply row- and column operations to 
+  # reduce the matrix A and store the corresponding base change 
+  # matrices. 
   # If there is already a preliminary simplification of c_{i+1}
   # stored in e_{i+1}, then we replace f by f♯.
-  # This leads to a change of basis in c_i and c_{i+1} (resp. e_{i+1}).
-  # We store the associated maps in `maps_to_original[i]` 
+  # We store the maps for the base changes in `maps_to_original[i]` 
   # and in `maps_to_original[i+1]` and vice versa for the maps 
   # from the original complex, composing with and replacing the 
-  # maps which have already been there, eventually. 
+  # maps which have already been there, if any. 
   # This gives presimplified versions for d_i and d_{i+1}. 
   #
   # Then we proceed with the representing matrix B for g. 
@@ -51,10 +55,12 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
   if can_compute_index(d, next) && !has_index(d, next)
     # If the first was not true then the next map is simply not there.
     #
-    # If the second was not true, then a simplification of the 
+    # If the index `next` has already been computed, then a simplification of the 
     # outgoing map has already been computed as the incoming map 
-    # of the second one. We don't need to do it again, then. 
+    # for `next` and we don't need to do it again.
     outgoing = map(c, 1, Ind)
+    @assert domain(outgoing) === c[i]
+    @assert codomain(outgoing) === c[next]
     if haskey(fac.maps_from_original, next)
       outgoing = compose(outgoing, fac.maps_from_original[next])
     end
@@ -68,14 +74,52 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # Simplify for the outgoing morphism
     A = sparse_matrix(outgoing)
     S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
+    @assert nrows(Tinv) == ncols(Tinv) == ncols(A)
+    @assert nrows(T) == ncols(T) == ncols(A)
+    @assert nrows(Sinv) == ncols(Sinv) == nrows(A)
+    @assert nrows(S) == ncols(S) == nrows(A)
     fac.base_change_cache[i] = S, Sinv, T, Tinv, ind
 
     m = nrows(A)
     n = ncols(A)
-    I = [i for (i, _) in ind]
-    I = [i for i in 1:m if !(i in I)]
-    J = [j for (_, j) in ind]
-    J = [j for j in 1:n if !(j in J)]
+    I_inv = [i for (i, _) in ind]
+    I = [i for i in 1:m if !(i in I_inv)]
+    J_inv = [j for (_, j) in ind]
+    J = [j for j in 1:n if !(j in J_inv)]
+
+    # Assembly of the homotopy matrix
+    if fac.with_homotopy_maps
+      R = base_ring(Tinv)
+      H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
+      # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
+      inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
+      del_row_cache = Dict{Int, sparse_row_type(R)}()
+      for j in J_inv
+        for (k, c) in Tinv[j]
+          tmp = get(inv_dict, k, nothing)
+          isnothing(tmp) && continue
+          ii, u = tmp
+          row = get!(del_row_cache, ii) do
+            sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
+          end
+          H[j] = addmul!(H[j], copy(row), c*u)
+        end
+      end
+
+      h = hom(N, M,
+              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
+                           for row in H]; check=false)
+      if haskey(fac.maps_from_original, next)
+        h = compose(fac.maps_from_original[next], h)
+      end
+      if haskey(fac.maps_to_original, i)
+        h = compose(h, fac.maps_to_original[i])
+      end
+      @assert domain(h) === c[next]
+      @assert codomain(h) === c[i]
+
+      fac.homotopy_maps[i] = h
+    end
 
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
@@ -176,10 +220,44 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     m = nrows(A)
     n = ncols(A)
-    I = [i for (i, _) in ind]
-    I = [i for i in 1:m if !(i in I)]
-    J = [j for (_, j) in ind]
-    J = [j for j in 1:n if !(j in J)]
+    I_inv = [i for (i, _) in ind]
+    I = [i for i in 1:m if !(i in I_inv)]
+    J_inv = [j for (_, j) in ind]
+    J = [j for j in 1:n if !(j in J_inv)]
+
+    # Assembly of the homotopy matrix
+    if fac.with_homotopy_maps
+      R = base_ring(Tinv)
+      H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
+      # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
+      inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
+      del_row_cache = Dict{Int, sparse_row_type(R)}()
+      for j in J_inv
+        for (k, c) in Tinv[j]
+          tmp = get(inv_dict, k, nothing)
+          isnothing(tmp) && continue
+          ii, u = tmp
+          row = get!(del_row_cache, ii) do
+            sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
+          end
+          H[j] = addmul!(H[j], copy(row), c*u)
+        end
+      end
+
+      h = hom(N, M,
+              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
+                           for row in H]; check=false)
+      if haskey(fac.maps_from_original, i)
+        h = compose(fac.maps_from_original[i], h)
+      end
+      if haskey(fac.maps_to_original, prev)
+        h = compose(h, fac.maps_to_original[prev])
+      end
+      @assert domain(h) === c[i]
+      @assert codomain(h) === c[prev]
+
+      fac.homotopy_maps[prev] = h
+    end
 
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
@@ -378,13 +456,62 @@ function simplify(c::FreeResolution{T}) where T
     pushfirst!(result.maps, psi)
     result.complete = true
   end
+
+  # we set some attributes for internal use 
   set_attribute!(result, 
                  :show=>Hecke.pres_show, 
                  :free_res=>get_attribute(c.C, :free_res)
                 )
-  result.fill = c.C.fill
-  if result.fill == _extend_free_resolution
+
+  # if the resolution `c` had a `fill` function which was 
+  # `_extend_free_resolution`, then this suggests that we are in a
+  # graded polynomial setting and we extend the minimized resolution 
+  # via `mres`. Unfortunately, this decision can not be inferred from 
+  # the type parameter of `c`, because it comes out of `ModuleFP`, i.e. 
+  # without specifying the `elem_type` of the rings. 
+  if c.C.fill == _extend_free_resolution
+    result.fill = c.C.fill
     set_attribute!(result, :algorithm => :mres)
+  else
+    # if the previous does not hold, we set the fill function to be 
+    # something which works completely generic. 
+    k = first(chain_range(c)) - 1
+    set_attribute!(result, :zip_map=>map_from_original_complex(simp)[k])
+    result.fill = function(C::ComplexOfMorphisms, k::Int)
+      k0 = first(chain_range(C))
+      k0 < k-1 && C[k-1] # Make sure the complex is filled
+
+      if is_zero(C[k-1])
+        Z = C[k-1]
+        pushfirst!(C.maps, hom(Z, Z, elem_type(Z)[zero(Z) for _ in 1:ngens(Z)]))
+        return first(C.maps)
+      end
+
+      if is_zero(c[k])
+        Z = c[k]
+        cod = domain(first(C.maps))
+        pushfirst!(C.maps, hom(Z, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(Z)]))
+        set_attribute!(C, :zip_map => nothing)
+        set_attribute!(C, :complete => true)
+        C.complete = true
+        return first(C.maps)
+      end
+      zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+      @assert domain(zip_map) === c[k-1]
+      @assert codomain(zip_map) === C[k-1]
+      tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
+      @assert tmp[k-1] === domain(zip_map) === c[k-1]
+      @assert tmp[k] === c[k]
+      @assert tmp[k+1] === c[k+1]
+      @assert C[k-1] === codomain(zip_map)
+      tmp_simp = simplify(SimpleComplexWrapper(tmp))
+      new_map = compose(compose(map(tmp_simp, k), map_to_original_complex(tmp_simp)[k-1]), zip_map)
+      @assert codomain(new_map) === C[k-1]
+      pushfirst!(C.maps, new_map)
+      set_attribute!(C, :zip_map=>map_from_original_complex(tmp_simp)[k])
+      C.complete = is_zero(domain(first(C.maps)))
+      return first(C.maps)
+    end
   end
   return FreeResolution(result)
 end
@@ -397,10 +524,9 @@ end
 If `F` is a free resolution of either a positively graded module `M`, or a module `M` over a local ring `(R, 𝔪)`, return a minimal free resolution of `M` computed from `F`.
 
 If `M` is not (positively) graded or its `base_ring` is not local, use `simplify` to obtain an ''improved'' resolution.
-
 !!! note
     If `F` is not complete, the minimal free resolution is computed only up to the second last known non-zero module in the resolution `F`. 
-
+    
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
@@ -495,6 +621,16 @@ function minimize(c::FreeResolution; check::Bool=true)
   end
   cm = simplify(c)
   set_attribute!(cm.C, :minimal=>true)
+  set_attribute!(cm.C,
+                 :show=>Hecke.pres_show,
+                 :free_res=>get_attribute(c.C, :free_res)
+                )
+  k0 = first(chain_range(c))
+  if is_zero(c[k0])
+    cod = cm[k0-1]
+    pushfirst!(cm.C.maps, hom(c[k0], cod, elem_type(cod)[zero(cod) for _ in 1:ngens(c[k0])]))
+    cm.C.complete=true
+  end
   return cm
 end
 
@@ -502,9 +638,12 @@ function simplify(c::ComplexOfMorphisms)
   return simplify(SimpleComplexWrapper(c))
 end
 
-function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
+function simplify(
+    c::AbsHyperComplex{ChainType, MorphismType};
+    with_homotopy_maps::Bool=false
+  ) where {ChainType, MorphismType}
   @assert dim(c) == 1 "complex must be one-dimensional"
-  chain_fac = SimplifiedChainFactory(c)
+  chain_fac = SimplifiedChainFactory(c; with_homotopy_maps)
   mor_fac = SimplifiedMapFactory(c)
   upper_bounds = [has_upper_bound(c, 1) ? upper_bound(c, 1) : nothing]
   lower_bounds = [has_lower_bound(c, 1) ? lower_bound(c, 1) : nothing]
@@ -544,13 +683,29 @@ and to the right of that unit. It returns a quintuple
 are mutual inverse matrices such that `Sinv*A*T` is the original matrix 
 put in and `ind` is a `Vector` of pairs `(i, j)` which are the indices 
 of the units in `A` which have been used for elimination.
+
 The optional argument `find_pivot` must either be a function `f`, or an 
 object with overloaded call syntax, which allows for the call 
-`f(A)` to return a pair of indices `(i, j)` such that `A[i, j]` is a 
+`f(A::SMat, done_rows::Vector{Int}, done_columns::Vector{Int})` 
+to return a pair of indices `(i, j)` with `i` not in `done_rows` 
+and `j` not in `done_columens` such that `A[i, j]` is a 
 unit in the `base_ring` of `A` to be used as the next pivot element, 
 or `nothing` if no suitable pivot was found.
 """
-function _simplify_matrix!(A::SMat; find_pivot=nothing)
+function _simplify_matrix!(A::SMat; find_pivot=nothing
+        #= sample for an alternative implementation
+        function(B::SMat, done_rows::Vector{Int}, done_columns::Vector{Int}) 
+          for i in nrows(B):-1:1
+            i in done_rows && continue
+            for (j, c) in B[i]
+              j in done_columns && continue
+              is_unit(c) && return (i, j)
+            end
+          end
+          return nothing
+        end
+        =#
+    )
   R = base_ring(A)
   m = nrows(A)
   n = ncols(A)
@@ -614,7 +769,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
         end
       end
     else
-      res = find_pivot(A)
+      res = find_pivot(A, done_rows, done_columns)
       if res === nothing
         found_unit = false
       else
@@ -850,3 +1005,29 @@ function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {C
 end
 
 homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))
+
+@doc raw"""
+    homotopy_map(d::SimplifiedComplex, p::Int)
+
+Given a chain complex `c` and its simplification `d`
+```
+       ∂    ∂
+  Cₚ₋₁ ← Cₚ ← Cₚ₊₁
+  f↓↑t  f↓↑t  f↓↑t
+  Dₚ₋₁ ← Dₚ ← Dₚ₊₁
+```
+up to homotopy this returns the homotopy map 
+``hₚ : Cₚ → Cₚ₊₁`` such that 
+```
+  hₚ ∘ ∂ + ∂ ∘ hₚ₋₁ = id - t ∘ f
+```
+Use `original_complex` on `d` to get `c`.
+"""
+function homotopy_map(d::SimplifiedComplex, i::Int)
+  !chain_factory(d).with_homotopy_maps && error("computation of homotopy maps was disabled for this complex")
+  next = direction(d, 1) == :chain ? i-1 : i+1
+  prev = direction(d, 1) == :chain ? i+1 : i-1
+  d[prev] # Make sure the cache is filled
+  return chain_factory(d).homotopy_maps[prev]
+end
+

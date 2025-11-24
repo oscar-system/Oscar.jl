@@ -370,10 +370,21 @@ _vector_matrix(::Val{_ray_polyhedral_complex}, PC::PolyhedralComplex; homogenize
     _ray_indices_polyhedral_complex(pm_object(PC)), (homogenized ? 1 : 2):end
   ]
 
-_maximal_polyhedron(
+function _maximal_polyhedron(
   ::Type{Polyhedron{T}}, PC::PolyhedralComplex{T}, i::Base.Integer
-) where {T<:scalar_types} =
-  Polyhedron{T}(Polymake.fan.polytope(pm_object(PC), i - 1), coefficient_field(PC))
+) where {T<:scalar_types}
+  pmp = Polymake.fan.polytope(pm_object(PC), i - 1)
+  if Polymake.exists(pmp, "VERTICES") && Polymake.exists(pmp, "VERTICES_IN_FACETS")
+    # workaround wrong column indexing in polymake until next polymake release
+    if nrows(pmp.VERTICES) < ncols(pmp.VERTICES_IN_FACETS)
+      mci = Polymake.row(maximal_polyhedra(IncidenceMatrix, PC), i)
+      pmp = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(;
+        VERTICES=pmp.VERTICES, VERTICES_IN_FACETS=pmp.VERTICES_IN_FACETS[:, collect(mci)]
+      )
+    end
+  end
+  Polyhedron{T}(pmp, coefficient_field(PC))
+end
 
 _vertex_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
   pm_object(PC).MAXIMAL_POLYTOPES[:, _vertex_indices(pm_object(PC))]
@@ -452,7 +463,7 @@ julia> n_maximal_polyhedra(PC)
 2
 ```
 """
-n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
+n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES::Int
 
 @doc raw"""
     is_simplicial(PC::PolyhedralComplex)
@@ -548,8 +559,10 @@ julia> for p in P1s
 function polyhedra_of_dim(
   PC::PolyhedralComplex{T}, polyhedron_dim::Int
 ) where {T<:scalar_types}
+  t = Polyhedron{T}
   n = polyhedron_dim - lineality_dim(PC) + 1
-  n < 0 && return nothing
+  polyhedron_dim > dim(PC) && return _empty_subobjectiterator(t, PC)
+  n <= 0 && return _empty_subobjectiterator(t, PC)
   pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
   nfaces = Polymake.nrows(pfaces)
   rfaces = Vector{Int64}()
@@ -697,7 +710,7 @@ julia> n_rays(PC)
 ```
 """
 n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
-_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
+_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)::Int
 
 @doc raw"""
     n_vertices(PC::PolyhedralComplex)
@@ -719,7 +732,7 @@ julia> n_vertices(PC)
 ```
 """
 n_vertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_vertices(PC) : 0
-_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _n_rays(PC)
+_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES::Int - _n_rays(PC)
 
 @doc raw"""
     n_polyhedra(PC::PolyhedralComplex)

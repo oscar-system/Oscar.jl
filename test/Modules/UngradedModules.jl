@@ -337,6 +337,16 @@ end
   FMI = free_resolution_via_kernels(MI)
   @test is_complete(FMI)
   @test length(FMI) == 4
+
+  R, (v, w, x, y, z) = graded_polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
+  I = ideal(R, [v, w, x, y, z])
+  A, _ = quo(R, I)
+  M = quotient_ring_as_module(A)
+  FM = free_resolution(M, length = 1, algorithm = :mres)
+  @test length(FM) == 1
+  FM[3]
+  @test length(FM) == 3
+  @test rank(FM[3]) == 10
 end
 
 @testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
@@ -586,8 +596,8 @@ end
   @test is_welldefined(p2)
   @test is_bijective(i2)
   @test is_bijective(p2)
-  @test i2*p2 == identity_map(M2)
-  @test p2*i2 == identity_map(M1)
+  @test i2*p2 == id_hom(M2)
+  @test p2*i2 == id_hom(M1)
 
   A1 = matrix([randpoly(R,0:2,2,1) for i=1:3,j=1:2])
   B1 = matrix([randpoly(R,0:2,2,1) for i=1:1,j=1:2])
@@ -776,7 +786,7 @@ end
   End_M = hom(M1,M1)[1]
   R_as_module = FreeMod(R,1)
   phi = multiplication_induced_morphism(R_as_module, End_M)
-  @test element_to_homomorphism(phi(R_as_module[1])) == identity_map(M1)
+  @test element_to_homomorphism(phi(R_as_module[1])) == id_hom(M1)
   @test image(element_to_homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
 
   # test if hom(zero-module, ...) is zero
@@ -829,7 +839,7 @@ end
     M2 = SubquoModule(F3,A2,B2)
 
     M,pure_M = tensor_product(M1,M2, task=:map)
-    phi = hom_tensor(M,M,[identity_map(M1),identity_map(M2)])
+    phi = hom_tensor(M,M,[id_hom(M1),id_hom(M2)])
 
     for _=1:3
       v = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M)])), M)
@@ -1885,3 +1895,52 @@ end
 
     @test typeof(E2) == typeof(E3)
 end
+
+@testset "New minimization of free resolutions" begin
+  R, (x, y, z, w) = QQ[:x, :y, :z, :w]
+  U = complement_of_point_ideal(R, [0, 0, 0, 0])
+  L, _ = localization(R, U)
+  A = L[x y z; y-1 z-1 w]
+  I = ideal(L, minors(A, 2))
+  II = ideal_as_module(I)
+  M = quotient_ring_as_module(I)
+  res = free_resolution(M; length=1)
+  @test ngens(res[0]) == 1
+  @test ngens(res[1]) == 3
+  @test ngens(res[2]) == 2
+
+  min_res = minimize(res)
+  @test min_res isa FreeResolution
+  @test ngens(min_res[0]) == 1
+  @test ngens(min_res[1]) == 2
+  @test ngens(min_res[2]) == 1
+end
+
+@testset "caching of kernels" begin
+  R, (x, y) = QQ[:x, :y]
+  F = free_module(R, 1)
+  phi = hom(F, F, [x*F[1]])
+  I, _ = kernel(phi)
+  @test I === kernel(phi)[1]
+  phi = hom(F, F, [x*F[1]])
+  I, _ = kernel(phi; cached=false)
+  @test I !== kernel(phi)[1]
+end
+
+@testset "Issue #5490" begin
+  # This is about saturation not working properly over quotient rings
+  P, (a, b, x, y, z) = QQ[:a, :b, :x, :y, :z]
+  I = ideal(P, [x^3 + x*y^2 - z^2, a*y - b*z, b*x - y, a*x - z, -a*z + x^2 + y^2, -a^2 + b*y + x, -a^3 + b^2*z + z, -a^2*b + b^2*y + y])
+  A, _ = quo(P, I)
+
+  FA = free_module(A, 8)
+  rel_mat = [0 0 0 3*a*z - 2*y^2 2*x*y -2*z 0 0; 0 0 0 0 3*a*z - 2*y^2 0 2*x*y -2*z; -6*a*z^2 + 4*y^2*z -4*x*y*z 4*z^2 -6*x*z -4*y*z 3*a*z - 2*y^2 -2*x*z 2*x*y; 0 0 0 6*x*y^2 - 9*z^2 2*y^3 6*x*z 4*x*y^2 -4*y*z; 0 0 0 -3*a*z + 2*y^2 -2*x*y 2*z 0 0; 0 0 0 0 -2*x*y^2 + 3*z^2 0 2*b*z^2 - 2*y^3 -2*x*z; 4*x*y^2*z - 6*z^3 -4*b*z^3 + 4*y^3*z 4*x*z^2 -6*a*z^2 + 6*y^2*z -4*x*y*z -2*x*y^2 + 3*z^2 -2*a*z^2 + 2*y^2*z 2*b*z^2 - 2*y^3; 0 0 0 -6*x*y^2 + 9*z^2 -2*y^3 -6*x*z -4*x*y^2 4*y*z]
+  rel_mat = matrix_space(A, 8, 8)(rel_mat)
+  U, inc_U = sub(FA, rel_mat)
+
+  J = ideal(A, x)
+  U_sat = Oscar._saturation(U.sub, J)
+  U_sat, _ = sub(FA, gens(U_sat))
+  @test all(x in U_sat for x in gens(U))
+end
+

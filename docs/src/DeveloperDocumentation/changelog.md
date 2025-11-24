@@ -48,22 +48,81 @@ labelled. We have the following labels, along with how they are meant to be appl
 ### Primary Labels: Release Notes Behaviour
 
 | Label | Meaning |
-|-------|---------|
+|:------|:--------|
 | `release notes: added`        | The release notes for this PR were manually added to the changelog, and should be ignored by the script |
 | `release notes: not needed`   | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
 | `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn \$TITLE from the PR to `[#xyz] $TITLE` |
 | `release notes: to be added`  | These PRs will be marked by the script as a prominent TODO item. Check these PRs manually, and after updating them appropriately, relabel these items to either `release notes: added` or `release notes: use title` |
+| `release notes: use body` | The changelog notes for this PR have been supplied in the body of the PR. Check [Release Notes: Use Body](#Release-Notes:-Use-Body) for documentation of the exact syntax. |
 | none of the above             | These PRs will be added to a separate prominent TODO category. Check these PRs manually, and after updating them appropriately, relabel these items to one of `release notes: added`, `release notes: use title`, or `release notes: not needed` |
+
+#### Release Notes: Use Body
+
+It is possible to manually supply release notes in the body of the PR (the body of the PR is the
+first comment in the PR, created at the same time as the PR is created; it is also sometimes call
+the "description" of the PR). To do this, make a section in your PR body by putting a second level
+heading named `Release Notes`, then adding release note entries as a list. This allows for having
+multiple entries in the changelog for a single PR. It is possible to label each of the entries with
+their own topic / pr type labels.
+
+The syntax is the following:
+
+```md
+
+## Release Notes
+- item1 {label1, label2}
+- item2 {label3, label4, label5}
+- item3 {label5}
+```
+
+As an example, consider the following body of a hypothetical PR with number `nnnn`:
+
+```md
+## Release Notes
+- Does abc {package: AbstractAlgebra, renaming}
+- Does 123 {package: Nemo, documentation}
+- Questions 42 {package: Singular, serialization}
+```
+
+That body would result in the following changelog content:
+
+>
+> ### Changes related to the package AbstractAlgebra
+> 
+> #### Renamings
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Does abc
+> 
+> ### Changes related to the package Nemo
+> 
+> #### Improvements or additions to documentation
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Does 123
+> 
+> ### Changes related to the package Singular
+> 
+> #### Changes related to serializing data in the MRDI file format
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Questions 42
+>
+
 
 ### Secondary Labels: Topic
 
 In addition to the release notes action labels, you can tag your PR with these following
 labels, and the release notes script will organize them appropriately:
 
+#### Multi level topics
+
+The changelog is organized into a 2 level structure: the topic, and the type. Each PR must have one
+topic label, and one type label. The changes in each topic are then grouped by types, before moving
+on to the next topic, which are also grouped by types, and so on.
+
+##### PR Topics
+
 | Label                         | Changelog Category |
-|-------------------------------|--------------------|
+|:------------------------------|:-------------------|
 | `release notes: highlight`    | Highlights |
-| `renaming`                    | Items being renamed |
 | `topic: algebraic geometry`   | Changes related to Algebraic Geometry |
 | `topic: combinatorics`        | Changes related to Combinatorics |
 | `topic: commutative algebra`  | Changes related to Commutative Algebra |
@@ -74,13 +133,6 @@ labels, and the release notes script will organize them appropriately:
 | `topic: polyhedral geometry`  | Changes related to Polyhedral Geometry |
 | `topic: toric geometry `      | Changes related to Toric Geometry |
 | `topic: tropical geometry`    | Changes related to Tropical Geometry |
-| `serialization`               | Changes related to serializing data in the MRDI file format ? |
-| `enhancement`                 | New features or extended functionality |
-| `experimental`                | Only changes experimental parts of OSCAR |
-| `optimization`                | Performance improvements or improved testing |
-| `bug: crash`                  | Fixed bugs that could lead to crashes |
-| `bug`                         | Other fixed bugs |
-| `documentation`               | Improvements or additions to documentation |
 | `package: AbstractAlgebra`    | Changes related to the package AbstractAlgebra |
 | `package: AlgebraicSolving`   | Changes related to the package AlgebraicSolving |
 | `package: GAP`                | Changes related to the package GAP |
@@ -89,13 +141,56 @@ labels, and the release notes script will organize them appropriately:
 | `package: Polymake`           | Changes related to the package Polymake |
 | `package: Singular`           | Changes related to the package Singular |
 
+##### PR Types
+
+| Label                         | Changelog Category |
+|:------------------------------|:-------------------|
+| `renaming`                    | Items being renamed |
+| `serialization`               | Changes related to serializing data in the MRDI file format |
+| `enhancement`                 | New features or extended functionality |
+| `experimental`                | Only changes experimental parts of OSCAR |
+| `optimization`                | Performance improvements or improved testing |
+| `bug: wrong result`           | Fixed bugs that returned incorrect results |
+| `bug: crash`                  | Fixed bugs that could lead to crashes |
+| `bug: unexpected error`       | Fixed bugs that resulted in unexpected errors |
+| `bug`                         | Other fixed bugs |
+| `documentation`               | Improvements or additions to documentation |
+
+#### Example
+
+As an example, the following PRs are rendered as follows:
+
+> - PR #1337 with topic label `topic: groups`, and type label `optimization`
+> - PR #1338 with topic label `package: Singular`, and type label `renaming`
+> - PR #1339 with topic label `package: Singular`, and type label `experimental`
+
+-----
+> 
+> ### Groups
+> 
+> #### Performance improvements or improved testing
+> 
+> - [#1337] Lorem ipsum
+> 
+> ### Changes related to the package Singular
+> 
+> #### Renamings
+> 
+> - [#1338] Foo bar
+> 
+> #### Only changes experimental parts of OSCAR
+> 
+> - [#1338] Alice bob
+> 
+-----
+
 ## Suggestions for formulations
 
 In general the description of each change should start with a verb in present
 tense. Here are some more concrete suggestions.
 
 | Change                        | Example |
-|-------------------------------|--------------------|
+|:------------------------------|:-------------------|
 | move from experimental to src/ | Graduate bla from experimental to officially supported |
 | feature added                 | Add `bla` for `blub `/ Support `bla` for `blub` / Implement `bla`
 | renaming things               | Rename `bla` to `blub`

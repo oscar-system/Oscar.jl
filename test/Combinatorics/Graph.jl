@@ -196,16 +196,26 @@
         label!(G1, nothing, vertex_labels; name=:color)
         @test_throws ArgumentError G1.color[1, 2]
         @test G1.color[1] == 2
+
+        edge_labels = Dict((1, 2) => 1, (3, 4) => 2)
+        label!(G1, edge_labels, nothing; name=:color)
+        @test G1.color[1, 2] == 1
+        @test G1.color[1] == 2
         
         edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
         G2 = graph_from_labeled_edges(edge_labels)
         @test G2.label[6, 5] == G2.label[5, 6] == 4
         @test_throws ArgumentError G2.label[6, 7]
         @test_throws ArgumentError G2.label[6]
+        label!(G2, nothing, Dict(1 => 1))
+        @test G2.label[1] ==  1
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
 
         vertex_labels = Dict(9 => 10)
         @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
 
+        edge_labels = Dict{NTuple{2, Int}, QQFieldElem}((5, 6) => 3//4, (7, 8) => 3)
+        vertex_labels = Dict{Int, QQFieldElem}(3 => 1//4, 9 => 10)
         G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
         @test_throws ArgumentError G3.label[10]
         @test_throws ArgumentError G3.label[6, 5]
@@ -213,6 +223,14 @@
         @test G3.label[9] == 10
         @test G3.label[1] == 0
         @test labelings(G3) == [:label]
+        @test G3.label[5, 6] isa QQFieldElem
+        @test G3.label[3] isa QQFieldElem
+        
+        vertex_labels[5] = 3
+        edge_labels[2, 3] = 4
+        @test_throws ArgumentError label!(G1, nothing, vertex_labels)
+        @test_throws ArgumentError label!(G1, edge_labels, vertex_labels)
+        @test_throws ArgumentError label!(G1, edge_labels, nothing)
     end
   
     @testset "adjacency_matrix laplacian_matrix" begin
@@ -242,10 +260,36 @@
       @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
     end
 
-    @testset "is_acylic" begin
+    @testset "is_acyclic" begin
       G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
-      @test !is_acylic(G)
+      @test !is_acyclic(G)
       rem_edge!(G, 3, 1)
-      @test is_acylic(G)
+      @test is_acyclic(G)
+    end
+
+    @testset "subgraph" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
+      sg = induced_subgraph(G, [1, 2])
+      @test ne(sg) == 1
+      @test nv(sg) == 2
+      @test sg isa Graph{Directed}
+      G2 = complete_bipartite_graph(3, 3)
+      sg2 = induced_subgraph(G2, [1, 2, 3])
+      @test ne(sg2) == 0
+      @test nv(sg2) == 3
+
+      G3 = graph_from_labeled_edges(Undirected, Dict((1, 2) => 4, (2, 3) => 5, (1, 3) => 6), Dict(3 => 9); name=:color)
+      sg3 = induced_subgraph(G3, [3, 2])
+      @test ne(sg3) == 1
+      @test nv(sg3) == 2
+      @test sg3.color[2] == 9
+      @test sg3.vertexlabels[2] == 3
+      @test sg3.color[1,2] == G3.color[2,3] == 5
+
+      G4 = complete_graph(4)
+      label!(G4,nothing,Dict(1=>"first",2=>"second",3=>"third",4=>"fourth"), name=:vertexlabels)
+      sg4 = induced_subgraph(G4, [2,4])
+      @test sg4.vertexlabels[1] == "second"
+      @test sg4.vertexlabels[2] == "fourth"
     end
 end

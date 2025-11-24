@@ -34,7 +34,7 @@ julia> length(fano_matroid())
 7
 ```
 """
-length(M::Matroid) = length(M.groundset)
+length(M::Matroid) = length(M.groundset)::Int
 
 
 @doc raw"""
@@ -53,9 +53,9 @@ julia> bases(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
-bases(M::Matroid) = _indices_to_gs(bases(Int, M), M.groundset)
+bases(M::Matroid{T}) where T = _indices_to_gs(bases(Int, M), M.groundset)::Vector{Vector{T}}
 
-bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)
+bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)::Vector{Vector{Int}}
 
 @doc raw"""
     nonbases(M::Matroid)
@@ -75,9 +75,9 @@ julia> nonbases(fano_matroid())
  [3, 5, 6]
 ```
 """
-nonbases(M::Matroid) = _indices_to_gs(nonbases(Int, M), M.groundset)
+nonbases(M::Matroid{T}) where T = _indices_to_gs(nonbases(Int, M), M.groundset)::Vector{Vector{T}}
 
-nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)
+nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)::Vector{Vector{Int}}
 
 
 @doc raw"""
@@ -95,7 +95,7 @@ julia> circuits(uniform_matroid(2, 4))
  [2, 3, 4]
 ```
 """
-circuits(M::Matroid) = _property_to_gs(M, :CIRCUITS)
+circuits(M::Matroid{T}) where T = _property_to_gs(M, :CIRCUITS)::Vector{Vector{T}}
 
 @doc raw"""
     hyperplanes(M::Matroid)
@@ -115,7 +115,7 @@ julia> hyperplanes(fano_matroid())
  [1, 2, 3]
 ```
 """
-hyperplanes(M::Matroid) = _property_to_gs(M, :MATROID_HYPERPLANES)
+hyperplanes(M::Matroid{T}) where T = _property_to_gs(M, :MATROID_HYPERPLANES)::Vector{Vector{T}}
 
 @doc raw"""
     flats(M::Matroid, [r::Int])
@@ -161,7 +161,7 @@ julia> flats(M, 2)
 """
 flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
 
-function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
+function flats_impl(M::Matroid{T}, r::Union{Int,Nothing}, num_flats::Int, pm_flats) where T
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
     if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
@@ -173,9 +173,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         end
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
-    gs = matroid_groundset(M)
-    elt = eltype(gs)
-    matroid_flats = Vector{Vector{elt}}(matroid_flats)
+    matroid_flats = Vector{Vector{T}}(matroid_flats)
     return matroid_flats
 end
 
@@ -218,7 +216,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid{T}, r::Union{Int,Nothing}=nothing) where T = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
@@ -598,7 +596,7 @@ julia> n_connected_components(uniform_matroid(3, 3))
 3
 ```
 """
-n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
+n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)::Int
 
 @doc raw"""
     connected_components(M::Matroid)
@@ -619,7 +617,7 @@ julia> connected_components(uniform_matroid(3, 3))
  [3]
 ```
 """
-connected_components(M::Matroid) = _property_to_gs(M, :CONNECTED_COMPONENTS)
+connected_components(M::Matroid{T}) where T = _property_to_gs(M, :CONNECTED_COMPONENTS)::Vector{Vector{T}}
 
 @doc raw"""
     is_connected(M::Matroid)
@@ -654,7 +652,7 @@ julia> loops(fano_matroid())
 Int64[]
 ```
 """
-loops(M::Matroid) = _property_to_gs(M, :LOOPS)
+loops(M::Matroid{T}) where T = _property_to_gs(M, :LOOPS)::Vector{T}
 
 @doc raw"""
     coloops(M::Matroid)
@@ -672,7 +670,7 @@ julia> coloops(fano_matroid())
 Int64[]
 ```
 """
-coloops(M::Matroid) = _property_to_gs(M, Symbol("DUAL.LOOPS"))
+coloops(M::Matroid{T}) where T = _property_to_gs(M, Symbol("DUAL.LOOPS"))::Vector{T}
 
 @doc raw"""
     is_loopless(M::Matroid)
@@ -849,7 +847,7 @@ julia> girth(fano_matroid(), [1,2,3,4])
 
 ```
 """
-girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
+girth(M::Matroid, set::GroundsetType=M.groundset) = minimum(issubset(C,set) ? length(C) : inf for C in circuits(M); init=inf)
 
 @doc raw"""
     tutte_connectivity(M::Matroid)
@@ -871,16 +869,16 @@ function tutte_connectivity(M::Matroid)
     r = rank(M)
     n = length(M)
     #if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
-    if pm_object(M).N_BASES==binomial(n,r)
+    if pm_object(M).N_BASES::Int == binomial(n,r)
         if n>=2r+2 
             return r+1 
         elseif n<=2r-2 
-            n-r+1
+            return n-r+1
         else
             return inf
         end
     end
-    return minimum([vertical_connectivity(M),girth(M)])
+    return min(vertical_connectivity(M), girth(M))
 end
 
 @doc raw"""
@@ -902,8 +900,10 @@ function tutte_polynomial(M::Matroid;
            parent::ZZMPolyRing = polynomial_ring(ZZ, [:x, :y]; cached = false)[1])
   @assert ngens(parent) >= 2
   poly = pm_object(M).TUTTE_POLYNOMIAL
+  coeffs = Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly))
   exp = Polymake.monomials_as_matrix(poly)
-  return parent(Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
+  ev = [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]]::Vector{Vector{Int}}
+  return parent(coeffs, ev)
 end
 
 tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
@@ -926,7 +926,7 @@ q^3 - 7*q^2 + 14*q - 8
 """
 function characteristic_polynomial(M::Matroid;
            parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
-  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)
+  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)::ZZPolyRingElem
 end
 
 characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)

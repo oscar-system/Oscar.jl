@@ -1249,14 +1249,14 @@ function primitive_extensions(
 
   if classification == :embsub || classification == :embemb
     qM = discriminant_group(M)
-    GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+    GM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   else
     GM, _ = image_in_Oq(M)
   end
 
   if classification == :subemb || classification == :embemb
     qN = discriminant_group(N)
-    GN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+    GN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   else
     GN, _ = image_in_Oq(N)
   end
@@ -1717,29 +1717,30 @@ function equivariant_primitive_extensions(
     classification::Symbol=:subsub,
     compute_bar_Gf::Bool=true,
     first_fitting_isometry::Bool=false,
+    _local::Bool=false
   ) where T <: Hecke.IntegerUnion
   @req classification in Symbol[:none, :first, :embemb, :subsub, :subemb, :embsub] "Wrong classification method"
 
   qM, fqM = discriminant_group(M)
   if classification == :embsub || classification == :embemb
-    GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+    GM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   else
-    GM, _ = image_centralizer_in_Oq(M)
+    GM, _ = image_centralizer_in_Oq(M; _local)
   end
 
   qN, fqN = discriminant_group(N)
   if classification == :subemb || classification == :embemb
-    GN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+    GN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   else
-    GN, _ = image_centralizer_in_Oq(N)
+    GN, _ = image_centralizer_in_Oq(N; _local)
   end
 
   if compute_bar_Gf
-    OqfM, _ = image_centralizer_in_Oq(M)
-    OqfN, _ = image_centralizer_in_Oq(N)
+    OqfM, _ = image_centralizer_in_Oq(M; _local)
+    OqfN, _ = image_centralizer_in_Oq(N; _local)
   else
-    OqfM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
-    OqfN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+    OqfM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+    OqfN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   end
 
   exist_only = classification == :none
@@ -1788,14 +1789,14 @@ function equivariant_primitive_extensions(
 
   qM, fqM = discriminant_group(M)
   if classification == :embsub || classification == :embemb
-    GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+    GM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   else
     GM, _ = image_centralizer_in_Oq(M)
   end
 
   qN = discriminant_group(N)
   if classification == :subemb || classification == :embemb
-    GN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+    GN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   else
     GN = OqfN
   end
@@ -1803,7 +1804,7 @@ function equivariant_primitive_extensions(
   if compute_bar_Gf
     OqfM, _ = image_centralizer_in_Oq(M)
   else
-    OqfM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+    OqfM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   end
 
   exist_only = classification == :none
@@ -1914,6 +1915,7 @@ function admissible_equivariant_primitive_extensions(
     q::IntegerUnion = p;
     check::Bool=true,
     test_type::Bool=true,
+    _local::Bool=false
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
@@ -1940,9 +1942,9 @@ function admissible_equivariant_primitive_extensions(
   qA, fqA = discriminant_group(A)
   qB, fqB = discriminant_group(B)
   qC = discriminant_group(lattice(C))
-  GA, _ = image_centralizer_in_Oq(A)
+  GA, _ = image_centralizer_in_Oq(A;_local)
   @hassert :ZZLatWithIsom 1 fqA in GA
-  GB, _ = image_centralizer_in_Oq(B)
+  GB, _ = image_centralizer_in_Oq(B;_local)
   @hassert :ZZLatWithIsom 1 fqB in GB
 
   # this is where we will perform the gluing
@@ -2321,10 +2323,10 @@ function _glue_stabilizers(
     subN::Bool=true,
   )
   qM, fqM = discriminant_group(M)
-  GM = subM ? image_centralizer_in_Oq(M)[1] : Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+  GM = subM ? image_centralizer_in_Oq(M)[1] : Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
 
   qN, fqN = discriminant_group(N)
-  GN = subN ? image_centralizer_in_Oq(N)[1] : Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+  GN = subN ? image_centralizer_in_Oq(N)[1] : Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
 
   phi, HMinqM, HNinqN = glue_map(lattice(L), lattice(M), lattice(N); check=false)
   HM = domain(HMinqM)

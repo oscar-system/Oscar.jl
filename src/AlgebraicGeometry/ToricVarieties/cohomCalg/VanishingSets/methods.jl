@@ -11,7 +11,7 @@ Normal toric variety
 julia> l = toric_line_bundle(dP1, [3, 2])
 Toric line bundle on a normal toric variety
 
-julia> all_cohomologies(l)
+julia> sheaf_cohomology(l)
 3-element Vector{ZZRingElem}:
  7
  0
@@ -34,15 +34,15 @@ true
 ```
 """
 function contains(tvs::ToricVanishingSet, l::ToricLineBundle)
-    if toric_variety(l) !== toric_variety(tvs)
-        return false
+  if toric_variety(l) !== toric_variety(tvs)
+    return false
+  end
+  class = divisor_class(toric_divisor_class(l)).coeff
+  class = [class[1, i] for i in 1:ncols(class)]
+  for p in polyhedra(tvs)
+    if class in p
+      return false
     end
-    class = divisor_class(toric_divisor_class(l)).coeff
-    class = [class[1, i] for i in 1:ncols(class)]
-    for p in polyhedra(tvs)
-        if class in p
-            return false
-        end
-    end
-    return true
+  end
+  return true
 end

@@ -8,7 +8,7 @@
 #   and to create the corresponding GAP object on demand
 #   when it gets accessed,
 # - to create a GAP collector in `GAP.Globals.IsSingleCollectorRep`
-#   if all relative orders are finite,
+#   if all relative orders are primes (in particular finite),
 #   and one in `GAP.Globals.IsFromTheLeftCollectorRep` otherwise.
 #
 # Collectors in Julia and in GAP are mutable,
@@ -70,6 +70,9 @@ end
 Set the relative order of the `i`-th generator of `c` to `relord`,
 which must be either `0` (meaning infinite order) or a positive integer.
 
+Currently the relative orders of collectors that describe finite groups
+must be primes.
+
 # Examples
 ```jldoctest
 julia> c = collector(2, Int);
@@ -80,6 +83,7 @@ julia> set_relative_order!(c, 1, 2)
 function set_relative_order!(c::Collector{T}, i::Int, relord::T) where T <: IntegerUnion
   @req (0 < i && i <= c.ngens) "the collector has only $(c.ngens) generators not $i"
   c.relorders[i] = relord
+  all(is_positive, c.relorders) && @req all(is_prime, c.relorders) "relative orders of collectors for finite groups must be primes"
 
   if relord == 0
     # Remove the `i`-th power relation (as is done in GAP).
@@ -129,6 +133,9 @@ where the length of `relords` must be equal to the number of generators of
 `c`, and `relords[i]` denotes the relative order of the `i`-th generator.
 which must be either `0` (meaning infinite order) or a positive integer.
 
+Currently the relative orders of collectors that describe finite groups
+must be primes.
+
 # Examples
 ```jldoctest
 julia> c = collector(2);
@@ -138,7 +145,8 @@ julia> set_relative_orders!(c, ZZRingElem[2, 0])
 """
 function set_relative_orders!(c::Collector{T}, relords::Vector{T}) where T <: IntegerUnion
   @req length(relords) == c.ngens "the collector has $(c.ngens) generators not $(length(relords))"
-  c.relorders = copy(relords)
+  all(is_positive, relords) && @req all(is_prime, relords) "relative orders of collectors for finite groups must be primes"
+  copyto!(c.relorders, relords)
 
   # If the GAP collector has already been created then update it.
   if isdefined(c, :X)
@@ -367,6 +375,7 @@ end
 
 # Create a new GAP collector using `GAP.Globals.SingleCollector`.
 function _GAP_single_collector(c::GAP_Collector)
+  @req all(is_prime, c.relorders) "the single collector requires prime relative orders"
   G = free_group(c.ngens; eltype = :syllable)
   cGAP = GAP.Globals.SingleCollector(GapObj(G), GapObj(c.relorders; recursive = true))::GapObj
   for i in 1:c.ngens
@@ -914,3 +923,56 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
 end
 
 collector(G::PcGroup) = collector(ZZRingElem, G)
+
+# GAP wrappers for group encoding / decoding
+
+"""
+    encode(G::PcGroup)
+
+Return a `ZZRingElem` representing the polycyclic group `G`,
+using the same encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
+Currently only defined for `PcGroup`, not `SubPcGroup`.
+
+# Examples
+```jldoctest
+julia> G = small_group(12, 2)
+Pc group of order 12
+
+julia> code = encode(G)
+266
+
+julia> H = pc_group(order(G), code)
+Pc group of order 12
+
+julia> encode(G) == encode(H)
+true
+```
+"""
+function encode(G::PcGroup)
+  return ZZ(GAP.Globals.CodePcGroup(GapObj(G))::GapInt)
+end
+
+"""
+    pc_group(order::IntegerUnion, code::IntegerUnion)
+
+Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
+The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
+
+# Examples
+```jldoctest
+julia> G = small_group(12, 2)
+Pc group of order 12
+
+julia> code = encode(G)
+266
+
+julia> H = pc_group(order(G), code)
+Pc group of order 12
+
+julia> encode(G) == encode(H)
+true
+```
+"""
+function pc_group(order::IntegerUnion, code::IntegerUnion)
+  return PcGroup(GAP.Globals.PcGroupCode(GapInt(code), GapInt(order)))
+end

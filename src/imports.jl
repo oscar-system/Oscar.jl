@@ -83,8 +83,6 @@ import AbstractAlgebra:
   Generic.finish,
   Generic.interreduce!,
   Generic.MPolyBuildCtx,
-  Generic.MPolyCoeffs,
-  Generic.MPolyExponentVectors,
   Generic.push_term!,
   gens,
   get_attribute,
@@ -94,6 +92,7 @@ import AbstractAlgebra:
   has_gens,
   Ideal,
   Indent,
+  InfiniteDimensionError,
   is_finite_order,
   is_equal_as_morphism,
   is_known,
@@ -226,3 +225,6 @@ end
 
 import cohomCalg_jll
 import lib4ti2_jll
+
+import f4ncgb_jll
+using f4ncgb_jll: libf4ncgb

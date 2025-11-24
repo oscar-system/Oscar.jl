@@ -55,8 +55,8 @@
 # I can't test simply pf==p, because it returns FALSE. The line
  #      polynomial_ring(F,4)[1]==polynomial_ring(F,4)[1]
 # returns FALSE.
-   @test_throws ArgumentError corresponding_quadratic_form(Q)
-   @test_throws ArgumentError corresponding_bilinear_form(f)
+   @test_throws MethodError corresponding_quadratic_form(Q)
+   @test_throws MethodError corresponding_bilinear_form(f)
 
    R,x = polynomial_ring(F,:x)
    p = x^2*z
@@ -109,8 +109,8 @@ end
    end
    end
 
-   @test_throws ArgumentError Q(V[1],V[5])
-   @test_throws ArgumentError f(V[2])
+   @test_throws MethodError Q(V[1],V[5])
+   @test_throws MethodError f(V[2])
 
    g = rand(GL(6,F))
    v = rand(V)
@@ -621,34 +621,4 @@ end
       @test describe(G) == "PSU(3,3)"
       @test orthogonal_sign(G) === nothing
    end
-end
-
-@testset "Orthogonal groups of ZZ-lattices" begin
-  N1 = root_lattice(:A, 2)
-  N2 = rescale(N1, 4)
-  N,_ = direct_sum(N1,N2)
-  @test order(orthogonal_group(N))==144
-
-  L = integer_lattice(; gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
-  G = orthogonal_group(L)
-  @test order(G)==32
-  @test order(Oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
-  @test order(Oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
-  @test order(Oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
-  L = integer_lattice(; gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34]) # avoid caching
-  @test order(isometry_group(L, algorithm = :decomposition, depth = 1, bacher_depth = 0)) == 32
-
-  gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
-  L = integer_lattice(; gram)
-  @test order(orthogonal_group(L; algorithm = :decomposition)) == 267544166400
-
-  H = hyperbolic_plane_lattice()
-  G = orthogonal_group(H)
-  @test order(G) == 4
-  
-  L = integer_lattice(gram=ZZ[4 1 1; 1 -2 0; 1 0 -2;])
-  v = QQ[1 0 0;]
-  G = stabilizer_in_orthogonal_group(L, v)
-  @test order(G)==2
-  @test all(v*matrix(g)==v for g in gens(G))
 end
