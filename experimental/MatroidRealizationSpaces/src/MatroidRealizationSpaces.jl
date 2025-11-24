@@ -36,7 +36,7 @@ export is_selfprojecting
 export satisfies_disjointbasisproperty
 export selfprojecting_realization_space
 export selfproj_realization_ideal
-export selfproj_realization_matrix
+export selfprojecting_realization_matrix
 export inequations
 export defining_ideal
 export basisminors

@@ -2,7 +2,7 @@
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
-  selfproj_realization_matrix::Union{MatElem,Nothing}
+  selfprojecting_realization_matrix::Union{MatElem,Nothing}
   char::Union{Int,Nothing}
   q::Union{Int,Nothing}
   ground_ring::Ring
@@ -45,6 +45,7 @@ function underlying_scheme(RS::MatroidRealizationSpaceSelfProjecting{BRT, RT}) w
   RS.underlying_scheme = spec(P, I, U)
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
+
 function underlying_scheme(RS::MatroidRealizationSpaceSelfProjecting{BRT, RT}) where {BRT<:Ring, RT<:MPolyQuoRing}
   isdefined(RS, :underlying_scheme) && return RS.underlying_scheme::AffineScheme{BRT, RT}
 
@@ -60,7 +61,7 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpaceSelfPr
     io = Oscar.pretty(io)
     println(io, "The selfprojecting realization space is")
     print(io, Oscar.Indent())
-    show(io, MIME("text/plain"), RS.selfproj_realization_matrix)
+    show(io, MIME("text/plain"), RS.selfprojecting_realization_matrix)
     print(io, "\n", Oscar.Dedent(), "in the ", Oscar.Lowercase(), RS.ambient_ring)
     I = RS.defining_ideal
     if !iszero(I)
@@ -96,12 +97,12 @@ ambient_ring(RS::MatroidRealizationSpaceSelfProjecting) = RS.ambient_ring
 
 
 @doc raw"""
-    selfproj_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting)
+    selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting)
 
 A matrix with entries in ambient_ring_sp(RS) whose columns, when filled in with values satisfying equalities
 from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a self-projecting realization for the matroid.
 """
-selfproj_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = RS.selfproj_realization_matrix
+selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = RS.selfprojecting_realization_matrix
 
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     dmat = dual_matroid(mat)
@@ -250,7 +251,7 @@ end
 #Bas are the given columns that will be the identity matrix
 # it might be easier to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
 #this function is not properly tested, since it did not terminate for intersting examples.
-function selfproj_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
+function selfprojecting_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   #include a check that M is realizable & selfproj
   if !is_selfprojecting(M) 
     error("The given matroid is not self-projecting.")
@@ -300,7 +301,7 @@ function selfprojecting_realization_space(m::Matroid;
   else
     goodB = find_good_basis_heuristically(goodM)
   end
-  M = selfproj_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space #inorder to avoid calling selfproj_realization_ideal twice, one could modify the function to give it the already computed ideal, maybe optionally?
+  M = selfprojecting_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space #inorder to avoid calling selfproj_realization_ideal twice, one could modify the function to give it the already computed ideal, maybe optionally?
   if M == nothing 
     Ineqs = inequations(RS);
   else
