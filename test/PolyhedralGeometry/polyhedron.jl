@@ -171,6 +171,43 @@
         @test hmp.A == matrix(f, [-1 0 0; 0 -1 0; 0 0 -1])
         @test hmp.b == f.([0, 0, 0])
       end
+      if T == QQFieldElem
+        p = polyhedron([1//3 1; 1 -2; -1 -1//5], [1//2, 1//2, 0])
+        for (hmp, fA, tA, fb, tb, A, b) in (
+          (
+            halfspace_matrix_pair(facets(S, p)),
+            QQ,
+            QQMatrix,
+            QQ,
+            QQFieldElem,
+            [1//3 1; 1 -2; -1 -1//5],
+            [1//2, 1//2, 0],
+          ),
+          (
+            halfspace_matrix_pair(ZZ, facets(S, p)),
+            ZZ,
+            ZZMatrix,
+            ZZ,
+            ZZRingElem,
+            [2 6; 2 -4; -5 -1],
+            [3, 1, 0],
+          ),
+          (
+            halfspace_matrix_pair(ZZ, facets(S, p); integral_bias=false),
+            ZZ,
+            ZZMatrix,
+            QQ,
+            QQFieldElem,
+            [1 3; 1 -2; -5 -1],
+            [3//2, 1//2, 0],
+          ))
+          @test hmp isa NamedTuple{
+            (:A, :b),Tuple{tA,Vector{tb}}
+          }
+          @test hmp.A == matrix(fA, A)
+          @test hmp.b == fb.(b)
+        end
+      end
       @test _check_im_perm_rows(ray_indices(facets(S, Pos)), [[2, 3], [1, 3], [1, 2]])
       @test _check_im_perm_rows(
         vertex_and_ray_indices(facets(S, Pos)), [[2, 3, 4], [1, 3, 4], [1, 2, 4]]
