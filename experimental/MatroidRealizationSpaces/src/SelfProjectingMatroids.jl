@@ -165,7 +165,7 @@ julia> M = fano_matroid();
 """
 
 #this function is not properly tested, since it did not terminate for intersting examples.
-function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
+function selfprojecting_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     @warn "This function is slow except for small matroids!"
     if !is_selfprojecting(m) 
       error("The given matroid is not self-projecting.") #Is it too costly to have this check?! How about an option to check, which can be turned off?
@@ -201,7 +201,7 @@ function selfproj_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
     end
 end
 @doc raw"""
-    selfproj_realization_ideal(m::Matroid)
+    selfprojecting_realization_ideal(m::Matroid)
 
     Function to compute the defining_ideal of a selfprojecting realization space
 """
@@ -249,7 +249,7 @@ end
 
 ###################
 #Bas are the given columns that will be the identity matrix
-# it might be easier to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfproj_realization_ideal to simplify (check how the simplify functions work!)
+# it might be easier to just take the standard realization matrix, and then use a homomorphism into the quotient ring by the selfprojecting_realization_ideal to simplify (check how the simplify functions work!)
 #this function is not properly tested, since it did not terminate for intersting examples.
 function selfprojecting_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring)
   #include a check that M is realizable & selfproj
@@ -262,7 +262,7 @@ function selfprojecting_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring
   #RSM
   X = realization_matrix(realization_space(M,B=Bas,ground_ring=QQ)) #this matrix should be simplified
   #X = RSM[2];
-  I = selfproj_realization_ideal(M);
+  I = selfprojecting_realization_ideal(M);
   if is_zero(I)
     return X #In this case S = R, I need to use the simplified X to make the output nice
   elseif is_one(I) #this means the matrix is not realizable by self-projecting points
@@ -292,7 +292,7 @@ function selfprojecting_realization_space(m::Matroid;
     RS = MatroidRealizationSpaceSelfProjecting(defining_ideal(RS), inequations(RS), R, nothing, 0, nothing, QQ)
     return RS
   end
-  I = selfproj_realization_ideal(m);
+  I = selfprojecting_realization_ideal(m);
   n = length(matroid_groundset(m))
   goodM = isomorphic_matroid(m, [i for i in 1:n])
   Bs = bases(goodM)
@@ -301,7 +301,7 @@ function selfprojecting_realization_space(m::Matroid;
   else
     goodB = find_good_basis_heuristically(goodM)
   end
-  M = selfprojecting_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space #inorder to avoid calling selfproj_realization_ideal twice, one could modify the function to give it the already computed ideal, maybe optionally?
+  M = selfprojecting_realization_matrix(goodM, goodB, RS.ground_ring) #does not return a tuple of ring and matrix like it does for realization_space #inorder to avoid calling selfprojecting_realization_ideal twice, one could modify the function to give it the already computed ideal, maybe optionally?
   if M == nothing 
     Ineqs = inequations(RS);
   else

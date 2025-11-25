@@ -35,7 +35,7 @@ export defining_ideal
 export is_selfprojecting
 export satisfies_disjointbasisproperty
 export selfprojecting_realization_space
-export selfproj_realization_ideal
+export selfprojecting_realization_ideal
 export selfprojecting_realization_matrix
 export inequations
 export defining_ideal
@@ -52,7 +52,3 @@ export name
 export length_groundset
 export rank
 export MatroidRealizations
-
-#Exports from serialization.jl
-export save_object
-export load_object
