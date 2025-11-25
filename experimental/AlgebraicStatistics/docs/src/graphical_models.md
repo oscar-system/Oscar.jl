@@ -4,19 +4,35 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Graphical Models
+# Abstract Graphical Model
 
-The OSCAR type for graphical models is of parametrized form `GraphicalModel{G, T}` where `T` represents the type of ring in which the vanishing ideal of the model belongs and `G` represents the associated graph. This parametrized typing allows the user to easily build upon the existing functionality to work with newer variations on graphical models such as those with colours or hidden variables. 
+Graphical models are a parametrized abstract type `GraphicalModel{T, L}` where `T` is the type of the graph and `L` is the type of labelings of the graph, this is either a `NamedTuple` type or `Nothing`. Being an abstract type there is no constructor for a graphical model. All graphical models are subtypes of `GraphicalModel`, and they inherit their type parameters from the graph that is passed to the constructor. See the section corresponding to the graphical model type you would like to work with. 
 
-Many basic functions are defined for all graphical models `M` such as
+## Attributes
 
-- `graph(M)` refers to the associated graph
-- `ring(M)` to the multivariate polynomial ring where the model resides
-- `param_ring` to the multivariate polynomial ring where the parameters reside
-- `param_gens` to the parameters of the model which are ring variables stored typically stored in a hash table for convenient indexing
-
-This part of OSCAR also includes some basic graph functionality such as finding the vertices of a graph or its set of maximal cliques. Lastly, while many methods for graphical models depend heavily on whether or not they are discrete/Gaussian or directed/undirected some functionality is independent of this and thus implemented simultaneously for all graphical models. For example, the vanishing ideal of the model:
-
+The following functions are attributes for all graphical models.
 ```@docs
-vanishing_ideal(M::GraphicalModel)
+model_ring(M::T) where T <: GraphicalModel
+parameter_ring(M::T) where T <: GraphicalModel
+parametrization(M::T) where T <: GraphicalModel
 ```
+
+## Vanishing ideal
+
+Ensuring that any concrete graphical model (one that is a subtype of `GraphicalModel`) have implementations for the above attributes ensures
+that we can compute the vanishing ideal.
+In can be the case that certain graphical models will benefit from certain algorithms, and in those cases the `vanishing_ideal` will be overloaded for that specific type.
+In all other cases the vanishing ideal computation will fallback to this general function.
+There is a keyword argument for setting algorithm which is set to `:eliminate` by default, other possibilities are `:f4` and `:markov`.
+
+If you are only interested in generators up to a certain degree, considering using [`components_of_kernel`](@ref) with `parametrization`.
+```@docs
+vanishing_ideal(M::GraphicalModel; algorithm::Symbol = :eliminate)
+```
+# Extending functionality
+
+One major design decision was to allow for the graphs and their labels to parametrize the graphical models. 
+This allows users to create their own graphical model types and gives them the possibility to overload the appropriate attribute functions.
+In this way, users can reuse the implementations for the functions defined for the abstract grpahical models, 
+which avoids code duplication and also allows for the application of theorems for specific types of graphical models.
+

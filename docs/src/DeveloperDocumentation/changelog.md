@@ -53,7 +53,59 @@ labelled. We have the following labels, along with how they are meant to be appl
 | `release notes: not needed`   | This PR does not warrant an entry in the release notes. Internal only changes, like reorganization of private functions, changes to the test pipeline, etc can be tagged with this |
 | `release notes: use title`    | The release notes for this PR should be based on the title of this PR. The script will turn \$TITLE from the PR to `[#xyz] $TITLE` |
 | `release notes: to be added`  | These PRs will be marked by the script as a prominent TODO item. Check these PRs manually, and after updating them appropriately, relabel these items to either `release notes: added` or `release notes: use title` |
+| `release notes: use body` | The changelog notes for this PR have been supplied in the body of the PR. Check [Release Notes: Use Body](#Release-Notes:-Use-Body) for documentation of the exact syntax. |
 | none of the above             | These PRs will be added to a separate prominent TODO category. Check these PRs manually, and after updating them appropriately, relabel these items to one of `release notes: added`, `release notes: use title`, or `release notes: not needed` |
+
+#### Release Notes: Use Body
+
+It is possible to manually supply release notes in the body of the PR (the body of the PR is the
+first comment in the PR, created at the same time as the PR is created; it is also sometimes call
+the "description" of the PR). To do this, make a section in your PR body by putting a second level
+heading named `Release Notes`, then adding release note entries as a list. This allows for having
+multiple entries in the changelog for a single PR. It is possible to label each of the entries with
+their own topic / pr type labels.
+
+The syntax is the following:
+
+```md
+
+## Release Notes
+- item1 {label1, label2}
+- item2 {label3, label4, label5}
+- item3 {label5}
+```
+
+As an example, consider the following body of a hypothetical PR with number `nnnn`:
+
+```md
+## Release Notes
+- Does abc {package: AbstractAlgebra, renaming}
+- Does 123 {package: Nemo, documentation}
+- Questions 42 {package: Singular, serialization}
+```
+
+That body would result in the following changelog content:
+
+>
+> ### Changes related to the package AbstractAlgebra
+> 
+> #### Renamings
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Does abc
+> 
+> ### Changes related to the package Nemo
+> 
+> #### Improvements or additions to documentation
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Does 123
+> 
+> ### Changes related to the package Singular
+> 
+> #### Changes related to serializing data in the MRDI file format
+> 
+> - [#nnnn](https://github.com/oscar-system/Oscar.jl/pull/nnnn) Questions 42
+>
+
 
 ### Secondary Labels: Topic
 

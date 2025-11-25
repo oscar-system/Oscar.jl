@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.1) - 2025-11-20
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Lie Theory
+
+#### Only changes experimental parts of OSCAR
+
+- [#5304](https://github.com/oscar-system/Oscar.jl/pull/5304) Fix `basis_lie_demazure` which wouldn't finish for some inputs
+
+### Other changes
+
+#### Improvements or additions to documentation
+
+- [#5314](https://github.com/oscar-system/Oscar.jl/pull/5314) Improve documentation of fields
+
 ## [1.5.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.0) - 2025-09-11
 
 The following gives an overview of the changes compared to the previous release. This list is not
@@ -421,7 +439,7 @@ which we think might affect some users directly.
 - [#4378](https://github.com/oscar-system/Oscar.jl/pull/4378) Fix wrong result of `isomorphism(FPGroup, G, on_gens = true)` for trivial `G` with more than 0 generators
 - [#4361](https://github.com/oscar-system/Oscar.jl/pull/4361) Speed up `cperm`
 - [#4359](https://github.com/oscar-system/Oscar.jl/pull/4359) Add `cycle_length` for `PermGroupElem`
-- [#4357](https://github.com/oscar-system/Oscar.jl/pull/4357) Improve `isomorphism` from pc-groups and fp-groups to `FinGenAbGroup`
+- [#4357](https://github.com/oscar-system/Oscar.jl/pull/4357) Improve `isomorphism` from pc groups and fp groups to `FinGenAbGroup`
 - [#4337](https://github.com/oscar-system/Oscar.jl/pull/4337) Speed up `orbit_representatives_and_stabilizers` for not too large examples
 - [#4319](https://github.com/oscar-system/Oscar.jl/pull/4319) Make `isomorphism(PcGroup, A)` for infinite abelian `A` work
 - [#4311](https://github.com/oscar-system/Oscar.jl/pull/4311) Add action on matrices in row reduced echelon form

@@ -731,7 +731,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
                         any(mask) ? maximum(cld.(-r[mask], g[mask])) : 1
                       end for r in neg_rationoms)
               for g in exponent_vectors_irrelevant_ideal]
-    return fill(maximum(ks), length(exponent_vectors_irrelevant_ideal))
+    return ks
   end
   # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
   # TODO: Remove this?

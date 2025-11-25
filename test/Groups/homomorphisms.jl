@@ -1,11 +1,12 @@
 @testset "embeddings" begin
    @testset for G in [symmetric_group(5), small_group(24, 12), general_linear_group(2, 3)]
-     G = symmetric_group(5)
      H, emb = sylow_subgroup(G, 2)
      x = gen(H, 1)
      y = image(emb, x)
      @test preimage(emb, y) == x
      @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
+     @test id_hom(H) * emb == emb
+     @test emb * id_hom(G) == emb
    end
 end
 
@@ -83,7 +84,7 @@ end
    @test g(f(x))==z
    @test (f*g)(x)==z
    @test (f*g)^-1 == g^-1*f^-1
-   @test_throws AssertionError g*f
+   @test_throws ErrorException g*f
    ty = trivial_morphism(Hy,Hy)
    @test f*ty==trivial_morphism(Hx,Hy)
    @test ty*g==trivial_morphism(Hy,Hz)

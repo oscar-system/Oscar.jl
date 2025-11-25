@@ -72,7 +72,7 @@ end
   D = discriminant_group(L)
   G = orthogonal_group(D)
   g = one(G)
-  @test @inferred g ==G(matrix(g))
+  @test g == @inferred G(matrix(g))
 
   L = root_lattice(:A, 2)
   q = discriminant_group(L)

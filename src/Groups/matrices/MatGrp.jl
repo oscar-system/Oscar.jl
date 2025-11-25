@@ -570,6 +570,13 @@ function matrix(x::MatrixGroupElem)
   return x.elm
 end
 
+function matrix(x::MatrixGroupElem{T}) where {T <: Union{ZZRingElem, QQFieldElem}}
+  if !isdefined(x, :elm)
+    x.elm = matrix(base_ring(x), GapObj(x))
+  end
+  return x.elm
+end
+
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = matrix(x)[i,j]
 
 """

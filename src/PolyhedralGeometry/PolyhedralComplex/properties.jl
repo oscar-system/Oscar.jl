@@ -559,8 +559,10 @@ julia> for p in P1s
 function polyhedra_of_dim(
   PC::PolyhedralComplex{T}, polyhedron_dim::Int
 ) where {T<:scalar_types}
+  t = Polyhedron{T}
   n = polyhedron_dim - lineality_dim(PC) + 1
-  n < 0 && return nothing
+  polyhedron_dim > dim(PC) && return _empty_subobjectiterator(t, PC)
+  n <= 0 && return _empty_subobjectiterator(t, PC)
   pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
   nfaces = Polymake.nrows(pfaces)
   rfaces = Vector{Int64}()
