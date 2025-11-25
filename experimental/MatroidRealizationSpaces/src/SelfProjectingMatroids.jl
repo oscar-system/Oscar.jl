@@ -220,9 +220,8 @@ function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
     ineqs = [R(0)]
     if R isa MPolyQuoRing #in this case I cannot make the multiplicativeSet using the powers_of_element so we currently use the lesser choice: here there might be double entries or products of polynomials in the list - is there a better solution for this?
       for i in 1:length(candidates)
+        @req !iszero(candidates[i]) "a basis has vanishing minor"
         if isone(candidates[i]) || isone(-candidates[i]) 
-        elseif iszero(candidates[i])
-          error("a basis has vanishing minor")
         elseif !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
           push!(ineqs,R(candidates[i]))
         end
