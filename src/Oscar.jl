@@ -124,9 +124,6 @@ function __init__()
   __GAP_info_messages_off()
   __init_group_libraries()
 
-  add_verbosity_scope(:AlgebraicShifting)
-  add_assertion_scope(:AlgebraicShifting)
-
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
   
