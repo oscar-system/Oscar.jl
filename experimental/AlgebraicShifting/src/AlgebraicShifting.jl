@@ -83,30 +83,6 @@ function larger_cols(c::Combination{Int}, col_sets::Vector{Combination{Int}})
   col_sets[findall(x -> _domination(c, x), col_sets)]
 end
 
-function check_dep_cols(m::AbstractAlgebra.Generic.MatSpaceElem{T},
-                        cols_to_check::Vector{Int},
-                        dependent_columns::Vector{Int},
-                        col_sets::Vector{Combination{Int}}) where T <: MPolyRingElem
-  for col in cols_to_check
-    if !iszero(m[:, col])
-      col_indices = [col_index for col_index in 1:col if !(col_index in dependent_columns)]
-      push!(col_indices, col)
-      m_t = transpose(m[:, col_indices])
-      rank_m_t = rank_dropped(m_t)
-      !rank_m_t && return false
-      m[:, col_indices] = transpose(m_t)
-
-      for i=1:nrows(m)
-        c = content(m[i:i, :])
-        if !isone(c)
-          m[i, :] = divexact(m[i:i, :], c)
-        end
-      end
-    end
-  end
-  return true
-end
-
 function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
                            uhg::UniformHypergraph,
                            cols_to_check::Vector{Int},
