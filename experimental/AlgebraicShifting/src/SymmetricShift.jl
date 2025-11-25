@@ -60,7 +60,7 @@ function symmetric_shift(K::UniformHypergraph, g::MatElem)
   Oscar.ModStdQt.ref_ff_rc!(g)
   smallest_basis_el = z[r]^r
   smallest_index = findfirst(a -> a == smallest_basis_el, mb)
-  col_indices = filter(x -> x >= smallest_index, independent_columns(g))
+  col_indices = filter(x -> x >= smallest_index, pivot_columns(g))
   monomial_exponents = first.(exponents.(mb[col_indices]))
 
   # adjustment to convert monomial to simplex
