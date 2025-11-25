@@ -255,17 +255,18 @@ function exterior_shift(K::SimplicialComplex, g::MatElem; kw...)
 end
 
 @doc raw"""
-    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
-    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
-    exterior_shift(K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
-    exterior_shift(K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
-    exterior_shift(K::SimplicialComplex; las_vegas=false)
-    exterior_shift(K::UniformHypergraph; las_vegas=false)
+    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem; las_vegas_trials=100)
+    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem; las_vegas_trials=100)
+    exterior_shift(K::SimplicialComplex, w::WeylGroupElem; las_vegas_trials=100)
+    exterior_shift(K::UniformHypergraph, w::WeylGroupElem; las_vegas_trials=100)
+    exterior_shift(K::SimplicialComplex; las_vegas_trials=100)
+    exterior_shift(K::UniformHypergraph; las_vegas_trials=100)
 
 Compute the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
 If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used.
-Setting `las_vegas=true` will run the algorithm with a random change of basis matrix and repeat the algorithm until the shift is found.
+The algorithm used is a Las Vegas algorithm and you can adjust the number of trials being used with the kwarg `las_vegas_trials` which is set to 100 by default.
+Setting `las_vegas_trials=0` will run the deterministic algorithm.
 
 # Examples
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -318,7 +319,7 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
 function exterior_shift(F::Field, K::ComplexOrHypergraph,
-                        p::PermGroupElem; las_vegas_trials::Int=0, kw...)
+                        p::PermGroupElem; las_vegas_trials::Int=100, kw...)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
   las_vegas_trials > 0 && return exterior_shift_lv(F, K, p; n_samples=las_vegas_trials, kw...)
