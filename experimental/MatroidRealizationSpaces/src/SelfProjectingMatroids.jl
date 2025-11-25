@@ -122,6 +122,20 @@ function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     return boo;
 end
 
+
+@doc raw"""
+    is_selfprojecting(mat::Matroid)
+
+Returns a boolean which states whether the given matroid satisfies the property to be self-projecting.
+# Examples
+```jldoctest
+julia> m = fano_matroid()
+Matroid of rank 3 on 7 elements
+
+julia> is_selfprojecting(m)
+true
+```
+"""
 #A function to test if a matroid is self-projecting
 function is_selfprojecting(mat::Matroid)::Bool
     k = rank(mat)
@@ -154,15 +168,7 @@ function is_selfprojecting(mat::Matroid)::Bool
     end
     return boo_basis && boo_flats;
 end
-@doc raw"""
-    is_selfprojecting(mat::Matroid)
 
-Returns a boolean which states whether the given matroid satisfies the property to be self-projecting.
-# Examples
-```jldoctest
-julia> M = fano_matroid();
-```
-"""
 
 #this function is not properly tested, since it did not terminate for intersting examples.
 function selfprojecting_realization_ideal(m::Matroid;saturate::Bool = false)::Ideal
