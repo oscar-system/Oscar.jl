@@ -706,7 +706,7 @@ end
   @test is_zero(evaluate(f, [gen(parent(h)), h]))
 
   g = f + y^7
-  hg = Oscar.puiseux_expansion(f, 15; parent=parent(h))
+  hg = Oscar.puiseux_expansion(g, 20; parent=parent(h))
   h + hg # test parent compatibility 
   @test is_zero(evaluate(g, [gen(parent(hg)), hg]))
 end
