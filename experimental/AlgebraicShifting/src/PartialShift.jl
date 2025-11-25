@@ -145,24 +145,6 @@ function rothe_matrix(R::MPolyRing{T}, p::PermGroupElem;
 end
 
 ################################################################################
-function rothe_matrix_inv(R::MPolyRing{T}, p::PermGroupElem) where T
-  n = degree(parent(p))
-  @req ngens(R) == n^2 "The number of generators of the ring should match the square of the degree of the permutation group"
-  u = zero_matrix(R, n, n)
-  x = reshape(gens(R), n, n)
-  for (i, j) in inversions(p)
-    u[i, j] = - x[i, j]
-  end
-  return permutation_matrix(R, inv(p)) * (identity_matrix(R, n) + sum([u^k for k in 1:n - 1]))
-end
-
-function rothe_matrix_inv(R::MPolyRing{T}, w::WeylGroupElem) where T
-  W = parent(w)
-  phi = isomorphism(PermGroup, W)
-  return rothe_matrix_inv(R, phi(w))
-end
-
-################################################################################
 #TODO we should add bounds so that we dont have to compute determinants we don't need
 @doc raw"""
     compound_matrix(m::MatElem, k::Int)
