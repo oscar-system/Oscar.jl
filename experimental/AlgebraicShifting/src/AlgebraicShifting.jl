@@ -35,7 +35,7 @@ end
 
 """ eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 
-  Extended argmin function. Allows custum filter, default value and comparator.
+  Extended argmin function. Allows custom filter, default value and comparator.
 """
 function eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   best = nothing
