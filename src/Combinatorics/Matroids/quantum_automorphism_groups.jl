@@ -86,7 +86,7 @@ end
 
 Return the ideal that defines the quantum symmetric group on `n` elements.
 It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
-For `n >= 5`, a Gröbner basis is provided following the construction in [Sch25](@cite).
+For `n >= 5`, a Gröbner basis is provided following the construction in [SW25](@cite).
 If `reduced_gb` is set to `false`, the original generators are used to extend the Gröbner basis, which may improve reduction speed.
 
 The relations are:
