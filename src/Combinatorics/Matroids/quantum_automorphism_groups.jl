@@ -20,7 +20,7 @@ function _magic_unitary_symbols(n::Int=4)
 end
 
 function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
-  function rwel(k::Int, j::Int, h::Int=3, v::Int=3; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+  function rwel(k::Int, j::Int, h::Int=3, v::Int=3)
     return sum([u[2, k] * u[s, j] for s in h:n]; init=zero(T)) - sum([u[s, k] * u[1, j] for s in v:n]) + u[1, j] - u[2, k]
   end
 
