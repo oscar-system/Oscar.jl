@@ -37,14 +37,9 @@ export satisfies_disjointbasisproperty
 export selfprojecting_realization_space
 export selfprojecting_realization_ideal
 export selfprojecting_realization_matrix
-export inequations
-export defining_ideal
 export basisminors
 
 #Exports from for_database.jl
-export matroid 
-export realization_space
-export selfprojecting_realization_space
 export dim_r
 export dim_s
 export equality_of_realizationspaces
