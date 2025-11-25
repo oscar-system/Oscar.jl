@@ -84,7 +84,7 @@ means that an element returned by the iterator may be overwritten 'in place' in
 the next iteration step. This may result in significantly fewer memory allocations.
 However, using the in-place version is only meaningful
 if just one element of the iterator is needed at any time.
-For example, calling `collect` on thisiterator will not give useful results.
+For example, calling `collect` on this iterator will not give useful results.
 
 By a weak composition of `n` into `k` parts we mean a sequence of `k` non-negative
 integers whose sum is `n`.
