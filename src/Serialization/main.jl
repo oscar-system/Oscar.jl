@@ -537,7 +537,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array, Nothing})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
