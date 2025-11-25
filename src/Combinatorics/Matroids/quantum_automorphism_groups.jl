@@ -51,8 +51,8 @@ function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeA
   end
 
   function bg(z::Int, k::Int, j::Int, i::Int)
-    z == 2  && return u[k, 2] * inj(j, 3, i, u=u) - rinj(k, j, u=u) * u[i, 3] 
-    z == 8  && return u[2, k] * wel(3, j, i, u=u) - rwel(k, j, u=u) * u[3, i]
+    z == 2  && return u[k, 2] * inj(j, 3, i) - rinj(k, j) * u[i, 3] 
+    z == 8  && return u[2, k] * wel(3, j, i) - rwel(k, j) * u[3, i]
   end
 
   cs = [col_sum(i) for i in 1:n]
