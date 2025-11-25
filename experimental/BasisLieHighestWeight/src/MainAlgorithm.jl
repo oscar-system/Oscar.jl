@@ -105,9 +105,8 @@ function basis_coordinate_ring_kodaira_compute(
 
   @req degree > 0 "Degree must be positive"
   R = root_system(base_lie_algebra(V))
-  #highest_weight = WeightLatticeElem(R, highest_weight(V))
 
-  birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
+  birational_seq = birational_sequence(operators, R)
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
   if monomial_ordering_input isa Symbol
@@ -124,7 +123,7 @@ function basis_coordinate_ring_kodaira_compute(
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
-  monomials_k = Set{ZZMPolyRingElem}[]        # monomial basis of the module k*highest_weight
+  monomials_k = Set{ZZMPolyRingElem}[]        # monomial basis of the module k*highest_weight at index k
   monomials_new_k = Vector{ZZMPolyRingElem}[] # store the monomials that are not products of basis monomials of smaller degree
   sizehint!(monomials_k, degree)
   sizehint!(monomials_new_k, degree)
@@ -132,17 +131,6 @@ function basis_coordinate_ring_kodaira_compute(
 
   # start recursion over degree
   for i in 1:degree
-    monomials_minkowski_sum = Set{ZZMPolyRingElem}()
-    dim_i = dim_of_simple_module(base_lie_algebra(V), i * highest_weight(V))
-    # iterate over all minkowski sums of previous steps
-    for k in 1:div(i, 2)
-      set_help = Set([p * q for p in monomials_k[i - k] for q in monomials_k[k]])
-      union!(monomials_minkowski_sum, set_help)
-      if length(monomials_minkowski_sum) == dim_i
-        break
-      end
-    end
-
     if V isa SimpleModuleData
       V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
     elseif V isa DemazureModuleData
@@ -151,6 +139,16 @@ function basis_coordinate_ring_kodaira_compute(
       )
     else
       error("unreachable")
+    end
+    dim_i = dim(V_i)
+    monomials_minkowski_sum = Set{ZZMPolyRingElem}()
+    # iterate over all minkowski sums of previous steps
+    for k in 1:div(i, 2)
+      set_help = Set([p * q for p in monomials_k[i - k] for q in monomials_k[k]])
+      union!(monomials_minkowski_sum, set_help)
+      if length(monomials_minkowski_sum) == dim_i
+        break
+      end
     end
 
     if length(monomials_minkowski_sum) == dim_i
