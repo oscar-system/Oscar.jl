@@ -227,32 +227,7 @@ function compound_matrix(w::WeylGroupElem, k::Int)
   return compound_matrix(permutation_matrix(ZZ, iso(w)), k)
 end
 
-function compound_matrix(F::Field, subspace_dimension::Int, ambient_dimension::Int, uhg::UniformHypergraph)
-  combs = collect(combinations(ambient_dimension, subspace_dimension))
-  n_combs = length(combs)
-  vars = ["x_$i" => combs for i in 1:n_combs]
-  R, R_gens... = polynomial_ring(F, vars...)
-
-  I_gens = MPolyDecRingElem[]
-  row_indices = Int[]
-  for i in 0:n_combs - 1
-    # handle row relations
-    if collect(combs[i + 1]) in faces(uhg)
-      indices = collect(map(j -> j + i, 1:n_combs:n_combs^2))
-      append!(I_gens, gens(grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension; gen_indices=indices)))
-      push!(row_indices, i + 1)
-    end
-
-    #handle column relations
-    indices = collect(1 + i * n_combs:(i + 1) * n_combs)
-    append!(I_gens, gens(grassmann_pluecker_ideal(R, subspace_dimension, ambient_dimension; gen_indices=indices)))
-  end
-  I = ideal(I_gens)
-  graded_R = base_ring(I)
-  R_mod_I, phi = quo(graded_R, I)
-  return phi.(matrix(graded_R, reshape(graded_R.(reduce(vcat, R_gens)), n_combs, n_combs)))[row_indices, :]
-end
-
+# this corresponds to left B invariance
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
   row, col = indices
   row == col && return false
