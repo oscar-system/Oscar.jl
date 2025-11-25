@@ -709,5 +709,8 @@ end
   hg = Oscar.puiseux_expansion(g, 20; parent=parent(h))
   h + hg # test parent compatibility 
   @test is_zero(evaluate(g, [gen(parent(hg)), hg]))
+  
+  g = y^4 + x^2 + x^8
+  @test_throws ErrorException Oscar.puiseux_expansion(g, 20)
 end
 

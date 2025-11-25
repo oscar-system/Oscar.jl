@@ -15,8 +15,18 @@ function _puiseux(f::MPolyRingElem{T}, max_deg::Int, at_origin::Bool=true) where
   SP = singular_poly_ring(P)
   Sf = SP(f)
   raw = Singular.LibPuiseuxexpansions.puiseux(Sf, max_deg, Int(at_origin))
-  result = Tuple{typeof(f), Int}[(P(h), e) for (h, e, _) in raw]
+  @assert length(raw) == 1 "longer list then expected for output"
+  return _process_result(P, raw[1]...)
 end
+
+function _process_result(P::MPolyRing, SE::Singular.PolyRing, res::Dict, rest...)
+  error("processing of result from Singular is not yet implemented")
+end
+
+function _process_result(P::MPolyRing, h::Singular.spoly, e::Int, rest...)
+  return P(h), e
+end
+
 
 # Method to create the default Oscar parent for the Puiseux expansion of `f`. 
 function _puiseux_parent(f::MPolyRingElem, prec::Int)
@@ -59,9 +69,7 @@ function puiseux_expansion(
   x, y = gens(R)
   xx = gen(parent)
   prec = max_precision(parent)
-  pdat = _puiseux(f, prec, true)
-  @assert isone(length(pdat)) "a longer list was returned than anticipated"
-  h, e = only(pdat)
+  h, e = _puiseux(f, prec, true)
   # h should have no terms involving y^k for k > 0
   hh = evaluate(h, [xx^(1//e), zero(xx)])
   return hh
