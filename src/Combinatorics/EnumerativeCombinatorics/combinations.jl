@@ -1,8 +1,15 @@
 @doc raw"""
-    combinations(n::IntegerUnion, k::IntegerUnion)
+    combinations(n::IntegerUnion, k::IntegerUnion; inplace::Bool=false)
 
 Return an iterator over all $k$-combinations of ${1,...,n}$, produced in
 lexicographically ascending order.
+
+If `inplace` is `true`, the elements of the iterator may share their memory. This
+means that an element returned by the iterator may be overwritten 'in place' in
+the next iteration step. This may result in significantly fewer memory allocations.
+However, using the in-place version is only meaningful
+if just one element of the iterator is needed at any time.
+For example, calling `collect` on this iterator will not give useful results.
 
 # Examples
 
@@ -18,7 +25,7 @@ julia> collect(C)
  [2, 3, 4]
 ```
 """
-combinations(n::T, k::T) where T<:IntegerUnion = Combinations(Base.oneto(n), n, k)
+combinations(n::T, k::T; inplace::Bool = false) where T<:IntegerUnion = Combinations(Base.oneto(n), n, k, inplace)
 
 @doc raw"""
     combinations(v::AbstractVector, k::IntegerUnion)
@@ -42,8 +49,6 @@ julia> collect(C)
 """
 combinations(v::AbstractVector, k::IntegerUnion) = Combinations(v, k)
 
-Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
-
 @inline function Base.iterate(C::Combinations{<:AbstractVector{T}, U}, state::Vector{U} = U[min(C.k - 1, i) for i in Base.oneto(C.k)]) where {T, U<:IntegerUnion}
   if is_zero(C.k) # special case to generate 1 result for k = 0
     if isempty(state)
@@ -64,12 +69,26 @@ Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T
   if state[1] > C.n - C.k + 1
     return nothing
   end
-  return Combination{T}(C.v[state]), state
+  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[state])
+  return c, state
 end
 
-Base.length(C::Combinations) = binomial(Int(C.n), Int(C.k))
-
 Base.eltype(::Type{<:Combinations{T}}) where {T} = Combination{eltype(T)}
+
+@doc raw"""
+    number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
+
+Return the number of $k$-combinations of ${1, \ldots, n}$.
+If `n < 0` or `k < 0`, return `0`.
+"""
+function number_of_combinations(n::IntegerUnion, k::IntegerUnion)
+  if n < 0 || k < 0
+    return ZZ(0)
+  end
+  return binomial(ZZ(n), ZZ(k))
+end
+
+Base.length(C::Combinations) = BigInt(number_of_combinations(C.n, C.k))
 
 function Base.show(io::IO, C::Combinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
