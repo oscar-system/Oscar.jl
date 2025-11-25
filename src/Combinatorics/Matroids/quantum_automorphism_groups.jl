@@ -88,7 +88,6 @@ Return the ideal that defines the quantum symmetric group on `n` elements.
 It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
 For `n >= 5`, a Gröbner basis is provided following the construction in [Sch25](@cite).
 If `reduced_gb` is set to `false`, the original generators are used to extend the Gröbner basis, which may improve reduction speed.
-The `unicode` argument controls whether Unicode subscripts are used for the generators.
 
 The relations are:
 
@@ -105,8 +104,8 @@ julia> length(gens(S4))
 120
 ```
 """
-function quantum_symmetric_group(n::Int; unicode::Bool=false, reduced_gb::Bool=true)
-  if unicode
+function quantum_symmetric_group(n::Int; reduced_gb::Bool=true)
+  if Oscar.is_unicode_allowed()
     A, u = free_associative_algebra(QQ, _magic_unitary_symbols(n))
   else
     A, u = free_associative_algebra(QQ, :u => (1:n, 1:n))
