@@ -82,7 +82,7 @@ end
 
 
 @doc raw"""
-    quantum_symmetric_group(n::Int; unicode::Bool=false, reduced_gb::Bool=true)
+    quantum_symmetric_group(n::Int; reduced_gb::Bool=true)
 
 Return the ideal that defines the quantum symmetric group on `n` elements.
 It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
