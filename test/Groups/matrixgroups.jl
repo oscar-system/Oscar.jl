@@ -134,7 +134,7 @@ end
      end
 
      H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
-     f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
+     f = Oscar.GAPWrap.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
 
@@ -669,6 +669,24 @@ end
    @test length(conjugacy_classes(G))==8
    @test length(@inferred subgroup_classes(G))==16
    @test length(@inferred maximal_subgroup_classes(G))==3
+end
+
+@testset "centralizers in matrix groups" begin
+   # Oscar computes the centralizer and its order
+   G = GL(6, 2)
+   x = gen(G, 1)
+   C, emb = centralizer(G, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test order(C) == 10321920
+   @test !isdefined(C, :X)
+
+   # GAP computes the centralizer
+   U, _ = sylow_subgroup(GL(4, 2), 2)
+   x = gen(U, 1)
+   C, emb = centralizer(U, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test isdefined(C, :X)
+   @test order(C) == 16
 end
 
 @testset "Jordan structure" begin

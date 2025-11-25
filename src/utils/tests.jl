@@ -33,6 +33,7 @@ function _gather_tests(path::AbstractString; ignore=[])
                      # this can only run on the main process and not on distributed workers
                      # so it is included directly in runtests
                      r"Serialization/IPC(\.jl)?$",
+                     r"MultigradedImplicitization(\.jl)?$",              
                      # ignore book example code (except for main file)
                      r"(^|/)book/.*/.*\.jl$",
                    ]

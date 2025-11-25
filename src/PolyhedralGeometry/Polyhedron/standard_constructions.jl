@@ -181,12 +181,13 @@ julia> vertices(P)
 ```
 """
 function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
-  Vhom = stack(homogenized_matrix(V, 1), nothing)
+  parent_field, scalar_type = _determine_parent_and_scalar(_guess_fieldelem_type(V), V)
+  Vhom = homogenized_matrix(parent_field, V, 1)
   @req size(Vhom, 2) == degree(G) + 1 "Dimension of points and group degree need to be the same"
   generators = PermGroup_to_polymake_array(G)
   pmGroup = Polymake.group.PermutationAction(; GENERATORS=generators)
   pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
-  return Polyhedron{QQFieldElem}(pmPolytope)
+  return Polyhedron{scalar_type}(pmPolytope)
 end
 
 @doc raw"""
@@ -2398,20 +2399,19 @@ vectors.
 The following creates the vertices of a parallelogram with the origin as its vertex barycenter.
 ```jldoctest
 julia> zonotope_vertices_fukuda_matrix([1 1 0; 1 1 1])
-pm::Matrix<pm::Rational>
--1 -1 -1/2
-0 0 -1/2
-0 0 1/2
-1 1 1/2
+[-1   -1   -1//2]
+[ 0    0   -1//2]
+[ 0    0    1//2]
+[ 1    1    1//2]
 ```
 """
 function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
-  A = M
-  if eltype(M) <: Union{Integer,ZZRingElem}
-    A = Polymake.Matrix{Polymake.Rational}(convert(Polymake.PolymakeType, M))
-  end
-  return Oscar.dehomogenize(
-    Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A, 1))
+  parent_field, _ = _determine_parent_and_scalar(_guess_fieldelem_type(M), M)
+  return matrix(
+    parent_field,
+    dehomogenize(
+      Polymake.polytope.zonotope_vertices_fukuda(homogenized_matrix(parent_field, M, 1))
+    ),
   )
 end
 

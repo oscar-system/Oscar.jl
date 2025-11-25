@@ -195,6 +195,7 @@ function doit(
       clean=true,
       doctest=false,
       warnonly=warnonly,
+      treat_markdown_warnings_as_error=!warnonly,
       checkdocs=:none,
       pages=doc,
       remotes=Dict(

@@ -537,7 +537,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array, Nothing})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
@@ -863,9 +863,7 @@ _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dic
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
-
 
 function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
   vp_pair = filter(x -> :value_params == x.first, params(tp))

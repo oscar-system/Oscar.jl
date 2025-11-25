@@ -82,4 +82,10 @@
   @test collect(multicombinations(0, 0)) == [Int[]]
   @test collect(multicombinations(0, 1)) == []
 
+  @testset "inplace iteration" begin
+    Ci = multicombinations(5,3, inplace=true)
+    Cf = multicombinations(5,3)
+    @test all(splat(==), zip(Ci, Cf))
+  end
+
 end
