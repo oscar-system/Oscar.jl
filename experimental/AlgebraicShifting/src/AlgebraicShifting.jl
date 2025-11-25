@@ -18,7 +18,8 @@ export uniform_hypergraph
 export eargmin
 export efindmin
 
-function independent_columns(A::MatElem)
+
+function pivot_columns(A::MatElem)
   col_indices = Int[]
   row_index = 1
   row_bound = nrows(A)
@@ -77,55 +78,15 @@ function _domination(s1::Combination{Int}, s2::Combination{Int})
   return all([v1[i] <= v2[i] for i in 1:length(v1)])
 end
 
+# check for higher co faces
 function larger_cols(c::Combination{Int}, col_sets::Vector{Combination{Int}})
   col_sets[findall(x -> _domination(c, x), col_sets)]
-end
-
-function _find_evaluations(dep_col_index::Int,
-                           cols::Vector{Combination{Int}},
-                           generic_rothe::AbstractAlgebra.Generic.MatSpaceElem{<:MPolyRingElem{T}},
-                           random_rothe::MatElem{T}) where T <: FieldElem
-  evaluations = Set{Tuple{MPolyRingElem{T}, T}}([])
-  generic_cols = cols[1:dep_col_index - 1]
-  for g_col in generic_cols
-    for i in 1:nrows(generic_rothe), j in g_col
-      (is_unit(generic_rothe[i, j]) || iszero(generic_rothe[i, j])) && continue
-      push!(evaluations, (generic_rothe[i, j], random_rothe[i, j]))
-    end
-  end
-  return collect.(zip(evaluations...))
-end
-
-function _check_schur_complements(M::MatElem)
-  n = ncols(M)
-  P = M[1:n - 1, 1:n - 1]
-  Q = M[1:n - 1, n]
-
-  F = fraction_field(base_ring(M))
-  y = solve(F.(P), F.(Q); side=:right)
-
-  non_singular = false
-  best_i = -1
-  sum_terms = typemax(Int)
-  for i in n:nrows(M)
-    r = M[i, 1:n - 1]
-    s = M[i, n]
-    if !iszero(dot(r, y) - s)
-      non_singular = true
-      s = sum(length.(M[i, :]))
-      if sum_terms > s
-        best_i, sum_terms = i, s
-      end
-    end
-  end
-  return non_singular, best_i
 end
 
 function check_dep_cols(m::AbstractAlgebra.Generic.MatSpaceElem{T},
                         cols_to_check::Vector{Int},
                         dependent_columns::Vector{Int},
                         col_sets::Vector{Combination{Int}}) where T <: MPolyRingElem
-
   for col in cols_to_check
     if !iszero(m[:, col])
       col_indices = [col_index for col_index in 1:col if !(col_index in dependent_columns)]
@@ -234,69 +195,3 @@ function lex_min_col_basis(m::AbstractAlgebra.Generic.MatSpaceElem{T},
   return false
 end
 
-function rank_dropped(M::MatElem{<:MPolyRingElem})
-  rk = 0
-  #for i=1:nrows(M)
-  #  c = content(M[i:i, :])
-  #  if !isone(c)
-  #    M[i, :] = divexact(M[i:i, :], c)
-  #  end
-  #end
-  j = 1
-  for i=1:nrows(M)
-    best_j = 0
-    best_t = typemax(Int)
-    while j <= ncols(M) 
-      best_i = [0]
-      best_t = 0
-      for ii = i:nrows(M)
-        if is_zero_entry(M, ii, j)
-          continue
-        end
-        if best_i == [0]
-          best_i = ii
-          best_t = length(M[ii,j])
-        elseif is_unit(M[ii, j])
-          best_i = ii
-          break
-        elseif best_t > length(M[ii, j])
-          best_t = length(M[ii, j])
-          best_i = ii
-        # elseif best_t == length(M[ii, j])
-          # push!(best_i, ii)
-        end
-      end
-
-      if first(best_i) == 0
-        j += 1
-        continue
-      end
-      best_row_index = best_i
-      # best_row_index = eargmin(ii -> -sum(iszero.(M[ii, j:end])), best_i;)
-      if best_row_index > i
-        M = swap_rows!(M, i, best_row_index)
-      end
-      break
-    end
-    if j > ncols(M)
-      return iszero(M[end, :])
-    end
-    rk += 1
-
-    for k=i+1:nrows(M)
-      if iszero(M[k, j])
-        continue
-      end
-      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
-      M[k, :] = b*M[k:k, :] - a * M[i:i, :]
-      M[k, :] = divexact(M[k:k, :], content(M[k:k, :]))
-      if iszero(M[k, :])
-        M = swap_rows!(M, k, nrows(M))
-        return true
-      end
-    end
-    
-    j += 1
-  end
-  return false
-end

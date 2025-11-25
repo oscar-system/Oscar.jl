@@ -285,7 +285,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff
   else
     rref!(c) #TODO could use ref! with different heuristic
   end
-  result = uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
+  result = uniform_hypergraph(nCk[pivot_columns(c)], n_vertices(K), face_size(K))
   @assert length(faces(result)) == length(faces(K)) "Shifting by invertible `g` should preserve size of hypergraph."
   return result
 end
@@ -418,11 +418,12 @@ function check_shifted(F::Field,
   num_rows = length(faces(src))
   n = n_vertices(src)
   k = face_size(src)
+  # check if we can use properties of the target being a shifted family (higher coface elimination)
   full_shift = (p == perm(reverse(1:n)))
   nCk = combinations(n, k)
   # limits the columns by the max face of source
   col_sets = [c for c in nCk if c < max_face]
-  # restricted columns is used when we know a priori that certain columns
+  # restricted columns is used when we know apriori that certain columns
   # cannot appear in the shifted complex.
   # for example when we know that a column corresponds to a face that contains
   # a lower dimensional non face
@@ -467,7 +468,6 @@ function check_shifted(F::Field,
     end
     isempty(cols_to_check) && return true
 
-    #return check_dep_cols(M, cols_to_check, dep_col_inds, col_sets)
     max_col = max(cols_to_check...)
     !lex_min_col_basis(M[:, 1:max_col], src, cols_to_check, dep_col_inds; full_shift=full_shift) && return false
   end
@@ -492,13 +492,9 @@ function check_shifted(F::Field,
     k += 1
 
     if k <= length(f_vec)
+      # find all higher dim faces that do not contain a lower dimensional non face
       restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(combinations(n, k)))
-
-
-      println(setdiff(faces(uniform_hypergraph(target, k)), [union(1, f) for f in faces(uhg_target) if !(1 in f)]))
-      #println([collect(c) for c in combinations(n, k + 1) if !(c in ) && 1 in c && (c in restricted_cols)])
     end
-
   end
   return true
 end
