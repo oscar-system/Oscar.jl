@@ -1,8 +1,94 @@
+
+
+function _index_number(i::Int)
+  dgs = reverse(digits(i))
+  return join(["₀₁₂₃₄₅₆₇₈₉"[3*d+1] for d in dgs], "") 
+end
+
+function _magic_unitary_symbols(n::Int=4)
+  u = Matrix{String}(undef, n, n)
+  for i in 1:n
+    for j in 1:n
+      if i > 9 || j > 9
+        u[i, j] = "u$(_index_number(i))₋$(_index_number(j))"
+      else
+        u[i, j] = "u$(_index_number(i))$(_index_number(j))"
+      end
+    end
+  end
+  return u
+end
+
+function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+  function rwel(k::Int, j::Int, h::Int=3, v::Int=3; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    return sum([u[2, k] * u[s, j] for s in h:n]; init=zero(T)) - sum([u[s, k] * u[1, j] for s in v:n]) + u[1, j] - u[2, k]
+  end
+
+  function rinj(k::Int, j::Int, h::Int=3, v::Int=3; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where {T}
+    n = size(u)[1]
+    return sum([u[k, 2] * u[j, s] for s in h:n]) - sum([u[k, s] * u[j, 1] for s in v:n]) + u[j, 1] - u[k, 2]
+  end
+
+  function wel(i::Int, j::Int, k::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    @assert 1 <= i <= size(u)[1] && 1 <= j <= size(u)[2] && 1 <= k <= size(u)[2] "Indices out of bounds"
+    return u[i, j] * u[i, k]
+  end
+
+  function inj(i::Int, j::Int, k::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    @assert 1 <= i <= size(u)[1] && 1 <= j <= size(u)[2] && 1 <= k <= size(u)[1] "Indices out of bounds"
+    return u[i, j] * u[k, j]
+  end
+
+  function ip(i::Int, j::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    @assert 1 <= i <= size(u)[1] && 1 <= j <= size(u)[2] "Indices out of bounds"
+    return u[i, j] * u[i, j] - u[i, j]
+  end
+  function row_sum(i::Int, u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    return sum([u[i, x] for x in 1:size(u)[1]]) - one(parent(u[1, 1]))
+  end
+  function col_sum(i::Int, u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    return sum([u[x, i] for x in 1:size(u)[1]]) - one(parent(u[1, 1]))
+  end
+
+  function bg(z::Int, k::Int, j::Int, i::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
+    z == 2  && return u[k, 2] * inj(j, 3, i, u=u) - rinj(k, j, u=u) * u[i, 3] 
+    z == 8  && return u[2, k] * wel(3, j, i, u=u) - rwel(k, j, u=u) * u[3, i]
+  end
+
+  cs = [col_sum(i, u) for i in 1:n]
+  rs = [row_sum(i, u) for i in 2:n]
+
+  ips = [ip(i,j; u=u) for i in 2:n for j in 2:n]
+  wels = [wel(i,j,k;u=u) for i in 2:n for j in 2:n for k in 2:n if j != k]
+  injs = [inj(i,j,k; u=u) for i in 2:n for j in 2:n for k in 2:n if i != k]
+  rwels = [rwel(k, j; u=u) for j in 2:n for k in 2:n if  k != j &&!(j == 3 && k == 2)]
+  rinjs = [rinj(k, j; u=u) for j in 2:n for k in 2:n if k != j]
+
+  e1 = [bg(2,k,j,i;u=u) for k=3:n for j=3:n for i=2:n if i!=j && j!=k]
+  e1_s = [bg(8,k,j,i;u=u) for k=3:n for j=3:n for i=2:n if i!=j && j!=k]
+  e2 = [bg(2,k,2,i;u=u) for k=3:n for i=4:n]
+
+  e2_s = [bg(8,k,2,i;u=u) for k=3:n for i=4:n]
+  e3 = [bg(2,2,j,i;u=u) for j in 5:n for i in 2:n if j!=i]
+  e3_s = [bg(8,2,j,i;u=u) for j in 5:n for i in 2:n if j!=i]
+  e4 = [bg(2,2,4,i;u=u) for i in 2:n if 4!=i && 3!=i]
+  e4_s = [bg(8,2,4,i;u=u) for i in 2:n if 4!=i && 3!=i]
+  e5 = [bg(2,2,4,3;u=u)]
+
+  return vcat(cs, rs, ips, wels, injs, rwels, rinjs, e1, e1_s, e2, e2_s, e3, e3_s, e4, e4_s, e5)
+
+end
+
+
+
 @doc raw"""
-    quantum_symmetric_group(n::Int)
+    quantum_symmetric_group(n::Int; unicode::Bool=false, reduced_gb::Bool=true)
 
 Return the ideal that defines the quantum symmetric group on `n` elements.
 It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
+For `n >= 5`, a Gröbner basis is provided following the construction in [Sch25](@cite).
+If `reduced_gb` is set to `false`, the original generators are used to extend the Gröbner basis, which may improve reduction speed.
+The `unicode` argument controls whether Unicode subscripts are used for the generators.
 
 The relations are:
 
@@ -19,8 +105,12 @@ julia> length(gens(S4))
 120
 ```
 """
-function quantum_symmetric_group(n::Int)
-  A, u = free_associative_algebra(QQ, :u => (1:n, 1:n))
+function quantum_symmetric_group(n::Int; unicode::Bool=false, reduced_gb::Bool=true)
+  if unicode
+    A, u = free_associative_algebra(QQ, _magic_unitary_symbols(n))
+  else
+    A, u = free_associative_algebra(QQ, :u => (1:n, 1:n))
+  end
 
   relations = elem_type(A)[]
 
@@ -42,9 +132,19 @@ function quantum_symmetric_group(n::Int)
   for i in 1:n
     push!(relations, sum(u[i,:]) - 1)
     push!(relations, sum(u[:,i]) - 1)
-
   end
-  return ideal(relations)
+  
+  I = ideal(relations)
+
+  if n >= 5
+    gb = _quantum_symmetric_group_groebner_basis(n; u=u)
+    if !reduced_gb
+      gb = vcat(gens(I), gb)
+    end
+    I.gb = IdealGens(gb)
+  end
+
+  return I
 end
 
 @doc raw"""
