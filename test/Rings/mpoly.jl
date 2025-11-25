@@ -699,3 +699,15 @@ end
   @test !is_one(radical(I))
 end
 
+@testset "puiseux expansion" begin
+  R, (x, y) = QQ[:x, :y]
+  f = y^3 + x^2 + x^8
+  h = Oscar.puiseux_expansion(f, 15)
+  @test is_zero(evaluate(f, [gen(parent(h)), h]))
+
+  g = f + y^7
+  hg = Oscar.puiseux_expansion(f, 15; parent=parent(h))
+  h + hg # test parent compatibility 
+  @test is_zero(evaluate(g, [gen(parent(hg)), hg]))
+end
+
