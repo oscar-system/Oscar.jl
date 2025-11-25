@@ -78,10 +78,6 @@ function symmetric_shift(K::UniformHypergraph, g::MatElem)
   return faces
 end
 
-# function random_rep_bruhat_cell(F::QQField, p::PermGroupElem; n_samples==100, timed=false, kw..)
-#   
-# end
-
 function symmetric_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
   # this might need to be changed based on the characteristic
   # we expect that the larger the characteristic the smaller the sample needs to be
