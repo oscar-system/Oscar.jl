@@ -18,9 +18,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             "introduction/introduction/julia3.jlcon",
            ]
   skipped = [
-             # Something broken, probably needs some updated GAP packages
-             "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
-
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
