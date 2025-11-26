@@ -35,7 +35,7 @@ monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 
 birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
-function volume_of_polytope(basis::MonomialBasis) 
+function volume_of_polytope(basis::MonomialBasis)
   if has_attribute(basis, :volume_of_polytope)
     return get_attribute(basis, :volume_of_polytope)
   else
