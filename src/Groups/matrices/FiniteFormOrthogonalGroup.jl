@@ -1548,7 +1548,7 @@ function _test_isotropic_stabilizer_orders(
   G = orthogonal_group(T)
   for (iH, iS) in _stabilizer_isotropic(T, r)
     n1 = order(domain(iS))
-    n2 = order(_stabilizer(G, domain(iH))[1])
+    n2 = order(stabilizer(G, iH)[1])
     if n1 != n2 
       @show n2//n1
     end
@@ -1556,19 +1556,3 @@ function _test_isotropic_stabilizer_orders(
   end
   return true
 end
-
-function _stabilizer(G::AutomorphismGroup, j::TorQuadModuleMap)
-  to_gap = get_attribute(G, :to_gap)
-  Dgap = codomain(to_gap)
-  T = domain(j)
-  Tgap = sub(Dgap, to_gap.(j.(gens(T))))[1]
-  return stabilizer(G, Tgap, on_subgroups)
-end
-
-function _stabilizer(G::AutomorphismGroup, T::TorQuadModule)
-  to_gap = get_attribute(G,:to_gap)
-  D = domain(G)
-  Dgap = codomain(to_gap)
-  Tgap = sub(Dgap, to_gap.(D.(lift.(gens(T)))))[1]
-  return stabilizer(G, Tgap, on_subgroups)
-end 
