@@ -52,19 +52,19 @@ julia> B = QQ[0 2; 1 0]
 julia> RR = real_field()
 Real field
 
-julia> with_precision(RR, 64) do
-         eigenvalues(RR, B)
-      end
+julia> set_precision!(RR, 64) do
+           eigenvalues(RR, B)
+       end
 2-element Vector{RealFieldElem}:
- [-1.4142135623730950488 +/- 1.69e-21]
- [1.4142135623730950488 +/- 1.69e-21]
+ [-1.41421356 +/- 3.83e-9]
+ [1.41421356 +/- 3.83e-9]
 
-julia> with_precision(RR, 128) do
-         eigenvalues(RR, B)
-      end
+julia> set_precision!(RR, 128) do
+           eigenvalues(RR, B)
+       end
 2-element Vector{RealFieldElem}:
- [-1.41421356237309504880168872420969807857 +/- 3.29e-40]
- [1.41421356237309504880168872420969807857 +/- 3.29e-40]
+ [-1.41421356 +/- 3.83e-9]
+ [1.41421356 +/- 3.83e-9]
 ```
 
 ```@docs
@@ -111,7 +111,7 @@ Dict{QQBarFieldElem, AbstractAlgebra.Generic.MatSpaceElem{QQBarFieldElem}} with 
   {a2: -1.00*im} => [{a2: 1.00000*im} {a1: 1.00000} {a1: 0}]
   
 ```
-We note that eigenspaces of matrices over inexact fields are mathematically not well-defined. Hence, their computation is forbidden in OSCAR. 
+We note that eigenspaces of floating point matrices are not well defined. Hence, their computation is forbidden in OSCAR. 
 
 ```@docs
 eigenspace
