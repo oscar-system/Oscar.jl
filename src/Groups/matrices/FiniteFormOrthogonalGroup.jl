@@ -1057,13 +1057,62 @@ end
 # Stabilizers of isotropic subspaces under orthogonal groups.
 ######################################################################################
 
+"""
+    _isotropic_subspaces_representatives(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int)
+    
+Return orbit representatives and stabilizers of the totally isotropic subspaces of `T` of a given rank 
+under a group ``G`` given as the image of `iG`.
+
+Input:
+- `iG` must be a homomorphism `G -> orthogonal_group(G)` 
+"""
+function _isotropic_subspaces_representatives(
+    T::TorQuadModule,
+    iG::GAPGroupHomomorphism,
+    rank::Int,
+  )
+  b, p = is_elementary_with_prime(T)
+  @req b "T must be elementary"
+  dcs = _stabilizer_isotropic(T, rank)
+  O = orthogonal_group(T)
+  to_perm = isomorphism(PermGroup, O)
+  Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
+  to_perm = compose(to_perm, to_perm2)
+  G = domain(iG)
+  Op = codomain(to_perm)
+  Gp, _ = compose(iG, to_perm)(G)
+  #@time Gp,_ = sub(Gp,small_generating_set(Gp))
+  reps = TorQuadModule[]
+  for (iH, iS) in dcs
+    Sp, _ = to_perm(domain(iS))
+    #@time Sp,_ = sub(Sp,small_generating_set(Sp))
+    #println("computing double cosets")
+    order(Op)
+    order(Sp)
+    order(Gp)
+    dc = double_cosets(Op, Sp, Gp)
+    for SxG in dc
+      xp = representative(SxG)
+      x = preimage(to_perm, xp)
+      push!(reps, on_subgroups_slow(domain(iH), x))
+    end
+  end
+  return reps
+end
+
+
+"""
+    _stabilizer_isotropic(T::TorQuadModule, rank::Int)
+
+Return orbit representatives and stabilizers of totally isotropic subspaces of ``T`` of the given rank 
+under the action of its orthogonal group ``O(T)``.
+"""
 function _stabilizer_isotropic(
     T::TorQuadModule,
-    rank::Int,
-    p,
+    rank::Int
   )
-  p = ZZ(p)
-  @assert is_primary(T, p)
+  b, p = is_elementary_with_prime(T)
+  @req b "T must be a p-elementary for some prime p"
   O = orthogonal_group(T)
   N, TtoN = normal_form(T)
   # Now we need to lift the subspaces
@@ -1366,7 +1415,7 @@ function _stabilizer_isotropic_semiregular_special(
   elseif characteristic(R) == 2
     # bilinear form case
      _G_1 = diagonal_matrix([G_1, R[1;]])
-    tmp = RT[diagonal_matrix([I2r, f[1:end-1,1:end-1]]) for f in _gens_mod_2(_G_1)]
+    tmp = RT[diagonal_matrix([I2r, f]) for f in _orthogonal_gens_bilinear(G_1)]
   end 
   append!(S1, tmp)
   # Generators of the kernel of f_2
@@ -1376,7 +1425,7 @@ function _stabilizer_isotropic_semiregular_special(
   # S 0 I
   # then squeeze out some linear equations
   t = 0
-  if p==2 && 0 < 2*r < n && G[2*r+1, 2*r+1] == 2 && (2*r+1==n || G[2*r+1, r*r+2]==0)
+  if characteristic(R)==4 && 0 < 2*r < n && G[2*r+1, 2*r+1] == 2 && (2*r+1==n || G[2*r+1, r*r+2]==0)
     # G = 
     # 0 I 0 0
     # I 0 0 0
@@ -1388,11 +1437,17 @@ function _stabilizer_isotropic_semiregular_special(
     # 0 0 1 0
     # 0 0 0 I
     t=1
-    g = identity_matrix(R, n) 
+    g = identity_matrix(R, n)
     g[r+1, 2*r+1] = 1
     g[r+1, 1]   = 1
     push!(S1, g)
   end
+    
+#   display(G)
+#   for g in S1
+#     println()
+#     display(g*G*transpose(g) - G)
+#   end
   tmp = RT[]
   if r > 0 # avoid a corner case
     for i in 1:(k-e-t)
@@ -1442,10 +1497,6 @@ function _stabilizer_isotropic_semiregular_special(
     end 
     push!(S1, g)
   end
-#   for g in S1
-#     println()
-#     display(g*G*transpose(g) - G)
-#   end
   if flag && r > 0
     S = identity_matrix(R, n)
     S[1, end-1] = 1
@@ -1467,7 +1518,11 @@ function _stabilizer_isotropic_semiregular_special(
   return S1
 end
 
-# slow but convenient
+##################################################################################################
+#
+#  Stuff for testing
+#
+##################################################################################################
 function on_subgroups_slow(T::TorQuadModule, g::GAPGroupElem)
   G = parent(g)
   D = domain(G)
@@ -1477,11 +1532,10 @@ end
 
 function _test_isotropic_stabilizer_orders(
     T::TorQuadModule,
-    r::Int,
-    p::Hecke.IntegerUnion,
+    r::Int
   )
   G = orthogonal_group(T)
-  for (iH, iS) in _stabilizer_isotropic(T, r, p)
+  for (iH, iS) in _stabilizer_isotropic(T, r)
     n1 = order(domain(iS))
     n2 = order(_stabilizer(G, domain(iH))[1])
     if n1 != n2 
@@ -1507,37 +1561,3 @@ function _stabilizer(G::AutomorphismGroup, T::TorQuadModule)
   Tgap = sub(Dgap, to_gap.(D.(lift.(gens(T)))))[1]
   return stabilizer(G, Tgap, on_subgroups)
 end 
-
-function _isotropic_subspaces_representatives(
-    T::TorQuadModule,
-    iG::GAPGroupHomomorphism,
-    rank::Int,
-  )
-  b, p = is_elementary_with_prime(T)
-  @req b "T must be elementary"
-  dcs = _stabilizer_isotropic(T, rank, p)
-  O = orthogonal_group(T)
-  to_perm = isomorphism(PermGroup, O)
-  Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
-  to_perm = compose(to_perm, to_perm2)
-  G = domain(iG)
-  Op = codomain(to_perm)
-  Gp, _ = compose(iG, to_perm)(G)
-  #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = TorQuadModule[]
-  for (iH, iS) in dcs
-    Sp, _ = to_perm(domain(iS))
-    #@time Sp,_ = sub(Sp,small_generating_set(Sp))
-    println("computing double cosets")
-    order(Op)
-    order(Sp)
-    order(Gp)
-    dc = double_cosets(Op, Sp, Gp)
-    for SxG in dc
-      xp = representative(SxG)
-      x = preimage(to_perm, xp)
-      push!(reps, on_subgroups_slow(domain(iH), x))
-    end
-  end
-  return reps
-end
