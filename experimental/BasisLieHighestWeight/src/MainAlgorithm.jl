@@ -50,9 +50,13 @@ function basis_lie_highest_weight_compute(
     zero(weight_lattice(R)) => Set((ZZx(1),))
   )
 
-  vertices_of_polytope = Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}}(
-    zero(weight_lattice(R)) => [convert_to_point(ZZx(1))]
-  )
+  if compute_polytope
+    vertices_of_polytope = Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}}(
+      zero(weight_lattice(R)) => [convert_to_point(ZZx(1))]
+    )
+  else
+    vertices_of_polytope = nothing
+  end
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
@@ -65,8 +69,7 @@ function basis_lie_highest_weight_compute(
     monomial_ordering,
     calc_highest_weight,
     vertices_of_polytope,
-    no_minkowski;
-    compute_polytope,
+    no_minkowski,
   )
   # monomials = sort(collect(monomials); order=monomial_ordering)
   minkowski_gens = sort(
@@ -94,10 +97,12 @@ function basis_lie_highest_weight_compute(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
 
-  compute_polytope && set_attribute!(
-    mb,
-    :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])),
-  )
+  if !isnothing(vertices_of_polytope) 
+    set_attribute!(
+      mb,
+      :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])),
+    )
+  end
   return mb, monomials
 end
 
@@ -234,9 +239,8 @@ function compute_monomials(
   ZZx::ZZMPolyRing,
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
-  vertices_of_polytope::Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}},
-  no_minkowski::Set{WeightLatticeElem};
-  compute_polytope::Bool,
+  vertices_of_polytope::Union{Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}}, Nothing},
+  no_minkowski::Set{WeightLatticeElem},
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
@@ -263,15 +267,19 @@ function compute_monomials(
       V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
-    compute_polytope && push!(
-      vertices_of_polytope,
-      highest_weight(V) => reduce_to_vertices(convert_to_point.(monomials)),
-    )
+    if !isnothing(vertices_of_polytope) 
+      push!(
+        vertices_of_polytope,
+        highest_weight(V) => reduce_to_vertices(convert_to_point.(monomials)),
+      )
+    end
     return monomials
   else
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
-    possible_vertices = Vector{PointVector{QQFieldElem}}()
+    if !isnothing(vertices_of_polytope)
+      possible_vertices = Vector{PointVector{QQFieldElem}}()
+    end
     sub_weights = sub_weights_proper(highest_weight(V))
     sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
     # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
@@ -300,8 +308,7 @@ function compute_monomials(
         monomial_ordering,
         calc_highest_weight,
         vertices_of_polytope,
-        no_minkowski;
-        compute_polytope,
+        no_minkowski,
       )
       mon_lambda_2 = compute_monomials(
         M_lambda_2,
@@ -310,19 +317,20 @@ function compute_monomials(
         monomial_ordering,
         calc_highest_weight,
         vertices_of_polytope,
-        no_minkowski;
-        compute_polytope,
+        no_minkowski,
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
-      compute_polytope && append!(
-        possible_vertices,
-        (
-          p + q for p in vertices_of_polytope[lambda_1] for
-          q in vertices_of_polytope[lambda_2]
-        ),
-      )
+      if !isnothing(vertices_of_polytope) 
+        append!(
+          possible_vertices,
+          (
+           p + q for p in vertices_of_polytope[lambda_1] for
+           q in vertices_of_polytope[lambda_2]
+          ),
+        )
+      end
     end
     # check if we found enough monomials
 
@@ -331,13 +339,17 @@ function compute_monomials(
       monomials, new_monomials = add_by_hand(
         V, birational_seq, ZZx, monomial_ordering, monomials
       )
-      compute_polytope && append!(possible_vertices, convert_to_point.(new_monomials))
+      if !isnothing(vertices_of_polytope) 
+        append!(possible_vertices, convert_to_point.(new_monomials))
+      end
     end
 
     push!(calc_highest_weight, highest_weight(V) => monomials)
-    compute_polytope && push!(
-      vertices_of_polytope, highest_weight(V) => reduce_to_vertices(possible_vertices)
-    )
+    if !isnothing(vertices_of_polytope) 
+      push!(
+        vertices_of_polytope, highest_weight(V) => reduce_to_vertices(possible_vertices)
+      )
+    end
     return monomials
   end
 end
