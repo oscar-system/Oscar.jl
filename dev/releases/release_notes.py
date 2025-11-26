@@ -240,6 +240,7 @@ which we think might affect some users directly.
             matches = [
                 pr for pr in prs_with_use_title if has_label(pr, priorityobject)
             ]
+            original_length = len(matches)
             print("PRs with label '" + priorityobject + "': ", len(matches))
             print(matches)
             countedPRs = countedPRs + len(matches)
@@ -267,7 +268,8 @@ which we think might affect some users directly.
                 relnotes_file.write('\n')
             # Items without a type label
             if len(matches) > 0:
-                relnotes_file.write("#### General changes\n\n")
+                if len(matches) != original_length:
+                    relnotes_file.write("#### Miscellaneous changes\n\n")
                 for pr in matches:
                     relnotes_file.write(pr_to_md(pr))
                     prs_with_use_title.remove(pr)
