@@ -105,13 +105,13 @@ end
 
 mutable struct f4ncgb_polys_helper
   gens::Vector{AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}}
-  current_poly::Vector{Tuple{QQFieldElem,Vector{Int}}}
+  current_poly::Oscar.MPolyBuildCtx{AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}}
   parent::FreeAssociativeAlgebra{QQFieldElem}
   function f4ncgb_polys_helper(ring::FreeAssociativeAlgebra{QQFieldElem})
     r = new()
     r.gens = AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}[]
     r.parent = ring
-    r.current_poly = [(zero(QQ),Vector{Int}())]
+    r.current_poly = MPolyBuildCtx(ring)
     return r
   end
 end 
@@ -134,25 +134,15 @@ function add_cb(pa::Ptr{Nothing},
   denominator = unsafe_load(pdenominator)
   monomial = QQ(numerator,denominator)
   new_vars = [n - Int(i)+1 for i in vars]
-  push!(a.current_poly,(monomial,new_vars))
-  #=
-  for i in vars
-    monomial *= P[nvars(P)-Int(i)+1]
-  end
-  a.current_poly += monomial
-  =#
+  push_term!(a.current_poly,monomial,new_vars)
   return nothing
 
 end
 
 function end_poly_cb(pa::Ptr{Nothing})
   a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
-  C = MPolyBuildCtx(a.parent)
-  for (c,mon) in a.current_poly
-    push_term!(C,QQ(c),mon)
-  end
-  push!(a.gens, finish(C))
-  a.current_poly = [(zero(QQ),Vector{Int}())]
+  push!(a.gens, finish(a.current_poly) )
+  a.current_poly = MPolyBuildCtx(a.parent)
   return nothing
 end
 
