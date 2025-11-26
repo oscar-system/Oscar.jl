@@ -2,7 +2,7 @@ function basis_lie_highest_weight_compute(
   V::ModuleData,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_input::Union{AbsGenOrdering,Symbol};
-  compute_polytope = false
+  compute_polytope=false,
 )
   # Pseudocode:
 
@@ -66,7 +66,7 @@ function basis_lie_highest_weight_compute(
     calc_highest_weight,
     vertices_of_polytope,
     no_minkowski;
-    compute_polytope
+    compute_polytope,
   )
   # monomials = sort(collect(monomials); order=monomial_ordering)
   minkowski_gens = sort(
@@ -94,7 +94,10 @@ function basis_lie_highest_weight_compute(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
 
-  compute_polytope && set_attribute!(mb, :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])))
+  compute_polytope && set_attribute!(
+    mb,
+    :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])),
+  )
   return mb, monomials
 end
 
@@ -260,7 +263,10 @@ function compute_monomials(
       V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
-    compute_polytope && push!(vertices_of_polytope, highest_weight(V) => reduce_to_vertices(convert_to_point.(monomials)))
+    compute_polytope && push!(
+      vertices_of_polytope,
+      highest_weight(V) => reduce_to_vertices(convert_to_point.(monomials)),
+    )
     return monomials
   else
     # use Minkowski-Sum for recursion
@@ -295,7 +301,7 @@ function compute_monomials(
         calc_highest_weight,
         vertices_of_polytope,
         no_minkowski;
-        compute_polytope
+        compute_polytope,
       )
       mon_lambda_2 = compute_monomials(
         M_lambda_2,
@@ -305,12 +311,18 @@ function compute_monomials(
         calc_highest_weight,
         vertices_of_polytope,
         no_minkowski;
-        compute_polytope
+        compute_polytope,
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
-      compute_polytope && append!(possible_vertices, (p + q for p in vertices_of_polytope[lambda_1] for q in vertices_of_polytope[lambda_2]))
+      compute_polytope && append!(
+        possible_vertices,
+        (
+          p + q for p in vertices_of_polytope[lambda_1] for
+          q in vertices_of_polytope[lambda_2]
+        ),
+      )
     end
     # check if we found enough monomials
 
@@ -323,7 +335,9 @@ function compute_monomials(
     end
 
     push!(calc_highest_weight, highest_weight(V) => monomials)
-    compute_polytope && push!(vertices_of_polytope, highest_weight(V) => reduce_to_vertices(possible_vertices))
+    compute_polytope && push!(
+      vertices_of_polytope, highest_weight(V) => reduce_to_vertices(possible_vertices)
+    )
     return monomials
   end
 end
@@ -485,21 +499,24 @@ function add_by_hand(
   new_monomials = Set{ZZMPolyRingElem}()
   for weight_w in weights_with_non_full_weightspace
     dim_weightspace = weightspaces[weight_w]
-    union!(new_monomials, add_new_monomials!(
-      V,
-      birational_seq,
-      ZZx,
-      matrices_of_operators,
-      monomial_ordering,
-      weightspaces,
-      dim_weightspace,
-      weight_w,
-      monomials_in_weightspace,
-      space,
-      v0,
-      basis,
-      zero_coordinates,
-    ))
+    union!(
+      new_monomials,
+      add_new_monomials!(
+        V,
+        birational_seq,
+        ZZx,
+        matrices_of_operators,
+        monomial_ordering,
+        weightspaces,
+        dim_weightspace,
+        weight_w,
+        monomials_in_weightspace,
+        space,
+        v0,
+        basis,
+        zero_coordinates,
+      ),
+    )
   end
   return basis, new_monomials
 end
@@ -509,7 +526,7 @@ function reduce_to_vertices(possible_vertices::Vector{PointVector{QQFieldElem}})
 end
 
 function convert_to_point(monomial::ZZMPolyRingElem)
-  return point_vector(QQ,exponent_vector(monomial,1))
+  return point_vector(QQ, exponent_vector(monomial, 1))
 end
 
 function operators_asc_height(L::LieAlgebra)
