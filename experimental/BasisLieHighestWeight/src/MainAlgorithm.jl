@@ -46,8 +46,12 @@ function basis_lie_highest_weight_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(weight_lattice(R)) => Set([ZZx(1)])
+    zero(weight_lattice(R)) => Set((ZZx(1),))
   )
+  vertices_of_polytope = Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}}(
+    zero(weight_lattice(R)) => [convert_to_point(ZZx(1))]
+  )
+
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
 
@@ -58,6 +62,7 @@ function basis_lie_highest_weight_compute(
     ZZx,
     monomial_ordering,
     calc_highest_weight,
+    vertices_of_polytope,
     no_minkowski,
   )
   # monomials = sort(collect(monomials); order=monomial_ordering)
@@ -221,6 +226,7 @@ function compute_monomials(
   ZZx::ZZMPolyRing,
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
+  vertices_of_polytope::Dict{WeightLatticeElem,Vector{PointVector{QQFieldElem}}},
   no_minkowski::Set{WeightLatticeElem},
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
@@ -246,14 +252,16 @@ function compute_monomials(
   # the recursion.
   if is_zero(highest_weight(V)) || is_fundamental_weight(highest_weight(V))
     push!(no_minkowski, highest_weight(V))
-    monomials = add_by_hand(
+    monomials, new_monomials = add_by_hand(
       V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
+    push!(vertices_of_polytope, highest_weight(V) => reduce_to_vertices(convert_to_point.(monomials)))
     return monomials
   else
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
+    possible_vertices = Vector{PointVector{QQFieldElem}}()
     sub_weights = sub_weights_proper(highest_weight(V))
     sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
     # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
@@ -281,6 +289,7 @@ function compute_monomials(
         ZZx,
         monomial_ordering,
         calc_highest_weight,
+        vertices_of_polytope,
         no_minkowski,
       )
       mon_lambda_2 = compute_monomials(
@@ -289,22 +298,26 @@ function compute_monomials(
         ZZx,
         monomial_ordering,
         calc_highest_weight,
+        vertices_of_polytope,
         no_minkowski,
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
+      append!(possible_vertices, (p + q for p in vertices_of_polytope[lambda_1] for q in vertices_of_polytope[lambda_2]))
     end
     # check if we found enough monomials
 
     if length(monomials) < dim(V)
       push!(no_minkowski, highest_weight(V))
-      monomials = add_by_hand(
+      monomials, new_monomials = add_by_hand(
         V, birational_seq, ZZx, monomial_ordering, monomials
       )
+      append!(possible_vertices, convert_to_point.(new_monomials))
     end
 
     push!(calc_highest_weight, highest_weight(V) => monomials)
+    push!(vertices_of_polytope, highest_weight(V) => reduce_to_vertices(possible_vertices))
     return monomials
   end
 end
@@ -330,6 +343,7 @@ function add_new_monomials!(
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   # polytope is bounded these are finitely many and we can sort them and then go through them, until we found enough.
 
+  new_monomials = Set{ZZMPolyRingElem}()
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
@@ -399,8 +413,10 @@ function add_new_monomials!(
 
     # save monom
     number_mon_in_weightspace += 1
+    push!(new_monomials, mon)
     push!(basis, mon)
   end
+  return new_monomials
 end
 
 function add_by_hand(
@@ -460,9 +476,10 @@ function add_by_hand(
   zero_coordinates = compute_zero_coordinates(birational_seq, highest_weight(V))
 
   # calculate new monomials
+  new_monomials = Set{ZZMPolyRingElem}()
   for weight_w in weights_with_non_full_weightspace
     dim_weightspace = weightspaces[weight_w]
-    add_new_monomials!(
+    union!(new_monomials, add_new_monomials!(
       V,
       birational_seq,
       ZZx,
@@ -476,9 +493,17 @@ function add_by_hand(
       v0,
       basis,
       zero_coordinates,
-    )
+    ))
   end
-  return basis
+  return basis, new_monomials
+end
+
+function reduce_to_vertices(possible_vertices::Vector{PointVector{QQFieldElem}})
+  return collect(vertices(convex_hull(possible_vertices)))
+end
+
+function convert_to_point(monomial::ZZMPolyRingElem)
+  return point_vector(QQ,exponent_vector(monomial,1))
 end
 
 function operators_asc_height(L::LieAlgebra)
