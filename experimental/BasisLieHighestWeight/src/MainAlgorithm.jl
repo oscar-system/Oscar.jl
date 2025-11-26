@@ -90,7 +90,8 @@ function basis_lie_highest_weight_compute(
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
-  return mb
+  set_attribute!(mb, :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])))
+  return mb, monomials
 end
 
 function basis_coordinate_ring_kodaira_compute(
