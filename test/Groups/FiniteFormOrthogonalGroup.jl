@@ -155,7 +155,8 @@ end
     for k in 1:div(rank(L),2)
       @test Oscar._test_isotropic_stabilizer_orders(D, k)
       X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i)]
-      a = length(Oscar._isotropic_subspaces_representatives(D, iG, k))
+      sta = Oscar._isotropic_subspaces_representatives_and_stabilizers(D, iG, k)
+      a = length(sta)
       if length(X) > 0
         XG = gset(G, Oscar.on_subgroups_slow, X)
         b = length(orbits(XG))

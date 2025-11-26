@@ -1058,7 +1058,7 @@ end
 ######################################################################################
 
 """
-    _isotropic_subspaces_representatives(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int)
+    _isotropic_subspaces_representatives_and_stabilizers(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int)
     
 Return orbit representatives and stabilizers of the totally isotropic subspaces of `T` of a given rank 
 under a group ``G`` given as the image of `iG`.
@@ -1066,10 +1066,11 @@ under a group ``G`` given as the image of `iG`.
 Input:
 - `iG` must be a homomorphism `G -> orthogonal_group(G)` 
 """
-function _isotropic_subspaces_representatives(
+function _isotropic_subspaces_representatives_and_stabilizers(
     T::TorQuadModule,
     iG::GAPGroupHomomorphism,
     rank::Int,
+    do_stab::Bool=true
   )
   b, p = is_elementary_with_prime(T)
   @req b "T must be elementary"
@@ -1082,7 +1083,8 @@ function _isotropic_subspaces_representatives(
   Op = codomain(to_perm)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = TorQuadModule[]
+  Ty = TorQuadModule
+  reps = []
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     #@time Sp,_ = sub(Sp,small_generating_set(Sp))
@@ -1093,8 +1095,15 @@ function _isotropic_subspaces_representatives(
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
+      stabp,i1,i2 = intersect(Sp^xp,Gp)
       x = preimage(to_perm, xp)
-      push!(reps, on_subgroups_slow(domain(iH), x))
+      Hx = on_subgroups_slow(domain(iH), x)
+      if do_stab
+        stab = preimage(to_perm, stabp)
+        push!(reps, (Hx, stab))
+      else
+        push!(reps, Hx)
+      end
     end
   end
   return reps
