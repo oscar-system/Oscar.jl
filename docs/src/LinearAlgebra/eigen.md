@@ -52,18 +52,16 @@ julia> B = QQ[0 2; 1 0]
 julia> RR = real_field()
 Real field
 
-julia> set_precision!(RR,64)
-64
-
-julia> eigenvalues(RR,B)
+julia> with_precision(RR, 64) do
+         eigenvalues(RR, B)
+      end
 2-element Vector{RealFieldElem}:
  [-1.4142135623730950488 +/- 1.69e-21]
  [1.4142135623730950488 +/- 1.69e-21]
 
-julia> set_precision!(RR,128)
-128
-
-julia> eigenvalues(RR,B)
+julia> with_precision(RR, 128) do
+         eigenvalues(RR, B)
+      end
 2-element Vector{RealFieldElem}:
  [-1.41421356237309504880168872420969807857 +/- 3.29e-40]
  [1.41421356237309504880168872420969807857 +/- 3.29e-40]
