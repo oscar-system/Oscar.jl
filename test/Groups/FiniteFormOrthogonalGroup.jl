@@ -142,3 +142,38 @@ end
     Oscar._gens(G, 8,2)
   end
 end
+  
+@test "stabilisers of subspaces under isometries" begin
+  function _test(L::ZZLat, p)
+    DL = discriminant_group(L)
+    D,iD = kernel(hom(DL,DL, [p*i for i in gens(DL)]))
+    
+    G,iG = restrict_automorphism_group(image_in_Oq(L)[1],iD);
+    OG = orthogonal_group(D);
+    _,iG = is_subgroup(G, orthogonal_group(D));
+    
+    for k in 1:div(rank(L),2)
+      @test Oscar._test_isotropic_stabilizer_orders(D, k, p)
+      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i)]
+      a = length(Oscar._isotropic_subspaces_representatives(D, iG, k))
+      if length(X) > 0
+        XG = gset(G, Oscar.on_subgroups_slow, X)
+        b = length(orbits(XG))
+      else 
+        b = 0
+      end
+      @test a==b
+    end
+  end
+  for i in 1:6
+    _test(rescale(root_lattice(:A,i),2),2)
+    _test(rescale(root_lattice(:A,i),3),3)
+  end
+  for i in 4:6
+    _test(rescale(root_lattice(:D,i),2),2)
+    _test(rescale(root_lattice(:D,i),3),3)
+  end
+  for i in 1:4
+    _test(rescale(root_lattice(:A,i),7),7)
+  end 
+end

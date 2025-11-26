@@ -1054,14 +1054,15 @@ end
 
 
 ######################################################################################
-# Stabilizer of isotropic subspaces under Orthogonal groups.
+# Stabilizers of isotropic subspaces under orthogonal groups.
 ######################################################################################
 
 function _stabilizer_isotropic(
     T::TorQuadModule,
     rank::Int,
-    p::ZZRingElem,
+    p,
   )
+  p = ZZ(p)
   @assert is_primary(T, p)
   O = orthogonal_group(T)
   N, TtoN = normal_form(T)
@@ -1108,7 +1109,7 @@ function _stabilizer_isotropic(
 
       gensStabH = ZZMatrix[]
       if kH > 0
-        tmp = ZZMatrix[map_entries(i -> lift(ZZ,i), matrix(g)) for g in gens(GL(kH, p))]
+        tmp = ZZMatrix[map_entries(i -> lift(ZZ,i), matrix(g)) for g in gens(GL(kH, GF(p)))]
         idkHC = identity_matrix(ZZ, k-kH)
         append!(gensStabH, [diagonal_matrix([g, idkHC, idN]) for g in tmp])
 
@@ -1119,7 +1120,7 @@ function _stabilizer_isotropic(
         end
       end
       if kH < k
-        append!(gensStabH, [diagonal_matrix([identity_matrix(ZZ, kH), map_entries(i -> lift(ZZ,i), matrix(g)), idN]) for g in gens(GL(k-kH, p))])
+        append!(gensStabH, [diagonal_matrix([identity_matrix(ZZ, kH), map_entries(i -> lift(ZZ,i), matrix(g)), idN]) for g in gens(GL(k-kH, GF(p)))])
 
         # one is enough because of the two GL actions
         s = deepcopy(idKN)
@@ -1151,24 +1152,43 @@ function _stabilizer_isotropic_semiregular(
     p::ZZRingElem,
     rank::Int,
   )
-  @assert is_primary(N, p)
+  @assert is_primary(N, p) || order(N) == 1
   @assert is_semi_regular(N)
   @assert gram_matrix_quadratic(N) == gram_matrix_quadratic(normal_form(N)[1])
 
+  n = length(elementary_divisors(N))
   r = rank
   O = orthogonal_group(N)
+  if rank == 0 
+    Z, iZ = sub(N, TorQuadModElem[])
+    return [(iZ, id_hom(O))]
+  end 
   G = ZZ.(p*gram_matrix_quadratic(N))
-  if p == 2
+  if p == 2 && modulus_quadratic_form(N) == 2
     R, _ = residue_ring(ZZ, 4)
   else
-    R ,_ = residue_ring(ZZ, p)
+    R ,_ = residue_ring(ZZ, Int(p))
   end
   GR = R.(G)
   is_regular = !is_degenerate(N)
-  witt_index = divexact(count(iszero, diagonal(G)), 2)
-
+  if p == 2
+    witt_index = divexact(count(iszero, diagonal(G)), 2)
+  else
+    if isodd(n) 
+      witt_index = div(n,2)
+    else
+      k = divexact(n,2)
+      if isone(kronecker_symbol((-1)^k*det(G), p))
+        witt_index = k 
+      else 
+        witt_index = k-1
+      end
+    end
+  end 
   if r <= witt_index
-    B, stab_gen = __stabilizer_isotropic_semiregular(GR, r, p, false, is_regular)
+    _B, _stab_gen = __stabilizer_isotropic_semiregular(GR, r, p, false, is_regular)
+    B = lift.(_B)
+    stab_gen = lift.(_stab_gen)
     _, iH = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
     res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[(iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen])[2])]
   else
@@ -1176,7 +1196,9 @@ function _stabilizer_isotropic_semiregular(
   end
 
   if p == 2 && nrows(G) >= 2 && isodd(G[end, end]) && isodd(G[end-1, end-1]) && mod(G[end, end] + G[end-1, end-1], 4)==0 && r <= witt_index + 1
-    B2, stab_gen2 = __stabilizer_isotropic_semiregular(GR, r-1, 2, true, is_regular)
+    _B2, _stab_gen2 = __stabilizer_isotropic_semiregular(GR, r-1, p, true, is_regular)
+    B2 = lift.(_B2)
+    stab_gen2 = lift.(_stab_gen2)
     _, iH2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
     push!(res, (iH2, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen2])[2]))
   end
@@ -1186,12 +1208,13 @@ function _stabilizer_isotropic_semiregular(
 end
 
 function __stabilizer_isotropic_semiregular(
-    G::zzModMatrix,
+    G::RT,
     r::Int,
     p::ZZRingElem,
     flag::Bool,
     is_regular::Bool,
-  )
+  ) where RT <: Union{zzModMatrix, ZZModMatrix}
+  @assert r>=0
   if !is_regular
     # 2 0
     # 0 G
@@ -1206,7 +1229,7 @@ function __stabilizer_isotropic_semiregular(
 
     G2 = T*G*transpose(T)
     B, S = _stabilizer_isotropic_regular(G2, r, p, flag)
-    stab = ZZMatrix[Ti*s*T for s in S]
+    stab = RT[Ti*s*T for s in S]
     B = B*T
     return B, stab
   else
@@ -1216,24 +1239,29 @@ end
 
 # 0 I 
 # I 0
-function _stabilizer_max_isotropic_nU(n::Int, p::Int)
-  gensStab = ZZMatrix[]
-  if n == 0 || n == 1
+function _stabilizer_max_isotropic_nU(n::Int, p::Int, R)
+  RT = typeof(R[1;])
+  gensStab = RT[]
+  if n == 0 || (characteristic(R) == 4 && n == 1)
     return gensStab
   end
-  Fp = matrix.(gens(GL(n, p)))
-  F = ZZMatrix[map_entries(x -> lift(ZZ, x), i) for i in Fp]
-
+  Fp = matrix.(gens(GL(n, GF(p))))
+  F = RT[R.(map_entries(x -> lift(ZZ, x), i)) for i in Fp]
   for f in F
     g = diagonal_matrix(f, transpose(inv(f)))
     push!(gensStab, g)
   end
   if n > 1
-    S = identity_matrix(ZZ, 2*n)
+    S = identity_matrix(R, 2*n)
     S[n+1, 2] = 1
     S[n+2, 1] = -1
     push!(gensStab, S)
   end
+  if characteristic(R) == 2 && n>0
+    S = identity_matrix(R, 2*n)
+    S[n+1, 1] = 1
+    push!(gensStab, S)
+  end  
   return gensStab
 end
 
@@ -1243,15 +1271,15 @@ end
 # 0 0 G
 # and then computes the stabilizer
 function _stabilizer_isotropic_regular(
-    G_normal_form::zzModMatrix,
+    G_normal_form::RT,
     r::Int,
     p::ZZRingElem,
     flag::Bool,
-  )
+  ) where RT <: Union{zzModMatrix, ZZModMatrix}
   @assert !flag || p == 2
   G = G_normal_form
   n = nrows(G)
-  B = zero_matrix(ZZ, n, n)
+  B = zero(G)
   for i in 1:r
     B[i, 2*i-1] = 1
     B[i+r, 2*i] = 1
@@ -1259,11 +1287,20 @@ function _stabilizer_isotropic_regular(
   for i in (2*r+1):n
     B[i, i] = 1
   end
+  if p != 2
+    # we need to create some hyperbolic planes 
+    anisotropic,hyp,rad = Hecke._quadratic_form_decomposition(G)
+    @assert iszero(nrows(rad))
+    @assert nrows(hyp)>=2*r
+    B0 = vcat(hyp,anisotropic)
+    B = B*B0
+  end
   Binv = inv(B)
-  s = 2*r + 1
-  gensStab = _stabilizer_isotropic_semiregular_special(p, r, G, flag)
+  _G = B*G*transpose(B)
+  gensStab = _stabilizer_isotropic_semiregular_special(_G, r, p,  flag)
   #return gensStab, B
-  gensStab = [Binv*i*B for i in gensStab]
+  gensStab = RT[Binv*i*B for i in gensStab]
+  
   Hbasis = B[1:r, :]
   if flag
     if G[end, end] != 2
@@ -1283,14 +1320,16 @@ end
 # if flag is false, then H is the span of the first r standard basis vectors 
 # if flag is true (requires p==2) and the characteristic vector v is isotropic, then H is the span of the first r standard basis vectors and v
 function _stabilizer_isotropic_semiregular_special(
-    G::zzModMatrix,
+    G::RT,
     r::Int,
     p::ZZRingElem,
     flag::Bool = false,
-  )
+  ) where RT <: Union{zzModMatrix, ZZModMatrix}
+  @assert iszero(G[1:r,1:r])
   n = nrows(G)
+  R = base_ring(G)
   extra = 0
-  if 2*r < n && G[2*r+1, 2*r+1] == 2
+  if p == 2 && 2*r < n && G[2*r+1, 2*r+1] == 2
     if 2*r +2 <= n && G[2*r+2, 2*r+1]==0
       extra = 1
     end
@@ -1300,22 +1339,35 @@ function _stabilizer_isotropic_semiregular_special(
   if extra == 1
     G_2 = G_1[2:end, 2:end]
   end
-
   # f_1: O(V)_{H}->>O(H)
   # lifts of generators of O(H)
-  e = count(isodd ∘ lift, diagonal(G))
-  S = _stabilizer_max_isotropic_nU(r, Int(p))
+  if p == 2 
+    e = count(isodd ∘ lift, diagonal(G))
+  else
+    e = 0
+  end
+  S = _stabilizer_max_isotropic_nU(r, Int(p), R)
   if n == 2*r  # corner case G_1 = 0
     return S
   end
   k = n - 2*r - extra
-  Ik = identity_matrix(ZZ, k+extra)
-  S1 = [diagonal_matrix([s, Ik]) for s in S]
+  Ik = identity_matrix(R, k+extra)
+  S1 = RT[diagonal_matrix([s, Ik]) for s in S]
+  
+  #@assert all(iszero(s*G*transpose(s)-G) for s in S1)
   # now generators of the kernel O(V)_H of f_1
   # f_2: O(V)_H->> O(H^\perp/H)
   # lifts of the image O(H^\perp/H)
   I2r = identity_matrix(R, 2*r)
-  tmp = [diagonal_matrix([I2r, lift.(f)]) for f in _gens_mod_2(G_1)]
+  if p != 2
+    tmp = RT[diagonal_matrix([I2r, f]) for f in _gens_mod_p(G_1, p)]
+  elseif characteristic(R) == 4
+    tmp = RT[diagonal_matrix([I2r, f]) for f in _gens_mod_2(G_1)]
+  elseif characteristic(R) == 2
+    # bilinear form case
+     _G_1 = diagonal_matrix([G_1, R[1;]])
+    tmp = RT[diagonal_matrix([I2r, f[1:end-1,1:end-1]]) for f in _gens_mod_2(_G_1)]
+  end 
   append!(S1, tmp)
   # Generators of the kernel of f_2
   # look like this
@@ -1323,29 +1375,46 @@ function _stabilizer_isotropic_semiregular_special(
   # A I B
   # S 0 I
   # then squeeze out some linear equations
-  G_2p = lift.(G_2)
-  G_2p_inv = lift.(inv(G_2))
-  tmp = ZZMatrix[]
-  if r > 0  # avoid a corner case
-    for i in 1:(k-e)
+  t = 0
+  if p==2 && 0 < 2*r < n && G[2*r+1, 2*r+1] == 2 && (2*r+1==n || G[2*r+1, r*r+2]==0)
+    # G = 
+    # 0 I 0 0
+    # I 0 0 0
+    # 0 0 2 0
+    # 0 0 0 *
+    # addd an isometry of the form 
+    # I 0 0 0
+    # 1 I 1 0
+    # 0 0 1 0
+    # 0 0 0 I
+    t=1
+    g = identity_matrix(R, n) 
+    g[r+1, 2*r+1] = 1
+    g[r+1, 1]   = 1
+    push!(S1, g)
+  end
+  tmp = RT[]
+  if r > 0 # avoid a corner case
+    for i in 1:(k-e-t)
       # we take k-e in place of k because
       # the characteristic vector comes last and is fixed.
-      S = zero_matrix(ZZ, k, r)
+      S = zero_matrix(R, k, r)
       S[i, 1] = 1
       push!(tmp, S)
     end 
     if e == 2
-      S = zero_matrix(ZZ, k, r)
+      S = zero_matrix(R, k, r)
       S[k-1, 1] = 1
       S[k, 1] = 1
       push!(tmp, S)
     end
   end
-  
-  for S in tmp 
-    B = -transpose(S)*G_2p_inv
-    T = B*G_2p*transpose(B)
-    A = zero_matrix(ZZ, r, r)
+
+  for S in tmp
+    B = -solve(G_2, transpose(S);side=:left)
+    #B = -transpose(S)*inv(G2)
+    T = -B*G_2*transpose(B)
+    A = zero_matrix(R, r, r)
     # solve A^t+A = T
     for i in 1:r
       for j in i+1:r
@@ -1353,26 +1422,32 @@ function _stabilizer_isotropic_semiregular_special(
       end
       A[i, i] = divexact(T[i, i], 2)
     end
+    @assert A+transpose(A) == T
     
-    Ir = identity_matrix(ZZ, r)
+    
+    Ir = identity_matrix(R, r)
     if extra == 1
       g = [
-                       Ir                  0*Ir   zero_matrix(ZZ, r, 1)   zero_matrix(ZZ, r, k);
-                        A                    Ir   zero_matrix(ZZ, r, 1)                       B;
-    zero_matrix(ZZ, 1, r) zero_matrix(ZZ, 1, r)                  ZZ[1;]   zero_matrix(ZZ, 1, k);
-                        S zero_matrix(ZZ, k, r)                  ZZ[0;]  identity_matrix(ZZ, k);
+          Ir  0*Ir  zero_matrix(R, r, 1)  zero_matrix(R, r, k);
+          A  Ir zero_matrix(R, r, 1)  B;
+          zero_matrix(R, 1, r)  zero_matrix(R, 1, r) R[1;] zero_matrix(R, 1, k);
+          S zero_matrix(R, k, r) R[0;]  identity_matrix(R, k);
           ]
     else 
       g = [
-           Ir                  0*Ir  zero_matrix(ZZ, r, k);
+           Ir                  0*Ir  zero_matrix(R, r, k);
             A                    Ir                      B;
-            S zero_matrix(ZZ, k, r) identity_matrix(ZZ, k);
+            S zero_matrix(R, k, r) identity_matrix(R, k);
           ]
     end 
     push!(S1, g)
   end
-  if flag
-    S = identity_matrix(ZZ, n)
+#   for g in S1
+#     println()
+#     display(g*G*transpose(g) - G)
+#   end
+  if flag && r > 0
+    S = identity_matrix(R, n)
     S[1, end-1] = 1
     S[1, end] = 1
     S[end-1, r+1] = 1
@@ -1380,16 +1455,15 @@ function _stabilizer_isotropic_semiregular_special(
     push!(S1, S)
   end
   if extra == 1 && r > 0
-    S = identity_matrix(ZZ, n)
+    S = identity_matrix(R, n)
     S[r+1, 2*r+1]=1
     S[r+1, 1]=1
     push!(S1, S)
   end
-#   @show extra
-#   for s in S1 
-#     display(s*G*transpose(s)-G)
+#   for g in S1
 #     println()
-#   end
+#     display(g*G*transpose(g)-G)
+#   end 
   return S1
 end
 
@@ -1410,8 +1484,12 @@ function _test_isotropic_stabilizer_orders(
   for (iH, iS) in _stabilizer_isotropic(T, r, p)
     n1 = order(domain(iS))
     n2 = order(_stabilizer(G, domain(iH))[1])
-    @assert n1 == n2
+    if n1 != n2 
+      @show n2//n1
+    end
+    n1 != n2 && return false
   end
+  return true
 end
 
 function _stabilizer(G::AutomorphismGroup, j::TorQuadModuleMor)
@@ -1446,14 +1524,14 @@ function _isotropic_subspaces_representatives(
   Op = codomain(to_perm)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  @show order(Op)
-  @show order(Gp)
   reps = TorQuadModule[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     #@time Sp,_ = sub(Sp,small_generating_set(Sp))
-    @show order(Sp)
     println("computing double cosets")
+    order(Op)
+    order(Sp)
+    order(Gp)
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
