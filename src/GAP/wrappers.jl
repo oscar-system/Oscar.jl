@@ -130,6 +130,12 @@ GAP.@wrap Group(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3, x4)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
 GAP.@wrap Grp(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool

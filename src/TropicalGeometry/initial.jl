@@ -13,7 +13,7 @@
 #
 ################################################################################
 function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap)
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    @req coefficient_ring(R)==domain(nu) "coefficient ring of polynomials is not domain of tropical semiring map"
 
     polynomialRingsForInitial = get_attribute!(R, :tropical_geometry_polynomial_rings_for_initial) do
         return Dict{TropicalSemiringMap,MPolyRing}()
@@ -23,7 +23,7 @@ end
 
 # special function for trivial valuation to ensure reusing original ring
 function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    @req coefficient_ring(R)==domain(nu) "coefficient ring of polynomials is not domain of tropical semiring map"
     return R
 end
 

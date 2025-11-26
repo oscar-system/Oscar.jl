@@ -5,13 +5,6 @@
 ################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
-# exclude from ring union definition
-type_params(::QQField) = TypeParams(QQField, nothing)
-type_params(::QQFieldElem) = TypeParams(QQFieldElem, nothing)
-type_params(::fpField) = TypeParams(fpField, nothing)
-type_params(::FpField) = TypeParams(FpField, nothing)
-type_params(::QQBarField) = TypeParams(QQBarField, nothing)
-type_params(::PadicField) = TypeParams(PadicField, nothing)
 
 ################################################################################
 # type_params for field extension types
@@ -244,6 +237,8 @@ end
 
 @register_serialization_type FracField uses_id
 
+type_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
+
 const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
 # we use the union to prevent QQField from using these save methods
 
@@ -281,6 +276,8 @@ end
 # RationalFunctionField
 
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
+
+type_params(R::T) where T <: AbstractAlgebra.Generic.RationalFunctionField = TypeParams(T, base_ring(R))
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField{<: FieldElem, <: MPolyRingElem})

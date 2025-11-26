@@ -129,7 +129,7 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom, TorQuadModuleMap}; check:
   end
   gene = GAPWrap.GeneratorsOfGroup(AA)
   img = GAP.Obj([img_gap(a) for a in gene])
-  fgap = GAP.Globals.GroupHomomorphismByImagesNC(AA, AA, img)
+  fgap = GAPWrap.GroupHomomorphismByImagesNC(AA, AA, img)
 
   @req !check || fgap in aut.X "Map does not define an element of the group"
   return aut(fgap)

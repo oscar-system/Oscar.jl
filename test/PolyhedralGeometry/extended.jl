@@ -14,11 +14,11 @@
     dehomogenize, homogenize = Oscar.dehomogenize, Oscar.homogenize
 
     m = [1 2; 3 4; 5 6]
-    @test dehomogenize(homogenize(m, 0//1)) == m
-    @test dehomogenize(homogenize(m)) == m
-    @test dehomogenize(homogenize(pm.Matrix(m))) == m
-    @test dehomogenize(homogenize(pm.Matrix{pm.Integer}(m))) isa pm.Matrix{pm.Integer}
-    @test dehomogenize(homogenize(pm.Matrix{pm.Rational}(m))) isa pm.Matrix{pm.Rational}
+    @test dehomogenize(homogenize(QQ, m, 0//1)) == m
+    @test dehomogenize(homogenize(QQ, m)) == m
+    @test dehomogenize(homogenize(QQ, pm.Matrix(m))) == m
+    @test dehomogenize(homogenize(ZZ, pm.Matrix{pm.Integer}(m))) isa pm.Matrix{pm.Integer}
+    @test dehomogenize(homogenize(QQ, pm.Matrix{pm.Rational}(m))) isa pm.Matrix{pm.Rational}
   end
 
   @testset "conformance tests" begin

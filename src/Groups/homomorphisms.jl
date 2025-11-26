@@ -121,9 +121,9 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool 
   vgens = GapObj(gensG; recursive = true)
   vimgs = GapObj(imgs; recursive = true)
   if check
-    mp = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GapObj(H), vgens, vimgs)
+    mp = GAPWrap.GroupHomomorphismByImages(GapObj(G), GapObj(H), vgens, vimgs)
   else
-    mp = GAP.Globals.GroupHomomorphismByImagesNC(GapObj(G), GapObj(H), vgens, vimgs)
+    mp = GAPWrap.GroupHomomorphismByImagesNC(GapObj(G), GapObj(H), vgens, vimgs)
   end
   @req mp !== GAP.Globals.fail "Invalid input"
   return GAPGroupHomomorphism(G, H, mp)
@@ -716,7 +716,7 @@ function isomorphism(T::Type{PcGroup}, G::GAPGroup; on_gens::Bool=false)
          Cpcgs = GAP.Globals.PcgsByPcSequence(fam, Ggens)::GapObj
          CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
          CCpcgs = GAPWrap.FamilyPcgs(CC)
-         f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), CC, Cpcgs, CCpcgs)::GapObj
+         f = GAPWrap.GroupHomomorphismByImages(GapObj(G), CC, Cpcgs, CCpcgs)
          return GAPGroupHomomorphism(G, T(CC), f)
        else
          f = GAP.Globals.IsomorphismPcpGroup(GapObj(G))::GapObj
@@ -743,7 +743,7 @@ error("do not know how to create a pcp group on given generators in GAP")
            CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
            CCpcgs = GAP.Globals.Pcp(CC)::GapObj
          end
-         switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
+         switch = GAPWrap.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)
          f = GAP.Globals.CompositionMapping(switch, f)::GapObj
        end
      end

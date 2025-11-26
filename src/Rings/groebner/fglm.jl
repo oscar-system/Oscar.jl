@@ -159,7 +159,6 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
   haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   is_global(destination_ordering) || error("Destination ordering must be global.")
   G = groebner_basis(I, complete_reduction=true)
-  start_ordering = G.ord
   dim(I) == 0 || error("Dimension of ideal must be zero.")
   I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end

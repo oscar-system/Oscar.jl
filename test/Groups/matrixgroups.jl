@@ -134,7 +134,7 @@ end
      end
 
      H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
-     f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
+     f = Oscar.GAPWrap.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
 
