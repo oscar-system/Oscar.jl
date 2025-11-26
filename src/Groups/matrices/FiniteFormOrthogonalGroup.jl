@@ -1547,7 +1547,7 @@ function _test_isotropic_stabilizer_orders(
   return true
 end
 
-function _stabilizer(G::AutomorphismGroup, j::TorQuadModuleMor)
+function _stabilizer(G::AutomorphismGroup, j::TorQuadModuleMap)
   to_gap = get_attribute(G, :to_gap)
   Dgap = codomain(to_gap)
   T = domain(j)
