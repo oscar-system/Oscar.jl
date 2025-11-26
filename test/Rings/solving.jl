@@ -111,3 +111,12 @@ end
   v=rational_solutions(si)
   @test length(v) == 5
 end
+
+@testset "Two cubics" begin
+  k = algebraic_closure(GF(97))
+  R, (x, y) = polynomial_ring(k, [:x, :y])
+  I=ideal([x^3 + 2*y^2 + 3, y^3 + 5*x + 7])
+  pts = rational_solutions(I)
+  pts = rational_solutions(I) # this is intentional
+  @test length(pts) == 8
+end
