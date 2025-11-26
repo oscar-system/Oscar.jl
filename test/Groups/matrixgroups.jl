@@ -567,6 +567,12 @@ end
 end
 
 @testset "Methods on elements" begin
+   G = GL(2, ZZ)
+   x = gen(G, 1)
+   xi = x^-1
+   n = -1
+   @test xi == x^n
+
    T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
