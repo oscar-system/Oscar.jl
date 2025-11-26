@@ -244,8 +244,6 @@ function compute_monomials(
   # we already computed the highest_weight result in a prior recursion step
   if haskey(calc_highest_weight, highest_weight(V))
     return calc_highest_weight[highest_weight(V)]
-  elseif is_zero(highest_weight(V)) # we mathematically know the solution
-    return Set(ZZx(1))
   end
   # calculation required
   # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
