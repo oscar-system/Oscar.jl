@@ -1058,13 +1058,17 @@ end
 ######################################################################################
 
 """
-    _isotropic_subspaces_representatives_and_stabilizers(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int)
+    _isotropic_subspaces_representatives_and_stabilizers(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int, do_stab::Bool=true)
     
 Return orbit representatives and stabilizers of the totally isotropic subspaces of `T` of a given rank 
 under a group ``G`` given as the image of `iG`.
 
 Input:
 - `iG` must be a homomorphism `G -> orthogonal_group(T)` 
+- `do_stab` -- if set to false, do not compute the stabilizers
+
+Output:
+A list of tuples `(T, (stab, stab->G))`.
 """
 function _isotropic_subspaces_representatives_and_stabilizers(
     T::TorQuadModule,
@@ -1082,10 +1086,10 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = []
+  TT = AutomorphismGroup{TorQuadModule}
+  reps = Tuple{TorQuadModule, Tuple{TT, GAPGroupHomomorphism{TT, TT}}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
-    #@time Sp,_ = sub(Sp,small_generating_set(Sp))
     #println("computing double cosets")
     order(Op)
     order(Sp)
@@ -1093,14 +1097,14 @@ function _isotropic_subspaces_representatives_and_stabilizers(
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
-      stabp,i1,i2 = intersect(Sp^xp,Gp)
       x = preimage(to_perm, xp)
       Hx = on_subgroups_slow(domain(iH), x)
       if do_stab
+        stabp,i1,i2 = intersect(Sp^xp,Gp)
         stab = preimage(to_perm, stabp)
         push!(reps, (Hx, stab))
       else
-        push!(reps, Hx)
+        push!(reps, (Hx, (sub(G,[one(G)]))))
       end
     end
   end
@@ -1209,7 +1213,7 @@ function _stabilizer_isotropic_semiregular(
     p::ZZRingElem,
     rank::Int,
   )
-  @assert is_primary(N, p) || order(N) == 1
+  @assert is_elementary(N, p) || order(N) == 1
   @assert is_semi_regular(N)
   @assert gram_matrix_quadratic(N) == gram_matrix_quadratic(normal_form(N)[1])
 
