@@ -44,7 +44,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
       push!(A, col)
     end
     g = matrix(Fy, reduce(hcat, A))
-    append!(input_faces, symmetric_shift(K, g))
+    append!(input_faces, symmetric_shift(uniform_hypergraph(K, r), g, r, mb))
   end
 
   return simplicial_complex(input_faces)
@@ -55,11 +55,13 @@ function symmetric_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
   return symmetric_shift(F, K, iso(w))
 end
 
-function symmetric_shift(K::UniformHypergraph, g::MatElem)
+function symmetric_shift(K::UniformHypergraph, g::MatElem, r::Int, mb::Vector{<:MPolyDecRingElem})
   faces = Vector{Int}[]
   Oscar.ModStdQt.ref_ff_rc!(g)
+  mb_ring = parent(first(mb))
+  z = gens(mb_ring)
   smallest_basis_el = z[r]^r
-  smallest_index = findfirst(a -> a == smallest_basis_el, mb)
+  smallest_index = findfirst(==(smallest_basis_el), mb)
   col_indices = filter(x -> x >= smallest_index, pivot_columns(g))
   monomial_exponents = first.(exponents.(mb[col_indices]))
 
