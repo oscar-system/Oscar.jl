@@ -403,23 +403,23 @@
       qAut2 = quantum_automorphism_group(G)
       @test length(gens(qAut2)) == 235
       
-    function g0_count(n::Int)
-      return 2n^3 -5n^2 +4n - 1
-    end
-    function gb_count(n::Int)
-      return 2*(n-2)*(n-3)*(n-1) + 2*(n-4)*(n-2)+2*(n-3)+1 + g0_count(n)
-    end
-    S5 = quantum_symmetric_group(5, reduced_gb=true)
-    @test length(groebner_basis(S5)) == gb_count(5)
-    S5_alt = ideal(gens(S5))
-    @test all(x -> x in S5_alt, groebner_basis(S5))
-    @test all(x -> x in S5, groebner_basis(S5_alt))
+      function g0_count(n::Int)
+        return 2n^3 -5n^2 +4n - 1
+      end
+      function gb_count(n::Int)
+        return 2*(n-2)*(n-3)*(n-1) + 2*(n-4)*(n-2)+2*(n-3)+1 + g0_count(n)
+      end
+      S5 = quantum_symmetric_group(5, reduced_gb=true)
+      @test length(groebner_basis(S5)) == gb_count(5)
+      S5_alt = ideal(gens(S5))
+      @test all(x -> x in S5_alt, groebner_basis(S5))
+      @test all(x -> x in S5, groebner_basis(S5_alt))
 
-    S6 = quantum_symmetric_group(6, reduced_gb=true)
-    @test length(groebner_basis(S6)) == gb_count(6)
-    S6_alt = ideal(gens(S6))
-    @test all(x -> x in S6_alt, groebner_basis(S6))
-    @test all(x -> x in S6, groebner_basis(S6_alt))
+      S6 = quantum_symmetric_group(6, reduced_gb=true)
+      @test length(groebner_basis(S6)) == gb_count(6)
+      S6_alt = ideal(gens(S6))
+      @test all(x -> x in S6_alt, groebner_basis(S6))
+      @test all(x -> x in S6, groebner_basis(S6_alt))
 
     end
     @testset "matroid quotient" begin
