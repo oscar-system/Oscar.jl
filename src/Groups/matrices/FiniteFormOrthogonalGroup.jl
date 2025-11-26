@@ -1072,10 +1072,10 @@ A list of tuples `(T, (stab, stab->G))`.
 """
 function _isotropic_subspaces_representatives_and_stabilizers(
     T::TorQuadModule,
-    iG::GAPGroupHomomorphism,
-    rank::Int,
+    iG::GAPGroupHomomorphism{A,B},
+    rank::Int;
     do_stab::Bool=true
-  )
+  ) where {A,B}
   b, p = is_elementary_with_prime(T)
   @req b "T must be elementary"
   dcs = _stabilizer_isotropic(T, rank)
@@ -1086,8 +1086,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  TT = AutomorphismGroup{TorQuadModule}
-  reps = Tuple{TorQuadModule, Tuple{TT, GAPGroupHomomorphism{TT, TT}}}[]
+  reps = Tuple{TorQuadModule, Tuple{A, GAPGroupHomomorphism{A, B}}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     #println("computing double cosets")
@@ -1101,7 +1100,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
       Hx = on_subgroups_slow(domain(iH), x)
       if do_stab
         stabp,i1,i2 = intersect(Sp^xp,Gp)
-        stab = preimage(to_perm, stabp)
+        stab = preimage(iG, preimage(to_perm, stabp)[1])
         push!(reps, (Hx, stab))
       else
         push!(reps, (Hx, (sub(G,[one(G)]))))
