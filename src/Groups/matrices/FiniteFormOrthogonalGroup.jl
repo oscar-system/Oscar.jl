@@ -1064,7 +1064,7 @@ Return orbit representatives and stabilizers of the totally isotropic subspaces 
 under a group ``G`` given as the image of `iG`.
 
 Input:
-- `iG` must be a homomorphism `G -> orthogonal_group(G)` 
+- `iG` must be a homomorphism `G -> orthogonal_group(T)` 
 """
 function _isotropic_subspaces_representatives_and_stabilizers(
     T::TorQuadModule,
@@ -1080,10 +1080,8 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
   to_perm = compose(to_perm, to_perm2)
   G = domain(iG)
-  Op = codomain(to_perm)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  Ty = TorQuadModule
   reps = []
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
