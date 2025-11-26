@@ -1143,7 +1143,8 @@ function _stabilizer_isotropic(
       HN = domain(iHN)
       SN = domain(iSN)
 
-      _, iCN = has_complement(iHN) # Does this always have a complement ?
+      b, iCN = has_complement(iHN)
+      @assert b
       CN, i = snf(domain(iCN))
       iCN = compose(i, iCN)
 
