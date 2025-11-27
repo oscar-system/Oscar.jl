@@ -2,7 +2,7 @@
 
 function _index_number(i::Int)
   dgs = reverse(digits(i))
-  return join(["₀₁₂₃₄₅₆₇₈₉"[3*d+1] for d in dgs], "") 
+  return join('₀'+d for d in dgs)
 end
 
 function _magic_unitary_symbols(n::Int=4)
