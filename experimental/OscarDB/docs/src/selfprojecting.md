@@ -4,11 +4,12 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 # Realizations of self-projecting matroids
-This website accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon. It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elments over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
+This website accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon (https://arxiv.org/abs/2511.21442). It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elments over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
 
 
 
 **Abstract:**  We introduce the self-projecting Grassmannian, an irreducible subvariety of the Grassmannian parametrizing linear subspaces that satisfy a generalized self-duality condition. We study its relation to classical moduli spaces, such as the moduli spaces of pointed curves of genus $g$, as well as to other natural subvarieties of the Grassmannian. We further translate the self-projectivity condition into the combinatorial language of matroids, introducing self-projecting matroids, and we computationally investigate their realization spaces inside the self-projecting Grassmannian.
+arXiv: <https://arxiv.org/abs/2511.21442>
 
 
 
