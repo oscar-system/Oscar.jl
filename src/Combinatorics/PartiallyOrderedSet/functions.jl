@@ -160,12 +160,14 @@ function partially_ordered_set(gin::Graph{Directed})
   Polymake.call_function(
     :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(queue)
   )
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
-    ADJACENCY=pm_object(g),
-    DECORATION=dec,
-    TOP_NODE=length(queue) - 1,
-    BOTTOM_NODE=0,
-  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}()
+
+  Polymake.take(pos, "ADJACENCY", pm_object(g))
+  Polymake._take_graph_map(pos, "ADJACENCY", "DECORATION", dec)
+  Polymake.take(pos, "TOP_NODE", length(queue) - 1)
+  Polymake.take(pos, "BOTTOM_NODE", 0)
+  Polymake.call_method(pos, :commit)
+
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop
@@ -229,12 +231,13 @@ function partially_ordered_set(gin::Graph{Directed}, node_ranks::Dict{Int,Int})
   Polymake.call_function(
     :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(sortednodes)
   )
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
-    ADJACENCY=pm_object(g),
-    DECORATION=dec,
-    TOP_NODE=length(sortednodes) - 1,
-    BOTTOM_NODE=0,
-  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}()
+  Polymake.take(pos, "ADJACENCY", pm_object(g))
+  Polymake._take_graph_map(pos, "ADJACENCY", "DECORATION", dec)
+  Polymake.take(pos, "TOP_NODE", length(sortednodes) - 1)
+  Polymake.take(pos, "BOTTOM_NODE", 0)
+  Polymake.call_method(pos, :commit)
+
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop

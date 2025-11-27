@@ -135,6 +135,12 @@ test_subsets = Dict(
   :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
 )
 
+tests_on_main = Dict(
+                     "Parallel" => "runtests.jl",
+                     "AlgebraicStatistics" => "MultigradedImplicitization.jl",
+                    )
+
+
 test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
 if haskey(ENV, "JULIA_PKGEVAL")
   test_subset = :short
@@ -162,22 +168,21 @@ end
 
 stats = Dict{String,NamedTuple}()
 
-# this needs to run here to make sure it runs on the main process
+# these need to run here to make sure they run on the main process
 # it is in the ignore list for the other tests
 # try running it first for now
 if test_subset == :long || test_subset == :default
-  if "Parallel" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
+  for (ep, f) in tests_on_main
+    path = if ep === nothing
+      joinpath(Oscar.oscardir, "test", f)
+    elseif ep in Oscar.exppkgs
+      joinpath(Oscar.oscardir, "experimental", ep, "test", f)
+    else
+      continue
+    end
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
-
-  if "AlgebraicStatistics" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "AlgebraicStatistics", "test", "MultigradedImplicitization.jl")
-    println("Starting tests for $path")
-    push!(stats, Oscar._timed_include(path, Main))
-  end
-
 end
 
 # if many workers, distribute tasks across them
