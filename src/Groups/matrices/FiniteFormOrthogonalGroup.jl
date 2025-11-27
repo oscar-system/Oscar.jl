@@ -1075,7 +1075,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
     iG::HH,
     rank::Int;
     do_stab::Bool=true
-  ) where {HH<: Map{A,B,GAPMap,GAPGroupEmbedding{A,B}}, A,B}
+  ) where {HH<:Map{A,B,GAPMap,GAPGroupEmbedding{A,B}} where {A,B}}
   b, p = is_elementary_with_prime(T)
   @req b "T must be elementary"
   dcs = _stabilizer_isotropic(T, rank)
