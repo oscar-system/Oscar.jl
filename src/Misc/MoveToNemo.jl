@@ -114,3 +114,8 @@ function is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 end
 # end of changes in PR #5436
 ########################################################################
+
+function Nemo.set!(x::QQFieldElem, n::Int, d::Int)
+  set!(x, n, UInt(d))
+  return x
+end

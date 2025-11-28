@@ -364,62 +364,6 @@ function multi_trees(n::Int)
   ans
 end
 
-# ###############################################################################
-# # 
-# # low-level in-place arithmetic operators
-# # should probably be added into Nemo upstream
-# # 
-# function set!(x::fmpz, y::Int)
-#   ccall((:fmpz_set_si, Nemo.libflint), Nothing, (Ref{fmpz}, Int), x, y)
-#   return x
-# end
-# function set!(x::QQ, y::QQ)
-#   ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}), x, y)
-#   return x
-# end
-function Nemo.set!(x::QQFieldElem, n::Int, d::Int)
-  ccall((:fmpq_set_si, Nemo.libflint), Nothing, (Ref{QQFieldElem}, Int, UInt), x, n, UInt(d))
-  return x
-end
-# function set!(x::QQ, n::fmpz, d::fmpz)
-#   ccall((:QQ_set_fmpz_frac, Nemo.libflint), Nothing, (Ref{QQ}, Ref{fmpz}, Ref{fmpz}), x, n, d)
-#   return x
-# end
-# function Nemo.mul!(z::QQ, x::QQ, y::fmpz)
-#   ccall((:QQ_mul_fmpz, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Ref{fmpz}), z, x, y)
-#   return z
-# end
-# function Nemo.mul!(z::QQ, x::QQ, y::Int)
-#   ccall((:QQ_mul_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), z, x, y)
-#   return z
-# end
-# function Nemo.sub!(z::QQ, x::QQ, y::Int)
-#   ccall((:QQ_sub_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), z, x, y)
-#   return z
-# end
-# function Nemo.inv!(x::QQ, y::QQ)
-#   ccall((:QQ_inv, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}), x, y)
-#   return x
-# end
-# function pow!(c::QQ, a::QQ, b::Int)
-#   iszero(a) && b < 0 && throw(DivideError())
-#   ccall((:QQ_pow_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), c, a, b)
-#   return c
-# end
-# function div!(z::QQ, x::QQ, y::QQ)
-#   iszero(y) && throw(DivideError())
-#   ccall((:QQ_div, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Ref{QQ}), z, x, y)
-#   return z
-# end
-# 
-# muleq!(x::QQ, y::QQ) = mul!(x, x, y)
-# muleq!(x::QQ, y::fmpz) = mul!(x, x, y)
-# muleq!(x::QQ, y::Int) = mul!(x, x, y)
-# subeq!(x::QQ, y::Int) = Nemo.sub!(x, x, y)
-# poweq!(x::QQ, y::Int) = pow!(x, x, y)
-# diveq!(x::QQ, y::QQ) = div!(x, x, y)
-# Nemo.inv!(x::QQ) = Nemo.inv!(x, x)
-
 ###############################################################################
 # 
 # miscellaneous functions 
