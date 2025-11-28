@@ -21,7 +21,7 @@ julia> eigenvalues(A)
 1-element Vector{QQFieldElem}:
  2
 ```
-Note, however, that this only returns the eigenvalues of the matrix over its base field (the rationals in this example). In order to obtain the eigenvalues over a larger field, we can either change the base field of the entries in matrix or pass the desired field as the first argument. In the following, we consider all eigenvalues in the algebraic closure of the rationals.
+Note, however, that this only returns the eigenvalues of the matrix over its base field (the rationals in this example). In order to obtain the eigenvalues over a larger field, we can either change the base field of the entries in the matrix or pass the desired field as the first argument. In the following, we consider all eigenvalues in the algebraic closure of the rationals.
 ```jldoctest eigen1
 julia> K = algebraic_closure(QQ)
 Algebraic closure of rational field
@@ -88,7 +88,7 @@ julia> eigenspaces(A)
 Dict{QQFieldElem, QQMatrix} with 1 entry:
   2 => [0 0 1]
 ```
-Note, however, that this only returns the eigenvalues and -spaces of the matrix over its base field (the rationals in this example). In order to obtain the eigenspaces over a larger field, we can either change the base field of the entries in matrix or pass the desired field as the first argument. In the following, we consider all eigenspaces in the algebraic closure of the rationals.
+Note, however, that this only returns the eigenvalues and -spaces of the matrix over its base field (the rationals in this example). In order to obtain the eigenspaces over a larger field, we can either change the base field of the entries in the matrix or pass the desired field as the first argument. In the following, we consider all eigenspaces in the algebraic closure of the rationals.
 ```jldoctest eigen2
 julia> K = algebraic_closure(QQ)
 Algebraic closure of rational field
