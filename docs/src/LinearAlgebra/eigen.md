@@ -44,7 +44,7 @@ julia> eigenvalues(A_K)
  {a2: -1.00000*im}
 ```
 In the following, we ask OSCAR to compute approximations of the eigenvalues of a matrix over the real numbers. The precision for the computation can be set by the user. Computing such approximations over the complex numbers works alike.
-```jldoctest
+```jldoctest; setup = :(prec = precision(Balls)), teardown = :(set_precision!(Balls, prec))
 julia> B = QQ[0 2; 1 0]
 [0   2]
 [1   0]
@@ -52,19 +52,21 @@ julia> B = QQ[0 2; 1 0]
 julia> RR = real_field()
 Real field
 
-julia> set_precision!(RR, 64) do
-           eigenvalues(RR, B)
-       end
-2-element Vector{RealFieldElem}:
- [-1.41421356 +/- 3.83e-9]
- [1.41421356 +/- 3.83e-9]
+julia> set_precision!(RR,64)
+64
 
-julia> set_precision!(RR, 128) do
-           eigenvalues(RR, B)
-       end
+julia> eigenvalues(RR,B)
 2-element Vector{RealFieldElem}:
- [-1.41421356 +/- 3.83e-9]
- [1.41421356 +/- 3.83e-9]
+ [-1.4142135623730950488 +/- 1.69e-21]
+ [1.4142135623730950488 +/- 1.69e-21]
+
+julia> set_precision!(RR,128)
+128
+
+julia> eigenvalues(RR,B)
+2-element Vector{RealFieldElem}:
+ [-1.41421356237309504880168872420969807857 +/- 3.29e-40]
+ [1.41421356237309504880168872420969807857 +/- 3.29e-40]
 ```
 
 ```@docs
