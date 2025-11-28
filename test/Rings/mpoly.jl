@@ -706,11 +706,12 @@ end
   @test all(is_zero(evaluate(f, [gen(parent(h)), h])) for h in h)
 
   g = f + y^7
-  hg = Oscar.puiseux_expansion(g, 20; parent=parent(h))
-  h + hg # test parent compatibility 
-  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for g in g)
+  hg = Oscar.puiseux_expansion(g, 20)
+  @test_throws ErrorException h + hg # no parent compatibility 
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
   
   g = y^4 + x^2 + x^8
-  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for g in g)
+  hg = Oscar.puiseux_expansion(g, 20)
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
 end
 
