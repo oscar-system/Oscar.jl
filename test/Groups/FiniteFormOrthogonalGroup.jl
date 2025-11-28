@@ -166,18 +166,42 @@ end
       @test a==b
     end
   end
-      
+  
+  function _test(D::TorQuadModule)
+    G = orthogonal_group(D);
+    iG = id_hom(G)
+    
+    for k in 1:div(rank(L),2)
+      @test Oscar._test_isotropic_stabilizer_orders(D, k)
+      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i)]
+      sta = Oscar._isotropic_subspaces_representatives_and_stabilizers(D, iG, k)
+      a = length(sta)
+      if length(X) > 0
+        XG = gset(G, Oscar.on_subgroups_slow, X)
+        b = length(orbits(XG))
+      else 
+        b = 0
+      end
+      @test a==b
+    end
+  end
+  
+  
+  I = integer_lattice(gram=ZZ[1;])
   for i in 1:6
     _test(rescale(root_lattice(:A,i),2),2)
+    _test(direct_sum(rescale(root_lattice(:A,i),2),I)[1],2)
     _test(rescale(root_lattice(:A,i),3),3)
   end
   for i in 4:6
     _test(rescale(root_lattice(:D,i),2),2)
+    _test(direct_sum(rescale(root_lattice(:D,i),2),I)[1],2)
     _test(rescale(root_lattice(:D,i),3),3)
   end
   for i in 1:4
     _test(rescale(root_lattice(:A,i),7),7)
-  end 
+  end
+  # Some more odd ones
 end 
     
 @testset "stabilisers of subspaces under isometries even" begin
@@ -1149,9 +1173,13 @@ end
   T = torsion_quadratic_module(L, rels; modulus=1, modulus_qf=2)
   push!(DD, T);
   
-  for D in DD
-    for i in 0:6
-      @test Oscar._test_isotropic_stabilizer_orders(D, i)
-    end 
+  for (k,D) in enumerate(DD)
+    if k<=120
+      _test(D)
+    else 
+      for i in 0:6
+        @test Oscar._test_isotropic_stabilizer_orders(D, i)
+      end
+    end
   end
 end 

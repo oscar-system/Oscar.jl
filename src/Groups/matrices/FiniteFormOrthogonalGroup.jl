@@ -1075,7 +1075,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
     iG::HH,
     rank::Int;
     do_stab::Bool=true
-  ) where {HH<:Map{A,B,GAPMap,GAPGroupEmbedding{A,B}} where {A,B}}
+  ) where {HH<:Map}
   b, p = is_elementary_with_prime(T)
   @req b "T must be elementary"
   dcs = _stabilizer_isotropic(T, rank)
@@ -1086,7 +1086,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = Tuple{TorQuadModule, Tuple{A, HH}}[]
+  reps = Tuple{TorQuadModule, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     #println("computing double cosets")
@@ -1099,8 +1099,9 @@ function _isotropic_subspaces_representatives_and_stabilizers(
       x = preimage(to_perm, xp)
       Hx = on_subgroups_slow(domain(iH), x)
       if do_stab
-        stabp,i1,i2 = intersect(Sp^xp,Gp)
-        stab = preimage(iG, preimage(to_perm, stabp)[1])
+        stabp,i1,i2 = intersect(Sp^xp, Gp)
+        
+        stab = preimage(iG, preimage(to_perm, i2(stabp)[1])[1])
         push!(reps, (Hx, stab))
       else
         push!(reps, (Hx, (sub(G,[one(G)]))))
@@ -1255,9 +1256,12 @@ function _stabilizer_isotropic_semiregular(
     res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
   end
 
-  if p == 2 && nrows(G) >= 2 && isodd(G[end, end]) && isodd(G[end-1, end-1]) && mod(G[end, end] + G[end-1, end-1], 4)==0 && r <= witt_index + 1
+  if p == 2 && nrows(G) >= 2 && isodd(G[end, end]) && isodd(G[end-1, end-1]) && (GR[end, end] + GR[end-1, end-1]==0 || (modulus_quadratic_form(N)==2 && !is_regular)) && r <= witt_index + 1
     _B2, _stab_gen2 = __stabilizer_isotropic_semiregular(GR, r-1, p, true, is_regular)
     B2 = lift.(_B2)
+    if (modulus_quadratic_form(N)==2 && !is_regular)
+      B2[end,1] +=1
+    end
     stab_gen2 = lift.(_stab_gen2)
     _, iH2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
     push!(res, (iH2, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen2])[2]))
@@ -1386,6 +1390,7 @@ function _stabilizer_isotropic_semiregular_special(
     flag::Bool = false,
   ) where RT <: Union{zzModMatrix, ZZModMatrix}
   @assert iszero(G[1:r,1:r])
+  @assert iszero(G[r+1:2r,r+1:2r])
   n = nrows(G)
   R = base_ring(G)
   extra = 0
@@ -1453,7 +1458,7 @@ function _stabilizer_isotropic_semiregular_special(
     g[r+1, 1]   = 1
     push!(S1, g)
   end
-    
+#   @show r    
 #   display(G)
 #   for g in S1
 #     println()
@@ -1514,18 +1519,21 @@ function _stabilizer_isotropic_semiregular_special(
     S[1, end] = 1
     S[end-1, r+1] = 1
     S[end, r+1] = 1
+    if !iszero(G[end-1,end-1]+G[end,end])
+      S[1, 2*r+1] = 1
+    end
     push!(S1, S)
   end
+#     for g in S1[end:end]
+#        println()
+#        display(g*G*transpose(g)-G)
+#      end 
   if extra == 1 && r > 0
     S = identity_matrix(R, n)
     S[r+1, 2*r+1]=1
     S[r+1, 1]=1
     push!(S1, S)
   end
-#   for g in S1
-#     println()
-#     display(g*G*transpose(g)-G)
-#   end 
   return S1
 end
 
