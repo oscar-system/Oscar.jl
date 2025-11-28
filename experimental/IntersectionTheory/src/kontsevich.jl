@@ -54,10 +54,10 @@ function Base.:*(c::Cycle, d::Cycle)
   n = max(c.num_alloc, d.num_alloc) + 1
   loc(p::Tuple{MultiGraph, Vector}, λ::Vector,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQ}=[QQ() for _ in n]) = begin
-    Nemo.set!(ans, 1, 1)
+    one!(ans)
     c.loc(p, λ, ans, alloc)
     d.loc(p, λ, alloc[end], alloc)
-    return muleq!(ans, alloc[end])
+    return mul!(ans, alloc[end])
   end
   Cycle(loc, n)
 end
@@ -155,7 +155,7 @@ hypersurface(ns::Int...) = hypersurface(collect(ns))
 function hypersurface(ns::Vector{Int})
   loc(p::Tuple{MultiGraph, Vector}, λ::Vector,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQFieldElem}=[QQ(), QQ()]) = begin
-    Nemo.set!(ans, 1, 1)
+    one!(ans)
     a1, a2 = alloc
     t = _tally(ns)
     for n in keys(t)
@@ -170,7 +170,7 @@ end
 function _hypersurface(p::Tuple{MultiGraph, Vector}, λ::Vector, n::Int,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQFieldElem}=[QQ()])
   g, i = p
-  Nemo.set!(ans, 1, 1)
+  one!(ans, 1)
   a1, = alloc
   for e in edges(g)
     for a in 0:n*g[e]
@@ -179,7 +179,7 @@ function _hypersurface(p::Tuple{MultiGraph, Vector}, λ::Vector, n::Int,
     end
   end
   for v in vertices(g)
-    Nemo.set!(a1, n*λ[i[v]], 1)
+    Nemo.set!(a1, n*λ[i[v]])
     pow!(a1, 1 - length(all_neighbors(g, v)))
     mul!(ans, a1)
   end
@@ -189,7 +189,7 @@ end
 function _euler(p::Tuple{MultiGraph, Vector}, λ::Vector, ans::QQFieldElem=QQ(1),
     alloc::Vector{QQFieldElem}=[QQ(), QQ(), QQ()])
   g, i = p
-  Nemo.set!(ans, 1, 1)
+  one!(ans)
   n = length(λ) - 1
   a1, a2, a3 = alloc
 
@@ -210,15 +210,15 @@ function _euler(p::Tuple{MultiGraph, Vector}, λ::Vector, ans::QQFieldElem=QQ(1)
   end
   for v in vertices(g)
     nbrs = all_neighbors(g, v)
-    Nemo.set!(a1, 1, 1)
+    one!(a1)
     for j in 1:n+1
       if j != i[v]
         mul!(a1, λ[i[v]] - λ[j])
       end
     end
     mul!(ans, pow!(a1, 1 - length(nbrs)))
-    Nemo.set!(a1, 0, 1)
-    Nemo.set!(a2, 1, 1)
+    zero!(a1)
+    one!(a2)
     for w in nbrs
       e = Edge(v, w)
       Nemo.set!(a3, λ[i[v]] - λ[i[w]], g[e])

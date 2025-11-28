@@ -69,13 +69,13 @@ function _root_exact(a::ZZRingElem, p::Val{2})
   #TODO: better mod 2^n, use mullow?
   while i < s
     Nemo.mul!(M, M, M)
-    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ref{ZZRingElem}, Int), M, M, 2)
+    Nemo.shift_right!(M, M, 2)
 
     T = powermod(D, 2, M)
     Nemo.mul!(T, T, B)
     Hecke.mod!(T, T, M)
     Nemo.sub!(T, one, T)
-    ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ref{ZZRingElem}, Int), T, T, 1)
+    Nemo.shift_right!(T, T, 1)
     Nemo.add!(T, one, T)
     Nemo.mul!(D, D, T)
     Hecke.mod!(D, D, M)
