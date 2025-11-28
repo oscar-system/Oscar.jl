@@ -101,7 +101,7 @@ end
 
 @inline function fmpz_trunc!(a::ZZRingElem, i::Int)
 #  @assert a >= 0
-  ccall((:fmpz_fdiv_r_2exp, Nemo.libflint), Cvoid, (Ref{ZZRingElem}, Ref{ZZRingElem}, Clong), a, a, i)
+  @ccall Nemo.libflint.fmpz_fdiv_r_2exp(a::Ref{ZZRingElem}, a::Ref{ZZRingElem}, i::Clong)::Nothing
 end
 
 function powermod_2exp(a::ZZRingElem, p::Int, i::Int) #too slow - much worse than 
