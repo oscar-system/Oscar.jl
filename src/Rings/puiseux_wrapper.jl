@@ -87,13 +87,11 @@ function puiseux_expansion(
   R = Oscar.parent(f)
   @assert ngens(R) == 2 "polynomial must be bivariate"
   x, y = gens(R)
-  xx = gen(parent)
-  prec = max_precision(parent)
 
   # prepare for the Singular call
   SR = singular_poly_ring(R)
   Sf = SR(f)
-  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, prec, 1)
+  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, precision, 1)
   return reduce(vcat, [_process_result(R, precision, data...) for data in raw])
 end
 

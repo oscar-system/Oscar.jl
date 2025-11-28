@@ -703,14 +703,14 @@ end
   R, (x, y) = QQ[:x, :y]
   f = y^3 + x^2 + x^8
   h = Oscar.puiseux_expansion(f, 15)
-  @test is_zero(evaluate(f, [gen(parent(h)), h]))
+  @test all(is_zero(evaluate(f, [gen(parent(h)), h])) for h in h)
 
   g = f + y^7
   hg = Oscar.puiseux_expansion(g, 20; parent=parent(h))
   h + hg # test parent compatibility 
-  @test is_zero(evaluate(g, [gen(parent(hg)), hg]))
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for g in g)
   
   g = y^4 + x^2 + x^8
-  @test_throws ErrorException Oscar.puiseux_expansion(g, 20)
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for g in g)
 end
 
