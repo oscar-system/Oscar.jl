@@ -16,15 +16,37 @@ function _puiseux(f::MPolyRingElem{T}, max_deg::Int, at_origin::Bool=true) where
   Sf = SP(f)
   raw = Singular.LibPuiseuxexpansions.puiseux(Sf, max_deg, Int(at_origin))
   @assert length(raw) == 1 "longer list then expected for output"
-  return _process_result(P, raw[1]...)
+  return [_process_result(P, data...) for data in raw]
 end
 
-function _process_result(P::MPolyRing, SE::Singular.PolyRing, res::Dict, rest...)
-  error("processing of result from Singular is not yet implemented")
+function _process_result(P::MPolyRing, prec::Int, SE::Singular.PolyRing, res::Dict, rest...)
+  # create the necesessary field extension on the Oscar side
+  kk = coefficient_ring(SE) # the extension field of QQ
+  mp = Singular.modulus(kk) # the minimum polynomial
+  mmp = Singular.n_transExt_to_spoly(mp) # convert into an actual polynomial
+  L, t = polynomial_ring(QQ, :t; cached=false)
+  kkO, alpha = extension_field(L(mmp))
+  P_ext, to_P_ext = change_base_ring(kkO, P)
+  Puis, xx = puiseux_series_ring(kkO, prec, symbols(P_ext)[1])
+
+  # transfer the polynomials to the oscar side
+  result = elem_type(Puis)[]
+  for branch in res[:PE]
+    h, e, _ = branch
+    ctx = MPolyBuildCtx(P_ext)
+    for (c, v) in zip(Singular.coefficients(h), Singular.exponent_vectors(h))
+      push_term!(ctx, kkO(c), v)
+    end
+    hh = finish(ctx)
+    push!(result, evaluate(hh, [xx^(1//3), zero(xx)]))
+  end
+  return result
 end
 
-function _process_result(P::MPolyRing, h::Singular.spoly, e::Int, rest...)
-  return P(h), e
+function _process_result(P::MPolyRing, prec::Int, h::Singular.spoly, e::Int, rest...)
+  kk = coefficient_ring(P)
+  Puis, xx = puiseux_series_ring(kk, prec, symbols(P)[1])
+  return [evaluate(P(h), [xx^(1//e), zero(xx)])]
 end
 
 
@@ -39,8 +61,7 @@ end
 @doc raw"""
     function puiseux_expansion(
         f::MPolyRingElem{T}, 
-        precision::Int=10;
-        parent = _puiseux_parent(f, precision)
+        precision::Int=10
       ) where {T <: FieldElem}
 
 Compute the Puiseux expansion of `f` up to degree `precision`. 
@@ -61,17 +82,18 @@ O(x^(26//3))
 """
 function puiseux_expansion(
     f::MPolyRingElem{T}, 
-    precision::Int=10;
-    parent = _puiseux_parent(f, precision)
+    precision::Int=10
   ) where {T <: FieldElem}
   R = Oscar.parent(f)
   @assert ngens(R) == 2 "polynomial must be bivariate"
   x, y = gens(R)
   xx = gen(parent)
   prec = max_precision(parent)
-  h, e = _puiseux(f, prec, true)
-  # h should have no terms involving y^k for k > 0
-  hh = evaluate(h, [xx^(1//e), zero(xx)])
-  return hh
+
+  # prepare for the Singular call
+  SR = singular_poly_ring(R)
+  Sf = SR(f)
+  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, prec, 1)
+  return reduce(vcat, [_process_result(R, precision, data...) for data in raw])
 end
 
