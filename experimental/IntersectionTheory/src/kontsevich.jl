@@ -170,7 +170,7 @@ end
 function _hypersurface(p::Tuple{MultiGraph, Vector}, λ::Vector, n::Int,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQFieldElem}=[QQ()])
   g, i = p
-  one!(ans, 1)
+  one!(ans)
   a1, = alloc
   for e in edges(g)
     for a in 0:n*g[e]
