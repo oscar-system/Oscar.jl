@@ -79,7 +79,7 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -145,7 +145,7 @@ jobs:
           - 'pre'
           - 'nightly'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -196,7 +196,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
       - name: "Set up Julia"
@@ -236,7 +236,7 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -325,7 +325,7 @@ jobs:
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
       OSCAR_TEST_SUBSET: "oscar_db"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v2
         with:
