@@ -11,7 +11,7 @@ SetPackageInfo( rec(
 PackageName := "OscarInterface",
 Subtitle := "GAP interface to OSCAR",
 Version := "1.6.0",
-Date := "28/11/2025", # dd/mm/yyyy format
+Date := "29/11/2025", # dd/mm/yyyy format
 License := "GPL-2.0-or-later",
 
 Persons := [
