@@ -608,7 +608,7 @@ function elem_to_mat_row!(M::ZZMatrix, i::Int, d::ZZRingElem, a::NfNSGenElem{QQF
     @assert isone(denominator(v[j]))
     M[i, j] = numerator(v[j])
   end
-  set!(d, dd)
+  Nemo.set!(d, dd)
   return nothing
 end
 
