@@ -116,6 +116,6 @@ end
 ########################################################################
 
 function Nemo.set!(x::QQFieldElem, n::Int, d::Int)
-  set!(x, n, UInt(d))
+  Nemo.set!(x, n, UInt(d))
   return x
 end
