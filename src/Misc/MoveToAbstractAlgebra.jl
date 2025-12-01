@@ -5,7 +5,7 @@
 function Base.copy(f::MPolyRingElem)
   Ox = parent(f)
   g = MPolyBuildCtx(Ox)
-  for (c, e) in Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
+  for (c, e) in Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, c, e)
   end
   return finish(g)

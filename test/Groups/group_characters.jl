@@ -9,13 +9,15 @@ raw"""
 ```jldoctest group_characters.test
 julia> using Oscar
 
-julia> t_a4 = character_table(alternating_group(4));
+julia> t_a4 = Oscar._sort_for_stable_tests(character_table(alternating_group(4)));
 
-julia> t_a5 = character_table("A5");
+julia> t_a5 = character_table("A5"); # should not need sorting
 
-julia> t_a4_2 = mod(t_a4, 2);
+julia> t_a4_mod2 = mod(t_a4, 2);
 
-julia> t_a5_2 = mod(t_a5, 2);
+julia> t_a5_mod2 = mod(t_a5, 2);
+
+julia> t_l2_11 = character_table("L2(11)"); # should not need sorting
 ```
 
 `print` shows an abbrev. form
@@ -27,10 +29,10 @@ character table of Alt(4)
 julia> print(t_a5)
 character table of A5
 
-julia> print(t_a4_2)
+julia> print(t_a4_mod2)
 2-modular Brauer table of Alt(4)
 
-julia> print(t_a5_2)
+julia> print(t_a5_mod2)
 2-modular Brauer table of A5
 ```
 
@@ -43,10 +45,10 @@ Oscar.GAPGroupCharacterTable[character table of Alt(4)]
 julia> show([t_a5])
 Oscar.GAPGroupCharacterTable[character table of A5]
 
-julia> show([t_a4_2])
+julia> show([t_a4_mod2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of Alt(4)]
 
-julia> show([t_a5_2])
+julia> show([t_a5_mod2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
@@ -58,10 +60,10 @@ character table of a group
 julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_mod2)
 2-modular Brauer table of a group
 
-julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_mod2)
 2-modular Brauer table of a group
 ```
 
@@ -203,7 +205,7 @@ Show the screen format for a table with real and non-real irrationalities.
 ```jldoctest group_characters.test
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true),
-              MIME("text/plain"), character_table("L2(11)"))
+              MIME("text/plain"), t_l2_11)
        end
 L2(11)
 
@@ -235,7 +237,7 @@ B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true),
-            MIME("text/plain"), character_table("L2(11)"))
+            MIME("text/plain"), t_l2_11)
 L2(11)
 
   2  2  2  1  .  .  1   .   .
@@ -686,7 +688,7 @@ show character field degrees in the screen format ...
 
 ```jldoctest group_characters.test
 julia> Oscar.with_unicode() do
-         show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
+         show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4_mod2)
        end
 2-modular Brauer table of alternating group of degree 4
 
@@ -705,7 +707,7 @@ julia> Oscar.with_unicode() do
 ... and in LaTeX format
 
 ```jldoctest group_characters.test
-julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
+julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4_mod2)
 2-modular Brauer table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
@@ -1381,4 +1383,25 @@ end
   t = character_table(h)
   chi = t[2]
   @test_throws ArgumentError stabilizer(g, chi)
+end
+
+@testset "character degrees" begin
+  # for character tables
+  D = character_degrees(character_table("S5"))
+  @test D == multiset(ZZRingElem[1, 4, 5, 6], [2, 2, 2, 1])
+  @test D isa MSet{ZZRingElem}
+  D2 = character_degrees(Int, character_table("S5"))
+  @test sort(collect(D)) == sort(collect(D2))
+  @test_throws ArgumentError D == D2
+  @test D2 isa MSet{Int}
+  @test character_degrees(character_table("S5", 2)) == multiset(ZZRingElem[1, 4], [1, 2])
+
+  # for groups
+  @test character_degrees(symmetric_group(5)) == D
+
+  # for invariant lists of abelian groups, and order of a finite field
+  @test character_degrees([3, 3, 5], 2) == multiset(ZZRingElem[1, 2, 4], [1, 4, 9])
+  @test character_degrees([3, 3, 5], 4) == multiset(ZZRingElem[1, 2], [9, 18])
+  @test character_degrees([3, 3, 5], 16) == multiset(ZZRingElem[1], [45])
+  @test character_degrees([2, 4, 8], 3) == multiset(ZZRingElem[1, 2], [8, 28])
 end

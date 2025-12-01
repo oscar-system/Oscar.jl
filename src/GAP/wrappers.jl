@@ -30,14 +30,19 @@ GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BrauerCharacterValue(x::GapObj)::GAP.Obj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
 GAP.@wrap CentralCharacter(x::GapObj)::GapObj
+GAP.@wrap Centralizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap Characteristic(x::Any)::GapInt
+GAP.@wrap CharacterDegrees(x::GapObj)::GapObj
 GAP.@wrap CharacterParameters(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap CharacterTableFactorGroup(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap CharacterTableWithSortedCharacters(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap CharacterTableWithSortedCharacters(x::GapObj)::GapObj
+GAP.@wrap CharacterTableWithSortedClasses(x::GapObj)::GapObj
 GAP.@wrap CharacterTableWreathSymmetric(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap ClassFunction(x::GapObj, y::GapObj)::GapObj
@@ -126,6 +131,12 @@ GAP.@wrap Group(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3, x4)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
 GAP.@wrap Grp(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool
@@ -384,6 +395,7 @@ GAP.@wrap SizesCentralizers(x::GapObj)::GapObj
 GAP.@wrap SizesConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap SmallestMovedPoint(x::Any)::GapInt
+GAP.@wrap SortingPerm(x::GapObj)::GapObj
 GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj

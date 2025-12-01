@@ -200,9 +200,9 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{Dict{Symbol, Any}, JSON.Object{String, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
+  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
+  refs::Union{AbstractDict{Symbol, Any}, Nothing}
   with_attrs::Bool
 end
 

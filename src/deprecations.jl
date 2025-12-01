@@ -178,3 +178,10 @@ function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Tropi
 end
 
 @deprecate vector_space_dimension vector_space_dim
+
+# deprecated for 1.6
+@deprecate is_acylic is_acyclic
+
+@deprecate all_cohomologies sheaf_cohomology
+@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
+

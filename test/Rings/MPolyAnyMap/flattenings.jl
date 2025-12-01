@@ -120,6 +120,9 @@ end
   R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
   S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
 
+  phi = hom(R, S, [u, v])
+  @test phi(x) == u
+  
   flat = Oscar.flatten(S)
   S_flat = codomain(flat)
 

@@ -260,11 +260,11 @@
       @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
     end
 
-    @testset "is_acylic" begin
+    @testset "is_acyclic" begin
       G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
-      @test !is_acylic(G)
+      @test !is_acyclic(G)
       rem_edge!(G, 3, 1)
-      @test is_acylic(G)
+      @test is_acyclic(G)
     end
 
     @testset "subgraph" begin

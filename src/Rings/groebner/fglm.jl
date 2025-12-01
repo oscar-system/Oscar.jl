@@ -48,10 +48,12 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.")
   SG = singular_generators(G)
   Singular.dimension(SG) == 0 || error("Dimension of corresponding ideal must be zero.")
-  SR_destination, = Singular.polynomial_ring(base_ring(G.gensBiPolyArray.Sx), symbols(G.gensBiPolyArray.Sx); ordering = singular(ordering))
+  Sx = base_ring(SG)
+  SR_destination, = Singular.polynomial_ring(base_ring(Sx), symbols(Sx); ordering = singular(ordering))
 
-  ptr = Singular.libSingular.fglmzero(SG.ptr, G.gensBiPolyArray.Sx.ptr, SR_destination.ptr)
-  return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
+  ptr = Singular.libSingular.fglmzero(SG.ptr, Sx.ptr, SR_destination.ptr)
+  T = typeof(SG)  # Singular.sideal{Singular.spoly}
+  return IdealGens(base_ring(G), T(SR_destination, ptr, true))
 end
 
 @doc raw"""
@@ -157,7 +159,6 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
   haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   is_global(destination_ordering) || error("Destination ordering must be global.")
   G = groebner_basis(I, complete_reduction=true)
-  start_ordering = G.ord
   dim(I) == 0 || error("Dimension of ideal must be zero.")
   I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end

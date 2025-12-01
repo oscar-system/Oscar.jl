@@ -871,18 +871,18 @@ function _irred_abelian(G::Oscar.GAPGroup, F::FinField)
 
     # `orblen` is the length of the Galois orbit over `F`.
     # Compute `L, K, z` where
-    # `L` is the smallest field that contains `F` and a prim. `o`-th root,
+    # `L` is the smallest field in char. `p` that contains a prim. `o`-th root,
     # `K` is the intersection of `L` and `F`,
     # and `z` is an element of order `o` in `L`.
     # These values depend only on `o`.
     # (The irred. `F`-repres. of `G` live already over `K`,
     # we work over `K` and later write the matrices over `F`.)
-    L, K, z = get(rootinfo, o) do
-      m = k * orblen
+    L, K, z = get!(rootinfo, o) do
+      m = modord(p, o) # Note: `orblen == modord(q, o)` divides `m`
       L = GF(p, m)
       return L,
              GF(p, gcd(k, m)),
-             Oscar.DiscLog.generator(L)^divexact(p^m-1, o)
+             Oscar.DiscLog.element_of_given_order(L, o)
     end
 
     mp = embed(K, L)

@@ -61,6 +61,7 @@ label!
 degree(g::Graph, v::Int)
 indegree(g::Graph{Directed}, v::Int)
 outdegree(g::Graph{Directed}, v::Int)
+leaves(g::Graph{Directed})
 ```
 
 ### Connectivity
@@ -87,6 +88,7 @@ has_edge
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+n_leaves(graph::Graph{Directed})
 n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -96,6 +98,7 @@ signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 is_bipartite(g::Graph{Undirected})
+is_acyclic(G::Graph{Directed})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 ```

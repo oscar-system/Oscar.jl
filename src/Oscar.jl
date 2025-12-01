@@ -126,7 +126,10 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
-  
+
+  add_verbosity_scope(:Isometry)
+  add_assertion_scope(:Isometry)
+
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
@@ -171,12 +174,20 @@ function __init__()
 
   add_verbosity_scope(:SchurIndices)
 
+  add_verbosity_scope(:DirectImages)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
       Pkg.is_manifest_current() :
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+  end
+
+  # call git subprocess here to avoid conflicts with
+  # IPC communication serialization
+  if Oscar.is_dev
+    Serialization.get_oscar_serialization_version()
   end
 end
 
@@ -245,7 +256,8 @@ include("fallbacks.jl")
 
 include("Rings/Rings.jl")
 include("forward_declarations.jl")
-include("Groups/Groups.jl")
+include("Misc/Misc.jl")
+include("Groups/Groups.jl")  # Needs IndexedSet
 
 include("GAP/GAP.jl")
 
@@ -289,7 +301,6 @@ include("InvariantTheory/InvariantTheory.jl")
 
 include("LieTheory/LieTheory.jl")
 
-include("Misc/Misc.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should

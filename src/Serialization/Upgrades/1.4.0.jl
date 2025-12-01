@@ -1,6 +1,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.4.0",
-  function upgrade_1_4_0(s::UpgradeState, dict::Dict)
+  function upgrade_1_4_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     if haskey(dict, :_refs)
       s.id_to_dict = dict[:_refs]
     end
@@ -10,7 +10,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
     end
     if haskey(dict, :_type)
-      if dict[:_type] isa Dict && haskey(dict[:_type], :name)
+      if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
         type_name = dict[:_type][:name]
       else
         type_name = dict[:_type]
@@ -22,11 +22,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         if dict[:data] isa String
           # do nothing
         else
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => dict[:_type],
             :params => dict[:data][:base_ring] isa String ? dict[:data][:base_ring] : upgrade_1_4_0(s, dict[:data][:base_ring])
           )
-          dict[:data] = Dict(
+          dict[:data] = Dict{Symbol, Any}(
             :symbols => dict[:data][:symbols],
           )
         end
@@ -34,9 +34,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_hs = upgrade_1_4_0(s, dict[:data][:hs_model])
         upgraded_genus_ci = upgrade_1_4_0(s, dict[:data][:genus_ci])
         upgraded_degree_of_Kbar_of_tv_restricted_to_ci = upgrade_1_4_0(s, dict[:data][:degree_of_Kbar_of_tv_restricted_to_ci])
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :hs_model => upgraded_hs,
             :genus_ci => upgraded_genus_ci[:_type],
             :degree_of_Kbar_of_tv_restricted_to_ci => upgraded_degree_of_Kbar_of_tv_restricted_to_ci[:_type]
@@ -46,10 +46,10 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in ["GlobalTateModel", "HypersurfaceModel", "WeierstrassModel"]
 
         upgraded_attr_dict = upgrade_1_4_0(s, dict[:data][:__attrs])
-        dict[:attrs] = Dict()
+        dict[:attrs] = Dict{Symbol, Any}()
         for k in keys(upgraded_attr_dict[:_type][:params])
           k == :key_params && continue
-          dict[:attrs][k] = Dict(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
+          dict[:attrs][k] = Dict{Symbol, Any}(:_type => upgraded_attr_dict[:_type][:params][k], :data => upgraded_attr_dict[:data][k])
         end
 
         if haskey(dict[:data], :explicit_model_sections)
@@ -71,7 +71,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
 
       elseif type_name == "LieAlgebraModule"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :lie_algebra => dict[:data][:lie_algebra]
@@ -79,48 +79,48 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         const_data = dict[:data][:construction_data]
         if haskey(const_data, :is_standard_module)
-          dict[:_type][:params][:_is_standard_module] = Dict(:_type=>"Bool", :data => "true")
+          dict[:_type][:params][:_is_standard_module] = Dict{Symbol, Any}(:_type=>"Bool", :data => "true")
         elseif haskey(const_data, :is_dual)
           dict[:_type][:params][:_is_dual] = const_data[:is_dual]
         elseif haskey(const_data, :is_tensor_power)
-          dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
+          dict[:_type][:params][:_is_tensor_power] = [const_data[:is_tensor_power][1], Dict{Symbol, Any}(:_type => "Base.Int", :data => const_data[:is_tensor_power][2])]
         elseif haskey(const_data, :is_direct_sum)
           dict[:_type][:params][:_is_direct_sum] = const_data[:is_direct_sum]
         elseif haskey(const_data, :is_symmetric_power)
-          dict[:_type][:params][:_is_symmetric_power] = [const_data[:is_symmetric_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_symmetric_power][2])]
+          dict[:_type][:params][:_is_symmetric_power] = [const_data[:is_symmetric_power][1], Dict{Symbol, Any}(:_type => "Base.Int", :data => const_data[:is_symmetric_power][2])]
         elseif haskey(const_data, :is_tensor_product)
           dict[:_type][:params][:_is_tensor_product] = const_data[:is_tensor_product]
         elseif haskey(const_data, :is_exterior_power)
-          dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
+          dict[:_type][:params][:_is_exterior_power] = [const_data[:is_exterior_power][1], Dict{Symbol, Any}(:_type => "Base.Int", :data => const_data[:is_exterior_power][2])]
         elseif !isempty(const_data)
           error("missed construction data")
         end
       elseif type_name == "LinearLieAlgebra"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :base_ring => dict[:data][:base_ring]
           ))
       elseif type_name == "DirectSumLieAlgebra"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :base_ring => dict[:data][:base_ring],
             :summands => dict[:data][:summands]
           ))
       elseif type_name == "AbstractLieAlgebra"
         if haskey(dict[:data], :root_system)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :base_ring => dict[:data][:base_ring],
             :root_system => dict[:data][:root_system]
 
           ))
         else
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => dict[:_type],
-            :params => Dict(
+            :params => Dict{Symbol, Any}(
               :base_ring => dict[:data][:base_ring]
             ))
         end
@@ -128,80 +128,80 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in [
         "FracField", "LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"
         ]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:base_ring]
         )
         delete!(dict, :base_ring)
         dict[:data] = dict[:data]
       elseif type_name in ["MatSpace", "SMatSpace"]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => dict[:data][:base_ring]
         )
-        dict[:data] = Dict(
+        dict[:data] = Dict{Symbol, Any}(
           :ncols => dict[:data][:ncols],
           :nrows => dict[:data][:nrows]
         )
       elseif type_name == "fqPolyRepField"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
         )
         dict[:data] = dict[:data][:def_pol][:data]
       elseif type_name == "MPolyDecRing"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :ring => dict[:data][:ring],
             :grading_group => dict[:data][:grading][:_type][:params]
           )
         )
         dict[:data] = dict[:data][:grading][:data]
       elseif type_name in ["AbsSimpleNumField", "Hecke.RelSimpleNumField"]
-        dict[:_type] isa Dict && haskey(dict[:_type], :params) && return dict
-        dict[:_type] = Dict(
+        dict[:_type] isa AbstractDict && haskey(dict[:_type], :params) && return dict
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:def_pol][:_type][:params]
         )
-        dict[:data] = Dict(
+        dict[:data] = Dict{Symbol, Any}(
           :var => dict[:data][:var],
           :def_pol => dict[:data][:def_pol][:data]
         )
       elseif type_name in ["AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField"]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:def_pols][:_type][:params]
         )
-        dict[:data] = Dict(
+        dict[:data] = Dict{Symbol, Any}(
           :vars => dict[:data][:vars],
           :def_pols => dict[:data][:def_pols][:data]
         )
 
       elseif type_name == "EmbeddedNumField"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:embedding]
         )
         dict[:data] = []
       elseif type_name == "FqField"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => "FiniteField",
           :_instance => dict[:_type]
         )
 
-        if dict[:data] isa Dict
+        if dict[:data] isa AbstractDict
           dict[:_type][:params] = upgrade_1_4_0(s, dict[:data][:def_pol])[:_type][:params]
           dict[:data] = dict[:data][:def_pol][:data]
         end
       elseif type_name in ["fpField", "Nemo.fpField"]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => "FiniteField",
           :_instance => "fpField"
             )
         dict[:data] = dict[:data]
       elseif type_name in ["FpField", "Nemo.FpField"]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => "FiniteField",
           :_instance => "FpField"
             )
@@ -222,19 +222,19 @@ push!(upgrade_scripts_set, UpgradeScript(
             key_params = dict[:_type][:params][:key_type]
           end
 
-          dict[:_type][:params] = Dict(
+          dict[:_type][:params] = Dict{Symbol, Any}(
             :value_params => value_params,
             :key_params => key_params
           )
         else
-          d = Dict()
+          d = Dict{Symbol, Any}()
           for (k, v) in dict[:_type][:params]
             if k == :key_type || k == :key_params
               d[k] = v
             elseif k == :_coeff 
               
             else
-              d[k] = upgrade_1_4_0(s, Dict(
+              d[k] = upgrade_1_4_0(s, Dict{Symbol, Any}(
                 :_type => dict[:_type][:params][k],
                 :data => dict[:data][k]
               ))
@@ -242,15 +242,15 @@ push!(upgrade_scripts_set, UpgradeScript(
           end
 
           if haskey(dict, :_refs)
-            dict = Dict(
-              :_type => Dict(:name => "Dict", :params=>Dict()),
-              :data => Dict(),
+            dict = Dict{Symbol, Any}(
+              :_type => Dict{Symbol, Any}(:name => "Dict", :params=>Dict{Symbol, Any}()),
+              :data => Dict{Symbol, Any}(),
               :_refs => dict[:_refs]
             )
           else
-            dict = Dict(
-              :_type => Dict(:name => "Dict", :params=>Dict()),
-              :data => Dict(),
+            dict = Dict{Symbol, Any}(
+              :_type => Dict{Symbol, Any}(:name => "Dict", :params=>Dict{Symbol, Any}()),
+              :data => Dict{Symbol, Any}(),
             )
           end
 
@@ -265,7 +265,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name in ["Vector", "Set", "Matrix"]
         subtype = dict[:_type][:params]
-        if dict[:data] isa Vector{String}
+        if isempty(dict[:data])
+          # do nothing
+        elseif all(e -> e isa String, dict[:data])
           dict[:data] = dict[:data]
 
           ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
@@ -276,7 +278,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           upgraded_entries = []
           for entry in dict[:data]
-            push!(upgraded_entries, upgrade_1_4_0(s, Dict(
+            push!(upgraded_entries, upgrade_1_4_0(s, Dict{Symbol, Any}(
               :_type => subtype,
               :data => entry
             )))
@@ -298,7 +300,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name == "Tuple"
         upgraded_subtypes = Dict[]
         for (i, subtype) in enumerate(dict[:_type][:params])
-          push!(upgraded_subtypes, upgrade_1_4_0(s, Dict(
+          push!(upgraded_subtypes, upgrade_1_4_0(s, Dict{Symbol, Any}(
             :_type => subtype,
             :data => dict[:data][i]
           )))
@@ -306,18 +308,18 @@ push!(upgrade_scripts_set, UpgradeScript(
         dict[:_type][:params] = [subdict[:_type] for subdict in upgraded_subtypes]
         dict[:data] = [subdict[:data] for subdict in upgraded_subtypes]
       elseif type_name == "ZZLat"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :basis => dict[:data][:basis][:_type],
             :ambient_space => dict[:data][:ambient_space]
           )
         )
         dict[:data] = dict[:data][:basis][:data]
       elseif type_name == "QuadSpaceWithIsom"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :order => dict[:data][:order][:_type],
             :isom => dict[:data][:isom][:_type],
             :quad_space => dict[:data][:quad_space]
@@ -330,9 +332,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         
       elseif type_name == "ZZLatWithIsom"
         quad_space = upgrade_1_4_0(s, dict[:data][:ambient_space])
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :ambient_space => quad_space,
             :basis => dict[:data][:basis][:_type],
           )
@@ -350,7 +352,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         "Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
         "SubdivisionOfPoints"
         ]
-        if !(dict[:_type][:params] isa Dict) || dict[:_type][:params][:_type] == "QQBarField"
+        if !(dict[:_type][:params] isa AbstractDict) || dict[:_type][:params][:_type] == "QQBarField"
           pm_dict = dict[:data]
           pm_dict[:_type][:params][:key_params] = "Symbol"
           pm_dict[:_type][:params][:_polymake_type] = "String"
@@ -360,17 +362,17 @@ push!(upgrade_scripts_set, UpgradeScript(
           delete!(pm_dict[:_type][:params], :_type)
           delete!(pm_dict[:data], :_type)
 
-          if !(dict[:_type][:params] isa Dict)
+          if !(dict[:_type][:params] isa AbstractDict)
             field = dict[:_type][:params]
           else
-            field = Dict(:_type => "QQBarField")
+            field = Dict{Symbol, Any}(:_type => "QQBarField")
           end
 
           pm_dict = upgrade_1_4_0(s, pm_dict)
 
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict(
+            :params => Dict{Symbol, Any}(
               :field => field,
               :pm_params => pm_dict[:_type]
             )
@@ -380,9 +382,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in [
         "Hecke.RelSimpleNumFieldEmbedding", "Hecke.RelNonSimpleNumFieldEmbedding"
         ]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :num_field => dict[:data][:num_field],
             :base_field_emb => dict[:data][:base_field_emb]
           )
@@ -391,7 +393,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in  [
         "Hecke.AbsSimpleNumFieldEmbedding", "Hecke.AbsNonSimpleNumFieldEmbedding"
         ]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => dict[:data][:num_field]
         )
@@ -399,25 +401,25 @@ push!(upgrade_scripts_set, UpgradeScript(
                 
       elseif type_name in ["FPGroup", "SubFPGroup"]
         if dict[:data][:X] isa String
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:X]
           )
         elseif haskey(dict[:data][:X], :freeGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:X][:freeGroup]
           )
         elseif haskey(dict[:data][:X], :wholeGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:X][:wholeGroup]
           )
 
         else
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict(
+            :params => Dict{Symbol, Any}(
               :_type => "GapObj",
               :data => dict[:data][:X]
             )
@@ -426,19 +428,19 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       elseif type_name in ["PcGroup", "SubPcGroup"]
         if dict[:data][:X] isa String
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:X]
           )
         elseif haskey(dict[:data][:X], :fullGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:X][:fullGroup]
           )
         else
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict(
+            :params => Dict{Symbol, Any}(
               :_type => "GapObj",
               :data => dict[:data][:X]
             )
@@ -451,46 +453,46 @@ push!(upgrade_scripts_set, UpgradeScript(
         if dict[:data] isa String
           #do nothing
         elseif haskey(dict[:data], :freeGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => "GapObj",
             :params => dict[:data][:freeGroup]
           )
         elseif haskey(dict[:data], :fullGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => "GapObj",
             :params => dict[:data][:fullGroup]
           )
 
         elseif haskey(dict[:data], :wholeGroup)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => "GapObj",
             :params => dict[:data][:wholeGroup]
           )
         end
       elseif type_name == "TropicalCurve"
         if haskey(dict[:data], :graph)
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict(:_type => String, :data => "graph")
+            :params => Dict{Symbol, Any}(:_type => String, :data => "graph")
           )
           dict[:data][:graph] = dict[:data][:graph][:data]
         else
-          dict[:_type] = Dict(
+          dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
             :params => dict[:data][:polyhedral_complex][:_type]
           )
           dict[:data][:polyhedral_complex] = dict[:data][:polyhedral_complex][:data]
         end
       elseif type_name == "TropicalHypersurface"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => dict[:data][:tropical_polynomial][:_type][:params]
         )
         dict[:data] = dict[:data][:tropical_polynomial][:data]
       elseif type_name == "IdealGens"
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => "IdealGens",
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :base_ring => dict[:_type][:params],
             :ordering_type => dict[:data][:ordering][:internal_ordering][:_type]
           )
@@ -502,27 +504,27 @@ push!(upgrade_scripts_set, UpgradeScript(
           dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type] = dict[:data][:ordering][:internal_ordering][:ordering_symbol_as_type][:data]
         end
       elseif type_name == "NormalToricVariety"
-        if dict[:data] isa Dict
+        if dict[:data] isa AbstractDict
           if haskey(dict[:data], :attrs)
             dict[:attrs] = dict[:data][:attrs]
             dict[:data] = dict[:data][:pm_data]
           end
         end
       elseif type_name == "CohomologyClass"
-        dict = Dict(
+        dict = Dict{Symbol, Any}(
           :_type => dict[:_type],
           :data => dict[:data][:polynomial]
         )
       elseif type_name in ["WeightLattice", "WeylGroup"]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => dict[:data][:root_system]
         )
       elseif type_name == "MPolyQuoRing"
         ord_data = dict[:data][:ordering]
-        dict[:_type] = Dict(
+        dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
-          :params => Dict(
+          :params => Dict{Symbol, Any}(
             :base_ring => ord_data[:_type][:params],
             :ordering => ord_data[:_type][:name]
           )
@@ -530,12 +532,12 @@ push!(upgrade_scripts_set, UpgradeScript(
         ord_data[:data][:internal_ordering] = ord_data[:data][:internal_ordering][:data]
         ord_data[:data][:internal_ordering][:vars] = ord_data[:data][:internal_ordering][:vars][:data]
         ord_data[:data][:internal_ordering][:ordering_symbol_as_type] = ord_data[:data][:internal_ordering][:ordering_symbol_as_type][:data]
-        dict[:data] = Dict(
+        dict[:data] = Dict{Symbol, Any}(
           :ordering => ord_data[:data],
           :modulus => dict[:data][:modulus][:data]
         )
       end
-    elseif haskey(dict, :data) && dict[:data] isa Dict
+    elseif haskey(dict, :data) && dict[:data] isa AbstractDict
       dict[:data] = upgrade_1_4_0(s, dict[:data])
     end
 

@@ -782,7 +782,7 @@ by submodule with 7 generators
   7: x*y*e[2]
 
 julia> vector_space_basis(T)
-5-element Vector{Any}:
+5-element Vector{FreeModElem{QQMPolyRingElem}}:
  e[1]
  e[2]
  y*e[1]
