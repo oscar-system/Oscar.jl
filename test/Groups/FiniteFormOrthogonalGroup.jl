@@ -149,31 +149,23 @@ end
     D,iD = kernel(hom(DL,DL, [p*i for i in gens(DL)]))
     
     G,iG = restrict_automorphism_group(image_in_Oq(L)[1],iD);
-    OG = orthogonal_group(D);
     _,iG = is_subgroup(G, orthogonal_group(D));
-    
-    for k in 1:div(rank(L),2)
-      @test Oscar._test_isotropic_stabilizer_orders(D, k)
-      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i)]
-      sta = Oscar._isotropic_subspaces_representatives_and_stabilizers(D, iG, k)
-      a = length(sta)
-      if length(X) > 0
-        XG = gset(G, Oscar.on_subgroups_slow, X)
-        b = length(orbits(XG))
-      else 
-        b = 0
-      end
-      @test a==b
-    end
+    _test(D, G, iG)    
   end
-  
+
   function _test(D::TorQuadModule)
     G = orthogonal_group(D);
     iG = id_hom(G)
-    
-    for k in 1:div(rank(L),2)
+    _test(D, G, iG)
+  end
+      
+  function _test(D::TorQuadModule, G, iG)
+    G = orthogonal_group(D);
+    iG = id_hom(G)
+    _, p = is_elementary_with_prime(D)
+    for k in 1:div(ngens(D),2)
       @test Oscar._test_isotropic_stabilizer_orders(D, k)
-      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i)]
+      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i) && iszero(gram_matrix_bilinear(i))]
       sta = Oscar._isotropic_subspaces_representatives_and_stabilizers(D, iG, k)
       a = length(sta)
       if length(X) > 0
@@ -201,10 +193,7 @@ end
   for i in 1:4
     _test(rescale(root_lattice(:A,i),7),7)
   end
-  # Some more odd ones
-end 
-    
-@testset "stabilisers of subspaces under isometries even" begin
+
   DD = TorQuadModule[]
   B = matrix(QQ, 1, 1 ,[1//2]);
   G = matrix(QQ, 1, 1 ,[2]);
