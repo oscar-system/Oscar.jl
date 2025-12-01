@@ -119,7 +119,7 @@ bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where {T<:scalar_type
   bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
-    normal_cone(P::Polyhedron, F::Vector{Int64}; outer::Bool)
+    normal_cone(P::Polyhedron{T}, F::AbstractVector; outer::Bool = false)
 
 Construct the normal cone to `P` at the corresponding to `F` vertex indices which are not contained in the far face `P`.
 
@@ -140,7 +140,7 @@ julia> vertices(square)
  [-1, 1]
  [1, 1]
 
-julia> nc = normal_cone(square, [1])
+julia> nc = normal_cone(square, 1)
 Polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
@@ -148,30 +148,35 @@ julia> rays(nc)
  [1, 0]
  [0, 1]
 
- 
- julia> C = normal_cone(P, [1,2])
+```
+
+An example of building the normal cone for the first two vertices of the square (in this case this is the edge with vertices [-1,-1] and [1,-1]).
+```jldoctest
+julia> square = cube(2)
+Polytope in ambient dimension 2
+
+julia> C = normal_cone(square, [1,2])
 Polyhedral cone in ambient dimension 2
 
 julia> facets(C)
 1-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the halfspaces of R^2 described by:
 -x_2 <= 0
 
-
-julia> C = normal_cone(P, [1,2], outer = true)
+julia> C = normal_cone(square, [1,2], outer = true)
 Polyhedral cone in ambient dimension 2
 
 julia> facets(C)
 1-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the halfspaces of R^2 described by:
 x_2 <= 0
 
-
- ```
+```
 """
-function normal_cone(P::Polyhedron{T}, F::Vector{Int64}; outer::Bool = false) where {T<:scalar_types}
+function normal_cone(P::Polyhedron{T}, F::AbstractVector; outer::Bool = false) where {T<:scalar_types}
   @req 1 <= length(F) <= n_vertices(P) "Vertex index out of range"
   bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}(F .- 1), outer=Int64(outer))
   return Cone{T}(bigobject, coefficient_field(P))
 end
+normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types} = normal_cone(P, [i])
 
 @doc raw"""
     orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
