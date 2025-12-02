@@ -295,6 +295,15 @@ end
   @test order(g) == 1
   @test degree(g) == 2
 
+  # ensure it works inside a function and with a non-literal degree
+  f(n) = @permutation_group(max(n,5), (1,n), (4,5))
+  @test order(f(3)) == 1
+  @test degree(f(3)) == 4
+  @test order(f(5)) == 6
+  @test degree(f(5)) == 5
+  @test order(f(6)) == 4
+  @test degree(f(6)) == 6
+
   @test order(@permutation_group(3, (1,2,3))) == 3
   @test order(@permutation_group(5, (1,2,3)(4,5), (1,2,3,4))) == 120
 
