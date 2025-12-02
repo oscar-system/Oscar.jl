@@ -79,25 +79,3 @@ function symmetric_shift(K::UniformHypergraph, g::MatElem, r::Int, mb::Vector{<:
   end
   return faces
 end
-
-function symmetric_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
-  # this might need to be changed based on the characteristic
-  # we expect that the larger the characteristic the smaller the sample needs to be
-  # setting to 100 now for good measure
-  # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
-  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rep_bruhat_cell(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
-  # Check if `shift` is the generic exterior shift of K
-  prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
-  n = n_vertices(K)
-  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
-  
-  if timed
-    if is_correct_shift
-      return shift, (i, stats.time, stats.bytes, stats2.time, stats2.bytes)
-    else
-      return nothing, (">$n_samples", stats.time, stats.bytes, stats2.time, stats2.bytes)
-    end
-  else
-    return is_correct_shift ? shift : nothing
-  end
-end
