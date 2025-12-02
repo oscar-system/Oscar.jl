@@ -207,6 +207,7 @@ betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(p
 
 function betti_numbers(p::Int, K::SimplicialComplex)
   iszero(p) && return betti_numbers(K)
+  b = Int[]
   L = fpField(UInt(p))
   boundary_m = matrix(L, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
   for k = 1:dim(K) + 1
