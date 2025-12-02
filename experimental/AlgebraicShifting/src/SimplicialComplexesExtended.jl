@@ -47,7 +47,8 @@ Set{Set{Int64}} with 6 elements:
   Set([3, 1])
   Set([2, 3])
   Set([2, 1])
-  Set([5, 2])```
+  Set([5, 2])
+```
 """
 complex_faces(K :: SimplicialComplex) = union(complex_faces_by_dimension(K)...) :: Set{Set{Int}}
 complex_faces(K :: SimplicialComplex, dim::Int) = complex_faces_by_dimension(K, mindim=dim)[dim+1] :: Set{Set{Int}}
