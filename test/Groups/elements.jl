@@ -120,6 +120,10 @@ julia> allow_unicode(old; temporary=true);
   @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
 
+  @test x==perm(6, [2,3,4,5,6,1])
+  @test_throws ArgumentError perm(4, [2,3,4,5,6,1])
+  @test_throws ArgumentError perm(6, [2,3,4,5,6,7])
+
   G=alternating_group(6)
   @test_throws ArgumentError cperm(G, [1,2])
   @test cperm(G, [1,2],[3,4]) == perm(G,[2,1,4,3,5,6])

@@ -244,9 +244,11 @@ julia> number_of_moved_points(gen(s, 1))
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
+    perm(n::Int, L::AbstractVector{<:IntegerUnion})
 
-Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
-to `L`$[i]$.
+Return the permutation $x$ which maps every $i$ from `1` to `n` to `L`$[i]$.
+If `n` is not given then `n = length(L)` is used.
+
 The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 An exception is thrown if `L` does not contain every integer from 1 to $n$
 exactly once.
@@ -263,7 +265,13 @@ Symmetric group of degree 6
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(_symmetric_group_cached(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+  return perm(length(L), L)
+end
+
+function perm(n::Int, L::AbstractVector{<:IntegerUnion})
+  @req length(L) <= n "input vector exceeds given degree $n"
+  @req all(<=(n), L) "input vector contain entry exceeding given degree $n"
+  return PermGroupElem(_symmetric_group_cached(n), GAPWrap.PermList(GapObj(L;recursive=true)))
 end
 
 """
