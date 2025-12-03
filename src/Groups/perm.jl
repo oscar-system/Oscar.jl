@@ -269,7 +269,7 @@ end
 
 function perm(n::Int, L::AbstractVector{<:IntegerUnion})
   @req length(L) <= n "input vector exceeds given degree $n"
-  @req all(<=(length(L)), L) "input vector contain entry exceeding its length"
+  @req all(<=(length(L)), L) "input vector contains entry exceeding its length"
   x = GAPWrap.PermList(GapObj(L;recursive=true))
   @req x !== GAP.Globals.fail "the list does not describe a permutation"
   return PermGroupElem(_symmetric_group_cached(n), x)
