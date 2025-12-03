@@ -15,8 +15,6 @@ export partial_shift_graph
 export partial_shift_graph_vertices
 export rothe_matrix
 export uniform_hypergraph
-export eargmin
-export efindmin
 
 
 function pivot_columns(A::MatElem)
