@@ -167,6 +167,13 @@
       end
     end
 
+    @testset "(de)serialization Dict{Vector, Int}" begin
+      original = Dict([1, 2] => 1)
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+    
     @testset "(de)serialization Dict{Symbol, T}" begin
       Qx, x = QQ[:x]
       for (T, values) in ((Int, [1, 2]), (QQPolyRingElem, [x^2, x - 1]))
