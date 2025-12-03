@@ -11,7 +11,7 @@ We list the methods that work for any field and its elements.
 ## Fields
 
 | Method | Remark |
-| ------ | ------ |
+|:------ |:------ |
 | `is_finite(K)` | Return whether $K$ is finite |
 | `order(K)` | $\lvert K \rvert$ or error if the field is infinite |
 | `characteristic(K)` | $\operatorname{char}(K)$ |
@@ -19,7 +19,7 @@ We list the methods that work for any field and its elements.
 ## Field elements
 
 | Method | Remark |
-| ------ | ------ |
+|:------ |:------ |
 | `is_one(a)` | |
 | `is_zero(a)` | |
 | `is_invertible(a)` | |

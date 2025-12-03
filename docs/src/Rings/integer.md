@@ -348,7 +348,7 @@ sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
 modulus ``b`` is zero. This is summarised in the following table.
 
 remainder | division   | sign             | rounding
-----------|------------|------------------|---------------------
+:---------|:-----------|:-----------------|:--------------------
 rem       | div/divrem | same as dividend | towards zero
 mod       |            | same as divisor  | towards ``-\infty``
 

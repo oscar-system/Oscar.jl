@@ -181,3 +181,7 @@ end
 
 # deprecated for 1.6
 @deprecate is_acylic is_acyclic
+
+@deprecate all_cohomologies sheaf_cohomology
+@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
+

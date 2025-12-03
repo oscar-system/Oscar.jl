@@ -116,12 +116,32 @@ file, see <https://editorconfig.org> for more information about this.
 
 ### JuliaFormatter
 
-There is a `.JuliaFormatter.toml` in our git repository. To format your files,
-first add `JuliaFormatter.jl` in Julia and then use
+To ensure consistent formatting, we employ the package `JuliaFormatter.jl`. The
+`.JuliaFormatter.toml` file in the repository defines the desired formatting style.
+
+To format your files, first add version 1 of the `JuliaFormatter.jl` package in Julia.
+```julia
+Pkg.add(name="JuliaFormatter", version="1")
+```
+You can then format individual files via:
 ```julia
 using JuliaFormatter
 format_file("path/to/file/file.jl")
 ```
+To format an entire folder (recursively), use `format("path/to/folder")`. Note
+that both `format` and `format_file` return a `Bool`; you may need to repeat the
+command until it returns `true`. This is a known shortcoming of the current
+`JuliaFormatter` package.
+
+Ultimately, we aim to use the workflow provided by
+[julia-actions/julia-format](https://github.com/julia-actions/julia-format). Instead of
+performing a single large reformatting of the entire OSCAR code base, we are extending
+coverage incrementally. A custom CI job ensures that already-compliant parts of OSCAR
+remain consistent with the defined style. Whenever the scope of this CI is extended -
+for example, to verify that code in a new experimental module meets our formatting
+requirements - special care must be taken. Details on how to extend the scope of this
+CI mechanism are described in `etc/format_code.jl`. All other formatting changes can be
+handled like regular commits.
 
 ### Unicode
 

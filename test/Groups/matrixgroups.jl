@@ -107,7 +107,10 @@ end
 @testset "faithful reduction from char. zero to finite fields" begin
 
    M = matrix(QQ, [ 2 0; 0 2 ])
-   @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
+   G = matrix_group([M])
+   @test !has_is_finite(G)
+   @test_throws InfiniteOrderError Oscar.isomorphic_group_over_finite_field(G)
+   @test has_is_finite(G)
 
    K, a = cyclotomic_field(5, "a")
    L, b = cyclotomic_field(3, "b")
@@ -121,8 +124,10 @@ end
 
    @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
      G0 = matrix_group(mats)
+     @test !has_is_finite(G0)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
 
+     @test has_is_finite(G0)
      @test has_order(G)
      @test has_order(G0)
      @test order(G0) == order(G)
@@ -134,7 +139,7 @@ end
      end
 
      H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
-     f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
+     f = Oscar.GAPWrap.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
 
@@ -562,6 +567,12 @@ end
 end
 
 @testset "Methods on elements" begin
+   G = GL(2, ZZ)
+   x = gen(G, 1)
+   xi = x^-1
+   n = -1
+   @test xi == x^n
+
    T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
@@ -669,6 +680,24 @@ end
    @test length(conjugacy_classes(G))==8
    @test length(@inferred subgroup_classes(G))==16
    @test length(@inferred maximal_subgroup_classes(G))==3
+end
+
+@testset "centralizers in matrix groups" begin
+   # Oscar computes the centralizer and its order
+   G = GL(6, 2)
+   x = gen(G, 1)
+   C, emb = centralizer(G, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test order(C) == 10321920
+   @test !isdefined(C, :X)
+
+   # GAP computes the centralizer
+   U, _ = sylow_subgroup(GL(4, 2), 2)
+   x = gen(U, 1)
+   C, emb = centralizer(U, x)
+   @test emb isa Oscar.GAPGroupEmbedding
+   @test isdefined(C, :X)
+   @test order(C) == 16
 end
 
 @testset "Jordan structure" begin

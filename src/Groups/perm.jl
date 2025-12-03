@@ -1087,7 +1087,7 @@ macro permutation_group(n, gens...)
     end
 
     return quote
-       let g = _symmetric_group_cached($n)
+       let g = _symmetric_group_cached($(esc(n)))
            sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end

@@ -20,7 +20,7 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   A::CoeffRingType
   graded_complex::AbsHyperComplex
   pages::Dict{Int, CSSPage}
-  pfctx::Union{PushForwardCtx, ToricCtx}
+  pfctx::Union{PushForwardCtx, ToricCtx, ToricCtxWithParams}
 
 @doc raw"""
     CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
@@ -94,12 +94,20 @@ Module homomorphism
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}())
   end
   
-  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex)
+  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex; algorithm::Symbol=:ext)
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     S = cox_ring(X)
-    ctx = ToricCtx(X)
+    ctx = ToricCtx(X; algorithm)
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
+  end
+  
+  function CohomologySpectralSequence(X::NormalToricVariety, transfer::Map, comp::AbsHyperComplex)
+    @assert isone(dim(comp)) "complex must be 1-dimensional"
+    ctx = ToricCtxWithParams(X, transfer)
+    S = graded_ring(ctx)
+    R = coefficient_ring(S)
+    return new{typeof(S), typeof(R)}(S, R, comp, Dict{Int, CSSPage}(), ctx)
   end
 end
 
@@ -349,7 +357,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     exps = Vector{Int}[v[i][1] for (i, c) in u_coords]
     exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(inter_degs)])
     exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(cod_degs)])
-    sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:ngens(S)]
+    sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:length(first(exps))]
 
     buckets = Tuple{Int, FreeModElem}[]
     # ∂ₚ₋₁(u) = 0, so the linear combination for `u` in the generators of `Zₚ₋₁` 
@@ -736,14 +744,83 @@ function multiplication_map(
     e0::Vector{Int}, d0::FinGenAbGroupElem, 
     j::Int
   )
-  d1 = d0 + degree(p; check=false)
-  dom_cplx = ctx[e0, d0]
-  cod_cplx = ctx[e0, d1]
-  dom = dom_cplx[j]
-  cod = cod_cplx[j]
-  dom_strand_inc = inclusion_map(dom_cplx)[j]
-  cod_strand_pr = projection_map(cod_cplx)[j]
-  return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
+  cache = get!(ctx.mult_map_cache, (e0, d0, j)) do
+    WeakKeyDict{typeof(p), Map}()
+  end
+  neg_res = get(cache, -p, nothing)
+  !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  return get!(cache, p) do
+    d1 = d0 + degree(p; check=false)
+    dom_cplx = ctx[e0, d0]
+    cod_cplx = ctx[e0, d1]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+    dom_strand_inc = inclusion_map(dom_cplx)[j]
+    cod_strand_pr = projection_map(cod_cplx)[j]
+    return MapFromFunc(dom, cod, v->cod_strand_pr(p*dom_strand_inc(v)))
+  end
+end
+
+function multiplication_map(
+    ctx::ToricCtxWithParams,
+    p::MPolyDecRingElem,
+    e0::Vector{Int}, d0::FinGenAbGroupElem, 
+    j::Int
+  )
+  # we store the multiplication maps in weak dictionaries. 
+  # The same polynomial tends to appear multiple times in the matrices of a 
+  # given complex; for instance, the Koszul complex has the same `n` polynomials 
+  # all over itself, but with different signs. Using weak dictionaries should 
+  # prevent us from memory overflows. 
+  cache = get!(ctx.mult_map_cache, (e0, d0, j)) do
+    WeakKeyDict{typeof(p), Map}()
+  end
+  # If the map is already known for the negative of a given polynomial, use that.
+  neg_res = get(cache, -p, nothing)
+  !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  # We want to use as little cache as possible while still providing reasonable speed. 
+  # The bases of the free modules in question are usually quite big. Storing a list of 
+  # images of generators is therefore rather costly, even though they will be sparse. 
+  # Given the nature of the setup, the relevant information to compute the image of an 
+  # element is already stored in a format which allows for fast evaluation by means 
+  # different from taking a linear combination. 
+  return get!(cache, p) do
+    d1 = d0 + degree(p; check=false)
+    dom_cplx = ctx[e0, d0]
+    cod_cplx = ctx[e0, d1]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+
+    S = cox_ring(toric_variety(ctx))
+    R = base_ring(cod)
+    mult_cache = Dict{Int, sparse_row_type(R)}() # store the image of the `i`-th generator
+    return MapFromFunc(dom, cod, function(v)
+                         res_coords = sparse_row(R)
+                         for (i, q) in coordinates(v)
+                           # `q` will be an element of `R`, the parameter ring.
+                           img_gen = get!(mult_cache, i) do
+                             new_row = sparse_row(R)
+                             for (c, e) in zip(AbstractAlgebra.coefficients(p), 
+                                               AbstractAlgebra.exponent_vectors(p))
+                               # While the coefficient `c` is in `R`, the multiplication
+                               # map ϕₑfor the monomial for `e` is determined in the ring 
+                               # `S` over `kk`. We need to construct ϕₑ ⊗ R.
+                               mon = S([one(QQ)], [e])
+                               mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+                               # `domain(mon_mult)` and `dom` have generating sets so that 
+                               # `dom[i] = domain(mon_mult)[i] ⊗ R`. 
+                               mon_gen = domain(mon_mult)[i]
+                               row = map_entries(R, coordinates(mon_mult(mon_gen)))
+                               new_row = Hecke.add_scaled_row!(row, new_row, c)
+                             end
+                             new_row
+                           end
+                           res_coords = Hecke.add_scaled_row!(img_gen, res_coords, q)
+                         end
+                         return cod(res_coords)
+                       end
+                      )
+  end
 end
 
 function stable_index(css::CohomologySpectralSequence, i::Int, j::Int)
@@ -784,6 +861,6 @@ end
 
 function set_global_exponent_vector!(css::CohomologySpectralSequence, k::Int)
   @assert css.pfctx isa ToricCtx "manual setting of exponent vectors is only supported in the toric setup"
-  return set_global_exponent_vector!(css.pfctx, k)
+  return set_global_exponent_vector!(css.pfctx, Int[k for _ in 1:length(cech_complex_generators(css.pfctx))])
 end
 

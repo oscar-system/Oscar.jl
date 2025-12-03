@@ -69,8 +69,9 @@ julia> C[1]
 ```
 
 
-## Generating
+## Generating and counting
 
 ```@docs
 combinations
+number_of_combinations
 ```

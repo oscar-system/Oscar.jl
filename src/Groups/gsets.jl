@@ -407,7 +407,7 @@ That means, given a ``G``-set ``\Omega`` with action function ``f: \Omega \times
 and a homomorphism ``\phi: H \to G``, construct the ``H``-set ``\Omega'`` with action function
 $\Omega' \times H \to \Omega', (\omega, h) \mapsto f(\omega, \phi(h))$.
 """
-function induce(Omega::GSetByElements{T, S}, phi::GAPGroupHomomorphism{U, T}) where {T<:Group, U<:Group, S}
+function induce(Omega::GSetByElements{T, S}, phi::Union{GAPGroupHomomorphism{U, T}, GAPGroupEmbedding{U, T}}) where {T<:Group, U<:Group, S}
   return _induce(Omega, phi)
 end
 
@@ -499,6 +499,25 @@ julia> length(orbit(G, [1, 2]))
 
 julia> length(orbit(G, on_sets, [1, 2]))
 6
+```
+
+Orbit of a vector under permutation action:
+```jldoctest
+julia> G = symmetric_group(3)
+Symmetric group of degree 3
+
+julia> x = [1,3,1];
+
+julia> orb = orbit(G, permuted, x)
+G-set of
+  symmetric group of degree 3
+  with seeds [[1, 3, 1]]
+
+julia> sort(collect(orb))
+3-element Vector{Vector{Int64}}:
+ [1, 1, 3]
+ [1, 3, 1]
+ [3, 1, 1]
 ```
 """
 orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
@@ -908,7 +927,7 @@ function induced_action_function(Omega::GSetBySubgroupTransversal{TG, TH, S}, ph
   return induced_action(action_function(Omega), phi)
 end
 
-function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::GAPGroupHomomorphism{U, TG}) where {TG<:Group, TH<:Group, U<:Group, S}
+function induce(Omega::GSetBySubgroupTransversal{TG, TH, S}, phi::Union{GAPGroupHomomorphism{U, TG}, GAPGroupEmbedding{U, TG}}) where {TG<:Group, TH<:Group, U<:Group, S}
   @req acting_group(Omega) == codomain(phi) "acting group of Omega must be the codomain of phi"
   return GSetByElements(domain(phi), induced_action_function(Omega, phi), Omega; closed=true, check=false)
 end

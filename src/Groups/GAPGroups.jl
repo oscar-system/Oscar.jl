@@ -57,6 +57,18 @@ function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
    return group_element(G, GapObj(x))
 end
 
+function ensure_efficient_setup_is_done(_::Group)
+   # currently a groups in general
+   return
+end
+
+function ensure_efficient_setup_is_done(G::MatrixGroup)
+   if is_infinite(base_ring(G))
+      is_finite(G) # force computation of a nice mono
+   end
+   return
+end
+
 """
     is_finite(G::GAPGroup) -> Bool
 
@@ -684,12 +696,7 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
-   # We claim that the finiteness check is cheap in Oscar.
-   # This does not hold in GAP,
-   # and GAP's method selection benefits from the known finiteness flag.
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-     is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
@@ -2614,7 +2621,7 @@ about it becomes known to Oscar may yield different outputs.
 The following notation is used in the returned string.
 
 | Description | Syntax |
-| ----------- | ----------- |
+|:----------- |:----------- |
 | trivial group | 1 |
 | finite cyclic group | C<size> |
 | infinite cyclic group | Z |
@@ -2664,9 +2671,7 @@ function describe(G::GAPGroup)
    is_finitely_generated(G) || return "a non-finitely generated group"
 
    # force some checks in some cases
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-      is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    # handle groups whose finiteness is known
    if has_is_finite(G)

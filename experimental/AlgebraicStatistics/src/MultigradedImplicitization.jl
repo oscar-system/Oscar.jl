@@ -1,7 +1,7 @@
 @doc raw"""
     homogeneity_space(I::MPolyIdeal)
 
-Computes a basis for the homogeneity space of the ideal `I` which is the lineality space of the cones in the Groebner fan of `I`. 
+Computes a basis for the homogeneity space of the ideal `I` which is the lineality space of the cones in the Groebner fan of `I`.
 
 ## Examples
 
@@ -28,15 +28,15 @@ function homogeneity_space(I::MPolyIdeal)
     eqs = matrix(ZZ, vcat([exps[1] - exps[i] for i in 2:length(exps)]))
     homogeneity_eqs = vcat(homogeneity_eqs, eqs)
   end
-  
+
   return rref(transpose(nullspace(homogeneity_eqs)[2]))[2]
 end
 
 @doc raw"""
     max_grade_domain(phi::MPolyAnyMap)
 
-Computes the maximal rank grading on the kernel of $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which can be induced by grading the codomain of `phi`. 
-The first $m$ columns of the resulting matrix correspond to the degrees of the codomain while the last $n$ columns are the resulting degrees on the domain. 
+Computes the maximal rank grading on the kernel of $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which can be induced by grading the codomain of `phi`.
+The first $m$ columns of the resulting matrix correspond to the degrees of the codomain while the last $n$ columns are the resulting degrees on the domain.
 
 ## Examples
 
@@ -73,9 +73,9 @@ function max_grade_domain(phi::MPolyAnyMap)
   lift_dom = hom(dom, elim_ring, z[ngens(codom) + 1:ngens(elim_ring)])
 
   A = homogeneity_space(ideal([lift_dom(x) - lift_codom(phi(x)) for x in gens(dom)]))
-  
+
   # grade the domain
-  graded_dom = grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
+  return grade(domain(phi), A[:, ngens(codomain(phi)) + 1:end])[1]
 end
 
 function max_grade_domain(phi::MPolyAnyMap{<:MPolyDecRing})
@@ -113,17 +113,15 @@ julia> jacobian(phi)
 [   0   s[1]      0   s[2]]
 ```
 """
-function jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing})
-  jacobian_matrix(codomain(phi), _images_of_generators(phi))
-end
+jacobian(phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing}) = jacobian_matrix(codomain(phi), _images_of_generators(phi))
+
 
 # compute the jacobian at a random point with parameters sampled from a finite field
 function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
   K = fpField(char)
-  
+
   # randomly sample parameter values in the finite field
   pt = rand(K, ngens(codomain(phi)))
-
   for f in jacobian(phi)
     if any(is_zero(K(denominator(c))) for c in AbstractAlgebra.coefficients(f))
       return jacobian_at_rand_point(phi; char=next_prime(char))
@@ -138,46 +136,45 @@ function jacobian_at_rand_point(phi::MPolyAnyMap; char::UInt=UInt(32003))
 end
 
 # find the indices of the variable support of all monomials in mon_basis
-function component_support(mon_basis::Vector{<: MPolyDecRingElem})
-  findall(!iszero, eachcol(matrix(first.(AbstractAlgebra.exponent_vectors.(mon_basis)))))
-end
+component_support(mon_basis::Vector{<: MPolyDecRingElem}) = findall(!iszero, eachcol(matrix(first.(AbstractAlgebra.exponent_vectors.(mon_basis)))))
 
 @doc raw"""
     compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
 
 Computes a basis for the elements in the kernel of a polynomial map
 $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ which
-lie in the homogeneous component corresponding to `mon_basis`. 
+lie in the homogeneous component corresponding to `mon_basis`.
 """
 function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MPolyAnyMap)
+  imgs = phi.(mon_basis)
+  mon_basis_imgs = collect(map(img -> collect.(coefficients_and_exponents.(img)), imgs))
+
   SM = sparse_matrix(QQ)
   count = 1
   cols = Dict{Vector{Int}, Int}()
-  for m in mon_basis
+  for img in mon_basis_imgs
     row = Tuple{Int, QQFieldElem}[]
-    img = phi(m)
-    for (c, e) in zip(AbstractAlgebra.coefficients(img), AbstractAlgebra.exponent_vectors(img))
+    for (c, e) in img
       col = get(cols, e, nothing)
       if isnothing(col)
-        count += 1
         cols[e] = count
         col = count
+        count += 1
       end
       push!(row, (col, c))
     end
     push!(SM, sparse_row(QQ, row))
   end
-  K = kernel(SM)
-  
-  return mon_basis * transpose(K)
+  K = kernel(transpose(SM); side=:right)
+  return mon_basis * K
 end
 
 @doc raw"""
     filter_component(deg::FinGenAbGroupElem, mon_basis::Vector{<: MPolyDecRingElem}, jac::MatElem)
 
 This function is used to skip homogeneous components which cannot contain an element of the kernel by checking if the variables in that component are independent
-in the matroid defined by the jacboian of a polynomial map. If the submatrix of the jacobian corresponding to a subset of the variables in the codomain is full rank, then
-there cannot be a relation in the kernel involving only those variables. 
+in the matroid defined by the jacobian of a polynomial map. If the submatrix of the jacobian corresponding to a subset of the variables in the codomain is full rank, then
+there cannot be a relation in the kernel involving only those variables.
 ```
 """
 function filter_component(deg::FinGenAbGroupElem, mon_basis::Vector{<: MPolyDecRingElem}, jac::MatElem)
@@ -200,9 +197,9 @@ end
 @doc raw"""
     components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing)
 
-Computes all minimal generators of the kernel of the polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ such that $(i, j)$ 
+Computes all minimal generators of the kernel of the polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ such that $(i, j)$
 with total degree at most $d$ using the main algorithm of [CH26](@cite). This implementation requires that $\phi$ be homogeneous in a multigrading which refines total
-degree which ensures the algorithm is parallelizable. The output is a dictionary whose keys are the multidegrees and values consist of a minimal generating set for that multidegree. 
+degree which ensures the algorithm is parallelizable. The output is a dictionary whose keys are the multidegrees and values consist of a minimal generating set for that multidegree.
 
 ## Examples
 
@@ -223,30 +220,109 @@ defined by
   x[1, 2] -> s[2]*t[1]
   x[2, 2] -> s[2]*t[2]
 
-julia> d = Oscar.components_of_kernel(2, phi);
+julia> d = components_of_kernel(2, phi);
 
-julia> d[1, 1, 1, 1]
-1-element Vector{QQMPolyRingElem}:
- x[1, 1]*x[2, 2] - x[2, 1]*x[1, 2]
+julia> length(d)
+1
 ```
 """
-function components_of_kernel(d::Int, 
-    phi::MPolyAnyMap; # Morphism between ungraded rings
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size=100
-  )
+function components_of_kernel(d::Int,
+                              phi::MPolyAnyMap; # Morphism between ungraded rings
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size=100
+                              )
   # grade the domain
-  graded_dom = max_grade_domain(phi)
+  graded_dom = Oscar.max_grade_domain(phi)
   graded_cod, _ = grade(codomain(phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
   return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
 end
 
-function components_of_kernel(d::Int, 
-    phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
-    wp::Union{OscarWorkerPool, Nothing}=nothing,
-    batch_size::Int=100
-  )
+function components_of_kernel(d::Int,
+                              phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size=100
+                              )
+  new_phi = flatten(phi)
+  # grade the domain
+  graded_dom = Oscar.max_grade_domain(new_phi)
+  graded_cod, _ = grade(codomain(new_phi)) # standard grading
+  phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(new_phi)))
+  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+end
+
+function lifted_monomials(deg::FinGenAbGroupElem,
+                          lower_simplex::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}},
+                          gens_dict::Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}})
+  gen_shifts = MPolyDecRingElem[]
+  for (gen_deg, gens) in gens_dict
+    if haskey(lower_simplex, deg - gen_deg)
+      append!(gen_shifts, reduce(vcat, [[g * m for m in lower_simplex[deg - gen_deg]] for g in gens_dict[gen_deg]]))
+    end
+  end
+  isempty(gen_shifts) && return Set{MPolyDecRingElem}([])
+  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
+  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+  rref!(M)
+  mon_indices = Int[]
+  for j in 1:ncols(M)
+    rows = findall(!iszero, M[:, j])
+    isnothing(rows) && continue
+    isone(length(rows)) && push!(mon_indices, only(rows))
+  end
+  return Set(mons[mon_indices])
+end
+
+# recursively computes the degrees over the scaled simplex,
+# increasing the scaling factor by one on each iteration
+# expects the lattice basis to be precomputed and passed
+# where the lattice basis is a vector of tuples (exponent vector, deg)
+function degree_over_simplex(lower_simplex::Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}},
+                             R::MPolyDecRing,
+                             lattice_basis::Vector{Tuple{Vector{Int}, FinGenAbGroupElem}})
+  e = zeros(Int, ngens(R))
+  e[1] = 1
+  m = monomial(R, e)
+  d = degree(m)
+  degree_simplex = Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}()
+  if isempty(lower_simplex)
+    degree_simplex[e] = (d, m)
+    for lb in lattice_basis
+      next_e = e + lb[1]
+      next_m = monomial(R, next_e)
+      next_d = d + lb[2]
+      degree_simplex[next_e] = (next_d, next_m)
+    end
+  else
+    for (exp, (deg, mon)) in lower_simplex
+      # builds an open dim + 1 simplex from lower_simplex
+      next_exp = exp + e
+      next_deg = deg + d
+      next_mon = monomial(R, next_exp)
+      degree_simplex[next_exp] = (next_deg, next_mon)
+
+      # adds the missing face
+      if iszero(exp[1])
+        i = findfirst(!iszero, exp)
+
+        for lb in lattice_basis[1: i - 1]
+          next_e = next_exp + lb[1]
+          next_m = monomial(R, next_e)
+          next_d = next_deg + lb[2]
+          degree_simplex[next_e] = (next_d, next_m)
+        end
+      end
+    end
+  end
+
+  return degree_simplex
+end
+
+function components_of_kernel(d::Int,
+                              phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
+                              wp::Union{OscarWorkerPool, Nothing}=nothing,
+                              batch_size::Int=1000
+                              )
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
 
@@ -257,63 +333,74 @@ function components_of_kernel(d::Int,
   jac = jacobian_at_rand_point(phi)
 
   # create a dictionary to store the generators by their degree
+  # this is what will be returned
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
 
+  # keeps track of computed degrees and the monomials in that degree
+  simplex_monomials = Dict{Int,
+                           Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}}()
+
+  # compute the basis and it's degrees once
+  lattice_basis = Tuple{Vector{Int}, FinGenAbGroupElem}[]
+  for i in 2:ngens(domain(phi))
+    v = zeros(Int, ngens(domain(phi)))
+    v[1] = -1
+    v[i] = 1
+    deg = Oscar.generator_degrees(domain(phi))[i] - Oscar.generator_degrees(domain(phi))[1]
+    push!(lattice_basis, (v, deg))
+  end
+
   for i in 1:d
-    all_mons = domain(phi).(monomial_basis(total_deg_dom, [i]))
-    all_degs = degree.(all_mons)
-    mon_bases = Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}()
-
-    # avoid redundant degree computation
-    for (d, m) in zip(all_degs, all_mons)
-      bucket = get!(mon_bases, d) do
-        sizehint!(typeof(m)[], 1)
+    lower_simplex = get!(simplex_monomials, i - 1, Dict{Vector{Int}, Tuple{FinGenAbGroupElem, <:MPolyDecRingElem}}())
+    simplex_monomials[i] = degree_over_simplex(lower_simplex, domain(phi), lattice_basis)
+    all_degrees = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    for sm in values(simplex_monomials)
+      for (_, (deg, m)) in sm
+        b = get!(all_degrees, deg, typeof(m)[])
+        push!(b, m)
       end
-      push!(bucket, m)
+    end
+    l_monomials = Dict{FinGenAbGroupElem, Set{<:MPolyDecRingElem}}()
+    mon_bases = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
+    for (_, (deg, m)) in simplex_monomials[i]
+      if !haskey(l_monomials, deg)
+        l_monomials[deg] = lifted_monomials(deg, all_degrees, gens_dict)
+      end
+      b = get!(mon_bases, deg, typeof(m)[])
+      !(m in l_monomials[deg]) && push!(b, m)
     end
 
-    # find the previous generators 
-    if isempty(gens_dict)
-      prev_gens = elem_type(domain(phi))[]
-    else
-      prev_gens = reduce(vcat, values(gens_dict))
-    end
-
+    degrees = collect(keys(mon_bases))
     # first filter out all easy cases
-    # this could be improved to do some load-balancing
-    if isnothing(wp)
+    if isnothing(wp) || length(mon_bases) < 30 * batch_size
       filter_results = pmap(filter_component,
-                            [deg for deg in keys(mon_bases)],
-                            [mon_bases[deg] for deg in keys(mon_bases)],
-                            [jac for _ in keys(mon_bases)]; distributed=false)
+                            [deg for deg in degrees],
+                            [mon_bases[deg] for deg in degrees],
+                            [jac for _ in degrees]; distributed=false)
     else
       filter_results = pmap(filter_component, wp,
-                            [deg for deg in keys(mon_bases)],
-                            [mon_bases[deg] for deg in keys(mon_bases)],
-                            [jac for _ in keys(mon_bases)]; batch_size=batch_size)
+                            [deg for deg in degrees],
+                            [mon_bases[deg] for deg in degrees],
+                            [jac for _ in degrees]; batch_size=batch_size)
     end
 
     remain_degs = [result[2] for result in filter_results if !result[1]]
-
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
-      if isnothing(wp)
-        results = pmap(compute_kernel_component, map(deg -> mon_bases[deg], remain_degs),
-                       [phi for _ in remain_degs];
-                       distributed=false)
+      if isnothing(wp) || length(remain_degs) < batch_size
+        results = pmap(compute_kernel_component,
+                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
       else
-        results = pmap(compute_kernel_component, wp, map(deg -> mon_bases[deg], remain_degs),
-                       [phi for _ in remain_degs]; batch_size=batch_size)
+        results = pmap(compute_kernel_component, wp,
+                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
       end
     else
-      results =[]
+      results = []
     end
 
-    merge!(gens_dict, Dict(zip(remain_degs, results)))
+    merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs) if !isempty(results[i])))
   end
 
   return gens_dict
 end
-
-

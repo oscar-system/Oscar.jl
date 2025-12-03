@@ -1551,12 +1551,15 @@ function discriminant_representation(
     check::Bool=true,
   )
   @req !check || is_isometry_group(L, G, ambient_representation) "G does not define a group of isometries of L"
+  
   if !ambient_representation
-    G = extend_to_ambient_space(L, G; check=false)
+    _G = extend_to_ambient_space(L, G; check=false)
+  else 
+    _G = G
   end
   q = discriminant_group(L)
   imag_lis_map = TorQuadModuleMap[]
-  geneG = gens(G)
+  geneG = gens(_G)
   for g in geneG
     mg = matrix(g)
     push!(imag_lis_map, hom(q, q, TorQuadModuleElem[q(lift(a)*mg) for a in gens(q)]))
@@ -1568,7 +1571,7 @@ function discriminant_representation(
     Oq = Oscar._orthogonal_group(q, imag_lis_map; check=false)
     imag_lis = gens(Oq)
   end
-  return hom(G, Oq, geneG, imag_lis; check=false)
+  return hom(G, Oq, imag_lis; check=false)
 end
 
 @doc raw"""

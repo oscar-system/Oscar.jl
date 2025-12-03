@@ -64,11 +64,11 @@ Toric line bundle on a normal toric variety
 julia> is_immaculate(toric_line_bundle(F4, [1,0]))
 false
 
-julia> all_cohomologies(l)
+julia> sheaf_cohomology(l)
 3-element Vector{ZZRingElem}:
  2
  0
  0
 ```
 """
-@attr Bool is_immaculate(l::ToricLineBundle) = all(is_zero, all_cohomologies(l))
+@attr Bool is_immaculate(l::ToricLineBundle) = all(is_zero, sheaf_cohomology(l))

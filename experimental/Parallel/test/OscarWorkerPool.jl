@@ -46,6 +46,8 @@
            [x^2 + d for d in PrimesSet(10000, 11000)])
     end
   end
+  sleep(2)
+  yield()
 end
 
   

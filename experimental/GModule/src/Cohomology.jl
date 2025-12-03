@@ -2040,7 +2040,7 @@ end
 =#
 
 """
-Compute an isomorphic pc-group `G` (and the isomorphism from `M` to `G`).
+Compute an isomorphic pc group `G` (and the isomorphism from `M` to `G`).
 If `refine` is true,
 the pc-generators will all have prime relative order, thus the
 group should be safe to use.
@@ -2134,7 +2134,7 @@ group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns
 the corresponding elt in the extension.
 
-If the gmodule is defined via a pc-group and the 1st argument is the
+If the gmodule is defined via a pc group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
 function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})

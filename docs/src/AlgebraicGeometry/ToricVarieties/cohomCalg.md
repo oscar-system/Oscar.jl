@@ -20,8 +20,8 @@ to compute the dimension of line bundle cohomologies as well as vanishing sets.
 ## Dimensions of line bundle cohomology
 
 ```@docs
-all_cohomologies(l::ToricLineBundle)
-cohomology(l::ToricLineBundle, i::Int)
+sheaf_cohomology(l::ToricLineBundle)
+sheaf_cohomology(l::ToricLineBundle, i::Int)
 ```
 
 ## Toric vanishing sets

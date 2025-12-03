@@ -300,6 +300,14 @@ end
 
   @test_throws ArgumentError @permutation_group(1, (1,2))
   @test_throws ArgumentError @permutation_group(1, (1,0))
+
+  n = 5
+  g = @permutation_group(6, (1,n))
+  @test degree(g) == 6
+  @test order(g) == 2
+  g = @permutation_group(n, (1,2,3,4))
+  @test degree(g) == n
+  @test order(g) == 4
 end
 
 @testset "parent coercion for permutation groups" begin

@@ -1,8 +1,15 @@
 @doc raw"""
-    multicombinations(n::IntegerUnion, k::IntegerUnion)
+    multicombinations(n::IntegerUnion, k::IntegerUnion; inplace::Bool=false)
 
 Return an iterator over all $k$-combinations of ${1,...,n}$ with repetition,
 produced in lexicographically ascending order.
+
+If `inplace` is `true`, the elements of the iterator may share their memory. This
+means that an element returned by the iterator may be overwritten 'in place' in
+the next iteration step. This may result in significantly fewer memory allocations.
+However, using the in-place version is only meaningful
+if just one element of the iterator is needed at any time.
+For example, calling `collect` on this iterator will not give useful results.
 
 # Examples
 
@@ -24,7 +31,7 @@ julia> collect(C)
  [4, 4]
 ```
 """
-multicombinations(n::T, k::T) where T<:IntegerUnion = MultiCombinations(Base.oneto(n), n, k)
+multicombinations(n::T, k::T; inplace::Bool = false) where T<:IntegerUnion = MultiCombinations(Base.oneto(n), n, k, inplace)
 
 
 @doc raw"""
@@ -47,8 +54,6 @@ julia> collect(multicombinations(['a', 'b', 'c'], 2))
 """
 multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
 
-MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombinations(v, T(length(v)), k)
-
 
 @inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = C.k == 0 ? U[] : (s = ones(U, C.k); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}
   if is_zero(C.k) # special case to generate 1 result for k = 0
@@ -70,12 +75,27 @@ MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombina
   if state[1] > C.n
     return nothing
   end
-  return Combination{T}(C.v[state]), state
+
+  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[state])
+  return c, state
 end
 
-Base.length(C::MultiCombinations) = binomial(Int(C.n)+Int(C.k)-1, Int(C.k))
-
 Base.eltype(::Type{<:MultiCombinations{T}}) where {T} = Combination{eltype(T)}
+
+@doc raw"""
+    number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
+
+Return the number of $k$-combinations of ${1, \ldots, n}$.
+If `n < 0` or `k < 0`, return `0`.
+"""
+function number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
+  if n < 0 || k < 0
+    return ZZ(0)
+  end
+  return binomial(ZZ(n) + ZZ(k) - 1, ZZ(k))
+end
+
+Base.length(C::MultiCombinations) = BigInt(number_of_multicombinations(C.n, C.k))
 
 function Base.show(io::IO, C::MultiCombinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n, " with repetition")

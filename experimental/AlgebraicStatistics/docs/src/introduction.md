@@ -34,3 +34,4 @@ Please direct questions about this part of OSCAR to the following people:
 - [Benjamin Hollering](https://sites.google.com/view/benhollering)
 - [Marina Garrote López](https://sites.google.com/view/marinagarrotelopez)
 - [Tobias Boege](https://taboege.de/)
+- [Antony Della Vecchia](https://antonydellavecchia.github.io)

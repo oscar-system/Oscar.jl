@@ -122,3 +122,11 @@ end
     @test is_groebner_basis(gb_bb)
     @test S1 == S1_alt
 end
+
+@testset "FreeAssociativeAlgebraIdeal.groebner_basis.f4" begin
+    R, u = free_associative_algebra(QQ,[:u])
+    v = FreeAssociativeAlgebraElem{QQFieldElem}[u[1]-one(R)]
+    @test typeof(ideal(v)) == typeof(ideal([v[1]]))
+end
+
+

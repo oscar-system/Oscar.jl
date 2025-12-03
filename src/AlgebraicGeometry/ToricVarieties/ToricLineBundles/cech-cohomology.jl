@@ -1,4 +1,4 @@
-#The following function is called, when algorithm="chambers" is specified for all_cohomologies
+#The following function is called, when algorithm="chambers" is specified for `sheaf_cohomology`
 function _all_cohomologies_via_cech(tl::ToricLineBundle)
   our_points, our_maps = _toric_cech_complex(tl)
   our_maps = transpose.(our_maps)
