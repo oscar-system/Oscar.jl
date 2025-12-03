@@ -244,14 +244,15 @@ julia> number_of_moved_points(gen(s, 1))
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
+    perm(n::Int, L::AbstractVector{<:IntegerUnion})
 
-Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
-to `L`$[i]$.
+Return the permutation $x$ which maps every $i$ from `1` to `n` to `L`$[i]$.
+If `n` is not given then `n = length(L)` is used.
+
 The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
-An exception is thrown if `L` does not contain every integer from 1 to $n$
-exactly once.
 
-The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+An exception is thrown if `L` does not describe a valid permutation,
+or if its length exceeds `n`.
 
 # Examples
 ```jldoctest
@@ -263,7 +264,15 @@ Symmetric group of degree 6
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(_symmetric_group_cached(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+  return perm(length(L), L)
+end
+
+function perm(n::Int, L::AbstractVector{<:IntegerUnion})
+  @req length(L) <= n "input vector exceeds given degree $n"
+  @req all(<=(length(L)), L) "input vector contains entry exceeding its length"
+  x = GAPWrap.PermList(GapObj(L;recursive=true))
+  @req x !== GAP.Globals.fail "the list does not describe a permutation"
+  return PermGroupElem(_symmetric_group_cached(n), x)
 end
 
 """
@@ -329,15 +338,7 @@ function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    return PermGroupElem(g, x)
 end
 
-perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
-
-function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
-   return PermGroupElem(g, x)
-end
-
-(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
+(g::PermGroup)(L::AbstractVector{<:IntegerUnion}) = perm(g, L)
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
