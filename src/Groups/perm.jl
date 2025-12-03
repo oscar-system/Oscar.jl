@@ -270,7 +270,9 @@ end
 function perm(n::Int, L::AbstractVector{<:IntegerUnion})
   @req length(L) <= n "input vector exceeds given degree $n"
   @req all(<=(length(L)), L) "input vector contain entry exceeding its length"
-  return PermGroupElem(_symmetric_group_cached(n), GAPWrap.PermList(GapObj(L;recursive=true)))
+  x = GAPWrap.PermList(GapObj(L;recursive=true))
+  @req x !== GAP.Globals.fail "the list does not describe a permutation"
+  return PermGroupElem(_symmetric_group_cached(n), x)
 end
 
 """
@@ -338,13 +340,9 @@ end
 
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
-function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
-   return PermGroupElem(g, x)
-end
+(g::PermGroup)(L::AbstractVector{<:IntegerUnion}) = perm(g, L)
 
-(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
+(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = perm(g, L)
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)

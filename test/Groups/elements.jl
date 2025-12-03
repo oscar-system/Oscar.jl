@@ -124,6 +124,7 @@ julia> allow_unicode(old; temporary=true);
   @test_throws ArgumentError perm(4, [2,3,4,5,6,1])  # invalid: n too small
   @test_throws ArgumentError perm(6, [2,3,4,5,6,7])  # invalid: entry 7 is too large
   @test_throws ArgumentError perm(7, [2,3,4,5,6,7])  # invalid: nothing mapped to 1
+  @test_throws ArgumentError perm(4, [2,3,4,5,1,1])  # invalid: duplicate entries / nothing mapped to 6
 
   G=alternating_group(6)
   @test_throws ArgumentError cperm(G, [1,2])
