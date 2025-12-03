@@ -534,7 +534,6 @@ function load_object(s::DeserializerState, T::Type{<:Dict{S, U}}, ::Nothing) whe
   return T(k => v for (k, v) in pairs)
 end
 
-                     
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
                      params::Any) where {S, U}
