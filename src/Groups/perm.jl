@@ -323,24 +323,51 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
+   x = _make_gap_perm(degree(g), L)
    @req x !== GAP.Globals.fail "the list does not describe a permutation"
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
+   @req x in GapObj(g) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
+   x = _make_gap_perm(degree(g), L)
+   @req x in GapObj(g) "the element does not embed in the group"
    return PermGroupElem(g, x)
+end
+
+function _make_gap_perm(deg::Int, L::AbstractVector{<:IntegerUnion})
+  @req 0 <= deg "degree is $deg, must be non-negative"
+  @req deg < 2^32 "degree is $deg, must be less than 2^32"
+  @req length(L) <= deg "length(L) = $(length(L)) exceeds degree bound $deg"
+  if deg < 2^16
+    x = _make_gap_perm(UInt16, deg, L)
+  else
+    x = _make_gap_perm(UInt32, deg, L)
+  end
+  return x
+end
+
+function _make_gap_perm(::Type{T}, deg::Int, L::AbstractVector{<:IntegerUnion}) where {T <: Union{UInt16, UInt32}}
+  if T === UInt16
+    perm = @ccall GAP.libgap.NEW_PERM2(deg::Cint)::GapObj
+  else
+    perm = @ccall GAP.libgap.NEW_PERM4(deg::Cint)::GapObj
+  end
+  addr = Ptr{T}(GAP.ADDR_OBJ(perm)+8) # skip 8 byte header
+
+  for i in 1:length(L)
+    unsafe_store!(addr, UInt64(L[i]) - 1, i)
+  end
+  for i in 1+length(L):deg
+    unsafe_store!(addr, i - 1, i)
+  end
+  return perm
 end
 
 (g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
 
-# cperm stands for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarily disjoint)
 @doc raw"""
     cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
     cperm(L::AbstractVector{<:AbstractVector{T}}) where T <: IntegerUnion
@@ -501,9 +528,24 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^GapObj(x))
+function ^(n::T, g::PermGroupElem) where T <: IntegerUnion
+  return fits(Int, n) ? T(Int(n)^g) : n
+end
 
-^(n::Int, x::PermGroupElem) = (n^GapObj(x))::Int
+function ^(n::Int, g::PermGroupElem)
+  @req n > 0 "permutations only act on positive integers"
+  large = (GAP.TNUM_OBJ(GapObj(g)) == GAP.T_PERM4)
+  deg = GAP.SIZE_OBJ(GapObj(g)) - 8 # subtract 9 byte header
+  deg >>= large ? 2 : 1
+  n > deg && return n
+
+  addr = GAP.ADDR_OBJ(GapObj(g))+8 # skip 8 byte header
+  if large
+    return Int(unsafe_load(Ptr{UInt32}(addr), n))+1
+  else
+    return Int(unsafe_load(Ptr{UInt16}(addr), n))+1
+  end
+end
 
 
 @doc raw"""
