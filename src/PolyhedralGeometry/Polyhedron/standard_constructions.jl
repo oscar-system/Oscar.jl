@@ -119,7 +119,8 @@ bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where {T<:scalar_type
   bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
-    normal_cone(P::Polyhedron{T}, F::AbstractVector; outer::Bool = false)
+    normal_cone(P::Polyhedron, i::Int64)
+    normal_cone(P::Polyhedron, F::AbstractVector; outer::Bool = false)
 
 Construct the normal cone to `P` at the corresponding to `F` vertex indices which are not contained in the far face `P`.
 
