@@ -338,11 +338,7 @@ function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    return PermGroupElem(g, x)
 end
 
-perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
-
 (g::PermGroup)(L::AbstractVector{<:IntegerUnion}) = perm(g, L)
-
-(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = perm(g, L)
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
