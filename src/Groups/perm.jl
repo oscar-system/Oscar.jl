@@ -250,10 +250,9 @@ Return the permutation $x$ which maps every $i$ from `1` to `n` to `L`$[i]$.
 If `n` is not given then `n = length(L)` is used.
 
 The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
-An exception is thrown if `L` does not contain every integer from 1 to $n$
-exactly once.
 
-The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+An exception is thrown if `L` does not describe a valid permutation,
+or if its length exceeds `n`.
 
 # Examples
 ```jldoctest
@@ -270,7 +269,7 @@ end
 
 function perm(n::Int, L::AbstractVector{<:IntegerUnion})
   @req length(L) <= n "input vector exceeds given degree $n"
-  @req all(<=(n), L) "input vector contain entry exceeding given degree $n"
+  @req all(<=(length(L)), L) "input vector contain entry exceeding its length"
   return PermGroupElem(_symmetric_group_cached(n), GAPWrap.PermList(GapObj(L;recursive=true)))
 end
 
