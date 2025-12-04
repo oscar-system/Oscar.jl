@@ -146,7 +146,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
 
   #get the injective modules J^{i-1} -> J^i -> J^{i+1}
   Ji_ = inj_res.inj_mods[i]
-  Ji = inj_res.inj_mods[i+1]
+  Ji = inj_res.inj_mods[i + 1]
 
   if inj_res.upto > i # J^{i+1} ≠ 0
     Ji_1 = inj_res.inj_mods[i + 2]
