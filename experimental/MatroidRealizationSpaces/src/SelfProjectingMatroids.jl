@@ -420,11 +420,46 @@ function veronese2(M::MatElem)
     return transpose(matrix(R, hcat(newCols...)))
 end
 
-#the 2 functions below need to be tested, they do not seem to give the correct answer!
-# function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
-#   return dim(defining_ideal(MRS))
-# end
 
-# function dimension(MRS::MatroidRealizationSpace)::Int
-#   return dim(defining_ideal(MRS))
-# end
+
+
+@doc raw"""
+    dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
+
+    Function to compute the dimension of the selfprojecting realization space of a selfprojecting matroid. 
+
+# Examples
+```jldoctest
+julia> dimension(selfprojecting_realization_space(uniform_matroid(3,6)))
+┌ Warning: This function is slow except for small matroids!
+└ @ Oscar ~/Documents/Oscar.jl/experimental/MatroidRealizationSpaces/src/SelfProjectingMatroids.jl:198
+3
+  ```
+"""
+#the 2 functions below need to be tested, they do not seem to give the correct answer!
+function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
+  if iszero(defining_ideal(MRS))
+    return length(gens(base_ring(defining_ideal(MRS))))
+  else
+    return dim(defining_ideal(MRS))
+  end
+end
+
+@doc raw"""
+    dimension(MRS::MatroidRealizationSpace)::Int
+
+    Function to compute the dimension of the realization space of a matroid. 
+
+# Examples
+```jldoctest
+julia> dimension(realization_space(uniform_matroid(3,6)))
+4
+  ```
+"""
+function dimension(MRS::MatroidRealizationSpace)::Int
+  if iszero(defining_ideal(MRS))
+    return length(gens(base_ring(defining_ideal(MRS))))
+  else
+    return dim(defining_ideal(MRS))
+  end
+end
