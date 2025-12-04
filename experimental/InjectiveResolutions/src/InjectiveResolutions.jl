@@ -715,7 +715,8 @@ end
 @doc raw"""
     irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
 
-Return an irreducible resolution of $M$ (up to cohomological degree i).
+Return an irreducible resolution of $M$. If $i$ is specified then the resolution
+is only computed up to cohomological degree $i$.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal. 
