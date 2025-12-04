@@ -37,7 +37,7 @@ export satisfies_disjointbasisproperty
 export selfprojecting_realization_space
 export selfprojecting_realization_ideal
 export selfprojecting_realization_matrix
-export basisminors
+export dimension
 
 #Exports from for_database.jl
 export dim_r
