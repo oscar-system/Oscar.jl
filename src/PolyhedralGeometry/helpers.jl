@@ -1,3 +1,39 @@
+################################################################################
+######## Scalar types
+################################################################################
+const scalar_types = Union{FieldElem,Float64}
+
+const scalar_type_to_oscar = Dict{String,Type}([
+  ("Rational", QQFieldElem),
+  ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+  ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+  ("Float", Float64),
+])
+
+const scalar_types_extended = Union{scalar_types,IntegerUnion}
+
+const scalar_type_or_field = Union{Type{<:scalar_types},Field}
+
+_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{Float64}) = Float64
+
+const _polymake_scalars = Union{
+  Polymake.Integer,
+  Polymake.Rational,
+  Polymake.QuadraticExtension,
+  Polymake.OscarNumber,
+  Float64,
+  Polymake.TropicalNumber,
+}
+const _polymake_compatible_scalars = Union{
+  QQFieldElem,ZZRingElem,Base.Integer,Base.Rational,_polymake_scalars
+}
+
+################################################################################
+######## IncidenceMatrix
+################################################################################
+
 import Polymake: IncidenceMatrix
 
 @doc raw"""
@@ -170,19 +206,11 @@ Set{Int64} with 1 element:
 """
 column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
-const _polymake_scalars = Union{
-  Polymake.Integer,
-  Polymake.Rational,
-  Polymake.QuadraticExtension,
-  Polymake.OscarNumber,
-  Float64,
-  Polymake.TropicalNumber,
-}
-const _polymake_compatible_scalars = Union{
-  QQFieldElem,ZZRingElem,Base.Integer,Base.Rational,_polymake_scalars
-}
+################################################################################
+######## matrix and number conversion helpers
+################################################################################
 
-function assure_matrix_polymake(m::Union{AbstractMatrix{Any},AbstractMatrix{FieldElem}})
+function assure_matrix_polymake(m::Union{Matrix{Any},AbstractMatrix{FieldElem}})
   a, b = size(m)
   if a > 0
     i = findfirst(_cannot_convert_to_fmpq, m)
@@ -221,17 +249,22 @@ assure_vector_polymake(v::AbstractVector{<:FieldElem}) =
 
 assure_vector_polymake(v::AbstractVector{<:_polymake_compatible_scalars}) = v
 
-affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat,<:AbstractVector}) =
-  augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
-affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat,<:Any}) = homogenized_matrix(x[1], -x[2])
+affine_matrix_for_polymake(
+  f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:AbstractVector}
+) =
+  augment(f, unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
+affine_matrix_for_polymake(f::scalar_type_or_field, x::Tuple{<:AnyVecOrMat,<:Any}) =
+  homogenized_matrix(f, x[1], -x[2])
 
 _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{QQFieldElem},typeof(x)})
 
-linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
+linear_matrix_for_polymake(
+  f::scalar_type_or_field, x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}
+) =
   assure_matrix_polymake(x)
 
-linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) =
-  assure_matrix_polymake(stack(x))
+linear_matrix_for_polymake(f::scalar_type_or_field, x::AbstractVector{<:AbstractVector}) =
+  assure_matrix_polymake(stack(f, x))
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix,Oscar.QQMatrix,AbstractMatrix}) =
   assure_matrix_polymake(x)
@@ -362,36 +395,55 @@ end
 #     return A[rindices]
 # end
 
-function augment(vec::AbstractVector, val)
+function augment(field, vec::AbstractVector, val)
   s = size(vec)
   @req s[1] > 0 "cannot homogenize empty vector"
-  res = similar(vec, (s[1] + 1,))
-  res[1] = val + zero(first(vec))
-  res[2:end] = vec
+  h = field(val)
+  targettype = elem_type(field)
+  fvec = field.(vec)
+  res = Vector{targettype}(undef, s[1] + 1)
+  res[1] = h
+  res[2:end] = fvec
   return assure_vector_polymake(res)
 end
 
-function augment(mat::AbstractMatrix, vec::AbstractVector)
+function augment(field, mat::AbstractMatrix, vec::AbstractVector)
   s = size(mat)
-  res = similar(mat, promote_type(eltype(mat), eltype(vec)), (s[1], s[2] + 1))
-  res[:, 1] = vec
-  res[:, 2:end] = mat
+
+  mat = eltype(mat) <: Polymake.OscarNumber ? [Polymake.unwrap(x) for x in mat] : mat
+  vec = eltype(vec) <: Polymake.OscarNumber ? [Polymake.unwrap(x) for x in vec] : vec
+  targettype = elem_type(field)
+  fvec = field.(vec)
+  fmat = field.(mat)
+  res = Matrix{targettype}(undef, s[1], s[2] + 1)
+  res[:, 1] = fvec
+  res[:, 2:end] = fmat
   return assure_matrix_polymake(res)
 end
 
-homogenize(vec::AbstractVector, val::Number=0) = augment(vec, val)
-homogenize(mat::AbstractMatrix, val::Number=1) = augment(mat, fill(val, size(mat, 1)))
-homogenize(mat::MatElem, val::Number=1) = homogenize(Matrix(mat), val)
-homogenize(nothing, val::Number) = nothing
-homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) =
-  homogenize(x, val)
-homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
-homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
-  stack([homogenize(x[i], val) for i in 1:length(x)])
+homogenize(field, vec::AbstractVector, val::Union{Number,scalar_types_extended}=0) =
+  augment(field, vec, val)
+homogenize(field, mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=1) =
+  augment(field, mat, fill(val, size(mat, 1)))
+homogenize(field, mat::MatElem, val::Union{Number,scalar_types_extended}=1) =
+  homogenize(field, Matrix(mat), val)
+homogenize(field, nothing, val::Union{Number,scalar_types_extended}) = nothing
+homogenized_matrix(
+  field,
+  x::Union{AbstractVecOrMat,MatElem,Nothing},
+  val::Union{Number,scalar_types_extended},
+) =
+  homogenize(field, x, val)
+homogenized_matrix(field, x::AbstractVector, val::Union{Number,scalar_types_extended}) =
+  permutedims(homogenize(field, x, val))
+homogenized_matrix(
+  field, x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}
+) =
+  stack(field, [homogenize(field, x[i], val) for i in 1:length(x)])
 
 dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
-unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
+unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack([x]))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
 unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
 unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) =
@@ -431,21 +483,33 @@ julia> stack([1 2], [])
  1  2
 ```
 """
-stack(A::AbstractMatrix, ::Nothing) = A
-stack(::Nothing, B::AbstractMatrix) = B
-stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
-stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A : [A; permutedims(B)]
-stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [permutedims(A); B]
-stack(A::AbstractVector, B::AbstractVector) =
-  isempty(A) ? B : [permutedims(A); permutedims(B)]
-stack(A::AbstractVector, ::Nothing) = permutedims(A)
-stack(::Nothing, B::AbstractVector) = permutedims(B)
+stack(::scalar_type_or_field, A::AbstractMatrix, ::Nothing) = A
+stack(::scalar_type_or_field, ::Nothing, B::AbstractMatrix) = B
+stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractMatrix) = T[A; B]
+stack(A::AbstractArray, B::AbstractArray) =
+  stack(eltype(A) !== Any ? eltype(A) : eltype(B), A, B)
+stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractVector) =
+  isempty(B) ? A : T[A; permutedims(B)]
+stack(T::scalar_type_or_field, A::AbstractVector, B::AbstractMatrix) =
+  isempty(A) ? B : T[permutedims(A); B]
+stack(T::scalar_type_or_field, A::AbstractVector, B::AbstractVector) =
+  isempty(A) ? B : T[permutedims(A); permutedims(B)]
+stack(::scalar_type_or_field, A::AbstractVector, ::Nothing) = permutedims(A)
+stack(::scalar_type_or_field, ::Nothing, B::AbstractVector) = permutedims(B)
+stack(VM::AbstractVector{<:AbstractMatrix}) = reduce(vcat, VM)
+stack(::scalar_type_or_field, VM::AbstractVector{<:AbstractMatrix}) = reduce(vcat, VM)
+function stack(::scalar_type_or_field, VV::AbstractVector{<:AbstractVector})
+  @req length(VV) > 0 "at least one vector required"
+  permutedims(Base.stack(VV))
+end
 function stack(VV::AbstractVector{<:AbstractVector})
   @req length(VV) > 0 "at least one vector required"
   permutedims(Base.stack(VV))
 end
-stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
+#stack(x, y, z...) = reduce(stack, z; init=stack(x, y))
+#stack(T::Type, x, y, z...) = reduce((a,b)->stack(T,a,b), z; init=stack(T, x, y))
 stack(x) = stack(x, nothing)
+stack(f::scalar_type_or_field, x) = stack(f, x, nothing)
 
 _ambient_dim(x::AbstractVector) = length(x)
 _ambient_dim(x::AbstractMatrix) = size(x, 2)
@@ -500,26 +564,6 @@ coefficient_field(x::PolyhedralObject{QQFieldElem}) = QQ
 
 _get_scalar_type(::PolyhedralObject{T}) where {T} = T
 _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
-
-################################################################################
-######## Scalar types
-################################################################################
-const scalar_types = Union{FieldElem,Float64}
-
-const scalar_type_to_oscar = Dict{String,Type}([
-  ("Rational", QQFieldElem),
-  ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
-  ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
-  ("Float", Float64),
-])
-
-const scalar_types_extended = Union{scalar_types,IntegerUnion}
-
-const scalar_type_or_field = Union{Type{<:scalar_types},Field}
-
-_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
-_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
-_scalar_type_to_polymake(::Type{Float64}) = Float64
 
 ####################################################################
 # Parent Fields
@@ -604,8 +648,11 @@ function _determine_parent_and_scalar(f::Union{Field,ZZRing}, x...)
   return (f, elem_type(f))
 end
 
+function _determine_parent_and_scalar(::Type{QQFieldElem}, x...)
+  return (QQ, QQFieldElem)
+end
+
 function _determine_parent_and_scalar(::Type{T}, x...) where {T<:scalar_types}
-  T == QQFieldElem && return (QQ, QQFieldElem)
   p = _parent_or_coefficient_field(T, x...)
   @req p !== missing "Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data."
   _check_field_polyhedral(elem_type(p))

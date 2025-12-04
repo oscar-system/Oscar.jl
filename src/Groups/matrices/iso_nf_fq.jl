@@ -25,7 +25,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
    G = matrix_group(Fq, n, matrices_Fq)
    N = order(G)
    if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
-      error("Group is not finite")
+      return false, nothing
    end
 
    G_to_fin_pres = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GapObj(gens(G); recursive = true))
@@ -39,10 +39,10 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
    for i = 1:length(rels)
       M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
       if !isone(M)
-         error("Group is not finite")
+        return false, nothing
       end
    end
-   return G, G_to_fin_pres, F, OtoFq
+   return true, (G, G_to_fin_pres, F, OtoFq)
 end
 
 function good_reduction(matrices::Vector{<:MatrixElem{T}}, p::Int = 2) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
@@ -80,7 +80,12 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
 
   matrices = map(matrix, gens(G))
 
-  Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices, min_char = min_char)
+  flag, res = _isomorphic_group_over_finite_field(matrices, min_char = min_char)
+  if !flag
+    set_is_finite(G, false)
+    throw(InfiniteOrderError(G))
+  end
+  Gp, GptoF, F, OtoFq = res
 
   img = function(x)
     return Gp(_reduce(matrix(x), OtoFq))

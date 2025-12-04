@@ -131,6 +131,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 
 ```@docs
 block_distribution
+character_degrees
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters

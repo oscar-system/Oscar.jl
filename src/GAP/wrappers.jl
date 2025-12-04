@@ -30,10 +30,12 @@ GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BrauerCharacterValue(x::GapObj)::GAP.Obj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
 GAP.@wrap CentralCharacter(x::GapObj)::GapObj
+GAP.@wrap Centralizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap Characteristic(x::Any)::GapInt
+GAP.@wrap CharacterDegrees(x::GapObj)::GapObj
 GAP.@wrap CharacterParameters(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj, y::GAP.Obj)::GapObj
@@ -129,6 +131,12 @@ GAP.@wrap Group(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImages(x1, x2, x3, x4)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByImagesNC(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
 GAP.@wrap Grp(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool

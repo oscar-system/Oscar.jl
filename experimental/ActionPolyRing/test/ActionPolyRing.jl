@@ -646,14 +646,10 @@ using Test
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             @test dpr(data(f)) == f
             @test dpr(data(f)) !== f
-            @test dpr(data(data(f))) == f
-            @test dpr(data(data(f))) !== f
             @test dpr(f) === f
 
             @test dpr(data(g)) == g
             @test dpr(data(g)) !== g
-            @test dpr(data(data(g))) == g
-            @test dpr(data(data(g))) !== g
             @test dpr(g) === g
 
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111

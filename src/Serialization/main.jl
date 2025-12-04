@@ -57,12 +57,9 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Union{JSON3.Object, Dict})
+function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON3.Object
-    return version_number(Dict(version_info))
-  end
   return version_number(version_info)
 end
 
@@ -71,7 +68,7 @@ function version_number(v_number::String)
 end
 
 # needed for older versions
-function version_number(dict::Dict)
+function version_number(dict::AbstractDict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
@@ -170,11 +167,16 @@ struct TypeParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, args::Pair...)
-    return new{T, typeof(args)}(T, args)
+  function TypeParams(T::Type, params)
+    if Base.issingletontype(T)
+      return new{T, Nothing}(T, nothing)
+    else
+      return new{T, typeof(params)}(T, params)
+    end
   end
-  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
 end
+
+TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 
 params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
@@ -422,7 +424,7 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 # The load mechanism first checks if the type needs to load necessary
-# parameters before loading it's data, if so a type tree is traversed
+# parameters before loading its data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   Base.issingletontype(T) && return T()
@@ -672,7 +674,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON3.write(metadata), :meta)
+      save_json(s, JSON.json(metadata), :meta)
     end
   end
   serializer_close(s)
@@ -705,7 +707,7 @@ Load the object stored in the given io stream
 respectively in the file `filename`.
 
 If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of Rings this
+either will attempt a load using these parameters. In the case of rings this
 results in setting its parent, or in the case of a container of ring types such as
 `Vector` or `Tuple`, then the parent of the entries will be set using their
  `params`.
@@ -789,7 +791,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON3.write(jsondict)
+    jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
@@ -861,9 +863,7 @@ _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dic
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
-
 
 function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
   vp_pair = filter(x -> :value_params == x.first, params(tp))

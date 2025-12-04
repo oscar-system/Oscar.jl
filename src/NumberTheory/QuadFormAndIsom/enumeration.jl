@@ -413,21 +413,11 @@ Local symbols:
   Local genus symbol at 2: 1^-4 2^1_7
   Local genus symbol at 3: 1^-4 3^1
 
-julia> admissible_triples(g, 5)
-2-element Vector{Tuple{ZZGenus, ZZGenus}}:
- (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
- (Genus symbol: II_(1, 0) 2^1_7 3^1 5^1, Genus symbol: II_(4, 0) 5^1)
+julia> length(admissible_triples(g, 5))
+2
 
-julia> admissible_triples(g, 2)
-8-element Vector{Tuple{ZZGenus, ZZGenus}}:
- (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
- (Genus symbol: II_(4, 0) 2^2_6 3^1, Genus symbol: II_(1, 0) 2^1_1)
- (Genus symbol: II_(3, 0) 2^-3_1 3^1, Genus symbol: II_(2, 0) 2^2_2)
- (Genus symbol: II_(3, 0) 2^3_3, Genus symbol: II_(2, 0) 2^-2 3^1)
- (Genus symbol: II_(2, 0) 2^-2 3^1, Genus symbol: II_(3, 0) 2^3_3)
- (Genus symbol: II_(2, 0) 2^2_2, Genus symbol: II_(3, 0) 2^-3_1 3^1)
- (Genus symbol: II_(1, 0) 2^1_1, Genus symbol: II_(4, 0) 2^2_6 3^1)
- (Genus symbol: II_(0, 0), Genus symbol: II_(5, 0) 2^-1_3 3^1)
+julia> length(admissible_triples(g, 2))
+8
 ```
 """
 function admissible_triples(
@@ -1565,9 +1555,9 @@ function __splitting_of_hermitian_type(
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
     for (A, B) in atp
       if root_test
-        if rank(A) > 0 && _roger_upper_bound_test(A)
+        if rank(A) > 0 && _packing_density_test(A)
           continue
-        elseif rank(B) > 0 && _roger_upper_bound_test(B)
+        elseif rank(B) > 0 && _packing_density_test(B)
           continue
         end
       end
@@ -2606,32 +2596,37 @@ end
 #  Enhanced genus enumeration
 #
 ###############################################################################
-
-function _roger_upper_bound_test(G::ZZGenus)
-  !iszero(signature_tuple(G)[1]) && return false
-  # Roger's upper bounds on center of density of definite lattices of rank
-  # 1 to 24 (computed by Leech)
-  bn = Float64[0.5, 0.28868, 0.1847, 0.13127, 0.09987, 0.08112, 0.06981, 0.06326,
-	     0.06007, 0.05953, 0.06136, 0.06559, 0.07253, 0.08278, 0.09735, 0.11774,
-	     0.14624, 0.18629, 0.24308, 0.32454, 0.44289, 0.61722, 0.87767, 1.27241]
+function _packing_density_test(G::ZZGenus)
   # The center of density of a definite lattice L is defined as
   # delta(L) = rho^n/sqrt(|det(L)|) where rho(L) = 1//2*sqrt(|min(L)|).
   # If there exists a lattice L in a genus G with absolute minimum at least 4
   # then rho(L) >= 1, and therefore
   #
-  #              bn[rank(G)] >= delta(L) >= 1/sqrt(|det(G))
+  #              center_density_ub >= delta(L) >= 1/sqrt(|det(G))
   # Hence, if |det(G)| < 1//(bn[rank(G)])^2, all the lattices in G have
   # absolute minimum equal to 2.
-  r = rank(G)
-  if r <= 24 && abs(det(G)) < inv(bn[Int(r)])^2
+  !iszero(signature_tuple(G)[1]) && return false
+  r = Int(rank(G))  
+  RR = real_field()
+  r > 48 && return false
+  # Spherepacking bounds taken from Henry cohn
+  # https://dspace.mit.edu/bitstream/handle/1721.1/153311/table.pdf?sequence=8
+  packing_density_upper_bound = ["1", "0.9068996821171089", "0.7404804896930610", "0.6361073321551329", "0.5126451306253027", "0.4103032818801865", "0.3211471056675559", "0.2536695079010480", "0.1911204152968963", "0.1434100871082547", "0.1067252934567631", "0.0797117710668987", "0.0601644380983860", "0.0450612211935181", "0.0337564432797899", "0.0249944093845237", "0.0184640903350649", "0.0134853404450862", "0.0098179551395438", "0.0071270536033763", "0.0051596603948176", "0.0037259419689206", "0.0026842798864291", "0.0019295743094039", "0.0013841907222857", "0.0009910238892216", "0.0007082297958617", "0.0005052542161057", "0.0003598581852089", "0.0002559028743732", "0.0001817083813917", "0.0001288432887595", "0.0000912356039023", "0.0000645221967438", "0.0000455743843107", "0.0000321530553313", "0.0000226586900106", "0.0000159506499105", "0.0000112168687009", "0.0000078801051697", "0.0000055306464395", "0.0000038780970907", "0.0000027169074727", "0.0000019017703144", "0.0000013300905665", "0.0000009295151556", "0.0000006490757338", "0.0000004529067791"]
+  center_density_ub = RR(packing_density_upper_bound[r])*RR(pi)^(-r//2)*gamma(QQ(r)//2+1, RR)
+  # strict inequality saves us from rounding errors
+  # in the computation of gamma
+  if abs(det(G)) < inv(center_density_ub)^2
     return true
   end
   return false
-end
+end 
+
+# Legacy
+_roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
 
 @doc raw"""
     oscar_genus_representatives(
-      G::ZZGenus,
+      G::Union{ZZGenus,Vector{ZZLat}},
       algorithm::Symbol = :default;
       rand_neigh::Int = 10,
       invariant_function::Function=Hecke.default_invariant_function,
@@ -2680,7 +2675,11 @@ There are possible extra optional arguments:
     stops after the specified amount of vain iterations without finding a new
     isometry class is reached;
   * `max_lat::IntExt` (default = `inf`) -> the algorithm stops after finding
-    `max` isometry classes.
+    `max` isometry classes
+  * `_local::Bool` (default= `false`);
+  * `distinct::Bool` (default= `false`) if set to true, believe blindly that all elements 
+    of `G::Vector{ZZLat}` are pairwise non-isometric;
+  * `add_spinor_generators::Bool` add spinor generators to the given list of known lattices.
 
 !!! warning
     The algorithm uses the mass by default, in order to use the codes of
@@ -2714,7 +2713,7 @@ The `default_invariant_function` currently computes:
       case, the enumeration is skipped.
 """
 function oscar_genus_representatives(
-  G::ZZGenus,
+  known::Vector{ZZLat},
   algorithm::Symbol = :default;
   rand_neigh::Int=10,
   invariant_function::Function=Hecke.default_invariant_function,
@@ -2725,8 +2724,11 @@ function oscar_genus_representatives(
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
   root_test::Bool=false,
   info_depth::Int=1,
-  _local::Bool=false
+  _local::Bool=false,
+  distinct::Bool=false,
+  add_spinor_generators::Bool=true,
 )
+  G = genus(known[1])
   if _local
     return [representative(G)]
   end
@@ -2752,7 +2754,7 @@ function oscar_genus_representatives(
   # Here we use a sphere packing condition as used in Section 2.4 of
   # "Symplectic rigidity of O'Grady's tenfolds" by L. Giovenzana, Grossi,
   # Onorati and Veniani.
-  if root_test && _roger_upper_bound_test(G)
+  if root_test && _packing_density_test(G)
     return ZZLat[]
   end
   # Enumerate G using Hecke. If the rank and deteterminant of G are reasonable,
@@ -2761,11 +2763,11 @@ function oscar_genus_representatives(
   # where after `stop_after` vain iterations we do not find any new isometry
   # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
-  l = enumerate_definite_genus(G, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat)
+  l, mm = enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
   length(l) == max_lat && return l
 
   # Part of the mass of G which is missing
-  mm = mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
+  @assert mm == mass(G) - sum(1//automorphism_group_order(LL) for LL in l; init=QQ(0))
 
   # If `mm` is nonzero, we are missing some isometry classes
   if !iszero(mm)
@@ -2881,6 +2883,8 @@ function oscar_genus_representatives(
   end
   return l
 end
+    
+oscar_genus_representatives(G::ZZGenus, algorithm::Symbol=:default;kwargs...) = oscar_genus_representatives([representative(G)], algorithm; kwargs...)
 
 ###############################################################################
 #

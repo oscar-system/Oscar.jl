@@ -791,8 +791,8 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+function lattice_points(P::Polyhedron; check::Bool=true)
+  @check is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
   )
@@ -827,7 +827,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 ```
 """
 function interior_lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  @req is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
   )
@@ -876,7 +876,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 ```
 """
 function boundary_lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  @req is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
   )
