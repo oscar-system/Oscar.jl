@@ -274,10 +274,9 @@ end
 ###################
 #Bas are the given columns that will be the identity matrix
 #currently returns only the matrix not its ambient ring as for the standard realization matrix
-function selfprojecting_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring;Ideal::Union{Ideal,Nothing} = nothing)
-  #include a check that M is realizable & selfproj
-  if !is_selfprojecting(M) 
-    error("The given matroid is not self-projecting.")
+function selfprojecting_realization_matrix(M::Matroid, Bas::Vector{Int}, F::Ring;Ideal::Union{Ideal,Nothing} = nothing, check::Bool = true)
+  if check 
+    @req is_self_projecting(M) "The given matroid is not self projecting" 
   end
   if !(is_realizable(M))
     return nothing
