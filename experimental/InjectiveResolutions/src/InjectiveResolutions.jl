@@ -713,7 +713,7 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
 end
 
 @doc raw"""
-    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int = -1)
+    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
 
 Return an irreducible resolution of $M$ (up to cohomological degree i).
 
@@ -759,7 +759,7 @@ by graded submodule of kQ^1 with 3 generators
 over monoid algebra over rational field with cone of dimension 2
 ```
 """
-function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=-1)
+function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
   kQ = base_ring(M)
   @req is_normal(kQ) "monoid algebra must be normal"
 
@@ -812,7 +812,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=-1)
     push!(cochain_maps, hi)
 
     # end at cohomological degree i
-    if j == i + 1
+    if !isnothing(i) && j == i + 1
       break
     end
     j = j + 1
