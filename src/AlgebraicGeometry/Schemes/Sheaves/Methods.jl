@@ -1174,7 +1174,9 @@ end
       is_zero(h) && continue
       fac = factor(lifted_numerator(h))
       desc = PrincipalOpenSubset(U, [x for (x, _) in fac])
-      row_ind, col_ind = divrem(i, ngens(MU))
+      row_ind, col_ind = divrem(i-1, ngens(MU))
+      col_ind += 1
+      row_ind += 1
       @assert h == relations(MU)[row_ind][col_ind]
       set_attribute!(desc, :pivot=>(row_ind, col_ind))
       @show "set pivot to $row_ind, $col_ind"
