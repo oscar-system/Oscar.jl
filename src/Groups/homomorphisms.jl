@@ -511,7 +511,7 @@ function kernel(f::GAPGroupHomomorphism)
   return _as_subgroup(domain(f), K)
 end
 
-kernel(f::GAPGroupEmbedding) = trivial_subgroup(f)
+kernel(f::GAPGroupEmbedding) = trivial_subgroup(domain(f))
 
 """
     image(f::GAPGroupHomomorphism)
