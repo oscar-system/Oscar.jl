@@ -404,9 +404,6 @@ function selfprojecting_realization_space(m::Matroid;
 end
 
 
-
-
-
 @doc raw"""
     dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
 
