@@ -362,12 +362,13 @@ function random_rothe_matrix(F::FinField, p::PermGroupElem)
 end
 
 # returns true if the target is the partial shift of src with respect to p
-# CAUTION! This function only works correctly if target is obtained as the shift of sry some matrix.
+# CAUTION! This function only works correctly if target is obtained as the shift of some matrix.
 function check_shifted(F::Field,
                        src::UniformHypergraph,
                        target::UniformHypergraph,
                        p::PermGroupElem;
-                       restricted_cols=nothing)
+                       restricted_cols=nothing,
+                       (ref!)=ModStdQt.ref_ff_rc!)
   # need to check if this sort can be removed
   target_faces = faces(target)
   max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
@@ -422,12 +423,12 @@ function check_shifted(F::Field,
         i in cols_to_check && continue
         M[:, i] .= zero(base_ring(M))
       end
-
     end
     isempty(cols_to_check) && return true
-
     max_col = max(cols_to_check...)
-    !lex_min_col_basis(M[:, 1:max_col], src, cols_to_check, dep_col_inds; full_shift=full_shift) && return false
+    ref!(M[:, 1:max_col])
+    pivots = pivot_columns(M[:, 1:max_col])
+    any([c in pivots for c in cols_to_check]) && return false
   end
   return true
 end
