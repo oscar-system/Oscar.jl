@@ -172,9 +172,14 @@ x_2 <= 0
 
 ```
 """
-function normal_cone(P::Polyhedron{T}, F::AbstractVector; outer::Bool = false) where {T<:scalar_types}
-  @req 1 <= length(F) <= n_vertices(P) "Vertex index out of range"
-  bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}(F .- 1), outer=Int64(outer))
+function normal_cone(
+  P::Polyhedron{T}, F::AbstractVector; outer::Bool=false
+) where {T<:scalar_types}
+  @req 1 <= length(F) <= n_vertices(P) "Face index out of range"
+  @req all(1 .<= F .<= n_vertices(P)) "Vertex index out of range"
+  bigobject = Polymake.polytope.normal_cone(
+    pm_object(P), Set{Int64}(F .- 1); outer=Int64(outer)
+  )
   return Cone{T}(bigobject, coefficient_field(P))
 end
 normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types} = normal_cone(P, [i])
