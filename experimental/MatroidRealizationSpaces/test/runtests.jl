@@ -150,6 +150,7 @@ end
 end
 
 @testset "selfprojecting realization spaces" begin
+    using Revise, Oscar;
     M1 = fano_matroid() #not realizable over char 0
     M2 = uniform_matroid(3,6)
     M3 = matroid_from_bases([[1,2,7,8],[3,4,6,8],[2,4,7,8],[2,5,7,8],[3,4,6,7],[3,4,7,8],[1,5,6,7],[1,4,5,8],[1,4,5,7],[1,4,5,6],[4,5,6,8],[2,5,6,7],[4,5,7,8],[1,3,6,8],[3,4,5,7],[3,4,5,6],[1,5,6,8],[1,3,6,7],[4,5,6,7],[3,5,7,8],[2,5,6,8],[3,4,5,8],[1,3,4,7],[1,3,4,6],[1,3,4,8],[2,4,5,7],[2,4,5,6],[1,3,5,8],[1,3,5,7],[2,3,5,7],[2,3,4,8],[1,3,5,6],[2,3,5,6],[2,3,5,8],[2,4,5,8],[1,2,3,7],[1,2,3,6],[1,2,3,8],[2,3,4,7],[2,3,4,6],[1,3,7,8],[1,2,6,8],[1,2,6,7],[1,5,7,8],[2,3,7,8],[2,4,6,7],[1,2,5,8],[1,2,5,7],[1,2,5,6],[1,4,6,7],[1,2,4,7],[1,2,4,6],[3,5,6,7],[1,4,7,8],[2,3,6,8],[3,5,6,8],[2,4,6,8],[2,3,6,7],[1,2,4,8],[1,4,6,8]],8) #isomorphic to number 9 in the database (4,8), R not equal to S
@@ -195,18 +196,21 @@ end
         @test mat_M6 == nothing
     end
     @testset "selfprojecting_realization_space_ideal" begin
+        #R2 and R3 are quotient rings. For the selfprojecting realization ideal we need the underlying polynomial ring
+        y2 = gens(base_ring(R2))
+        y3 = gens(base_ring(R3))
        # @test selfprojecting_realization_ideal(M1) == ideal(#which ring?!,[1])
        #need a test for a completely not realizable matroid!
-        @test selfprojecting_realization_ideal(M2) == ideal(base_ring(R2),[x2[1]*x2[2]*x2[3] - x2[1]*x2[2]*x2[4] - x2[1]*x2[3]*x2[4] + x2[1]*x2[4] + x2[2]*x2[3]*x2[4] - x2[2]*x2[3]])
-        @test selfprojecting_realization_ideal(M3) ==ideal(base_ring(R3),[x3[1]*x3[2]*x3[3] - x3[1]*x3[2]*x3[4] - x3[1]*x3[3]*x3[4] + x3[1]*x3[4] + x3[2]*x3[3]*x3[4] - x3[2]*x3[3]])
+        @test selfprojecting_realization_ideal(M2) == ideal(base_ring(R2),[y2[1]*y2[2]*y2[3] - y2[1]*y2[2]*y2[4] - y2[1]*y2[3]*y2[4] + y2[1]*y2[4] + y2[2]*y2[3]*y2[4] - y2[2]*y2[3]])
+        @test selfprojecting_realization_ideal(M3) ==ideal(base_ring(R3),[y3[1]*y3[2]*y3[3] - y3[1]*y3[2]*y3[4] - y3[1]*y3[3]*y3[4] + y3[1]*y3[4] + y3[2]*y3[3]*y3[4] - y3[2]*y3[3]])
        # @test selfprojecting_realization_ideal(M4) #this should give an error because M4 is not selfprojecting
-        @test selfprojecting_realization_ideal(M5) == ideal(base_ring(R5),[0])
-        @test selfprojecting_realization_ideal(M6) == ideal(base_ring(R6),[1])
+        @test selfprojecting_realization_ideal(M5) == ideal(R5,[0])
+        @test selfprojecting_realization_ideal(M6) == ideal(R6,[1]) 
     end
     @testset "dimension" begin
         @test dimension(selfprojecting_realization_space(M2)) == 3
-        @test dimension(selfprojecting_realization_space(M3)) == 5
+        @test dimension(selfprojecting_realization_space(M3)) == 4
         @test dimension(selfprojecting_realization_space(M5)) == 3
-        @test dimension(selfprojecting_realization_space(M6)) == 3
+        @test dimension(selfprojecting_realization_space(M6)) == -inf
     end
 end
