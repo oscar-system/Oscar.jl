@@ -235,7 +235,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
-  nCk = sort!(subsets(n_vertices(K), face_size(K)))
+  nCk = collect(combinations(n_vertices(K), face_size(K)))
   c = compound_matrix(g, K)
   if matrix_base isa MPolyRing
     ref!(c)
@@ -367,7 +367,7 @@ function check_shifted(F::Field,
                        src::UniformHypergraph,
                        target::UniformHypergraph,
                        p::PermGroupElem;
-                       restricted_cols=nothing,
+                       lower_uhg=nothing,
                        (ref!)=ModStdQt.ref_ff_rc!)
   # need to check if this sort can be removed
   target_faces = faces(target)
@@ -390,8 +390,8 @@ function check_shifted(F::Field,
   # if the # of non zeros cols up to max_face_index is equal to the rank
   # we do not need to do any row reduction
   n_dependent_columns = length(col_sets) + 1 - num_rows
-  if !isnothing(restricted_cols)
-    zero_cols_indices = findall(x -> !(Set(x) in restricted_cols), col_sets)
+  if !isnothing(lower_uhg)
+    zero_cols_indices = findall(x -> any([!(low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)]), col_sets)
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
   else
     zero_cols_indices = Int[]
@@ -440,19 +440,14 @@ function check_shifted(F::Field,
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = 2
-  restricted_cols = nothing
+  lower_uhg = nothing
   while k <= length(f_vec)
     uhg_src = uniform_hypergraph(src, k)
     uhg_target = uniform_hypergraph(target, k)
     !check_shifted(F, uhg_src, uhg_target, p;
-                   restricted_cols=restricted_cols) && return false
-    non_faces = setdiff(Set.(subsets(n, k)), Set.(faces(uhg_target)))
+                   lower_uhg=lower_uhg) && return false
+    lower_uhg = uhg_target
     k += 1
-
-    if k <= length(f_vec)
-      # find all higher dim faces that do not contain a lower dimensional non face
-      restricted_cols = filter(x -> all(nf -> !(nf ⊆ x), non_faces), Set.(combinations(n, k)))
-    end
   end
   return true
 end
