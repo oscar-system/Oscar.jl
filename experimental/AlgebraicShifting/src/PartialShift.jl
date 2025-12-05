@@ -409,7 +409,6 @@ function check_shifted(F::Field,
     cols_to_check = Int[]
     for (i, j) in enumerate(dep_col_inds)
       if !iszero(M[:, j])
-        any(x -> _domination(col_sets[x], col_sets[j]), dep_col_inds[1:i - 1]) && continue
         push!(cols_to_check, j)
       end
     end
@@ -418,7 +417,7 @@ function check_shifted(F::Field,
       for col in zero_cols_indices
         cols_to_check = [i for i in cols_to_check if col != i && !_domination(col_sets[col], col_sets[i])]
       end
-      
+      # set columns we don't need to check to zero
       for i in dep_col_inds
         i in cols_to_check && continue
         M[:, i] .= zero(base_ring(M))
@@ -426,7 +425,6 @@ function check_shifted(F::Field,
     end
     isempty(cols_to_check) && return true
     max_col = max(cols_to_check...)
-    println(cols_to_check)
     ref!(M[:, 1:max_col])
     pivots = pivot_columns(M[:, 1:max_col])
     any([c in pivots for c in cols_to_check]) && return false
