@@ -628,7 +628,7 @@ function preimage(f::GAPGroupHomomorphism, H::GAPGroup)
 end
 
 function preimage(f::GAPGroupEmbedding, H::GAPGroup)
-  H1 = GAPWrap.Intersection(GapObj(domain(f)), GapObj(H))::GapObj
+  H1 = GAP.Globals.Intersection(GapObj(domain(f)), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
 
