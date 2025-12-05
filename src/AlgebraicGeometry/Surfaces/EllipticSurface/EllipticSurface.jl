@@ -890,6 +890,48 @@ algebraic lattice (with quadratic form rescaled by ``-1``).
   return mwl
 end
 
+function ample_class(::Type{QQMatrix}, X::EllipticSurface)
+  NS = algebraic_lattice(X)[3]
+  G = gram_matrix(ambient_space(NS))
+  t = length(trivial_lattice(X)[1])
+  n = rank(NS)
+  r = zero_matrix(QQ, 1, n)
+  r[1:1, 3:t] = matrix(QQ,1,t-2, ones(Int,t-2))*inv(G[3:t,3:t])
+  r = r*denominator(r)
+  # a nef and big class, pullback of an ample class of the weierstrass model
+  h = zero_matrix(QQ, 1, n)
+  h[1,1] = 3
+  h[1,2] = 1
+  v = 5*h + r
+  while (inner_product(ambient_space(NS), v, v)[1,1]<=0
+         || !isempty(short_vectors_iterator(orthogonal_submodule(NS, v), 2))
+         || length(separating_hyperplanes(NS, h, v, -2)) != 0
+        )
+    add!(v, h)
+  end
+  return v
+end 
+  
+function is_nef(X::EllipticSurface, f::QQMatrix)
+  NS = algebraic_lattice(X)[3]
+  V = ambient_space(NS)
+  f_sq = inner_product(V, f, f)[1,1]
+  f_sq >= 0 || return false 
+  a = ample_class(QQMatrix, X) 
+  fa = inner_product(V, f, a)[1,1]
+  fa > 0 || return false  # not in the positive cone
+  if f_sq == 0 
+    # Shimada: Mordell-
+    # Proposition 3.3 
+    af = a + fa*f
+  else 
+    af = f
+  end
+  return length(separating_hyperplanes(NS, a, af, -2))==0
+end
+
+is_nef(X::EllipticSurface, v::Vector{QQFieldElem}) = is_nef(X, matrix(QQ, 1, length(v), v))
+
 @doc raw"""
     mordell_weil_torsion(X::EllipticSurface) -> Vector{EllipticCurvePoint}
 
