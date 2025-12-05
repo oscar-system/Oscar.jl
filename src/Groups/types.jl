@@ -142,6 +142,12 @@ It is displayed as product of disjoint cycles.
 """
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
+function Base.hash(x::PermGroupElem, h::UInt)
+  d = hash(degree(x), h)
+  modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
+  return UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(d % modulus)))
+end
+
 
 """
     PcGroup
@@ -284,6 +290,13 @@ f1*f3
 ```
 """
 const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
+
+function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
+  G = full_group(parent(x))[1]
+  h = is_finite_order(x) ? hash(order(x), h) : h
+  h = hash(is_finite(G), hash(G, h))
+  return hash(syllables(x), h)
+end
 
 
 """
@@ -430,6 +443,10 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
       z.X = x_gap
       return z
    end
+end
+
+function Base.hash(x::MatrixGroupElem, h::UInt)
+  return hash(matrix(x), hash(base_ring(parent(x)), h))
 end
 
 ################################################################################
