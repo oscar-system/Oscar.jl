@@ -310,9 +310,9 @@ function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int};I::Union
   if check 
     @req is_selfprojecting(m) "The given matroid is not self projecting" 
   end
-  if !(is_realizable(m))
-    return nothing
-  end
+  if !(is_realizable(m,char=0))
+    return (nothing, nothing)
+  else
   X = realization_matrix(realization_space(m,B=Bas,ground_ring=QQ)) #this matrix is not yet simplified by the defining ideal of the selfprojecting realization ideal
   if isnothing(I) #this way the ideal needs only be computed once!
     I = selfprojecting_realization_ideal(m);
@@ -327,6 +327,7 @@ function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int};I::Union
   R = base_ring(X)
   QR, phi = quo(R,I)
   return (QR, phi.(X))
+  end
   end
 end
 
