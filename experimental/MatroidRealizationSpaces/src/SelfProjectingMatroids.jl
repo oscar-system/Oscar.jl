@@ -419,7 +419,7 @@ julia> dimension(selfprojecting_realization_space(uniform_matroid(3,6)))
   ```
 """
 #the 2 functions below need to be tested, they do not seem to give the correct answer!
-function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
+function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Union{Int,NegInf}
   if iszero(defining_ideal(MRS))
     return length(gens(base_ring(defining_ideal(MRS))))
   else
@@ -438,7 +438,7 @@ julia> dimension(realization_space(uniform_matroid(3,6)))
 4
   ```
 """
-function dimension(MRS::MatroidRealizationSpace)::Int
+function dimension(MRS::MatroidRealizationSpace)::Union{Int,NegInf}
   if iszero(defining_ideal(MRS))
     return length(gens(base_ring(defining_ideal(MRS))))
   else
