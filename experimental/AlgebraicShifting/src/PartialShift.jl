@@ -426,6 +426,7 @@ function check_shifted(F::Field,
     end
     isempty(cols_to_check) && return true
     max_col = max(cols_to_check...)
+    println(cols_to_check)
     ref!(M[:, 1:max_col])
     pivots = pivot_columns(M[:, 1:max_col])
     any([c in pivots for c in cols_to_check]) && return false
