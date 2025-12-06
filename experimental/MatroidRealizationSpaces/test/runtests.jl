@@ -149,3 +149,8 @@ end
     @test is_reduced(RS) == false
 end
 
+@testset "realization spaces with loops" begin
+  r = matroid_from_bases([[3,5],[3,4],[2,5],[2,4]],5)
+  X = realization_space(r,char=0)
+end
+
