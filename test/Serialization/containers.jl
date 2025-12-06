@@ -16,7 +16,7 @@
         @test nt == loaded
       end
     end
-  
+
     @testset "ids in containers" begin
       R, x = QQ[:x]
       test_save_load_roundtrip(path, (x^2, x + 1, R)) do loaded
@@ -24,7 +24,7 @@
         @test parent(loaded[1]) == parent(loaded[2]) == loaded[3]
       end
     end
-    
+
     @testset "Vector{LinearProgram}" begin
       c = cube(3)
       LP0 = linear_program(c, [2,2,-3])
@@ -60,7 +60,7 @@
                     type=Vector{FqFieldElem})
       @test loaded isa Vector{FqFieldElem}
     end
-    
+
     @testset "Vector{fpFieldElem}" begin
       F = fpField(UInt(7))
       one = F(1)
@@ -92,7 +92,7 @@
       end
     end
 
-    @testset "Testing (de)serialization of Vector{$(T)}" for T in 
+    @testset "Testing (de)serialization of Vector{$(T)}" for T in
       (
         UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
         Int, Int128, Int16, Int32, Int64, Int8,
@@ -114,7 +114,7 @@
 
     end
 
-    @testset "Testing (de)serialization of Matrix{$(T)}" for T in 
+    @testset "Testing (de)serialization of Matrix{$(T)}" for T in
       (
         UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
         Int, Int128, Int16, Int32, Int64, Int8,
@@ -162,6 +162,13 @@
       Qx, x = QQ[:x]
       p = x^2 + 1
       original = Dict{S, Any}(keys[1] => cube(2), keys[2] => p)
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
+    @testset "(de)serialization Dict{Vector, Int}" begin
+      original = Dict([1, 2] => 1)
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
