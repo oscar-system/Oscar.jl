@@ -38,7 +38,7 @@ function _process_result(P::MPolyRing, prec::Int, SE::Singular.PolyRing, res::Di
       push_term!(ctx, kkO(c), v)
     end
     hh = finish(ctx)
-    push!(result, evaluate(hh, [xx^(1//3), zero(xx)]))
+    push!(result, evaluate(hh, [xx^(1//e), zero(xx)]))
   end
   return result
 end
@@ -64,8 +64,9 @@ end
         precision::Int=10
       ) where {T <: FieldElem}
 
-Compute the Puiseux expansion of `f` up to degree `precision`. 
-A parent ring for the return value can be provided if needed.
+Compute the Puiseux expansion of `f` up to degree `precision` and returns a list of branches. 
+
+!!! note For the moment we only support bivariate polynomials over `QQ`. Puiseux expansion may produce number fields as coefficient rings for the output. As this is not foreseeable a priori, no guarantee can be given about the parent objects for the output. 
 ```jldoctest
 julia> R, (x, y) = QQ[:x, :y]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
@@ -73,17 +74,18 @@ julia> R, (x, y) = QQ[:x, :y]
 julia> f = y^3 + x^2 + x^8
 x^8 + x^2 + y^3
 
-julia> h = Oscar.puiseux_expansion(f, 20)
--x^(2//3) - 1//3*x^(20//3) + O(x^(22//3))
+julia> h = Oscar.puiseux_expansion(f, 15)
+1-element Vector{AbstractAlgebra.Generic.PuiseuxSeriesFieldElem{QQFieldElem}}:
+ -x^(2//3) + O(x^(17//3))
 
-julia> evaluate(f, [gen(parent(h)), h])
-O(x^(26//3))
+julia> all(is_zero(evaluate(f, [gen(parent(h)), h])) for h in h)
+true
 ```
 """
 function puiseux_expansion(
     f::MPolyRingElem{T}, 
     precision::Int=10
-  ) where {T <: FieldElem}
+  ) where {T <: QQFieldElem}
   R = Oscar.parent(f)
   @assert ngens(R) == 2 "polynomial must be bivariate"
   x, y = gens(R)
