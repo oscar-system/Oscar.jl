@@ -38,7 +38,8 @@ function real_solutions(
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        precision::Int=32                     # precision of the solution set
+        precision::Int=32,                     # precision of the solution set
+        interval::Bool=false
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
@@ -48,9 +49,14 @@ function real_solutions(
              max_nr_pairs = max_nr_pairs,
              la_option = la_option,
              info_level = info_level,
-             precision = precision)
+             precision = precision,
+             interval = interval)
 
-    return AI.real_sols, AI.rat_param
+    if interval
+      return AI.inter_sols, AI.rat_param
+    else
+      return AI.real_sols, AI.rat_param
+    end
 end
 
 ################################################################################
