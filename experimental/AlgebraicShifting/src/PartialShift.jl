@@ -367,7 +367,7 @@ function check_shifted(F::Field,
                        src::UniformHypergraph,
                        target::UniformHypergraph,
                        p::PermGroupElem;
-                       lower_uhg::UniformHypergraph=uniform_hypergraph([]),
+                       lower_uhg::UniformHypergraph=uniform_hypergraph(Vector{Intz}[]),
                        (ref!)=ModStdQt.ref_ff_rc!)
   # need to check if this sort can be removed
   target_faces = faces(target)

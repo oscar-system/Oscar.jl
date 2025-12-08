@@ -13,13 +13,13 @@ function uniform_hypergraph(faces::T, n::Int, k::Int) where T <: Union{Set{Set{I
   return UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
 end
 
-function uniform_hypergraph(faces::T, n::Int) whetre T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
+function uniform_hypergraph(faces::T, n::Int) where T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
   return uniform_hypergraph(faces, n, only(Set(length.(faces))))
 end
 
 function uniform_hypergraph(faces::T) where T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
   isempty(faces) && return UniformHypergraph(0, 0, [])
-  uniform_hypergraph(faces, maximum(maximum.(faces)))
+  return uniform_hypergraph(faces, maximum(maximum.(faces)))
 end
 
 @doc raw"""
