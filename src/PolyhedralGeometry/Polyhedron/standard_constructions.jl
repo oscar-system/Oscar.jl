@@ -119,8 +119,8 @@ bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where {T<:scalar_type
   bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
-    normal_cone(P::Polyhedron, i::Int64)
-    normal_cone(P::Polyhedron, F::AbstractVector; outer::Bool = false)
+    normal_cone(P::Polyhedron, i::Int64; outer::Bool = false)
+    normal_cone(P::Polyhedron, F::AbstractVector{Int64}; outer::Bool = false)
 
 Construct the normal cone to `P` at the face corresponding to vertex indices in `F`.
 
@@ -173,16 +173,16 @@ x_2 <= 0
 ```
 """
 function normal_cone(
-  P::Polyhedron{T}, F::AbstractVector; outer::Bool=false
+  P::Polyhedron{T}, F::AbstractVector{Int64}; outer::Bool=false
 ) where {T<:scalar_types}
-  @req 1 <= length(F) <= n_vertices(P) "Face index out of range"
   @req all(1 .<= F .<= n_vertices(P)) "Vertex index out of range"
   bigobject = Polymake.polytope.normal_cone(
-    pm_object(P), Set{Int64}(F .- 1); outer=Int64(outer)
+    pm_object(P), Set{Int64}(F .- 1); outer=outer
   )
   return Cone{T}(bigobject, coefficient_field(P))
 end
-normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types} = normal_cone(P, [i])
+normal_cone(P::Polyhedron{T}, i::Int64; outer::Bool=false) where {T<:scalar_types} =
+  normal_cone(P, [i]; outer=outer)
 
 @doc raw"""
     orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
