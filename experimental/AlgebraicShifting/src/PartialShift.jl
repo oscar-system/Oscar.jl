@@ -367,7 +367,7 @@ function check_shifted(F::Field,
                        src::UniformHypergraph,
                        target::UniformHypergraph,
                        p::PermGroupElem;
-                       lower_uhg=nothing,
+                       lower_uhg::UniformHypergraph=uniform_hypergraph([]),
                        (ref!)=ModStdQt.ref_ff_rc!)
   # need to check if this sort can be removed
   target_faces = faces(target)
@@ -390,7 +390,7 @@ function check_shifted(F::Field,
   # if the # of non zeros cols up to max_face_index is equal to the rank
   # we do not need to do any row reduction
   n_dependent_columns = length(col_sets) + 1 - num_rows
-  if !isnothing(lower_uhg)
+  if !isempty(lower_uhg)
     zero_cols_indices = findall(x -> any([!(low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)]), col_sets)
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
   else

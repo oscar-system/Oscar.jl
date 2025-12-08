@@ -9,9 +9,12 @@ struct UniformHypergraph
   end
 end
 
-uniform_hypergraph(faces, n::Int, k::Int) = UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
-uniform_hypergraph(faces, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
-uniform_hypergraph(faces) = uniform_hypergraph(faces, maximum(maximum.(faces)))
+uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int) = UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
+uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
+function uniform_hypergraph(faces::Vector{Vector{Int}})
+  isempty(faces) && return UniformHypergraph(0, 0, [])
+  uniform_hypergraph(faces, maximum(maximum.(faces)))
+end
 
 @doc raw"""
      uniform_hypergraph(faces, n::Int, k::Int)
@@ -54,6 +57,7 @@ faces(K::UniformHypergraph) = K.faces
 # added for covenience when writting functions for Simplicial complex and Uniform Hypergraph
 facets(K::UniformHypergraph) = Set.(K.faces)
 face_size(K::UniformHypergraph) = K.k
+Base.isempty(K::UniformHypergraph) = isempty(faces(K))
 
 Base.hash(K :: UniformHypergraph, u :: UInt) = hash(K.n_vertices, hash(K.k, hash(K.faces, u)))
 Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph) = K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
