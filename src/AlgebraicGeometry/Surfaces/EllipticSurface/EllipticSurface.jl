@@ -912,7 +912,17 @@ function ample_class(::Type{QQMatrix}, X::EllipticSurface)
   return v
 end 
   
+  
+"""
+    is_nef(X::EllipticSurface, f::QQMatrix)
+    
+Return if `f` is nef. 
+  
+# Arguments
+- `f::QQMatrix` -- a vector given with respect to the ambient space of the algebraic lattice of ``X``
+"""
 function is_nef(X::EllipticSurface, f::QQMatrix)
+  # We do not need to know generators of the Mordell-Weil group for this.s
   NS = algebraic_lattice(X)[3]
   V = ambient_space(NS)
   f_sq = inner_product(V, f, f)[1,1]
@@ -921,7 +931,8 @@ function is_nef(X::EllipticSurface, f::QQMatrix)
   fa = inner_product(V, f, a)[1,1]
   fa > 0 || return false  # not in the positive cone
   if f_sq == 0 
-    # Shimada: Mordell-
+    # https://arxiv.org/abs/2210.01328
+    # Shimada: Mordell-Weil groups and automorphism groups of elliptic K3 surfaces
     # Proposition 3.3 
     af = a + fa*f
   else 
