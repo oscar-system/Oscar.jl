@@ -57,11 +57,13 @@ end
 
 @doc raw"""
     function puiseux_expansion(
-        f::MPolyRingElem{T}, 
-        precision::Int=10
+        f::MPolyRingElem{T},
+        max_ord::Int=10;
+        precision::Int=max_ord
       ) where {T <: FieldElem}
 
-Compute the Puiseux expansion of `f` up to degree `precision` and returns a list of branches. 
+Compute the Puiseux expansion of `f` up to degree `max_ord` and returns the output 
+in puiseux series rings with the given `precision`. 
 
 !!! note 
     For the moment we only support bivariate polynomials over `QQ`. Puiseux expansion may produce number fields as coefficient rings for the output. As this is not foreseeable a priori, no guarantee can be given about the parent objects for the output. 
@@ -82,7 +84,8 @@ true
 """
 function puiseux_expansion(
     f::MPolyRingElem{T}, 
-    precision::Int=10
+    max_ord::Int=10;
+    precision::Int=max_ord
   ) where {T <: QQFieldElem}
   R = Oscar.parent(f)
   @assert ngens(R) == 2 "polynomial must be bivariate"
@@ -91,7 +94,7 @@ function puiseux_expansion(
   # prepare for the Singular call
   SR = singular_poly_ring(R)
   Sf = SR(f)
-  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, precision, 1)
+  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, max_ord, 1)
   return reduce(vcat, [_process_result(R, precision, data...) for data in raw])
 end
 
