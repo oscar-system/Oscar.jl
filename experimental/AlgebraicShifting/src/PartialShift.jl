@@ -467,7 +467,7 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # setting to 100 now for good measure
   # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
   random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
-  (shift, i), stats... = @timed efindmin((exterior_shift(K, r; kw...) for (i, r) in enumerate(random_matrices)); lt=isless_lex)
+  (shift, i), stats... = @timed efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) #TODO Used to pass kwargs, which was ignored anyway because the matrix r has field entries.
   # Check if `shift` is the generic exterior shift of K
   prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
   n = n_vertices(K)
