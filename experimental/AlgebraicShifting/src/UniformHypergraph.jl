@@ -14,7 +14,7 @@ uniform_hypergraph(faces::CollectionTypes, n::Int, k::Int) = UniformHypergraph(n
 uniform_hypergraph(faces::CollectionTypes, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
 
 function uniform_hypergraph(faces::CollectionTypes) 
-  isempty(faces) && return UniformHypergraph(0, 0, [])
+  isempty(faces) && return UniformHypergraph(0, 0, Vector{Int}[])
   return uniform_hypergraph(faces, maximum(maximum.(faces)))
 end
 
