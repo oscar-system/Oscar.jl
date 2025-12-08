@@ -440,7 +440,7 @@ function check_shifted(F::Field,
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = 2
-  lower_uhg = nothing
+  lower_uhg = uniform_hypergraph(Vector{Int}[])
   while k <= length(f_vec)
     uhg_src = uniform_hypergraph(src, k)
     uhg_target = uniform_hypergraph(target, k)
