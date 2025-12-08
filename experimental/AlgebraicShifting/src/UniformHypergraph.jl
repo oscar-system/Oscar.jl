@@ -9,15 +9,11 @@ struct UniformHypergraph
   end
 end
 
-function uniform_hypergraph(faces::T, n::Int, k::Int) where T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
-  return UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
-end
+const CollectionTypes = Union{Set{Set{Int}}, Vector{Vector{Int}}, Vector{Combination{Int}}}
+uniform_hypergraph(faces::CollectionTypes, n::Int, k::Int) = UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
+uniform_hypergraph(faces::CollectionTypes, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
 
-function uniform_hypergraph(faces::T, n::Int) where T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
-  return uniform_hypergraph(faces, n, only(Set(length.(faces))))
-end
-
-function uniform_hypergraph(faces::T) where T <: Union{Set{Set{Int}}, Vector{Vector{Int}}}
+function uniform_hypergraph(faces::CollectionTypes) 
   isempty(faces) && return UniformHypergraph(0, 0, [])
   return uniform_hypergraph(faces, maximum(maximum.(faces)))
 end
