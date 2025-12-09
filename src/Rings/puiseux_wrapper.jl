@@ -24,7 +24,7 @@ function _process_result(P::MPolyRing, prec::Int, SE::Singular.PolyRing, res::Di
   L, t = polynomial_ring(QQ, :t; cached=false)
   kkO, alpha = extension_field(L(mmp))
   P_ext, to_P_ext = change_base_ring(kkO, P)
-  Puis, xx = puiseux_series_ring(kkO, prec, symbols(P_ext)[1])
+  Puis, xx = puiseux_series_ring(kkO, prec, symbols(P_ext)[1]; cached=false)
 
   # transfer the polynomials to the oscar side
   result = elem_type(Puis)[]
@@ -42,7 +42,7 @@ end
 
 function _process_result(P::MPolyRing, prec::Int, h::Singular.spoly, e::Int, rest...)
   kk = coefficient_ring(P)
-  Puis, xx = puiseux_series_ring(kk, prec, symbols(P)[1])
+  Puis, xx = puiseux_series_ring(kk, prec, symbols(P)[1]; cached=false)
   return [evaluate(P(h), [xx^(1//e), zero(xx)])]
 end
 
