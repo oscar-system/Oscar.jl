@@ -132,3 +132,16 @@ augmented_chow_ring(M::Matroid)
 quantum_symmetric_group(n::Int)
 quantum_automorphism_group(M::Matroid, structure::Symbol)
 ```
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Lukas Kühne](https://www.math.uni-bielefeld.de/~lkuehne/)
+* [Dante Luber](https://sites.google.com/view/dantelubermath/home)
+* [Benjamin Schröter](https://people.kth.se/~schrot/)
+* [Marcel Wack](https://page.math.tu-berlin.de/~wack/)
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+
