@@ -130,7 +130,15 @@ function number_of_weak_compositions(n::IntegerUnion, k::IntegerUnion)
   return binomial(ZZ(n) + ZZ(k) - 1, ZZ(n))
 end
 
-Base.length(W::WeakCompositions) = BigInt(number_of_weak_compositions(base(W), parts(W)))
+function Base.length(W::WeakCompositions)
+  try
+    return Int(number_of_weak_compositions(base(W), parts(W)))
+  catch e
+    print("Length is too large, use `number_of_weak_compositions` instead\n")
+    rethrow(e)
+  end
+end
+
 
 function Base.iterate(W::WeakCompositions{T}, state::Nothing = nothing) where T
   n = base(W)

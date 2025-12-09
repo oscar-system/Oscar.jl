@@ -95,7 +95,14 @@ function number_of_multicombinations(n::IntegerUnion, k::IntegerUnion)
   return binomial(ZZ(n) + ZZ(k) - 1, ZZ(k))
 end
 
-Base.length(C::MultiCombinations) = BigInt(number_of_multicombinations(C.n, C.k))
+function Base.length(C::MultiCombinations)
+  try
+    return Int(number_of_multicombinations(C.n, C.k))
+  catch e
+    print("Length is too large, use `number_of_multicombinations` instead\n")
+    rethrow(e)
+  end
+end
 
 function Base.show(io::IO, C::MultiCombinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n, " with repetition")
