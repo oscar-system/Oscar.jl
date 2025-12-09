@@ -95,9 +95,7 @@ and let OSCAR compute a pc presentation for it.
 julia> g = symmetric_group(4)
 Symmetric group of degree 4
 
-julia> iso = isomorphism(PcGroup, g);
-
-julia> h = codomain(iso)
+julia> h = pc_group(g)
 Pc group of order 24
 ```
 
