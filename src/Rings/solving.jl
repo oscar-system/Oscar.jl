@@ -30,7 +30,7 @@ julia> real_solutions(I)
 (Vector{QQFieldElem}[[-1, -1], [-1, 1]], AlgebraicSolving.RationalParametrization([:x, :y], ZZRingElem[], x^2 - 1, 2*x, QQPolyRingElem[-2*x]))
 ```
 """
-function real_solutions(
+function real_solutions(::Type{Vector{QQFieldElem}},
         I::MPolyIdeal;                        # input generators
         initial_hts::Int=17,                  # hash table size, default 2^17
         nr_thrds::Int=1,                      # number of threads
@@ -39,7 +39,6 @@ function real_solutions(
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
         precision::Int=32,                     # precision of the solution set
-        interval::Bool=false
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
@@ -50,13 +49,33 @@ function real_solutions(
              la_option = la_option,
              info_level = info_level,
              precision = precision,
-             interval = interval)
+             interval = false)
 
-    if interval
-      return AI.inter_sols, AI.rat_param
-    else
-      return AI.real_sols, AI.rat_param
-    end
+    return AI.real_sols, AI.rat_param
+end
+real_solutions(I::MPolyIdeal; kwargs...) = real_solutions(Vector{QQFieldElem}, I; kwargs...)
+function real_solutions(::Type{Vector{Vector{QQFieldElem}}},
+        I::MPolyIdeal;                        # input generators
+        initial_hts::Int=17,                  # hash table size, default 2^17
+        nr_thrds::Int=1,                      # number of threads
+        max_nr_pairs::Int=0,                  # number of pairs maximally chosen
+                                              # in symbolic preprocessing
+        la_option::Int=2,                     # linear algebra option
+        info_level::Int=0,                    # info level for print outs
+        precision::Int=32,                     # precision of the solution set
+        )
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
+
+    AlgebraicSolving.real_solutions(AI,
+             initial_hts = initial_hts,
+             nr_thrds = nr_thrds,
+             max_nr_pairs = max_nr_pairs,
+             la_option = la_option,
+             info_level = info_level,
+             precision = precision,
+             interval = true)
+
+    return AI.inter_sols, AI.rat_param
 end
 
 ################################################################################
