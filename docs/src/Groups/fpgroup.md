@@ -120,6 +120,7 @@ map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Ve
 ```@docs
 free_group
 @free_group
+fp_group
 full_group(G::Union{SubFPGroup, SubPcGroup})
 relators(G::FPGroup)
 simplified_fp_group(G::FPGroup)

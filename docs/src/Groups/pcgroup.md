@@ -132,6 +132,7 @@ map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Ve
 ## Functions for (subgroups of) pc groups
 
 ```@docs
+pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
 relators(G::PcGroup)
 hirsch_length(G::PcGroup)
 ```
