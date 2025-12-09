@@ -47,14 +47,6 @@ function _process_result(P::MPolyRing, prec::Int, h::Singular.spoly, e::Int, res
 end
 
 
-# Method to create the default Oscar parent for the Puiseux expansion of `f`. 
-function _puiseux_parent(f::MPolyRingElem, prec::Int)
-  R = parent(f)
-  kk = coefficient_ring(R)
-  symbs = symbols(R)
-  return puiseux_series_ring(kk, prec, symbs[1])[1]
-end
-
 @doc raw"""
     function puiseux_expansion(
         f::MPolyRingElem{T},
