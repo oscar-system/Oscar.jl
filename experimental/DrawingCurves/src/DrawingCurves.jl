@@ -34,7 +34,8 @@ function _compute_isotopy_graph(f_in; selected_precision::Int=128)
       result = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
       println("result is $result")
    end
-   return IG
+  scale = get_scale(IG, random_transform)
+   return IG, scale
 end
 
 @doc raw"""
@@ -44,8 +45,7 @@ Takes a polynomial in two variables and constructs a plot of the resulting real
 algebraic curve in TikZ.
 """
 function draw_curve_tikz(f_in; filename::String="curve.tikz", selected_precision::Int=128, graph::Bool=false, custom_edge_plot=nothing)
-  IG = _compute_isotopy_graph(f_in; selected_precision)
-  scale = get_scale(IG, random_transform)
+  IG, scale = _compute_isotopy_graph(f_in; selected_precision)
   io = open(filename, "w")
   if graph
     draw_graph_tikz(IG, io)
