@@ -2,6 +2,7 @@
 include("IsotopyGraph.jl")
 include("plotting_tikz.jl")
 include("backend_msolve.jl")
+include("patchwork.jl")
 
 
 
