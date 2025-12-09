@@ -483,7 +483,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       im = [A[1]+preimage(mu, mk(mG(g)(pi)*inv(pi)))[1]*A[2], preimage(mu, mk(mG(g)(gk)))[1]*A[2]]
       push!(h, hom(A, A, im))
     end
-    return gmodule(G, h),
+    C = gmodule(G, h)
+    @hassert :GaloisCohomology 1 is_consistent(C)
+    return C, 
       mG,
       MapFromFunc(A, K, x->pi^x[1] * gk^x[2],
         function(y)
@@ -550,7 +552,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   @vprint :GaloisCohomology 2 " .. the module ..\n"
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]; check = false) for i=gens(G)]
   Hecke.assure_has_hnf(Q)
-  return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
+  C = gmodule(G, hh)
+  @hassert :GaloisCohomology 1 is_consistent(C)
+  return C, mG, pseudo_inv(mQ)*mU
 end
 
 #=  Not used
@@ -985,6 +989,10 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
       end
       @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
+      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
+        im_psi[end] *= -1
+      end
+      @assert sigma(im_psi[end]) == im_psi[end]
     end
     for i=1:length(y)
       push!(im_psi, y[i])
@@ -1050,6 +1058,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
 
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
+    #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(S));
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
@@ -1057,7 +1066,8 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
-  I.data = (q, F[1])
+  #TODO: think how much of the data should be returned - in what format?
+  I.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E)
   set_attribute!(k, :IdeleClassGmodule=>I)
   return I
 end
@@ -1100,12 +1110,16 @@ function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p
   return Y
 end
 
-
 #maybe we need Idele's as independent objects?
 #realizes C -> Cl (or the coprime version into a ray class group:
 #for the idele `a` in `I` find an "equivalent" ideal.
-function Oscar.ideal(I::IdeleParent, a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
-  a = preimage(I.mq, a)
+function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
+  if parent(_a) == codomain(I.mq)
+    a = preimage(I.mq, _a)
+  else
+    a = _a
+  end
+
   zk = maximal_order(I.k)
   o_zk = zk
   if coprime !== nothing && order(coprime) !== zk
@@ -1113,30 +1127,69 @@ function Oscar.ideal(I::IdeleParent, a::FinGenAbGroupElem; coprime::Union{AbsSim
     coprime = zk*coprime
     @assert order(coprime) === zk
   end
-  id = 1*zk
+  id = FacElem(Dict((1*o_zk)=>1))
   for p = I.S
     lp = prime_decomposition(zk, minimum(p))
     for P = lp
       Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
       x = mUp(pro(a))
+      vx = Int(valuation(x) * absolute_ramification_index(parent(x)))
       if coprime === nothing
-        id *= fractional_ideal(zk, P[1])^Int(valuation(x)*absolute_ramification_index(parent(x)))
+        id *= FacElem(Dict(o_zk*P[1]=>Int(vx)))
       else
-        if valuation(x) > 0
-          id *= _local_norm(coprime, zk(preimage(nKp, x)), P[1])
+        if vx != 0
+          u = x*uniformizer(parent(x), -vx)
         else
-          id *= inv(_local_norm(coprime, zk(preimage(nKp, inv(x))), P[1]))
+          u = x
+        end
+        @assert valuation(u) == 0
+        iu = o_zk*_local_norm(coprime, zk(preimage(nKp, u)), P[1])
+        if vx != 0
+          ip = o_zk*_local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
+          id *= FacElem(Dict(iu => 1, ip => vx))
+        else
+          id *= iu
         end
       end
     end
   end
-  return o_zk*id
+  return inv(id)
 end
 
 function Oscar.galois_group(A::ClassField)
   return permutation_group(codomain(A.quotientmap))
 end
 
+#we have 1 --> A -a-> B -b-> C --> 1 and
+# C: G^n -> C a CoChain
+# want B : G^n -> B a CoChain lifting C
+#Ideal take any lift tilde B: G^2 -> B, then dB should have values in A
+#if this works at all, those values should be the image of some G^2 -> A
+#under the differential. Try to find it, then (tilde B - A) should be
+#correct.
+#we either need A and B as G-modules or the action
+function lift_chain(C::CoChain, a::Map, b::Map)
+  A = domain(a)
+  B = domain(b)
+  @assert codomain(a) == B
+  @assert codomain(b) == C.C
+  G = C.C.G
+  @assert istwo_cocycle(C)
+  tB = map_entries(pseudo_inv(b.module_map), C; parent = domain(b))
+  tBd = Oscar.GrpCoh.differential(tB)
+  @assert all(iszero, values(Oscar.GrpCoh.differential(tBd).d))
+  bad = 0
+  for (k, v) = tBd.d
+    fl, p = has_preimage(a.module_map, v)
+    if !fl
+      bad += 1
+      @show k, v
+    end
+  end
+  @show bad, length(tBd.d)
+  dtB = map_entries(pseudo_inv(a.module_map), tBd; parent = domain(a))
+
+end
 """
     galois_group(A::ClassField, ::QQField; idele_parent::IdeleParent = idele_class_gmodule(base_field(A)))
 
@@ -1184,19 +1237,26 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
     idele_parent = idele_class_gmodule(base_field(A))
   end
 
+  n = degree(Hecke.nf(zk))
+
   qI = cohomology_group(idele_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
-  @assert Oscar.GrpCoh.istwo_cocycle(a)
+  @assert order(q[1]) == n
+  @hassert :GaloisCohomology 1 Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idele_parent.mG)
   qA = cohomology_group(gA, 2)
-  n = degree(Hecke.nf(zk))
-  aa = map_entries(a, parent = gA) do x
-    x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
-    J = ideal(idele_parent, x, coprime = m0)
-    mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
+
+  function idl(x)
+    px = parent(x)
+    x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
+    J = ideal(idele_parent, x; coprime = m0)
+    return mQ(preimage(mR, J))
   end
-  @assert Oscar.GrpCoh.istwo_cocycle(aa)
+
+  aa = map_entries(idl, a, parent = gA) 
+
+  @hassert :GaloisCohomology 1 Oscar.GrpCoh.istwo_cocycle(aa)
   return permutation_group(aa), (aa, gA)
 end
 
@@ -1216,7 +1276,6 @@ function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
 
   inj = canonical_injection(I.M, p+1) #units are first
   pro = canonical_projection(I.M, p+1)
-
 
   @assert domain(inj) == codomain(pro)
 
@@ -1244,15 +1303,6 @@ function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M};
     return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
   end
 end
-
-#=
- Currently automorphism_group maps are not cached and thus will return
- different groups each time. Thus to be consistent bewtween calls one 
- should compute the group (map) once and pass it around.
-
- Maybe we introduce the caching - however, there might be some data
- dependency problems adding "random" fields into the attributes
-=#
 
 """
 For a 2-cochain with with values in the multiplicative group of a number field,
@@ -1533,7 +1583,7 @@ end
 end
 
 function extra_name(B::BrauerGroup)
-  sK = get_name(B.k)
+  sK = AbstractAlgebra.get_name(B.k)
   if sK !== nothing 
     return "Br($sK)"
   end
@@ -1631,6 +1681,11 @@ function Oscar.order(b::RelativeBrauerGroupElem)
   return lcm([order(v) for v = values(b.data)]...)
 end
 
+function (B::RelativeBrauerGroup)(d::Dict{<:Any, <:Union{<:Rational, QQFieldElem}}; check::Bool = true)
+  qz = Hecke.QmodnZ()
+  return B(Dict(k => qz(v) for (k,v) = d); check)
+end
+
 function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem}; check::Bool = true)
   d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
   if check
@@ -1651,9 +1706,25 @@ function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem}; check::Bool 
 end
 
 
+function (B::BrauerGroup)(d::Dict{<:Any, <:Union{<:Rational, QQFieldElem}})
+  qz = Hecke.QmodnZ()
+  return B(Dict(k => qz(v) for (k,v) = d))
+end
+
 function (B::BrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem})
-  d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
-  return BrauerGroupElem(B, d)
+  dd = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}()
+  for (k,v) = d
+    if isa(k, Nemo.IntegerUnion) 
+      if degree(B.k) == 1
+        push!(dd, k*maximal_order(B.k)=>v)
+      else
+        error("Field must be Q")
+      end
+    else
+      push!(dd, (k=>v))
+    end
+  end
+  return BrauerGroupElem(B, dd)
 end
 
 """
@@ -1921,6 +1992,10 @@ function brauer_group(K::AbsSimpleNumField)
                        elem_to_cocycle, 
                        cocycle_to_elem)
   return B, B.map
+end
+function brauer_group(::QQField)
+  k, _ = rationals_as_number_field()
+  return brauer_group(k)
 end
 
 function (B::RelativeBrauerGroup)(M::GModule{<:Group, AbstractAlgebra.Generic.FreeModule{AbsSimpleNumFieldElem}})
