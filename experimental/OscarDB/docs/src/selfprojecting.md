@@ -19,11 +19,19 @@ In: Experimental mathematics, 33 (2024) 4, p. 701-722
 DOI: `10.1080/10586458.2023.2239282 <https://dx.doi.org/10.1080/10586458.2023.2239282>`_ ARXIV: https://arxiv.org/abs/2212.05910 CODE: https://github.com/sachihashimoto/self-dual
 Project page created: 18/11/2025.
 
-## How to Access the database
+## How to access the database
 After installing OSCAR, you can access the database as follows
 ```
-using Oscar
-#describe how to get access to oscarDB
+julia> using Oscar
+julia> db = Oscar.OscarDB.get_db();
+julia> Oscar.OscarDB.get_collection_names(db)
+6-element Vector{String}:
+ "SmallTreeModels"
+ "zzlattices"
+ "LeechPairs"
+ "Surfaces"
+ "TransitiveSimplicialComplexes"
+ "MatroidRealizationSpaces"
 ```
 You can query the database using the following parameters
  * identifier of the database entry
@@ -34,11 +42,13 @@ You can query the database using the following parameters
  * whether the realization space and the self-projecting realization space are equal
 The following code snippet shows an example of this
 ```
-#show how to query the database
+julia> r4n8 = find(db["MatroidRealizationSpaces"], Dict(["rank"=>4, "length_groundset"=>8]))
+julia> length([MR for MR in r4n8])
+12
 ```
 Once you have decided on the database entry you want to investigate more closely you have the following options.
 ```
-julia> MR = #database entry for r_3_n_8_index_10.mrdi;
+julia> MR = find_one(db["MatroidRealizationSpaces"], Dict(["name"=>"r_3_n_8_index_10"]));
 julia> name(MR)
 "r_3_n_8_index_10"
 
@@ -145,7 +155,6 @@ The dimensions of the self-projecting realization spaces for self-projecting ran
 ```
 
 ```
-julia> using Oscar
 julia> include("your/path/to/generating_tables.jl")
 julia> generate_table_content_dimR("your/path/to/rk3on8.out",3,8)
 The dimensions of the realization spaces for self-projecting rank 3 matroids on 8 elements are distributed as follows (without the uniform matroid)
@@ -159,7 +168,6 @@ The dimensions of the self-projecting realization spaces for self-projecting ran
 ```
 When using as inputfiles the magma output files containing only the computations of realization spaces $\mathcal{R}$, the functions need to be endowed with an additional ``_onlyR`` at the end of their names. The inputfiles are similary marked.
 ```
-julia> using Oscar
 julia> include("your/path/to/generating_tables.jl")
 julia> generate_table_content_dimR_onlyR("your/path/to/opt_3_8_onlyR.out",3,8)
 The dimensions of the realization spaces for self-projecting rank 3 matroids on 8 elements are distributed as follows (without the uniform matroid)
@@ -171,7 +179,6 @@ The dimensions of the realization spaces for self-projecting rank 3 matroids on 
 **Table 4**
 This table shows the dimensions of realization spaces $\mathcal{R}(M)$ of self-projecting matroids of rank 4 on 9 elements with $\mathcal{S}= \emptyset$. The functions demonstrated below show how to access the identifiers for given $\dim(\mathcal{R})$ and to how to fill the row entries of Table 4.
 ```
-julia> using Oscar
 julia> include("your/path/to/generating_tables.jl")
 julia> find_all_realizable_not_sp_realizable("realisation_output/rank4/rk4on9_all.out",0)
 4-element Vector{Any}:
@@ -187,10 +194,11 @@ julia> length(find_all_realizable_not_sp_realizable("realisation_output/rank4/rk
 **Example 4.12**
 
 In order to work with the database and/or compute self-projecting realization spaces of matroids in OSCAR, you need to use the developers version of OSCAR on the branch ag/selfprojecting_matroids on <https://github.com/AlheydisGeiger/Oscar.jl/tree/ag/selfprojecting_matroids>.
-To reproduce example 4.12 you need to download the relevant file from the database directory of this gitHub repository. Then you can run the following code:
+To reproduce example 4.12 you can access the relevant file from the database.
 ```
 julia> using Oscar
-julia> load("your/path/to/r_4_n_9_index_5985.jl")
+julia> db = Oscar.OscarDB.get_db();
+julia> find_one(db["MatroidRealizationSpaces"], Dict(["name"=>"r_4_n_9_index_5985"]))
 The matroid is of rank 4 on 9 elements.
 The realization space is
   [1   0   0   0   2//3   0      1   1   1//2]
