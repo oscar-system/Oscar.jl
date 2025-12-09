@@ -95,6 +95,9 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: "Clean polymake scratchspace for self-hosted macOS runners"
+        if: runner.environment == 'self-hosted'
+        run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
