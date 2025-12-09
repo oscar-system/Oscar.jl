@@ -182,40 +182,46 @@ function doit(
     end
 
     makedocs(;
-      format = [
-          Documenter.HTML(;
-              prettyurls = !local_build,
-              collapselevel = 1,
-              size_threshold = 409600,
-              size_threshold_warn = 204800,
-              size_threshold_ignore = ["manualindex.md"],
-              canonical = "https://docs.oscar-system.org/stable/",
-          ),
-          # Add PDF generation via LaTeX
-          Documenter.LaTeX(platform = "docker"),
-      ],
-      sitename = "Oscar.jl",
-      authors = ["OSCAR Team"],
-      modules = [Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
-      clean = true,
-      doctest = false,
-      warnonly = warnonly,
-      treat_markdown_warnings_as_error = !warnonly,
-      checkdocs = :none,
-      pages = doc,
-      remotes = Dict(
-          Base.pkgdir(Oscar.AbstractAlgebra) =>
-              (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
-          Base.pkgdir(Oscar.Nemo) =>
-              (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
-          Base.pkgdir(Oscar.Hecke) =>
-              (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
-          Base.pkgdir(Oscar.Singular) =>
-              (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
-      ),
-      plugins = [bib],
-)
-  end
+    format = if get(ENV, "OSCAR_BUILD_PDF", "false") == "true" &&
+      success(`docker --version`)
+  Any[
+   Documenter.HTML(
+       prettyurls=!local_build,
+       collapselevel=1,
+       size_threshold=409600,
+       size_threshold_warn=204800,
+       size_threshold_ignore=["manualindex.md"],
+       canonical="https://docs.oscar-system.org/stable/",
+   ),
+   Documenter.LaTeX(platform = "docker")
+ ]
+ else
+ Documenter.HTML(
+   prettyurls=!local_build,
+   collapselevel=1,
+   size_threshold=409600,
+   size_threshold_warn=204800,
+   size_threshold_ignore=["manualindex.md"],
+   canonical="https://docs.oscar-system.org/stable/",
+ )
+ end,
+    sitename="Oscar.jl",
+    modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
+    clean=true,
+    doctest=false,
+    warnonly=warnonly,
+    treat_markdown_warnings_as_error=!warnonly,
+    checkdocs=:none,
+    pages=doc,
+    remotes=Dict(
+      Base.pkgdir(Oscar.AbstractAlgebra) => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
+      Base.pkgdir(Oscar.Nemo) => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
+      Base.pkgdir(Oscar.Hecke) => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
+      Base.pkgdir(Oscar.Singular) => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+    ),
+    plugins=[bib],
+  )
+end
 
   # remove the copied documentation again
   for pkg in other_packages
