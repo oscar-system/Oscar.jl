@@ -282,6 +282,14 @@
     nc = normal_cone(square, 1)
     @test nc isa Cone{T}
     @test rays(nc) == [[1, 0], [0, 1]]
+    let nc2 = normal_cone(square, [1, 2])
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, 1]]
+    end
+    let nc2 = normal_cone(square, [1, 2]; outer=true)
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, -1]]
+    end
     let H = linear_halfspace(f, [1, 1, 0])
       @test polyhedron(H) isa Polyhedron{T}
       @test polyhedron(H) == polyhedron(f, [1 1 0], 0)
