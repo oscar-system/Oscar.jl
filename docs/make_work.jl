@@ -183,7 +183,9 @@ function doit(
     end
 
     makedocs(;
-    format = if build_pdf && success(`docker --version`)
+    format = if build_pdf
+      success(`docker --version`) ||
+          error("Docker is required to build PDF documentation.")
   Any[
    Documenter.HTML(
        prettyurls=!local_build,
