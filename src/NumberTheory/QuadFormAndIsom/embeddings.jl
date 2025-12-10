@@ -935,6 +935,17 @@ function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMap, p::IntegerUnion)
   return Qp, VtoVp, VptoQp
 end
 
+  
+function _cokernel(f::TorQuadModuleMap)
+  # assumes same ambient space and therefore the _ 
+  A = domain(f)
+  B = codomain(f)
+  BmodA = torsion_quadratic_module(cover(B),cover(A),
+                                    modulus=modulus_bilinear_form(B),
+                                    modulus_qf=modulus_quadratic_form(B))
+  return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
+end
+  
 # Given an embedding of an `(G, f)`-stable finite quadratic module `V` of `q`,
 # where the abelian group structure on `V` is `p`-elementary, compute
 # representatives of `G`-orbit of `f`-stable subgroups of `V` of order `ord`,
@@ -954,10 +965,10 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     ord::IntegerUnion,
     _p::IntegerUnion,
     f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
-    l::IntegerUnion = -1,
+    l::IntegerUnion = -1;
+    algorithm::Symbol=:PermGroup
   )
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
-
   p = ZZ(_p)
 
   V = domain(Vinq)
@@ -983,7 +994,6 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     push!(res, (H0inq, G))
     return res
   end
-
   # Now the groups we look for should strictly contain H0.
   # If ord == order(V), then there is only V satisfying the given
   # conditions, and V is stabilized by the all G
@@ -995,6 +1005,40 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   # Now the groups we look for are strictly contained between H0 and V
   H0inV = hom(H0, V, elem_type(V)[V(lift(a)) for a in gens(H0)])
   @hassert :ZZLatWithIsom 1 is_injective(H0inV)
+  
+  # Automorphisms in G preserved V and H0, since the construction of H0 is
+  # natural. Therefore, the action of G descends to the quotient.
+  # We descend G to V for computing stabilizers later on
+  GV, GtoGV = restrict_automorphism_group(G, Vinq; check=false)
+  h = length(elementary_divisors(H0))
+  @vprintln :ZZLatWithIsom 2 "computing orbits of subspaces of dimension $(g-h) in $p^$(length(elementary_divisors(V)))"
+  if algorithm == :PermGroup && isodd(p)
+    # We can make use of the fact that the bilinear form on H0 is totally isotropic 
+    # and therefore descends to V/H0 
+    @assert iszero(gram_matrix_bilinear(H0))
+    VmodH0, VtoVmodH0 = _cokernel(H0inV)
+    GVmodH0, GVtoGVmodH0 = induce_automorphism_group(GV, VtoVmodH0; check=false)
+    GO = orthogonal_group(VmodH0)
+    incGVmodH0 = hom(GVmodH0, GO, [GO(matrix(i)) for i in gens(GVmodH0)];check=false)
+    GtoOVmodH0 = compose(compose(GtoGV, GVtoGVmodH0), incGVmodH0)  
+    rep_and_stab = _subspaces_representatives_and_stabilizers_elementary_odd(VmodH0, incGVmodH0, g-h)
+    satV,_ = kernel(GtoOVmodH0) # could be split into two kernel computations
+    gensH0inq = [H0inq(i) for i in gens(H0)]
+    for ((rep,inc_rep), (stab,inc_stab)) in rep_and_stab
+      gene_orbq = append!(elem_type(q)[q(lift(i)) for i in rep],gensH0inq)
+      orbq, orbqinq = sub(q, gene_orbq)
+      @hassert :ZZLatWithIsom 1 order(orbq) == ord
+      # We keep only f-stable subspaces
+      is_invariant(f, orbqinq) || continue
+      stabq_gen = elem_type(G)[GtoOVmodH0\(inc_stab(s)) for s in gens(stab)]
+      stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+      # Stabilizers should preserve the actual subspaces, by definition. so if we
+      # have lifted everything properly, this should hold..
+      @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
+      push!(res, (orbqinq, stabq))
+    end
+    return res
+  end
 
   # Since V and H0 are elementary p-groups, they can be seen as finite
   # dimensional vector spaces over a finite field, and so is their quotient.
@@ -1005,13 +1049,9 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
 
   # Should never happen, but who knows...
   vector_space_dim(Qp) == 0 && return res
-
-  # We descend G to V for computing stabilizers later on
-  GV, GtoGV = restrict_automorphism_group(G, Vinq; check=false)
-
-  # Automorphisms in G preserved V and H0, since the construction of H0 is
-  # natural. Therefore, the action of G descends to the quotient and we look for
-  # invariants sub-vector spaces of given rank in the quotient (then lifting
+  
+  # We look for invariant sub-vector spaces of given rank in the quotient V/H0
+  # then lifting
   # generators and putting them with H0 will give us invariant subgroups as
   # wanted)
   act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
@@ -1021,15 +1061,15 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   GtoMGp = compose(GtoGV, GVtoMGp)
   satV, _ = kernel(GtoMGp)
 
-  g-ngens(snf(abelian_group(H0))[1]) >= vector_space_dim(Qp) && return res
+  g - h >= vector_space_dim(Qp) && return res
 
   F = base_ring(Qp)
   # K is H0 but seen a subvector space of Vp (which is V)
   K = kernel(VptoQp.matrix; side=:left)
   k = nrows(K)
   gene_H0 = elem_type(q)[q(lift(a)) for a in gens(H0)]
+  
   orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
-
   for (orb, stab) in orb_and_stab
     i = orb.map
     gene_orbQp = elem_type(Qp)[Qp(vec(collect(i(v).v))) for v in gens(domain(i))]

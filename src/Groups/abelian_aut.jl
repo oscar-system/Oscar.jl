@@ -502,6 +502,39 @@ function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQu
   return restrict_endomorphism(hom(f), i, check = false)
 end
 
+function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bool = true)
+  @req !check || is_surjective(i) "i must be a surjection"
+  @req domain(f) === codomain(f) === domain(i) "f must be an endomorphism of the domain of i"
+  if check 
+    K, i = kernel(i)
+    @req all(has_preimage_with_preimage(i,f(k))[1] for k in gens(K)) "f must preserve the kernel of i"
+  end
+  imgs = TorQuadModuleElem[]
+  U = codomain(i)
+  for a in gens(U)
+    ok, c = has_preimage_with_preimage(i, a)
+    @assert ok 
+    push!(imgs, i(f(c)))
+  end
+  return hom(U, U, imgs)
+end
+
+function induce_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  return induce_endomorphism(hom(f), i; check)
+end 
+
+function induce_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  @req domain(G) === domain(i) "G must consists of automorphisms of the domain of i"
+  indu = TorQuadModuleMap[]
+  for f in gens(G)
+    g =  induce_automorphism(f, i; check)
+    push!(indu, g)
+  end
+  H = _orthogonal_group(codomain(i), unique(indu); check)
+  res = hom(G, H, gens(G), H.(indu); check)
+  return H, res
+end
+
 @doc raw"""
     restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule},
                                 i::TorQuadModuleMap; check::Bool = true)
