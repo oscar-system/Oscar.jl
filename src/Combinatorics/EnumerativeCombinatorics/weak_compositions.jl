@@ -134,7 +134,7 @@ function Base.length(W::WeakCompositions)
   try
     return Int(number_of_weak_compositions(base(W), parts(W)))
   catch e
-    print("Length is too large, use `number_of_weak_compositions` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_weak_compositions` instead")
     rethrow(e)
   end
 end

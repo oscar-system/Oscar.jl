@@ -99,7 +99,7 @@ function Base.length(C::MultiCombinations)
   try
     return Int(number_of_multicombinations(C.n, C.k))
   catch e
-    print("Length is too large, use `number_of_multicombinations` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_multicombinations` instead")
     rethrow(e)
   end
 end

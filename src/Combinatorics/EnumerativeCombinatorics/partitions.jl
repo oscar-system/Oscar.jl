@@ -141,7 +141,7 @@ function Base.length(P::Partitions)
   try
     return Int(number_of_partitions(P.n))
   catch e
-    print("Length is too large, use `number_of_partitions` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_partitions` instead")
     rethrow(e)
   end
 end

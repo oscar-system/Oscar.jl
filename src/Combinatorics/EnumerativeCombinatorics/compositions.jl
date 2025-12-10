@@ -165,7 +165,7 @@ function Base.length(C::CompositionsFixedNumParts)
   try
     return Int(number_of_compositions(base(C), parts(C)))
   catch e
-    print("Length is too large, use `number_of_compositions` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_compositions` instead")
     rethrow(e)
   end
 end
@@ -234,7 +234,7 @@ function Base.length(C::Compositions)
   try
     return Int(number_of_compositions(base(C)))
   catch e
-    print("Length is too large, use `number_of_compositions` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_compositions` instead")
     rethrow(e)
   end
 end
@@ -318,7 +318,7 @@ function Base.length(C::AscendingCompositions)
   try
     return Int(number_of_partitions(base(C)))
   catch e
-    print("Length is too large, use `number_of_partitions` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_partitions` instead")
     rethrow(e)
   end
 end
