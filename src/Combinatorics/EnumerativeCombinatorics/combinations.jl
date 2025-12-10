@@ -92,7 +92,7 @@ function Base.length(C::Combinations)
   try
     return Int(number_of_combinations(Int(C.n), Int(C.k)))
   catch e
-    print("Length is too large, use `number_of_combinations` instead\n")
+    e isa InexactError && error("Length is too large, use `number_of_combinations` instead")
     rethrow(e)
   end
 end
