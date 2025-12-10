@@ -27,11 +27,11 @@ julia> db = Oscar.OscarDB.get_db();
 julia> Oscar.OscarDB.get_collection_names(db)
 6-element Vector{String}:
  "SmallTreeModels"
+ "Combinatorics.SelfProjectingMatroids"
  "zzlattices"
  "LeechPairs"
  "Surfaces"
  "TransitiveSimplicialComplexes"
- "MatroidRealizationSpaces"
 ```
 You can query the database using the following parameters
  * identifier of the database entry
@@ -42,15 +42,36 @@ You can query the database using the following parameters
  * whether the realization space and the self-projecting realization space are equal
 The following code snippet shows an example of this
 ```
-julia> r4n8 = find(db["MatroidRealizationSpaces"], Dict(["rank"=>4, "length_groundset"=>8]))
+julia> r4n8 = find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4", "data.length_groundset"=>"8"]));
 julia> length([MR for MR in r4n8])
 12
 ```
 Once you have decided on the database entry you want to investigate more closely you have the following options.
 ```
-julia> MR = find_one(db["MatroidRealizationSpaces"], Dict(["name"=>"r_3_n_8_index_10"]));
+julia> MR = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict("data.name"=>"r_3_n_8_10"))
+The matroid is of rank 3 on 8 elements.
+The realization space is
+  [1   0   0   1       1   x[14]    x[4]       1]
+  [0   1   0   1   x[12]       1       1       1]
+  [0   0   1   1   x[12]   x[14]   x[14]   x[15]]
+in the multivariate polynomial ring in 15 variables over QQ
+within the vanishing set of the ideal
+Ideal with 11 generators
+avoiding the zero loci of the polynomials
+RingElem[x[12], x[14], x[15], x[14] - 1, x[15] - 1, -x[14] + x[15], x[4], -x[12] + 1, x[4] - x[14], x[12] - x[15], -x[4] + 1, x[4]*x[12] - x[14], -x[4]*x[15] + x[14], -x[12]*x[14] + 1, -x[4]*x[12] + 1, -x[12]*x[14]*x[15] + 2*x[12]*x[14] - x[12] - x[14] + x[15], -x[4]*x[12]*x[15] + x[4]*x[12] + x[12]*x[14] - x[12] - x[14] + x[15]]
+The selfprojecting realization space is
+  [1   0   0   1       1   x[14]    x[4]       1]
+  [0   1   0   1   x[12]       1       1       1]
+  [0   0   1   1   x[12]   x[14]   x[14]   x[15]]
+in the multivariate polynomial ring in 15 variables over QQ
+within the vanishing set of the ideal
+Ideal with 11 generators
+avoiding the zero loci of the polynomials
+RingElem[x[12], x[14], x[15], x[14] - 1, x[15] - 1, -x[14] + x[15], x[4], -x[12] + 1, x[4] - x[14], x[12] - x[15], -x[4] + 1, x[4]*x[12] - x[14], -x[4]*x[15] + x[14], -x[12]*x[14] + 1, -x[4]*x[12] + 1, -x[12]*x[14]*x[15] + 2*x[12]*x[14] - x[12] - x[14] + x[15], -x[4]*x[12]*x[15] + x[4]*x[12] + x[12]*x[14] - x[12] - x[14] + x[15]]
+The closures of the realization space and the self-projecting realization space are equal.
+
 julia> name(MR)
-"r_3_n_8_index_10"
+"r_3_n_8_10"
 
 julia> Oscar.matroid(MR)
 Matroid of rank 3 on 8 elements
@@ -198,7 +219,7 @@ To reproduce example 4.12 you can access the relevant file from the database.
 ```
 julia> using Oscar
 julia> db = Oscar.OscarDB.get_db();
-julia> find_one(db["MatroidRealizationSpaces"], Dict(["name"=>"r_4_n_9_index_5985"]))
+julia> find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["name"=>"r_4_n_9_index_5985"]))
 The matroid is of rank 4 on 9 elements.
 The realization space is
   [1   0   0   0   2//3   0      1   1   1//2]
@@ -224,5 +245,5 @@ Software used: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 1.6.0-DEV),
 GNU parallel 20221122
 
 
-Last updated 04/12/2025.
+Last updated 10/12/2025.
 
