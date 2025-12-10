@@ -94,6 +94,7 @@ function doit(
   warnonly=false,
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
+  build_pdf::Bool = false,
 )
   oscardir = Base.pkgdir(Oscar)
 
@@ -182,8 +183,7 @@ function doit(
     end
 
     makedocs(;
-    format = if get(ENV, "OSCAR_BUILD_PDF", "false") == "true" &&
-      success(`docker --version`)
+    format = if build_pdf && success(`docker --version`)
   Any[
    Documenter.HTML(
        prettyurls=!local_build,
