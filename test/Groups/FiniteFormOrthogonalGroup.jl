@@ -143,55 +143,20 @@ end
   end
 end
   
-@testset "stabilisers of subspaces under isometries" begin
-  function _test(L::ZZLat, p)
-    DL = discriminant_group(L)
-    D,iD = kernel(hom(DL,DL, [p*i for i in gens(DL)]))
-    
-    G,iG = restrict_automorphism_group(image_in_Oq(L)[1],iD);
-    _,iG = is_subgroup(G, orthogonal_group(D));
-    _test(D, G, iG)    
-  end
-
-  function _test(D::TorQuadModule)
-    G = orthogonal_group(D);
-    iG = id_hom(G)
-    _test(D, G, iG)
-  end
-      
-  function _test(D::TorQuadModule, G, iG)
-    G = orthogonal_group(D);
-    iG = id_hom(G)
-    _, p = is_elementary_with_prime(D)
-    for k in 1:div(ngens(D),2)
-      @test Oscar._test_isotropic_stabilizer_orders(D, k)
-      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i) && iszero(gram_matrix_bilinear(i))]
-      sta = Oscar._isotropic_subspaces_representatives_and_stabilizers(D, iG, k)
-      a = length(sta)
-      if length(X) > 0
-        XG = gset(G, Oscar.on_subgroups_slow, X)
-        b = length(orbits(XG))
-      else 
-        b = 0
-      end
-      @test a==b
-    end
-  end
-  
-  
+@testset "stabilisers of subspaces under isometries" begin  
   I = integer_lattice(gram=ZZ[1;])
   for i in 1:6
-    _test(rescale(root_lattice(:A,i),2),2)
-    _test(direct_sum(rescale(root_lattice(:A,i),2),I)[1],2)
-    _test(rescale(root_lattice(:A,i),3),3)
+    @test Oscar._test(rescale(root_lattice(:A,i),2),2)
+    @test Oscar._test(direct_sum(rescale(root_lattice(:A,i),2),I)[1],2)
+    @test Oscar._test(rescale(root_lattice(:A,i),3),3)
   end
   for i in 4:6
-    _test(rescale(root_lattice(:D,i),2),2)
-    _test(direct_sum(rescale(root_lattice(:D,i),2),I)[1],2)
-    _test(rescale(root_lattice(:D,i),3),3)
+    @test Oscar._test(rescale(root_lattice(:D,i),2),2)
+    @test Oscar._test(direct_sum(rescale(root_lattice(:D,i),2),I)[1],2)
+    @test Oscar._test(rescale(root_lattice(:D,i),3),3)
   end
   for i in 1:4
-    _test(rescale(root_lattice(:A,i),7),7)
+    @test Oscar._test(rescale(root_lattice(:A,i),7),7)
   end
 
   DD = TorQuadModule[]
@@ -1164,7 +1129,7 @@ end
   
   for (k,D) in enumerate(DD)
     if k<=120
-      _test(D)
+      @test Oscar._test(D)
     else 
       for i in 0:6
         @test Oscar._test_isotropic_stabilizer_orders(D, i)

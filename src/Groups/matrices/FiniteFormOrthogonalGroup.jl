@@ -774,7 +774,7 @@ function _compute_gens(T::TorQuadModule)
       q_p = block_diagonal_matrix([QQ[1;],q_p])
     end
     b = valuation(invs[end], p)
-    R = residue_ring(ZZ, ZZRingElem(p)^(b+5))[1]
+    R = residue_ring(ZZ, ZZRingElem(p)^(b+5);cached=false)[1]
     G_p = change_base_ring(R, change_base_ring(ZZ, q_p*p^b))
     if p != 2
       # make sure each homogeneous block of G_p stays in normal form
@@ -1054,14 +1054,17 @@ end
 
 
 ######################################################################################
+#
 # Stabilizers of isotropic subspaces under orthogonal groups.
+#
 ######################################################################################
 
-"""
-    _isotropic_subspaces_representatives_and_stabilizers(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int, do_stab::Bool=true)
+raw"""
+    _isotropic_subspaces_representatives_and_stabilizers_elementary(T::TorQuadModule, iG::GAPGroupHomomorphism, rank::Int, do_stab::Bool=true)
     
-Return orbit representatives and stabilizers of the totally isotropic subspaces of `T` of a given rank 
-under a group ``G`` given as the image of `iG`.
+Return orbit representatives and stabilizers of the totally isotropic subspaces of 
+the elementary torsion quadratic module `T` of a given rank 
+under a group ``G`` given as the image of ``i_G\colon G \to O(T)``.
 
 Input:
 - `iG` must be a homomorphism `G -> orthogonal_group(T)` 
@@ -1070,7 +1073,7 @@ Input:
 Output:
 A list of tuples `(T, (stab, stab->G))`.
 """
-function _isotropic_subspaces_representatives_and_stabilizers(
+function _isotropic_subspaces_representatives_and_stabilizers_elementary(
     T::TorQuadModule,
     iG::HH,
     rank::Int;
@@ -1078,7 +1081,7 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   ) where {HH<:Map}
   b, p = is_elementary_with_prime(T)
   @req b "T must be elementary"
-  dcs = _stabilizer_isotropic(T, rank)
+  dcs = _stabilizer_isotropic_elementary(T, rank)
   O = orthogonal_group(T)
   to_perm = isomorphism(PermGroup, O)
   Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
@@ -1089,10 +1092,6 @@ function _isotropic_subspaces_representatives_and_stabilizers(
   reps = Tuple{TorQuadModule, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
-    #println("computing double cosets")
-    order(Op)
-    order(Sp)
-    order(Gp)
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
@@ -1113,17 +1112,18 @@ end
 
 
 """
-    _stabilizer_isotropic(T::TorQuadModule, rank::Int)
+    _stabilizer_isotropic_elementary(T::TorQuadModule, rank::Int)
 
 Return orbit representatives and stabilizers of totally isotropic subspaces of ``T`` of the given rank 
 under the action of its orthogonal group ``O(T)``.
 """
-function _stabilizer_isotropic(
+function _stabilizer_isotropic_elementary(
     T::TorQuadModule,
     rank::Int
   )
   b, p = is_elementary_with_prime(T)
   @req b "T must be a p-elementary for some prime p"
+  check = 0 < get_assert_level(:OrthogonalStablizer)
   O = orthogonal_group(T)
   N, TtoN = normal_form(T)
   # Now we need to lift the subspaces
@@ -1150,7 +1150,7 @@ function _stabilizer_isotropic(
   BKNi = map_entries(i -> lift(ZZ,i), inv(GF(p).(BKN)))
 
   for kH in 0:min(rank, k)
-    for (iHN, iSN) in _stabilizer_isotropic_semiregular(N, p, rank-kH)
+    for (iHN, iSN) in _stabilizer_isotropic_elementary_semiregular(N, p, rank-kH)
       HN = domain(iHN)
       SN = domain(iSN)
 
@@ -1201,14 +1201,14 @@ function _stabilizer_isotropic(
       gensSN_T = [BKNi*diagonal_matrix([idK, matrix(s)])*BKN for s in gens(SN)]
       append!(gensStabH, gensSN_T)
 
-      push!(result, (iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in gensStabH])[2]))
+      push!(result, (iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i; check) for i in gensStabH])[2]))
     end
   end
   @assert all(all(domain(iH)==on_subgroups_slow(domain(iH), s) for s in gens(domain(iS))) for (iH, iS) in result)
   return result
 end
 
-function _stabilizer_isotropic_semiregular(
+function _stabilizer_isotropic_elementary_semiregular(
     N::TorQuadModule,
     p::ZZRingElem,
     rank::Int,
@@ -1220,15 +1220,16 @@ function _stabilizer_isotropic_semiregular(
   n = length(elementary_divisors(N))
   r = rank
   O = orthogonal_group(N)
+  check = 0 < get_assert_level(:OrthogonalStablizer)
   if rank == 0 
     Z, iZ = sub(N, TorQuadModElem[])
     return [(iZ, id_hom(O))]
   end 
   G = ZZ.(p*gram_matrix_quadratic(N))
   if p == 2 && modulus_quadratic_form(N) == 2
-    R, _ = residue_ring(ZZ, 4)
+    R, _ = residue_ring(ZZ, 4; cached=false)
   else
-    R ,_ = residue_ring(ZZ, Int(p))
+    R ,_ = residue_ring(ZZ, Int(p); cached=false)
   end
   GR = R.(G)
   is_regular = !is_degenerate(N)
@@ -1247,31 +1248,31 @@ function _stabilizer_isotropic_semiregular(
     end
   end 
   if r <= witt_index
-    _B, _stab_gen = __stabilizer_isotropic_semiregular(GR, r, p, false, is_regular)
+    _B, _stab_gen = __stabilizer_isotropic_elementary_semiregular(GR, r, p, false, is_regular)
     B = lift.(_B)
     stab_gen = lift.(_stab_gen)
     _, iH = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
-    res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[(iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen])[2])]
+    res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[(iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i; check) for i in stab_gen])[2])]
   else
     res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
   end
 
   if p == 2 && nrows(G) >= 2 && isodd(G[end, end]) && isodd(G[end-1, end-1]) && (GR[end, end] + GR[end-1, end-1]==0 || (modulus_quadratic_form(N)==2 && !is_regular)) && r <= witt_index + 1
-    _B2, _stab_gen2 = __stabilizer_isotropic_semiregular(GR, r-1, p, true, is_regular)
+    _B2, _stab_gen2 = __stabilizer_isotropic_elementary_semiregular(GR, r-1, p, true, is_regular)
     B2 = lift.(_B2)
     if (modulus_quadratic_form(N)==2 && !is_regular)
       B2[end,1] +=1
     end
     stab_gen2 = lift.(_stab_gen2)
     _, iH2 = sub(N, [sum(B2[i,j]*N[j] for j in 1:ncols(B2)) for i in 1:nrows(B2)])
-    push!(res, (iH2, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i) for i in stab_gen2])[2]))
+    push!(res, (iH2, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i;check) for i in stab_gen2])[2]))
   end
   @assert all(all(domain(iH)==on_subgroups_slow(domain(iH), s) for s in gens(domain(iS))) for (iH, iS) in res)
   @assert all(is_totally_isotropic(domain(iH)) for (iH, _) in res)
   return res
 end
 
-function __stabilizer_isotropic_semiregular(
+function __stabilizer_isotropic_elementary_semiregular(
     G::RT,
     r::Int,
     p::ZZRingElem,
@@ -1292,12 +1293,12 @@ function __stabilizer_isotropic_semiregular(
     Ti = inv(T)
 
     G2 = T*G*transpose(T)
-    B, S = _stabilizer_isotropic_regular(G2, r, p, flag)
+    B, S = _stabilizer_isotropic_elementary_regular(G2, r, p, flag)
     stab = RT[Ti*s*T for s in S]
     B = B*T
     return B, stab
   else
-    return _stabilizer_isotropic_regular(G, r, p, flag)
+    return _stabilizer_isotropic_elementary_regular(G, r, p, flag)
   end
 end
 
@@ -1309,7 +1310,8 @@ function _stabilizer_max_isotropic_nU(n::Int, p::Int, R)
   if n == 0 || (characteristic(R) == 4 && n == 1)
     return gensStab
   end
-  Fp = matrix.(gens(GL(n, GF(p))))
+  Fp = (matrix(i) for i in gens(GL(n, GF(p))) if !isone(i))
+  
   F = RT[R.(map_entries(x -> lift(ZZ, x), i)) for i in Fp]
   for f in F
     g = diagonal_matrix(f, transpose(inv(f)))
@@ -1325,7 +1327,7 @@ function _stabilizer_max_isotropic_nU(n::Int, p::Int, R)
     S = identity_matrix(R, 2*n)
     S[n+1, 1] = 1
     push!(gensStab, S)
-  end  
+  end 
   return gensStab
 end
 
@@ -1334,7 +1336,7 @@ end
 # I 0 0
 # 0 0 G
 # and then computes the stabilizer
-function _stabilizer_isotropic_regular(
+function _stabilizer_isotropic_elementary_regular(
     G_normal_form::RT,
     r::Int,
     p::ZZRingElem,
@@ -1361,7 +1363,7 @@ function _stabilizer_isotropic_regular(
   end
   Binv = inv(B)
   _G = B*G*transpose(B)
-  gensStab = _stabilizer_isotropic_semiregular_special(_G, r, p,  flag)
+  gensStab = _stabilizer_isotropic_elementary_semiregular_special(_G, r, p,  flag)
   #return gensStab, B
   gensStab = RT[Binv*i*B for i in gensStab]
   
@@ -1383,7 +1385,7 @@ end
 # [0  0  G_1]
 # if flag is false, then H is the span of the first r standard basis vectors 
 # if flag is true (requires p==2) and the characteristic vector v is isotropic, then H is the span of the first r standard basis vectors and v
-function _stabilizer_isotropic_semiregular_special(
+function _stabilizer_isotropic_elementary_semiregular_special(
     G::RT,
     r::Int,
     p::ZZRingElem,
@@ -1458,12 +1460,6 @@ function _stabilizer_isotropic_semiregular_special(
     g[r+1, 1]   = 1
     push!(S1, g)
   end
-#   @show r    
-#   display(G)
-#   for g in S1
-#     println()
-#     display(g*G*transpose(g) - G)
-#   end
   tmp = RT[]
   if r > 0 # avoid a corner case
     for i in 1:(k-e-t)
@@ -1536,6 +1532,366 @@ function _stabilizer_isotropic_semiregular_special(
   end
   return S1
 end
+    
+function _invariants_for_stabilizers_elementary_odd(T::TorQuadModule; ranks::AbstractVector)
+  b, p = is_elementary_with_prime(T)
+  @assert b || order(T)==1
+  N, _ = normal_form(T)
+  t = length(elementary_divisors(T))
+  n = length(elementary_divisors(N))
+  k = t-n
+  G = GF(p; cached=false).(p*gram_matrix_quadratic(N))
+  d = det(G)
+  det_G_is_sqrt = is_square(d)
+  if isodd(n) 
+    witt_index = div(n,2)
+  else
+    a = divexact(n,2)
+    if is_square((-1)^a*d)
+      witt_index = a 
+    else 
+      witt_index = a-1
+    end
+  end
+  invariantsH = Tuple{Int,Bool,Int, Int}[]
+  for rank in ranks
+    rank <= t || continue
+    for rank_radicalHinT in 0:min(k, rank)
+      for rank_radicalH in rank_radicalHinT:min(rank_radicalHinT+witt_index,
+                                                t + rank_radicalHinT - rank,
+                                                n+2*rank_radicalHinT-rank,
+                                                rank)
+        if rank + rank_radicalH - 2*rank_radicalHinT == n
+          dets = [is_square((-1)^(rank_radicalH-rank_radicalHinT)*d)]
+        elseif rank == rank_radicalH
+          # corner case advoid a duplicate
+          dets = [true]
+        else 
+          dets = [true, false]
+        end
+        for det_is_square in dets 
+          push!(invariantsH,(rank, det_is_square, rank_radicalH, rank_radicalHinT))
+        end 
+      end 
+    end
+  end
+  return invariantsH
+end
+
+_stabilizers_elementary_odd(T::TorQuadModule, r::Int) = _stabilizers_elementary_odd(T; ranks=Int[r])
+
+function _stabilizers_elementary_odd(T::TorQuadModule; ranks::AbstractVector{Int}=0:length(elementary_divisors(T)))
+  invariantsH = _invariants_for_stabilizers_elementary_odd(T; ranks)
+  return _stabilizers_elementary_odd(T, invariantsH)
+end
+
+function _stabilizer_elementary_odd(
+    T::TorQuadModule,
+    rankH::Int,
+    det_is_square::Bool,
+    rank_radicalH::Int,
+    rank_radicalHinT::Int
+  )    
+  return _stabilizers_elementary_odd(T, Tuple(rankH, det_is_square, rank_radicalH, rank_radicalHinT))[1]
+end
+
+"""
+    _stabilizer_elementary_odd(T::TorQuadModule, invariantsH::Vector{Tuple{Int,Bool,Int,Int}})
+
+Return orbit representatives and stabilizers of subspaces ``H`` of ``T``
+with the given invariants under the action of the orthogonal group ``O(T)``.
+
+# Arguments
+- the list invariantsH consists of tuples 
+  `(rankH, det_is_square, rank_radicalH, rank_radicalHinT)`
+  where `rank_radicalHinT` is the dimension of `rad(H) ∩ rad(T)`
+"""
+function _stabilizers_elementary_odd(
+    T::TorQuadModule,
+    invariantsH::Vector{Tuple{Int,Bool,Int,Int}}
+  )
+  b, p = is_elementary_with_prime(T)
+  @req b "T must be a p-elementary for some prime p"
+  @assert isodd(p)
+  O = orthogonal_group(T)
+  check = 0 < get_assert_level(:OrthogonalStablizer)
+  N, TtoN = normal_form(T)
+  # Now we need to lift the subspaces
+  # since we are primary the kernel splits i.e. T = K \oplus N
+  # then the orbit of an isotropic subspace H is determined by
+  # the O(N) orbit of H/(H+K) and rank(H\cap K)
+
+  # choose a section
+  NtoT = hom(N, T, TorQuadModuleElem[preimage(TtoN, i) for i in gens(N)])
+  K, iK = radical_quadratic(T)
+  K, i = snf(K)
+  iK = compose(i, iK)
+
+  k = length(elementary_divisors(K))
+  r = length(elementary_divisors(N))
+  idK = identity_matrix(ZZ, k)
+  idN = identity_matrix(ZZ, r)
+  idKN = identity_matrix(ZZ, k+r)
+
+  result = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
+
+  basis_KN = vcat([iK(K[i]) for i in 1:k], [NtoT(i) for i in gens(N)])
+  BKN = reduce(vcat, i.data.coeff for i in basis_KN)
+  BKNi = map_entries(i -> lift(ZZ,i), inv(GF(p).(BKN)))  
+  
+  for (rankH, det_is_square, rank_radicalH, rank_radicalHinT) in invariantsH
+    kH = rank_radicalHinT
+    @assert kH <= rank_radicalH
+    iHN, iSN = _stabilizer_elementary_regular_odd(N; 
+                                                  rank=rankH-kH,
+                                                  radical_dim=rank_radicalH-kH,
+                                                  det_is_square, p)
+    HN = domain(iHN)
+    SN = domain(iSN)
+
+    b, iCN = has_complement(iHN)
+    @assert b
+    CN, i = snf(domain(iCN))
+    iCN = compose(i, iCN)
+
+    gensH = vcat(TorQuadModuleElem[iK(K[i]) for i in 1:kH], TorQuadModuleElem[NtoT(iHN(i)) for i in gens(HN)])
+    _, iH = sub(T, gensH)
+
+    adapted_basis = vcat([iK(K[i]) for i in 1:k], [NtoT(iHN(i)) for i in gens(HN)], [NtoT(iCN(i)) for i in gens(CN)])
+    @assert all(parent(i)===T for i in adapted_basis)
+    B = reduce(vcat, i.data.coeff for i in adapted_basis)
+    Bp = GF(p).(B)
+    Bi = map_entries(i->lift(ZZ,i), inv(Bp))
+
+    gensStabH = ZZMatrix[]
+    if kH > 0
+      tmp = ZZMatrix[map_entries(i -> lift(ZZ,i), matrix(g)) for g in gens(GL(kH, GF(p)))]
+      idkHC = identity_matrix(ZZ, k-kH)
+      append!(gensStabH, [diagonal_matrix([g, idkHC, idN]) for g in tmp])
+
+      for i in (k+1):(k+r)
+        s = deepcopy(idKN)
+        s[i, 1] = 1
+        push!(gensStabH, s)
+      end
+    end
+    if kH < k
+      append!(gensStabH, [diagonal_matrix([identity_matrix(ZZ, kH), map_entries(i -> lift(ZZ,i), matrix(g)), idN]) for g in gens(GL(k-kH, GF(p)))])
+
+      # one is enough because of the two GL actions
+      s = deepcopy(idKN)
+      s[kH + 1, 1] = 1
+      push!(gensStabH, s)
+
+      rH = ngens(HN)
+      for i in (k+rH+1):(k+r)
+        s = deepcopy(idKN)
+        s[i, kH+1] = 1
+        push!(gensStabH, s)
+      end
+    end
+    # transform to the basis of T
+    G = gram_matrix_quadratic(T)
+    gensStabH = ZZMatrix[Bi*s*B for s in gensStabH]
+    gensSN_T = [BKNi*diagonal_matrix([idK, matrix(s)])*BKN for s in gens(SN)]
+    append!(gensStabH, gensSN_T)
+    push!(result, (iH, sub(O, AutomorphismGroupElem{TorQuadModule}[O(i; check) for i in gensStabH])[2]))
+  end
+  @assert all(all(domain(iH)==on_subgroups_slow(domain(iH), s) for s in gens(domain(iS))) for (iH, iS) in result)
+  return result
+end
+
+raw"""
+    _subspaces_representatives_and_stabilizers_elementary_odd(
+    T::TorQuadModule,
+    iG::HH,
+    invariants::AbstractVector{Tuple{Int,Bool,Int,Int}};
+    do_stab::Bool=true
+  ) where {HH<:Map}
+  
+Return a complete set of representatives of the orbits of the set of subspaces of ``T`` with the given invariants under the action of the group `G` given as the image of `iG`.
+
+# Arguments 
+- `do_stab` -- if `true` also compute the stabilizers. 
+"""
+function _subspaces_representatives_and_stabilizers_elementary_odd(
+    T::TorQuadModule,
+    iG::HH,
+    invariants::AbstractVector{Tuple{Int,Bool,Int,Int}};
+    do_stab::Bool=true
+  ) where {HH<:Map}
+  b, p = is_elementary_with_prime(T)
+  @req b "T must be elementary"
+  @assert isodd(p)
+  dcs = _stabilizers_elementary_odd(T, invariants)
+  O = orthogonal_group(T)
+  to_perm = isomorphism(PermGroup, O)
+  Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
+  to_perm = compose(to_perm, to_perm2)
+  G = domain(iG)
+  Gp, _ = compose(iG, to_perm)(G)
+  #@time Gp,_ = sub(Gp,small_generating_set(Gp))
+  reps = Tuple{TorQuadModule, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
+  for (iH, iS) in dcs
+    Sp, _ = to_perm(domain(iS))
+    dc = double_cosets(Op, Sp, Gp)
+    for SxG in dc
+      xp = representative(SxG)
+      x = preimage(to_perm, xp)
+      Hx = on_subgroups_slow(domain(iH), x)
+      if do_stab
+        stabp,i1,i2 = intersect(Sp^xp, Gp)
+        
+        stab = preimage(iG, preimage(to_perm, i2(stabp)[1])[1])
+        push!(reps, (Hx, stab))
+      else
+        push!(reps, (Hx, (sub(G,[one(G)]))))
+      end
+    end
+  end
+  return reps
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_odd(
+    T::TorQuadModule,
+    iG::HH,
+    ranks::AbstractVector{Int};
+    do_stab::Bool=true
+  ) where {HH<:Map}
+  invariantsH = _invariants_for_stabilizers_elementary_odd(T; ranks)
+  return _subspaces_representatives_and_stabilizers_elementary_odd(T, iG, invariantsH; do_stab)
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_odd(
+    T::TorQuadModule,
+    iG::HH,
+    rank::Int;
+    do_stab::Bool=true
+  ) where {HH<:Map}
+  return _subspaces_representatives_and_stabilizers_elementary_odd(T, iG, Int[rank]; do_stab)
+end
+
+  
+function _stabilizer_elementary_regular_odd(
+    N::TorQuadModule;
+    rank::Int,
+    radical_dim::Int,
+    det_is_square::Bool,
+    p::ZZRingElem,
+  )
+  @assert is_elementary(N, p) || order(N) == 1
+  @assert isodd(p)
+  @assert is_semi_regular(N)
+  @assert gram_matrix_quadratic(N) == gram_matrix_quadratic(normal_form(N)[1])
+  n = length(elementary_divisors(N))
+  r = rank
+  O = orthogonal_group(N)
+  check = 0 < get_assert_level(:OrthogonalStablizer)
+  if rank == 0 
+    Z, iZ = sub(N, TorQuadModElem[])
+    return (iZ, id_hom(O))
+  end 
+  G = ZZ.(p*gram_matrix_quadratic(N))
+  R ,_ = residue_ring(ZZ, Int(p);cached=false)
+  GR = R.(G)
+  _B, _stab_gen = _stabilizer_elementary_regular_odd(GR; rank, radical_dim, det_is_square,p)
+  B = lift.(_B)
+  stab_gen = lift.(_stab_gen)
+  _, iH = sub(N, [sum(N[j]*B[i,j] for j in 1:ncols(B)) for i in 1:nrows(B)])
+  (S, iS) = sub(O, AutomorphismGroupElem{TorQuadModule}[O(i;check) for i in stab_gen])
+  @assert all(domain(iH)==on_subgroups_slow(domain(iH), s) for s in gens(domain(iS)))
+  return iH, iS
+end 
+  
+# cook up a subspace of G with given invariants and compute its stabilizer
+function _stabilizer_elementary_regular_odd(
+    G::RT;
+    rank::Int,
+    radical_dim::Int,
+    det_is_square::Bool,
+    p::ZZRingElem,
+  ) where RT <: Union{zzModMatrix, ZZModMatrix}
+  rk = rank
+  @req radical_dim <= rk "the dimension of the radical is at most the rank"
+  @req radical_dim + rk <= nrows(G) "there is no subspace of the given invariants"
+  # We need to cook up a subspace with given invariants 
+  # Create H isometric to G of the form where S is of rank `rank-radical_dim` and given square class
+  # S 0 0 0  
+  # 0 0 I 0
+  # 0 I 0 0
+  # 0 0 0 T
+  R = base_ring(G)
+  H = zero(G)
+  r = rk-radical_dim
+  for i in 1:r-1
+    H[i,i] = 1
+  end
+  if r > 0
+    if det_is_square
+      H[r,r] = 1
+    else 
+      u = Hecke._min_nonsquare(p)
+      H[r,r] = u
+    end
+  end 
+  for i in 1:radical_dim
+    H[r+i, rk+i] = 1 
+    H[rk+i, r+i]= 1
+  end
+  for i in rk+radical_dim+1:nrows(H)
+    H[i, i] = 1
+  end
+  n = nrows(G)
+  if rk+radical_dim < n
+    H[n,n] = det(G)*(-1)^radical_dim
+    if r > 0 
+      H[n,n]*=H[r,r]
+    end
+  end
+  gens_stab = RT[]
+  # K is the kernel of the subspace to be preserved
+  stab_K = _stabilizer_isotropic_elementary_semiregular_special(H[r+1:end,r+1:end], radical_dim, p, false)
+  Ir = identity_matrix(R, r)
+  stab_K = [diagonal_matrix([Ir,i]) for i in stab_K]
+  append!(gens_stab, stab_K)
+  if radical_dim < rk
+    # O(S) x id(S^\perp) is also in the stabilizer
+    stab_S = _gens_mod_p(H[1:r,1:r], p)
+    Is = identity_matrix(R, n - r)
+    stab_S = [diagonal_matrix([i, Is]) for i in stab_S]
+    append!(gens_stab, stab_S)
+  end 
+  # add isometries mixing S and K up to O(S) and GL(K)
+  #display(H)
+  #println()
+  if 0 < radical_dim < rk
+    g = identity_matrix(R, n)
+    g[1, r+1] = 1
+    a =-inv(H[1,1])
+    b = -inv(2*H[1,1])
+    g[rk+1, 1] = a
+    g[rk+1, r+1] = b
+    push!(gens_stab, g)
+    if radical_dim +1 < rk && H[1,1] != H[2,2]
+      # hit the other square class
+      g = identity_matrix(R, n)
+      g[2, r+1] = 1
+      a =-inv(H[2,2])
+      b = -inv(2*H[2,2])
+      g[rk+1, 2] = a
+      g[rk+1, r+1] = b
+      push!(gens_stab, g)
+    end
+  end
+  # now we have the stabilizers on H 
+  # transport them to G
+  Hnormal, B1 = _normal(H, p)
+  Gnormal, B2 = _normal(G, p)
+  @req Hnormal == Gnormal "there is no subspace of the given invariants"
+  HtoG = inv(B1)*B2
+  GtoH = inv(HtoG)
+  return HtoG[1:rk,:],[GtoH * i * HtoG for i in gens_stab]
+end 
 
 ##################################################################################################
 #
@@ -1554,7 +1910,7 @@ function _test_isotropic_stabilizer_orders(
     r::Int
   )
   G = orthogonal_group(T)
-  for (iH, iS) in _stabilizer_isotropic(T, r)
+  for (iH, iS) in _stabilizer_isotropic_elementary(T, r)
     n1 = order(domain(iS))
     n2 = order(stabilizer(G, iH)[1])
     if n1 != n2 
@@ -1563,4 +1919,77 @@ function _test_isotropic_stabilizer_orders(
     n1 != n2 && return false
   end
   return true
+end
+
+function _test_stabilizer_orders_odd(
+    T::TorQuadModule
+  )
+  if !is_elementary_with_prime(T)[1]
+    b, p = is_primary_with_prime(T)
+    @assert b ||order(T)==1
+    T = kernel(hom(T,T,[p*i for i in gens(T)]))[1]
+  end 
+  G = orthogonal_group(T)
+  for (iH, iS) in _stabilizers_elementary_odd(T)
+    n1 = order(domain(iS))
+    n2 = order(stabilizer(G, iH)[1])
+    if n1 != n2
+      display(domain(iH))
+      @show n2//n1
+    end
+    n1 != n2 && return false
+  end
+  return true
+end
+
+function _test(L::ZZLat, p)
+  DL = discriminant_group(L)
+  D,iD = kernel(hom(DL,DL, [p*i for i in gens(DL)]))
+  
+  G,iG = restrict_automorphism_group(image_in_Oq(L)[1],iD);
+  _,iG = is_subgroup(G, orthogonal_group(D));
+  _test(D, G, iG)    
+end
+
+function _test(D::TorQuadModule)
+  G = orthogonal_group(D);
+  iG = id_hom(G)
+  _test(D, G, iG)
+end
+    
+function _test(D::TorQuadModule, G, iG; fast=true)
+  G = orthogonal_group(D);
+  iG = id_hom(G)
+  _, p = is_elementary_with_prime(D)
+  flag = true
+  if isodd(p)
+    flag = Oscar._test_stabilizer_orders_odd(D)
+  end
+  if fast 
+    m = min(ngens(D),4, 8-ngens(D))
+  else 
+    m = ngens(D)
+  end
+  for k in 1:m
+    if p == 2 || (fast && ngens(D)<5)
+      k <= div(ngens(D),2) || continue
+      flag = flag && Oscar._test_isotropic_stabilizer_orders(D, k)
+      flag || return false
+      X = [i for (i,_) in subgroups(D; order=p^k) if is_totally_isotropic(i) && iszero(gram_matrix_bilinear(i))]
+      sta = Oscar._isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, k)
+    else 
+      X = first.(subgroups(D; order=p^k))
+      sta = Oscar._subspaces_representatives_and_stabilizers_elementary_odd(D, iG, k)
+    end
+    a = length(sta)
+    if length(X) > 0
+      XG = gset(G, Oscar.on_subgroups_slow, X)
+      b = length(orbits(XG))
+    else
+      b = 0
+    end
+    flag = flag && a==b
+    flag || return false
+  end
+  return flag
 end

@@ -129,6 +129,9 @@ function __init__()
 
   add_verbosity_scope(:Isometry)
   add_assertion_scope(:Isometry)
+  
+  add_verbosity_scope(:OrthogonalStablizer)
+  add_assertion_scope(:OrthogonalStablizer)
 
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
