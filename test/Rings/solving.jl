@@ -112,6 +112,8 @@ end
   @test length(v) == 5
 end
 
+#= FIXME: disabled until #5623 is fixed in msolve
+
 @testset "Additional rational_solutions tests" begin
   let
     K = algebraic_closure(QQ)
@@ -246,3 +248,4 @@ end
     @test length(pts) > 0 && length(pts) == 1
   end
 end
+=#

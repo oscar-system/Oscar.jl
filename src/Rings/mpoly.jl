@@ -340,7 +340,7 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
     B.gensBiPolyArray.f = g
     B.gensBiPolyArray.S = Singular.Ideal(B.gensBiPolyArray.Sx, elem_type(B.gensBiPolyArray.Sx)[g(x) for x in oscar_generators(B)])
   end
-  if B.isGB && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gensBiPolyArray.Sx))
+  if B.isGB && isdefined(B, :ord) && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gensBiPolyArray.Sx))
     B.gensBiPolyArray.S.isGB = true
   end
 
