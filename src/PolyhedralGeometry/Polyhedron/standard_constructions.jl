@@ -452,8 +452,32 @@ julia> length(vertices(product(T,S)))
 ```
 """
 function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types}
-  V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
-  return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+  if lineality_dim(P) == 0 && lineality_dim(Q) == 0
+    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
+    return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+  end
+
+  # Take the product without the linealities
+  Pmod, LP = peel_lineality(P)
+  Qmod, LQ = peel_lineality(Q)
+  PQmod = product(Pmod, Qmod)
+  TU = scalar_type(PQmod)
+
+  # Construct the product of the linealities
+  n = ambient_dim(P)
+  m = ambient_dim(Q)
+  LPQ = vcat(Vector{TU}[vcat(lp, zeros(TU, m)) for lp in LP],
+    Vector{TU}[vcat(zeros(TU, n), lq) for lq in LQ])
+  PQlin = convex_hull(zeros(TU, 1, n + m), zeros(TU, 0, n + m), LPQ)
+
+  return PQmod + PQlin
+end
+
+function peel_lineality(P::Polyhedron)
+  V, L = minimal_faces(P)
+  R, _ = rays_modulo_lineality(P)
+  Q = convex_hull(V, R)
+  return Q, L
 end
 
 @doc raw"""

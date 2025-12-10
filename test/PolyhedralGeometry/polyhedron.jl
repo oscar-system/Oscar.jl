@@ -88,6 +88,7 @@
     @test intersect(Ps...) == Q0
     @test minkowski_sum(Q0, Q0) == convex_hull(f, 2 * pts)
     @test Q0 + Q0 == minkowski_sum(Q0, Q0)
+    @test Q1 * Q2 == product(Q1, Q2)
     @test f_vector(Pos) == [1, 3, 3]
     @test f_vector(L) == [0, 1, 2]
     @test codim(square) == 0
