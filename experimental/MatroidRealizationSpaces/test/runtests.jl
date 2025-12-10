@@ -198,11 +198,13 @@ end
         #R2 and R3 are quotient rings. For the selfprojecting realization ideal we need the underlying polynomial ring
         y2 = gens(base_ring(R2))
         y3 = gens(base_ring(R3))
-       # @test selfprojecting_realization_ideal(M1) == ideal(#which ring?!,[1])
-       #need a test for a completely not realizable matroid!
+        RR1 = base_ring(defining_ideal(realization_space(M1,char=0)))
+
+        #add a test for a completely not realizable matroid? Haven't found an example yet... 
+        @test selfprojecting_realization_ideal(M1) == ideal(R1,[1]) 
         @test selfprojecting_realization_ideal(M2) == ideal(base_ring(R2),[y2[1]*y2[2]*y2[3] - y2[1]*y2[2]*y2[4] - y2[1]*y2[3]*y2[4] + y2[1]*y2[4] + y2[2]*y2[3]*y2[4] - y2[2]*y2[3]])
         @test selfprojecting_realization_ideal(M3) ==ideal(base_ring(R3),[y3[1]*y3[2]*y3[3] - y3[1]*y3[2]*y3[4] - y3[1]*y3[3]*y3[4] + y3[1]*y3[4] + y3[2]*y3[3]*y3[4] - y3[2]*y3[3]])
-       # @test selfprojecting_realization_ideal(M4) #this should give an error because M4 is not selfprojecting
+       # @test selfprojecting_realization_ideal(M4) #this should give an error because M4 is not selfprojecting, I don't know how to test this
         @test selfprojecting_realization_ideal(M5) == ideal(R5,[0])
         @test selfprojecting_realization_ideal(M6) == ideal(R6,[1]) 
     end
