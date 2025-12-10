@@ -1564,6 +1564,7 @@ export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export ree_group
 export reflect, reflect!
 export reflection
 export register_morphism!
@@ -1749,6 +1750,7 @@ export subquotient
 export subscheme
 export subsystem
 export support_function
+export suzuki_group
 export syllables
 export sylow_subgroup
 export sylow_system, has_sylow_system, set_sylow_system
