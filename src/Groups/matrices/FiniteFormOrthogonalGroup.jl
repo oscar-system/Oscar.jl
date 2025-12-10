@@ -1089,14 +1089,14 @@ function _isotropic_subspaces_representatives_and_stabilizers_elementary(
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = Tuple{TorQuadModule, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
+  reps = Tuple{Tuple{TorQuadModule,TorQuadModuleMap}, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
       x = preimage(to_perm, xp)
-      Hx = on_subgroups_slow(domain(iH), x)
+      Hx = _on_subgroups_slow_with_inclusion(domain(iH), x)
       if do_stab
         stabp,i1,i2 = intersect(Sp^xp, Gp)
         
@@ -1700,6 +1700,7 @@ function _stabilizers_elementary_odd(
   @assert all(all(domain(iH)==on_subgroups_slow(domain(iH), s) for s in gens(domain(iS))) for (iH, iS) in result)
   return result
 end
+  
 
 raw"""
     _subspaces_representatives_and_stabilizers_elementary_odd(
@@ -1731,14 +1732,14 @@ function _subspaces_representatives_and_stabilizers_elementary_odd(
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
   #@time Gp,_ = sub(Gp,small_generating_set(Gp))
-  reps = Tuple{TorQuadModule, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
+  reps = Tuple{Tuple{TorQuadModule,TorQuadModuleMap}, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     dc = double_cosets(Op, Sp, Gp)
     for SxG in dc
       xp = representative(SxG)
       x = preimage(to_perm, xp)
-      Hx = on_subgroups_slow(domain(iH), x)
+      Hx = _on_subgroups_slow_with_inclusion(domain(iH), x)
       if do_stab
         stabp,i1,i2 = intersect(Sp^xp, Gp)
         
@@ -1903,6 +1904,13 @@ function on_subgroups_slow(T::TorQuadModule, g::GAPGroupElem)
   D = domain(G)
   gensT = D.(lift.(gens(T)))
   return sub(D, g.(gensT))[1]
+end
+
+function _on_subgroups_slow_with_inclusion(T::TorQuadModule, g::GAPGroupElem)
+  G = parent(g)
+  D = domain(G)
+  gensT = D.(lift.(gens(T)))
+  return sub(D, g.(gensT))
 end
 
 function _test_isotropic_stabilizer_orders(
