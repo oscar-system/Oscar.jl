@@ -461,14 +461,14 @@ function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:s
   Pmod, LP = peel_lineality(P)
   Qmod, LQ = peel_lineality(Q)
   PQmod = product(Pmod, Qmod)
-  TU = scalar_type(PQmod)
+  K = coefficient_field(PQmod)
 
   # Construct the product of the linealities
   n = ambient_dim(P)
   m = ambient_dim(Q)
-  LPQ = vcat(Vector{TU}[vcat(lp, zeros(TU, m)) for lp in LP],
-    Vector{TU}[vcat(zeros(TU, n), lq) for lq in LQ])
-  PQlin = convex_hull(zeros(TU, 1, n + m), zeros(TU, 0, n + m), LPQ)
+  LPQ = vcat(Vector{elem_type(K)}[vcat(lp, zeros(elem_type(K), m)) for lp in LP],
+    Vector{elem_type(K)}[vcat(zeros(elem_type(K), n), lq) for lq in LQ])
+  PQlin = convex_hull(zero_matrix(K, 1, n + m), zero_matrix(K, 0, n + m), LPQ)
 
   return PQmod + PQlin
 end
