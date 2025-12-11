@@ -388,7 +388,7 @@ end
 @doc raw"""
     _get_h(L::ZZLat, v, w, Qb, bi_form) -> QQMatrix
 
-THe function returns $h$ vector, such that $h^2>0$ in ambient space of 'L' using 'bi_form' as a product function. 
+Return a vector $h$ in the lattice `L`, such that $bi_form(h,h)>0$. 
 
 Vectors 'v','w' are eigenvectors of isometry assotiated with L based on salem number $tau$ and $tau^(-1)$
 
