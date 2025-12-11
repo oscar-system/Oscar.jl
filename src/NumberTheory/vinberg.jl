@@ -355,7 +355,7 @@ end
 
 
 function _get_tau(f::QQMatrix, Qb)
-  tau = QQ(0)
+  tau = zero(Qb)
   for lambda in eigenvalues(Qb, f)
     if abs(lambda)>tau
       tau = abs(lambda)
