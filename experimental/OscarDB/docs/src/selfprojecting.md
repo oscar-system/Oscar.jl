@@ -115,7 +115,6 @@ julia> dim_s(MR)
 
 julia> equality_of_realizationspaces(MR)
 true
-
 ```
 The realization space $\mathcal{R}$ obtained by ``realization_space(MR)`` and the self-projecting realization space $\mathcal{S}$ obtained by ``selfprojecting_realization_space(MR)`` can be investigated using the code in the experimental section of OSCAR on MatroidRealizationSpaces.
 
