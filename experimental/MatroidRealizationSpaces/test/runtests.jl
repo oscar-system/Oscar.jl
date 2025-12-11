@@ -188,7 +188,7 @@ end
         @test length(x5) == 3
         @test length(x6) == 3
 
-        @test mat_M1 ==  nothing
+        @test isnothing(mat_M1)
         @test mat_M2 ==  matrix(R2, [1 0 0 1 1 1;0 1 0 1 x2[1] x2[3];0 0 1 1 x2[2] x2[4]])
         @test mat_M3 ==  matrix(R3,  [1 1 1 1 0 0 0 0; 1 x3[1] x3[3] 0 1 0 0 0; 1 x3[2] x3[4] 0 0 1 0 1; 1 x3[2] x3[4] 0 0 0 1 x3[5]])
         @test mat_M5 ==  matrix(R5, [1 1 1 1 0 0 1 1; 0 1 x5[1] x5[2] 1 0 0 0; 0 0 0 0 0 1 1 x5[3]])
