@@ -386,7 +386,7 @@ end
 
 
 @doc raw"""
-  _get_h(L::ZZLat, v, w, Qb, bi_form)->QQMatrix
+    _get_h(L::ZZLat, v, w, Qb, bi_form) -> QQMatrix
 
 THe function returns $h$ vector, such that $h^2>0$ in ambient space of 'L' using 'bi_form' as a product function. 
 
