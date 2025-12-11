@@ -88,8 +88,12 @@ julia> describe(gg)
 "S3"
 ```
 
-Alternatively, one can take a polycyclic group,
-and let OSCAR compute a pc presentation for it.
+Alternatively, one can convert another type of group into a pc group,
+either via `isomorphism` or using the `pc_group` command:
+
+```@docs
+pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
+```
 
 ```jldoctest
 julia> g = symmetric_group(4)
@@ -130,7 +134,6 @@ map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Ve
 ## Functions for (subgroups of) pc groups
 
 ```@docs
-pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
 relators(G::PcGroup)
 hirsch_length(G::PcGroup)
 ```
