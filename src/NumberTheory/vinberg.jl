@@ -455,9 +455,8 @@ function _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat):: Tu
   return (true, zero(h))
 end
 
-function _check_R(r, v, w, bi_form) :: Tuple{Bool, QQMatrix}
-  if bi_form(r, v)*bi_form(r, w) < 0 return (false, r)
-  else return (true, zero(r)) end
+function _check_R(r::QQMatrix, v, w, bi_form)
+  return bi_form(r, v)*bi_form(r, w) < 0
 end
 
 @doc raw"""
