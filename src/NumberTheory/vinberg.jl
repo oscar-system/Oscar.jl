@@ -364,7 +364,7 @@ function _get_tau(f::QQMatrix, Qb) ::QQBarFieldElem
   return tau
 end
 
-function _get_bilinealform(L::ZZLat, Qb)
+function _get_bilinearform(L::ZZLat, Qb)
   #return (a, b)->inner_product(ambient_space(L), a,b)[1,1] -> it doesn't go well as there is no convienient way to convert ZZLat in QQ field to the Qb field
   return (a,b)-> ((change_base_ring(Qb, a))*change_base_ring(Qb, gram_matrix(ambient_space(L)))*transpose(change_base_ring(Qb, b)))[1]
 end
