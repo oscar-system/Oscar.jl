@@ -332,8 +332,7 @@ end
 
 
 @doc raw"""
-  selfprojecting_realization_space(m::Matroid;
-  B::Union{GroundsetType,Nothing}=nothing; check::Bool = true)
+  selfprojecting_realization_space(m::Matroid; B::Union{GroundsetType,Nothing}=nothing; check::Bool = true)
 
   Function to compute the selfprojecting realization space of a selfprojecting matroid. 
   A basis B can be given that will correspond to the identity matrix in the realization. If nothing is given, a choice will be made.   
