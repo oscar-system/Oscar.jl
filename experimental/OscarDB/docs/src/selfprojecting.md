@@ -198,7 +198,7 @@ julia> length([r for r in notterminated])
 
 **Example 4.12**
 
-In order to work with the database and/or compute self-projecting realization spaces of matroids in OSCAR, you need to use the developers version of OSCAR.
+In order to work with the database and/or compute self-projecting realization spaces of matroids in OSCAR, you need to use version 1.6.0 or later.
 To reproduce example 4.12 you can access the relevant file from the database.
 ```julia-repl
 julia> using Oscar
