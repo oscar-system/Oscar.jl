@@ -1,9 +1,11 @@
 dir = joinpath(Oscar.oscardir, "experimental", "DrawingCurves", "test")
 
 @testset "Robinson6" begin
-  R,(x,y,z) = graded_polynomial_ring(QQ,[:x,:y,:z])
-  r6 = 19*x^6 − 20*x^4*y^2 − 20*x^2*y^4 + 19*y^6 − 20*x^4*z^2 + 60*x^2*y^2*z^2 − 20*y^4*z^2 − 20*x^2*z^4 − 20*y^2*z^4 + 19*z^6
-  zchart_ring,(zx,zy) = polynomial_ring(QQ, [:x,:y])
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+  r6 =
+    19 * x^6 − 20 * x^4 * y^2 − 20 * x^2 * y^4 + 19 * y^6 − 20 * x^4 * z^2 +
+    60 * x^2 * y^2 * z^2 − 20 * y^4 * z^2 − 20 * x^2 * z^4 − 20 * y^2 * z^4 + 19 * z^6
+  zchart_ring, (zx, zy) = polynomial_ring(QQ, [:x, :y])
   zchart_hom = hom(R, zchart_ring, [zx, zy, 1])
   IG = Oscar._compute_isotopy_graph(zchart_hom(r6))[1]
   desiredG = load(joinpath(dir, "robinson6.graph"))
@@ -22,9 +24,9 @@ end
 
 @testset "Harnack6" begin
   h6 = Polymake.tropical.harnack_curve(6)
-  f = Oscar._patchworks2polynomial(h6; t=QQ(1,16))[1]
+  f = Oscar._patchworks2polynomial(h6; t=QQ(1, 16))[1]
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
-  zchart = hom(parent(f), R, [x,y,1])
+  zchart = hom(parent(f), R, [x, y, 1])
   fn = tempname()
   desiredfn = joinpath(dir, "harnack6_graph.tikz")
   draw_curve_tikz(zchart(f); filename=fn, graph=true)
