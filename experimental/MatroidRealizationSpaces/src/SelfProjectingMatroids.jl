@@ -313,20 +313,20 @@ function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int};I::Union
     return (nothing, nothing)
   else
   X = realization_matrix(realization_space(m,B=Bas,ground_ring=QQ)) #this matrix is not yet simplified by the defining ideal of the selfprojecting realization ideal
-  if isnothing(I) #this way the ideal needs only be computed once!
-    I = selfprojecting_realization_ideal(m);
-  else 
-    I = I
-  end
-  if is_zero(I)
-    return (base_ring(X),X) 
-  elseif is_one(I) #this means the matrix is not realizable by self-projecting points
-    return (base_ring(I), nothing)
-  else
-  R = base_ring(X)
-  QR, phi = quo(R,I)
-  return (QR, phi.(X))
-  end
+    if isnothing(I) #this way the ideal needs only be computed once!
+      I = selfprojecting_realization_ideal(m);
+    else 
+      I = I
+    end
+    if is_zero(I)
+      return (base_ring(X),X) 
+    elseif is_one(I) #this means the matrix is not realizable by self-projecting points
+      return (base_ring(I), nothing)
+    else
+      R = base_ring(X)
+      QR, phi = quo(R,I)
+      return (QR, phi.(X))
+    end
   end
 end
 
