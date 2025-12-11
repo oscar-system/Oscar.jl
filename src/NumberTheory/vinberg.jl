@@ -405,8 +405,10 @@ function _get_h(L::ZZLat, v, w, Qb, bi_form)
     if i == 100
       n+=1
       i = 1
+      n_h0 = h0*n
     end
-    h = (z+h0*n) #in lattice basis
+    z = matrix(Qb,1,l,rand(-10:10, l)) # random small vector in lattice basis
+    h = (z+n_h0) #in lattice basis
     h = map(x->floor(ZZRingElem, x) , h)*basis_matrix(L) # in ambient space basis and rounded
   end
   return h::QQMatrix
