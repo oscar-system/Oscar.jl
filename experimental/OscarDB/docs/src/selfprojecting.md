@@ -45,6 +45,7 @@ You can query the database using the following parameters
 
 ```
 julia> r4n8 = find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4", "data.length_groundset"=>"8"]));
+
 julia> length([MR for MR in r4n8])
 12
 ```
