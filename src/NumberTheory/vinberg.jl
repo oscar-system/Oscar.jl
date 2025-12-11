@@ -496,7 +496,7 @@ function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = n
     v = -v
   end
   # step 4 - Get the first h value if there is no in arguments
-  if (h===nothing)
+  if h === nothing
     h = _get_h(L,v,w, Qb, bi_form)
   end
   # step 5 - Get the R set based on current h value
