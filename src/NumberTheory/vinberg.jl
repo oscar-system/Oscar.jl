@@ -369,10 +369,6 @@ function _get_bilinearform(L::ZZLat, Qb)
   return (a,b)-> ((change_base_ring(Qb, a))*change_base_ring(Qb, gram_matrix(ambient_space(L)))*transpose(change_base_ring(Qb, b)))[1]
 end
 
-function _get_eigenvector(f::QQMatrix, lambda::QQBarFieldElem)
-  return eigenspace(f, lambda; side=:left)
-end
-
 function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)::PolyRingElem
   charPolyF = characteristic_polynomial(Lf)
   x = gen(parent(charPolyF))
@@ -489,8 +485,8 @@ function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = n
     end
   end
   # step 3 - Prepare eigenvectors from tau and tau inverse 
-  v = _get_eigenvector(f, tau)
-  w = _get_eigenvector(f, tau^(-1))
+  v = eigenspace(f, tau)
+  w = eigenspace(f, tau^(-1))
 
   if bi_form(v,w)<0
     v = -v
