@@ -369,7 +369,7 @@ function _get_bilinearform(L::ZZLat, Qb)
   return (a,b)-> ((change_base_ring(Qb, a))*change_base_ring(Qb, gram_matrix(ambient_space(L)))*transpose(change_base_ring(Qb, b)))[1]
 end
 
-function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)::PolyRingElem
+function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)
   charPolyF = characteristic_polynomial(Lf)
   x = gen(parent(charPolyF))
   (n, remainder) = remove(charPolyF, x-1) # remove all x-1 factors
@@ -411,7 +411,7 @@ function _get_h(L::ZZLat, v, w, Qb, bi_form)
   return h::QQMatrix
 end
 
-function _get_R(L::ZZLat, h::QQMatrix)::Vector{QQMatrix}
+function _get_R(L::ZZLat, h::QQMatrix)
   return short_vectors_affine(L,h,0,-2) #better to use iterator, but there is no equivalent function that returns iterator
 end
 
