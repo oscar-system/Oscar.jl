@@ -484,7 +484,7 @@ function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = n
 
   # step 1
   C0 = _get_C0(Lf, tau)
-  # step 2 - Check if C0 has obstructing roots => positive
+  # step 2 - Check if C0 has obstructing roots => not positive
   if !isone(C0)
     Cfancy = _get_Cfancy(Lf, C0)
     first_element = iterate(Cfancy)
