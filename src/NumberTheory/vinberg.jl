@@ -412,7 +412,7 @@ function _get_h(L::ZZLat, v, w, Qb, bi_form)
     h = (z+h0*n) #in lattice basis
     h = map(x->floor(ZZRingElem, x) , h)*basis_matrix(L) # in ambient space basis and rounded
   end
-  return h
+  return h::QQMatrix
 end
 
 function _get_R(L::ZZLat, h::QQMatrix)::Vector{QQMatrix}
