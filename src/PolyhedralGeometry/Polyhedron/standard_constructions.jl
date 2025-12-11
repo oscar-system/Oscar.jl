@@ -466,8 +466,7 @@ function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:s
   # Construct the product of the linealities
   n = ambient_dim(P)
   m = ambient_dim(Q)
-  LPQ = vcat(Vector{elem_type(K)}[vcat(lp, zeros(elem_type(K), m)) for lp in LP],
-    Vector{elem_type(K)}[vcat(zeros(elem_type(K), n), lq) for lq in LQ])
+  LPQ = block_diagonal_matrix([matrix(K, LP), matrix(K, LQ)])
   PQlin = convex_hull(zero_matrix(K, 1, n + m), zero_matrix(K, 0, n + m), LPQ)
 
   return PQmod + PQlin
