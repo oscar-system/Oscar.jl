@@ -315,8 +315,6 @@ function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}; I::Unio
   X = realization_matrix(realization_space(m,B=Bas,ground_ring=QQ)) #this matrix is not yet simplified by the defining ideal of the selfprojecting realization ideal
     if isnothing(I) #this way the ideal needs only be computed once!
       I = selfprojecting_realization_ideal(m);
-    else 
-      I = I
     end
     if is_zero(I)
       return (base_ring(X),X) 
