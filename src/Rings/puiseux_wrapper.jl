@@ -81,7 +81,6 @@ function puiseux_expansion(
   ) where {T <: QQFieldElem}
   R = Oscar.parent(f)
   @assert ngens(R) == 2 "polynomial must be bivariate"
-  x, y = gens(R)
 
   # prepare for the Singular call
   SR = singular_poly_ring(R)
