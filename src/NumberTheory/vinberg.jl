@@ -354,7 +354,7 @@ function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_leng
 end
 
 
-function _get_tau(f::QQMatrix, Qb) ::QQBarFieldElem
+function _get_tau(f::QQMatrix, Qb)
   tau = QQ(0)
   for lambda in eigenvalues(Qb, f)
     if abs(lambda)>tau
