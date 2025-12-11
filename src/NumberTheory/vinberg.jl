@@ -417,7 +417,7 @@ function _get_R(L::ZZLat, h::QQMatrix)
 end
 
 @doc raw"""
-  _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, QQMatrix}
+    _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, QQMatrix}
 
 The function calculates all $r$, that can be obstructing roots of 'L'.
 Calculation is made one by one and then the $r$ is checked
@@ -453,7 +453,7 @@ function _check_R(r::QQMatrix, v, w, bi_form)
 end
 
 @doc raw"""
-  isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, QQMatrix}
+    isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, QQMatrix}
 
 Given lattice with isometry 'Lf' and given 'h' vector in this lattice
 according to the ambient space basis, such that $h^2>0$. 
