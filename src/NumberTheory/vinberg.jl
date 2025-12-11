@@ -480,7 +480,7 @@ function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = n
   f = ambient_isometry(Lf)
   L = lattice(Lf)
   tau = _get_tau(f, Qb)
-  bi_form = _get_bilinealform(L, Qb)
+  bi_form = _get_bilinearform(L, Qb)
 
   # step 1
   C0 = _get_C0(Lf, tau)
