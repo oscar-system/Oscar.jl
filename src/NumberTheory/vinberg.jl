@@ -394,7 +394,7 @@ Vectors 'v','w' are eigenvectors of isometry assotiated with L based on salem nu
 
 'Qb' is a current field, where all calculations happens
 """
-function _get_h(L::ZZLat, v, w, Qb, bi_form)::QQMatrix
+function _get_h(L::ZZLat, v, w, Qb, bi_form)
   RR = ArbField(64)
   l = number_of_rows(basis_matrix(L))
   h0 = (v+w)*change_base_ring(Qb, inv(basis_matrix(L)))
