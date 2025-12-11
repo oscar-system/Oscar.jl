@@ -89,7 +89,7 @@ julia> describe(gg)
 ```
 
 Alternatively, one can convert another type of group into a pc group,
-either via [`isomorphism`](@ref) or using the `pc_group` command:
+either via [`isomorphism`](@ref isomorphism(::Type{T}, G::Group) where T <: Group) or using the `pc_group` command:
 
 ```@docs
 pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
