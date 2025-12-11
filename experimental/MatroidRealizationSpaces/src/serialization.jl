@@ -1,13 +1,14 @@
 import Oscar.Serialization: save_object, load_object, type_params
 
 @register_serialization_type MatroidRealizationSpace uses_id
-type_params(M::MatroidRealizationSpace) = TypeParams(MatroidRealizationSpace,
-                                                     :matrix_space => begin
-                                                      mat = realization_matrix(M)
-                                                      isnothing(mat) ? nothing : parent(mat)
-                                                      end,
-                                                      :ideal_ring => base_ring(defining_ideal(M)),
-                                                     :ground_ring=>M.ground_ring)
+function type_params(M::MatroidRealizationSpace) 
+  mat = realization_matrix(M)
+  p =  isnothing(mat) ? nothing : parent(mat)
+  return TypeParams(MatroidRealizationSpace,
+                                      :matrix_space => p,
+                                      :ideal_ring => base_ring(defining_ideal(M)),
+                                      :ground_ring=>M.ground_ring)
+end
 
 function save_object(s::SerializerState, M::MatroidRealizationSpace) 
   save_data_dict(s) do
