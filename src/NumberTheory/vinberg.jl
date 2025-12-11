@@ -442,7 +442,7 @@ function _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat):: Tu
   for b = b_min:-1
     a_max = round(ZZRingElem, (ZZ(b)*y+sqrt(z*(ZZ(b)^2+2*x)))/x, RoundDown)
     for a = 1:a_max
-      h_new = -ZZ(b)*h + ZZ(a)*(h*f)
+      h_new = -b*h +a*h*f
       Rh = _get_R(L, h_new)
       for r in Rh
         result = _check_R(r, v, w, bi_form)
