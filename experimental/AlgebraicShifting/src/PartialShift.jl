@@ -229,15 +229,22 @@ _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simp
 ###############################################################################
 # Exterior shift
 ###############################################################################
-function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff_rc!)
+function exterior_shift(K::UniformHypergraph, g::MatElem;
+                        (ref!)=ModStdQt.ref_ff_rc!,
+                        lower_uhg::UniformHypergraph=uniform_hypergraph(Vector{Int}[]))
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
   nCk = collect(combinations(n_vertices(K), face_size(K)))
+  k = face_size(K)
   c = compound_matrix(g, K)
   if matrix_base isa MPolyRing
+    if !isempty(lower_uhg)
+      zero_cols_indices = findall(x -> !all((low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)), nCk)
+      c[:, zero_cols_indices] .= zero(matrix_base)
+    end
     ref!(c)
   else
     rref!(c) #TODO could use ref! with different heuristic
@@ -248,9 +255,18 @@ function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff
 end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem; kw...)
+  n = n_vertices(K)
+  f_vec = f_vector(K)
+  k = 2
+  lower_uhgs = [uniform_hypergraph(Vector{Int}[])]
+  while k <= length(f_vec)
+    shifted_uhg = exterior_shift(uniform_hypergraph(K, k), g; lower_uhg=lower_uhgs[k - 1], kw...)
+    push!(lower_uhgs, shifted_uhg)
+    k += 1
+  end
   return simplicial_complex([
-    (faces(exterior_shift(uniform_hypergraph(K, k), g; kw...)) for k in 1:dim(K)+1)...;
-    [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
+    (faces(uhg) for uhg in lower_uhgs)...;
+    [[i] for i in 1:n] # Make sure result is a complex on n vertices
   ])
 end
 
@@ -391,7 +407,7 @@ function check_shifted(F::Field,
   # we do not need to do any row reduction
   n_dependent_columns = length(col_sets) + 1 - num_rows
   if !isempty(lower_uhg)
-    zero_cols_indices = findall(x -> any([!(low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)]), col_sets)
+    zero_cols_indices = findall(x -> !all((low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)), col_sets)
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
   else
     zero_cols_indices = Int[]
@@ -466,6 +482,7 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
   # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
+  
   random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
   (shift, i), stats... = @timed efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) #TODO Used to pass kwargs, which was ignored anyway because the matrix r has field entries.
   # Check if `shift` is the generic exterior shift of K
