@@ -13,7 +13,8 @@ include("patchwork.jl")
 ################################################################################
 
 isotopy_graph_from_curve_inner(
-  IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform, selected_precision::Int
+  IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform::QQMatrix,
+  selected_precision::Int,
 ) = isotopy_graph_from_msolve(IG, f_in, random_transform, selected_precision)::Bool
 
 function _compute_isotopy_graph(f_in; selected_precision::Int=128)
