@@ -22,8 +22,8 @@ Project page created: 18/11/2025.
 ## How to access the database
 After installing OSCAR, you can access the database as follows
 ```
-julia> using Oscar
 julia> db = Oscar.OscarDB.get_db();
+
 julia> Oscar.OscarDB.get_collection_names(db)
 6-element Vector{String}:
  "SmallTreeModels"
