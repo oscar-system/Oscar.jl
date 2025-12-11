@@ -245,26 +245,26 @@ function basisminors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
   multiplicativeSet= nothing
   ineqs = [R(0)]
   if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
-    for i in 1:length(candidates)
-      @req !iszero(candidates[i]) "a basis has vanishing minor"
-      if isone(candidates[i]) || isone(-candidates[i]) 
-      elseif !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)])
-        push!(ineqs,R(candidates[i]))
+    for candidate in candidates
+      @req !iszero(candidate) "a basis has vanishing minor"
+      if isone(candidate) || isone(-candidate) 
+      elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)])
+        push!(ineqs,R(candidate))
       end
     end
     return ineqs[2:length(ineqs)]
   end
-  for i in 1:length(candidates)
-    if isone(candidates[i]) || isone(-candidates[i]) 
-    elseif iszero(candidates[i])
+  for candidate in candidates
+    if isone(candidate) || isone(-candidate) 
+    elseif iszero(candidate)
       error("a basis has vanishing minor")
     else
-      if isnothing(multiplicativeSet) && !(candidates[i] in ineqs[2:length(ineqs)]) && !(-candidates[i] in ineqs[2:length(ineqs)])
-        multiplicativeSet = powers_of_element(candidates[i])
-        push!(ineqs,R(candidates[i]))
-      elseif !(candidates[i] in ineqs[2:length(ineqs)])&& !(-candidates[i] in ineqs[2:length(ineqs)]) && !(candidates[i] in multiplicativeSet)  && !(-candidates[i] in multiplicativeSet)
-        multiplicativeSet = product(multiplicativeSet,powers_of_element(candidates[i]));
-        push!(ineqs,R(candidates[i]))
+      if isnothing(multiplicativeSet) && !(candidate in ineqs[2:length(ineqs)]) && !(-candidate in ineqs[2:length(ineqs)])
+        multiplicativeSet = powers_of_element(candidate)
+        push!(ineqs,R(candidate))
+      elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)]) && !(candidate in multiplicativeSet)  && !(-candidate in multiplicativeSet)
+        multiplicativeSet = product(multiplicativeSet,powers_of_element(candidate));
+        push!(ineqs,R(candidate))
       end
     end
   end
@@ -292,7 +292,6 @@ julia> M
 [1   0   1   0    1    1]
 [0   1   1   0   x1   x1]
 [0   0   0   1    1   x2]
-
 
 julia> m = uniform_matroid(3,6)
 Matroid of rank 3 on 6 elements
