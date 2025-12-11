@@ -295,8 +295,7 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
     with_unicode(false) do
       Pkg.activate(docsproject) do
         Base.invokelatest(
-          Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest, formats = formats,
-          pdf_method = pdf_method,
+          Main.BuildDoc.doit, Oscar; warnonly, local_build=true, doctest, formats, pdf_method,
         )
       end
     end
