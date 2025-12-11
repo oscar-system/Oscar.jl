@@ -200,7 +200,7 @@ function selfprojecting_realization_ideal(m::Matroid; saturate::Bool = false, ch
     @req is_selfprojecting(m) "The given matroid is not self projecting" 
   end
   if !is_realizable(m,char = 0)
-    return defining_ideal(realization_space(m,char =0, QQ))
+    return defining_ideal(realization_space(m,char =0))
   end
   RS = realization_space(m,char =0,simplify = true, saturate = true); 
   R = ambient_ring(RS); 

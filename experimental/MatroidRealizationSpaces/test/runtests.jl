@@ -160,7 +160,7 @@ end
     R1, mat_M1 = Oscar.selfprojecting_realization_matrix(M1, [1,2,4]); #this should be (nothing, nothing)
     R2, mat_M2 = Oscar.selfprojecting_realization_matrix(M2, [1,2,3]);
     R3, mat_M3 = Oscar.selfprojecting_realization_matrix(M3, [4,5,6,7]);
-    #R4, mat_M4 = Oscar.selfprojecting_realization_matrix(M4, [1,2,3,5]);#this should give an error ! How to test this?!
+    @test_throws ArgumentError Oscar.selfprojecting_realization_matrix(M4, [1,2,3,5]); #this should give an error because the matroid is not selfprojecting
     R5, mat_M5 = Oscar.selfprojecting_realization_matrix(M5, [1,5,6]);
     R6, mat_M6 = Oscar.selfprojecting_realization_matrix(M6, [1,2,5,7]);#this should give (Ring, nothing)
     
@@ -201,10 +201,10 @@ end
         RR1 = base_ring(defining_ideal(realization_space(M1,char=0)))
 
         #add a test for a completely not realizable matroid? Haven't found an example yet... 
-        @test selfprojecting_realization_ideal(M1) == ideal(R1,[1]) 
+        @test selfprojecting_realization_ideal(M1) == ideal(RR1,[1]) 
         @test selfprojecting_realization_ideal(M2) == ideal(base_ring(R2),[y2[1]*y2[2]*y2[3] - y2[1]*y2[2]*y2[4] - y2[1]*y2[3]*y2[4] + y2[1]*y2[4] + y2[2]*y2[3]*y2[4] - y2[2]*y2[3]])
         @test selfprojecting_realization_ideal(M3) ==ideal(base_ring(R3),[y3[1]*y3[2]*y3[3] - y3[1]*y3[2]*y3[4] - y3[1]*y3[3]*y3[4] + y3[1]*y3[4] + y3[2]*y3[3]*y3[4] - y3[2]*y3[3]])
-       # @test selfprojecting_realization_ideal(M4) #this should give an error because M4 is not selfprojecting, I don't know how to test this
+        @test_throws ArgumentError selfprojecting_realization_ideal(M4) #this should give an error because M4 is not selfprojecting
         @test selfprojecting_realization_ideal(M5) == ideal(R5,[0])
         @test selfprojecting_realization_ideal(M6) == ideal(R6,[1]) 
     end
