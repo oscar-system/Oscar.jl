@@ -371,7 +371,6 @@ avoiding the zero loci of the polynomials
 RingElem[x1*x4 - x1 - x2*x3 + x2 + x3 - x4, -x1 + x2, -x2 + 1, x1 - 1, -x3 + x4, -x4 + 1, x3 - 1, x1*x4 - x2*x3, x2 - x4, -x1 + x3, x2, -x1, x4, -x3]
   ```
 """
-#function to compute the self-projecting realization space
 function selfprojecting_realization_space(m::Matroid;
   B::Union{GroundsetType,Nothing}=nothing, check::Bool = true)::MatroidRealizationSpaceSelfProjecting
   if check
