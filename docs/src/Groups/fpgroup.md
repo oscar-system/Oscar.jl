@@ -106,6 +106,13 @@ Group homomorphism
   to permutation group of degree 5 and order 6
 ```
 
+It is possible, if desired, to convert a group of another type into
+a finitely presented group using [`isomorphism`](@ref) or `fp_group`:
+
+```@docs
+fp_group
+```
+
 ## Functions for elements of (subgroups of) finitely presented groups
 
 ```@docs
@@ -120,7 +127,6 @@ map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Ve
 ```@docs
 free_group
 @free_group
-fp_group
 full_group(G::Union{SubFPGroup, SubPcGroup})
 relators(G::FPGroup)
 simplified_fp_group(G::FPGroup)
