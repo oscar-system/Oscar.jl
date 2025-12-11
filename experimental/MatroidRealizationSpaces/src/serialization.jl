@@ -63,7 +63,6 @@ function save_object(s::SerializerState, M::MatroidRealizationSpaceSelfProjectin
     else
       save_object(s, selfprojecting_realization_matrix(M), :selfprojecting_realization_matrix)
     end
-#    save_object(s, M.one_realization, :one_realization)
   end
 end
 
@@ -81,7 +80,6 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpaceSelfP
     char = characteristic(R)
   end
   q = !iszero(char) ? order(coefficient_ring(R)) : nothing
- # RS.one_realization = load_object(s, Bool, :one_realization)
   return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, RMat, char, q, GR)
 end
 
