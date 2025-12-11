@@ -505,7 +505,7 @@ function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = n
   end
   # step 5 - Get the R set based on current h value
   Rh = _get_R(L, h)
-  # step 6 - Check all of the entries of R if there exists obstructing root => positive
+  # step 6 - Check all of the entries of R if there exists an obstructing root => positive
   for r in Rh
     result = _check_R(r, v, w, bi_form) 
     if !result[1] return result end
