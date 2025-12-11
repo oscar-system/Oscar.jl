@@ -445,10 +445,7 @@ function _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat):: Tu
       h_new = -b*h +a*h*f
       Rh = _get_R(L, h_new)
       for r in Rh
-        result = _check_R(r, v, w, bi_form)
-        if !result[1] 
-          return result
-        end
+        _check_R(r, v, w, bi_form) || return false, r
       end
     end
   end
