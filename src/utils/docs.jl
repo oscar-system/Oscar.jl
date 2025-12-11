@@ -235,7 +235,7 @@ function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
 end
 
 @doc raw"""
-    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
+    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false, formats = [:html], pdf_method = :pdf_via_latex)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -281,7 +281,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
-function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false)
+function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false, formats::Vector{Symbol} = [:html],pdf_method::Symbol = :pdf_via_latex)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = """The Julia reference version for the doctests is 1.7 or later, but you are using
                 $(VERSION). Running the doctests will produce errors that you do not expect."""
@@ -295,7 +295,8 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
     with_unicode(false) do
       Pkg.activate(docsproject) do
         Base.invokelatest(
-          Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest
+          Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest, formats = formats,
+          pdf_method = pdf_method,
         )
       end
     end
