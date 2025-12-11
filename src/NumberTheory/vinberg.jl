@@ -365,8 +365,9 @@ function _get_tau(f::QQMatrix, Qb)
 end
 
 function _get_bilinearform(L::ZZLat, Qb)
+  gram_in_Qb = change_base_ring(Qb, gram_matrix(ambient_space(L)))
   #return (a, b)->inner_product(ambient_space(L), a,b)[1,1] -> it doesn't go well as there is no convienient way to convert ZZLat in QQ field to the Qb field
-  return (a,b)-> ((change_base_ring(Qb, a))*change_base_ring(Qb, gram_matrix(ambient_space(L)))*transpose(change_base_ring(Qb, b)))[1]
+  return (a,b)-> ((change_base_ring(Qb, a))*gram_in_Qb*transpose(change_base_ring(Qb, b)))[1]
 end
 
 function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)
