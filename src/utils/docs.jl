@@ -280,6 +280,15 @@ using Revise, Oscar;
 ```
 The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
+
+The optional keyword `formats` controls which output formats are generated.  
+It accepts a vector containing `:html` and/or `:pdf` (default is `[:html]`).  
+Multiple formats may be built at once, e.g.
+`build_doc(formats = [:html, :pdf])`.
+
+To build PDF output, the keyword `pdf_method` specifies which backend to use:
+`pdf_method = :pdf_via_latex` (default, requires a local LaTeX installation) or
+`pdf_method = :pdf_via_docker` (uses Documenter's Docker-based LaTeX toolchain).
 """
 function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false, formats::Vector{Symbol} = [:html],pdf_method::Symbol = :pdf_via_latex)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
