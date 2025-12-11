@@ -436,7 +436,7 @@ function _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat):: Tu
   x = bi_form(h, h)
   y = bi_form(h, h*f)
   z = y^2-x^2
-  if (z<0) return (true, zero(h)) end #then discrininant for a will be <0 and there is no roots (a,b)=> no obstructing roots => positive
+  if (z<0) return (true, zero(h)) end #then discriminant for a will be <0 and there is no root (a,b)=> no obstructing roots => positive
   #trunc(ZZRingElem,-sqrt(2*z/x)) #check issues on github as round works in the same context
   b_min = round(ZZRingElem, -sqrt(2*z/x), RoundUp)
   for b = b_min:-1
