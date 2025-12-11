@@ -4,20 +4,16 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 # Realizations of self-projecting matroids
-This page accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon (https://arxiv.org/abs/2511.21442). It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
+This page accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon [GZ25](@cite), which can be found at https://arxiv.org/abs/2511.21442. It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
 
 
 
-**Abstract:**  We introduce the self-projecting Grassmannian, an irreducible subvariety of the Grassmannian parametrizing linear subspaces that satisfy a generalized self-duality condition. We study its relation to classical moduli spaces, such as the moduli spaces of pointed curves of genus $g$, as well as to other natural subvarieties of the Grassmannian. We further translate the self-projectivity condition into the combinatorial language of matroids, introducing self-projecting matroids, and we computationally investigate their realization spaces inside the self-projecting Grassmannian.
-arXiv: <https://arxiv.org/abs/2511.21442>
+**Abstract:**  We introduce the self-projecting Grassmannian, an irreducible subvariety of the Grassmannian parametrizing linear subspaces that satisfy a generalized self-duality condition. We study its relation to classical moduli spaces, such as the moduli spaces of pointed curves of genus $g$, as well as to other natural subvarieties of the Grassmannian. We further translate the self-projectivity condition into the combinatorial language of matroids, introducing self-projecting matroids, and we computationally investigate their realization spaces inside the self-projecting Grassmannian. [GZ25](@cite)
+
 
 **Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 4 on 9 elements and for selfprojecting matroids of rank 5 on 10 elements are not complete yet.
 
-For the cases {(2,4),(3,6),(4,8),(5,10)} the database stores material from the  article:
-Alheydis Geiger, Sachi Hashimoto, Bernd Sturmfels, Raluca Vlad: Self-dual matroids from canonical curves
-In: Experimental mathematics, 33 (2024) 4, p. 701-722
-DOI: `10.1080/10586458.2023.2239282 <https://dx.doi.org/10.1080/10586458.2023.2239282>`_ ARXIV: https://arxiv.org/abs/2212.05910 CODE: https://github.com/sachihashimoto/self-dual
-Project page created: 18/11/2025.
+For the cases {(2,4),(3,6),(4,8),(5,10)} the database stores material from the  article [GHSV24](@cite), for which the accompanying code can be found at: https://github.com/sachihashimoto/self-dual
 
 ## How to access the database
 After installing OSCAR, you can access the database as follows
@@ -219,20 +215,23 @@ The matroid does not have a self-projecting realization over characteristic zero
 The closures of the realization space and the self-projecting realization space are not equal.
 ```
 
-
 ## Additional Code
 
 Additional code as well as the original code and output from the computations in magma can be found at https://github.com/AlheydisGeiger/selfprojectingGrassmannian
 
-## Information
+## Contact
 
-Project contributors: Alheydis Geiger, Francesca Zaffalon.
+Please direct questions about this part of OSCAR to the following people:
+* [Alheydis Geiger](https://www.mis.mpg.de/people/alheydis-geiger),
+* [Francesca Zaffalon](https://sites.google.com/view/francescazaffalon/home).
 
-Corresponding author of this page: Alheydis Geiger, 
-<a href="mailto:geiger\@mis.mpg.com">geiger\@mis.mpg.de</a>
 
- 
-Software used: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 1.6.0-DEV), 
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+
+
+Software used to create the database collection ``Combinatorics.SelfProjectingMatroids``: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 1.6.0-DEV), 
 GNU parallel 20221122
 
 
