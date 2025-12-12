@@ -1123,7 +1123,7 @@ function _stabilizer_isotropic_elementary(
   )
   b, p = is_elementary_with_prime(T)
   @req b "T must be a p-elementary for some prime p"
-  check = 0 < get_assert_level(:OrthogonalStablizer)
+  check = 0 < get_assertion_level(:OrthogonalStablizer)
   O = orthogonal_group(T)
   N, TtoN = normal_form(T)
   # Now we need to lift the subspaces
@@ -1220,7 +1220,7 @@ function _stabilizer_isotropic_elementary_semiregular(
   n = length(elementary_divisors(N))
   r = rank
   O = orthogonal_group(N)
-  check = 0 < get_assert_level(:OrthogonalStablizer)
+  check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
     Z, iZ = sub(N, TorQuadModElem[])
     return [(iZ, id_hom(O))]
@@ -1614,7 +1614,7 @@ function _stabilizers_elementary_odd(
   @req b "T must be a p-elementary for some prime p"
   @assert isodd(p)
   O = orthogonal_group(T)
-  check = 0 < get_assert_level(:OrthogonalStablizer)
+  check = 0 < get_assertion_level(:OrthogonalStablizer)
   N, TtoN = normal_form(T)
   # Now we need to lift the subspaces
   # since we are primary the kernel splits i.e. T = K \oplus N
@@ -1797,7 +1797,7 @@ function _stabilizer_elementary_regular_odd(
   n = length(elementary_divisors(N))
   r = rank
   O = orthogonal_group(N)
-  check = 0 < get_assert_level(:OrthogonalStablizer)
+  check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
     Z, iZ = sub(N, TorQuadModElem[])
     return (iZ, id_hom(O))
