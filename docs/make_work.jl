@@ -207,12 +207,6 @@ function doit(
 
     makedocs(;
       format = format_list,
-        prettyurls=!local_build,
-        collapselevel=1,
-        size_threshold=409600,
-        size_threshold_warn=204800,
-        size_threshold_ignore=["manualindex.md"],
-        canonical="https://docs.oscar-system.org/stable/",
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
