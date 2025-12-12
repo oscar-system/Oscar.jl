@@ -9,7 +9,7 @@ function _overlattice_orbits(L::ZZLat; even=true)
     #@show ord, D
     b, l, p = is_prime_power_with_data(ord)
     if b && is_elementary(D, p)
-      sg = first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord,p);do_stab=false))
+      sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord,p);do_stab=false)))
     else 
       # slooow
       sg = domain.(first.(_subgroups_orbit_representatives_and_stabilizers(idD, G, ord)))
