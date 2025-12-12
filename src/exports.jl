@@ -1509,6 +1509,7 @@ export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
 export pullback
+export puiseux_expansion
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
