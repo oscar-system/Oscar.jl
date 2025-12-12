@@ -1502,12 +1502,13 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
+    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
 
 Visualize graph `G`.
 
 The `backend` keyword argument allows the user to pick between
 - `:threejs`: a Three.js visualization (default),
+- `:svg`: a SVG visualization (default in jupyter),
 - `:tikz`: a TikZ visualization, or
 - `:graphviz`: a [Graphviz](https://graphviz.org/) visualization.
 The Graphviz visualization requires a postscript reader and loading the julia
@@ -1526,7 +1527,7 @@ colors as strings: `polymakeorange`, `polymakegreen`, `white`, `purple`, `cyan`,
 
 """
 function visualize(G::Graph{T};
-                   backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing,
+                   backend::Symbol=:default, filename::Union{Nothing, String}=nothing,
                    kwargs...) where {T <: Union{Directed, Undirected}}
   BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
 
@@ -1539,11 +1540,21 @@ function visualize(G::Graph{T};
   end
   
   vBG = Polymake.visual(Polymake.Visual, BG; merge(defaults, kwargs)...)
-  if !isnothing(filename)
-    Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+    return Polymake.display_svg(vBG)
+  elseif isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :threejs && isnothing(filename)
+    return vBG
   else
-    Polymake.call_function(Nothing, :graph, backend, vBG;)
+    if backend === :default
+      backend = :threejs
+    end
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+    else
+      Polymake.call_function(Nothing, :graph, backend, vBG;)
+    end
   end
+  return nothing
 end
 
 
