@@ -65,3 +65,37 @@ function Base.show(io::IO, Vf::QuadSpaceWithIsom)
     end
   end
 end
+
+###############################################################################
+#
+#  Torsion quadratic modules with isometry
+#
+###############################################################################
+
+function Base.show(io::IO,  ::MIME"text/plain", Tf::TorQuadModuleWithIsom)
+  io = pretty(io)
+  T = underlying_module(Tf)
+  println(io, "Finite quadratic module of order $(order(T))")
+  flag = has_attribute(Tf, :order_of_isometry)
+  println(io, Indent(), "with ", ItemQuantity(ngens(T), "generator"))
+  print(io, "with isometry ")
+  if flag
+    print(io, "of order $(get_attribute(Tf, :order_of_isometry)) ")
+  end
+  println(io, "")
+  println(io, "given by")
+  show(io, MIME"text/plain"(), matrix(isometry(Tf)))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, Tf::TorQuadModuleWithIsom)
+  if is_terse(io)
+    print(io, "Torsion quadratic module with isometry")
+  else
+    flag = has_attribute(Tf, :order_of_isometry)
+    print(io, "Torsion quadratic module with isometry")
+    if flag
+      print(io, " of order $(get_attribute(Tf, :order_of_isometry))")
+    end
+  end
+end
