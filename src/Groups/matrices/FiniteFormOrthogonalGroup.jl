@@ -1727,12 +1727,15 @@ function _subspaces_representatives_and_stabilizers_elementary_odd(
   dcs = _stabilizers_elementary_odd(T, invariants)
   O = orthogonal_group(T)
   to_perm = isomorphism(PermGroup, O)
+  from_perm = inv(to_perm)
   Op, to_perm2 = smaller_degree_permutation_representation(codomain(to_perm))
+  from_perm2 = inv(to_perm2)
   to_perm = compose(to_perm, to_perm2)
+  from_perm = compose(from_perm2, from_perm)
   G = domain(iG)
   Gp, _ = compose(iG, to_perm)(G)
-  #@time Gp,_ = sub(Gp,small_generating_set(Gp))
   reps = Tuple{Tuple{TorQuadModule,TorQuadModuleMap}, Tuple{typeof(codomain(iG)), GAPGroupHomomorphism}}[]
+  G_to_perm = compose(iG, to_perm)
   for (iH, iS) in dcs
     Sp, _ = to_perm(domain(iS))
     dc = double_cosets(Op, Sp, Gp)
@@ -1742,8 +1745,15 @@ function _subspaces_representatives_and_stabilizers_elementary_odd(
       Hx = _on_subgroups_slow_with_inclusion(domain(iH), x)
       if do_stab
         stabp,i1,i2 = intersect(Sp^xp, Gp)
-        
-        stab = preimage(iG, preimage(to_perm, i2(stabp)[1])[1])
+        #=
+        # iterated preimage seems to be slower 
+        # than doing it in one go
+        stab_in_OT = preimage(to_perm, i2(stabp)[1])[1]
+        stab = preimage(iG, stab_in_OT)
+        # but takeing an image as below semme to be faster on average (x 10)
+        stab = preimage(G_to_perm, i2(stabp)[1])
+        =#
+        stab = from_perm(i2(stabp)[1])
         push!(reps, (Hx, stab))
       else
         push!(reps, (Hx, (sub(G,[one(G)]))))
