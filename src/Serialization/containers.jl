@@ -412,8 +412,6 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
         load_type_params(s, decode_type(s))
       end
 
-      isnothing(key_params) && return (S, U), value_params
-      isnothing(key_params) && isnothing(value_params) && return (S, U), nothing
       return (S, U), Dict(:key_params => key_params, :value_params => value_params)
     else
       S, key_params = load_node(s, :key_params) do _
