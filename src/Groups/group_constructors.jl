@@ -317,6 +317,52 @@ function mathieu_group(n::Int)
   return PermGroup(GAP.Globals.MathieuGroup(n), n)
 end
 
+@doc raw"""
+    ree_group(q::IntegerUnion)
+
+Return a group that is isomorphic to the Ree group of type $^2G_2(q)$,
+where `q` is of the form $3^{2k+1}$ for a positive integer $k$.
+
+The group is represented as a matrix group.
+
+# Examples
+```jldoctest
+julia> g = ree_group(27)
+Matrix group TODO
+
+julia> order(g)
+10073444472
+```
+"""
+function ree_group(q::IntegerUnion)
+  v, c = remove(q, 3)
+  @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 3^(2k+1) for a positive integer k"
+  return MatrixGroup(GAP.Globals.ReeGroup(GAP.Int(q)))
+end
+
+@doc raw"""
+    suzuki_group(q::IntegerUnion)
+
+Return a the Suzuki group $Sz(q),
+where `q` is of the form $2^{2k+1}$ for a positive integer $k$.
+
+The group is represented as a matrix group.
+
+# Examples
+```jldoctest
+julia> g = suzuki_group(8)
+Matrix group TODO
+
+julia> order(g)
+29120
+```
+"""
+function suzuki_group(q::IntegerUnion)
+  v, c = remove(q, 2)
+  @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 2^(2k+1) for a positive integer k"
+  return MatrixGroup(GAP.Globals.SuzukiGroup(GAP.Int(q)))
+end
+
 
 ################################################################################
 #
