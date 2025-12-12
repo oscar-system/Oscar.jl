@@ -160,7 +160,16 @@ function Base.show(io::IO, C::CompositionsFixedNumParts)
   print(pretty(io), "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "part"))
 end
 
-Base.length(C::CompositionsFixedNumParts) = BigInt(number_of_compositions(base(C), parts(C)))
+
+function Base.length(C::CompositionsFixedNumParts)
+  try
+    return Int(number_of_compositions(base(C), parts(C)))
+  catch e
+    e isa InexactError && error("Length is too large, use `number_of_compositions` instead")
+    rethrow(e)
+  end
+end
+
 
 @inline function Base.iterate(C::CompositionsFixedNumParts{T}, state::Union{Nothing,Vector{T}}=nothing) where T
   w = iterate(C.weak_comp_iter, state)
@@ -221,7 +230,14 @@ function Base.show(io::IO, C::Compositions)
   print(pretty(io), "Iterator over the compositions of $(base(C))")
 end
 
-Base.length(C::Compositions) = BigInt(number_of_compositions(base(C)))
+function Base.length(C::Compositions)
+  try
+    return Int(number_of_compositions(base(C)))
+  catch e
+    e isa InexactError && error("Length is too large, use `number_of_compositions` instead")
+    rethrow(e)
+  end
+end
 
 function iterate(C::Compositions, state::Nothing = nothing)
   n = base(C)
@@ -298,7 +314,14 @@ function Base.show(io::IO, C::AscendingCompositions)
 end
 
 # Ascending compositions are basically partitions turned around
-Base.length(C::AscendingCompositions) = BigInt(number_of_partitions(base(C)))
+function Base.length(C::AscendingCompositions)
+  try
+    return Int(number_of_partitions(base(C)))
+  catch e
+    e isa InexactError && error("Length is too large, use `number_of_partitions` instead")
+    rethrow(e)
+  end
+end
 
 # Algorithm 4.1 in KO14
 @inline function iterate(C::AscendingCompositions{T}, state::Union{Nothing,AscendingCompositionsState{T}}=nothing) where T

@@ -88,7 +88,14 @@ function number_of_combinations(n::IntegerUnion, k::IntegerUnion)
   return binomial(ZZ(n), ZZ(k))
 end
 
-Base.length(C::Combinations) = BigInt(number_of_combinations(C.n, C.k))
+function Base.length(C::Combinations)
+  try
+    return Int(number_of_combinations(Int(C.n), Int(C.k)))
+  catch e
+    e isa InexactError && error("Length is too large, use `number_of_combinations` instead")
+    rethrow(e)
+  end
+end
 
 function Base.show(io::IO, C::Combinations{<:Base.OneTo})
   print(io, "Iterator over the ", C.k, "-combinations of ", 1:C.n)
