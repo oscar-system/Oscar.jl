@@ -52,7 +52,7 @@ end
         f::MPolyRingElem{T},
         max_ord::Int=10;
         precision::Int=max_ord
-      ) where {T <: FieldElem}
+      ) where {T <: QQFieldElem}
 
 Compute the Puiseux expansion of `f` up to degree `max_ord` and returns the output 
 in puiseux series rings with the given `precision`. 
