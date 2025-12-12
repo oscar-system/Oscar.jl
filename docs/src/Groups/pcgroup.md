@@ -88,16 +88,18 @@ julia> describe(gg)
 "S3"
 ```
 
-Alternatively, one can take a polycyclic group,
-and let OSCAR compute a pc presentation for it.
+Alternatively, one can convert another type of group into a pc group,
+either via [`isomorphism`](@ref isomorphism(::Type{T}, G::Group) where T <: Group) or using the `pc_group` command:
+
+```@docs
+pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
+```
 
 ```jldoctest
 julia> g = symmetric_group(4)
 Symmetric group of degree 4
 
-julia> iso = isomorphism(PcGroup, g);
-
-julia> h = codomain(iso)
+julia> h = pc_group(g)
 Pc group of order 24
 ```
 
