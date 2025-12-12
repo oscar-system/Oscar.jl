@@ -69,7 +69,8 @@ function visualize(
 )
   pmo = _prepare_visualization(P)
   vpmo = Polymake.visual(Polymake.Visual, pmo; kwargs...)
-  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default &&
+    isnothing(filename)
     # this will return a visual object,
     # the visualization is then triggered by the show method
     return vpmo
@@ -121,7 +122,8 @@ function visualize(
     ) for i in 1:length(P)
   ]
   vc = Polymake.call_function(:common, :compose, vis...)
-  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default &&
+    isnothing(filename)
     # this will return a visual object,
     # the visualization is then triggered by the show method
     return vc
