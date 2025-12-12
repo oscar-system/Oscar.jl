@@ -290,7 +290,7 @@ To build PDF output, the keyword `pdf_method` specifies which backend to use:
 `pdf_method = :pdf_via_latex` (default, requires a local LaTeX installation) or
 `pdf_method = :pdf_via_docker` (uses Documenter's Docker-based LaTeX toolchain).
 """
-function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false, formats::Vector{Symbol} = [:html],pdf_method::Symbol = :pdf_via_latex)
+function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false, formats::Vector{Symbol} = [:html], pdf_method::Symbol = :pdf_via_latex)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = """The Julia reference version for the doctests is 1.7 or later, but you are using
                 $(VERSION). Running the doctests will produce errors that you do not expect."""
