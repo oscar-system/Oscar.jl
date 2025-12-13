@@ -236,6 +236,7 @@
          "AlgebraicGeometry/Curves/ProjectiveCurves.md",
          "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
 	 "AlgebraicGeometry/Curves/ParametrizationPlaneCurves.md",
+	 "AlgebraicGeometry/Curves/PuiseuxExpansion.md",
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
