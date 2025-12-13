@@ -506,8 +506,8 @@ function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bo
   @req !check || is_surjective(i) "i must be a surjection"
   @req domain(f) === codomain(f) === domain(i) "f must be an endomorphism of the domain of i"
   if check 
-    K, i = kernel(i)
-    @req all(has_preimage_with_preimage(i,f(k))[1] for k in gens(K)) "f must preserve the kernel of i"
+    K, j = kernel(i)
+    @req all(has_preimage_with_preimage(j,f(j(k)))[1] for k in gens(K)) "f must preserve the kernel of i"
   end
   imgs = TorQuadModuleElem[]
   U = codomain(i)
