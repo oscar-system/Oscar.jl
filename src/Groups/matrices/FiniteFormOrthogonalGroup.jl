@@ -1960,22 +1960,22 @@ function _test_stabilizer_orders_odd(
   return true
 end
 
-function _test(L::ZZLat, p)
+function _test_stabilizers(L::ZZLat, p)
   DL = discriminant_group(L)
   D,iD = kernel(hom(DL,DL, [p*i for i in gens(DL)]))
   
   G,iG = restrict_automorphism_group(image_in_Oq(L)[1],iD);
   _,iG = is_subgroup(G, orthogonal_group(D));
-  _test(D, G, iG)    
+  _test_stabilizers(D, G, iG)    
 end
 
-function _test(D::TorQuadModule)
+function _test_stabilizers(D::TorQuadModule)
   G = orthogonal_group(D);
   iG = id_hom(G)
-  _test(D, G, iG)
+  _test_stabilizers(D, G, iG)
 end
     
-function _test(D::TorQuadModule, G, iG; fast=true)
+function _test_stabilizers(D::TorQuadModule, G, iG; fast=true)
   G = orthogonal_group(D);
   iG = id_hom(G)
   _, p = is_elementary_with_prime(D)
