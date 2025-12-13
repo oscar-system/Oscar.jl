@@ -937,7 +937,7 @@ end
 
   
 function _cokernel(f::TorQuadModuleMap)
-  # assumes same ambient space and therefore the _ 
+  # assumes same ambient space and therefore the underscore
   A = domain(f)
   B = codomain(f)
   BmodA = torsion_quadratic_module(cover(B),cover(A),
