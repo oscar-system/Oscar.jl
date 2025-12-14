@@ -3033,7 +3033,7 @@ _discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:
 
 _discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(Lf)[2]; parent)
 
-function annihilator(
+function _annihilator(
   T::TorQuadModule;
   parent=polynomial_ring(ZZ, [:x]; cached=false)[1],
 )
