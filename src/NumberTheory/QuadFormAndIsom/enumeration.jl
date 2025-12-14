@@ -3065,6 +3065,10 @@ function annihilator(
   snfD, to_snf = snf(D)
   ediv = elementary_divisors(snfD)
   n = length(ediv)
+  if n == 0 
+    # trivial group 
+    return J
+  end
   B = abelian_group(reduce(vcat, [ediv for i in 1:n]))
   fsnf = to_snf*hom(f)*inv(to_snf)
   powf = [vec(collect(transpose(fsnf.map_ab.map^i))) for i in 0:d]
