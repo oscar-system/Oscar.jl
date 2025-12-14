@@ -902,7 +902,7 @@ function representatives_of_hermitian_type(
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
-    _local::Bool=false,
+    _local::Bool=false
   )
   chi = min_poly
   @req is_irreducible(chi) "Polynomial must be irreducible"
@@ -941,9 +941,22 @@ function representatives_of_hermitian_type(
       return reps
     end
     # local conditions are okay, enumerate the genus
-    allow_info && println("Enumerate Z-genus $G")
+    allow_info && !_local && println("Enumerate Z-genus $G")
     repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local)
-    allow_info && println("$(length(repre)) representative(s)")
+    if root_test && _local && signature_pair(G)[1]==0
+      if mass(G) == 1//automorphism_group_order(T)
+        # T is unique in its genus, we can do the root test even when working locally 
+        minimum(T) <= 2 && return reps 
+      end
+      # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
+      if rank(G) <= 4 && scale(G) == 1
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local=false)
+        if all(minimum(i)<=2 for i in repre1)
+          return reps 
+        end
+      end
+    end 
+    allow_info && !_local && println("$(length(repre)) representative(s)")
     while !is_empty(repre)
       LL = pop!(repre)
       push!(reps, integer_lattice_with_isometry(LL, f; check=false, ambient_representation=false))
@@ -1019,7 +1032,7 @@ function representatives_of_hermitian_type(
     gene = representative.(orbits(omega))
   end
 
-  allow_info &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
+  allow_info && !_local &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
   for g in gene
     if is_integral(G) && !is_integral(DE*scale(g))
       continue
@@ -1036,14 +1049,24 @@ function representatives_of_hermitian_type(
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
     first && return ZZLatWithIsom[MfM]
 
-    allow_info && println("Enumerate hermitian genus of rank $(rank(H))")
+    allow_info && !_local && println("Enumerate hermitian genus of rank $(rank(H))")
     if !_local
       gr = genus_representatives(H)
+      for HH in gr
+        M, fM = trace_lattice_with_isometry(HH)
+        push!(reps, integer_lattice_with_isometry(M, fM; check=false))
+      end
     else 
-      gr = [H]
-    end
-    for HH in gr
-      M, fM = trace_lattice_with_isometry(HH)
+      if root_test && rank(H) <= 4 && signature_pair(G)[1]==0
+        # see if it is an easy genus 
+        gr = genus_representatives(H; max=20)
+        if mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr]) #certify that we have enumerated the entire genus
+          if all(2==minimum(trace_lattice_with_isometry(i)[1]) for i in gr)
+            # no one passed the root test
+            continue
+          end 
+        end 
+      end
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
     end
   end
@@ -1240,7 +1263,7 @@ function representatives_of_hermitian_type(
       gene = representative.(orbits(omega))
     end
 
-    allow_info && println("All possible hermitian genera: $(length(gene))")
+    allow_info && !_local && println("All possible hermitian genera: $(length(gene))")
     for g in gene
       if !is_integral(DE*scale(g))
         continue
@@ -1443,7 +1466,7 @@ function splitting_of_hermitian_type(
   # power decreases the order of the isometry
   if iszero(mod(n, p))
     for cond in unique!([get(i, k, Int[-1, -1, -1]) for i in eiglat_cond])
-      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator))
+      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local))
     end
     return reps
   end
@@ -1553,6 +1576,9 @@ function __splitting_of_hermitian_type(
     end
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
+    if info_depth >= 2
+      println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
+    end 
     for (A, B) in atp
       if root_test
         if rank(A) > 0 && _packing_density_test(A)
@@ -1562,17 +1588,20 @@ function __splitting_of_hermitian_type(
         end
       end
       As = representatives_of_hermitian_type(A, n, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && iszero(signature_tuple(A)[1]) # Remove lattices with (-2)-vectors
+      if root_test && !_local && iszero(signature_tuple(A)[1]) # Remove lattices with (-2)-vectors
         filter!(LA -> rank(LA) == 0 || minimum(LA) != 2, As)
       end
       isempty(As) && continue
       Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
+      if root_test && !_local && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
         filter!(LB -> rank(LB) == 0 || minimum(LB) != 2, Bs)
       end
       isempty(Bs) && continue
       for LA in As, LB in Bs
         Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false, _local)
+        if root_test && !_local && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
+          filter!(i -> minimum(coinvariant_lattice(i))!=2, Es)
+        end
         if fix_root == k
           while !isempty(Es)
             M = pop!(Es)
@@ -2744,9 +2773,9 @@ function oscar_genus_representatives(
     if haskey(genusDB, G)
       return deepcopy(genusDB[G])
     end
-    G2 = rescale(G, -1)
+    G2 = rescale(G, -1; cached=false)
     if haskey(genusDB, G2)
-      return ZZLat[rescale(LL, -1) for LL in genusDB[G2]]
+      return ZZLat[rescale(LL, -1; cached=false) for LL in genusDB[G2]]
     end
   end
   r = rank(G)
@@ -3000,11 +3029,11 @@ end
 
 _default_discriminant_annihilator(Lf::ZZLatWithIsom) = _annihilator(discriminant_group(Lf)[1])
 
-_discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = _annihilator(discriminant_group(L); parent)
+_discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(L); parent)
 
-_discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = _annihilator(discriminant_group(Lf)[2]; parent)
+_discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(Lf)[2]; parent)
 
-function _annihilator(
+function annihilator(
   T::TorQuadModule;
   parent=polynomial_ring(ZZ, [:x]; cached=false)[1],
 )
@@ -3014,27 +3043,38 @@ function _annihilator(
 end
 
 raw"""
-  _annihilator(
-  f::AutomorphismGroupElem{TorQuadModule}; parent=polynomial_ring(ZZ, [:x]; cached=false)[1])
+  annihilator(f::AutomorphismGroupElem{TorQuadModule}; [parent])
 
-Return some ideal ``I \subseteq \ZZ[x]`` such that 
-``g(f)=0`` for all ``g \in I``. 
-  
-!warning
-  ``I`` is merely contained in the annihilator but may not be equal to it.
+Return the ideal ``I \subseteq \ZZ[x]`` consisting of all ``g \in \ZZ[x]`` with ``g(f)=0``.   
 """
-function _annihilator(
+function annihilator(
   f::AutomorphismGroupElem{TorQuadModule};
   parent=polynomial_ring(ZZ, [:x]; cached=false)[1],
 )
   D = domain(f)
   J = _annihilator(D; parent)
   P = base_ring(J)
-  m = minpoly(Hecke.Globals.Zx, matrix(f))
+  _m = minpoly(Hecke.Globals.Zx, matrix(f))
   x = gen(parent,1)
-  m = m(x)
+  m = _m(x)
   J = J + ideal(parent, m) + ideal(parent, x^order(f) - 1)
-  # a bound for the discriminant annihilator .... but I don't think that it is everything.
+  
+  # compute the thing using linear algebra
+  d = degree(_m)
+  A = abelian_group([exponent(D) for i in 0:d])
+  snfD, to_snf = snf(D)
+  ediv = elementary_divisors(snfD)
+  n = length(ediv)
+  B = abelian_group(reduce(vcat, [ediv for i in 1:n]))
+  fsnf = to_snf*hom(f)*inv(to_snf)
+  powf = [vec(collect(transpose(fsnf.map_ab.map^i))) for i in 0:d]
+  powfB = [sum(B[i]*v[i] for i in 1:n^2) for v in powf]
+  AtoB = hom(A,B, powfB)
+  K,incK = kernel(AtoB)
+  kergens = [incK(i).coeff for i in gens(K)]
+  A = [sum(b[j+1]*x^j for j in 0:d) for b in kergens]
+  J = J+ideal(A)
+  @assert is_annihilated(f, J)
   return J
 end
 
