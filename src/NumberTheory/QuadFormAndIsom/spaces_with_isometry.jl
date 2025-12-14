@@ -439,8 +439,8 @@ with gram matrix
 [-1//2       1]
 ```
 """
-function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
-  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf); check=false)
+function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion; cached=false)
+  return quadratic_space_with_isometry(rescale(space(Vf), a; cached), isometry(Vf); check=false, cached)
 end
 
 @doc raw"""
@@ -553,8 +553,8 @@ with gram matrix
 [0   0   -1    2]
 ```
 """
-function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, inj, proj = Hecke._biproduct(space.(x))
+function direct_sum(x::Vector{T}; cached=false) where T <: QuadSpaceWithIsom
+  V, inj, proj = Hecke._biproduct(space.(x); cached)
   f = block_diagonal_matrix(isometry.(x))
   return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
