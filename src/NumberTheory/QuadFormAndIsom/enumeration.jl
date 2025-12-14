@@ -949,9 +949,9 @@ function representatives_of_hermitian_type(
         minimum(T) <= 2 && return reps 
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
-      if rank(G) <= 4 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local=false)
-        if all(minimum(i)<=2 for i in repre1)
+      if rank(G) <= 6 && scale(G) == 1
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=20, _local=false)
+        if all(minimum(i)<=2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
           return reps 
         end
       end
@@ -1060,7 +1060,7 @@ function representatives_of_hermitian_type(
       if root_test && rank(H) <= 4 && signature_pair(G)[1]==0
         # see if it is an easy genus 
         gr = genus_representatives(H; max=20)
-        if mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr]) #certify that we have enumerated the entire genus
+        if mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr];init=QQ(0)) #certify that we have enumerated the entire genus
           if all(2==minimum(trace_lattice_with_isometry(i)[1]) for i in gr)
             # no one passed the root test
             continue
