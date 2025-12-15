@@ -69,6 +69,7 @@ end
   S, (s, t) = polynomial_ring(R, [:s, :t], cached=false)
   
   f = hom(R, S, [s, s, t])
+  @test Oscar.flatten(f) isa Oscar.MPolyAnyMap{QQMPolyRing, QQMPolyRing, Nothing, QQMPolyRingElem}
   @test x-y in kernel(f)
 
   g = hom(S, R, identity, [x, y])
@@ -77,6 +78,7 @@ end
   h = hom(S, R, hom(R, R, [R[2], R[1], R[2]]), [x, y])
   @test s-y in kernel(h)
   @test S(x-z) in kernel(h)
+  
 end
 
 @testset "flattenings of quotient rings" begin
