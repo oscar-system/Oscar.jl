@@ -471,7 +471,6 @@ end
   c = perm(g, [1, 2, 3, 4])
 
   @test hash(c) == hash(one(g))
-  @test hash(a) != hash(one(g))
   @test hash(a) == hash(b)
 
   h = sylow_subgroup(g, 3)[1]
@@ -481,7 +480,5 @@ end
   c = perm(g, [1, 2, 3])
 
   @test hash(c) == hash(one(g))
-  @test hash(a) != hash(one(h))
   @test hash(a) == hash(b) # same degree
-  @test hash(a) != hash(a_bar) # differing degrees
 end

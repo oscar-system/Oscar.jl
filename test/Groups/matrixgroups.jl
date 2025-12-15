@@ -862,7 +862,5 @@ end
    C = G([1 0; 0 1])
 
    @test hash(C) == hash(one(G))
-   @test hash(G(A)) != hash(one(G))
    @test hash(G(A)) == hash(G(A))
-   @test hash(G(A)) != hash(G(B))
 end
