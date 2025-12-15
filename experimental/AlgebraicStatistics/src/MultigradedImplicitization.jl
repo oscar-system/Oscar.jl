@@ -274,7 +274,9 @@ function lifted_monomials(deg::FinGenAbGroupElem,
         break
       end
       j += 1
+      j > ncols(M) && break
     end
+    j > ncols(M) && break
   end
   return Set(mons[mon_indices])
 end
