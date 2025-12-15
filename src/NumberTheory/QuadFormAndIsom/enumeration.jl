@@ -3030,7 +3030,7 @@ end
 
 _default_discriminant_annihilator(Lf::ZZLatWithIsom) = _annihilator(discriminant_group(Lf)[1])
 
-_discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(L); parent)
+_discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = _annihilator(discriminant_group(L); parent)
 
 _discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(Lf)[2]; parent)
 
