@@ -431,6 +431,9 @@ julia> minimum(Lf)
 """
 function minimum(Lf::ZZLatWithIsom)
   @req is_definite(Lf) "Underlying lattice must be definite"
+  if rank(Lf) == 0
+    return 0
+  end
   return minimum(lattice(Lf))
 end
 

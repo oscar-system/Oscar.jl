@@ -946,12 +946,12 @@ function representatives_of_hermitian_type(
     if root_test && _local && signature_pair(G)[1]==0
       if mass(G) == 1//automorphism_group_order(T)
         # T is unique in its genus, we can do the root test even when working locally 
-        minimum(T) <= 2 && return reps 
+        minimum(T) == 2 && return reps 
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
       if rank(G) <= 6 && scale(G) == 1
         repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=20, _local=false)
-        if all(minimum(i)<=2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
+        if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
           return reps 
         end
       end
@@ -2344,6 +2344,7 @@ function enumerate_classes_of_lattices_with_isometry(
   o = Int(1)
   pds = reverse!(sort!(prime_divisors(m)))
   for p in pds
+    @vprintln :ZZLatWithIsom 1 "Taking $p-th roots for isometry of order $m" 
     v = valuation(m, p)
     o *= p^v
     eco = _conditions_after_power(eiglat_cond, div(m, o))
