@@ -136,6 +136,7 @@ quantum_automorphism_group(M::Matroid, structure::Symbol)
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
+* [Dan Corey](https://www.danieljcorey.com/)
 * [Lukas Kühne](https://www.math.uni-bielefeld.de/~lkuehne/)
 * [Dante Luber](https://sites.google.com/view/dantelubermath/home)
 * [Benjamin Schröter](https://people.kth.se/~schrot/)
