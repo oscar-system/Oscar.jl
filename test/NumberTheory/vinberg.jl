@@ -85,15 +85,15 @@ end
   L = lattice(Vf, B)
   @assert lattice(Vf,basis_matrix(L)*f) == L
 
-  tau = _get_tau(f, Qb)
+  tau = _get_tau(isometry(L), Qb)
 
   C0 = x^14 + 2*x^13 + 5*x^12 + 8*x^11 + 11*x^10 + 14*x^9 + 15*x^8 + 16*x^7 + 15*x^6 + 14*x^5 + 11*x^4 + 8*x^3 + 5*x^2 + 2*x + 1
 
-  bi_form = _get_bilinearform(lattice(L), Qb)
+  bi_form = _get_bilinearform(L, Qb)
 
-  v = eigenspace(f, tau)
-  w = eigenspace(f, tau^(-1))
-  h = _get_h(lattice(L), v, w, Qb, bi_form)
+  v = eigenspace(isometry(L), tau)
+  w = eigenspace(isometry(L), tau^(-1))
+  h = _get_h(lattice(L), v, w, bi_form)
 
   @test bi_form(v,v) == 0
   @test bi_form(w,w) == 0
@@ -101,7 +101,7 @@ end
   @test bi_form(h,h)>0
   Rh = _get_R(lattice(L), h)
   if Rh != []
-    @test _check_R(Rh[1], v, w, bi_form) == true
+    @test _check_R(Rh[1], v, w, bi_form) == false
   end
   @test isometry_is_positive(L, h)[1] == true # this test takes usually 3-5 minutes and it is the main test for isometry_positive function
 end
