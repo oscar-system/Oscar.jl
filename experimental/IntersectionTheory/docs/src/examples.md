@@ -49,7 +49,6 @@ julia> integral((s2+3*s11)^2)
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 5)
-
 AbstractVariety of dim 6
 
 julia> s1 = schubert_class(G, 1)
