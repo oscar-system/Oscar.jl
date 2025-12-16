@@ -433,8 +433,6 @@ The `backend` keyword argument allows the user to pick between
 The Graphviz visualization requires a postscript reader and loading the julia
 package `Graphviz_jll` before OSCAR.
 
-
-
 !!! note
     This will always show the greatest and least elements even if it does not correspond to an element of the partially ordered set.
 """
