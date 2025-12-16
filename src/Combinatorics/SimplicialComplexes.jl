@@ -186,7 +186,7 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
     betti_numbers([p::Int=0,] K::SimplicialComplex)
 
 Return the reduced Betti numbers of the abstract simplicial complex `K`.
-Defaults to rational Betti numbers, otherwise computes the Betti numbers over a field of characteristic `p`.
+Defaults to rational Betti numbers, otherwise computes the Betti numbers over the field with  `p` elements.
 
 # Examples
 ```jldoctest
