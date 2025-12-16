@@ -424,9 +424,7 @@ end
 The function calculates all $r$, that can be obstructing roots of 'L'.
 Calculation is made one by one and then the $r$ is checked
 $r$ is based on pairs of integer $(a,b)$ of $-2x^2+2y^2+2aby>=x(a^2+b^2)$ with $a>0$, $b<0$, $x>0$,$y>0$
-See Steps 7,8,9 of Algorithm 5.8 of "MINIMUM POSITIVE ENTROPY OF COMPLEX
-ENRIQUES SURFACE AUTOMORPHISMS" by KEIJI OGUISO and XUN YU in Duke Mathematical Journal, 2020,
-volume 169, number 18, pages 3565 - 3606
+See Steps 7,8,9 of Algorithm 5.8 in [OY20](@cite)
 
 Return a tuple of a boolean that represents if isometry f of the lattice is positive and QQMatrix,
 that represents an obstructing root
