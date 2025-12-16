@@ -374,7 +374,6 @@ export cellular_primary_decomposition
 export center, has_center, set_center
 export central_character
 export centralizer
-export centralizer_in_orthogonal_group
 export chain_complex
 export chain_polytope
 export chain_range
