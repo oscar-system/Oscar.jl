@@ -943,7 +943,7 @@ function representatives_of_hermitian_type(
     # local conditions are okay, enumerate the genus
     allow_info && !_local && println("Enumerate Z-genus $G")
     repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local)
-    if root_test && _local && signature_pair(G)[1]==0
+    if root_test && _local && signature_pair(G)[1]==0 && numerator(mass(G))==1 && rank(G)<=12
       if mass(G) == 1//automorphism_group_order(T)
         # T is unique in its genus, we can do the root test even when working locally 
         minimum(T) <= 2 && return reps 
