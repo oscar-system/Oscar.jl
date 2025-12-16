@@ -9,25 +9,6 @@
 
 Given an object ``Tf``, of type `TorQuadModuleWithIsom`, parametrizing a
 torsion quadratic module ``T`` with an isometry ``f``, return ``T``.
-
-# Examples
-
-```jldoctest
-julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
-Finite quadratic module of order 60
-  with 1 generator
-  with isometry given by
-  [11]
-
-julia> underlying_module(Tf)
-Finite quadratic module
-  over integer ring
-Abelian group: Z/60
-Bilinear value module: Q/Z
-Quadratic value module: Q/2Z
-Gram matrix quadratic form:
-[119//60]
-```
 """
 underlying_module(Tf::TorQuadModuleWithIsom) = Tf.T
 
@@ -36,21 +17,6 @@ underlying_module(Tf::TorQuadModuleWithIsom) = Tf.T
 
 Given an object ``Tf``, of type `TorQuadModuleWithIsom`, parametrizing a
 torsion quadratic module ``T`` with an isometry ``f``, return ``f``.
-
-# Examples
-
-```jldoctest
-julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
-Finite quadratic module of order 60
-  with 1 generator
-  with isometry given by
-  [11]
-
-julia> isometry(Tf)
-Map
-  from finite quadratic module: Z/60 -> Q/2Z
-  to finite quadratic module: Z/60 -> Q/2Z
-```
 """
 isometry(Tf::TorQuadModuleWithIsom) = Tf.f
 
@@ -64,20 +30,7 @@ isometry(Tf::TorQuadModuleWithIsom) = Tf.f
     order_of_isometry(Tf::TorQuadModuleWithIsom) -> Int
 
 Given a torsion quadratic module with isometry ``(T, f)``, return the order
-of the isometry ``f``.
-
-# Examples
-
-```jldoctest
-julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
-Finite quadratic module of order 60
-  with 1 generator
-  with isometry given by
-  [11]
-
-julia> order_of_isometry(Tf)
-2
-```
+of the isometry ``f1``.
 """
 @attr Int function order_of_isometry(Tf::TorQuadModuleWithIsom)
   T = underlying_module(Tf)
@@ -113,7 +66,7 @@ If ``f`` is not supplied, it is set to be the identity map of ``T`` by
 default.
 
 If `check` is set to `true`, the function checks whether ``f`` indeed defines
-an isometry of ``T``.
+an isometry of ``T``. 
 """
 torsion_quadratic_module_with_isometry(::TorQuadModule, ::TorQuadModuleMap)
 
@@ -122,7 +75,6 @@ function torsion_quadratic_module_with_isometry(
   f::TorQuadModuleMap;
   check::Bool=true,
 )
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   if check
     @req domain(f) === codomain(f) === T "Wrong domain or codomain"
     @req Hecke.is_isometry(f) "Not an isometry"
@@ -132,7 +84,6 @@ function torsion_quadratic_module_with_isometry(
 end
 
 function torsion_quadratic_module_with_isometry(T::TorQuadModule)
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   f = id_hom(T)
   return TorQuadModuleWithIsom(T, f)
 end
@@ -141,7 +92,6 @@ function torsion_quadratic_module_with_isometry(
   T::TorQuadModule,
   f::AutomorphismGroupElem{TorQuadModule};
 )
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   @req domain(f) === T "Wrong domain"
   return torsion_quadratic_module_with_isometry(T, hom(f); check=false)
 end
@@ -151,7 +101,6 @@ function torsion_quadratic_module_with_isometry(
   m::ZZMatrix;
   check::Bool=true,
 )
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   f = hom(T, T, m; check)
   return torsion_quadratic_module_with_isometry(T, f; check)
 end
@@ -161,7 +110,6 @@ function torsion_quadratic_module_with_isometry(
   g::FinGenAbGroupHom;
   check::Bool=true,
 )
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   if check
     @req domain(g) === codomain(g) === abelian_group(T) "Wrong domain or codomain"
   end
@@ -174,7 +122,6 @@ function torsion_quadratic_module_with_isometry(
   g::MatrixGroupElem{QQFieldElem, QQMatrix};
   check::Bool=true,
 )
-  @req is_finite(abelian_group(T)) "Only available for finite modules"
   if check
     B = basis_matrix(relations(T))
     @req can_solve(B, B*matrix(g); side=:left) "Incompatible inputs"
@@ -195,7 +142,6 @@ with integer entries, return the pair ``(T, f')`` where:
   - ``T`` is a torsion quadratic module with Gram matrix ``T``, for the
     associated finite quadratic form;
   - ``f'`` is the isometry of ``T`` defined by ``f``.
-
 If ``f`` is not supplied, then it is set to be the identity matrix by
 default.
 
@@ -254,11 +200,10 @@ Given a torsion quadratic module with isometry ``(T, f)``, return whether
 ``S`` is an ``f``-stable submodule of ``T``.
 """
 function _is_submodule(Tf::TorQuadModuleWithIsom, S::TorQuadModule)
-  T = underlying_module(Tf)
-  is_sublattice(cover(T), cover(S)) || return false
+  is_sublattice(cover(underlying_module(Tf)), cover(S)) || return false
   f = isometry(Tf)
   for a in gens(S)
-    lift(f(T(lift(a)))) in cover(S) || return false
+    lift(f(T(lift(a); check=false))) in cover(S) || return false
   end
   return true
 end
@@ -334,7 +279,7 @@ end
     submodules(
       Tf::TorQuadModuleWithIsom;
       kwargs...,
-    )
+    ) -> 
 
 Given a torsion quadratic module with isometry ``(T, f)``, return an iterator
 on the ``f``-stable submodules of ``T``. The possible keyword arguments to
@@ -361,31 +306,11 @@ end
 ###############################################################################
 
 @doc raw"""
-    automorphism_group(
-      Tf::TorQuadModuleWithIsom
-    ) -> AutomorphismGroup{TorQuadModule}
+    automorphism_group(Tf::TorQuadModuleWithIsom} -> AutomorphismGroup{TorQuadModule}
 
 Given a torsion quadratic module with isometry ``(T, f)``, return the
 automorphism group ``O(T, f)`` of ``(T, f)``. This is defined as the
 centralizer of the isometry ``f`` in the orthogonal group ``O(T)`` of ``T``.
-
-# Examples
-
-```jldoctest
-julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
-Finite quadratic module of order 60
-  with 1 generator
-  with isometry given by
-  [11]
-
-julia> automorphism_group(Tf)
-Group of isometries of
-  finite quadratic module: Z/60 -> Q/2Z
-with 3 generators
-
-julia> order(ans)
-8
-```
 """
 function automorphism_group(Tf::TorQuadModuleWithIsom)
   T = underlying_module(Tf)
@@ -403,11 +328,11 @@ end
     ) -> Bool, TorQuadModuleMap
 
 Given two torsion quadratic modules with isometry ``(T, f)`` and ``(S, g)``,
-return whether there exists an isometry ``ψ`` between ``T`` and ``S`` that
-conjugates ``f`` and ``g``, i.e. such that ``g ∘ ψ = ψ ∘ f``.
+return whether there exists an isometry ``\psi`` between ``T`` and ``S`` that
+conjugates ``f`` and ``g``, i.e. such that ``g\circ\psi = \psi\circ f``.
 
-If such a ``ψ`` exists, return ``true, ψ``, otherwise return ``false, 0``
-where here ``0`` denotes the zero map from ``T`` to ``S``.
+If such a ``\psi`` exists, return ``true, \psi``, otherwise return ``false, 0``
+where ``0`` here denotes the zero map from ``T`` to ``S``.
 """
 function is_isomorphic_with_map(
   Tf::TorQuadModuleWithIsom,
@@ -440,48 +365,11 @@ end
     ) -> Bool, TorQuadModuleMap
 
 Given two torsion quadratic modules with isometry ``(T, f)`` and ``(S, g)``,
-return whether there exists an anti-isometry ``ψ`` between ``T`` and ``S``
-that conjugates ``f`` and ``g``, i.e. such that ``g ∘ ψ = ψ ∘ f``.
+return whether there exists an anti-isometry ``\psi`` between ``T`` and ``S``
+that conjugates ``f`` and ``g``, i.e. such that ``g\circ\psi = \psi\circ f``.
 
-If such a ``ψ`` exists, return ``true, ψ``, otherwise return ``false, 0``
-where here ``0`` denotes the zero map from ``T`` to ``S``.
-
-# Examples
-```jldoctest
-julia> E8  = root_lattice(:E, 8);
-
-julia> m = QQ[ 1  0  0  0  0  0  0  0;
-               0  1  0  0  0  0  0  0;
-              -2 -4 -5 -4 -3 -2 -1 -2;
-               1  2  3  3  2  1  0  1;
-              -1 -2 -3 -3 -2 -1  0 -2;
-               1  2  3  2  1  0  0  2;
-               0  0  0  0  0  1  0  0;
-               2  4  6  5  4  3  2  3];
-
-julia> Lf = integer_lattice_with_isometry(E8, m);
-
-julia> F = kernel_lattice(Lf, 3);
-
-julia> C = orthogonal_submodule(Lf, basis_matrix(F));
-
-julia> Tf = discriminant_group(TorQuadModuleWithIsom, F)
-Finite quadratic module of order 12
-  with 2 generators
-  with isometry given by
-  [0   3]
-  [1   1]
-
-julia> Sg = discriminant_group(TorQuadModuleWithIsom, C)
-Finite quadratic module of order 12
-  with 2 generators
-  with isometry given by
-  [0   3]
-  [1   1]
-
-julia> is_anti_isomorphic_with_map(Tf, Sg)
-(true, Map: finite quadratic module -> finite quadratic module)
-```
+If such a ``\psi`` exists, return ``true, \psi``, otherwise return ``false, 0``
+where ``0`` here denotes the zero map from ``T`` to ``S``.
 """
 function is_anti_isomorphic_with_map(
   Tf::TorQuadModuleWithIsom,
@@ -489,7 +377,7 @@ function is_anti_isomorphic_with_map(
 )
   T = underlying_module(Tf)
   S = underlying_module(Sg)
-
+  
   f = isometry(Tf)
   ok, phi = is_anti_isometric_with_anti_isometry(T, S)
   !ok && return false, phi
@@ -514,11 +402,11 @@ end
 ###############################################################################
 
 function Base.:(==)(T1::TorQuadModuleWithIsom, T2::TorQuadModuleWithIsom)
-  underlying_module(T1) === underlying_module(T2) || return false
-  return matrix(isometry(T1)) == matrix(isometry(T2))
+  underlying_module(T1) == underlying_module(T2) || return false
+  return isometry(T1) == isometry(T2)
 end
 
 function Base.hash(T::TorQuadModuleWithIsom, u::UInt)
   u = Base.hash(underlying_module(T), u)
-  return Base.hash(matrix(isometry(T)), u)
+  return Base.hash(isometry(T), u)
 end

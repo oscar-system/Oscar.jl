@@ -122,6 +122,7 @@ test_subsets = Dict(
                                "test/NumberTheory/QuadFormAndIsom/finite_group_actions.jl",
                                "test/NumberTheory/QuadFormAndIsom/lattices_with_isometry.jl",
                                "test/NumberTheory/QuadFormAndIsom/spaces_with_isometry.jl",
+                               "test/NumberTheory/QuadFormAndIsom/torsion_quadratic_module_with_isometry.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",

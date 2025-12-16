@@ -82,7 +82,6 @@ function Base.show(io::IO,  ::MIME"text/plain", Tf::TorQuadModuleWithIsom)
   if flag
     print(io, "of order $(get_attribute(Tf, :order_of_isometry)) ")
   end
-  println(io, "")
   println(io, "given by")
   show(io, MIME"text/plain"(), matrix(isometry(Tf)))
   print(io, Dedent())
