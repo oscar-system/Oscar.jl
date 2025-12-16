@@ -78,7 +78,6 @@ end
   h = hom(S, R, hom(R, R, [R[2], R[1], R[2]]), [x, y])
   @test s-y in kernel(h)
   @test S(x-z) in kernel(h)
-  
 end
 
 @testset "flattenings of quotient rings" begin
