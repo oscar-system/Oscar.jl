@@ -31,8 +31,8 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
   end
 
-  function OscarWorkerPool(manager::ClusterManager, n::Int; kw...)
-    wids = addprocs(manager, n; kw...)
+  function OscarWorkerPool(manager::ClusterManager; kw...)
+    wids = addprocs(manager; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     remotecall_eval(Main, wids, :(using Oscar))
@@ -44,7 +44,7 @@ end
 @doc raw"""
      oscar_worker_pool(n::Int; kw...)
      oscar_worker_pool(f::Function, n::Int; kw...)
-     oscar_worker_pool(manager::ClusterManager, n::Int; kw...)
+     oscar_worker_pool(manager::ClusterManager; kw...)
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
@@ -63,7 +63,7 @@ end
 ```
 """
 oscar_worker_pool(n::Int; kw...) = OscarWorkerPool(n; kw...)
-oscar_worker_pool(manager::ClusterManager, n::Int; kw...) = OscarWorkerPool(manager, n; kw...)
+oscar_worker_pool(manager::ClusterManager; kw...) = OscarWorkerPool(manager; kw...)
 
 function oscar_worker_pool(f::Function, args...; kw...)
   wp = OscarWorkerPool(args...; kw...)
