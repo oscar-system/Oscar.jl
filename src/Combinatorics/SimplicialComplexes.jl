@@ -210,8 +210,9 @@ function betti_numbers(p::Int, K::SimplicialComplex)
   b = Int[]
   L = fpField(UInt(p))
   boundary_m = matrix(L, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
+  im_dim = 1
   for k = 1:dim(K) + 1
-    ker_dim = rank(kernel(boundary_m; side=:left))
+    ker_dim = size(boundary_m)[1] - im_dim
     boundary_m = matrix(L, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), k))
     im_dim = rank(boundary_m)
     
