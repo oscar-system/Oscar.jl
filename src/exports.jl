@@ -1088,6 +1088,7 @@ export is_zm_graded
 export isfinite
 export isometry
 export isometry_group
+export isometry_is_positive
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism

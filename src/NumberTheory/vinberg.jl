@@ -397,7 +397,7 @@ function _get_h(L::ZZLat, v, w, bi_form)
   n = 1
   i = 1
   z = matrix(ZZ,1,l,rand(-10:10, l)) # random small vector in lattice basis
-  n_h0 = h0*n
+  n_h0 = map(x->floor(ZZRingElem, x) , h0*n)
   h = z+n_h0# in lattice basis
   h = map(x->floor(ZZRingElem, x) , h) # in lattice basis and rounded
   while bi_form(h,h) <= 0 || n == 10000  # block on 10000, because for a bigger n time consumption is way too big
