@@ -950,7 +950,7 @@ function representatives_of_hermitian_type(
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
       if rank(G) <= 4 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local=false)
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, _local=false)
         if all(minimum(i)<=2 for i in repre1)
           return reps 
         end
