@@ -1671,7 +1671,11 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int; algori
   if algorithm==:gset
     return _orbit_representatives_and_stabilizers_gset_gap(G, k)
   elseif algorithm==:perm
-    return _orbit_representatives_and_stabilizers_perm(G, k)
+    n = degree(G)
+    V = vector_space(base_ring(G), n)
+    k == 0 && return [(sub(V, [])[1], G)]
+    _repstab = _orbit_representatives_and_stabilizers_perm(G, k)
+    return [(sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1],S) for (M,S) in _repstab]
   else 
     error("unknown algorithm")
   end
@@ -1723,18 +1727,24 @@ function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where 
     rep[i,i] = 1
   end 
   E = identity_matrix(K, n)
-  _gens = dense_matrix_type(T)[] 
-  for g in gens(GL(k, K))
-    EE = deepcopy(E) 
-    EE[1:k,1:k] = matrix(g)
-    push!(_gens, EE)
+  _gens = dense_matrix_type(T)[]
+  if k>0
+    for g in gens(GL(k, K))
+      EE = deepcopy(E) 
+      EE[1:k,1:k] = matrix(g)
+      push!(_gens, EE)
+    end
   end 
-  for g in gens(GL(n - k, K))
-    EE = deepcopy(E) 
-    EE[k+1:end,k+1:end] = matrix(g)
-    push!(_gens, EE)
+  if k < n
+    for g in gens(GL(n - k, K))
+      EE = deepcopy(E) 
+      EE[k+1:end,k+1:end] = matrix(g)
+      push!(_gens, EE)
+    end
+  end 
+  if 0<k<n 
+    E[k+1,1] = 1
+    push!(_gens, E)
   end
-  E[k+1,1] = 1
-  push!(_gens, E)
   return rep, _gens
 end 
