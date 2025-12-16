@@ -42,12 +42,14 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
 end
 
 @doc raw"""
-     oscar_worker_pool(n::Int)
-     oscar_worker_pool(f::Function, n::Int)
-
+     oscar_worker_pool(n::Int; kw...)
+     oscar_worker_pool(f::Function, n::Int; kw...)
+     oscar_worker_pool(manager::ClusterManager, n::Int; kw...)
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
+
+Will also accept a `manager` as an argument, `kw` will get passed to `addprocs` when initializing the workers.
 
 # Example
 The following code will start up 3 processes with Oscar,
