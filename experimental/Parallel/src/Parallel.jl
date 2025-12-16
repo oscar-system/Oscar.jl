@@ -31,10 +31,13 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
   end
 
-  function OscarWorkerPool(manager::ClusterManager; kw...)
+  function OscarWorkerPool(manager::ClusterManager; project=nothing, kw...)
     wids = addprocs(manager; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
+    if !isnothing(project)
+      remotecall_eval(Main, wids, :(using Pkg; Pkg.activate(project); Pkg.instantiate()))
+    end
     remotecall_eval(Main, wids, :(using Oscar))
 
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
