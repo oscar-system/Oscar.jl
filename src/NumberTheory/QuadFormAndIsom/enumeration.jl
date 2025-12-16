@@ -1599,7 +1599,7 @@ function __splitting_of_hermitian_type(
       isempty(Bs) && continue
       for LA in As, LB in Bs
         Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false, _local)
-        if root_test && !_local && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
+        if root_test && !_local && signature_tuple(B)[1] + signature_tuple(A)[1]<=1 # Remove lattices with (-2)-vectors
           filter!(i -> minimum(coinvariant_lattice(i))!=2, Es)
         end
         if fix_root == k
