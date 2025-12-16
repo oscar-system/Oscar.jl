@@ -410,6 +410,7 @@ function _get_h(L::ZZLat, v, w, bi_form)
     z = matrix(ZZ,1,l,rand(-10:10, l)) # random small vector in lattice basis
     h = (z+n_h0) #in lattice basis
   end
+  if n == 10000 throw(OverflowError("The upper limitation on h calculation is reached. Bigger h will not be able to process in reasonable time")) end
   return h::ZZMatrix
 end
 
