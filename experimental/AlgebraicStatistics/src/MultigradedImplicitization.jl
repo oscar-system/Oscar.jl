@@ -262,7 +262,7 @@ function lifted_monomials(deg::FinGenAbGroupElem,
   end
   isempty(gen_shifts) && return Set{MPolyDecRingElem}([])
   
-  mons = unique!(reduce(vcat, [collect(monomials(f; ordering=degrevlex(parent(f)))) for f in gen_shifts]))
+  mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
   M = matrix(QQ, [[coeff(f, m) for m in mons] for f in gen_shifts])
   rref!(M)
   mon_indices = Int[]
