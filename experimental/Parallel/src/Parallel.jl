@@ -22,8 +22,17 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
 
-  function OscarWorkerPool(n::Int)
-    wids = addprocs(n)
+  function OscarWorkerPool(n::Int; kw...)
+    wids = addprocs(n, kw...)
+    wp = WorkerPool(wids)
+    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
+    remotecall_eval(Main, wids, :(using Oscar))
+
+    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+  end
+
+  function OscarWorkerPool(manager::ClusterManager, n::Int; kw...)
+    wids = addprocs(manager, n; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     remotecall_eval(Main, wids, :(using Oscar))
@@ -51,10 +60,11 @@ results = oscar_worker_pool(3) do wp
 end
 ```
 """
-oscar_worker_pool(n::Int) = OscarWorkerPool(n)
+oscar_worker_pool(n::Int; kw...) = OscarWorkerPool(n; kw...)
+oscar_worker_pool(manager::ClusterManager, n::Int; kw...) = OscarWorkerPool(manager, n; kw...)
 
-function oscar_worker_pool(f::Function, n::Int)
-  wp = OscarWorkerPool(n)
+function oscar_worker_pool(f::Function, args...; kw...)
+  wp = OscarWorkerPool(args...; kw...)
   local results
   try
     results = f(wp)
