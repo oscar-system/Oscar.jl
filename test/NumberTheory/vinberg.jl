@@ -84,7 +84,7 @@ end
   Vf = quadratic_space_with_isometry(V, f)
   L = lattice(Vf, B)
   @assert lattice(Vf,basis_matrix(L)*f) == L
-
+  @test isometry_is_positive(L)[1] == true
   tau = _get_tau(isometry(L), Qb)
 
   C0 = x^14 + 2*x^13 + 5*x^12 + 8*x^11 + 11*x^10 + 14*x^9 + 15*x^8 + 16*x^7 + 15*x^6 + 14*x^5 + 11*x^4 + 8*x^3 + 5*x^2 + 2*x + 1

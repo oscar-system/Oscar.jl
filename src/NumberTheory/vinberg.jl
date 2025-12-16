@@ -383,7 +383,7 @@ end
 
 
 @doc raw"""
-    _get_h(L::ZZLat, v, w, Qb, bi_form) -> QQMatrix
+    _get_h(L::ZZLat, v, w, Qb, bi_form) -> ZZMatrix
 
 Return a vector $h$ in the lattice `L`, such that $bi_form(h,h)>0$. 
 
@@ -419,14 +419,14 @@ function _get_R(L, h::ZZMatrix)
 end
 
 @doc raw"""
-    _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, QQMatrix}
+    _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, ZZMatrix}
 
 The function calculates all $r$, that can be obstructing roots of 'L'.
 Calculation is made one by one and then the $r$ is checked
 $r$ is based on pairs of integer $(a,b)$ of $-2x^2+2y^2+2aby>=x(a^2+b^2)$ with $a>0$, $b<0$, $x>0$,$y>0$
 See Steps 7,8,9 of Algorithm 5.8 in [OY20](@cite)
 
-Return a tuple of a boolean that represents if isometry f of the lattice is positive and QQMatrix,
+Return a tuple of a boolean that represents if isometry f of the lattice is positive and ZZMatrix,
 that represents an obstructing root
 """
 function _process_finite_sets_of_h(h::ZZMatrix, f::QQMatrix, v, w, bi_form, L::ZZLat)
@@ -453,16 +453,14 @@ function _check_R(r, v, w, bi_form)
 end
 
 @doc raw"""
-    isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, QQMatrix}
+    isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, ZZMatrix}
 
 Given lattice with isometry 'Lf' and given 'h' vector in this lattice
 according to the ambient space basis, such that $h^2>0$. 
 If no such vector is given, 'h' will be calculated by function inside based on a random vector in 'Lf'.
 
-Return a tuple of a boolean that represents if isometry f of the lattice is positive and QQMatrix,
-that represents an obstructing root (see Algorithm 5.8 of "MINIMUM POSITIVE ENTROPY OF COMPLEX
-ENRIQUES SURFACE AUTOMORPHISMS" by KEIJI OGUISO and XUN YU in Duke Mathematical Journal, 2020,
-volume 169, number 18, pages 3565 - 3606)
+Return a tuple of a boolean that represents if isometry f of the lattice is positive and ZZMatrix,
+that represents an obstructing root (see Algorithm 5.8 of [OY20](@cite)
 
 For positive isometries it returns a vector of zeros with the same dimension as 'h'.
 """
