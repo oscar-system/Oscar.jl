@@ -559,7 +559,7 @@ function direct_sum(x::Vector{T}; cached=false) where T <: QuadSpaceWithIsom
   return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
+direct_sum(x::Vararg{QuadSpaceWithIsom};cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #

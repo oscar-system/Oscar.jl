@@ -1598,8 +1598,9 @@ function __splitting_of_hermitian_type(
       end
       isempty(Bs) && continue
       for LA in As, LB in Bs
+        satisfies_eiglat_cond(LA, LB, eiglat_cond) || continue
         Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false, _local)
-        if root_test && !_local && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
+        if root_test && !_local && signature_tuple(B)[1]+signature_tuple(A)[1]<=1 # Remove lattices with (-2)-vectors
           filter!(i -> minimum(coinvariant_lattice(i))!=2, Es)
         end
         if fix_root == k
@@ -1719,6 +1720,7 @@ function splitting_of_prime_power(
   if isone(n)
     return splitting_of_hermitian_type(Lf, p, b; eiglat_cond, fix_root, genusDB, root_test, info_depth, check=false, discriminant_annihilator, _local)
   end
+  
 
   ok, e, q = is_prime_power_with_data(n)
 
@@ -1741,6 +1743,7 @@ function splitting_of_prime_power(
   RA = splitting_of_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     n1 = order_of_isometry(L1)::Int
     n2 = order_of_isometry(L2)::Int
     # Condition Line 11 of Algorithm 5 of [BH23]
@@ -1748,6 +1751,9 @@ function splitting_of_prime_power(
     # the correct order
     b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
+    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
+      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    end
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
@@ -1862,8 +1868,12 @@ function splitting_of_pure_mixed_prime_power(
   RA = splitting_of_pure_mixed_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
+    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
+      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    end
     append!(reps, E)
   end
   return reps
@@ -2005,7 +2015,11 @@ function splitting_of_mixed_prime_power(
   RA = splitting_of_mixed_prime_power(A0, p, 0; eiglat_cond, fix_root, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=p*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p; check=false, _local)
+    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
+      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    end
     b == 1 && filter!(LL -> order_of_isometry(LL) == p*n, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
@@ -2326,7 +2340,6 @@ function enumerate_classes_of_lattices_with_isometry(
   if length(eiglat_cond) == 0
     eiglat_cond = [_conditions_from_input(m, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
   end
-
   allow_info && println("Conditions computed") 
 
   if m == 1
@@ -2517,6 +2530,38 @@ function _from_cyclotomic_polynomial_to_dict(
   end
   return V
 end
+
+function eigenlattice_conditions(f::ZZLatWithIsom)
+  n = order_of_isometry(f)
+  @assert isfinite(n)
+  D = Dict{Int,Vector{Int}}()
+  for k in divisors(n)
+    pk,_,nk = signature_tuple(kernel_lattice(f,k))
+    D[k] = [pk+nk,pk,nk]
+  end
+  return D
+end 
+
+function satisfies_eiglat_cond(D1::T, D2::T) where {T <: Dict{Int,Vector{Int}}}
+  for k in keys(D2)
+    l1 = get(D1,k, [0,0,0])
+    l2 = D2[k]
+    for i in 1:3
+      l2[i]<0 || l2[i]==l1[i] || return false 
+    end
+  end 
+  return true
+end
+
+satisfies_eiglat_cond(f::ZZLatWithIsom, D::Dict{Int,Vector{Int}}) = satisfies_eiglat_cond(eigenlattice_conditions(f), D)
+
+function satisfies_eiglat_cond(L1::ZZLatWithIsom, L2::ZZLatWithIsom, eiglat_cond::Vector{Dict{Int,Vector{Int}}})
+  L1L2,_ = direct_sum(L1,L2;cached=false)
+  d1 = eigenlattice_conditions(L1L2)
+  return any(satisfies_eiglat_cond(d1,d2) for d2 in eiglat_cond)
+end 
+
+satisfies_eiglat_cond(L1::ZZLatWithIsom,L2::ZZLatWithIsom, eiglat_cond::Dict) = satisfies_eiglat_cond(L1,L2,[eiglat_cond])
 
 # Create a dictionary of restrictions on rank and signatures
 # for the eigenlattices of an isometry of order m with possible
@@ -2864,6 +2909,7 @@ function oscar_genus_representatives(
         As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1)
         isempty(As) && continue
         for LA in As, LB in Bs
+          satisfies_eiglat_cond(LA, LB, eiglat_cond) || continue
           Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local)
           allow_info &&  println("$(length(Ns)) lattices to try")
           for Nf in Ns
