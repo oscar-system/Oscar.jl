@@ -200,7 +200,7 @@ function _assemble_isotopy_graph!(
     x1 = xcoords[pos]
     x0 = x1 - coeff * dist
     y0 = root_finder(projy(Oscar.evaluate(f, [Rxy(x0), y])); selected_precision)
-    y1 = svecs[1]
+    y1 = svecs[pos]
     edges = _get_edges_with_singularity(length(y1), length(y0), sindices[pos])
     for (a, b) in edges
       pt0p = Int[3 * pos - coeff, b]
