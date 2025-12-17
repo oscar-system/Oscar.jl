@@ -534,6 +534,16 @@ end
 
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
+                     params::Dict) where {S <: Union{String, Symbol}, U}
+  dict = T()
+  for k in keys(s.obj)
+    dict[S(k)] = load_object(s, U, params[:value_params], Symbol(k))
+  end
+  return dict
+end
+
+function load_object(s::DeserializerState,
+                     T::Type{<:Dict{S, U}},
                      params::Any) where {S, U}
   if params isa Dict
     if haskey(params, :value_params)

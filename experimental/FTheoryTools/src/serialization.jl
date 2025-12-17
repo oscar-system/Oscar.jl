@@ -194,6 +194,7 @@ function _load_common_parts(s::DeserializerState, params::Dict)
   ))
   def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
+
   explicit_model_sections = _maybe_load(
     s,
     Dict{String,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},
