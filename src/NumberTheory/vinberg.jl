@@ -389,7 +389,7 @@ Return a vector $h$ in the lattice `L`, such that $bi_form(h,h)>0$.
 
 Vectors 'v','w' are eigenvectors of isometry associated with L based on salem number $tau$ and $tau^(-1)$
 
-'Qb' is a current field, where all calculations happens
+'Qb' is a current field, where all calculations happen
 """
 function _get_h(L::ZZLat, v, w, bi_form)
   l = number_of_rows(basis_matrix(L))
