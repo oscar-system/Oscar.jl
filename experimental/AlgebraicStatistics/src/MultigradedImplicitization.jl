@@ -321,8 +321,8 @@ end
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
                               wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size::Int=1000
-                              )
+                              batch_size::Int=1000,
+                              show_progress::Bool=false)
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
 
@@ -373,12 +373,12 @@ function components_of_kernel(d::Int,
     degrees = collect(keys(mon_bases))
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30 * batch_size
-      filter_results = pmap(filter_component,
+      filter_results = @showprogress enabled=show_progress "filtering cases" pmap(filter_component,
                             [deg for deg in degrees],
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; distributed=false)
     else
-      filter_results = pmap(filter_component, wp,
+      filter_results = @showprogress enabled=show_progress "filtering cases" pmap(filter_component, wp,
                             [deg for deg in degrees],
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; batch_size=batch_size)
@@ -389,10 +389,10 @@ function components_of_kernel(d::Int,
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
       if isnothing(wp) || length(remain_degs) < batch_size
-        results = pmap(compute_kernel_component,
+        results = @showprogress enabled=show_progress "handling remaining cases" pmap(compute_kernel_component,
                        [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
       else
-        results = pmap(compute_kernel_component, wp,
+        results = @showprogress enabled=show_progress "handling remaining cases" pmap(compute_kernel_component, wp,
                        [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
       end
     else
