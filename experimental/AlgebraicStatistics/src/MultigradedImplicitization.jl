@@ -228,27 +228,23 @@ julia> length(d)
 """
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap; # Morphism between ungraded rings
-                              wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size=100
-                              )
+                              kw...)
   # grade the domain
   graded_dom = Oscar.max_grade_domain(phi)
   graded_cod, _ = grade(codomain(phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
-  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; kw...))
 end
 
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
-                              wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size=100
-                              )
+                              kw...)
   new_phi = flatten(phi)
   # grade the domain
   graded_dom = Oscar.max_grade_domain(new_phi)
   graded_cod, _ = grade(codomain(new_phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(new_phi)))
-  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; kw...))
 end
 
 function lifted_monomials(deg::FinGenAbGroupElem,
@@ -329,7 +325,7 @@ end
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
                               wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size::Int=1000,
+                              batch_size::Int=100,
                               show_progress::Bool=false)
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
