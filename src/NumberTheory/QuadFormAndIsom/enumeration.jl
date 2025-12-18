@@ -2544,12 +2544,13 @@ end
 
 function satisfies_eiglat_cond(D1::T, D2::T) where {T <: Dict{Int,Vector{Int}}}
   for k in keys(D2)
-    l1 = get(D1,k, [0,0,0])
+    l1 = get(D1, k, [0,0,0])
     l2 = D2[k]
+    l1[1] == 0 && continue
     for i in 1:3
       l2[i]<0 || l2[i]==l1[i] || return false 
     end
-  end 
+  end
   return true
 end
 

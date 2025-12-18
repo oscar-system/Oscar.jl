@@ -1303,12 +1303,12 @@ Integer lattice of rank 10 and degree 10
 ```
 """
 function direct_sum(x::Vector{ZZLatWithIsom}; cached=false)
-  Vf, inj, proj = direct_sum(ambient_space.(x); cached=false)
+  Vf, inj, proj = direct_sum(ambient_space.(x); cached)
   Bs = block_diagonal_matrix(basis_matrix.(x))
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{ZZLatWithIsom};cached=false) = direct_sum(collect(x);cached=false)
+direct_sum(x::Vararg{ZZLatWithIsom};cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #
