@@ -475,29 +475,16 @@ Computes the (partial) exterior shift of a simplical complex or uniform hypergra
 using the Las Vegas algorithm. It samples `n_samples` random matrices, computes the respective partial shifts, takes the lexicographically minimal one,
 tests if it is the partial shift of `K` with respect to `p`, and returns the shift and the number of samples used. Otherwise, returns `nothing`
 and the number of samples used.
-    
-With `timed`, return extensive reporting."""
-function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
-  # this might need to be changed based on the characteristic
-  # we expect that the larger the characteristic the smaller the sample needs to be
-  # setting to 100 now for good measure
-  # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
-  
+"""
+function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, kw...)
   random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
-  (shift, i), stats... = @timed efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) #TODO Used to pass kwargs, which was ignored anyway because the matrix r has field entries.
+  (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
   # Check if `shift` is the generic exterior shift of K
   prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
   n = n_vertices(K)
-  is_correct_shift, stats2... = @timed (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
-  
-  if timed
-    if is_correct_shift
-      return shift, (i, stats.time, stats.bytes, stats2.time, stats2.bytes)
-    else
-      return nothing, (">$n_samples", stats.time, stats.bytes, stats2.time, stats2.bytes)
-    end
-  else
-    return is_correct_shift ? shift : nothing
-  end
+  is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+
+  # this may never terminate, we could in the future pass to a field extension to increase probability of termination
+  return is_correct_shift ? shift : exterior_shift_lv(F, K, p; n_samples=n_samples, kw...)
 end
 
