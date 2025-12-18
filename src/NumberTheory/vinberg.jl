@@ -354,7 +354,7 @@ function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_leng
 end
 
 
-function _get_tau(f::QQMatrix, Qb)
+function _get_tau(f::ZZMatrix, Qb)
   tau = zero(Qb)
   for lambda in eigenvalues(Qb, f)
     if abs(lambda)>tau
@@ -367,7 +367,12 @@ end
 function _get_bilinearform(Lf::ZZLatWithIsom, Qb)
   gram_in_Qb = change_base_ring(Qb, gram_matrix(Lf))
   #return (a, b)->inner_product(ambient_space(L), a,b)[1,1] -> it doesn't go well as there is no convienient way to convert ZZLat in QQ field to the Qb field
-  return (a,b)-> ((change_base_ring(Qb, a))*gram_in_Qb*transpose(change_base_ring(Qb, b)))[1]
+  return function (a,b)
+    tmp_a = change_base_ring(Qb, a)
+    tmp_b = transpose(change_base_ring(Qb, b))
+    mul!(tmp_b, mul!(tmp_a, tmp_a, gram_in_Qb), tmp_b)
+    return tmp_b[1]
+  end
 end
 
 function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)
@@ -393,10 +398,23 @@ Vectors 'v','w' are eigenvectors of isometry associated with L based on salem nu
 """
 function _get_h(L::ZZLat, v, w, bi_form)
   l = number_of_rows(basis_matrix(L))
+  r = rank(L)
+  if r<4
+    k = 10
+  elseif  r<6
+    k = 6
+  elseif r<8
+    k = 4
+  elseif r<10
+    k = 2
+  else
+    k = 1
+  end
   h0 = v+w
+  h0 = h0/bi_form(h0,h0)
   n = 1
   i = 1
-  z = matrix(ZZ,1,l,rand(-10:10, l)) # random small vector in lattice basis
+  z = matrix(ZZ,1,l,rand(-k:k, l)) # random small vector in lattice basis
   n_h0 = map(x->floor(ZZRingElem, x) , h0*n)
   h = z+n_h0# in lattice basis
   h = map(x->floor(ZZRingElem, x) , h) # in lattice basis and rounded
@@ -407,8 +425,11 @@ function _get_h(L::ZZLat, v, w, bi_form)
       i = 1
       n_h0 = map(x->floor(ZZRingElem, x) , h0*n) 
     end
-    z = matrix(ZZ,1,l,rand(-10:10, l)) # random small vector in lattice basis
-    h = (z+n_h0) #in lattice basis
+    for x in 1:l
+      z[1, x] = rand(-k:k)
+    end
+    add!(h, z, n_h0)
+    #h = (z+n_h0) #in lattice basis
   end
   if n == 10000 throw(OverflowError("The upper limitation on h calculation is reached. Bigger h will not be able to process in reasonable time")) end
   return h::ZZMatrix
@@ -429,16 +450,19 @@ See Steps 7,8,9 of Algorithm 5.8 in [OY20](@cite)
 Return a tuple of a boolean that represents if isometry f of the lattice is positive and ZZMatrix,
 that represents an obstructing root
 """
-function _process_finite_sets_of_h(h::ZZMatrix, f::QQMatrix, v, w, bi_form, L::ZZLat)
+function _process_finite_sets_of_h(h::ZZMatrix, f::ZZMatrix, v, w, bi_form, L::ZZLat)
   x = bi_form(h, h)
   y = bi_form(h, h*f)
   z = y^2-x^2
   if (z<0) return (true, zero(h)) end #then discriminant for a will be <0 and there is no root (a,b)=> no obstructing roots => positive
   b_min = -isqrt(round(ZZRingElem, 2*z/x, RoundDown))
+  h_new = zero(h)
+  tmp = zero(h)
   for b = b_min:-1
     a_max = round(ZZRingElem, (b*y+isqrt(round(ZZRingElem, (z*b^2+2*x), RoundDown))/x^2), RoundDown)
     for a = 1:a_max
-      h_new = -b*h +a*h*f
+      add!(h_new,neg!(mul!(h_new,b,h),mul!(tmp,a,mul!(tmp,h,f))))
+      #h_new = -b*h +a*h*f
       Rh = _get_R(L, h_new)
       for r in Rh
         if _check_R(r, v, w, bi_form) return false, r end
@@ -467,7 +491,7 @@ For positive isometries it returns a vector of zeros with the same dimension as 
 
 function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{ZZMatrix, Nothing} = nothing)
   Qb = algebraic_closure(QQ);
-  f = isometry(Lf)
+  f = change_base_ring(ZZ, isometry(Lf))
   L = lattice(Lf)
   tau = _get_tau(f, Qb)
   bi_form = _get_bilinearform(Lf, Qb)
