@@ -442,7 +442,7 @@ end
 @doc raw"""
     _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, ZZMatrix}
 
-The function calculates all $r$, that can be obstructing roots of 'L'.
+The function calculates all $r$, that can be obstructing roots of `L`.
 Calculation is made one by one and then the $r$ is checked
 $r$ is based on pairs of integer $(a,b)$ of $-2x^2+2y^2+2aby>=x(a^2+b^2)$ with $a>0$, $b<0$, $x>0$,$y>0$
 See Steps 7,8,9 of Algorithm 5.8 in [OY20](@cite)
@@ -469,7 +469,7 @@ function _process_finite_sets_of_h(h::ZZMatrix, f::ZZMatrix, v, w, bi_form, L::Z
       end
     end
   end
-  return (true, zero(h))
+  return true, zero(h)
 end
 
 function _check_R(r, v, w, bi_form)
@@ -479,14 +479,18 @@ end
 @doc raw"""
     isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, ZZMatrix}
 
-Given lattice with isometry 'Lf' and given 'h' vector in this lattice
-according to the ambient space basis, such that $h^2>0$. 
-If no such vector is given, 'h' will be calculated by function inside based on a random vector in 'Lf'.
+Return whether the isometry of `Lf` is positive and an obstructing root if it exists. 
 
-Return a tuple of a boolean that represents if isometry f of the lattice is positive and ZZMatrix,
-that represents an obstructing root (see Algorithm 5.8 of [OY20](@cite)
+The isometry is called positive if it preserves a connected component of the set $\{x \in L \mid x^2>0, \wedge \forall r \in \{r \in L | r^2=-2\}: x.r\neq 0\}$. 
 
-For positive isometries it returns a vector of zeros with the same dimension as 'h'.
+This implements see Algorithm 5.8 of [OY20](@cite). 
+
+# Arguments
+- `Lf` -- a hyperbolic lattice with an isometry of positive spectral radius. 
+- `h` -- a vector of positive square given with respect to the ambient space of `Lf`. If no such vector is given, `h` will be calculated by function inside based on a random vector in `Lf`.
+
+# Output
+For positive isometries the second return value is a vector of zeros of the same degree as `h`.
 """
 
 function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{ZZMatrix, Nothing} = nothing)
