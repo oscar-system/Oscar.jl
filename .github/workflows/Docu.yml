@@ -42,11 +42,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY_OUTOFTREE }} # For authentication with SSH deploy key
-        run: julia --project=docs/ --color=yes -e '
-        using Oscar:
-         Oscar.build_doc(formats = [:html, :pdf])
-      - name: Upload PDF documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: Oscar-docs-pdf
-          path: docs/build/Oscar.pdf
+        run: julia --project=docs/ --color=yes docs/make.jl
+      
