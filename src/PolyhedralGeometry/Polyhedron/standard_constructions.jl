@@ -467,7 +467,7 @@ function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:s
   n = ambient_dim(P)
   m = ambient_dim(Q)
   LPQ = block_diagonal_matrix([matrix(K, LP), matrix(K, LQ)])
-  PQlin = convex_hull(zero_matrix(K, 1, n + m), zero_matrix(K, 0, n + m), LPQ)
+  PQlin = convex_hull(zero_matrix(K, 1, n + m), zero_matrix(K, 0, n + m), LPQ; non_redundant=true)
 
   return PQmod + PQlin
 end
