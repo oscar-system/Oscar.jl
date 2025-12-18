@@ -475,7 +475,7 @@ end
 function peel_lineality(P::Polyhedron)
   V, L = minimal_faces(P)
   R, _ = rays_modulo_lineality(P)
-  Q = convex_hull(V, R)
+  Q = convex_hull(V, R; non_redundant=true)
   return Q, L
 end
 
