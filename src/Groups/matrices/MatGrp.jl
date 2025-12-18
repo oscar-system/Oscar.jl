@@ -125,6 +125,13 @@ function _as_subgroup_bare(G::MatrixGroup, H::GapObj)
   return H1
 end
 
+# We may store generators on the Oscar side or on the GAP side.
+function has_gens(G::MatrixGroup)
+  isdefined(G,:gens) && return true
+  isdefined(G, :X) || return false
+  return GAP.Globals.HasGeneratorsOfGroup(GapObj(G))::Bool
+end
+
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = MatrixGroupElem{RE,T}(G, x, x_gap)
 
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)

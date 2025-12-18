@@ -339,6 +339,16 @@ end
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
    @test_throws ErrorException GapObj(G)
+
+   G = GL(2, 3)
+   @test !has_gens(G)
+   GapObj(G)
+   @test has_gens(G)
+
+   G = GL(2, QQ)
+   @test !has_gens(G)
+   @test_throws ErrorException GapObj(G)
+   @test_throws ErrorException gens(G)
 end
 
 
