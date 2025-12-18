@@ -69,6 +69,7 @@ end
   S, (s, t) = polynomial_ring(R, [:s, :t], cached=false)
   
   f = hom(R, S, [s, s, t])
+  @test Oscar.flatten(f) isa Oscar.MPolyAnyMap{QQMPolyRing, QQMPolyRing, Nothing, QQMPolyRingElem}
   @test x-y in kernel(f)
 
   g = hom(S, R, identity, [x, y])

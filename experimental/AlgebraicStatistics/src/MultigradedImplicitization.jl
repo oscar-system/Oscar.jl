@@ -165,8 +165,8 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     end
     push!(SM, sparse_row(QQ, row))
   end
-  K = kernel(transpose(SM); side=:right)
-  return mon_basis * K
+  K = kernel(SM; side=:left)
+  return K * mon_basis
 end
 
 @doc raw"""
@@ -261,14 +261,22 @@ function lifted_monomials(deg::FinGenAbGroupElem,
     end
   end
   isempty(gen_shifts) && return Set{MPolyDecRingElem}([])
+  
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
-  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+  M = matrix(QQ, [[coeff(f, m) for m in mons] for f in gen_shifts])
   rref!(M)
   mon_indices = Int[]
-  for j in 1:ncols(M)
-    rows = findall(!iszero, M[:, j])
-    isnothing(rows) && continue
-    isone(length(rows)) && push!(mon_indices, only(rows))
+  j = 1
+  for i in 1:nrows(M)
+    while true
+      if isone(M[i, j])
+        push!(mon_indices, j)
+        break
+      end
+      j += 1
+      j > ncols(M) && break
+    end
+    j > ncols(M) && break
   end
   return Set(mons[mon_indices])
 end
@@ -369,7 +377,6 @@ function components_of_kernel(d::Int,
       b = get!(mon_bases, deg, typeof(m)[])
       !(m in l_monomials[deg]) && push!(b, m)
     end
-
     degrees = collect(keys(mon_bases))
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30 * batch_size
