@@ -375,7 +375,7 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
     mats = GapObj([GapObj(x) for x in gens(G)])
     Gnice = GAP.Globals.NiceObject(GapObj(G))
     # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))
+    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
     GAP.Globals.ConvertToMatrixRep(BLmod_gap)
     st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
 
