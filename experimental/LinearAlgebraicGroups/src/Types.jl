@@ -9,27 +9,41 @@
 
 See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
 """
-@attributes mutable struct LinearAlgebraicGroup<: Group
+@attributes mutable struct LinearAlgebraicGroup <: Group
   #n::Int #GLn in which the LAG is embedded
   #type::Symbol # :SL, :SO, :Sp, :GL, :Other
-  root_system::RootSystem #in the future to be replaced by RootDatum
+  rs::RootSystem #in the future to be replaced by RootDatum
   G::MatrixGroup #the actual group
+  k::Field #the field over which the group is defined
 
-  function LinearAlgebraicGroup(type::Symbol, n::Int)  
-    if type == :A
-      R = root_system(:A, n)
-      G = special_linear_group(n + 1, QQ)
-      LAG = new(R,G)
-    else
-      error("Only type A is implemented so far.")
-    end
-    return LAG
-  end
+  function LinearAlgebraicGroup(R::RootSystem, G::MatrixGroup, k::Field)
+    return new(R,G,k)   
+  end 
 end
 
+function root_system(LAG::LinearAlgebraicGroup)
+  return LAG.rs
+end
 
+function degree(LAG::LinearAlgebraicGroup)
+  return degree(LAG.G)
+end
 
 
 @doc raw"""
     LinearAlgebraicGroupElem
 """
+
+@attributes mutable struct LinearAlgebraicGroupElem <: GroupElem
+  parent::LinearAlgebraicGroup
+  mat::MatrixGroupElem #the actual eleemnt
+
+  function LinearAlgebraicGroupElem(parent::LinearAlgebraicGroup, MGE::MatrixGroupElem)
+    #add checks here
+    return new(parent, MGE)
+  end
+end
+
+function parent(a::LinearAlgebraicGroupElem)
+  return a.parent
+end
