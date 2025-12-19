@@ -10,7 +10,7 @@ function linear_algebraic_group(rs::RootSystem, k::Field)
   if length(rst) == 1 && rst[1][1] == :A
     n = rank(rs)
     G = special_linear_group(n + 1, k)
-    LAG = LinearAlgebraicGroup(rs, G,k)
+    LAG = LinearAlgebraicGroup(rs, G, k)
   else
     error("Only type A is implemented so far.")
   end
@@ -29,7 +29,7 @@ function linear_algebraic_group(type::Symbol, n::Int, k::Field)
 end
 
 #This is here because of https://github.com/oscar-system/Oscar.jl/issues/5661
-function gap_likes_the_group(LAG::LinearAlgebraicGroup) 
+function gap_likes_the_group(LAG::LinearAlgebraicGroup)
   return is_finite(LAG.k)
 end
 
@@ -43,26 +43,26 @@ end
 
 function number_of_generators(LAG::LinearAlgebraicGroup)
   if gap_likes_the_group(LAG)
-    return number_of_generators(LAG.G)    
-  else 
+    return number_of_generators(LAG.G)
+  else
     error("Generators not known") # as long as field is QQ
-  end  
+  end
 end
 
 function gens(LAG::LinearAlgebraicGroup)
   if gap_likes_the_group(LAG)
-    return [linear_algebraic_group_elem(LAG,g) for g in gens(LAG.G)]
-  else 
+    return [linear_algebraic_group_elem(LAG, g) for g in gens(LAG.G)]
+  else
     error("Generators not known") # as long as field is QQ
-  end 
+  end
 end
 
 function gen(LAG::LinearAlgebraicGroup, i::Int)
   if gap_likes_the_group(LAG)
-    return linear_algebraic_group_elem(LAG, gen(LAG.G,i))
-  else 
+    return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
+  else
     error("Generators not known") # as long as field is QQ    
-  end 
+  end
 end
 
 function isfinite(LAG::LinearAlgebraicGroup)
@@ -91,16 +91,15 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlge
     return linear_algebraic_group_elem(LAG, rand(LAG.G))
   elseif LAG.k == QQ #pseudo random matrices in SLn(QQ)
     M = matrix_space(QQ, degree(LAG), degree(LAG))
-    a = rand(M,0:degree(LAG)*10)
+    a = rand(M, 0:(degree(LAG) * 10))
     while det(a) == 0
-      a = rand(M,0:3)
-    end 
+      a = rand(M, 0:3)
+    end
     return linear_algebraic_group_elem(LAG, multiply_row(a, inv(det(a)), rand(1:6)))
   else
     error("Random elements not implemented for this field yet.")
   end
 end
-  
 
 function Base.eltype(::Type{LinearAlgebraicGroup})
   return LinearAlgebraicGroupElem
@@ -128,7 +127,7 @@ function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatrixGroup
   return LinearAlgebraicGroupElem(LAG, MGE)
 end
 
-function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem) 
+function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
   return parent(a) == parent(b) && a.mat == b.mat
 end
 
@@ -145,7 +144,7 @@ end
 
 function Base.deepcopy_internal(a::LinearAlgebraicGroupElem, dict::IdDict)
   return get!(dict, a) do
-    linear_algebraic_group_elem(parent(a),Base.deepcopy_internal(a.mat, dict))
+    linear_algebraic_group_elem(parent(a), Base.deepcopy_internal(a.mat, dict))
   end
 end
 
@@ -154,11 +153,9 @@ function order(::Type{T}, a::LinearAlgebraicGroupElem) where {T}
 end
 
 function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
-  b = 0x1df4d55a7b37db2f  % UInt
+  b = 0x1df4d55a7b37db2f % UInt
   h = hash(parent(a), h)
   h = hash(a.mat, h)
 
   return xor(h, b)
 end
-
-

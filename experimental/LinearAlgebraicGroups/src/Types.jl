@@ -17,8 +17,8 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
   k::Field #the field over which the group is defined
 
   function LinearAlgebraicGroup(R::RootSystem, G::MatrixGroup, k::Field)
-    return new(R,G,k)   
-  end 
+    return new(R, G, k)
+  end
 end
 
 function root_system(LAG::LinearAlgebraicGroup)
@@ -28,7 +28,6 @@ end
 function degree(LAG::LinearAlgebraicGroup)
   return degree(LAG.G)
 end
-
 
 @doc raw"""
     LinearAlgebraicGroupElem

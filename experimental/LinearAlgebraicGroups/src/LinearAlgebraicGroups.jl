@@ -19,7 +19,6 @@ import ..Oscar: one
 export LinearAlgebraicGroup, LinearAlgebraicGroupElem
 export linear_algebraic_group, linear_algebraic_group_elem
 
-
 include("Types.jl")
 include("LinearAlgebraicGroup.jl")
 
