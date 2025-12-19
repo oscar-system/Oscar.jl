@@ -535,12 +535,17 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
                      params::Dict) where {S <: Union{Int, String, Symbol}, U}
+  
   if haskey(params, :value_params)
-    dict = T()
+    pairs = Tuple{S, U}[]
     for k in keys(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
-      dict[key] = load_object(s, U, params[:value_params], k)
+      push!(pairs, (key, load_object(s, U, params[:value_params], k)))
     end
+    isempty(pairs) && return T()
+    _, v = first(pairs)
+
+    return Dict{S, typeof(v)}(k => v for (k, v) in pairs)
   else
     dict = Dict{S, Any}()
     value_types = Type[]
@@ -556,7 +561,6 @@ function load_object(s::DeserializerState,
     value_type = allequal(value_params) ? typejoin(unique(value_types)...) : Any
     return Dict{S, value_type}(dict)
   end
-  return dict
 end
 
 function load_object(s::DeserializerState,
@@ -565,7 +569,10 @@ function load_object(s::DeserializerState,
   pairs = load_array_node(s) do _
     load_object(s, Tuple{S, U}, (params[:key_params], params[:value_params]))
   end
-  return T(k => v for (k, v) in pairs)
+  isempty(pairs) && return T()
+  k1, v1 = first(pairs)
+
+  return Dict{typeof(k1), typeof(v1)}(k => v for (k, v) in pairs)
 end
 
 ################################################################################
