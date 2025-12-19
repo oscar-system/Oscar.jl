@@ -177,8 +177,9 @@ end
 # (4) Loading
 ###########################################################################
 
-function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict) where {T}
-  return haskey(s, key) ? load_object(s, T, params[key], key) : T()
+function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict) where {S, T <: Dict{String, S}}
+  dict_params = Dict(:key_params => nothing, :value_params => params[key])
+  return haskey(s, key) ? load_object(s, T, dict_params, key) : T()
 end
 
 function _load_common_parts(s::DeserializerState, params::Dict)
