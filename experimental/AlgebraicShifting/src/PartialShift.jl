@@ -473,18 +473,25 @@ end
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the permutation group element `p` and the field `F`,
 using the Las Vegas algorithm. It samples `n_samples` random matrices, computes the respective partial shifts, takes the lexicographically minimal one,
-tests if it is the partial shift of `K` with respect to `p`, and returns the shift and the number of samples used. Otherwise, returns `nothing`
-and the number of samples used.
+tests if it is the partial shift of `K` with respect to `p`, and returns the shift.
+If the shift was not found using `n_samples`, the algorithm generates `n_samples` in larger and larger field extensions of `F` until found.
 """
 function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, kw...)
-  random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
-  (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
-  # Check if `shift` is the generic exterior shift of K
-  prime_field = characteristic(F) == 0 ? QQ : fpField(UInt(characteristic(F)))
-  n = n_vertices(K)
-  is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+  L = F
+  extension = Int(log(characteristic(L), order(L)))
+  char = characteristic(F)
+  while true
+    random_matrices = [random_rothe_matrix(L, p) for _ in 1:n_samples]
+    (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
+    # Check if `shift` is the generic exterior shift of K
+    prime_field = iszero(char) ? QQ : fpField(UInt(char))
+    n = n_vertices(K)
+    is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+    is_correct_shift && return shift
+    extension += 1
+    L = GF(char^extension)
+  end
 
-  # this may never terminate, we could in the future pass to a field extension to increase probability of termination
-  return is_correct_shift ? shift : exterior_shift_lv(F, K, p; n_samples=n_samples, kw...)
+  return shift
 end
 
