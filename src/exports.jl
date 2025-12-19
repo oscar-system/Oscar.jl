@@ -548,7 +548,6 @@ export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
-export desimulate_valuation
 export det
 export diameter
 export dicyclic_group
@@ -1691,7 +1690,6 @@ export simplify
 export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
-export simulate_valuation
 export singular_locus
 export singular_locus_reduced
 export slpoly_ring
