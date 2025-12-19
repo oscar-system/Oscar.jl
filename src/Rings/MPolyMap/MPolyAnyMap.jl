@@ -211,7 +211,12 @@ hom_kind(f::MPolyAnyMap{D, C, U, V, K}) where {D, C, U, V, K} = K
 #   degree(img_i) == phi(degree(gen(R,i))) + deg_shift  for all i.
 #
 # If grading groups differ, phi must be supplied
+# except if both groups are the infinite cyclic group
 # If groups are equal and phi is omitted, we use hom(GR, GS, gens(GS))
+
+function _is_Z(G)
+  return (G isa FinGenAbGroup) && !isfinite(G) &&number_of_generators(G) == 1
+end
 
 function _graded_data(R::NCRing, S::NCRing, imgs;
                       grading_group_hom = nothing,
@@ -222,17 +227,18 @@ function _graded_data(R::NCRing, S::NCRing, imgs;
   phi = grading_group_hom
   if phi === nothing
     if GR == GS
-      @req ngens(GR) == ngens(GS) "Number of generators differ."
+      phi = hom(GR, GS, gens(GS))
+    elseif _is_Z(GR) && _is_Z(GS)
       phi = hom(GR, GS, gens(GS))
     else
-      error("Source and target have different grading groups. Please specify grading_group_hom.")
+      error("Source and target have different grading groups; please supply grading_group_hom.")
     end
   else
-    @req phi isa Map "grading_group_hom must be a Map"
-    @req domain(phi) === GR "grading_group_hom has the wrong domain"
-    @req codomain(phi) === GS "grading_group_hom has the wrong codomain"
+    @req grading_group_hom isa Map "grading_group_hom must be a Map"
+    @req domain(grading_group_hom) === GR "grading_group_hom has wrong domain"
+    @req codomain(grading_group_hom) === GS "grading_group_hom has wrong codomain"
+    phi = grading_group_hom
   end
-
   deg_shift = degree_shift
   if deg_shift === nothing
     n = ngens(R)

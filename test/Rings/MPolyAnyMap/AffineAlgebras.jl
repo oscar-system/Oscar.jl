@@ -139,6 +139,28 @@ end
         @test dsh1 == zero(grading_group(SG))
     end
 
+    let
+        RG, (xg, yg) = graded_polynomial_ring(QQ, [:xg, :yg])
+        SG, (ug, vg) = graded_polynomial_ring(QQ, [:ug, :vg])
+
+        Gmap1 = hom(RG, SG, [ug, vg])
+
+        @test domain(Gmap1) === RG
+        @test codomain(Gmap1) === SG
+        @test Gmap1(xg) == ug
+        @test Gmap1(yg) == vg
+        @test Oscar.hom_kind(Gmap1) == Oscar.HomGraded
+
+        phi1 = get_attribute(Gmap1, :grading_group_hom, nothing)
+        @test phi1 !== nothing
+        @test phi1(degree(xg)) == degree(ug)
+        @test phi1(degree(yg)) == degree(vg)
+
+        dsh1 = get_attribute(Gmap1, :degree_shift, nothing)
+        @test dsh1 !== nothing
+        @test dsh1 == zero(grading_group(SG))
+    end
+
     ########################################################################
     #   Graded -> graded with nontrivial map, shift 0
     ########################################################################
