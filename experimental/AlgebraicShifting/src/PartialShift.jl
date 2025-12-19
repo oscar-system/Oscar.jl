@@ -487,11 +487,12 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
     prime_field = iszero(char) ? QQ : fpField(UInt(char))
     n = n_vertices(K)
     is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+
     is_correct_shift && return shift
+
+    # shift not found so extend the field for sampling
     extension += 1
     L = GF(char^extension)
   end
-
-  return shift
 end
 
