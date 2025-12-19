@@ -94,3 +94,169 @@ end
   g = hom(Q, S, [x1, x2, x1^-2*x2^5, x1^-1*x2^3])
   @test is_zero(kernel(g))
 end
+
+
+
+@testset "Polynomial ring homomorphisms" begin
+    ########################################################################
+    #   Ungraded -> ungraded
+    ########################################################################
+    let
+        R, (x, y) = polynomial_ring(QQ, [:x, :y])
+        S, (u, v) = polynomial_ring(QQ, [:u, :v])
+
+        F = hom(R, S, [u, v^2])
+
+        @test domain(F) === R
+        @test codomain(F) === S
+        @test F(x + y) == u + v^2
+        @test Oscar.hom_kind(F) == Oscar.HomUngraded
+    end
+
+    ########################################################################
+    #   Graded -> graded, identity grading map, shift 0
+    ########################################################################
+    let
+        Z = abelian_group(0)
+        RG, (xg, yg) = graded_polynomial_ring(QQ, [:xg, :yg]; weights=[Z[1], Z[1]])
+        SG, (ug, vg) = graded_polynomial_ring(QQ, [:ug, :vg]; weights=[Z[1], Z[1]])
+
+        Gmap1 = hom(RG, SG, [ug, vg])
+
+        @test domain(Gmap1) === RG
+        @test codomain(Gmap1) === SG
+        @test Gmap1(xg) == ug
+        @test Gmap1(yg) == vg
+        @test Oscar.hom_kind(Gmap1) == Oscar.HomGraded
+
+        phi1 = get_attribute(Gmap1, :grading_group_hom, nothing)
+        @test phi1 !== nothing
+        @test phi1(degree(xg)) == degree(ug)
+        @test phi1(degree(yg)) == degree(vg)
+
+        dsh1 = get_attribute(Gmap1, :degree_shift, nothing)
+        @test dsh1 !== nothing
+        @test dsh1 == zero(grading_group(SG))
+    end
+
+    ########################################################################
+    #   Graded -> graded with nontrivial map, shift 0
+    ########################################################################
+    let
+        R2, (x2,) = graded_polynomial_ring(QQ, [:x2])
+        S2, (u2,) = graded_polynomial_ring(QQ, [:u2]; weights=[2])
+
+        GR2 = grading_group(R2)
+        GS2 = grading_group(S2)
+
+        genS = gens(GS2)[1]
+        phiG = hom(GR2, GS2, [2*genS])
+
+        Fdeg = hom(R2, S2, [u2]; grading_group_hom = phiG)
+
+        @test Oscar.hom_kind(Fdeg) == Oscar.HomGraded
+        @test Fdeg(x2) == u2
+        @test degree(Fdeg(x2)) == phiG(degree(x2))
+
+        dsh = get_attribute(Fdeg, :degree_shift, nothing)
+        @test dsh !== nothing
+        @test dsh == zero(GS2)
+    end
+
+    ########################################################################
+    #   Graded -> graded with non-zero degree shift
+    ########################################################################
+    let
+        Z = abelian_group(0)
+        Rsh, (x1, y1) = graded_polynomial_ring(QQ, [:x1, :y1]; weights=[Z[1], 2*Z[1]])
+        Ssh, (u1,)    = graded_polynomial_ring(QQ, [:u1]; weights=[Z[1]])
+
+        # deg(x1)=1 -> deg(u1^2)=2, deg(y1)=2 -> deg(u1^3)=3, shift=1
+        Fsh = hom(Rsh, Ssh, [u1^2, u1^3])
+
+        @test Oscar.hom_kind(Fsh) == Oscar.HomGraded
+        @test Fsh(x1) == u1^2
+        @test Fsh(y1) == u1^3
+
+        dsh = get_attribute(Fsh, :degree_shift, nothing)
+        @test dsh == degree(u1)
+
+        # Incompatible images should error
+        @test_throws ArgumentError hom(Rsh, Ssh, [u1^2, u1^4])
+    end
+
+    ########################################################################
+    #   Graded -> ungraded
+    ########################################################################
+    let
+        Rg, (xg2, yg2) = graded_polynomial_ring(QQ, [:xg2, :yg2])
+        Su, (uu, vu)   = polynomial_ring(QQ, [:uu, :vu])
+
+        F_GU = hom(Rg, Su, [uu, vu^2])
+
+        @test Oscar.hom_kind(F_GU) == Oscar.HomGradedToUngraded
+        @test F_GU(xg2) == uu
+        @test F_GU(yg2) == vu^2
+    end
+
+    ########################################################################
+    #   Ungraded -> graded
+    ########################################################################
+    let
+        Ru, (xu, yu)   = polynomial_ring(QQ, [:xu, :yu])
+        Sg, (ug2, vg2) = graded_polynomial_ring(QQ, [:ug2, :vg2])
+
+        inhom = ug2 + vg2^2
+        F_UG = hom(Ru, Sg, [ug2, inhom])
+
+        @test Oscar.hom_kind(F_UG) == Oscar.HomUngradedToGraded
+        @test F_UG(xu) == ug2
+        @test F_UG(yu) == inhom
+    end
+
+    ########################################################################
+    #   Graded -> graded with different grading groups
+    ########################################################################
+    let
+        GZ  = abelian_group(0)
+        GZ2 = abelian_group(ZZMatrix(2,2,[0,0,0,0]))
+
+        RZ, (xz1,) = graded_polynomial_ring(QQ, [:xz1]; weights=[gen(GZ,1)])
+        SZ2, (uz1,) = graded_polynomial_ring(QQ, [:uz1]; weights=[gen(GZ2,1)])
+
+        @test_throws ErrorException hom(RZ, SZ2, [uz1])
+
+        phiZ = hom(GZ, GZ2, [gen(GZ2, 1)])
+        FGZ  = hom(RZ, SZ2, [uz1]; grading_group_hom = phiZ)
+
+        @test Oscar.hom_kind(FGZ) == Oscar.HomGraded
+        @test degree(FGZ(xz1)) == phiZ(degree(xz1))
+        @test get_attribute(FGZ, :degree_shift, nothing) == zero(grading_group(SZ2))
+    end
+
+    ########################################################################
+    #    Composition: graded->ungraded then ungraded->graded yields an ungraded map
+    #    Kernel and image are illegal for such maps
+    ########################################################################
+    let
+        Rg, (x,) = graded_polynomial_ring(QQ, [:x])
+        Su, (s,) = polynomial_ring(QQ, [:s])
+        Tg, (t,) = graded_polynomial_ring(QQ, [:t])
+
+        f = hom(Rg, Su, [s])
+        g = hom(Su, Tg, [t + t^2])
+
+        @test Oscar.hom_kind(f) == Oscar.HomGradedToUngraded
+        @test Oscar.hom_kind(g) == Oscar.HomUngradedToGraded
+
+        h = compose(f, g)
+
+        @test Oscar.hom_kind(h) == Oscar.HomUngraded
+        @test domain(h) === Rg
+        @test codomain(h) === Tg
+        @test h(x) == t + t^2
+
+        # direct graded->graded with inhomogeneous images is rejected
+        @test_throws Exception hom(Rg, Tg, [t + t^2])
+    end
+end
