@@ -2968,12 +2968,32 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
   Fl = AbstractVariety(X.dim + d, AFl)
   Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
-  section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
+  section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))### TODO skip when fglm is used
   if isdefined(X, :point)
-    Fl.point = pback(X.point.f) * section
+    Fl.point = pback(X.point.f) * section ### TODO better when fglm is used (take section from _find_sect as second output
   end
   pˣ = Fl.(imgs_in_R1)
-  pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
+
+  ###pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
+
+  ##################################
+  ##alternative approach
+  ##TODO: To be discussed. Use fglm in _find_sect as soon as fglm is fixed.
+
+  ME = _matrix_of_exponents(ranks)
+  nl = size(ME)[1]
+  wcs = reduce(vcat, [1:r for r in ranks])
+  Rcs, _ = graded_polynomial_ring(X.base, syms; weights = wcs)
+  RcstoR1 = hom(Rcs, R1, gens_for_rels_R1)
+  gs = [monomial(Rcs, [Int(ME[i, j]) for j = 1:n]) for i = nl:-1:1]
+  gs = [RcstoR1(gs[i]) for i = 1:length(gs)]
+  ds = [degree(Int, gs[i]) for i = 1:1:nl]
+  dm = argmax(ds)
+  ### TODO find an return section
+  fm = hom(R, AFl, pˣ)
+  pₓ = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
+  ##################################
+
   pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
   p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
@@ -2995,6 +3015,85 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   end
   return Fl
 end
+
+###########################################################
+#helper functions above
+###########################################################
+
+function _matrix_of_exponents(ni::Vector{Int}) # [GSS22](@cite) Thm 2.15
+ n = sum(ni)
+ r = length(ni)
+ A = zero_matrix(ZZ,n, n)
+ b = zero_matrix(ZZ, n, 1)
+
+ C = zero_matrix(ZZ, r, n)
+ d = zero_matrix(ZZ, r, 1)
+ s = 0
+ for i=1:r
+   for j=1:ni[i]
+     C[i, j+s] = 1
+   end
+   s += ni[i]
+   d[i] = n-sum(ni[i:r])
+ end
+
+ C = vcat(-C, identity_matrix(ZZ, n))
+ d = vcat(-d, zero_matrix(ZZ, n, 1))
+
+ return solve_mixed(A, b, C, d)
+end
+
+function  _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finite_extension_ring
+  A, B = F.domain, F.codomain
+  a, b = ngens(A), ngens(B)
+
+  if A isa MPolyQuoRing
+    AR = base_ring(A)
+  else
+    AR = A
+  end
+  if B isa MPolyQuoRing
+    BR = base_ring(B)
+    M = [F(gens(A)[i]).f for i = 1:a]
+  else
+    BR = B
+    M = [F(gens(A)[i]) for i = 1:a]
+  end
+
+  @assert base_ring(AR) == base_ring(BR)
+
+  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
+  C, _ = quo(BR, I)
+  @assert gs[end] == 1 # the last one should always be 1
+  g = length(gs)
+
+  R, _ = tensor_product(BR, AR, use_product_ordering = true)
+  ba = gens(R)
+  ARtoR = hom(AR, R, ba[b+1:end], check = false)
+  BRtoR = hom(BR, R, ba[1:b], check = false)
+  RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
+  gs_lift = [BRtoR(g) for g in gs]
+
+  # compute the ideal J of the graph of F
+
+  Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
+  if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end
+  if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoR(g)) end end
+  J = ideal(R, Rels) # the ideal of the graph of F
+  V = groebner_basis(J) ###TODO replace by fglm below as soon as fglm is fixed
+  ###W = vcat(weights(Int, BR), weights(Int, AR)) ####
+  ###V = fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
+
+  sect = x -> (y = reduce(BRtoR(x), gens(V), complete_reduction=true);
+	      ans = elem_type(AR)[];
+	      for i in 1:g
+	        q = div(y, gs_lift[i])
+	        push!(ans, RtoAR(q))
+	        y -= q * gs_lift[i]
+	      end; ans)
+  return sect
+end
+
 
 ###############################################################################
 #

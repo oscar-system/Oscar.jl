@@ -1664,7 +1664,24 @@ julia> print(sort([index(G, stab) for (U, stab) in res]))
 ZZRingElem[12, 12, 16]
 ```
 """
-function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int; algorithm=:default) where E <: FinFieldElem
+  if algorithm==:default 
+    algorithm=:perm 
+  end
+  if algorithm==:gset
+    return _orbit_representatives_and_stabilizers_gset_gap(G, k)
+  elseif algorithm==:perm
+    n = degree(G)
+    V = vector_space(base_ring(G), n)
+    k == 0 && return [(sub(V, [])[1], G)]
+    _repstab = _orbit_representatives_and_stabilizers_perm(G, k)
+    return [(sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1],S) for (M,S) in _repstab]
+  else 
+    error("unknown algorithm")
+  end
+end
+
+function _orbit_representatives_and_stabilizers_gset_gap(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
   n = degree(G)
   V = vector_space(base_ring(G), n)
   k == 0 && return [(sub(V, [])[1], G)]
@@ -1677,3 +1694,57 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end
+
+function _orbit_representatives_and_stabilizers_perm(G::T, k::Int; do_stab::Bool=true) where {T<:MatrixGroup{<:FinFieldElem}}
+  gl = general_linear_group(degree(G), base_ring(G))
+  rep_gl, stab_gl = _orbit_representatives_and_stabilizers_GLn(base_ring(G), degree(G), k)
+  to_perm = isomorphism(PermGroup, gl)
+  gl_perm = codomain(to_perm)
+  from_perm = inv(to_perm)
+  Gperm,_ = to_perm(G)
+  reps = Tuple{dense_matrix_type(base_ring(G)),T}[]
+  stab_perm_gl, _ = to_perm(sub(gl, gl.(stab_gl))[1])
+  dc = double_cosets(gl_perm, stab_perm_gl, Gperm)
+  for SxG in dc
+    xp = representative(SxG)
+    x = preimage(to_perm, xp)
+    Hx = rep_gl*matrix(x)
+    if do_stab
+      stab_G_perm,i1,i2 = intersect(stab_perm_gl^xp, Gperm)
+      stab = from_perm(i2(stab_G_perm)[1])
+      push!(reps, (Hx, stab[1]))
+    else
+      push!(reps, (Hx, G))
+    end
+  end
+  return reps
+end
+
+function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where T <: FinField 
+  # Representative of the unique GL_n(K) orbit of rank k
+  rep = zero_matrix(K, k, n)
+  for i in 1:k 
+    rep[i,i] = 1
+  end 
+  E = identity_matrix(K, n)
+  _gens = dense_matrix_type(T)[]
+  if k>0
+    for g in gens(GL(k, K))
+      EE = deepcopy(E) 
+      EE[1:k,1:k] = matrix(g)
+      push!(_gens, EE)
+    end
+  end 
+  if k < n
+    for g in gens(GL(n - k, K))
+      EE = deepcopy(E) 
+      EE[k+1:end,k+1:end] = matrix(g)
+      push!(_gens, EE)
+    end
+  end 
+  if 0<k<n 
+    E[k+1,1] = 1
+    push!(_gens, E)
+  end
+  return rep, _gens
+end 
