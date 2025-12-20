@@ -1576,7 +1576,7 @@ function __splitting_of_hermitian_type(
     end
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
-    if info_depth >= 2
+    if info_depth >= 15
       println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
     end 
     for (A, B) in atp
@@ -2820,7 +2820,7 @@ function oscar_genus_representatives(
     if haskey(genusDB, G)
       return deepcopy(genusDB[G])
     end
-    G2 = rescale(G, -1; cached=false)
+    G2 = rescale(G, -1)
     if haskey(genusDB, G2)
       return ZZLat[rescale(LL, -1; cached=false) for LL in genusDB[G2]]
     end
@@ -2910,7 +2910,6 @@ function oscar_genus_representatives(
         As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1)
         isempty(As) && continue
         for LA in As, LB in Bs
-          satisfies_eiglat_cond(LA, LB, eiglat_cond) || continue
           Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local)
           allow_info &&  println("$(length(Ns)) lattices to try")
           for Nf in Ns
