@@ -2,7 +2,7 @@ using Documenter, Oscar
 
 include("make_work.jl")
 
-Base.invokelatest(BuildDoc.doit, Oscar; warnonly=false, local_build=false, doctest=false, formats = [:html, :pdf], pdf_method = :pdf_via_latex)
+Base.invokelatest(BuildDoc.doit, Oscar; warnonly=false, local_build=false, doctest=false, formats = [:html, :pdf], pdf_method = :pdf_via_docker)
 
 should_push_preview = true
 if get(ENV, "GITHUB_ACTOR", "") == "dependabot[bot]"
