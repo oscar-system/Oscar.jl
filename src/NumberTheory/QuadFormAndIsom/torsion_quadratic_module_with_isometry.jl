@@ -294,6 +294,8 @@ end
 Given a torsion quadratic module with isometry ``(T, f)``, return the
 ``m``-primary part of ``T`` together with the restriction of ``f`` to it.
 """
+primary_part(::TorQuadModuleWithIsom, ::IntegerUnion)
+
 function primary_part(Tf::TorQuadModuleWithIsom, m::ZZRingElem)
   S, i = primary_part(underlying_module(Tf), m)
   Sg = _sub(Tf, i)
