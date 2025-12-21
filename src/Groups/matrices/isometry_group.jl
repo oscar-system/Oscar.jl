@@ -394,7 +394,7 @@ function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
   return on_howell_form(M, matrix(base_ring(M), matrix(g)))
 end
 
-function on_howell_form(M::zzModMatrix, g::ZZMatrix)
+function on_howell_form(M::zzModMatrix, g::Union{ZZMatrix,zzModMatrix})
   Mg = M * g
   howell_form!(Mg)
   return Mg
