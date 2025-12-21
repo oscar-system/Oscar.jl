@@ -902,7 +902,7 @@ function representatives_of_hermitian_type(
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
-    _local::Bool=false,
+    _local::Bool=false
   )
   chi = min_poly
   @req is_irreducible(chi) "Polynomial must be irreducible"
@@ -941,9 +941,22 @@ function representatives_of_hermitian_type(
       return reps
     end
     # local conditions are okay, enumerate the genus
-    allow_info && println("Enumerate Z-genus $G")
+    allow_info && !_local && println("Enumerate Z-genus $G")
     repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local)
-    allow_info && println("$(length(repre)) representative(s)")
+    if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
+      if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
+        # T is unique in its genus, we can do the root test even when working locally 
+        minimum(T) == 2 && return reps 
+      end
+      # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
+      if rank(G) <= 6 && scale(G) == 1
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=30, _local=false)
+        if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
+          return reps 
+        end
+      end
+    end 
+    allow_info && !_local && println("$(length(repre)) representative(s)")
     while !is_empty(repre)
       LL = pop!(repre)
       push!(reps, integer_lattice_with_isometry(LL, f; check=false, ambient_representation=false))
@@ -1019,7 +1032,7 @@ function representatives_of_hermitian_type(
     gene = representative.(orbits(omega))
   end
 
-  allow_info &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
+  allow_info && !_local &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
   for g in gene
     if is_integral(G) && !is_integral(DE*scale(g))
       continue
@@ -1036,14 +1049,24 @@ function representatives_of_hermitian_type(
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
     first && return ZZLatWithIsom[MfM]
 
-    allow_info && println("Enumerate hermitian genus of rank $(rank(H))")
+    allow_info && !_local && println("Enumerate hermitian genus of rank $(rank(H))")
     if !_local
       gr = genus_representatives(H)
+      for HH in gr
+        M, fM = trace_lattice_with_isometry(HH)
+        push!(reps, integer_lattice_with_isometry(M, fM; check=false))
+      end
     else 
-      gr = [H]
-    end
-    for HH in gr
-      M, fM = trace_lattice_with_isometry(HH)
+      if root_test && rank(H) <= 4 && signature_pair(G)[1]==0
+        # see if it is an easy genus 
+        gr = genus_representatives(H; max=20)
+        if mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr];init=QQ(0)) #certify that we have enumerated the entire genus
+          if all(2==minimum(trace_lattice_with_isometry(i)[1]) for i in gr)
+            # no one passed the root test
+            continue
+          end 
+        end 
+      end
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
     end
   end
@@ -1240,7 +1263,7 @@ function representatives_of_hermitian_type(
       gene = representative.(orbits(omega))
     end
 
-    allow_info && println("All possible hermitian genera: $(length(gene))")
+    allow_info && !_local && println("All possible hermitian genera: $(length(gene))")
     for g in gene
       if !is_integral(DE*scale(g))
         continue
@@ -1443,7 +1466,7 @@ function splitting_of_hermitian_type(
   # power decreases the order of the isometry
   if iszero(mod(n, p))
     for cond in unique!([get(i, k, Int[-1, -1, -1]) for i in eiglat_cond])
-      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator))
+      append!(reps,representatives_of_hermitian_type(Lf, p, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local))
     end
     return reps
   end
@@ -1553,6 +1576,9 @@ function __splitting_of_hermitian_type(
     end
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
+    if info_depth >= 15
+      println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
+    end 
     for (A, B) in atp
       if root_test
         if rank(A) > 0 && _packing_density_test(A)
@@ -1562,17 +1588,23 @@ function __splitting_of_hermitian_type(
         end
       end
       As = representatives_of_hermitian_type(A, n, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && iszero(signature_tuple(A)[1]) # Remove lattices with (-2)-vectors
-        filter!(LA -> rank(LA) == 0 || minimum(LA) != 2, As)
+      if root_test && !_local 
+        # Remove lattices with (-2)-vectors
+        filter!(test_roots, As)
       end
       isempty(As) && continue
       Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
-        filter!(LB -> rank(LB) == 0 || minimum(LB) != 2, Bs)
+      if root_test && !_local
+        # Remove lattices with (-2)-vectors
+        filter!(test_roots, Bs)
       end
       isempty(Bs) && continue
       for LA in As, LB in Bs
+        satisfies_eiglat_cond(LA, LB, eiglat_cond) || continue
         Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false, _local)
+        if root_test && !_local# Remove lattices with (-2)-vectors
+          filter!(test_roots, Es)
+        end
         if fix_root == k
           while !isempty(Es)
             M = pop!(Es)
@@ -1690,6 +1722,7 @@ function splitting_of_prime_power(
   if isone(n)
     return splitting_of_hermitian_type(Lf, p, b; eiglat_cond, fix_root, genusDB, root_test, info_depth, check=false, discriminant_annihilator, _local)
   end
+  
 
   ok, e, q = is_prime_power_with_data(n)
 
@@ -1712,6 +1745,7 @@ function splitting_of_prime_power(
   RA = splitting_of_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     n1 = order_of_isometry(L1)::Int
     n2 = order_of_isometry(L2)::Int
     # Condition Line 11 of Algorithm 5 of [BH23]
@@ -1719,6 +1753,10 @@ function splitting_of_prime_power(
     # the correct order
     b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
+    end
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
@@ -1833,8 +1871,13 @@ function splitting_of_pure_mixed_prime_power(
   RA = splitting_of_pure_mixed_prime_power(A0, p; eiglat_cond, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=q*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
+    end
     append!(reps, E)
   end
   return reps
@@ -1976,7 +2019,12 @@ function splitting_of_mixed_prime_power(
   RA = splitting_of_mixed_prime_power(A0, p, 0; eiglat_cond, fix_root, genusDB, root_test, info_depth=info_depth+1, discriminant_annihilator=p*discriminant_annihilator, _local)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
+    satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p; check=false, _local)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
+    end
     b == 1 && filter!(LL -> order_of_isometry(LL) == p*n, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
     append!(reps, E)
@@ -2297,7 +2345,6 @@ function enumerate_classes_of_lattices_with_isometry(
   if length(eiglat_cond) == 0
     eiglat_cond = [_conditions_from_input(m, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
   end
-
   allow_info && println("Conditions computed") 
 
   if m == 1
@@ -2315,6 +2362,7 @@ function enumerate_classes_of_lattices_with_isometry(
   o = Int(1)
   pds = reverse!(sort!(prime_divisors(m)))
   for p in pds
+    @vprintln :ZZLatWithIsom 1 "Taking $p-th roots for isometry of order $m" 
     v = valuation(m, p)
     o *= p^v
     eco = _conditions_after_power(eiglat_cond, div(m, o))
@@ -2488,6 +2536,39 @@ function _from_cyclotomic_polynomial_to_dict(
   return V
 end
 
+function eigenlattice_conditions(f::ZZLatWithIsom)
+  n = order_of_isometry(f)
+  @assert isfinite(n)
+  D = Dict{Int,Vector{Int}}()
+  for k in divisors(n)
+    pk,_,nk = signature_tuple(kernel_lattice(f,k))
+    D[k] = [pk+nk,pk,nk]
+  end
+  return D
+end 
+
+function satisfies_eiglat_cond(D1::T, D2::T) where {T <: Dict{Int,Vector{Int}}}
+  for k in keys(D2)
+    l1 = get(D1, k, [0,0,0])
+    l2 = D2[k]
+    l1[1] == 0 && continue
+    for i in 1:3
+      l2[i]<0 || l2[i]==l1[i] || return false 
+    end
+  end
+  return true
+end
+
+satisfies_eiglat_cond(f::ZZLatWithIsom, D::Dict{Int,Vector{Int}}) = satisfies_eiglat_cond(eigenlattice_conditions(f), D)
+
+function satisfies_eiglat_cond(L1::ZZLatWithIsom, L2::ZZLatWithIsom, eiglat_cond::Vector{Dict{Int,Vector{Int}}})
+  L1L2,_ = direct_sum(L1,L2;cached=false)
+  d1 = eigenlattice_conditions(L1L2)
+  return any(satisfies_eiglat_cond(d1,d2) for d2 in eiglat_cond)
+end 
+
+satisfies_eiglat_cond(L1::ZZLatWithIsom,L2::ZZLatWithIsom, eiglat_cond::Dict) = satisfies_eiglat_cond(L1,L2,[eiglat_cond])
+
 # Create a dictionary of restrictions on rank and signatures
 # for the eigenlattices of an isometry of order m with possible
 # characteristic polynomial `char_poly` or minimal polynomial
@@ -2591,9 +2672,27 @@ function _conditions_after_power(
   return unique!([_conditions_after_power(i, p) for i in eiglat_cond])
 end 
 
+# Return the largest negative definite eigenlattice.
+function coinvariant_lattice_neg(L::ZZLatWithIsom)
+  C = coinvariant_lattice(L)
+  signature_tuple(C)[1] == 0 && return C
+  B = zero_matrix(QQ, 0, degree(C))
+  for d in divisors(order(L))
+    K = kernel_lattice(L, d)
+    signature_tuple(K)[1] == 0 || continue 
+    B = vcat(B, basis_matrix(K))
+  end 
+  return orthogonal_submodule(C, B)
+end 
+
+function test_roots(L)
+  C = coinvariant_lattice_neg(L)
+  return rank(C) == 0 || minimum(C) != 2
+end 
+  
 ###############################################################################
 #
-#  Enhanced genus enumeration
+#  Root test
 #
 ###############################################################################
 function _packing_density_test(G::ZZGenus)
@@ -2623,6 +2722,13 @@ end
 
 # Legacy
 _roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
+
+
+###############################################################################
+#
+#  Enhanced genus enumeration
+#
+###############################################################################
 
 @doc raw"""
     oscar_genus_representatives(
@@ -2746,7 +2852,7 @@ function oscar_genus_representatives(
     end
     G2 = rescale(G, -1)
     if haskey(genusDB, G2)
-      return ZZLat[rescale(LL, -1) for LL in genusDB[G2]]
+      return ZZLat[rescale(LL, -1; cached=false) for LL in genusDB[G2]]
     end
   end
   r = rank(G)
@@ -3002,7 +3108,7 @@ _default_discriminant_annihilator(Lf::ZZLatWithIsom) = _annihilator(discriminant
 
 _discriminant_annihilator(L::Union{ZZLat, ZZGenus}; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = _annihilator(discriminant_group(L); parent)
 
-_discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = _annihilator(discriminant_group(Lf)[2]; parent)
+_discriminant_annihilator(Lf::ZZLatWithIsom; parent=polynomial_ring(ZZ,[:x]; cached=false)[1]) = annihilator(discriminant_group(Lf)[2]; parent)
 
 function _annihilator(
   T::TorQuadModule;
@@ -3014,27 +3120,42 @@ function _annihilator(
 end
 
 raw"""
-  _annihilator(
-  f::AutomorphismGroupElem{TorQuadModule}; parent=polynomial_ring(ZZ, [:x]; cached=false)[1])
+  annihilator(f::AutomorphismGroupElem{TorQuadModule}; [parent])
 
-Return some ideal ``I \subseteq \ZZ[x]`` such that 
-``g(f)=0`` for all ``g \in I``. 
-  
-!warning
-  ``I`` is merely contained in the annihilator but may not be equal to it.
+Return the ideal ``I \subseteq \ZZ[x]`` consisting of all ``g \in \ZZ[x]`` with ``g(f)=0``.   
 """
-function _annihilator(
+function annihilator(
   f::AutomorphismGroupElem{TorQuadModule};
   parent=polynomial_ring(ZZ, [:x]; cached=false)[1],
 )
   D = domain(f)
   J = _annihilator(D; parent)
   P = base_ring(J)
-  m = minpoly(Hecke.Globals.Zx, matrix(f))
+  _m = minpoly(Hecke.Globals.Zx, matrix(f))
   x = gen(parent,1)
-  m = m(x)
+  m = _m(x)
   J = J + ideal(parent, m) + ideal(parent, x^order(f) - 1)
-  # a bound for the discriminant annihilator .... but I don't think that it is everything.
+  
+  # compute the thing using linear algebra
+  d = degree(_m)
+  A = abelian_group([exponent(D) for i in 0:d])
+  snfD, to_snf = snf(D)
+  ediv = elementary_divisors(snfD)
+  n = length(ediv)
+  if n == 0 
+    # trivial group 
+    return J
+  end
+  B = abelian_group(reduce(vcat, [ediv for i in 1:n]))
+  fsnf = to_snf*hom(f)*inv(to_snf)
+  powf = [vec(collect(transpose(fsnf.map_ab.map^i))) for i in 0:d]
+  powfB = [sum(B[i]*v[i] for i in 1:n^2) for v in powf]
+  AtoB = hom(A,B, powfB)
+  K,incK = kernel(AtoB)
+  kergens = [incK(i).coeff for i in gens(K)]
+  A = [sum(b[j+1]*x^j for j in 0:d) for b in kergens]
+  J = J+ideal(A)
+  @assert is_annihilated(f, J)
   return J
 end
 
@@ -3054,7 +3175,6 @@ end
 function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
-
 ######################################################################################
 #
 # Legacy interface ... to be deprecated at some point

@@ -157,6 +157,7 @@ julia> factor(characteristic_polynomial(Lf))
 ```
 """
 characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))
+characteristic_polynomial(R::QQPolyRing, Lf::ZZLatWithIsom) = characteristic_polynomial(R, isometry(Lf))
 
 @doc raw"""
     minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
@@ -430,6 +431,9 @@ julia> minimum(Lf)
 """
 function minimum(Lf::ZZLatWithIsom)
   @req is_definite(Lf) "Underlying lattice must be definite"
+  if rank(Lf) == 0
+    return 0
+  end
   return minimum(lattice(Lf))
 end
 
@@ -1083,8 +1087,8 @@ with gram matrix
 [    0       0       0   -1//2       1]
 ```
 """
-function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
-  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check=false)
+function rescale(Lf::ZZLatWithIsom, a::RationalUnion; cached::Bool=false)
+  return lattice(rescale(ambient_space(Lf), a; cached), basis_matrix(Lf); check=false)
 end
 
 @doc raw"""
@@ -1298,13 +1302,13 @@ Integer lattice of rank 10 and degree 10
   [ 0    0    0    0    0   0    0    0    1    0]
 ```
 """
-function direct_sum(x::Vector{ZZLatWithIsom})
-  Vf, inj, proj = direct_sum(ambient_space.(x))
+function direct_sum(x::Vector{ZZLatWithIsom}; cached=false)
+  Vf, inj, proj = direct_sum(ambient_space.(x); cached)
   Bs = block_diagonal_matrix(basis_matrix.(x))
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
+direct_sum(x::Vararg{ZZLatWithIsom}; cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #
@@ -1515,9 +1519,8 @@ function discriminant_group(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
-  
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  fq = gens(Oscar._orthogonal_group(q, TorQuadModuleMap[f]; check=false))[1]
+  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
   return q, fq
 end
 
@@ -2012,14 +2015,14 @@ Integer lattice of rank 4 and degree 5
 """
 kernel_lattice(::ZZLatWithIsom, ::Union{ZZPolyRingElem, QQPolyRingElem})
 
-function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
+function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem; check=true)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = isometry(Lf)
   M = p(f)
   d = denominator(M)
   K = kernel(change_base_ring(ZZ, d*M); side=:left)
-  return lattice(ambient_space(Lf), K*basis_matrix(L))
+  return lattice(ambient_space(Lf), K*basis_matrix(L); check=check)
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -2177,7 +2180,7 @@ function coinvariant_lattice(Lf::ZZLatWithIsom)
       chi = divexact(chi, x-1)
     end
   end
-  return kernel_lattice(Lf, chi)
+  return kernel_lattice(Lf, chi; check=false)
 end
 
 @doc raw"""
