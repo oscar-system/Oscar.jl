@@ -16,11 +16,20 @@ if !isempty(ARGS)
   end
 end
 
-const numprocs = parse(Int, numprocs_str)
+test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
+if haskey(ENV, "JULIA_PKGEVAL")
+  test_subset = :short
+end
+
+# avoid extra workers if we run booktests only
+const numprocs = test_subset == :book ?  1 : parse(Int, numprocs_str)
 
 if numprocs >= 2
   println("Adding worker processes")
-  addprocs(numprocs)
+  # heap size hint for each worker depending on the number of workers and total memory
+  # but at least 2GB per worker
+  mem = max(2, trunc(Int, Sys.total_memory() / (numprocs * 1024^3)))
+  addprocs(numprocs; exeflags="--heap-size-hint=$(mem)G")
 end
 # keep custom worker pool to avoid issues from extra processes in parallel tests
 worker_pool = WorkerPool(workers())
@@ -140,11 +149,6 @@ tests_on_main = Dict(
                      "AlgebraicStatistics" => "MultigradedImplicitization.jl",
                     )
 
-
-test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
-if haskey(ENV, "JULIA_PKGEVAL")
-  test_subset = :short
-end
 
 if test_subset == :short
   # short are all files not in a specific group
