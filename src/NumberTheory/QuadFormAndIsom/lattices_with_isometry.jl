@@ -1087,8 +1087,8 @@ with gram matrix
 [    0       0       0   -1//2       1]
 ```
 """
-function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
-  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check=false)
+function rescale(Lf::ZZLatWithIsom, a::RationalUnion; cached::Bool=false)
+  return lattice(rescale(ambient_space(Lf), a; cached), basis_matrix(Lf); check=false)
 end
 
 @doc raw"""
@@ -1308,7 +1308,7 @@ function direct_sum(x::Vector{ZZLatWithIsom}; cached=false)
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{ZZLatWithIsom};cached=false) = direct_sum(collect(x);cached)
+direct_sum(x::Vararg{ZZLatWithIsom}; cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #
