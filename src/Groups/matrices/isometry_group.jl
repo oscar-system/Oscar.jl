@@ -362,10 +362,9 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
-  BL = zero_matrix(ZZ, nrows(_BL), ncols(_BL))
-  BL = mul!(BL, _BL, n)
+  BL = numerator(_BL)
   if is_prime(n)
-    # up to 20% fewer allocations and slightly faster
+    # Fewer allocations and slightly faster
     p = n
     R = fpField(UInt(p))
     BLmod = change_base_ring(R, BL)
