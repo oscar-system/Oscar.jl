@@ -76,19 +76,20 @@ end
   
 # We overwrite the function in Hecke in order that 
 # Hecke has access to the better algorithms in Oscar
-function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat; 
+function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
                                                algorithm=:default,
                                                _howell::Bool = true,
-                                               depth::Int=-1, 
+                                               depth::Int=-1,
                                                bacher_depth::Int=0,
                                                redo::Bool=false,
-                                               _set_nice_mono::Bool=true
+                                               _set_nice_mono::Bool=true,
+                                               try_small::Bool=true,
 )
   # look in the cache
   if !redo && isdefined(L, :automorphism_group_generators)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
-    if _set_nice_mono
+    if _set_nice_mono  && is_definite(L)
       sv = Hecke._short_vector_generators(L)
       _set_nice_monomorphism!(G, sv)
     end
@@ -98,7 +99,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
@@ -113,7 +114,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   end
   
   if algorithm == :direct
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if _set_nice_mono
@@ -157,14 +158,14 @@ function _isometry_group_via_decomposition(
   
   L = lattice(rational_span(L))
   if gram_matrix(L)[1,1] < 0
-    L = rescale(L, -1)
+    L = rescale(L, -1; cached=false) # needed?
   end
 
   if !_howell
     # need an integral lattice to work with discriminant groups
     d = denominator(scale(L))
     if d > 1
-      L = rescale(L, d)
+      L = rescale(L, d; cached=false)
     end
   end
 
