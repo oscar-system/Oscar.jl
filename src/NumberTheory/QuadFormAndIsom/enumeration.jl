@@ -3175,7 +3175,6 @@ end
 function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
-  
 ######################################################################################
 #
 # Legacy interface ... to be deprecated at some point
