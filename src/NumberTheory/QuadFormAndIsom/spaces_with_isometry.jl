@@ -342,8 +342,8 @@ Quadratic space of dimension 2
 function quadratic_space_with_isometry(
     V::Hecke.QuadSpace,
     f::QQMatrix;
-    check::Bool=true;
-    cached::Bool=false # ignored
+    check::Bool=true,
+    cached::Bool=false, # ignored
   )
   if rank(V) == 0
     return QuadSpaceWithIsom(V, zero_matrix(QQ, 0, 0), -1)
