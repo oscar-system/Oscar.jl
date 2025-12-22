@@ -358,41 +358,69 @@ end
 # stabilizer of L in G < O(L)
 function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat)
   _BL = coordinates(basis_matrix(L),S)
-  n = denominator(_BL) 
+  n = denominator(_BL)
   if n == 1
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
+  BL = numerator(_BL)
   if is_prime(n)
-    # up to 20% fewer allocations and slightly faster
+    # Fewer allocations and slightly faster
     p = n
-    BL = ZZ.(n*_BL)
     R = fpField(UInt(p))
     BLmod = change_base_ring(R, BL)
     r = rref!(BLmod)
     BLmod = BLmod[1:r,:]
-    stab = stabilizer(G, BLmod, on_rref)
-  else 
-    BL = ZZ.(n*_BL)
+
+    mats = GapObj([GapObj(x) for x in gens(G)])
+    Gnice = GAP.Globals.NiceObject(GapObj(G))
+    # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
+    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
+    GAP.Globals.ConvertToMatrixRep(BLmod_gap)
+    st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
+
+    mono = GAP.Globals.NiceMonomorphism(GapObj(G))
+    st_mat = GAP.Globals.PreImage(mono, st)
+    stab = _as_subgroup(G, st_mat)
+  else
     R,iR = residue_ring(ZZ, Int(n))
     BLmod = change_base_ring(R, BL)
     howell_form!(BLmod)
     stab = stabilizer(G, BLmod, on_howell_form)
-  end 
+  end
   return stab
-end 
+end
 
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
-  Mg = M*matrix(g)
+  return on_howell_form(M, matrix(base_ring(M), matrix(g)))
+end
+
+function on_howell_form(M::zzModMatrix, g::ZZMatrix)
+  _g = map_entries(base_ring(M), g)
+  return on_howell_form(M, g)
+end
+
+function on_howell_form(M::zzModMatrix, g::zzModMatrix)
+  Mg = M * g
   howell_form!(Mg)
   return Mg
-end 
+end
 
 function on_rref(M::fpMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
-  Mg = M*matrix(g)
+  Mg = M * matrix(base_ring(M), matrix(g))
   rref!(Mg)
   return Mg
-end 
+end
+
+function on_rref(M::fpMatrix, g::MatrixGroupElem{fpFieldElem, fpMatrix})
+  return on_rref(M, matrix(g))
+end
+
+function on_rref(M::fpMatrix, g::fpMatrix)
+  Mg = M * g
+  rref!(Mg)
+  return Mg
+end
 
 
 automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
