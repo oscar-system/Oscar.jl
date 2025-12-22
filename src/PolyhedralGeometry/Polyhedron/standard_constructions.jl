@@ -857,7 +857,7 @@ function _archimedean_solid(s::String, F::Union{scalar_type_or_field,Nothing}=no
     filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
+    pmp = load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
   else
     pmp = Polymake.polytope.archimedean_solid(s)
     if F === nothing
@@ -959,7 +959,7 @@ function _catalan_solid(s::String, F::Union{scalar_type_or_field,Nothing}=nothin
     filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return load(joinpath(oscardir, "data", "CatalanSolids", filename))
+    pmp = load(joinpath(oscardir, "data", "CatalanSolids", filename))
   else
     pmp = Polymake.polytope.catalan_solid(s)
     if F === nothing

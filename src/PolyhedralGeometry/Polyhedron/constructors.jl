@@ -73,7 +73,7 @@ Polytope in ambient dimension 3 with QQBarFieldElem type coefficients
 ```
 """
 function polyhedron(f::scalar_type_or_field, p::Polyhedron)
-  f, T = f isa Field ? (f,elem_type(f))  : _determine_parent_and_scalar(f)
+  f, T = f isa Field ? (f, elem_type(f)) : _determine_parent_and_scalar(f)
   p = _polyhedron_coerce_field(pm_object(p), f)
   return Polyhedron{T}(p, f)
 end
