@@ -664,7 +664,7 @@ function _determine_parent_and_scalar(::Type{QQFieldElem}, x...)
   return (QQ, QQFieldElem)
 end
 function _determine_parent_and_scalar(::Type{QQBarFieldElem}, x...)
-   return (algebraic_closure(QQ), QQBarFieldElem)
+  return (algebraic_closure(QQ), QQBarFieldElem)
 end
 
 function _determine_parent_and_scalar(::Type{T}, x...) where {T<:scalar_types}

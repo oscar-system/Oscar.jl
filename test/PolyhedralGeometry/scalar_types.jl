@@ -287,5 +287,9 @@
     js22 = johnson_solid(qqb, 22)
     @test Oscar.pm_object(js22).VOLUME isa Polymake.OscarNumber
     @test Polymake.unwrap(Oscar.pm_object(js22).VOLUME) isa QQBarFieldElem
+
+    cs = catalan_solid(qqb, "pentagonal_icositetrahedron")
+    @test Oscar.pm_object(cs).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(cs).VOLUME) isa QQBarFieldElem
   end
 end
