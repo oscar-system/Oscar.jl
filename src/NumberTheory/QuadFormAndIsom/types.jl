@@ -1,7 +1,7 @@
 @doc raw"""
     QuadSpaceWithIsom
 
-A container type for pairs $(V, f)$ consisting of a rational quadratic space
+A type for pairs $(V, f)$ consisting of a rational quadratic space
 $V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix`
 representing the action on the standard basis of $V$.
 
@@ -63,7 +63,7 @@ end
 @doc raw"""
     ZZLatWithIsom
 
-A container type for pairs $(L, f)$ consisting of an integer lattice $L$ of
+A type for pairs $(L, f)$ consisting of an integer lattice $L$ of
 type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing
 the action on the basis matrix of $L$.
 
@@ -213,7 +213,7 @@ end
 @doc raw"""
     TorQuadModuleWithIsom
 
-A container type for pairs $(T, f)$ consisting of a torsion quadratic module
+A type for pairs $(T, f)$ consisting of a torsion quadratic module
 $T$ of type `TorQuadModule` and an isometry $f$ given as a `TorQuadModuleMap`.
 
 To construct an object of type `TorQuadModuleWithIsom`, see the set of functions

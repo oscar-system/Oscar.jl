@@ -20,10 +20,11 @@ following accessors:
 
 ```@docs
 underlying_module(::TorQuadModuleWithIsom)
+torsion_quadratic_module(::TorQuadModuleWithIsom)
 isometry(::TorQuadModuleWithIsom)
 ```
 
-Note that the isometry ``f`` if of finite order, but this order is not computed
+Note that the isometry ``f`` is of finite order, but this order is not computed
 by default. One can use the following function, which stores this order of
 ``f`` after being computed once:
 
@@ -68,6 +69,7 @@ $\psi\circ f = g\circ \psi$. We denote by $O(T, f)$ the *automorphism group* of
 $(T, f)$, i.e. the group of isomorphisms from $(T, f)$ to $(T, f)$.
 
 ```@docs
+automorphism_group_with_inclusion(::TorQuadModuleWithIsom)
 automorphism_group(::TorQuadModuleWithIsom)
 is_isomorphic_with_map(::TorQuadModuleWithIsom, ::TorQuadModuleWithIsom)
 is_anti_isomorphic_with_map(::TorQuadModuleWithIsom, ::TorQuadModuleWithIsom)
