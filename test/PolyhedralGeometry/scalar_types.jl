@@ -256,4 +256,36 @@
       l = f[1]
     end
   end
+
+  @testset "coefficient field coercion" begin
+    d = dodecahedron()
+    qqb = algebraic_closure(QQ)
+    dqqb = polyhedron(qqb, d)
+    @test dqqb isa Polyhedron{QQBarFieldElem}
+    @test volume(dqqb) isa QQBarFieldElem
+    @test volume(dqqb) == qqb(volume(d))
+
+    df = polyhedron(Float64, d)
+    @test df isa Polyhedron{Float64}
+    @test Oscar.pm_object(df).VOLUME isa Float64
+
+    dqf = polyhedron(Float64, dqqb)
+    @test dqf isa Polyhedron{Float64}
+    @test Oscar.pm_object(dqf).VOLUME isa Float64
+
+    @test isapprox(volume(dqf), volume(df); rtol=0.00001)
+
+    js9 = johnson_solid(qqb, 9)
+    @test Oscar.pm_object(js9).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js9).VOLUME) isa QQBarFieldElem
+
+    js18 = johnson_solid(qqb, 18)
+    @test js18 isa Polyhedron{QQBarFieldElem}
+    @test Oscar.pm_object(js18).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js18).VOLUME) isa QQBarFieldElem
+
+    js22 = johnson_solid(qqb, 22)
+    @test Oscar.pm_object(js22).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js22).VOLUME) isa QQBarFieldElem
+  end
 end
