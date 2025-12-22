@@ -76,19 +76,20 @@ end
   
 # We overwrite the function in Hecke in order that 
 # Hecke has access to the better algorithms in Oscar
-function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat; 
+function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
                                                algorithm=:default,
                                                _howell::Bool = true,
-                                               depth::Int=-1, 
+                                               depth::Int=-1,
                                                bacher_depth::Int=0,
                                                redo::Bool=false,
-                                               _set_nice_mono::Bool=true
+                                               _set_nice_mono::Bool=true,
+                                               try_small::Bool=true,
 )
   # look in the cache
   if !redo && isdefined(L, :automorphism_group_generators)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
-    if _set_nice_mono
+    if _set_nice_mono  && is_definite(L)
       sv = Hecke._short_vector_generators(L)
       _set_nice_monomorphism!(G, sv)
     end
@@ -98,7 +99,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
@@ -113,7 +114,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   end
   
   if algorithm == :direct
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if _set_nice_mono
@@ -157,14 +158,14 @@ function _isometry_group_via_decomposition(
   
   L = lattice(rational_span(L))
   if gram_matrix(L)[1,1] < 0
-    L = rescale(L, -1)
+    L = rescale(L, -1; cached=false) # needed?
   end
 
   if !_howell
     # need an integral lattice to work with discriminant groups
     d = denominator(scale(L))
     if d > 1
-      L = rescale(L, d)
+      L = rescale(L, d; cached=false)
     end
   end
 
@@ -357,41 +358,69 @@ end
 # stabilizer of L in G < O(L)
 function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat)
   _BL = coordinates(basis_matrix(L),S)
-  n = denominator(_BL) 
+  n = denominator(_BL)
   if n == 1
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
+  BL = numerator(_BL)
   if is_prime(n)
-    # up to 20% fewer allocations and slightly faster
+    # Fewer allocations and slightly faster
     p = n
-    BL = ZZ.(n*_BL)
     R = fpField(UInt(p))
     BLmod = change_base_ring(R, BL)
     r = rref!(BLmod)
     BLmod = BLmod[1:r,:]
-    stab = stabilizer(G, BLmod, on_rref)
-  else 
-    BL = ZZ.(n*_BL)
+
+    mats = GapObj([GapObj(x) for x in gens(G)])
+    Gnice = GAP.Globals.NiceObject(GapObj(G))
+    # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
+    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
+    GAP.Globals.ConvertToMatrixRep(BLmod_gap)
+    st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
+
+    mono = GAP.Globals.NiceMonomorphism(GapObj(G))
+    st_mat = GAP.Globals.PreImage(mono, st)
+    stab = _as_subgroup(G, st_mat)
+  else
     R,iR = residue_ring(ZZ, Int(n))
     BLmod = change_base_ring(R, BL)
     howell_form!(BLmod)
     stab = stabilizer(G, BLmod, on_howell_form)
-  end 
+  end
   return stab
-end 
+end
 
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
-  Mg = M*matrix(g)
+  return on_howell_form(M, matrix(base_ring(M), matrix(g)))
+end
+
+function on_howell_form(M::zzModMatrix, g::ZZMatrix)
+  _g = map_entries(base_ring(M), g)
+  return on_howell_form(M, g)
+end
+
+function on_howell_form(M::zzModMatrix, g::zzModMatrix)
+  Mg = M * g
   howell_form!(Mg)
   return Mg
-end 
+end
 
 function on_rref(M::fpMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
-  Mg = M*matrix(g)
+  Mg = M * matrix(base_ring(M), matrix(g))
   rref!(Mg)
   return Mg
-end 
+end
+
+function on_rref(M::fpMatrix, g::MatrixGroupElem{fpFieldElem, fpMatrix})
+  return on_rref(M, matrix(g))
+end
+
+function on_rref(M::fpMatrix, g::fpMatrix)
+  Mg = M * g
+  rref!(Mg)
+  return Mg
+end
 
 
 automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)

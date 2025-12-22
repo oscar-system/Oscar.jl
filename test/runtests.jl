@@ -16,11 +16,20 @@ if !isempty(ARGS)
   end
 end
 
-const numprocs = parse(Int, numprocs_str)
+test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
+if haskey(ENV, "JULIA_PKGEVAL")
+  test_subset = :short
+end
+
+# avoid extra workers if we run booktests only
+const numprocs = test_subset == :book ?  1 : parse(Int, numprocs_str)
 
 if numprocs >= 2
   println("Adding worker processes")
-  addprocs(numprocs)
+  # heap size hint for each worker depending on the number of workers and total memory
+  # but at least 2GB per worker
+  mem = max(2, trunc(Int, Sys.total_memory() / (numprocs * 1024^3)))
+  addprocs(numprocs; exeflags="--heap-size-hint=$(mem)G")
 end
 # keep custom worker pool to avoid issues from extra processes in parallel tests
 worker_pool = WorkerPool(workers())
@@ -136,10 +145,11 @@ test_subsets = Dict(
   :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
 )
 
-test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
-if haskey(ENV, "JULIA_PKGEVAL")
-  test_subset = :short
-end
+tests_on_main = Dict(
+                     "Parallel" => "runtests.jl",
+                     "AlgebraicStatistics" => "MultigradedImplicitization.jl",
+                    )
+
 
 if test_subset == :short
   # short are all files not in a specific group
@@ -163,22 +173,21 @@ end
 
 stats = Dict{String,NamedTuple}()
 
-# this needs to run here to make sure it runs on the main process
+# these need to run here to make sure they run on the main process
 # it is in the ignore list for the other tests
 # try running it first for now
 if test_subset == :long || test_subset == :default
-  if "Parallel" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
+  for (ep, f) in tests_on_main
+    path = if ep === nothing
+      joinpath(Oscar.oscardir, "test", f)
+    elseif ep in Oscar.exppkgs
+      joinpath(Oscar.oscardir, "experimental", ep, "test", f)
+    else
+      continue
+    end
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
-
-  if "AlgebraicStatistics" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "AlgebraicStatistics", "test", "MultigradedImplicitization.jl")
-    println("Starting tests for $path")
-    push!(stats, Oscar._timed_include(path, Main))
-  end
-
 end
 
 # if many workers, distribute tasks across them

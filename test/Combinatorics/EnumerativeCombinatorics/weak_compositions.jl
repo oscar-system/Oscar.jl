@@ -8,6 +8,12 @@
   @test length(weak_compositions(T(0), T(3))) == 1
   @test (@inferred collect(weak_compositions(T(0), T(3)))) == [weak_composition(T[0, 0, 0])]
 
+  @testset "inplace iteration" begin
+    Ci = weak_compositions(T(5),T(3), inplace=true)
+    Cf = weak_compositions(T(5),T(3))
+    @test all(splat(==), zip(Ci, Cf))
+  end
+
   l = @inferred collect(weak_compositions(T(5), T(3)))
   @test length(l) == 21
   @test all(x -> sum(x) == 5, l)

@@ -158,6 +158,7 @@ end
    @test length(all_small_groups(order => 16, !is_abelian))==9
    @test number_of_small_groups(16)==14
    @test number_of_small_groups(17)==1
+   @test small_group_identification(small_group(512, 1)) == (512, 1)
 
    @test_throws ArgumentError small_group(1, 2)
 end

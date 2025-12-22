@@ -167,6 +167,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   F0 = zeros(QQ,degree(NS)); F0[1]=1
 
   @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
+  @req is_nef(X, F) "not nef"
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)

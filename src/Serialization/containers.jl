@@ -527,6 +527,13 @@ function load_object(s::DeserializerState, T::Type{Dict{Symbol, Int}}, key::Unio
   end
 end
 
+function load_object(s::DeserializerState, T::Type{<:Dict{S, U}}, ::Nothing) where {S, U}
+  pairs = load_array_node(s) do _
+    load_object(s, Tuple{S, U}, (nothing, nothing))
+  end::Vector{Tuple{S, U}}
+  return T(k => v for (k, v) in pairs)
+end
+
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
                      params::Any) where {S, U}

@@ -141,6 +141,8 @@
     I = ideal(R,[x^2+x*y+y,x+y^2])
     G = standard_basis(I, ordering=lex(R), complete_reduction=true)
     @test G.ord == lex(R)
+    SG = Oscar.singular_generators(G, G.ord)
+    @test SG.isGB
 end
 
 @testset "normal form graded" begin

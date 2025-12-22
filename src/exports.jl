@@ -1342,6 +1342,7 @@ export normalized_volume
 export normalizer
 export nullity
 export number_of_atlas_groups
+export number_of_combinations
 export number_of_complement_equations
 export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
@@ -1349,7 +1350,9 @@ export number_of_factors
 export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
+export number_of_leaves
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multicombinations
 export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
@@ -1509,6 +1512,7 @@ export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
 export pullback
+export puiseux_expansion
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form

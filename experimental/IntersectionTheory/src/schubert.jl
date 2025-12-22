@@ -29,6 +29,8 @@ julia> s21 = schubert_class(G, [2, 1])
 julia> s22 = schubert_class(G, [2, 2])
 c[2]^2
 
+julia> # Pieri's formula:
+
 julia> s1*s1 == s2+s11
 true
 
@@ -57,6 +59,8 @@ julia> chern_class(Q, 3)
 -c[1]^3 + 2*c[1]*c[2]
 
 ```
+
+*Number of Lines in $\mathbb P^3$ Meeting Four General Lines in $\mathbb P^3$*
 
 ```jldoctest
 julia> G = abstract_grassmannian(2,4)

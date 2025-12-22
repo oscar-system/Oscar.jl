@@ -160,12 +160,14 @@ function partially_ordered_set(gin::Graph{Directed})
   Polymake.call_function(
     :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(queue)
   )
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
-    ADJACENCY=pm_object(g),
-    DECORATION=dec,
-    TOP_NODE=length(queue) - 1,
-    BOTTOM_NODE=0,
-  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}()
+
+  Polymake.take(pos, "ADJACENCY", pm_object(g))
+  Polymake._take_graph_map(pos, "ADJACENCY", "DECORATION", dec)
+  Polymake.take(pos, "TOP_NODE", length(queue) - 1)
+  Polymake.take(pos, "BOTTOM_NODE", 0)
+  Polymake.call_method(pos, :commit)
+
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop
@@ -229,12 +231,13 @@ function partially_ordered_set(gin::Graph{Directed}, node_ranks::Dict{Int,Int})
   Polymake.call_function(
     :common, :permute_graph, pm_object(g), Polymake.to_zero_based_indexing(sortednodes)
   )
-  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}(;
-    ADJACENCY=pm_object(g),
-    DECORATION=dec,
-    TOP_NODE=length(sortednodes) - 1,
-    BOTTOM_NODE=0,
-  )
+  pos = Polymake.graph.PartiallyOrderedSet{Polymake.BasicDecoration}()
+  Polymake.take(pos, "ADJACENCY", pm_object(g))
+  Polymake._take_graph_map(pos, "ADJACENCY", "DECORATION", dec)
+  Polymake.take(pos, "TOP_NODE", length(sortednodes) - 1)
+  Polymake.take(pos, "BOTTOM_NODE", 0)
+  Polymake.call_method(pos, :commit)
+
   opos = PartiallyOrderedSet(pos)
   opos.artificial_bottom = abottom
   opos.artificial_top = atop
@@ -413,7 +416,7 @@ function Base.show(io::IO, pe::PartiallyOrderedSetElement)
 end
 
 @doc raw"""
-    visualize(p::PartiallyOrderedSet; AtomLabels=[], filename=nothing)
+    visualize(p::PartiallyOrderedSet; AtomLabels=[], filename=nothing, backend=:default)
 
 Visualize a partially ordered set.
 The labels will be either the ids from the original input data or integer sets
@@ -422,23 +425,39 @@ For inclusion based partially ordered sets the keyword `AtomLabels` can be used 
 a vector of strings with one label per atom to override the default `1:n_atoms(p)` labeling.
 The labels of the least and greatest elements are not shown.
 The `filename` keyword argument allows writing TikZ visualization code to `filename`.
+The `backend` keyword argument allows the user to pick between
+- `:tikz`: a TikZ visualization (default),
+- `:svg`: a SVG visualization (default in jupyter),
+- `:threejs`: a Three.js visualization, or
+- `:graphviz`: a [Graphviz](https://graphviz.org/) visualization.
+The Graphviz visualization requires a postscript reader and loading the julia
+package `Graphviz_jll` before OSCAR.
 
 !!! note
     This will always show the greatest and least elements even if it does not correspond to an element of the partially ordered set.
 """
 function visualize(
-  p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, kwargs...
+  p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, backend=:default, kwargs...
 )
   if isdefined(p, :atomlabels) && !haskey(kwargs, :AtomLabels)
     kwargs = (kwargs..., :AtomLabels => p.atomlabels)
   end
   vpos = Polymake.visual(Polymake.Visual, pm_object(p); kwargs...)
-  # todo: check if we can use svg in jupyter notebooks
-  if !isnothing(filename)
-    Polymake.call_function(Nothing, :graph, :tikz, vpos; File=filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+    return Polymake.display_svg(vpos)
+  elseif isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :threejs && isnothing(filename)
+    return vpos
   else
-    Polymake.call_function(Nothing, :graph, :tikz, vpos;)
+    if backend === :default
+      backend = :tikz
+    end
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :graph, backend, vpos; File=filename)
+    else
+      Polymake.call_function(Nothing, :graph, backend, vpos;)
+    end
   end
+  return nothing
 end
 
 @doc raw"""
