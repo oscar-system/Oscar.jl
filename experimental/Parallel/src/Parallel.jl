@@ -23,7 +23,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
 
   function OscarWorkerPool(n::Int; kw...)
-    wids = addprocs(n, kw...)
+    wids = addprocs(n; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     remotecall_eval(Main, wids, :(using Oscar))
