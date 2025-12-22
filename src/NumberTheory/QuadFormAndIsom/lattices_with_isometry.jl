@@ -1462,12 +1462,16 @@ end
 
 @doc raw"""
     discriminant_group(Lf::ZZLatWithIsom) -> TorQuadModule, AutomorphismGroupElem
+    discriminant_group(::Type{TorQuadModuleWithIsom}, Lf::ZZLatWithIsom) -> TorQuadModuleWithIsom
 
 Given an integral lattice with isometry $(L, f)$, return the discriminant group
 $D_L$ of the underlying lattice $L$ as well as the image $D_f$ of the
 underlying isometry $f$ inside $O(D_L)$.
 
 See [`discriminant_group(::ZZLat)`](@ref).
+
+Setting as first argument`TorQuadModuleWithIsom`, return the pair $(D_L, D_f)$
+as an instance of [`TorQuadModuleWithIsom`](@ref).
 
 # Examples
 ```jldoctest
@@ -1512,6 +1516,12 @@ Isometry of
   finite quadratic module: Z/6 -> Q/2Z
 with matrix representation
   [5]
+
+julia> discriminant_group(TorQuadModuleWithIsom, Lf)
+Finite quadratic module of order 6
+  with 1 generator
+  with isometry given by
+  [5]
 ```
 """
 function discriminant_group(Lf::ZZLatWithIsom)
@@ -1522,6 +1532,15 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
   fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
   return q, fq
+end
+
+function discriminant_group(::Type{TorQuadModuleWithIsom}, Lf::ZZLatWithIsom)
+  @req is_integral(Lf) "Underlying lattice must be integral"
+  L = lattice(Lf)
+  f = ambient_isometry(Lf)
+  q = discriminant_group(L)
+  fq = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+  return TorQuadModuleWithIsom(q, fq)
 end
 
 @doc raw"""
