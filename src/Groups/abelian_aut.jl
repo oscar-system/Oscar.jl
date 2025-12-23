@@ -132,7 +132,7 @@ function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom, TorQuadModuleMap}; check:
   fgap = GAPWrap.GroupHomomorphismByImagesNC(AA, AA, img)
 
   @req !check || fgap in aut.X "Map does not define an element of the group"
-  return aut(fgap; check)
+  return aut(fgap)
 end
 
 function (aut::AutomorphismGroup{TorQuadModule})(f::FinGenAbGroupHom; check::Bool=true)
