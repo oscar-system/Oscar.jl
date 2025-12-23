@@ -437,7 +437,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
+#    @assert all(in(iU), u)
     im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
@@ -463,7 +463,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
+#    @assert all(in(iU), u)
     im_q = T()
     for q = v
       X = zero(indC)
@@ -474,7 +474,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
     end
     return im_q
@@ -497,8 +497,8 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     a -> sum a g_i^-1 otimes g_i
     works (direct computation with reps and cosets)
   =#
-  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h
+  _h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), d))) for i=1:length(g)) for d = gens(D.M)])
+  return iC, _h
 end
 
 function is_induced(C::GModule)
@@ -763,17 +763,27 @@ Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.parent_type(::Type{CoChain{N,G,M}}) where {N,G,M} = AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
+function differential(G, ac, N::Int, C::Dict, g::Tuple)
+  n = N+1
+  d = []
+  v = C[Tuple(g[i] for i=2:n)] +
+    sum((-1)^i* C[Tuple(vcat([g[j] for j=1:i-1], [g[i]*g[i+1]], [g[j] for j=i+2:n]))] for i=1:n-1; init = 0*(first(values(C)))) +
+      (-1)^n*C[Tuple(g[i] for i=1:n-1)]*ac(g[n])
+  return v
+end
+
 function differential(C::CoChain{N, G, M}) where {N, G, M}
   n = N+1
   d = Pair{NTuple{n, G}, M}[]
   for g = Iterators.ProductIterator(Tuple([C.C.G for i=1:n]))
-    v = action(C.C, g[n], C(Tuple(g[i] for i=1:n-1))) +
+    v = C(Tuple(g[i] for i=2:n)) +
         sum((-1)^i* C(Tuple(vcat(G[g[j] for j=1:i-1], G[g[i]*g[i+1]], G[g[j] for j=i+2:n]))) for i=1:n-1; init = zero(C.C.M)) +
-        (-1)^n*C(Tuple(g[i] for i=2:n))
+          action(C.C, g[n], (-1)^n*C(Tuple(g[i] for i=1:n-1)))
     push!(d, g=>v)
   end
   return CoChain{n, G, M}(C.C, Dict(d))
 end
+
 
 function action(C::CoChain, g::PermGroupElem)
   CC = deepcopy(C)
@@ -888,6 +898,7 @@ function (C::CoChain{2})(g::Oscar.GAPGroupElem, h::Oscar.GAPGroupElem)
   return C.d[(g,h)] = C.D((g, h))
 end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.GAPGroupElem}) = C(g[1], g[2])
+(C::CoChain{3})(g::NTuple{3, <:Oscar.GAPGroupElem}) = C.d[(g[1], g[2], g[3])]
 
 #TODO: re-write to get the maps! To support Q/Z as well
 """
@@ -1837,6 +1848,7 @@ function Base.iszero(x::AbstractAlgebra.Generic.ModuleHomomorphism)
   return iszero(x.matrix)
 end
 
+#TODO: use differetial instead?
 function istwo_cocycle(c::CoChain{2})
   C = c.C
   G = C.G
