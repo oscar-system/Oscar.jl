@@ -1927,24 +1927,6 @@ function ideal(
   return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
-### additional functionality
-function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
-  for g in gens(I)
-    g in J || return false
-  end
-  return true
-end
-
-function ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  I === J && return true
-  (issubset(I, J) && issubset(J, I))
-end
-
-function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  return ideal(base_ring(I), vcat(gens(I), gens(J)))
-end
-
 # TODO: The following method can probably be fine tuned for specific localizations.
 function intersect(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return base_ring(I)(intersect(pre_saturated_ideal(I), pre_saturated_ideal(J)))
