@@ -943,14 +943,14 @@ function representatives_of_hermitian_type(
     # local conditions are okay, enumerate the genus
     allow_info && !_local && println("Enumerate Z-genus $G")
     repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local)
-    if root_test && _local && signature_pair(G)[1]==0
-      if mass(G) == 1//automorphism_group_order(T)
+    if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
+      if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
         # T is unique in its genus, we can do the root test even when working locally 
         minimum(T) == 2 && return reps 
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
       if rank(G) <= 6 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=20, _local=false)
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=30, _local=false)
         if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
           return reps 
         end
@@ -1588,20 +1588,22 @@ function __splitting_of_hermitian_type(
         end
       end
       As = representatives_of_hermitian_type(A, n, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && !_local && iszero(signature_tuple(A)[1]) # Remove lattices with (-2)-vectors
-        filter!(LA -> rank(LA) == 0 || minimum(LA) != 2, As)
+      if root_test && !_local 
+        # Remove lattices with (-2)-vectors
+        filter!(test_roots, As)
       end
       isempty(As) && continue
       Bs = representatives_of_hermitian_type(B, k, fix_root; genusDB, info_depth, discriminant_annihilator=p*discriminant_annihilator, _local)
-      if root_test && !_local && iszero(signature_tuple(B)[1]) # Remove lattices with (-2)-vectors
-        filter!(LB -> rank(LB) == 0 || minimum(LB) != 2, Bs)
+      if root_test && !_local
+        # Remove lattices with (-2)-vectors
+        filter!(test_roots, Bs)
       end
       isempty(Bs) && continue
       for LA in As, LB in Bs
         satisfies_eiglat_cond(LA, LB, eiglat_cond) || continue
         Es = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, test_type=false, _local)
-        if root_test && !_local && signature_tuple(B)[1]+signature_tuple(A)[1]<=1 # Remove lattices with (-2)-vectors
-          filter!(i -> minimum(coinvariant_lattice(i))!=2, Es)
+        if root_test && !_local# Remove lattices with (-2)-vectors
+          filter!(test_roots, Es)
         end
         if fix_root == k
           while !isempty(Es)
@@ -1751,8 +1753,9 @@ function splitting_of_prime_power(
     # the correct order
     b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
-    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
-      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
     end
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
@@ -1871,8 +1874,9 @@ function splitting_of_pure_mixed_prime_power(
     satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, q, p; check=false, _local)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
-    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
-      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
     end
     append!(reps, E)
   end
@@ -2017,8 +2021,9 @@ function splitting_of_mixed_prime_power(
   for L1 in RA, L2 in RB
     satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
     E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p; check=false, _local)
-    if root_test && !_local && signature_tuple(L1)[1]+signature_tuple(L2)[1]<=1 # Remove lattices with (-2)-vectors
-      filter!(i -> minimum(coinvariant_lattice(i))!=2, E)
+    if root_test && !_local
+      # Remove lattices with (-2)-vectors
+      filter!(test_roots, E)
     end
     b == 1 && filter!(LL -> order_of_isometry(LL) == p*n, E)
     filter!(Base.Fix2(is_annihilated_on_discriminant, discriminant_annihilator), E)
@@ -2667,9 +2672,27 @@ function _conditions_after_power(
   return unique!([_conditions_after_power(i, p) for i in eiglat_cond])
 end 
 
+# Return the largest negative definite eigenlattice.
+function coinvariant_lattice_neg(L::ZZLatWithIsom)
+  C = coinvariant_lattice(L)
+  signature_tuple(C)[1] == 0 && return C
+  B = zero_matrix(QQ, 0, degree(C))
+  for d in divisors(order(L))
+    K = kernel_lattice(L, d)
+    signature_tuple(K)[1] == 0 || continue 
+    B = vcat(B, basis_matrix(K))
+  end 
+  return orthogonal_submodule(C, B)
+end 
+
+function test_roots(L)
+  C = coinvariant_lattice_neg(L)
+  return rank(C) == 0 || minimum(C) != 2
+end 
+  
 ###############################################################################
 #
-#  Enhanced genus enumeration
+#  Root test
 #
 ###############################################################################
 function _packing_density_test(G::ZZGenus)
@@ -2699,6 +2722,13 @@ end
 
 # Legacy
 _roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
+
+
+###############################################################################
+#
+#  Enhanced genus enumeration
+#
+###############################################################################
 
 @doc raw"""
     oscar_genus_representatives(
@@ -3145,7 +3175,6 @@ end
 function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
-
 ######################################################################################
 #
 # Legacy interface ... to be deprecated at some point

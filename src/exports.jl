@@ -205,6 +205,7 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -322,6 +323,7 @@ export augmented_chow_ring
 export augmented_complex
 export aut
 export automorphism_group
+export automorphism_group_with_inclusion
 export barycentric_subdivision
 export base_ring
 export base_scheme
@@ -884,6 +886,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_anti_isomorphic_with_map
 export is_archimedean_solid
 export is_atlas_character_table
 export is_ball
@@ -1783,6 +1786,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
@@ -1826,6 +1830,7 @@ export twisting_sheaf
 export two_sided_ideal
 export type
 export underlying_gluing
+export underlying_module
 export underlying_presheaf
 export underlying_quotient
 export underlying_word
