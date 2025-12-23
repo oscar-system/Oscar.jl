@@ -1718,7 +1718,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
     return get_attribute!(Lf, :image_centralizer_in_Oq_local) do
       qL,fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
-      C = centralizer(OqL, OqL(matrix(fqL)))
+      C = centralizer(OqL, OqL(matrix(fqL);check=false))
       return C
     end::T
   end
