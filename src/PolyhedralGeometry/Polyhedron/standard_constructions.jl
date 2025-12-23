@@ -757,7 +757,7 @@ end
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
-    platonic_solid(s)
+    platonic_solid([F::scalar_type_or_field,] s)
 
 Construct a Platonic solid with the name given by String `s` from the list
 below.
@@ -788,6 +788,8 @@ julia> n_facets(T)
 ```
 """
 platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
+platonic_solid(F::scalar_type_or_field, s::String) =
+  polyhedron(F, Polymake.polytope.platonic_solid(s))
 
 const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahedron"])
 
