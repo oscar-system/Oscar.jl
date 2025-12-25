@@ -459,7 +459,7 @@ function _process_finite_sets_of_h(h::ZZMatrix, f::ZZMatrix, v, w, bi_form, L::Z
   h_new = zero(h)
   tmp = zero(h)
   for b = b_min:-1
-    a_max = round(ZZRingElem, (b*y+isqrt(round(ZZRingElem, (z*b^2+2*x), RoundDown))/x^2), RoundDown)
+    a_max = round(ZZRingElem, (b*y+isqrt(round(ZZRingElem, (z*(b^2+2*x)), RoundDown)))/x, RoundDown)
     for a = 1:a_max
       add!(h_new,neg!(mul!(h_new,b,h),mul!(tmp,a,mul!(tmp,h,f))))
       #h_new = -b*h +a*h*f
