@@ -445,7 +445,7 @@ function ref_ff!(M::MatElem)
       continue
     end
     for k=i+1:nrows(M)
-      M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
+      M[k, :] = M[i, j]*M[k:k, :] - M[k, j] * M[i:i, :]
     end
   end
   return rk

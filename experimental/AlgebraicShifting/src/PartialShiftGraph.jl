@@ -1,11 +1,19 @@
+# TODO: change Vector -> Set
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
   S_diff = collect(symdiff(S1, S2))
   isempty(S_diff) && return false
   set_cmp(a, b) = min(symdiff(a, b)...) in a
-
   return sort(S_diff;lt=set_cmp)[1] in S1
+end
+
+function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
+  return isless_lex(Set(facets(K1)), Set(facets(K2)))
+end
+
+function isless_lex(K1::UniformHypergraph, K2::UniformHypergraph)
+  return faces(K1) < faces(K2)
 end
 
 """
@@ -181,6 +189,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
                              parallel::Bool = false,
                              show_progress::Bool = true,
                              task_size::Int=100) where T <: ComplexOrHypergraph
+  # see TODO above about changing EdgeLabels type
   # Deal with trivial case
   if length(complexes) == 1
     @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
@@ -189,7 +198,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
       EdgeLabels(),
       complexes) :: Tuple{Graph{Directed}, EdgeLabels, Vector{T}}
   end
-  
+
   # maybe we provide a flag to skip if the complexes are already sorted?
   complexes = sort(complexes;lt=Oscar.isless_lex)
 
