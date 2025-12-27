@@ -865,17 +865,8 @@ _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_ov
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
 
-function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
-  vp_pair = filter(x -> :value_params == x.first, params(tp))
-  kp_pair = filter(x -> :key_params == x.first, params(tp))
-  if !isempty(vp_pair)
-    ov_params = Dict(k => _convert_override_params(v) for (k, v) in params(tp))
-    if type(first(kp_pair).second) <: Union{Symbol, String, Int}
-      return _convert_override_params(first(vp_pair).second)
-    end
-  else
-    return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
-  end
+function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
+  return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
 end
 
 _convert_override_params(obj::Any) = obj
