@@ -1,5 +1,5 @@
 using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
-import Distributed: remotecall, workers, remotecall_fetch, pmap
+import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager
 
 import .Serialization: put_type_params
 
@@ -22,10 +22,22 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
 
-  function OscarWorkerPool(n::Int)
-    wids = addprocs(n)
+  function OscarWorkerPool(n::Int; kw...)
+    wids = addprocs(n, kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
+    remotecall_eval(Main, wids, :(using Oscar))
+
+    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+  end
+
+  function OscarWorkerPool(manager::ClusterManager; project=nothing, kw...)
+    wids = addprocs(manager; kw...)
+    wp = WorkerPool(wids)
+    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
+    if !isnothing(project)
+      remotecall_eval(Main, wids, :(using Pkg; Pkg.activate(project); Pkg.instantiate()))
+    end
     remotecall_eval(Main, wids, :(using Oscar))
 
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
@@ -33,12 +45,14 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
 end
 
 @doc raw"""
-     oscar_worker_pool(n::Int)
-     oscar_worker_pool(f::Function, n::Int)
-
+     oscar_worker_pool(n::Int; kw...)
+     oscar_worker_pool(f::Function, n::Int; kw...)
+     oscar_worker_pool(manager::ClusterManager; kw...)
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
+
+Will also accept a `manager` as an argument, `kw` will get passed to `addprocs` when initializing the workers.
 
 # Example
 The following code will start up 3 processes with Oscar,
@@ -51,10 +65,11 @@ results = oscar_worker_pool(3) do wp
 end
 ```
 """
-oscar_worker_pool(n::Int) = OscarWorkerPool(n)
+oscar_worker_pool(n::Int; kw...) = OscarWorkerPool(n; kw...)
+oscar_worker_pool(manager::ClusterManager; kw...) = OscarWorkerPool(manager; kw...)
 
-function oscar_worker_pool(f::Function, n::Int)
-  wp = OscarWorkerPool(n)
+function oscar_worker_pool(f::Function, args...; kw...)
+  wp = OscarWorkerPool(args...; kw...)
   local results
   try
     results = f(wp)
