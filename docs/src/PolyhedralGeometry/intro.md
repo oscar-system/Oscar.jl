@@ -86,6 +86,14 @@ coefficient_field(x::PolyhedralObject)
 embedded_number_field
 ```
 
+If there is a corresponding conversion for the field elements, then polyhedra can
+be converted to a different field, e.g., a polytope over a number field can be
+converted to a polytope over the algebraic closure of the rationals.
+
+```@docs
+polyhedron(f::scalar_type_or_field, p::Polyhedron)
+```
+
 ## Type compatibility
 
 When working in polyhedral geometry it can prove advantageous to have various
