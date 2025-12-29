@@ -67,19 +67,15 @@ end
 @everywhere import PrettyTables
 
 
-function print_stats(io::IO, stats_dict::Dict; fmt=PrettyTables.tf_unicode, max=50)
+function print_stats(io::IO, stats_dict::Dict; backend=:text, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
   println(io, "### Stats per file")
   println(io)
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
-  if haskey(first(values(stats_dict)), :ctime)
-    header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2,3,4]), PrettyTables.ft_printf("%.1f", [5]))
-  else
-    header=[:Filename, Symbol("Time in s"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2]), PrettyTables.ft_printf("%.1f", [3]))
-  end
-  PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
+  header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("+ GC"), Symbol("Allocations in GB")]
+  formatters = [PrettyTables.fmt__printf("%.2f", [2,3,4,5]), PrettyTables.fmt__printf("%.1f", [6])]
+  align = [:l, :r, :r, :r, :r, :r]
+  PrettyTables.pretty_table(io, table; backend, maximum_number_of_rows=max, column_labels=header, formatters=formatters)
 end
 
 
@@ -200,7 +196,7 @@ merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
-    print_stats(io, stats; fmt=PrettyTables.tf_markdown)
+    print_stats(io, stats; backend=:markdown)
   end
 else
   print_stats(stdout, stats; max=10)
