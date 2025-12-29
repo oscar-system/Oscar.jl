@@ -73,7 +73,7 @@ function print_stats(io::IO, stats_dict::Dict; backend=:text, max=50)
   println(io, "### Stats per file")
   println(io)
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
-  header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("+ GC"), Symbol("Allocations in GB")]
+  header=[:Filename, Symbol("Total time in s"), Symbol("Compilation"), Symbol("Recompilation"), Symbol("GC"), Symbol("Allocations in GB")]
   formatters = [PrettyTables.fmt__printf("%.2f", [2,3,4,5]), PrettyTables.fmt__printf("%.1f", [6])]
   align = [:l, :r, :r, :r, :r, :r]
   PrettyTables.pretty_table(io, table; backend, maximum_number_of_rows=max, column_labels=header, formatters=formatters)
@@ -93,7 +93,7 @@ end
 sort!(testlist)
 Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
-# tests with the highest number of allocations / runtime / compilation time
+# tests with the highest number of allocations / total time / compilation time
 # more or less sorted by allocations are in `long`
 # tests that should not be run for pull request CI are in `extra_long`
 # (these are run on a custom schedule only)

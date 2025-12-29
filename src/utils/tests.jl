@@ -15,8 +15,8 @@ function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION >
       comptime = first(compile_elapsedtimes)
       rcomptime = last(compile_elapsedtimes)
     end
-    println("-> Testing $path took: runtime $(round(stats.time-comptime-stats.gctime; digits=3)) seconds + compilation $(round(comptime-rcomptime; digits=3)) seconds + recompilation $(round(rcomptime; digits=3)) seconds + GC $(round(stats.gctime; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
-    return (path=>(time=stats.time-comptime-stats.gctime, ctime=comptime-rcomptime, rctime=rcomptime, gctime=stats.gctime, alloc=stats.bytes/2^30))
+    println("-> Testing $path took: total time $(round(stats.time; digits=3)) seconds, compilation $(round(comptime-rcomptime; digits=3)) seconds + recompilation $(round(rcomptime; digits=3)) seconds, GC $(round(stats.gctime; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
+    return (path=>(time=stats.time, ctime=comptime-rcomptime, rctime=rcomptime, gctime=stats.gctime, alloc=stats.bytes/2^30))
   else
     return ()
   end
