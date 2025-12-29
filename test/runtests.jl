@@ -29,7 +29,8 @@ if numprocs >= 2
   # heap size hint for each worker depending on the number of workers and total memory
   # but at least 2GB per worker
   mem = max(2, trunc(Int, Sys.total_memory() / (numprocs * 1024^3)))
-  addprocs(numprocs; exeflags="--heap-size-hint=$(mem)G")
+  exeflags = test_subset == :extra_long ? [] : "--heap-size-hint=$(mem)G"
+  addprocs(numprocs; exeflags)
 end
 # keep custom worker pool to avoid issues from extra processes in parallel tests
 worker_pool = WorkerPool(workers())
