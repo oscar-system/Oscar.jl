@@ -840,7 +840,11 @@ function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
   return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::EmbeddedNumFieldElem)
+function Polymake._fieldelem_to_rational(e::QQBarFieldElem)
+  return Rational{BigInt}(e)
+end
+
+function Polymake._fieldelem_is_rational(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
   return is_rational(e)
 end
 
