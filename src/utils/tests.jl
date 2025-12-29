@@ -1,15 +1,20 @@
-function _timed_include(str::String, mod::Module=Main)
-  compile_elapsedtimes = Base.cumulative_compile_time_ns()
+function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION > v"1.11.0"))
+  has_ctime_stat || (compile_elapsedtimes = Base.cumulative_compile_time_ns())
   stats = @timed Base.include(identity, mod, str)
   fullpath = abspath(joinpath(Base.source_dir(), str))
   # skip files which just include other files and ignore
   # files outside of the oscar folder
   if startswith(fullpath, Oscar.oscardir)
     path = relpath(fullpath, Oscar.oscardir)
-    compile_elapsedtimes = Base.cumulative_compile_time_ns() .- compile_elapsedtimes
-    compile_elapsedtimes = compile_elapsedtimes ./ 10^9
-    comptime = first(compile_elapsedtimes)
-    rcomptime = last(compile_elapsedtimes)
+    if has_ctime_stat
+      comptime = stats.compile_time
+      rcomptime = stats.recompile_time
+    else
+      compile_elapsedtimes = Base.cumulative_compile_time_ns() .- compile_elapsedtimes
+      compile_elapsedtimes = compile_elapsedtimes ./ 10^9
+      comptime = first(compile_elapsedtimes)
+      rcomptime = last(compile_elapsedtimes)
+    end
     println("-> Testing $path took: runtime $(round(stats.time-comptime-stats.gctime; digits=3)) seconds + compilation $(round(comptime-rcomptime; digits=3)) seconds + recompilation $(round(rcomptime; digits=3)) seconds + GC $(round(stats.gctime; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
     return (path=>(time=stats.time-comptime-stats.gctime, ctime=comptime-rcomptime, rctime=rcomptime, gctime=stats.gctime, alloc=stats.bytes/2^30))
   else
@@ -200,8 +205,8 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
     else
       testlist = _gather_tests(path; ignore=ignore)
       @req !isempty(testlist) "no such file or directory: $path[.jl]"
-
-      Base.cumulative_compile_timing(true)
+      has_ctime_stat = VERSION > v"1.11.0"
+      has_ctime_stat || Base.cumulative_compile_timing(true)
       stats = Dict{String,NamedTuple}()
 
       if tempproject
@@ -226,7 +231,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
             Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
           end
           if timed
-            push!(stats, _timed_include(entry))
+            push!(stats, _timed_include(entry; has_ctime_stat))
           else
             Base.include(identity, Main, entry)
           end
@@ -239,7 +244,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         end
       end
       if timed
-        Base.cumulative_compile_timing(false)
+        has_ctime_stat || Base.cumulative_compile_timing(false)
         return stats
       else
         return nothing
