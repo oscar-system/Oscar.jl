@@ -356,13 +356,19 @@ function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:U
 end 
 
 # stabilizer of L in G < O(L)
-function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat)
+function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat, howell::Bool=false)
+  @hassert :Isometry 2 all(matrix(g)*gram_matrix(S)*transpose(matrix(g)) == gram_matrix(S) for g in gens(G))
   _BL = coordinates(basis_matrix(L),S)
   n = denominator(_BL)
   if n == 1
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
+  # cheap heuristic when howell is faster may need to be adapted
+  ed = elementary_divisors(discriminant_group(S))
+  if length(ed)<6 && length(prime_divisors(n))<=2
+    howell=true
+  end 
   BL = numerator(_BL)
   if is_prime(n)
     # Fewer allocations and slightly faster
@@ -382,11 +388,34 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
     mono = GAP.Globals.NiceMonomorphism(GapObj(G))
     st_mat = GAP.Globals.PreImage(mono, st)
     stab = _as_subgroup(G, st_mat)
-  else
+  elseif howell # do everything in one go, usually the slowest
     R,iR = residue_ring(ZZ, Int(n))
+    @vprintln :Isometry 5 "stabilizer via Howell with n=$n and index $(index(L,S))"
     BLmod = change_base_ring(R, BL)
     howell_form!(BLmod)
     stab = stabilizer(G, BLmod, on_howell_form)
+  else 
+    @vprintln :Isometry 5 "stabilizer via recursion with n=$n and index $(index(L,S))"
+    # proceed iteratively one prime at a time 
+    p = first(prime_divisors(n))
+    Lp = intersect((1//p)*S, L)
+    # base case of the recursion
+    @vtime :Isometry 11 Gp, iGp = _overlattice_stabilizer(G, S, Lp)
+    GAP.Globals.SetNiceMonomorphism(GapObj(Gp),GAP.Globals.NiceMonomorphism(GapObj(G)))
+    # transform Gp to the coordinates of Lp
+    BLp = coordinates(basis_matrix(Lp), S)
+    BLpi = inv(BLp)
+    Gp2 = matrix_group([ZZ.(BLp*matrix(g)*BLpi) for g in gens(Gp)])
+    # set a nice mono  ... is this useful?
+    sv = Hecke._short_vector_generators(Lp)
+    _set_nice_monomorphism!(Gp2, sv)
+    # recurse
+    @vtime :Isometry 11 H, H_to_Gp = _overlattice_stabilizer(Gp2, Lp, L)
+    # transform H back to the coordinates of S
+    H2 = matrix_group([ZZ.(BLpi*matrix(g)*BLp) for g in gens(H)])    
+    stab = H2, hom(H2, G, [G(i;check=false) for i in gens(H2)];check=false)
+    # sanity check
+    @hassert :Isometry 2 all(matrix(g)*gram_matrix(S)*transpose(matrix(g)) == gram_matrix(S) for g in gens(stab[1]))
   end
   return stab
 end
@@ -543,14 +572,13 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   
   # algorithm selection
   
+  rank(L1) != rank(L2) && return false, zero_matrix(QQ, 0, 0)
   if _direct_is_faster(L1)
     b,fL = Hecke.__is_isometric_with_isometry_definite(L1, L2; depth, bacher_depth)
-    @hassert :Isometry 3 fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
+    @hassert :Isometry 3 !b || fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
     return b, fL
   end
   
-  # todo: if degree > rank go to lattice(rational_span) and transform back?
-  rank(L1) != rank(L2) && return false, zero_matrix(QQ, 0, 0)
   # TODO: compute short vectors only once
   # TODO: start with the non-primitive one
   M1s, M1,_ = Hecke._shortest_vectors_sublattice(L1; check=false)
@@ -696,12 +724,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   b || return false, zero_matrix(QQ, 0, 0)
   v = GtoGperm\vperm 
   u = GtoGperm\uperm
-  @hassert :Isometry 3 u*v == g
+  @hassert :Isometry 3 isone(u*g*v)
   
-  gMbar = inv(u) 
-  gNbar = inv(v)
-  @hassert :Isometry 3 one(G) == gMbar * g * gNbar 
-  gNbar = stabHN1_on_HN1(inv(phi1)*hom(v)*phi1)
+  gMbar = u
+  gNbar = stabHN1_on_HN1(inv(phi1)*hom(inv(v))*phi1)
   f1 = inc_stabHM1\(res_stabM\gMbar)
   f2 = inc_stabHN1\(res_stabN\gNbar)
     
@@ -709,8 +735,18 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   fN = (dN1\f2)*fN
   @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
   @hassert :Isometry 3 fN*gram_matrix(N2)*transpose(fN) == gram_matrix(N1)
-  # assemble the isometry 
+  # double check that the diagram commutes 
+  if get_assertion_level(:Isometry) > 2
+    fMB = fM*basis_matrix(M2)
+    fHM1_HM2 = hom(HM1, HM2, [HM2(coordinates(lift(i), M1)*fMB) for i in gens(HM1)])
+    fNB = fN*basis_matrix(N2)
+    fHN1_HN2 = hom(HN1, HN2, [HN2(coordinates(lift(i), N1)*fNB) for i in gens(HN1)])
+    _g = fHM1_HM2*phi2*inv(fHN1_HN2)*inv(phi1)
+    g = OHM1(_g)
+    @hassert :Isometry 1 isone(g)
+  end
   
+  # assemble the isometry
   B1 = vcat(basis_matrix(M1),basis_matrix(N1))
   B2 = vcat(basis_matrix(M2),basis_matrix(N2))
   f = solve(B1, diagonal_matrix([fM,fN]); side=:right)*B2
