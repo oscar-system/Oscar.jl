@@ -73,6 +73,13 @@ function _direct_is_faster(L::ZZLat)
     b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
     return b
 end 
+
+function _howell_is_fast(S::ZZLat, L::ZZLat)
+  n = index(L, S)
+  ed = elementary_divisors(discriminant_group(S,Int(n)))
+  length(ed)==0 && return true
+  return length(ed)<=4 || (length(ed)<=12 && ed[end]==2) || (length(ed)<=10 && ed[end]==3) || (length(ed)<=8 && ed[end]==5)
+end 
   
 # We overwrite the function in Hecke in order that 
 # Hecke has access to the better algorithms in Oscar
@@ -230,7 +237,7 @@ function _isometry_group_via_decomposition(
   BB = vcat(basisM1prim,basisM2)
   
   # In what follows we compute the stabilizer of L in O1 x O2
-  if _howell
+  if _howell && _howell_is_fast(M1primitive+M2, L)
     # Cook up O1 x O2
     r1 = rank(M1primitive)
     r2 = rank(M2) 

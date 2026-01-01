@@ -670,5 +670,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   to_gap = get_attribute(O, :to_gap)
   Agap = codomain(to_gap)
   Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+  # this should really be a chain of vector space stabilizers!
   return stabilizer(O, Hgap.X, on_subgroups)
 end
