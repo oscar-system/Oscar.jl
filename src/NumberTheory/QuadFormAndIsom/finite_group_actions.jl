@@ -450,7 +450,7 @@ function stabilizer_in_diagonal_action(
   kerK, _ = preimage(discK, first(kernel(resK)))
   append!(gen, matrix.(gens(kerK)))
 
-  SNphi = Oscar._orthogonal_group(domain(SK), TorQuadModuleMap[phi * hom(g) * iphi for g in gens(SN)])
+  SNphi = Oscar._orthogonal_group(domain(SK), TorQuadModuleMap[phi * hom(g) * iphi for g in gens(SN)]; check=false)
   # C is isomorphic to kerK\P/kerN where P is the group we aim to construct
   C, _ = intersect(SK, SNphi)
 
