@@ -366,9 +366,10 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
   end
   # cheap heuristic when howell is faster may need to be adapted
   ed = elementary_divisors(discriminant_group(S))
+  @vprintln :Isometry 10 ed
   if length(ed)<6 && length(prime_divisors(n))<=2
     howell=true
-  end 
+  end
   BL = numerator(_BL)
   if is_prime(n)
     # Fewer allocations and slightly faster
