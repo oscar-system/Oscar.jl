@@ -341,6 +341,15 @@ function (NF::Hecke.EmbeddedNumField)(x::Polymake.QuadraticExtension{Polymake.Ra
   return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
 end
 
+function (qqb::QQBarField)(x::Polymake.QuadraticExtension{Polymake.Rational})
+  g = Polymake.generating_field_elements(x)
+  if g.r == 0 || g.b == 0
+    return qqb(convert(QQFieldElem, g.a))
+  end
+  r = qqb(convert(QQFieldElem, g.r))
+  return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * sqrt(r)
+end
+
 (F::Field)(x::Polymake.Rational) = F(QQ(x))
 (F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
@@ -427,10 +436,12 @@ homogenize(field, mat::AbstractMatrix, val::Union{Number,scalar_types_extended}=
   augment(field, mat, fill(val, size(mat, 1)))
 homogenize(field, mat::MatElem, val::Union{Number,scalar_types_extended}=1) =
   homogenize(field, Matrix(mat), val)
+homogenize(field, mat::SMat, val::Union{Number,scalar_types_extended}=1) =
+  homogenize(field, Matrix(mat), val)
 homogenize(field, nothing, val::Union{Number,scalar_types_extended}) = nothing
 homogenized_matrix(
   field,
-  x::Union{AbstractVecOrMat,MatElem,Nothing},
+  x::Union{AbstractVecOrMat,MatElem,SMat,Nothing},
   val::Union{Number,scalar_types_extended},
 ) =
   homogenize(field, x, val)
@@ -589,11 +600,12 @@ _find_elem_type(x::Any) = typeof(x)
 _find_elem_type(x::Type) = x
 _find_elem_type(x::Polymake.Rational) = QQFieldElem
 _find_elem_type(x::Polymake.Integer) = ZZRingElem
-_find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
+_find_elem_type(x::AbstractArray) = collect(reshape(_find_elem_type.(x), :))
 _find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
 _find_elem_type(x::AbstractArray{<:AbstractArray}) =
   reduce(vcat, _find_elem_type.(x); init=[])
 _find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
+_find_elem_type(x::SMat) = [elem_type(base_ring(x))]
 
 function _guess_fieldelem_type(x...)
   types = filter(!=(Any), _find_elem_type(x))
@@ -650,6 +662,9 @@ end
 
 function _determine_parent_and_scalar(::Type{QQFieldElem}, x...)
   return (QQ, QQFieldElem)
+end
+function _determine_parent_and_scalar(::Type{QQBarFieldElem}, x...)
+  return (algebraic_closure(QQ), QQBarFieldElem)
 end
 
 function _determine_parent_and_scalar(::Type{T}, x...) where {T<:scalar_types}
@@ -825,7 +840,11 @@ function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
   return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::EmbeddedNumFieldElem)
+function Polymake._fieldelem_to_rational(e::QQBarFieldElem)
+  return Rational{BigInt}(e)
+end
+
+function Polymake._fieldelem_is_rational(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
   return is_rational(e)
 end
 
@@ -843,29 +862,44 @@ end
 
 # convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
 
-function _polyhedron_qe_to_on(x::Polymake.BigObject, f::Field)
-  res = Polymake.polytope.Polytope{Polymake.OscarNumber}()
+function _polyhedron_coerce_field(x::Polymake.BigObject, f::scalar_type_or_field)
+  f = f isa AbstractAlgebra.Floats{Float64} ? Float64 : f
+  T = f isa Field ? elem_type(f) : f
+  res = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}()
   for pn in Polymake.list_properties(x)
     prop = Polymake.give(x, pn)
-    Polymake.take(res, string(pn), _property_qe_to_on(prop, f))
+    Polymake.take(res, string(pn), _property_coerce_field(prop, f))
   end
   return res
 end
 
-_property_qe_to_on(x::Polymake.BigObject, f::Field) =
+_property_coerce_field(x::Polymake.BigObject, f::scalar_type_or_field) =
   Polymake.BigObject(Polymake.bigobject_type(x), x)
 
-_property_qe_to_on(x::Polymake.PropertyValue, f::Field) = x
+_property_coerce_field(x::Polymake.PropertyValue, f::scalar_type_or_field) = x
 
-_property_qe_to_on(x::Polymake.QuadraticExtension{Polymake.Rational}, f::Field) = f(x)
+_property_coerce_field(
+  x::Polymake.QuadraticExtension{Polymake.Rational}, f::scalar_type_or_field
+) = f(x)
 
-function _property_qe_to_on(x, f::Field)
-  if hasmethod(length, (typeof(x),)) &&
-    eltype(x) <: Polymake.QuadraticExtension{Polymake.Rational}
-    return f.(x)
-  else
-    return x
+_property_coerce_field(x::Polymake.Rational, f::scalar_type_or_field) = f(x)
+
+_property_coerce_field(x::Polymake.OscarNumber, f::scalar_type_or_field) =
+  f(Polymake.unwrap(x))
+
+function _property_coerce_field(x, f::scalar_type_or_field)
+  if hasmethod(length, (typeof(x),))
+    # we need to make sure the output is a proper polymake matrix
+    if eltype(x) <: Polymake.OscarNumber
+      res = similar(x, _scalar_type_to_polymake(f isa Field ? elem_type(f) : f))
+      res .= f.([Polymake.unwrap(e) for e in x])
+      return res
+    elseif eltype(x) <:
+      Union{Polymake.QuadraticExtension{Polymake.Rational},Polymake.Rational}
+      return f.(x)
+    end
   end
+  return x
 end
 
 # Helper function for conversion
