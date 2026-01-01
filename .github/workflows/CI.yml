@@ -130,7 +130,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
@@ -186,7 +186,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
@@ -290,7 +290,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
