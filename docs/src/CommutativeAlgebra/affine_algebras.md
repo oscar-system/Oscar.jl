@@ -352,7 +352,10 @@ to $C$, and by assigning an image to each generator of $A$.
 In OSCAR, such homomorphisms are created as follows:
 
 ```@docs
-hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector;
+    check::Bool = true,
+    grading_group_hom = nothing,
+    degree_shift = nothing)
 ```
 
 Given a ring homomorphism `F` : `A` $\to$ `S` as above, `domain(F)` and `codomain(F)`
