@@ -13,7 +13,7 @@ TODO: add more docs and and expose for users
 function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
   n = n_vertices(K)
   Fy, y = polynomial_ring(F, :y => (1:n, 1:n); cached=false)
-  change_of_basis = rothe_matrix(Fy, p) * permutation_matrix(ZZ, p) * generic_unipotent_matrix(Fy)
+  change_of_basis = rothe_matrix(Fy, p) * generic_unipotent_matrix(Fy)
   
   Rx, x = polynomial_ring(Fy, n)
   # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]

@@ -66,7 +66,7 @@ function partial_shift_graph_vertices(F::Field,
   # sorting here should also speed up unique according to julia docs
   unvisited = unique(
     x -> Set(facets(x)),
-    sort([exterior_shift(F, K, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
+    sort([exterior_shift(F, K, phi(w); las_vegas_trials=0) for w in W]; lt=isless_lex))[1:end - 1]
 
   while !isempty(unvisited)
     current = pop!(unvisited)
