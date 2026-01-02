@@ -352,7 +352,7 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph; kw...)
   p = perm(reverse(1:n))
   return exterior_shift(F, K, p; kw...)
 end
-
+exterior_shift(F::QQField, K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; las_vegas_trials::Int=1, kw...)
 exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 
 ################################################################################
@@ -496,14 +496,13 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   end
 end
 
-function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=1, kw...)
+function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, kw...)
   while true
-    random_matrices = [random_rothe_matrix(L, p) for _ in 1:n_samples]
+    random_matrices = [random_rothe_matrix(F, p) for _ in 1:n_samples]
     (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
     # Check if `shift` is the generic exterior shift of K
-    prime_field = iszero(char) ? QQ : fpField(UInt(char))
     n = n_vertices(K)
-    is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(prime_field, K, shift, p; kw...)
+    is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(F, K, shift, p; kw...)
 
     is_correct_shift && return shift
   end
