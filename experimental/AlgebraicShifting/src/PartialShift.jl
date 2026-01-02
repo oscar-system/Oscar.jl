@@ -296,7 +296,8 @@ julia> L = exterior_shift(K)
 Abstract simplicial complex of dimension 2 on 6 vertices
 
 julia> facets(L)
-10-element Vector{Set{Int64}}:
+11-element Vector{Set{Int64}}:
+ Set([5, 6])
  Set([2, 3, 1])
  Set([4, 2, 1])
  Set([5, 2, 1])
@@ -306,7 +307,7 @@ julia> facets(L)
  Set([6, 3, 1])
  Set([5, 4, 1])
  Set([4, 6, 1])
- Set([5, 6, 1])
+ Set([4, 2, 3])
 
 julia> is_shifted(L)
 true
