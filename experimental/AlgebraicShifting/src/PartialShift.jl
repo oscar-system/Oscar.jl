@@ -352,7 +352,8 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph; kw...)
   p = perm(reverse(1:n))
   return exterior_shift(F, K, p; kw...)
 end
-exterior_shift(F::QQField, K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; las_vegas_trials::Int=1, kw...)
+
+exterior_shift(::QQField, K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; las_vegas_trials=1, kw...)
 exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 
 ################################################################################
