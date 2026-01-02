@@ -380,6 +380,7 @@ end
 
 # returns true if the target is the partial shift of src with respect to p
 # CAUTION! This function only works correctly if target is obtained as the shift of some matrix.
+# this is an improved version of algorithm 3 in dx.doi.org/10.1145/3747199.3747562
 function check_shifted(F::Field,
                        src::UniformHypergraph,
                        target::UniformHypergraph,
