@@ -311,7 +311,7 @@ julia> facets(L)
 julia> is_shifted(L)
 true
 
-julia> betti_numbers(L) == betti_numbers(K)
+julia> betti_numbers(L) == [0, 1, 1]
 true
 
 julia> W = weyl_group(:A, n_vertices(K) - 1)
