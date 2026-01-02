@@ -73,7 +73,7 @@ function partial_shift_graph_vertices(F::Field,
     push!(visited, current)
     shifts = unique(
       x -> Set(facets(x)),
-      sort([exterior_shift(F, current, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
+      sort([exterior_shift(F, current, phi(w); las_vegas_trials=0) for w in W]; lt=isless_lex))[1:end - 1]
 
     # dont visit things twice
     new_facets = filter(x -> !(x in Set.(facets.(visited))), Set.(facets.(shifts)))
