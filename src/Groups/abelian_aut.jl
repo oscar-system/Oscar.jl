@@ -636,6 +636,14 @@ function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
   Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
   return is_conjugate_with_data(G, Hgap, Kgap)
 end
+  
+function __cokernel(f::TorQuadModuleMap)
+  # assumes same ambient space and therefore the underscore
+  A = domain(f)
+  B = codomain(f)
+  BmodA = torsion_quadratic_module(cover(B),cover(A))
+  return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
+end
 
 @doc raw"""
     stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
@@ -667,9 +675,69 @@ julia> order(S)
 ```
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
-  to_gap = get_attribute(O, :to_gap)
-  Agap = codomain(to_gap)
-  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
-  # this should really be a chain of vector space stabilizers!
-  return stabilizer(O, Hgap.X, on_subgroups)
+  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  if order(O)<10000
+    # don't do fancy stuff if the group is small
+    to_gap = get_attribute(O, :to_gap)
+    Agap = codomain(to_gap)
+    Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+    st2 =  stabilizer(O, Hgap.X, on_subgroups)
+    return st2
+  end
+  a = elementary_divisors(domain(i))
+  if length(a)==0
+    return O, id_hom(O) 
+  end
+  b = elementary_divisors(codomain(i))
+  n = b[end]
+  k = divexact(n, a[end])
+  if k > 1
+    A = domain(i)
+    C = codomain(i)
+    Ap, ap = kernel(hom(A,A, [k*x for x in gens(A)]))
+    Cp, cp = kernel(hom(C,C, [k*x for x in gens(C)]))
+    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(O,cp; check=false)
+    Sp, isp = _stabilizer(Op, Ap_to_Cp)
+    return preimage(iOp, Sp)
+  end 
+  if is_prime(n)
+    p = n
+    B = matrix(i.map_ab)
+    mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
+    st = _stab_via_fin_field(O, mats, B, n)
+    return st
+  end
+  fl, p , v = is_prime_power_with_data(n)
+  if fl 
+    A = domain(i)
+    C = codomain(i)
+    Ap, ap = kernel(hom(A,A, [p*x for x in gens(A)]))
+    Cp, cp = kernel(hom(C,C, [p*x for x in gens(C)]))
+    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(O,cp; check=false)
+    Sp, _ = _stabilizer(Op, Ap_to_Cp)
+    S,iS1 = preimage(iOp, Sp)
+    @show "via cokernel"
+    K,iK = __cokernel(cp)
+    SK,toSK = induce_automorphism_group(S,iK)
+    @show codomain(i*iK)
+    _,j = sub(K, [iK(i(x)) for x in gens(domain(i))])
+    S,_ = _stabilizer(SK,j)
+    return preimage(toSK, S)
+  end
+  # composite  
+  S = O
+  iS = id_hom(O)
+  for p in prime_divisors(n)
+    p = first(prime_divisors(n))
+    Ap, ip = primary_part(domain(i), p)
+    Bp, jp = primary_part(codomain(i), p)
+    ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(S,jp;check=false)
+    Sp, _ = _stabilizer(Op, Ap_to_Bp)
+    S,iS1 = preimage(iOp, Sp)
+    iS = iS1*iS
+  end
+  return S,iS
 end

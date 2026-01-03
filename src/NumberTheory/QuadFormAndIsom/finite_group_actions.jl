@@ -451,8 +451,14 @@ function stabilizer_in_diagonal_action(
   append!(gen, matrix.(gens(kerK)))
 
   SNphi = Oscar._orthogonal_group(domain(SK), TorQuadModuleMap[phi * hom(g) * iphi for g in gens(SN)]; check=false)
+    
+  # permutation groups are faster 
   # C is isomorphic to kerK\P/kerN where P is the group we aim to construct
-  C, _ = intersect(SK, SNphi)
+  # C, _ = intersect(SK, SNphi)
+  tmp = orthogonal_group(domain(SK))
+  to_perm = isomorphism(PermGroup, tmp)
+  C1,_ = intersect(to_perm(SK)[1],to_perm(SNphi)[1])
+  C,_ = preimage(to_perm,C1)
 
   for g in gens(C)
     f = matrix(preimage(discK, preimage(resK, g)))

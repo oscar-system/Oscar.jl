@@ -2054,7 +2054,7 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem; check=true)
   M = p(f)
   d = denominator(M)
   K = kernel(change_base_ring(ZZ, d*M); side=:left)
-  return lattice(ambient_space(Lf), K*basis_matrix(L); check=check)
+  return lattice(ambient_space(Lf), K*basis_matrix(L); check=false) #nothing to check
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
