@@ -64,21 +64,32 @@ end
 
 # Algorithm selection in `isometry_group` and `is_isometric_with_isometry` 
 function _direct_is_faster(L::ZZLat)
-    Llll = lll(L)
-    G = gram_matrix(Llll)
-    diagG = abs.(diagonal(G))
-    ma = maximum(diagG)
-    mi = minimum(diagG)
-    r = rank(L)
-    b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
-    return b
+  Llll = lll(L)
+  G = gram_matrix(Llll)
+  diagG = abs.(diagonal(G))
+  ma = maximum(diagG)
+  mi = minimum(diagG)
+  r = rank(L)
+  b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
+  if !b && ma == 2*mi
+    ub = 1000
+    n = 0
+    for _ in short_vectors_iterator(L, mi, ma)
+      n += 1
+      n == ub && break
+    end
+    # if there are few short vectors plesken souvigner should work
+    b = n<ub
+    @show n
+  end
+  return b
 end 
 
 function _howell_is_fast(S::ZZLat, L::ZZLat)
   n = index(L, S)
   ed = elementary_divisors(discriminant_group(S,Int(n)))
   length(ed)==0 && return true
-  return length(ed)<=4 || (length(ed)<=12 && ed[end]==2) || (length(ed)<=10 && ed[end]==3) || (length(ed)<=8 && ed[end]==5)
+  return length(ed)<=6 || (length(ed)<=12 && ed[end]==2) || (length(ed)<=10 && ed[end]==3) || (length(ed)<=8 && ed[end]==5)
 end 
   
 # We overwrite the function in Hecke in order that 
@@ -371,7 +382,7 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
-  # cheap heuristic when howell is faster may need to be adapted
+  # cheap heuristic when howell is faster, may need to be adapted
   ed = elementary_divisors(discriminant_group(S))
   @vprintln :Isometry 10 ed
   if length(ed)<6 && length(prime_divisors(n))<=2
@@ -379,29 +390,10 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
   end
   BL = numerator(_BL)
   if is_prime(n)
-    # Fewer allocations and slightly faster
-    p = n
-    R = fpField(UInt(p))
-    BLmod = change_base_ring(R, BL)
-    r = rref!(BLmod)
-    BLmod = BLmod[1:r,:]
-
-    mats = GapObj([GapObj(x) for x in gens(G)])
-    Gnice = GAP.Globals.NiceObject(GapObj(G))
-    # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
-    GAP.Globals.ConvertToMatrixRep(BLmod_gap)
-    st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
-
-    mono = GAP.Globals.NiceMonomorphism(GapObj(G))
-    st_mat = GAP.Globals.PreImage(mono, st)
-    stab = _as_subgroup(G, st_mat)
+    stab = _stab_via_fin_field(G, BL, n)
   elseif howell # do everything in one go, usually the slowest
-    R,iR = residue_ring(ZZ, Int(n))
     @vprintln :Isometry 5 "stabilizer via Howell with n=$n and index $(index(L,S))"
-    BLmod = change_base_ring(R, BL)
-    howell_form!(BLmod)
-    stab = stabilizer(G, BLmod, on_howell_form)
+    stab = _stab_via_howell(G, BL, Int(n))
   else 
     @vprintln :Isometry 5 "stabilizer via recursion with n=$n and index $(index(L,S))"
     # proceed iteratively one prime at a time 
@@ -428,14 +420,60 @@ function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, 
   return stab
 end
 
+function _stab_via_fin_field(G, BL, p)
+  mats = GapObj([GapObj(x) for x in gens(G)])
+  return _stab_via_fin_field(G, mats, BL, p)
+end 
+
+function _stab_via_fin_field(G, mats, BL, p)
+  R = fpField(UInt(p))
+  BLmod = change_base_ring(R, BL)
+  r = rref!(BLmod)
+  BLmod = BLmod[1:r,:]
+
+  Gnice = GAP.Globals.NiceObject(GapObj(G))
+  # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
+  BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
+  GAP.Globals.ConvertToMatrixRep(BLmod_gap)
+  st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
+
+  mono = GAP.Globals.NiceMonomorphism(GapObj(G))
+  st_mat = GAP.Globals.PreImage(mono, st)
+  stab = _as_subgroup(G, st_mat)
+  return stab
+end 
+
+function _stab_via_howell(G, BL, n)
+  R,iR = residue_ring(ZZ, Int(n); cached=false)
+  BLmod = change_base_ring(R, BL)
+  k = ncols(BL) - nrows(BL)
+  if k>0
+    # howell form requires a square matrix
+    BLmod = vcat(BLmod, zero_matrix(R,k,ncols(BL)))
+  end
+  howell_form!(BLmod)
+  stab = stabilizer(G, BLmod, on_howell_form)
+end
+
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
   return on_howell_form(M, matrix(base_ring(M), matrix(g)))
 end
 
+
 function on_howell_form(M::zzModMatrix, g::ZZMatrix)
   _g = map_entries(base_ring(M), g)
-  return on_howell_form(M, g)
+  return on_howell_form(M, _g)
 end
+
+
+function on_howell_form(M::zzModMatrix, g::AutomorphismGroupElem{TorQuadModule})
+  return on_howell_form(M, matrix(g))
+end
+
+function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{zzModRingElem, zzModMatrix})
+  return on_howell_form(M, matrix(g))
+end
+
 
 function on_howell_form(M::zzModMatrix, g::zzModMatrix)
   Mg = M * g
