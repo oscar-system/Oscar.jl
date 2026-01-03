@@ -71,16 +71,15 @@ function _direct_is_faster(L::ZZLat)
   mi = minimum(diagG)
   r = rank(L)
   b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
-  if !b && ma == 2*mi
+  if !b && r < 18 && ma == 2*mi
+    # if there are few short vectors plesken souvigner should work anyways
     ub = 1000
     n = 0
     for _ in short_vectors_iterator(L, mi, ma)
       n += 1
       n == ub && break
     end
-    # if there are few short vectors plesken souvigner should work
     b = n<ub
-    @show n
   end
   return b
 end 
