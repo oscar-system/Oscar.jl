@@ -1529,8 +1529,21 @@ function discriminant_group(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
-  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  
+  if has_attribute(Lf,:qSalem)
+    Ld = cover(q)
+    L = relations(q)
+    fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
+    T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
+    S = elem_type(T)
+    iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
+    fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
+    fq1 = iso*fT*inv(iso)
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(fq1)]; check=false))[1]
+  else
+    f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  end
   return q, fq
 end
 
@@ -1705,7 +1718,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
     return get_attribute!(Lf, :image_centralizer_in_Oq_local) do
       qL,fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
-      C = centralizer(OqL, OqL(matrix(fqL)))
+      C = centralizer(OqL, OqL(matrix(fqL);check=false))
       return C
     end::T
   end
@@ -2041,7 +2054,7 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem; check=true)
   M = p(f)
   d = denominator(M)
   K = kernel(change_base_ring(ZZ, d*M); side=:left)
-  return lattice(ambient_space(Lf), K*basis_matrix(L); check=check)
+  return lattice(ambient_space(Lf), K*basis_matrix(L); check=false) #nothing to check
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
