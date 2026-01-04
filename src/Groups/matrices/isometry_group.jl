@@ -64,6 +64,9 @@ end
 
 # Algorithm selection in `isometry_group` and `is_isometric_with_isometry` 
 function _direct_is_faster(L::ZZLat)
+  # most of these values are just gut feeling and testing a few in detail
+  # tested for 10 0000 lattices of rank 16-20 and smallish rank that the computations finish
+  # a more thorough algorithm selection might be in order
   Llll = lll(L)
   G = gram_matrix(Llll)
   diagG = abs.(diagonal(G))
@@ -71,16 +74,31 @@ function _direct_is_faster(L::ZZLat)
   mi = minimum(diagG)
   r = rank(L)
   b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
-  if !b && r < 18 && ma == 2*mi
-    # if there are few short vectors plesken souvigner should work anyways
-    ub = 1000
+  if !b && ma == 2*mi
+    # if there are few short vectors plesken souvigner should be fast
+    ub = 2000
     n = 0
     for _ in short_vectors_iterator(L, mi, ma)
       n += 1
       n == ub && break
     end
     b = n<ub
+    b && return b
+    # Catches examples like the A24 Niemeier lattice
+    # where generic stabilizer computations are 
+    # currently out of reach but Plesken-Souvignier is reasonable
+    R = Hecke._shortest_vectors_sublattice(L)[1]
+    if rank(R) == rank(L) && index(L, R) > 20
+      if !is_integral(R)
+        _R = rescale(R,1//denominator(scale(R)); cached=false)
+      else 
+        _R = R
+      end 
+      ediv = elementary_divisors(discriminant_group(R))
+      b = length(ediv) > 16
+    end
   end
+  @show b
   return b
 end 
 
