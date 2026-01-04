@@ -257,6 +257,7 @@ function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tupl
 end
 
 function load_type_params(s::DeserializerState, T::Type{Tuple})
+  !haskey(s, :params) && return T{}, nothing
   subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s) do _
       U = decode_type(s)
