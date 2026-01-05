@@ -141,7 +141,7 @@ function _presentation_simple(SQ::SubquoModule)
   F = ambient_free_module(SQ)
   if all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
     rels = relations(SQ)
-    F1 = free_module(R, length(rels))
+    F1 = FreeMod(R, length(rels))
     phi = hom(F1, F, rels)
     aug = hom(F, SQ, gens(SQ))
     # prepare the end of the presentation
