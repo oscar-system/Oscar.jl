@@ -64,14 +64,48 @@ end
 
 # Algorithm selection in `isometry_group` and `is_isometric_with_isometry` 
 function _direct_is_faster(L::ZZLat)
-    Llll = lll(L)
-    G = gram_matrix(Llll)
-    diagG = abs.(diagonal(G))
-    ma = maximum(diagG)
-    mi = minimum(diagG)
-    r = rank(L)
-    b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
-    return b
+  # most of these values are just gut feeling and testing a few in detail
+  # tested for 10 0000 lattices of rank 16-20 and smallish rank that the computations finish
+  # a more thorough algorithm selection might be in order
+  Llll = lll(L)
+  G = gram_matrix(Llll)
+  diagG = abs.(diagonal(G))
+  ma = maximum(diagG)
+  mi = minimum(diagG)
+  r = rank(L)
+  b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
+  if !b && ma == 2*mi
+    # if there are few short vectors plesken souvigner should be fast
+    ub = 2000
+    n = 0
+    for _ in short_vectors_iterator(L, mi, ma)
+      n += 1
+      n == ub && break
+    end
+    b = n<ub
+    b && return b
+    # Catches examples like the A24 Niemeier lattice
+    # where generic stabilizer computations are 
+    # currently out of reach but Plesken-Souvignier is reasonable
+    R = Hecke._shortest_vectors_sublattice(L)[1]
+    if rank(R) == rank(L) && index(L, R) > 20
+      if !is_integral(R)
+        _R = rescale(R,1//denominator(scale(R)); cached=false)
+      else 
+        _R = R
+      end 
+      ediv = elementary_divisors(discriminant_group(R))
+      b = length(ediv) > 16
+    end
+  end
+  return b
+end 
+
+function _howell_is_fast(S::ZZLat, L::ZZLat)
+  n = index(L, S)
+  ed = elementary_divisors(discriminant_group(S,Int(n)))
+  length(ed)==0 && return true
+  return length(ed)<=6 || (length(ed)<=12 && ed[end]==2) || (length(ed)<=10 && ed[end]==3) || (length(ed)<=8 && ed[end]==5)
 end 
   
 # We overwrite the function in Hecke in order that 
@@ -230,7 +264,7 @@ function _isometry_group_via_decomposition(
   BB = vcat(basisM1prim,basisM2)
   
   # In what follows we compute the stabilizer of L in O1 x O2
-  if _howell
+  if _howell && _howell_is_fast(M1primitive+M2, L)
     # Cook up O1 x O2
     r1 = rank(M1primitive)
     r2 = rank(M2) 
@@ -356,49 +390,105 @@ function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:U
 end 
 
 # stabilizer of L in G < O(L)
-function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat)
+function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat, howell::Bool=false)
+  @hassert :Isometry 2 all(matrix(g)*gram_matrix(S)*transpose(matrix(g)) == gram_matrix(S) for g in gens(G))
   _BL = coordinates(basis_matrix(L),S)
   n = denominator(_BL)
   if n == 1
     # trivial nothing to do
     return G, hom(G,G,gens(G);check=false)
   end
+  # cheap heuristic when howell is faster, may need to be adapted
+  ed = elementary_divisors(discriminant_group(S))
+  if length(ed)<6 && length(prime_divisors(n))<=2
+    howell=true
+  end 
   BL = numerator(_BL)
   if is_prime(n)
-    # Fewer allocations and slightly faster
-    p = n
-    R = fpField(UInt(p))
-    BLmod = change_base_ring(R, BL)
-    r = rref!(BLmod)
-    BLmod = BLmod[1:r,:]
-
-    mats = GapObj([GapObj(x) for x in gens(G)])
-    Gnice = GAP.Globals.NiceObject(GapObj(G))
-    # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
-    GAP.Globals.ConvertToMatrixRep(BLmod_gap)
-    st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
-
-    mono = GAP.Globals.NiceMonomorphism(GapObj(G))
-    st_mat = GAP.Globals.PreImage(mono, st)
-    stab = _as_subgroup(G, st_mat)
-  else
-    R,iR = residue_ring(ZZ, Int(n))
-    BLmod = change_base_ring(R, BL)
-    howell_form!(BLmod)
-    stab = stabilizer(G, BLmod, on_howell_form)
+    stab = _stab_via_fin_field(G, BL, n)
+  elseif howell # do everything in one go, usually the slowest
+    @vprintln :Isometry 5 "stabilizer via Howell with n=$n and index $(index(L,S))"
+    stab = _stab_via_howell(G, BL, Int(n))
+  else 
+    @vprintln :Isometry 5 "stabilizer via recursion with n=$n and index $(index(L,S))"
+    # proceed iteratively one prime at a time 
+    p = first(prime_divisors(n))
+    Lp = intersect((1//p)*S, L)
+    # base case of the recursion
+    @vtime :Isometry 11 Gp, iGp = _overlattice_stabilizer(G, S, Lp)
+    GAP.Globals.SetNiceMonomorphism(GapObj(Gp),GAP.Globals.NiceMonomorphism(GapObj(G)))
+    # transform Gp to the coordinates of Lp
+    BLp = coordinates(basis_matrix(Lp), S)
+    BLpi = inv(BLp)
+    Gp2 = matrix_group([ZZ.(BLp*matrix(g)*BLpi) for g in gens(Gp)])
+    # set a nice mono  ... is this useful?
+    sv = Hecke._short_vector_generators(Lp)
+    _set_nice_monomorphism!(Gp2, sv)
+    # recurse
+    @vtime :Isometry 11 H, H_to_Gp = _overlattice_stabilizer(Gp2, Lp, L)
+    # transform H back to the coordinates of S
+    H2 = matrix_group([ZZ.(BLpi*matrix(g)*BLp) for g in gens(H)])    
+    stab = H2, hom(H2, G, [G(i;check=false) for i in gens(H2)];check=false)
+    # sanity check
+    @hassert :Isometry 2 all(matrix(g)*gram_matrix(S)*transpose(matrix(g)) == gram_matrix(S) for g in gens(stab[1]))
   end
   return stab
+end
+
+function _stab_via_fin_field(G, BL, p)
+  mats = GapObj([GapObj(x) for x in gens(G)])
+  return _stab_via_fin_field(G, mats, BL, p)
+end 
+
+function _stab_via_fin_field(G, mats, BL, p)
+  R = fpField(UInt(p))
+  BLmod = change_base_ring(R, BL)
+  r = rref!(BLmod)
+  BLmod = BLmod[1:r,:]
+
+  Gnice = GAP.Globals.NiceObject(GapObj(G))
+  # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
+  BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
+  GAP.Globals.ConvertToMatrixRep(BLmod_gap)
+  st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
+
+  mono = GAP.Globals.NiceMonomorphism(GapObj(G))
+  st_mat = GAP.Globals.PreImage(mono, st)
+  stab = _as_subgroup(G, st_mat)
+  return stab
+end 
+
+function _stab_via_howell(G, BL, n)
+  R,iR = residue_ring(ZZ, Int(n); cached=false)
+  BLmod = change_base_ring(R, BL)
+  k = ncols(BL) - nrows(BL)
+  if k>0
+    # howell form requires a square matrix
+    BLmod = vcat(BLmod, zero_matrix(R,k,ncols(BL)))
+  end
+  howell_form!(BLmod)
+  stab = stabilizer(G, BLmod, on_howell_form)
 end
 
 function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
   return on_howell_form(M, matrix(base_ring(M), matrix(g)))
 end
 
+
 function on_howell_form(M::zzModMatrix, g::ZZMatrix)
   _g = map_entries(base_ring(M), g)
-  return on_howell_form(M, g)
+  return on_howell_form(M, _g)
 end
+
+
+function on_howell_form(M::zzModMatrix, g::AutomorphismGroupElem{TorQuadModule})
+  return on_howell_form(M, matrix(g))
+end
+
+function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{zzModRingElem, zzModMatrix})
+  return on_howell_form(M, matrix(g))
+end
+
 
 function on_howell_form(M::zzModMatrix, g::zzModMatrix)
   Mg = M * g
@@ -543,14 +633,13 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   
   # algorithm selection
   
+  rank(L1) != rank(L2) && return false, zero_matrix(QQ, 0, 0)
   if _direct_is_faster(L1)
     b,fL = Hecke.__is_isometric_with_isometry_definite(L1, L2; depth, bacher_depth)
-    @hassert :Isometry 3 fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
+    @hassert :Isometry 3 !b || fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
     return b, fL
   end
   
-  # todo: if degree > rank go to lattice(rational_span) and transform back?
-  rank(L1) != rank(L2) && return false, zero_matrix(QQ, 0, 0)
   # TODO: compute short vectors only once
   # TODO: start with the non-primitive one
   M1s, M1,_ = Hecke._shortest_vectors_sublattice(L1; check=false)
@@ -696,12 +785,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   b || return false, zero_matrix(QQ, 0, 0)
   v = GtoGperm\vperm 
   u = GtoGperm\uperm
-  @hassert :Isometry 3 u*v == g
+  @hassert :Isometry 3 isone(u*g*v)
   
-  gMbar = inv(u) 
-  gNbar = inv(v)
-  @hassert :Isometry 3 one(G) == gMbar * g * gNbar 
-  gNbar = stabHN1_on_HN1(inv(phi1)*hom(v)*phi1)
+  gMbar = u
+  gNbar = stabHN1_on_HN1(inv(phi1)*hom(inv(v))*phi1)
   f1 = inc_stabHM1\(res_stabM\gMbar)
   f2 = inc_stabHN1\(res_stabN\gNbar)
     
@@ -709,8 +796,18 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   fN = (dN1\f2)*fN
   @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
   @hassert :Isometry 3 fN*gram_matrix(N2)*transpose(fN) == gram_matrix(N1)
-  # assemble the isometry 
+  # double check that the diagram commutes 
+  if get_assertion_level(:Isometry) > 2
+    fMB = fM*basis_matrix(M2)
+    fHM1_HM2 = hom(HM1, HM2, [HM2(coordinates(lift(i), M1)*fMB) for i in gens(HM1)])
+    fNB = fN*basis_matrix(N2)
+    fHN1_HN2 = hom(HN1, HN2, [HN2(coordinates(lift(i), N1)*fNB) for i in gens(HN1)])
+    _g = fHM1_HM2*phi2*inv(fHN1_HN2)*inv(phi1)
+    g = OHM1(_g)
+    @hassert :Isometry 1 isone(g)
+  end
   
+  # assemble the isometry
   B1 = vcat(basis_matrix(M1),basis_matrix(N1))
   B2 = vcat(basis_matrix(M2),basis_matrix(N2))
   f = solve(B1, diagonal_matrix([fM,fN]); side=:right)*B2
