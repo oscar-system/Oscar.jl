@@ -139,7 +139,7 @@ function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   F = ambient_free_module(SQ)
-  if all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
+  if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
     rels = relations(SQ)
     F1 = FreeMod(R, length(rels))
     phi = hom(F1, F, rels)
