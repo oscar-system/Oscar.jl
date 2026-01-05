@@ -1932,7 +1932,7 @@ function _test_isotropic_stabilizer_orders(
     n1 = order(domain(iS))
     n2 = order(stabilizer(G, iH)[1])
     if n1 != n2 
-      @show n2//n1
+      @debug "missing stabilizer order" n2//n1
     end
     n1 != n2 && return false
   end
