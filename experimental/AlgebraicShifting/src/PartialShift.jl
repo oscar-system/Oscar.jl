@@ -410,6 +410,7 @@ function check_shifted(F::Field,
   # if the # of non zeros cols up to max_face_index is equal to the rank
   # we do not need to do any row reduction
   n_dependent_columns = length(col_sets) + 1 - num_rows
+
   if !isempty(lower_uhg)
     zero_cols_indices = findall(x -> !all((low_f in faces(lower_uhg)) for low_f in combinations(x, k - 1)), col_sets)
     needs_check = n_dependent_columns - length(zero_cols_indices) > 0
@@ -417,7 +418,7 @@ function check_shifted(F::Field,
     zero_cols_indices = Int[]
     needs_check = n_dependent_columns > 0
   end
-  
+
   if needs_check
     r = rothe_matrix(F, p; uhg=src)
     M = compound_matrix(r, src)[collect(1:num_rows), 1:length(col_sets)]
@@ -445,8 +446,9 @@ function check_shifted(F::Field,
     end
     isempty(cols_to_check) && return true
     max_col = max(cols_to_check...)
-    ref!(M[:, 1:max_col])
-    pivots = pivot_columns(M[:, 1:max_col])
+    restricted_M = M[:, 1:max_col]
+    ref!(restricted_M)
+    pivots = pivot_columns(restricted_M)
     any([c in pivots for c in cols_to_check]) && return false
   end
   return true
@@ -506,6 +508,7 @@ function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem;
     (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
     # Check if `shift` is the generic exterior shift of K
     n = n_vertices(K)
+
     is_correct_shift = (p != perm(reverse(1:n)) || is_shifted(shift)) && check_shifted(F, K, shift, p; kw...)
 
     is_correct_shift && return shift
