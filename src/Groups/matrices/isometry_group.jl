@@ -98,7 +98,6 @@ function _direct_is_faster(L::ZZLat)
       b = length(ediv) > 16
     end
   end
-  @show b
   return b
 end 
 
