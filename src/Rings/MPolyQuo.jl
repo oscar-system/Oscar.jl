@@ -1124,36 +1124,32 @@ julia> f*g
 ```
 """
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
-  isdefined(a, :inverse_rep) && return true, parent(a)(a.inverse_rep)
-  rep = a.f
-  is_unit(rep) && return true, parent(a)(inv(rep))
   A = parent(a)
+  isdefined(a, :inverse_rep) && return true, A(a.inverse_rep)
+  rep = a.f
+  is_unit(rep) && return true, A(inv(rep))
+
+  # In the graded case non-homogeneous generators for ideals are forbidden.
+  # We need to use the custom code below then. 
+  if A isa MPolyQuoRing{<:MPolyDecRingElem}
+    J = push!([x.f for x in oscar_groebner_basis(A)], a.f.f)
+    j, T = standard_basis_with_transformation_matrix(ideal(forget_grading(base_ring(A)), J))
+    length(j) > 1 && return false, a
+    j1 = only(j)
+    if is_constant(j1) && is_unit(first(coefficients(j1)))
+      @assert ncols(T) == 1
+      a.inverse_rep = base_ring(A)(inv(first(coefficients(j1)))*T[end, 1])
+      return true, A(a.inverse_rep)
+    end
+    return false, a
+  end
+
+  # the non-graded case
   I = ideal(A, a)
   one(A) in I || return false, a
   c = coordinates(one(A), I)
   a.inverse_rep = c[1].f
   return true, c[1]
-  # TODO:
-  # Eventually, the code below should be replaced
-  # by a call to `coordinates` over the ring `parent(a)`.
-  # This should then use relative groebner bases and
-  # make use of the caching of previously computed GBs
-  # of the modulus of `parent(a)`.
-
-  Q = parent(a)
-  J = oscar_groebner_basis(Q)
-  J = vcat(J, [a.f])
-
-  if Q isa MPolyQuoRing{<:MPolyDecRingElem}
-     J = [x.f for x in J]
-  end
-
-  j, T = standard_basis_with_transformation_matrix(ideal(J))
-  if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
-    @assert ncols(T) == 1
-    return true, inv(first(coefficients(j[1])))*Q(T[end, 1])
-  end
-  return false, a
 end
 
 function is_unit(a::MPolyQuoRingElem)
