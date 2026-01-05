@@ -296,8 +296,7 @@ julia> L = exterior_shift(K)
 Abstract simplicial complex of dimension 2 on 6 vertices
 
 julia> facets(L)
-11-element Vector{Set{Int64}}:
- Set([5, 6])
+10-element Vector{Set{Int64}}:
  Set([2, 3, 1])
  Set([4, 2, 1])
  Set([5, 2, 1])
@@ -307,13 +306,16 @@ julia> facets(L)
  Set([6, 3, 1])
  Set([5, 4, 1])
  Set([4, 6, 1])
- Set([4, 2, 3])
+ Set([5, 6, 1])
 
 julia> is_shifted(L)
 true
 
-julia> betti_numbers(L) == [0, 1, 1]
-true
+julia> betti_numbers(L)
+3-element Vector{Int64}:
+ 0
+ 0
+ 0
 
 julia> W = weyl_group(:A, n_vertices(K) - 1)
 Weyl group
@@ -331,7 +333,7 @@ julia> s = gens(W)
 julia> w = s[2] * s[3] * s[4]
 s2 * s3 * s4
 
-julia> L = exterior_shift(GF(2), K, w)
+julia> exterior_shift(GF(2), K, w)
 Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
