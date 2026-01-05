@@ -688,19 +688,19 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   if length(a)==0
     return O, id_hom(O) 
   end
-  b = elementary_divisors(codomain(i))
-  n = b[end]
-  k = divexact(n, a[end])
-  if k > 1
-    A = domain(i)
-    C = codomain(i)
-    Ap, ap = kernel(hom(A,A, [k*x for x in gens(A)]))
-    Cp, cp = kernel(hom(C,C, [k*x for x in gens(C)]))
-    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
-    Op,iOp = restrict_automorphism_group(O,cp; check=false)
-    Sp, isp = stabilizer(Op, Ap_to_Cp)
-    return preimage(iOp, Sp)
-  end 
+  A = domain(i)
+  C = codomain(i)
+  if exponent(C) > exponent(A)
+    expA = exponent(A)
+    Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
+    Ak, ak = sub(Ck, [ck\i(x) for x in gens(A)])
+    Ok,iOk = restrict_automorphism_group(O,ck; check=false)
+    Sk, isk = stabilizer(Ok, ak)
+    st = preimage(iOk, Sk)
+    return st 
+  end
+  n = elementary_divisors(C)[end]
+  # base case of the recursion n = p prime
   if is_prime(n)
     p = n
     B = matrix(i.map_ab)
@@ -709,6 +709,9 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     return st
   end
   fl, p , v = is_prime_power_with_data(n)
+  # for prime power order work with the F_p vector space 
+  # K = ker(C -> C, x ->px)  
+  # and recurse on C/K
   if fl 
     A = domain(i)
     C = codomain(i)
@@ -722,9 +725,10 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     SK,toSK = induce_automorphism_group(S,iK)
     _,j = sub(K, [iK(i(x)) for x in gens(domain(i))])
     S,_ = stabilizer(SK,j)
-    return preimage(toSK, S)
+    st = preimage(toSK, S)
+    return st
   end
-  # composite  
+  # For composite order iterate over primary parts.
   S = O
   iS = id_hom(O)
   for p in prime_divisors(n)
@@ -737,5 +741,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     S,iS1 = preimage(iOp, Sp)
     iS = iS1*iS
   end
-  return S,iS
+  st = S,iS
+  return st 
 end
