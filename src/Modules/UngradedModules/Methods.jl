@@ -373,7 +373,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
+      v = FreeModElem(sparse_row(v), ambient_free_module(SQ))
       return SQ(v)
     end
     to_homomorphism = function(elem::SubquoModuleElem{T})
