@@ -123,4 +123,13 @@ end
   H = ss[1000]
   f = fixed_field(s, H)
   @test degree(f) == order(g)//order(H)
+
+  # #5678
+  K5, z = cyclotomic_field(5, "z")
+  E = elliptic_curve(K5, [1,1])
+  psi, _, _ = division_polynomial_univariate(E, 5)
+  F, _ = number_field(psi/5)
+  @test order(galois_group(F)[1]) == 60
+  @test order(galois_group(psi)) == 60
+  @test order(galois_group(psi//5)) == 60
 end
