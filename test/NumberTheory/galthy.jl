@@ -130,6 +130,6 @@ end
   psi, _, _ = division_polynomial_univariate(E, 5)
   F, _ = number_field(psi/5)
   @test order(galois_group(F)[1]) == 60
-  @test order(galois_group(psi)) == 60
-  @test order(galois_group(psi//5)) == 60
+  @test order(galois_group(psi)[1]) == 60
+  @test order(galois_group(psi/5)[1]) == 60
 end
