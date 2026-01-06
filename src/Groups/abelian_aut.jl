@@ -676,6 +676,7 @@ julia> order(S)
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  
   if order(O)<10000
     # don't do fancy stuff if the group is small
     to_gap = get_attribute(O, :to_gap)
@@ -732,7 +733,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   S = O
   iS = id_hom(O)
   for p in prime_divisors(n)
-    p = first(prime_divisors(n))
     Ap, ip = primary_part(domain(i), p)
     Bp, jp = primary_part(codomain(i), p)
     ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
