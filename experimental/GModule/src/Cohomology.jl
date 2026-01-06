@@ -515,7 +515,7 @@ function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.M
 end
 
 function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_lattice::Bool = true)
-  q, mq = Oscar.quo(C.M, image(mDC)[1], add_to_lattice)
+  q, mq = Oscar.quo(C.M, mDC, add_to_lattice)
   S = GModule(C.G, [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.ac])
   if isdefined(C, :iac)
     S.iac = [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.iac]

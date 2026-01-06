@@ -840,7 +840,7 @@ or Ali,
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
 of the idele class group. The primes in `s` will always be used.
 """
-function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false)
+function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false, do_shrink::Bool = false)
   @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
   I = get_attribute(k, :IdeleClassGmodule)
   if !redo && I !== nothing
@@ -1023,7 +1023,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
   @hassert :GaloisCohomology 1 is_consistent(iEt[1])
-  
+
   S = S[s]
   I.S = S
 
@@ -1155,13 +1155,14 @@ function Oscar.galois_group(A::ClassField)
 end
 
 #we have 1 --> A -a-> B -b-> C --> 1 and
-# C: G^n -> C a CoChain
-# want B : G^n -> B a CoChain lifting C
-#Ideal take any lift tilde B: G^2 -> B, then dB should have values in A
-#if this works at all, those values should be the image of some G^2 -> A
-#under the differential. Try to find it, then (tilde B - A) should be
-#correct.
-#we either need A and B as G-modules or the action
+# c: G^n -> C a CoChain
+# want b : G^n -> B a CoChain lifting c,
+#all lifts are of the form b+a for a: G^n -> A
+# so we want a: G^n -> A s.th. d(b+a) = 0 or
+#   db = -da
+#
+# for n = 2, this should be done using tails and also using the H^2 maps
+# stored when computing H^2(A)
 function lift_chain(C::CoChain, a::Map, b::Map)
   A = domain(a)
   B = domain(b)
@@ -1172,7 +1173,6 @@ function lift_chain(C::CoChain, a::Map, b::Map)
   tB = map_entries(pseudo_inv(b.module_map), C; parent = domain(b))
   tBd = Oscar.GrpCoh.differential(tB)
   @assert all(iszero, values(Oscar.GrpCoh.differential(tBd).d))
-  bad = 0
   for (k, v) = tBd.d
     fl, p = has_preimage(a.module_map, v)
     if !fl
@@ -2265,25 +2265,27 @@ Return a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
-  mq = hom(C.M, C.M, gens(C.M))
+  mq = id_hom(C.M)
   q = C
   first = true
   while true
     prog = false
     for i=1:attempts
-      o = Oscar.orbit(q, rand(gens(q.M)))
+      @show i
+      @time o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        s, ms = sub(q.M, collect(o), false)
+        @time s, ms = sub(q.M, collect(o), false)
         if torsion_free_rank(s) == length(o)
-          q, _mq = quo(q, ms, false)
+          @show :OK
+          @time q, _mq = quo(q, ms, false)
           if first
             mq = _mq
             first = false
           else
-            mq = mq*_mq
+            @time mq = mq*_mq
           end
-          q, _mq = simplify(q)
-          mq = mq*inv(_mq)
+          @time q, _mq = simplify(q)
+          @time mq = mq*inv(_mq)
           prog = true
           break
         end
@@ -2322,5 +2324,6 @@ export is_coboundary,
        idele_class_gmodule,
        relative_brauer_group,
        units_mod_ideal,
-       brauer_group
+       brauer_group,
+       global_fundamental_class
 
