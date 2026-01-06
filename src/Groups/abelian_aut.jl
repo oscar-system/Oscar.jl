@@ -709,24 +709,36 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     st = _stab_via_fin_field(O, mats, B, n)
     return st
   end
-  fl, p , v = is_prime_power_with_data(n)
   # for prime power order work with the F_p vector space 
-  # K = ker(C -> C, x ->px)  
-  # and recurse on C/K
+  # K = ker(C -> C, x ->px)
+  # and then on
+  # (A + p^k*C) / (p^(k+1)C + p^kA)
+  # where k = 1 ... v
+  fl, v , p = is_prime_power_with_data(n)
   if fl 
     A = domain(i)
     C = codomain(i)
-    Ap, ap = kernel(hom(A,A, [p*x for x in gens(A)]))
-    Cp, cp = kernel(hom(C,C, [p*x for x in gens(C)]))
+    Ap, ap = kernel(hom(A, A, [p*x for x in gens(A)]))
+    Cp, cp = kernel(hom(C, C, [p*x for x in gens(C)]))
     ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
     Op,iOp = restrict_automorphism_group(O,cp; check=false)
     Sp, _ = stabilizer(Op, Ap_to_Cp)
-    S,iS1 = preimage(iOp, Sp)
-    K,iK = __cokernel(cp)
-    SK,toSK = induce_automorphism_group(S,iK)
-    _,j = sub(K, [iK(i(x)) for x in gens(domain(i))])
-    S,_ = stabilizer(SK,j)
-    st = preimage(toSK, S)
+    S,iS = preimage(iOp, Sp)
+    pA = [i(p*x) for x in gens(A)]
+    for k in 1:v
+      # (A + p^k*C) / (p^(k+1)C + p^kA)
+      piC = [p^k*x for x in gens(C)]
+      D,iD = sub(C, append!(piC,i.(gens(A))))
+      E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
+      SD, iSD = restrict_automorphism_group(S, iD; check=false)
+      K, iK = __cokernel(iE)
+      SK, toSK = induce_automorphism_group(SD,iK; check=false)
+      B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
+      S,_ = stabilizer(SK,j)
+      S,_ = preimage(toSK, S)
+      S,iS = preimage(iSD, S)
+    end
+    st = S,iS
     return st
   end
   # For composite order iterate over primary parts.
