@@ -591,6 +591,19 @@
     end
   end
 
+  @testset "Products of polyhedra" begin
+    pt = convex_hull(T,[[0]])
+    ray = polyhedron(T,[[1]],[0])
+    line = polyhedron(T,[[0]],[0])
+
+    @test dim(pt*pt) == 0 && lineality_dim(pt*pt) == 0
+    @test dim(pt*ray) == 1 && lineality_dim(pt*ray) == 0
+    @test dim(pt*line) == 1 && lineality_dim(pt*line) == 1
+    @test dim(ray*ray) == 2 && lineality_dim(ray*ray) == 0
+    @test dim(ray*line) == 2 && lineality_dim(ray*line) == 1
+    @test dim(line*line) == 2 && lineality_dim(line*line) == 2
+  end
+
   if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
     @testset "Dodecahedron" begin
       D = polyhedron(Polymake.polytope.dodecahedron())
