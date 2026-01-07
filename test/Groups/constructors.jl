@@ -245,3 +245,30 @@ end
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
 end
+
+@testset "group/permutation_group from permutation generators" begin
+  p = cperm(1:4)
+  q = cperm([1,2])
+
+  G1 = permutation_group(p, q)
+  G2 = permutation_group([p, q])
+
+  @test degree(G1) == 4
+  @test degree(G2) == 4
+
+  @test order(G1) == order(G2)
+  @test is_isomorphic(G1, G2)
+
+  H1 = group(p, q)
+  H2 = group([p, q])
+
+  @test degree(H1) == 4
+  @test degree(H2) == 4
+
+  @test order(H1) == order(G1)
+  @test is_isomorphic(H1, G1)
+  @test is_isomorphic(H2, G2)
+
+  @test_throws ArgumentError permutation_group(PermGroupElem[])
+  @test_throws ArgumentError group(PermGroupElem[])
+end
