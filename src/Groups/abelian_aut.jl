@@ -715,7 +715,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   # for prime power order work with the F_p vector space 
   # K = ker(C -> C, x ->px)
   # and then on
-  # (A + p^k*C) / (p^(k+1)C + p^kA)
+  # (A + p^k*C) / (p^(k+1)C + pA)
   # where k = 1 ... v
   fl, v , p = is_prime_power_with_data(n)
   if fl 
