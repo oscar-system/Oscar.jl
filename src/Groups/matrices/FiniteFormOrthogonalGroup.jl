@@ -988,8 +988,8 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
-
-function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
+ 
+function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=:stabilizer)
   if is_semi_regular(T)
     N, i = normal_form(T)
     j = inv(i)
@@ -998,23 +998,41 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
-  end
+  end    
 
   if iszero(gram_matrix_quadratic(T))
     gensOT = Hecke.gens(automorphism_group(abelian_group(T)))
     return matrix.(gensOT)
   end
-
   @assert is_prime_power_with_data(elementary_divisors(T)[end])[1]
   _, i = radical_quadratic(T)
   ok, _ = has_complement(i)
   if ok
     return _compute_gens_split_degenerate_primary(T)
   end
-
+  
+  G = Oscar._orthogonal_group(T, ZZMatrix[])
+  to_gap = get_attribute(G, :to_gap)
+  to_oscar = get_attribute(G, :to_oscar)
+  if algorithm == :stabilizer
+    N, toN = normal_form(T)
+    K,iK = kernel(toN)
+    A = AutomorphismGroup(GapObj(automorphism_group(codomain(to_gap))),T)
+    set_attribute!(A, :to_gap=>to_gap)
+    set_attribute!(A, :to_oscar=>to_oscar)
+    AK,iAK = stabilizer(A, iK)
+    AN,toGLN = induce_automorphism_group(AK, toN; check=false)
+    ON_from_T,_, _ = intersect(orthogonal_group(N), AN)
+    ON,_ = preimage(toGLN, ON_from_T)
+    return [matrix(i) for i in gens(ON)]
+  end 
+  algorithm == :brute_force || error("unknown algorithm $algorithm must be :stabilizer or :brute_force")
+  Dpc = codomain(to_gap)
+  #A = automorphism_group(Dpc)
+  #G = Oscar._orthogonal_group(S, ZZMatrix[matrix(i) for i in gens(A)])
+  
   S, StoT = snf(T)
   n = ngens(S)
-  G = Oscar._orthogonal_group(S, ZZMatrix[])
   s_cand = [[b for b in S if Hecke.quadratic_product(b) == Hecke.quadratic_product(a) && order(b) == order(a)] for a in Hecke.gens(S)]
   waiting = Vector{TorQuadModuleElem}[[]]
   while length(waiting) > 0
@@ -1023,11 +1041,17 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     i = length(f)
     if i == n
       # f is a full isometry
-      g = G(hom(S, S, f), check = false)
+      g = G(hom(S, S, f); check = false)
       if !(g in GapObj(G))
         G = Oscar._orthogonal_group(S, [matrix(s) for s in union(Hecke.gens(G), [g])], check=false)
         if !isempty(waiting)
-          waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]
+          # this action is a bit slow 
+          #@time waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]
+          # transfer to a faster action
+          waiting_pc = [to_gap.(i) for i in waiting]
+          Ggap,_ = _as_subgroup(automorphism_group(Dpc), GapObj(G))
+          waiting_pc = representative.(orbits(gset(Ggap,on_tuples, waiting_pc)))
+          waiting = [to_oscar.(i) for i in waiting_pc]
         end
         continue
       end

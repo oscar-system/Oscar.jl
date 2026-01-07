@@ -49,6 +49,9 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   return to_oscar(imgap)::typeof(x)
 end
 
+(f::AutGrpAbTorElem)(x::SubPcGroupElem) = group_element(parent(x),GAPWrap.Image(GapObj(f), GapObj(x)))
+Base.:^(x::SubPcGroupElem,f::AutGrpAbTorElem) = f(x)
+
 (f::AutGrpAbTorElem)(x::AbTorElem) = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
