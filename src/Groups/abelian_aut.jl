@@ -729,7 +729,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     S,iS = preimage(iOp, Sp)
     pA = [i(p*x) for x in gens(A)]
     for k in 1:v
-      # (A + p^k*C) / (p^(k+1)C + p^kA)
+      # (A + p^k*C) / (p^(k+1)C + pA)
       piC = [p^k*x for x in gens(C)]
       D,iD = sub(C, append!(piC,i.(gens(A))))
       E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
