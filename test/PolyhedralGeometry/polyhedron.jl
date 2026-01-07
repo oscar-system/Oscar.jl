@@ -592,9 +592,9 @@
   end
 
   @testset "Products of polyhedra" begin
-    pt = convex_hull(T, [[0]])
-    ray = polyhedron(T, [[1]], [0])
-    line = polyhedron(T, [[0]], [0])
+    pt = convex_hull(f, [[0]])
+    ray = polyhedron(f, [[1]], [0])
+    line = polyhedron(f, [[0]], [0])
 
     @test dim(pt * pt) == 0 && lineality_dim(pt * pt) == 0
     @test dim(pt * ray) == 1 && lineality_dim(pt * ray) == 0
