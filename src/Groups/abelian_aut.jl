@@ -701,6 +701,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     Ok,iOk = restrict_automorphism_group(O,ck; check=false)
     Sk, isk = stabilizer(Ok, ak)
     st = preimage(iOk, Sk)
+    #@assert order(st[1])==order(st2[1])
     return st 
   end
   n = elementary_divisors(C)[end]
@@ -710,38 +711,33 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     B = matrix(i.map_ab)
     mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
     st = _stab_via_fin_field(O, mats, B, n)
+    #@assert order(st[1])==order(st2[1])
     return st
   end
   # for prime power order work with the F_p vector space 
-  # K = ker(C -> C, x ->px)
-  # and then on
   # (A + p^k*C) / (p^(k+1)C + pA)
-  # where k = 1 ... v
+  # where k = 0 ... v
   fl, v , p = is_prime_power_with_data(n)
-  if fl 
+  if fl
     A = domain(i)
     C = codomain(i)
-    Ap, ap = kernel(hom(A, A, [p*x for x in gens(A)]))
-    Cp, cp = kernel(hom(C, C, [p*x for x in gens(C)]))
-    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
-    Op,iOp = restrict_automorphism_group(O,cp; check=false)
-    Sp, _ = stabilizer(Op, Ap_to_Cp)
-    S,iS = preimage(iOp, Sp)
+    S = O
     pA = [i(p*x) for x in gens(A)]
-    for k in 1:v
+    for k in 0:v
       # (A + p^k*C) / (p^(k+1)C + pA)
       piC = [p^k*x for x in gens(C)]
       D,iD = sub(C, append!(piC,i.(gens(A))))
+      SD, iSD = restrict_automorphism_group(S, iD; check=true)
       E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
-      SD, iSD = restrict_automorphism_group(S, iD; check=false)
       K, iK = __cokernel(iE)
-      SK, toSK = induce_automorphism_group(SD,iK; check=false)
+      SK, toSK = induce_automorphism_group(SD,iK; check=true)
       B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
       S,_ = stabilizer(SK,j)
       S,_ = preimage(toSK, S)
       S,iS = preimage(iSD, S)
     end
     st = S,iS
+    #@assert order(st[1])==order(st2[1])
     return st
   end
   # For composite order iterate over primary parts.
@@ -757,5 +753,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     iS = iS1*iS
   end
   st = S,iS
+  #@assert order(st[1])==order(st2[1])
   return st 
 end
