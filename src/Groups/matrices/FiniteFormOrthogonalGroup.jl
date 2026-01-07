@@ -988,7 +988,6 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
- 
 function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=:stabilizer)
   if is_semi_regular(T)
     N, i = normal_form(T)
