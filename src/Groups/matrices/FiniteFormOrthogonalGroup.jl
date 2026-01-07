@@ -997,7 +997,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
-  end    
+  end
 
   if iszero(gram_matrix_quadratic(T))
     gensOT = Hecke.gens(automorphism_group(abelian_group(T)))
