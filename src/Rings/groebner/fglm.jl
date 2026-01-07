@@ -46,7 +46,7 @@ with respect to the ordering
 """
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.")
-  SG = singular_generators(G)
+  SG = singular_generators(G, G.ord)
   Singular.dimension(SG) == 0 || error("Dimension of corresponding ideal must be zero.")
   Sx = base_ring(SG)
   SR_destination, = Singular.polynomial_ring(base_ring(Sx), symbols(Sx); ordering = singular(ordering))

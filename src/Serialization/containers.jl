@@ -257,6 +257,7 @@ function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tupl
 end
 
 function load_type_params(s::DeserializerState, T::Type{Tuple})
+  !haskey(s, :params) && return T{}, nothing
   subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s) do _
       U = decode_type(s)
@@ -525,6 +526,13 @@ function load_object(s::DeserializerState, T::Type{Dict{Symbol, Int}}, key::Unio
   load_node(s, key) do _
     load_object(s, T)
   end
+end
+
+function load_object(s::DeserializerState, T::Type{<:Dict{S, U}}, ::Nothing) where {S, U}
+  pairs = load_array_node(s) do _
+    load_object(s, Tuple{S, U}, (nothing, nothing))
+  end::Vector{Tuple{S, U}}
+  return T(k => v for (k, v) in pairs)
 end
 
 function load_object(s::DeserializerState,

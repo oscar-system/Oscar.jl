@@ -480,7 +480,12 @@ end
 Base.:*(x::MatrixGroupElem, y::MatElem) = matrix(x)*y
 Base.:*(x::MatElem, y::MatrixGroupElem) = x*matrix(y)
 
-Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(parent(x), matrix(x)^n)
+function Base.:^(x::MatrixGroupElem, n::Int)
+  m = matrix(x)
+  # Raising a `ZZMatrix` to a negative power is not supported.
+  mn = (n < 0) ? inv(m)^(-n) : m^n
+  return MatrixGroupElem(parent(x), mn)
+end
 
 Base.isone(x::MatrixGroupElem) = isone(matrix(x))
 

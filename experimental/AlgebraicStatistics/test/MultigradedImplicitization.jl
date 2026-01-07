@@ -19,7 +19,6 @@ oscar_worker_pool(1) do wp
       @test all(parent(p) === R for p in v)
     end
   end
-
   @testset "K3P" begin
     T = graph_from_edges(Directed, [[6, 5], [5, 1], [5, 2], [6, 3], [6, 4]])
     M = kimura3_model(T)
@@ -30,6 +29,12 @@ oscar_worker_pool(1) do wp
       @test all(is_zero, phi.(v))
     end
   end
+
+  G1 = graph_from_edges(Directed,[[5,1], [6,5], [7,6], [7,8], [8,5], [6,2], [7,3], [8,4]]);
+  N1 = phylogenetic_network(G1)
+  M = kimura3_model(N1)
+  phi = parametrization(M)
+  @test length(components_of_kernel(3, phi)) == 76
 end
 
 # help kill workers

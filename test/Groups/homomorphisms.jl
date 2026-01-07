@@ -3,10 +3,12 @@
      H, emb = sylow_subgroup(G, 2)
      x = gen(H, 1)
      y = image(emb, x)
+     ker, _ = kernel(emb)
      @test preimage(emb, y) == x
      @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
      @test id_hom(H) * emb == emb
      @test emb * id_hom(G) == emb
+     @test is_trivial(ker)
    end
 end
 

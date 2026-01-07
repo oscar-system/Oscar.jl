@@ -502,6 +502,39 @@ function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQu
   return restrict_endomorphism(hom(f), i, check = false)
 end
 
+function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bool = true)
+  @req !check || is_surjective(i) "i must be a surjection"
+  @req domain(f) === codomain(f) === domain(i) "f must be an endomorphism of the domain of i"
+  if check 
+    K, j = kernel(i)
+    @req all(has_preimage_with_preimage(j,f(j(k)))[1] for k in gens(K)) "f must preserve the kernel of i"
+  end
+  imgs = TorQuadModuleElem[]
+  U = codomain(i)
+  for a in gens(U)
+    ok, c = has_preimage_with_preimage(i, a)
+    @assert ok 
+    push!(imgs, i(f(c)))
+  end
+  return hom(U, U, imgs)
+end
+
+function induce_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  return induce_endomorphism(hom(f), i; check)
+end 
+
+function induce_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  @req domain(G) === domain(i) "G must consists of automorphisms of the domain of i"
+  indu = TorQuadModuleMap[]
+  for f in gens(G)
+    g =  induce_automorphism(f, i; check)
+    push!(indu, g)
+  end
+  H = _orthogonal_group(codomain(i), unique(indu); check)
+  res = hom(G, H, gens(G), H.(indu); check)
+  return H, res
+end
+
 @doc raw"""
     restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule},
                                 i::TorQuadModuleMap; check::Bool = true)
@@ -603,6 +636,14 @@ function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
   Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
   return is_conjugate_with_data(G, Hgap, Kgap)
 end
+  
+function __cokernel(f::TorQuadModuleMap)
+  # assumes same ambient space and therefore the underscore
+  A = domain(f)
+  B = codomain(f)
+  BmodA = torsion_quadratic_module(cover(B),cover(A))
+  return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
+end
 
 @doc raw"""
     stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
@@ -634,8 +675,72 @@ julia> order(S)
 ```
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
-  to_gap = get_attribute(O, :to_gap)
-  Agap = codomain(to_gap)
-  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
-  return stabilizer(O, Hgap.X, on_subgroups)
+  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  
+  if order(O)<10000
+    # don't do fancy stuff if the group is small
+    to_gap = get_attribute(O, :to_gap)
+    Agap = codomain(to_gap)
+    Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+    st2 =  stabilizer(O, Hgap.X, on_subgroups)
+    return st2
+  end
+  a = elementary_divisors(domain(i))
+  if length(a)==0
+    return O, id_hom(O) 
+  end
+  A = domain(i)
+  C = codomain(i)
+  if exponent(C) > exponent(A)
+    expA = exponent(A)
+    Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
+    Ak, ak = sub(Ck, [ck\i(x) for x in gens(A)])
+    Ok,iOk = restrict_automorphism_group(O,ck; check=false)
+    Sk, isk = stabilizer(Ok, ak)
+    st = preimage(iOk, Sk)
+    return st 
+  end
+  n = elementary_divisors(C)[end]
+  # base case of the recursion n = p prime
+  if is_prime(n)
+    p = n
+    B = matrix(i.map_ab)
+    mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
+    st = _stab_via_fin_field(O, mats, B, n)
+    return st
+  end
+  fl, p , v = is_prime_power_with_data(n)
+  # for prime power order work with the F_p vector space 
+  # K = ker(C -> C, x ->px)  
+  # and recurse on C/K
+  if fl 
+    A = domain(i)
+    C = codomain(i)
+    Ap, ap = kernel(hom(A,A, [p*x for x in gens(A)]))
+    Cp, cp = kernel(hom(C,C, [p*x for x in gens(C)]))
+    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(O,cp; check=false)
+    Sp, _ = stabilizer(Op, Ap_to_Cp)
+    S,iS1 = preimage(iOp, Sp)
+    K,iK = __cokernel(cp)
+    SK,toSK = induce_automorphism_group(S,iK)
+    _,j = sub(K, [iK(i(x)) for x in gens(domain(i))])
+    S,_ = stabilizer(SK,j)
+    st = preimage(toSK, S)
+    return st
+  end
+  # For composite order iterate over primary parts.
+  S = O
+  iS = id_hom(O)
+  for p in prime_divisors(n)
+    Ap, ip = primary_part(domain(i), p)
+    Bp, jp = primary_part(codomain(i), p)
+    ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(S,jp;check=false)
+    Sp, _ = stabilizer(Op, Ap_to_Bp)
+    S,iS1 = preimage(iOp, Sp)
+    iS = iS1*iS
+  end
+  st = S,iS
+  return st 
 end
