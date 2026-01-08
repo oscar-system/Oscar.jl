@@ -717,6 +717,13 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   # for prime power order work with the F_p vector space 
   # (A + p^k*C) / (p^(k+1)C + pA)
   # where k = 0 ... v
+  #
+  # Suppose (by induction) that f ( A ) ⊆ A + p k C and that moreover f stabilizes the image of
+  # A in ( A + p k C ) / ( p A + p k + 1 C ) , which is ( A + p k + 1 C ) / ( p A + p k + 1 C ) .
+  # Then f ( a + p A + p k + 1 C ) = f ( a ) + p A + p k + 1 C ∈ ( A + p k + 1 C ) / ( p A + p k + 1 C ) , 
+  # i.e. f ( a ) ∈ A + p k + 1 C .
+  #
+  # By the preceeding: if k is such that p k + 1 C = 0 , then f ( A ) ⊆ A.
   fl, v , p = is_prime_power_with_data(n)
   if fl
     A = domain(i)
