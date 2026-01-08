@@ -98,13 +98,11 @@ function basis_lie_highest_weight_compute(
   )
 
   if !isnothing(vertices_of_polytope)
+    P = convex_hull(vertices_of_polytope[highest_weight(V)])
     set_attribute!(
       mb,
-      :volume_of_polytope => volume(convex_hull(vertices_of_polytope[highest_weight(V)])),
-    )
-    set_attribute!(
-      mb,
-      :polytope => convex_hull(vertices_of_polytope[highest_weight(V)]),
+      :polytope => P,
+      :volume_of_polytope => volume(P),
     )
   end
   return mb, monomials
