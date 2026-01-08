@@ -30,6 +30,7 @@ jobs:
       uses: oscar-system/changelog-script@master
       with:
         conffile: "dev/releases/config.toml"
+        changelogfile: "CHANGELOG.md"
 
     # Configure git for the PR
     - name: Set up git
