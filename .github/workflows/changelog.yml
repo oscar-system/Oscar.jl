@@ -27,9 +27,9 @@ jobs:
 
     # Run the update script
     - name: Run python script
+      uses: oscar-system/changelog-script@master
       with:
         conffile: "dev/releases/config.toml"
-      uses: oscar-system/changelog-script@master
 
     # Configure git for the PR
     - name: Set up git
