@@ -247,7 +247,7 @@ function principal_minor(A::Generic.MatSpaceElem, K::Vector{Int})::MPolyRingElem
 end
 
 @doc raw"""
-    vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L} where L
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
 
 The vanishing ideal of a directed acyclic Gaussian graphical model can be computed
 by saturating the conditional independence ideal of its ordered pairwise Markov
@@ -257,7 +257,7 @@ for general graphical models.
 
 If the graph is cyclic, we fall back to elimination.
 """
-function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, L}) where L
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
   if !is_acyclic(graph(M))
     return vanishing_ideal(M; algorithm=:eliminate)
   end
@@ -376,14 +376,14 @@ function concentration_matrix(M::GaussianGraphicalModel{Graph{Undirected}, T}) w
 end
 
 @doc raw"""
-    vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, L} where L
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing}
 
 It is a well-known theorem that the vanishing ideal is the unique prime ideal
 above the pairwise conditional independence ideal which does not contain the
 determinant of the covariance matrix. This translates into a saturation problem
 which can usually be solved faster than the generic elimination-based approach.
 """
-function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, L}) where L
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
   G = graph(M)
   S, _ = model_ring(M)
   A = covariance_matrix(M)
