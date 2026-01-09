@@ -1,5 +1,4 @@
-majorversion = 0
-reponame = "Nemocas/AbstractAlgebra.jl"
+reponame = "oscar-system/Oscar.jl"
 enabletwolevel = true
 requiretwolevel = true
 extra = """f'-label:"backport {major}.{minor}.x done"'"""
