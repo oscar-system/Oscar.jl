@@ -55,11 +55,16 @@ end
 
 Base.getindex(D::FinAbGroupElemDict, arg::FinGenAbGroupElem) = D.d[arg]
 
-function Base.getindex(D::FinAbGroupElemDict, arg::Tuple{Vararg{Int}})
+function Base.getindex(D::FinAbGroupElemDict, arg::NTuple{N, Int}) where N
   isempty(D.d) && throw(KeyError(arg))
   G = parent(first(D.d).first)
   key = G(collect(arg))
-  return d[key]
+  return D.d[key]
+end
+
+function Base.getindex(D::FinAbGroupElemDict, arg::Vararg{Int})
+  isempty(D.d) && throw(KeyError(arg))
+  return D[arg]
 end
 
 ################################################################################
