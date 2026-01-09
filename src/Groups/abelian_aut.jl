@@ -49,6 +49,9 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   return to_oscar(imgap)::typeof(x)
 end
 
+(f::AutGrpAbTorElem)(x::SubPcGroupElem) = group_element(parent(x),GAPWrap.Image(GapObj(f), GapObj(x)))
+Base.:^(x::SubPcGroupElem,f::AutGrpAbTorElem) = f(x)
+
 (f::AutGrpAbTorElem)(x::AbTorElem) = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
@@ -698,6 +701,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     Ok,iOk = restrict_automorphism_group(O,ck; check=false)
     Sk, isk = stabilizer(Ok, ak)
     st = preimage(iOk, Sk)
+    #@assert order(st[1])==order(st2[1])
     return st 
   end
   n = elementary_divisors(C)[end]
@@ -707,26 +711,40 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     B = matrix(i.map_ab)
     mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
     st = _stab_via_fin_field(O, mats, B, n)
+    #@assert order(st[1])==order(st2[1])
     return st
   end
-  fl, p , v = is_prime_power_with_data(n)
   # for prime power order work with the F_p vector space 
-  # K = ker(C -> C, x ->px)  
-  # and recurse on C/K
-  if fl 
+  # (A + p^k*C) / (p^(k+1)C + pA)
+  # where k = 0 ... v
+  #
+  # Suppose (by induction) that f ( A ) ⊆ A + p k C and that moreover f stabilizes the image of
+  # A in ( A + p k C ) / ( p A + p k + 1 C ) , which is ( A + p k + 1 C ) / ( p A + p k + 1 C ) .
+  # Then f ( a + p A + p k + 1 C ) = f ( a ) + p A + p k + 1 C ∈ ( A + p k + 1 C ) / ( p A + p k + 1 C ) , 
+  # i.e. f ( a ) ∈ A + p k + 1 C .
+  #
+  # By the preceeding: if k is such that p k + 1 C = 0 , then f ( A ) ⊆ A.
+  fl, v , p = is_prime_power_with_data(n)
+  if fl
     A = domain(i)
     C = codomain(i)
-    Ap, ap = kernel(hom(A,A, [p*x for x in gens(A)]))
-    Cp, cp = kernel(hom(C,C, [p*x for x in gens(C)]))
-    ApinCp, Ap_to_Cp = sub(Cp, TorQuadModuleElem[cp\i(ap(x)) for x in gens(Ap)])
-    Op,iOp = restrict_automorphism_group(O,cp; check=false)
-    Sp, _ = stabilizer(Op, Ap_to_Cp)
-    S,iS1 = preimage(iOp, Sp)
-    K,iK = __cokernel(cp)
-    SK,toSK = induce_automorphism_group(S,iK)
-    _,j = sub(K, [iK(i(x)) for x in gens(domain(i))])
-    S,_ = stabilizer(SK,j)
-    st = preimage(toSK, S)
+    S = O
+    pA = [i(p*x) for x in gens(A)]
+    for k in 0:v
+      # (A + p^k*C) / (p^(k+1)C + pA)
+      piC = [p^k*x for x in gens(C)]
+      D,iD = sub(C, append!(piC,i.(gens(A))))
+      SD, iSD = restrict_automorphism_group(S, iD; check=true)
+      E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
+      K, iK = __cokernel(iE)
+      SK, toSK = induce_automorphism_group(SD,iK; check=true)
+      B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
+      S,_ = stabilizer(SK,j)
+      S,_ = preimage(toSK, S)
+      S,iS = preimage(iSD, S)
+    end
+    st = S,iS
+    #@assert order(st[1])==order(st2[1])
     return st
   end
   # For composite order iterate over primary parts.
@@ -742,5 +760,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     iS = iS1*iS
   end
   st = S,iS
+  #@assert order(st[1])==order(st2[1])
   return st 
 end
