@@ -11,6 +11,11 @@
         @test t == loaded
       end
 
+      et = Tuple{}([])
+      test_save_load_roundtrip(path, et) do loaded
+        @test et == loaded
+      end
+
       nt = (a = v, b = t)
       test_save_load_roundtrip(path, nt) do loaded
         @test nt == loaded

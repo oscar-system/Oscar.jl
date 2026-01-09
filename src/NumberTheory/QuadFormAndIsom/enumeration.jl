@@ -2498,7 +2498,7 @@ function _radical(p::Union{ZZPolyRingElem, QQPolyRingElem})
   return prod(a[1] for a in factor(p))
 end
 
-# smallest ideal whose pth power is contained in I
+# intersection I \cap Z[x^p]
 function _discriminant_annihilator_after_power(
   I::MPolyIdeal{ZZMPolyRingElem},
   p::Hecke.IntegerUnion,

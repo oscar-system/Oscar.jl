@@ -84,11 +84,11 @@ julia> order_of_isometry(Tf)
 2
 ```
 """
-@attr Int function order_of_isometry(Tf::TorQuadModuleWithIsom)
+@attr ZZRingElem function order_of_isometry(Tf::TorQuadModuleWithIsom)
   T = underlying_module(Tf)
   f = isometry(Tf)
   C = Oscar._orthogonal_group(T, [f]; check=false)
-  return Int.(order(C))
+  return order(C)
 end
 
 ###############################################################################
@@ -394,7 +394,8 @@ julia> order(O)
 8
 ```
 """
-@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism} function automorphism_group_with_inclusion(Tf::TorQuadModuleWithIsom)
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}
+} function automorphism_group_with_inclusion(Tf::TorQuadModuleWithIsom)
   T = underlying_module(Tf)
   f = isometry(Tf)
   OT = orthogonal_group(T)
