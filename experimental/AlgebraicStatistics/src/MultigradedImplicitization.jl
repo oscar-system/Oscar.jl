@@ -195,11 +195,14 @@ end
 
 
 @doc raw"""
-    components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing)
+    components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing, show_progress::Bool=false)
 
 Computes all minimal generators of the kernel of the polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ such that $(i, j)$
 with total degree at most $d$ using the main algorithm of [CH26](@cite). This implementation requires that $\phi$ be homogeneous in a multigrading which refines total
 degree which ensures the algorithm is parallelizable. The output is a dictionary whose keys are the multidegrees and values consist of a minimal generating set for that multidegree.
+
+This function can be run using multiple processes by passing an `OscarWorkerPool` using the keryword argument `wp`.
+Setting `show_progress` to `true` will print a progress meter for parts of the algorithm.
 
 ## Examples
 
