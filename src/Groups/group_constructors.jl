@@ -102,16 +102,6 @@ and `false` otherwise.
 """
 @gapattribute is_isomorphic_to_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(GapObj(G))::Bool
 
-# Permutation group from permutation generators (varargs + vector)
-permutation_group(g::PermGroupElem, gs::PermGroupElem...) =
-  permutation_group(PermGroupElem[g, gs...])
-
-function permutation_group(gs::AbstractVector{<:PermGroupElem})
-  isempty(gs) && throw(ArgumentError("need at least one generator"))
-  n = maximum(degree, gs)
-  return permutation_group(n, PermGroupElem[gs...])
-end
-
 # Generic `group` convenience: for permutations that agrees with `permutation_group`
 group(g::PermGroupElem, gs::PermGroupElem...) = group(PermGroupElem[g, gs...])
 

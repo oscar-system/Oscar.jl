@@ -257,7 +257,7 @@ end
   @test degree(G2) == 4
 
   @test order(G1) == order(G2)
-  @test is_isomorphic(G1, G2)
+  @test G1 == G2
 
   H1 = group(p, q)
   H2 = group([p, q])
@@ -266,8 +266,8 @@ end
   @test degree(H2) == 4
 
   @test order(H1) == order(G1)
-  @test is_isomorphic(H1, G1)
-  @test is_isomorphic(H2, G2)
+  @test H1 == G1
+  @test H2 == G2
 
   @test_throws ArgumentError permutation_group(PermGroupElem[])
   @test_throws ArgumentError group(PermGroupElem[])
