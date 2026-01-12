@@ -47,6 +47,44 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
+  build_pdf:
+    # latexminted in Ubuntu 26 fails on Python 3.14, see
+    # https://bugs.launchpad.net/ubuntu/+source/texlive-extra/+bug/2154292
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v3
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
+      - name: Install dependencies
+        run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
+      - name: Install TeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            latexmk \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            texlive-luatex \
+            python3-pygments \
+            fontconfig \
+            fonts-dejavu-core \
+            fonts-dejavu-extra
+      - name: Build
+        env:
+          DOCUMENTER_LATEX_SHOW_LOGS: true
+        run: julia --project=docs/ --color=yes docs/make.jl --pdf
+      - uses: actions/upload-artifact@v7
+        with:
+          path: docs/build/Oscar.jl.pdf
+          archive: false
+          if-no-files-found: error
+
   deploy_docs:
     needs: build_docs
     runs-on: ubuntu-latest

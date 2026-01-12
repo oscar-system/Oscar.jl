@@ -94,7 +94,11 @@ function doit(
   warnonly=false,
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
+  formats::Vector{Symbol} = [:html],
+  pdf_method::Symbol = :pdf_via_latex,
 )
+  issubset(formats, (:html, :pdf)) || error("unknown format in $formats")
+  pdf_method in (:pdf_via_latex, :pdf_via_docker) || error("unknown pdf_method: $pdf_method")
   oscardir = Base.pkgdir(Oscar)
 
   # include the list of pages, performing substitutions
@@ -187,15 +191,23 @@ function doit(
       Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())
     end
 
-    makedocs(;
-      format=Documenter.HTML(;
+    format = Any[]
+    if :html in formats
+      push!(format, Documenter.HTML(;
         prettyurls=!local_build,
         collapselevel=1,
         size_threshold=409600,
         size_threshold_warn=204800,
         size_threshold_ignore=["manualindex.md"],
         canonical="https://docs.oscar-system.org/stable/",
-      ),
+      ))
+    end
+    if :pdf in formats
+      push!(format, Documenter.LaTeX(; platform = pdf_method == :pdf_via_docker ? "docker" : "native"))
+    end
+
+    makedocs(;
+      format,
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
@@ -221,6 +233,8 @@ function doit(
     dstbase = normpath(oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
+
+  :html in formats || return
   
   # postprocessing, for the search index
   docspath = normpath(joinpath(oscardir, "docs"))

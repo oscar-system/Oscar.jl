@@ -251,7 +251,7 @@ function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
 end
 
 @doc raw"""
-    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
+    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false, formats=[:html], pdf_method=:pdf_via_latex)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -272,6 +272,14 @@ and if set to `false` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
 Alternatively, one can pass a list of symbols to `warnonly` to suppress
 errors for the given error types.
+
+The optional parameter `formats` lists the output formats to build: `:html`
+and/or `:pdf`. The PDF manual is written to `docs/build/Oscar.jl.pdf`.
+
+The optional parameter `pdf_method` selects how the PDF manual is compiled:
+  - `:pdf_via_latex`: Use the local LaTeX installation, which must provide
+    `latexmk` and `lualatex` (default).
+  - `:pdf_via_docker`: Use the Docker image of `Documenter.jl`.
 
 To prevent the opening of the browser at the end, set the optional parameter
 `open_browser` to `false`.
@@ -297,7 +305,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
-function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false)
+function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false, formats::Vector{Symbol} = [:html], pdf_method::Symbol = :pdf_via_latex)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = """The Julia reference version for the doctests is 1.7 or later, but you are using
                 $(VERSION). Running the doctests will produce errors that you do not expect."""
@@ -311,14 +319,16 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   withenv("COLUMNS"=>80, "LINES"=>24) do
     with_unicode(false) do
       Pkg.activate(docsproject) do
-        @invokelatest BuildDoc.doit(Oscar; warnonly=warnonly, local_build=true, doctest=doctest)
+        @invokelatest BuildDoc.doit(Oscar; warnonly, local_build=true, doctest, formats, pdf_method)
       end
     end
   end
-  if start_server
-    start_doc_preview_server(open_browser = open_browser)
-  elseif open_browser
-    open_doc()
+  if :html in formats
+    if start_server
+      start_doc_preview_server(open_browser = open_browser)
+    elseif open_browser
+      open_doc()
+    end
   end
   if doctest != false && !versioncheck
     @warn versionwarn
