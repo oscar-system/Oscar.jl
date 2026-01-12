@@ -154,6 +154,7 @@ export PcGroup
 export PcGroupElem
 export PermGroup
 export PermGroupElem
+export PhylogeneticTree
 export PointVector
 export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan, polyhedral_fan
