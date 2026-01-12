@@ -884,7 +884,9 @@ function _subgroups_orbit_representatives_and_stabilizers(
     subs = collect(submodules(V; order=ord))
     filter!(s -> is_invariant(fV, s[2]), subs)
   end
-
+  if iszero(length(subs))
+    return res
+  end 
   to_gap = get_attribute(O, :to_gap)
   to_oscar = get_attribute(O, :to_oscar)
 
