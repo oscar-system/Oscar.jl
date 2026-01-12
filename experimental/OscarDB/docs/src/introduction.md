@@ -37,7 +37,7 @@ See also [HM16](@cite), Table 1, and [the supplementary non-published tables](ht
 
 ### Small trees database [SmallTreeModels]
 
-The OSCAR DB provides access to [Algebraic Phylogenetics](algebraicphylogenetics.org), 
+The OSCAR DB provides access to [Algebraic Phylogenetics](https://algebraicphylogenetics.org), 
 see also [Small Phylogenetic Trees](https://www.coloradocollege.edu/aapps/ldg/small-trees/small-trees_0.html) for the list of contributors.
 Which comprises of phylogenetic models on trees with up to 5 leaves. 
 
