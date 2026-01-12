@@ -46,7 +46,7 @@ function _patchworks2polynomial(
 end
 
 function _patchwork2polynomial(
-  R::QQMPolyRing,
+    R::Union{QQMPolyRing,MPolyDecRing},
   sgns::AbstractVector,
   exps::ZZMatrix,
   w::Vector{Int},

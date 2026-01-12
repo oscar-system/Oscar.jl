@@ -70,7 +70,7 @@ function _analyse_singularity_msolve(
     ptsafter = _real_roots(projy(Oscar.evaluate(f, [Rxy(xafter), y])); selected_precision)
 
     # Just guessing some precision, not optimal...
-    yinterval = [ypt[1] - 1//selected_precision, ypt[2] + 1//selected_precision]
+    yinterval = [ypt[1] - QQ(1,2)^64, ypt[2] + QQ(1,2)^64]
     result = ptsbefore
     diff = length(ptsbefore) - length(ptsafter)
     if diff < 0
