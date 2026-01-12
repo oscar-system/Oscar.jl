@@ -31,6 +31,7 @@ jobs:
       with:
         conffile: "dev/releases/config.toml"
         changelogfile: "CHANGELOG.md"
+        version: ${{ inputs.version }}
 
     # Configure git for the PR
     - name: Set up git
