@@ -77,8 +77,3 @@ function _domination(s1::Combination{Int}, s2::Combination{Int})
   v2 = sort(s2)
   return all([v1[i] <= v2[i] for i in 1:length(v1)])
 end
-
-# check for higher co faces
-function larger_cols(c::Combination{Int}, col_sets::Vector{Combination{Int}})
-  col_sets[findall(x -> _domination(c, x), col_sets)]
-end
