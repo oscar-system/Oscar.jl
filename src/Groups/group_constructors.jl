@@ -103,11 +103,8 @@ and `false` otherwise.
 @gapattribute is_isomorphic_to_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(GapObj(G))::Bool
 
 # Generic `group` convenience: for permutations that agrees with `permutation_group`
-group(g::PermGroupElem, gs::PermGroupElem...) = group(PermGroupElem[g, gs...])
-
-function group(gs::AbstractVector{<:PermGroupElem})
-  return permutation_group(gs)
-end
+group(g::PermGroupElem, gs::PermGroupElem...) = permutation_group(g, gs...)
+group(gs::AbstractVector{<:PermGroupElem}) = permutation_group(gs)
 
 """
     cyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
