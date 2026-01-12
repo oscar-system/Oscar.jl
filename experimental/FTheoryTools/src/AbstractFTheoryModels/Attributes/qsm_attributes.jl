@@ -84,7 +84,7 @@
   Hypersurface model over a concrete base
 
   julia> typeof(genera_of_ci_curves(qsm_model))
-  Dict{MPolyDecRingElem, Int64}
+  Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}
   ```
   """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", genus_ci)
 
@@ -98,7 +98,7 @@
   Hypersurface model over a concrete base
 
   julia> typeof(degrees_of_kbar_restrictions_to_ci_curves(qsm_model))
-  Dict{MPolyDecRingElem, Int64}
+  Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}
   ```
   """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.",
   degree_of_Kbar_of_tv_restricted_to_ci)
