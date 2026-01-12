@@ -48,15 +48,16 @@ function eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   return best
 end
 
-""" efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
+"""
+    efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 
-  Extended findmin function. Allows custum filter, default value and comparator.
-  #Examples
-  ```jldoctest
-    julia> efindmin(length, ["", "a", "ab", "abc"]; filter=(!=)(""))
-    (1, 2)
-  ```
-  because `1 == length("a")`, which is the shortest non-empty element of the array, and occurs at index 2.
+Extended findmin function. Allows custum filter, default value and comparator.
+#Examples
+```jldoctest
+julia> Oscar.efindmin(length, ["", "a", "ab", "abc"]; filter=(!=)(""))
+(1, 2)
+```
+because `1 == length("a")`, which is the shortest non-empty element of the array, and occurs at index 2.
 """
 function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   best = nothing
