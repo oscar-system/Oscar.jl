@@ -75,7 +75,7 @@
 # (2) Attributes regarding the Ci-curves
 ######################################################################
 
-@define_model_attribute_getter((genera_of_ci_curves, Dict{MPolyDecRingElem,Int64}),
+@define_model_attribute_getter((genera_of_ci_curves, Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}),
   """
   ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
   julia> using Random;
@@ -89,7 +89,7 @@
   """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", genus_ci)
 
 @define_model_attribute_getter(
-  (degrees_of_kbar_restrictions_to_ci_curves, Dict{MPolyDecRingElem,Int64}),
+  (degrees_of_kbar_restrictions_to_ci_curves, Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}),
   """
   ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
   julia> using Random;
