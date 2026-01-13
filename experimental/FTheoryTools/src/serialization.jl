@@ -137,9 +137,10 @@ function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceMo
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} = TypeParams(
-  T, _fmodel_params(m)...
-)
+type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
+  TypeParams(
+    T, _fmodel_params(m)...
+  )
 
 ###########################################################################
 # (3) Saving
