@@ -32,6 +32,10 @@ end
     load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); serializer=Oscar.Serialization.GzipSerializer())
     loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); serializer=Oscar.Serialization.GzipSerializer(), params=Fyz)
     @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
+
+    # test auto-detection of compression
+    loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); serializer=Oscar.Serialization.GzipSerializer(), params=Fyz)
+    @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
   end
 
   @testset "saving and loading Gzip'ed file" begin
@@ -45,6 +49,11 @@ end
       @test loaded == [f,g]
       Oscar.reset_global_serializer_state()
       loaded = load(filename; serializer=Oscar.Serialization.GzipSerializer(), params=R)
+      @test loaded == [f,g]
+
+      # test auto-detection of compression
+      Oscar.reset_global_serializer_state()
+      loaded = load(filename; params=R)
       @test loaded == [f,g]
     end
   end

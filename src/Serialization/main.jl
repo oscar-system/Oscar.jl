@@ -861,6 +861,10 @@ end
 function load(filename::String;
               serializer::Union{OscarSerializer, CompressionSerializer} = JSONSerializer(),
               kwargs...)
+  if endswith(filename, ".gz") && serializer isa OscarSerializer
+    return load(filename; serializer=GzipSerializer(serializer), kwargs...)
+  end
+
   if serializer isa CompressionSerializer
     if serializer isa GzipSerializer
       return open(CodecZlib.GzipDecompressorStream, filename) do file
