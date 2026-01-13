@@ -143,13 +143,18 @@ function facets(K::SimplicialComplex)
 end
 
 @doc raw"""
-    faces(K::SimplicialComplex)
+    faces(K::SimplicialComplex [, dim::Int])
 
-Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
+Return the faces of the abstract simplicial complex `K`, passing `dim` as the second argument returns faces of dimension `dim` (sets of size `dim + 1`).
 """
 function faces(K::SimplicialComplex, dim::Int)
   po = face_poset(K)
-  Set.(data.(elements_of_rank(po, dim + 1)))
+  return Set.(data.(elements_of_rank(po, dim + 1)))
+end
+
+function faces(K::SimplicialComplex)
+  po = face_poset(K)
+  return Set.(data.(elements(po)))
 end
 
 @doc raw"""
