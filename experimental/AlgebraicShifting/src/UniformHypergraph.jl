@@ -10,8 +10,8 @@ struct UniformHypergraph
 end
 
 const CollectionTypes = Union{Set{Set{Int}}, Vector{Vector{Int}}, Vector{Combination{Int}}}
-uniform_hypergraph(faces::CollectionTypes, n::Int, k::Int) = UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
-uniform_hypergraph(faces::CollectionTypes, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
+uniform_hypergraph(faces::CollectionTypes, n::Int, k::Int) = UniformHypergraph(n, k, sort(unique(sort.(unique.(faces)))))
+uniform_hypergraph(faces::CollectionTypes, n::Int) = uniform_hypergraph(faces, n, only(unique(length.(faces))))
 
 function uniform_hypergraph(faces::CollectionTypes) 
   isempty(faces) && return UniformHypergraph(0, 0, Vector{Int}[])
