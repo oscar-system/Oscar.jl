@@ -137,10 +137,9 @@ function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceMo
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
-  TypeParams(
-    T, _fmodel_params(m)...
-  )
+type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} = TypeParams(
+  T, _fmodel_params(m)...
+)
 
 ###########################################################################
 # (3) Saving
@@ -177,7 +176,9 @@ end
 # (4) Loading
 ###########################################################################
 
-function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict) where {S, T <: Dict{String, S}}
+function _maybe_load(
+  s::DeserializerState, ::Type{T}, key::Symbol, params::Dict
+) where {S,T<:Dict{String,S}}
   if haskey(s, key)
     if params[key] isa Dict
       dict_params = params[key]
