@@ -25,6 +25,16 @@ end
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
+abstract type CompressionSerializer{T <: OscarSerializer} end
+
+struct GzipSerializer{T <: OscarSerializer} <: CompressionSerializer{T}
+  inner::T
+
+  function GzipSerializer(inner::T=JSONSerializer()) where T <: OscarSerializer
+    return new{T}(inner)
+  end
+end
+
 ################################################################################
 # (de)Serializer States
 

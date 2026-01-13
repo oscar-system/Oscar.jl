@@ -3,6 +3,8 @@ module Serialization
 using ..Oscar
 using UUIDs
 import JSON
+import TranscodingStreams # for gzip
+import CodecZlib          # for gzip
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -681,13 +683,25 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; kwargs...)
+function save(filename::String, obj::Any;
+              serializer::Union{OscarSerializer, CompressionSerializer} = JSONSerializer(),
+              kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
-  open(temp_file, "w") do file
-    save(file, obj; kwargs...)
+  if serializer isa CompressionSerializer
+    if serializer isa GzipSerializer
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        save(file, obj; serializer=serializer.inner, kwargs...)
+      end
+    else
+      error("Unsupported compression serializer $(typeof(serializer))")
+    end
+  else
+    open(temp_file, "w") do file
+      save(file, obj; serializer, kwargs...)
+    end
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
@@ -844,9 +858,21 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; kwargs...)
-  open(filename) do file
-    return load(file; kwargs...)
+function load(filename::String;
+              serializer::Union{OscarSerializer, CompressionSerializer} = JSONSerializer(),
+              kwargs...)
+  if serializer isa CompressionSerializer
+    if serializer isa GzipSerializer
+      return open(CodecZlib.GzipDecompressorStream, filename) do file
+        return load(file; serializer=serializer.inner, kwargs...)
+      end
+    else
+      error("Unsupported compression serializer $(typeof(serializer))")
+    end
+  else
+    open(filename) do file
+      return load(file; kwargs...)
+    end
   end
 end
 
