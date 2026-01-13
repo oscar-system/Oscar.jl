@@ -681,19 +681,13 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any;
-              metadata::Union{MetaData, Nothing}=nothing,
-              serializer::OscarSerializer=JSONSerializer(),
-              with_attrs::Bool=true)
+function save(filename::String, obj::Any; kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
   open(temp_file, "w") do file
-    save(file, obj;
-         metadata=metadata,
-         with_attrs=with_attrs,
-         serializer=serializer)
+    save(file, obj; kwargs...)
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
@@ -757,7 +751,7 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer=JSONSerializer(), with_attrs::Bool=true)
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
@@ -850,11 +844,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::Any = nothing,
-              type::Any = nothing, with_attrs::Bool=true,
-              serializer::OscarSerializer=JSONSerializer())
+function load(filename::String; kwargs...)
   open(filename) do file
-    return load(file; params=params, type=type, serializer=serializer)
+    return load(file; kwargs...)
   end
 end
 
