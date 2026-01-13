@@ -271,12 +271,8 @@ function exterior_shift(K::SimplicialComplex, g::MatElem; kw...)
 end
 
 @doc raw"""
-    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem; las_vegas_trials=100)
-    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem; las_vegas_trials=100)
-    exterior_shift(K::SimplicialComplex, w::WeylGroupElem; las_vegas_trials=100)
-    exterior_shift(K::UniformHypergraph, w::WeylGroupElem; las_vegas_trials=100)
-    exterior_shift(K::SimplicialComplex; las_vegas_trials=100)
-    exterior_shift(K::UniformHypergraph; las_vegas_trials=100)
+    exterior_shift([F::Field,] K::SimplicialComplex [, w::WeylGroupElem]; las_vegas_trials=100)
+    exterior_shift([F::Field,] K::UniformHypergraph [, w::WeylGroupElem]; las_vegas_trials=100)
 
 Compute the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
