@@ -167,8 +167,9 @@ function wedge(u::Vector{T};
 end
 
 function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}, p::Int; 
-    domain::ModuleFP=exterior_power(domain(phi), p)[1],
-    codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
+    cached::Bool=true,
+    domain::ModuleFP=exterior_power(domain(phi), p; cached)[1],
+    codomain::ModuleFP=exterior_power(codomain(phi), p; cached)[1]
   )
   if ngens(Oscar.domain(phi)) == ngens(Oscar.codomain(phi)) == p
     return hom(domain, codomain, [det(matrix(phi))*codomain[1]]; check=false)
@@ -177,14 +178,30 @@ function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}, p::In
   orig_img_gens = images_of_generators(phi)
   dec = wedge_generator_decompose_function(domain)
   dom_gens_dec = Vector{elem_type(Oscar.domain(phi))}[collect(dec(g)) for g in gens(domain)]
-  img_gens = elem_type(codomain)[wedge(phi.(v); parent=codomain) for v in dom_gens_dec]
+  img_gens_old = elem_type(codomain)[wedge(phi.(v); parent=codomain) for v in dom_gens_dec]
+  A = matrix(phi)
+  img_gens = elem_type(codomain)[]
+  m = ngens(Oscar.domain(phi))
+  n = ngens(Oscar.codomain(phi))
+  R = base_ring(codomain)
+  for (i, I) in enumerate(combinations(m, p))
+    dat = Tuple{Int, elem_type(R)}[]
+    for (j, J) in enumerate(combinations(n, p))
+      c = det(A[data(I), data(J)]) 
+      is_zero(c) && continue
+      push!(dat, (j, c))
+    end
+    push!(img_gens, codomain(sparse_row(R, dat)))
+  end
+  @assert img_gens == img_gens_old
   return hom(domain, codomain, img_gens)
 end
 
 # with coefficient map
 function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP}, p::Int; 
-    domain::ModuleFP=exterior_power(domain(phi), p)[1],
-    codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
+    cached::Bool=true,
+    domain::ModuleFP=exterior_power(domain(phi), p; cached)[1],
+    codomain::ModuleFP=exterior_power(codomain(phi), p; cached)[1]
   )
   if ngens(Oscar.domain(phi)) == ngens(Oscar.codomain(phi)) == p
     return hom(domain, codomain, [det(matrix(phi))*codomain[1]], base_ring_map(phi))
