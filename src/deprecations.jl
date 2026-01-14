@@ -186,9 +186,14 @@ end
 @deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
 
 # deprecated for 1.7
+
+@deprecate induced_map_on_exterior_power exterior_power
+@deprecate induced_map_on_symmetric_power symmetric_power
+@deprecate induced_map_on_tensor_power tensor_power
+
 # An old version of the induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
-  Base.depwarn("computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
+  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
 
   success, F, p = _is_exterior_power(M)
   @req success "module is not an exterior power"
@@ -200,5 +205,17 @@ function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   return exterior_power(phi, p; domain=M, codomain=N)
 end
 
-@deprecate induced_map_on_exterior_power exterior_power
-
+function hom(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
+) where {C<:FieldElem}
+  Base.depwarn("Computing induced maps on power modules via `hom(::LieAlgebraModule, ::LieAlgebraModule, ::LieAlgebraModuleHom)` has been deprecated; use `exterior_power(::LieAlgebraModuleHom, ::Int; domain, codomain)`, `symmetric_power(...)` or `tensor_power(...)` instead", :hom)
+  if ((fl, _, k) = _is_exterior_power(V); fl)
+    return exterior_power(h, k; domain=V, codomain=W)
+  elseif ((fl, _, k) = _is_symmetric_power(V); fl)
+    return symmetric_power(h, k; domain=V, codomain=W)
+  elseif ((fl, _, k) = _is_tensor_power(V); fl)
+    return tensor_power(h, k; domain=V, codomain=W)
+  else
+    throw(ArgumentError("First module must be a power module"))
+  end
+end
