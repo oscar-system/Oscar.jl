@@ -26,6 +26,7 @@ crt(a::Vector{ZZRingElem}, b::Vector{Hecke.ZZIdl})
 ```
 
 ```@docs
+crt_env(p::Vector{T}) -> crt_env{T}
 crt(b::Vector{T}, a::crt_env{T}) where T
 crt_signed(b::Vector{ZZRingElem}, a::crt_env{ZZRingElem})
 crt_inv(a::T, crt_env{T}) -> Vector{T}
