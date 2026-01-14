@@ -185,3 +185,20 @@ end
 @deprecate all_cohomologies sheaf_cohomology
 @deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
 
+# deprecated for 1.7
+# An old version of the induced map on exterior powers
+function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
+  Base.depwarn("computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
+
+  success, F, p = _is_exterior_power(M)
+  @req success "module is not an exterior power"
+  success, FF, q = _is_exterior_power(N)
+  @req success "module is not an exterior power"
+  @req F === domain(phi) "map not compatible"
+  @req FF === codomain(phi) "map not compatible"
+  @req p == q "exponents must agree"
+  return exterior_power(phi, p; domain=M, codomain=N)
+end
+
+@deprecate induced_map_on_exterior_power exterior_power
+

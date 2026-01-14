@@ -166,34 +166,6 @@ function wedge(u::Vector{T};
   return result
 end
 
-function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int;
-    domain::FreeMod=exterior_power(Oscar.domain(phi), p)[1],
-    codomain::FreeMod=exterior_power(Oscar.codomain(phi), p)[1]
-  )
-  F = Oscar.domain(phi)
-  m = rank(F)
-  G = Oscar.codomain(phi)
-  n = rank(G)
-
-  is_zero(p) && return hom(domain, codomain, gens(codomain); check=false) # Isomorphism of R^1
-
-  imgs = phi.(gens(F))
-  img_gens = [wedge(data(c), parent=codomain) for c in combinations(imgs, p)]
-  return hom(domain, codomain, img_gens; check=false)
-end
-
-# The induced map on exterior powers
-function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
-  success, F, p = _is_exterior_power(M)
-  @req success "module is not an exterior power"
-  success, FF, q = _is_exterior_power(N)
-  @req success "module is not an exterior power"
-  @req F === domain(phi) "map not compatible"
-  @req FF === codomain(phi) "map not compatible"
-  @req p == q "exponents must agree"
-  return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
-end
-
 function exterior_power(phi::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}, p::Int; 
     domain::ModuleFP=exterior_power(domain(phi), p)[1],
     codomain::ModuleFP=exterior_power(codomain(phi), p)[1]
