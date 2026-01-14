@@ -875,7 +875,7 @@ function load(filename::String;
     end
   else
     open(filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer, kwargs...)
     end
   end
 end
