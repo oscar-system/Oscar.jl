@@ -58,7 +58,7 @@ Release notes:
 
 <copy the content of CHANGELOG.md for version X.Y.0 here (wihout the heading, but including the introductory sentence)>
 ```
-In this case TagBot will create the corresponding release, but preferably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
+In this case TagBot will create the corresponding release.
 
 Consider deploying a released version at [zenodo](https://zenodo.org/).
 
