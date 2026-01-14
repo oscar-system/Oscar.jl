@@ -283,4 +283,6 @@ end
   @test G2 isa MatrixGroup
   @test G1 == matrix_group(mats)
   @test G2 == matrix_group(mats)
+
+  @test group(mats; check=true) == matrix_group(mats; check=true)
 end
