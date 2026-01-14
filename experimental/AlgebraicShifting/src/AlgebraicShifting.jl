@@ -1,4 +1,3 @@
-include("SimplicialComplexesExtended.jl")
 include("UniformHypergraph.jl")
 include("PartialShift.jl")
 include("SymmetricShift.jl")

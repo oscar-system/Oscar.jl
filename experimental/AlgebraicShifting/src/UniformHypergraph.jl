@@ -50,7 +50,7 @@ julia> faces(U)
  [3, 4]
 ```
 """
-uniform_hypergraph(K::SimplicialComplex, k::Int) = uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
+uniform_hypergraph(K::SimplicialComplex, k::Int) = uniform_hypergraph(faces(K, k-1), n_vertices(K), k)
 uniform_hypergraph(G::Graph{Undirected}) = uniform_hypergraph([[src(e), dst(e)] for e in edges(G)], n_vertices(G))
 simplicial_complex(K::UniformHypergraph) = simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
 n_vertices(K::UniformHypergraph) = K.n_vertices
