@@ -313,12 +313,9 @@ parent(b::SubquoModuleElem) = b.parent
 Given an element `f` of the ambient free module of `M` which represents an element of `M`,
 return the represented element.
 """
-function (M::SubquoModule{T})(f::FreeModElem{T}) where T
-  coords = coordinates(f, M)
-  if coords === nothing
-    error("not in the module")
-  end
-  return SubquoModuleElem(coords, M)
+function (M::SubquoModule{T})(f::FreeModElem{T}; check::Bool=true) where T
+  @check !isnothing(coordinates(f, M)) "free module element does not represent an element in the subquotient"
+  return SubquoModuleElem(f, M)
 end
 
 @doc raw"""
@@ -435,6 +432,8 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
+  a === b && return true
+  repres(a) == repres(b) && return true
   return iszero(a-b)
 end
 
