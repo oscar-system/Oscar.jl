@@ -45,6 +45,17 @@ end
   return a
 end
 
+function element_of_given_order(K::T, o::ZZRingElem) where {T <: FinField}
+  @req is_positive(o) "order must be positive"
+  q = order(K)
+  e = divexact(q-1, o)
+  lp = [divexact(o, p) for (p,k) in factor(o)]
+  while true
+    a = rand(K)^e
+    (!is_zero(a) && all(!isone(a^x) for x in lp)) && return a
+  end
+end
+
 function disc_log(a::FinFieldElem, b::FinFieldElem)
   Nemo.check_parent(a, b)
   da = disc_log(a)

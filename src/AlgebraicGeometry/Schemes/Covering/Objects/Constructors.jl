@@ -38,7 +38,9 @@ function Covering(patches::Vector{<:AbsAffineScheme})
     f = identity_map(U)
     g[X,X] = SimpleGluing(X, X, f, f, check=false)
   end
-  return Covering(patches, g, check=false)
+  cov = Covering(patches, g, check=false)
+  set_decomposition_info!(cov, IdDict{AbsAffineScheme, Vector{<:RingElem}}(U => elem_type(OO(U))[] for U in patches))
+  return cov
 end
 
 ### Turns an affine scheme into a trivial covering

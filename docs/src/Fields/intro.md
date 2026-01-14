@@ -15,7 +15,7 @@ For functionality available only for specific fields, consult the corresponding 
 Here is a list of the fields available in OSCAR:
 
 | Field        | How to create | Remark | Reference |
-| ------------ | ----------- | --------- |------|
+|:------------ |:----------- |:--------- |:------|
 | $\mathbb{Q}$ | `rational_field()` | Also available as `QQ` | [Rationals](@ref rationals_section) |
 | $\mathbb{F}_q$ | `GF(q)` | See also `finite_field` | [Finite fields](@ref finite_fields_section) |
 | $\mathbb{F}_q[X]/(f)$ | `finite_field(f)` |  | [Finite fields](@ref finite_fields_section)|

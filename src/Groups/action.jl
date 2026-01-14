@@ -246,12 +246,12 @@ permuted(pnt::GapObj, x::PermGroupElem) = GAPWrap.Permuted(pnt, GapObj(x))
 
 function permuted(pnt::Vector{T}, x::PermGroupElem) where T
    invx = inv(x)
-   return pnt[[i^invx for i in 1:length(pnt)]]
+   return [pnt[i^invx] for i in 1:length(pnt)]
 end
 
-function permuted(pnt::T, x::PermGroupElem) where T <: Tuple
+function permuted(pnt::T, x::PermGroupElem) where T <: NTuple
    invx = inv(x)
-   return T(pnt[[i^invx for i in 1:length(pnt)]])
+   return T(pnt[i^invx] for i in 1:length(pnt))::T
 end
 
 

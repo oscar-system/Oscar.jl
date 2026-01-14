@@ -11,7 +11,7 @@ Normal toric variety
 julia> l = toric_line_bundle(dP1, [3, 2])
 Toric line bundle on a normal toric variety
 
-julia> all_cohomologies(l)
+julia> sheaf_cohomology(l)
 3-element Vector{ZZRingElem}:
  7
  0
