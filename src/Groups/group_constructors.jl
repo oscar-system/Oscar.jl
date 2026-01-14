@@ -106,6 +106,10 @@ and `false` otherwise.
 group(g::PermGroupElem, gs::PermGroupElem...) = permutation_group(g, gs...)
 group(gs::AbstractVector{<:PermGroupElem}) = permutation_group(gs)
 
+# Matrix group from matrix generators 
+group(g::MatElem, gs::MatElem...) = group(MatElem[g, gs...])
+group(gs::AbstractVector{<:MatElem}) = matrix_group(gs)
+
 """
     cyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
     cyclic_group(::Type{T} = PcGroup, n::PosInf)

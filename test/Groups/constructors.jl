@@ -272,3 +272,15 @@ end
   @test_throws ArgumentError permutation_group(PermGroupElem[])
   @test_throws ArgumentError group(PermGroupElem[])
 end
+
+@testset "group from matrix generators" begin
+  mats = [matrix(ZZ, [0 -1; 1 -1]), matrix(ZZ, [0 1; 1 0])]
+
+  G1 = group(mats)
+  G2 = group(mats[1], mats[2])
+
+  @test G1 isa MatrixGroup
+  @test G2 isa MatrixGroup
+  @test G1 == matrix_group(mats)
+  @test G2 == matrix_group(mats)
+end
