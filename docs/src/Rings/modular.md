@@ -20,9 +20,9 @@ crt_with_lcm(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElemen
 crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 ``` -->
 
-```@docs
+<!-- ```@docs
 crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, r2::AbsSimpleNumFieldOrderElem, i2::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
-```
+``` -->
 
 <!-- No docs for these -->
 <!-- ```@docs
