@@ -77,5 +77,5 @@ julia> alexander_dual(K)
 UniformHypergraph(4, 2, [[1, 3], [2, 3], [2, 4]])
 ```
 """
-alexander_dual(K::UniformHypergraph) = uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
+alexander_dual(K::UniformHypergraph) = uniform_hypergraph(alexander_dual(simplicial_complex(K)), n_vertices(K) - face_size(K))
 is_shifted(K::UniformHypergraph) = is_shifted(simplicial_complex(K))
