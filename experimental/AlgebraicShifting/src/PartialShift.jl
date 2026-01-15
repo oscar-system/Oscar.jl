@@ -366,15 +366,6 @@ function random_rothe_matrix(F::Field, p::PermGroupElem)
   return u * permutation_matrix(F, p)
 end
 
-function random_rothe_matrix(F::FinField, p::PermGroupElem)
-  n = degree(parent(p))
-  u = identity_matrix(F, n)
-  for (i, j) in inversions(p)
-    u[i, j] = rand(F)
-  end
-  return u * permutation_matrix(F, p)
-end
-
 # returns true if the target is the partial shift of src with respect to p
 # CAUTION! This function only works correctly if target is obtained as the shift of some matrix.
 # this is an improved version of algorithm 3 in dx.doi.org/10.1145/3747199.3747562
