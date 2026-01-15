@@ -35,7 +35,7 @@ jobs:
             {{ custom }}
             {% else %}
             There was no changelog provided when registering this version.
-            Please wait for a maintainer to update the release description at {% version_url %}.
+            Please wait for a maintainer to update the release description.
             {% endif %}
 
             {% if previous_release %}
