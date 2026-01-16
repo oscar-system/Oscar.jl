@@ -85,7 +85,7 @@ function __init__()
     [
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
-        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsMatrixGroup, MatGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])

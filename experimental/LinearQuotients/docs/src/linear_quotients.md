@@ -11,7 +11,7 @@ DocTestSetup = Oscar.doctestsetup()
 Given a finite group $G\leq \operatorname{GL}_n(K)$, one can construct the
 corresponding linear quotient $K^n/G$:
 ```@docs
-linear_quotient(G::MatrixGroup)
+linear_quotient(G::MatGroup)
 ```
 
 !!! danger "Implicit choice of representation"

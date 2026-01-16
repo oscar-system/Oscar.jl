@@ -150,7 +150,7 @@ function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
   return aut(hom(domain(aut), domain(aut), M); check)
 end
 
-function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
+function (aut::AutGrpAbTor)(g::MatGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
   L = relations(domain(aut))
   if check
     B = basis_matrix(L)

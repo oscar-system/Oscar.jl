@@ -11,7 +11,7 @@ _gap_filter(::Type{SubFPGroup}) = GAP.Globals.IsSubgroupFpGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
-# `_gap_filter(::Type{MatrixGroup})` is on the file `matrices/MatGrp.jl`
+# `_gap_filter(::Type{MatGroup})` is on the file `matrices/MatGrp.jl`
 
 # We use `GAP.Globals.IsPcGroupOrPcpGroup` as `_gap_filter` result for
 # both `SubPcGroup` and `PcGroup`.

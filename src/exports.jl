@@ -131,8 +131,8 @@ export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MatrixGroup
-export MatrixGroupElem
+export MatGroup
+export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program

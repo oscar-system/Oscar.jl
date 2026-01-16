@@ -110,7 +110,7 @@ Given a torsion quadratic module ``T`` and given ``f`` being either:
   * an abelian group endomorphism of ``T``
     (`U <: Union{TorQuadModuleMap, FinGenAbGroupHom, ZZMatrix}`),
   * or an isometry of the cover ``L`` of ``T``
-    (`U <: MatrixGroupElem{QQFieldElem, QQMatrix}`)
+    (`U <: MatGroupElem{QQFieldElem, QQMatrix}`)
 return the associated torsion quadratic module with isometry ``(T, f')``,
 where ``f' <: TorQuadModuleMap`` is the isometry of ``T`` defined by ``f``.
 
@@ -174,7 +174,7 @@ end
 
 function torsion_quadratic_module_with_isometry(
   T::TorQuadModule,
-  g::MatrixGroupElem{QQFieldElem, QQMatrix};
+  g::MatGroupElem{QQFieldElem, QQMatrix};
   check::Bool=true,
 )
   @req is_finite(abelian_group(T)) "Only available for finite modules"

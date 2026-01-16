@@ -1,5 +1,5 @@
 """
-    isometry_group(L::AbstractLat; depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
+    isometry_group(L::AbstractLat; depth::Int = -1, bacher_depth::Int = 0) -> MatGroup
 
 Return the group of isometries of the lattice `L`.
 
@@ -23,7 +23,7 @@ end
       bacher_depth::Int=0,
       _set_nice_mono::Bool=true,
       _howell::Bool = true,
-     ) -> MatrixGroup
+     ) -> MatGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 isometry group $O(L)$ of $L$.
@@ -42,7 +42,7 @@ improve performance. If set to `-1` (default), the used value of `depth`
 is chosen heuristically depending on the rank of `L`. By default,
 `bacher_depth` is set to `0`.
 """
-@attr QQMatrixGroup function isometry_group(
+@attr QQMatGroup function isometry_group(
   L::ZZLat;
   algorithm::Symbol=:default,
   depth::Int=-1,
@@ -174,7 +174,7 @@ end
       bacher_depth::Int=0,
       direct::Bool=true,
       _set_nice_mono::Bool=true,
-    ) -> MatrixGroup, Vector{QQMatrix}
+    ) -> MatGroup, Vector{QQMatrix}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal
 decomposition.
@@ -302,17 +302,17 @@ function _isometry_group_via_decomposition(
   return S, sv
 end
 
-function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_lattices(L::ZZLat, g::MatGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
   return lattice(V, basis_matrix(L) * matrix(g); check=false)
 end
 
 """
-    on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+    on_vector(x::Vector{QQFieldElem}, g::MatGroupElem{QQFieldElem,QQMatrix})
 
 Return `x*g`.
 """
-function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_vector(x::Vector{QQFieldElem}, g::MatGroupElem{QQFieldElem,QQMatrix})
   return x*matrix(g)
 end
 
@@ -335,19 +335,19 @@ function _set_nice_monomorphism!(G::GAPGroup, nice_hom::GAPGroupHomomorphism)
   return nothing
 end
 
-function _set_nice_monomorphism!(G::MatrixGroup{<:RingElem,T}, short_vectors::Vector{T}) where T<: Union{ZZMatrix,QQMatrix}
+function _set_nice_monomorphism!(G::MatGroup{<:RingElem,T}, short_vectors::Vector{T}) where T<: Union{ZZMatrix,QQMatrix}
   nice_hom = _nice_hom!(G, copy(short_vectors))
   _set_nice_monomorphism!(G, nice_hom)
 end 
 
-function _set_nice_monomorphism!(G::MatrixGroup{S,T}, short_vectors::Vector{Vector{S}}) where {S<:Union{ZZRingElem, QQFieldElem}, T <: Union{ZZMatrix,QQMatrix}}
+function _set_nice_monomorphism!(G::MatGroup{S,T}, short_vectors::Vector{Vector{S}}) where {S<:Union{ZZRingElem, QQFieldElem}, T <: Union{ZZMatrix,QQMatrix}}
   R = base_ring(G)
   _short_vectors = T[matrix(R, 1, degree(G), i) for i in short_vectors]
   nice_hom = _nice_hom!(G, _short_vectors)
   _set_nice_monomorphism!(G, nice_hom)
 end 
 
-function _set_nice_monomorphism!(G::MatrixGroup{QQFieldElem,QQMatrix}, short_vectors::Vector{QQMatrix})
+function _set_nice_monomorphism!(G::MatGroup{QQFieldElem,QQMatrix}, short_vectors::Vector{QQMatrix})
   nice_hom = _nice_hom!(G, copy(short_vectors))
   _set_nice_monomorphism!(G, nice_hom)
 end 
@@ -380,7 +380,7 @@ function _as_perm(w, g::T, X::IndexedSet{T}) where T <: Union{ZZMatrix, QQMatrix
 end 
 
 # sorts the _short_vectors !
-function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:Union{ZZRingElem, QQFieldElem}, T<:Union{ZZMatrix, QQMatrix}}
+function _nice_hom!(G::MatGroup{S, T}, _short_vectors::Vector{T}) where {S<:Union{ZZRingElem, QQFieldElem}, T<:Union{ZZMatrix, QQMatrix}}
   sort!(_short_vectors, lt=Hecke._isless)
   w = similar(_short_vectors[1])
   n = length(_short_vectors)
@@ -390,7 +390,7 @@ function _nice_hom!(G::MatrixGroup{S, T}, _short_vectors::Vector{T}) where {S<:U
 end 
 
 # stabilizer of L in G < O(L)
-function _overlattice_stabilizer(G::MatrixGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat, howell::Bool=false)
+function _overlattice_stabilizer(G::MatGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::ZZLat, howell::Bool=false)
   @hassert :Isometry 2 all(matrix(g)*gram_matrix(S)*transpose(matrix(g)) == gram_matrix(S) for g in gens(G))
   _BL = coordinates(basis_matrix(L),S)
   n = denominator(_BL)
@@ -470,7 +470,7 @@ function _stab_via_howell(G, BL, n)
   stab = stabilizer(G, BLmod, on_howell_form)
 end
 
-function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
+function on_howell_form(M::zzModMatrix, g::MatGroupElem{ZZRingElem,ZZMatrix})
   return on_howell_form(M, matrix(base_ring(M), matrix(g)))
 end
 
@@ -485,7 +485,7 @@ function on_howell_form(M::zzModMatrix, g::AutomorphismGroupElem{TorQuadModule})
   return on_howell_form(M, matrix(g))
 end
 
-function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{zzModRingElem, zzModMatrix})
+function on_howell_form(M::zzModMatrix, g::MatGroupElem{zzModRingElem, zzModMatrix})
   return on_howell_form(M, matrix(g))
 end
 
@@ -496,13 +496,13 @@ function on_howell_form(M::zzModMatrix, g::zzModMatrix)
   return Mg
 end
 
-function on_rref(M::fpMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
+function on_rref(M::fpMatrix, g::MatGroupElem{ZZRingElem,ZZMatrix})
   Mg = M * matrix(base_ring(M), matrix(g))
   rref!(Mg)
   return Mg
 end
 
-function on_rref(M::fpMatrix, g::MatrixGroupElem{fpFieldElem, fpMatrix})
+function on_rref(M::fpMatrix, g::MatGroupElem{fpFieldElem, fpMatrix})
   return on_rref(M, matrix(g))
 end
 
@@ -525,7 +525,7 @@ unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
     stable_orthogonal_group(
       L::ZZLat;
       kwargs...,
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 subgroup $O^\#(L)$ of the orthogonal group of $L$ consisting of isometries
@@ -557,7 +557,7 @@ end
     special_orthogonal_group(
       L::ZZLat;
       kwargs...,
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 subgroup $SO(L)$ of the orthogonal group of $L$ consisting of isometries
@@ -590,7 +590,7 @@ end
     _special_stable_orthogonal_group(
       L::ZZLat;
       kwargs...,
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 subgroup $SO^\#(L)$ of the orthogonal group of $L$ consisting of isometries
