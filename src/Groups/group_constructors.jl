@@ -328,7 +328,8 @@ The group is represented as a matrix group.
 # Examples
 ```jldoctest
 julia> g = ree_group(27)
-Matrix group TODO
+Matrix group of degree 7
+  over finite field of degree 3 and characteristic 3
 
 julia> order(g)
 10073444472
@@ -353,7 +354,8 @@ The group is represented as a matrix group.
 # Examples
 ```jldoctest
 julia> g = suzuki_group(8)
-Matrix group TODO
+Matrix group of degree 4
+  over finite field of degree 3 and characteristic 2
 
 julia> order(g)
 29120
