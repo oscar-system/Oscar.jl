@@ -4,8 +4,8 @@ matrix_group_type(::Type{S}) where S<:Ring = matrix_group_type(elem_type(S))
 matrix_group_type(x) = matrix_group_type(typeof(x)) # to stop this method from eternally recursing on itself, we better add ...
 matrix_group_type(::Type{T}) where T = throw(ArgumentError("Type `$T` must be subtype of `RingElement`."))
 
-const ZZMatrixGroup = matrix_group_type(ZZRing)
-const QQMatrixGroup = matrix_group_type(QQField)
+const ZZMatGroup = matrix_group_type(ZZRing)
+const QQMatGroup = matrix_group_type(QQField)
 
 matrix_group(F::Ring, m::Int) = matrix_group_type(F)(F, m)
 

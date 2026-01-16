@@ -42,7 +42,7 @@ improve performance. If set to `-1` (default), the used value of `depth`
 is chosen heuristically depending on the rank of `L`. By default,
 `bacher_depth` is set to `0`.
 """
-@attr QQMatrixGroup function isometry_group(
+@attr QQMatGroup function isometry_group(
   L::ZZLat;
   algorithm::Symbol=:default,
   depth::Int=-1,

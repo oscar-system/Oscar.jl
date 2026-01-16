@@ -972,7 +972,7 @@ end
 # Misc other things
 
 @doc raw"""
-    geometric_representation(W::WeylGroup) -> ZZMatrixGroup, Map{WeylGroup, ZZMatrixGroup}
+    geometric_representation(W::WeylGroup) -> ZZMatGroup, Map{WeylGroup, ZZMatGroup}
 
 Return the geometric representation `G` of the Weyl group `W`,
 together with the isomorphism `hom` from `W` to `G`.
@@ -1003,7 +1003,7 @@ julia> coefficients(r * x)
 [1   1   0]
 ```
 """
-@attr Tuple{ZZMatrixGroup,MapFromFunc{WeylGroup,ZZMatrixGroup}} function geometric_representation(
+@attr Tuple{ZZMatGroup,MapFromFunc{WeylGroup,ZZMatGroup}} function geometric_representation(
   W::WeylGroup
 )
   gcm = cartan_matrix(W)
@@ -1031,7 +1031,7 @@ julia> coefficients(r * x)
 end
 
 @doc raw"""
-    dual_geometric_representation(W::WeylGroup) -> ZZMatrixGroup, Map{WeylGroup, ZZMatrixGroup}
+    dual_geometric_representation(W::WeylGroup) -> ZZMatGroup, Map{WeylGroup, ZZMatGroup}
 
 Return the dual geometric representation `G` of the Weyl group `W`,
 together with the isomorphism `hom` from `W` to `G`.
@@ -1060,7 +1060,7 @@ julia> coefficients(w * x)
 [-4   6   -7]
 ```
 """
-@attr Tuple{ZZMatrixGroup,MapFromFunc{WeylGroup,ZZMatrixGroup}} function dual_geometric_representation(
+@attr Tuple{ZZMatGroup,MapFromFunc{WeylGroup,ZZMatGroup}} function dual_geometric_representation(
   W::WeylGroup
 )
   gcm = cartan_matrix(W)
