@@ -185,3 +185,9 @@ end
 @deprecate all_cohomologies sheaf_cohomology
 @deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
 
+# deprecated for 1.7
+Base.@deprecate_binding AbstractMatrixGroupElem AbstractMatGroupElem
+Base.@deprecate_binding ZZMatrixGroup ZZMatGroup
+Base.@deprecate_binding QQMatrixGroup QQMatGroup
+Base.@deprecate_binding MatrixGroup MatGroup
+Base.@deprecate_binding MatrixGroupElem MatGroupElem
