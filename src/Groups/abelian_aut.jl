@@ -49,6 +49,9 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   return to_oscar(imgap)::typeof(x)
 end
 
+(f::AutGrpAbTorElem)(x::SubPcGroupElem) = group_element(parent(x),GAPWrap.Image(GapObj(f), GapObj(x)))
+Base.:^(x::SubPcGroupElem,f::AutGrpAbTorElem) = f(x)
+
 (f::AutGrpAbTorElem)(x::AbTorElem) = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
@@ -147,7 +150,7 @@ function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
   return aut(hom(domain(aut), domain(aut), M); check)
 end
 
-function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
+function (aut::AutGrpAbTor)(g::MatGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
   L = relations(domain(aut))
   if check
     B = basis_matrix(L)
@@ -636,6 +639,14 @@ function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
   Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
   return is_conjugate_with_data(G, Hgap, Kgap)
 end
+  
+function __cokernel(f::TorQuadModuleMap)
+  # assumes same ambient space and therefore the underscore
+  A = domain(f)
+  B = codomain(f)
+  BmodA = torsion_quadratic_module(cover(B),cover(A))
+  return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
+end
 
 @doc raw"""
     stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
@@ -667,8 +678,88 @@ julia> order(S)
 ```
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
-  to_gap = get_attribute(O, :to_gap)
-  Agap = codomain(to_gap)
-  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
-  return stabilizer(O, Hgap.X, on_subgroups)
+  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  
+  if order(O)<10000
+    # don't do fancy stuff if the group is small
+    to_gap = get_attribute(O, :to_gap)
+    Agap = codomain(to_gap)
+    Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+    st2 =  stabilizer(O, Hgap.X, on_subgroups)
+    return st2
+  end
+  a = elementary_divisors(domain(i))
+  if length(a)==0
+    return O, id_hom(O) 
+  end
+  A = domain(i)
+  C = codomain(i)
+  if exponent(C) > exponent(A)
+    expA = exponent(A)
+    Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
+    Ak, ak = sub(Ck, [ck\i(x) for x in gens(A)])
+    Ok,iOk = restrict_automorphism_group(O,ck; check=false)
+    Sk, isk = stabilizer(Ok, ak)
+    st = preimage(iOk, Sk)
+    #@assert order(st[1])==order(st2[1])
+    return st 
+  end
+  n = elementary_divisors(C)[end]
+  # base case of the recursion n = p prime
+  if is_prime(n)
+    p = n
+    B = matrix(i.map_ab)
+    mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
+    st = _stab_via_fin_field(O, mats, B, n)
+    #@assert order(st[1])==order(st2[1])
+    return st
+  end
+  # for prime power order work with the F_p vector space 
+  # (A + p^k*C) / (p^(k+1)C + pA)
+  # where k = 0 ... v
+  #
+  # Suppose (by induction) that f ( A ) ⊆ A + p k C and that moreover f stabilizes the image of
+  # A in ( A + p k C ) / ( p A + p k + 1 C ) , which is ( A + p k + 1 C ) / ( p A + p k + 1 C ) .
+  # Then f ( a + p A + p k + 1 C ) = f ( a ) + p A + p k + 1 C ∈ ( A + p k + 1 C ) / ( p A + p k + 1 C ) , 
+  # i.e. f ( a ) ∈ A + p k + 1 C .
+  #
+  # By the preceeding: if k is such that p k + 1 C = 0 , then f ( A ) ⊆ A.
+  fl, v , p = is_prime_power_with_data(n)
+  if fl
+    A = domain(i)
+    C = codomain(i)
+    S = O
+    pA = [i(p*x) for x in gens(A)]
+    for k in 0:v
+      # (A + p^k*C) / (p^(k+1)C + pA)
+      piC = [p^k*x for x in gens(C)]
+      D,iD = sub(C, append!(piC,i.(gens(A))))
+      SD, iSD = restrict_automorphism_group(S, iD; check=true)
+      E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
+      K, iK = __cokernel(iE)
+      SK, toSK = induce_automorphism_group(SD,iK; check=true)
+      B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
+      S,_ = stabilizer(SK,j)
+      S,_ = preimage(toSK, S)
+      S,iS = preimage(iSD, S)
+    end
+    st = S,iS
+    #@assert order(st[1])==order(st2[1])
+    return st
+  end
+  # For composite order iterate over primary parts.
+  S = O
+  iS = id_hom(O)
+  for p in prime_divisors(n)
+    Ap, ip = primary_part(domain(i), p)
+    Bp, jp = primary_part(codomain(i), p)
+    ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(S,jp;check=false)
+    Sp, _ = stabilizer(Op, Ap_to_Bp)
+    S,iS1 = preimage(iOp, Sp)
+    iS = iS1*iS
+  end
+  st = S,iS
+  #@assert order(st[1])==order(st2[1])
+  return st 
 end

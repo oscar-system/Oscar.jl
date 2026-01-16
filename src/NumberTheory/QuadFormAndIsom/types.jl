@@ -1,7 +1,7 @@
 @doc raw"""
     QuadSpaceWithIsom
 
-A container type for pairs $(V, f)$ consisting of a rational quadratic space
+A type for pairs $(V, f)$ consisting of a rational quadratic space
 $V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix`
 representing the action on the standard basis of $V$.
 
@@ -63,7 +63,7 @@ end
 @doc raw"""
     ZZLatWithIsom
 
-A container type for pairs $(L, f)$ consisting of an integer lattice $L$ of
+A type for pairs $(L, f)$ consisting of an integer lattice $L$ of
 type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing
 the action on the basis matrix of $L$.
 
@@ -207,5 +207,60 @@ endowed with an isometry.
       n::IntExt
     )
     return new(Vf, Lb, f, n)
+  end
+end
+
+@doc raw"""
+    TorQuadModuleWithIsom
+
+A type for pairs $(T, f)$ consisting of a torsion quadratic module
+$T$ of type `TorQuadModule` and an isometry $f$ given as a `TorQuadModuleMap`.
+
+To construct an object of type `TorQuadModuleWithIsom`, see the set of functions
+called [`torsion_quadratic_module_with_isometry`](@ref)
+
+# Examples
+```jldoctest
+julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
+Finite quadratic module of order 60
+  with 1 generator
+  with isometry given by
+  [11]
+
+julia> E6 = root_lattice(:E, 6)
+Integer lattice of rank 6 and degree 6
+with gram matrix
+[ 2   -1    0    0    0    0]
+[-1    2   -1    0    0    0]
+[ 0   -1    2   -1    0   -1]
+[ 0    0   -1    2   -1    0]
+[ 0    0    0   -1    2    0]
+[ 0    0   -1    0    0    2]
+
+julia> q = discriminant_group(E6)
+Finite quadratic module
+  over integer ring
+Abelian group: Z/3
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[4//3]
+
+julia> torsion_quadratic_module_with_isometry(q)
+Finite quadratic module of order 3
+  with 1 generator
+  with isometry given by
+  [1]
+```
+"""
+@attributes mutable struct TorQuadModuleWithIsom
+  T::TorQuadModule
+  f::TorQuadModuleMap
+
+  function TorQuadModuleWithIsom(
+      T::TorQuadModule,
+      f::TorQuadModuleMap,
+    )
+    return new(T, f)
   end
 end

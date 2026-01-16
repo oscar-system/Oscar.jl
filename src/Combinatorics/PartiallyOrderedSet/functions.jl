@@ -757,9 +757,23 @@ Poset element <[2, 4]>
 ```
 """
 function element(p::PartiallyOrderedSet, i::Int)
-  @req _bottom_node(p) + p.artificial_bottom <= i <= _top_node(p) - p.artificial_top "invalid node id"
+  @req i in _element_ids(p) "invalid node id"
   return PartiallyOrderedSetElement(p, i)
 end
+
+# some posets are upside down in polymake
+function _element_ids(p::PartiallyOrderedSet)
+  bot = _bottom_node(p)
+  top = _top_node(p)
+  dir = top > bot ? 1 : -1
+  top -= dir*p.artificial_top
+  bot += dir*p.artificial_bottom
+  if dir == -1
+    bot, top = top, bot
+  end
+  return (bot:top)
+end
+
 
 @doc raw"""
     elements(p::PartiallyOrderedSet)
@@ -776,9 +790,7 @@ julia> length(elements(pos))
 ```
 """
 elements(p::PartiallyOrderedSet) =
-  PartiallyOrderedSetElement.(
-    Ref(p), (_bottom_node(p) + p.artificial_bottom):(_top_node(p) - p.artificial_top)
-  )
+  PartiallyOrderedSetElement.(Ref(p), _element_ids(p))
 
 @doc raw"""
     elements_of_rank(p::PartiallyOrderedSet, rk::Int)

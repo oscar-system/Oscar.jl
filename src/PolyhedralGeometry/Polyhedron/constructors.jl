@@ -31,21 +31,50 @@ polyhedron(A; non_redundant::Bool=false, is_bounded::Union{Bool,Nothing}=nothing
   )
 
 @doc raw"""
-    polyhedron(P::Polymake.BigObject)
+    polyhedron([f::scalar_type_or_field,] P::Polymake.BigObject)
 
 Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type
-`Polytope`. Scalar type and parent field will be detected automatically. To
+`Polytope`.
+By default, scalar type and parent field will be detected automatically. To
 improve type stability and performance, please use
 [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref)
 instead, where possible.
+Passing an explicit field will force a conversion (or copy) of all elements to
+that field.
 """
 function polyhedron(p::Polymake.BigObject)
   T, f = _detect_scalar_and_field(Polyhedron, p)
   if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem} &&
     Hecke.is_quadratic_type(number_field(f))[1] &&
     Polymake.bigobject_eltype(p) == "QuadraticExtension"
-    p = _polyhedron_qe_to_on(p, f)
+    p = _polyhedron_coerce_field(p, f)
   end
+  return Polyhedron{T}(p, f)
+end
+
+function polyhedron(f::scalar_type_or_field, p::Polymake.BigObject)
+  T = f isa Field ? elem_type(f) : f
+  p = _polyhedron_coerce_field(p, f)
+  return Polyhedron{T}(p, f)
+end
+
+@doc raw"""
+    polyhedron(f::scalar_type_or_field, P::Polyhedron)
+
+Try to coerce a given polyhedron `P` to a different field `f`.
+
+# Examples
+```jldoctest
+julia> d = dodecahedron()
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> dqb = polyhedron(algebraic_closure(QQ), d)
+Polytope in ambient dimension 3 with QQBarFieldElem type coefficients
+```
+"""
+function polyhedron(f::scalar_type_or_field, p::Polyhedron)
+  f, T = f isa Field ? (f, elem_type(f)) : _determine_parent_and_scalar(f)
+  p = _polyhedron_coerce_field(pm_object(p), f)
   return Polyhedron{T}(p, f)
 end
 

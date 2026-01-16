@@ -1,9 +1,3 @@
-# this might not be necessary if we can use polymake hasse diagram functionality?
-function complex_faces(K :: SimplicialComplex, d :: Int) :: Vector{Vector{Int}}
-  return sort(union(subsets.(sort.(collect.(facets(K))), d+1)...))
-  # return union(subsets.(facets(K), d+1)...)
-end
-
 struct UniformHypergraph
   n_vertices::Int
   k::Int
@@ -15,27 +9,23 @@ struct UniformHypergraph
   end
 end
 
-function uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int)
-  faces = sort(collect(Set(sort.(collect.(Set.(faces))))))
-  return UniformHypergraph(n, k, faces)
-end
+const CollectionTypes = Union{Vector{Set{Int}}, Vector{Vector{Int}}, Vector{Combination{Int}}, Set{Set{Int}}}
+uniform_hypergraph(faces::CollectionTypes, n::Int, k::Int) = UniformHypergraph(n, k, sort(unique(sort.(unique.(faces)))))
+uniform_hypergraph(faces::CollectionTypes, n::Int) = uniform_hypergraph(faces, n, only(unique(length.(faces))))
 
-function uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int)
-  return uniform_hypergraph(faces, n, only(Set(length.(faces))))
-end
-
-function uniform_hypergraph(faces::Vector{Vector{Int}})
+function uniform_hypergraph(faces::CollectionTypes) 
+  isempty(faces) && return UniformHypergraph(0, 0, Vector{Int}[])
   return uniform_hypergraph(faces, maximum(maximum.(faces)))
 end
 
 @doc raw"""
-     uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int)
-     uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int)
-     uniform_hypergraph(faces::Vector{Vector{Int}})
+     uniform_hypergraph(faces, n::Int, k::Int)
+     uniform_hypergraph(faces, n::Int)
+     uniform_hypergraph(faces)
      uniform_hypergraph(K::SimplicialComplex, k::Int)
 
-Create a uniform hypergraph using `faces`, the size of each face should be `k` and all faces should be subsets of $[n]$.
-One can also create a `UniformHypergraph` for the `k` faces of a `SimplicialComplex` `K`.
+Create a uniform hypergraph using `faces`, which should be an iterable of size-k iterables of integers at most n.
+One can also create a `UniformHypergraph` for the `k-1`-faces of a `SimplicialComplex` `K`.
 
 #Examples
 ```jldoctest
@@ -60,29 +50,19 @@ julia> faces(U)
  [3, 4]
 ```
 """
-function uniform_hypergraph(K::SimplicialComplex, k::Int)
-  return uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
-end
-
-function simplicial_complex(K::UniformHypergraph)
-  return simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
-end
-
+uniform_hypergraph(K::SimplicialComplex, k::Int) = uniform_hypergraph(faces(K, k-1), n_vertices(K), k)
+uniform_hypergraph(G::Graph{Undirected}) = uniform_hypergraph([[src(e), dst(e)] for e in edges(G)], n_vertices(G))
+simplicial_complex(K::UniformHypergraph) = simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
 n_vertices(K::UniformHypergraph) = K.n_vertices
 
 faces(K::UniformHypergraph) = K.faces
 # added for covenience when writting functions for Simplicial complex and Uniform Hypergraph
 facets(K::UniformHypergraph) = Set.(K.faces)
 face_size(K::UniformHypergraph) = K.k
+Base.isempty(K::UniformHypergraph) = isempty(faces(K))
 
-function Base.hash(K :: UniformHypergraph, u :: UInt)
-  return hash(K.n_vertices, hash(K.k, hash(K.faces, u)))
-end
-
-function Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph)
-  return K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
-end
-
+Base.hash(K :: UniformHypergraph, u :: UInt) = hash(K.n_vertices, hash(K.k, hash(K.faces, u)))
+Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph) = K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
 @doc raw"""
      alexander_dual(K::UniformHypergraph)
 
@@ -97,8 +77,5 @@ julia> alexander_dual(K)
 UniformHypergraph(4, 2, [[1, 3], [2, 3], [2, 4]])
 ```
 """
-function alexander_dual(K::UniformHypergraph)
-  return uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
-end
-
+alexander_dual(K::UniformHypergraph) = uniform_hypergraph(alexander_dual(simplicial_complex(K)), n_vertices(K) - face_size(K))
 is_shifted(K::UniformHypergraph) = is_shifted(simplicial_complex(K))

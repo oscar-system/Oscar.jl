@@ -29,7 +29,8 @@ if numprocs >= 2
   # heap size hint for each worker depending on the number of workers and total memory
   # but at least 2GB per worker
   mem = max(2, trunc(Int, Sys.total_memory() / (numprocs * 1024^3)))
-  addprocs(numprocs; exeflags="--heap-size-hint=$(mem)G")
+  exeflags = test_subset == :extra_long ? String[] : ["--heap-size-hint=$(mem)G"]
+  addprocs(numprocs; exeflags)
 end
 # keep custom worker pool to avoid issues from extra processes in parallel tests
 worker_pool = WorkerPool(workers())
@@ -67,19 +68,15 @@ end
 @everywhere import PrettyTables
 
 
-function print_stats(io::IO, stats_dict::Dict; fmt=PrettyTables.tf_unicode, max=50)
+function print_stats(io::IO, stats_dict::Dict; backend=:text, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
   println(io, "### Stats per file")
   println(io)
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
-  if haskey(first(values(stats_dict)), :ctime)
-    header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2,3,4]), PrettyTables.ft_printf("%.1f", [5]))
-  else
-    header=[:Filename, Symbol("Time in s"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2]), PrettyTables.ft_printf("%.1f", [3]))
-  end
-  PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
+  header=[:Filename, Symbol("Total time in s"), Symbol("Compilation"), Symbol("Recompilation"), Symbol("GC"), Symbol("Allocations in GB")]
+  formatters = [PrettyTables.fmt__printf("%.2f", [2,3,4,5]), PrettyTables.fmt__printf("%.1f", [6])]
+  align = [:l, :r, :r, :r, :r, :r]
+  PrettyTables.pretty_table(io, table; backend, maximum_number_of_rows=max, column_labels=header, formatters=formatters)
 end
 
 
@@ -96,7 +93,7 @@ end
 sort!(testlist)
 Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
-# tests with the highest number of allocations / runtime / compilation time
+# tests with the highest number of allocations / total time / compilation time
 # more or less sorted by allocations are in `long`
 # tests that should not be run for pull request CI are in `extra_long`
 # (these are run on a custom schedule only)
@@ -131,6 +128,7 @@ test_subsets = Dict(
                                "test/NumberTheory/QuadFormAndIsom/finite_group_actions.jl",
                                "test/NumberTheory/QuadFormAndIsom/lattices_with_isometry.jl",
                                "test/NumberTheory/QuadFormAndIsom/spaces_with_isometry.jl",
+                               "test/NumberTheory/QuadFormAndIsom/torsion_quadratic_module_with_isometry.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
@@ -199,7 +197,7 @@ merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
-    print_stats(io, stats; fmt=PrettyTables.tf_markdown)
+    print_stats(io, stats; backend=:markdown)
   end
 else
   print_stats(stdout, stats; max=10)
