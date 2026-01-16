@@ -247,7 +247,7 @@ function principal_minor(A::Generic.MatSpaceElem, K::Vector{Int})::MPolyRingElem
 end
 
 @doc raw"""
-    vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing}; algorithm=:default)
 
 The vanishing ideal of a directed acyclic Gaussian graphical model can be computed
 by saturating the conditional independence ideal of its ordered pairwise Markov
@@ -256,10 +256,14 @@ This saturation-based approach usually outperforms the elimination-based default
 for general graphical models.
 
 If the graph is cyclic, we fall back to elimination.
+The algorithm can also be changed with the `algorithm` kwarg.
 """
-function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing}; algorithm::Symbol=:default)
   if !is_acyclic(graph(M))
-    return vanishing_ideal(M; algorithm=:eliminate)
+    return generic_vanishing_ideal(M; algorithm=:eliminate)
+  end
+  if algorithm != :default
+    return generic_vanishing_ideal(M; algorithm=algorithm)
   end
   G = graph(M)
   S, _ = model_ring(M)
@@ -376,21 +380,24 @@ function concentration_matrix(M::GaussianGraphicalModel{Graph{Undirected}, T}) w
 end
 
 @doc raw"""
-    vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing}
+    vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
 
 It is a well-known theorem that the vanishing ideal is the unique prime ideal
 above the pairwise conditional independence ideal which does not contain the
 determinant of the covariance matrix. This translates into a saturation problem
 which can usually be solved faster than the generic elimination-based approach.
 """
-function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
+function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing}; algorithm::Symbol=:default)
+  if algorithm != :default
+    return generic_vanishing_ideal(M; algorithm=algorithm)
+  end
   G = graph(M)
   S, _ = model_ring(M)
   A = covariance_matrix(M)
   U = powers_of_element(det(A))
   J = ideal(S, [ci_polynomial(A, stmt) for stmt in pairwise_markov(G)])
   loc, iota = localization(S, U)
-  saturated_ideal(iota(J))
+  return saturated_ideal(iota(J))
 end
 
 @doc raw"""
@@ -427,7 +434,7 @@ function parametrization(M::GaussianGraphicalModel{Graph{Undirected}, T}) where 
   K = concentration_matrix(M)
   Rloc, iota = localization(R, powers_of_element(det(K)))
   adj = adjugate(K)
-  hom(S, Rloc, reduce(vcat, [[iota(adj[i,j])/iota(det(K)) for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
+  return hom(S, Rloc, reduce(vcat, [[iota(adj[i,j])/iota(det(K)) for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
 end
 
 @doc raw"""
@@ -436,9 +443,7 @@ end
 Return the set of elementary CI statements which are satisfied by every distribution in the
 graphical model. This is the same as the `global_markov` property of the underlying graph.
 """
-function ci_structure(M::GaussianGraphicalModel{Graph{Undirected}})
-  return global_markov(graph(M))
-end
+ci_structure(M::GaussianGraphicalModel{Graph{Undirected}}) = global_markov(graph(M))
 
 ###################################################################################
 #
@@ -485,7 +490,7 @@ function gaussian_ring(F::Field, n::Int; s_var_name::VarName=:s, cached=false)
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
 
   #TODO this should probably also return a pair
-  GaussianRing(S, cov_matrix)
+  return GaussianRing(S, cov_matrix)
 end
 
 gaussian_ring(n::Int; s_var_name::VarName=:s, cached=false) = gaussian_ring(QQ, n; s_var_name=s_var_name, cached=cached)
@@ -521,9 +526,7 @@ julia> random_variables(R)
  4
 ```
 """
-function random_variables(R::GaussianRing)
-  return collect(1:nrows(covariance_matrix(R)))
-end
+random_variables(R::GaussianRing) = collect(1:nrows(covariance_matrix(R)))
 
 @doc raw"""
     ci_statements(R::GaussianRing)
