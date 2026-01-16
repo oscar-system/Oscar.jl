@@ -439,7 +439,7 @@ end
 ########################################################################
 
 """
-    centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T})
+    centralizer(G::MatrixGroup{T}, x::MatGroupElem{T})
 
 Return (`C`,`f`), where `C` is the centralizer of `x` in `C` and `f` is the embedding of `C` into `G`.
 
@@ -454,7 +454,7 @@ julia> order(C)
 8
 ```
 """
-function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
+function centralizer(G::MatrixGroup{T}, x::MatGroupElem{T}) where T <: FinFieldElem
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
       V,card = G.descr==:GL ? _centralizer_GL(matrix(x)) : _centralizer_SL(matrix(x))
       H = matrix_group(base_ring(G), degree(G), V)

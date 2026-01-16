@@ -198,7 +198,7 @@ end
 #   to be equal.
 Base.in(g::PermGroupElem, tree::GroupRecognitionTree{PermGroup}) = GapObj(g) in GapObj(tree)
 
-function Base.in(g::MatrixGroupElem{T, S}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
+function Base.in(g::MatGroupElem{T, S}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
   base_ring(parent(g)) != base_ring(group(tree)) && return false
   return GapObj(g) in GapObj(tree)
 end

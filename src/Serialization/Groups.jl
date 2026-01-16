@@ -323,11 +323,11 @@ function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
   return G
 end
 
-@register_serialization_type MatrixGroupElem
+@register_serialization_type MatGroupElem
 
-save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
+save_object(s::SerializerState, g::MatGroupElem) = save_object(s, matrix(g))
 
-function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
+function load_object(s::DeserializerState, ::Type{<:MatGroupElem}, G::MatrixGroup)
   R = base_ring(G)
   d = degree(G)
   return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))); check = false)

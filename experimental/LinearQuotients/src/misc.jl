@@ -2,12 +2,12 @@ export is_pseudo_reflection
 export subgroup_of_pseudo_reflections
 
 @doc raw"""
-    is_pseudo_reflection(g::MatrixGroupElem)
+    is_pseudo_reflection(g::MatGroupElem)
 
 Return `true` if `g` is a pseudo-reflection, `false` otherwise. By a
 pseudo-reflection, we mean a matrix with fixed space of codimension 1.
 """
-function is_pseudo_reflection(g::MatrixGroupElem)
+function is_pseudo_reflection(g::MatGroupElem)
   return rank(matrix(g) - matrix(one(parent(g)))) == 1
 end
 

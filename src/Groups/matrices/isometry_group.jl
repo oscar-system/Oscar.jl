@@ -302,17 +302,17 @@ function _isometry_group_via_decomposition(
   return S, sv
 end
 
-function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_lattices(L::ZZLat, g::MatGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
   return lattice(V, basis_matrix(L) * matrix(g); check=false)
 end
 
 """
-    on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+    on_vector(x::Vector{QQFieldElem}, g::MatGroupElem{QQFieldElem,QQMatrix})
 
 Return `x*g`.
 """
-function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_vector(x::Vector{QQFieldElem}, g::MatGroupElem{QQFieldElem,QQMatrix})
   return x*matrix(g)
 end
 
@@ -470,7 +470,7 @@ function _stab_via_howell(G, BL, n)
   stab = stabilizer(G, BLmod, on_howell_form)
 end
 
-function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
+function on_howell_form(M::zzModMatrix, g::MatGroupElem{ZZRingElem,ZZMatrix})
   return on_howell_form(M, matrix(base_ring(M), matrix(g)))
 end
 
@@ -485,7 +485,7 @@ function on_howell_form(M::zzModMatrix, g::AutomorphismGroupElem{TorQuadModule})
   return on_howell_form(M, matrix(g))
 end
 
-function on_howell_form(M::zzModMatrix, g::MatrixGroupElem{zzModRingElem, zzModMatrix})
+function on_howell_form(M::zzModMatrix, g::MatGroupElem{zzModRingElem, zzModMatrix})
   return on_howell_form(M, matrix(g))
 end
 
@@ -496,13 +496,13 @@ function on_howell_form(M::zzModMatrix, g::zzModMatrix)
   return Mg
 end
 
-function on_rref(M::fpMatrix, g::MatrixGroupElem{ZZRingElem,ZZMatrix})
+function on_rref(M::fpMatrix, g::MatGroupElem{ZZRingElem,ZZMatrix})
   Mg = M * matrix(base_ring(M), matrix(g))
   rref!(Mg)
   return Mg
 end
 
-function on_rref(M::fpMatrix, g::MatrixGroupElem{fpFieldElem, fpMatrix})
+function on_rref(M::fpMatrix, g::MatGroupElem{fpFieldElem, fpMatrix})
   return on_rref(M, matrix(g))
 end
 

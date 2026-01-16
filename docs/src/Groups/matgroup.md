@@ -28,7 +28,7 @@ julia> G = general_linear_group(3, 2)
 GL(3,2)
 
 julia> x, y = gens(G)
-2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
+2-element Vector{MatGroupElem{FqFieldElem, FqMatrix}}:
  [1 1 0; 0 1 0; 0 0 1]
  [0 0 1; 1 0 0; 0 1 0]
 
@@ -71,7 +71,7 @@ julia> tr(x)
 Matrix groups in OSCAR have the type
 [`MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`](@ref),
 their elements have the type
-[`MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}`](@ref).
+[`MatGroupElem{RE<:RingElem, T<:MatElem{RE}}`](@ref).
 
 ## Creation of matrix groups
 
@@ -84,7 +84,7 @@ The typical ways to *create* a matrix group are
   and to create subgroups of it.
 
 ```@docs
-matrix_group(R::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem}
+matrix_group(R::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatGroupElem}
 ```
 
 Here are examples for the creation of matrix groups as subgroups
@@ -157,14 +157,14 @@ The following functions delegate to the underlying matrix
 of the given matrix group element.
 
 ```@docs
-matrix(x::MatrixGroupElem)
-base_ring(x::MatrixGroupElem)
-nrows(x::MatrixGroupElem)
-det(x::MatrixGroupElem)
-tr(x::MatrixGroupElem)
-multiplicative_jordan_decomposition(x::MatrixGroupElem{T}) where T <: FinFieldElem
-is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
-is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
+matrix(x::MatGroupElem)
+base_ring(x::MatGroupElem)
+nrows(x::MatGroupElem)
+det(x::MatGroupElem)
+tr(x::MatGroupElem)
+multiplicative_jordan_decomposition(x::MatGroupElem{T}) where T <: FinFieldElem
+is_semisimple(x::MatGroupElem{T}) where T <: FinFieldElem
+is_unipotent(x::MatGroupElem{T}) where T <: FinFieldElem
 ```
 
 ## Sesquilinear and quadratic forms
@@ -251,7 +251,7 @@ is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 
 ```@docs
 MatrixGroup{RE<:RingElem, T<:MatElem{RE}}
-MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
+MatGroupElem{RE<:RingElem, T<:MatElem{RE}}
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
 SesquilinearForm{T<:RingElem}

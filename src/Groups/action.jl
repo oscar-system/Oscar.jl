@@ -317,9 +317,9 @@ function on_indeterminates(f::FreeAssociativeAlgebraElem{T}, s::PermGroupElem) w
 end
 
 @doc raw"""
-    on_indeterminates(f::GapObj, p::MatrixGroupElem)
-    on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T}) where T
-    on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
+    on_indeterminates(f::GapObj, p::MatGroupElem)
+    on_indeterminates(f::MPolyRingElem{T}, p::MatGroupElem{T}) where T
+    on_indeterminates(f::MPolyIdeal, p::MatGroupElem)
 
 Return the image of `f` under `p` where `p` acts via evaluating `f` at the
 vector obtained by multiplying `p` with the (column) vector of indeterminates.
@@ -345,7 +345,7 @@ julia> f^m
 x1^2 + 4*x1*x2 + 4*x1 + x2
 ```
 """
-function on_indeterminates(f::GapObj, p::MatrixGroupElem)
+function on_indeterminates(f::GapObj, p::MatGroupElem)
   # We assume that we act on the indeterminates with numbers 1, ..., nrows(p).
   # (Note that `f` does not know about a polynomial ring to which it belongs.)
   n = nrows(p)
@@ -354,7 +354,7 @@ function on_indeterminates(f::GapObj, p::MatrixGroupElem)
   return GAPWrap.Value(f, indets, GapObj(p) * indets)
 end
 
-function on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T}) where T
+function on_indeterminates(f::MPolyRingElem{T}, p::MatGroupElem{T}) where T
   @assert base_ring(f) == base_ring(p)
   @assert ngens(parent(f)) == degree(parent(p))
   act = right_action(parent(f), p)
@@ -367,7 +367,7 @@ function on_indeterminates(I::MPolyIdeal, p::PermGroupElem)
   return ideal(parent(imggens[1]), imggens)
 end
 
-function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
+function on_indeterminates(I::MPolyIdeal, p::MatGroupElem)
   @assert base_ring(gen(I, 1)) == base_ring(p)
   @assert ngens(base_ring(I)) == degree(parent(p))
   imggens = [on_indeterminates(x, p) for x in gens(I)]
@@ -378,11 +378,11 @@ end
 
 ^(f::FreeAssociativeAlgebraElem, p::PermGroupElem) = on_indeterminates(f, p)
 
-^(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
+^(f::MPolyRingElem{T}, p::MatGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 
 ^(I::MPolyIdeal, p::PermGroupElem) = on_indeterminates(I, p)
 
-^(I::MPolyIdeal, p::MatrixGroupElem) = on_indeterminates(I, p)
+^(I::MPolyIdeal, p::MatGroupElem) = on_indeterminates(I, p)
 
 
 # We do not support `on_lines(line::Vector, x::GAPGroupElem)`
@@ -458,7 +458,7 @@ on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(
 
 
 @doc raw"""
-    on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
+    on_echelon_form_mats(m::MatElem{T}, x::MatGroupElem) where T <: FinFieldElem
 
 Return the image of `m` under `x`,
 where the action is given by first computing the product `m * x`
@@ -491,7 +491,7 @@ julia> orb = orbit(G, on_echelon_form_mats, m);  length(orb)
 7
 ```
 """
-function on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
+function on_echelon_form_mats(m::MatElem{T}, x::MatGroupElem) where T <: FinFieldElem
   return echelon_form(m * x)
 end
 

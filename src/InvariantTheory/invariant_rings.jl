@@ -178,10 +178,10 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   return MapFromFunc(R, R, right_action_by_M)
 end
 
-right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
+right_action(R::MPolyRing{T}, M::MatGroupElem{T}) where {T} = right_action(R, matrix(M))
 right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+right_action(f::MPolyRingElem{T}, M::MatGroupElem{T}) where {T} =
   right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
@@ -578,7 +578,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   res = zero(fraction_field(Kt))
   for c in C
     g = representative(c)
-    if g isa MatrixGroupElem
+    if g isa MatGroupElem
       f = charpoly(Kt, matrix(g))
     elseif g isa PermGroupElem
       f = charpoly(Kt, permutation_matrix(K, g))

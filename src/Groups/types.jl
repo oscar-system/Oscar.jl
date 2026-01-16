@@ -409,23 +409,23 @@ end
 
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
-    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+    MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
 
 Type of elements of a group of type `MatrixGroup{RE, T}`.
 """
-mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
    parent::MatrixGroup{RE, T}
    elm::T                         # Oscar matrix
-   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
+   X::GapObj                     # GAP matrix. If x isa MatGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
 
    # full constructor
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
+   MatGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
 
    # constructor which leaves `X` undefined
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
+   MatGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
 
    # constructor which leaves `elm` undefined
-   function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
+   function MatGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
       z = new{RE,T}(G)
       z.X = x_gap
       return z

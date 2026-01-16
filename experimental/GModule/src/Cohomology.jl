@@ -2369,11 +2369,11 @@ function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) w
   return G(matrix(h))
 end
 
-function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+function (G::MatGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
   return h*G
 end
 
-function Oscar.hom(g::MatrixGroupElem)
+function Oscar.hom(g::MatGroupElem)
   G = parent(g)
   p = get_attribute(G, :aut_group)
   p === nothing && error("Matrix group must be the automorphism group of some module")

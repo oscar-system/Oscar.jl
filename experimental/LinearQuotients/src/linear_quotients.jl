@@ -105,7 +105,7 @@ end
 ################################################################################
 
 @doc raw"""
-    age(g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+    age(g::MatGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the age of `g` with respect to the chosen root of unity `zeta[1]` of order
 `zeta[2]`.
@@ -113,7 +113,7 @@ If `zeta[2]` is not divisible by `order(g)` an error is raised.
 
 Note that `age(g)` depends on the choice of the root of unity, see [IR96](@cite).
 """
-function age(g::MatrixGroupElem{T}, zeta::Tuple{T,Int}) where {T}
+function age(g::MatGroupElem{T}, zeta::Tuple{T,Int}) where {T}
   fl, q = divides(zeta[2], order(Int, g))
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
 
@@ -139,7 +139,7 @@ end
 # Additionally, the codomain of this automorphism is graded by the weights of the
 # action.
 function weights_of_action(
-  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+  R::MPolyRing{T}, g::MatGroupElem{T}, zeta::Tuple{T,Int}
 ) where {T}
   @req ngens(R) == degree(parent(g)) "Number of variables must match degree of the matrix"
   fl, q = divides(zeta[2], order(Int, g))
@@ -170,7 +170,7 @@ function weights_of_action(
 end
 
 @doc raw"""
-    monomial_valuation(R::MPolyRing, g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+    monomial_valuation(R::MPolyRing, g::MatGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the monomial valuation on `R` defined by `g` with respect to the chosen
 root of unity `zeta[1]` of order `zeta[2]`.
@@ -181,7 +181,7 @@ Note that monomial valuation depends on the choice of the root of unity, see
 [IR96](@cite).
 """
 function monomial_valuation(
-  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+  R::MPolyRing{T}, g::MatGroupElem{T}, zeta::Tuple{T,Int}
 ) where {T}
   S, RtoS = weights_of_action(R, g, zeta)
 
