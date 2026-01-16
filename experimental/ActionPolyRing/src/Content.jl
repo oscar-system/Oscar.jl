@@ -196,7 +196,7 @@ end
 
 ### Union ###
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
-(apr::ActionPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
+(apr::ActionPolyRing)(upre::AbstractAlgebra.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
 (apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
 (apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
