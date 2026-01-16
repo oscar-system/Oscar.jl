@@ -56,7 +56,7 @@ julia> describe(g)
 "S3"
 ```
 """
-function matrix_group(F::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,AbstractMatrixGroupElem}
+function matrix_group(F::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,AbstractMatGroupElem}
    @req all(v -> size(v) == (m,m), V) "Matrix group generators must all be square and of equal degree"
    @req all(v -> base_ring(v) == F, V) "Matrix group generators must have the same base ring"
 

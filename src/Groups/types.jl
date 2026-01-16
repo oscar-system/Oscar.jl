@@ -383,7 +383,7 @@ finitely presented groups, see [`FPGroupElem`](@ref).
 const SubFPGroupElem = BasicGAPGroupElem{SubFPGroup}
 
 
-abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
+abstract type AbstractMatGroupElem <: GAPGroupElem{GAPGroup} end
 
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
 """
@@ -395,7 +395,7 @@ Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` 
    deg::Int
    ring::Ring
    X::GapObj
-   gens::Vector{<:AbstractMatrixGroupElem}
+   gens::Vector{<:AbstractMatGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
    ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
 
@@ -409,11 +409,11 @@ end
 
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
-    MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+    MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupElem
 
 Type of elements of a group of type `MatGroup{RE, T}`.
 """
-mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupElem
    parent::MatGroup{RE, T}
    elm::T                         # Oscar matrix
    X::GapObj                     # GAP matrix. If x isa MatGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
