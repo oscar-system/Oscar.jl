@@ -412,14 +412,9 @@ end
 # (This is usually not what we want to do.)
 function matrix_group(G::GapObj)
   @req GAPWrap.IsMatrixGroup(G) "the GAP group must be a matrix group"
-  deg = GAPWrap.DimensionOfMatrixGroup(G)
-  iso = iso_gap_oscar(GAPWrap.FieldOfMatrixGroup(G))
-  ring = codomain(iso)
-  matgrp = matrix_group(ring, deg)
-  matgrp.ring_iso = inv(iso)
-  set_attribute!(ring, :iso_oscar_gap, matgrp.ring_iso)
-  matgrp.X = G
-  return matgrp
+  iso = inv(iso_gap_oscar(GAPWrap.FieldOfMatrixGroup(G)))
+  set_attribute!(domain(iso), :iso_oscar_gap, iso)
+  return matrix_group(iso, G; check = false)
 end
 
 # Construct an Oscar matrix group from a GAP matrix group.
