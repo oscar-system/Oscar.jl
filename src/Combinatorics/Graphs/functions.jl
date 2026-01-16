@@ -2165,7 +2165,7 @@ end
 _is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
 
 
-"""
+@doc raw"""
     petersen_graph()
 
 Constructs and returns the Petersen graph as a simple undirected graph.
@@ -2176,7 +2176,7 @@ function petersen_graph()
   return graph_from_edges(e)
 end
 
-"""
+@doc raw"""
     clebsch_graph()
 
 Constructs and returns the 5-regular Clebsch graph.
@@ -2188,15 +2188,15 @@ function clebsch_graph()
   return graph_from_edges(e)
 end
 
-"""
+@doc raw"""
     disjoint_automorphism(G::Graph)
 
 Find and return a pair of automorphisms of the graph `G` who are disjoint and
 neither is the identity (i.e., neither fixes all vertices nor none). Returns a
 tuple `(g1, g2)` of such automorphisms if found, or `false` if none exist.
 
-Two autormorphisms ``\\sigma_1`` and ``\\tau_2`` are said to be disjoint if
-\\sigma(i) = i`` if and only if ``\\tau(i) \\neq i`` for all vertices ``i`` of the graph.
+Two autormorphisms $\sigma_1$ and $\tau_2$ are said to be disjoint if
+$\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the graph.
 
 # Examples
 ```jldoctest
