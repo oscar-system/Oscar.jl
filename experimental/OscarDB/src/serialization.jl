@@ -86,3 +86,11 @@ function save_object(s::SerializerState, stm::SmallTreeModel)
     save_object(s, stm.model_type, :model_type)
   end
 end
+
+function load_object(s::DeserializerState, ::Type{SmallTreeModel}, GBM::GroupBasedPhylogeneticModel)
+  return SmallTreeModel(
+    load_object(s, String, :model_encoding),
+    GBM,
+    load_object(s, String, :model_type)
+  )
+end

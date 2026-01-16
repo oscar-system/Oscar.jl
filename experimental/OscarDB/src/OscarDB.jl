@@ -13,7 +13,8 @@ import Oscar:
   homology,
   betti_numbers,
   n_vertices,
-  graph
+  graph,
+  n_leaves
 
 # for ca certificates
 import NetworkOptions
