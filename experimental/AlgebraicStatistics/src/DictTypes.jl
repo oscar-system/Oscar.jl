@@ -62,10 +62,7 @@ function Base.getindex(D::FinAbGroupElemDict, arg::NTuple{N, Int}) where N
   return D.d[key]
 end
 
-function Base.getindex(D::FinAbGroupElemDict, arg::Vararg{Int})
-  isempty(D.d) && throw(KeyError(arg))
-  return D[arg]
-end
+Base.getindex(D::FinAbGroupElemDict, arg::Vararg{Int}) = D[arg]
 
 ################################################################################
 # dict functions
