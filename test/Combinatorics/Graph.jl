@@ -292,4 +292,25 @@
       @test sg4.vertexlabels[1] == "second"
       @test sg4.vertexlabels[2] == "fourth"
     end
+
+    @testset "petersen_graph" begin
+      P = petersen_graph()
+      @test n_vertices(P) == 10
+      @test n_edges(P) == 15
+      @test degree(P) == fill(3,10)
+    end
+    
+    @testset "clebsch_graph" begin
+      C = clebsch_graph()
+      @test n_vertices(C) == 16
+      @test n_edges(C) == 40
+      @test degree(C) == fill(5,16)
+    end
+
+    @testset "disjoint automorphism" begin
+      P = petersen_graph()
+      @test !disjoint_automorphism(P)
+      C = clebsch_graph()
+      @test disjoint_automorphism(C) !== false
+    end
 end

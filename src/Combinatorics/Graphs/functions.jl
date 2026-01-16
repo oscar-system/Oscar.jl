@@ -2164,3 +2164,70 @@ end
 
 _is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
 
+
+"""
+    petersen_graph()
+
+Constructs and returns the Petersen graph as a simple undirected graph.
+
+"""
+function petersen_graph()
+  e = Vector{Int}[[1,3],[1,4],[2,4],[2,5],[3,5],[1,6],[6,7],[2,7],[7,8],[3,8],[8,9],[4,9],[9,10],[5,10],[10,6]]
+  return graph_from_edges(e)
+end
+
+"""
+    clebsch_graph()
+
+Constructs and returns the 5-regular Clebsch graph.
+
+The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free, has degree 5.
+"""
+function clebsch_graph()
+  e = Vector{Int}[[1, 2], [1, 3], [1, 5], [1, 9], [1, 16], [2, 4], [2, 6], [2, 10], [2, 15], [3, 4], [3, 7], [3, 11], [3, 14], [4, 8], [4, 12], [4, 13], [5, 6], [5, 7], [5, 13], [5, 12], [6, 8], [6, 14], [6, 11], [7, 8], [7, 15], [7, 10], [8, 16], [8, 9], [9, 10], [9, 11], [9, 13], [10, 12], [10, 14], [11, 12], [11, 15], [12, 16], [13, 14], [13, 15], [14, 16], [15, 16]]
+  return graph_from_edges(e)
+end
+
+"""
+    disjoint_automorphism(G::Graph)
+
+Find and return a pair of automorphisms of the graph `G` who are disjoint and
+neither is the identity (i.e., neither fixes all vertices nor none). Returns a
+tuple `(g1, g2)` of such automorphisms if found, or `false` if none exist.
+
+Two autormorphisms ``\\sigma_1`` and ``\\tau_2`` are said to be disjoint if
+\\sigma(i) = i`` if and only if ``\\tau(i) \\neq i`` for all vertices ``i`` of the graph.
+
+# Examples
+```jldoctest
+julia> P = petersen_graph();
+julia> disjoint_automorphism(P)
+false
+
+julia> C = clebsch_graph();
+julia> a,b = disjoint_automorphism(C);
+
+```
+"""
+function disjoint_automorphism(G::Graph)
+  A = automorphism_group(G)
+  n = nv(G)
+  fp_A = Vector{Union{Vector{Int},Nothing}}(nothing, length(A))
+
+  for (i,g1) in enumerate(A)
+    isnothing(fp_A[i]) && (fp_A[i] = fixed_points(g1))
+    ele = fp_A[i]
+    (length(ele) == n || length(ele) == 0) && continue
+
+    for (j,g2) in enumerate(A)
+      isnothing(fp_A[j]) && (fp_A[j] = fixed_points(g2))
+      ele2 = fp_A[j]
+      (length(ele2) == n || length(ele2) == 0) && continue
+
+      if length(union(ele,ele2)) == n
+        return (g1, g2)
+      end
+    end
+  end
+  return false
+end
