@@ -337,13 +337,15 @@ julia> order(g)
 function ree_group(q::IntegerUnion)
   v, c = remove(q, 3)
   @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 3^(2k+1) for a positive integer k"
-  return MatrixGroup(GAP.Globals.ReeGroup(GAP.Int(q)))
+  G = matrix_group(GF(q), 7)
+  G.X = GAP.Globals.ReeGroup(Int(q))
+  return G
 end
 
 @doc raw"""
     suzuki_group(q::IntegerUnion)
 
-Return a the Suzuki group $Sz(q),
+Return a group that is isomorphic to the Suzuki group of type $^2B_2(q)$,
 where `q` is of the form $2^{2k+1}$ for a positive integer $k$.
 
 The group is represented as a matrix group.
@@ -360,7 +362,9 @@ julia> order(g)
 function suzuki_group(q::IntegerUnion)
   v, c = remove(q, 2)
   @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 2^(2k+1) for a positive integer k"
-  return MatrixGroup(GAP.Globals.SuzukiGroup(GAP.Int(q)))
+  G = matrix_group(GF(q), 4)
+  G.X = GAP.Globals.SuzukiGroup(GAP.Int(q))
+  return G
 end
 
 
