@@ -100,14 +100,9 @@ function atlas_group(info::Dict)
 
   if haskey(info, :base_ring_iso)
     # make sure that the given ring is used
-    deg = GAP.Globals.DimensionOfMatrixGroup(G)::GAP.Obj
-    iso = info[:base_ring_iso]
-    ring = domain(iso)
-    matgrp = matrix_group(ring, deg)
-    matgrp.ring_iso = iso
-    matgrp.X = G
-    return matgrp
+    return matrix_group(info[:base_ring_iso], G)
   else
+    # permutation group or matrix group
     return _oscar_group(G)
   end
 end

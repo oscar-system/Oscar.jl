@@ -332,7 +332,7 @@ natural action of `G` over a finite field.
 
 # Examples
 ```jldoctest
-julia> G = matrix_group(GF(2), 2);
+julia> G = general_linear_group(2, 2);
 
 julia> length(natural_gset(G))
 4
