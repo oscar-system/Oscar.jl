@@ -3,14 +3,14 @@ export has_terminal_singularities
 export linear_quotient
 
 @doc raw"""
-    linear_quotient(G::MatrixGroup)
+    linear_quotient(G::MatGroup)
 
 Return the linear quotient by `G`, that is, the orbit space of the action of `G`
 on the vector space of dimension `degree(G)`.
 
 If the given group is not finite, an error is raised.
 """
-function linear_quotient(G::MatrixGroup)
+function linear_quotient(G::MatGroup)
   @req is_finite(G) "The group must be finite"
   return LinearQuotient(G)
 end
@@ -22,7 +22,7 @@ end
 
 group(L::LinearQuotient) = L.group
 base_ring(L::LinearQuotient) = base_ring(group(L))
-base_ring_type(::Type{LinearQuotient{S,T}}) where {S,T} = base_ring_type(MatrixGroup{S,T})
+base_ring_type(::Type{LinearQuotient{S,T}}) where {S,T} = base_ring_type(MatGroup{S,T})
 
 function fixed_root_of_unity(L::LinearQuotient)
   if isdefined(L, :root_of_unity)
@@ -123,12 +123,12 @@ function age(g::MatGroupElem{T}, zeta::Tuple{T,Int}) where {T}
 end
 
 @doc raw"""
-    representatives_of_junior_elements(G::MatrixGroup, zeta::Tuple{FieldElem, Int})
+    representatives_of_junior_elements(G::MatGroup, zeta::Tuple{FieldElem, Int})
 
 Return representatives of the conjugacy classes of `G` which consist of junior
 elements, that is, elements `g` in `G` with `age(g, zeta) == 1`.
 """
-function representatives_of_junior_elements(G::MatrixGroup{T}, zeta::Tuple{T,Int}) where {T}
+function representatives_of_junior_elements(G::MatGroup{T}, zeta::Tuple{T,Int}) where {T}
   @req is_subgroup_of_sl(G) "Group is not a subgroup of SL"
   return filter!(g -> is_one(age(g, zeta)), map(representative, conjugacy_classes(G)))
 end

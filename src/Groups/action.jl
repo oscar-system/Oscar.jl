@@ -533,7 +533,7 @@ The default for `actfun` depends on the types of `G` and `pnt`:
 If `G` is a `PermGroup` then the default actions on integers,
 `Vector`s of  integers, and `Set`s of integers are given by
 `^`, `on_tuples`, and `on_sets`, respectively.
-If `G` is a `MatrixGroup` then the default actions on `FreeModuleElem`s,
+If `G` is a `MatGroup` then the default actions on `FreeModuleElem`s,
 `Vector`s of them, and `Set`s of them are given by
 `*`, `on_tuples`, and `on_sets`, respectively.
 
@@ -609,14 +609,14 @@ end
 #   of a vector or tuple of `FreeModuleElem`s via `on_tuples`
 # - stabilizer in a matrix group (over a finite field)
 #   of a `Set` of `FreeModuleElem`s via `on_sets`
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
   iso = _ring_iso(G)
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
     map_entries(iso, AbstractAlgebra.Generic._matrix(pnt)),
     GAP.Globals.OnRight))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
   length(pnt) == 0 && return G
   iso = _ring_iso(G)
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
@@ -624,7 +624,7 @@ function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.F
     GAP.Globals.OnTuples))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}) where {ET,MT}
   length(pnt) == 0 && return G
   iso = _ring_iso(G)
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
@@ -632,7 +632,7 @@ function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.Fr
     GAP.Globals.OnTuples))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
   length(pnt) == 0 && return G
   iso = _ring_iso(G)
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
@@ -642,25 +642,25 @@ end
 
 # now the same with given action function,
 # these calls may come from delegations from G-sets
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}, actfun::Function) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}, actfun::Function) where {ET,MT}
   return (actfun == *) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
   return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}, actfun::Function) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}, actfun::Function) where {ET,MT}
   return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
   return (actfun == on_sets) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 # stabilizer in a matrix group (over a finite field)
 # of a row reduced matrix via `on_echelon_form_mats`
-function stabilizer(G::MatrixGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
+function stabilizer(G::MatGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
   (actfun === on_echelon_form_mats) || return _stabilizer_generic(G, pnt, actfun)
   nrows(pnt) == 0 && return (G, id_hom(G))
   iso = _ring_iso(G)

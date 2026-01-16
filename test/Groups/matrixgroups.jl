@@ -266,7 +266,7 @@ end
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
-   @test G isa MatrixGroup
+   @test G isa MatGroup
    @test F==base_ring(G)
    @test 2==degree(G)
    @test !isdefined(G,:X)

@@ -200,7 +200,7 @@ end
 #TODO: why don't we always return also `V`, since we have it anyhow?
 
 
-function is_conjugate_with_data_in_gl_or_sl(G::MatrixGroup, x::MatGroupElem, y::MatGroupElem)
+function is_conjugate_with_data_in_gl_or_sl(G::MatGroup, x::MatGroupElem, y::MatGroupElem)
    (isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)) ||
    throw(ArgumentError("Group must be general or special linear group"))
 

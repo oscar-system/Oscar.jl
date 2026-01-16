@@ -2365,7 +2365,7 @@ function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFie
                          y->G(matrix(y)))
 end
 
-function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+function (G::MatGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   return G(matrix(h))
 end
 
@@ -2569,7 +2569,7 @@ end
 =#    
 
     
-(G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
+(G::MatGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
 
 @doc raw"""
     gmodule_class_reps(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::Oscar.GAPGroup) -> Vector{GModule}

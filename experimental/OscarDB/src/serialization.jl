@@ -17,7 +17,7 @@ function save_object(s::SerializerState, LG::LeechPair)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatrixGroup)
+function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatGroup)
   db = Oscar.OscarDB.get_db()
   leech = Oscar.OscarDB.find_one(db["zzlattices"], Dict("_id" => "leech"))
 

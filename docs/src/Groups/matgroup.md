@@ -10,7 +10,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 A *matrix group* is a group that consists of invertible square matrices
 over a common ring, the *base ring* of the group
-(see [`base_ring(G::MatrixGroup)`](@ref)).
+(see [`base_ring(G::MatGroup)`](@ref)).
 
 We distinguish between *matrices* and *elements of matrix groups*,
 that is, matrix group elements are not regarded as matrices.
@@ -69,7 +69,7 @@ julia> tr(x)
 ```
 
 Matrix groups in OSCAR have the type
-[`MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`](@ref),
+[`MatGroup{RE<:RingElem, T<:MatElem{RE}}`](@ref),
 their elements have the type
 [`MatGroupElem{RE<:RingElem, T<:MatElem{RE}}`](@ref).
 
@@ -146,9 +146,9 @@ special_unitary_group(n::Int, q::Int)
 Defining data of a matrix group are its `base_ring` and its `degree`.
 
 ```@docs
-base_ring(G::MatrixGroup{RE}) where RE <: RingElem
-degree(G::MatrixGroup)
-map_entries(f, G::MatrixGroup)
+base_ring(G::MatGroup{RE}) where RE <: RingElem
+degree(G::MatGroup)
+map_entries(f, G::MatGroup)
 ```
 
 ## Functions for elements of matrix groups
@@ -198,18 +198,18 @@ sesquilinear and quadratic forms
 that are invariant under the given matrix group.
 
 ```@docs
-invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
-invariant_bilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
-invariant_sesquilinear_form(G::MatrixGroup{T}) where T <: FinFieldElem
-invariant_quadratic_form(G::MatrixGroup{T}) where T <: FinFieldElem
-preserved_quadratic_forms(G::MatrixGroup{T}) where T <: FinFieldElem
-preserved_sesquilinear_forms(G::MatrixGroup{T}) where T <: FinFieldElem
-orthogonal_sign(G::MatrixGroup{T}) where T <: FinFieldElem
+invariant_bilinear_forms(G::MatGroup{S,T}) where {S,T}
+invariant_sesquilinear_forms(G::MatGroup{S,T}) where {S,T}
+invariant_quadratic_forms(G::MatGroup{S,T}) where {S,T}
+invariant_symmetric_forms(G::MatGroup{S,T}) where {S,T}
+invariant_alternating_forms(G::MatGroup{S,T}) where {S,T}
+invariant_hermitian_forms(G::MatGroup{S,T}) where {S,T}
+invariant_bilinear_form(G::MatGroup{T}) where T <: FinFieldElem
+invariant_sesquilinear_form(G::MatGroup{T}) where T <: FinFieldElem
+invariant_quadratic_form(G::MatGroup{T}) where T <: FinFieldElem
+preserved_quadratic_forms(G::MatGroup{T}) where T <: FinFieldElem
+preserved_sesquilinear_forms(G::MatGroup{T}) where T <: FinFieldElem
+orthogonal_sign(G::MatGroup{T}) where T <: FinFieldElem
 ```
 
 ## Functions for sesquilinear and quadratic forms
@@ -250,10 +250,10 @@ is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 ## Technicalities
 
 ```@docs
-MatrixGroup{RE<:RingElem, T<:MatElem{RE}}
+MatGroup{RE<:RingElem, T<:MatElem{RE}}
 MatGroupElem{RE<:RingElem, T<:MatElem{RE}}
-ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
-mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+ring_elem_type(::Type{MatGroup{S,T}}) where {S,T}
+mat_elem_type(::Type{MatGroup{S,T}}) where {S,T}
 SesquilinearForm{T<:RingElem}
 QuadraticForm{T<:RingElem}
 ```

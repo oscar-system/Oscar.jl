@@ -131,7 +131,7 @@ export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MatrixGroup
+export MatGroup
 export MatGroupElem
 export Matroid
 export Mixed
