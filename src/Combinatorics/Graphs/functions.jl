@@ -2168,7 +2168,7 @@ _is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n
 @doc raw"""
     petersen_graph()
 
-Constructs and returns the Petersen graph as a simple undirected graph.
+Construct and return the Petersen graph as a simple undirected graph.
 
 """
 function petersen_graph()
@@ -2179,7 +2179,7 @@ end
 @doc raw"""
     clebsch_graph()
 
-Constructs and returns the 5-regular Clebsch graph.
+Construct and return the 5-regular Clebsch graph.
 
 The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free, has degree 5.
 """
@@ -2189,13 +2189,14 @@ function clebsch_graph()
 end
 
 @doc raw"""
-    disjoint_automorphism(G::Graph)
+    disjoint_automorphisms(G::Graph)
 
-Find and return a pair of automorphisms of the graph `G` who are disjoint and
-neither is the identity (i.e., neither fixes all vertices nor none). Returns a
-tuple `(g1, g2)` of such automorphisms if found, or `false` if none exist.
+Find and return a pair of automorphisms of the graph `G` which are disjoint and
+neither is the identity (thus neither fixes all vertices; and hence, since they
+are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
+automorphisms if found, or `false` if none exist.
 
-Two autormorphisms $\sigma_1$ and $\tau_2$ are said to be disjoint if
+Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
 $\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the graph.
 
 # Examples
@@ -2211,7 +2212,7 @@ julia> a,b = disjoint_automorphism(C);
 
 ```
 """
-function disjoint_automorphism(G::Graph)
+function disjoint_automorphisms(G::Graph)
   A = automorphism_group(G)
   n = nv(G)
   fp_A = Vector{Union{Vector{Int},Nothing}}(nothing, length(A))
@@ -2231,5 +2232,5 @@ function disjoint_automorphism(G::Graph)
       end
     end
   end
-  return false
+  return (one(A), one(A))
 end

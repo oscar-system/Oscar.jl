@@ -309,8 +309,13 @@
 
     @testset "disjoint automorphism" begin
       P = petersen_graph()
-      @test !disjoint_automorphism(P)
+      G = automorphism_group(P)
+      @test disjoint_automorphisms(P) == (one(G), one(G))
       C = clebsch_graph()
-      @test disjoint_automorphism(C) !== false
+      a,b = disjoint_automorphisms(C)
+      @test a != one(G)
+      @test b != one(G)
+      @test fixed_points(a) == moved_points(b)
+      @test fixed_points(b) == moved_points(a)
     end
 end
