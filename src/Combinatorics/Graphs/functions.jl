@@ -2194,7 +2194,7 @@ end
 Find and return a pair of automorphisms of the graph `G` which are disjoint and
 neither is the identity (thus neither fixes all vertices; and hence, since they
 are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
-automorphisms if found, or `false` if none exist.
+automorphisms if found, otherwise returns `(id, id)`.
 
 Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
 $\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the graph.
