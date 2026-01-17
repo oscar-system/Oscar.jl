@@ -2470,7 +2470,7 @@ function natural_character(G::PermGroup)
 end
 
 @doc raw"""
-    natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
+    natural_character(G::Union{MatGroup{ZZRingElem}, MatGroup{QQFieldElem}, MatGroup{AbsSimpleNumFieldElem}})
 
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
@@ -2484,7 +2484,7 @@ julia> println(values(natural_character(g)))
 QQAbFieldElem{AbsSimpleNumFieldElem}[2, 0]
 ```
 """
-function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
+function natural_character(G::Union{MatGroup{ZZRingElem}, MatGroup{QQFieldElem}, MatGroup{AbsSimpleNumFieldElem}})
     tbl = character_table(G)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
@@ -2493,7 +2493,7 @@ function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQField
 end
 
 @doc raw"""
-    natural_character(G::MatrixGroup{<:FinFieldElem})
+    natural_character(G::MatGroup{<:FinFieldElem})
 
 Return the character that maps each $p$-regular element of `G`,
 where $p$ is the characteristic of the base field of `G`,
@@ -2507,7 +2507,7 @@ julia> println(values(natural_character(g)))
 QQAbFieldElem{AbsSimpleNumFieldElem}[2, -1]
 ```
 """
-function natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+function natural_character(G::MatGroup{T, MT}) where T <: FinFieldElem where MT
     p = characteristic(base_ring(G))
     tbl = character_table(G, p)
     ccl = conjugacy_classes(tbl)
@@ -2547,7 +2547,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       ccl = conjugacy_classes(tbl)
       n = degree(M)
       vals = [FF(n - number_of_moved_points(rho(representative(x)))) for x in ccl]
-    elseif M isa MatrixGroup
+    elseif M isa MatGroup
       p = characteristic(base_ring(M))
       if p == 0
         # ordinary character
@@ -2562,7 +2562,7 @@ function natural_character(rho::GAPGroupHomomorphism)
         vals = GAPWrap.ClassFunction(GapObj(modtbl), GapObj(vals))
       end
     else
-      throw(ArgumentError("codomain must be a PermGroup or MatrixGroup"))
+      throw(ArgumentError("codomain must be a PermGroup or MatGroup"))
     end
 
     return class_function(modtbl, vals)

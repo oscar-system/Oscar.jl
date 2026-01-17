@@ -33,8 +33,8 @@ check_parent(G::T, g::GAPGroupElem) where T <: GAPGroup = (T === typeof(g.parent
 # `PermGroup`: compare types and degrees
 check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 
-# `MatrixGroup`: compare types, dimensions, and coefficient rings
-# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+# `MatGroup`: compare types, dimensions, and coefficient rings
+# (This cannot be defined here because `MatGroup` is not yet defined.)
 
 
 # TODO: ideally the `elements` method below would be turned into a method for
@@ -62,7 +62,7 @@ function ensure_efficient_setup_is_done(_::Group)
    return
 end
 
-function ensure_efficient_setup_is_done(G::MatrixGroup)
+function ensure_efficient_setup_is_done(G::MatGroup)
    if is_infinite(base_ring(G))
       is_finite(G) # force computation of a nice mono
    end
@@ -268,7 +268,7 @@ end
 #   with this parent, of type `SubPcGroup`, hence the product of two
 #   `SubPcGroupElem`s with different parents is also a `SubPcGroupElem`.
 #
-# - `MatrixGroup`, `MatrixGroup`:
+# - `MatGroup`, `MatGroup`:
 #   The operation is allowed whenever the two groups have the same `degree`
 #   and `base_ring`,
 #   then the general linear group of that degree over that ring

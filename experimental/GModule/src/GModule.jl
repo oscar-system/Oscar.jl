@@ -979,7 +979,7 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   return D
 end
 
-function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbFieldElem})
+function Oscar.matrix_group(::Type{CyclotomicField}, G::MatGroup{<:QQAbFieldElem})
   return matrix_group(map_entries(CyclotomicField, map(matrix, gens(G))))
 end
 
@@ -1475,12 +1475,12 @@ function hom_base_perm_module(C::GModule, D::GModule)
 end
 
 """
-    natural_gmodule(G::MatrixGroup)
+    natural_gmodule(G::MatGroup)
 
 Return the G-module of dimension `degree(G)` over `base_ring(G)`
 that is induced by the action of `G` via right multiplication.
 """
-function natural_gmodule(G::MatrixGroup)
+function natural_gmodule(G::MatGroup)
   R = base_ring(G)
   M = free_module(R, degree(G); cached = false)
   return GModule(M, G, [hom(M, M, matrix(a)) for a in gens(G)])

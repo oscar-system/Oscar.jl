@@ -1559,7 +1559,7 @@ end
 @doc raw"""
     discriminant_representation(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       full::Bool=true,
       check::Bool=true,
@@ -1580,7 +1580,7 @@ See [`discriminant_group(::ZZLat)`](@ref).
 """
 function discriminant_representation(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     full::Bool=true,
     check::Bool=true,
@@ -1638,10 +1638,10 @@ end
 @doc raw"""
     stable_subgroup(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 kernel $G^\#$ of the orthogonal representation $G\to O(D_L)$ of $G$ on the
@@ -1669,7 +1669,7 @@ julia> index(OA4, H)
 """
 function stable_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -1843,10 +1843,10 @@ end
 @doc raw"""
     special_subgroup(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 normal subgroup $S$ of $G$ consisting of isometries with determinant ``+1``,
@@ -1872,7 +1872,7 @@ julia> index(OA4, H)
 """
 function special_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -1894,7 +1894,7 @@ end
 
 function _special_stable_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2132,7 +2132,7 @@ invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
 @doc raw"""
     invariant_lattice(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
     ) -> ZZLat
@@ -2162,7 +2162,7 @@ with gram matrix
 """
 function invariant_lattice(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2218,10 +2218,10 @@ end
 @doc raw"""
     coinvariant_lattice(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
-    ) -> ZZLat, MatrixGroup
+    ) -> ZZLat, MatGroup
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 coinvariant sublattice $L_G$ of $L$, together with the subgroup $H$ of
@@ -2254,7 +2254,7 @@ true
 """
 function coinvariant_lattice(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2294,7 +2294,7 @@ end
       F::T;
       ambient_representation::Bool=true,
       check::Bool=true,
-      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> ZZLat, ZZLat, T
+      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> ZZLat, ZZLat, T
 
 Given ``F`` being either:
   * a matrix with rational entries;
@@ -2333,7 +2333,7 @@ with gram matrix
 [6]
 ```
 """
-invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatrixGroup})
+invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatGroup})
 
 function invariant_coinvariant_pair(
     L::ZZLat,
@@ -2373,7 +2373,7 @@ end
 
 function invariant_coinvariant_pair(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )

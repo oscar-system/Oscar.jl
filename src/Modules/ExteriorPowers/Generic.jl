@@ -193,3 +193,4 @@ function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   @req p == q "exponents must agree"
   return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
+

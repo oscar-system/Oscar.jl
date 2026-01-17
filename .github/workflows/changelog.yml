@@ -27,10 +27,11 @@ jobs:
 
     # Run the update script
     - name: Run python script
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        python3 dev/releases/release_notes.py ${{ github.event.inputs.version }}
+      uses: oscar-system/changelog-script@v1
+      with:
+        conffile: "dev/releases/config.toml"
+        changelogfile: "CHANGELOG.md"
+        version: ${{ inputs.version }}
 
     # Configure git for the PR
     - name: Set up git
