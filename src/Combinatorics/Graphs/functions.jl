@@ -2208,28 +2208,23 @@ false
 
 julia> C = clebsch_graph();
 
-julia> a,b = disjoint_automorphism(C);
+julia> disjoint_automorphisms(C)
+((2,3)(6,7)(10,11)(14,15), (1,4)(5,8)(9,12)(13,16))
 
 ```
 """
 function disjoint_automorphisms(G::Graph)
   A = automorphism_group(G)
   n = nv(G)
-  fp_A = Vector{Union{Vector{Int},Nothing}}(nothing, length(A))
 
-  for (i,g1) in enumerate(A)
-    isnothing(fp_A[i]) && (fp_A[i] = fixed_points(g1))
-    ele = fp_A[i]
-    (length(ele) == n || length(ele) == 0) && continue
-
-    for (j,g2) in enumerate(A)
-      isnothing(fp_A[j]) && (fp_A[j] = fixed_points(g2))
-      ele2 = fp_A[j]
-      (length(ele2) == n || length(ele2) == 0) && continue
-
-      if length(union(ele,ele2)) == n
-        return (g1, g2)
-      end
+  for cc in conjugacy_classes(A)
+    rcc = first(cc)
+    rcc == one(A) && continue
+    stab =  stabilizer(A, moved_points(rcc))[1]
+    order(stab) > 1 || continue
+    for g2 in stab
+      g2 == one(A) && continue
+      return (rcc, g2)
     end
   end
   return (one(A), one(A))

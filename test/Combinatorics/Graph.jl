@@ -312,6 +312,7 @@
       G = automorphism_group(P)
       @test disjoint_automorphisms(P) == (one(G), one(G))
       C = clebsch_graph()
+      G = automorphism_group(C)
       a,b = disjoint_automorphisms(C)
       @test a != one(G)
       @test b != one(G)
