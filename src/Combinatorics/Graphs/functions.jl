@@ -2201,11 +2201,6 @@ $\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the grap
 
 # Examples
 ```jldoctest
-julia> P = petersen_graph();
-
-julia> disjoint_automorphism(P)
-false
-
 julia> C = clebsch_graph();
 
 julia> disjoint_automorphisms(C)
