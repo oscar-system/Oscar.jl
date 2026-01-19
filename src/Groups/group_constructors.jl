@@ -339,7 +339,6 @@ function ree_group(q::IntegerUnion)
   v, c = remove(q, 3)
   @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 3^(2k+1) for a positive integer k"
   return matrix_group(GAP.Globals.ReeGroup(Int(q)))
-G
 end
 
 @doc raw"""
