@@ -471,17 +471,17 @@ sub_type(::Type{PcGroup}) = SubPcGroup
 sub_type(::Type{FPGroup}) = SubFPGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
-# `_oscar_subgroup(obj, G)` is used to create the subgroup of `G`
-# that is described by the GAP group `obj`;
-# default: ignore `G`
-function _oscar_subgroup(obj::GapObj, G::GAPGroup)
+# `_oscar_subgroup(obj, G; check::Bool = true)` is used to create
+# the subgroup of `G` that is described by the GAP group `obj`;
+# default: ignore `G` and `check`
+function _oscar_subgroup(obj::GapObj, G::GAPGroup; check::Bool = true)
   S = sub_type(G)(obj)
   @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
 
-# `PermGroup`: set the degree of `G`
-function _oscar_subgroup(obj::GapObj, G::PermGroup)
+# `PermGroup`: set the degree of `G`, ignore `check`
+function _oscar_subgroup(obj::GapObj, G::PermGroup; check::Bool = true)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")

@@ -462,8 +462,8 @@ end
 
 function _common_parent_group(x::T, y::T) where T <: MatGroup
    x === y && return x
-   @assert degree(x) == degree(y)
-   @assert base_ring(x) === base_ring(y)
+   @req degree(x) == degree(y) "the groups have different degrees"
+   @req base_ring(x) === base_ring(y) "the groups have different base rings"
    return GL(degree(x), base_ring(x))::T
 end
 
@@ -1173,25 +1173,18 @@ function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatGroup where S <
   show(io, x.X)
 end
 
-function Base.:^(H::MatGroup, y::MatGroupElem)
+function conjugate_group(H::MatGroup, y::MatGroupElem)
+   P = Oscar._common_parent_group(H, parent(y))
+
    if isdefined(H,:gens) && !isdefined(H,:X)
-      K = matrix_group(base_ring(H), degree(H))
-      K.gens = [y^-1*x*y for x in H.gens]
-      for k in gens(K) k.parent = K end
+      # define the group using data on the Oscar side
+      y = P(y)
+      K = matrix_group([P(x)^y for x in H.gens])
    else
-      K = matrix_group(base_ring(H), degree(H))
-      K.X = GapObj(H)^GapObj(y)
+      # define the group using data on the GAP side,
+      # without creating generators on the Oscar side
+      K = _oscar_subgroup(GAP.Globals.ConjugateGroup(GapObj(H), GapObj(y)), P; check = false)
    end
 
    return K
-end
-
-function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatGroup where T<:MatGroup
-   H = matrix_group(base_ring(acting_group(C)), degree(acting_group(C)))
-   H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj
-   return H
-end
-
-function Base.rand(C::GroupConjClass{S,T}) where S<:MatGroup where T<:MatGroup
-   return Base.rand(Random.GLOBAL_RNG, C)
 end

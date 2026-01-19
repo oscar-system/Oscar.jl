@@ -131,6 +131,18 @@
 
 end
 
+@testset "Conjugacy classes of subgroups" begin
+  G = symmetric_group(5)
+  P = sylow_subgroup(G, 2)[1]
+  C = conjugacy_class(G, P)
+  @test is_conjugate(G, rand(C), P)
+
+  G = GL(2, 5)
+  P = sylow_subgroup(G, 2)[1]
+  C = conjugacy_class(G, P)
+  @test is_conjugate(G, rand(C), P)
+end
+
 @testset "Conjugacy classes as G-sets" begin
   G = symmetric_group(4)
   x = G(cperm([3, 4]))
@@ -282,6 +294,7 @@ end
    x = G[1]
    H = symmetric_group(3)
    @test_throws ArgumentError conjugate_group(H, x)
+   @test_throws ArgumentError H^x
    HH = G(H)
    C = conjugate_group(HH, x)
    @test order(C) == order(H)
@@ -293,4 +306,21 @@ end
    H = sylow_subgroup(G, 3)[1]
    C = conjugate_group(H, x)
    @test order(C) == order(H)
+
+   G = GL(2, 4)
+   x = G[1]
+   H = GL(2, 2)
+   @test_throws ArgumentError conjugate_group(H, x)
+   @test_throws ArgumentError H^x
+
+   # define the conjugate group using data on the GAP side
+   H = SL(2, 4)
+   @test !(x in H)
+   C = conjugate_group(H, x)
+   @test order(H) == order(C)
+
+   # define the conjugate group using data on the Oscar side
+   H = matrix_group(gens(H))
+   C = conjugate_group(H, x)
+   @test order(H) == order(C)
 end

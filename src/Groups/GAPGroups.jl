@@ -976,7 +976,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
+   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(C)), acting_group(C); check = false)
 end
 
 """
