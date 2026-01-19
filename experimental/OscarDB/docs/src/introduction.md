@@ -37,9 +37,9 @@ See also [HM16](@cite), Table 1, and [the supplementary non-published tables](ht
 
 ### Small trees database [SmallTreeModels]
 
-The OSCAR DB provides a mirror to [Algebraic Phylogenetics](https://algebraicphylogenetics.org), 
+The OSCAR DB provides access to all models listed in [Algebraic Phylogenetics](https://algebraicphylogenetics.org), 
 see also [Small Phylogenetic Trees](https://www.coloradocollege.edu/aapps/ldg/small-trees/small-trees_0.html) for the list of contributors.
-Which comprises of phylogenetic models on trees with up to 5 leaves. 
+The list comprises of phylogenetic models on trees with up to 5 leaves. 
 We are currently working on updating our models in the database to contain the exact same information as the [Algebraic Phylogenetics](https://algebraicphylogenetics.org)
 and to eventually have the website pull its data from our database.
 
