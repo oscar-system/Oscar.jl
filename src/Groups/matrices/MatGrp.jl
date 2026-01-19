@@ -131,7 +131,7 @@ end
 # If no `GapObj` of the matrix group has been computed yet,
 # we regard it as cheap to create this `GapObj` if this is makes sense,
 # and then to check whether the `GapObj` stores generators.
-function has_gens(G::MatrixGroup)
+function has_gens(G::MatGroup)
   isdefined(G, :gens) && return true   # generators stored in Oscar
   if !isdefined(G, :X)
     # We know how to create `GapObj(G)` only if `G.descr` is bound.
