@@ -327,6 +327,7 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
+   # The following group is incomplete (no `gens`) but knows its identity.
    G = matrix_group(F, nrows(x))
    @test one(G) == one(x)
 
@@ -334,6 +335,7 @@ end
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
 
+   # The following group is incomplete (no `gens`).
    G = matrix_group(F, 4)
    @test_throws ErrorException GapObj(G)
    setfield!(G,:descr,:GX)
@@ -341,6 +343,21 @@ end
    @test_throws ErrorException GapObj(G)
 end
 
+@testset "Construct a matrix group from a GAP group" begin
+   G = matrix_group(GAP.Globals.GL(2, 4))
+   @test degree(G) == 2
+   @test order(base_ring(G)) == 4
+
+   iso = Oscar.iso_oscar_gap(GF(2, 6))
+   G = matrix_group(iso, GAP.Globals.GL(2, 4))
+   @test degree(G) == 2
+   @test order(base_ring(G)) == 2^6
+
+   @test_throws ArgumentError matrix_group(GAP.Globals.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(iso, GAP.Globals.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(iso, GAP.Globals.GL(2,2^4))
+   @test_throws ArgumentError matrix_group(identity_map(GF(2)), GAP.Globals.GL(2,2))
+end
 
 @testset "Constructors" begin
    @testset for n in 4:5, F in [GF(2, 2), GF(3, 1)]
