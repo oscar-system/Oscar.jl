@@ -2181,10 +2181,15 @@ end
 
 Construct and return the 5-regular Clebsch graph.
 
-The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free, has degree 5.
+The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free and has degree 5.
 """
 function clebsch_graph()
-  e = Vector{Int}[[1, 2], [1, 3], [1, 5], [1, 9], [1, 16], [2, 4], [2, 6], [2, 10], [2, 15], [3, 4], [3, 7], [3, 11], [3, 14], [4, 8], [4, 12], [4, 13], [5, 6], [5, 7], [5, 13], [5, 12], [6, 8], [6, 14], [6, 11], [7, 8], [7, 15], [7, 10], [8, 16], [8, 9], [9, 10], [9, 11], [9, 13], [10, 12], [10, 14], [11, 12], [11, 15], [12, 16], [13, 14], [13, 15], [14, 16], [15, 16]]
+  e = Vector{Int}[[1, 2], [1, 3], [1, 5], [1, 9], [1, 16], [2, 4], [2, 6],
+                  [2, 10], [2, 15], [3, 4], [3, 7], [3, 11], [3, 14], [4, 8],
+                  [4, 12], [4, 13], [5, 6], [5, 7], [5, 13], [5, 12], [6, 8],
+                  [6, 14], [6, 11], [7, 8], [7, 15], [7, 10], [8, 16], [8, 9],
+                  [9, 10], [9, 11], [9, 13], [10, 12], [10, 14], [11, 12],
+                  [11, 15], [12, 16], [13, 14], [13, 15], [14, 16], [15, 16]]
   return graph_from_edges(e)
 end
 
@@ -2228,7 +2233,7 @@ false
 ```
 """
 function has_disjoint_automorphisms(G::Graph)
-  ret, a, b = _compute_disjoint_automorphism(G::Graph)
+  ret, _, _ = _compute_disjoint_automorphism(G::Graph)
   return ret
 end
 
