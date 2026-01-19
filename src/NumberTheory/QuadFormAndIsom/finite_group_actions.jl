@@ -54,7 +54,7 @@ end
 @doc raw"""
     is_isometry_group(
       Q::QuadSpace
-      G::MatrixGroup;
+      G::MatGroup;
       is_special::Bool=false,
     ) -> Bool
 
@@ -67,7 +67,7 @@ space ``Q``.
 """
 function is_isometry_group(
     Q::Hecke.QuadSpace,
-    G::MatrixGroup;
+    G::MatGroup;
     is_special::Bool=false,
   )
   return all(f -> is_isometry(Q, matrix(f); is_special), gens(G))
@@ -159,7 +159,7 @@ end
 @doc raw"""
     is_isometry_group(
       L::ZZLat,
-      G::MatrixGroup,
+      G::MatGroup,
       ambient_representation::Bool = false;
       is_special::Bool=false,
       is_stable::Bool=false,
@@ -174,7 +174,7 @@ Return whether the matrix ``G`` defines a group of isometries of the lattice
 """
 function is_isometry_group(
     L::ZZLat,
-    G::MatrixGroup,
+    G::MatGroup,
     ambient_representation::Bool = false;
     is_special::Bool=false,
     is_stable::Bool=false,
@@ -196,7 +196,7 @@ end
       L::ZZLat,
       F::T;
       check::Bool=false,
-    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> T
+    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> T
 
 Given ``F`` being either:
   * a matrix with rational entries;
@@ -253,7 +253,7 @@ end
 
 function extend_to_ambient_space(
     L::ZZLat,
-    F::Union{MatrixGroup{QQFieldElem, QQMatrix},MatrixGroup{ZZRingElem, ZZMatrix}};
+    F::Union{MatGroup{QQFieldElem, QQMatrix},MatGroup{ZZRingElem, ZZMatrix}};
     check::Bool=true,
   )
   F_ambient_gens = extend_to_ambient_space(L, matrix.(gens(F)); check)
@@ -268,7 +268,7 @@ end
       L::ZZLat,
       F::T;
       check::Bool=false,
-    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> T
+    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> T
 
 Given ``F`` being either:
   * a matrix with rational entries;
@@ -311,7 +311,7 @@ end
 
 function restrict_to_lattice(
     L::ZZLat,
-    F::MatrixGroup{QQFieldElem, QQMatrix};
+    F::MatGroup{QQFieldElem, QQMatrix};
     check::Bool=true,
   )
   F_lattice_gens = restrict_to_lattice(L, matrix.(gens(F)); check)
@@ -327,12 +327,12 @@ end
 @doc raw"""
     stabilizer_discriminant_subgroup(
       L::ZZLat,
-      G::MatrixGroup,
+      G::MatGroup,
       H::TorQuadModule;
       pointwise::Bool=false,
       ambient_representation::Bool=true,
       check::Bool=true,
-   ) -> MatrixGroup, GAPGroupHomomorphism
+   ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integral lattice ``L``, a group ``G`` of isometries of ``L`` and a
 submodule ``H`` of the discriminant group $D_L$ of ``L``, return the largest
@@ -353,7 +353,7 @@ determined by ``H``.
 """
 function stabilizer_discriminant_subgroup(
   L::ZZLat,
-  G::MatrixGroup,
+  G::MatGroup,
   H::TorQuadModule;
   pointwise::Bool=false,
   ambient_representation::Bool=true,
@@ -382,8 +382,8 @@ end
       L::ZZLat,
       K::ZZLat,
       N::ZZLat,
-      OK::MatrixGroup,
-      ON::MatrixGroup;
+      OK::MatGroup,
+      ON::MatGroup;
       check::Bool=true,
     ) -> Vector{QQMatrix}
 
@@ -401,8 +401,8 @@ function stabilizer_in_diagonal_action(
     L::ZZLat,
     K::ZZLat,
     N::ZZLat,
-    OK::MatrixGroup,
-    ON::MatrixGroup;
+    OK::MatGroup,
+    ON::MatGroup;
     check::Bool=true,
     is_finite_known=(false, false),
   )
@@ -473,10 +473,10 @@ end
     maximal_extension(
       L::ZZLat,
       S::ZZLat,
-      OS::MatrixGroup;
+      OS::MatGroup;
       check::Bool=true,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a primitive sublattice ``S`` of an integral lattice ``L`` whose
 orthogonal complement ``K`` is definite or of rank 2, and given a group``OS``
@@ -496,7 +496,7 @@ where ``O(K)`` is the full orthogonal group of ``K``.
 function maximal_extension(
     L::ZZLat,
     S::ZZLat,
-    OS::MatrixGroup;
+    OS::MatGroup;
     check::Bool=true,
     kwargs...,
   )
@@ -525,7 +525,7 @@ end
       special::Bool=false,
       check::Bool=true,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given ``B`` a matrix with rational entries whose set of rows represent a finite
 collection ``F`` of vectors in the rational span ``L\otimes \mathbb{Q}`` of
@@ -624,7 +624,7 @@ end
       L::ZZLat,
       S::ZZLat;
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a sublattice ``S`` of an integral lattice ``L``, return the subgroup
 
@@ -682,7 +682,7 @@ end
       special::Bool=false,
       check::Bool=true,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a sublattice ``S`` of an integral lattice ``L``, or a generating set of
 vectors given as rows in a matrix with rational entries, return the subgroup
@@ -791,7 +791,7 @@ end
       S::Union{QQMatrix, ZZLat};
       check::Bool=true,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a sublattice ``S`` of an integral lattice ``L``, or a generating set of
 vectors given as rows in a matrix with rational entries, return the
@@ -860,13 +860,13 @@ end
 @doc raw"""
     saturation(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
       special::Bool=false,
       stable::Bool=false,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a lattice ``L`` and a group of isometries ``G`` of ``L`` whose associated
 coinvariant sublattice ``S`` is definite or of rank 2, return the saturation of
@@ -900,7 +900,7 @@ See [`pointwise_stabilizer_in_orthogonal_group`](@ref).
 """
 function saturation(
   L::ZZLat,
-  G::MatrixGroup;
+  G::MatGroup;
   ambient_representation::Bool=true,
   check::Bool=true,
   special::Bool=false,
@@ -928,19 +928,19 @@ end
 @doc raw"""
     saturation(
       L::ZZLat,
-      G::MatrixGroup,
-      H::MatrixGroup;
+      G::MatGroup,
+      H::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
       kwargs...,
-    ) -> MatrixGroup
+    ) -> MatGroup
 
 Given a lattice ``L`` and two finite group of isometries $H \leq G$
 of ``L`` such that the coinvariant sublattice ``S`` of ``H`` is definite,
 return the saturation of ``H`` in the group ``G``, that is the pointwise
 stabilizer in ``G`` of its invariant sublattice associated to ``H``.
 
-See [`saturation(::ZZLat, ::MatrixGroup)`](@ref).
+See [`saturation(::ZZLat, ::MatGroup)`](@ref).
 
 # Arguments
 - If `ambient_representation` is set to `true`, the groups ``G`` and ``H`` are
@@ -956,8 +956,8 @@ See [`saturation(::ZZLat, ::MatrixGroup)`](@ref).
 """
 function saturation(
   L::ZZLat,
-  G::MatrixGroup,
-  H::MatrixGroup;
+  G::MatGroup,
+  H::MatGroup;
   ambient_representation::Bool=true,
   check::Bool=true,
   kwargs...,
@@ -976,10 +976,10 @@ end
 @doc raw"""
     is_saturated_with_saturation(
       L::ZZLat,
-      [G::MatrixGroup],
-      H::MatrixGroup;
+      [G::MatGroup],
+      H::MatGroup;
       kwargs...,
-    ) -> Bool, MatrixGroup
+    ) -> Bool, MatGroup
 
 Given a lattice ``L`` and a group of isometries ``H`` of ``L`` with
 definite coinvariant sublattice``S`` , return whether the group ``H`` is
@@ -991,14 +991,14 @@ Alternatively, one can ask whether ``H`` is saturated in a given finite group
 ``G`` of isometries of ``L`` containing ``H``.
 
 # Arguments
-- See [`saturation(::ZZLat, ::MatrixGroup)`](@ref) and
-  [`saturation(::ZZLat, ::MatrixGroup, ::MatrixGroup)`](@ref) for the optional
+- See [`saturation(::ZZLat, ::MatGroup)`](@ref) and
+  [`saturation(::ZZLat, ::MatGroup, ::MatGroup)`](@ref) for the optional
   keyword arguments.
 """
 function is_saturated_with_saturation(
   L::ZZLat,
-  G::MatrixGroup,
-  H::MatrixGroup;
+  G::MatGroup,
+  H::MatGroup;
   kwargs...,
 )
   Hsat = saturation(L, G, H; kwargs...)
@@ -1007,7 +1007,7 @@ end
 
 function is_saturated_with_saturation(
   L::ZZLat,
-  H::MatrixGroup;
+  H::MatGroup;
   ambient_representation::Bool=true,
   kwargs...,
 )

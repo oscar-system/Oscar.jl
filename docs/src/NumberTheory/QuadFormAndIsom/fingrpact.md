@@ -35,9 +35,9 @@ sublattices given an orthogonal representation `G` in matrix form of a
 collection of isometries of a given lattice `L`:
 
 ```@docs
-coinvariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatrixGroup})
+coinvariant_lattice(::ZZLat, ::MatGroup)
+invariant_lattice(::ZZLat, ::MatGroup)
+invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatGroup})
 ```
 
 ## Special isometries
@@ -54,7 +54,7 @@ Similarly, given any finite group $G$ of isometries of $L$, one can compute
 the special subgroup $G\cap SO(L)$ of $G$.
 
 ```@docs
-special_subgroup(::ZZLat, ::MatrixGroup)
+special_subgroup(::ZZLat, ::MatGroup)
 ```
 
 ## Stable isometries
@@ -72,7 +72,7 @@ Similarly, given any finite group $G$ of isometries of $L$, one can compute
 the stable subgroup $G\cap O^\#(L)$ of $G$.
 
 ```@docs
-stable_subgroup(::ZZLat, ::MatrixGroup)
+stable_subgroup(::ZZLat, ::MatGroup)
 ```
 
 ## Stabilizers
@@ -80,7 +80,7 @@ stable_subgroup(::ZZLat, ::MatrixGroup)
 ```@docs
 stabilizer_discriminant_subgroup
 stabilizer_in_diagonal_action
-maximal_extension(::ZZLat, ::ZZLat, ::MatrixGroup)
+maximal_extension(::ZZLat, ::ZZLat, ::MatGroup)
 stabilizer_in_orthogonal_group
 pointwise_stabilizer_in_orthogonal_group
 setwise_stabilizer_in_orthogonal_group
@@ -101,14 +101,14 @@ $L^H$ in $G$. In the case where the group $G$ is finite, one can actually
 explictly compute such a group:
 
 ```@docs
-saturation(::ZZLat, ::MatrixGroup, ::MatrixGroup)
+saturation(::ZZLat, ::MatGroup, ::MatGroup)
 ```
 In general, if the coinvariant sublattice $L_H$ of the group $H$ is definite or
 of rank 2, one can compute the saturation of $H$ inside the orthogonal group
 $O(L)$ of $L$.
 
 ```@docs
-saturation(::ZZLat, ::MatrixGroup)
+saturation(::ZZLat, ::MatGroup)
 ```
 Finally, whenever the coinvariant lattice $L_H$ of $H$ is definite, it is
 possible to decide whether $H$ is saturated in the given groups as above.
@@ -129,8 +129,8 @@ is_isometry(::Hecke.QuadSpace, ::QQMatrix)
 is_isometry(::ZZLat, ::QQMatrix)
 is_isometry_list(::Hecke.QuadSpace, ::Vector{QQMatrix})
 is_isometry_list(::ZZLat, ::Vector{QQMatrix})
-is_isometry_group(::Hecke.QuadSpace, ::MatrixGroup)
-is_isometry_group(::ZZLat, ::MatrixGroup)
+is_isometry_group(::Hecke.QuadSpace, ::MatGroup)
+is_isometry_group(::ZZLat, ::MatGroup)
 ```
 
 Given an integer lattice with isometry $(L, f)$, one can also ask whether

@@ -63,7 +63,7 @@ function _reduce(M::MatrixElem{QQFieldElem}, Fp)
   return map_entries(Fp, M)
 end
 
-function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
 
   if is_empty(gens(G))
     F2 = GF(2)
@@ -126,10 +126,10 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
   return Gp, mp
 end
 
-function isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+function isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
   val = get_attribute!(G, :isomorphic_group_over_fq) do
     return _isomorphic_group_over_finite_field(G, min_char = min_char)
-  end::Tuple{MatrixGroup, MapFromFunc}
+  end::Tuple{MatGroup, MapFromFunc}
   if characteristic(base_ring(val[1])) >= min_char
     return val
   else

@@ -59,7 +59,7 @@ Here, $G$ will be given as a permutation group, acting on $K[x_1, \dots, x_n]\co
 ### Constructors for Invariant Rings
 
 ```@docs
-invariant_ring(G::MatrixGroup)
+invariant_ring(G::MatGroup)
 ```
 
 ## Basic Data Associated to Invariant Rings

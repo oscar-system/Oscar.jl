@@ -172,9 +172,9 @@ dimension_representation(PR::ProjRep) = dimension_representation(PR.LR)
 Given a representation mapping `f` of the underlying group of `RR`, return the
 character afforded by `f`.
 """
-function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}) where {S, T, U}
+function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}) where {S, T, U}
   @req domain(f) === underlying_group(RR) "f does not define a representation in the given representation ring"
-  @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
+  @req codomain(f) isa MatGroup "f should take value in a matrix group"
   Q = abelian_closure(QQ)[1]
   coll = elem_type(Q)[]
   H = conjugacy_classes(underlying_group(RR))
@@ -371,13 +371,13 @@ If not provided, `chi` is automatically computed.
 function linear_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism, chi::Oscar.GAPGroupClassFunction) where {S, T}
   @req parent(chi) === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"
-  @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
+  @req codomain(f) isa MatGroup "f should take value in a matrix group"
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
 end
 
 function linear_representation(RR::RepRing{S ,T}, f::GAPGroupHomomorphism) where {S ,T}
   @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"
-  @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
+  @req codomain(f) isa MatGroup "f should take value in a matrix group"
   chi = character_representation(RR, f)
   @assert parent(chi) === character_table_underlying_group(RR)
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
@@ -409,7 +409,7 @@ a lift along the cover `p` of a projective representation of the codomain of `p`
 
 If `check=true`, `f` is check to be `p`-projective.
 """
-function projective_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}, p::V; check::Bool = true) where {S, T, U, V}
+function projective_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}, p::V; check::Bool = true) where {S, T, U, V}
   lr = linear_representation(RR, f)
   if check
     @req underlying_group(RR) === domain(p) "Incompatible representation ring and cover"

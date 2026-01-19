@@ -2365,15 +2365,15 @@ function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFie
                          y->G(matrix(y)))
 end
 
-function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+function (G::MatGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   return G(matrix(h))
 end
 
-function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+function (G::MatGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
   return h*G
 end
 
-function Oscar.hom(g::MatrixGroupElem)
+function Oscar.hom(g::MatGroupElem)
   G = parent(g)
   p = get_attribute(G, :aut_group)
   p === nothing && error("Matrix group must be the automorphism group of some module")
@@ -2569,7 +2569,7 @@ end
 =#    
 
     
-(G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
+(G::MatGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
 
 @doc raw"""
     gmodule_class_reps(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::Oscar.GAPGroup) -> Vector{GModule}

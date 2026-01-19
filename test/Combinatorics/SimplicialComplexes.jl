@@ -24,10 +24,13 @@
     R, _ = polynomial_ring(ZZ, [:a, :x, :i_7, :n])
     @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
     @test is_isomorphic(fundamental_group(sphere), free_group())
-
+    @test issetequal(faces(sphere, 0), [Set([1]), Set([2]), Set([3]), Set([4])])
+    
     # from #1440, make sure empty columns at the end are kept
     sc = simplicial_complex([[1, 2, 4], [2, 3, 4]])
     @test size(minimal_nonfaces(IncidenceMatrix, sc)) == (1, 4)
+    @test issetequal(faces(sc), [Set([4, 2, 1]), Set([4, 2, 3]), Set([2, 1]), Set([4, 1]), Set([4, 2]),
+                                 Set([2, 3]), Set([4, 3]), Set([1]), Set([2]), Set([4]), Set([3]), Set()])
   end
 
   @testset "standard examples" begin
