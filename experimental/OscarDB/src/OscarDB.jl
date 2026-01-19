@@ -100,6 +100,7 @@ julia> length(c)
 290
 ```
 """
+
 Base.getindex(db::Database, name::AbstractString) = Collection(db.mdb[name])
 
 """
