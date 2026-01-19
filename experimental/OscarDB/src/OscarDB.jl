@@ -14,7 +14,9 @@ import Oscar:
   betti_numbers,
   n_vertices,
   graph,
-  n_leaves
+  n_leaves,
+  group_based_phylogenetic_model,
+  phylogenetic_model
 
 # for ca certificates
 import NetworkOptions
