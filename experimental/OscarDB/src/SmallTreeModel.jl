@@ -22,35 +22,35 @@ end
 @doc raw"""
     group_based_phylogenetic_model(stm::SmallTreeModel)
 
-Returns the `GroupBasedPhylogeneticModel` of the `stm`.
+Return the `GroupBasedPhylogeneticModel` of the small tree model `stm`.
 """
 group_based_phylogenetic_model(stm::SmallTreeModel) = stm.model
 
 @doc raw"""
     phylogenetic_model(stm::SmallTreeModel)
 
-Returns the `PhylogeneticModel` of the `stm`.
+Return the `PhylogeneticModel` of the small tree model `stm`.
 """
 phylogenetic_model(stm::SmallTreeModel) = phylogenetic_model(group_based_phylogenetic_model(stm))
 
 @doc raw"""
     model_type(stm::SmallTreeModel)
 
-Returns the model type of the `stm` as a string.
+Return the model type of the `stm` as a small tree model string.
 """
 model_type(stm::SmallTreeModel) = stm.model_type
 
 @doc raw"""
     graph(stm::SmallTreeModel)
 
-Returns the graph of the `stm`.
+Return the graph of the small tree model `stm`.
 """
 graph(stm::SmallTreeModel) = graph(group_based_phylogenetic_model(stm))
 
 @doc raw"""
     n_leaves(stm::SmallTreeModel)
 
-Returns the number of leaves of the `stm`.
+Return the number of leaves of the small tree model `stm`.
 """
 n_leaves(stm::SmallTreeModel) = n_leaves(graph(stm))
 
