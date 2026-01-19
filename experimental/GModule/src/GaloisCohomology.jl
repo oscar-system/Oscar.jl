@@ -1997,7 +1997,7 @@ function Hecke.structure_constant_algebra(CC::GrpCoh.CoChain{2, PermGroupElem, G
   else
     mp = id_hom(k)
   end
-  M = zeros(base_field(k), n*n, n*n, n*n)
+  M = Hecke.zeros_array(base_field(k), n*n, n*n, n*n)
   #basis is prod. basis of basis(k) and e_sigma sigma in G
   # e_sigma * e_tau is via cocycle
   # bas * bas is direct
@@ -2011,7 +2011,7 @@ function Hecke.structure_constant_algebra(CC::GrpCoh.CoChain{2, PermGroupElem, G
     # -> a*b^A * (sigma(A, B)*AB)
     c = a[1] * preimage(mp, mG(a[2])(mp(b[1]))) * preimage(mp, CC(a[2], b[2]).data)
     C = a[2]*b[2]
-    z = zeros(base_field(k), n*n)
+    z = Hecke.zeros_array(base_field(k), n*n)
     bk = basis(k)
     for i=1:length(bk)
       p = findfirst(isequal((bk[i], C)), B)

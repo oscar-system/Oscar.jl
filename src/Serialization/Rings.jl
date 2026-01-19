@@ -204,7 +204,7 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     end
     degree = max(exponents...)
     coeff_ring = coefficient_ring(parent_ring)
-    loaded_terms = zeros(coeff_ring, degree)
+    loaded_terms = Hecke.zeros_array(coeff_ring, degree)
     coeff_type = elem_type(coeff_ring)
     for (i, exponent) in enumerate(exponents)
       load_node(s, i) do _
@@ -468,7 +468,7 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
-  loaded_terms = zeros(base, pol_length)
+  loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
   
   load_node(s, :terms) do _
@@ -485,7 +485,7 @@ function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
-  loaded_terms = zeros(base, pol_length)
+  loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
   load_node(s, :terms) do _
@@ -568,7 +568,7 @@ function load_object(s::DeserializerState,
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
     # account for index shift
-    loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
+    loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
       load_node(s, i) do _

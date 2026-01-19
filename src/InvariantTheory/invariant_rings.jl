@@ -160,7 +160,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   #   gen(R, i)^M = (0 ... 0 1 0 ... 0)*M = (M[i, 1] ... M[i, n])
   #               = M[i, 1]*gen(R, 1) + ... + M[i, n]*gen(R, n)
   # We now compute these actions of M on the variables of R.
-  vars = zeros(R, n)
+  vars = Hecke.zeros_array(R, n)
   x = gens(R)
   for i in 1:n
     for j in 1:n
