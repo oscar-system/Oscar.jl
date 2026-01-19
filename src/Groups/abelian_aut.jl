@@ -679,7 +679,6 @@ julia> order(S)
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
-  
   if order(O)<10000
     # don't do fancy stuff if the group is small
     to_gap = get_attribute(O, :to_gap)
@@ -710,6 +709,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     p = n
     B = matrix(i.map_ab)
     mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
+    @show gens(O), mats, B, n
     st = _stab_via_fin_field(O, mats, B, n)
     #@assert order(st[1])==order(st2[1])
     return st
