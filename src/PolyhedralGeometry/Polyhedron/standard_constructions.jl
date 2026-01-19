@@ -1224,7 +1224,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
   n = length(lambda)
   N = binomial(n + 1, 2)
   b = flag(sigma)
-  P = Matrix{Int64}(zeros(n, n)) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
+  P = zeros(Int, n, n) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
   varctr = N # starting at the last coordinate
   matctr = [1, 1]
   while varctr > 0
