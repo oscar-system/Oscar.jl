@@ -43,7 +43,7 @@ The list comprises of phylogenetic models on trees with up to 5 leaves.
 We are currently working on updating our models in the database to contain the exact same information as the [Algebraic Phylogenetics](https://algebraicphylogenetics.org)
 and to eventually have the website pull its data from our database.
 
-Here are some helpful functions for deal with the data.
+Here are some helpful functions for dealing with the data.
 ```@docs
 small_tree_model
 group_based_phylogenetic_model(stm::SmallTreeModel)
