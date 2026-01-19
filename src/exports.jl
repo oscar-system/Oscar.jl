@@ -560,7 +560,7 @@ export direct_sum
 export direct_sum_components
 export directed_component
 export discriminant_representation
-export disjoint_automorphisms
+export disjoint_automorphisms, has_disjoint_automorphisms
 export disjoint_union
 export div_left
 export div_left!

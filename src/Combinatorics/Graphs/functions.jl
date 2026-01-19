@@ -2194,7 +2194,7 @@ end
 Find and return a pair of automorphisms of the graph `G` which are disjoint and
 neither is the identity (thus neither fixes all vertices; and hence, since they
 are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
-automorphisms if found, otherwise returns `(id, id)`.
+automorphisms if found, otherwise throws an error.
 
 Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
 $\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the graph.
@@ -2205,10 +2205,39 @@ julia> C = clebsch_graph();
 
 julia> disjoint_automorphisms(C)
 ((2,3)(6,7)(10,11)(14,15), (1,4)(5,8)(9,12)(13,16))
-
 ```
 """
 function disjoint_automorphisms(G::Graph)
+  A = automorphism_group(G)
+  n = nv(G)
+
+  ret, a, b = _compute_disjoint_automorphism(G::Graph)
+  @req ret "The graph has no disjoint automorphisms"
+  return a, b
+end
+
+@doc raw"""
+    has_disjoint_automorphisms(G::Graph)
+
+Return `true` if the graph `G` has a pair of non-trivial, disjoint automorphisms,
+and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> C = petersen_graph();
+
+julia> has_disjoint_automorphisms(C)
+false
+```
+"""
+function has_disjoint_automorphisms(G::Graph)
+  A = automorphism_group(G)
+  n = nv(G)
+  ret, a, b = _compute_disjoint_automorphism(G::Graph)
+  return ret
+end
+
+@attr Tuple{Bool, PermGroupElem, PermGroupElem} function _compute_disjoint_automorphism(G::Graph)
   A = automorphism_group(G)
   n = nv(G)
 
@@ -2219,8 +2248,9 @@ function disjoint_automorphisms(G::Graph)
     order(stab) > 1 || continue
     for g2 in stab
       g2 == one(A) && continue
-      return (rcc, g2)
+      return (true, rcc, g2)
     end
   end
-  return (one(A), one(A))
+  return (false, one(A), one(A))
 end
+
