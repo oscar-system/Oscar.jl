@@ -46,7 +46,7 @@ using Oscar.OscarDB.Mongoc
       @testset "Types" begin
         @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
         @test db["AlgebraicStatistics.SmallTreeModels"] isa Oscar.OscarDB.Collection
-        @test collection_tsc isa Oscar.OscarDB.Collection
+        @test collection_stm isa Oscar.OscarDB.Collection
       end
 
       @testset "Querying" begin
