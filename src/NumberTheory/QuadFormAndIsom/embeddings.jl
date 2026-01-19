@@ -54,7 +54,7 @@ function _direct_sum_with_embeddings_orthogonal_groups(
     A::TorQuadModule,
     B::TorQuadModule,
   )
-  D, inj = direct_sum(A, B)
+  D, inj = direct_sum(A, B;cached=false)
   AinD, BinD = inj
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
@@ -122,7 +122,7 @@ function _rho_functor(
     quad::Bool=(p == 2),
   )
   pq, pqtoq = primary_part(q, p)
-  pq = rescale(pq, QQ(p)^(l-1))
+  pq = rescale(pq, QQ(p)^(l-1);cached=false)
   Nv = cover(pq)
   N = relations(pq)
   if quad && p == 2
@@ -295,7 +295,7 @@ function _gluing_context(
       qMinD = hom(qM, D, TorQuadModuleElem[D(lift(x)) for x in gens(qM)])
       qNinD = hom(qN, D, TorQuadModuleElem[D(lift(x)) for x in gens(qN)])
     else
-      D, inj = direct_sum(qM, qN)
+      D, inj = direct_sum(qM, qN; cached=false)
       qMinD, qNinD = inj
     end
     OD = orthogonal_group(D)
@@ -756,7 +756,7 @@ function _primitive_extensions_generic(
       HM = domain(HMinqM)
       # We have fixed a glue domain on the side of M, so we need an
       # anti-isometric one on the side of N.
-      subsN = _classes_isomorphic_subgroups(qN, GN, fqN; H=rescale(HM, -1), mu=chiM)
+      subsN = _classes_isomorphic_subgroups(qN, GN, fqN; H=rescale(HM, -1;cached=false), mu=chiM)
       isempty(subsN) && continue
 
       for (HNinqN, stabN) in subsN
@@ -1011,7 +1011,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   # We descend G to V for computing stabilizers later on
   GV, GtoGV = restrict_automorphism_group(G, Vinq; check=false)
   h = length(elementary_divisors(H0))
-  @vprintln :ZZLatWithIsom 2 "computing orbits of subspaces of dimension $(g-h) in $p^$(length(elementary_divisors(V)))"
+  @vprint :ZZLatWithIsom 5 "computing orbits of subspaces of dimension $(g-h) in $p^$(length(elementary_divisors(V))):  "
   if algorithm == :PermGroup && isodd(p)
     # We can make use of the fact that the bilinear form on H0 is totally isotropic 
     # and therefore descends to V/H0 
@@ -1020,8 +1020,10 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     GVmodH0, GVtoGVmodH0 = induce_automorphism_group(GV, VtoVmodH0; check=false)
     GO = orthogonal_group(VmodH0)
     incGVmodH0 = hom(GVmodH0, GO, [GO(matrix(i)) for i in gens(GVmodH0)];check=false)
-    GtoOVmodH0 = compose(compose(GtoGV, GVtoGVmodH0), incGVmodH0)  
+    GtoOVmodH0 = compose(compose(GtoGV, GVtoGVmodH0), incGVmodH0)
+    @vprint :ZZLatWithIsom 8 "computing stab and reps "
     rep_and_stab = _subspaces_representatives_and_stabilizers_elementary_odd(VmodH0, incGVmodH0, g-h)
+    @vprint :ZZLatWithIsom 8 "computing kernel"
     satV,_ = kernel(GtoOVmodH0) # could be split into two kernel computations
     gensH0inq = [H0inq(i) for i in gens(H0)]
     for ((rep,inc_rep), (stab,inc_stab)) in rep_and_stab
@@ -1037,6 +1039,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
       @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
       push!(res, (orbqinq, stabq))
     end
+    @vprint :ZZLatWithIsom 5 " done \r                                     \r"
     return res
   end
 
@@ -1090,6 +1093,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
     push!(res, (orbqinq, stabq))
   end
+  @vprint :ZZLatWithIsom 5 "   done \n"
   return res
 end
 
@@ -1527,7 +1531,7 @@ function primitive_embeddings(
   # given signature pair and then we do our extension routine.
   if is_unimodular(G)
     q = discriminant_group(G)
-    qM = rescale(discriminant_group(M), -1)
+    qM = rescale(discriminant_group(M), -1;cached=false)
     GKs = ZZGenus[]
     if even
       _G = try genus(qM, (posN, negN))
@@ -1573,9 +1577,9 @@ function primitive_embeddings(
   # In the odd case we need at least two copies of the hyperbolic plane because
   # of the 2-adic signature
   if even
-    T, _ = direct_sum(rescale(lll(representative(G)), -1), hyperbolic_plane_lattice())
+    T, _ = direct_sum(rescale(lll(representative(G)), -1; cached=false), hyperbolic_plane_lattice();cached=false)
   else
-    T, _ = direct_sum(rescale(lll(representative(G)), -1), hyperbolic_plane_lattice(), hyperbolic_plane_lattice())
+    T, _ = direct_sum(rescale(lll(representative(G)), -1;cached=false), hyperbolic_plane_lattice(), hyperbolic_plane_lattice();cached=false)
   end
 
   # The algorithm goes on with finding primitive extensions of M+T and then
@@ -1605,7 +1609,7 @@ function primitive_embeddings(
     # such diagonal subgroup.
     GV, _ = _glue_stabilizers(V, M2, T2)
     qV = domain(GV)
-    qK = rescale(qV, -1) # Bilinear form of a complement of V in GL
+    qK = rescale(qV, -1;cached=false) # Bilinear form of a complement of V in GL
 
     GKs = ZZGenus[]
     posK = signature_tuple(GL)[1] - signature_tuple(V)[1]
@@ -2327,14 +2331,17 @@ function _glue_stabilizers(
     OqBinOD::GAPGroupHomomorphism,
     graph::TorQuadModuleMap,
   )
+  @vprint :ZZLatWithIsom 8 "computing glue stabilizer "
   OD = codomain(OqAinOD)
   OqA = domain(OqAinOD)
   imA, _ = image(actA)
+  @vprint :ZZLatWithIsom 11 "kernelA "
   kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]
   push!(kerA, one(OD))
 
   OqB = domain(OqBinOD)
   imB, _ = image(actB)
+  @vprint :ZZLatWithIsom 11 "kernelB "
   kerB = elem_type(OD)[OqBinOD(x) for x in gens(kernel(actB)[1])]
   push!(kerB, one(OD))
 
@@ -2345,13 +2352,22 @@ function _glue_stabilizers(
   OSA = codomain(actA)
   geneOSA =  elem_type(OSA)[OSA(compose(phi, compose(hom(g1), inv(phi))); check=false) for g1 in unique(gens(imB))]
   im2_phi, _ = sub(OSA, geneOSA)
+  @vprint :ZZLatWithIsom 11 "intersection "
   im3, _, _ = intersect(imA, im2_phi)
-  stab = elem_type(OD)[OqAinOD(actA\x) * OqBinOD(actB\(imB(compose(inv(phi), compose(hom(x), phi)); check=false))) for x in gens(im3)]
+  @vprint :ZZLatWithIsom 11 "stab "
+  tmp1 = [compose(inv(phi), compose(hom(x), phi)) for x in gens(im3)]
+  tmp2 = imB.(tmp1)
+  tmp3 = actB.\(tmp2)
+  tmp4 = OqBinOD.(tmp3)
+  tmp5 = actA.\gens(im3)
+  stab = [OqAinOD(x) * g for (x,g) in zip(tmp5,tmp4)]
+  #stab = elem_type(OD)[OqAinOD(actA\x) * OqBinOD(actB\(imB(compose(inv(phi), compose(hom(x), phi)); check=false))) for x in gens(im3)]
   union!(stab, kerA)
   union!(stab, kerB)
   stab = TorQuadModuleMap[restrict_automorphism(g, j; check=false) for g in stab]
   stab = TorQuadModuleMap[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
   unique!(stab)
+  @vprint :ZZLatWithIsom 8 "  done \r"
   return disc, stab
 end
 

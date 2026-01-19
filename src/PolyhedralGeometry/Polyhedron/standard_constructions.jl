@@ -253,25 +253,28 @@ end
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
 @doc raw"""
-    tetrahedron()
+    tetrahedron([F::scalar_type_or_field])
 
 Construct the regular tetrahedron, one of the Platonic solids.
 """
 tetrahedron() = polyhedron(Polymake.polytope.tetrahedron());
+tetrahedron(f::scalar_type_or_field) = polyhedron(F, Polymake.polytope.tetrahedron());
 
 @doc raw"""
-    dodecahedron()
+    dodecahedron([F::scalar_type_or_field])
 
 Construct the regular dodecahedron, one out of two Platonic solids.
 """
 dodecahedron() = polyhedron(Polymake.polytope.dodecahedron());
+dodecahedron(F::scalar_type_or_field) = polyhedron(F, Polymake.polytope.dodecahedron());
 
 @doc raw"""
-    icosahedron()
+    icosahedron([F::scalar_type_or_field])
 
 Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
 icosahedron() = polyhedron(Polymake.polytope.icosahedron());
+icosahedron(F::scalar_type_or_field) = polyhedron(F, Polymake.polytope.icosahedron());
 
 const _johnson_indexes_from_oscar = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24,
   25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
@@ -282,9 +285,9 @@ const _johnson_indexes_from_oscar = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22,
   90, 92])
 
 @doc raw"""
-    johnson_solid(i::Int)
+    johnson_solid([F::scalar_type_or_field,] i::Int)
 
-Construct the `i`-th proper Johnson solid.
+Construct the `i`-th proper Johnson solid. Optionally embedded in a given field, if possible.
 
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
@@ -292,16 +295,24 @@ It is proper if it is not an Archimedean solid.  Up to scaling there are exactly
 
 See also [`is_johnson_solid`](@ref is_johnson_solid(P::Polyhedron)).
 """
-function johnson_solid(index::Int)
+johnson_solid(index::Int) = _johnson_solid(index)
+johnson_solid(F::scalar_type_or_field, index::Int) = _johnson_solid(index, F)
+
+function _johnson_solid(index::Int, F::Union{scalar_type_or_field,Nothing}=nothing)
   if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
     str_index = lpad(index, 2, '0')
     filename = "j$str_index" * ".mrdi"
-    return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
+    pmp = load(joinpath(oscardir, "data", "JohnsonSolids", filename))
+  else
+    pmp = Polymake.polytope.johnson_solid(index)
+    if F === nothing
+      # autodetect field type
+      pmp = polyhedron(pmp)
+    end
   end
-  pmp = Polymake.polytope.johnson_solid(index)
-  return polyhedron(pmp)
+  return F !== nothing ? polyhedron(F, pmp) : pmp
 end
 
 @doc raw"""
@@ -441,8 +452,33 @@ julia> length(vertices(product(T,S)))
 ```
 """
 function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types}
-  V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
-  return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+  if lineality_dim(P) == 0 && lineality_dim(Q) == 0
+    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
+    return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+  end
+
+  # Take the product without the linealities
+  Pmod, LP = peel_lineality(P)
+  Qmod, LQ = peel_lineality(Q)
+  PQmod = product(Pmod, Qmod)
+  K = coefficient_field(PQmod)
+
+  # Construct the product of the linealities
+  n = ambient_dim(P)
+  m = ambient_dim(Q)
+  LPQ = block_diagonal_matrix([matrix(K, LP), matrix(K, LQ)])
+  PQlin = convex_hull(
+    zero_matrix(K, 1, n + m), zero_matrix(K, 0, n + m), LPQ; non_redundant=true
+  )
+
+  return PQmod + PQlin
+end
+
+function peel_lineality(P::Polyhedron)
+  V, L = minimal_faces(P)
+  R, _ = rays_modulo_lineality(P)
+  Q = convex_hull(V, R; non_redundant=true)
+  return Q, L
 end
 
 @doc raw"""
@@ -746,7 +782,7 @@ end
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
-    platonic_solid(s)
+    platonic_solid([F::scalar_type_or_field,] s)
 
 Construct a Platonic solid with the name given by String `s` from the list
 below.
@@ -777,14 +813,16 @@ julia> n_facets(T)
 ```
 """
 platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
+platonic_solid(F::scalar_type_or_field, s::String) =
+  polyhedron(F, Polymake.polytope.platonic_solid(s))
 
 const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahedron"])
 
 @doc raw"""
-    archimedean_solid(s)
+    archimedean_solid([F::scalar_type_or_field,] s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below.
+below. Optionally embedded in a given field, if possible.
 
 See also [`is_archimedean_solid`](@ref is_archimedean_solid(P::Polyhedron)).
 
@@ -838,15 +876,23 @@ julia> n_facets(T)
 14
 ```
 """
-function archimedean_solid(s::String)
+archimedean_solid(s::String) = _archimedean_solid(s)
+archimedean_solid(F::scalar_type_or_field, s::String) = _archimedean_solid(s, F)
+
+function _archimedean_solid(s::String, F::Union{scalar_type_or_field,Nothing}=nothing)
   if s in _archimedean_strings_from_oscar
     filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
+    pmp = load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
+  else
+    pmp = Polymake.polytope.archimedean_solid(s)
+    if F === nothing
+      # autodetect field type
+      pmp = polyhedron(pmp)
+    end
   end
-  pmp = Polymake.polytope.archimedean_solid(s)
-  return polyhedron(pmp)
+  return F !== nothing ? polyhedron(F, pmp) : pmp
 end
 
 @doc raw"""
@@ -878,9 +924,10 @@ const _catalan_strings_from_oscar = Set{String}([
 ])
 
 @doc raw"""
-    catalan_solid(s::String)
+    catalan_solid([F::scalar_type_or_field,] s::String)
 
 Construct a Catalan solid with the name `s` from the list below.
+Optionally embedded in a given field, if possible.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -931,15 +978,23 @@ julia> n_facets(T)
 12
 ```
 """
-function catalan_solid(s::String)
+catalan_solid(s::String) = _catalan_solid(s)
+catalan_solid(F::scalar_type_or_field, s::String) = _catalan_solid(s, F)
+
+function _catalan_solid(s::String, F::Union{scalar_type_or_field,Nothing}=nothing)
   if s in _catalan_strings_from_oscar
     filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return load(joinpath(oscardir, "data", "CatalanSolids", filename))
+    pmp = load(joinpath(oscardir, "data", "CatalanSolids", filename))
+  else
+    pmp = Polymake.polytope.catalan_solid(s)
+    if F === nothing
+      # autodetect field type
+      pmp = polyhedron(pmp)
+    end
   end
-  pmp = Polymake.polytope.catalan_solid(s)
-  return polyhedron(pmp)
+  return F !== nothing ? polyhedron(F, pmp) : pmp
 end
 
 @doc raw"""

@@ -266,7 +266,7 @@ end
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
-   @test G isa MatrixGroup
+   @test G isa MatGroup
    @test F==base_ring(G)
    @test 2==degree(G)
    @test !isdefined(G,:X)
@@ -538,13 +538,13 @@ end
    @test !(x in S)
    @test !(matrix(F,2,2,[0,0,0,1]) in G)
    @test_throws ArgumentError S(x)
-   @test G(x) isa MatrixGroupElem
+   @test G(x) isa MatGroupElem
    @test S(x; check=false)==G(x)
    @test S(G(x); check=false)==G(x)
    x = G(x)
-   y = MatrixGroupElem(G,GapObj(x))
+   y = MatGroupElem(G,GapObj(x))
    @test_throws ArgumentError S(y)
-   @test G(y) isa MatrixGroupElem
+   @test G(y) isa MatGroupElem
    @test G(y*y)==G(y)*G(y)
    @test x==G([1,z,0,z])
    @test x==G([1 z; 0 z])
@@ -612,8 +612,8 @@ end
 
    xg = GAP.Globals.Random(GapObj(G))
    yg = GAP.Globals.Random(GapObj(G))
-   pg = MatrixGroupElem(G, xg*yg)
-   @test pg == MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
+   pg = MatGroupElem(G, xg*yg)
+   @test pg == MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
    O = GO(-1,2,F)
    S = SL(2,F)
@@ -822,7 +822,7 @@ end
 @testset "deepcopy" begin
    g = general_linear_group(2, 4)
 
-   m = MatrixGroupElem(g, gen(g, 1).X);  # do not call `show`!
+   m = MatGroupElem(g, gen(g, 1).X);  # do not call `show`!
    @test isdefined(m, :X)
    @test ! isdefined(m, :elm)
    c = deepcopy(m);
@@ -830,7 +830,7 @@ end
    @test ! isdefined(c, :elm)
    @test GapObj(c) == GapObj(m)
 
-   m = MatrixGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
+   m = MatGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
    @test isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);
@@ -839,7 +839,7 @@ end
    @test GapObj(c) == GapObj(m)
    @test matrix(c) == matrix(m)
 
-   m = MatrixGroupElem(g, matrix(gen(g, 1)))
+   m = MatGroupElem(g, matrix(gen(g, 1)))
    @test ! isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);

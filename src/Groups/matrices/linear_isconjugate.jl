@@ -14,7 +14,7 @@
 ########################################################################
 
 """
-    multiplicative_jordan_decomposition(M::MatrixGroupElem{T}) where T <: FinFieldElem
+    multiplicative_jordan_decomposition(M::MatGroupElem{T}) where T <: FinFieldElem
 
 Return `S` and `U` in the group `parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
@@ -50,7 +50,7 @@ julia> B * A == m
 false
 ```
 """
-function multiplicative_jordan_decomposition(x::MatrixGroupElem{T}) where T <: FinFieldElem
+function multiplicative_jordan_decomposition(x::MatGroupElem{T}) where T <: FinFieldElem
    a = order(x)
    p = characteristic(base_ring(x))
    alpha = valuation(a,p)
@@ -60,7 +60,7 @@ function multiplicative_jordan_decomposition(x::MatrixGroupElem{T}) where T <: F
 end
 
 """
-    is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
+    is_semisimple(x::MatGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
 
@@ -75,10 +75,10 @@ julia> is_semisimple(gen(g,2))
 false
 ```
 """
-is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
+is_semisimple(x::MatGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
 
 """
-    is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
+    is_unipotent(x::MatGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
 
@@ -94,7 +94,7 @@ julia> is_unipotent(gen(g,2)^3)
 true
 ```
 """
-is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_perfect_power_with_data(order(Int, x))[2]==Int(characteristic(x.parent.ring))
+is_unipotent(x::MatGroupElem{T}) where T <: FinFieldElem = isone(x) || is_perfect_power_with_data(order(Int, x))[2]==Int(characteristic(x.parent.ring))
 
 
 ########################################################################
@@ -107,7 +107,7 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_per
 # return an element in the centralizer of x in GL(n,F) with determinant d
 # Method: compute generators for the centralizer of x in GL(n,F);
 # then, multiply them in order to get an element of determinant d.
-# x has type MatrixGroupElem
+# x has type MatGroupElem
 function _elem_given_det(x,d)
    C,e = centralizer(GL(x.parent.deg, x.parent.ring),x)
    U,fa = unit_group(x.parent.ring)
@@ -118,7 +118,7 @@ end
 
 """
     pol_elementary_divisors(x::MatElem)
-    pol_elementary_divisors(x::MatrixGroupElem)
+    pol_elementary_divisors(x::MatGroupElem)
 
 Return a list of pairs `(f_i,m_i)`, for irreducible polynomials `f_i` and
 positive integers `m_i`, where the `f_i^m_i` are the elementary divisors of
@@ -144,7 +144,7 @@ function pol_elementary_divisors(A::MatElem{T}) where T
    return V
 end
 
-pol_elementary_divisors(x::MatrixGroupElem) = pol_elementary_divisors(matrix(x))
+pol_elementary_divisors(x::MatGroupElem) = pol_elementary_divisors(matrix(x))
 
 """
     generalized_jordan_block(f::T, n::Int) where T<:PolyRingElem
@@ -200,7 +200,7 @@ end
 #TODO: why don't we always return also `V`, since we have it anyhow?
 
 
-function is_conjugate_with_data_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
+function is_conjugate_with_data_in_gl_or_sl(G::MatGroup, x::MatGroupElem, y::MatGroupElem)
    (isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)) ||
    throw(ArgumentError("Group must be general or special linear group"))
 

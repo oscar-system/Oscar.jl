@@ -112,7 +112,7 @@ src(e::Edge)
 
 ### Visualization
 ```@docs
-visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
+visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
 
 ## Saving and loading

@@ -174,7 +174,7 @@ end
    @test eltype(PermGroup)==PermGroupElem
    @test eltype(PcGroup)==PcGroupElem
    @test eltype(FPGroup)==FPGroupElem
-   @test eltype(GL(2,3))==MatrixGroupElem{elem_type(typeof(GF(2))),dense_matrix_type(GF(2))}
+   @test eltype(GL(2,3))==MatGroupElem{elem_type(typeof(GF(2))),dense_matrix_type(GF(2))}
    @test eltype(DirectProductGroup)==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}

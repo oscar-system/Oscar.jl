@@ -74,7 +74,7 @@ mutable struct EnriquesBorcherdsCtx
   imgs_mod2::Set{FqMatrix}
   # w.r.t the basis given by Dplus
   Gplus
-  Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
+  Gplus_mat::MatGroup{FqFieldElem, FqMatrix}
   volume_index::ZZRingElem
   orderGbar::ZZRingElem
 
