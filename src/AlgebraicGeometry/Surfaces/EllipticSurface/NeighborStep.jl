@@ -164,7 +164,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   V = ambient_space(NS)
   @req inner_product(V, F, F)==0 "not an isotropic divisor"
   @req euler_characteristic(X) == 2 "not a K3 surface"
-  F0 = zeros(QQ,degree(NS)); F0[1]=1
+  F0 = zeros(QQFieldElem,degree(NS)); F0[1]=1
 
   @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
   @req is_nef(X, F) "not nef"
@@ -362,7 +362,7 @@ function _vertical_part(X::EllipticSurface, v::QQMatrix)
   i = findfirst(==(vmwg), candidates2)
   t = mwg(vec(collect(p - candidates[i])))
   mwl_tors_gens = [mwg(vec(collect(i[2]))) for i in tors]
-  ag = abelian_group(zeros(ZZ,length(tors)))
+  ag = abelian_group(zeros(ZZRingElem,length(tors)))
   mwlAb = abelian_group(mwg)
   phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
   a = preimage(phi, mwlAb(t))

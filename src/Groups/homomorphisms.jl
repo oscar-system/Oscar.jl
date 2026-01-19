@@ -1154,7 +1154,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
 
        f = function(a::FinGenAbGroupElem)
          diag = A_to_A2(a)
-         v = zeros(ZZ, m)
+         v = zeros(ZZRingElem, m)
          v[starts] = [diag[i] for i in 1:n]
          exps = GapObj(v, recursive = true)
          return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
