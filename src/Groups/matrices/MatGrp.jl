@@ -133,6 +133,23 @@ function _as_subgroup_bare(G::MatGroup, H::GapObj)
   return H1
 end
 
+# `has_gens` shall be `true` if the `gens` value is cheap to compute.
+# For matrix groups, generators may be stored on the Oscar side
+# or on the GAP side.
+# If no `GapObj` of the matrix group has been computed yet,
+# we regard it as cheap to create this `GapObj` if this is makes sense,
+# and then to check whether the `GapObj` stores generators.
+function has_gens(G::MatGroup)
+  isdefined(G, :gens) && return true   # generators stored in Oscar
+  if !isdefined(G, :X)
+    # We know how to create `GapObj(G)` only if `G.descr` is bound.
+    isdefined(G, :descr) || return false
+    F = codomain(_ring_iso(G))
+    GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GapObj(G.descr)) || return false
+  end
+  return GAP.Globals.HasGeneratorsOfGroup(GapObj(G))::Bool
+end
+
 MatGroupElem(G::MatGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = MatGroupElem{RE,T}(G, x, x_gap)
 
 MatGroupElem(G::MatGroup{RE,T}, x::T) where {RE, T} = MatGroupElem{RE,T}(G,x)

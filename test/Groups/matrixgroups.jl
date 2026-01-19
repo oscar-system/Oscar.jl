@@ -337,10 +337,20 @@ end
 
    # The following group is incomplete (no `gens`).
    G = matrix_group(F, 4)
+   @test !has_gens(G)
    @test_throws ErrorException GapObj(G)
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
+   @test !has_gens(G)
    @test_throws ErrorException GapObj(G)
+
+   G = GL(2, 3)
+   @test has_gens(G)
+
+   G = GL(2, QQ)
+   @test !has_gens(G)
+   @test_throws ErrorException GapObj(G)
+   @test_throws ErrorException gens(G)
 end
 
 @testset "Construct a matrix group from a GAP group" begin
