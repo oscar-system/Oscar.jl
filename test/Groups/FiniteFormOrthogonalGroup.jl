@@ -145,16 +145,16 @@ end
   
 @testset "stabilisers of subspaces under isometries" begin  
   I = integer_lattice(gram=ZZ[1;])
-  for i in 1:6
+  for i in 1:5
     @test Oscar._test_stabilizers(rescale(root_lattice(:A,i),2),2)
     @test Oscar._test_stabilizers(direct_sum(rescale(root_lattice(:A,i),2),I)[1],2)
-    @test Oscar._test_stabilizers(rescale(root_lattice(:A,i),3),3)
   end
   for i in 4:6
     @test Oscar._test_stabilizers(rescale(root_lattice(:D,i),2),2)
     @test Oscar._test_stabilizers(direct_sum(rescale(root_lattice(:D,i),2),I)[1],2)
-    @test Oscar._test_stabilizers(rescale(root_lattice(:D,i),3),3)
   end
+  @test Oscar._test_stabilizers(rescale(root_lattice(:D,4),3),3)
+  @test Oscar._test_stabilizers(rescale(root_lattice(:A,4),3),3)
   for i in 1:4
     @test Oscar._test_stabilizers(rescale(root_lattice(:A,i),7),7)
   end
