@@ -1245,7 +1245,7 @@ function _stabilizer_isotropic_elementary_semiregular(
   O = orthogonal_group(N)
   check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
-    Z, iZ = sub(N, TorQuadModElem[])
+    Z, iZ = sub(N, TorQuadModuleElem[])
     return [(iZ, id_hom(O))]
   end 
   G = ZZ.(p*gram_matrix_quadratic(N))
@@ -1822,7 +1822,7 @@ function _stabilizer_elementary_regular_odd(
   O = orthogonal_group(N)
   check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
-    Z, iZ = sub(N, TorQuadModElem[])
+    Z, iZ = sub(N, TorQuadModuleElem[])
     return (iZ, id_hom(O))
   end 
   G = ZZ.(p*gram_matrix_quadratic(N))
