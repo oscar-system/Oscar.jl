@@ -16,22 +16,42 @@ using Oscar.OscarDB.Mongoc
   @testset "Collections" begin
     # can only test collections that are in the .github/oscardb_dump/oscar
     db = Oscar.OscarDB.get_db()
-    collection_tsc = db["TransitiveSimplicialComplexes"]
+    @testset "TransitiveSimplicialComplexes" begin
+      collection_tsc = db["TransitiveSimplicialComplexes"]
 
-    @testset verbose=true "Iterator (Collection)" begin
-      @test iterate(collection_tsc) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
+      @testset verbose=true "Iterator (Collection)" begin
+        @test iterate(collection_tsc) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
+      end
+
+      @testset "Types" begin
+        @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
+        @test db["TransitiveSimplicialComplexes"] isa Oscar.OscarDB.Collection
+        @test collection_tsc isa Oscar.OscarDB.Collection
+      end
+
+      @testset "Querying" begin
+        tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"],
+                                     Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
+        @test betti_numbers(tsc) == [0, 0, 0, 1]
+      end
     end
 
-    @testset "Types" begin
-      @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
-      @test db["TransitiveSimplicialComplexes"] isa Oscar.OscarDB.Collection
-      @test collection_tsc isa Oscar.OscarDB.Collection
-    end
+    @testset "AlgebraicStatistics.SmallTreeModels" begin
+      collection_tsc = db["AlgebraicStatistics.SmallTreeModels"]
 
-    @testset "Querying" begin
-      tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"],
-                                   Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
-      @test betti_numbers(tsc) == [0, 0, 0, 1]
+      @testset verbose=true "Iterator (Collection)" begin
+        @test iterate(collection_tsc) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
+      end
+
+      @testset "Types" begin
+        @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
+        @test db[AlgebraicStatistics.SmallTreeModels] isa Oscar.OscarDB.Collection
+        @test collection_tsc isa Oscar.OscarDB.Collection
+      end
+
+      @testset "Querying" begin
+        @test length(db[AlgebraicStatistics.SmallTreeModels], Dict("data.model_type" => "JC")) == 6
+      end
     end
   end
 
