@@ -2208,9 +2208,6 @@ julia> disjoint_automorphisms(C)
 ```
 """
 function disjoint_automorphisms(G::Graph)
-  A = automorphism_group(G)
-  n = nv(G)
-
   ret, a, b = _compute_disjoint_automorphism(G::Graph)
   @req ret "The graph has no disjoint automorphisms"
   return a, b
@@ -2231,8 +2228,6 @@ false
 ```
 """
 function has_disjoint_automorphisms(G::Graph)
-  A = automorphism_group(G)
-  n = nv(G)
   ret, a, b = _compute_disjoint_automorphism(G::Graph)
   return ret
 end
