@@ -37,20 +37,20 @@ using Oscar.OscarDB.Mongoc
     end
 
     @testset "AlgebraicStatistics.SmallTreeModels" begin
-      collection_tsc = db["AlgebraicStatistics.SmallTreeModels"]
+      collection_stm = db["AlgebraicStatistics.SmallTreeModels"]
 
       @testset verbose=true "Iterator (Collection)" begin
-        @test iterate(collection_tsc) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
+        @test iterate(collection_stm) isa Tuple{Mongoc.BSON, Mongoc.Cursor{Mongoc.Collection}}
       end
 
       @testset "Types" begin
         @test Oscar.OscarDB.get_db() isa Oscar.OscarDB.Database
-        @test db[AlgebraicStatistics.SmallTreeModels] isa Oscar.OscarDB.Collection
+        @test db["AlgebraicStatistics.SmallTreeModels"] isa Oscar.OscarDB.Collection
         @test collection_tsc isa Oscar.OscarDB.Collection
       end
 
       @testset "Querying" begin
-        @test length(db[AlgebraicStatistics.SmallTreeModels], Dict("data.model_type" => "JC")) == 6
+        @test length(collection_stm, Dict("data.model_type" => "JC")) == 6
       end
     end
   end
