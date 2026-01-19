@@ -378,10 +378,11 @@ end
 @doc raw"""
     vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing}
 
-It is a well-known theorem that the vanishing ideal is the unique prime ideal
-above the pairwise conditional independence ideal which does not contain the
-determinant of the covariance matrix. This translates into a saturation problem
-which can usually be solved faster than the generic elimination-based approach.
+The vanishing ideal is the unique prime ideal above the pairwise conditional
+ independence ideal which does not contain the determinant of the covariance matrix,
+see [BKMS25, Theorem 9 (2)](@cite).
+This translates into a saturation problem which can usually be solved faster than
+the generic elimination-based approach.
 """
 function vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
   G = graph(M)
