@@ -1538,14 +1538,14 @@ Computes specialized Fourier transform from the matrix that represents the full 
 This matrix transforms the reduced probability coordinates (corresponding to the equivalent classes) to the reduced Fourier coordinates.
 """
 function fourier_transform(PM::GroupBasedPhylogeneticModel)
-  FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
-  FRq, q = Oscar.full_model_ring(PM)
+  FRp, p = full_model_ring(phylogenetic_model(PM))
+  FRq, q = full_model_ring(PM)
 
-  Rp, rp = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, rq = Oscar.model_ring(PM)
+  Rp, rp = model_ring(phylogenetic_model(PM))
+  Rq, rq = model_ring(PM)
 
-  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
-  q_classes = Oscar.equivalent_classes(PM)
+  p_classes = equivalent_classes(phylogenetic_model(PM))
+  q_classes = equivalent_classes(PM)
 
   np = length(p_classes)
   nq = length(q_classes)
