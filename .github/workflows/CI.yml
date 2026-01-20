@@ -367,7 +367,7 @@ jobs:
     name: Send Slack notification on status change
     needs:
       - extra-long-test
-    if: github.event_name == 'schedule'
+    if: "!cancelled() && github.event_name == 'schedule'"
     runs-on: ubuntu-latest
 
     steps:
