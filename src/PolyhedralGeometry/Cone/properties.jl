@@ -341,7 +341,7 @@ function f_vector(C::Cone)
   pmc = pm_object(C)
   ldim = pmc.LINEALITY_DIM
   prep = ldim == 0 ? ZZRingElem[] : [zeros(ZZRingElem, ldim - 1); [1]]
-  return [prep; fv]
+  return [prep; pmc.F_VECTOR]
 end
 
 @doc raw"""
