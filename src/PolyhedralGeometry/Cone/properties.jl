@@ -340,7 +340,7 @@ julia> f_vector(square)
 function f_vector(C::Cone)
   pmc = pm_object(C)
   ld = lineality_dim(C)
-  fv = ld == pmc.CONE_DIM ? ZZRingElem[] : pmc.F_VECTOR::Polymake.Vector{Polymake.Integer}
+  fv = ld == dim(C) ? ZZRingElem[] : pmc.F_VECTOR::Polymake.Vector{Polymake.Integer}
   v = zeros(ZZRingElem, ld + length(fv))
   v[(ld + 1):end] = fv
   if ld > 0
