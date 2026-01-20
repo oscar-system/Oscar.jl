@@ -339,9 +339,13 @@ julia> f_vector(square)
 """
 function f_vector(C::Cone)
   pmc = pm_object(C)
-  ldim = pmc.LINEALITY_DIM
-  prep = ldim == 0 ? ZZRingElem[] : [zeros(ZZRingElem, ldim - 1); [1]]
-  res = [prep; pmc.F_VECTOR]
+  ld = pmc.LINEALITY_DIM
+  fv = pmc.F_VECTOR
+  res = zeros(ZZRingElem, ld + length(fv))
+  v[ld+1:end] = fv
+  if ld > 0
+    res[ld] = 1
+  end
   return res
 end
 
