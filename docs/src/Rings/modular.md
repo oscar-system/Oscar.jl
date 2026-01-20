@@ -11,12 +11,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 We have firstly the `crt` methods detailed by the `euclidean_interface`:
 
-```@docs canonical=false
+```@docs; canonical=false
 crt(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement
 crt(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 ```
 
-```@docs canonical=false
+```@docs; canonical=false
 crt_with_lcm(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement
 crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 ```
