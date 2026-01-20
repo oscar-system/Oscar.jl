@@ -34,7 +34,7 @@ end
     @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
 
     # test auto-detection of compression
-    loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); serializer=Oscar.Serialization.GzipSerializer(), params=Fyz)
+    loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); params=Fyz)
     @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
   end
 
