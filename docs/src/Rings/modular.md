@@ -9,6 +9,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Chinese Remainder Theorem
 
+We have firstly the `crt` methods detailed by the `euclidean_interface`:
+`crt(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement`
+`crt(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement`
+`crt_with_lcm(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement`
+`crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement`
+
 <!-- NOTE These are dupes -->
 <!-- ```@docs
 crt(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement
@@ -19,6 +25,9 @@ crt(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 crt_with_lcm(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement
 crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 ``` -->
+
+
+
 
 <!-- ```@docs
 crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, r2::AbsSimpleNumFieldOrderElem, i2::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
