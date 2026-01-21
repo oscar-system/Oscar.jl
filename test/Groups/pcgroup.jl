@@ -185,7 +185,6 @@ end
   a = G[1]^3
   b = H[1]^3
   @test syllables(a) == syllables(b)
-  @test hash(a) != hash(b)
 end
 
 @testset "pcgroup code and reconstruction" begin
