@@ -23,7 +23,7 @@ crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElemen
 
 
 We also have these variants which use idempotents.
-```@docs
+```@docs; canonical=false
 crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, r2::AbsSimpleNumFieldOrderElem, i2::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
 ```
 
