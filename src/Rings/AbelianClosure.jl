@@ -1271,7 +1271,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
   end
   data = val.data  # AbsSimpleNumFieldElem
   coeffs = Nemo.coefficients(data)
-  res = zeros(eltype(coeffs), n)
+  res = Hecke.zeros_array(eltype(coeffs), n)
   res[1] = coeffs[1]
   for i in 2:length(coeffs)
     res[Int(mod((i-1)*k, n)+1)] = coeffs[i]

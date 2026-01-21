@@ -261,7 +261,7 @@ end
 
 function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   if i > length(v.v)
-    push!(v.v, zeros(parent(v.v[1][1]), length(v.v[1])))
+    push!(v.v, Hecke.zeros_array(parent(v.v[1][1]), length(v.v[1])))
   end
   if j > length(v.v[i])
     while length(v.v[i]) < j-1

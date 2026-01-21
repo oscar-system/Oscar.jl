@@ -533,7 +533,7 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     end
 
     #map them to the required ring, ringg. 
-    img_genss = vcat(gens(ringg), zeros(ringg, length(xyz)-n))
+    img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, length(xyz)-n))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
     new_gens = Vector{elem_type(ringg)}()
     for elemm in new_gens_wrong_ring
