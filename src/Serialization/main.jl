@@ -3,6 +3,8 @@ module Serialization
 using ..Oscar
 using UUIDs
 import JSON
+import TranscodingStreams # for gzip
+import CodecZlib          # for gzip
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -623,13 +625,18 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
 save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration see
-[`@register_serialization_type`](@ref)
+The attributes that will be saved are defined during type registration, see
+[`@register_serialization_type`](@ref).
+
+Setting the optional argument `compression` will compress the file using the given
+compression method. The `filename` must have the appropriate file extension for the
+chosen compression method.
+Currently, only `:none` (default) and `:gzip` are supported.
 
 See [`load`](@ref).
 
@@ -681,13 +688,22 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; kwargs...)
+function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
-  open(temp_file, "w") do file
-    save(file, obj; kwargs...)
+  if compression == :none
+    open(temp_file, "w") do file
+      save(file, obj; kwargs...)
+    end
+  elseif compression == :gzip
+    @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
+    open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+      save(file, obj; serializer=serializer.inner, kwargs...)
+    end
+  else
+    error("Unsupported compression method: $compression")
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
