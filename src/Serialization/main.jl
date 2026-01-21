@@ -700,7 +700,7 @@ function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
     open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-      save(file, obj; serializer=serializer.inner, kwargs...)
+      save(file, obj; kwargs...)
     end
   else
     error("Unsupported compression method: $compression")
