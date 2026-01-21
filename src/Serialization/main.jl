@@ -728,6 +728,9 @@ being loaded with this type; if this fails, an error is thrown.
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
+If the file was created with setting the `compression` argument, and the filename
+has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+
 See [`save`](@ref).
 
 # Examples
@@ -861,8 +864,14 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; kwargs...)
-  open(filename) do file
-    return load(file; kwargs...)
+  if endswith(filename, ".gz")
+    open(CodecZlib.GzipDecompressorStream, filename) do file
+      return load(file; kwargs...)
+    end
+  else
+    open(filename) do file
+      return load(file; kwargs...)
+    end
   end
 end
 
