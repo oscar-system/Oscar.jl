@@ -736,8 +736,6 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
   return hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens]; check=false)
 end
 
-relations(F::FreeMod) = elem_type(F)[]
-
 function multiplication_map(
     ctx::Union{PushForwardCtx, ToricCtx},
     p::MPolyDecRingElem,

@@ -194,7 +194,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
   if length(complexes) == 1
     @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
     return (
-      graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))),
+      graph_from_adjacency_matrix(Directed, zeros(Int,length(complexes),length(complexes))),
       EdgeLabels(),
       complexes) :: Tuple{Graph{Directed}, EdgeLabels, Vector{T}}
   end
@@ -256,7 +256,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T};
                              kwargs...) where T <: ComplexOrHypergraph
   # Deal with trivial case
   if length(complexes) <= 1
-    return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
+    return (graph_from_adjacency_matrix(Directed, zeros(Int,length(complexes),length(complexes))), EdgeLabels())
   end
 
   n = n_vertices(complexes[1])
