@@ -88,6 +88,7 @@
     @test intersect(Ps...) == Q0
     @test minkowski_sum(Q0, Q0) == convex_hull(f, 2 * pts)
     @test Q0 + Q0 == minkowski_sum(Q0, Q0)
+    @test Q1 * Q2 == product(Q1, Q2)
     @test f_vector(Pos) == [1, 3, 3]
     @test f_vector(L) == [0, 1, 2]
     @test codim(square) == 0
@@ -282,6 +283,14 @@
     nc = normal_cone(square, 1)
     @test nc isa Cone{T}
     @test rays(nc) == [[1, 0], [0, 1]]
+    let nc2 = normal_cone(square, [1, 2])
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, 1]]
+    end
+    let nc2 = normal_cone(square, [1, 2]; outer=true)
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, -1]]
+    end
     let H = linear_halfspace(f, [1, 1, 0])
       @test polyhedron(H) isa Polyhedron{T}
       @test polyhedron(H) == polyhedron(f, [1 1 0], 0)
@@ -580,6 +589,19 @@
         @test sum(facet_sizes(vf)) == 8
       end
     end
+  end
+
+  @testset "Products of polyhedra" begin
+    pt = convex_hull(f, [[0]])
+    ray = polyhedron(f, [[1]], [0])
+    line = polyhedron(f, [[0]], [0])
+
+    @test dim(pt * pt) == 0 && lineality_dim(pt * pt) == 0
+    @test dim(pt * ray) == 1 && lineality_dim(pt * ray) == 0
+    @test dim(pt * line) == 1 && lineality_dim(pt * line) == 1
+    @test dim(ray * ray) == 2 && lineality_dim(ray * ray) == 0
+    @test dim(ray * line) == 2 && lineality_dim(ray * line) == 1
+    @test dim(line * line) == 2 && lineality_dim(line * line) == 2
   end
 
   if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem}

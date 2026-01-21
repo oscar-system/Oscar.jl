@@ -14,8 +14,10 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   else
     C = presentation(M)
     phi = map(C, 1)
-    codomain(phi).S = function _get_symbol()
-      return [Symbol("$e") for e in gens(M)]
+    if codomain(phi) !== ambient_free_module(M) # if this was not the case, we get infinite recursion here! 
+      codomain(phi).S = function _get_symbol()
+        return [Symbol("$e") for e in gens(M)]
+      end
     end
     result, mm = _exterior_power(phi, p)
   end

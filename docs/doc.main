@@ -64,6 +64,9 @@
      "Multivariate Polynomials" => [
         "AbstractAlgebra/mpolynomial.md",
      ],
+     "Modular Methods" => [
+         "AbstractAlgebra/euclidean_interface.md",
+     ],
      "Series Rings" => [
         "AbstractAlgebra/series.md",
         "AbstractAlgebra/puiseux.md",
@@ -236,6 +239,7 @@
          "AlgebraicGeometry/Curves/ProjectiveCurves.md",
          "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
 	 "AlgebraicGeometry/Curves/ParametrizationPlaneCurves.md",
+	 "AlgebraicGeometry/Curves/PuiseuxExpansion.md",
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",

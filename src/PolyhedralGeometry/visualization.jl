@@ -1,7 +1,7 @@
 const visual_supported_types = Union{PolyhedralObjectUnion,Graph,SimplicialComplex}
 
 @doc raw"""
-    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...) where T<:Union{FieldElem, Float64}
+    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...) where T<:Union{FieldElem, Float64}
 
 Visualize a polyhedral object of dimension at most four (in 3-space).
 In dimensions up to 3 a usual embedding is shown.
@@ -65,15 +65,26 @@ function visualize(
     SubdivisionOfPoints{<:Union{Float64,FieldElem}},
     SimplicialComplex,
   };
-  backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...,
+  backend::Symbol=:default, filename::Union{Nothing,String}=nothing, kwargs...,
 )
   pmo = _prepare_visualization(P)
   vpmo = Polymake.visual(Polymake.Visual, pmo; kwargs...)
-  if !isnothing(filename)
-    Polymake.call_function(Nothing, :fan, backend, vpmo; File=filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default &&
+    isnothing(filename)
+    # this will return a visual object,
+    # the visualization is then triggered by the show method
+    return vpmo
   else
-    Polymake.call_function(Nothing, :fan, backend, vpmo)
+    if backend === :default
+      backend = :threejs
+    end
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :fan, backend, vpmo; File=filename)
+    else
+      Polymake.call_function(Nothing, :fan, backend, vpmo)
+    end
   end
+  return nothing
 end
 
 @doc raw"""
@@ -98,7 +109,7 @@ julia> visualize(P)
 ```
 """
 function visualize(
-  P::Vector; backend::Symbol=:threejs, filename::Union{Nothing,String}=nothing, kwargs...
+  P::Vector; backend::Symbol=:default, filename::Union{Nothing,String}=nothing, kwargs...
 )
   P = map(
     p -> begin
@@ -111,11 +122,15 @@ function visualize(
     ) for i in 1:length(P)
   ]
   vc = Polymake.call_function(:common, :compose, vis...)
-  if isdefined(Main, :IJulia) && Main.IJulia.inited && isnothing(filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default &&
+    isnothing(filename)
     # this will return a visual object,
     # the visualization is then triggered by the show method
-    return Polymake.call_function(:common, :compose, vis...)
+    return vc
   else
+    if backend === :default
+      backend = :threejs
+    end
     if !isnothing(filename)
       Polymake.call_function(Nothing, :fan, backend, vc; File=filename)
     else

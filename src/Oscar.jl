@@ -50,7 +50,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
   version_string = string(VERSION_NUMBER)
   if is_dev
     gitinfo = _get_oscar_git_info()
-    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+    version_string = version_string * " " * _short_git_info(gitinfo)
   else
     version_string = "Version " * version_string
   end
@@ -85,7 +85,7 @@ function __init__()
     [
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
-        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsMatrixGroup, MatGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
@@ -129,6 +129,9 @@ function __init__()
 
   add_verbosity_scope(:Isometry)
   add_assertion_scope(:Isometry)
+  
+  add_verbosity_scope(:OrthogonalStablizer)
+  add_assertion_scope(:OrthogonalStablizer)
 
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
@@ -270,6 +273,7 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
+include("NumberTheory/ZLattices.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")

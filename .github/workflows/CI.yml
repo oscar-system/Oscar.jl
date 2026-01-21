@@ -45,7 +45,6 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.11'
           - '1.12'
           - '1.13-nightly'
           - 'nightly'
@@ -95,6 +94,9 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: "Clean polymake scratchspace for self-hosted macOS runners"
+        if: runner.environment == 'self-hosted'
+        run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -128,7 +130,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
@@ -184,7 +186,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
@@ -219,7 +221,6 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.11'
           - '1.12'
           - '1.13-nightly'
           - 'nightly'
@@ -251,6 +252,9 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: "Clean polymake scratchspace for self-hosted macOS runners"
+        if: runner.environment == 'self-hosted'
+        run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -286,7 +290,7 @@ jobs:
       - name: Save Julia depot cache on cancel or failure
         id: julia-cache-save
         if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with: 
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
@@ -301,7 +305,6 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.11'
           - '1.12'
           - '1.13-nightly'
           - 'nightly'
@@ -364,7 +367,7 @@ jobs:
     name: Send Slack notification on status change
     needs:
       - extra-long-test
-    if: github.event_name == 'schedule'
+    if: "!cancelled() && github.event_name == 'schedule'"
     runs-on: ubuntu-latest
 
     steps:

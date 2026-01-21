@@ -136,8 +136,15 @@ function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
   print(pretty(io), "Iterator over the partitions of $(base(P))")
 end
 
-Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
 
+function Base.length(P::Partitions)
+  try
+    return Int(number_of_partitions(P.n))
+  catch e
+    e isa InexactError && error("Length is too large, use `number_of_partitions` instead")
+    rethrow(e)
+  end
+end
 
 
 base(P::PartitionsFixedNumParts) = P.n
@@ -152,7 +159,7 @@ end
 # NOTE this will not be accurate in many cases,
 # in particular if upper/lower bounds are given,
 # or if `only_distinct_parts == true`.
-# Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.k))
+# Base.length(P::PartitionsFixedNumParts) = Int(number_of_partitions(P.n, P.k))
 
 Base.IteratorSize(::Type{PartitionsFixedNumParts{T}}) where T = Base.SizeUnknown()
 ################################################################################

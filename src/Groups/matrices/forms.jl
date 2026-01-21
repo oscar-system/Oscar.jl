@@ -555,7 +555,7 @@ function Base.:^(f::QuadraticForm{T}, x::MatElem{T}; check=false) where T <: Rin
    return QuadraticForm(m)
 end
 
-Base.:^(f::Union{SesquilinearForm{T}, QuadraticForm{T}}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
+Base.:^(f::Union{SesquilinearForm{T}, QuadraticForm{T}}, x::MatGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    if f.descr==:hermitian
