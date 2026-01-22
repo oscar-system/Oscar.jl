@@ -112,20 +112,21 @@ parameters, the method `evaluate_parameters` can be used:
 ```jldoctest full_example
 julia> evaluate_parameters(A, [2,3//4])
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
+  Multivariate polynomial ring in 2 variables over QQ
 with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [ 0   2]
-   [0   1]    [-2   0]
+  t1, t2
 
-   [-1    0] => [    0   3//4]
-   [ 0   -1]    [-3//4      0]
+given by alternating bilinear forms
+  [1   0] => [ 0   2]
+  [0   1]    [-2   0]
+
+  [-1    0] => [    0   3//4]
+  [ 0   -1]    [-3//4      0]
 ```
 
 The values in the given array can be anything that 
@@ -140,20 +141,21 @@ julia> (t_1,t_2) = parameters(A)
 
 julia> evaluate_parameters(A, [-t_1,-t_2/2])
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
+  Multivariate polynomial ring in 2 variables over QQ
 with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [ 0   -t1]
-   [0   1]    [t1     0]
+  t1, t2
 
-   [-1    0] => [      0   -1//2*t2]
-   [ 0   -1]    [1//2*t2          0]
+given by alternating bilinear forms
+  [1   0] => [ 0   -t1]
+  [0   1]    [t1     0]
+
+  [-1    0] => [      0   -1//2*t2]
+  [ 0   -1]    [1//2*t2          0]
 ```
 
 There is additionally the option to directly define
@@ -179,20 +181,21 @@ Dict{MatGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{Q
 
 julia> B = drinfeld_hecke_algebra(forms)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
+  Multivariate polynomial ring in 2 variables over QQ
 with parameters 
-   x, y
-given by alternating bilinear forms
-   [1   0] => [ 0   x]
-   [0   1]    [-x   0]
+  x, y
 
-   [-1    0] => [ 0   y]
-   [ 0   -1]    [-y   0]
+given by alternating bilinear forms
+  [1   0] => [ 0   x]
+  [0   1]    [-x   0]
+
+  [-1    0] => [ 0   y]
+  [ 0   -1]    [-y   0]
 ```
 
 Let us do some arithmetic. Since multiplication
@@ -225,10 +228,8 @@ julia> (x,y) = gens(R)
 julia> A(x*y)
 x1*x2
 
-
 julia> A(y*x)
 x1*x2
-
 
 julia> A(y)*A(x)
 x1*x2 - t1
