@@ -122,6 +122,7 @@ end
 #######################################
 
 function show(io::IO, kappa::DrinfeldHeckeForm)
+  io = pretty(io)
   println(io, "Drinfeld-Hecke form over base ring")
   print(io, Indent(), string(base_ring(kappa)))
   println(io, Dedent())
@@ -171,6 +172,8 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
       else
         println(io, "]")
       end
+    
+      print(io, Dedent())
     end
   
     if k < length(kappa.forms)

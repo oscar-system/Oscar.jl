@@ -69,20 +69,21 @@ Next we calculate the generic Drinfeld--Hecke form for G
 ```jldoctest full_example
 julia> A = generic_drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
+  Multivariate polynomial ring in 2 variables over QQ
 with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [  0   t1]
-   [0   1]    [-t1    0]
+  t1, t2
 
-   [-1    0] => [  0   t2]
-   [ 0   -1]    [-t2    0]
+given by alternating bilinear forms
+  [1   0] => [  0   t1]
+  [0   1]    [-t1    0]
+
+  [-1    0] => [  0   t2]
+  [ 0   -1]    [-t2    0]
 ```
 
 As we can see there are three generators listed here. 

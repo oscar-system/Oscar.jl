@@ -285,14 +285,15 @@ end
 #######################################
 
 function Base.show(io::IO, A::DrinfeldHeckeAlgebra)
+  io = pretty(io)
   println(io, "Drinfeld-Hecke algebra")
-  print(io, "   for ")
+  print(io, Indent(), "for ")
   show(io, group(A))
-  println(io)
+  println(io, Dedent())
   println(io, "with generators")
-  print(io, "   " * join(gens(base_algebra(A)), ", "))
+  print(io, Indent(), join(gens(base_algebra(A)), ", "))
   println(io, ", " * join(["g" * string(i) for i in 1:ngens(group(A))], ", "))
-  println(io)
+  println(io, Dedent())
   print(io, "defined by ")
   show(io, form(A))
 end
