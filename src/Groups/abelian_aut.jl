@@ -687,6 +687,16 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     st2 =  stabilizer(O, Hgap.X, on_subgroups)
     return st2
   end
+  if !is_snf(domain(O))
+    # work with a Smith normal form
+    # because otherwise GAP will choke on non-invertible matrices
+    D = domain(O)
+    Snf,toD = snf(D)
+    Os,toOs = restrict_automorphism_group(O, toD)
+    j = i*inv(toD)
+    stab,inc = stabilizer(Os,j)
+    return preimage(toOs,stab)
+  end 
   a = elementary_divisors(domain(i))
   if length(a)==0
     return O, id_hom(O) 
@@ -709,7 +719,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     p = n
     B = matrix(i.map_ab)
     mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
-    @show gens(O), mats, B, n
     st = _stab_via_fin_field(O, mats, B, n)
     #@assert order(st[1])==order(st2[1])
     return st
