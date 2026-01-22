@@ -19,4 +19,5 @@ export riquier_matrix
 export set_ranking!
 export trailing_monomial
 export trailing_term
+export univariate_coefficients
 

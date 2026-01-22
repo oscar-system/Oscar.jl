@@ -7,7 +7,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.0",
-  function upgrade_0_12_0(s::UpgradeState, dict::Dict)
+  function upgrade_0_12_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     ref_types = ["MPolyRing", "MatSpace", "RationalFunctionField", "MPolyComplementOfPrimeIdeal", "Hecke.RelNonSimpleNumFieldEmbedding", "MPolyPowersOfElement", "PermGroup", "SMatSpace", "Hecke.RelSimpleNumFieldEmbedding", "FPGroup", "FinGenAbGroup", "Hecke.AbsSimpleNumFieldEmbedding", "Hecke.QuadSpace", "HypersurfaceModel", "GlobalTateModel", "FracField", "AbsSimpleNumField", "ZZLaurentSeriesRing", "SubFPGroup", "Hecke.RelSimpleNumField", "MPolyDecRing", "SeriesRing", "EmbeddedNumField", "TropicalCurve", "FreeAssociativeAlgebra", "WeierstrassModel", "Hecke.AbsNonSimpleNumFieldEmbedding", "AffineNormalToricVariety", "Polymake.BigObject", "WeylGroup", "MPolyLocalizedRingHom", "LaurentSeriesField", "MPolyComplementOfKPointIdeal", "UniversalPolyRing", "MPolyQuoLocRing", "GapObj", "AbstractLieAlgebra", "AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField", "fqPolyRepField", "PcGroup", "PolyRing", "NormalToricVariety", "SubPcGroup", "LaurentSeriesRing", "AbstractAlgebra.Generic.LaurentMPolyWrapRing"]
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
@@ -47,7 +47,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     # handle data upgrade (recurse on sub tree)
-    if haskey(dict, :data) && dict[:data] isa Dict
+    if haskey(dict, :data) && dict[:data] isa AbstractDict
       upgraded_dict[:data] = upgrade_0_12_0(s, dict[:data])
     end
 
@@ -56,7 +56,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       s.id_to_dict[Symbol(dict[:id])] = upgraded_dict
     elseif haskey(dict, :id)
       # remove ids for objects that dont require references
-      id = pop!(upgraded_dict, :id)
+      id = upgraded_dict[:id]
+      delete!(upgraded_dict, :id)
       s.id_to_dict[Symbol(id)] = upgraded_dict
     end
 

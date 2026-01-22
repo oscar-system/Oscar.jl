@@ -699,3 +699,19 @@ end
   @test !is_one(radical(I))
 end
 
+@testset "puiseux expansion" begin
+  R, (x, y) = QQ[:x, :y]
+  f = y^3 + x^2 + x^8
+  h = puiseux_expansion(f, 15)
+  @test all(is_zero(evaluate(f, [gen(parent(h)), h])) for h in h)
+
+  g = f + y^7
+  hg = puiseux_expansion(g, 20)
+  @test_throws ErrorException h + hg # no parent compatibility 
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
+  
+  g = y^4 + x^2 + x^8
+  hg = puiseux_expansion(g, 20)
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
+end
+

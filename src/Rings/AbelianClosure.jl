@@ -168,8 +168,7 @@ elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbFieldElem{AbsNonSimpleN
 parent_type(::Type{QQAbFieldElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
 parent(::QQAbFieldElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
 
-base_ring(::QQAbField) = Union{}
-base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
+base_ring_type(::Type{<:QQAbField}) = Union{}
 
 ################################################################################
 #
@@ -1272,7 +1271,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
   end
   data = val.data  # AbsSimpleNumFieldElem
   coeffs = Nemo.coefficients(data)
-  res = zeros(eltype(coeffs), n)
+  res = Hecke.zeros_array(eltype(coeffs), n)
   res[1] = coeffs[1]
   for i in 2:length(coeffs)
     res[Int(mod((i-1)*k, n)+1)] = coeffs[i]

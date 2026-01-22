@@ -106,12 +106,6 @@ mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
-  function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
-  end
-
 end
 
 ### Differential ###
@@ -159,12 +153,6 @@ mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
   end
 
-  function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
-  end
-
 end
 
 ###############################################################################
@@ -204,3 +192,4 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   end
   
 end
+

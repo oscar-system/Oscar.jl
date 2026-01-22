@@ -871,18 +871,18 @@ function _irred_abelian(G::Oscar.GAPGroup, F::FinField)
 
     # `orblen` is the length of the Galois orbit over `F`.
     # Compute `L, K, z` where
-    # `L` is the smallest field that contains `F` and a prim. `o`-th root,
+    # `L` is the smallest field in char. `p` that contains a prim. `o`-th root,
     # `K` is the intersection of `L` and `F`,
     # and `z` is an element of order `o` in `L`.
     # These values depend only on `o`.
     # (The irred. `F`-repres. of `G` live already over `K`,
     # we work over `K` and later write the matrices over `F`.)
-    L, K, z = get(rootinfo, o) do
-      m = k * orblen
+    L, K, z = get!(rootinfo, o) do
+      m = modord(p, o) # Note: `orblen == modord(q, o)` divides `m`
       L = GF(p, m)
       return L,
              GF(p, gcd(k, m)),
-             Oscar.DiscLog.generator(L)^divexact(p^m-1, o)
+             Oscar.DiscLog.element_of_given_order(L, o)
     end
 
     mp = embed(K, L)
@@ -979,7 +979,7 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   return D
 end
 
-function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbFieldElem})
+function Oscar.matrix_group(::Type{CyclotomicField}, G::MatGroup{<:QQAbFieldElem})
   return matrix_group(map_entries(CyclotomicField, map(matrix, gens(G))))
 end
 
@@ -1475,12 +1475,12 @@ function hom_base_perm_module(C::GModule, D::GModule)
 end
 
 """
-    natural_gmodule(G::MatrixGroup)
+    natural_gmodule(G::MatGroup)
 
 Return the G-module of dimension `degree(G)` over `base_ring(G)`
 that is induced by the action of `G` via right multiplication.
 """
-function natural_gmodule(G::MatrixGroup)
+function natural_gmodule(G::MatGroup)
   R = base_ring(G)
   M = free_module(R, degree(G); cached = false)
   return GModule(M, G, [hom(M, M, matrix(a)) for a in gens(G)])

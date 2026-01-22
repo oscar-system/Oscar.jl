@@ -83,8 +83,6 @@ import AbstractAlgebra:
   Generic.finish,
   Generic.interreduce!,
   Generic.MPolyBuildCtx,
-  Generic.MPolyCoeffs,
-  Generic.MPolyExponentVectors,
   Generic.push_term!,
   gens,
   get_attribute,

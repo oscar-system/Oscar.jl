@@ -33,7 +33,7 @@ variables are sorted with respect to a user-defined [ranking](@ref actionpolyran
     The set of valid jet variables of an action polynomial ring depend only on the integers ``m`` and
     ``n`` and are thus known at the time of construction. For reasons of efficiency, we keep the list of
     tracked jet variables as short as possible and track jet variables only, if necessary. The list of
-    currently tracked jet variables is obtained, using
+    currently tracked jet variables is obtained using
     [`gens`](@ref gens(apr::ActionPolyRing)).
 
 Currently, there are two concrete subtypes available, namely `DifferencePolyRing{T}` and
@@ -180,12 +180,39 @@ total_degree(p::ActionPolyRingElem)
 derivative(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ```
 
+### [Discriminant and resultant](@id discriminant_resultant_apr)
+
+```@docs
+discriminant(p::ActionPolyRingElem)
+resultant(f::ActionPolyRingElem, g::ActionPolyRingElem, i::Int, jet::Vector{Int})
+```
+
+### [Evaluation](@id evaluation_apr)
+
+The following function allows evaluation of a polynomial at all its variables. The result is always
+in the ring that a product of a coefficient and one of the values belongs to, i.e. if all the values
+are in the coefficient ring, the result of the evaluation will be too.
+
+```@docs
+evaluate(a::ActionPolyRingElem{T}, vals::Vector{V}) where {T <: RingElement, V <: RingElement}
+```
+
+The following functions allow evaluation of a polynomial at some of its variables. Note that the
+result will be a product of values and an element of the polynomial ring, i.e. even if all the
+values are in the coefficient ring and all variables are given values, the result will be a
+constant polynomial, not a coefficient.
+
+```@docs
+evaluate(a::ActionPolyRingElem{T}, vars::Vector{Int}, vals::Vector{V}) where {T <: RingElement, V <: RingElement}
+evaluate(a::PolyT, vars::Vector{PolyT}, vals::Vector{V}) where {PolyT <: ActionPolyRingElem, V <: RingElement}
+```
+
 ### Univariate polynomials
 
 ```@docs
-is_univariate(A::ActionPolyRing)
 is_univariate(p::ActionPolyRingElem)
 to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
 to_univariate(p::ActionPolyRingElem)
+univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ```
 

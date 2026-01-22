@@ -9,7 +9,7 @@ For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `SubFPGroup`,
-`PcGroup`, `SubPcGroup`, and `MatrixGroup`.
+`PcGroup`, `SubPcGroup`, and `MatGroup`.
 """
 abstract type GAPGroup <: Group end
 
@@ -383,23 +383,23 @@ finitely presented groups, see [`FPGroupElem`](@ref).
 const SubFPGroupElem = BasicGAPGroupElem{SubFPGroup}
 
 
-abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
+abstract type AbstractMatGroupElem <: GAPGroupElem{GAPGroup} end
 
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
 """
-    MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+    MatGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
 
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 """
-@attributes mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+@attributes mutable struct MatGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    deg::Int
    ring::Ring
    X::GapObj
-   gens::Vector{<:AbstractMatrixGroupElem}
+   gens::Vector{<:AbstractMatGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
    ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
 
-   function MatrixGroup{RE,T}(F::Ring, m::Int) where {RE,T}
+   function MatGroup{RE,T}(F::Ring, m::Int) where {RE,T}
      G = new{RE, T}()
      G.deg = m
      G.ring = F
@@ -407,25 +407,54 @@ Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` 
    end
 end
 
+# Construct an Oscar matrix group from a GAP matrix group,
+# guess the ring over which the Oscar group will live.
+# (This is usually not what we want to do.)
+function matrix_group(G::GapObj)
+  @req GAPWrap.IsMatrixGroup(G) "the GAP group must be a matrix group"
+  iso = inv(iso_gap_oscar(GAPWrap.FieldOfMatrixGroup(G)))
+  set_attribute!(domain(iso), :iso_oscar_gap, iso)
+  return matrix_group(iso, G; check = false)
+end
+
+# Construct an Oscar matrix group from a GAP matrix group.
+# In order to construct the group over a given ring,
+# prescribe the `ring_iso` of the desired matrix group.
+function matrix_group(ring_iso::Map, G::GapObj; check::Bool=true)
+  if check
+    @req GAPWrap.IsMatrixGroup(G) "the GAP group must be a matrix group"
+    C = codomain(ring_iso)
+    @req isa(C, GapObj) "the codomain of the given map must be a GapObj"
+    @req GAPWrap.IsSubset(C, GAPWrap.FieldOfMatrixGroup(G)) "the codomain of the given map must contain the matrix entries"
+  end
+  deg = GAPWrap.DimensionOfMatrixGroup(G)
+  ring = domain(ring_iso)
+  matgrp = matrix_group(ring, deg)
+  matgrp.ring_iso = ring_iso
+  matgrp.X = G
+  return matgrp
+end
+
+
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
-    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+    MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupElem
 
-Type of elements of a group of type `MatrixGroup{RE, T}`.
+Type of elements of a group of type `MatGroup{RE, T}`.
 """
-mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
-   parent::MatrixGroup{RE, T}
+mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupElem
+   parent::MatGroup{RE, T}
    elm::T                         # Oscar matrix
-   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
+   X::GapObj                     # GAP matrix. If x isa MatGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
 
    # full constructor
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
+   MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
 
    # constructor which leaves `X` undefined
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
+   MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
 
    # constructor which leaves `elm` undefined
-   function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
+   function MatGroupElem{RE,T}(G::MatGroup{RE,T}, x_gap::GapObj) where {RE, T}
       z = new{RE,T}(G)
       z.X = x_gap
       return z
@@ -442,37 +471,28 @@ sub_type(::Type{PcGroup}) = SubPcGroup
 sub_type(::Type{FPGroup}) = SubFPGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
-# `_oscar_subgroup(obj, G)` is used to create the subgroup of `G`
-# that is described by the GAP group `obj`;
-# default: ignore `G`
-function _oscar_subgroup(obj::GapObj, G::GAPGroup)
+# `_oscar_subgroup(obj, G; check::Bool = true)` is used to create
+# the subgroup of `G` that is described by the GAP group `obj`;
+# default: ignore `G` and `check`
+function _oscar_subgroup(obj::GapObj, G::GAPGroup; check::Bool = true)
   S = sub_type(G)(obj)
   @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
 
-# `PermGroup`: set the degree of `G`
-function _oscar_subgroup(obj::GapObj, G::PermGroup)
+# `PermGroup`: set the degree of `G`, ignore `check`
+function _oscar_subgroup(obj::GapObj, G::PermGroup; check::Bool = true)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
   return permutation_group(obj, N)
 end
 
-# `MatrixGroup`: set dimension and ring of `G`
-function _oscar_subgroup(obj::GapObj, G::MatrixGroup)
-  d = GAP.Globals.DimensionOfMatrixGroup(obj)
-  d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
-
-  R = G.ring
-  iso = _ring_iso(G)
-  GAPWrap.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
-
-  M = matrix_group(R, d)
-  M.X = obj
-  M.ring = R
-  M.ring_iso = iso
-  return M
+# `MatGroup`: set dimension and ring of `G`
+function _oscar_subgroup(obj::GapObj, G::MatGroup; check::Bool = true)
+  d = GAPWrap.DimensionOfMatrixGroup(obj)
+  @req G.deg == d "requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)"
+  return matrix_group(_ring_iso(G), obj; check = check)
 end
 
 
@@ -500,10 +520,18 @@ abstract type GroupConjClass{T,S} <: GSet{T,S} end
 #
 #  Group Homomorphism
 #
+#  We support the following types of homomorphism objects.
+#
 ################################################################################
 
 abstract type GAPMap <: SetMap end
 
+"""
+    GAPGroupHomomorphism{S<:GAPGroup, T<:GAPGroup}
+
+An object of the type `GAPGroupHomomorphism` stores a homomorphism object
+as its `GapObj` value, and delegates all computations to it.
+"""
 struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupHomomorphism{S,T}}
    domain::S
    codomain::T
@@ -514,7 +542,38 @@ struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGro
    end
 end
 
+"""
+    GAPGroupEmbedding{S<:GAPGroup, T<:GAPGroup}
+
+An object `emb` of the type `GAPGroupEmbedding` knows that
+the corresponding map on the GAP side is the identity map
+on the GAP object corresponding to `domain(emb)`.
+
+A corresponding homomorphism `GapObj(emb)` on the GAP side
+is created only on demand, in many situations this is not needed.
+
+Many natural embeddings between `GapGroup` objects are realized as
+`GAPGroupEmbedding` objects.
+"""
+struct GAPGroupEmbedding{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupEmbedding{S,T}}
+   domain::S
+   codomain::T
+   map::Ref{GapObj} # may be missing
+
+   function GAPGroupEmbedding(G::S, H::T) where {S<: GAPGroup, T<: GAPGroup}
+     return new{S, T}(G, H, Ref{GapObj}())
+   end
+end
+
 GapObj(f::GAPGroupHomomorphism) = f.map
+
+function GapObj(f::GAPGroupEmbedding)
+  isassigned(f.map) && return f.map[]::GapObj
+  mp = GAPWrap.GroupHomomorphismByFunction(GapObj(f.domain), GapObj(f.codomain),
+           GAP.Globals.IdFunc, false, GAP.Globals.IdFunc)
+  f.map[] = mp
+  return mp
+end
 
 
 """
@@ -652,17 +711,8 @@ const _gap_group_types = Tuple{GapObj, Type}[]
 function _oscar_group(G::GapObj)
   for pair in _gap_group_types
     if pair[1](G)
-      if pair[2] == MatrixGroup
-#T HACK: We need more information in the case of matrix groups.
-#T (Usually we should not need to guess the Oscar side of a GAP group.)
-        deg = GAP.Globals.DimensionOfMatrixGroup(G)
-        iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(G))
-        ring = codomain(iso)
-        matgrp = matrix_group(ring, deg)
-        matgrp.ring_iso = inv(iso)
-        set_attribute!(ring, :iso_oscar_gap, matgrp.ring_iso)
-        matgrp.X = G
-        return matgrp
+      if pair[2] == MatGroup
+        return matrix_group(G)
       elseif pair[2] == AutomorphismGroup
         actdom_gap = GAP.Globals.AutomorphismDomain(G)
         actdom_oscar = _oscar_group(actdom_gap)
@@ -701,7 +751,7 @@ end
 _check_compatible(G1::PermGroup, G2::PermGroup; error::Bool = true) = true
 
 # The groups must have the same dimension and the same base ring.
-function _check_compatible(G1::MatrixGroup, G2::MatrixGroup; error::Bool = true)
+function _check_compatible(G1::MatGroup, G2::MatGroup; error::Bool = true)
   base_ring(G1) == base_ring(G2) && degree(G1) == degree(G2) && return true
   error && throw(ArgumentError("G1 and G2 must have same base_ring and degree"))
   return false

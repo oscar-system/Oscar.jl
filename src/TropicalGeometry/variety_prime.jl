@@ -29,7 +29,7 @@ function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{
                             "string TropIString = string(TropI);"])
     Singular.call_interpreter(singularCommand)
     TropIString = Singular.lookup_library_symbol("Top", "TropIString")
-    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,false)
+    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==min,false)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
         set_attribute!(TropI,:algebraic_ideal,I)
