@@ -255,13 +255,13 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   if !(R isa MPolyRing)
     throw(ArgumentError("The given form does not have any parameters."))
   end
-
-  # If A is zero, there is nothing to do
-  if is_zero(form(A)) return drinfeld_hecke_algebra(G,R) end
   
   n = ngens(R)
   
   @req length(values) == n "Values input must contain exactly $n entries"
+  
+  # If A is zero, there is nothing to do
+  is_zero(form(A)) && return drinfeld_hecke_algebra(G,R)
   
   # Check if values are in R
   safe_values = try
