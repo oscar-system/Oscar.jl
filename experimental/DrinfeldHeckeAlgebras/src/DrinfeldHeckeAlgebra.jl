@@ -320,8 +320,7 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
   group_elements = parent(a.element).base_to_group
   non_zero_coefficients = Dict()
   
-  for i in 1:length(coefficients(a.element))
-    c = coefficients(a.element)[i]
+  for (i,c) in enumerate(coefficients(a.element))
     
     if !is_zero(c)
       g = group_elements[i]
