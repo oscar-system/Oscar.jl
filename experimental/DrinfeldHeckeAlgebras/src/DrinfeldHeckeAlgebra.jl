@@ -266,11 +266,10 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   @req length(values) == n "Values input must contain exactly $n entries"
   
   # Check if values are in R
-  safe_values = nothing
-  try
-    safe_values = map(v -> R(v), values)
+  safe_values = try
+    map(R, values)
   catch e
-    throw(ArgumentError("The given values can not be cast into elements of the base ring."))
+    throw(ArgumentError("The given values can not be cast into elements of the base ring"))
   end
 
   # Evaluation function
