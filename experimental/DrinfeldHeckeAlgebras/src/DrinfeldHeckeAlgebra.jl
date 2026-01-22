@@ -151,7 +151,6 @@ function (A::DrinfeldHeckeAlgebra)(a::DrinfeldHeckeAlgebraElem)
 end
 
 function (A::DrinfeldHeckeAlgebra)(a)
-  A(group_algebra(A)(a))
   try
     return A(group_algebra(A)(a))
   catch 
