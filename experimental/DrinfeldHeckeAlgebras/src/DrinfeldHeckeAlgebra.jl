@@ -263,9 +263,7 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   
   n = ngens(R)
   
-  if length(values) != n
-    throw(ArgumentError("Values input must contain exactly " * string(n) * " entries."))
-  end
+  @req length(values) == n "Values input must contain exactly $n entries"
   
   # Check if values are in R
   safe_values = nothing
