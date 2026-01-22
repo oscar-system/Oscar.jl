@@ -1,7 +1,5 @@
 #######################################
 # Helper functions for generic Drinfeld-Hecke form generation and validation
-#
-# Cassandra Koenen, 2025
 #######################################
 
 #######################################

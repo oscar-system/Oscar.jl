@@ -1,7 +1,5 @@
 #######################################
 # Methods for creating and applying alternating bilinear forms
-#
-# Cassandra Koenen, 2025
 #######################################
 
 #######################################

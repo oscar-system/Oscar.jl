@@ -9,8 +9,6 @@
 # (Lemma 1.5 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 #
 # These relations can be translated into a matrix M defining an LES of the form Mx = 0.
-#
-# Cassandra Koenen, 2025
 #######################################
 
 #######################################

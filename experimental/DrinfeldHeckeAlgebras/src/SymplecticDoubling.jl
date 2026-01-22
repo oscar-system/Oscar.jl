@@ -1,7 +1,5 @@
 #######################################
 # Method for symplectic doubling of a matrix group over a field
-#
-# Cassandra Koenen, 2025
 #######################################
 
 @doc raw"""

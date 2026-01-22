@@ -1,7 +1,5 @@
 #######################################
 # Struct and methods to generate and handle concrete or generic Drinfeld-Hecke algebras
-#
-# Cassandra Koenen, 2025
 #######################################
 
 #######################################

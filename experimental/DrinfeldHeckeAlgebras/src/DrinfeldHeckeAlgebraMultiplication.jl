@@ -1,7 +1,5 @@
 #######################################
 # Methods to multiply elements in Drinfeld-Hecke algebra
-#
-# Cassandra Koenen, 2025
 #######################################
 
 #######################################
