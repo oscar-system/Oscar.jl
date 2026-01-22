@@ -52,14 +52,15 @@ julia> R, _ = polynomial_ring(QQ, ["x","y"])
 
 julia> drinfeld_hecke_algebra(G, R)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   x, y
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  x, y
+
 given by 0
 ```
 """
@@ -96,20 +97,21 @@ Dict{MatGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{Q
 
 julia> drinfeld_hecke_algebra(forms)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   x, y
-given by alternating bilinear forms
-   [1   0] => [ 0   x]
-   [0   1]    [-x   0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  x, y
 
-   [-1    0] => [ 0   y]
-   [ 0   -1]    [-y   0]
+given by alternating bilinear forms
+  [1   0] => [ 0   x]
+  [0   1]    [-x   0]
+
+  [-1    0] => [ 0   y]
+  [ 0   -1]    [-y   0]
 ```
 """
 drinfeld_hecke_algebra(forms::Dict) = DrinfeldHeckeAlgebra(forms)
@@ -175,20 +177,21 @@ Matrix group of degree 2
 
 julia> generic_drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [  0   t1]
-   [0   1]    [-t1    0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  t1, t2
 
-   [-1    0] => [  0   t2]
-   [ 0   -1]    [-t2    0]
+given by alternating bilinear forms
+  [1   0] => [  0   t1]
+  [0   1]    [-t1    0]
+
+  [-1    0] => [  0   t2]
+  [ 0   -1]    [-t2    0]
 ```
 """
 function generic_drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
@@ -214,37 +217,39 @@ Matrix group of degree 2
 
 julia> A = generic_drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [  0   t1]
-   [0   1]    [-t1    0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  t1, t2
 
-   [-1    0] => [  0   t2]
-   [ 0   -1]    [-t2    0]
+given by alternating bilinear forms
+  [1   0] => [  0   t1]
+  [0   1]    [-t1    0]
+
+  [-1    0] => [  0   t2]
+  [ 0   -1]    [-t2    0]
 
 julia> evaluate_parameters(A, [1,2])
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [ 0   1]
-   [0   1]    [-1   0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  t1, t2
 
-   [-1    0] => [ 0   2]
-   [ 0   -1]    [-2   0]
+given by alternating bilinear forms
+  [1   0] => [ 0   1]
+  [0   1]    [-1   0]
+
+  [-1    0] => [ 0   2]
+  [ 0   -1]    [-2   0]
 ```
 """
 function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
@@ -400,14 +405,15 @@ julia> R, (x,y) = polynomial_ring(QQ, ["x","y"])
 
 julia> A = drinfeld_hecke_algebra(G, R)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   x, y
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  x, y
+
 given by 0
 
 julia> base_ring(A)
@@ -430,12 +436,12 @@ Matrix group of degree 2
 
 julia> A = drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Rational field
+  Rational field
 given by 0
 
 julia> base_algebra(A)
@@ -458,12 +464,12 @@ Matrix group of degree 2
 
 julia> A = drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Rational field
+  Rational field
 given by 0
 
 julia> group(A)
@@ -497,20 +503,21 @@ Matrix group of degree 2
 
 julia> A = generic_drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [  0   t1]
-   [0   1]    [-t1    0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  t1, t2
 
-   [-1    0] => [  0   t2]
-   [ 0   -1]    [-t2    0]
+given by alternating bilinear forms
+  [1   0] => [  0   t1]
+  [0   1]    [-t1    0]
+
+  [-1    0] => [  0   t2]
+  [ 0   -1]    [-t2    0]
 
 julia> parameters(A)
 2-element Vector{QQMPolyRingElem}:
@@ -534,20 +541,21 @@ Matrix group of degree 2
 
 julia> A = generic_drinfeld_hecke_algebra(G)
 Drinfeld-Hecke algebra
-   for Matrix group of degree 2 over QQ
+  for Matrix group of degree 2 over QQ
 with generators
-   x1, x2, g1
+  x1, x2, g1
 
 defined by Drinfeld-Hecke form over base ring
-   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
-   t1, t2
-given by alternating bilinear forms
-   [1   0] => [  0   t1]
-   [0   1]    [-t1    0]
+  Multivariate polynomial ring in 2 variables over QQ
+with parameters
+  t1, t2
 
-   [-1    0] => [  0   t2]
-   [ 0   -1]    [-t2    0]
+given by alternating bilinear forms
+  [1   0] => [  0   t1]
+  [0   1]    [-t1    0]
+
+  [-1    0] => [  0   t2]
+  [ 0   -1]    [-t2    0]
 
 julia> is_trivial(A)
 false

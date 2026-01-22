@@ -11,7 +11,7 @@ $\begin{pmatrix} g & 0 \\ 0 & (g^{-1})^T \end{pmatrix}$ for $g \in G$.
 # Examples
 ```jldoctest
 julia> S3 = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> mat_gens = [permutation_matrix(QQ, g) for g in gens(S3)]
 2-element Vector{QQMatrix}:
