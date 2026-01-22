@@ -130,9 +130,7 @@ mutable struct DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRing
   element::GroupAlgebraElem
   
   function DrinfeldHeckeAlgebraElem(A::DrinfeldHeckeAlgebra{T, S}, a::GroupAlgebraElem) where {T <: FieldElem, S <: RingElem}
-    if (a.parent != group_algebra(A))
-        throw(ArgumentError("Element does not belong to the underlying group algebra")) 
-    end
+    @req a.parent != group_algebra(A) "Element does not belong to the underlying group algebra"
 
     return new{T, S}(A, a)
   end
