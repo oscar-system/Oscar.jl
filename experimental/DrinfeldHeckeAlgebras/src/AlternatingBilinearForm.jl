@@ -46,7 +46,7 @@ isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 # Application
 #######################################
 
-function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector)::T where T <: RingElem
+function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector) where T <: RingElem
   B = matrix(b)
   
   # Check if dimensions match

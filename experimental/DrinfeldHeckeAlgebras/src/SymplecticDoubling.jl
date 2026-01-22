@@ -32,7 +32,7 @@ julia> gens(H)
  [0 1 0 0 0 0; 1 0 0 0 0 0; 0 0 1 0 0 0; 0 0 0 0 1 0; 0 0 0 1 0 0; 0 0 0 0 0 1]
 ```
 """
-function symplectic_doubling(G::MatrixGroup{T})::MatrixGroup{T} where {T <: FieldElem}
+function symplectic_doubling(G::MatrixGroup{T}) where {T <: FieldElem}
   symplectic_generators = MatElem{T}[]
 
   for g in gens(G)
