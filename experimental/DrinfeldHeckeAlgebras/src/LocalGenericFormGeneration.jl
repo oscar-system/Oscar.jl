@@ -16,8 +16,8 @@
 #######################################
 # Returns a dictionary mapping elements of G to matrices representing alternating bilinear forms
 #######################################
-function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
-  nonzero_forms = Dict{Tuple{MatrixGroupElem{T}, GroupConjClass}, MatElem}()
+function generate_generic_forms_locally(G::MatGroup{T}, R::Field) where {T <: FieldElem}
+  nonzero_forms = Dict{Tuple{MatGroupElem{T}, GroupConjClass}, MatElem}()
   number_of_parameters = 0
   
   # Iterate over the conjugacy classes and generate generic forms for the representatives
@@ -39,13 +39,13 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
 
   # If there weren't any nonzero forms, return empty dictionary
   if length(nonzero_forms) == 0 
-    return Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(R))}}() 
+    return Dict{MatGroupElem{T}, MatElem{elem_type(typeof(R))}}() 
   end
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
   S, _ = polynomial_ring(R, parameters, cached = false)
-  forms = Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(S))}}()
+  forms = Dict{MatGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   
   # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1
@@ -69,7 +69,7 @@ end
 #######################################
 # Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
 #######################################
-function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
+function calculate_generic_form_for_non_trivial_element(g::MatGroupElem{T}, K::Field) where {T <: FieldElem}
   form = calculate_form_for_non_trivial_element(g, K)
 
   # We know that kappa_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
@@ -92,7 +92,7 @@ end
 #######################################
 # Returns alternating bilinear form satisfying (a), (b), (c) represented as a matrix in the standard basis
 #######################################
-function calculate_form_for_non_trivial_element(g::MatrixGroupElem{T}, K::Field) where {T <: FieldElem}
+function calculate_form_for_non_trivial_element(g::MatGroupElem{T}, K::Field) where {T <: FieldElem}
   G = parent(g)
   n = degree(G)
   
@@ -149,7 +149,7 @@ end
 #######################################
 # Returns G-invariant alternating bilinear form represented as a matrix in the standard basis
 #######################################
-function calculate_generic_group_invariant_form(G::MatrixGroup{T}, R::Field) where {T <: FieldElem}
+function calculate_generic_group_invariant_form(G::MatGroup{T}, R::Field) where {T <: FieldElem}
   M, map = build_group_invariant_relation_matrix(G)
   sol = solve_and_parametrize(M, R)
   n = degree(G)
@@ -179,7 +179,7 @@ end
 #   sum_{l < k} (a_li a_kj − a_ki a_lj) kappa(vl,vk) − kappa(vi,vj) = 0
 # for all i < j
 #######################################
-function build_group_invariant_relation_matrix(G::MatrixGroup)
+function build_group_invariant_relation_matrix(G::MatGroup)
   K = base_ring(G)
   n = degree(G)
   map = build_local_map(n)
@@ -223,8 +223,8 @@ end
 #   kappa_h−1gh(v, w) = kappa_g(hv, hw)
 #######################################
 function calculate_form_for_conjugate(
-  g::MatrixGroupElem{T},
-  c::MatrixGroupElem{T},
+  g::MatGroupElem{T},
+  c::MatGroupElem{T},
   kappa_g::MatElem
 ) where {T <: FieldElem}
   if c == g return kappa_g end

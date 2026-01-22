@@ -16,7 +16,7 @@ end
 *(a::DrinfeldHeckeAlgebraElem{T, S}, c::S) where {T <: FieldElem, S <: RingElem} = c * a
 
 # Multiply group element g from the right
-function *(a::DrinfeldHeckeAlgebraElem, g::MatrixGroupElem)
+function *(a::DrinfeldHeckeAlgebraElem, g::MatGroupElem)
   A = a.parent
 
   return A(a.element * group_algebra(A)(g))
@@ -246,7 +246,7 @@ function generator_to_polynomial(x::DrinfeldHeckeAlgebraElem)
   return gen(base_algebra(x.parent), i)
 end
 
-function left_action_on_generator(g::MatrixGroupElem{T}, x::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
+function left_action_on_generator(g::MatGroupElem{T}, x::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
   v = generator_to_vector(x)
   gv = matrix(g) * v
   

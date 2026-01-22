@@ -7,14 +7,14 @@
 #######################################
 
 mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
-  group::MatrixGroup{T} # Matrix group G over a field K
+  group::MatGroup{T} # Matrix group G over a field K
   base_ring::Ring # Underlying K-algebra R with element type S of Drinfeld-Hecke form
   base_algebra::MPolyRing{S} # Polynomial ring R[V]
   group_algebra::GroupAlgebra # Group algebra R[V]G, used as base for R[V]#G
-  forms::Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
+  forms::Dict{MatGroupElem{T}, AlternatingBilinearForm{S}} # Alternating bilinear forms defining Drinfeld-Hecke form
 
   # Creates trivial (zero) Drinfeld-Hecke form from K-matrix-group and K-algebra
-  function DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+  function DrinfeldHeckeForm(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
     # Check if R contains K where K is the field over which G is defined
     K = base_ring(G)
     try
@@ -28,7 +28,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
         
     kappa.group = G
     kappa.base_ring = R
-    kappa.forms = Dict{MatrixGroupElem{T}, AlternatingBilinearForm{S}}()
+    kappa.forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
   
     RV, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)], cached = false)
     
@@ -43,7 +43,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     if length(forms) == 0
       throw(ArgumentError(
         "Forms must not be empty. To create zero form use 
-        DrinfeldHeckeForm(G::MatrixGroup{T}) or DrinfeldHeckeForm(G::MatrixGroup{T}, R::Ring)"
+        DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
       ))
     end
   
@@ -54,13 +54,13 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     T = elem_type(typeof(base_ring(G)))
     S = elem_type(typeof(R))
     
-    forms_safe = Dict{MatrixGroupElem{T}, MatElem{S}}()
+    forms_safe = Dict{MatGroupElem{T}, MatElem{S}}()
     
     for (g,m) in forms
-      if !(g isa MatrixGroupElem{T}) || !(m isa MatElem{S})
+      if !(g isa MatGroupElem{T}) || !(m isa MatElem{S})
         throw(ArgumentError(
           "The forms dictionary must be of the structure 
-          MatrixGroupElem{T} => MatElem{S} where {T <: FieldElem, S <: RingElem}"
+          MatGroupElem{T} => MatElem{S} where {T <: FieldElem, S <: RingElem}"
         ))
       end
     
@@ -88,7 +88,7 @@ end
 # Generic Drinfeld-Hecke form creation
 #######################################
 
-function generic_drinfeld_hecke_form(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+function generic_drinfeld_hecke_form(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
   if R isa Field && characteristic(R) == 0
     forms = generate_generic_forms_locally(G, R)
   else
@@ -123,11 +123,13 @@ end
 
 function show(io::IO, kappa::DrinfeldHeckeForm)
   println(io, "Drinfeld-Hecke form over base ring")
-  println(io, "   " * string(base_ring(kappa)))
+  print(io, Indent(), string(base_ring(kappa)))
+  println(io, Dedent())
 
   if number_of_parameters(kappa) > 0
     println(io, "with parameters ")
-    println(io, "   " * join(parameters(kappa), ", "))
+    println(io, Indent(), join(parameters(kappa), ", "))
+    println(io, Dedent())
   end
 
   if (length(kappa.forms) == 0)
@@ -142,7 +144,7 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
     B = matrix(kappa_g)
     
     for i in 1:n
-      print(io, "   [")
+      print(io, Indent(), "[")
       
       for j in 1:n
         mcl = max_column_length(A, j)

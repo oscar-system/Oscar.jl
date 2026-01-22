@@ -14,7 +14,7 @@
 #######################################
 # Returns a parametrized family (kappa_g)_g∈G of alternating bilinear forms defining a Drinfeld-Hecke form
 #######################################
-function generate_generic_forms_globally(G::MatrixGroup{T}, R::Ring) where {T <: FieldElem}
+function generate_generic_forms_globally(G::MatGroup{T}, R::Ring) where {T <: FieldElem}
   M, map = build_relation_matrix(G)
   
   # Calculate global solution represented by a vector
@@ -26,7 +26,7 @@ function generate_generic_forms_globally(G::MatrixGroup{T}, R::Ring) where {T <:
   n = degree(G)
   
   # Initialize forms
-  forms = Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(S))}}()
+  forms = Dict{MatGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   for g in G
     forms[g] = zero_matrix(S, n, n)
   end
@@ -62,7 +62,7 @@ end
 #   (V) sum_{l < k} (a_li a_kj − a_ki a_lj) kappa_g(vl,vk) − kappa_h−1gh(vi,vj) = 0
 # for all i < j and where A = (a_ij) is the matrix corresponding to h
 #######################################
-function build_relation_matrix(G::MatrixGroup)
+function build_relation_matrix(G::MatGroup)
   K = base_ring(G)
   n = degree(G)
   map = build_global_map(G)
@@ -154,8 +154,8 @@ end
 #######################################
 # Map elements g ∈ G and matrix indices i < j to global solution column index k
 #######################################
-function build_global_map(G::MatrixGroup)
-  map = Dict{Tuple{MatrixGroupElem, Int, Int}, Int}()
+function build_global_map(G::MatGroup)
+  map = Dict{Tuple{MatGroupElem, Int, Int}, Int}()
   n = degree(G)
   
   k = 1

@@ -5,7 +5,7 @@
 #######################################
 # Returns true if the given forms define a Drinfeld-Hecke algebra, false otherwise
 #######################################
-function is_drinfeld_hecke_form(forms::Dict{MatrixGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
+function is_drinfeld_hecke_form(forms::Dict{MatGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
     # If the forms are empty, they define the trivial (zero) Drinfeld-Hecke form
     if length(forms) == 0 return true end
     
@@ -27,7 +27,7 @@ end
 # (Theorem 1.9 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 #######################################
 function is_drinfeld_hecke_form_local_strategy(
-  forms::Dict{MatrixGroupElem{T}, MatElem{S}}
+  forms::Dict{MatGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
   # Extract group and ring data
   g, kappa_g = first(forms)
@@ -116,7 +116,7 @@ end
 # (Lemma 1.5 in Ram & Shepler: "Classification of graded Hecke algebras for complex reflection groups", 2002)
 #######################################
 function is_drinfeld_hecke_form_global_strategy(
-  forms::Dict{MatrixGroupElem{T}, MatElem{S}}
+  forms::Dict{MatGroupElem{T}, MatElem{S}}
 ) where {T <: FieldElem, S <: RingElem}
   # Extract group and ring data
   g, kappa_g = first(forms)

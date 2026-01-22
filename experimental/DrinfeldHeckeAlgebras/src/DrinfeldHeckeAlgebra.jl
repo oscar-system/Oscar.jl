@@ -23,7 +23,7 @@ mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
   end
 
   # Create the zero Drinfeld-Hecke algebra from a group and a ring
-  function DrinfeldHeckeAlgebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+  function DrinfeldHeckeAlgebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
     kappa = DrinfeldHeckeForm(G, R)
 
     return DrinfeldHeckeAlgebra(kappa)
@@ -36,7 +36,7 @@ mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
 end
 
 @doc raw"""
-    drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+    drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
 Create the trivial Drinfeld-Hecke algebra over the ring ```R``` for the matrix group ```G```, i.e. the skew group ring $R[V]\#G$ 
 where $V$ is the vector space on which ```G``` acts
@@ -63,13 +63,13 @@ with parameters
 given by 0
 ```
 """
-drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem} = DrinfeldHeckeAlgebra(G, R)
+drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem} = DrinfeldHeckeAlgebra(G, R)
 
 @doc raw"""
     drinfeld_hecke_algebra(forms::Dict)
 
 Create the Drinfeld-Hecke algebra given by the dictionary ```forms``` which is expected to have keys of type 
-```MatrixGroupElem{T}``` and values of type ```MatElem{S}``` where ```T <: FieldElem, S <: RingElem```. If the types
+```MatGroupElem{T}``` and values of type ```MatElem{S}``` where ```T <: FieldElem, S <: RingElem```. If the types
 are not correct, an exception is thrown.
 
 # Examples
@@ -90,7 +90,7 @@ julia> kappa_g = matrix(R, [0 y; -y 0])
 [-y   0]
 
 julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
-Dict{MatrixGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
+Dict{MatGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
   [1 0; 0 1]   => [0 x; -x 0]
   [-1 0; 0 -1] => [0 y; -y 0]
 
@@ -139,7 +139,7 @@ end
 (A::DrinfeldHeckeAlgebra{T, S})(a::T) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(base_algebra(A)(a)))
 (A::DrinfeldHeckeAlgebra{T, S})(a::S) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(base_algebra(A)(a)))
 (A::DrinfeldHeckeAlgebra{T, S})(a::MPolyRingElem{S}) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(a))
-(A::DrinfeldHeckeAlgebra{T, S})(g::MatrixGroupElem{T}) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(g))
+(A::DrinfeldHeckeAlgebra{T, S})(g::MatGroupElem{T}) where {T <: FieldElem, S <: RingElem} = A(group_algebra(A)(g))
 (A::DrinfeldHeckeAlgebra)(a::GroupAlgebraElem) = DrinfeldHeckeAlgebraElem(A, a)
 
 function (A::DrinfeldHeckeAlgebra)(a::DrinfeldHeckeAlgebraElem)
@@ -163,7 +163,7 @@ end
 #######################################
 
 @doc raw"""
-    generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+    generic_drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
 Create a generic (parametrized) Drinfeld-Hecke algebra over the ring ```R``` for the group ```G```.
 
@@ -191,7 +191,7 @@ given by alternating bilinear forms
    [ 0   -1]    [-t2    0]
 ```
 """
-function generic_drinfeld_hecke_algebra(G::MatrixGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
+function generic_drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
   kappa = generic_drinfeld_hecke_form(G,R)
 
   return DrinfeldHeckeAlgebra(kappa)
@@ -606,12 +606,12 @@ end
 # Type coercion
 #######################################
 
-*(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) * b.parent(b)
-*(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) * a.parent(b)
-+(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) + b.parent(b)
-+(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) + a.parent(b)
--(a::Union{RingElem, MatrixGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) - b.parent(b)
--(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatrixGroupElem}) = a.parent(a) - a.parent(b)
+*(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) * b.parent(b)
+*(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) * a.parent(b)
++(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) + b.parent(b)
++(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) + a.parent(b)
+-(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) - b.parent(b)
+-(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) - a.parent(b)
 
 #######################################
 # Random generation
