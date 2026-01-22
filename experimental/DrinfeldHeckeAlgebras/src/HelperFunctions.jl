@@ -16,7 +16,7 @@ function solve_and_parametrize(M::MatElem{T}, R::Ring) where {T <: FieldElem}
   
   # For creating a parametrized solution, we work over the polynomial ring S = R[t1,...tn]
   parameters = nullity == 1 ? ["t"] : ["t" * string(i) for i in 1:nullity]
-  S, _ = polynomial_ring(R, parameters)
+  S, _ = polynomial_ring(R, parameters, cached = false)
 
   # Use kernel basis to create a parametrized solution for a Drinfeld-Hecke form
   sol = fill(S(), m)

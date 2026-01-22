@@ -44,7 +44,7 @@ function generate_generic_forms_locally(G::MatrixGroup{T}, R::Field) where {T <:
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
-  S, _ = polynomial_ring(R, parameters)
+  S, _ = polynomial_ring(R, parameters, cached = false)
   forms = Dict{MatrixGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   
   # Next we shift all forms into S and calculate all remaining forms for the according class
@@ -73,7 +73,7 @@ function calculate_generic_form_for_non_trivial_element(g::MatrixGroupElem{T}, K
   form = calculate_form_for_non_trivial_element(g, K)
 
   # We know that kappa_g is now defined by its value on the basis {v1,v2} of (V^g)⊥, so we need one parameter
-  R, _ = polynomial_ring(K, ["t"])
+  R, _ = polynomial_ring(K, ["t"], cached = false)
   
   # Multiply form with t to parametrize it
   result = form * R[1]
