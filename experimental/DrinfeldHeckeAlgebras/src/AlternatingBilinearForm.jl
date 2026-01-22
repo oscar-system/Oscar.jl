@@ -40,6 +40,7 @@ end
 matrix(b::AlternatingBilinearForm) = b.matrix
 is_zero(b::AlternatingBilinearForm) = is_zero(b.matrix)
 ==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a.matrix == b.matrix
+Base.hash(b::AlternatingBilinearForm, h::UInt) = hash(b.matrix, h)
 isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
 #######################################
