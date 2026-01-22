@@ -274,10 +274,7 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   lambda = f -> phi(f)
 
   # Apply homomorphism to forms
-  forms = Dict()
-  for (g, kappa_g) in alternating_bilinear_forms(form(A))
-    forms[g] = map(lambda, matrix(kappa_g))
-  end
+  forms = Dict(g => map(lambda, matrix(kappa_g)) for (g, kappa_g) in alternating_bilinear_forms(form(A)))
   
   # Create new DH algebra from forms
   return DrinfeldHeckeAlgebra(forms)
