@@ -2895,37 +2895,31 @@ function oscar_genus_representatives(
     Lf = integer_lattice_with_isometry(l[1])
     pos = is_positive_definite(Lf)
     Ps = reverse!(Int.(Hecke.primes_up_to(r+1)))
-    D = Dict{Int, AbstractVector{Int}}(p => p == 2 ? collect(div(r, 2, RoundDown):-1:1) : collect(r.-reverse(p-1:p-1:r)) for p in Ps)
+    
+    # todo = [(prime, rank invariant lattice, rank_E coinvariant lattice) .... ] 
+    todo = Tuple{Int,Int,Int}[]
+    for p in Ps
+      if p == 2 
+        append!(todo, [(p, i, r-i) for i in div(r, 2, RoundDown):-1:1])
+      else 
+        append!(todo, [(p, r-i, divexact(i, p-1)) for i in p-1:p-1:r])
+      end 
+    end
+    # sort by the estimated complexity of the computation 
+    complexity(x) = max(x[2],x[3])
+    sort!(todo, by=complexity)
+      
     # Looking for certain lattices with isometry
     while !iszero(mm)
       d = denominator(mm)
-      if isone(d) # Very unlikely, but still
-        i = 1
+      if isone(d) # unlikely
+        p, k, _ = popfirst!(todo)
       else
-        # Wants to minimize the rank of genera to enumerate
-        # So we look, among the primes dividing d, for which
-        # one we haven't yet computed isometries with very
-        # small rank for the invariant part. If several primes
-        # have the same of smallest value, we keep the largest
-        # of those primes to minimize the rank of the hermitian
-        # genus to enumerate on the other side. For now this
-        # seems to be a good optimization of this part of the
-        # function
-        Pd = filter(i -> iszero(mod(d, Ps[i])), 1:length(Ps))
-        @hassert :ZZLatWithIsom 3 !isempty(Pd)
-        i = first(Pd)
-        for j in Pd[2:end]
-          if first(D[Ps[j]]) < first(D[Ps[i]])
-            i = j
-          end
-        end
+        i = findfirst(x->iszero(mod(d,x[1])), todo)
+        p, k, _ = todo[i]
+        deleteat!(todo, i)
       end
-      p = Ps[i]
-      k = popfirst!(D[p])
       allow_info && println("(k, p) = $((k, p))")
-      if isempty(D[p])
-        popat!(Ps, i)
-      end
       # Take care of how to distribute the signatures between invariant
       # and coinvariant sublattices
       if pos
