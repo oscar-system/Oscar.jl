@@ -210,10 +210,10 @@ Min tropical variety
 
 julia> vertices(TropI_2)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
- [4, 0, 0]
- [4, 4, 4]
- [2, 0, -6]
- [2, -6, 0]
+ [1, 0, 0]
+ [1, 1, 1]
+ [1, 0, -3]
+ [1, -3, 0]
 
 julia> TropI_3 = tropical_variety(I,nu_3; skip_saturation=true, skip_decomposition=true)
 Min tropical variety
