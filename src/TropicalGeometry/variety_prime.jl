@@ -91,14 +91,16 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
 
     if dehomogenizeFan
         # if the singular fan is a homogenized polyhedral complex:
-        # - entries of rayGenerators with zero first coordinate represent rays
-        # - entries of rayGenerators with non-zero first coordinate represent vertices
-        # - rays need to be stripped of their first zero coordinate
-        # - vertices need to be divided by their first coordinate, then stripped of it
+        # - entries of rayGenerators should have zero or positive first coordinate
+        # - entries with zero first coordinate represent rays
+        # - entries with positive first coordinate represent vertices
+        # - rays need to be stripped of their zero first coordinate
+        # - vertices need to be divided by their positive first coordinate, then stripped of it
         # - entries of linealityGenerators should all have zero first coordinate
         #   and need to be stripped of it
+        @req all(r -> r[1] >= 0, eachrow(rayGenerators)) "All ray and vertex generators must have non-negative first coordinate to dehomogenize"
         rayIndices = findall(iszero, rayGenerators[:,1])
-        rayGenerators ./= [iszero(r) ? 1 : abs(r) for r in rayGenerators[:, 1]]
+        rayGenerators ./= [iszero(r1) ? 1 : r1 for r1 in rayGenerators[:, 1]]
         rayGenerators = rayGenerators[:,2:end]
 
         @req all(iszero(linealityGenerators[:,1])) "Lineality space must have zero first coordinate to dehomogenize"
