@@ -98,7 +98,7 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
         # - entries of linealityGenerators should all have zero first coordinate
         #   and need to be stripped of it
         rayIndices = findall(iszero, rayGenerators[:,1])
-        rayGenerators ./= [iszero(r) ? 1 : r for r in rayGenerators[:, 1]]
+        rayGenerators ./= [iszero(r) ? 1 : abs(r) for r in rayGenerators[:, 1]]
         rayGenerators = rayGenerators[:,2:end]
 
         @req all(iszero(linealityGenerators[:,1])) "Lineality space must have zero first coordinate to dehomogenize"
