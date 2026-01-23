@@ -191,6 +191,8 @@ julia> TropVs = tropical_variety(I,nu)
  Min tropical variety
  Min tropical variety
 
+julia> R,(x,y,z) = QQ["x","y","z"];
+
 julia> nu_2 = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
