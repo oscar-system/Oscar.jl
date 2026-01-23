@@ -338,9 +338,7 @@ julia> order(g)
 function ree_group(q::IntegerUnion)
   v, c = remove(q, 3)
   @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 3^(2k+1) for a positive integer k"
-  G = matrix_group(GF(q), 7)
-  G.X = GAP.Globals.ReeGroup(Int(q))
-  return G
+  return matrix_group(GAP.Globals.ReeGroup(Int(q)))
 end
 
 @doc raw"""
@@ -364,9 +362,7 @@ julia> order(g)
 function suzuki_group(q::IntegerUnion)
   v, c = remove(q, 2)
   @req isone(c) && isodd(v) && is_positive(v) "q must be of the form 2^(2k+1) for a positive integer k"
-  G = matrix_group(GF(q), 4)
-  G.X = GAP.Globals.SuzukiGroup(GAP.Int(q))
-  return G
+  return matrix_group(GAP.Globals.SuzukiGroup(GAP.Int(q)))
 end
 
 

@@ -36,3 +36,12 @@ concentration_matrix
 gaussian_ring
 covariance_matrix
 ```
+
+## Vanishing Ideals
+When the graphs do not have a labeling our vanishing ideal algorithms will default to the following.
+
+```@docs
+
+vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
+vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
+```

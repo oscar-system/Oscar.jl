@@ -238,7 +238,7 @@ function action_on_monomials(R::MPolyRing, d::Int, A::Vector{QQMatrix})
     bb = Vector{QQFieldElem}[]
     h = [x^a for x = g]
     for x = m
-      b = zeros(QQ, length(m))
+      b = zeros(QQFieldElem, length(m))
       y = evaluate(x, h)
       for (c,v) = zip(AbstractAlgebra.coefficients(y), AbstractAlgebra.monomials(y))
         b[findfirst(==(v), m)] = c

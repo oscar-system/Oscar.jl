@@ -1538,14 +1538,14 @@ Computes specialized Fourier transform from the matrix that represents the full 
 This matrix transforms the reduced probability coordinates (corresponding to the equivalent classes) to the reduced Fourier coordinates.
 """
 function fourier_transform(PM::GroupBasedPhylogeneticModel)
-  FRp, p = Oscar.full_model_ring(phylogenetic_model(PM))
-  FRq, q = Oscar.full_model_ring(PM)
+  FRp, p = full_model_ring(phylogenetic_model(PM))
+  FRq, q = full_model_ring(PM)
 
-  Rp, rp = Oscar.model_ring(phylogenetic_model(PM))
-  Rq, rq = Oscar.model_ring(PM)
+  Rp, rp = model_ring(phylogenetic_model(PM))
+  Rq, rq = model_ring(PM)
 
-  p_classes = Oscar.equivalent_classes(phylogenetic_model(PM))
-  q_classes = Oscar.equivalent_classes(PM)
+  p_classes = equivalent_classes(phylogenetic_model(PM))
+  q_classes = equivalent_classes(PM)
 
   np = length(p_classes)
   nq = length(q_classes)
@@ -1556,7 +1556,7 @@ function fourier_transform(PM::GroupBasedPhylogeneticModel)
   # keys_q_classes = collect(keys(q_classes))
   # sort!(keys_q_classes, rev = true)
   H = Rp.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
-  M = Rp.(Int.(zeros(nq, np)))
+  M = Rp.(zeros(Int, nq, np))
   
   for (i, q_index) in enumerate(sort(collect(keys(rq)); rev=true))
     current_fourier_class = q_classes[q_index]
@@ -1609,7 +1609,7 @@ function inverse_fourier_transform(PM::GroupBasedPhylogeneticModel)
   H = Rq.(hadamard(matrix_space(ZZ, n_states(PM), n_states(PM))))
   Hinv = 1//n_states(PM) * H
 
-  M = zeros(base_ring(Rq), np, nq)
+  M = zero_matrix(base_ring(Rq), np, nq)
   for (i, p_index) in enumerate(sort(collect(keys(rp)); rev=true))
     current_prob_class = p_classes[p_index]
     for (j, q_index) in enumerate(sort(collect(keys(rq)); rev=true))

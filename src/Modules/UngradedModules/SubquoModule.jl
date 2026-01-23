@@ -2206,13 +2206,6 @@ Return the relations of `M`.
 """
 rels(M::SubquoModule) = isdefined(M, :quo) ? collect(M.quo.gens) : elem_type(M.F)[]
 
-@doc raw"""
-    relations(M::SubquoModule)
-
-Return the relations of `M`.
-"""
-relations(M::SubquoModule) = rels(M)
-
 # the two methods below are needed for the implementation of is_surjective
 function (==)(G::SubquoModule, F::FreeMod)
   return F == G

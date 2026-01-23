@@ -243,7 +243,6 @@ matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion})
-is_alternating(M::MatrixElem)
 is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 ```
 
