@@ -36,7 +36,7 @@ end
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem}; weighted_polyhedral_complex_only::Bool=false)
     sI = Oscar.singular_generators(I)
     TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", (sI, Int(uniformizer_in_ring(nu))))
-    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,true)
+    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==min,true)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
         set_attribute!(TropI,:algebraic_ideal,I)
