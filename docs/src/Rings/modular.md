@@ -27,6 +27,14 @@ We also have these variants which use idempotents.
 crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, r2::AbsSimpleNumFieldOrderElem, i2::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
 ```
 
+This variant is also supported in the following signatures:
+`crt(r1::Hecke.AlgAssAbsOrdElem, i1::Hecke.AlgAssAbsOrdIdl, r2::Hecke.AlgAssAbsOrdElem, i2::Hecke.AlgAssAbsOrdIdl)`
+`crt(r1::Hecke.RelNumFieldOrderElem, i1::Hecke.RelNumFieldOrderIdeal, r2::Hecke.RelNumFieldOrderElem, i2::Hecke.RelNumFieldOrderIdeal)`
+`crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsSimpleNumFieldOrderIdeal, r2::AbsSimpleNumFieldOrderElem, i2::AbsSimpleNumFieldOrderIdeal)`
+`crt(a::Vector{Hecke.AlgAssAbsOrdElem}, I::Vector{Hecke.AlgAssAbsOrdIdl})`
+`crt(a::Vector{Hecke.RelNumFieldOrderElem}, I::Vector{Hecke.RelNumFieldOrderIdeal})`
+`crt(a::Vector{AbsSimpleNumFieldOrderElem}, I::Vector{AbsSimpleNumFieldOrderIdeal})`
+`crt(a::Vector{ZZRingElem}, I::Vector{Hecke.ZZIdl})`
 <!-- No docs for these -->
 <!-- ```@docs
 crt(r1::S, i1::T, r2::S, i2::T) where {S<:Union{Hecke.AlgAssAbsOrdElem, Hecke.RelNumFieldOrderElem, AbsSimpleNumFieldOrderElem}, T<:Union{Hecke.AlgAssAbsOrdIdl, Hecke.RelNumFieldOrderIdeal, AbsSimpleNumFieldOrderIdeal}}
