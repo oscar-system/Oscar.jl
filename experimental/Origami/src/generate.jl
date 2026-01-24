@@ -189,7 +189,7 @@ function origami_from_cylinder_coordinates(
   end
 
   for (i, top_seps) in enumerate(cyl_diagram.top)
-    top = []
+    top = Int[]
     rev_top_seps = reverse(top_seps)
     for k in rev_top_seps
       append!(top, sep_bottom_pos[k + 1]:(sep_bottom_pos[k + 1] + lengths[k + 1] - 1))
