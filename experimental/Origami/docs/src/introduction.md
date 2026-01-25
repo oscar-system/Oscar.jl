@@ -17,7 +17,7 @@ simultaneous conjugation. This corresponds to renumbering the squares. By choosi
 canonical way one can achieve a canonical representative.
 
 We are especially interested in the so-called Veech group of an origami. This is a finite-index subgroup of
-$\text{SL}_2(\mathbb{Z}) which carries a lot of information about the geometric and dynamic properties of the
+$\text{SL}_2(\mathbb{Z})$ which carries a lot of information about the geometric and dynamic properties of the
 underlying translation surface. For further information about origamis and translation surfaces in general,
 see e.g. [[Zmi11]](#Zmi11), [[Sch05]](#Sch05), [[HL06]](#HL06), [[Ran17]](#Ran17) and [[Zor06]](#Zor06).
 
