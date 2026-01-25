@@ -402,7 +402,7 @@ mutable struct GaloisCtx{T}
 
   function GaloisCtx(f::QQPolyRingElem, p::Int)
     d = mapreduce(denominator, lcm, coefficients(f))
-    return GaloisCtx(Hecke.Globals.Zx(d*f), p)
+    return GaloisCtx(change_base_ring(ZZ, d*f; parent = Hecke.Globals.Zx), p)
   end
   #=
   Roots in F_q[[t]] for q = p^d

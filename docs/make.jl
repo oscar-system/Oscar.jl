@@ -1,6 +1,6 @@
 using Documenter, Oscar
 
-include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
+include("make_work.jl")
 
 Base.invokelatest(BuildDoc.doit, Oscar; warnonly=false, local_build=false, doctest=false)
 

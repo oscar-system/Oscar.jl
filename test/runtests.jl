@@ -16,11 +16,21 @@ if !isempty(ARGS)
   end
 end
 
-const numprocs = parse(Int, numprocs_str)
+test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
+if haskey(ENV, "JULIA_PKGEVAL")
+  test_subset = :short
+end
+
+# avoid extra workers if we run booktests only
+const numprocs = test_subset == :book ?  1 : parse(Int, numprocs_str)
 
 if numprocs >= 2
   println("Adding worker processes")
-  addprocs(numprocs)
+  # heap size hint for each worker depending on the number of workers and total memory
+  # but at least 2GB per worker
+  mem = max(2, trunc(Int, Sys.total_memory() / (numprocs * 1024^3)))
+  exeflags = test_subset == :extra_long ? String[] : ["--heap-size-hint=$(mem)G"]
+  addprocs(numprocs; exeflags)
 end
 # keep custom worker pool to avoid issues from extra processes in parallel tests
 worker_pool = WorkerPool(workers())
@@ -58,19 +68,15 @@ end
 @everywhere import PrettyTables
 
 
-function print_stats(io::IO, stats_dict::Dict; fmt=PrettyTables.tf_unicode, max=50)
+function print_stats(io::IO, stats_dict::Dict; backend=:text, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
   println(io, "### Stats per file")
   println(io)
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
-  if haskey(first(values(stats_dict)), :ctime)
-    header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2,3,4]), PrettyTables.ft_printf("%.1f", [5]))
-  else
-    header=[:Filename, Symbol("Time in s"), Symbol("Allocations in MB")]
-    formatters = (PrettyTables.ft_printf("%.2f", [2]), PrettyTables.ft_printf("%.1f", [3]))
-  end
-  PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
+  header=[:Filename, Symbol("Total time in s"), Symbol("Compilation"), Symbol("Recompilation"), Symbol("GC"), Symbol("Allocations in GB")]
+  formatters = [PrettyTables.fmt__printf("%.2f", [2,3,4,5]), PrettyTables.fmt__printf("%.1f", [6])]
+  align = [:l, :r, :r, :r, :r, :r]
+  PrettyTables.pretty_table(io, table; backend, maximum_number_of_rows=max, column_labels=header, formatters=formatters)
 end
 
 
@@ -87,7 +93,7 @@ end
 sort!(testlist)
 Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
-# tests with the highest number of allocations / runtime / compilation time
+# tests with the highest number of allocations / total time / compilation time
 # more or less sorted by allocations are in `long`
 # tests that should not be run for pull request CI are in `extra_long`
 # (these are run on a custom schedule only)
@@ -97,6 +103,7 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/long_QSMs.jl",
                                "experimental/FTheoryTools/test/singular_loci.jl",
                                "experimental/FTheoryTools/test/paper_tests.jl",
+                               "experimental/DoubleAndHyperComplexes/test/min_k_tester.jl",
                               ],
 
                     :long  => [
@@ -116,21 +123,30 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
                                "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
-                               "test/NumberTheory/QuadFormAndIsom.jl",
+                               "test/NumberTheory/QuadFormAndIsom/embeddings.jl",
+                               "test/NumberTheory/QuadFormAndIsom/enumeration.jl",
+                               "test/NumberTheory/QuadFormAndIsom/finite_group_actions.jl",
+                               "test/NumberTheory/QuadFormAndIsom/lattices_with_isometry.jl",
+                               "test/NumberTheory/QuadFormAndIsom/spaces_with_isometry.jl",
+                               "test/NumberTheory/QuadFormAndIsom/torsion_quadratic_module_with_isometry.jl",
                                "experimental/GModule/test/runtests.jl",
                                "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
-                               "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticSurface.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/EllipticParameter.jl",
+                               "test/AlgebraicGeometry/Schemes/EllipticSurface/MoebiusTransformations.jl",
                               ],
                      :book => [
                                "test/book/test.jl",
-                              ]
-                   )
+                     ],
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+)
 
-test_subset = Symbol(get(ENV, "OSCAR_TEST_SUBSET", "default"))
-if haskey(ENV, "JULIA_PKGEVAL")
-  test_subset = :short
-end
+tests_on_main = Dict(
+                     "Parallel" => "runtests.jl",
+                     "AlgebraicStatistics" => "MultigradedImplicitization.jl",
+                    )
+
 
 if test_subset == :short
   # short are all files not in a specific group
@@ -154,12 +170,18 @@ end
 
 stats = Dict{String,NamedTuple}()
 
-# this needs to run here to make sure it runs on the main process
+# these need to run here to make sure they run on the main process
 # it is in the ignore list for the other tests
 # try running it first for now
 if test_subset == :long || test_subset == :default
-  if "Parallel" in Oscar.exppkgs
-    path = joinpath(Oscar.oscardir, "experimental", "Parallel", "test", "runtests.jl")
+  for (ep, f) in tests_on_main
+    path = if ep === nothing
+      joinpath(Oscar.oscardir, "test", f)
+    elseif ep in Oscar.exppkgs
+      joinpath(Oscar.oscardir, "experimental", ep, "test", f)
+    else
+      continue
+    end
     println("Starting tests for $path")
     push!(stats, Oscar._timed_include(path, Main))
   end
@@ -175,7 +197,7 @@ merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
-    print_stats(io, stats; fmt=PrettyTables.tf_markdown)
+    print_stats(io, stats; backend=:markdown)
   end
 else
   print_stats(stdout, stats; max=10)

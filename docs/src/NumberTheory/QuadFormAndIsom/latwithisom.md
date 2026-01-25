@@ -194,7 +194,7 @@ More generally, for a finitely generated subgroup $G$ of $O(L)$, we have
 implemented a function which computes the representation of $G$ on $D_L$:
 
 ```@docs
-discriminant_representation(::ZZLat, ::MatrixGroup)
+discriminant_representation(::ZZLat, ::MatGroup)
 ```
 
 We will see later in the section about enumeration of lattices with isometry
@@ -221,16 +221,6 @@ the so-called *invariant* and *coinvariant* lattices of $(L, f)$:
 coinvariant_lattice(::ZZLatWithIsom)
 invariant_lattice(::ZZLatWithIsom)
 invariant_coinvariant_pair(::ZZLatWithIsom)
-```
-
-Similarly, we provide the possibility to compute invariant and coinvariant
-sublattices given an orthogonal representation `G` in matrix form of a finite
-group on a given lattice `L`:
-
-```@docs
-coinvariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_lattice(::ZZLat, ::MatrixGroup)
-invariant_coinvariant_pair(::ZZLat, ::MatrixGroup)
 ```
 
 ## Signatures

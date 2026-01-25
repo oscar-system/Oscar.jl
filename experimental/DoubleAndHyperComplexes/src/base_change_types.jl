@@ -40,7 +40,8 @@ function (fac::BaseChangeMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   self[next]
   dom_bc = chain_factory(self).red_map_cache[i]
   cod_bc = chain_factory(self).red_map_cache[next]
-  res = change_base_ring(fac.phi, f; domain_base_change=dom_bc, codomain_base_change=cod_bc)
+  res, _, _ = change_base_ring(fac.phi, f; domain=self[i], codomain=self[next])
+  return res
 end
 
 function can_compute(fac::BaseChangeMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)

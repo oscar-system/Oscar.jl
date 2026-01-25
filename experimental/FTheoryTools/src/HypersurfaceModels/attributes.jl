@@ -101,8 +101,7 @@ function weierstrass_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default
     return w
   end
   @req w isa String "Internal inconsistency encountered"
-  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
-  model_indices = JSON.parsefile(directory * "model_indices.json")
+  model_indices = _model_indices()
   if is_base_space_fully_specified(h)
     w_model = literature_model(
       parse(Int, model_indices[w]);
@@ -174,8 +173,7 @@ function global_tate_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default
     return t
   end
   @req t isa String "Internal inconsistency encountered"
-  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
-  model_indices = JSON.parsefile(directory * "model_indices.json")
+  model_indices = _model_indices()
   if is_base_space_fully_specified(h)
     t_model = literature_model(
       parse(Int, model_indices[t]);

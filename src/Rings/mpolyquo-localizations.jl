@@ -844,7 +844,8 @@ function isone(a::MPolyQuoLocRingElem)
 end
 
 function iszero(a::MPolyQuoLocRingElem)
-  return lift(a) in modulus(parent(a))
+  is_zero(lifted_numerator(a)) && return true
+  return lifted_numerator(a) in modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal})
@@ -1030,12 +1031,8 @@ constructor takes as input the triple
 end
 
 ### type getters 
-domain_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = D
-domain_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
-codomain_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = C
-codomain_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
 restricted_map_type(::Type{MPolyQuoLocalizedRingHom{D, C, M}}) where {D, C, M} = M
-restricted_map_type(f::MPolyQuoLocalizedRingHom) = domain_type(typeof(f))
+restricted_map_type(f::MPolyQuoLocalizedRingHom) = restricted_map_type(typeof(f))
 
 morphism_type(::Type{R}, ::Type{S}) where {R<:MPolyQuoLocRing, S<:Ring} = MPolyQuoLocalizedRingHom{R, S, morphism_type(base_ring_type(R), S)}
 morphism_type(L::MPolyQuoLocRing, S::Ring) = morphism_type(typeof(L), typeof(S))
@@ -1608,8 +1605,8 @@ function simplify(L::MPolyQuoRing)
 end
 
 function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
-  J = modulus(L)
   R = base_ring(L)
+  J = ideal(R, small_generating_set(modulus(L)))
   is_zero(ngens(R)) && return L, id_hom(L), id_hom(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)

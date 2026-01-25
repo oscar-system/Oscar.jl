@@ -61,7 +61,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [4,3,2]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -103,7 +103,7 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached=false)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights=W, cached=false)
     map_into_S = hom(R, S, gens(S))
     SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG (issue #2657) !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)

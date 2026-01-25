@@ -23,3 +23,29 @@
     @test optimal_value(loaded[2]) == optimal_value(v[2])
   end
 end
+
+@testset "saving and loading Gzip'ed filed" begin
+  @testset "loading file format paper example (Gzip'ed)" begin
+    F = GF(7, 2)
+    o = gen(F)
+    Fyz, (y, z) = F[:x, :y]
+    load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"))
+    loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); params=Fyz)
+    @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
+  end
+
+  @testset "saving and loading Gzip'ed file" begin
+    R, x = polynomial_ring(QQ, :x)
+    f = x^3 + 2x + 1
+    g = x^2 + 3
+    mktempdir() do path
+      filename = joinpath(path, "poly.mrdi.gz")
+      save(filename, [f,g]; compression=:gzip)
+      loaded = load(filename)
+      @test loaded == [f,g]
+      Oscar.reset_global_serializer_state()
+      loaded = load(filename; params=R)
+      @test loaded == [f,g]
+    end
+  end
+end

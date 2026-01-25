@@ -11,8 +11,8 @@ is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
 mathematicians.
 
-We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification described [here](https://arxiv.org/abs/2309.00465).
-Which means we use a JSON extension to serialize data.
+We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification developed by Della Vecchia, Joswig and Lorenz [D-VJL24*1](@cite).
+In particular, we use a JSON extension to serialize data.
 
 
 ## How it works
@@ -25,7 +25,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 42
 
 ```
-The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
+The filename hints to the MaRDI file format [D-VJL24*1](@cite), which employs JSON.  The file looks as follows:
 ```json
 {
   "_ns": {
@@ -140,7 +140,7 @@ of `type_params` whenever saving a type `T`. By default `type_params` will retur
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
 For example if `obj` is of type `RingElem` than it is expected that `type_params`
-should contain at least 
+should contain at least `parent(obj)`.
 
 #### `save_object` / `load_object`
 
@@ -320,7 +320,10 @@ Oscar.Serialization.upgrade_data
 
 All upgrade scripts should be contained in a file named after the version
 they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
-should be named `0.13.0.jl`.
+should be named `0.13.0.jl`. 
+There is also the possibility to have multiple upgrade scripts per version, this is to accommodate file serialized with DEV versions.
+In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
+To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
 
 ```@docs
 Oscar.Serialization.UpgradeScript

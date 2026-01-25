@@ -1222,8 +1222,9 @@ julia> affine_open_covering(p2)
 @attr Vector{AffineNormalToricVariety} function affine_open_covering(
   v::NormalToricVarietyType
 )
-  charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
-  for i in 1:(pm_object(v).N_MAXIMAL_CONES)
+  k = pm_object(v).N_MAXIMAL_CONES::Int
+  charts = Vector{AffineNormalToricVariety}(undef, k)
+  for i in 1:k
     charts[i] = affine_normal_toric_variety(cone(Polymake.fan.cone(pm_object(v), i - 1)))
   end
   return charts

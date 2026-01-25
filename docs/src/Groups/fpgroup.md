@@ -48,13 +48,13 @@ then one chooses these defining relators, and then calls
 [`quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem`](@ref).
 
 ```jldoctest fpgroupxpl
-julia> rels = [f1^2, f2^3, f1*f2*f1*f2^2]
+julia> rel = [f1^2, f2^3, f1*f2*f1*f2^2]
 3-element Vector{FPGroupElem}:
  f1^2
  f2^3
  (f1*f2)^2*f2
 
-julia> G, epi = quo(F, rels)
+julia> G, epi = quo(F, rel)
 (Finitely presented group, Hom: F -> G)
 
 julia> gens(G)
@@ -104,6 +104,13 @@ julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
   from finitely presented group of order 6
   to permutation group of degree 5 and order 6
+```
+
+It is possible, if desired, to convert a group of another type into
+a finitely presented group using [`isomorphism`](@ref isomorphism(::Type{T}, G::Group) where T <: Group) or `fp_group`:
+
+```@docs
+fp_group
 ```
 
 ## Functions for elements of (subgroups of) finitely presented groups

@@ -15,7 +15,7 @@ end
 # Necessary duplicate because of method ambiguity
 function change_base_ring(A::Ring, P::MPolyDecRing)
   kk = coefficient_ring(P)
-  res, _ = graded_polynomial_ring(A, symbols(P), weights=generator_degrees(P); cached = false)
+  res, _ = graded_polynomial_ring(A, symbols(P); weights=generator_degrees(P), cached = false)
   return res, hom(P, res, A, gens(res), check=false)
 end
 

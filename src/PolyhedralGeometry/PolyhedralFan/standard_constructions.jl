@@ -405,3 +405,35 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality; non_redundant=true
+  )
+end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+_empty_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(1, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+
+function *(c::scalar_types_extended, Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  is_positive(c) && return Sigma
+  return -Sigma
+end
+*(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma

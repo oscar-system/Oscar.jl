@@ -38,7 +38,7 @@ end
    end
    N = trivial_subgroup(G)[1]
    for subgens in [N, gens(N)]
-      @test quo(G, subgens)[1] isa MatrixGroup
+      @test quo(G, subgens)[1] isa MatGroup
       @test quo(PermGroup, G, subgens)[1] isa PermGroup
       @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
@@ -174,8 +174,10 @@ end
    S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
    T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
    H3 = matrix_group(S, T)
-   C, iC = center(H3);
+   Z = matrix(K, [-a-1 0 0; 0 -a-1 0; 0 0 -a-1])
+   C = sub(H3, [H3(Z; check = false)]; check = false)[1]
    @test !has_is_finite(C)
    Q, pQ = quo(H3, C);
    @test has_is_finite(C)
+   @test C == center(H3)[1]
 end
