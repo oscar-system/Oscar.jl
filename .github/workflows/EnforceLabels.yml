@@ -8,7 +8,7 @@ on:
 jobs:
   enforce-labels:
     name: Check for blocking labels
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 2
     steps:
     - uses: yogevbd/enforce-label-action@2.2.2

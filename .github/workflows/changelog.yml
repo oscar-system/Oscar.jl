@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   update-changelog:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
 
     steps:
     # Checkout the repository
