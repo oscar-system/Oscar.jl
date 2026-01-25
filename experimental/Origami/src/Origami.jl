@@ -105,6 +105,7 @@ Origami ((1,2),(2,3), 3)
 
 julia> horizontal_perm(o)
 (1,2)
+```
 """
 function horizontal_perm(o::Origami)
   return o.h
@@ -122,6 +123,7 @@ Origami ((1,2),(2,3), 3)
 
 julia> vertical_perm(o)
 (2,3)
+```
 """
 function vertical_perm(o::Origami)
   return o.v
@@ -140,6 +142,7 @@ Origami ((1,2),(2,3), 3)
 
 julia> degree(o)
 3
+```
 """
 function degree(o::Origami)
   return o.d
@@ -158,6 +161,7 @@ Origami ((1,2),(2,3), 3)
 
 julia> perm_group(o)
 Symmetric group of degree 3
+```
 """
 function perm_group(o::Origami)
   return symmetric_group(o.d)
