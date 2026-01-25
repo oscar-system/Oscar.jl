@@ -57,10 +57,10 @@ be constructed using [`abelian_closure(::QQField)`](@ref).
 """
 @attributes mutable struct QQAbField{T} <: Nemo.Field # union of cyclotomic fields
   fields::Dict{Int, T} # Cache for the cyclotomic fields
-  s::String
+  s::Union{String,Nothing}
 
   function QQAbField{T}(fields::Dict{Int, T}) where T
-    return new(fields)
+    return new(fields, nothing)
   end
 end
 
@@ -168,8 +168,7 @@ elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbFieldElem{AbsNonSimpleN
 parent_type(::Type{QQAbFieldElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
 parent(::QQAbFieldElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
 
-base_ring(::QQAbField) = Union{}
-base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
+base_ring_type(::Type{<:QQAbField}) = Union{}
 
 ################################################################################
 #
@@ -178,13 +177,10 @@ base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
 ################################################################################
 
 function _variable(K::QQAbField)
-  if isdefined(K, :s)
-    return K.s
-  elseif Oscar.is_unicode_allowed()
-    return "ζ"
-  else
-    return "zeta"
-  end
+  s = K.s
+  s !== nothing && return s
+  Oscar.is_unicode_allowed() && return "ζ"
+  return "zeta"
 end
 
 _variable(b::QQAbFieldElem{AbsSimpleNumFieldElem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
@@ -364,12 +360,13 @@ function Base.show(io::IO, a::QQAbFieldGen)
 end
 
 """
-    set_variable!(K::QQAbField, s::String)
+    set_variable!(K::QQAbField, s::Union{String,Nothing})
 
 Change the printing of the primitive n-th root of the abelian closure of the
 rationals to `s(n)`, where `s` is the supplied string.
+In the case of `s` being `nothing`, the printing is reset to the default value.
 """
-function set_variable!(K::QQAbField, s::String)
+function set_variable!(K::QQAbField, s::Union{String,Nothing})
   ss = _variable(K)
   K.s = s
   return ss
@@ -964,7 +961,7 @@ is_rational(a::QQAbFieldElem) = is_rational(data(a))
 @doc raw"""
     is_integral(a::QQAbFieldElem)
 
-Returns whether $a$ is integral, that is, whether the minimal
+Return whether $a$ is integral, that is, whether the minimal
 polynomial of $a$ has integral coefficients.
 """
 is_integral(a::QQAbFieldElem) = is_integral(data(a))
@@ -1274,7 +1271,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
   end
   data = val.data  # AbsSimpleNumFieldElem
   coeffs = Nemo.coefficients(data)
-  res = zeros(eltype(coeffs), n)
+  res = Hecke.zeros_array(eltype(coeffs), n)
   res[1] = coeffs[1]
   for i in 2:length(coeffs)
     res[Int(mod((i-1)*k, n)+1)] = coeffs[i]

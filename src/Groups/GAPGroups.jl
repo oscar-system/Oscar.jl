@@ -33,8 +33,8 @@ check_parent(G::T, g::GAPGroupElem) where T <: GAPGroup = (T === typeof(g.parent
 # `PermGroup`: compare types and degrees
 check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 
-# `MatrixGroup`: compare types, dimensions, and coefficient rings
-# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+# `MatGroup`: compare types, dimensions, and coefficient rings
+# (This cannot be defined here because `MatGroup` is not yet defined.)
 
 
 # TODO: ideally the `elements` method below would be turned into a method for
@@ -55,6 +55,18 @@ end
 function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
    @req GapObj(x) in GapObj(G) "the element does not embed in the group"
    return group_element(G, GapObj(x))
+end
+
+function ensure_efficient_setup_is_done(_::Group)
+   # currently a groups in general
+   return
+end
+
+function ensure_efficient_setup_is_done(G::MatGroup)
+   if is_infinite(base_ring(G))
+      is_finite(G) # force computation of a nice mono
+   end
+   return
 end
 
 """
@@ -256,7 +268,7 @@ end
 #   with this parent, of type `SubPcGroup`, hence the product of two
 #   `SubPcGroupElem`s with different parents is also a `SubPcGroupElem`.
 #
-# - `MatrixGroup`, `MatrixGroup`:
+# - `MatGroup`, `MatGroup`:
 #   The operation is allowed whenever the two groups have the same `degree`
 #   and `base_ring`,
 #   then the general linear group of that degree over that ring
@@ -337,7 +349,7 @@ function _common_parent_group(x::FPGroup, y::SubFPGroup)
   return as_sub_fp_group(y.full_group)
 end
 
-function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
+function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: Union{GAPGroup, FinGenAbGroup}
   x === y && return x
   @req x.G === y.G "the groups belong to different full groups"
   return automorphism_group(x.G)
@@ -684,12 +696,7 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
-   # We claim that the finiteness check is cheap in Oscar.
-   # This does not hold in GAP,
-   # and GAP's method selection benefits from the known finiteness flag.
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-     is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
@@ -969,7 +976,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
+   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(C)), acting_group(C); check = false)
 end
 
 """
@@ -1476,6 +1483,58 @@ see [`minimal_normal_subgroups`](@ref).
 """
 @gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(GapObj(G)))
 
+"""
+    p_rump(G::GAPGroup, p::IntegerUnion)
+
+For a prime `p`, the `p`-rump of a group `G` is the subgroup `G' G^p`.
+Unless it equals `G` itself (for example if `G` is perfect),
+it is equal to the second term of the `p`-central series of `G`, see [`p_central_series`](@ref).
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> h, _ = p_rump(g, 2)
+(Permutation group of degree 4, Hom: h -> g)
+
+julia> h == alternating_group(4)
+true
+```
+"""
+function p_rump(G::GAPGroup, p::IntegerUnion)
+  @req is_prime(p) "p is not a prime"
+  H = GAPWrap.PRump(GapObj(G), p)
+  return _as_subgroup(G, H)
+end
+
+@doc raw"""
+    torsion_subgroup(G::GAPGroup)
+
+Return the torsion subgroup of `G`, i.e. the subgroup of all elements of finite order.
+If the set of finite order elements does not form a subgroup, an error
+is raised.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> torsion_subgroup(g)
+(Symmetric group of degree 4, Hom: g -> g)
+
+julia> g = GL(3, 2);
+
+julia> torsion_subgroup(g)
+(Matrix group of degree 3 over GF(2), Hom: matrix group -> g)
+```
+"""
+function torsion_subgroup(G::GAPGroup)
+  T = GAPWrap.TorsionSubgroup(GapObj(G))
+  @req T != GAP.Globals.fail "The given group does not admit a torsion subgroup"
+  return _as_subgroup(G, T)
+end
+
+torsion_subgroup(G::PermGroup) = (G, id_hom(G))
+torsion_subgroup(G::T) where T <: Union{FPGroup, SubFPGroup} = trivial_subgroup(G)
 
 ################################################################################
 #
@@ -1951,7 +2010,6 @@ false
 ```
 """
 @gapattribute is_finitely_generated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(GapObj(G))::Bool
-
 
 # TODO/FIXME: is_free is disabled for now as it is not universal; it only
 # really works for fp groups, and then also only for those without relators;
@@ -2563,7 +2621,7 @@ about it becomes known to Oscar may yield different outputs.
 The following notation is used in the returned string.
 
 | Description | Syntax |
-| ----------- | ----------- |
+|:----------- |:----------- |
 | trivial group | 1 |
 | finite cyclic group | C<size> |
 | infinite cyclic group | Z |
@@ -2613,9 +2671,7 @@ function describe(G::GAPGroup)
    is_finitely_generated(G) || return "a non-finitely generated group"
 
    # force some checks in some cases
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-      is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    # handle groups whose finiteness is known
    if has_is_finite(G)

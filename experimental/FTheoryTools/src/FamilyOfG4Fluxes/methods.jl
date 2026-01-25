@@ -19,7 +19,7 @@ Create an element of a family of G4-fluxes.
   pass the optional keyword argument `consistency_check=false`.
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
@@ -224,7 +224,7 @@ Create a random element of a family of G4-fluxes.
   The random source can be set with the optional argument `rng`
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
@@ -299,7 +299,7 @@ Create a random ``G_4``-flux on a given F-theory model.
   The random source can be set with the optional argument `rng`
 
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
 
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))

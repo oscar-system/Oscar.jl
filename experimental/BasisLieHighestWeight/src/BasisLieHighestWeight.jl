@@ -2,8 +2,12 @@ module BasisLieHighestWeight
 
 using ..Oscar
 using ..Oscar: IntegerUnion
-using ..Oscar: _is_weighted
 using ..Oscar: _root_system_type_string
+
+using ..Oscar.Orderings: _is_weighted
+using ..Oscar.Orderings: AbsGenOrdering
+using ..Oscar.Orderings: SymbOrdering
+using ..Oscar.Orderings: WSymbOrdering
 
 using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
 
@@ -56,6 +60,8 @@ export basis_lie_demazure_ffl
 export basis_lie_demazure_lusztig
 export basis_lie_demazure_nz
 export basis_lie_demazure_string
+export basis_coordinate_ring_kodaira_demazure
+export basis_coordinate_ring_kodaira_demazure_ffl
 
 end
 
@@ -79,3 +85,5 @@ export basis_lie_demazure_ffl
 export basis_lie_demazure_lusztig
 export basis_lie_demazure_nz
 export basis_lie_demazure_string
+export basis_coordinate_ring_kodaira_demazure
+export basis_coordinate_ring_kodaira_demazure_ffl

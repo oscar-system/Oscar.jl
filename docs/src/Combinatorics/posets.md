@@ -64,5 +64,5 @@ elements_of_rank(p::PartiallyOrderedSet, rk::Int)
 ## Visualization
 
 ```@docs
-visualize(p::PartiallyOrderedSet; AtomLabels=[], filename=nothing)
+visualize(p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, backend=:default, kwargs...)
 ```

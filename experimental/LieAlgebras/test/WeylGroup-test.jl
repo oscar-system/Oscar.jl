@@ -469,4 +469,10 @@
       map(Set, [[Omega[1], Omega[4]], [Omega[5], Omega[2]], [Omega[6], Omega[3]]])
     @test length(orbits(bl)) == 1
   end
+
+  @testset "Some specific subgroups" begin
+    W = weyl_group(:A, 3)
+    T = torsion_subgroup(W)
+    @test T == (W, id_hom(W))
+  end
 end

@@ -600,25 +600,26 @@ julia> ext(M, M, 0)
 Subquotient of submodule with 1 generator
   1: (e[1] -> e[1])
 by submodule with 2 generators
-  1: y*(e[1] -> e[1])
-  2: x*(e[1] -> e[1])
+  1: x*(e[1] -> e[1])
+  2: y*(e[1] -> e[1])
 
 julia> ext(M, M, 1)
 Subquotient of submodule with 2 generators
   1: (e[1] -> e[1])
   2: (e[2] -> e[1])
 by submodule with 4 generators
-  1: y*(e[1] -> e[1])
-  2: x*(e[1] -> e[1])
-  3: y*(e[2] -> e[1])
-  4: x*(e[2] -> e[1])
+  1: x*(e[1] -> e[1])
+  2: y*(e[1] -> e[1])
+  3: x*(e[2] -> e[1])
+  4: y*(e[2] -> e[1])
 
 julia> ext(M, M, 2)
 Subquotient of submodule with 1 generator
   1: (e[1] -> e[1])
-by submodule with 2 generators
-  1: y*(e[1] -> e[1])
-  2: x*(e[1] -> e[1])
+by submodule with 3 generators
+  1: x*(e[1] -> e[1])
+  2: y*(e[1] -> e[1])
+  3: -x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators

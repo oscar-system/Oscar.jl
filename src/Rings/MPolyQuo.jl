@@ -64,7 +64,7 @@ gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
 number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
-base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = base_ring_type(S)
+base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = parent_type(S)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
@@ -98,6 +98,7 @@ mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
   P::MPolyQuoRing{S}
   simplified::Bool
+  inverse_rep::S # for caching the inverse of a unit
 
   function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}, simplified = false) where {S}
     @assert parent(f) === base_ring(P)
@@ -1123,30 +1124,37 @@ julia> f*g
 ```
 """
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
-  # TODO:
-  # Eventually, the code below should be replaced
-  # by a call to `coordinates` over the ring `parent(a)`.
-  # This should then use relative groebner bases and
-  # make use of the caching of previously computed GBs
-  # of the modulus of `parent(a)`.
+  A = parent(a)
+  isdefined(a, :inverse_rep) && return true, A(a.inverse_rep)
+  rep = a.f
+  is_unit(rep) && return true, A(inv(rep))
 
-  Q = parent(a)
-  J = oscar_groebner_basis(Q)
-  J = vcat(J, [a.f])
-
-  if Q isa MPolyQuoRing{<:MPolyDecRingElem}
-     J = [x.f for x in J]
+  # In the graded case non-homogeneous generators for ideals are forbidden.
+  # We need to use the custom code below then. 
+  if A isa MPolyQuoRing{<:MPolyDecRingElem}
+    J = push!([x.f for x in oscar_groebner_basis(A)], a.f.f)
+    j, T = standard_basis_with_transformation_matrix(ideal(forget_grading(base_ring(A)), J))
+    length(j) > 1 && return false, a
+    j1 = only(j)
+    if is_constant(j1) && is_unit(first(coefficients(j1)))
+      @assert ncols(T) == 1
+      a.inverse_rep = base_ring(A)(inv(first(coefficients(j1)))*T[end, 1])
+      return true, A(a.inverse_rep)
+    end
+    return false, a
   end
 
-  j, T = standard_basis_with_transformation_matrix(ideal(J))
-  if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
-    @assert ncols(T) == 1
-    return true, inv(first(coefficients(j[1])))*Q(T[end, 1])
-  end
-  return false, a
+  # the non-graded case
+  I = ideal(A, a)
+  one(A) in I || return false, a
+  c = coordinates(one(A), I)
+  a.inverse_rep = c[1].f
+  return true, c[1]
 end
 
-is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
+function is_unit(a::MPolyQuoRingElem)
+  is_invertible_with_inverse(a)[1]
+end
 
 @doc raw"""
     inv(f::MPolyQuoRingElem)
@@ -1412,7 +1420,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z] );
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
 (Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -> A)
@@ -1525,8 +1533,12 @@ Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRi
 ```
 """
 function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  return _homogeneous_components(a, nothing)
+end
+
+function _homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}})
   simplify(a)
-  h = homogeneous_components(a.f)
+  h = _homogeneous_components(a.f, degs)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
@@ -1600,25 +1612,23 @@ end
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
 where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
-that group, return the homogeneous component of `A` of degree `g`. Additionally, return
-the embedding of the component into `A`.
+that group, return the `g`-graded component of `A` as a standard vector space. Additionally,
+return the embedding of the vector space into `A`.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `A`, and return the homogeneous component of `A` whose degree 
-is that element. Additionally, return the embedding of the component into `A`.
+group of `A`, and proceed as above.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
 
 Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given an integer `g`, convert `g` into an element of the grading group of `A`, 
-and return the homogeneous component of `A` whose degree is that element.
-Additionally, return the embedding of the component into `A`.
+and proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error message will be thrown.
+    If the component is infinite dimensional, an error message will be thrown.
 
 # Examples
 ```jldoctest
@@ -1727,7 +1737,16 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbG
   @assert D == grading_group(W)
   R = base_ring(W)
 
-  H, mH = homogeneous_component(R, d)
+  H, mH = try
+    homogeneous_component(R, d)
+  catch e
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
+
   I = modulus(W)
   M = gens(leading_ideal(I))
   cache = Dict{typeof(d), typeof(mH)}()

@@ -199,7 +199,7 @@ such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
 
 # Examples
 ```jldoctest
-julia> struct_consts = zeros(QQ, 3, 3, 3);
+julia> struct_consts = QQ.(zeros(Int, 3, 3, 3));
 
 julia> struct_consts[1, 2, 3] = QQ(1);
 

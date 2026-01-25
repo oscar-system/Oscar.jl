@@ -820,7 +820,7 @@ Spectrum
     by ideal (x1)
 ```
 """
-function closure(X::AbsAffineScheme, Y::AbsAffineScheme, check= true)
+function closure(X::AbsAffineScheme, Y::AbsAffineScheme, check::Bool=true)
   error("not implemented")
 end
 

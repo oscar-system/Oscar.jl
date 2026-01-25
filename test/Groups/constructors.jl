@@ -179,10 +179,10 @@ end
   @test isa(Dic12, PcGroup)
   
   gl = GL(2, 3)
-  @test isa(gl, MatrixGroup)
+  @test isa(gl, MatGroup)
   
   sl = SL(2, 3)
-  @test isa(sl, MatrixGroup)
+  @test isa(sl, MatGroup)
   
 end
 

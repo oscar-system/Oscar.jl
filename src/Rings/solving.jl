@@ -153,36 +153,41 @@ julia> map(r->map(p->evaluate(p, r), gens(I)), rat_sols)
 ```
 """
 function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
-  gb = groebner_basis(I, ordering = lex(base_ring(I)))
   R = base_ring(I)
   K = base_ring(R)
-  if 1 in gb
-    return elem_type(base_ring(R))[]
-  end
   @req dim(I) == 0 "Dimension must be zero"
-  @assert length(gb) == ngens(base_ring(I))
-  R = base_ring(I)
-  Qx, _ = polynomial_ring(base_ring(R); cached = false)
-  rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
-  i = ngens(R)
-  for f in gb
-    sts = Vector{elem_type(Qx)}[]
+  # note that what follows does not assume shape position of the points
+  G = groebner_basis(I; ordering = lex(R))
+  if 1 in G
+    return elem_type(K)[]
+  end
+  xs = gens(R)
+  n  = length(xs)
+  Qx, t = polynomial_ring(K; cached = false)
+  occurs_only_from_i(f, i) = all(degree(f, xs[j]) == 0 for j in 1:(i-1))
+  Gslices = [ [ f for f in G if occurs_only_from_i(f, i) ] for i in 1:n ]
+  rts = [elem_type(Qx)[zero(Qx) for _ in 1:n]]
+  for i in n:-1:1
+    Gi = Gslices[i]
+    isempty(Gi) && error("Elimination slice empty at step $i (unexpected for dim 0).")
+    new_rts = Vector{Vector{elem_type(Qx)}}()
     for r in rts
-      r[i] = gen(Qx)
-      g = evaluate(f, r)
-      rt = roots(g)
-      for x in rt
-        r[i] = Qx(x)
-        push!(sts, copy(r))
+      r[i] = t
+      h = mapreduce(f -> evaluate(f, r), gcd, Gi)
+      h == 0 && error("Unexpected zero polynomial")
+      for a in roots(h)
+        r[i] = Qx(a)
+        push!(new_rts, copy(r))
       end
     end
-    rts = sts
-    i -= 1
+    rts = new_rts
   end
-  #for technical reasons (evaluation) the points are actually at this
-  #point constant polynomials, hence:
-  return Vector{elem_type(K)}[elem_type(K)[constant_coefficient(x) for x in r] for r in rts]
+  # now we have a bunch of constant polynomials, replace them by
+  # their constant coefficient
+  sols = [elem_type(K)[constant_coefficient(x) for x in r] for r in rts]
+  return unique(sols)
 end
+
 
 @doc raw"""
     rational_solutions(K::Field, I::MPolyIdeal) -> Vector{Vector}

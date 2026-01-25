@@ -51,7 +51,6 @@ export milnor_algebra
 export milnor_number
 export minimal_supercone_coordinates_of_exceptional_ray
 export point
-export rational_point_coordinates
 export standard_covering
 export standard_coordinates
 export strict_transform

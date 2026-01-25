@@ -292,10 +292,6 @@ end
 ### Type getters
 pullback_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = PbType
 pullback_type(f::AbsAffineSchemeMor) = pullback_type(typeof(f))
-domain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = DomType
-domain_type(f::AbsAffineSchemeMor) = domain_type(typeof(f))
-codomain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = CodType
-codomain_type(f::AbsAffineSchemeMor) = codomain_type(typeof(f))
 
 function morphism_type(::Type{AffineSchemeType1}, ::Type{AffineSchemeType2}) where {AffineSchemeType1<:AbsAffineScheme, AffineSchemeType2<:AbsAffineScheme}
   return AffineSchemeMor{AffineSchemeType1, AffineSchemeType2, morphism_type(ring_type(AffineSchemeType2), ring_type(AffineSchemeType1))}

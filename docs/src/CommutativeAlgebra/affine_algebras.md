@@ -104,6 +104,8 @@ In the graded case, we additionally have:
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
+### Graded Components
+
 ```@docs
 monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
@@ -112,11 +114,13 @@ monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 ```
 
-### Dimension
+### Krull Dimension
 
 ```@docs
 dim(A::MPolyQuoRing)
 ```
+
+### Vector Space Dimension
 
 ```@docs
 is_finite_dimensional_vector_space(A::MPolyQuoRing)

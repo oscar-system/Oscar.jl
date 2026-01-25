@@ -50,7 +50,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
   version_string = string(VERSION_NUMBER)
   if is_dev
     gitinfo = _get_oscar_git_info()
-    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+    version_string = version_string * " " * _short_git_info(gitinfo)
   else
     version_string = "Version " * version_string
   end
@@ -85,7 +85,7 @@ function __init__()
     [
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
-        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsMatrixGroup, MatGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
@@ -126,7 +126,13 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
+
+  add_verbosity_scope(:Isometry)
+  add_assertion_scope(:Isometry)
   
+  add_verbosity_scope(:OrthogonalStablizer)
+  add_assertion_scope(:OrthogonalStablizer)
+
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
@@ -171,12 +177,20 @@ function __init__()
 
   add_verbosity_scope(:SchurIndices)
 
+  add_verbosity_scope(:DirectImages)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
       Pkg.is_manifest_current() :
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+  end
+
+  # call git subprocess here to avoid conflicts with
+  # IPC communication serialization
+  if Oscar.is_dev
+    Serialization.get_oscar_serialization_version()
   end
 end
 
@@ -245,7 +259,8 @@ include("fallbacks.jl")
 
 include("Rings/Rings.jl")
 include("forward_declarations.jl")
-include("Groups/Groups.jl")
+include("Misc/Misc.jl")
+include("Groups/Groups.jl")  # Needs IndexedSet
 
 include("GAP/GAP.jl")
 
@@ -258,6 +273,7 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
+include("NumberTheory/ZLattices.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
@@ -268,13 +284,13 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("Combinatorics/SimplicialComplexes.jl")
-include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
 include("Combinatorics/PartiallyOrderedSet/structs.jl")
 include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+include("Groups/subspaces.jl") # needs EnumerativeCombinatorics
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms
@@ -289,7 +305,6 @@ include("InvariantTheory/InvariantTheory.jl")
 
 include("LieTheory/LieTheory.jl")
 
-include("Misc/Misc.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should
