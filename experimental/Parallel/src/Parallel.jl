@@ -53,12 +53,15 @@ end
 @doc raw"""
      oscar_worker_pool(n::Int; kw...)
      oscar_worker_pool(f::Function, n::Int; kw...)
-     oscar_worker_pool(manager::ClusterManager; kw...)
+     oscar_worker_pool(manager::ClusterManager; project=Base.active_project(), kw...)
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
 
-Will also accept a `manager` as an argument, `kw` will get passed to `addprocs` when initializing the workers.
+The `kw` will get passed to `addprocs` when initializing the workers,
+for example use the `exeflags` for specify settings on the worker processes.
+When passing a `manager`, the `project` will determine which project to activate on the machines in the cluster.
+The default is to use `Base.active_project()` mimicking the local setting, passing nothing won't activate any project.
 
 # Example
 The following code will start up 3 processes with Oscar,
