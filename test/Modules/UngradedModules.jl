@@ -1944,3 +1944,14 @@ end
   @test all(x in U_sat for x in gens(U))
 end
 
+
+@testset "Issue #5722" begin
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R,2)
+  M = SubquoModule(F, [x*F[1], y*F[2]])
+  O = SubquoModule(F, elem_type(F)[])
+
+  @test O + O == O
+  @test O + M != O
+  @test M + O == M
+end
