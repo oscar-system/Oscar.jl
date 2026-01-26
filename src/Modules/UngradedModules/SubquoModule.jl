@@ -1315,8 +1315,8 @@ function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
     end
   end
 
-  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)]; check=false)
-  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)]; check=false)
+  iM = SubQuoHom(M,SQ,elem_type(SQ)[SQ[i] for i=1:ngens(M)]; check=false)
+  iN = SubQuoHom(N,SQ,elem_type(SQ)[SQ[i] for i=ngens(M)+1:ngens(SQ)]; check=false)
 
   register_morphism!(iM)
   register_morphism!(iN)
