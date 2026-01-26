@@ -58,9 +58,9 @@ Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
 
-The `kw` will get passed to `addprocs` when initializing the workers,
-for example use the `exeflags` for specify settings on the worker processes.
-When passing a `manager`, the `project` will determine which project to activate on the machines in the cluster.
+Keyword arguments will get passed to `addprocs` when initializing the workers,
+for example use `exeflags` to specify settings for the worker processes.
+When passing a `manager`, the `project` argument will determine which project to activate on the machines in the cluster.
 The default is to use `Base.active_project()` mimicking the local setting, passing nothing won't activate any project.
 
 # Example
