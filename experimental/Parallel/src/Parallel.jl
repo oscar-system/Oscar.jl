@@ -68,7 +68,7 @@ The following code will start up 3 processes with Oscar,
 run a parallel computation over each element in an array and
 then shutdown the processes.
 ```
-results = oscar_worker_pool(3) do wp
+results = oscar_worker_pool(3; exeflags="--heap-size-hint=8G") do wp
   Qxy, (x, y) = QQ[:x, :y]
   pmap(z -> z^2, wp, [x^2, x*y, x*y^2])
 end
