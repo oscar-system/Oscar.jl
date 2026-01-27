@@ -177,9 +177,7 @@ julia> t4 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"
 ```
 One can count the matroids for which $\mathcal{R}$ and $\mathcal{S}$ are known and do not coincide as follows:
 ```julia-repl
-julia> notequal = find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4", "data.length_groundset"=>"9","data.equality_of_realizationspaces"=>"false"]));
-
-julia> length([r for r in notequal])
+julia> length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"4", "data.length_groundset"=>"9","data.equality_of_realizationspaces"=>"false"))
 5399
 ```
 Theorem 4.11 claims that there are at least 5400 matroids of rank 4 on 9 elements with $\mathcal{R}\supsetneq\mathcal{S}$. Since the database does not count the uniform matroid $U_{4,9}$, the claim is verified.
