@@ -170,7 +170,7 @@ function is_selfprojecting(mat::Matroid)::Bool
 end
 
 @doc raw"""
-  selfprojecting_realization_ideal(m::Matroid)
+    selfprojecting_realization_ideal(m::Matroid)
 
   Function to compute the defining_ideal of a selfprojecting realization space
 
