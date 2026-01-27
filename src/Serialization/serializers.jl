@@ -71,46 +71,6 @@ function begin_node(s::SerializerState)
   end
 end
 
-function begin_dict_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "{")
-end
-
-function end_dict_node(s::SerializerState)
-  write(s.io, "}")
-
-  if s.new_level_entry
-    # makes sure that entries after empty dicts add comma
-    s.new_level_entry = false
-  end
-end
-
-function begin_array_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "[")
-end
-
-function end_array_node(s::SerializerState)
-  write(s.io, "]")
-
-  if s.new_level_entry
-    # makes sure that entries after empty arrays add comma
-    s.new_level_entry = false
-  end
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
-end
-
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
   s.key = key
@@ -122,18 +82,30 @@ end
 function save_data_dict(f::Function, s::SerializerState,
                         key::Union{Symbol, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
-  serialize_dict(s) do
-    s.new_level_entry = true
-    f()
+  begin_node(s)
+  s.new_level_entry = true
+  write(s.io, "{")
+  f()
+  write(s.io, "}")
+
+  if s.new_level_entry
+    # makes sure that entries after empty dicts add comma
+    s.new_level_entry = false
   end
 end
 
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
-  serialize_array(s) do
-    s.new_level_entry = true
-    f()
+  begin_node(s)
+  s.new_level_entry = true
+  write(s.io, "[")
+  f()
+  write(s.io, "]")
+
+  if s.new_level_entry
+    # makes sure that entries after empty arrays add comma
+    s.new_level_entry = false
   end
 end
 
