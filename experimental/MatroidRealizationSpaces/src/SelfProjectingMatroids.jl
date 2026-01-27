@@ -249,7 +249,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem
         push!(ineqs,R(candidate))
       end
     end
-    return ineqs[2:length(ineqs)]
+    return ineqs[2:end]
   end
   for candidate in candidates
     if isone(candidate) || isone(-candidate) 
