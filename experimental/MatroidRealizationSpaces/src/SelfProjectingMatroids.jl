@@ -174,7 +174,7 @@ end
 
   Function to compute the defining_ideal of a selfprojecting realization space
 
-  Warning! This function is slow except for small matroids!
+  !!! warning "This function is slow except for small matroids!"
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
@@ -276,7 +276,7 @@ end
   The defining_ideal of the selfprojecting realization space of the given matroid can optionally be entered. Otherwise it will be computed. 
   The kwarg check states whether the matroid will be checked for self-projectivity. The default is true.
 
-  Warning! This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids.
+  !!! warning "This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids."
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
@@ -331,7 +331,7 @@ end
   A basis B can be given that will correspond to the identity matrix in the realization. If nothing is given, a choice will be made.   
   The kwarg check states whether the matroid will be checked for self-projectivity. The default is true.
 
-  Warning! This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids.
+  !!! warning "This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids."
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
