@@ -194,19 +194,10 @@ function __init__()
   end
 end
 
-const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
-const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
-const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
+const VERSION_NUMBER = Base.pkgversion(@__MODULE__)
+const PROJECT_UUID = Base.PkgId(@__MODULE__).uuid
 
-const is_dev = (function()
-        deps = Pkg.dependencies()
-        if Base.haskey(deps, PROJECT_UUID)
-          if deps[PROJECT_UUID].is_tracking_path
-            return true
-          end
-        end
-        return occursin("-dev", lowercase(string(VERSION_NUMBER)))
-    end)()
+const is_dev = occursin("-dev", lowercase(string(VERSION_NUMBER)))
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
