@@ -239,7 +239,7 @@ function load_object(s::DeserializerState,
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRingElem)
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
   poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
   return parent_ring(poly)
 end
@@ -602,7 +602,7 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoRing}, params::Dict)
   R = params[:base_ring]
   ordering_type = params[:ordering]
   o = load_object(s, ordering_type, R, :ordering)
