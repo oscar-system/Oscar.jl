@@ -198,6 +198,7 @@ To reproduce example 4.12 you can access the relevant file from the database.
 julia> using Oscar
 
 julia> db = Oscar.OscarDB.get_db();
+
 julia> find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["name"=>"r_4_n_9_index_5985"]))
 The matroid is of rank 4 on 9 elements.
 The realization space is
