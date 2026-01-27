@@ -165,7 +165,7 @@ julia> t2 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"
 ```
 To obtain numbers from Table 4, i.e. the distribution of realizable matroids without selfprojecting realization you can use the following code:
 ```julia-repl
-julia> t4 = [length([r for r in find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4", "data.length_groundset"=>"9","data.dim_r"=>i,"data.dim_s"=>"-1"]))]) for i in ["0","1","2","3","4","5","6"]]
+julia> t4 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"4", "data.length_groundset"=>"9","data.dim_r"=>"$i","data.dim_s"=>"-1")) for i in 0:6]
 7-element Vector{Int64}:
     4
   103
