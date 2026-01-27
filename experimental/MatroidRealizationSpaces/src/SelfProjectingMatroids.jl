@@ -256,7 +256,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem
     elseif iszero(candidate)
       error("a basis has vanishing minor")
     else
-      if isnothing(multiplicativeSet) && !(candidate in ineqs[2:length(ineqs)]) && !(-candidate in ineqs[2:length(ineqs)])
+      if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
         multiplicativeSet = powers_of_element(candidate)
         push!(ineqs,R(candidate))
       elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)]) && !(candidate in multiplicativeSet)  && !(-candidate in multiplicativeSet)
