@@ -96,20 +96,24 @@ function save_object(s::SerializerState, R::PolyRingUnionType)
   end
 end
 
-function load_object(s::DeserializerState,
-                     T::Type{<: PolyRingUnionType},
-                     params::Ring)
+function load_object(s::DeserializerState, ::Type{<:PolyRing}, params::Ring)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  if T <: PolyRing
-    return polynomial_ring(params, symbols..., cached=false)[1]
-  elseif T <: UniversalPolyRing
-    poly_ring = universal_polynomial_ring(params, cached=false)
-    gens(poly_ring, symbols)
-    return poly_ring
-  elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return laurent_polynomial_ring(params, symbols, cached=false)[1]
-  end
-  return polynomial_ring(params, symbols, cached=false)[1]
+  return polynomial_ring(params, only(symbols); cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return polynomial_ring(params, symbols; cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:UniversalPolyRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return universal_polynomial_ring(params, symbols; cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return laurent_polynomial_ring(params, symbols; cached=false)[1]
 end
 
 # with grading
