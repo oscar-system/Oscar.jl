@@ -52,6 +52,7 @@ abstract_bundle(X::AbstractVariety, ch::MPolyDecRingOrQuoElem) = AbstractBundle(
 abstract_bundle(X::AbstractVariety, r::RingElement, c::MPolyDecRingOrQuoElem) = AbstractBundle(X, r, c)
 
 #######################################################
+# TODO is a comparison of bases needed?
 @doc raw"""
     ==(F::AbstractBundle, G::AbstractBundle)
 
@@ -194,7 +195,7 @@ Return the total Segre class of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -220,22 +221,22 @@ Return the `k`-th Segre class of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
 AbstractBundle of rank 2 on AbstractVariety of dim 6
 
-julia> segre_class(Q,0)
+julia> segre_class(Q, 0)
 1
 
-julia> segre_class(Q,1)
+julia> segre_class(Q, 1)
 c[1]
 
-julia> segre_class(Q,2)
+julia> segre_class(Q, 2)
 c[2]
 
-julia> segre_class(Q,3)
+julia> segre_class(Q, 3)
 c[3]
 
 ```
@@ -251,9 +252,9 @@ Return the Todd class of `F`.
 ```jldoctest
 julia> P = abstract_projective_space(4, symbol = "H"); # Hartshorne, p. 433
 
-julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P,3);
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P, 3);
 
-julia> G = OO(P, 1)+4*OO(P);
+julia> G = OO(P, 1) + 4*OO(P);
 
 julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
 AbstractVariety of dim 2
@@ -269,13 +270,14 @@ true
 julia> tc = todd_class(TZ)
 -1//2*z + 1//8*H^2 + 1//2*H + 1
 
-julia> tc == 1-1//2*K+1//12*(K^2+chern_class(TZ, 2))
+julia> tc == 1 - 1//2*K + 1//12*(K^2 + chern_class(TZ, 2))
 true
 
 ```
 """
 todd_class(F::AbstractBundle) = _todd_class(chern_character(F))
 
+# TODO include an example
 @doc raw"""
     total_pontryagin_class(F::AbstractBundle)
 
@@ -288,6 +290,7 @@ function total_pontryagin_class(F::AbstractBundle)
   sum([(-1)^i*comps[2i+1] for i in 0:n÷2])
 end
 
+# TODO include an example
 @doc raw"""
     pontryagin_class(F::AbstractBundle, k::Int)
 
@@ -302,15 +305,15 @@ Return the Euler characteristic $\chi(F)$
 
     euler_pairing(F::AbstractBundle, G::AbstractBundle)
 
-Return the Euler pairing $\chi(F,G)$.
+Return the Euler pairing $\chi(F, G)$.
 
 # Examples
 ```jldoctest
 julia> P = abstract_projective_space(4, symbol = "H"); # Hartshorne, p. 433
 
-julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P,3);
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P, 3);
 
-julia> G = OO(P, 1)+4*OO(P);
+julia> G = OO(P, 1) + 4*OO(P);
 
 julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
 AbstractVariety of dim 2
@@ -329,7 +332,7 @@ H
 julia> ec = euler_characteristic(OO(Z, H))
 4
 
-julia> ec == integral(1//2*H*(H-K)+1//12*(K^2+chern_class(TZ, 2)))
+julia> ec == integral(1//2*H*(H - K) + 1//12*(K^2 + chern_class(TZ, 2)))
 true
 
 ```
@@ -354,7 +357,7 @@ function _trim(R::MPolyDecRingOrQuo)
     gI = gens(R.I) # will consist of the generators of the modulus I of the desired Chow ring
     S = base_ring(R)
   else
-    gI = MPolyRingElem[] # will consist of the generators of the modulos I of the desired Chow ring
+    gI = MPolyRingElem[] # will consist of the generators of the modulus I of the desired Chow ring
     S = R
   end
   w = weights(Int, S)
@@ -424,27 +427,27 @@ end
 @doc raw"""
     map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
-Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of 
-the Chow ring $N^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map $N^*(X)_{\mathbb Q} \rightarrow N^*(Y)_{\mathbb Q}.$
+Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of
+the Chow ring ${\rm N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map ${\rm N}^*(X)_{\mathbb Q} \rightarrow {\rm N}^*(Y)_{\mathbb Q}.$
 
 !!! note
-    The pullback is relatively easy to describe since it is functorial, while the pushforward is usually more complicated.   
-    In some cases, the pushforward of an element $x \in N^*(X)_{\mathbb Q}$ can be automatically computed via pullback.
+    The pullback is relatively easy to describe since it is functorial, while the pushforward is usually more complicated.
+    In some cases, the pushforward of an element $x \in {\rm N}^*(X)_{\mathbb Q}$ can be automatically computed via pullback.
     Specifically, the projection formula tells us that
 
-    $f_\ast(f^\ast(y)\cdot x) = f_\ast(x)\cdot y \;\text{ for all }\; x\in N^*(X)_{\mathbb Q}, y\in N^*(Y)_{\mathbb Q}.$
+    $f_\ast(f^\ast(y)\cdot x) = f_\ast(x)\cdot y \;\text{ for all }\; x\in {\rm N}^*(X)_{\mathbb Q}, y\in {\rm N}^*(Y)_{\mathbb Q}.$
 
     Since we are working with numerical equivalence, to determine $f_\ast(x)$, it suffices to know all its intersection numbers.
-    These can be readily computed via pullback, provided that all classes in $N^*(Y)_{\mathbb Q}$ are known (or at least those
+    These can be readily computed via pullback, provided that all classes in ${\rm N}^*(Y)_{\mathbb Q}$ are known (or at least those
     classes having non-zero intersection numbers with $f_\ast(x)$).
     This is the case in the following situations:
     - When $Y$ is a point or a curve;
-    - when all classes in $N^*(Y)_{\mathbb Q}$ are known;
-    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in $N^*(X)_{\mathbb Q}$ are known.
+    - when all classes in ${\rm N}^*(Y)_{\mathbb Q}$ are known;
+    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in ${\rm N}^*(X)_{\mathbb Q}$ are known.
     In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
-    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in $N^*(Y)_{\mathbb Q}$
+    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in ${\rm N}^*(Y)_{\mathbb Q}$
     is not known, use the argument `extend_inclusion = true`. Then,
     a modified version of `Y` will be created, with extra classes added so that one can
     pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
@@ -483,15 +486,14 @@ true
 """
 function map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
   #AbstractVarietyMap(X, Y, fˣ, fₓ)
-   !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
-   extend_inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
+  !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
+  extend_inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
 end
 
 @doc raw"""
     dim(f::AbstractVarietyMap)
 
 Return the relative dimension of `f`, that is, return `dim(domain(f)) - dim(codomain(f))`.
-
 
 # Examples
 
@@ -693,20 +695,25 @@ end
 @doc raw"""
     compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
 
-Given abstract variety maps `f` : `X` $\to$ `Y` and `g` : `Y` $\to$ `Z`, say, return their composition.
+Given abstract variety maps `f` (from `X` to `Y`) and `g` (from `Y` to `Z`), return their composition.
 """
 function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   X, Y = f.domain, f.codomain
   @assert g.domain == Y
+
   Z = g.codomain
+
   gofₓ = nothing
   if isdefined(f, :pushforward) && isdefined(g, :pushforward)
     gofₓ = MapFromFunc(X.ring, Z.ring, g.pushforward ∘ f.pushforward)
   end
+
   gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
+
   return gof
 end
 
+# TODO I'm not convinced this is a good choice
 *(f::AbstractVarietyMap, g::AbstractVarietyMap) = compose(f, g) # TODO mention in docu, skip?
 
 ###############################################################################
@@ -714,6 +721,7 @@ end
 # AbstractVariety
 #
 # generic abstract_variety with some classes in given degrees
+# TODO this could do with better documentation and examples
 @doc raw"""
     abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
 
@@ -741,7 +749,8 @@ function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) 
   X = abstract_variety(n, symbols, degs, base=base)[1]
   i = 1
   X.bundles = AbstractBundle[]
-  for (r,s) in bundles
+  # TODO s is not used?
+  for (r, s) in bundles
     push!(X.bundles, AbstractBundle(X, r, 1 + sum(gens(X.ring)[i:i+r-1])))
     i += r
   end
@@ -770,10 +779,13 @@ end
 Return an abstract variety by specifying its dimension `n` and its Chow ring `A`.
 
 !!! note
-    We allow (graded) polynomial rings here since for the construction of a new abstract variety, the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    We allow (graded) polynomial rings here since for the construction of a new abstract variety,
+    the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring,
+    and add its defining relations step by step.
 
 !!! note
-    In addition to the dimension and the Chow ring, further data making up an abstract variety can be set. See the corresponding setter functions in the section [Some Particular Constructions](@ref) of the documentation.
+    In addition to the dimension and the Chow ring, further data making up an abstract variety can be set.
+    See the corresponding setter functions in the section [Some Particular Constructions](@ref) of the documentation.
 
 # Examples
 ```jldoctest
@@ -871,7 +883,9 @@ Quotient
 chow_ring(X::AbstractVariety) = X.ring
 
 
+# TODO document?
 (X::AbstractVariety)(f::RingElement) = X.ring(f)
+# TODO document?
 gens(X::AbstractVariety) = gens(X.ring)
 
 @doc raw"""
@@ -933,8 +947,8 @@ If `X` has been given a polarization, return that polarization.
 
 !!! note
     To implement a polarization $\mathcal O_X(1)$ means to implement its first Chern class.
-    For Grassmannians, this is the polarization of the Plücker embedding. For the product
-    of two abstract varieties with given polarizations, it is the polarization of the Segre embedding.
+    For Grassmannians, this is the polarization of the Plücker embedding.
+    For the product of two abstract varieties with given polarizations, it is the polarization of the Segre embedding.
 
 # Examples
 
@@ -974,9 +988,7 @@ true
 
 ```
 """
-function polarization(X::AbstractVariety)
-  return(X.O1)
-end
+polarization(X::AbstractVariety) = X.O1
 
 
 @doc raw"""
@@ -1079,8 +1091,8 @@ If `X` has been given a polarization $\mathcal O_X(1)$, return the line bundle $
 
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$. Here, $D[1]$ is the degree-1 part of `D`
-(geometrically, this is the codimension 1 part of $D$).
+Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$.
+ Here, $D[1]$ is the degree-1 part of `D` (geometrically, this is the codimension 1 part of $D$).
 
 Alternatively, use `OO` instead of `line_bundle`.
 
@@ -1103,6 +1115,7 @@ true
 line_bundle(X::AbstractVariety, n::RingElement) = AbstractBundle(X, 1, 1+n*X.O1)
 line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = AbstractBundle(X, 1, 1+D[1])
 
+# TODO doesn't appear in docs?
 (OO)(X::AbstractVariety, n::RingElement) = line_bundle(X, n)
 OO(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = line_bundle(X, D)
 
@@ -1257,8 +1270,10 @@ Compute the `k`-th Pontryagin class of the tangent bundle of `X`.
 """
 pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(X.T, k)
 
+# TODO document this? or make it internal?
 chi(p::Int, X::AbstractVariety) = chi(exterior_power(dual(X.T), p)) # generalized Todd genus
 
+# TODO document this
 function todd_polynomial(n::Int)
   X = abstract_variety(n)
   R, z = X.ring[:z]
@@ -1276,6 +1291,7 @@ of the dimension of `X`.
 """
 chern_number(X::AbstractVariety, λ::Int...) = chern_number(X, collect(λ))
 chern_number(X::AbstractVariety, λ::Partition) = chern_number(X, Vector(λ))
+
 function chern_number(X::AbstractVariety, λ::Vector{Int})
   @assert sum(λ) == X.dim
   c = total_chern_class(X)[1:X.dim]
@@ -1301,6 +1317,7 @@ for g in [:a_hat_genus, :l_genus]
     R isa MPolyDecRing && return R($g(k).f([p[2i].f for i in 1:k]...))
     R isa MPolyQuoRing && return R(base_ring(R)($g(k).f([p[2i].f.f for i in 1:k]...)))
   end
+
   @eval function $g(X::AbstractVariety)
     !iseven(X.dim) && error("the abstract_variety is not of even dimension")
     integral($g(X.dim÷2, X))
@@ -1310,35 +1327,35 @@ end
 @doc raw"""
     a_hat_genus(k::Int, X::AbstractVariety)
 
-Compute the `k`-th $\hat A$ genus of a abstract_variety `X`.
+Compute the `k`-th $\hat A$ genus of the abstract_variety `X`.
 """
 a_hat_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     l_genus(k::Int, X::AbstractVariety)
 
-Compute the `k`-th L genus of a abstract_variety `X`.
+Compute the `k`-th L genus of the abstract_variety `X`.
 """
 l_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     a_hat_genus(X::AbstractVariety)
 
-Compute the top $\hat A$ genus of a abstract_variety `X` of even dimension.
+Compute the top $\hat A$ genus of the abstract_variety `X` of even dimension.
 """
 a_hat_genus(X::AbstractVariety)
 
 @doc raw"""
     l_genus(X::AbstractVariety)
 
-Compute the top L genus of a abstract_variety `X` of even dimension.
+Compute the top L genus of the abstract_variety `X` of even dimension.
 """
 l_genus(X::AbstractVariety)
 
 @doc raw"""
     signature(X::AbstractVariety)
 
-Compute the signature of a abstract_variety `X` of even dimension.
+Compute the signature of the abstract_variety `X` of even dimension.
 """
 signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 
@@ -2113,6 +2130,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   end
 end
 
+# TODO add examples
 @doc raw"""
     todd_class(n::Int)
 
@@ -2120,6 +2138,7 @@ Compute the (generic) $n$-th Todd genus.
 """
 todd_class(n::Int)
 
+# TODO add examples
 @doc raw"""
     l_genus(n::Int)
 
@@ -2127,6 +2146,7 @@ Compute the (generic) $n$-th L genus.
 """
 l_genus(n::Int)
 
+# TODO add examples
 @doc raw"""
     a_hat_genus(n::Int)
 
@@ -2248,7 +2268,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
   R = X.ring
   cZ = top_chern_class(F)
 
-  # return only the class of Z in the chow ring of X
+  # return only the class of Z in the Chow ring of X
   class && return cZ
 
   if R isa MPolyQuoRing
@@ -2258,6 +2278,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     AZ = R
   end
   Z = AbstractVariety(X.dim - F.rank, AZ)
+
   if isdefined(X, :point)
     ps = basis(Z, Z.dim) # the 0-cycles
     @assert length(ps) == 1 # make sure that the 0-cycle is unique
@@ -2265,19 +2286,24 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     degp = integral(R(p.f) * cZ) # compute the degree of iₓp
     Z.point = Z(inv(degp) * p.f)
   end
+
   if isdefined(X, :T)
     Z.T = AbstractBundle(Z, Z((chern_character(X.T) - chern_character(F)).f))
   end
+
   if isdefined(X, :O1)
     Z.O1 = Z(X.O1.f)
   end
+
   iₓ = x -> x.f * cZ
   iₓ = MapFromFunc(Z.ring, X.ring, iₓ)
+
   @assert R isa MPolyQuoRing
   i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), iₓ)
   i.T = pullback(i, -F)
   Z.struct_map = i
   set_attribute!(Z, :description, "Zero locus of a section of $F")
+
   return Z
 end
 
@@ -2311,10 +2337,11 @@ Quotient
 ```
 """
 complete_intersection(X::AbstractVariety, degs::Int...) = complete_intersection(X, collect(degs))
-complete_intersection(X::AbstractVariety, degs::Vector{Int}) = (
-  Y = zero_locus_section(sum(line_bundle(X, d) for d in degs));
-  set_attribute!(Y, :description => "Complete intersection of degree $(tuple(degs...)) in $X");
-  Y)
+function complete_intersection(X::AbstractVariety, degs::Vector{Int})
+  Y = zero_locus_section(sum(line_bundle(X, d) for d in degs))
+  set_attribute!(Y, :description => "Complete intersection of degree $(tuple(degs...)) in $X")
+  Y
+end
 
 @doc raw"""
     degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
@@ -2359,10 +2386,10 @@ Quotient
 julia> P = abstract_projective_space(4, symbol = "H")
 AbstractVariety of dim 4
 
-julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P,3)
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P, 3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
 
-julia> G = OO(P, 1)+4*OO(P)
+julia> G = OO(P, 1) + 4*OO(P)
 AbstractBundle of rank 5 on AbstractVariety of dim 4
 
 julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
@@ -2383,7 +2410,7 @@ julia> integral(H^2) # degree of surface
 julia> A = K+H
 z
 
-julia> integral(A^2) # degree of first adjoint surface which is a Del Pezzo surface in P5
+julia> integral(A^2) # degree of first adjoint surface which is a del Pezzo surface in P5
 5
 
 ```
@@ -2394,7 +2421,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   @assert k < min(m,n)
 
   if class
-    # return only the class of D in the chow ring of X
+    # return only the class of D in the Chow ring of X
     if (m-k)*(n-k) <= F.parent.dim # Porteous' formula
       return chern_character(schur_functor(G-F, repeat([m-k], n-k)))[(m-k)*(n-k)]
     else # expected dimension is negative
@@ -2575,7 +2602,7 @@ true
 
 ```
 
-*Number of Conics on the General Quintic Hypersurface in $\mathbb P^4$:*
+*Number of conics on the general quintic hypersurface in $\mathbb P^4$:*
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
@@ -2657,7 +2684,8 @@ end
 Return the `n`-th Hirzebruch surface.
 
 !!! note
-    Recall that the `n`-th Hirzebruch surface is the projective bundle associated to the bundle $\mathcal O_{\mathbb P_1} \oplus O_{\mathbb P_1(-n)}$.
+    Recall that the `n`-th Hirzebruch surface is the projective bundle associated to
+    the bundle $\mathcal O_{\mathbb P_1} \oplus O_{\mathbb P_1(-n)}$.
 
 # Examples
 
@@ -2676,7 +2704,7 @@ Quotient
 """
 function abstract_hirzebruch_surface(n::Int)
   P1 = abstract_projective_space(1)
-  E = OO(P1)+OO(P1, -n)
+  E = OO(P1) + OO(P1, -n)
   return projective_bundle(E)
 end
 

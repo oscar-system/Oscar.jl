@@ -2,6 +2,7 @@ const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
 
 const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
 
+# TODO Bundle or AbstractBundle?
 abstract type Bundle end
 
 
@@ -12,7 +13,7 @@ Return the underlying abstract variety of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
@@ -32,13 +33,13 @@ Return the rank of `F`.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(3,5)
+julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> Q = tautological_bundles(G)[2]
 AbstractBundle of rank 2 on AbstractVariety of dim 6
 
-julia> rank(symmetric_power(Q,3))
+julia> rank(symmetric_power(Q, 3))
 4
 
 ```
@@ -92,6 +93,7 @@ abstract type AbstractVarietyT <: Variety end
 @doc raw"""
     AbstractBundle(X::AbstractVariety, ch::MPolyDecRingElem)
     AbstractBundle(X::AbstractVariety, r, c::MPolyDecRingElem)
+
 The type of an abstract bundle.
 """
 mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
@@ -99,6 +101,7 @@ mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
   rank::RingElement
   ch::MPolyDecRingOrQuoElem
   chern::MPolyDecRingOrQuoElem
+
   function AbstractBundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
     ch = simplify(ch)
     r = constant_coefficient(ch.f)
@@ -107,6 +110,7 @@ mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
     end
     new{V}(X, r, ch)
   end
+
   function AbstractBundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
     F = new{V}(X, r)
     F.chern = c
@@ -127,6 +131,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   pushforward::MapFromFunc
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
+
   function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     if !(fₓ isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
@@ -153,6 +158,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
     end
     return f
   end
+
   function AbstractVarietyMap(X::V1, Y::V2, l::Vector, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     # TODO: this fails with check = false
     fˣ = hom(Y.ring, X.ring, l, check = false)

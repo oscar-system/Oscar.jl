@@ -8,7 +8,7 @@ Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian `G`.
 # Examples
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,4)
+julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
 
 julia> s0 = schubert_class(G, 0)
@@ -31,7 +31,7 @@ c[2]^2
 
 julia> # Pieri's formula:
 
-julia> s1*s1 == s2+s11
+julia> s1*s1 == s2 + s11
 true
 
 julia> s1*s2 == s1*s11 == s21
@@ -43,7 +43,7 @@ true
 ```
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,5)
+julia> G = abstract_grassmannian(2, 5)
 AbstractVariety of dim 6
 
 julia> s3 = schubert_class(G, 5-2)
@@ -60,10 +60,10 @@ julia> chern_class(Q, 3)
 
 ```
 
-*Number of Lines in $\mathbb P^3$ Meeting Four General Lines in $\mathbb P^3$*
+*Number of lines in $\mathbb P^3$ meeting four general lines in $\mathbb P^3$*
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,4)
+julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
 
 julia> s1 = schubert_class(G, 1)
@@ -77,8 +77,8 @@ julia> integral(s1^4)
 
 ```
 """
-function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
-function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
+schubert_class(G::AbstractVariety, λ::Int...) = schubert_class(G, collect(λ))
+schubert_class(G::AbstractVariety, λ::Partition) = schubert_class(G, Vector(λ))
 function schubert_class(G::AbstractVariety, λ::Vector{Int})
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
   (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
