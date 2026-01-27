@@ -245,7 +245,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem
     for candidate in candidates
       @req !iszero(candidate) "a basis has vanishing minor"
       if isone(candidate) || isone(-candidate) 
-      elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)])
+      elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
         push!(ineqs,R(candidate))
       end
     end
