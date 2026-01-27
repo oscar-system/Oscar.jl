@@ -4,16 +4,12 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 # Realizations of self-projecting matroids
-This page accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon [GZ25](@cite), which can be found at https://arxiv.org/abs/2511.21442. It contains the database of (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
+This collection contains the (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
+It accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon [GZ25](@cite).
 
+**Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 4 on 9 elements and for selfprojecting matroids of rank 5 on 10 elements are not complete yet, but underway.
 
-
-**Abstract:**  We introduce the self-projecting Grassmannian, an irreducible subvariety of the Grassmannian parametrizing linear subspaces that satisfy a generalized self-duality condition. We study its relation to classical moduli spaces, such as the moduli spaces of pointed curves of genus $g$, as well as to other natural subvarieties of the Grassmannian. We further translate the self-projectivity condition into the combinatorial language of matroids, introducing self-projecting matroids, and we computationally investigate their realization spaces inside the self-projecting Grassmannian. [GZ25](@cite)
-
-
-**Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 4 on 9 elements and for selfprojecting matroids of rank 5 on 10 elements are not complete yet.
-
-For the cases {(2,4),(3,6),(4,8),(5,10)} the database stores material from the  article [GHSV24](@cite), for which the accompanying code can be found at: https://github.com/sachihashimoto/self-dual
+For the cases {(2,4),(3,6),(4,8),(5,10)} the database stores material from the  article [GHSV24](@cite), for which the accompanying code (in Macaulay2, Magma, Matlab, OSCAR and SageMath) can be found on [github](https://github.com/sachihashimoto/self-dual).
 
 ## How to access the database
 After installing OSCAR, you can access the database as follows
