@@ -200,7 +200,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion}
+  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
   key::Union{Symbol, Int, Nothing}
   refs::Union{AbstractDict{Symbol, Any}, Nothing}
   with_attrs::Bool
@@ -243,7 +243,11 @@ function load_node(f::Function, s::DeserializerState,
   obj = s.obj
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
-  result = f(s.obj)
+  if isnothing(s.obj)
+    result = nothing
+  else
+    result = f(s.obj)
+  end
   s.obj = obj
   return result
 end
