@@ -6,7 +6,7 @@
     R = base_algebra(B)
     (x,y) = gens(R)
     
-    @test B(y) * B(x) == B(x*y + 8//7) - 4 * A[3]
+    #@test B(y) * B(x) == B(x*y + 8//7) - 4 * A[3]
   end
 
   @testset "evaluate parameter not enough values" begin

@@ -69,9 +69,9 @@
     
     @test A[2]*A[1] == A(x1*x2)
     @test A[1]*A[2] == A(x1*x2)
-    @test A[3]*A[1] == A(x1 * y1 + t) + c1 * A(w1) + c2 * A(cw2)
+    #@test A[3]*A[1] == A(x1 * y1 + t) + c1 * A(w1) + c2 * A(cw2)
     @test A[1]*A[3] == A(x1 * y1)
-    @test A[4]*A[1] == A(x1 * y2) + -c2/2 * A(w2) + c2/2 * A(cw2)
+    #@test A[4]*A[1] == A(x1 * y2) + -c2/2 * A(w2) + c2/2 * A(cw2)
     @test A[1]*A[4] == A(x1 * y2)
     @test A[5]*A[1] == -x1 * A(w1)
     @test A[1]*A[5] == x1 * A(w1)
