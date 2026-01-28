@@ -9,8 +9,8 @@
 @doc raw"""
     DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
 
-Type for representing a Drinfeld-Hecke algebra for a group $G$. The parameter ```T``` is the element type over which
-$G$ is defined, ```S``` is the ring element type over which the associated Drinfeld-Hecke form is defined.
+Type for representing a Drinfeld-Hecke algebra for a group $G$. The parameter `T` is the element type over which
+$G$ is defined, `S` is the ring element type over which the associated Drinfeld-Hecke form is defined.
 """
 mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
   form::DrinfeldHeckeForm{T}
