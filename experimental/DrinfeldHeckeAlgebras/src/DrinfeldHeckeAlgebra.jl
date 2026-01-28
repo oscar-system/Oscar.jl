@@ -493,8 +493,6 @@ end
 
 Return the parameters of ```A```.
 
-Alias: ```params```
-
 # Examples
 ```jldoctest
 julia> G = matrix_group(matrix(QQ, [-1 0;0 -1]))
@@ -526,7 +524,6 @@ julia> parameters(A)
 ```
 """
 parameters(A::DrinfeldHeckeAlgebra) = parameters(form(A))
-params(A::DrinfeldHeckeAlgebra) = parameters(A)
 
 @doc raw"""
     is_trivial(A::DrinfeldHeckeAlgebra)

@@ -100,7 +100,7 @@ julia> A[3]
 julia> A[1]
 x1
 
-julia> params(A)
+julia> parameters(A)
 2-element Vector{QQMPolyRingElem}:
  t1
  t2

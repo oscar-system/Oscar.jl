@@ -197,7 +197,6 @@ number_of_forms(kappa::DrinfeldHeckeForm) = length(kappa.forms)
 nforms(kappa::DrinfeldHeckeForm) = number_of_forms(kappa)
 parameters(kappa::DrinfeldHeckeForm) = if base_ring(kappa) isa MPolyRing return gens(base_ring(kappa)) else return [] end
 number_of_parameters(kappa::DrinfeldHeckeForm) = length(parameters(kappa))
-nparams(kappa::DrinfeldHeckeForm) = number_of_parameters(kappa)
 
 #######################################
 # Application of Drinfeld-Hecke form
