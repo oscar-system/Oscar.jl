@@ -20,7 +20,7 @@ struct AlternatingBilinearForm{T <: RingElem}
   end
 end
 
-const alternating_bilinear_form = AlternatingBilinearForm
+alternating_bilinear_form(m::MatElem{T}) where T <: RingElem = AlternatingBilinearForm(m)
 
 #######################################
 # Show IO
