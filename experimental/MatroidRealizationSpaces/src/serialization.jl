@@ -84,13 +84,13 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpaceSelfP
 end
 
 
-@register_serialization_type MatroidRealizations uses_id
-function type_params(M::MatroidRealizations)
+@register_serialization_type SelfProjectingMatroidRealizations uses_id
+function type_params(M::SelfProjectingMatroidRealizations)
   rs = realization_space(M);
   matrix_rs = isnothing(rs) ? nothing : realization_matrix(rs);
   sprs = selfprojecting_realization_space(M);
   matrix_sprs = isnothing(sprs) ? nothing : selfprojecting_realization_matrix(sprs);
-  TypeParams(MatroidRealizations, 
+  TypeParams(SelfProjectingMatroidRealizations, 
              :matrix_space_mrs => isnothing(matrix_rs) ? nothing : parent(realization_matrix(rs)), 
              :matrix_space_sp_mrs => isnothing(matrix_sprs) ? nothing : parent(selfprojecting_realization_matrix(sprs)),
              :ideal_ring_rs => isnothing(rs) ? nothing : base_ring(defining_ideal(rs)),
@@ -100,7 +100,7 @@ function type_params(M::MatroidRealizations)
              )
 end
 
-function save_object(s::SerializerState, M::MatroidRealizations) 
+function save_object(s::SerializerState, M::SelfProjectingMatroidRealizations) 
   save_data_dict(s) do
     save_object(s, M.name, :name)
     save_object(s, M.matroid, :matroid)
@@ -115,7 +115,7 @@ function save_object(s::SerializerState, M::MatroidRealizations)
 end
 
 
-function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{<:SelfProjectingMatroidRealizations}, dict::Dict)
   dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs], :ideal_ring => dict[:ideal_ring_rs])
   dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs], :ideal_ring => dict[:ideal_ring_sprs])
   str = load_object(s, String, :name)
@@ -127,5 +127,5 @@ function load_object(s::DeserializerState, ::Type{<:MatroidRealizations}, dict::
   boo = load_object(s, Bool, :equality_of_realizationspaces)
   RS = load_object(s, MatroidRealizationSpace, dictionary_r, :realization_space)
   RSSP = load_object(s, MatroidRealizationSpaceSelfProjecting, dictionary_s, :selfprojecting_realization_space)
-  return MatroidRealizations(str, m, rk, n, RS, dimR, RSSP, dimS, boo)
+  return SelfProjectingMatroidRealizations(str, m, rk, n, RS, dimR, RSSP, dimS, boo)
 end

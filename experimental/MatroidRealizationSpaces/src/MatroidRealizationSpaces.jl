@@ -1,6 +1,6 @@
 include("realization_space.jl")
 include("SelfProjectingMatroids.jl")
-include("MatroidRealizations.jl")
+include("SelfProjectingMatroidRealizations.jl")
 include("serialization.jl")
 
 ### Methods for realization spaces of matroids
@@ -44,4 +44,4 @@ export equality_of_realizationspaces
 export name
 export length_groundset
 export rank
-export MatroidRealizations
+export SelfProjectingMatroidRealizations

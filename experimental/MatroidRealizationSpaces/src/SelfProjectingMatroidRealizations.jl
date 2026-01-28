@@ -1,6 +1,6 @@
 #For generating the Database entries
 
-struct MatroidRealizations
+struct SelfProjectingMatroidRealizations
   name::String #name will be of the form "rk_3_n_6_index_1"
   matroid::Matroid 
   rank::Int
@@ -12,18 +12,18 @@ struct MatroidRealizations
   equality_of_realizationspaces::Union{Bool,Nothing}
 end
 
-matroid(MR::MatroidRealizations) = MR.matroid
-realization_space(MR::MatroidRealizations) = MR.realization_space
-selfprojecting_realization_space(MR::MatroidRealizations) = MR.selfprojecting_realization_space
-dim_r(MR::MatroidRealizations) = MR.dim_r
-dim_s(MR::MatroidRealizations) = MR.dim_s
-equality_of_realizationspaces(MR::MatroidRealizations) = MR.equality_of_realizationspaces
-name(MR::MatroidRealizations) = MR.name
-length_groundset(MR::MatroidRealizations) = MR.length_groundset
-rank(MR::MatroidRealizations) = MR.rank
+matroid(MR::SelfProjectingMatroidRealizations) = MR.matroid
+realization_space(MR::SelfProjectingMatroidRealizations) = MR.realization_space
+selfprojecting_realization_space(MR::SelfProjectingMatroidRealizations) = MR.selfprojecting_realization_space
+dim_r(MR::SelfProjectingMatroidRealizations) = MR.dim_r
+dim_s(MR::SelfProjectingMatroidRealizations) = MR.dim_s
+equality_of_realizationspaces(MR::SelfProjectingMatroidRealizations) = MR.equality_of_realizationspaces
+name(MR::SelfProjectingMatroidRealizations) = MR.name
+length_groundset(MR::SelfProjectingMatroidRealizations) = MR.length_groundset
+rank(MR::SelfProjectingMatroidRealizations) = MR.rank
 
 #function to deal with a nice display of the Matroid realizations
-function Base.show(io::IO, ::MIME"text/plain", MR::MatroidRealizations)
+function Base.show(io::IO, ::MIME"text/plain", MR::SelfProjectingMatroidRealizations)
   io = Oscar.pretty(io)
   print(io, "The matroid is of rank ", MR.rank, " on ", MR.length_groundset, " elements.\n")
   show(io, MIME("text/plain"),realization_space(MR))
