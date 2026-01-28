@@ -3,7 +3,99 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
-tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+tries to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+The following gives an overview of the changes compared to the previous releases. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+## [1.7.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.0) - 2026-01-28
+
+### Algebraic Geometry
+
+- [#5626](https://github.com/oscar-system/Oscar.jl/pull/5626) Automatic generation of ample classes for elliptic surfaces
+
+### Commutative Algebra
+
+- [#5588](https://github.com/oscar-system/Oscar.jl/pull/5588) Wrapping Singular's Puiseux expansion
+- [#5652](https://github.com/oscar-system/Oscar.jl/pull/5652) fixes regression in `components_of_kernel`
+- [#5689](https://github.com/oscar-system/Oscar.jl/pull/5689) Improve `is_principal` for ideals in multivariate rings
+
+### Groups
+
+#### Renamings
+
+- [#5704](https://github.com/oscar-system/Oscar.jl/pull/5704) Rename `MatrixGroup`, `MatrixGroupElem` to `MatGroup`, `MatGroupElem`,  to better fit in with `MatElem` and `MatRingElem`
+
+#### New features or extended functionality
+
+- [#5619](https://github.com/oscar-system/Oscar.jl/pull/5619) Add variant of `perm` function which takes a degree
+- [#5640](https://github.com/oscar-system/Oscar.jl/pull/5640) Add Ree group and Suzuki group constructors
+
+### Number Theory
+
+#### New features or extended functionality
+
+- [#5583](https://github.com/oscar-system/Oscar.jl/pull/5583) feat: introduce `TorQuadModuleWithIsom`
+
+### Polyhedral Geometry
+
+#### New features or extended functionality
+
+- [#5610](https://github.com/oscar-system/Oscar.jl/pull/5610) Improve `normal_cone` to support multiple vertices as input, and provide an option for calculating outer or inner normal cones.
+
+#### Other fixed bugs
+
+- [#5647](https://github.com/oscar-system/Oscar.jl/pull/5647) fix and improve polymake visualization with jupyter
+
+#### Miscellaneous changes
+
+- [#5670](https://github.com/oscar-system/Oscar.jl/pull/5670) field coercion and pre-set coefficient fields for polyhedra
+
+### Changes related to the package AbstractAlgebra
+
+- [#5710](https://github.com/oscar-system/Oscar.jl/pull/5710) Update AbstractAlgebra to v0.48
+- [#5710](https://github.com/oscar-system/Oscar.jl/pull/5710) Update Nemo to v0.54
+
+### Changes related to the package Nemo
+
+- [#5613](https://github.com/oscar-system/Oscar.jl/pull/5613) Update Nemo to 0.53, FLINT to 3.4.0
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5672](https://github.com/oscar-system/Oscar.jl/pull/5672) fix loading of empty tuples
+- [#5717](https://github.com/oscar-system/Oscar.jl/pull/5717) Add kwarg `compression=:gzip` to produce gzip compressed serialization files
+
+#### Only changes experimental parts of OSCAR
+
+- [#5587](https://github.com/oscar-system/Oscar.jl/pull/5587) Las Vegas algorithm for exterior algebraic shifting
+- [#5660](https://github.com/oscar-system/Oscar.jl/pull/5660) Allow `oscar_worker_pool` to accept abstract cluster managers
+- [#5692](https://github.com/oscar-system/Oscar.jl/pull/5692) Progress meter for multigraded implicitization
+
+#### Fixed bugs that returned incorrect results
+
+- [#5684](https://github.com/oscar-system/Oscar.jl/pull/5684) Improve the handling of non-nice polynomials in `galois_group`
+
+### **TODO** release notes: to be added
+
+If there are any PRs listed below, check their title and labels.
+When done, change their label to "release notes: use title".
+
+- [#5596](https://github.com/oscar-system/Oscar.jl/pull/5596) Checking variables when constructing orderings
+- [#5681](https://github.com/oscar-system/Oscar.jl/pull/5681) Fixes from WIP in Cuernavaca
+- [#5702](https://github.com/oscar-system/Oscar.jl/pull/5702) Exterior power streamlining
+
+### **TODO** insufficient labels for automatic classification
+
+The following PRs have neither a topic label assigned to them, nor a PR type. 
+**Manual intervention required.**
+
+- [#5634](https://github.com/oscar-system/Oscar.jl/pull/5634) Added isometry_positive function, tests for it and helper functions as well
+
+- [#5696](https://github.com/oscar-system/Oscar.jl/pull/5696) Phylogenetic Tree data available from OscarDB
+
 
 ## [1.6.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.6.0) - 2025-11-29
 
