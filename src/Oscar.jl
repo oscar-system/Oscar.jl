@@ -192,6 +192,19 @@ function __init__()
   if Oscar.is_dev
     Serialization.get_oscar_serialization_version()
   end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  # see TropicalGeometry/variety_prime.jl
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("""
+    proc tropicalVariety_as_string(ideal I, list #) {
+      if(size(#)==0) {
+        return(string(tropicalVariety(I)));
+      };
+      return(string(tropicalVariety(I,number(#[1]))));
+    }
+    """)
 end
 
 const VERSION_NUMBER = Base.pkgversion(@__MODULE__)
