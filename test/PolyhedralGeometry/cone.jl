@@ -108,7 +108,7 @@
     @test isnothing(faces(Cone2, 1))
 
     @test f_vector(Cone5) == [4, 4]
-    @test f_vector(Cone2) == [0, 2]
+    @test f_vector(Cone2) == [1, 2]
     @test lineality_dim(Cone5) == 0
     @test lineality_dim(Cone2) == 1
     @test facet_degrees(Cone5) == fill(2, 4)
