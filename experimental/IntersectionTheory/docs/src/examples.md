@@ -4,9 +4,11 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Illustrating Examples From Enumerative Geometry
+# Illustrating examples from enumerative geometry
 
-#### How Many Lines in $\mathbb P^3$ Meet Four General Lines in $\mathbb P^3$?
+## How many lines in $\mathbb P^3$ meet four general lines in $\mathbb P^3$?
+
+This is Example 14.7.2 in [Ful98](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
@@ -28,7 +30,9 @@ julia> integral(s1^4)
 
 ```
 
-#### How many lines in $\mathbb P^3$ are secant to two General Twisted Cubic Curves in $\mathbb P^3$?
+## How many lines in $\mathbb P^3$ are secant to two general twisted cubic curves in $\mathbb P^3$?
+
+This is discussed in Section 3.4 of [EH16](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
@@ -40,12 +44,12 @@ c[1]^2 - c[2]
 julia> s11 = schubert_class(G, [1, 1])
 c[2]
 
-julia> integral((s2+3*s11)^2)
+julia> integral((s2 + 3*s11)^2)
 10
 
 ```
 
-#### How Many Lines in $\mathbb P^4$ Meet six General Planes in $\mathbb P^4$?
+## How many lines in $\mathbb P^4$ meet six general planes in $\mathbb P^4$?
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 5)
@@ -59,7 +63,7 @@ julia> integral(s1^6)
 
 ```
 
-#### How Many Planes in $\mathbb P^4$ Meet six General Lines in $\mathbb P^4$?
+## How many planes in $\mathbb P^4$ meet six general lines in $\mathbb P^4$?
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
@@ -73,7 +77,10 @@ julia> integral(s1^6)
 
 ```
 
-#### Steiner's Problem: How Many Conics are Tangent to 5 General Conics in $\mathbb P^2$?
+## Steiner's problem: How many conics are tangent to 5 general conics in $\mathbb P^2$?
+
+This is the question that is the explanation for the name of [EH16](@cite),
+and corresponds to Theorem 8.9.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -99,12 +106,14 @@ julia> e, HBl = gens(chow_ring(Bl))
  e
  H
 
-julia> integral((6*HBl-2*e)^5)
+julia> integral((6*HBl - 2*e)^5)
 3264
 
 ```
 
-#### How Many Conics Meet Eight General Lines in $\mathbb P^3$?
+## How many conics meet eight general lines in $\mathbb P^3$?
+
+This is Example 14.7.12 in [Ful98](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 4)
@@ -136,7 +145,7 @@ julia> integral((2*p + z)^8)
 
 ```
 
-#### How Many Conics lie on the General Cubic Surface and meet a General Line in $\mathbb P^3$?
+## How many conics lie on the general cubic surface and meet a general line in $\mathbb P^3$?
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 4)
@@ -163,7 +172,7 @@ AbstractBundle of rank 1 on AbstractVariety of dim 8
 julia> z = chern_class(Z, 1)
 z
 
-julia> E = symmetric_power(USBd , 3)-USBd*OO(PF, -1)
+julia> E = symmetric_power(USBd, 3)-USBd*OO(PF, -1)
 AbstractBundle of rank 7 on AbstractVariety of dim 8
 
 julia> C = top_chern_class(E)
@@ -174,7 +183,10 @@ julia> integral(C*(2*p + z))
 
 ```
 
-#### How Many Conics lie on the General Quintic Hypersurface in $\mathbb P^4$?
+## How many conics lie on the general quintic hypersurface in $\mathbb P^4$?
+
+This is a famous question, relevant for the development of mirror symmetry.
+See Theorem 3.1 in [K86](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
@@ -197,9 +209,9 @@ julia> integral(top_chern_class(A))
 
 ```
 
-#### How Many Elliptic Cubics lie on the General Sextic Hypersurface in $\mathbb P^5$?
+## How many elliptic cubics lie on the general sextic hypersurface in $\mathbb P^5$?
 
-See [KP07](@cite).
+See Table 2 in [KP07](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 6);
@@ -213,11 +225,10 @@ AbstractBundle of rank 10 on AbstractVariety of dim 9
 julia> PF = projective_bundle(F)
 AbstractVariety of dim 18
 
-julia> E = symmetric_power(USBd, 6)-F*OO(PF, -1)
+julia> E = symmetric_power(USBd, 6) - F*OO(PF, -1)
 AbstractBundle of rank 18 on AbstractVariety of dim 18
 
 julia> integral(top_chern_class(E))
 2734099200
 
 ```
-
