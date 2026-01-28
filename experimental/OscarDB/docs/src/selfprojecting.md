@@ -26,12 +26,25 @@ You can query the database using the following parameters
  
  Note that all query entries in the according dictionaries are strings, except if the value asked for is ``nothing``.
 
-```julia-repl
-julia> r4n8 = find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4", "data.length_groundset"=>"8"]));
+ Warning: for rank 3 on 8 elements, for rank 4 on 9 elements and for rank 5 on 10 elements the computation of the selfprojecting realization space did not always terminate. In these cases (as in the example above) the proeprties that could not be computed, like``dim_s``, ``equality_of_realizationspaces`` and 
+``selfprojecting_realization_space``, are set to ``nothing``.
 
-julia> length([MR for MR in r4n8])
-12
+```julia-repl
+julia> r3n8 = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"3", "data.length_groundset"=>"8", "data.dim_s"=>nothing]))
+The matroid is of rank 3 on 8 elements.
+The realization space is
+  [1   0   0   1       1      1    x[4]    x[5]]
+  [0   1   0   1   x[12]   x[8]       1       1]
+  [0   0   1   1   x[12]      1   x[15]   x[15]]
+in the multivariate polynomial ring in 15 variables over QQ
+within the vanishing set of the ideal
+Ideal with 10 generators
+avoiding the zero loci of the polynomials
+RingElem[x[12], x[15], -x[8], -x[8] + 1, x[15] - 1, x[4], x[5], -x[12] + 1, x[4] - x[15], x[5] - x[15], -x[4] + 1, -x[5] + 1, x[8] - x[12], x[4] - x[5], x[8]*x[15] - 1, x[4]*x[12] - x[15], x[5]*x[12] - x[15], -x[4]*x[12] + 1, -x[5]*x[12] + 1, -x[4]*x[8] + 1, -x[5]*x[8] + 1, -x[4]*x[8]*x[12] + x[4]*x[12] + x[8]*x[15] - x[12]*x[15] + x[12] - 1, -x[5]*x[8]*x[12] + x[5]*x[12] + x[8]*x[15] - x[12]*x[15] + x[12] - 1]
+The computation of the self-projecting realization space did not terminate.
 ```
+
+
 Once you have decided on the database entry you want to investigate more closely you have the following options.
 ```julia-repl
 julia> MR = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict("data.name"=>"r_3_n_8_10"))
