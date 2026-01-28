@@ -316,9 +316,7 @@ Theorem 4.11 claims that there are at least 5400 matroids of rank 4 on 9 element
 
 The user can find the selfprojecting matroids for which the computation of the selfprojecting realization space was too costly and did not terminate as follows:
 ```julia-repl
-julia> notterminated = find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"3", "data.length_groundset"=>"8","data.dim_s"=>nothing]));
-
-julia> length([r for r in notterminated])
+julia> notterminated = length([r for r in find(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"3", "data.length_groundset"=>"8","data.dim_s"=>nothing]))])
 4
 ```
 
