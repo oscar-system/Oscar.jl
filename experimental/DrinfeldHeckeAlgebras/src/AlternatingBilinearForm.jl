@@ -12,9 +12,7 @@ struct AlternatingBilinearForm{T <: RingElem}
   function AlternatingBilinearForm(m::MatElem{T}) where T <: RingElem
     @req ncols(m) == nrows(m) "Matrix representing an alternating bilinear form must be square"
   
-    if transpose(m) != -m || !is_zero(diagonal(m))
-      throw(ArgumentError("Input matrix must be skew symmetric with zero diagonal")) 
-    end
+    @req is_alternating(m) "Input matrix must be skew symmetric with zero diagonal"
   
     return new{T}(m)
   end
