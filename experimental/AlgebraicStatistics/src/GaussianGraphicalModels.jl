@@ -152,7 +152,7 @@ end
   R, d_gens, v_gens, u_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Directed))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)),
-                    Dict(e => d_gens[i] for (i, e) in enumerate(edges(G, Undirected))))
+                    Dict(e => u_gens[i] for (i, e) in enumerate(edges(G, Undirected))))
   return R, GraphDict(Dict{Union{Int, Edge}, QQMPolyRingElem}(gens_dict))
 end
 
