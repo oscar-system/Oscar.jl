@@ -38,8 +38,8 @@ end
 @doc raw"""
     drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
-Create the trivial Drinfeld-Hecke algebra over the ring ```R``` for the matrix group ```G```, i.e. the skew group ring $R[V]\#G$ 
-where $V$ is the vector space on which ```G``` acts
+Create the trivial Drinfeld-Hecke algebra over the ring `R` for the matrix group `G`, i.e. the skew group ring $R[V]\#G$
+where $V$ is the vector space on which `G` acts.
 
 # Examples
 ```jldoctest
@@ -69,8 +69,8 @@ drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldEl
 @doc raw"""
     drinfeld_hecke_algebra(forms::Dict)
 
-Create the Drinfeld-Hecke algebra given by the dictionary ```forms``` which is expected to have keys of type 
-```MatGroupElem{T}``` and values of type ```MatElem{S}``` where ```T <: FieldElem, S <: RingElem```. If the types
+Create the Drinfeld-Hecke algebra given by the dictionary `forms` which is expected to have keys of type
+`MatGroupElem{T}` and values of type `MatElem{S}` where `T <: FieldElem, S <: RingElem`. If the types
 are not correct, an exception is thrown.
 
 # Examples
@@ -164,7 +164,7 @@ end
 @doc raw"""
     generic_drinfeld_hecke_algebra(G::MatGroup{T}, R::Ring=base_ring(G)) where {T <: FieldElem}
 
-Create a generic (parametrized) Drinfeld-Hecke algebra over the ring ```R``` for the group ```G```.
+Create a generic (parametrized) Drinfeld-Hecke algebra over the ring `R` for the group `G`.
 
 # Examples
 ```jldoctest
@@ -204,7 +204,7 @@ end
 @doc raw"""
     evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
 
-Evaluate the parameters of the Drinfeld-Hecke algebra ```A``` by the values given in ```values```.
+Evaluate the parameters of the Drinfeld-Hecke algebra `A` by the values given in `values`.
 
 # Examples
 ```jldoctest
@@ -387,7 +387,7 @@ end
 @doc raw"""
     base_ring(A::DrinfeldHeckeAlgebra)
 
-Return the base ring over which ```A``` is defined.
+Return the base ring over which `A` is defined.
 
 # Examples
 ```jldoctest
@@ -421,7 +421,7 @@ base_ring(A::DrinfeldHeckeAlgebra) = base_ring(form(A))
 @doc raw"""
     base_algebra(A::DrinfeldHeckeAlgebra)
 
-Return the polynomial ring over $V$ which serves in the implementation as a base for ```A```.
+Return the polynomial ring over $V$ which serves in the implementation as a base for `A`.
 
 # Examples
 ```jldoctest
@@ -449,7 +449,7 @@ base_algebra(A::DrinfeldHeckeAlgebra) = base_algebra(form(A))
 @doc raw"""
     group(A::DrinfeldHeckeAlgebra)
 
-Return the group for which ```A``` is defined.
+Return the group for which `A` is defined.
 
 # Examples
 ```jldoctest
@@ -486,7 +486,7 @@ end
 @doc raw"""
     parameters(A::DrinfeldHeckeAlgebra)
 
-Return the parameters of ```A```.
+Return the parameters of `A`.
 
 # Examples
 ```jldoctest
@@ -523,7 +523,7 @@ parameters(A::DrinfeldHeckeAlgebra) = parameters(form(A))
 @doc raw"""
     is_trivial(A::DrinfeldHeckeAlgebra)
 
-Return ```true``` if ```A``` is the trivial Drinfeld-Hecke algebra, ```false``` otherwise.
+Return `true` if `A` is the trivial Drinfeld-Hecke algebra, `false` otherwise.
 
 # Examples
 ```jldoctest
