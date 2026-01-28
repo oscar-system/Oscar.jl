@@ -48,9 +48,7 @@ function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector) where T <: RingEl
   
   # Check if dimensions match
   n = ncols(B)
-  if length(v) != n || length(w) != n
-    throw(ArgumentError("arguments must be of dimension " * string(n))) 
-  end
+  @req length(v) == n && length(w) == n "Arguments must be of dimension ${string(n)}"
   
   # Check if values are in base ring
   R = base_ring(B)

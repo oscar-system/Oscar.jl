@@ -30,9 +30,7 @@ end
 function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
   A = a.parent
   
-  if A != b.parent
-   throw(ArgumentError("Elements do not belong to the same algebra"))
-  end
+  @req A == parent(b) "Elements do not belong to the same algebra"
 
   if is_one(a) || is_zero(b) return b end
   if is_one(b) || is_zero(a) return a end
@@ -144,9 +142,7 @@ function split_polynomial(f::DrinfeldHeckeAlgebraElem)
   A = f.parent
   elm = f.element.coeffs[1]
   
-  if is_zero(elm)
-    throw(ArgumentError("zero polynomial can not be split"))
-  end
+  @req is_zero(elm) == false "zero polynomial can not be split"
 
   lc = leading_coefficient(elm)
   lm = A(leading_monomial(elm))
@@ -162,9 +158,7 @@ function split_monomial_left(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
   
-  if !is_monomial(m)
-    throw(ArgumentError("Error: element " * print(m) * " is not a monomial"))
-  end
+  @req is_monomial(m) "element " * print(m) * " is not a monomial"
 
   for (i, exp) in enumerate(collect(exponents(m))[1])
     if exp > 0
@@ -183,9 +177,7 @@ function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
   
-  if !is_monomial(m)
-    throw(ArgumentError("Error: element " * print(m) * " is not a monomial"))
-  end
+  @req is_monomial(m) "element " * print(m) * " is not a monomial"
 
   reversed_exponents = reverse(collect(exponents(m))[1])
   reversed_generators = reverse(gens(m.parent))

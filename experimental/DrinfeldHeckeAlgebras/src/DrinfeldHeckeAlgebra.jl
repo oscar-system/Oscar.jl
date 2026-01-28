@@ -145,11 +145,8 @@ end
 (A::DrinfeldHeckeAlgebra)(a::GroupAlgebraElem) = DrinfeldHeckeAlgebraElem(A, a)
 
 function (A::DrinfeldHeckeAlgebra)(a::DrinfeldHeckeAlgebraElem)
-  if a.parent == A 
-    return a 
-  else 
-    throw(ArgumentError("Element does not belong to the given Drinfeld-Hecke algebra")) 
-  end
+  @req parent(a) == A "Element does not belong to the given Drinfeld-Hecke algebra"
+  return a
 end
 
 function (A::DrinfeldHeckeAlgebra)(a)
@@ -256,9 +253,7 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   G = group(A)
   R = base_ring(A)
   
-  if !(R isa MPolyRing)
-    throw(ArgumentError("The given form does not have any parameters."))
-  end
+  @req R isa MPolyRing "The given form does not have any parameters."
   
   n = ngens(R)
   

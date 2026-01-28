@@ -231,9 +231,7 @@ function calculate_form_for_conjugate(
 
   is_conj, h = is_conjugate_with_data(parent(g), g, c)
   
-  if !is_conj
-    throw(ArgumentError("Input c needs to be a conjugate of input g."))
-  end
+  @req is_conj "Input c needs to be a conjugate of input g."
   
   A = matrix(h)
   n = nrows(g)

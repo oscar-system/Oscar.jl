@@ -40,12 +40,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
 
   # Creates Drinfeld-Hecke form from non-empty forms input
   function DrinfeldHeckeForm(forms::Dict)
-    if length(forms) == 0
-      throw(ArgumentError(
-        "Forms must not be empty. To create zero form use 
-        DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
-      ))
-    end
+    @req length(forms) != 0 "Forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
   
     g, kappa_g = first(forms)
     G = parent(g)
@@ -57,20 +52,12 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     forms_safe = Dict{MatGroupElem{T}, MatElem{S}}()
     
     for (g,m) in forms
-      if !(g isa MatGroupElem{T}) || !(m isa MatElem{S})
-        throw(ArgumentError(
-          "The forms dictionary must be of the structure 
-          MatGroupElem{T} => MatElem{S} where {T <: FieldElem, S <: RingElem}"
-        ))
-      end
-    
+      @req g isa MatGroupElem{T} && m isa MatElem{S} "The forms dictionary must be of the structure MatGroupElem{T} => MatElem{S} where {T <: FieldElem, S <: RingElem}"
       forms_safe[g] = m
     end
   
     # Check if forms input defines valid Drinfeld-Hecke form
-    if !is_drinfeld_hecke_form(forms_safe)
-      throw(ArgumentError("The given forms do not define a valid Drinfeld-Hecke form."))
-    end
+    @req is_drinfeld_hecke_form(forms_safe) "The given forms do not define a valid Drinfeld-Hecke form."
   
     kappa = DrinfeldHeckeForm(G, R)
     
