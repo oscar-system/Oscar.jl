@@ -11,8 +11,6 @@ DocTestSetup = Oscar.doctestsetup()
 Given a group `G`, it is always possible to have access to some particular elements.
 
 ```@docs
-GAPGroup
-BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
@@ -104,4 +102,11 @@ prime_of_pgroup
 derived_length
 schur_cover(G::GAPGroup)
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
+```
+
+## Technicalities
+
+```@docs
+GAPGroup
+BasicGAPGroupElem{T<:GAPGroup}
 ```

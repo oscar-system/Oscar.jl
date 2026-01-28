@@ -12,14 +12,17 @@ DocTestSetup = Oscar.doctestsetup()
 
 ### General constructors
 
-Cohomology classes are elements of the cohomology ring, which is a quotient ring (for normal toric varieties that
-are simplicial and complete). All of the following methods accept an optional argument `quick` (default: `false`).  
-When set to `true`, computations are performed in the base ring of the cohomology ring to improve performance.  
-This is especially useful when constructing cohomology classes on large toric varieties, where operations
-in the quotient ring - such as Gröbner basis computations - can be computationally expensive.
+Cohomology classes are elements of the cohomology ring, which is a quotient ring for normal toric varieties that
+are simplicial and complete. All of the following methods accept an optional argument `completeness_check`
+(default: `true`).  
 
-**Caveat:** When `quick = true`, the method will not detect whether the resulting cohomology class is trivial.
-Use this option when faster computations are preferred and triviality checks are not required.
+By default, completeness is checked to ensure mathematical correctness. However, these checks can be computationally
+expensive—especially for large toric varieties, where operations in the quotient ring (such as Gröbner basis
+computations) are already costly. To speed up computations, you may disable this step by passing
+`completeness_check = false`.
+
+**Caveat:** Disabling the completeness check skips verification that the underlying toric variety is complete.
+Use this option only if completeness is already known or guaranteed, and faster computations are preferred.
 
 ```@docs
 cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
@@ -55,6 +58,7 @@ Equality of cohomology classes can be tested via `==`.
 
 ```@docs
 toric_variety(c::CohomologyClass)
+simplify!(c::CohomologyClass)
 coefficients(c::CohomologyClass)
 exponents(c::CohomologyClass)
 polynomial(c::CohomologyClass)
@@ -65,17 +69,17 @@ polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 ## Methods
 
 ```@docs
-integrate(c::CohomologyClass; check::Bool = true)
+integrate(c::CohomologyClass; completeness_check::Bool = true)
 ```
 
 
 ## Special attributes of toric varieties
 
 ```@docs
-cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
+cohomology_ring(v::NormalToricVarietyType)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
-chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
-chern_classes(v::NormalToricVariety; check::Bool = true)
-basis_of_h4(v::NormalToricVariety; check::Bool = true)
+chern_class(v::NormalToricVariety, k::Int)
+chern_classes(v::NormalToricVariety)
+basis_of_h4(v::NormalToricVariety)
 ```

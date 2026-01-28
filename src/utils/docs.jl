@@ -52,8 +52,9 @@ function doc_init(;path=mktempdir())
     # we dev all "our" packages with the paths from where they are currently
     # loaded
     pkglist = [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
-    Pkg.develop([PackageSpec(path=Base.pkgdir(pkg)) for pkg in pkglist])
-    Pkg.develop(path=oscardir)
+    paths = [PackageSpec(path=Base.pkgdir(pkg)) for pkg in pkglist]
+    push!(paths, PackageSpec(path=oscardir))
+    Pkg.develop(paths)
     Pkg.instantiate()
     Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
@@ -325,7 +326,7 @@ function link_experimental_docs()
 
   for pkg in exppkgs
     # Set symlink inside docs/src/experimental
-    symlink_link = joinpath(oscardir, "docs/src/Experimental", pkg)
+    symlink_link = joinpath(oscardir, "docs", "src", "Experimental", pkg)
     symlink_target = joinpath(oscardir, "experimental", pkg, "docs", "src")
 
     if !ispath(symlink_target)

@@ -47,7 +47,7 @@
     "model_parameters": ["k"],
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["s1", "s2", "s3", "s5", "s6", "s9"],
+        "tunable_sections": ["s1", "s2", "s3", "s5", "s6", "s9"],
         "base_coordinates": ["s1", "s2", "s3", "s5", "s6", "s9"],
         "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [1, 1, 1, 1, 1, 1]

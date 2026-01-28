@@ -29,3 +29,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ssh: ${{ secrets.DOCUMENTER_KEY }}
+          changelog: |
+            ## {{ package }} {{ version }}
+            {% if custom %}
+            {{ custom }}
+            {% else %}
+            There was no changelog provided when registering this version.
+            Please wait for a maintainer to update the release description.
+            {% endif %}
+
+            {% if previous_release %}
+            [Full diff since {{ previous_release }}]({{ compare_url }})
+            {% endif %}

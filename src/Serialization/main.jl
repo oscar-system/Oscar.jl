@@ -2,6 +2,9 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+import JSON
+import TranscodingStreams # for gzip
+import CodecZlib          # for gzip
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -16,7 +19,8 @@ using ..Oscar: _grading,
   pm_object,
   PolyhedralObject,
   scalar_types,
-  VERSION_NUMBER
+  VERSION_NUMBER,
+  _pmdata_for_oscar
 
 using ..Oscar: is_terse, Lowercase, pretty, terse
 
@@ -48,19 +52,16 @@ end
 function read_metadata(filename::String)
   open(filename) do io
     obj = JSON3.read(io)
-    println(json(obj[:meta], 2))
+    println(JSON.json(obj[:meta], 2))
   end
 end
 
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Union{JSON3.Object, Dict})
+function serialization_version_info(obj::AbstractDict{Symbol, Any})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  if version_info isa JSON3.Object
-    return version_number(Dict(version_info))
-  end
   return version_number(version_info)
 end
 
@@ -69,7 +70,7 @@ function version_number(v_number::String)
 end
 
 # needed for older versions
-function version_number(dict::Dict)
+function version_number(dict::AbstractDict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
@@ -80,8 +81,13 @@ function get_oscar_serialization_version()
     return oscar_serialization_version[]
   end
   if Oscar.is_dev
+    next_version = "$(VERSION_NUMBER.major).$(VERSION_NUMBER.minor).$(VERSION_NUMBER.patch)"
+    n_upgrades = count(x -> startswith(x, next_version) && endswith(x, ".jl"),
+                       readdir(joinpath(@__DIR__, "Upgrades")))
+
+
     commit_hash = get(Oscar._get_oscar_git_info(), :commit, "unknown")
-    version_info = "$VERSION_NUMBER-$commit_hash"
+    version_info = iszero(n_upgrades) ? "$VERSION_NUMBER-$commit_hash" : "$VERSION_NUMBER-$n_upgrades-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
     )
@@ -115,6 +121,12 @@ function encode_type(::Type{T}) where T
   )
 end
 
+function decode_type(s::String)
+  return get(reverse_type_map, s) do
+    error("unsupported type '$s' for decoding")
+  end
+end
+
 function decode_type(s::DeserializerState)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
@@ -128,11 +140,7 @@ function decode_type(s::DeserializerState)
       s.obj = obj
       return T
     end
-
-    return get(reverse_type_map, s.obj) do
-      unsupported_type = s.obj
-      error("unsupported type '$unsupported_type' for decoding")
-    end
+    return decode_type(s.obj)
   end
 
   if type_key in keys(s.obj)
@@ -161,11 +169,16 @@ struct TypeParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, args::Pair...)
-    return new{T, typeof(args)}(T, args)
+  function TypeParams(T::Type, params)
+    if Base.issingletontype(T)
+      return new{T, Nothing}(T, nothing)
+    else
+      return new{T, typeof(params)}(T, params)
+    end
   end
-  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
 end
+
+TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 
 params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
@@ -252,7 +265,6 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
-
   if with_attrs(s)
     attrs = attrs_list(T)
     !isempty(attrs) && save_attrs(s, x)
@@ -435,10 +447,9 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 # The load mechanism first checks if the type needs to load necessary
-# parameters before loading it's data, if so a type tree is traversed
+# parameters before loading its data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
-  Base.issingletontype(T) && return T()
   if !isnothing(override_params)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
@@ -446,6 +457,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
+  Base.issingletontype(T) && return T()
   obj = load_node(s, :data) do _
     return load_object(s, T, params)
   end
@@ -548,7 +560,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
@@ -628,18 +640,24 @@ include("LieTheory.jl")
 include("Upgrades/main.jl")
 include("parallel.jl")
 
+
 ################################################################################
 # Interacting with IO streams and files
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=true)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
 save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration see
-[`@register_serialization_type`](@ref)
+The attributes that will be saved are defined during type registration, see
+[`@register_serialization_type`](@ref).
+
+Setting the optional argument `compression` will compress the file using the given
+compression method. The `filename` must have the appropriate file extension for the
+chosen compression method.
+Currently, only `:none` (default) and `:gzip` are supported.
 
 See [`load`](@ref).
 
@@ -684,26 +702,29 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON3.write(metadata), :meta)
+      save_json(s, JSON.json(metadata), :meta)
     end
   end
   serializer_close(s)
   return nothing
 end
 
-function save(filename::String, obj::Any;
-              metadata::Union{MetaData, Nothing}=nothing,
-              serializer::OscarSerializer=JSONSerializer(),
-              with_attrs::Bool=true)
+function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
-  open(temp_file, "w") do file
-    save(file, obj;
-         metadata=metadata,
-         with_attrs=with_attrs,
-         serializer=serializer)
+  if compression == :none
+    open(temp_file, "w") do file
+      save(file, obj; kwargs...)
+    end
+  elseif compression == :gzip
+    @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
+    open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+      save(file, obj; kwargs...)
+    end
+  else
+    error("Unsupported compression method: $compression")
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
@@ -717,7 +738,7 @@ Load the object stored in the given io stream
 respectively in the file `filename`.
 
 If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of Rings this
+either will attempt a load using these parameters. In the case of rings this
 results in setting its parent, or in the case of a container of ring types such as
 `Vector` or `Tuple`, then the parent of the entries will be set using their
  `params`.
@@ -727,6 +748,9 @@ being loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
+
+If the file was created with setting the `compression` argument, and the filename
+has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
@@ -766,8 +790,8 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::T = nothing, type::Any = nothing,
-              serializer=JSONSerializer(), with_attrs::Bool=true) where T
+function load(io::IO; params::Any = nothing, type::Any = nothing,
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
@@ -801,7 +825,7 @@ function load(io::IO; params::T = nothing, type::Any = nothing,
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON3.write(jsondict)
+    jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
                           with_attrs)
@@ -822,7 +846,7 @@ function load(io::IO; params::T = nothing, type::Any = nothing,
         decode_type(s)
       end
       
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
@@ -860,33 +884,27 @@ function load(io::IO; params::T = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::T = nothing,
-              type::Any = nothing, with_attrs::Bool=true,
-              serializer::OscarSerializer=JSONSerializer()) where T
-  open(filename) do file
-    return load(file; params=params, type=type, serializer=serializer)
+function load(filename::String; kwargs...)
+  if endswith(filename, ".gz")
+    open(CodecZlib.GzipDecompressorStream, filename) do file
+      return load(file; kwargs...)
+    end
+  else
+    open(filename) do file
+      return load(file; kwargs...)
+    end
   end
 end
 
 _convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-
 _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
-
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
+_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
 
-function _convert_override_params(tp::TypeParams{<:Dict, <:Tuple{Vararg{Pair}}})
-  vp_pair = filter(x -> :value_params == x.first, params(tp))
-  kp_pair = filter(x -> :key_params == x.first, params(tp))
-  if !isempty(vp_pair)
-    ov_params = Dict(k => _convert_override_params(v) for (k, v) in params(tp))
-    if type(first(kp_pair).second) <: Union{Symbol, String, Int}
-      return _convert_override_params(first(vp_pair).second)
-    end
-  else
-    return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
-  end
+function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
+  return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
 end
 
 _convert_override_params(obj::Any) = obj

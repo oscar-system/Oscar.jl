@@ -38,7 +38,7 @@
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["a1", "a2", "a3", "a4", "a6"],
+        "tunable_sections": ["a1", "a2", "a3", "a4", "a6"],
         "a1": "a1",
         "a2": "a2",
         "a3": "a3",

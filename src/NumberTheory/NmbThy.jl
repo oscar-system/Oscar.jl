@@ -87,7 +87,7 @@ function norm_equation_fac_elem(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = 
   end
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
-  for (p, k) = lp.fac
+  for (p, k) in lp
     P = prime_decomposition(R, p)
     s = solve_non_negative(matrix(ZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(ZZ, 1, 1, [k]))
     push!(S, (P, ZZMatrix[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))

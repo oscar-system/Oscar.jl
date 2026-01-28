@@ -47,7 +47,7 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["s7", "s9"],
-        "model_sections": ["s1", "s5", "s6", "s7", "s9"],
+        "tunable_sections": ["s1", "s5", "s6", "s7", "s9"],
         "f": "1//48*(- ( - s6^2 + 4*s5*s7)^2 - 24*s1*s6*s7*s9)",
         "g": "1//864*(216*s1^2*s7^2*s9^2 - ( - s6^2 + 4*s5*s7)^3 - s1*s6*s7*s9*( - 36*s6^2 + 144*s5*s7))",
         "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [

@@ -145,9 +145,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
   elseif algorithm == :markov
-    @req all(i -> length(i) == 2, gens(I)) "Ideal needs to be a lattice ideal to use markov algorithm"
-    @req all(iszero, sum.(coefficients.(gens(I)))) "Ideal needs to be a lattice ideal to use markov algorithm"
-    @req all(x -> all(is_unit.(x)), coefficients.(gens(I))) "Ideal needs to be a lattice ideal to use markov algorithm"
+    @req _islattice(I) "Ideal needs to be a lattice ideal to use Markov algorithm."
     I.gb[ordering] = _groebner4ti2(I, ordering)
   end
   return I.gb[ordering]
@@ -208,7 +206,7 @@ with respect to the ordering
   lex([x, y, z])
 ```
 ```jldoctest
-julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, 3]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, 3]);
 
 julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
 

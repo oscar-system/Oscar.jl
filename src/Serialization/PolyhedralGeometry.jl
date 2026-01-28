@@ -1,10 +1,11 @@
-using JSON
+import JSON
 
 function bigobject_to_jsonstr(bo::Polymake.BigObject)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, bo)
   return Polymake.call_function(:common, :encode_json, serialized)
 end
 
+# unused, is this needed?
 function bigobject_to_dict(bo::Polymake.BigObject)
   jsonstr = bigobject_to_jsonstr(bo)
   return JSON.parse(jsonstr)
@@ -21,7 +22,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   dict = Dict{Symbol, Any}(s.obj)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(dict))
   return bigobject
 end
 
@@ -34,6 +35,9 @@ end
 
 type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
 
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
   field = p_dict[:_coeff]
@@ -44,15 +48,19 @@ function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
     :pm_params => type_params(p_dict))
 end
 
+function type_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
+  par = params(type_params(feasible_region(obj)))
+  return TypeParams(
+    T,
+    par...)
+end
+
+
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
-  if typeof(obj) <: Union{MixedIntegerLinearProgram, LinearProgram}
-    T = typeof(obj)
-    error("Unsupported type $T for serialization")
-  end
   p_dict = _polyhedral_object_as_dict(obj)
   delete!(p_dict, :_coeff)
   save_data_dict(s) do
@@ -105,6 +113,15 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   end
 end
 
+function save_object(s::SerializerState, lp::LinearProgram{<:FieldElem})
+  lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
+  save_data_dict(s) do
+    save_object(s, lp.feasible_region, :feasible_region)
+    save_object(s, lp.convention, :convention)
+    save_object(s, _pmdata_for_oscar(lpcoeffs, coefficient_field(lp)), :lpcoeffs)
+  end
+end
+
 function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
   lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
   save_lp(lp_filename, lp)
@@ -120,7 +137,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_node(s, :lpcoeffs) do lpcoeffs
-    Polymake.call_function(:common, :deserialize_json_string, json(lpcoeffs))
+    Polymake.call_function(:common, :deserialize_json_string, JSON.json(lpcoeffs))
   end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
@@ -132,6 +149,28 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   end
   lp = Polymake._lookup_multi(pm_object(fr), "LP", index-1)
   return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
+end
+
+function load_object(s::DeserializerState, ::Type{<:LinearProgram}, params::Dict)
+  if s.obj isa String
+    error("Loading this file requires using the LPSerializer")
+  end
+  field = params[:field]
+  coeff_type = elem_type(field)
+  fr = load_object(s, Polyhedron, params, :feasible_region)
+  conv = load_object(s, String, :convention)
+  lpcoeffs = load_object(s, Vector{coeff_type}, field, :lpcoeffs)
+  all = Polymake._lookup_multi(pm_object(fr), "LP")
+  lp = nothing
+  for i in 1:length(all)
+    lo = _pmdata_for_oscar(all[i].LINEAR_OBJECTIVE, field)
+    if lpcoeffs == lo
+      lp = all[i]
+      break
+    end
+  end
+  @req lp !== nothing "could not identify LP subobject"
+  return LinearProgram{coeff_type}(fr, lp, Symbol(conv), field)
 end
 
 function load_object(s::DeserializerState{LPSerializer},
@@ -158,7 +197,19 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQField
     save_object(s, milp.feasible_region, :feasible_region)
     save_object(s, milp.convention, :convention)
     save_json(s, coeffs_jsonstr, :milp_coeffs)
-    save_json(s, int_vars_jsonstr, :int_vars)
+    # we can probably changes this line to just store a vector{Int} but will need upgrade
+    save_json(s, int_vars_jsonstr, :int_vars) 
+  end
+end
+
+function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{<:FieldElem})
+  milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
+  int_vars = milp.polymake_milp.INTEGER_VARIABLES
+  save_data_dict(s) do
+    save_object(s, milp.feasible_region, :feasible_region)
+    save_object(s, milp.convention, :convention)
+    save_object(s, _pmdata_for_oscar(milp_coeffs, coefficient_field(milp)), :milp_coeffs)
+    save_object(s, _pmdata_for_oscar(int_vars, QQ), :int_vars)
   end
 end
 
@@ -169,14 +220,14 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      json(coeffs)
+      JSON.json(coeffs)
     )
   end
   int_vars = load_node(s, :int_vars) do vars
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      json(vars)
+      JSON.json(vars)
     )
   end
 
@@ -191,6 +242,26 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
   T = elem_type(field)
   return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv), field)
+end
+
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, params::Dict)
+  conv = load_object(s, String, :convention)
+  field = params[:field]
+  coeff_type = elem_type(field)
+  fr = load_object(s, Polyhedron, params, :feasible_region)
+  milp_coeffs = load_object(s, Vector{coeff_type}, field, :milp_coeffs)
+  int_vars = load_object(s, Vector{Int}, :int_vars)
+  
+  all = Polymake._lookup_multi(pm_object(fr), "MILP")
+  index = 0
+  for i in 1:length(all)
+    if _pmdata_for_oscar(all[i].LINEAR_OBJECTIVE, field) == milp_coeffs && all[i].INTEGER_VARIABLES == Set(int_vars)
+      index = i
+      break
+    end
+  end
+  milp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
+  return MixedIntegerLinearProgram{coeff_type}(fr, milp, Symbol(conv), field)
 end
 
 # use generic serialization for the other types:

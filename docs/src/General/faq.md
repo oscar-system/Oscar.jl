@@ -120,7 +120,7 @@ via `GAP.Packages.load`, where the first argument is the local path to the
 package directory (the one that contains the `PackageInfo.g` file).
 This works only if no other version of this package has been loaded already.
 
-If Oscar loads the package in question already on startup
+If OSCAR loads the package in question already on startup
 but you want a different version of this package to be loaded,
 you can force this by storing the desired version in the `pkg` subdirectory
 of the user's root directory (`GAPInfo.UserGapRoot` in GAP).
@@ -140,7 +140,7 @@ background. Please read our page on [Complex Algorithms](@ref).
 
 **Q: How do I cite OSCAR?**
 
-Please see [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+Please see [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
 
 ---
 ## Windows specific

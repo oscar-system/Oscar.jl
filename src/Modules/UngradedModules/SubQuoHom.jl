@@ -522,7 +522,15 @@ Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubquoModuleElem)
   @assert a.parent === domain(f)
-  iszero(a) && return zero(codomain(f))
+  # simplifying the element to be mapped before mapping it (e.g. through an `is_zero` check) 
+  # can be beneficial to speed up mapping. However, over general rings, we must expect this 
+  # check to be rather expensive. For instance for localizations of quotient rings
+  # at prime ideals this triggers a Groebner basis computation every time. Therefore, 
+  # we do not do this check in the generic code. Should it turn out to be beneficial 
+  # in particular cases, we invite overwriting this function for the specific case 
+  # and reintroducing some version of the line below again. 
+  #iszero(a) && return zero(codomain(f))
+
   # The code in the comment below was an attempt to make
   # evaluation of maps faster. However, it turned out that
   # for the average use case the comparison was more expensive
@@ -1023,11 +1031,11 @@ end
 
 If `a` is bijective, return its inverse.
 """
-function inv(H::ModuleFPHom)
+function inv(H::ModuleFPHom; check::Bool=true)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
-  @assert is_bijective(H)
+  @check is_bijective(H) "morphism is not bijective"
   N = domain(H)
   M = codomain(H)
 

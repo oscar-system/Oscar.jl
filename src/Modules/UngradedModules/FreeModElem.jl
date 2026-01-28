@@ -177,7 +177,7 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   e = one(base_ring(F))
-  s = sparse_row(base_ring(F), [(i, e)])
+  s = sparse_row(base_ring(F), [i], [e])
   return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)

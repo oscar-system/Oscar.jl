@@ -296,6 +296,12 @@ julia> DH(Ih) == I   # dehomogenization of Ih
 true
 ```
 
+## Vanishing sets and solving multivariate polynomial systems
+
+```@docs
+rational_solutions
+```
+
 ## Generating Special Ideals
 
 ### Katsura-n

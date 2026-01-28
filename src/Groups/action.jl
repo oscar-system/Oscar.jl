@@ -246,12 +246,12 @@ permuted(pnt::GapObj, x::PermGroupElem) = GAPWrap.Permuted(pnt, GapObj(x))
 
 function permuted(pnt::Vector{T}, x::PermGroupElem) where T
    invx = inv(x)
-   return pnt[[i^invx for i in 1:length(pnt)]]
+   return [pnt[i^invx] for i in 1:length(pnt)]
 end
 
-function permuted(pnt::T, x::PermGroupElem) where T <: Tuple
+function permuted(pnt::T, x::PermGroupElem) where T <: NTuple
    invx = inv(x)
-   return T(pnt[[i^invx for i in 1:length(pnt)]])
+   return T(pnt[i^invx] for i in 1:length(pnt))::T
 end
 
 
@@ -295,7 +295,7 @@ function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   @assert ngens(parent(f)) == degree(G)
 
   g = Generic.MPolyBuildCtx(parent(f))
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     s_e = zeros(Int, degree(G))
     for i=1:degree(G)
       s_e[s(i)] = e[i]
@@ -317,9 +317,9 @@ function on_indeterminates(f::FreeAssociativeAlgebraElem{T}, s::PermGroupElem) w
 end
 
 @doc raw"""
-    on_indeterminates(f::GapObj, p::MatrixGroupElem)
-    on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T}) where T
-    on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
+    on_indeterminates(f::GapObj, p::MatGroupElem)
+    on_indeterminates(f::MPolyRingElem{T}, p::MatGroupElem{T}) where T
+    on_indeterminates(f::MPolyIdeal, p::MatGroupElem)
 
 Return the image of `f` under `p` where `p` acts via evaluating `f` at the
 vector obtained by multiplying `p` with the (column) vector of indeterminates.
@@ -345,7 +345,7 @@ julia> f^m
 x1^2 + 4*x1*x2 + 4*x1 + x2
 ```
 """
-function on_indeterminates(f::GapObj, p::MatrixGroupElem)
+function on_indeterminates(f::GapObj, p::MatGroupElem)
   # We assume that we act on the indeterminates with numbers 1, ..., nrows(p).
   # (Note that `f` does not know about a polynomial ring to which it belongs.)
   n = nrows(p)
@@ -354,7 +354,7 @@ function on_indeterminates(f::GapObj, p::MatrixGroupElem)
   return GAPWrap.Value(f, indets, GapObj(p) * indets)
 end
 
-function on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T}) where T
+function on_indeterminates(f::MPolyRingElem{T}, p::MatGroupElem{T}) where T
   @assert base_ring(f) == base_ring(p)
   @assert ngens(parent(f)) == degree(parent(p))
   act = right_action(parent(f), p)
@@ -367,7 +367,7 @@ function on_indeterminates(I::MPolyIdeal, p::PermGroupElem)
   return ideal(parent(imggens[1]), imggens)
 end
 
-function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
+function on_indeterminates(I::MPolyIdeal, p::MatGroupElem)
   @assert base_ring(gen(I, 1)) == base_ring(p)
   @assert ngens(base_ring(I)) == degree(parent(p))
   imggens = [on_indeterminates(x, p) for x in gens(I)]
@@ -378,11 +378,11 @@ end
 
 ^(f::FreeAssociativeAlgebraElem, p::PermGroupElem) = on_indeterminates(f, p)
 
-^(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
+^(f::MPolyRingElem{T}, p::MatGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 
 ^(I::MPolyIdeal, p::PermGroupElem) = on_indeterminates(I, p)
 
-^(I::MPolyIdeal, p::MatrixGroupElem) = on_indeterminates(I, p)
+^(I::MPolyIdeal, p::MatGroupElem) = on_indeterminates(I, p)
 
 
 # We do not support `on_lines(line::Vector, x::GAPGroupElem)`
@@ -458,7 +458,7 @@ on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(
 
 
 @doc raw"""
-    on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
+    on_echelon_form_mats(m::MatElem{T}, x::MatGroupElem) where T <: FinFieldElem
 
 Return the image of `m` under `x`,
 where the action is given by first computing the product `m * x`
@@ -491,7 +491,7 @@ julia> orb = orbit(G, on_echelon_form_mats, m);  length(orb)
 7
 ```
 """
-function on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
+function on_echelon_form_mats(m::MatElem{T}, x::MatGroupElem) where T <: FinFieldElem
   return echelon_form(m * x)
 end
 
@@ -533,7 +533,7 @@ The default for `actfun` depends on the types of `G` and `pnt`:
 If `G` is a `PermGroup` then the default actions on integers,
 `Vector`s of  integers, and `Set`s of integers are given by
 `^`, `on_tuples`, and `on_sets`, respectively.
-If `G` is a `MatrixGroup` then the default actions on `FreeModuleElem`s,
+If `G` is a `MatGroup` then the default actions on `FreeModuleElem`s,
 `Vector`s of them, and `Set`s of them are given by
 `*`, `on_tuples`, and `on_sets`, respectively.
 
@@ -557,9 +557,9 @@ julia> S = stabilizer(G, [1, 1, 2, 2, 3], permuted);  order(S[1])
 stabilizer(G::GAPGroup, pnt::Any, actfun::Function) = _stabilizer_generic(G, pnt, actfun)
 
 function _stabilizer_generic(G::GAPGroup, pnt::Any, actfun::Function)
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G), pnt,
-        GapObj(gens(G), recursive = true), GapObj(gens(G)),
-        GapObj(actfun)))
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G), pnt,
+    GapObj(gens(G), recursive = true), GapObj(gens(G)),
+    GapObj(actfun)))
 end
 
 # natural stabilizers in permutation groups
@@ -569,35 +569,35 @@ end
 # - stabilizer in a perm. group of a vector of integers via `on_tuples`
 # - stabilizer in a perm. group of a set of integers via `on_sets`
 function stabilizer(G::PermGroup, pnt::T) where T <: IntegerUnion
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GapObj(pnt),
-        GAP.Globals.OnPoints))  # Do not use GAPWrap.OnPoints!
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt),
+    GAP.Globals.OnPoints))  # Do not use GAPWrap.OnPoints!
 end
 
 function stabilizer(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T <: Oscar.IntegerUnion
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GapObj(pnt, recursive = true),
-        GAP.Globals.OnTuples))  # Do not use GAPWrap.OnTuples!
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt, recursive = true),
+    GAP.Globals.OnTuples))  # Do not use GAPWrap.OnTuples!
 end
 
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerUnion
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GapObj(pnt, recursive = true),
-        GAP.Globals.OnSets))  # Do not use GAPWrap.OnSets!
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt, recursive = true),
+    GAP.Globals.OnSets))  # Do not use GAPWrap.OnSets!
 end
 
 # now the same with given action function,
 # these calls may come from delegations from G-sets
 function stabilizer(G::PermGroup, pnt::T, actfun::Function) where T <: IntegerUnion
-    return (actfun == ^) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+  return (actfun == ^) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actfun::Function) where T <: IntegerUnion
-    return actfun == on_tuples ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+  return actfun == on_tuples ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}, actfun::Function) where T <: IntegerUnion
-    return actfun == on_sets ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+  return actfun == on_sets ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 # natural stabilizers in matrix groups
@@ -609,65 +609,100 @@ end
 #   of a vector or tuple of `FreeModuleElem`s via `on_tuples`
 # - stabilizer in a matrix group (over a finite field)
 #   of a `Set` of `FreeModuleElem`s via `on_sets`
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt)))
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        map_entries(iso, AbstractAlgebra.Generic._matrix(pnt)),
-        GAP.Globals.OnRight))
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
+  iso = _ring_iso(G)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    map_entries(iso, AbstractAlgebra.Generic._matrix(pnt)),
+    GAP.Globals.OnRight))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
-    length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt[1])))
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
-        GAP.Globals.OnTuples))
+function stabilizer(G::MatGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+  length(pnt) == 0 && return G
+  iso = _ring_iso(G)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
+    GAP.Globals.OnTuples))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}) where {ET,MT}
-    length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(pnt[1])))
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
-        GAP.Globals.OnTuples))
+function stabilizer(G::MatGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}) where {ET,MT}
+  length(pnt) == 0 && return G
+  iso = _ring_iso(G)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt]),
+    GAP.Globals.OnTuples))
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
-    length(pnt) == 0 && return G
-    iso = Oscar.iso_oscar_gap(base_ring(parent(iterate(pnt)[1])))
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        GAPWrap.Set(GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt])),
-        GAP.Globals.OnSets))
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+  length(pnt) == 0 && return G
+  iso = _ring_iso(G)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GAPWrap.Set(GapObj([GapObj(map_entries(iso, AbstractAlgebra.Generic._matrix(v)))[1] for v in pnt])),
+    GAP.Globals.OnSets))
 end
 
 # now the same with given action function,
 # these calls may come from delegations from G-sets
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}, actfun::Function) where {ET,MT}
-    return (actfun == *) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}, actfun::Function) where {ET,MT}
+  return (actfun == *) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
-    return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+function stabilizer(G::MatGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
+  return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}, actfun::Function) where {ET,MT}
-    return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+function stabilizer(G::MatGroup{ET,MT}, pnt::Tuple{AbstractAlgebra.Generic.FreeModuleElem{ET},Vararg{AbstractAlgebra.Generic.FreeModuleElem{ET}}}, actfun::Function) where {ET,MT}
+  return (actfun == on_tuples) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
-    return (actfun == on_sets) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+function stabilizer(G::MatGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}, actfun::Function) where {ET,MT}
+  return (actfun == on_sets) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 # stabilizer in a matrix group (over a finite field)
 # of a row reduced matrix via `on_echelon_form_mats`
-function stabilizer(G::MatrixGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
-    (actfun === on_echelon_form_mats) || return _stabilizer_generic(G, pnt, actfun)
-    nrows(pnt) == 0 && return (G, identity_map(G))
-    iso = Oscar.iso_oscar_gap(base_ring(pnt))
-    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
-        map_entries(iso, pnt),
-        GAP.Globals.OnSubspacesByCanonicalBasis))
+function stabilizer(G::MatGroup{ET,<:MT}, pnt::MatElem{<:MT}, actfun::Function) where {ET,MT}
+  (actfun === on_echelon_form_mats) || return _stabilizer_generic(G, pnt, actfun)
+  nrows(pnt) == 0 && return (G, id_hom(G))
+  iso = _ring_iso(G)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    map_entries(iso, pnt),
+    GAP.Globals.OnSubspacesByCanonicalBasis))
 end
+
+# action of a group G on class functions of a group H that is normalized by G,
+# defined by $\chi^g: h \mapsto \chi(conj(h, inv(g)))$
+function stabilizer(G::GAPGroup, chi::GAPGroupClassFunction)
+  tbl = parent(chi)
+  actions = get_attribute!(IdDict{GAPGroup,GAPGroupHomomorphism}, tbl,
+                           :actions_on_classes)
+  if haskey(actions, G)
+    phi = actions[G]
+    img = codomain(phi)
+  else
+    ccl = conjugacy_classes(tbl)
+    n = length(ccl)
+    sym = symmetric_group(n)
+    imgs = PermGroupElem[]
+    reps = map(representative, ccl)
+    Ggens = gens(G)
+    for g in Ggens
+      l = Int[]
+      for r in reps
+        y = r^g
+        pos = findfirst(c -> y in c, ccl)
+        @req pos !== nothing "G does not normalize the group of chi"
+        push!(l, pos)
+      end
+      push!(imgs, perm(sym, l))
+    end
+    img = permutation_group(n, imgs)
+    phi = hom(G, img, Ggens, imgs)
+    actions[G] = phi
+  end
+
+  return preimage(phi, stabilizer(img, values(chi), permuted)[1])
+end
+
 
 """
     right_coset_action(G::GAPGroup, U::GAPGroup)

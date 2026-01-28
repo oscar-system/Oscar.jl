@@ -138,6 +138,22 @@ end
 function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
+  F = ambient_free_module(SQ)
+  if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
+    rels = relations(SQ)
+    F1 = FreeMod(R, length(rels))
+    phi = hom(F1, F, rels)
+    aug = hom(F, SQ, gens(SQ))
+    # prepare the end of the presentation
+    Z = FreeMod(R, 0)
+    SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
+
+    # compile the presentation complex
+    M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[phi, aug, SQ_to_Z], check=false, seed = -2)
+    set_attribute!(M, :show => Hecke.pres_show)
+    return M
+  end
+
   # Create the free module for the presentation
   F0 = FreeMod(R, length(gens(SQ)))
   F0_to_SQ = hom(F0, SQ, gens(SQ); check=false)
@@ -554,7 +570,7 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   # work around if we're passing the zero module to singular, see
   # https://github.com/oscar-system/Singular.jl/issues/796
   if iszero(krnel)
-    return M, identity_map(M)
+    return M, id_hom(M)
   end
   
   s_fmod  = Oscar.singular_module(ambient_free_module(krnel))

@@ -647,3 +647,13 @@ end
 function image(phi::Generic.CompositeMap{WeylGroup,PermGroup})
   return sub(codomain(phi), [image(phi, x) for x in gens(domain(phi))])
 end
+
+###############################################################################
+# Specific subgroup functionality (can get moved to src/ once `id_hom` gets moved)
+
+function torsion_subgroup(W::WeylGroup)
+  @req is_finite(W) "An infinite Weyl group does not admit a torsion subgroup"
+  return (W, id_hom(W))
+end
+
+id_hom(W::WeylGroup) = AbstractAlgebra.identity_map(W)

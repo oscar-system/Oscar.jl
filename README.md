@@ -38,19 +38,20 @@ julia> using Oscar
 | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
  \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information
 o--------o-----o-----o--------o  | Documentation: https://docs.oscar-system.org
-  S Y M B O L I C   T O O L S    | Version 1.5.0-DEV
+  S Y M B O L I C   T O O L S    | Version 1.7.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
 
 julia> zk = maximal_order(k)
-Maximal order of Imaginary quadratic field defined by x^2 + 5
-with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
+Maximal order
+  of imaginary quadratic field defined by x^2 + 5
+with Z-basis [1, sqrt(-5)]
 
 julia> factorizations(zk(6))
 2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * -3 * 2
- -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
+ -1 * (sqrt(-5) + 1) * (sqrt(-5) - 1)
 
 julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
@@ -112,39 +113,8 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 
 ## Citing OSCAR
 
-If you have used OSCAR in the preparation of a paper please cite it as described below:
-
-    [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.5.0-DEV,
-        The OSCAR Team, 2025. (https://www.oscar-system.org)
-    [OSCAR-book]
-        Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, eds.
-        The Computer Algebra System OSCAR: Algorithms and Examples,
-        Algorithms and Computation in Mathematics, Springer, 2025.
-
-If you are using BibTeX, you can use the following BibTeX entries:
-
-    @misc{OSCAR,
-      key          = {OSCAR},
-      organization = {The OSCAR Team},
-      title        = {{OSCAR} -- {O}pen {S}ource {C}omputer {A}lgebra {R}esearch system,
-                      {V}ersion 1.5.0-DEV},
-      year         = {2025},
-      url          = {https://www.oscar-system.org},
-      }
-
-    @book{OSCAR-book,
-      editor = {Decker, Wolfram and Eder, Christian and Fieker, Claus and Horn, Max and Joswig, Michael},
-      title = {The {C}omputer {A}lgebra {S}ystem {OSCAR}: {A}lgorithms and {E}xamples},
-      year = {2025},
-      publisher = {Springer},
-      series = {Algorithms and {C}omputation in {M}athematics},
-      volume = {32},
-      edition = {1},
-      url = {https://link.springer.com/book/9783031621260},
-      issn = {1431-1550},
-      doi = {10.1007/978-3-031-62127-7},
-    }
+If you have used OSCAR in the preparation of a paper please cite it as described
+on [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
 
 ## Funding
 

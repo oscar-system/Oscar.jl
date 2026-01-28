@@ -60,15 +60,26 @@ free_resolution(M::SubquoModule{T};
 ```
 
 ```@docs
-free_resolution(I::MPolyIdeal; length::Int = 0, algorithm::Symbol = :fres)
+free_resolution(I::Ideal{T};
+    length::Int = 0,
+    algorithm::Symbol = I isa MPolyIdeal ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 ```
 
 ```@docs
-free_resolution(Q::MPolyQuoRing; length::Int = 0, algorithm::Symbol = :fres)
+free_resolution(I::Ideal{T};
+    length::Int = 0,
+    algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 ```
 
 ```@docs
-free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
+free_resolution(Q::MPolyQuoRing{T};
+    length::Int = 0,
+    algorithm::Symbol = T <: MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+```
+
+```@docs
+free_resolution(Q::MPolyQuoLocRing{T};
+    length::Int = 0, algorithm = :generic) where T
 ```
 
 ### Tests on Free Resolutions

@@ -237,11 +237,11 @@ hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check:
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
-    identity_map(M::ModuleFP)
+    id_hom(M::ModuleFP)
 
 Return the identity map $id_M$.
 """
-function identity_map(M::ModuleFP)
+function id_hom(M::ModuleFP)
   phi = hom(M, M, gens(M), check=false)
   phi.generators_map_to_generators = true
   return phi
@@ -452,7 +452,14 @@ represented as subquotient with no relations -> F)
 
 ```
 """
-function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+function kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}; cached::Bool=true) where T
+  cached && return get_attribute!(h, :kernel) do
+    _kernel(h)
+  end::Tuple{SubquoModule{T}, SubQuoHom{SubquoModule{T}, FreeMod{T}}}
+  return _kernel(h)
+end
+
+function _kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}) where T
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return kernel_atomic(h)  # explicitly call kernel_atomic
@@ -511,6 +518,22 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)], ring_map(H); check=false)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
   M = domain(H)
   pres = presentation(M)
   # is a short exact sequence with maps

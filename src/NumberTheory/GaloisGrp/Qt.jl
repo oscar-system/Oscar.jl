@@ -140,7 +140,7 @@ function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int =
   @vprint :Subfields 2 "now looking for a nice prime...\n"
   p, _ = find_prime(defining_polynomial(K), pStart = 200)
 
-  d = lcm(map(degree, collect(keys(factor(GF(p), g).fac))))
+  d = lcm(map(degree, first.(collect(factor(GF(p), g)))))
 
   @assert evaluate(evaluate(f, [X, T+t]), [gen(Zx), zero(Zx)]) == g
 

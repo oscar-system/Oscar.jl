@@ -382,7 +382,7 @@
               @test codomain(E_to_T) === T
               @test domain(T_to_E) === T
               @test codomain(T_to_E) === E
-              @test compose(E_to_T, T_to_E) == identity_map(E)
+              @test compose(E_to_T, T_to_E) == id_hom(E)
             end
           end
         end
@@ -440,7 +440,7 @@
               @test codomain(S_to_T) === T
               @test domain(T_to_S) === T
               @test codomain(T_to_S) === S
-              @test compose(S_to_T, T_to_S) == identity_map(S)
+              @test compose(S_to_T, T_to_S) == id_hom(S)
             end
           end
         end

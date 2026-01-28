@@ -13,7 +13,7 @@ transitive permutation groups up to degree 48,
 via the GAP package `TransGrp` [Hul23](@cite).
 
 (The groups of degrees 32 and 48 are currently not automatically
-available in Oscar,
+available in OSCAR,
 one has to install additional data in order to access them.)
 
 The arrangement and the names of the groups of degree up to 15 is the same as given in

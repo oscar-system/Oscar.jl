@@ -36,8 +36,9 @@ function projectivization()
   error("The direct sum is empty")
 end
 
-function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
-
+function _projectivization_and_total_space(
+  is_proj::Bool, E::Vector{T}
+) where {T<:Union{ToricDivisor,ToricLineBundle}}
   v = toric_variety(E[1])
 
   is_proj && length(E) == 1 && return v
@@ -51,18 +52,22 @@ function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T 
   end
   l = rays(PF_fiber)
 
-  modified_ray_gens = Dict{RayVector{QQFieldElem}, RayVector{QQFieldElem}}()
+  modified_ray_gens = Dict{RayVector{QQFieldElem},RayVector{QQFieldElem}}()
 
   for sigma in maximal_cones(v)
     pol_sigma = polarize(sigma)
     for ray in rays(sigma)
       ray in keys(modified_ray_gens) && continue
-      modified_ray_gens[ray] = vcat(ray, sum(i -> dot(_m_sigma(sigma, pol_sigma, E[i]), ray) * l[i], eachindex(E)))
+      modified_ray_gens[ray] = vcat(
+        ray, sum(i -> dot(_m_sigma(sigma, pol_sigma, E[i]), ray) * l[i], eachindex(E))
+      )
     end
     length(keys(modified_ray_gens)) == n_rays(v) && break
   end
 
-  new_maximal_cones = Vector{Vector{Int64}}(undef, n_maximal_cones(v) * n_maximal_cones(PF_fiber))
+  new_maximal_cones = Vector{Vector{Int64}}(
+    undef, n_maximal_cones(v) * n_maximal_cones(PF_fiber)
+  )
   index = 1
 
   for a in 1:n_maximal_cones(v)
@@ -74,13 +79,21 @@ function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T 
     end
   end
 
-  total_rays_gens = vcat([modified_ray_gens[ray] for ray in rays(v)], [vcat(ray_vector(zeros(Int64, dim(v))), l[i]) for i in eachindex(E)])
+  total_rays_gens = vcat(
+    [modified_ray_gens[ray] for ray in rays(v)],
+    [vcat(ray_vector(zeros(Int64, dim(v))), l[i]) for i in eachindex(E)],
+  )
 
-  return normal_toric_variety(polyhedral_fan(IncidenceMatrix(new_maximal_cones), total_rays_gens))
+  return normal_toric_variety(
+    polyhedral_fan(IncidenceMatrix(new_maximal_cones), total_rays_gens)
+  )
 end
 
-function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Union{ToricDivisor, ToricLineBundle})
-
+function _m_sigma(
+  sigma::Cone{QQFieldElem},
+  pol_sigma::Cone{QQFieldElem},
+  D::Union{ToricDivisor,ToricLineBundle},
+)
   ans = ray_vector(zeros(QQFieldElem, dim(sigma)))
   coeff = coefficients(isa(D, ToricDivisor) ? D : toric_divisor(D))
 

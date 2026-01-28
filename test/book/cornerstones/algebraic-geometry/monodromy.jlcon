@@ -39,7 +39,7 @@ julia> dg2 = discriminant(g2t);
 julia> ggT = gcd(dg1,dg2);
 
 julia> factor(ZZ(ggT))
-1 * 2^4
+2^4
 
 julia> KK, _ = number_field(g2t);
 

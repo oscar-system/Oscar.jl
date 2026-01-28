@@ -203,12 +203,12 @@ end
 
 function normalizer(G::FinGenAbGroup, H::FinGenAbGroup)
   @req is_subgroup(H, G)[1] "H  must be a subgroup of G"
-  return (G, identity_map(G))
+  return (G, id_hom(G))
 end
 
 function normalizer(G::FinGenAbGroup, x::FinGenAbGroupElem)
   @req is_element(x, G) "x does not lie in G"
-  return (G, identity_map(G))
+  return (G, id_hom(G))
 end
 
 function normal_closure(G::FinGenAbGroup, H::FinGenAbGroup)
@@ -226,7 +226,7 @@ pcore(G::FinGenAbGroup, p::IntegerUnion) = sylow_subgroup(G, p)
 #
 ################################################################################
 
-fitting_subgroup(G::FinGenAbGroup) = (G, identity_map(G))
+fitting_subgroup(G::FinGenAbGroup) = (G, id_hom(G))
 
 function frattini_subgroup(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
@@ -261,7 +261,7 @@ end
 
 trivial_subgroup(G::FinGenAbGroup) = sub(G, FinGenAbGroupElem[])
 
-solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
+solvable_radical(G::FinGenAbGroup) = (G, id_hom(G))
 
 
 ################################################################################

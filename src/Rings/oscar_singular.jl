@@ -420,7 +420,7 @@ function image(f::OscarSingularPolyRingMap, a)
   return finish(g)
 end
 
-function preimage(f::OscarSingularPolyRingMap, a; check = true)
+function preimage(f::OscarSingularPolyRingMap, a; check::Bool = true)
   check && (parent(a) === codomain(f) || error("Element not in codomain"))
   g = MPolyBuildCtx(domain(f))
   for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
