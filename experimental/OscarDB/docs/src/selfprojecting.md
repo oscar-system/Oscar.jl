@@ -47,6 +47,174 @@ The computation of the self-projecting realization space did not terminate.
 
 Once you have decided on the database entry you want to investigate more closely you have the following options.
 ```julia-repl
+julia> MR = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"4","data.length_groundset"=>"9","data.equality_of_realizationspaces"=>"false"]))
+The matroid is of rank 4 on 9 elements.
+The realization space is
+  [1   0   0   0   1   x[3]    x[3]       1       1]
+  [0   1   0   0   1   x[9]       1    x[9]       1]
+  [0   0   1   0   1      1   x[13]   x[14]   x[15]]
+  [0   0   0   1   1      1       1       1       0]
+in the multivariate polynomial ring in 20 variables over QQ
+within the vanishing set of the ideal
+Ideal with 15 generators
+avoiding the zero loci of the polynomials
+RingElem[-x[13], -x[14], -x[15], -x[13] + 1, -x[14] + 1, x[13] - x[14], x[9], x[9] - 1, -x[9] + x[14], x[15] - 1, -x[13] + x[15], -x[3], -x[3] + 1, x[3] - x[13], x[14] - x[15], -x[3] + x[9], -x[3] - x[9] + 2, x[9]*x[13] - 1, x[9]*x[15] - 1, -x[9]*x[13] + x[14], x[9]*x[15] - x[14], x[9]*x[15] - x[14] - x[15] + 1, -x[9]*x[15] - x[13] + x[15] + 1, x[9]*x[15] + x[13] - x[14] - x[15], -x[3]*x[14] + 1, -x[3]*x[15] + 1, -x[3]*x[14] + x[13], -x[3]*x[15] + x[13], -x[3]*x[15] + x[13] + x[15] - 1, x[3]*x[15] + x[14] - x[15] - 1, x[3]*x[15] - x[13] + x[14] - x[15], x[3]*x[9] - 1, x[3]*x[9] + x[3]*x[13] - 2*x[3] - x[9]*x[13] + 1, -x[3]*x[9] + x[3]*x[14] - x[9]*x[14] + 2*x[9] - 1, -x[3]*x[9] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + 1, x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - x[3]*x[9] - x[3]*x[14] - x[9]*x[13] + 1, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] + 1, -x[3]*x[9]*x[15] + x[3]*x[14] - x[9]*x[14] + x[9]*x[15] + x[9] - 1, -x[3]*x[9]*x[15] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + x[15], x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - 2*x[3]*x[9] - x[3]*x[13] - x[3]*x[14] + 2*x[3] - x[9]*x[13] - x[9]*x[14] + 2*x[9] + x[13] + x[14] - 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] - x[9]*x[15] + x[9] + x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] - x[9]*x[14] + x[9]*x[15] + x[9] - x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] + x[9]*x[13] + x[9]*x[15] - x[9] - x[13] - x[14] - x[15] + 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] + x[9]*x[14] - x[9]*x[15] - x[9] - x[13] - x[14] + x[15] + 2]
+The selfprojecting realization space is
+  [1   0   0   0   1   x[3]    x[3]       1       1]
+  [0   1   0   0   1   x[9]       1    x[9]       1]
+  [0   0   1   0   1      1   x[13]   x[14]   x[15]]
+  [0   0   0   1   1      1       1       1       0]
+in the multivariate polynomial ring in 20 variables over QQ
+within the vanishing set of the ideal
+Ideal with 24 generators
+avoiding the zero loci of the polynomials
+RingElem[-x[13], -x[14], -x[15], -x[13] + 1, -x[14] + 1, x[13] - x[14], x[9], x[9] - 1, -x[9] + x[14], x[15] - 1, -x[13] + x[15], -x[3], -x[3] + 1, x[3] - x[13], x[14] - x[15], -x[3] + x[9], -x[3] - x[9] + 2, x[9]*x[13] - 1, x[9]*x[15] - 1, -x[9]*x[13] + x[14], x[9]*x[15] - x[14], x[9]*x[15] - x[14] - x[15] + 1, -x[9]*x[15] - x[13] + x[15] + 1, x[9]*x[15] + x[13] - x[14] - x[15], -x[3]*x[14] + 1, -x[3]*x[15] + 1, -x[3]*x[14] + x[13], -x[3]*x[15] + x[13], -x[3]*x[15] + x[13] + x[15] - 1, x[3]*x[15] + x[14] - x[15] - 1, x[3]*x[15] - x[13] + x[14] - x[15], x[3]*x[9] - 1, x[3]*x[9] + x[3]*x[13] - 2*x[3] - x[9]*x[13] + 1, -x[3]*x[9] + x[3]*x[14] - x[9]*x[14] + 2*x[9] - 1, -x[3]*x[9] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + 1, x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - x[3]*x[9] - x[3]*x[14] - x[9]*x[13] + 1, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] + 1, -x[3]*x[9]*x[15] + x[3]*x[14] - x[9]*x[14] + x[9]*x[15] + x[9] - 1, -x[3]*x[9]*x[15] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + x[15], x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - 2*x[3]*x[9] - x[3]*x[13] - x[3]*x[14] + 2*x[3] - x[9]*x[13] - x[9]*x[14] + 2*x[9] + x[13] + x[14] - 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] - x[9]*x[15] + x[9] + x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] - x[9]*x[14] + x[9]*x[15] + x[9] - x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] + x[9]*x[13] + x[9]*x[15] - x[9] - x[13] - x[14] - x[15] + 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] + x[9]*x[14] - x[9]*x[15] - x[9] - x[13] - x[14] + x[15] + 2]
+The closures of the realization space and the self-projecting realization space are not equal.
+
+julia> name(MR)
+"r_4_n_9_0002"
+
+julia> Oscar.matroid(MR)
+Matroid of rank 4 on 9 elements
+
+julia> rank(MR)
+4
+
+julia> length_groundset(MR)
+9
+
+julia> realization_space(MR)
+The realization space is
+  [1   0   0   0   1   x[3]    x[3]       1       1]
+  [0   1   0   0   1   x[9]       1    x[9]       1]
+  [0   0   1   0   1      1   x[13]   x[14]   x[15]]
+  [0   0   0   1   1      1       1       1       0]
+in the multivariate polynomial ring in 20 variables over QQ
+within the vanishing set of the ideal
+Ideal with 15 generators
+avoiding the zero loci of the polynomials
+RingElem[-x[13], -x[14], -x[15], -x[13] + 1, -x[14] + 1, x[13] - x[14], x[9], x[9] - 1, -x[9] + x[14], x[15] - 1, -x[13] + x[15], -x[3], -x[3] + 1, x[3] - x[13], x[14] - x[15], -x[3] + x[9], -x[3] - x[9] + 2, x[9]*x[13] - 1, x[9]*x[15] - 1, -x[9]*x[13] + x[14], x[9]*x[15] - x[14], x[9]*x[15] - x[14] - x[15] + 1, -x[9]*x[15] - x[13] + x[15] + 1, x[9]*x[15] + x[13] - x[14] - x[15], -x[3]*x[14] + 1, -x[3]*x[15] + 1, -x[3]*x[14] + x[13], -x[3]*x[15] + x[13], -x[3]*x[15] + x[13] + x[15] - 1, x[3]*x[15] + x[14] - x[15] - 1, x[3]*x[15] - x[13] + x[14] - x[15], x[3]*x[9] - 1, x[3]*x[9] + x[3]*x[13] - 2*x[3] - x[9]*x[13] + 1, -x[3]*x[9] + x[3]*x[14] - x[9]*x[14] + 2*x[9] - 1, -x[3]*x[9] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + 1, x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - x[3]*x[9] - x[3]*x[14] - x[9]*x[13] + 1, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] + 1, -x[3]*x[9]*x[15] + x[3]*x[14] - x[9]*x[14] + x[9]*x[15] + x[9] - 1, -x[3]*x[9]*x[15] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + x[15], x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - 2*x[3]*x[9] - x[3]*x[13] - x[3]*x[14] + 2*x[3] - x[9]*x[13] - x[9]*x[14] + 2*x[9] + x[13] + x[14] - 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] - x[9]*x[15] + x[9] + x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] - x[9]*x[14] + x[9]*x[15] + x[9] - x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] + x[9]*x[13] + x[9]*x[15] - x[9] - x[13] - x[14] - x[15] + 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] + x[9]*x[14] - x[9]*x[15] - x[9] - x[13] - x[14] + x[15] + 2]
+
+julia> dim_r(MR)
+5
+
+julia> selfprojecting_realization_space(MR)
+The selfprojecting realization space is
+  [1   0   0   0   1   x[3]    x[3]       1       1]
+  [0   1   0   0   1   x[9]       1    x[9]       1]
+  [0   0   1   0   1      1   x[13]   x[14]   x[15]]
+  [0   0   0   1   1      1       1       1       0]
+in the multivariate polynomial ring in 20 variables over QQ
+within the vanishing set of the ideal
+Ideal with 24 generators
+avoiding the zero loci of the polynomials
+RingElem[-x[13], -x[14], -x[15], -x[13] + 1, -x[14] + 1, x[13] - x[14], x[9], x[9] - 1, -x[9] + x[14], x[15] - 1, -x[13] + x[15], -x[3], -x[3] + 1, x[3] - x[13], x[14] - x[15], -x[3] + x[9], -x[3] - x[9] + 2, x[9]*x[13] - 1, x[9]*x[15] - 1, -x[9]*x[13] + x[14], x[9]*x[15] - x[14], x[9]*x[15] - x[14] - x[15] + 1, -x[9]*x[15] - x[13] + x[15] + 1, x[9]*x[15] + x[13] - x[14] - x[15], -x[3]*x[14] + 1, -x[3]*x[15] + 1, -x[3]*x[14] + x[13], -x[3]*x[15] + x[13], -x[3]*x[15] + x[13] + x[15] - 1, x[3]*x[15] + x[14] - x[15] - 1, x[3]*x[15] - x[13] + x[14] - x[15], x[3]*x[9] - 1, x[3]*x[9] + x[3]*x[13] - 2*x[3] - x[9]*x[13] + 1, -x[3]*x[9] + x[3]*x[14] - x[9]*x[14] + 2*x[9] - 1, -x[3]*x[9] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + 1, x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - x[3]*x[9] - x[3]*x[14] - x[9]*x[13] + 1, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] + 1, -x[3]*x[9]*x[15] + x[3]*x[14] - x[9]*x[14] + x[9]*x[15] + x[9] - 1, -x[3]*x[9]*x[15] + x[3]*x[14] + x[9]*x[13] - x[13] - x[14] + x[15], x[3]*x[9]*x[13] + x[3]*x[9]*x[14] - 2*x[3]*x[9] - x[3]*x[13] - x[3]*x[14] + 2*x[3] - x[9]*x[13] - x[9]*x[14] + 2*x[9] + x[13] + x[14] - 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] - x[9]*x[13] - x[9]*x[15] + x[9] + x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] - x[9]*x[14] + x[9]*x[15] + x[9] - x[15], -x[3]*x[9]*x[15] + x[3]*x[14] + x[3]*x[15] - x[3] + x[9]*x[13] + x[9]*x[15] - x[9] - x[13] - x[14] - x[15] + 2, x[3]*x[9]*x[15] + x[3]*x[13] - x[3]*x[15] - x[3] + x[9]*x[14] - x[9]*x[15] - x[9] - x[13] - x[14] + x[15] + 2]
+
+julia> dim_s(MR)
+3
+
+julia> equality_of_realizationspaces(MR)
+false
+```
+The realization space $\mathcal{R}$ obtained by ``realization_space(MR)`` and the self-projecting realization space $\mathcal{S}$ obtained by ``selfprojecting_realization_space(MR)`` can be investigated using the code in the experimental section of OSCAR on MatroidRealizationSpaces.
+
+```julia-repl
+julia> R = realization_space(MR);
+
+julia> defining_ideal(R)
+Ideal generated by
+  x[1] - 1
+  x[2] - x[3]
+  x[4] - 1
+  x[5] - 1
+  x[6] - 1
+  x[7] - x[9]
+  x[8] - 1
+  x[10] - 1
+  x[11] - 1
+  x[12] - 1
+  x[16] - 1
+  x[17] - 1
+  x[18] - 1
+  x[19] - 1
+  x[20]
+
+julia> ambient_ring(R)
+Multivariate polynomial ring in 20 variables x[1], x[2], x[3], x[4], ..., x[20]
+  over rational field
+  
+julia> S = selfprojecting_realization_space(MR);
+
+julia> defining_ideal(S)
+Ideal generated by
+  x[1] - 1
+  x[2] - x[3]
+  x[3]^2*x[9]*x[13] - x[3]^2*x[9] - x[3]^2*x[13]*x[14] + x[3]^2*x[14] - x[3]*x[9
+  ]^2*x[14] + x[3]*x[9]^2 - 2*x[3]*x[9]*x[13] + 2*x[3]*x[9]*x[14] + 2*x[3]*x[13]
+  *x[14] - 3*x[3]*x[14] + x[3] + x[9]^2*x[13]*x[14] - x[9]^2*x[13] - 2*x[9]*x[13
+  ]*x[14] + 3*x[9]*x[13] - x[9] - x[13] + x[14]
+  x[3]^2*x[9]*x[15] - x[3]^2*x[14]*x[15] + x[3]*x[9]*x[14] - x[3]*x[9]*x[15]^2 -
+   x[3]*x[9]*x[15] - x[3]*x[9] - x[3]*x[13]*x[14]*x[15] + x[3]*x[13]*x[14] + x[3
+  ]*x[14]*x[15]^2 + x[3]*x[14]*x[15] - x[3]*x[14] + x[3]*x[15] - x[9]*x[13]*x[14
+  ]*x[15] + x[9]*x[13]*x[15]^2 + x[9]*x[15] + x[13]*x[14] - x[13] - x[14] - x[15
+  ]^2 + 1
+  x[3]^2*x[13]*x[14]*x[15] - x[3]^2*x[13]*x[14] - x[3]^2*x[14]^2*x[15] + x[3]^2*
+  x[14]*x[15] + x[3]^2*x[14] - x[3]^2*x[15] + x[3]*x[9]*x[14]^2 - x[3]*x[9]*x[14
+  ] - x[3]*x[9]*x[15]^2 + x[3]*x[9]*x[15] + x[3]*x[13]*x[14]^2 - 3*x[3]*x[13]*x[
+  14]*x[15] + x[3]*x[13]*x[14] + x[3]*x[13] + x[3]*x[14]^2*x[15] - x[3]*x[14]^2
+  + x[3]*x[14]*x[15]^2 - 2*x[3]*x[14] + x[3]*x[15] - x[9]*x[13]*x[14]^2 + x[9]*x
+  [13]*x[14] + x[9]*x[13]*x[15]^2 - x[9]*x[13]*x[15] + x[13]*x[14] + x[13]*x[15]
+   - 2*x[13] - x[14]*x[15] + x[14] - x[15]^2 + x[15]
+  x[3]*x[9]^2*x[15] + x[3]*x[9]*x[13] - x[3]*x[9]*x[15]^2 - x[3]*x[9]*x[15] - x[
+  3]*x[9] - x[3]*x[13]*x[14]*x[15] + x[3]*x[14]*x[15]^2 + x[3]*x[15] - x[9]^2*x[
+  13]*x[15] - x[9]*x[13]*x[14]*x[15] + x[9]*x[13]*x[14] + x[9]*x[13]*x[15]^2 + x
+  [9]*x[13]*x[15] - x[9]*x[13] + x[9]*x[15] + x[13]*x[14] - x[13] - x[14] - x[15
+  ]^2 + 1
+  x[3]*x[9]*x[13]^2 - x[3]*x[9]*x[13] - x[3]*x[9]*x[15]^2 + x[3]*x[9]*x[15] - x[
+  3]*x[13]^2*x[14] + x[3]*x[13]*x[14] + x[3]*x[14]*x[15]^2 - x[3]*x[14]*x[15] -
+  x[9]^2*x[13]^2*x[15] + x[9]^2*x[13]*x[14]*x[15] - x[9]^2*x[13]*x[14] + x[9]^2*
+  x[13]*x[15] + x[9]^2*x[13] - x[9]^2*x[15] + x[9]*x[13]^2*x[14] + x[9]*x[13]^2*
+  x[15] - x[9]*x[13]^2 - 3*x[9]*x[13]*x[14]*x[15] + x[9]*x[13]*x[14] + x[9]*x[13
+  ]*x[15]^2 - 2*x[9]*x[13] + x[9]*x[14] + x[9]*x[15] + x[13]*x[14] - x[13]*x[15]
+   + x[13] + x[14]*x[15] - 2*x[14] - x[15]^2 + x[15]
+  x[3]*x[9]*x[13]*x[15] - x[3]*x[9]*x[15]^2 - x[3]*x[13]*x[14]*x[15] + x[3]*x[14
+  ]*x[15]^2 - x[9]*x[13]*x[14]*x[15] + x[9]*x[13]*x[14] + x[9]*x[13]*x[15]^2 - x
+  [9]*x[13]*x[15] - x[9]*x[13] + x[9]*x[15] + x[13]*x[14] - x[14] - x[15]^2 + x[
+  15]
+  x[3]*x[9]*x[14]*x[15] - x[3]*x[9]*x[15]^2 - x[3]*x[13]*x[14]*x[15] + x[3]*x[13
+  ]*x[14] + x[3]*x[14]*x[15]^2 - x[3]*x[14]*x[15] - x[3]*x[14] + x[3]*x[15] - x[
+  9]*x[13]*x[14]*x[15] + x[9]*x[13]*x[15]^2 + x[13]*x[14] - x[13] - x[15]^2 + x[
+  15]
+  x[3]*x[13]^2*x[14]*x[15] - x[3]*x[13]^2*x[14] - x[3]*x[13]*x[14]^2*x[15] - x[3
+  ]*x[13]*x[14]*x[15]^2 + 2*x[3]*x[13]*x[14]*x[15] + x[3]*x[13]*x[14] - x[3]*x[1
+  3]*x[15] + x[3]*x[14]^2*x[15]^2 - x[3]*x[14]*x[15]^2 - x[3]*x[14]*x[15] + x[3]
+  *x[15]^2 + x[9]*x[13]^2*x[14]*x[15] - x[9]*x[13]^2*x[15]^2 - x[9]*x[13]*x[14]^
+  2*x[15] + x[9]*x[13]*x[14]^2 + x[9]*x[13]*x[14]*x[15]^2 - 2*x[9]*x[13]*x[14]*x
+  [15] - x[9]*x[13]*x[14] + x[9]*x[13]*x[15]^2 + x[9]*x[13]*x[15] + x[9]*x[14]*x
+  [15] - x[9]*x[15]^2 - x[13]^2*x[14] + x[13]^2 + x[13]*x[14]^2 + x[13]*x[15]^2
+  - 2*x[13]*x[15] - x[14]^2 - x[14]*x[15]^2 + 2*x[14]*x[15]
+  x[4] - 1
+  x[5] - 1
+  x[6] - 1
+  x[7] - x[9]
+  x[8] - 1
+  x[9]^2*x[13]^2*x[15]^2 - x[9]^2*x[13]*x[14]*x[15]^2 + x[9]^2*x[13]*x[14]*x[15]
+   - x[9]^2*x[13]*x[15]^2 - x[9]^2*x[13]*x[15] + x[9]^2*x[15]^2 - 2*x[9]*x[13]^2
+  *x[14]*x[15] + x[9]*x[13]^2*x[14] - x[9]*x[13]^2 + 2*x[9]*x[13]*x[14]*x[15]^2
+  + x[9]*x[13]*x[14]*x[15] - x[9]*x[13]*x[14] - 2*x[9]*x[13]*x[15]^2 + 3*x[9]*x[
+  13]*x[15] + x[9]*x[13] - x[9]*x[14]*x[15] - x[9]*x[15] + x[13]^2*x[14] - 2*x[1
+  3]*x[14] - x[14]*x[15]^2 + x[14]*x[15] + x[14] + x[15]^2 - x[15]
+  x[10] - 1
+  x[11] - 1
+  x[12] - 1
+  x[16] - 1
+  x[17] - 1
+  x[18] - 1
+  x[19] - 1
+  x[20]
+```
+The example above showcased $\mathcal{R}\supsetneq\mathcal{S}$. Below you see an example with $\mathcal{R}=\mathcal{S}$.
+```julia-repl
 julia> MR = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict("data.name"=>"r_3_n_8_10"))
 The matroid is of rank 3 on 8 elements.
 The realization space is
@@ -112,43 +280,7 @@ julia> dim_s(MR)
 julia> equality_of_realizationspaces(MR)
 true
 ```
-The realization space $\mathcal{R}$ obtained by ``realization_space(MR)`` and the self-projecting realization space $\mathcal{S}$ obtained by ``selfprojecting_realization_space(MR)`` can be investigated using the code in the experimental section of OSCAR on MatroidRealizationSpaces.
 
-```julia-repl
-julia> R = realization_space(MR);
-
-julia> defining_ideal(R)
-Ideal generated by
-  x[1] - 1
-  x[2] - 1
-  x[3] - x[14]
-  x[5] - 1
-  x[6] - 1
-  x[7] - x[12]
-  x[8] - 1
-  x[9] - 1
-  x[10] - 1
-  x[11] - 1
-  x[13] - x[14]
-  julia> ambient_ring(R)
-Multivariate polynomial ring in 15 variables x[1], x[2], x[3], x[4], ..., x[15]
-  over rational field
-  
-julia> R = selfprojecting_realization_space(MR);
-julia> defining_ideal(S)
-Ideal generated by
-  x[1] - 1
-  x[2] - 1
-  x[3] - x[14]
-  x[5] - 1
-  x[6] - 1
-  x[7] - x[12]
-  x[8] - 1
-  x[9] - 1
-  x[10] - 1
-  x[11] - 1
-  x[13] - x[14]
-```
 ## How to verify claims from the article
 To verify Tables 2, 3, and 4 from the article, one can use queries to the database. The example below shows how to generate the line of Table 2 with respect to the matroids of rank 3 on 7 elements. Recall that the uniform matroids are not stored in the database.
 The other rows as well as Table 3 can be verified similarly. Note that the database collection for (4,9) is not filled completely yet.
