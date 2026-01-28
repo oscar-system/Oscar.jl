@@ -27,7 +27,7 @@ jobs:
 
     # Run the update script
     - name: Run python script
-      uses: oscar-system/changelog-script@v1
+      uses: oscar-system/changelog-script@v1.1
       with:
         conffile: "dev/releases/config.toml"
         changelogfile: "CHANGELOG.md"
