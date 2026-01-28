@@ -231,8 +231,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           for (k, v) in dict[:_type][:params]
             if k == :key_type || k == :key_params
               d[k] = v
-            elseif k == :_coeff 
-              
+            elseif k == :_coeff
+
             else
               d[k] = upgrade_1_4_0(s, Dict{Symbol, Any}(
                 :_type => dict[:_type][:params][k],
@@ -329,7 +329,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           dict[:data][:order] = dict[:data][:order][:data]
         end
         dict[:data][:isom] = dict[:data][:isom][:data]
-        
+
       elseif type_name == "ZZLatWithIsom"
         quad_space = upgrade_1_4_0(s, dict[:data][:ambient_space])
         dict[:_type] = Dict{Symbol, Any}(
@@ -342,11 +342,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         dict[:data] = dict[:data][:basis][:data]
       elseif type_name == "LinearProgram"
         if !(dict[:_type][:params] == "QQField")
-          
+
         end
       elseif type_name == "MixedIntegerLinearProgram"
         if !(dict[:_type][:params] == "QQField")
-          
+
         end
       elseif type_name in [
         "Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
@@ -398,7 +398,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :params => dict[:data][:num_field]
         )
         dict[:data] = dict[:data][:data][:data]
-                
+
       elseif type_name in ["FPGroup", "SubFPGroup"]
         if dict[:data][:X] isa String
           dict[:_type] = Dict{Symbol, Any}(
@@ -447,7 +447,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
           dict[:data] = dict[:data][:X]
         end
-        
+
       elseif type_name == "GAP.GapObj" || type_name == "GapObj"
         dict[:_type] = "GapObj"
         if dict[:data] isa String
@@ -544,23 +544,3 @@ push!(upgrade_scripts_set, UpgradeScript(
     return dict
   end
 ))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
