@@ -32,7 +32,7 @@ function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
 
   (is_one(a) || is_zero(b)) && return b
   (is_one(b) || is_zero(a)) && return a
-  
+
   (c, m, g, tail) = split_element(b)
 
   # a * b = a * (c * m * g + tail) = c * (a * m) * g + a * tail
@@ -44,7 +44,7 @@ function multiply_a_with_m(a::DrinfeldHeckeAlgebraElem, m::DrinfeldHeckeAlgebraE
   (is_one(m) || is_zero(a)) && return a
 
   (x,mm) = split_monomial_left(m)
-  
+
   # a * m = (a * x) * mm
   return multiply_a_with_m(multiply_a_with_x(a, x), mm)
 end
@@ -55,13 +55,13 @@ function multiply_a_with_x(a::DrinfeldHeckeAlgebraElem, x::DrinfeldHeckeAlgebraE
 
   A = a.parent
   (c, m, g, tail) = split_element(a)
- 
+
   # Let g act on x
   gx = left_action_on_generator(g,x)
-  
-  # a * x 
-  # = (c * m * g + tail) * x 
-  # = c * m * g * x    +   tail * x 
+
+  # a * x
+  # = (c * m * g + tail) * x
+  # = c * m * g * x    +   tail * x
   # = c * m * gx * g   +   tail * x
   return c * multiply_m_with_f(m, A(gx)) * g + multiply_a_with_x(tail, x)
 end
@@ -72,7 +72,7 @@ function multiply_m_with_f(m::DrinfeldHeckeAlgebraElem, f::DrinfeldHeckeAlgebraE
 
   A = m.parent
   (lc, lm, tail) = split_polynomial(f)
-  
+
   # m * f = m * (lc * lm + tail) = lc * m * lm + m * tail
   return lc * multiply_m1_with_m2(m, lm) + multiply_m_with_f(m, tail)
 end
@@ -80,19 +80,19 @@ end
 # Multiply monomial m1 with monomial m2
 function multiply_m1_with_m2(m1::DrinfeldHeckeAlgebraElem, m2::DrinfeldHeckeAlgebraElem)
   A = m1.parent
-  
+
   # cases of empty monomials
   if is_one(m1) return m2 end
   if is_one(m2) return m1 end
 
   (mm1,x) = split_monomial_right(m1)
   (y,mm2) = split_monomial_left(m2)
-  
+
   if index_of_generator(x) < index_of_generator(y)
     # In this case x and y are in correct order and we can multiply m1 and m2 in the group algebra
     return A(m1.element * m2.element)
   end
-  
+
   # Otherwise a correctional term will come in when multiplying x and y
   kappa = form(A)
   xy = A(y.element * x.element) - kappa(y,x)
@@ -115,7 +115,7 @@ function split_element(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   RG = group_algebra(A)
   elm = a.element
-  
+
   for (i,f) in enumerate(elm.coeffs)
     if is_zero(f)
       continue
@@ -139,7 +139,7 @@ end
 function split_polynomial(f::DrinfeldHeckeAlgebraElem)
   A = f.parent
   elm = f.element.coeffs[1]
-  
+
   @req is_zero(elm) == false "zero polynomial can not be split"
 
   lc = leading_coefficient(elm)
@@ -155,7 +155,7 @@ end
 function split_monomial_left(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
-  
+
   @req is_monomial(m) "element $m is not a monomial"
 
   for (i, exp) in enumerate(collect(exponents(m))[1])
@@ -174,12 +174,12 @@ end
 function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
-  
+
   @req is_monomial(m) "element $m is not a monomial"
 
   reversed_exponents = reverse(collect(exponents(m))[1])
   reversed_generators = reverse(gens(m.parent))
-  
+
   for (i, exp) in enumerate(reversed_exponents)
     if exp > 0
       x = reversed_generators[i]
@@ -202,25 +202,25 @@ function generator_to_vector(x::DrinfeldHeckeAlgebraElem)
   n = degree(group(A))
   v = [R(0) for _ in 1:n]
   v[index_of_generator(x)] = R(1)
-  
+
   return v
 end
 
 function vector_to_algebra_element(A::DrinfeldHeckeAlgebra{T, S}, v::Vector{S}) where {T <: FieldElem, S <: RingElem}
   RV = base_algebra(A)
   res = RV()
-  
+
   for i in 1:length(v)
     res = res + v[i] * RV[i]
   end
-  
+
   return A(res)
 end
 
 function index_of_generator(x::DrinfeldHeckeAlgebraElem)
   A = x.parent
   n = degree(group(A))
-  
+
   for i in 1:n
     if A(gen(base_algebra(A), i)) == x
       return i
@@ -232,14 +232,14 @@ end
 
 function generator_to_polynomial(x::DrinfeldHeckeAlgebraElem)
   i = index_of_generator(x)
-  
+
   return gen(base_algebra(x.parent), i)
 end
 
 function left_action_on_generator(g::MatGroupElem{T}, x::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
   v = generator_to_vector(x)
   gv = matrix(g) * v
-  
+
   return vector_to_algebra_element(x.parent, gv)
 end
 

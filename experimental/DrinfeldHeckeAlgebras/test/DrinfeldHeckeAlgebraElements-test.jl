@@ -1,16 +1,16 @@
 @testset "DrinfeldHeckeAlgebras.DrinfeldHeckeAlgebraElements" begin
   G = matrix_group(matrix(QQ, [-1 0;0 -1]))
   A = generic_drinfeld_hecke_algebra(G)
-  
+
   R = base_ring(A)
   RV = base_algebra(A)
-  
+
   (s,t) = gens(R)
   (x,y) = gens(RV)
   g = G[1]
-  
+
   T = elem_type(typeof(A))
-  
+
   @testset "cast Integer to Drinfeld-Hecke algebra" begin
     @test A(1) isa T
   end

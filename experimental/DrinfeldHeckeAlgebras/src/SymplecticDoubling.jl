@@ -25,7 +25,7 @@ Matrix group of degree 3
 julia> H = symplectic_doubling(G)
 Matrix group of degree 6
   over rational field
-  
+
 julia> gens(H)
 2-element Vector{MatGroupElem{QQFieldElem, QQMatrix}}:
  [0 1 0 0 0 0; 0 0 1 0 0 0; 1 0 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 0 1 0 0]

@@ -22,51 +22,51 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     catch
       throw(ArgumentError("The given ring must be an algebra over the base ring of the given group."))
     end
-    
+
     S = elem_type(typeof(R))
     kappa = new{T, S}()
-        
+
     kappa.group = G
     kappa.base_ring = R
     kappa.forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
-  
+
     RV, _ = polynomial_ring(R, "x#" => 1:degree(G); cached = false)
-    
+
     kappa.base_algebra = RV
     kappa.group_algebra = RV[G]
-    
+
     return kappa
   end
 
   # Creates Drinfeld-Hecke form from non-empty forms input
   function DrinfeldHeckeForm(forms::Dict)
     @req length(forms) != 0 "Forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
-  
+
     g, kappa_g = first(forms)
     G = parent(g)
     R = base_ring(kappa_g)
-    
+
     T = elem_type(typeof(base_ring(G)))
     S = elem_type(typeof(R))
-    
+
     forms_safe = Dict{MatGroupElem{T}, MatElem{S}}()
-    
+
     for (g,m) in forms
       @req g isa MatGroupElem{T} && m isa MatElem{S} "The forms dictionary must be of the structure MatGroupElem{T} => MatElem{S} where {T <: FieldElem, S <: RingElem}"
       forms_safe[g] = m
     end
-  
+
     # Check if forms input defines valid Drinfeld-Hecke form
     @req is_drinfeld_hecke_form(forms_safe) "The given forms do not define a valid Drinfeld-Hecke form."
-  
+
     kappa = DrinfeldHeckeForm(G, R)
-    
+
     for (g, m) in forms_safe
       if !is_zero(m)
         kappa.forms[g] = alternating_bilinear_form(m)
       end
     end
-  
+
     return kappa
   end
 end
@@ -97,10 +97,10 @@ function generic_drinfeld_hecke_form(G::MatGroup{T}, R::Ring=base_ring(G)) where
   # Otherwise extract ring data
   g, kappa_g = first(forms)
   S = base_ring(kappa_g)
-  
+
   # Create form and set forms
   kappa = DrinfeldHeckeForm(forms)
-  
+
   return kappa
 end
 
@@ -130,39 +130,39 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
   for (k,(g, kappa_g)) in enumerate(kappa.forms)
     A = matrix(g)
     B = matrix(kappa_g)
-    
+
     for i in 1:n
       print(io, Indent(), "[")
-      
+
       for j in 1:n
         mcl = max_column_length(A, j)
         print(io, repeat(" ", mcl - length(string(A[i,j]))))
         print(io, A[i,j])
         if j < n print(io, "   ") end
       end
-      
+
       if i == n/2 || i == (n-1)/2
         print(io, "] => [")
       else
         print(io, "]    [")
       end
-    
+
       for j in 1:n
         mcl = max_column_length(B, j)
         print(io, repeat(" ", mcl - length(string(B[i,j]))))
         print(io, B[i,j])
         if j < n print(io, "   ") end
       end
-    
+
       if i == n && k == length(kappa.forms)
         print(io, "]")
       else
         println(io, "]")
       end
-    
+
       print(io, Dedent())
     end
-  
+
     if k < length(kappa.forms)
       println(io)
     end
@@ -192,15 +192,15 @@ number_of_parameters(kappa::DrinfeldHeckeForm) = length(parameters(kappa))
 function (kappa::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <: FieldElem, S <: RingElem}
   RG = group_algebra(kappa)
   RV = base_algebra(kappa)
-  
+
   res = RG()
-  
+
   if v == w return res end
 
   for (g, kappa_g) in alternating_bilinear_forms(kappa)
     res = res + RV(kappa_g(v,w)) * RG(g)
   end
-  
+
   return res
 end
 

@@ -11,9 +11,9 @@ struct AlternatingBilinearForm{T <: RingElem}
 
   function AlternatingBilinearForm(m::MatElem{T}) where T <: RingElem
     @req ncols(m) == nrows(m) "Matrix representing an alternating bilinear form must be square"
-  
+
     @req is_alternating(m) "Input matrix must be skew symmetric with zero diagonal"
-  
+
     return new{T}(m)
   end
 end
@@ -45,11 +45,11 @@ isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
 function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector) where T <: RingElem
   B = matrix(b)
-  
+
   # Check if dimensions match
   n = ncols(B)
   @req length(v) == n && length(w) == n "Arguments must be of dimension $n"
-  
+
   # Check if values are in base ring
   R = base_ring(B)
 

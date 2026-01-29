@@ -1,5 +1,5 @@
 #######################################
-# Methods for generating Drinfeld-Hecke forms globally (all at once) 
+# Methods for generating Drinfeld-Hecke forms globally (all at once)
 #
 # Let (kappa_g)_g∈G be a family of alternating bilinear forms. Then
 #   kappa = sum_g∈G (kappa_g * g)
@@ -16,21 +16,21 @@
 #######################################
 function generate_generic_forms_globally(G::MatGroup{T}, R::Ring) where {T <: FieldElem}
   M, map = build_relation_matrix(G)
-  
+
   # Calculate global solution represented by a vector
   sol = solve_and_parametrize(M, R)
-  
+
   # Convert solution to dictionary of matrices representing alternating bilinear forms
   S = parent(sol[1])
   m = length(sol)
   n = degree(G)
-  
+
   # Initialize forms
   forms = Dict{MatGroupElem{T}, MatElem{elem_type(typeof(S))}}()
   for g in G
     forms[g] = zero_matrix(S, n, n)
   end
-  
+
   # Populate forms
   for ((g,i,j),k) in map
     forms[g][i,j] = sol[k]
@@ -49,7 +49,7 @@ end
 # For this note that
 # - we only need to solve the relations for basis elements {v1,...,vn} of V
 # - due to skew-symmetry it is enough to solve the relations for all combinations of i < j < k
-# - if A = (a_ij) is the matrix corresponding to g in the given basis, then gvi = sum_l (a_li * vl). 
+# - if A = (a_ij) is the matrix corresponding to g in the given basis, then gvi = sum_l (a_li * vl).
 #
 # Using this we can rewrite the relations in (a) to
 #   (I)   kappa_g(vi, vj) a_lk       + kappa_g(vj, vk) a_li       - kappa_g(vi, vk) a_lj      = 0    if l != i,j,k
@@ -67,10 +67,10 @@ function build_relation_matrix(G::MatGroup)
   n = degree(G)
   map = build_global_map(G)
   m = length(map)
-  
+
   # Start to collect equations for relations
   M = zero_matrix(K, 0, m)
-  
+
   for g in G
     # First we add the relations (I) - (IV) for g != 1, since for g = 1, they are always true
     if !is_one(g)
@@ -102,8 +102,8 @@ function build_relation_matrix(G::MatGroup)
           end
 
           # If the row is nonzero, we add it to the LES
-          if !is_zero(row) 
-            M = vcat(M, row)  
+          if !is_zero(row)
+            M = vcat(M, row)
           end
         end
       end
@@ -116,23 +116,23 @@ function build_relation_matrix(G::MatGroup)
 
       c = inv(h) * g * h
       A = matrix(h)
-      
+
       # We need
       # sum_{l < k} (a_li a_kj − a_ki a_lj) kappa_g(vl,vk) − kappa_h−1gh(vi,vj) = 0
       # for each i < j
       for i in 1:n, j in (i+1):n
         row = zero_matrix(K, 1, m)
-        
+
         # Build the equation
         if g == c
           for l in 1:n, k in (l+1):n
-            if l == i && k == j 
+            if l == i && k == j
               row[1,map[(g,i,j)]] = A[i,i] * A[j,j] - A[j,i] * A[i,j] - K(1)
-            else 
+            else
               row[1,map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
             end
           end
-        
+
         else
           row[1,map[(c,i,j)]] = -K(1)
 
@@ -140,7 +140,7 @@ function build_relation_matrix(G::MatGroup)
             row[1,map[(g,l,k)]] = A[l,i] * A[k,j] - A[k,i] * A[l,j]
           end
         end
-      
+
         if !is_zero(row)
           M = vcat(M, row)
         end
@@ -157,7 +157,7 @@ end
 function build_global_map(G::MatGroup)
   map = Dict{Tuple{MatGroupElem, Int, Int}, Int}()
   n = degree(G)
-  
+
   k = 1
   for g in G, i in 1:n, j in (i+1):n
     map[(g,i,j)] = k

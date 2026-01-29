@@ -14,7 +14,7 @@ $G$ is defined, `S` is the ring element type over which the associated Drinfeld-
 """
 mutable struct DrinfeldHeckeAlgebra{T <: FieldElem, S <: RingElem} <: NCRing
   form::DrinfeldHeckeForm{T}
-  
+
   # Create from forms input
   function DrinfeldHeckeAlgebra(forms::Dict)
     kappa = DrinfeldHeckeForm(forms)
@@ -128,7 +128,7 @@ Type for representing a Drinfeld-Hecke algebra element.
 mutable struct DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRingElem
   parent::DrinfeldHeckeAlgebra{T, S}
   element::GroupAlgebraElem
-  
+
   function DrinfeldHeckeAlgebraElem(A::DrinfeldHeckeAlgebra{T, S}, a::GroupAlgebraElem) where {T <: FieldElem, S <: RingElem}
     @req a.parent == group_algebra(A) "Element does not belong to the underlying group algebra"
 
@@ -152,8 +152,8 @@ end
 function (A::DrinfeldHeckeAlgebra)(a)
   try
     return A(group_algebra(A)(a))
-  catch 
-    throw(ArgumentError("Element cannot be cast into the given Drinfeld-Hecke algebra")) 
+  catch
+    throw(ArgumentError("Element cannot be cast into the given Drinfeld-Hecke algebra"))
   end
 end
 
@@ -252,16 +252,16 @@ given by alternating bilinear forms
 function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
   G = group(A)
   R = base_ring(A)
-  
+
   @req R isa MPolyRing "The given form does not have any parameters."
-  
+
   n = ngens(R)
-  
+
   @req length(values) == n "Values input must contain exactly $n entries"
-  
+
   # If A is zero, there is nothing to do
   is_zero(form(A)) && return drinfeld_hecke_algebra(G,R)
-  
+
   # Check if values are in R
   safe_values = try
     map(R, values)
@@ -275,7 +275,7 @@ function evaluate_parameters(A::DrinfeldHeckeAlgebra, values::Vector)
 
   # Apply homomorphism to forms
   forms = Dict(g => map(lambda, matrix(kappa_g)) for (g, kappa_g) in alternating_bilinear_forms(form(A)))
-  
+
   # Create new DH algebra from forms
   return DrinfeldHeckeAlgebra(forms)
 end
@@ -314,9 +314,9 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
 
   group_elements = parent(a.element).base_to_group
   non_zero_coefficients = Dict()
-  
+
   for (i,c) in enumerate(coefficients(a.element))
-    
+
     if !is_zero(c)
       g = group_elements[i]
       non_zero_coefficients[g] = c
@@ -337,15 +337,15 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
           if length(terms(c)) > 1
             needed_space_to_print_c += 2
           end
-          
+
           if (i == n/2 || i == (n-1)/2)
             # Print c
             if length(terms(c)) > 1
               print(io, "(")
             end
-          
+
             print(io, c)
-            
+
             if length(terms(c)) > 1
               print(io, ") * ")
             else
@@ -356,19 +356,19 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
             print(io, repeat(" ", needed_space_to_print_c))
           end
         end
-        
+
         if !is_one(g)
           # Start printing current row of g
           print(io, "[")
           A = matrix(g)
-        
+
           for j in 1:n
             mcl = max_column_length(A, j)
             print(io, repeat(" ", mcl - length(string(A[i,j]))))
             print(io, A[i,j])
             if j < n print(io, "   ") end
           end
-        
+
           println(io, "]")
         else
           println(io)
@@ -482,7 +482,7 @@ form(A::DrinfeldHeckeAlgebra) = A.form
 
 function getindex(A::DrinfeldHeckeAlgebra, i::Int)
   generators = vcat(gens(base_algebra(A)), gens(group(A)))
-  
+
   return A(generators[i])
 end
 
@@ -601,7 +601,7 @@ isequal(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a == b
 function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
   if e == 0 return one(a.parent) end
   if e == 1 return a end
-  
+
   return multiply(a,a^(e - 1))
 end
 

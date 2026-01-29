@@ -7,7 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 # Introduction
 This project was developed as part of [Koe25](@cite) and provides functionality for
 constructing and calculating in Drinfeld--Hecke algebras
-as introduced by Ram and Shepler [RS03](@cite), but for matrix 
+as introduced by Ram and Shepler [RS03](@cite), but for matrix
 groups over general fields.
 
 ## Mathematical background
@@ -41,14 +41,14 @@ where $R\langle V \rangle$ is the ring of noncommutative $R$-polynomial function
 $I_{\kappa} := \langle vw-wv-\kappa(v,w) \;|\; v,w\in V\rangle$
 with $\kappa$ a Drinfeld--Hecke form.
 
-This project further provides methods for generating generic (i.e. parametrized) 
+This project further provides methods for generating generic (i.e. parametrized)
 Drinfeld--Hecke algebras using two strategies depending on the setup:
 - If $\text{char}(K) \neq 0$, the generic algebra is constructed directly from the relations above
 - If $\text{char}(K) = 0$, a generalized version of [RS03; Theorem 1.9](@cite) is used to find generic algebras in a more efficient way. A proof for the generalized version was done in [Koe25](@cite).
 
 Fixing a basis $(v_1,\dots,v_n)$ for $V$ allows us to think of $R\langle V\rangle$ as the non-commutative polynomial
 ring over this basis. Using the numbering $1,\dots,n$ as an order,
- we can uniquely represent any element in the Drinfeld--Hecke algebra as a sum $\sum_{g\in G}f_g g$ where 
+ we can uniquely represent any element in the Drinfeld--Hecke algebra as a sum $\sum_{g\in G}f_g g$ where
 $f_g \in R\langle V\rangle$ with all indeterminants in correct order.
 
 For a detailed overview of the theorey please refer to [Koe25](@cite).
@@ -75,7 +75,7 @@ with generators
 
 defined by Drinfeld-Hecke form over base ring
   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
+with parameters
   t1, t2
 
 given by alternating bilinear forms
@@ -86,10 +86,10 @@ given by alternating bilinear forms
   [ 0   -1]    [-t2    0]
 ```
 
-As we can see there are three generators listed here. 
+As we can see there are three generators listed here.
 The generators x1 and x2 are the indeterminants of the
 underlying algebra R⟨V⟩ whereas g1 is the generator
-of the group. Generators and parameters can be easily 
+of the group. Generators and parameters can be easily
 accessed:
 
 ```jldoctest full_example
@@ -106,7 +106,7 @@ julia> parameters(A)
  t2
 ```
 
-If one wants to switch to a concrete setting without 
+If one wants to switch to a concrete setting without
 parameters, the method `evaluate_parameters` can be used:
 
 ```jldoctest full_example
@@ -118,7 +118,7 @@ with generators
 
 defined by Drinfeld-Hecke form over base ring
   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
+with parameters
   t1, t2
 
 given by alternating bilinear forms
@@ -129,8 +129,8 @@ given by alternating bilinear forms
   [ 0   -1]    [-3//4      0]
 ```
 
-The values in the given array can be anything that 
-can be coerced into an element of the base ring of A, 
+The values in the given array can be anything that
+can be coerced into an element of the base ring of A,
 for example it could also be a parameter shift:
 
 ```jldoctest full_example
@@ -147,7 +147,7 @@ with generators
 
 defined by Drinfeld-Hecke form over base ring
   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
+with parameters
   t1, t2
 
 given by alternating bilinear forms
@@ -184,7 +184,7 @@ with generators
 
 defined by Drinfeld-Hecke form over base ring
   Multivariate polynomial ring in 2 variables over QQ
-with parameters 
+with parameters
   x, y
 
 given by alternating bilinear forms
@@ -196,7 +196,7 @@ given by alternating bilinear forms
 ```
 
 Let us do some arithmetic. Since multiplication
-is not commutative in Drinfeld-Hecke algebras, one 
+is not commutative in Drinfeld-Hecke algebras, one
 must pay attention to this when defining elements.
 
 ```jldoctest full_example
@@ -205,10 +205,10 @@ x1*x2
 
 julia> A[2]*A[1]
 x1*x2 - t1
- + 
+ +
 -t2 * [-1    0]
       [ 0   -1]
-      
+
 julia> A[3]*A[1]
 -x1 * [-1    0]
       [ 0   -1]
@@ -230,7 +230,7 @@ x1*x2
 
 julia> A(y)*A(x)
 x1*x2 - t1
- + 
+ +
 -t2 * [-1    0]
       [ 0   -1]
 ```
