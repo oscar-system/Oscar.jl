@@ -2185,10 +2185,6 @@ end
 #
 ################################################################################
 
-function _ismonomial(V::Vector{<: MPolyRingElem})
-  return all(is_monomial, V)
-end
-
 @doc raw"""
     is_monomial(I::MPolyIdeal)
 
@@ -2204,11 +2200,11 @@ true
 ```
 """
 @attr Bool function is_monomial(I::MPolyIdeal)
-  if _ismonomial(gens(I))
+  if all(is_monomial, gens(I))
     return true
   end
   GB = gens(groebner_basis(I, complete_reduction = true))
-  if _ismonomial(GB)
+  if all(is_monomial, GB)
     return true
   end
   return false
