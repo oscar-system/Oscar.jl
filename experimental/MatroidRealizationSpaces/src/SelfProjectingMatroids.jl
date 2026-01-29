@@ -212,7 +212,7 @@ function selfprojecting_realization_ideal(m::Matroid; saturate::Bool = false, ch
   M = matrix(RR,nrows(MRS),ncols(MRS),[F(MRS[i,j]) for i in 1:nrows(MRS) for j in 1:ncols(MRS)])
   DL = diagonal_matrix(RR,[l[i] for i in 1:n])
   V = M*DL*transpose(M)
-  IS = ideal(RR,[V[i,j] for i in 1:k for j in 1:k]) + ideal(RR,[F(gens(I)[i]) for i in 1:length(gens(I))])
+  IS = ideal(RR,[V[i,j] for i in 1:k for j in 1:k]) + ideal(RR,[F(g) for g in gens(I)])
   J = stepwise_saturation(IS,l) 
   E = eliminate(J,l) 
   if saturate 
@@ -246,9 +246,9 @@ end
 function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
   R = base_ring(M);
   if R isa MPolyQuoRing
-    candidates = [det(M[1:nrows(M),Bases[i]]) for i in 1:length(Bases)]
+    candidates = [det(M[1:nrows(M),b]) for b in Bases]
   else
-    candidates = sort_by_degree([det(M[1:nrows(M),Bases[i]]) for i in 1:length(Bases)])
+    candidates = sort_by_degree([det(M[1:nrows(M),b]) for b in Bases])
   end
   multiplicativeSet= nothing
   ineqs = [R(0)]
