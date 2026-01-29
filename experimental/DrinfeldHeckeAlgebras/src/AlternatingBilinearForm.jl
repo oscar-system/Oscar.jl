@@ -37,7 +37,6 @@ matrix(b::AlternatingBilinearForm{T}) where {T <: RingElem} = b.matrix::dense_ma
 is_zero(b::AlternatingBilinearForm) = is_zero(matrix(b))
 ==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = matrix(a) == matrix(b)
 Base.hash(b::AlternatingBilinearForm, h::UInt) = hash(matrix(b), h)
-isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
 #######################################
 # Application

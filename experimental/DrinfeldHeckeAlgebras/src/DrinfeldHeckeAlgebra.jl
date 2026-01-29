@@ -598,7 +598,6 @@ canonical_unit(a::DrinfeldHeckeAlgebraElem) = one(parent(a))
 *(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = multiply(a,b)
 
 ==(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a.element == b.element
-isequal(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a == b
 
 function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
   e == 0 && return one(parent(a))
