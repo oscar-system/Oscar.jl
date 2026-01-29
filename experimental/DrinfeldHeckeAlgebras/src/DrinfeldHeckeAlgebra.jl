@@ -130,7 +130,7 @@ mutable struct DrinfeldHeckeAlgebraElem{T <: FieldElem, S <: RingElem} <: NCRing
   element::GroupAlgebraElem
 
   function DrinfeldHeckeAlgebraElem(A::DrinfeldHeckeAlgebra{T, S}, a::GroupAlgebraElem) where {T <: FieldElem, S <: RingElem}
-    @req a.parent == group_algebra(A) "Element does not belong to the underlying group algebra"
+    @req parent(a) == group_algebra(A) "Element does not belong to the underlying group algebra"
 
     return new{T, S}(A, a)
   end
@@ -568,7 +568,7 @@ parent(a::DrinfeldHeckeAlgebraElem) = a.parent
 is_domain_type(::Type{DrinfeldHeckeAlgebraElem}) = false
 is_exact_type(::Type{DrinfeldHeckeAlgebraElem}) = true
 Base.hash(a::DrinfeldHeckeAlgebraElem, h::UInt) = Base.hash(a.element, h)
-deepcopy_internal(a::DrinfeldHeckeAlgebraElem, dict::IdDict) = DrinfeldHeckeAlgebraElem(a.parent, a.element)
+deepcopy_internal(a::DrinfeldHeckeAlgebraElem, dict::IdDict) = DrinfeldHeckeAlgebraElem(parent(a), a.element)
 
 #######################################
 # Basic manipulation of rings and elements
@@ -583,23 +583,23 @@ isone(a::DrinfeldHeckeAlgebraElem) = isone(a.element)
 # Canonicalisation
 #######################################
 
-canonical_unit(a::DrinfeldHeckeAlgebraElem) = one(a.parent)
+canonical_unit(a::DrinfeldHeckeAlgebraElem) = one(parent(a))
 
 #######################################
 # Arithmetic Operations
 #######################################
 
--(a::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(a.parent, -a.element)
+-(a::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(parent(a), -a.element)
 
-+(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(a.parent, a.element + b.element)
--(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(a.parent, a.element - b.element)
++(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(parent(a), a.element + b.element)
+-(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = DrinfeldHeckeAlgebraElem(parent(a), a.element - b.element)
 *(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = multiply(a,b)
 
 ==(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a.element == b.element
 isequal(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a == b
 
 function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
-  if e == 0 return one(a.parent) end
+  if e == 0 return one(parent(a)) end
   if e == 1 return a end
 
   return multiply(a,a^(e - 1))
@@ -609,12 +609,12 @@ end
 # Type coercion
 #######################################
 
-*(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) * b.parent(b)
-*(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) * a.parent(b)
-+(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) + b.parent(b)
-+(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) + a.parent(b)
--(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = b.parent(a) - b.parent(b)
--(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = a.parent(a) - a.parent(b)
+*(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = parent(b)(a) * parent(b)(b)
+*(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = parent(a)(a) * parent(a)(b)
++(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = parent(b)(a) + parent(b)(b)
++(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = parent(a)(a) + parent(a)(b)
+-(a::Union{RingElem, MatGroupElem}, b::DrinfeldHeckeAlgebraElem) = parent(b)(a) - parent(b)(b)
+-(a::DrinfeldHeckeAlgebraElem, b::Union{RingElem, MatGroupElem}) = parent(a)(a) - parent(a)(b)
 
 #######################################
 # Random generation

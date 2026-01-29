@@ -17,7 +17,7 @@ end
 
 # Multiply group element g from the right
 function *(a::DrinfeldHeckeAlgebraElem, g::MatGroupElem)
-  A = a.parent
+  A = parent(a)
 
   return A(a.element * group_algebra(A)(g))
 end
@@ -53,7 +53,7 @@ end
 function multiply_a_with_x(a::DrinfeldHeckeAlgebraElem, x::DrinfeldHeckeAlgebraElem)
   is_zero(a) && return a
 
-  A = a.parent
+  A = parent(a)
   (c, m, g, tail) = split_element(a)
 
   # Let g act on x
@@ -70,7 +70,7 @@ end
 function multiply_m_with_f(m::DrinfeldHeckeAlgebraElem, f::DrinfeldHeckeAlgebraElem)
   if is_one(m) || is_zero(f) return f end
 
-  A = m.parent
+  A = parent(m)
   (lc, lm, tail) = split_polynomial(f)
 
   # m * f = m * (lc * lm + tail) = lc * m * lm + m * tail
@@ -112,7 +112,7 @@ end
 # - g a group element
 # - tail = a - c * m * g
 function split_element(a::DrinfeldHeckeAlgebraElem)
-  A = a.parent
+  A = parent(a)
   RG = group_algebra(A)
   elm = a.element
 
@@ -137,7 +137,7 @@ end
 # - lm is the leading monomial of f
 # - tail = f - lc * lm
 function split_polynomial(f::DrinfeldHeckeAlgebraElem)
-  A = f.parent
+  A = parent(f)
   elm = f.element.coeffs[1]
 
   @req is_zero(elm) == false "zero polynomial can not be split"
@@ -153,14 +153,14 @@ end
 # - x is a generator of the underlying polynomial ring
 # - a = x * m
 function split_monomial_left(a::DrinfeldHeckeAlgebraElem)
-  A = a.parent
+  A = parent(a)
   m = a.element.coeffs[1]
 
   @req is_monomial(m) "element $m is not a monomial"
 
   for (i, exp) in enumerate(collect(exponents(m))[1])
     if exp > 0
-      x = gen(m.parent, i)
+      x = gen(parent(m), i)
       return (A(x), A(m / x))
     end
   end
@@ -172,13 +172,13 @@ end
 # - x is a generator of the underlying polynomial ring
 # - a = m * x
 function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
-  A = a.parent
+  A = parent(a)
   m = a.element.coeffs[1]
 
   @req is_monomial(m) "element $m is not a monomial"
 
   reversed_exponents = reverse(collect(exponents(m))[1])
-  reversed_generators = reverse(gens(m.parent))
+  reversed_generators = reverse(gens(parent(m)))
 
   for (i, exp) in enumerate(reversed_exponents)
     if exp > 0
@@ -194,10 +194,10 @@ end
 # Helper functions for multiplication
 #######################################
 
-(kappa::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = x.parent(kappa(generator_to_vector(x), generator_to_vector(y)))
+(kappa::DrinfeldHeckeForm)(x::DrinfeldHeckeAlgebraElem, y::DrinfeldHeckeAlgebraElem) = parent(x)(kappa(generator_to_vector(x), generator_to_vector(y)))
 
 function generator_to_vector(x::DrinfeldHeckeAlgebraElem)
-  A = x.parent
+  A = parent(x)
   R = base_ring(A)
   n = degree(group(A))
   v = [R(0) for _ in 1:n]
@@ -218,7 +218,7 @@ function vector_to_algebra_element(A::DrinfeldHeckeAlgebra{T, S}, v::Vector{S}) 
 end
 
 function index_of_generator(x::DrinfeldHeckeAlgebraElem)
-  A = x.parent
+  A = parent(x)
   n = degree(group(A))
 
   for i in 1:n
@@ -233,14 +233,14 @@ end
 function generator_to_polynomial(x::DrinfeldHeckeAlgebraElem)
   i = index_of_generator(x)
 
-  return gen(base_algebra(x.parent), i)
+  return gen(base_algebra(parent(x)), i)
 end
 
 function left_action_on_generator(g::MatGroupElem{T}, x::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
   v = generator_to_vector(x)
   gv = matrix(g) * v
 
-  return vector_to_algebra_element(x.parent, gv)
+  return vector_to_algebra_element(parent(x), gv)
 end
 
 
