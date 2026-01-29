@@ -32,7 +32,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
 
   # Creates Drinfeld-Hecke form from non-empty forms input
   function DrinfeldHeckeForm(forms::Dict)
-    @req length(forms) != 0 "Forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
+    @req !isempty(forms) "Forms must not be empty. To create zero form use DrinfeldHeckeForm(G::MatGroup{T}) or DrinfeldHeckeForm(G::MatGroup{T}, R::Ring)"
 
     g, kappa_g = first(forms)
     G = parent(g)
@@ -82,13 +82,12 @@ function generic_drinfeld_hecke_form(G::MatGroup{T}, R::Ring=base_ring(G)) where
   end
 
   # If the forms are empty, return zero algebra
-  if length(forms) == 0
+  if isempty(forms)
     return DrinfeldHeckeForm(G, R)
   end
 
   # Otherwise extract ring data
   g, kappa_g = first(forms)
-  S = base_ring(kappa_g)
 
   # Create form and set forms
   kappa = DrinfeldHeckeForm(forms)

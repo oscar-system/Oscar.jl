@@ -38,7 +38,7 @@ function generate_generic_forms_locally(G::MatGroup{T}, R::Field) where {T <: Fi
   end
 
   # If there weren't any nonzero forms, return empty dictionary
-  if length(nonzero_forms) == 0
+  if isempty(nonzero_forms)
     return Dict{MatGroupElem{T}, MatElem{elem_type(typeof(R))}}()
   end
 
