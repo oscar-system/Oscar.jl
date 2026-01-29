@@ -228,17 +228,28 @@ function selfprojecting_realization_ideal(m::Matroid; saturate::Bool = false, ch
 end
 
 
-#this function sorts the list of polynomials by total degree, this helps later to reduce the list of basis_minors
-function sort_by_degree(polys::Vector{<:RingElem})::Vector{<:RingElem}
-  deg(p) = hasmethod(total_degree, Tuple{typeof(p)}) ? total_degree(p) : 0
+#this function sorts the list of polynomials by total degree, this helps later to reduce the list of basis_minors unfortunately no sort_by_degree function is currently available for quotienring elements
+function sort_by_degree(polys::Vector{<:MPolyRingElem})::Vector{<:MPolyRingElem}
+  deg(p) = total_degree(p) 
   return sort(polys, by=deg)
 end
+function sort_by_degree(polys::Vector{<:PolyRingElem})::Vector{<:PolyRingElem}
+  deg(p) = degree(p) 
+  return sort(polys, by=deg)
+end
+
+
+
 
 #this function computes the minors of a given matrix for the bases in a given list.
 #this list is not reduced, i.e. there are no repetitions but the polynomials are not reduced, i.e. the list might contain x+1 and y-2 and their product
 function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
   R = base_ring(M);
-  candidates = sort_by_degree([R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)])
+  if R isa MPolyQuoRing
+    candidates = [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+  else
+    candidates = sort_by_degree([R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)])
+  end
   multiplicativeSet= nothing
   ineqs = [R(0)]
   if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
