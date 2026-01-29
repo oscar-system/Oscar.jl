@@ -345,18 +345,17 @@ end
 
 # elements
 function save_object(s::SerializerState, r::ArbFieldElem)
-  c_str = ccall((:arb_dump_str, Nemo.libflint), Ptr{UInt8}, (Ref{ArbFieldElem},), r)
+  c_str = @ccall Nemo.libflint.arb_dump_str(r::Ref{ArbFieldElem})::Ptr{UInt8}
   save_object(s, unsafe_string(c_str))
 
   # free memory
-  ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
+  @ccall Nemo.libflint.flint_free(c_str::Ptr{UInt8})::Nothing
 end
 
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
   r = ArbFieldElem()
   load_node(s) do str
-    ccall((:arb_load_str, Nemo.libflint),
-          Int32, (Ref{ArbFieldElem}, Ptr{UInt8}), r, str)
+    @ccall Nemo.libflint.arb_load_str(r::Ref{ArbFieldElem}, str::Ptr{UInt8})::Cint
   end
   r.parent = parent
   return r
@@ -524,7 +523,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{QQBarFieldElem}, ::QQBarField)
   Qx, x = polynomial_ring(QQ, :x; cached=false)
-  min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
+  min_poly = load_object(s, QQPolyRingElem, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
   CC = AcbField(precision; cached = false)
   approximation = load_object(s, AcbFieldElem, CC, :acb)

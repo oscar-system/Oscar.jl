@@ -76,7 +76,7 @@
     @test lineality_space(PCL) isa SubObjectIterator{RayVector{T}}
     @test length(lineality_space(PCL)) == 1
     @test lineality_space(PCL) == [L[:]]
-    @test generator_matrix(lineality_space(PCL)) == matrix(QQ, L)
+    @test generator_matrix(lineality_space(PCL)) == matrix(f, L)
 
     @test lineality_dim(PCFL) == 1
     @test f_vector(PCL) == [0, 4, 4, 1]

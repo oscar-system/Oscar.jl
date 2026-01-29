@@ -131,8 +131,8 @@ export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MatrixGroup
-export MatrixGroupElem
+export MatGroup
+export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
@@ -154,6 +154,7 @@ export PcGroup
 export PcGroupElem
 export PermGroup
 export PermGroupElem
+export PhylogeneticTree
 export PointVector
 export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan, polyhedral_fan
@@ -205,6 +206,7 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -322,6 +324,7 @@ export augmented_chow_ring
 export augmented_complex
 export aut
 export automorphism_group
+export automorphism_group_with_inclusion
 export barycentric_subdivision
 export base_ring
 export base_scheme
@@ -546,7 +549,6 @@ export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
-export desimulate_valuation
 export det
 export diameter
 export dicyclic_group
@@ -829,7 +831,6 @@ export induced_action
 export induced_action_function
 export induced_automorphism
 export induced_cyclic
-export induced_map_on_exterior_power
 export induced_ring_ordering
 export induced_subgraph
 export initial
@@ -884,6 +885,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_anti_isomorphic_with_map
 export is_archimedean_solid
 export is_atlas_character_table
 export is_ball
@@ -1088,6 +1090,7 @@ export is_zm_graded
 export isfinite
 export isometry
 export isometry_group
+export isometry_is_positive
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism
@@ -1509,6 +1512,7 @@ export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
 export pullback
+export puiseux_expansion
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
@@ -1564,6 +1568,7 @@ export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export ree_group
 export reflect, reflect!
 export reflection
 export register_morphism!
@@ -1686,7 +1691,6 @@ export simplify
 export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
-export simulate_valuation
 export singular_locus
 export singular_locus_reduced
 export slpoly_ring
@@ -1749,6 +1753,7 @@ export subquotient
 export subscheme
 export subsystem
 export support_function
+export suzuki_group
 export syllables
 export sylow_subgroup
 export sylow_system, has_sylow_system, set_sylow_system
@@ -1782,6 +1787,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
@@ -1825,6 +1831,7 @@ export twisting_sheaf
 export two_sided_ideal
 export type
 export underlying_gluing
+export underlying_module
 export underlying_presheaf
 export underlying_quotient
 export underlying_word

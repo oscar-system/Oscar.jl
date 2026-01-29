@@ -89,7 +89,7 @@
   end
 
   @testset "Construct from QQFieldElem" begin
-    A = zeros(Oscar.QQ, 3, 2)
+    A = zero_matrix(Oscar.QQ, 3, 2)
     A[1, 1] = 1
     A[3, 2] = 4
     @test issetequal(
@@ -103,7 +103,7 @@
   end
 
   @testset "Construct from ZZRingElem" begin
-    A = zeros(Oscar.ZZ, 3, 2)
+    A = zero_matrix(Oscar.ZZ, 3, 2)
     A[1, 1] = 1
     A[3, 2] = 4
     @test issetequal(

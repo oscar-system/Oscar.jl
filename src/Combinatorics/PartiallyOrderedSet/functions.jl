@@ -416,7 +416,7 @@ function Base.show(io::IO, pe::PartiallyOrderedSetElement)
 end
 
 @doc raw"""
-    visualize(p::PartiallyOrderedSet; AtomLabels=[], filename=nothing)
+    visualize(p::PartiallyOrderedSet; AtomLabels=[], filename=nothing, backend=:default)
 
 Visualize a partially ordered set.
 The labels will be either the ids from the original input data or integer sets
@@ -425,23 +425,39 @@ For inclusion based partially ordered sets the keyword `AtomLabels` can be used 
 a vector of strings with one label per atom to override the default `1:n_atoms(p)` labeling.
 The labels of the least and greatest elements are not shown.
 The `filename` keyword argument allows writing TikZ visualization code to `filename`.
+The `backend` keyword argument allows the user to pick between
+- `:tikz`: a TikZ visualization (default),
+- `:svg`: a SVG visualization (default in jupyter),
+- `:threejs`: a Three.js visualization, or
+- `:graphviz`: a [Graphviz](https://graphviz.org/) visualization.
+The Graphviz visualization requires a postscript reader and loading the julia
+package `Graphviz_jll` before OSCAR.
 
 !!! note
     This will always show the greatest and least elements even if it does not correspond to an element of the partially ordered set.
 """
 function visualize(
-  p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, kwargs...
+  p::PartiallyOrderedSet; filename::Union{Nothing,String}=nothing, backend=:default, kwargs...
 )
   if isdefined(p, :atomlabels) && !haskey(kwargs, :AtomLabels)
     kwargs = (kwargs..., :AtomLabels => p.atomlabels)
   end
   vpos = Polymake.visual(Polymake.Visual, pm_object(p); kwargs...)
-  # todo: check if we can use svg in jupyter notebooks
-  if !isnothing(filename)
-    Polymake.call_function(Nothing, :graph, :tikz, vpos; File=filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+    return Polymake.display_svg(vpos)
+  elseif isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :threejs && isnothing(filename)
+    return vpos
   else
-    Polymake.call_function(Nothing, :graph, :tikz, vpos;)
+    if backend === :default
+      backend = :tikz
+    end
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :graph, backend, vpos; File=filename)
+    else
+      Polymake.call_function(Nothing, :graph, backend, vpos;)
+    end
   end
+  return nothing
 end
 
 @doc raw"""
@@ -741,9 +757,23 @@ Poset element <[2, 4]>
 ```
 """
 function element(p::PartiallyOrderedSet, i::Int)
-  @req _bottom_node(p) + p.artificial_bottom <= i <= _top_node(p) - p.artificial_top "invalid node id"
+  @req i in _element_ids(p) "invalid node id"
   return PartiallyOrderedSetElement(p, i)
 end
+
+# some posets are upside down in polymake
+function _element_ids(p::PartiallyOrderedSet)
+  bot = _bottom_node(p)
+  top = _top_node(p)
+  dir = top > bot ? 1 : -1
+  top -= dir*p.artificial_top
+  bot += dir*p.artificial_bottom
+  if dir == -1
+    bot, top = top, bot
+  end
+  return (bot:top)
+end
+
 
 @doc raw"""
     elements(p::PartiallyOrderedSet)
@@ -760,9 +790,7 @@ julia> length(elements(pos))
 ```
 """
 elements(p::PartiallyOrderedSet) =
-  PartiallyOrderedSetElement.(
-    Ref(p), (_bottom_node(p) + p.artificial_bottom):(_top_node(p) - p.artificial_top)
-  )
+  PartiallyOrderedSetElement.(Ref(p), _element_ids(p))
 
 @doc raw"""
     elements_of_rank(p::PartiallyOrderedSet, rk::Int)

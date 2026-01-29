@@ -353,3 +353,180 @@ function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_leng
   return [r * B for r in roots]
 end
 
+
+function _get_tau(f::ZZMatrix, Qb)
+  tau = zero(Qb)
+  for lambda in eigenvalues(Qb, f)
+    if abs(lambda)>tau
+      tau = abs(lambda)
+    end
+  end
+  return tau
+end
+
+function _get_bilinearform(Lf::ZZLatWithIsom, Qb)
+  gram_in_Qb = change_base_ring(Qb, gram_matrix(Lf))
+  #return (a, b)->inner_product(ambient_space(L), a,b)[1,1] -> it doesn't go well as there is no convienient way to convert ZZLat in QQ field to the Qb field
+  return function (a,b)
+    tmp_a = change_base_ring(Qb, a)
+    tmp_b = transpose(change_base_ring(Qb, b))
+    mul!(tmp_b, mul!(tmp_a, tmp_a, gram_in_Qb), tmp_b)
+    return tmp_b[1]
+  end
+end
+
+function _get_C0(Lf::ZZLatWithIsom, tau::QQBarFieldElem)
+  charPolyF = characteristic_polynomial(Lf)
+  x = gen(parent(charPolyF))
+  (n, remainder) = remove(charPolyF, x-1) # remove all x-1 factors
+  return div(remainder, minpoly(parent(charPolyF), tau)) #remove Salem polynomial of salem number tau
+end
+
+function _get_Cfancy(Lf::ZZLatWithIsom, C0)
+  return short_vectors_iterator(lattice(kernel_lattice(Lf, C0)), 2 , 2)
+end
+
+
+@doc raw"""
+    _get_h(L::ZZLat, v, w, Qb, bi_form) -> ZZMatrix
+
+Return a vector $h$ in the lattice `L`, such that $bi_form(h,h)>0$. 
+
+Vectors 'v','w' are eigenvectors of isometry associated with L based on salem number $tau$ and $tau^(-1)$
+
+'Qb' is a current field, where all calculations happen
+"""
+function _get_h(L::ZZLat, v, w, bi_form)
+  l = number_of_rows(basis_matrix(L))
+  r = rank(L)
+  if r<4
+    k = 10
+  elseif  r<6
+    k = 6
+  elseif r<8
+    k = 4
+  elseif r<10
+    k = 2
+  else
+    k = 1
+  end
+  h0 = v+w
+  h0 = h0/bi_form(h0,h0)
+  n = 1
+  i = 1
+  z = matrix(ZZ,1,l,rand(-k:k, l)) # random small vector in lattice basis
+  n_h0 = map(x->floor(ZZRingElem, x) , h0*n)
+  h = z+n_h0# in lattice basis
+  h = map(x->floor(ZZRingElem, x) , h) # in lattice basis and rounded
+  while bi_form(h,h) <= 0 || n == 10000  # block on 10000, because for a bigger n time consumption is way too big
+    i+=1
+    if i == 100
+      n+=1
+      i = 1
+      n_h0 = map(x->floor(ZZRingElem, x) , h0*n) 
+    end
+    for x in 1:l
+      z[1, x] = rand(-k:k)
+    end
+    add!(h, z, n_h0)
+    #h = (z+n_h0) #in lattice basis
+  end
+  if n == 10000 throw(OverflowError("The upper limitation on h calculation is reached. Bigger h will not be able to process in reasonable time")) end
+  return h::ZZMatrix
+end
+
+function _get_R(L, h::ZZMatrix)
+  return short_vectors_affine(change_base_ring(ZZ, gram_matrix(L)),h,0,-2) #better to use iterator, but there is no equivalent function that returns iterator
+end
+
+@doc raw"""
+    _process_finite_sets_of_h(h, f::QQMatrix, v, w, bi_form, L::ZZLat) -> Tuple{Bool, ZZMatrix}
+
+The function calculates all $r$, that can be obstructing roots of `L`.
+Calculation is made one by one and then the $r$ is checked
+$r$ is based on pairs of integer $(a,b)$ of $-2x^2+2y^2+2aby>=x(a^2+b^2)$ with $a>0$, $b<0$, $x>0$,$y>0$
+See Steps 7,8,9 of Algorithm 5.8 in [OY20](@cite)
+
+Return a tuple of a boolean that represents if isometry f of the lattice is positive and ZZMatrix,
+that represents an obstructing root
+"""
+function _process_finite_sets_of_h(h::ZZMatrix, f::ZZMatrix, v, w, bi_form, L::ZZLat)
+  x = bi_form(h, h)
+  y = bi_form(h, h*f)
+  z = y^2-x^2
+  if (z<0) return (true, zero(h)) end #then discriminant for a will be <0 and there is no root (a,b)=> no obstructing roots => positive
+  b_min = -isqrt(round(ZZRingElem, 2*z/x, RoundDown))
+  h_new = zero(h)
+  tmp = zero(h)
+  for b = b_min:-1
+    a_max = round(ZZRingElem, (b*y+isqrt(round(ZZRingElem, (z*(b^2+2*x)), RoundDown)))/x, RoundDown)
+    for a = 1:a_max
+      add!(h_new,neg!(mul!(h_new,b,h),mul!(tmp,a,mul!(tmp,h,f))))
+      #h_new = -b*h +a*h*f
+      Rh = _get_R(L, h_new)
+      for r in Rh
+        if _check_R(r, v, w, bi_form) return false, r end
+      end
+    end
+  end
+  return true, zero(h)
+end
+
+function _check_R(r, v, w, bi_form)
+  return bi_form(r, v)*bi_form(r, w) < 0
+end
+
+@doc raw"""
+    isometry_is_positive(Lf::ZZLatWithIsom, h::Union{QQMatrix, Nothing} = nothing) -> Tuple{Bool, ZZMatrix}
+
+Return whether the isometry of `Lf` is positive and an obstructing root if it exists. 
+
+The isometry is called positive if it preserves a connected component of the set $\{x \in L \mid x^2>0, \wedge \forall r \in \{r \in L | r^2=-2\}: x.r\neq 0\}$. 
+
+This implements see Algorithm 5.8 of [OY20](@cite). 
+
+# Arguments
+- `Lf` -- a hyperbolic lattice with an isometry of positive spectral radius. 
+- `h` -- a vector of positive square given with respect to the ambient space of `Lf`. If no such vector is given, `h` will be calculated by function inside based on a random vector in `Lf`.
+
+# Output
+For positive isometries the second return value is a vector of zeros of the same degree as `h`.
+"""
+
+function isometry_is_positive(Lf::ZZLatWithIsom, h::Union{ZZMatrix, Nothing} = nothing)
+  Qb = algebraic_closure(QQ);
+  f = change_base_ring(ZZ, isometry(Lf))
+  L = lattice(Lf)
+  tau = _get_tau(f, Qb)
+  bi_form = _get_bilinearform(Lf, Qb)
+
+  # step 1
+  C0 = _get_C0(Lf, tau)
+  # step 2 - Check if C0 has obstructing roots => not positive
+  if !isone(C0)
+    Cfancy = _get_Cfancy(Lf, C0)
+    first_element = iterate(Cfancy)
+    if first_element !== nothing
+      return (false, first_element[1][1])
+    end
+  end
+  # step 3 - Prepare eigenvectors from tau and tau inverse 
+  v = eigenspace(f, tau)
+  w = eigenspace(f, tau^(-1))
+
+  if bi_form(v,w)<0
+    v = -v
+  end
+  # step 4 - Get the first h value if there is no in arguments
+  if h === nothing
+    h = _get_h(L,v,w, bi_form)
+  end
+  # step 5 - Get the R set based on current h value
+  Rh = _get_R(L, h)
+  # step 6 - Check all of the entries of R if there exists an obstructing root => positive
+  for r in Rh
+    if _check_R(r, v, w, bi_form) return false, r end
+  end
+  # step 6,7,8 are combined to process them iteratively
+  return _process_finite_sets_of_h(h, f, v, w, bi_form, L)
+end

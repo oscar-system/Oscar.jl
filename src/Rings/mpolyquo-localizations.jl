@@ -844,7 +844,8 @@ function isone(a::MPolyQuoLocRingElem)
 end
 
 function iszero(a::MPolyQuoLocRingElem)
-  return lift(a) in modulus(parent(a))
+  is_zero(lifted_numerator(a)) && return true
+  return lifted_numerator(a) in modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal})
@@ -1604,8 +1605,8 @@ function simplify(L::MPolyQuoRing)
 end
 
 function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
-  J = modulus(L)
   R = base_ring(L)
+  J = ideal(R, small_generating_set(modulus(L)))
   is_zero(ngens(R)) && return L, id_hom(L), id_hom(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)

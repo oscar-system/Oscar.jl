@@ -981,8 +981,17 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-AbstractAlgebra.coefficients(f::MPolyDecRingElem) = AbstractAlgebra.coefficients(forget_decoration(f))
-AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem) = AbstractAlgebra.exponent_vectors(forget_decoration(f))
+function AbstractAlgebra.coefficients(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.coefficients(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(v, f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(v, forget_decoration(f), inplace=inplace)
+end
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1219,7 +1228,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
     end
   end
 
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa), AbstractAlgebra.exponent_vectors(aa))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa, inplace = true), AbstractAlgebra.exponent_vectors(aa, inplace = true))
     # this is non-allocating
     for i in 1:length(e)
       tmat[1, i] = e[i]
@@ -1228,7 +1237,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
     u = FinGenAbGroupElem(D, res_mat)
     if haskey(h, u)
       ctx = h[u]
-      push_term!(ctx, c, e)
+      push_term!(ctx, deepcopy(c), deepcopy(e))
     else
       # If we are only asked for the degrees in degs, we don't add any others
       !isnothing(degs) && continue
@@ -1237,7 +1246,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
       # Make a fresh res_mat, which can be used the for the next u
       res_mat = deepcopy(res_mat)
       ctx = MPolyBuildCtx(R)
-      push_term!(ctx, c, e)
+      push_term!(ctx, deepcopy(c), deepcopy(e))
       h[u] = ctx
     end
   end

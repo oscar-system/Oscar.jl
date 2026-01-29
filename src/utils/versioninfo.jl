@@ -63,6 +63,17 @@ function _format_git_info(info::Dict; branch=true, commit=false)
   return length(val) > 0 ? " - $(join(val, ", "))" : ""
 end
 
+function _short_git_info(info::Dict)
+  val = String[]
+  if haskey(info, :branch)
+    push!(val, "#$(info[:branch])")
+  end
+  if haskey(info, :commit)
+    push!(val, "$(info[:commit][1:7]) $(info[:date][1:10])")
+  end
+  return join(val, " ")
+end
+
 function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString}; padding="    ", suffix="", branch=false, commit=false)
   width = maximum(length.(deps))+length(suffix)+2
   deps = filter(d->d.name in deps, collect(values(Pkg.dependencies())))

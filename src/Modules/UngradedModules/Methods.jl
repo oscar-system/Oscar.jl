@@ -373,7 +373,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
+      v = FreeModElem(sparse_row(v), ambient_free_module(SQ))
       return SQ(v)
     end
     to_homomorphism = function(elem::SubquoModuleElem{T})
@@ -417,7 +417,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
 end
 
 function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
-  domain(f) == base_ring(M) || error("ring map not compatible with the module")
+  domain(f) === base_ring(M) || error("ring map not compatible with the module")
   S = codomain(f)
   F = ambient_free_module(M)
   R = base_ring(M)
