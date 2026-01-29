@@ -283,6 +283,23 @@ end
 
 ################################################################################
 #
+#  Multipartition
+#
+################################################################################
+
+@doc raw"""
+    Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+
+Multipartitions are implemented as a subtype of 1-dimensional arrays of partitions. You can use smaller integer types to increase performance.
+
+See [`multipartition`](@ref) for the user-facing constructor and an example.
+"""
+struct Multipartition{T<:IntegerUnion} <: AbstractVector{Partition{T}}
+    mp::Vector{Partition{T}}
+end
+
+################################################################################
+#
 #  Young Tableaux
 #
 ################################################################################
@@ -377,3 +394,52 @@ struct StandardTableauxFixedBoxNum{T<:IntegerUnion}
     return new{T}(box_num)
   end
 end
+
+################################################################################
+#
+#  Combination(s)
+#
+################################################################################
+
+struct Combination{T} <: AbstractVector{T}
+  v::Vector{T}
+end
+
+# Iterator type: all combinations of k elements from the vector v
+struct Combinations{T, U<:IntegerUnion}
+  v::T
+  n::U
+  k::U
+
+  inplace::Bool # Whether all generated combinations share the same array in
+                # memory
+
+  function Combinations(v::T, n::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+    return new{T,U}(v, n, k, inplace)
+  end
+end
+
+
+Combinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = Combinations(v, T(length(v)), k)
+
+################################################################################
+#
+#  Multicombination(s)
+#
+################################################################################
+
+# Iterator type: all combinations of k elements from the vector v with repetition
+struct MultiCombinations{T, U<:IntegerUnion}
+  v::T
+  n::U
+  k::U
+
+  inplace::Bool # Whether all generated combinations share the same array in
+                # memory
+
+  function MultiCombinations(v::T, n::U, k::U, inplace::Bool = false) where {T, U<:IntegerUnion}
+    return new{T,U}(v, n, k, inplace)
+  end
+end
+
+MultiCombinations(v::AbstractArray, k::T) where {T<:IntegerUnion} = MultiCombinations(v, T(length(v)), k)

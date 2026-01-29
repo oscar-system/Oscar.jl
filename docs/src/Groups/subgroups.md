@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -32,10 +33,12 @@ sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 derived_subgroup
 fitting_subgroup
 frattini_subgroup
+torsion_subgroup
 socle
 solvable_radical
 pcore(G::GAPGroup, p::IntegerUnion)
 intersect(::T, V::T...) where T<:GAPGroup
+p_rump(G::GAPGroup, p::IntegerUnion)
 ```
 
 The following functions return a vector of subgroups.
@@ -121,6 +124,9 @@ is_right(C::GroupCoset)
 is_left(C::GroupCoset)
 right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+SubgroupTransversal
+group(T::SubgroupTransversal)
+subgroup(T::SubgroupTransversal)
 right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 is_bicoset(C::GroupCoset)

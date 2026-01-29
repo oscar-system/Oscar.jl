@@ -387,3 +387,17 @@ function _compute_gluing(
     check=false
   )
 end
+
+@doc raw"""
+    irreducible_components(X::AbsCoveredScheme) -> Vector{Tuple{CoveredScheme,CoveredClosedEmbedding}}
+    
+Return the irreducible components of `X` with their reduced structure. 
+
+See [`maximal_associated_points`](@ref) for keyword arguments. 
+"""
+function irreducible_components(X::AbsCoveredScheme,kwargs...)
+  I = ideal_sheaf(X)
+  D = maximal_associated_points(I; kwargs...)
+  return sub.(D)
+end
+

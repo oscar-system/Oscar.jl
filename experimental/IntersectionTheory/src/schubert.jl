@@ -29,6 +29,8 @@ julia> s21 = schubert_class(G, [2, 1])
 julia> s22 = schubert_class(G, [2, 2])
 c[2]^2
 
+julia> # Pieri's formula:
+
 julia> s1*s1 == s2+s11
 true
 
@@ -58,6 +60,8 @@ julia> chern_class(Q, 3)
 
 ```
 
+*Number of Lines in $\mathbb P^3$ Meeting Four General Lines in $\mathbb P^3$*
+
 ```jldoctest
 julia> G = abstract_grassmannian(2,4)
 AbstractVariety of dim 4
@@ -76,30 +80,19 @@ julia> integral(s1^4)
 function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
 function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
 function schubert_class(G::AbstractVariety, λ::Vector{Int})
-  get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
   (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
   giambelli(G.bundles[2], λ)
-end
-
-@doc raw"""
-    schubert_classes(G::AbstractVariety, m::Int)
-
-Return all Schubert classes in codimension `m` on a (relative) Grassmannian `G`.
-"""
-function schubert_classes(G::AbstractVariety, m::Int)
-  get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
-  S, Q = G.bundles
-  res = elem_type(G.ring)[]
-  for i in 0:rank(S)
-    append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
-  end
-  return res
 end
 
 @doc raw"""
     schubert_classes(G::AbstractVariety)
 
 Return all Schubert classes on a (relative) Grassmannian `G`.
+
+    schubert_classes(G::AbstractVariety, m::Int)
+
+Return all Schubert classes in codimension `m` on a (relative) Grassmannian `G`.
 
 # Examples
 
@@ -122,11 +115,27 @@ julia> basis(G)
  [c[2], c[1]^2]
  [c[1]*c[2]]
  [c[2]^2]
- 
+
+julia> schubert_classes(G, 2)
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ c[1]^2 - c[2]
+ c[2]
+
 ```
+
 """
 function schubert_classes(G::AbstractVariety)
-   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
+   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
    S, Q = G.bundles
    return [schubert_classes(G, i) for i = 0:rank(S)*rank(Q)]
+end
+
+function schubert_classes(G::AbstractVariety, m::Int)
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+  S, Q = G.bundles
+  res = elem_type(G.ring)[]
+  for i in 0:rank(S)
+    append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
+  end
+  return res
 end

@@ -410,7 +410,7 @@ function realization_space(
   end
 
   if saturate
-    RS.defining_ideal = stepwise_saturation(def_ideal, ineqs)
+    RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
     if isone(RS.defining_ideal)
       set_attribute!(RS, :is_realizable, :false)
       return RS
@@ -669,7 +669,7 @@ end
 function n_new_Sgens(
   x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}
 )
-  preSgens = unique!([sub_v(x, t, f, R, xs) for f in Sgens])
+  preSgens = unique!(elem_type(R)[sub_v(x, t, f, R, xs) for f in Sgens])
   if R(0) in preSgens
     return [R(0)]
   end

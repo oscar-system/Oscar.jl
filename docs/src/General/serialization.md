@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # [Saving and loading files](@id serialization)
 
 ## Introduction
@@ -83,5 +89,5 @@ using Oscar
 ```
 
 ```@repl oscar
-Oscar.reverse_type_map
+Oscar.Serialization.reverse_type_map
 ```

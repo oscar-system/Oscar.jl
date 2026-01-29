@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Welcome to OSCAR
 
 ## What is OSCAR?
@@ -41,7 +47,9 @@ our [Introduction for new developers](@ref).
 
 ## How to cite?
 
-If you have used OSCAR in the preparation of a paper, please cite it as described [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+If you have used OSCAR in the preparation of a paper please cite it as described
+on [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
+
 
 ## Acknowledgements
 

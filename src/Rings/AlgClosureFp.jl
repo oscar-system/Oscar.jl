@@ -17,7 +17,7 @@ import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
 import ..Oscar: pretty, Lowercase
 
 import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
-  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
+  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_perfect, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
 """
@@ -45,6 +45,7 @@ base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
 base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
+is_perfect(::AlgClosure) = true
 
 struct AlgClosureElem{T} <: FieldElem
   # T <: FinField
@@ -145,7 +146,7 @@ end
 #TODO: do we really want to support different types here? (implies different parents)
 *(a::AlgClosureElem{T}, b::AlgClosureElem{S}) where S where T = AlgClosureElem(op(*, a, b), parent(a))
 //(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(//, a, b), parent(a))
-divexact(a::AlgClosureElem, b::AlgClosureElem; check = true) = AlgClosureElem(op(divexact, a, b), parent(a))
+divexact(a::AlgClosureElem, b::AlgClosureElem; check::Bool = true) = AlgClosureElem(op(divexact, a, b), parent(a))
 ==(a::AlgClosureElem, b::AlgClosureElem) = op(==, a, b)
 iszero(a::AlgClosureElem) = iszero(data(a))
 isone(a::AlgClosureElem) = isone(data(a))
@@ -188,7 +189,7 @@ function roots(a::AlgClosureElem, b::Int)
   kx, x = polynomial_ring(parent(ad); cached = false)
   f = x^b-ad
   lf = factor(f)
-  d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
+  d = mapreduce(degree, lcm, first.(collect(lf)), init = 1)
   d = lcm(d, degree(parent(ad)))
   K = ext_of_degree(parent(a), d)
   r = roots(K, f)
@@ -201,7 +202,7 @@ function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   kx, x = polynomial_ring(parent(b[1]); cached = false)
   f = kx(b)
   lf = factor(f)
-  d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
+  d = mapreduce(degree, lcm, first.(collect(lf)), init = 1)
   d = lcm(d, degree(parent(b[1])))
   K = ext_of_degree(A, d)
   r = roots(K, f)
@@ -249,7 +250,7 @@ function minimize(::Type{FinField}, a::AbstractArray{<:AlgClosureElem})
       embed(parent(data(a[i])), k)
       push!(b, k(data(a[i])))
     elseif da[i] == l
-      push!(b, data(a[i]))
+      push!(b, k(data(a[i])))
     else
       embed(k, parent(data(a[i])))
       push!(b, k(data(a[i])))

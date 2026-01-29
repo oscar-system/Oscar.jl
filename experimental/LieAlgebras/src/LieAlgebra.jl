@@ -4,7 +4,7 @@
 #   elem_type(::Type{MyLieAlgebra{C}}) = MyLieAlgebraElem{C}
 #   parent(x::MyLieAlgebraElem{C}) -> MyLieAlgebra{C}
 #   coefficient_ring(L::MyLieAlgebra{C}) -> parent_type(C)
-#   dim(L::MyLieAlgebra) -> Int
+#   vector_space_dim(L::MyLieAlgebra) -> Int
 #   symbols(L::MyLieAlgebra) -> Vector{Symbol}
 #   bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C}) -> MyLieAlgebraElem{C}
 #   Base.show(io::IO, x::MyLieAlgebra)
@@ -32,7 +32,8 @@ gen(L::LieAlgebra, i::Int) = basis(L, i)
 
 Return the dimension of the Lie algebra `L`.
 """
-dim(_::LieAlgebra) = error("Should be implemented by subtypes.")
+dim(L::LieAlgebra) = vector_space_dim(L)
+vector_space_dim(_::LieAlgebra) = error("Should be implemented by subtypes.")
 
 @doc raw"""
     basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
@@ -1035,12 +1036,12 @@ end
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex) -> PBWAlgRing, Map
 
 Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
 together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
-function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
+function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
   n = dim(L)
   b = basis(L)

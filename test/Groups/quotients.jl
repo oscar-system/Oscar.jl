@@ -1,10 +1,11 @@
 @testset "quo for trivial kernel" begin
 #  @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
-   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
+   @testset for G in [free_group(0), symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
       if is_finite(G)
         @test order(F) == order(G)
+        @test epi(one(G)) == one(F)
       else
         @test ! is_finite(F)
       end
@@ -37,7 +38,7 @@ end
    end
    N = trivial_subgroup(G)[1]
    for subgens in [N, gens(N)]
-      @test quo(G, subgens)[1] isa MatrixGroup
+      @test quo(G, subgens)[1] isa MatGroup
       @test quo(PermGroup, G, subgens)[1] isa PermGroup
       @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
@@ -173,8 +174,10 @@ end
    S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
    T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
    H3 = matrix_group(S, T)
-   C, iC = center(H3);
+   Z = matrix(K, [-a-1 0 0; 0 -a-1 0; 0 0 -a-1])
+   C = sub(H3, [H3(Z; check = false)]; check = false)[1]
    @test !has_is_finite(C)
    Q, pQ = quo(H3, C);
    @test has_is_finite(C)
+   @test C == center(H3)[1]
 end

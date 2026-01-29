@@ -18,9 +18,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             "introduction/introduction/julia3.jlcon",
            ]
   skipped = [
-             # Something broken, probably needs some updated GAP packages
-             "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
-
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
@@ -56,9 +53,27 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       # remove timings
       result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
       # this removes the package version slug, filename and linenumber
-      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\1 \2")
+      result = replace(result, r"^(.* @ \w* ?)~?/[\w/.-]*(Nemo|Hecke|AbstractAlgebra|Polymake)(?:\.jl)?/[\w\d]+/.*\.jl:\d+"m => s"\2")
       lafter = length(result)
     end
+
+    # apply doctestfilters. this is heavily inspired by https://github.com/JuliaDocs/Documenter.jl/blob/9b27810d5e1875124a92f7a735a36ecd52c9ea42/src/doctests.jl#L309
+    # but we don't require a filter to match on both in- and output to be applied
+    for rs in Oscar.doctestfilters()
+      # If a doctest filter is just a string or regex, everything that matches gets
+      # removed before comparing the inputs and outputs of a doctest. However, it can
+      # also be a regex => substitution pair in which case the match gets replaced by
+      # the substitution string.
+      r, s = if isa(rs, Pair{Regex, T} where {T <: AbstractString})
+        rs
+      elseif isa(rs, Regex) || isa(rs, AbstractString)
+        rs, ""
+      else
+        error("Invalid doctest filter:\n$rs :: $(typeof(rs))")
+      end
+      result = replace(result, r => s)
+    end
+
     return strip(result)
   end
 
@@ -137,6 +152,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       stdin_write = input.in
       out_stream = IOContext(output.in, :displaysize=>dispsize)
       options = REPL.Options(confirm_exit=false, hascolor=false)
+      @static if VERSION > v"1.13.0-DEV.1328"
+        # disable automatic bracket on recent nightly
+        options.auto_insert_closing_bracket = false
+      end
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options
       Base.active_repl = repl
@@ -210,23 +229,21 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
-    osc_proj = dirname(Base.identify_package_env("Oscar")[2])
     try
       plots = mktempdir()
       Pkg.activate(plots; io=devnull)
       Pkg.add("Plots"; io=devnull)
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
-      pushfirst!(custom_load_path, osc_proj)
       # make sure stdlibs are in the load path (like in the normal repl)
       push!(custom_load_path, "@stdlib")
 
-      oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
+      oefile = joinpath(Oscar.oscardir, "test", "book", "ordered_examples.json")
       ordered_examples = load(oefile)
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul", "JULIA_PKG_PRECOMPILE_AUTO" => "false") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
@@ -238,7 +255,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
-            auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            auxmain = joinpath(Oscar.oscardir, "test", "book", chapter, "auxiliary_code", "main.jl")
             # run from temp dir
             temp = mktempdir()
             cd(temp)
@@ -254,22 +271,24 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
             run_repl_string(mockrepl, """Oscar.randseed!(42);""")
             for example in example_list
-              full_file = joinpath(chapter, example)
-              println("    $example$(full_file in skipped ? ": skip" :
-                                     full_file in broken ? ": broken" : "")")
+              full_file_path = joinpath(chapter, example)
+              full_file_path_versioned = join(splitext(full_file_path), "-v$(VERSION.major).$(VERSION.minor)")
+              has_versioned_file = isfile(joinpath(Oscar.oscardir, "test", "book", full_file_path_versioned))
+              println("    $example$(full_file_path in skipped ? ": skip" :
+                                     full_file_path in broken ? ": broken" : "")$(has_versioned_file ? " version-specific" : "")")
               filetype = endswith(example, "jlcon") ? :jlcon :
                          endswith(example, "jl") ? :jl : :unknown
-              content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+              content = read(joinpath(Oscar.oscardir, "test", "book", has_versioned_file ? full_file_path_versioned : full_file_path), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @debug "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file_path"
               end
-              if full_file in skipped
+              if full_file_path in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true
               elseif filetype == :jlcon
                 content = sanitize_input(content)
                 computed = run_repl_string(mockrepl, content)
-                res = @test normalize_repl_output(content) == computed broken=(full_file in broken)
+                res = @test normalize_repl_output(content) == computed broken=(full_file_path in broken)
                 if res isa Test.Fail
                   println(deepdiff(normalize_repl_output(content),computed))
                 end
@@ -277,12 +296,12 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
                 if occursin("# output\n", content)
                   (code, res) = split(content, "# output\n"; limit=2)
                   # TODO do we want to compare with `res` ?
-                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 else
-                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file_path in broken)
                 end
               else
-                @warn "unknown file type: $full_file"
+                @warn "unknown file type: $full_file_path"
               end
             end
             println("  closing mockrepl: $(mockrepl.mockdule)")

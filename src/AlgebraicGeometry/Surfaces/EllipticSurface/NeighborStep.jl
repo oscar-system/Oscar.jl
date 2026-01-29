@@ -57,7 +57,7 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   B = coefficient_ring(Bt)
 
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
-  Rt, t1 = polynomial_ring(R,:t)
+  Rt, t1 = polynomial_ring(R, :t, cached=false)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
   b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)
@@ -164,9 +164,10 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   V = ambient_space(NS)
   @req inner_product(V, F, F)==0 "not an isotropic divisor"
   @req euler_characteristic(X) == 2 "not a K3 surface"
-  F0 = zeros(QQ,degree(NS)); F0[1]=1
+  F0 = zeros(QQFieldElem,degree(NS)); F0[1]=1
 
   @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
+  @req is_nef(X, F) "not nef"
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)
@@ -192,9 +193,9 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 #   end
 #   phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
 #   # TODO: Verify that the construction below also works and replace by that, eventually.
-#   phi_alt = compose(phi1, extend_domain_to_fraction_field(phi2))
+#   phi_alt = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
 #   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
-   phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+   phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   elseif iszero(2*P) # P is a 2-torsion section
     eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case3)
     #eqn1, phi1 = _conversion_case_3(X, u)
@@ -206,7 +207,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
-    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+    phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
     eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case2)
     #eqn1, phi1 = _conversion_case_2(X, u)
@@ -218,7 +219,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
-    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+    phi = compose(phi1, Hecke.extend_domain_to_fraction_field(phi2))
   end
 
   return eqn2, phi
@@ -361,7 +362,7 @@ function _vertical_part(X::EllipticSurface, v::QQMatrix)
   i = findfirst(==(vmwg), candidates2)
   t = mwg(vec(collect(p - candidates[i])))
   mwl_tors_gens = [mwg(vec(collect(i[2]))) for i in tors]
-  ag = abelian_group(zeros(ZZ,length(tors)))
+  ag = abelian_group(zeros(ZZRingElem,length(tors)))
   mwlAb = abelian_group(mwg)
   phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
   a = preimage(phi, mwlAb(t))
@@ -869,7 +870,7 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
   cod = parent(a)::MPolyRing
 
   #phi = hom(R, cod, cod.([a, b]))
-  #Phi = extend_domain_to_fraction_field(phi)
+  #Phi = Hecke.extend_domain_to_fraction_field(phi)
   
   result = elliptic_surface(E2, 2)
   W = weierstrass_chart(result)
@@ -881,7 +882,7 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
   B = help_map(b)
 
   res_map = hom(parent(g), FR, t->evaluate(t, FR(R[3])), [A, B])
-  return result, extend_domain_to_fraction_field(res_map)
+  return result, Hecke.extend_domain_to_fraction_field(res_map)
 end
 
 

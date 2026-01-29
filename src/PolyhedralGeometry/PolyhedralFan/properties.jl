@@ -76,7 +76,11 @@ _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:sca
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) =
-  homogenized ? homogenize(pm_object(PF).RAYS, 0) : pm_object(PF).RAYS
+  if homogenized
+    homogenize(coefficient_field(PF), pm_object(PF).RAYS, 0)
+  else
+    pm_object(PF).RAYS
+  end
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
@@ -169,12 +173,12 @@ julia> for c in maximal_cones(PF)
 
 julia> maximal_cones(IncidenceMatrix, PF)
 6×8 IncidenceMatrix
-[1, 3, 5, 7]
-[2, 4, 6, 8]
-[1, 2, 5, 6]
-[3, 4, 7, 8]
-[1, 2, 3, 4]
-[5, 6, 7, 8]
+ [1, 3, 5, 7]
+ [2, 4, 6, 8]
+ [1, 2, 5, 6]
+ [3, 4, 7, 8]
+ [1, 2, 3, 4]
+ [5, 6, 7, 8]
 ```
 """
 maximal_cones(PF::_FanLikeType) =
@@ -213,7 +217,7 @@ julia> cones(PF, 2)
 function cones(PF::_FanLikeType, cone_dim::Int)
   l = cone_dim - length(lineality_space(PF))
   t = Cone{_get_scalar_type(PF)}
-  (l < 0 || dim(PF) == -1) && return _empty_subobjectiterator(t, PF)
+  (l < 0 || dim(PF) == -1 || cone_dim > dim(PF)) && return _empty_subobjectiterator(t, PF)
 
   if l == 0
     return SubObjectIterator{t}(
@@ -250,10 +254,11 @@ _ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int=0) =
 _incidencematrix(::Val{_cone_of_dim}) = _ray_indices
 
 @doc raw"""
-    cones(PF::PolyhedralFan)
+    cones(PF::PolyhedralFan; trivial=true)
 
-Return the ray indices of all non-zero-dimensional
-cones in a polyhedral fan.
+Return the ray indices of all cones in a polyhedral fan.
+If `trivial` is set to `false`, the trivial cone, i.e., the Minkowski sum of the origin
+with the lineality space of the fan, will be omitted.
 
 # Examples
 ```jldoctest
@@ -261,24 +266,27 @@ julia> PF = face_fan(cube(2))
 Polyhedral fan in ambient dimension 2
 
 julia> cones(PF)
-8×4 IncidenceMatrix
-[1, 3]
-[2, 4]
-[1, 2]
-[3, 4]
-[1]
-[3]
-[2]
-[4]
+9×4 IncidenceMatrix
+ [1, 3]
+ [2, 4]
+ [1, 2]
+ [3, 4]
+ [1]
+ [3]
+ [2]
+ [4]
+ []
 ```
 """
-function cones(PF::_FanLikeType)
+function cones(PF::_FanLikeType; trivial::Bool=true)
   pmo = pm_object(PF)
-  ncones = pmo.HASSE_DIAGRAM.N_NODES
-  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:(ncones - 1)]
-  cones = filter(x -> !(-1 in x) && length(x) > 0, cones)
+  n_maximal_cones(PF) == 0 && return IncidenceMatrix(0, 0)
+  ncones = pmo.HASSE_DIAGRAM.N_NODES::Int - 1
+  cones = [Polymake._get_entry(pmo.HASSE_DIAGRAM.FACES, i) for i in 0:ncones]
+  filter!(x -> !(-1 in x), cones)
+  trivial || filter!(!isempty, cones)
   cones = [Polymake.to_one_based_indexing(x) for x in cones]
-  return IncidenceMatrix([Vector{Int}(x) for x in cones])
+  return IncidenceMatrix(length(cones), pmo.N_RAYS, [Vector{Int}(x) for x in cones])
 end
 
 @doc raw"""
@@ -588,22 +596,24 @@ julia> n_maximal_cones(PF)
 n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
-    n_cones(PF::PolyhedralFan)
+    n_cones(PF::PolyhedralFan; trivial=true)
 
 Return the number of cones of `PF`.
+If `trivial` is set to `false`, the trivial cone, i.e., the Minkowski sum of the origin
+with the lineality space of the fan, will be omitted.
 
 # Examples
-The cones given in this construction are non-redundant. There are six
+The cones given in this construction are non-redundant. There are five
 cones in this fan.
 ```jldoctest
 julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> n_cones(PF)
-4
+5
 ```
 """
-n_cones(PF::_FanLikeType) = nrows(cones(PF))
+n_cones(PF::_FanLikeType; trivial=true) = nrows(cones(PF; trivial))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)
@@ -733,7 +743,11 @@ _lineality_fan(
   ray_vector(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_fan}, PF::_FanLikeType; homogenized=false) =
-  homogenized ? homogenize(pm_object(PF).LINEALITY_SPACE, 0) : pm_object(PF).LINEALITY_SPACE
+  if homogenized
+    homogenize(coefficient_field(PF), pm_object(PF).LINEALITY_SPACE, 0)
+  else
+    pm_object(PF).LINEALITY_SPACE
+  end
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 
@@ -873,7 +887,7 @@ is_simplicial(PF::_FanLikeType) = pm_object(PF).SIMPLICIAL::Bool
 Return the primitive collections of a polyhedral fan.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> primitive_collections(normal_fan(simplex(3)))
 1-element Vector{Set{Int64}}:
  Set([4, 2, 3, 1])

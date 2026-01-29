@@ -22,12 +22,15 @@ function (fac::InducedENCChainFactory)(self::AbsHyperComplex, ind::Tuple)
   k + i - 1 > ngens(I0) && return sub(enc[i], elem_type(enc[i])[])[1]
   amb_ext_power = _exterior_power(enc, i)
   new_gens = elem_type(amb_ext_power)[]
-  for a in OrderedMultiIndexSet(k+i-1, ngens(I0))
-    push!(new_gens, wedge([repres(gen(I0, i)) for i in indices(a)]; parent=amb_ext_power))
+  for as in combinations(gens(I0), k+i-1)
+    push!(new_gens, wedge([repres(a) for a in as]; parent=amb_ext_power))
   end
   Ip, _ = sub(amb_ext_power, new_gens)
   fac.ext_powers[i] = Ip
-  result = tensor_product(_symmetric_power(enc, i), Ip)
+  ambient_tensor_product = enc[i]
+  pure = tensor_pure_function(ambient_tensor_product)
+  res_gens = elem_type(ambient_tensor_product)[pure((a, b)) for a in gens(_symmetric_power(enc, i)) for b in new_gens]
+  result, _ = sub(ambient_tensor_product, res_gens)
   return result
 end
 
@@ -35,7 +38,7 @@ function can_compute(fac::InducedENCChainFactory, self::AbsHyperComplex, i::Tupl
   return can_compute_index(fac.enc, i)
 end
 
-### Production of the morphisms 
+### Production of the morphisms
 struct InducedENCMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
   function InducedENCMapFactory(enc::EagonNorthcottComplex, I::SubquoModule)
     return new{SubQuoHom}()
@@ -55,18 +58,13 @@ function (fac::InducedENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
     I0 = chain_factory(self).I
     B = matrix_space(R, ncols(A), ngens(I0))([repres(g)[i] for i in 1:ncols(A), g in gens(I0)])
     C = A*B
-    dets = [det(C[:, indices(ind)]) for ind in OrderedMultiIndexSet(nrows(C), ncols(C))]
+    dets = [det(C[:, data(ind)]) for ind in combinations(ncols(C), nrows(C))]
     return hom(dom, cod, [a*cod[1] for a in dets])
   end
 
   # TODO: This can probably be sped up by lifting directly on the exterior powers.
-  img_gens = elem_type(cod)[]
   ambient_map = map(enc, i)
-  for g in gens(dom)
-    rep = repres(g)
-    image_g = ambient_map(rep)
-    push!(img_gens, cod(image_g))
-  end
+  img_gens = elem_type(cod)[cod(ambient_map(repres(g))) for g in gens(dom)]
   return hom(dom, cod, img_gens)
 end
 
@@ -75,7 +73,7 @@ function can_compute(fac::InducedENCMapFactory, self::AbsHyperComplex, p::Int, i
 end
 
 ### The concrete struct
-@attributes mutable struct InducedENC{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
+@attributes mutable struct InducedENC{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
   internal_complex::HyperComplex{ChainType, MorphismType}
 
   function InducedENC(enc::EagonNorthcottComplex, I::SubquoModule)
@@ -94,13 +92,13 @@ end
 @doc raw"""
     induced_eagon_northcott_complex(enc::EagonNorthcottComplex, I::SubquoModule)
 
-Given an Eagon-Northcott complex `enc` for a matrix ``A`` on a free ``R``-module ``F`` 
-there is a natural induced complex for any submodule ``I ⊂ F``. 
+Given an Eagon-Northcott complex `enc` for a matrix ``A`` on a free ``R``-module ``F``
+there is a natural induced complex for any submodule ``I ⊂ F``.
 
-Namely, if ``v`` is one of the rows of ``A``, interpreted as an element of ``Hom(F, R¹)``, 
-then contraction with ``v`` provides natural maps ``⋀ ᵖ F → ⋀ ᵖ⁻¹ F`` which restrict 
-to the submodules ``⋀ ᵖ I → ⋀ ᵖ⁻¹ I``. As the Eagon-Northcott complex is build up from 
-such contractions, we obtain a natural restricted complex which is constructed by this 
+Namely, if ``v`` is one of the rows of ``A``, interpreted as an element of ``Hom(F, R¹)``,
+then contraction with ``v`` provides natural maps ``⋀ ᵖ F → ⋀ ᵖ⁻¹ F`` which restrict
+to the submodules ``⋀ ᵖ I → ⋀ ᵖ⁻¹ I``. As the Eagon-Northcott complex is build up from
+such contractions, we obtain a natural restricted complex which is constructed by this
 method.
 """
 function induced_eagon_northcott_complex(enc::EagonNorthcottComplex, I::SubquoModule)

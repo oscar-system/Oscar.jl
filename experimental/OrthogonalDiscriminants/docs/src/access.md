@@ -1,5 +1,6 @@
 ```@meta
-CurrentModule = Oscar.OrthogonalDiscriminants
+CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 

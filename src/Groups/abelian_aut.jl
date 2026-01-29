@@ -10,34 +10,49 @@ function _isomorphic_gap_group(A::FinGenAbGroup; T=SubPcGroup)
 end
 
 @doc raw"""
-    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup} 
+    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup}
 
 Return the automorphism group of `G`.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([2, 3, 4, 4, 4]);
+
+julia> automorphism_group(A)
+Automorphism group of
+  finitely generated abelian group with 5 generators and 5 relations
+
+julia> S, _ = snf(A);
+
+julia> automorphism_group(S)
+Automorphism group of
+  Z/2 x (Z/4)^2 x Z/12
+```
 """
 function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
-  aut = AutomorphismGroup(AutGAP, G)
+  aut = AutomorphismGroup(AutGAP, G, true)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
 
-
 function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   aut = parent(f)
-  if check
-    @assert parent(x) == aut.G "Not in the domain of f!"
-  end
+  @req !check || parent(x) == aut.G "Not in the domain of f!"
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
-  imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
+  imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X, xgap.X))
   return to_oscar(imgap)::typeof(x)
 end
- 
-(f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)
+
+(f::AutGrpAbTorElem)(x::SubPcGroupElem) = group_element(parent(x),GAPWrap.Image(GapObj(f), GapObj(x)))
+Base.:^(x::SubPcGroupElem,f::AutGrpAbTorElem) = f(x)
+
+(f::AutGrpAbTorElem)(x::AbTorElem) = apply_automorphism(f, x, true)
 Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
@@ -54,9 +69,49 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
 end
 
 @doc raw"""
-    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom 
+    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom
+    hom(f::AutomorphismGroupElem{TorQuadModule}) -> TorQuadModuleMap
 
-Return the element `f` of type `FinGenAbGroupHom`.
+Return the underlying homomorphism of ``f``.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([2, 3, 4]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> hom(f)
+Map
+  from finitely generated abelian group with 3 generators and 3 relations
+  to finitely generated abelian group with 3 generators and 3 relations
+
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with 3 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/9 -> Q/2Z
+with matrix representation
+  [2   0]
+  [0   1]
+
+julia> hom(f)
+Map
+  from finite quadratic module: Z/3 x Z/9 -> Q/2Z
+  to finite quadratic module: Z/3 x Z/9 -> Q/2Z
+```
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
@@ -64,46 +119,72 @@ function hom(f::AutGrpAbTorElem)
   return hom(A, A, imgs)
 end
 
-
-function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::Bool=true)
-  !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
+function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom, TorQuadModuleMap}; check::Bool=true)
+  @req !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) "Map does not define an automorphism of the abelian group"
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   Agap = domain(to_oscar)
   AA = Agap.X
   function img_gap(x)
-    a = to_oscar(group_element(Agap,x))
+    a = to_oscar(group_element(Agap, x))
     b = to_gap(f(a))
-    return b.X 
+    return b.X
   end
   gene = GAPWrap.GeneratorsOfGroup(AA)
   img = GAP.Obj([img_gap(a) for a in gene])
-  fgap = GAP.Globals.GroupHomomorphismByImagesNC(AA,AA,img)
-  !check || fgap in aut.X || error("Map does not define an element of the group")
+  fgap = GAPWrap.GroupHomomorphismByImagesNC(AA, AA, img)
+
+  @req !check || fgap in aut.X "Map does not define an element of the group"
   return aut(fgap)
 end
 
-
-function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
-  !check || defines_automorphism(domain(aut),M) || error("Matrix does not define an automorphism of the abelian group.")
-  return aut(hom(domain(aut),domain(aut),M); check=check)
+function (aut::AutomorphismGroup{TorQuadModule})(f::FinGenAbGroupHom; check::Bool=true)
+  T = domain(aut)
+  @req !check || (domain(f) === codomain(f) === abelian_group(T)) "Map does not define a morphism of the abelian group"
+  fT = TorQuadModuleMap(T, T, f)
+  return aut(fT; check)
 end
 
-function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
+function (aut::AutGrpAbTor)(M::ZZMatrix; check::Bool=true)
+  @req !check || defines_automorphism(domain(aut), M) "Matrix does not define an automorphism of the abelian group"
+  return aut(hom(domain(aut), domain(aut), M); check)
+end
+
+function (aut::AutGrpAbTor)(g::MatGroupElem{QQFieldElem, QQMatrix}; check::Bool=true)
   L = relations(domain(aut))
   if check
     B = basis_matrix(L)
-    @assert can_solve(B, B*matrix(g),side=:left)
+    @assert can_solve(B, B*matrix(g); side=:left)
   end
   T = domain(aut)
   g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
-  return aut(g, check = false)
+  return aut(g; check = false)
 end
 
 @doc raw"""
     matrix(f::AutomorphismGroupElem{FinGenAbGroup}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
+
+# Examples
+```jldoctest
+julia> A = abelian_group([3, 9, 12]);
+
+julia> G = automorphism_group(A);
+
+julia> f = first(gens(G))
+Automorphism of
+  finitely generated abelian group with 3 generators and 3 relations
+with matrix representation
+  [1   0   0]
+  [0   1   0]
+  [0   0   7]
+
+julia> matrix(f)
+[1   0   0]
+[0   1   0]
+[0   0   7]
+```
 """
 matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 
@@ -111,9 +192,10 @@ matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 @doc raw"""
     defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) -> Bool
 
-If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
-""" 
-defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
+If `M` defines an endomorphism of `G`, return `true` if `M` defines an
+automorphism of `G`, else `false`.
+"""
+defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G, G, M))
 
 ################################################################################
 #
@@ -122,11 +204,18 @@ defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
 ################################################################################
 
 """
-    _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}) -> AutomorphismGroup{TorQuadModule}
+    _orthogonal_group(
+      T::TorQuadModule,
+      gensOT::Vector{U},
+    ) where U <: Union{FinGenAbGroupHom, TorQuadModuleMap, ZZMatrix} -> AutomorphismGroup{TorQuadModule}
 
 Return the subgroup of the orthogonal group of `G` generated by `gensOT`.
 """
-function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bool=true)
+function _orthogonal_group(
+  T::TorQuadModule,
+  gensOT::Vector{U};
+  check::Bool=true,
+) where U <: Union{FinGenAbGroupHom, TorQuadModuleMap, ZZMatrix}
   A = abelian_group(T)
   As, AstoA = snf(A)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(As)
@@ -136,37 +225,65 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   function toT(x)
     return T(AstoA(x))
   end
-  T_to_As = Hecke.map_from_func(toAs, T, As)
-  As_to_T = Hecke.map_from_func(toT, As, T)
-  to_oscar = compose(to_oscar, As_to_T)
+  T_to_As = MapFromFunc(T, As, toAs, toT)
+  to_oscar = compose(to_oscar, inv(T_to_As))
   to_gap = compose(T_to_As, to_gap)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   ambient = AutomorphismGroup(AutGAP, T)
   set_attribute!(ambient, :to_gap => to_gap, :to_oscar => to_oscar)
-  gens_aut = GapObj([ambient(g, check=check).X for g in gensOT])  # performs the checks
+  gens_aut = GapObj([ambient(g; check).X for g in gensOT])  # performs the checks
   if check
     # expensive for large groups
-    subgrp_gap =GAP.Globals.Subgroup(ambient.X, gens_aut)
+    subgrp_gap = GAP.Globals.Subgroup(ambient.X, gens_aut)
   else
-    subgrp_gap =GAP.Globals.SubgroupNC(ambient.X, gens_aut)
+    subgrp_gap = GAP.Globals.SubgroupNC(ambient.X, gens_aut)
   end
   aut = AutomorphismGroup(subgrp_gap, T)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
 
-function Base.show(io::IO, aut::AutomorphismGroup{TorQuadModule})
-  T = domain(aut)
+function Base.show(io::IO, ::MIME"text/plain", OT::AutomorphismGroup{TorQuadModule})
   io = pretty(io)
-  n = ngens(aut)
-  print(IOContext(io, :compact => true), "Group of isometries of ", Lowercase(), T, " with ", ItemQuantity(n, "generator"))
+  println(io, "Group of isometries of", Indent())
+  println(io, Lowercase(), OT.G)
+  print(io, Dedent(), "with ", ItemQuantity(ngens(OT), "generator"))
 end
 
+function Base.show(io::IO, OT::AutomorphismGroup{TorQuadModule})
+  if is_terse(io)
+    print(io, "Group of isometries")
+  else
+    io = pretty(io)
+    print(io, "Group of isometries of ", Lowercase(), OT.G)
+  end
+end 
 
 @doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
 
 Return a matrix inducing `f`.
+
+# Examples
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//12 0; 0 2//9]));
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with 4 generators
+
+julia> f = first(gens(OT))
+Isometry of
+  finite quadratic module: Z/3 x Z/36 -> Q/2Z
+with matrix representation
+  [1    0]
+  [0   19]
+
+julia> matrix(f)
+[1    0]
+[0   19]
+```
 """
 matrix(f::AutomorphismGroupElem{TorQuadModule}) = matrix(hom(f))
 
@@ -196,22 +313,46 @@ function defines_automorphism(G::TorQuadModule, M::ZZMatrix)
   return true
 end
 
-function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{TorQuadModule})
   D = domain(parent(f))
   io = pretty(io)
-  println(IOContext(io, :compact => true), "Isometry of ", Lowercase(), D, " defined by")
-  print(io, Indent(), matrix(f), Dedent())
+  println(io, "Isometry of")
+  println(IOContext(io, :compact => true), Indent(), Lowercase(), D, Dedent())
+  println(io, "with matrix representation")
+  print(io, Indent())
+  show(io, MIME"text/plain"(), matrix(f))
+  print(io, Dedent())
 end
 
-function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadModule
+function Base.show(io::IO, f::AutomorphismGroupElem{TorQuadModule})
   print(io, matrix(f))
 end
-
 
 @doc raw"""
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
 Return the full orthogonal group of this torsion quadratic module.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [1//4 1//2; 1//2 3//4]))
+Finite quadratic module
+  over integer ring
+Abelian group: (Z/4)^2
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[1//4   1//2]
+[1//2   3//4]
+
+julia> OT = orthogonal_group(T)
+Group of isometries of
+  finite quadratic module: (Z/4)^2 -> Q/2Z
+with 2 generators
+
+julia> order(OT)
+4
+```
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
   if is_trivial(abelian_group(T))
@@ -221,23 +362,23 @@ Return the full orthogonal group of this torsion quadratic module.
     # we know how to compute the isometries.
     N, i = normal_form(T)
     j = inv(i)
-    gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
-    gensOT = ZZMatrix[compose(compose(i,g),j).map_ab.map for g in gensOT]
-    unique!(gensOT)
-    length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
+    gensON_mat = unique(_compute_gens(N))
+    gensON = TorQuadModuleMap[hom(N, N, g) for g in gensON_mat]
+    gensOT = TorQuadModuleMap[i * g * j for g in gensON]
+    length(gensOT) > 1 ? filter!(!isone∘matrix, gensOT) : nothing
+    return _orthogonal_group(T, gensOT; check=false)
   elseif iszero(gram_matrix_quadratic(T))
     # in that case, we don't have any conditions regarding the
     # quadratic form, so we have all automorphisms coming
     # from the underlying abelian group
-    gensOT = [matrix(g) for g in gens(automorphism_group(abelian_group(T)))]
+    return _orthogonal_group(T, hom.(gens(automorphism_group(abelian_group(T)))); check=false)
   else
     # if T is not semi-regular, we distinghuish the cases whether or not
     # it splits its radical quadratic
     i = radical_quadratic(T)[2]
-    gensOT = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
+    gensOT_mat = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
+    return _orthogonal_group(T, gensOT_mat; check=false)
   end
-  return _orthogonal_group(T, gensOT, check=false)
 end
 
 @doc raw"""
@@ -264,7 +405,7 @@ function embedding_orthogonal_group(i::TorQuadModuleMap)
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
     imgf = data.(union(i.(f.(gens(A))), j.(gens(B))))
-    fab = hom(gene, imgf)
+    fab = hom(abelian_group(D), abelian_group(D), gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)
   end
@@ -364,6 +505,39 @@ function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQu
   return restrict_endomorphism(hom(f), i, check = false)
 end
 
+function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bool = true)
+  @req !check || is_surjective(i) "i must be a surjection"
+  @req domain(f) === codomain(f) === domain(i) "f must be an endomorphism of the domain of i"
+  if check 
+    K, j = kernel(i)
+    @req all(has_preimage_with_preimage(j,f(j(k)))[1] for k in gens(K)) "f must preserve the kernel of i"
+  end
+  imgs = TorQuadModuleElem[]
+  U = codomain(i)
+  for a in gens(U)
+    ok, c = has_preimage_with_preimage(i, a)
+    @assert ok 
+    push!(imgs, i(f(c)))
+  end
+  return hom(U, U, imgs)
+end
+
+function induce_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  return induce_endomorphism(hom(f), i; check)
+end 
+
+function induce_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
+  @req domain(G) === domain(i) "G must consists of automorphisms of the domain of i"
+  indu = TorQuadModuleMap[]
+  for f in gens(G)
+    g =  induce_automorphism(f, i; check)
+    push!(indu, g)
+  end
+  H = _orthogonal_group(codomain(i), unique(indu); check)
+  res = hom(G, H, gens(G), H.(indu); check)
+  return H, res
+end
+
 @doc raw"""
     restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule},
                                 i::TorQuadModuleMap; check::Bool = true)
@@ -392,15 +566,15 @@ function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::Tor
   end
 
   @req domain(G) === codomain(i) "G must consist of automorphisms of the target of i"
-  restr = ZZMatrix[]
+  restr = TorQuadModuleMap[]
   for f in gens(G)
     g = try restrict_automorphism(f, i, check = false)
         catch e throw(ArgumentError("The domain of i is not invariant under the action of G"))
         end
-    push!(restr, g.map_ab.map)
+    push!(restr, g)
   end
-  H = _orthogonal_group(domain(i), unique(restr), check = check)
-  res = hom(G, H, gens(G), H.(restr), check = check)
+  H = _orthogonal_group(domain(i), unique(restr); check)
+  res = hom(G, H, gens(G), H.(restr); check)
   return H, res
 end
 
@@ -435,7 +609,9 @@ Gram matrix quadratic form:
 [4//15]
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -463,6 +639,14 @@ function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
   Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
   return is_conjugate_with_data(G, Hgap, Kgap)
 end
+  
+function __cokernel(f::TorQuadModuleMap)
+  # assumes same ambient space and therefore the underscore
+  A = domain(f)
+  B = codomain(f)
+  BmodA = torsion_quadratic_module(cover(B),cover(A))
+  return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
+end
 
 @doc raw"""
     stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
@@ -477,7 +661,9 @@ of the codomain of `i`.
 julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
 
 julia> OT = orthogonal_group(T)
-Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators
+Group of isometries of
+  finite quadratic module: Z/15 -> Q/2Z
+with 2 generators
 
 julia> T3inT = primary_part(T, 3)[2]
 Map
@@ -485,15 +671,105 @@ Map
   to finite quadratic module: Z/15 -> Q/2Z
 
 julia> S, _ = stabilizer(OT, T3inT)
-(Group of isometries of finite quadratic module: Z/15 -> Q/2Z with 2 generators, Hom: group of isometries of finite quadratic module with 2 generators -> group of isometries of finite quadratic module with 2 generators)
+(Group of isometries of finite quadratic module: Z/15 -> Q/2Z, Hom: group of isometries -> group of isometries)
 
 julia> order(S)
 4
 ```
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
-  to_gap = get_attribute(O, :to_gap)
-  Agap = codomain(to_gap)
-  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
-  return stabilizer(O, Hgap.X, on_subgroups)
+  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  
+  if order(O)<10000
+    # don't do fancy stuff if the group is small
+    to_gap = get_attribute(O, :to_gap)
+    Agap = codomain(to_gap)
+    Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+    st2 =  stabilizer(O, Hgap.X, on_subgroups)
+    return st2
+  end
+  if !is_snf(domain(O))
+    # work with a Smith normal form
+    # because otherwise GAP will choke on non-invertible matrices
+    D = domain(O)
+    Snf,toD = snf(D)
+    Os,toOs = restrict_automorphism_group(O, toD)
+    j = i*inv(toD)
+    stab,inc = stabilizer(Os,j)
+    return preimage(toOs,stab)
+  end 
+  a = elementary_divisors(domain(i))
+  if length(a)==0
+    return O, id_hom(O) 
+  end
+  A = domain(i)
+  C = codomain(i)
+  if exponent(C) > exponent(A)
+    expA = exponent(A)
+    Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
+    Ak, ak = sub(Ck, [ck\i(x) for x in gens(A)])
+    Ok,iOk = restrict_automorphism_group(O,ck; check=false)
+    Sk, isk = stabilizer(Ok, ak)
+    st = preimage(iOk, Sk)
+    #@assert order(st[1])==order(st2[1])
+    return st 
+  end
+  n = elementary_divisors(C)[end]
+  # base case of the recursion n = p prime
+  if is_prime(n)
+    p = n
+    B = matrix(i.map_ab)
+    mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
+    st = _stab_via_fin_field(O, mats, B, n)
+    #@assert order(st[1])==order(st2[1])
+    return st
+  end
+  # for prime power order work with the F_p vector space 
+  # (A + p^k*C) / (p^(k+1)C + pA)
+  # where k = 0 ... v
+  #
+  # Suppose (by induction) that f ( A ) ⊆ A + p k C and that moreover f stabilizes the image of
+  # A in ( A + p k C ) / ( p A + p k + 1 C ) , which is ( A + p k + 1 C ) / ( p A + p k + 1 C ) .
+  # Then f ( a + p A + p k + 1 C ) = f ( a ) + p A + p k + 1 C ∈ ( A + p k + 1 C ) / ( p A + p k + 1 C ) , 
+  # i.e. f ( a ) ∈ A + p k + 1 C .
+  #
+  # By the preceeding: if k is such that p k + 1 C = 0 , then f ( A ) ⊆ A.
+  fl, v , p = is_prime_power_with_data(n)
+  if fl
+    A = domain(i)
+    C = codomain(i)
+    S = O
+    pA = [i(p*x) for x in gens(A)]
+    for k in 0:v
+      # (A + p^k*C) / (p^(k+1)C + pA)
+      piC = [p^k*x for x in gens(C)]
+      D,iD = sub(C, append!(piC,i.(gens(A))))
+      SD, iSD = restrict_automorphism_group(S, iD; check=true)
+      E, iE =sub(D, iD.\append!([p^(k+1)*x for x in gens(C)],pA))
+      K, iK = __cokernel(iE)
+      SK, toSK = induce_automorphism_group(SD,iK; check=true)
+      B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
+      S,_ = stabilizer(SK,j)
+      S,_ = preimage(toSK, S)
+      S,iS = preimage(iSD, S)
+    end
+    st = S,iS
+    #@assert order(st[1])==order(st2[1])
+    return st
+  end
+  # For composite order iterate over primary parts.
+  S = O
+  iS = id_hom(O)
+  for p in prime_divisors(n)
+    Ap, ip = primary_part(domain(i), p)
+    Bp, jp = primary_part(codomain(i), p)
+    ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
+    Op,iOp = restrict_automorphism_group(S,jp;check=false)
+    Sp, _ = stabilizer(Op, Ap_to_Bp)
+    S,iS1 = preimage(iOp, Sp)
+    iS = iS1*iS
+  end
+  st = S,iS
+  #@assert order(st[1])==order(st2[1])
+  return st 
 end

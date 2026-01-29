@@ -42,10 +42,10 @@ end );
 
 # Install the methods for `IsoGapOscar`,
 # in order to make Oscar's `iso_gap_oscar` work.
-Perform( Oscar._iso_gap_oscar_methods,
+Perform( Oscar_jl._iso_gap_oscar_methods,
          function( pair )
            InstallMethod( IsoGapOscar, [ JuliaToGAP( IsString, pair[1] ) ],
-               Oscar.GAP.WrapJuliaFunc( pair[2] ) );
+               GAP_jl.WrapJuliaFunc( pair[2] ) );
          end );
 
 ############################################################################
@@ -86,7 +86,7 @@ end );
 
 ############################################################################
 
-BindGlobal("_OSCAR_GroupElem", Oscar.AbstractAlgebra.GroupElem);
+BindGlobal("_OSCAR_GroupElem", Oscar_jl.AbstractAlgebra.GroupElem);
 
 # the following code ensures that `GAP.Globals.Group` accepts a GAP list
 # of Oscar group elements, as there is a GAP `OrbitStabilizerAlgorithm` method
@@ -127,21 +127,21 @@ InstallMethod( GroupGeneratorsDefinePresentation,
 ############################################################################
 
 
-Perform( Oscar._GAP_type_params,
+Perform( Oscar_jl.Serialization._GAP_type_params,
          function( entry )
            InstallMethod( SerializationInOscarDependentObjects,
              [ JuliaToGAP( IsString, entry[1] ) ],
              GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
-Perform( Oscar._GAP_serializations,
+Perform( Oscar_jl.Serialization._GAP_serializations,
          function( entry )
            InstallMethod( SerializeInOscar,
              [ JuliaToGAP( IsString, entry[1] ), "IsObject" ],
              GAP_jl.WrapJuliaFunc( entry[2] ) );
          end );
 
-Perform( Oscar._GAP_deserializations,
+Perform( Oscar_jl.Serialization._GAP_deserializations,
          function( entry )
            if entry[3] then
              InstallMethod( DeserializeInOscar,
@@ -156,35 +156,31 @@ Perform( Oscar._GAP_deserializations,
 
 ############################################################################
 
-# The following can be removed as soon as the CTblLib package provides it
-# (not yet in CTblLib v1.3.9).
-if not IsBound( IsAtlasCharacterTable ) then
-  DeclareProperty( "IsAtlasCharacterTable", IsNearlyCharacterTable );
+# Oscar provides the reduction of a finite matrix group over a number field
+# to one over a finite field,
+# hence these groups can be handled via nice monomorphisms.
+#
+# In the construction of the `GapObj` of a matrix group over a number field,
+# we store the Oscar group in the attribute `JuliaData` and set the flag
+# `MayBeHandledByNiceMonomorphism`.
+# GAP operations that have a special method for groups in the filter
+# `IsHandledByNiceMonomorphism` have also a method for groups in
+# `MayBeHandledByNiceMonomorphism`.
+# The latter method calls `IsHandledByNiceMonomorphism`,
+# and we provide the following method for matrix groups that are in
+# `MayBeHandledByNiceMonomorphism` and that store an Oscar group.
 
-  InstallMethod( IsAtlasCharacterTable,
-    [ "IsOrdinaryTable" ],
-    tbl -> PositionSublist( InfoText( tbl ),
-                            "origin: ATLAS of finite groups" ) <> fail );
-
-  InstallMethod( IsAtlasCharacterTable,
-    [ "IsBrauerTable" ],
-    tbl -> IsAtlasCharacterTable( OrdinaryCharacterTable( tbl ) ) );
-
-  AddSet( CTblLib.SupportedAttributes, "IsAtlasCharacterTable" );
-
-  DatabaseAttributeAddX( CTblLib.Data.IdEnumerator, rec(
-    identifier:= "IsAtlasCharacterTable",
-    type:= "values",
-    name:= "IsAtlasCharacterTable",
-    neededAttributes:= [ "InfoText" ],
-    create:= function( attr, id )
-      local infotext;
-
-      infotext:= attr.idenumerator.attributes.InfoText;
-      return PositionSublist( infotext.attributeValue( infotext, id ),
-                              "origin: ATLAS of finite groups" ) <> fail;
-      end,
-  ) );
-
-  CTblLib.ExtendAttributeOfIdEnumeratorExt( "IsAtlasCharacterTable", true );
-fi;
+InstallMethod( IsHandledByNiceMonomorphism,
+    [ "IsMatrixGroup and MayBeHandledByNiceMonomorphism and HasJuliaData" ],
+    RankFilter( IsCyclotomicCollCollColl ), # above `IsCyclotomicMatrixGroup`
+    function( G )
+    if Oscar.is_finite( JuliaData( G ) ) then
+      # The `is_finite` call already triggers the computation
+      # of the reduction, without error in the case of an infinite group.
+      # Make sure that the reduction really gets computed.
+      Oscar.isomorphic_group_over_finite_field( JuliaData( G ) );
+      Assert( 0, HasNiceMonomorphism( G ) );
+      return true;
+    fi;
+    return false;
+    end );

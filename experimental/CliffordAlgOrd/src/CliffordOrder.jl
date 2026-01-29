@@ -181,14 +181,43 @@ is_exact_type(::Type{ZZCliffordOrderElem}) = true
 @doc raw"""
     clifford_order(ls::QuadLat) -> CliffordOrder
 
-Return the Clifford order of the even quadratic lattice $ls$.
-"""
+Return the Clifford order of the even lattice $ls$.
 
+# Examples
+
+```jldoctest
+julia> K,a = quadratic_field(-5); OK = maximal_order(K);
+
+julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))))
+Clifford order of even lattice over maximal order of imaginary quadratic field defined by x^2 + 5 with Gram matrix
+  [2   0]
+  [0   2]
+and coefficient ideals of the lattice
+  2-element Vector{AbsSimpleNumFieldOrderFractionalIdeal}:
+   <1>//1
+   <1>//1
+```
+"""
 clifford_order(ls::QuadLat) = CliffordOrder{elem_type(base_ring(ls)), typeof(clifford_algebra(rational_span(ls)))}(ls)
 @doc raw"""
     clifford_order(ls::ZZLat) -> ZZCliffordOrder
 
-Return the Clifford order of the even quadratic lattice $ls$.
+Return the Clifford order of the even integer lattice $ls$.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_order(root_lattice(:E,8))
+Clifford order of even integer lattice with Gram matrix
+  [ 2   -1    0    0    0    0    0    0]
+  [-1    2   -1    0    0    0    0    0]
+  [ 0   -1    2   -1    0    0    0   -1]
+  [ 0    0   -1    2   -1    0    0    0]
+  [ 0    0    0   -1    2   -1    0    0]
+  [ 0    0    0    0   -1    2   -1    0]
+  [ 0    0    0    0    0   -1    2    0]
+  [ 0    0   -1    0    0    0    0    2]
+```
 """
 clifford_order(ls::ZZLat) = ZZCliffordOrder(ls)
 
@@ -201,7 +230,8 @@ function (C::CliffordOrder)(a::S) where {S<:RingElem}
   return CliffordOrderElem(C, res)
 end
 
-function (C::CliffordOrder)(a::S) where {S<:Number}
+# for disambiguation
+function (C::CliffordOrder)(a::ZZRingElem)
   res = fill(zero(a), rank(C))
   res[1] = a
   return CliffordOrderElem(C, res)
@@ -224,7 +254,8 @@ function (C::ZZCliffordOrder)(a::S) where {S<:RingElem}
   return ZZCliffordOrderElem(C, res)
 end
 
-function (C::ZZCliffordOrder)(a::S) where {S<:Number}
+# for disambiguation
+function (C::ZZCliffordOrder)(a::ZZRingElem)
   res = fill(zero(a), rank(C))
   res[1] = a
   return ZZCliffordOrderElem(C, res)
@@ -515,42 +546,6 @@ function odd_coefficients(x::ZZCliffordOrderElem)
   return x.odd_coeffs
 end
 
-#############################################################
-#
-#  String I/O
-#
-#############################################################
-
-##### Order #####
-function Base.show(io::IO, ::MIME"text/plain", C::CliffordOrder)
-  io = pretty(io)
-  print(io, "Clifford order of even lattice over $(base_ring(C)) with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\nand coefficient ideals of the lattice\n")
-  print(io, Indent())
-  show(io, "text/plain", _coefficient_ideals_of_lattice(lattice(C)))
-  print(io, Dedent())
-end
-
-Base.show(io::IO, C::CliffordOrder) = print(io, "Clifford order over $(base_ring(C))")
-
-function Base.show(io::IO, ::MIME"text/plain", C::ZZCliffordOrder)
-  io = pretty(io)
-  print(io, "Clifford order of even integer lattice with Gram matrix\n")
-  print(io, Indent())
-  show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent())
-end
-
-Base.show(io::IO, C::Union{ZZCliffordOrder, CliffordOrder}) = print(io, "Clifford order over $(base_ring(C))")
-
-### Elements ###
-function Base.show(io::IO, x::Union{ZZCliffordOrderElem, CliffordOrderElem})
-  print(io, "[")
-  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
-  print(io, "$(coefficients(x)[end])]")
-end
 
 ################################################################################
 #
@@ -580,6 +575,20 @@ end
     pseudo_basis(C::CliffordOrder, i::Int) -> Tuple{CliffordOrderElem, NumFieldOrderFractionalIdeal}
 
 Return the $i$-th canonical pseudo-basis element of $C$.
+
+# Examples
+
+```jldoctest
+julia> K,a = quadratic_field(-5); OK = maximal_order(K);
+
+julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))));
+
+julia> pseudo_basis(C,1)
+([1, 0, 0, 0], <1>//1)
+
+julia> pseudo_basis(C,3)
+([0, 0, 1, 0], <1>//1)
+```
 """
 function pseudo_basis(C::CliffordOrder, i::Int)
   res = C()
@@ -588,10 +597,24 @@ function pseudo_basis(C::CliffordOrder, i::Int)
 end
 
 @doc raw"""
-    gen(C::CliffordOrder, i::Int) -> Tuple{CliffordOrderElem, NumFieldOrderFractionalIdeal}
+    pseudo_gen(C::CliffordOrder, i::Int) -> Tuple{CliffordOrderElem, NumFieldOrderFractionalIdeal}
 
 Return the $i$-th pseudo-element of the canonical algebra pseudo-generating set
 of the Clifford order $C$.
+
+# Examples
+
+```jldoctest
+julia> K,a = quadratic_field(-5); OK = maximal_order(K);
+
+julia> C = clifford_order(lattice(quadratic_space(K, 2*identity_matrix(K, 2))));
+
+julia> pseudo_gen(C,1)
+([0, 1, 0, 0], <1>//1)
+
+julia> pseudo_gen(C,2)
+([0, 0, 1, 0], <1>//1)
+```
 """
 function pseudo_gen(C::CliffordOrder, i::Int)
   res = C()

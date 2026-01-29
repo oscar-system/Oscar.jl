@@ -124,11 +124,11 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   codomain::V2
   dim::Int
   pullback::AffAlgHom
-  pushforward::FunctionalMap
+  pushforward::MapFromFunc
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
   function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
-    if !(fₓ isa FunctionalMap) && isdefined(X, :point) && isdefined(Y, :point)
+    if !(fₓ isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
@@ -141,7 +141,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
         end;
         sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
             if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
-      fₓ = map_from_func(fₓ, X.ring, Y.ring)
+      fₓ = MapFromFunc(X.ring, Y.ring, fₓ)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)
     try
@@ -179,4 +179,3 @@ end
     return X
   end
 end
-

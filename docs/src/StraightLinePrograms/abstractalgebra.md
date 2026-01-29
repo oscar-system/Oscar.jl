@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # AbstractAlgebra's polynomial interface
 
 This is the initial API of SLPs which hasn't been updated in a while

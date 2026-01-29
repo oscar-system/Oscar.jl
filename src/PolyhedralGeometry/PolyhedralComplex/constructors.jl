@@ -42,9 +42,8 @@ points and the rows represent the polyhedra.
 ```jldoctest
 julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
-[1, 2, 3]
-[1, 3, 4]
-
+ [1, 2, 3]
+ [1, 3, 4]
 
 julia> vr = [0 0; 1 0; 1 1; 0 1]
 4×2 Matrix{Int64}:
@@ -83,11 +82,11 @@ function polyhedral_complex(
   non_redundant::Bool=false,
 )
   parent_field, scalar_type = _determine_parent_and_scalar(f, vr, L)
-  points = homogenized_matrix(vr, 1)
+  points = homogenized_matrix(parent_field, vr, 1)
   LM = if isnothing(L) || isempty(L)
-    zero_matrix(QQ, 0, size(points, 2))
+    zero_matrix(parent_field, 0, size(points, 2))
   else
-    homogenized_matrix(L, 0)
+    homogenized_matrix(parent_field, L, 0)
   end
 
   # Rays and Points are homogenized and combined and
@@ -192,12 +191,12 @@ function polyhedral_complex(F::PolyhedralFan{T}) where {T<:scalar_types}
     if Polymake.exists(pmo_in, prop)
       inprop = Polymake.give(pmo_in, prop)
       outprop = if inprop isa Polymake.IncidenceMatrix
-        Polymake.IncidenceMatrix(nrows(inprop), ncols(inprop) + 1)
+        Polymake.IncidenceMatrix(Polymake.nrows(inprop), Polymake.ncols(inprop) + 1)
       else
-        Polymake.SparseMatrix(nrows(inprop), ncols(inprop) + 1)
+        Polymake.spzeros(Int, Polymake.nrows(inprop), Polymake.ncols(inprop) + 1)
       end
       outprop[1:end, 2:end] = inprop
-      for i in 1:nrows(inprop)
+      for i in 1:Polymake.nrows(inprop)
         outprop[i, 1] = 1
       end
       Polymake.take(pmo_out, prop, outprop)

@@ -7,13 +7,22 @@ on:
       - 'release-*'
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   pull_request:
     paths-ignore:
       - '*.md'
+      - '.github/workflows/changelog.yml'
+      - 'dev/releases/release_notes.py'
   schedule:
       # Every day at 3:10 AM UTC
       - cron: '10 3 * * *'
   workflow_dispatch:
+    inputs:
+      extralong:
+        type: boolean
+        default: false
+        description: Run extra long test set
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -35,10 +44,9 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.6'
           - '1.10'
-          - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -70,7 +78,7 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -81,10 +89,14 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: "Clean polymake scratchspace for self-hosted macOS runners"
+        if: runner.environment == 'self-hosted'
+        run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -98,9 +110,6 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
-      - name: "workaround libstdc++ issue for julia 1.6"
-        if: matrix.julia-version == '1.6' && runner.os == 'Linux'
-        run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
@@ -118,6 +127,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v5
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   book-tests:
     runs-on: 'ubuntu-latest'
@@ -130,7 +147,7 @@ jobs:
           - 'pre'
           - 'nightly'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -141,6 +158,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
@@ -165,14 +183,22 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v5
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   extra-long-test:
     # Extra long tests
     # Only happens during the daily run, triggered by schedule
-    if: github.event_name == 'schedule'
+    if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
       - name: "Set up Julia"
@@ -195,8 +221,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.11'
-          - '1.12-nightly'
+          - '1.12'
+          - '1.13-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'
@@ -211,7 +237,7 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
@@ -221,10 +247,14 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v2
+        id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: "Clean polymake scratchspace for self-hosted macOS runners"
+        if: runner.environment == 'self-hosted'
+        run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -245,7 +275,7 @@ jobs:
               include("docs/documenter_helpers.jl")
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar)'
+              doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -257,27 +287,101 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Save Julia depot cache on cancel or failure
+        id: julia-cache-save
+        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
+        uses: actions/cache/save@v5
+        with: 
+          path: |
+            ${{ steps.julia-cache.outputs.cache-paths }}
+          key: ${{ steps.julia-cache.outputs.cache-key }}
+
+  test-mongodb:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ contains(matrix.julia-version, 'nightly') }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.10'
+          - '1.12'
+          - '1.13-nightly'
+          - 'nightly'
+        os: ['ubuntu-latest']
+
+            # Service containers to run
+    services:
+      # Label used to access the service container
+      mongodb:
+        # Docker Hub image
+        image: mongo:6.0
+        # Provide the login data
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
+        ports:
+          # Maps tcp port 27017 on service container to the host
+          - 27017:27017
+    env:
+      JULIA_PKG_SERVER: ""
+      OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
+      OSCAR_TEST_SUBSET: "oscar_db"
+    steps:
+      - uses: actions/checkout@v6
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-scratchspaces: false
+      - name: "Fill OscarDB container"
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+          mongorestore --host localhost -u admin -p admin --port 27017 .github/oscardb_dump
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: "Process code coverage"
+        if: matrix.julia-version == '1.10'
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.10'
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
 
 # adapted from gap-system/gap
   slack-notification:
     name: Send Slack notification on status change
     needs:
       - extra-long-test
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
+    if: "!cancelled() && github.event_name == 'schedule'"
+    runs-on: ubuntu-slim
 
     steps:
       - name: Get branch name
         id: get-branch
         run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: Determine whether CI status changed
-        uses: gap-actions/should-i-notify-action@v1
+        uses: oscar-system/should-i-notify-action@v1
         id: should_notify
         with:
           branch: ${{ steps.get-branch.outputs.branch }}
           needs_context: ${{ toJson(needs) }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          notify_on_changed_status: true
+          notify_on_changed_status: '' # notify each time on failure, and also once when the status changes to success
           event: ${{ github.event_name }}
       - name: Send slack notification
         uses: act10ns/slack@v2

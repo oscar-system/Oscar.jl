@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # General schemes
@@ -12,6 +14,11 @@ Scheme{BaseRingType<:Ring}
 Morphisms of schemes shall be derived from the abstract type
 ```@docs
 SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
+```
+
+## Irreducible components
+```@docs
+irreducible_components(X::Scheme)
 ```
 
 ## Change of base

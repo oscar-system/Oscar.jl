@@ -17,14 +17,12 @@ function benchmark(
   print(io, t, ","); flush(io)
   t = @elapsed groebner_walk($I, $target, $start; algorithm=:generic)
   print(io, t, ","); flush(io)
-  t = @elapsed groebner_walk($I, $target, $start; algorithm=:perturbed)
-  print(io, t, ","); flush(io)
   t = @elapsed groebner_basis($I; ordering=$target)
   println(io, t); flush(io)
 end
 
 function print_header(io)
-  print(io, "name,standard_walk,generic_walk,perturbed_walk,buchberger\n")
+  print(io, "name,standard_walk,generic_walk,buchberger\n")
 end
 
 p = 11863279

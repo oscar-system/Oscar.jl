@@ -261,7 +261,7 @@ end
 
 function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   if i > length(v.v)
-    push!(v.v, zeros(parent(v.v[1][1]), length(v.v[1])))
+    push!(v.v, Hecke.zeros_array(parent(v.v[1][1]), length(v.v[1])))
   end
   if j > length(v.v[i])
     while length(v.v[i]) < j-1
@@ -322,7 +322,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
       @vprint :ModStdQt 2 "using evaluation point $pt\n"
       @vtime :ModStdQt 2 for g = gens(I)
         G = MPolyBuildCtx(Qy)
-        for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+        for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
           push_term!(G, evaluate(c, pt, error_tolerant = true), e)
         end
         push!(gens_J, finish(G))
@@ -335,7 +335,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
         for _g = gJ
           g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
           f = []
-          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
             push!(f, (e, Vals(Vector{T}[[c]])))
           end
           push!(lst, f)
@@ -346,7 +346,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracF
           g = gJ[ig]
           g *= inv(AbstractAlgebra.leading_coefficient(g))
           jg = 1
-          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
               @assert lst[ig][jg][1] == e
 #              @show ig, jg
@@ -445,7 +445,7 @@ function ref_ff!(M::MatElem)
       continue
     end
     for k=i+1:nrows(M)
-      M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
+      M[k, :] = M[i, j]*M[k:k, :] - M[k, j] * M[i:i, :]
     end
   end
   return rk

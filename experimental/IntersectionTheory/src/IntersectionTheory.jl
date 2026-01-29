@@ -4,25 +4,23 @@ using ..Oscar
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar.AbstractAlgebra: combinations
-import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
-import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
+import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map, fixed_points, number_of_fixed_points
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
 import ..Oscar: localization
+import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
 
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -45,11 +43,11 @@ export dual
 export dual_basis
 export euler_number
 export euler_pairing
+export extend_inclusion
 export fixed_points
 export gromov_witten_invariant
 export graph
 export hom
-export hyperplane_class
 export identity_map
 export instanton_number
 export intersection_matrix
@@ -58,14 +56,16 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
+export polarization
 ### export r_polynomial
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
@@ -73,6 +73,11 @@ export schubert_classes
 export schur_functor
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -85,10 +90,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
@@ -115,12 +122,11 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
-export abstract_flag_bundle
+export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
 export abstract_point
-export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
@@ -143,11 +149,11 @@ export dual
 export dual_basis
 export euler_number
 export euler_pairing
+export extend_inclusion
 export fixed_points
 export graph
 export gromov_witten_invariant
 export hom
-export hyperplane_class
 export identity_map
 export instanton_number
 export intersection_matrix
@@ -156,14 +162,16 @@ export l_genus
 export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
-export localization 
+export localization
 export map
 export OO
 export point_class
+export polarization
 ### export r_polynomial
 export polynomial
 export pontryagin_class
 export product
+export projective_bundle
 export pullback
 export pushforward
 export schubert_class
@@ -171,6 +179,11 @@ export schubert_classes
 export schur_functor
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -183,10 +196,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
@@ -194,5 +209,3 @@ export TnBundle
 export TnBundleChern
 export TnRep
 export TnVariety
-
-

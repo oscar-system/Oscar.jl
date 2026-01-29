@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Operations on Modules
@@ -32,6 +34,12 @@ direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
 
 ```@docs
 direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+```
+
+## Annihilator
+
+```@docs
+annihilator(N::ModuleFP{T}) where T
 ```
 
 ## Truncation

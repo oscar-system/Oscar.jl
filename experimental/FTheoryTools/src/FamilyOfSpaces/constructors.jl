@@ -26,6 +26,7 @@ Note that the coordinate ring can have strictly more variables than
 the dimension. This is a desired feature for most, if not all,
 F-theory literature constructions.
 
+# Examples
 ```jldoctest
 julia> coord_ring, _ = QQ[:f, :g, :Kbar, :u];
 
@@ -34,20 +35,52 @@ julia> grading = [4 6 1 0; 0 0 0 1]
  4  6  1  0
  0  0  0  1
 
-julia> d = 3
-3
-
-julia> f = family_of_spaces(coord_ring, grading, d)
-A family of spaces of dimension d = 3
+julia> family_of_spaces(coord_ring, grading, 3)
+Family of spaces of dimension d = 3
 ```
 """
-family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) = FamilyOfSpaces(coordinate_ring, grading, dim)
+function family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int)
+  graded_coordinate_ring, _ = grade(coordinate_ring, grading)
+  return FamilyOfSpaces(graded_coordinate_ring, grading, dim)
+end
 
+@doc raw"""
+    family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, dim::Int) 
+
+Return a family of spaces.
+
+# Examples
+```jldoctest
+julia> coord_ring, _ = QQ[:f, :g, :Kbar, :u];
+
+julia> grading = [4 6 1 0; 0 0 0 1]
+2×4 Matrix{Int64}:
+ 4  6  1  0
+ 0  0  0  1
+
+julia> graded_coord_ring, _ = grade(coord_ring, grading);
+
+julia> family_of_spaces(graded_coord_ring, 3)
+Family of spaces of dimension d = 3
+```
+"""
+function family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem,QQMPolyRing}, dim::Int)
+  ws = weights(coordinate_ring)
+  m = hcat([Int.(a.coeff[1, :]) for a in ws]...)
+  return FamilyOfSpaces(coordinate_ring, m, dim)
+end
 
 #####################################################################
 # 2: Display
 #####################################################################
 
+# Detailed printing
+function Base.show(io::IO, ::MIME"text/plain", f::FamilyOfSpaces)
+  io = pretty(io)
+  print(io, "Family of spaces of dimension d = $(dim(f))")
+end
+
+# Terse and one line printing
 function Base.show(io::IO, f::FamilyOfSpaces)
-  print(io, "A family of spaces of dimension d = $(dim(f))")
+  print(io, "Family of spaces")
 end

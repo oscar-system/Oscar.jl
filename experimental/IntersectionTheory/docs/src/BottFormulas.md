@@ -1,12 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Localization and Bott's Formula
 
-Recall that our focus in this chapter is on abstract intersection theory: We discuss computations which manipulate collections of data
-referred to as abstract varieties, and we interprete the results as applying to all (smooth projective complex) varieties sharing the data.
+Recall that our focus in this chapter is on computations which manipulate collections of data
+referred to as abstract varieties, and that we interprete the results as applying to all (smooth projective complex) varieties sharing the data.
 The tools presented in this section allow for more efficient computations in the case of varieties with a (split) torus action whose
 fixed point set is finite. They are based on localization and a version of Bott's formula which is formulated in the language of
 equivariant intersection theory. See [Dan14](@cite) and the references cited there.

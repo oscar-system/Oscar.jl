@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -103,6 +104,8 @@ In the graded case, we additionally have:
 grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
+### Graded Components
+
 ```@docs
 monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
@@ -111,15 +114,17 @@ monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 ```
 
-### Dimension
+### Krull Dimension
 
 ```@docs
 dim(A::MPolyQuoRing)
 ```
 
+### Vector Space Dimension
+
 ```@docs
 is_finite_dimensional_vector_space(A::MPolyQuoRing)
-vector_space_dimension(A::MPolyQuoRing)
+vector_space_dim(A::MPolyQuoRing)
 ```
 
 ```@docs
@@ -304,6 +309,14 @@ intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
+#### Decomposition of Ideals
+
+With respect to the decomposition of an ideal `Ì` in an  affine algebra, we have
+
+- `radical(I)`,
+- `minimal_primes(I)`, and
+- `primary_decomposition(I)`.
+
 ### Tests on Ideals in Affine Algebras
 
 #### Basic Tests
@@ -349,8 +362,10 @@ refer to `A` and `S`, respectively.  Given ring homomorphisms `F` : `A` $\to$ `B
 ## Homomorphisms of Affine Algebras
 
 The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-`U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in what follows.
+the types of `R` and `S`  are subtypes of `Union{MPolyRing{T}, MPolyQuoRing{U1}}` and
+`Union{MPolyRing{T}, MPolyQuoRing{U2}}`, respectively. Here, `T <: FieldElem` and
+`U1 <: MPolyRingElem{T}`, `U2 <: MPolyRingElem{T}`.
+Functionality for these homomorphism is discussed in what follows.
 
 ### Data Associated to Homomorphisms of Affine Algebras
 

@@ -196,50 +196,42 @@ function Base.:-(w::WeightLatticeElem)
 end
 
 function zero!(w::WeightLatticeElem)
-  w.vec = zero!(w.vec)
-  return w
-end
-
-function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req parent(wr) === parent(w1) === parent(w2) "parent mismatch"
-  wr.vec = add!(wr.vec, w1.vec, w2.vec)
-  return wr
+  return WeightLatticeElem(parent(w), zero!(w.vec))
 end
 
 function neg!(wr::WeightLatticeElem, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = neg!(wr.vec, w.vec)
-  return wr
+  return WeightLatticeElem(parent(wr), neg!(wr.vec, w.vec))
+end
+
+function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req parent(wr) === parent(w1) === parent(w2) "parent mismatch"
+  return WeightLatticeElem(parent(wr), add!(wr.vec, w1.vec, w2.vec))
 end
 
 function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
   @req parent(wr) === parent(w1) === parent(w2) "parent mismatch"
-  wr.vec = sub!(wr.vec, w1.vec, w2.vec)
-  return wr
+  return WeightLatticeElem(parent(wr), sub!(wr.vec, w1.vec, w2.vec))
 end
 
 function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = mul!(wr.vec, w.vec, n)
-  return wr
+  return WeightLatticeElem(parent(wr), mul!(wr.vec, w.vec, n))
 end
 
 function mul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = mul!(wr.vec, n, w.vec)
-  return wr
+  return WeightLatticeElem(parent(wr), mul!(wr.vec, n, w.vec))
 end
 
 function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = addmul!(wr.vec, w.vec, n)
-  return wr
+  return WeightLatticeElem(parent(wr), addmul!(wr.vec, w.vec, n))
 end
 
 function addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = addmul!(wr.vec, n, w.vec)
-  return wr
+  return WeightLatticeElem(parent(wr), addmul!(wr.vec, n, w.vec))
 end
 
 # ignore temp storage
@@ -250,14 +242,12 @@ addmul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem, t) =
 
 function submul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnionOrPtr)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = submul!(wr.vec, w.vec, n)
-  return wr
+  return WeightLatticeElem(parent(wr), submul!(wr.vec, w.vec, n))
 end
 
 function submul!(wr::WeightLatticeElem, n::IntegerUnionOrPtr, w::WeightLatticeElem)
   @req parent(wr) === parent(w) "parent mismatch"
-  wr.vec = submul!(wr.vec, n, w.vec)
-  return wr
+  return WeightLatticeElem(parent(wr), submul!(wr.vec, n, w.vec))
 end
 
 # ignore temp storage
@@ -495,8 +485,9 @@ This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 """
 function reflect!(w::WeightLatticeElem, s::Int)
   # the scalar `w.vec[s]` needs to be implicitly copied as it otherwise gets mutated by `submul!`
-  w.vec = submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
-  return w
+  return WeightLatticeElem(
+    parent(w), submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
+  )
 end
 
 @doc raw"""

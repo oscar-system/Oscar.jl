@@ -1,11 +1,20 @@
 using JSON3
-import Base.haskey
+
+################################################################################
+# Type Serializers (converting types to strings)
+convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
 
 ################################################################################
 # Serializers
 abstract type OscarSerializer end
 
-struct JSONSerializer <: OscarSerializer end
+struct JSONSerializer <: OscarSerializer
+  serialize_refs::Bool
+
+  function JSONSerializer(; serialize_refs::Bool = true)
+    return new(serialize_refs)
+  end
+end
 struct IPCSerializer <: OscarSerializer end
 
 abstract type MultiFileSerializer <: OscarSerializer end
@@ -133,7 +142,7 @@ function save_data_basic(s::SerializerState, x::Any,
   !isnothing(key) && set_key(s, key)
   begin_node(s)
   str = string(x)
-  JSON.show_string(s.io, str)
+  JSON.json(s.io, str)
   nothing
 end
 
@@ -161,8 +170,9 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function handle_refs(s::SerializerState)
+  should_handle_refs(s.serializer) || return nothing
   if !isempty(s.refs) 
-    save_data_dict(s, refs_key) do
+    save_data_dict(s, :_refs) do
       for id in s.refs
         ref_obj = global_serializer_state.id_to_obj[id]
         s.key = Symbol(id)
@@ -173,6 +183,10 @@ function handle_refs(s::SerializerState)
     end
   end
 end
+
+should_handle_refs(::OscarSerializer) = true
+should_handle_refs(s::JSONSerializer) = s.serialize_refs
+should_handle_refs(::IPCSerializer) = false
 
 function serializer_close(s::SerializerState)
   finish_writing(s)
@@ -186,9 +200,9 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
+  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
+  refs::Union{AbstractDict{Symbol, Any}, Nothing}
   with_attrs::Bool
 end
 
@@ -207,7 +221,7 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function haskey(s::DeserializerState, key::Symbol)
+function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
   load_node(s) do obj
     key in keys(obj)
@@ -252,19 +266,20 @@ end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
-  refs = nothing
-  if haskey(obj, refs_key)
-    refs = obj[refs_key]
-  end
+  refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_params to hang
+  # put_type_params to hang
   #obj = JSON3.read(io)
-  obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
+  str = readuntil(io, '}'; keep=true)
+  while !JSON.isvalidjson(str)
+    str *= readuntil(io, '}'; keep=true)
+  end
+  obj = JSON.parse(str; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
 
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end

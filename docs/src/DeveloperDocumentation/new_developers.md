@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Introduction for new developers
 This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources

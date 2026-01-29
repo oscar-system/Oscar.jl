@@ -20,5 +20,10 @@
     @test is_groebner_basis(groebner_walk(I3); ordering=lex(R1))
     #@test bounding_vectors(G3) == ZZ.([[6,0,0]])
     #@test next_weight(G3, ZZ.([1,1,1]), ZZ.([1,0,0])) == ZZ.([1,0,0])
+    
+    # issue #4865
+    G = [x + 2*y + 2*z - 1, x^2 - x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z - y]
+    I = ideal(G)
+    @test leading_ideal(groebner_walk(I, lex(R1))) == leading_ideal(groebner_basis(I, ordering = lex(R1)))
 end 
 

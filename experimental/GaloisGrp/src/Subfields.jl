@@ -41,8 +41,8 @@ mutable struct SubfieldLattice{T}
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
 
     r.l = Dict(POSetElem(r.P, 1) =>(K, id_hom(K)),
-               POSetElem(r.P, 2) => (base_ring(K),
-                           embedding_hom(base_ring(K), K)))
+               POSetElem(r.P, 2) => (base_field(K),
+                           embedding_hom(base_field(K), K)))
     return r
   end
 end
@@ -72,7 +72,6 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     r = roots(G, pr, raw = true)
     c = map(f, r) # TODO: use the embedding map!
     bs = Hecke.MPolyFact.block_system(c)
-
     if all(x->length(x) == length(bs[1]), bs)
       sort!(bs)
       return bs
@@ -195,7 +194,7 @@ For a (potential) block system `bs` either find the corresponding subfield,
 thus proving the block system to be valid, or return `nothing` showing the
 block system to be wrong.
 """
-function subfield(S::SubfieldLattice, bs::BlockSystem_t)
+function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if bs in S.P && haskey(S.l, S.P(bs))
     #this catches [[1,2], ...] [[1,2], ...] only one of them can be
     #valid. However, the poset is only comparing the 1st block...
@@ -249,10 +248,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   pow = copy(beta)
 
   K = field(S)
-  k = base_ring(K)
-  if !isa(k, AbstractAlgebra.Field)
-    k = QQ
-  end
+  k = base_field(K)
   fl, v = isinteger(G, B, sum(beta))
   fl || return nothing
   tr = [k(v)]
@@ -297,7 +293,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   return nothing
 end
 
-function subfield(S::SubfieldLatticeElem)
+function Oscar.subfield(S::SubfieldLatticeElem)
   return subfield(parent(S), S.b)
 end
 
@@ -336,11 +332,12 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   sf = get_attribute(K, :principal_subfields)
   store = sf === nothing
 
-  f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = ZZRingElem(1))*defining_polynomial(K))
-  f = divexact(f, content(f))
+  fQ = defining_polynomial(K)
+  fQ /= content(fQ)
+  f = change_base_ring(ZZ, fQ; parent = Zx)
 
-  p, ct = find_prime(Hecke.Globals.Qx(f), pStart = pStart, prime = prime,
-                                          filter_pattern = x->any(t->degree(t) == 1, keys(x.fac)))
+  p, ct = find_prime(fQ, pStart = pStart, prime = prime,
+                                          filter_pattern = x->any(t->degree(t) == 1, first.(collect(x))))
   n = degree(K)
   if primitive_by_shape(ct, n)
     return nothing
@@ -362,7 +359,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   b .*= inv(derivative(f)(gen(K)))
   bt = [parent(defining_polynomial(K))(x) for x = b]
   bd = map(denominator, bt)
-  bz = [Zx(bd[i]*bt[i]) for i=1:length(bd)]
+  bz = [change_base_ring(ZZ, bd[i]*bt[i]; parent = Zx) for i=1:length(bd)]
   @assert parent(f) == parent(bz[1])
 
   lf = Hecke.factor_mod_pk(Array, H, 1)
@@ -493,9 +490,9 @@ function subfield_lattice(K::AbsSimpleNumField)
   return _subfields(K)
 end
 
-export subfield, subfield_lattice
+export subfield_lattice
 
 end #module
 
 using .SubfieldLattice_Module
-export subfield, subfield_lattice
+export subfield_lattice

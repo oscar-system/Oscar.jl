@@ -89,14 +89,14 @@ julia> L[4]
         found_index !== nothing || continue
         U = patches_scheme[found_index]
         inter_id = ex_divs[i](U) + ex_divs[j](U)
-        inter_mat_k[i,j] = vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
+        inter_mat_k[i,j] = vector_space_dim(quo(base_ring(inter_id),inter_id)[1])
       else
         temp_inter = ex_divs[i] + ex_divs[j]
         !is_one(temp_inter) || continue
         tempint = 0
         for U in patches_scheme
           inter_id = temp_inter(U) + decomposition_info(U)
-          tempint += vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
+          tempint += vector_space_dim(quo(base_ring(inter_id),inter_id)[1])
         end
         inter_mat_k[i,j] = tempint
       end
@@ -119,7 +119,7 @@ julia> L[4]
     found_index = findfirst(V -> !is_one(I(V)), patches_orig)
     U = patches_orig[found_index]
     dim(I) == 0 || error("case of non-isolated singularities not implemented yet")
-    if vector_space_dimension(quo(OO(U),I(U))[1]) == 1
+    if vector_space_dim(quo(OO(U),I(U))[1]) == 1
       a = rational_point_coordinates(saturated_ideal(I(U)))
       l = findfirst(x -> is_prime(ideal(OO(U),gen(OO(U),x)-a[x])),1:ngens(OO(U)))
       if l !== nothing
@@ -161,7 +161,7 @@ julia> L[4]
       #  into strict_summand
       found_index = findfirst(V -> !is_one(strict_inter(V)), patches_scheme)
       strict_summand = (found_index == nothing ? 0 :
-           vector_space_dimension(quo(base_ring(OO(patches_scheme[found_index])),
+           vector_space_dim(quo(base_ring(OO(patches_scheme[found_index])),
                  saturated_ideal(strict_inter(patches_scheme[found_index]))
                        + modulus(OO(patches_scheme[found_index])))[1]))
       # next we consider H . equidimensional_hull(sl_orig)  -- zero, if dim(sl_orig) == 0

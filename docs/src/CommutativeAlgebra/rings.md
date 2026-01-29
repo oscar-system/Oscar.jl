@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -127,14 +128,63 @@ julia> z
 
 Gröbner and standard bases are implemented for multivariate polynomial rings over the fields and rings below:
 
-### The field of rational numbers $\mathbb{Q}$
+### The Field of Rational Numbers $\mathbb{Q}$
 
 ```jldoctest
 julia> QQ
 Rational field
 
 ```
-### Finite fields $\mathbb{F_p}$, $p$ a prime
+
+### Number Fields
+
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> K, a = number_field(x^2 - 5, "a")
+(Number field of degree 2 over QQ, a)
+
+julia> Kt, t = K["t"];
+
+julia> L, b = number_field(t^3 - 3, "b")
+(Relative number field of degree 3 over K, b)
+
+```
+
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> julia> L, a = number_field([x^2 - 5, x^3 - 3], "a")
+(Non-simple number field of degree 6 over QQ, AbsNonSimpleNumFieldElem[a1, a2])
+
+```
+
+```jldoctest
+julia> K, a = quadratic_field(5)
+(Real quadratic field defined by x^2 - 5, sqrt(5))
+```
+
+```jldoctest
+julia> K, zeta = cyclotomic_field(3) 
+(Cyclotomic field of order 3, z_3)
+
+```
+
+### The Abelian Closure of $\mathbb{Q}$
+
+```jldoctest
+julia> K, z = abelian_closure(QQ)
+(Abelian closure of rational field, Generator of abelian closure of rational field)
+
+julia> F = algebraic_closure(QQ)
+Algebraic closure of rational field
+
+julia> z(3)*z(5)
+zeta(15)^7 - zeta(15)^5 + zeta(15)^4 - zeta(15)^3 + zeta(15) - 1
+
+```
+
+### Finite Fields
 
 ```jldoctest
 julia> GF(3)
@@ -143,68 +193,80 @@ Prime field of characteristic 3
 julia> GF(ZZ(2)^127 - 1)
 Prime field of characteristic 170141183460469231731687303715884105727
 
+julia> GF(3,2)
+Finite field of degree 2 and characteristic 3
+
+julia> GF(3,2) == GF(9)
+true
+
 ```
 
-### Finite fields $\mathbb{F}_{p^n}$ with $p^n$ elements, $p$ a prime
-
 ```jldoctest
-julia> finite_field(2, 70, "a")
+julia> F, a = finite_field(2, 70, "a")
 (Finite field of degree 70 and characteristic 2, a)
 
-```
-
-### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
-
-```jldoctest
-julia> T, t = polynomial_ring(QQ, :t)
-(Univariate polynomial ring in t over QQ, t)
-
-julia> K, a = number_field(t^2 + 1, "a")
-(Number field of degree 2 over QQ, a)
-
-julia> F = GF(3)
-Prime field of characteristic 3
-
-julia> T, t = polynomial_ring(F, :t)
-(Univariate polynomial ring in t over F, t)
-
-julia> K, a = finite_field(t^2 + 1, "a")
+julia> K, a = finite_field(9, "a")
 (Finite field of degree 2 and characteristic 3, a)
 
+julia> Kx, x = K["x"];
+
+julia> L, b = finite_field(x^3 + x^2 + x + 2, "b")
+(Finite field of degree 3 over K, b)
+
 ```
 
-### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
+### Algebraic Closures of Prime Fields
 
 ```jldoctest
-julia> T, t = polynomial_ring(QQ, :t)
-(Univariate polynomial ring in t over QQ, t)
+julia> K = algebraic_closure(GF(3))
+Algebraic closure of prime field of characteristic 3
 
-julia> QT = fraction_field(T)
-Fraction field
-  of univariate polynomial ring in t over QQ
-
-julia> parent(t)
-Univariate polynomial ring in t over QQ
-
-julia> parent(1//t)
-Fraction field
-  of univariate polynomial ring in t over QQ
-
-julia> T, (s, t) = polynomial_ring(GF(3), [:s, :t]);
-
-julia> QT = fraction_field(T)
-Fraction field
-  of multivariate polynomial ring in 2 variables over GF(3)
+julia> L = algebraic_closure(QQ)
+Algebraic closure of rational field
 
 ```
 
-### The ring of integers $\mathbb{Z}$
+### Rational Function Fields
+
+```jldoctest
+julia> R, (x, y) = rational_function_field(QQ, [:x, :y])
+(Rational function field over QQ, AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem, QQMPolyRingElem}[x, y])
+
+```
+
+### Function Fields of Transcendence Degree 1
+
+```jldoctest
+julia> K = GF(101)
+Prime field of characteristic 101
+
+julia> Kx, x = rational_function_field(K, :x)
+(Rational function field over K, x)
+
+julia> Kxy, y = polynomial_ring(Kx, :y)
+(Univariate polynomial ring in y over Kx, y)
+
+julia> F, a = function_field(x^3-y^2)
+(Function Field over K with defining polynomial 100*_a^2 + x^3, _a)
+
+```
+
+### The Ring of Integers $\mathbb{Z}$
 
 ```jldoctest
 julia> ZZ
 Integer ring
 
 ```
+
+### Rings of Type $\mathbb{Z}/m\mathbb{Z}$
+
+```jldoctest
+julia> quo(ZZ, ZZ(6))[1]
+Integers modulo 6
+
+```
+
 
 ## Gradings
 
@@ -518,7 +580,8 @@ Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomai
 refer to `R` and `S`, respectively.
 
 !!! note
-    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
-
+    Homomorphisms from quotients of multivariate rings are discussed in the section on [affine algebras](@ref affine_algebras).
+    In particular, in the same section, we introduce the OSCAR homomorphism type `AffAlgHom` which addresses ring homomorphisms
+    `R` $\to$ `S` such that the types of `R` and `S`  are subtypes of `Union{MPolyRing{T}, MPolyQuoRing{U1}}` and
+    `Union{MPolyRing{T}, MPolyQuoRing{U2}}`, respectively. Here, `T <: FieldElem` and
+    `U1 <: MPolyRingElem{T}`, `U2 <: MPolyRingElem{T}`.

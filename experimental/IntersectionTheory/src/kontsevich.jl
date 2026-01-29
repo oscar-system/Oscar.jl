@@ -54,10 +54,10 @@ function Base.:*(c::Cycle, d::Cycle)
   n = max(c.num_alloc, d.num_alloc) + 1
   loc(p::Tuple{MultiGraph, Vector}, λ::Vector,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQ}=[QQ() for _ in n]) = begin
-    Nemo.set!(ans, 1, 1)
+    one!(ans)
     c.loc(p, λ, ans, alloc)
     d.loc(p, λ, alloc[end], alloc)
-    return muleq!(ans, alloc[end])
+    return mul!(ans, alloc[end])
   end
   Cycle(loc, n)
 end
@@ -155,7 +155,7 @@ hypersurface(ns::Int...) = hypersurface(collect(ns))
 function hypersurface(ns::Vector{Int})
   loc(p::Tuple{MultiGraph, Vector}, λ::Vector,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQFieldElem}=[QQ(), QQ()]) = begin
-    Nemo.set!(ans, 1, 1)
+    one!(ans)
     a1, a2 = alloc
     t = _tally(ns)
     for n in keys(t)
@@ -170,7 +170,7 @@ end
 function _hypersurface(p::Tuple{MultiGraph, Vector}, λ::Vector, n::Int,
     ans::QQFieldElem=QQ(1), alloc::Vector{QQFieldElem}=[QQ()])
   g, i = p
-  Nemo.set!(ans, 1, 1)
+  one!(ans)
   a1, = alloc
   for e in edges(g)
     for a in 0:n*g[e]
@@ -179,7 +179,7 @@ function _hypersurface(p::Tuple{MultiGraph, Vector}, λ::Vector, n::Int,
     end
   end
   for v in vertices(g)
-    Nemo.set!(a1, n*λ[i[v]], 1)
+    Nemo.set!(a1, n*λ[i[v]])
     pow!(a1, 1 - length(all_neighbors(g, v)))
     mul!(ans, a1)
   end
@@ -189,7 +189,7 @@ end
 function _euler(p::Tuple{MultiGraph, Vector}, λ::Vector, ans::QQFieldElem=QQ(1),
     alloc::Vector{QQFieldElem}=[QQ(), QQ(), QQ()])
   g, i = p
-  Nemo.set!(ans, 1, 1)
+  one!(ans)
   n = length(λ) - 1
   a1, a2, a3 = alloc
 
@@ -210,15 +210,15 @@ function _euler(p::Tuple{MultiGraph, Vector}, λ::Vector, ans::QQFieldElem=QQ(1)
   end
   for v in vertices(g)
     nbrs = all_neighbors(g, v)
-    Nemo.set!(a1, 1, 1)
+    one!(a1)
     for j in 1:n+1
       if j != i[v]
         mul!(a1, λ[i[v]] - λ[j])
       end
     end
     mul!(ans, pow!(a1, 1 - length(nbrs)))
-    Nemo.set!(a1, 0, 1)
-    Nemo.set!(a2, 1, 1)
+    zero!(a1)
+    one!(a2)
     for w in nbrs
       e = Edge(v, w)
       Nemo.set!(a3, λ[i[v]] - λ[i[w]], g[e])
@@ -364,62 +364,6 @@ function multi_trees(n::Int)
   ans
 end
 
-# ###############################################################################
-# # 
-# # low-level in-place arithmetic operators
-# # should probably be added into Nemo upstream
-# # 
-# function set!(x::fmpz, y::Int)
-#   ccall((:fmpz_set_si, Nemo.libflint), Nothing, (Ref{fmpz}, Int), x, y)
-#   return x
-# end
-# function set!(x::QQ, y::QQ)
-#   ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}), x, y)
-#   return x
-# end
-function Nemo.set!(x::QQFieldElem, n::Int, d::Int)
-  ccall((:fmpq_set_si, Nemo.libflint), Nothing, (Ref{QQFieldElem}, Int, UInt), x, n, UInt(d))
-  return x
-end
-# function set!(x::QQ, n::fmpz, d::fmpz)
-#   ccall((:QQ_set_fmpz_frac, Nemo.libflint), Nothing, (Ref{QQ}, Ref{fmpz}, Ref{fmpz}), x, n, d)
-#   return x
-# end
-# function Nemo.mul!(z::QQ, x::QQ, y::fmpz)
-#   ccall((:QQ_mul_fmpz, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Ref{fmpz}), z, x, y)
-#   return z
-# end
-# function Nemo.mul!(z::QQ, x::QQ, y::Int)
-#   ccall((:QQ_mul_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), z, x, y)
-#   return z
-# end
-# function Nemo.sub!(z::QQ, x::QQ, y::Int)
-#   ccall((:QQ_sub_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), z, x, y)
-#   return z
-# end
-# function Nemo.inv!(x::QQ, y::QQ)
-#   ccall((:QQ_inv, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}), x, y)
-#   return x
-# end
-# function pow!(c::QQ, a::QQ, b::Int)
-#   iszero(a) && b < 0 && throw(DivideError())
-#   ccall((:QQ_pow_si, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Int), c, a, b)
-#   return c
-# end
-# function div!(z::QQ, x::QQ, y::QQ)
-#   iszero(y) && throw(DivideError())
-#   ccall((:QQ_div, Nemo.libflint), Nothing, (Ref{QQ}, Ref{QQ}, Ref{QQ}), z, x, y)
-#   return z
-# end
-# 
-# muleq!(x::QQ, y::QQ) = mul!(x, x, y)
-# muleq!(x::QQ, y::fmpz) = mul!(x, x, y)
-# muleq!(x::QQ, y::Int) = mul!(x, x, y)
-# subeq!(x::QQ, y::Int) = Nemo.sub!(x, x, y)
-# poweq!(x::QQ, y::Int) = pow!(x, x, y)
-# diveq!(x::QQ, y::QQ) = div!(x, x, y)
-# Nemo.inv!(x::QQ) = Nemo.inv!(x, x)
-
 ###############################################################################
 # 
 # miscellaneous functions 
@@ -534,7 +478,7 @@ Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots
     We follow the notation in [Dan14](@cite): The numbers $\tilde{n}_d^{(d_1, \dots, d_k)}$ are defined so that the equations $N_d^{(d_1, \dots, d_k)} = \sum \frac{\tilde{n}_{\frac{d}{k}}^{(d_1, \dots, d_k)}}{k^3}$ hold true.
 
 !!! note 
-    The $\tilde{n}_d^{(d_1, \dots, d_k)}$ are of particular interest in the context of enumerating rational curves of degree $d$ on complete intersection Calaby-Yau threefolds of type $(d_1, \dots, d_k)$ in $\mathbb P^{k+3}$. By classification, in addition to the quintic threefold in $\mathbb P^{4}$, these are of type $(4,2)$,  $(3,3)$, $(3,3,2)$, and $(2, 2, 2, 2)$. For example, for $1\leq d \leq 9$, the $\tilde{n}_d^{(5)}$ are precisely the numbers of rational curves of degree $d$ on the general quintic threefold. In particular, $\tilde{n}_3^{(5)}$ gives the number of twisted cubic curves on the general quintic threefold.
+    The $\tilde{n}_d^{(d_1, \dots, d_k)}$ are of particular interest in the context of enumerating rational curves of degree $d$ on general complete intersection Calaby-Yau threefolds of type $(d_1, \dots, d_k)$ in $\mathbb P^{k+3}$. By classification, in addition to the quintic threefold in $\mathbb P^{4}$, these are of type $(4,2)$,  $(3,3)$, $(3,3,2)$, and $(2, 2, 2, 2)$. For example, for $1\leq d \leq 9$, the $\tilde{n}_d^{(5)}$ are precisely the numbers of rational curves of degree $d$ on the general quintic threefold. In particular, $\tilde{n}_3^{(5)}$ gives the number of twisted cubic curves on the general quintic threefold.
 
 # Examples
 ```jldoctest
@@ -547,12 +491,6 @@ julia> [instanton_number(d, 5) for d = 1:3]
 ```
 
 ```jldoctest
-julia> instanton_number(3,4,2)
-15655168
-
-julia> instanton_number(2,4,2)
-92288
-
 julia> instanton_number(2, 4, 2)
 92288
 

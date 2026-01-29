@@ -1,27 +1,22 @@
-function _timed_include(str::String, mod::Module=Main; use_ctime::Bool=VERSION >= v"1.9.0")
-  if use_ctime
-    compile_elapsedtimes = Base.cumulative_compile_time_ns()
-  end
+function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION > v"1.11.0"))
+  has_ctime_stat || (compile_elapsedtimes = Base.cumulative_compile_time_ns())
   stats = @timed Base.include(identity, mod, str)
   fullpath = abspath(joinpath(Base.source_dir(), str))
   # skip files which just include other files and ignore
   # files outside of the oscar folder
   if startswith(fullpath, Oscar.oscardir)
     path = relpath(fullpath, Oscar.oscardir)
-    if use_ctime
+    if has_ctime_stat
+      comptime = stats.compile_time
+      rcomptime = stats.recompile_time
+    else
       compile_elapsedtimes = Base.cumulative_compile_time_ns() .- compile_elapsedtimes
       compile_elapsedtimes = compile_elapsedtimes ./ 10^9
-    end
-    rtime=NaN
-    if use_ctime
       comptime = first(compile_elapsedtimes)
       rcomptime = last(compile_elapsedtimes)
-      println("-> Testing $path took: runtime $(round(stats.time-comptime; digits=3)) seconds + compilation $(round(comptime-rcomptime; digits=3)) seconds + recompilation $(round(rcomptime; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
-      return (path=>(time=stats.time-comptime, ctime=comptime-rcomptime, rctime=rcomptime, alloc=stats.bytes/2^20))
-    else
-      println("-> Testing $path took: $(round(stats.time; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
-      return (path=>(time=stats.time, alloc=stats.bytes/2^20))
     end
+    println("-> Testing $path took: total time $(round(stats.time; digits=3)) seconds, compilation $(round(comptime-rcomptime; digits=3)) seconds + recompilation $(round(rcomptime; digits=3)) seconds, GC $(round(stats.gctime; digits=3)) seconds, $(Base.format_bytes(stats.bytes))")
+    return (path=>(time=stats.time, ctime=comptime-rcomptime, rctime=rcomptime, gctime=stats.gctime, alloc=stats.bytes/2^30))
   else
     return ()
   end
@@ -33,6 +28,7 @@ function _gather_tests(path::AbstractString; ignore=[])
                      # this can only run on the main process and not on distributed workers
                      # so it is included directly in runtests
                      r"Serialization/IPC(\.jl)?$",
+                     r"MultigradedImplicitization(\.jl)?$",              
                      # ignore book example code (except for main file)
                      r"(^|/)book/.*/.*\.jl$",
                    ]
@@ -86,12 +82,6 @@ function _gather_tests(path::AbstractString; ignore=[])
   return tests
 end
 
-_setactiveproject(s::String) = @static if VERSION >= v"1.8"
-                                 Base.set_active_project(s)
-                               else
-                                 Base.ACTIVE_PROJECT[] = s
-                               end
-
 @doc raw"""
     Oscar.@_AuxDocTest "Name of the test set", (fix = bool),
     raw\"\"\"
@@ -127,21 +117,15 @@ macro _AuxDocTest(data::Expr)
       end # module
     ),
     # temporarily disable GC logging to avoid glitches in the doctests
-    if VERSION >= v"1.8.0"
-      (
-      if isdefined(GC, :logging_enabled)
-        esc(
-        quote
-          $(logging_flag_var) = GC.logging_enabled()
-          GC.enable_logging(false)
-        end,
-      )
-      else
-        esc(:(GC.enable_logging(false)))
-      end
+    if isdefined(GC, :logging_enabled)
+      esc(
+      quote
+        $(logging_flag_var) = GC.logging_enabled()
+        GC.enable_logging(false)
+      end,
     )
     else
-      nothing
+      esc(:(GC.enable_logging(false)))
     end,
     esc(
       quote
@@ -151,25 +135,20 @@ macro _AuxDocTest(data::Expr)
           fix=$(fix),
           testset=$(testset),
           doctestfilters=[
+            Oscar.doctestfilters()...,
             r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
           ],
         )
       end,
     ),
-    if VERSION >= v"1.8.0"
-      (
-      if isdefined(GC, :logging_enabled)
-        esc(
-        quote
-          GC.enable_logging($(logging_flag_var))
-        end,
-      )
-      else
-        esc(:(GC.enable_logging(true)))
-      end
+    if isdefined(GC, :logging_enabled)
+      esc(
+      quote
+        GC.enable_logging($(logging_flag_var))
+      end,
     )
     else
-      nothing
+      esc(:(GC.enable_logging(true)))
     end,
   )
   Meta.replace_sourceloc!(__source__, result)
@@ -226,11 +205,8 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
     else
       testlist = _gather_tests(path; ignore=ignore)
       @req !isempty(testlist) "no such file or directory: $path[.jl]"
-
-      use_ctime = timed && VERSION >= v"1.9.0-DEV"
-      if use_ctime
-        Base.cumulative_compile_timing(true)
-      end
+      has_ctime_stat = VERSION > v"1.11.0"
+      has_ctime_stat || Base.cumulative_compile_timing(true)
       stats = Dict{String,NamedTuple}()
 
       if tempproject
@@ -240,7 +216,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         tmpproj = joinpath(mktempdir(), "Project.toml")
         cp(joinpath(Oscar.oscardir, "test", "Project.toml"), tmpproj)
         # activate the temporary project
-        _setactiveproject(tmpproj)
+        Base.set_active_project(tmpproj)
         # and make sure the current project is still available to allow e.g. `using Oscar`
         pushfirst!(LOAD_PATH, dirname(project_path))
         Pkg.resolve()
@@ -255,7 +231,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
             Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
           end
           if timed
-            push!(stats, _timed_include(entry; use_ctime=use_ctime))
+            push!(stats, _timed_include(entry; has_ctime_stat))
           else
             Base.include(identity, Main, entry)
           end
@@ -264,11 +240,11 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         # restore load path and project
         if tempproject
           copy!(LOAD_PATH, oldloadpath)
-          _setactiveproject(project_path)
+          Base.set_active_project(project_path)
         end
       end
       if timed
-        use_ctime && Base.cumulative_compile_timing(false)
+        has_ctime_stat || Base.cumulative_compile_timing(false)
         return stats
       else
         return nothing
@@ -281,9 +257,12 @@ end
     test_experimental_module(project::AbstractString; file::AbstractString="",
       new::Bool=true, timed::Bool=false, ignore=[])
 
-Run the Oscar tests in `experimental/<project>/test/<path>`:
-- if `path` is empty then all tests in that module are run, either via `runtests.jl` or directly.
-- if `path` or `path.jl` is a file in that directory only this file is run.
+Run the Oscar tests of the experimental module `project`:
+- if `file` is empty, run the entire test suite in `experimental/<project>/test`
+- if `experimental/<project>/test/<file>` is a directory which contains a `runtests.jl`,
+  run this file, otherwise run all test files in that directory and below
+- if `experimental/<project>/test/<file>` or `experimental/<project>/test/<file>.jl`
+  is a file, run this file
 
 The default is to run the entire test suite of the module `project`.
 

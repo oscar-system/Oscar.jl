@@ -1,5 +1,6 @@
 ```@meta
-CurrentModule = Oscar.OrthogonalDiscriminants
+CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -9,7 +10,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 ```@docs
 is_orthogonally_stable
-show_with_ODs
+Oscar.OrthogonalDiscriminants.show_with_ODs
 show_OD_info
 ```
 

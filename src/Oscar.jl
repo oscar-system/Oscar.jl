@@ -41,23 +41,29 @@ if Sys.iswindows()
   windows_error()
 end
 
+if VERSION < v"1.10.0-"
+  error("the required julia version is at least 1.10.0")
+end
+
 function _print_banner(;is_dev = Oscar.is_dev)
   # lets assemble a version string for the banner
   version_string = string(VERSION_NUMBER)
   if is_dev
     gitinfo = _get_oscar_git_info()
-    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+    version_string = version_string * " " * _short_git_info(gitinfo)
   else
     version_string = "Version " * version_string
   end
 
   if displaysize(stdout)[2] >= 80 
     println(
-      raw"""  ___   ____   ____    _    ____
-             / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-            | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-            | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
+      raw"""  ___   ___   ___    _    ____
+             / _ \ / __\ / __\  / \  |  _ \  | Combining and extending ANTIC, GAP,
+            | |_| |\__ \| |__  / ^ \ |  ´ /  | Polymake and Singular
+             \___/ \___/ \___//_/ \_\|_|\_\  | Type "?Oscar" for more information""")
+    printstyled(raw"""o--------o-----o-----o--------o""", color = :yellow)
+    println(raw"""  | Documentation: https://docs.oscar-system.org""")
+    println(raw"""  S Y M B O L I C   T O O L S    | """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
@@ -79,7 +85,7 @@ function __init__()
     [
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
-        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsMatrixGroup, MatGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
@@ -120,7 +126,13 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
+
+  add_verbosity_scope(:Isometry)
+  add_assertion_scope(:Isometry)
   
+  add_verbosity_scope(:OrthogonalStablizer)
+  add_assertion_scope(:OrthogonalStablizer)
+
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
 
@@ -165,28 +177,40 @@ function __init__()
 
   add_verbosity_scope(:SchurIndices)
 
+  add_verbosity_scope(:DirectImages)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
-  if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+  if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
       Pkg.is_manifest_current() :
       Pkg.is_manifest_current(dirname(Base.active_project())))
     @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
   end
+
+  # call git subprocess here to avoid conflicts with
+  # IPC communication serialization
+  if Oscar.is_dev
+    Serialization.get_oscar_serialization_version()
+  end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  # see TropicalGeometry/variety_prime.jl
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("""
+    proc tropicalVariety_as_string(ideal I, list #) {
+      if(size(#)==0) {
+        return(string(tropicalVariety(I)));
+      };
+      return(string(tropicalVariety(I,number(#[1]))));
+    }
+    """)
 end
 
-const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
-const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
-const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
+const VERSION_NUMBER = Base.pkgversion(@__MODULE__)
+const PROJECT_UUID = Base.PkgId(@__MODULE__).uuid
 
-const is_dev = (function()
-        deps = Pkg.dependencies()
-        if Base.haskey(deps, PROJECT_UUID)
-          if deps[PROJECT_UUID].is_tracking_path
-            return true
-          end
-        end
-        return occursin("-dev", lowercase(string(VERSION_NUMBER)))
-    end)()
+const is_dev = occursin("-dev", lowercase(string(VERSION_NUMBER)))
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
@@ -239,18 +263,21 @@ include("fallbacks.jl")
 
 include("Rings/Rings.jl")
 include("forward_declarations.jl")
-include("Groups/Groups.jl")
+include("Misc/Misc.jl")
+include("Groups/Groups.jl")  # Needs IndexedSet
 
 include("GAP/GAP.jl")
 
-include("../gap/pkg/OscarInterface/julia/alnuth.jl")
+include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
+include("NumberTheory/ZLattices.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
@@ -258,14 +285,16 @@ include("PolyhedralGeometry/PolyhedralGeometry.jl")
 include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
+include("Combinatorics/PhylogeneticTrees.jl")
+
 include("Combinatorics/SimplicialComplexes.jl")
-include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PartiallyOrderedSet/structs.jl")
+include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
-
-include("Combinatorics/PhylogeneticTrees.jl")
+include("Groups/subspaces.jl") # needs EnumerativeCombinatorics
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms
@@ -280,7 +309,6 @@ include("InvariantTheory/InvariantTheory.jl")
 
 include("LieTheory/LieTheory.jl")
 
-include("Misc/Misc.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should

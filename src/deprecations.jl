@@ -144,7 +144,7 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate scheme(W::CartierDivisor) ambient_scheme(W)
 @deprecate scheme(W::EffectiveCartierDivisor) ambient_scheme(W)
 
-@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X) 
+@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X)
 @deprecate minimal_generating_set(G::GAPGroup) minimal_size_generating_set(G)
 @deprecate has_minimal_generating_set(G::GAPGroup) has_minimal_size_generating_set(G)
 @deprecate set_minimal_generating_set(G::GAPGroup, v) set_minimal_size_generating_set(G, v)
@@ -153,3 +153,77 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate acting_domain(C::GroupCoset) acting_group(C)
 @deprecate acting_domain(Omega::GSet) acting_group(Omega)
 @deprecate grid_morphism lattice_homomorphism
+
+# deprecated for 1.4
+@deprecate gset(G::PermGroup) natural_gset(G)
+@deprecate gset(G::MatGroup{T, MT}) where {MT, T <: FinFieldElem} natural_gset(G)
+
+# deprecated for 1.5
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
+    return tropical_linear_space(AbstractAlgebra.combinations(n,k), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+end
+
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::TropicalSemiringMap=tropical_semiring_map(parent(first(plueckerVector))); weighted_polyhedral_complex_only::Bool=false)
+    Base.depwarn("This usage of `tropical_linear_space` has been deprecated;
+    please use a version that gives the `plueckerIndices` exlicitly", :tropical_linear_space)
+    TropL = tropical_linear_space(AbstractAlgebra.combinations(n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
+end
+
+@deprecate vector_space_dimension vector_space_dim
+
+# deprecated for 1.6
+@deprecate is_acylic is_acyclic
+
+@deprecate all_cohomologies sheaf_cohomology
+@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
+
+# deprecated for 1.7
+
+@deprecate induced_map_on_exterior_power exterior_power
+@deprecate induced_map_on_symmetric_power symmetric_power
+@deprecate induced_map_on_tensor_power tensor_power
+
+# An old version of the induced map on exterior powers
+function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
+  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
+
+  success, F, p = _is_exterior_power(M)
+  @req success "module is not an exterior power"
+  success, FF, q = _is_exterior_power(N)
+  @req success "module is not an exterior power"
+  @req F === domain(phi) "map not compatible"
+  @req FF === codomain(phi) "map not compatible"
+  @req p == q "exponents must agree"
+  return exterior_power(phi, p; domain=M, codomain=N)
+end
+
+if isdefined(Oscar, :LieAlgebraModule)
+  function hom(
+    V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
+  ) where {C<:FieldElem}
+    Base.depwarn("Computing induced maps on power modules via `hom(::LieAlgebraModule, ::LieAlgebraModule, ::LieAlgebraModuleHom)` has been deprecated; use `exterior_power(::LieAlgebraModuleHom, ::Int; domain, codomain)`, `symmetric_power(...)` or `tensor_power(...)` instead", :hom)
+    if ((fl, _, k) = _is_exterior_power(V); fl)
+      return exterior_power(h, k; domain=V, codomain=W)
+    elseif ((fl, _, k) = _is_symmetric_power(V); fl)
+      return symmetric_power(h, k; domain=V, codomain=W)
+    elseif ((fl, _, k) = _is_tensor_power(V); fl)
+      return tensor_power(h, k; domain=V, codomain=W)
+    else
+      throw(ArgumentError("First module must be a power module"))
+    end
+  end
+end
+
+Base.@deprecate_binding AbstractMatrixGroupElem AbstractMatGroupElem
+Base.@deprecate_binding ZZMatrixGroup ZZMatGroup
+Base.@deprecate_binding QQMatrixGroup QQMatGroup
+Base.@deprecate_binding MatrixGroup MatGroup
+Base.@deprecate_binding MatrixGroupElem MatGroupElem

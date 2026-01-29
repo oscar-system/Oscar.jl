@@ -39,7 +39,6 @@ false
 """
 @attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_object(td).SECTION_POLYTOPE)
 
-
 @doc raw"""
     coefficients(td::ToricDivisor)
 
@@ -62,7 +61,6 @@ julia> coefficients(D)
 ```
 """
 coefficients(td::ToricDivisor) = td.coeffs
-
 
 @doc raw"""
     toric_variety(td::ToricDivisor)

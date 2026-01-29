@@ -133,7 +133,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -178,7 +178,7 @@ julia> A = R[x; y];
 
 julia> B = R[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B);
+julia> M = subquotient(F, A, B);
 
 julia> N = M;
 
@@ -202,7 +202,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -329,36 +329,88 @@ function is_welldefined(H::SubQuoHom)
   return true
 end
 
-function (==)(f::ModuleFPHom, g::ModuleFPHom)
+# An internal function comparing only the trivial things beyond potential `ring_map`s.
+function _cmp_internal(f::ModuleFPHom, g::ModuleFPHom)
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  M = domain(f)
-  for v in gens(M)
-    f(v) == g(v) || return false
-  end
-  return true
+  return all(f(v) == g(v) for v in gens(domain(f)))
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
-  b = 0x535bbdbb2bc54b46 % UInt
+# No ring map
+function (==)(f::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+  return _cmp_internal(f, g)
+end
+
+# With ring map
+#
+# Comparing ring maps is tricky, because for several types/implementations 
+# there is no algorithm to do that (think of using a julia-function and 
+# deciding what it does mathematically). Therefore we default to `is_equal_as_morphism`
+# to handle comparisons in a mathematically correct way or throw an error. 
+# If in doubt, one needs to introduce more methods for that function.
+
+function (==)(
+              f::ModuleFPHom{D, C, Nothing}, 
+              g::ModuleFPHom{D, C, <:Map}
+             ) where {D, C}
+  is_trivial(ring_map(g)) || return false
+  return _cmp_internal(f, g)
+end
+
+function (==)(
+              f::ModuleFPHom{D, C, <:Map}, 
+              g::ModuleFPHom{D, C, Nothing}
+             ) where {D, C}
+  is_trivial(ring_map(f)) || return false
+  return _cmp_internal(f, g)
+end
+
+function (==)(f::ModuleFPHom, g::ModuleFPHom)
+  _cmp_internal(f, g) || return false
+  return is_equal_as_morphism(ring_map(g), ring_map(f))
+end
+
+# Internal hash function to hash the trivially accessible information.
+# Then there might be more refined stuff in particular cases.
+function _hash_internal(f::ModuleFPHom, h::UInt)
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
   h = hash(codomain(f), h)
+  return h
+end
+
+# morphism over polynomial ring, no ring_map
+function Base.hash(f::ModuleFPHom{D, <:ModuleFP, Nothing}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, D<:ModuleFP{S}}
+  h = _hash_internal(f, h)
   for g in images_of_generators(f)
     h = hash(g, h)
   end
+  b = 0x535bbdbb2bc54b46 % UInt
   return xor(h, b)
 end
 
-function Base.hash(f::ModuleFPHom, h::UInt)
+function Base.hash(f::ModuleFPHom{D, <:ModuleFP, <:Map}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, D<:ModuleFP{S}}
+  h = _hash_internal(f, h)
+  h = hash(ring_map(f), h)
+  for g in images_of_generators(f)
+    h = hash(g, h)
+  end
   b = 0x535bbdbb2bc54b46 % UInt
-  h = hash(typeof(f), h)
-  h = hash(domain(f), h)
-  h = hash(codomain(f), h)
-  # We can not assume that the images of generators
-  # have a hash in general
   return xor(h, b)
 end
+
+# the generic case with abitrary `ring_map`
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  return xor(_hash_internal(f, h), b)
+end
+
+# the generic case with a `Map` as `ring_map` (for which we assume hashing to be implemented)
+function Base.hash(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, <:Map}, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  return xor(hash(ring_map(f), _hash_internal(f, h)), b)
+end
+
 ###################################################################
 
 @doc raw"""
@@ -385,7 +437,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -417,7 +469,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -470,7 +522,15 @@ Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubquoModuleElem)
   @assert a.parent === domain(f)
-  iszero(a) && return zero(codomain(f))
+  # simplifying the element to be mapped before mapping it (e.g. through an `is_zero` check) 
+  # can be beneficial to speed up mapping. However, over general rings, we must expect this 
+  # check to be rather expensive. For instance for localizations of quotient rings
+  # at prime ideals this triggers a Groebner basis computation every time. Therefore, 
+  # we do not do this check in the generic code. Should it turn out to be beneficial 
+  # in particular cases, we invite overwriting this function for the specific case 
+  # and reintroducing some version of the line below again. 
+  #iszero(a) && return zero(codomain(f))
+
   # The code in the comment below was an attempt to make
   # evaluation of maps faster. However, it turned out that
   # for the average use case the comparison was more expensive
@@ -604,7 +664,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -648,7 +708,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -705,7 +765,7 @@ function kernel(h::SubQuoHom)
   @assert domain(inc_K) === K
   @assert codomain(inc_K) === F
   v = gens(D)
-  imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
+  imgs = filter!(!iszero, elem_type(D)[sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)])
   k = sub_object(D, imgs)
   return k, hom(k, D, imgs, check=false)
 end
@@ -759,7 +819,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -804,7 +864,7 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -971,11 +1031,11 @@ end
 
 If `a` is bijective, return its inverse.
 """
-function inv(H::ModuleFPHom)
+function inv(H::ModuleFPHom; check::Bool=true)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
-  @assert is_bijective(H)
+  @check is_bijective(H) "morphism is not bijective"
   N = domain(H)
   M = codomain(H)
 

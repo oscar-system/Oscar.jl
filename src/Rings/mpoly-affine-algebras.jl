@@ -19,19 +19,11 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing)
-  return dim(modulus(A))
-end
+dim(A::MPolyQuoRing) = krull_dim(A)
 
-function dim(A::zzModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-function dim(A::ZZModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
@@ -41,8 +33,8 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 as a `K`-vector space, `false` otherwise.
 
 !!! note 
-    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension zero. This condition is checked by the function.
-    
+    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
+    less or equal to zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -61,25 +53,17 @@ false
 """
 function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   # We check '<=' because A might be the zero ring, so dim(A) == -1
-  return dim(A) <= 0
-end
-
-struct InfiniteDimensionError <: Exception
-end
-
-function Base.showerror(io::IO, err::InfiniteDimensionError)
-  println(io, "Infinite-dimensional vector space")
-  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
+  return krull_dim(A) <= 0
 end
 
 @doc raw"""
-    vector_space_dimension(A::MPolyQuoRing)
+    vector_space_dim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -87,7 +71,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
-julia> vector_space_dimension(A)
+julia> vector_space_dim(A)
 6
 
 julia> I = modulus(A)
@@ -105,11 +89,11 @@ with respect to the ordering
   lex([x, y, z])
 ```
 """
-function vector_space_dimension(A::MPolyQuoRing)
+function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
-    error("vector_space_dimension requires a coefficient ring that is a field")
+    error("vector_space_dim requires a coefficient ring that is a field")
   end
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   I = modulus(A)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
@@ -124,7 +108,7 @@ such that the residue classes of these monomials form a basis of `A` as a `K`-ve
 space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -150,7 +134,7 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   if is_trivial(A)
     return elem_type(base_ring(A))[]
   end
@@ -163,10 +147,10 @@ end
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
-Given an affine algebra `A` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
+Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`, 
+and which is defined over a field `K`, say, and given an element `g` of the free group,
 return a vector of monomials of `R` such that the residue classes of
-these monomials form a `K`-basis of the graded part of `A` of degree `g`.
+these monomials form a `K`-basis of the graded component of `A` of degree `g`.
 
     monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
 
@@ -181,7 +165,11 @@ an integer `d`, convert `d` into an element `g` of the grading
 group of `A` and proceed as above.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    The function first computes a monomial basis of the `g`-graded component of `base_ring(A)`.
+    If this component is infinite dimensional, an error message will be thrown. This does not
+    neccessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
+    In the case where `A` has Krull dimension zero, you may alternatively enter `monomial_basis(A)`
+    to obtain a monomial basis for all of `A`.
 
 # Examples
 ```jldoctest
@@ -204,7 +192,15 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  L = monomial_basis(R, g)
+  L = try
+    monomial_basis(R, g)
+  catch e
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
   LI = leading_ideal(A.I)
   ### TODO: Decide whether we should check whether a GB with respect
     ### to whatever <ordering is already available
@@ -258,7 +254,7 @@ See also `hilbert_series_reduced`.
     ignored for certain backends.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -266,7 +262,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series(A)
 (2*t^3 - 3*t^2 + 1, (-t + 1)^4)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -290,10 +286,6 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   return numer,denom
 end
 
-# TODO: The method below is missing. It should be made better and put to the correct place (AA).
-number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-
-
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
@@ -306,7 +298,7 @@ $A$ as a rational function written in lowest terms.
 See also `hilbert_series`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -314,7 +306,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series_reduced(A)
 (2*t + 1, t^2 - 2*t + 1)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -349,7 +341,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series_expanded(A, 7)
 1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -392,7 +384,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_function(A,7)
 22
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -529,10 +521,10 @@ Return the Hilbert series of the graded affine algebra `A`.
     see the code for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -551,8 +543,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -561,7 +554,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -605,7 +598,7 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:length(R.d)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached = false)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = W, cached = false)
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
@@ -633,7 +626,7 @@ function multi_hilbert_series(
   # @assert evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
-  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
+  iszero(I) && return (one(HSRing), fac_denom), (G, id_hom(G))
 
   # In general refer to internal methods for monomial ideals
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
@@ -647,7 +640,7 @@ function multi_hilbert_series(
   else
     error("backend ($(backend)) not found")
   end
-  return (numer, fac_denom), (G, identity_map(G))
+  return (numer, fac_denom), (G, id_hom(G))
 end
 
 
@@ -665,7 +658,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -690,7 +683,7 @@ end
 #   else
 #      VAR = ["t[$i]" for i = 1:m]
 #   end
-#   S, _ = polynomial_ring(ZZ, VAR)
+#   S, _ = polynomial_ring(ZZ, VAR, cached=false)
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -703,7 +696,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
@@ -724,7 +717,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -744,8 +737,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -754,7 +748,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -825,7 +819,7 @@ of $A$, and return the value $H(A, g)$ as above.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -837,7 +831,7 @@ julia> multi_hilbert_function(A::MPolyQuoRing, [1, 0])
 ```
 
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], [-1, -1, -1, -1]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -852,7 +846,7 @@ julia> g = gen(G, 1);
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -1106,7 +1100,7 @@ function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingEl
   GJ = _groebner_basis(J, d, ordering = o)
 
   S, _ = polynomial_ring(base_ring(R), "t#" => 1:length(v); cached=false)
-  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+  TtoS = hom(T, S, append!(Hecke.zeros_array(S, ngens(R)), gens(S)))
 
   return RtoT, TtoS, GJ
 end
@@ -1387,7 +1381,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = polynomial_ring(br, symbols(newSR))
+      newOR, _ = polynomial_ring(br, symbols(newSR), cached=false)
       newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))

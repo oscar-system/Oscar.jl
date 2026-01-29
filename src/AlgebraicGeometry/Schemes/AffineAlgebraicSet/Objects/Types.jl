@@ -39,15 +39,17 @@ defined by ideal(y, x)
 @attributes mutable struct AffineAlgebraicSet{BaseRing<:Field, RingType<:MPolyAnyRing} <: AbsAffineAlgebraicSet{BaseRing, RingType}
   X::AffineScheme
   Xred::AffineScheme
-  function AffineAlgebraicSet(X::AffineScheme; is_reduced::Bool=false, check::Bool=true)
-    A = new{typeof(base_ring(X)), typeof(OO(X))}()
+  function AffineAlgebraicSet(X::AffineScheme{S,T}; is_reduced::Bool=false, check::Bool=true) where {S<:Ring,T<:Ring}
+    A = new{S, T}()
     A.X = X
     if is_reduced
-      @check is_geometrically_reduced(X) "Algebraic sets must be geometrically reduced"
       A.Xred = X
       set_attribute!(A.Xred, :is_geometrically_reduced, true)
       set_attribute!(A.Xred, :is_reduced, true)
     end
+    set_attribute!(A, :is_reduced, true)
+    @check is_geometrically_reduced(A) "Algebraic sets must be geometrically reduced"
+    set_attribute!(A, :is_geometrically_reduced, true)
     return A
   end
 end

@@ -8,7 +8,7 @@
 Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
 this function computes a Gröbner basis (if `complete_reduction = true` the reduced Gröbner basis) of the
 ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`. The Gröbner basis is then
-returned in `B.S`.
+returned as a new `IdealGens`.
 
 # Examples
 ```jldoctest
@@ -32,7 +32,7 @@ with respect to the ordering
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
+  BA = IdealGens(base_ring(B), i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)
@@ -114,14 +114,15 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       R = base_ring(I)
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
-      gb = groebner_assure(K, degrevlex(S))
+      ord = degrevlex(S)
+      gb = standard_basis(K, ordering=ord)
       # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
       H = homogenizer(S, "w")
       K_hom = H(K)
       gb_hom = IdealGens(H.(gens(gb)))
       gb_hom.isGB = true
-      K_hom.gb[degrevlex(S)] = gb_hom
-      singular_assure(K_hom.gb[degrevlex(S)])
+      gb_hom.ord = ord
+      K_hom.gb[ord] = gb_hom
       hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
       H2 = homogenizer(R, "w")
       J = H2(I)
@@ -144,9 +145,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
   elseif algorithm == :markov
-    @req all(i -> length(i) == 2, gens(I)) "Ideal needs to be a lattice ideal to use markov algorithm"
-    @req all(iszero, sum.(coefficients.(gens(I)))) "Ideal needs to be a lattice ideal to use markov algorithm"
-    @req all(x -> all(is_unit.(x)), coefficients.(gens(I))) "Ideal needs to be a lattice ideal to use markov algorithm"
+    @req _islattice(I) "Ideal needs to be a lattice ideal to use Markov algorithm."
     I.gb[ordering] = _groebner4ti2(I, ordering)
   end
   return I.gb[ordering]
@@ -207,7 +206,7 @@ with respect to the ordering
   lex([x, y, z])
 ```
 ```jldoctest
-julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, 3]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, 3]);
 
 julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
 

@@ -5,20 +5,13 @@
 ################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
-# exclude from ring union definition
-type_params(::QQField) = TypeParams(QQField, nothing)
-type_params(::QQFieldElem) = TypeParams(QQFieldElem, nothing)
-type_params(::fpField) = TypeParams(fpField, nothing)
-type_params(::FpField) = TypeParams(FpField, nothing)
-type_params(::QQBarField) = TypeParams(QQBarField, nothing)
-type_params(::PadicField) = TypeParams(PadicField, nothing)
 
 ################################################################################
 # type_params for field extension types
 
 ################################################################################
 # non-ZZRingElem variant
-@register_serialization_type Nemo.fpField
+@register_serialization_type fpField "FiniteField"
 
 function save_object(s::SerializerState, F::fpField)
   save_object(s, string(characteristic(F)))
@@ -45,7 +38,7 @@ end
 
 ################################################################################
 # ZZRingElem variant
-@register_serialization_type Nemo.FpField
+@register_serialization_type FpField "FiniteField"
 
 function save_object(s::SerializerState, F::FpField)
   save_object(s, string(characteristic(F)))
@@ -74,7 +67,7 @@ end
 # SimpleNumField
 
 @register_serialization_type Hecke.RelSimpleNumField uses_id
-@register_serialization_type AbsSimpleNumField uses_id
+@register_serialization_type AbsSimpleNumField uses_id [:cyclo]
 const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
 type_params(obj::T) where T <: SimpleNumField = TypeParams(T, parent(defining_polynomial(obj)))
@@ -135,7 +128,8 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type FqField uses_id
+
+@register_serialization_type FqField "FiniteField" uses_id
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
@@ -243,6 +237,8 @@ end
 
 @register_serialization_type FracField uses_id
 
+type_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
+
 const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
 # we use the union to prevent QQField from using these save methods
 
@@ -281,25 +277,28 @@ end
 
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
 
+type_params(R::T) where T <: AbstractAlgebra.Generic.RationalFunctionField = TypeParams(T, base_ring(R))
+
 function save_object(s::SerializerState,
-                     RF::AbstractAlgebra.Generic.RationalFunctionField)
+                     RF::AbstractAlgebra.Generic.RationalFunctionField{<: FieldElem, <: MPolyRingElem})
   save_data_dict(s) do
     syms = symbols(RF)
     save_object(s, syms, :symbols)
   end
 end
 
+function save_object(s::SerializerState,
+                     RF::AbstractAlgebra.Generic.RationalFunctionField{<:FieldElem, <: PolyRingElem})
+  save_data_dict(s) do
+    save_object(s, only(symbols(RF)), :symbol)
+  end
+end
+
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, R::Ring)
-  # ensure proper types of univariate case on load
-  symbols = load_node(s, :symbols) do symbols_data
-    if symbols_data isa Vector
-      return Symbol.(symbols_data)
-    else
-      return Symbol(symbols_data)
-    end
-  end
-  return rational_function_field(R, symbols, cached=false)[1]
+  haskey(s, :symbol) && return rational_function_field(R, load_object(s, Symbol, :symbol), cached=false)[1]
+
+  return rational_function_field(R, load_object(s, Vector{Symbol}, :symbols), cached=false)[1]
 end
 
 #elements
@@ -315,7 +314,7 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
                      parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
-  base = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
+  base = base_ring(parent_ring.fraction_field)
   coeff_type = elem_type(base)
 
   return load_node(s) do _
@@ -346,18 +345,17 @@ end
 
 # elements
 function save_object(s::SerializerState, r::ArbFieldElem)
-  c_str = ccall((:arb_dump_str, Nemo.libflint), Ptr{UInt8}, (Ref{ArbFieldElem},), r)
+  c_str = @ccall Nemo.libflint.arb_dump_str(r::Ref{ArbFieldElem})::Ptr{UInt8}
   save_object(s, unsafe_string(c_str))
 
   # free memory
-  ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
+  @ccall Nemo.libflint.flint_free(c_str::Ptr{UInt8})::Nothing
 end
 
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
   r = ArbFieldElem()
   load_node(s) do str
-    ccall((:arb_load_str, Nemo.libflint),
-          Int32, (Ref{ArbFieldElem}, Ptr{UInt8}), r, str)
+    @ccall Nemo.libflint.arb_load_str(r::Ref{ArbFieldElem}, str::Ptr{UInt8})::Cint
   end
   r.parent = parent
   return r

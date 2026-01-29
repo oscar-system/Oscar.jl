@@ -38,7 +38,7 @@ Abstract simplicial complex of dimension -1 on 0 vertices
 ```
 
 The original vertices can be recovered:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = simplicial_complex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
@@ -140,6 +140,21 @@ function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
     the_facets = Polymake.to_one_based_indexing(bigobject.FACETS)
     return Vector{Set{Int}}(the_facets)
+end
+
+@doc raw"""
+    faces(K::SimplicialComplex [, dim::Int])
+
+Return the faces of the abstract simplicial complex `K`, passing `dim` as the second argument returns faces of dimension `dim` (sets of size `dim + 1`).
+"""
+function faces(K::SimplicialComplex, dim::Int)
+  po = face_poset(K)
+  return Set.(data.(elements_of_rank(po, dim + 1)))
+end
+
+function faces(K::SimplicialComplex)
+  po = face_poset(K)
+  return Set.(data.(elements(po)))
 end
 
 @doc raw"""
@@ -248,7 +263,7 @@ cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_g
 Return the minimal non-faces of the abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
@@ -620,7 +635,7 @@ end
 Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
 
 julia> K_with_deletion = deletion(K, Set([1, 2]));
@@ -676,7 +691,7 @@ Given a simplicial complex `K` return the simplicial complex corresponding
 to a permutation on it's vertices given by `g`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 
@@ -704,7 +719,7 @@ end
 Given simplicial complexes `K1` and `K2` return their simplicial product.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K1 = simplicial_complex([[1, 2], [2, 3]])
 Abstract simplicial complex of dimension 1 on 3 vertices
 
@@ -754,7 +769,7 @@ end
 Given simplicial complex `K` returns its barycentric subdivision.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3]])
 Abstract simplicial complex of dimension 2 on 3 vertices
 

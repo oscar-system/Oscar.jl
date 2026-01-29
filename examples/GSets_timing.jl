@@ -4,7 +4,7 @@
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(10)
 
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @benchmark order(stabilizer(Omega, 1)[1])
   @benchmark order(stabilizer(Omega, Set([1, 2]))[1])
   @benchmark order(stabilizer(Omega, [1, 2])[1])

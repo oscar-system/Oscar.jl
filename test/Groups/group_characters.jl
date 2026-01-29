@@ -9,13 +9,15 @@ raw"""
 ```jldoctest group_characters.test
 julia> using Oscar
 
-julia> t_a4 = character_table(alternating_group(4));
+julia> t_a4 = Oscar._sort_for_stable_tests(character_table(alternating_group(4)));
 
-julia> t_a5 = character_table("A5");
+julia> t_a5 = character_table("A5"); # should not need sorting
 
-julia> t_a4_2 = mod(t_a4, 2);
+julia> t_a4_mod2 = mod(t_a4, 2);
 
-julia> t_a5_2 = mod(t_a5, 2);
+julia> t_a5_mod2 = mod(t_a5, 2);
+
+julia> t_l2_11 = character_table("L2(11)"); # should not need sorting
 ```
 
 `print` shows an abbrev. form
@@ -27,10 +29,10 @@ character table of Alt(4)
 julia> print(t_a5)
 character table of A5
 
-julia> print(t_a4_2)
+julia> print(t_a4_mod2)
 2-modular Brauer table of Alt(4)
 
-julia> print(t_a5_2)
+julia> print(t_a5_mod2)
 2-modular Brauer table of A5
 ```
 
@@ -43,10 +45,10 @@ Oscar.GAPGroupCharacterTable[character table of Alt(4)]
 julia> show([t_a5])
 Oscar.GAPGroupCharacterTable[character table of A5]
 
-julia> show([t_a4_2])
+julia> show([t_a4_mod2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of Alt(4)]
 
-julia> show([t_a5_2])
+julia> show([t_a5_mod2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
@@ -58,10 +60,10 @@ character table of a group
 julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_mod2)
 2-modular Brauer table of a group
 
-julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_mod2)
 2-modular Brauer table of a group
 ```
 
@@ -71,7 +73,7 @@ default `show` with unicode
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2       .       .
  3  1  .       1       1
@@ -90,7 +92,7 @@ default `show` without unicode
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2        .        .
   3  1  .        1        1
@@ -109,7 +111,7 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -135,7 +137,7 @@ in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
  2  2  2  .  .
  3  1  .  1  1
@@ -155,7 +157,7 @@ A̅ = ζ₃
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
   2  2  2  .  .
   3  1  .  1  1
@@ -176,7 +178,7 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -203,7 +205,7 @@ Show the screen format for a table with real and non-real irrationalities.
 ```jldoctest group_characters.test
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true),
-              MIME("text/plain"), character_table("L2(11)"))
+              MIME("text/plain"), t_l2_11)
        end
 L2(11)
 
@@ -235,7 +237,7 @@ B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true),
-            MIME("text/plain"), character_table("L2(11)"))
+            MIME("text/plain"), t_l2_11)
 L2(11)
 
   2  2  2  1  .  .  1   .   .
@@ -600,7 +602,7 @@ show indicators in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -619,7 +621,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -644,7 +646,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
        end
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
     2  2  2       .       .
     3  1  .       1       1
@@ -663,7 +665,7 @@ Character table of Alt(4)
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-Character table of Alt(4)
+Character table of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -686,9 +688,9 @@ show character field degrees in the screen format ...
 
 ```jldoctest group_characters.test
 julia> Oscar.with_unicode() do
-         show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
+         show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4_mod2)
        end
-2-modular Brauer table of Alt(4)
+2-modular Brauer table of alternating group of degree 4
 
     2  2       .       .
     3  1       1       1
@@ -705,8 +707,8 @@ julia> Oscar.with_unicode() do
 ... and in LaTeX format
 
 ```jldoctest group_characters.test
-julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-2-modular Brauer table of Alt(4)
+julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4_mod2)
+2-modular Brauer table of alternating group of degree 4
 
 $\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
@@ -748,6 +750,20 @@ X_3  1  1  1
   end
 
   @test character_table(alternating_group(5), 2) === nothing
+end
+
+@testset "create class functions" begin
+  g = symmetric_group(3)
+  tbl = character_table(g)
+  n = number_of_conjugacy_classes(tbl)
+  triv = trivial_character(tbl)
+  for X in [tbl, g]
+    @test triv == Oscar.class_function(X, [1 for i in 1:n])
+    @test triv == Oscar.class_function(X, GapObj(triv))
+    @test triv == Oscar.class_function(X, GapObj([1 for i in 1:n]))
+    @test_throws ArgumentError Oscar.class_function(X, GapObj([true]))
+    @test_throws ErrorException Oscar.class_function(X, GapObj([1 for i in 1:2*n]))
+  end
 end
 
 @testset "access fields in character tables" begin
@@ -849,6 +865,7 @@ end
   re = regular_character(g)
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
+  @test re == permutation_character(g, trivial_subgroup(g)[1])
   @test coordinates(re) == degree.(t)
   lin = @inferred linear_characters(g)
   @test length(lin) == 2
@@ -1075,6 +1092,17 @@ end
   @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
 end
 
+@testset "character tables of factor groups" begin
+  g = symmetric_group(4)
+  gtbl = character_table(g)
+  n = class_positions_of_pcore(gtbl, 2)
+  ftbl, fus = quo(gtbl, n)
+  f = group(ftbl)
+  @test conjugacy_classes(f) == conjugacy_classes(ftbl)
+  @test fus == known_class_fusion(gtbl, ftbl)[2]
+  @test all(x -> restrict(x, gtbl) in gtbl, ftbl)
+end
+
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
   degrees = [degree_of_character_field(chi) for chi in tbl]
@@ -1201,6 +1229,11 @@ end
     @test length(character_parameters(t)) == length(t)
     @test length(class_parameters(t)) == length(t)
   end
+
+  t = character_table_complex_reflection_group(4, 1, 3)
+  @test length(character_parameters(t)) == length(t)
+  @test length(class_parameters(t)) == length(t)
+  @test get_attribute(t, :type) == (4, 1, 3)
 end
 
 @testset "symmetrizations" begin
@@ -1335,4 +1368,40 @@ end
   @test ! is_solvable(t)
   @test ! is_sporadic_simple(t)
   @test ! is_supersolvable(t)
+end
+
+@testset "action  on class functions" begin
+  g = symmetric_group(4)
+  h = pcore(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test order(stabilizer(g, chi)[1]) == 8
+  chi = t[3]  # now the action on classes is already stored
+  @test order(stabilizer(g, chi)[1]) == 8
+
+  h = sylow_subgroup(g,2)[1]
+  t = character_table(h)
+  chi = t[2]
+  @test_throws ArgumentError stabilizer(g, chi)
+end
+
+@testset "character degrees" begin
+  # for character tables
+  D = character_degrees(character_table("S5"))
+  @test D == multiset(ZZRingElem[1, 4, 5, 6], [2, 2, 2, 1])
+  @test D isa MSet{ZZRingElem}
+  D2 = character_degrees(Int, character_table("S5"))
+  @test sort(collect(D)) == sort(collect(D2))
+  @test_throws ArgumentError D == D2
+  @test D2 isa MSet{Int}
+  @test character_degrees(character_table("S5", 2)) == multiset(ZZRingElem[1, 4], [1, 2])
+
+  # for groups
+  @test character_degrees(symmetric_group(5)) == D
+
+  # for invariant lists of abelian groups, and order of a finite field
+  @test character_degrees([3, 3, 5], 2) == multiset(ZZRingElem[1, 2, 4], [1, 4, 9])
+  @test character_degrees([3, 3, 5], 4) == multiset(ZZRingElem[1, 2], [9, 18])
+  @test character_degrees([3, 3, 5], 16) == multiset(ZZRingElem[1], [45])
+  @test character_degrees([2, 4, 8], 3) == multiset(ZZRingElem[1, 2], [8, 28])
 end

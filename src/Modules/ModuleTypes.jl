@@ -80,7 +80,9 @@ option is set in suitable functions.
 @attributes mutable struct FreeMod{T <: AdmissibleModuleFPRingElem} <: AbstractFreeMod{T}
   R::NCRing
   n::Int
-  S::Vector{Symbol}
+  S::Union{Function, Vector{Symbol}} # The symbols for printing. This is either a 
+                                     # ready-made list, or a function to provide them 
+                                     # in a lazy way. 
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
   default_ordering::ModuleOrdering
 
@@ -105,6 +107,14 @@ option is set in suitable functions.
     r.R = R
     r.S = S
     r.d = nothing
+
+    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    return r
+  end
+  
+  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, symbol_fun::Function) where T <: AdmissibleModuleFPRingElem
+    r = new{elem_type(R)}(R, n, symbol_fun, nothing)
 
     r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
     r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
@@ -215,18 +225,19 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 @attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
-  default_ordering::ModuleOrdering
+  gens::ModuleGens{T}
+  default_ordering::ModuleOrdering{FreeMod{T}}
+  any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
+                        # Lookups in the above dictionary is tentatively expensive. 
+                        # So this field stores any gb for cases where the actual 
+                        # ordering does not matter. Then this field here can be used. 
+  any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
   matrix::MatElem
-  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
-    r = new{R}()
-    r.F = F
-    r.groebner_basis = Dict()
-    return r
+    return new{R}(F, Dict{ModuleOrdering, ModuleGens{R}}())
   end
 end
 
@@ -247,26 +258,23 @@ option is set in suitable functions.
 @attributes mutable struct SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
-  sub::SubModuleOfFreeModule
-  quo::SubModuleOfFreeModule
-  sum::SubModuleOfFreeModule
 
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
 
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
+  sub::SubModuleOfFreeModule{T}
+  quo::SubModuleOfFreeModule{T}
+  sum::SubModuleOfFreeModule{T}
+
   function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
-    r = new{R}()
-    r.F = F
-
-    r.groebner_basis = Dict()
-    
-    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
-
-    return r
+    return new{R}(F,
+                  Dict(),  # groebner_basis
+                  WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}(), # incoming
+                  WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}(), # outgoing
+                  )
   end
 end
 
@@ -595,7 +603,8 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     function pr_func(x)
       @assert parent(x) === G
       r.generators_map_to_generators === true && return FreeModElem(coordinates(simplify!(x)), F)
-      c = coordinates(repres(simplify!(x)), image_module)
+      #c = coordinates(repres(simplify!(x)), image_module)
+      c = coordinates(repres(x), image_module)
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
@@ -658,7 +667,14 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(map_entries(h, coordinates(x)))
-      return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      # in-place version of 
+      # return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+      S = base_ring(G)
+      pre_res = sparse_row(S)
+      for (i, b) in coordinates(x)
+        pre_res = Hecke.add_scaled_row!(coordinates(a[i]), pre_res, h(b))
+      end
+      return G(pre_res)
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -773,11 +789,6 @@ mutable struct FreeResolution{T}
 end
 
 Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
-
-function Base.show(io::IO, FR::FreeResolution)
-    C = FR.C
-    show(io, C)
-end
 
 mutable struct BettiTable
   B::Dict{Tuple{Int, Any}, Int}

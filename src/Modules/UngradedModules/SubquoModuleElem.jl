@@ -62,7 +62,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -90,7 +90,20 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    if is_zero(coordinates(v))
+      v.repres = zero(F)
+    elseif is_one(length(coordinates(v)))
+      (i, a) = first(coordinates(v))
+      v.repres = a*M.sub[i]
+    else
+      rep_coord = sparse_row(R)
+      for (i, a) in coordinates(v)
+        rep_coord = Hecke.add_scaled_row!(coordinates(M.sub[i]), rep_coord, a)
+      end
+      v.repres = FreeModElem(rep_coord, F)
+    end
   end
   return v.repres
 end
@@ -182,7 +195,7 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [y^2]
 [z^4]
 
-julia> M = SubquoModule(A, B);
+julia> M = subquotient(A, B);
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
@@ -225,9 +238,8 @@ a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
   @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
-  singular_assure(F)
   if reduced
-    @assert Singular.has_global_ordering(base_ring(F.SF))
+    @assert has_global_singular_ordering(F)
   end
   if singular_generators(F).isGB && !reduced
     return F
@@ -242,7 +254,6 @@ Return a standard basis `G` of `F` as an object of type `ModuleGens` along with
 a transformation matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
-  singular_assure(M)
   R = base_ring(M)
   G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
   mg = ModuleGens(M.F, G)
@@ -262,7 +273,7 @@ as an object of type `ModuleGens` along with a transformation
 matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
-  M = ModuleGens(M.O, M.F, ordering)
+  M = ModuleGens(oscar_generators(M), M.F, ordering)
   mg, mat = lift_std(M)
   mg.ordering = ordering
   return mg, mat
@@ -279,11 +290,10 @@ function leading_monomials(F::ModuleGens)
   # The following doesn't work yet. When comparison / lead for module elements
   # is implemented this should be uncommented.
   #if !isdefined(F, :S)
-    #return ModuleGens(F.F, [lead(g) for g in F.O])
+    #return ModuleGens(F.F, [lead(g) for g in oscar_generators(F)])
   #end
-  singular_assure(F)
   singular_gens = singular_generators(F)
-  return ModuleGens(F.F, Singular.lead(singular_gens))
+  return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
 end
 
 function show(io::IO, b::SubquoModuleElem)
@@ -303,12 +313,9 @@ parent(b::SubquoModuleElem) = b.parent
 Given an element `f` of the ambient free module of `M` which represents an element of `M`,
 return the represented element.
 """
-function (M::SubquoModule{T})(f::FreeModElem{T}) where T
-  coords = coordinates(f, M)
-  if coords === nothing
-    error("not in the module")
-  end
-  return SubquoModuleElem(coords, M)
+function (M::SubquoModule{T})(f::FreeModElem{T}; check::Bool=true) where T
+  @check !isnothing(coordinates(f, M)) "free module element does not represent an element in the subquotient"
+  return SubquoModuleElem(f, M)
 end
 
 @doc raw"""
@@ -425,6 +432,8 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
+  a === b && return true
+  repres(a) == repres(b) && return true
   return iszero(a-b)
 end
 
@@ -736,9 +745,8 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bo
     @assert parent(O[1]) === F.F
   end
   if isdefined(F, :quo)
-    oscar_assure(F.quo.gens)
-    singular_assure(F.quo.gens)
-    s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
     Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
     phi = hom(F, Q, gens(Q), check=false)
     cache_morphism && register_morphism!(phi)
@@ -755,9 +763,8 @@ function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}) where T
     @assert parent(O[1]) === F.F
   end
   if isdefined(F, :quo)
-    oscar_assure(F.quo.gens)
-    singular_assure(F.quo.gens)
-    s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    SF = singular_freemodule(F.quo.gens)
+    s = Singular.Module(base_ring(SF), [SF(x) for x in [O; oscar_generators(F.quo.gens)]]...)
     return SubquoModule(F.F, singular_generators(F.sub.gens), s)
   end
   return SubquoModule(F, O)
@@ -904,7 +911,6 @@ end
     syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
 """
 function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: MPolyRingElem}
-  singular_assure(F)
   # TODO Obtain the Gröbner basis and cache it
   s = Singular.syz(singular_generators(F))
   return SubquoModule(sub, s)
@@ -918,7 +924,7 @@ Return the generators of `M`.
 function gens(M::SubquoModule{T}) where T
   R = base_ring(M)
   e = R(1)
-  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
+  return [SubquoModuleElem{T}(sparse_row(R, [(i, e)]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -928,7 +934,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v = sparse_row(R, [i], [R(1)])
+  v = sparse_row(R, [(i, R(1))])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -953,7 +959,7 @@ base_ring_type(::Type{SubquoModule{T}}) where {T} = base_ring_type(FreeMod{T})
 
 Return the zero element of `M`.
 """
-zero(M::SubquoModule) = SubquoModuleElem(SRow(base_ring(M)), M)
+zero(M::SubquoModule) = SubquoModuleElem(sparse_row(base_ring(M)), M)
 
 @doc raw"""
     is_zero(M::SubquoModule)
@@ -976,7 +982,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 1 generator
   1: (x^2 + y^2)*e[1]
 by submodule with 3 generators
@@ -988,7 +994,7 @@ julia> is_zero(M)
 false
 ```
 """
-function is_zero(M::SubquoModule)
+@attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
@@ -1003,7 +1009,7 @@ Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
-  @assert dim(parent(a)) == length(b)
+  @assert rank(parent(a)) == length(b)
   s = zero(parent(a))
   for (p,v) in coordinates(a)
     s += v*b[p]
@@ -1033,7 +1039,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -1064,7 +1070,7 @@ julia> B = Rg[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Graded subquotient of graded submodule of F with 2 generators
   1: x*e[1]
   2: y*e[1]

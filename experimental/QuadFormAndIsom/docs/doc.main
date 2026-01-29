@@ -1,9 +1,0 @@
-[
-  "Quadratic forms and isometries" => [
-      "introduction.md",
-      "spacewithisom.md",
-      "latwithisom.md",
-      "enumeration.md",
-      "primembed.md"
-  ]
-]

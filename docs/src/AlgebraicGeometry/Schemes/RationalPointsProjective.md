@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -8,6 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 ```@docs
 AbsProjectiveRationalPoint
 ProjectiveRationalPoint
+rational_point(X::AbsProjectiveScheme, coordinates; check::Bool=true)
 coordinates(P::ProjectiveRationalPoint)
 ideal(P::AbsProjectiveRationalPoint)
 scheme(P::ProjectiveRationalPoint)

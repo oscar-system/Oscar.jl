@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # GAP's SLPs
 
 There are two other available SLP types: `GAPSLProgram` and `AtlasSLProgram`,

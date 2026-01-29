@@ -27,6 +27,15 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     @test loaded isa T
     func(loaded)
 
+    # save and load from a file without saving references
+    filename = joinpath(path, "original.json")
+    save(filename, original; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+    @test !any(line -> contains(line, "_refs"), eachline(filename))
+    loaded = load(filename; params=params, serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+
+    @test loaded isa T
+    func(loaded)
+
     # save and load from an IO buffer
     io = IOBuffer()
     save(io, original; kw...)
@@ -49,6 +58,12 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
     loaded = load(filename; params=params, kw...)
+    @test loaded isa T
+
+    # test passing TypeParams
+    save(filename, original; kw...)
+    Oscar.reset_global_serializer_state()
+    loaded = load(filename; params=Oscar.type_params(original), kw...)
     @test loaded isa T
 
     # test schema

@@ -44,15 +44,16 @@ function standard_walk(
 
   @v_do :groebner_walk steps = 0
 
-  while current_weight != target_weight
+  while true 
     @vprintln :groebner_walk current_weight
-    G = standard_step(G, current_weight, target)
-
     current_weight = next_weight(G, current_weight, target_weight)
+    G = standard_step(G, current_weight, target)
 
     @v_do :groebner_walk steps += 1
     @vprintln :groebner_walk 2 G
     @vprintln :groebner_walk 2 "======="
+
+    current_weight != target_weight || break
   end
 
   @vprint :groebner_walk "Cones crossed: "
@@ -69,7 +70,7 @@ standard_walk(
 ) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
 
 ###############################################################
-# The standard step is used for the strategies standard and perturbed.
+# The standard step is used for the strategy standard.
 ###############################################################
 
 function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)

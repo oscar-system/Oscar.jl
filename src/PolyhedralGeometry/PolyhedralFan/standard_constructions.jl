@@ -87,12 +87,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(
@@ -241,12 +241,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType, n::Int)
@@ -334,7 +334,7 @@ arrangement_polynomial(...  ; hyperplanes=:in_cols)
 ```
 
 # Example using standard ring and then custom ring.
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 [   1   2   5//2]
 [   0   0      1]
@@ -354,7 +354,7 @@ julia> factor(arrangement_polynomial(R, A))
 ```
 
 To use the columns instead, proceed in the following way:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1]);
 
 julia> factor(arrangement_polynomial(A; hyperplanes=:in_cols))
@@ -405,3 +405,35 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality; non_redundant=true
+  )
+end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+_empty_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(1, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+
+function *(c::scalar_types_extended, Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  is_positive(c) && return Sigma
+  return -Sigma
+end
+*(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma

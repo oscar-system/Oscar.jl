@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -208,6 +209,9 @@ We discuss various decomposition techniques. They are implemented for
 polynomial rings over fields and, if explicitly mentioned, also for
 polynomial rings over the integers. See [DGP99](@cite) for a survey.
 
+!!! note
+    In addition to Gröbner (standard) basis methods, functions for computing radicals and primary decompositions require methods for sqarefree decomposition and polynomial factorization, respectively. In the case of fields for which such methods are not implemented, an error will be thrown.
+	
 ### Radical
 
 ```@docs
@@ -290,6 +294,12 @@ julia> DH = dehomogenizer(H);
 
 julia> DH(Ih) == I   # dehomogenization of Ih
 true
+```
+
+## Vanishing sets and solving multivariate polynomial systems
+
+```@docs
+rational_solutions
 ```
 
 ## Generating Special Ideals

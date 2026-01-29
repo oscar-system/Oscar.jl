@@ -31,7 +31,6 @@ function _groebner_basis(r::MPolyQuoRing)
   end
   ordering = r.ordering
   groebner_basis(r.I, ordering=ordering)
-  oscar_assure(r.I.gb[ordering])
   SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
@@ -65,12 +64,12 @@ gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
 number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
-base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = base_ring_type(S)
+base_ring_type(::Type{MPolyQuoRing{S}}) where {S} = parent_type(S)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
@@ -99,6 +98,7 @@ mutable struct MPolyQuoRingElem{S} <: RingElem
   f::S
   P::MPolyQuoRing{S}
   simplified::Bool
+  inverse_rep::S # for caching the inverse of a unit
 
   function MPolyQuoRingElem(f::S, P::MPolyQuoRing{S}, simplified = false) where {S}
     @assert parent(f) === base_ring(P)
@@ -243,29 +243,22 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
   gens::IdealGens{T}
   dim::Union{Int, Nothing, NegInf}
   gb::IdealGens{T}
-  qRing::MPolyQuoRing
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
-   r = new{T}()
-   r.gens  = IdealGens(Ox, si)
-   r.qRing = Ox
-   r.dim   = nothing
+   r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
-   r.gens.O = [R(g) for g = gens(r.gens.S)]
+   r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]
    B = r.gens
    if length(B) >= 1 && is_graded(R)
-     @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
+     @req all(is_homogeneous, oscar_generators(B)) "The generators of the ideal must be homogeneous"
    end
    return r
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, I::MPolyIdeal{T}) where T <: MPolyRingElem
     @req base_ring(Ox) === base_ring(I) "base rings must match"
-    r = new{T}()
-    r.gens = IdealGens(Ox, gens(I))
-    r.qRing = Ox
-    r.dim = nothing
+    r = new{T}(IdealGens(Ox, gens(I)), nothing)
     return r
   end
   
@@ -303,30 +296,24 @@ Quotient
   by ideal (-x^2 + y, -x^3 + z)
 ```
 """
-function base_ring(a::MPolyQuoIdeal)
-  return a.qRing
+function base_ring(a::MPolyQuoIdeal{T}) where T
+  return base_ring(a.gens)::MPolyQuoRing{T}
 end
 
-function oscar_assure(a::MPolyQuoIdeal)
-  if isdefined(a.gens.gens, :O)
-    return a.gens.gens.O
-  end
-  r = base_ring(base_ring(a))
-  a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
-end
+oscar_generators(I::MPolyQuoIdeal) = oscar_generators(I.gens)
 
 function _groebner_basis(a::MPolyQuoIdeal)
   # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
-    a.gb.gens.S.isGB = a.gb.isGB = true
+    a.gb.gensBiPolyArray.S.isGB = a.gb.isGB = true
   end
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
   _groebner_basis(a)
 
-  return a.gb.S
+  return a.gb.gensBiPolyArray.S
 end
 
 @doc raw"""
@@ -352,11 +339,10 @@ julia> gens(a)
 ```
 """
 function gens(a::MPolyQuoIdeal)
-  oscar_assure(a)
-  return map(a.gens.Ox, a.gens.O)
+  return map(base_ring(a), oscar_generators(a))
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
+gen(a::MPolyQuoIdeal, i::Int) = base_ring(a)(oscar_generators(a)[i])
 
 @doc raw"""
     number_of_generators(a::MPolyQuoIdeal)
@@ -380,8 +366,7 @@ julia> number_of_generators(a)
 ```
 """
 function number_of_generators(a::MPolyQuoIdeal)
-  oscar_assure(a)
-  return length(a.gens.O)
+  return length(oscar_generators(a))
 end
 
 
@@ -694,7 +679,7 @@ end
 
 
 function check_parent(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  @req parent(a) == parent(b) "parents must match"
+  @req parent(a) === parent(b) "parents must match"
   return true
 end
 
@@ -778,8 +763,8 @@ function simplify(a::MPolyQuoIdeal)
   red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
-  a.gens.S = si
-  a.gens.O = [R(g) for g = gens(a.gens.S)]
+  a.gens.gensBiPolyArray.S = si
+  a.gens.gensBiPolyArray.O = [R(g) for g in gens(si)]
   return a
 end
 
@@ -1139,30 +1124,37 @@ julia> f*g
 ```
 """
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
-  # TODO:
-  # Eventually, the code below should be replaced
-  # by a call to `coordinates` over the ring `parent(a)`.
-  # This should then use relative groebner bases and
-  # make use of the caching of previously computed GBs
-  # of the modulus of `parent(a)`.
+  A = parent(a)
+  isdefined(a, :inverse_rep) && return true, A(a.inverse_rep)
+  rep = a.f
+  is_unit(rep) && return true, A(inv(rep))
 
-  Q = parent(a)
-  J = oscar_groebner_basis(Q)
-  J = vcat(J, [a.f])
-
-  if Q isa MPolyQuoRing{<:MPolyDecRingElem}
-     J = [x.f for x in J]
+  # In the graded case non-homogeneous generators for ideals are forbidden.
+  # We need to use the custom code below then. 
+  if A isa MPolyQuoRing{<:MPolyDecRingElem}
+    J = push!([x.f for x in oscar_groebner_basis(A)], a.f.f)
+    j, T = standard_basis_with_transformation_matrix(ideal(forget_grading(base_ring(A)), J))
+    length(j) > 1 && return false, a
+    j1 = only(j)
+    if is_constant(j1) && is_unit(first(coefficients(j1)))
+      @assert ncols(T) == 1
+      a.inverse_rep = base_ring(A)(inv(first(coefficients(j1)))*T[end, 1])
+      return true, A(a.inverse_rep)
+    end
+    return false, a
   end
 
-  j, T = standard_basis_with_transformation_matrix(ideal(J))
-  if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
-    @assert ncols(T) == 1
-    return true, inv(first(coefficients(j[1])))*Q(T[end, 1])
-  end
-  return false, a
+  # the non-graded case
+  I = ideal(A, a)
+  one(A) in I || return false, a
+  c = coordinates(one(A), I)
+  a.inverse_rep = c[1].f
+  return true, c[1]
 end
 
-is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
+function is_unit(a::MPolyQuoRingElem)
+  is_invertible_with_inverse(a)[1]
+end
 
 @doc raw"""
     inv(f::MPolyQuoRingElem)
@@ -1294,6 +1286,17 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
+function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
+  check_parent(a, b)
+  b, q = divides(a, b)
+  !b && error("Division is not exact in divexact")
+  return q
+end
+
+function is_nilpotent(a::MPolyQuoRingElem)
+  return radical_membership(a.f, modulus(parent(a)))
+end
+
 ### 
 # The following two functions below provide a hotfix to make sure that the preferred 
 # ordering provided to the constructor of the quotient ring is actually used for the 
@@ -1330,7 +1333,7 @@ function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal is not zero-dimensional")
+    error("the vector space dimension of the quotient ring is not finite")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
@@ -1417,7 +1420,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z] );
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
 (Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -> A)
@@ -1515,7 +1518,7 @@ end
 Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
@@ -1530,8 +1533,12 @@ Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRi
 ```
 """
 function homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  return _homogeneous_components(a, nothing)
+end
+
+function _homogeneous_components(a::MPolyQuoRingElem{<:MPolyDecRingElem}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}})
   simplify(a)
-  h = homogeneous_components(a.f)
+  h = _homogeneous_components(a.f, degs)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
@@ -1605,25 +1612,23 @@ end
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
 where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
-that group, return the homogeneous component of `A` of degree `g`. Additionally, return
-the embedding of the component into `A`.
+that group, return the `g`-graded component of `A` as a standard vector space. Additionally,
+return the embedding of the vector space into `A`.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `A`, and return the homogeneous component of `A` whose degree 
-is that element. Additionally, return the embedding of the component into `A`.
+group of `A`, and proceed as above.
 
     homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
 
 Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
 and given an integer `g`, convert `g` into an element of the grading group of `A`, 
-and return the homogeneous component of `A` whose degree is that element.
-Additionally, return the embedding of the component into `A`.
+and proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error message will be thrown.
+    If the component is infinite dimensional, an error message will be thrown.
 
 # Examples
 ```jldoctest
@@ -1732,7 +1737,16 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbG
   @assert D == grading_group(W)
   R = base_ring(W)
 
-  H, mH = homogeneous_component(R, d)
+  H, mH = try
+    homogeneous_component(R, d)
+  catch e
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
+
   I = modulus(W)
   M = gens(leading_ideal(I))
   cache = Dict{typeof(d), typeof(mH)}()
@@ -1782,7 +1796,10 @@ julia> dim(a)
 0
 ```
 """
-function dim(a::MPolyQuoIdeal)
+dim(a::MPolyQuoIdeal) = krull_dim(a)
+
+function krull_dim(a::MPolyQuoIdeal)
+  @req is_noetherian(base_ring(a)) "Krull dimension is only supported for Noetherian rings."
   if a.dim === nothing 
     a.dim = Singular.dimension(singular_groebner_generators(a))
     a.dim == -1 && (a.dim = -inf)
@@ -1856,8 +1873,8 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
     return filter(!iszero, (Q).(gens(sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
-    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
-    I.gb.gens.S.isGB = I.gb.isGB = true
+    I.gb = IdealGens(base_ring(I), sing_gb, true)
+    I.gb.gensBiPolyArray.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
@@ -1979,4 +1996,18 @@ function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Boo
     set_default_ordering!(P, o)
   end
   return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(B))); check = false)
+end
+
+@attr Bool function is_local(Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  is_zero(krull_dim(Q)) || return false
+  return is_one(length(minimal_primes(modulus(Q)))) 
+end
+
+function is_known(::typeof(is_local), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  has_attribute(Q, :is_local) && return true
+  return false
+end
+
+function is_known(::typeof(krull_dim), Q::MPolyQuoRing{<:MPolyRingElem{<:FieldElem}})
+  return is_known(krull_dim, modulus(Q))
 end

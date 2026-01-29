@@ -76,35 +76,32 @@ end
   A = R[x y u v; 7*y u v w; u 5*v w x; v w x y; w 4*x y u]
   phi = hom(R5, R4, A)
 
-  phi_2 = Oscar.induced_map_on_exterior_power(phi, 2)
+  phi_2 = exterior_power(phi, 2)
 
-  for ind in Oscar.OrderedMultiIndexSet(2, 5)
-    imgs = [phi(R5[i]) for i in Oscar.indices(ind)]
+  for ind in combinations(5, 2)
+    imgs = [phi(R5[i]) for i in ind]
     img = Oscar.wedge(imgs)
-    @test img == phi_2(domain(phi_2)[Oscar.linear_index(ind)])
+    @test img == phi_2(domain(phi_2)[Oscar.linear_index(ind, 5)])
   end
 
-  phi_3 = Oscar.induced_map_on_exterior_power(phi, 3)
+  phi_3 = exterior_power(phi, 3)
 
   A3 = matrix(phi_3)
-  for ind1 in Oscar.OrderedMultiIndexSet(3, 5)
-    for ind2 in Oscar.OrderedMultiIndexSet(3, 4)
-      @test A3[Oscar.linear_index(ind1), Oscar.linear_index(ind2)] == det(A[Oscar.indices(ind1), Oscar.indices(ind2)])
+  for ind1 in combinations(5, 3)
+    for ind2 in combinations(4, 3)
+      @test A3[Oscar.linear_index(ind1, 5), Oscar.linear_index(ind2, 4)] == det(A[data(ind1), data(ind2)])
     end
   end
 
   psi = hom(R4, R5, transpose(A))
-  psi_2 = Oscar.induced_map_on_exterior_power(psi, 2)
-  @test compose(phi_2, psi_2) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 2)
-  psi_3 = Oscar.induced_map_on_exterior_power(psi, 3)
-  @test compose(phi_3, psi_3) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 3)
-  psi_3_alt = Oscar.induced_map_on_exterior_power(psi, 3, domain = Oscar.exterior_power(R4, 3, cached=false)[1], codomain = Oscar.exterior_power(R5, 3, cached=false)[1])
+  psi_2 = exterior_power(psi, 2)
+  @test compose(phi_2, psi_2) == exterior_power(compose(phi, psi), 2)
+  psi_3 = exterior_power(psi, 3)
+  @test compose(phi_3, psi_3) == exterior_power(compose(phi, psi), 3)
+  psi_3_alt = exterior_power(psi, 3; domain = Oscar.exterior_power(R4, 3, cached=false)[1], codomain = Oscar.exterior_power(R5, 3, cached=false)[1])
   @test matrix(psi_3) == matrix(psi_3_alt)
   @test domain(psi_3) !== domain(psi_3_alt)
   @test codomain(psi_3) !== codomain(psi_3_alt)
-
-  psi_3_alt = hom(domain(psi_3), codomain(psi_3), psi)
-  @test psi_3_alt == psi_3
 end
 
 @testset "multiplication map" begin

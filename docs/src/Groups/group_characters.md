@@ -1,9 +1,10 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Group characters
+# Characters and character tables
 
 Let ``G`` be a finite group, and let ``\rho: G \to GL(n, R)``
 be a group homomorphism, for some ring ``R``.
@@ -92,10 +93,11 @@ can be fetched as `parent(chi)`.
 
 
 ```@docs
-GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
+character_table_wreath_symmetric
+character_table_complex_reflection_group
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
@@ -129,6 +131,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 
 ```@docs
 block_distribution
+character_degrees
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters
@@ -173,9 +176,10 @@ is_supersolvable(tbl::GAPGroupCharacterTable)
 ```@docs
 linear_characters(G::GAPGroup)
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
-natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+natural_character(G::Union{MatGroup{QQFieldElem}, MatGroup{AbsSimpleNumFieldElem}})
+natural_character(G::MatGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
+permutation_character(G::GAPGroup, H::GAPGroup)
 trivial_character(G::GAPGroup)
 regular_character(G::GAPGroup)
 ```
@@ -265,4 +269,10 @@ class_positions_of_normal_subgroups
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 class_positions_of_solvable_residuum
+```
+
+## Technicalities
+
+```@docs
+GAPGroupCharacterTable
 ```

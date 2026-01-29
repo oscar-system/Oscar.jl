@@ -113,12 +113,10 @@ end
   @testset "@perm <...> vector" begin
     let n = 7
       S = symmetric_group(n)
-      @static if VERSION >= v"1.7"
-        # the following tests need the improved `@macroexpand` from Julia 1.7
-        @test_throws ArgumentError @macroexpand @perm []
-        @test_throws ArgumentError @macroexpand @perm n []
-        @test_throws ArgumentError @macroexpand @perm S []
-      end
+
+      @test_throws ArgumentError @macroexpand @perm []
+      @test_throws ArgumentError @macroexpand @perm n []
+      @test_throws ArgumentError @macroexpand @perm S []
     end
 
     @testset "@perm vector" begin
@@ -267,15 +265,12 @@ end
   end
 
 
-  @static if VERSION >= v"1.7"
-    # the following tests need the improved `@macroexpand` from Julia 1.7
-    @test_throws MethodError @macroexpand @perm "bla"
-    @test_throws ErrorException @macroexpand @perm 1 + 1
-    @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
-    @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
-    @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
-    @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
-  end
+  @test_throws MethodError @macroexpand @perm "bla"
+  @test_throws ErrorException @macroexpand @perm 1 + 1
+  @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
+  @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
+  @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
+  @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
 end
 
 @testset "permutation_group" begin
@@ -305,6 +300,14 @@ end
 
   @test_throws ArgumentError @permutation_group(1, (1,2))
   @test_throws ArgumentError @permutation_group(1, (1,0))
+
+  n = 5
+  g = @permutation_group(6, (1,n))
+  @test degree(g) == 6
+  @test order(g) == 2
+  g = @permutation_group(n, (1,2,3,4))
+  @test degree(g) == n
+  @test order(g) == 4
 end
 
 @testset "parent coercion for permutation groups" begin
@@ -431,4 +434,59 @@ end
   G,_ = sub(symmetric_group(9), [c])
   H,iso = smaller_degree_permutation_representation(G)
   @test degree(H)<degree(G)
+end
+
+@testset "fixed_points tests" begin
+  # Setup permutation group
+  g = symmetric_group(4)
+  s = sylow_subgroup(g, 3)[1]        # a Sylow 3-subgroup (order 3)
+  e = one(g)                         # identity element
+  y = gen(g, 1)                      # an example element of g
+  x = gen(s, 1)                      # generator of Sylow subgroup
+
+  # Tests for fixed_points on individual elements
+  @test fixed_points(x) == [4]       # Sylow generator fixes only 4
+
+  @test fixed_points(e) == collect(1:degree(g))  # Identity fixes all
+
+  @test fixed_points(y) == [i for i in 1:degree(g) if y(i) == i]  # Check example element
+
+  z = g([2, 3, 1, 4])                # permutation (1 2 3)(4)
+  @test fixed_points(z) == [4]
+end
+
+@testset "number_of_fixed_points tests" begin
+  # Setup permutation group
+  g = symmetric_group(4)
+  s = sylow_subgroup(g, 3)[1]         # a Sylow 3-subgroup (order 3)
+  e = one(g)                          # identity element
+  y = gen(g, 1)
+  x = gen(s, 1)                       # generator of Sylow subgroup
+
+  # Tests for number_of_fixed_points on individual elements
+  @test number_of_fixed_points(x) == 1          # Sylow generator fixes only 4
+  @test number_of_fixed_points(e) == 4          # Identity fixes all points
+  @test number_of_fixed_points(y) == 0          # generator (1 2 3 4) fixes nothing
+
+  z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
+  @test number_of_fixed_points(z) == 1 # only point 4 is fixed
+end
+
+@testset "hashing permutations" begin
+  g = symmetric_group(4)
+  a = perm(g, [2, 3, 4, 1])
+  b = perm(g, [2, 3, 4, 1])
+  c = perm(g, [1, 2, 3, 4])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) == hash(b)
+
+  h = sylow_subgroup(g, 3)[1]
+  a = perm(h, [3, 1, 2])
+  a_bar = @perm (1, 3, 2)
+  b = perm(h, [3, 1, 2])
+  c = perm(g, [1, 2, 3])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) == hash(b) # same degree
 end

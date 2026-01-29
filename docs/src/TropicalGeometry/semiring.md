@@ -1,3 +1,9 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # Tropical semirings, matrices, and polynomials
 
 ## Introduction
@@ -23,5 +29,6 @@ convention(T::TropicalSemiring{typeof(min)})
 Other functions related to `TropicalSemiring`, matrices, and polynomials thereover include:
 ```@docs
 det(A::AbstractAlgebra.Generic.MatSpaceElem{<: Oscar.TropicalSemiringElem})
+roots(f::PolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax <: Union{typeof(min),typeof(max)}}
 tropical_polynomial(f::MPolyRingElem, nu::TropicalSemiringMap)
 ```

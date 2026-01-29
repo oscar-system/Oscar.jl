@@ -10,7 +10,7 @@
     rep1 = representation_on_forms(G,2)
     @test ncols(representation_matrix(rep1)) == 3
     @test group(rep1) == G
-    @test vector_space_dimension(rep1) == 3
+    @test vector_space_dim(rep1) == 3
 
     R_rep1 = invariant_ring(rep1)
     FI_rep1 = fundamental_invariants(R_rep1)

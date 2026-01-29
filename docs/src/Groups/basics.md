@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -10,8 +11,6 @@ DocTestSetup = Oscar.doctestsetup()
 Given a group `G`, it is always possible to have access to some particular elements.
 
 ```@docs
-GAPGroup
-BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
@@ -65,22 +64,25 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 ## Properties of groups
 
 ```@docs
-is_finite(G::GAPGroup)
-is_trivial(G::GAPGroup)
-is_cyclic(G::GAPGroup)
 is_abelian(G::GAPGroup)
+is_almost_simple(G::GAPGroup)
+is_cyclic(G::GAPGroup)
+is_dicyclic_group
+is_dihedral_group
 is_elementary_abelian(G::GAPGroup)
+is_extraspecial_group
+is_finite(G::GAPGroup)
+is_finitely_generated(G::GAPGroup)
+is_nilpotent(G::GAPGroup)
+is_perfect(G::GAPGroup)
 is_pgroup(G::GAPGroup)
 is_pgroup_with_prime(::Type{T}, G::GAPGroup) where T <: IntegerUnion
-is_nilpotent(G::GAPGroup)
-is_supersolvable(G::GAPGroup)
-is_solvable(G::GAPGroup)
-is_perfect(G::GAPGroup)
-is_simple(G::GAPGroup)
-is_almost_simple(G::GAPGroup)
 is_quasisimple(G::GAPGroup)
+is_simple(G::GAPGroup)
+is_solvable(G::GAPGroup)
 is_sporadic_simple(G::GAPGroup)
-is_finitely_generated(G::GAPGroup)
+is_supersolvable(G::GAPGroup)
+is_trivial(G::GAPGroup)
 ```
 
 
@@ -90,6 +92,8 @@ is_finitely_generated(G::GAPGroup)
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 abelian_invariants(G::GAPGroup)
 abelian_invariants_schur_multiplier(G::GAPGroup)
+abelian_invariants(v::Vector{S}) where S <: IntegerUnion
+elementary_divisors(v::Vector{S}) where S <: IntegerUnion
 cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
@@ -98,4 +102,11 @@ prime_of_pgroup
 derived_length
 schur_cover(G::GAPGroup)
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
+```
+
+## Technicalities
+
+```@docs
+GAPGroup
+BasicGAPGroupElem{T<:GAPGroup}
 ```

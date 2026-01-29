@@ -16,8 +16,10 @@ julia> trivial_divisor_class(v)
 Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass trivial_divisor_class(v::NormalToricVarietyType) = toric_divisor_class(trivial_divisor(v))
-
+@attr ToricDivisorClass trivial_divisor_class(v::NormalToricVarietyType) =
+  toric_divisor_class(
+    trivial_divisor(v)
+  )
 
 @doc raw"""
     anticanonical_divisor_class(v::NormalToricVarietyType)
@@ -33,8 +35,8 @@ julia> anticanonical_divisor_class(v)
 Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass anticanonical_divisor_class(v::NormalToricVarietyType) = -canonical_divisor_class(v)
-
+@attr ToricDivisorClass anticanonical_divisor_class(v::NormalToricVarietyType) =
+  -canonical_divisor_class(v)
 
 @doc raw"""
     canonical_divisor_class(v::NormalToricVarietyType)
@@ -50,4 +52,7 @@ julia> canonical_divisor_class(v)
 Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass canonical_divisor_class(v::NormalToricVarietyType) = toric_divisor_class(canonical_divisor(v))
+@attr ToricDivisorClass canonical_divisor_class(v::NormalToricVarietyType) =
+  toric_divisor_class(
+    canonical_divisor(v)
+  )

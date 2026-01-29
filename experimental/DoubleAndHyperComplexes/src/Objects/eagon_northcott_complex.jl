@@ -27,7 +27,7 @@ function (fac::ENCChainFactory)(self::AbsHyperComplex, I::Tuple)
   if is_zero(i)
     return is_graded(R) ? graded_free_module(R, [zero(grading_group(R))]) : FreeMod(R, 1)
   end
-  Sd = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:length(fac.exps[i])]) : FreeMod(R, length(fac.exps[i]))
+  Sd = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:length(fac.exps[i])], "s") : FreeMod(R, length(fac.exps[i]), "s")
   n = ncols(fac.A)
   k = nrows(fac.A)
   wedge_power, _ = exterior_power(fac.F, k + i - 1)
@@ -43,7 +43,7 @@ function can_compute(fac::ENCChainFactory, self::AbsHyperComplex, I::Tuple)
   return i <= ncols(fac.A) - nrows(fac.A) + 1
 end
 
-### Production of the morphisms 
+### Production of the morphisms
 struct ENCMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
   function ENCMapFactory()
     return new{FreeModuleHom}()
@@ -62,7 +62,7 @@ function (fac::ENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
 
   if isone(i)
     # TODO: Do we need to take signs into account?
-    dets = [det(A[:, indices(ind)]) for ind in OrderedMultiIndexSet(k, n)]
+    dets = [det(A[:, data(ind)]) for ind in combinations(n, k)]
     return hom(dom, cod, [a*cod[1] for a in dets])
   end
 
@@ -104,7 +104,7 @@ function can_compute(fac::ENCMapFactory, self::AbsHyperComplex, p::Int, I::Tuple
 end
 
 ### The concrete struct
-@attributes mutable struct EagonNorthcottComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
+@attributes mutable struct EagonNorthcottComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
   internal_complex::HyperComplex{ChainType, MorphismType}
 
   function EagonNorthcottComplex(
@@ -135,18 +135,18 @@ matrix(c::EagonNorthcottComplex) = chain_factory(c).A
 @doc raw"""
     eagon_northcott_complex(A::MatrixElem{T}; F::FreeMod{T}) where {T}
 
-Given an ``m \times n``-matrix ``A`` over a commutative ring ``R``, construct 
+Given an ``m \times n``-matrix ``A`` over a commutative ring ``R``, construct
 the Eagon-Northcott complex associated to it [EN62](@cite).
 
-A free module ``F`` over the same ring as ``A`` can be passed so that the rows 
-of ``A`` are interpreted as elements in the dual of ``F`` in the construction 
+A free module ``F`` over the same ring as ``A`` can be passed so that the rows
+of ``A`` are interpreted as elements in the dual of ``F`` in the construction
 of the complex.
 """
 function eagon_northcott_complex(
     A::MatrixElem{T};
     F::FreeMod{T}=begin
       R = base_ring(A)
-      F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)]) : FreeMod(R, ncols(A))
+      F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)], "f") : FreeMod(R, ncols(A), "f")
     end
   ) where {T}
   return EagonNorthcottComplex(A; F)
@@ -162,4 +162,3 @@ function _symmetric_power(c::EagonNorthcottComplex, i::Int)
   c[i] # fill the cache
   return chain_factory(c).sym_powers[i]
 end
-

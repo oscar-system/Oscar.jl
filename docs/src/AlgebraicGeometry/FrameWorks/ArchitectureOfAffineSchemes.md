@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -111,6 +113,15 @@ forwarded to any instance of `MyAffineScheme`.
 **Note:** The above method necessarily returns an instance of `AffineScheme`!
 Of course, it can be overwritten for any higher type `MyAffineScheme<:AbsAffineScheme` as needed.
 
+**Note:** For implementations which do not explicitly compute
+the `underlying_scheme` on construction, but in a lazy way, the
+computation of `underlying_scheme` can be quite expensive. Yet, even
+for simple functions such as e.g. `show`, the default methods trigger
+this computation. Therefore, even calls to functions which may seem
+trivial can take a long time. In order to avoid such behavior, it is the
+programmer's responsibility to not only overwrite `underlying_scheme`
+for a new custom type, but eventually also methods for other functions
+so that `underlying_scheme` is not computed unnecessarily.
 
 ## Existing types of affine scheme morphisms and how to derive new types
 

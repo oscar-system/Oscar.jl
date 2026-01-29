@@ -70,3 +70,33 @@ end
     @test compose(new_map, map_to_original_complex(cc)[i-1]) == compose(map_to_original_complex(cc)[i], orig)
   end
 end
+
+@testset "homotopies for simplified complexes" begin
+  R, (x, y, z, w) = graded_polynomial_ring(QQ, [:x, :y, :z, :w])
+  a = [x, one(R), y, z, -2*one(R), w]
+  k = Oscar.HomogKoszulComplex(R, a)
+  s = simplify(k);
+  @test_throws ErrorException Oscar.homotopy_map(s, 3)
+  s = simplify(k; with_homotopy_maps=true);
+
+  for k in [rand(0:length(a)) for _ in 1:3*length(a)]
+    s[k]
+  end
+
+
+  from = Oscar.map_from_original_complex(s);
+  to = Oscar.map_to_original_complex(s);
+
+  h0 = Oscar.homotopy_map(s, 0)
+  @test compose(h0, map(k, 1)) == id_hom(k[0]) - compose(from[0], to[0])
+
+  for i in 1:length(a)-1
+    s[i]
+    h0 = Oscar.homotopy_map(s, i)
+    h1 = Oscar.homotopy_map(s, i-1)
+    @test compose(h0, map(k, i+1)) + compose(map(k, i), h1) == id_hom(k[i]) - compose(from[i], to[i])
+  end
+
+  h1 = Oscar.homotopy_map(s, length(a)-1)
+  @test compose(map(k, length(a)), h1) == id_hom(k[length(a)]) - compose(from[length(a)], to[length(a)])
+end

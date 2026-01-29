@@ -68,6 +68,44 @@
   
   @test [ngens(coh.original_complex[i]) for i in -4:10] == [0, 169, 1817, 8412, 22848, 40967, 51448, 46849, 31338, 15027, 4749, 830, 54, 0, 0]
   
+  # Test for the cohomology spectral sequence in `experimental/Schemes/SpectralSequences.jl`
+  css = Oscar.CohomologySpectralSequence(S, tot);
+  cssp = css[1];
+  for i in 0:9
+    for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
+      if (i, j) in [(0, 0), (1, 0), (2, -1), (3, -1), (4, -1), (4, -2), (5, -2), (6, -2), (7, -2), (8, -2), (9, -2)]
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
+  cssp = css[2];
+  for i in 0:9
+    for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
+      if (i, j) in [(0, 0), (2, -1), (4, -2)]
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
+  cssp = css[4];
+  for i in 0:9
+    for j in 0:-1:-2
+      @test Oscar.check_sanity(cssp, i, j)
+      if i == 0 && j == 0
+        @test !is_zero(cssp[i, j])
+      else
+        @test is_zero(cssp[i, j])
+      end
+    end
+  end
+
   #= The code below takes too long for the CI.
   # It is kept here for the purpose of reproducibility of the paper's results. 
   
@@ -82,7 +120,7 @@
   tot_0_subs, _ = change_base_ring(subs, tot_0);
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 4
+  @test vector_space_dim(H0) == 4
 
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
@@ -155,6 +193,9 @@ end
 
   coh = Oscar._derived_pushforward(tot, gens(irr));
 
+  css = Oscar.CohomologySpectralSequence(S, tot);
+  css[4, 0, 0]
+  
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
   c = [y - z]
@@ -163,7 +204,7 @@ end
   subs = hom(P, R, vcat(R.(a), R.(b), R.(c), gens(R)))
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 6
+  @test vector_space_dim(H0) == 6
 
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
@@ -173,7 +214,7 @@ end
   subs = hom(P, R, vcat(R.(a), R.(b), R.(c), gens(R)))
   subs_coh, _ = change_base_ring(subs, coh);
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
-  @test vector_space_dimension(H0) == 2
+  @test vector_space_dim(H0) == 2
 end
 =#
 

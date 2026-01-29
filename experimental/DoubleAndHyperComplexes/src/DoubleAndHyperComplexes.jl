@@ -29,6 +29,20 @@ include("Morphisms/methods.jl")
 include("Objects/Methods.jl")
 include("Exports.jl")
 
+include("Morphisms/new_koszul_complexes.jl")
+include("Morphisms/induced_homs.jl")
+include("Morphisms/tensor_product.jl")
+include("Morphisms/shifted_complexes.jl")
+include("Morphisms/views.jl")
+include("Morphisms/total_complexes.jl")
+include("Morphisms/strand_morphisms.jl")
+include("Morphisms/SummandProjection.jl")
+include("Morphisms/HomologyPseudoInverse.jl")
 include("base_change_types.jl")
+include("Morphisms/base_change.jl")
 include("base_change.jl")
+
+# Geometric functionality building on the homological algebra in this package.
+include("DerivedPushforward.jl")
+include("SpectralSequences.jl")
 

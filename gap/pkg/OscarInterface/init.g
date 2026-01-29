@@ -5,3 +5,4 @@
 #
 
 ReadPackage( "OscarInterface", "gap/OscarInterface.gd");
+ReadPackage( "OscarInterface", "gap/QQBar.gd");

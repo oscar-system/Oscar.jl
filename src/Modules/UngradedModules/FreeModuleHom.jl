@@ -74,7 +74,10 @@ function matrix(f::FreeModuleHom)
   return f.matrix
 end
 
-(h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
+function (h::FreeModuleHom)(a::AbstractFreeModElem)
+  @req parent(a) === domain(h) "invalid input"
+  image(h, a)
+end
 
 @doc raw"""
     hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
@@ -234,11 +237,11 @@ hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check:
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
-    identity_map(M::ModuleFP)
+    id_hom(M::ModuleFP)
 
 Return the identity map $id_M$.
 """
-function identity_map(M::ModuleFP)
+function id_hom(M::ModuleFP)
   phi = hom(M, M, gens(M), check=false)
   phi.generators_map_to_generators = true
   return phi
@@ -369,7 +372,9 @@ function hom(F::FreeMod, G::FreeMod)
   else
     GH = FreeMod(F.R, rank(F) * rank(G))
   end
-  GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
+  GH.S = function _get_hom_symbols() 
+    return [Symbol("($i -> $j)") for i = symbols(F) for j = symbols(G)]
+  end
 
   #list is g1 - f1, g2-f1, g3-f1, ...
   X = Hecke.MapParent(F, G, "homomorphisms")
@@ -447,40 +452,46 @@ represented as subquotient with no relations -> F)
 
 ```
 """
-function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})  #ONLY for free modules...
+function kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}; cached::Bool=true) where T
+  cached && return get_attribute!(h, :kernel) do
+    _kernel(h)
+  end::Tuple{SubquoModule{T}, SubQuoHom{SubquoModule{T}, FreeMod{T}}}
+  return _kernel(h)
+end
+
+function _kernel(h::FreeModuleHom{FreeMod{T}, FreeMod{T}}) where T
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  is_graded(h) && return _graded_kernel(h)
+  return kernel_atomic(h)  # explicitly call kernel_atomic
+end
+
+function kernel_atomic(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   error("not implemented for modules over rings of type $(typeof(base_ring(domain(h))))")
 end
 
-# The following function is part of the requirement of atomic functions to be implemented 
-# in order to have the modules run over a specific type of ring. The documentation of this is 
-# pending and so far only orally communicated by Janko Boehm. 
-#
-# The concrete method below uses Singular as a backend to achieve its task. In order 
-# to have only input which Singular can actually digest, we restrict the signature 
-# to those cases. The method used to be triggered eventually also for rings which 
-# did not have a groebner basis backend in Singular, but Singular did not complain. 
-# This lead to false results without notification. By restricting the signature, 
-# the user gets the above error message instead. 
-function kernel(
-    h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}
-  ) where {S<: Union{ZZRingElem, <:FieldElem}, T <: MPolyRingElem{S}}
-  is_zero(h) && return sub(domain(h), gens(domain(h)))
-  is_graded(h) && return _graded_kernel(h)
-  return _simple_kernel(h)
-end
-
-function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {S<:Union{ZZRingElem, FieldElem}, T<:MPolyRingElem{S}}
   F = domain(h)
   G = codomain(h)
-  g = images_of_generators(h)
-  b = ModuleGens(g, G, default_ordering(G))
-  M = syzygy_module(b)
+  gens_h = images_of_generators(h)
+  mod_gens = ModuleGens(gens_h, G, default_ordering(G))
+  M = syzygy_module(mod_gens)
   v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
   return sub(F, v)
 end
 
+@attr Any function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+  solve_init(matrix(h))
+end
+
+function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+  K = kernel(kernel_ctx(h); side=:left)
+  F = domain(h)
+  v = [F(sparse_row(K[j:j, :])) for j in 1:nrows(K)]
+  return sub(F, v)
+end
+
 function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
-  I, inc = _simple_kernel(h)
+  I, inc = kernel_atomic(h)
   @assert is_graded(I)
   @assert is_homogeneous(inc)
   return I, inc
@@ -507,6 +518,22 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)], ring_map(H); check=false)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
   M = domain(H)
   pres = presentation(M)
   # is a short exact sequence with maps
@@ -580,7 +607,7 @@ represented as subquotient with no relations -> G)
 
 ```
 """
-function image(h::FreeModuleHom)
+@attr Tuple{<:SubquoModule, <:SubQuoHom} function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
   s = sub_object(codomain(h), si)
   phi = hom(s, codomain(h), si, check=false)
