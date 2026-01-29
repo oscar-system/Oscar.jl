@@ -68,7 +68,7 @@ end
 
 # Multiply monomial m with polynomial f
 function multiply_m_with_f(m::DrinfeldHeckeAlgebraElem, f::DrinfeldHeckeAlgebraElem)
-  if is_one(m) || is_zero(f) return f end
+  (is_one(m) || is_zero(f)) && return f
 
   A = parent(m)
   (lc, lm, tail) = split_polynomial(f)
@@ -82,8 +82,8 @@ function multiply_m1_with_m2(m1::DrinfeldHeckeAlgebraElem, m2::DrinfeldHeckeAlge
   A = m1.parent
 
   # cases of empty monomials
-  if is_one(m1) return m2 end
-  if is_one(m2) return m1 end
+  is_one(m1) && return m2
+  is_one(m2) && return m1
 
   (mm1,x) = split_monomial_right(m1)
   (y,mm2) = split_monomial_left(m2)

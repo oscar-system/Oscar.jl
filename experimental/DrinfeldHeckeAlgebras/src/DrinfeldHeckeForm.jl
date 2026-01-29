@@ -23,19 +23,11 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
       throw(ArgumentError("The given ring must be an algebra over the base ring of the given group."))
     end
 
-    S = elem_type(typeof(R))
-    kappa = new{T, S}()
-
-    kappa.group = G
-    kappa.base_ring = R
-    kappa.forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
-
     RV, _ = polynomial_ring(R, "x#" => 1:degree(G); cached = false)
 
-    kappa.base_algebra = RV
-    kappa.group_algebra = RV[G]
-
-    return kappa
+    S = elem_type(typeof(R))
+    forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
+    return new{T, S}(G, R, RV, RV[G], forms)
   end
 
   # Creates Drinfeld-Hecke form from non-empty forms input
@@ -195,10 +187,10 @@ function (kappa::DrinfeldHeckeForm{T, S})(v::Vector{S}, w::Vector{S}) where {T <
 
   res = RG()
 
-  if v == w return res end
+  v == w && return res
 
   for (g, kappa_g) in alternating_bilinear_forms(kappa)
-    res = res + RV(kappa_g(v,w)) * RG(g)
+    res += RV(kappa_g(v,w)) * RG(g)
   end
 
   return res
