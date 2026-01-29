@@ -26,7 +26,7 @@ alternating_bilinear_form(m::MatElem{T}) where T <: RingElem = AlternatingBiline
 
 function show(io::IO, b::AlternatingBilinearForm)
   println(io, "Alternating bilinear form, in the standard basis represented by the Gram matrix")
-  display(matrix(b))
+  show(io, MIME"text/plain"(), matrix(b))
 end
 
 #######################################
