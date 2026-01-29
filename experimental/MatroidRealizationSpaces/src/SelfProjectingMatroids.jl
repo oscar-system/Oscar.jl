@@ -246,9 +246,9 @@ end
 function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
   R = base_ring(M);
   if R isa MPolyQuoRing
-    candidates = [R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)]
+    candidates = [det(M[1:nrows(M),Bases[i]]) for i in 1:length(Bases)]
   else
-    candidates = sort_by_degree([R(det(M[1:nrows(M),Bases[i]])) for i in 1:length(Bases)])
+    candidates = sort_by_degree([det(M[1:nrows(M),Bases[i]]) for i in 1:length(Bases)])
   end
   multiplicativeSet= nothing
   ineqs = [R(0)]
