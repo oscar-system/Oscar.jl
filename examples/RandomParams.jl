@@ -530,9 +530,9 @@ end
 # Matrices (via MatSpace{T})
 
 
-mutable struct RandomParams_MatSpace  <: RandomParams
-  matrix_space::MatSpace
-  coeff_params::RandomParams
+mutable struct RandomParams_MatSpace{T<:MatElem{U}} <: RandomParams{T}
+  matrix_space::MatSpace{U}
+  coeff_params::RandomParams{U}
   density::Float64 # in interval [0,1]
   structure::Symbol  # in [:generic, :symmetric, :anti_symmetric] # is there a better way? # also ?? [:toeplitz, :hankel, :other] ??
   nz::Bool
