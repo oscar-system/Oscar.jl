@@ -9,7 +9,7 @@
   (x,y) = gens(RV)
   g = G[1]
 
-  T = elem_type(typeof(A))
+  T = elem_type(A)
 
   @testset "cast Integer to Drinfeld-Hecke algebra" begin
     @test A(1) isa T

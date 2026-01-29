@@ -39,13 +39,13 @@ function generate_generic_forms_locally(G::MatGroup{T}, R::Field) where {T <: Fi
 
   # If there weren't any nonzero forms, return empty dictionary
   if isempty(nonzero_forms)
-    return Dict{MatGroupElem{T}, MatElem{elem_type(typeof(R))}}()
+    return Dict{elem_type(G), dense_matrix_type(mpoly_type(R))}()
   end
 
   # Now we know the number of parameters and can create our new base ring
   parameters = number_of_parameters == 1 ? ["t"] : ["t" * string(i) for i in 1:number_of_parameters]
-  S, _ = polynomial_ring(R, parameters, cached = false)
-  forms = Dict{MatGroupElem{T}, MatElem{elem_type(typeof(S))}}()
+  S, _ = polynomial_ring(R, parameters; cached = false)
+  forms = Dict{elem_type(G), dense_matrix_type(S)}()
 
   # Next we shift all forms into S and calculate all remaining forms for the according class
   current_parameter_index = 1

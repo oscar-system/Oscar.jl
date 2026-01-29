@@ -26,7 +26,7 @@ function generate_generic_forms_globally(G::MatGroup{T}, R::Ring) where {T <: Fi
   n = degree(G)
 
   # Initialize forms
-  forms = Dict{MatGroupElem{T}, MatElem{elem_type(typeof(S))}}()
+  forms = Dict{elem_type(G), dense_matrix_type(S)}()
   for g in G
     forms[g] = zero_matrix(S, n, n)
   end

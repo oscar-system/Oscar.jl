@@ -25,7 +25,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
 
     RV, _ = polynomial_ring(R, "x#" => 1:degree(G); cached = false)
 
-    S = elem_type(typeof(R))
+    S = elem_type(R)
     forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
     return new{T, S}(G, R, RV, RV[G], forms)
   end
@@ -38,8 +38,8 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     G = parent(g)
     R = base_ring(kappa_g)
 
-    T = elem_type(typeof(base_ring(G)))
-    S = elem_type(typeof(R))
+    T = elem_type(base_ring(G))
+    S = elem_type(R)
 
     forms_safe = Dict{MatGroupElem{T}, MatElem{S}}()
 
