@@ -843,3 +843,46 @@ function tensor_product(maps::Vector{<:ModuleFPHom};
   return tensor_product(domain, codomain, maps)
 end
 
+@doc raw"""
+    _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+
+Provide a list of monomials `x^a * e[i]` in the `ambient_free_module` of `M` which 
+reduce to a vector space basis of `M` over the `coordinate_ring` of its `base_ring` 
+(which is a field).
+"""
+function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  S = base_ring(M)
+  F = ambient_free_module(M)
+  # We need `M` to be presented  
+  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
+    pres = presentation(M)
+    MM = cokernel(map(pres, 1))
+    B = _vector_space_basis(MM)
+    aug = map(pres, 0)
+    return elem_type(pres[0])[repres(aug(pres[0](coordinates(v)))) for v in B]
+  end
+  # We may assume that M is presented
+  I = M.quo
+  lead_I = leading_module(I)
+  result = elem_type(F)[]
+  for i in 1:ngens(F)
+    d = 0 # Iterate through the graded parts for the standard grading.
+    done = false # We will quit once no new contributions are found.
+    while !done
+      found = false
+      # `AllMonomials` has a different dispatch in case of graded rings 
+      # so we need to strip off the grading if we want to work with the 
+      # standard grading by total degree.
+      for m in AllMonomials(is_graded(S) ? forget_grading(S) : S, d)
+        mi = m*F[i] 
+        mi in lead_I && continue
+        push!(result, mi)
+        found = true
+      end
+      done = !found
+      d = d + 1
+    end
+  end
+  return result
+end
+
