@@ -50,10 +50,6 @@ function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
   return BasicGAPGroupElem(x.parent, X)
 end
 
-Base.hash(x::GAPGroup, h::UInt) = h # FIXME
-Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
-
-
 """
     PermGroup
 
@@ -460,6 +456,7 @@ mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupEle
       return z
    end
 end
+
 
 ################################################################################
 #

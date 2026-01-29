@@ -395,6 +395,8 @@ function ==(x::GAPGroup, y::GAPGroup)
   return GapObj(x) == GapObj(y)
 end
 
+Base.hash(x::GAPGroup, h::UInt) = h # FIXME
+
 isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 
 # For two `BasicGAPGroupElem`s,
@@ -414,6 +416,16 @@ function ==(x::GAPGroupElem, y::GAPGroupElem)
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
+
+function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
+  b = 0x51e7ebcb0206be89 % UInt
+  G = full_group(parent(x))[1]
+  h = hash(G, h)
+  h = hash(syllables(x), h)
+  return xor(h, b)
+end
+
+Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 
 """
     one(G::GAPGroup) -> elem_type(G)

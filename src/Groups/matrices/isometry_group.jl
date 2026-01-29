@@ -441,6 +441,10 @@ function _stab_via_fin_field(G, BL, p)
 end 
 
 function _stab_via_fin_field(G, mats, BL, p)
+  if length(mats)==0
+    # catch a corner case which may make gap choke
+    return G, id_hom(G)
+  end
   R = fpField(UInt(p))
   BLmod = change_base_ring(R, BL)
   r = rref!(BLmod)

@@ -50,7 +50,15 @@ For OSCAR 1.0.0 we plan to have one or two release candidates but unlike julia a
 Just before making the release, `CHANGELOG.md` should be updated.
 See [Updating `CHANGELOG.md`](@ref) for details.
 
-Once the version is at X.Y.0, the version can be registered in the julia registry with `@JuliaRegistrator register()`. In this case TagBot will create the corresponding release, but preferably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
+Once the version is at X.Y.0, the version can be registered in the julia registry with
+```
+@JuliaRegistrator register
+
+Release notes:
+
+<copy the content of CHANGELOG.md for version X.Y.0 here (wihout the heading, but including the introductory sentence)>
+```
+In this case TagBot will create the corresponding release.
 
 Consider deploying a released version at [zenodo](https://zenodo.org/).
 
