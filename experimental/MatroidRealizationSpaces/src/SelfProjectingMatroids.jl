@@ -254,7 +254,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem
   ineqs = [R(0)]
   if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
     for candidate in candidates
-      @req !iszero(candidate) "a basis has vanishing minor"
+      @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
       if isone(candidate) || isone(-candidate) 
       elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
         push!(ineqs,R(candidate))
@@ -263,7 +263,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem
     return ineqs[2:end]
   end
   for candidate in candidates
-    @req !iszero(candidate) "a basis has vanishing minor"
+    @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
     if isone(candidate) || isone(-candidate) 
     else
       if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
