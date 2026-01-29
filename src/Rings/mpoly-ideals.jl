@@ -2204,10 +2204,7 @@ true
     return true
   end
   GB = gens(groebner_basis(I, complete_reduction = true))
-  if all(is_monomial, GB)
-    return true
-  end
-  return false
+  return all(is_monomial, GB)
 end
 
 ################################################################################
