@@ -174,10 +174,7 @@ julia> kappa_g = matrix(R, [0 y; -y 0])
 [ 0   y]
 [-y   0]
 
-julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
-Dict{MatGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
-  [1 0; 0 1]   => [0 x; -x 0]
-  [-1 0; 0 -1] => [0 y; -y 0]
+julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g);
 
 julia> B = drinfeld_hecke_algebra(forms)
 Drinfeld-Hecke algebra

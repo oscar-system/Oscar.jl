@@ -8,7 +8,7 @@
 
 # Multiply with scalar from left and right
 function *(c::S, a::DrinfeldHeckeAlgebraElem{T, S}) where {T <: FieldElem, S <: RingElem}
-  A = a.parent
+  A = parent(a)
 
   return A(base_algebra(A)(c) * a.element)
 end
@@ -28,12 +28,10 @@ end
 
 # Multiply general elements a and b
 function multiply(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem)
-  A = a.parent
-  
-  @req A == parent(b) "Elements do not belong to the same algebra"
+  check_parent(a, b)
 
-  if is_one(a) || is_zero(b) return b end
-  if is_one(b) || is_zero(a) return a end
+  (is_one(a) || is_zero(b)) && return b
+  (is_one(b) || is_zero(a)) && return a
   
   (c, m, g, tail) = split_element(b)
 
@@ -43,7 +41,7 @@ end
 
 # Multiply Drinfeld-Hecke algebra element a with monomial m
 function multiply_a_with_m(a::DrinfeldHeckeAlgebraElem, m::DrinfeldHeckeAlgebraElem)
-  if is_one(m) || is_zero(a) return a end
+  (is_one(m) || is_zero(a)) && return a
 
   (x,mm) = split_monomial_left(m)
   
@@ -53,7 +51,7 @@ end
 
 # Multiply Drinfeld-Hecke algebra element a with generator x
 function multiply_a_with_x(a::DrinfeldHeckeAlgebraElem, x::DrinfeldHeckeAlgebraElem)
-  if is_zero(a) return a end
+  is_zero(a) && return a
 
   A = a.parent
   (c, m, g, tail) = split_element(a)
@@ -158,7 +156,7 @@ function split_monomial_left(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
   
-  @req is_monomial(m) "element " * print(m) * " is not a monomial"
+  @req is_monomial(m) "element $m is not a monomial"
 
   for (i, exp) in enumerate(collect(exponents(m))[1])
     if exp > 0
@@ -177,7 +175,7 @@ function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
   A = a.parent
   m = a.element.coeffs[1]
   
-  @req is_monomial(m) "element " * print(m) * " is not a monomial"
+  @req is_monomial(m) "element $m is not a monomial"
 
   reversed_exponents = reverse(collect(exponents(m))[1])
   reversed_generators = reverse(gens(m.parent))

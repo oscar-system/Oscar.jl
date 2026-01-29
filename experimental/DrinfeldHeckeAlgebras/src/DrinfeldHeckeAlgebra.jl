@@ -291,8 +291,11 @@ function Base.show(io::IO, A::DrinfeldHeckeAlgebra)
   show(io, group(A))
   println(io, Dedent())
   println(io, "with generators")
-  print(io, Indent(), join(gens(base_algebra(A)), ", "))
-  println(io, ", " * join(["g" * string(i) for i in 1:ngens(group(A))], ", "))
+  print(io, Indent())
+  join(io, gens(base_algebra(A)), ", ")
+  print(io, ", ")
+  join(io, ["g$i" for i in 1:ngens(group(A))], ", ")
+  println(io)
   println(io, Dedent())
   print(io, "defined by ")
   show(io, form(A))
@@ -561,7 +564,6 @@ is_trivial(A::DrinfeldHeckeAlgebra) = is_zero(form(A))
 
 parent_type(::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebra{T, S}
 elem_type(::Type{DrinfeldHeckeAlgebra{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
-ring_type(::Type{DrinfeldHeckeAlgebra{T, S}}) where {T <: FieldElem, S <: RingElem} = parent_type(T)
 parent(a::DrinfeldHeckeAlgebraElem) = a.parent
 is_domain_type(::Type{DrinfeldHeckeAlgebraElem}) = false
 is_exact_type(::Type{DrinfeldHeckeAlgebraElem}) = true
@@ -626,7 +628,7 @@ rand(A::DrinfeldHeckeAlgebra) = DrinfeldHeckeAlgebraElem(A, rand(group_algebra(A
 
 AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{DrinfeldHeckeAlgebraElem{T, S}}) where {T <: FieldElem, S <: RingElem} = DrinfeldHeckeAlgebraElem{T, S}
 function AbstractAlgebra.promote_rule(::Type{DrinfeldHeckeAlgebraElem{T, S}}, ::Type{U}) where {T <: FieldElem, S <: RingElem, U <: RingElement}
- promote_rule(T, U) == T ? DrinfeldHeckeAlgebraElem{T, S} : Union{}
+  promote_rule(T, U) == T ? DrinfeldHeckeAlgebraElem{T, S} : Union{}
 end
 
 

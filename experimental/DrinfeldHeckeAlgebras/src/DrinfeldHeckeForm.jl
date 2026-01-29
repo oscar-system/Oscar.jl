@@ -30,7 +30,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
     kappa.base_ring = R
     kappa.forms = Dict{MatGroupElem{T}, AlternatingBilinearForm{S}}()
   
-    RV, _ = polynomial_ring(R, ["x" * string(i) for i in 1:degree(G)], cached = false)
+    RV, _ = polynomial_ring(R, "x#" => 1:degree(G); cached = false)
     
     kappa.base_algebra = RV
     kappa.group_algebra = RV[G]
