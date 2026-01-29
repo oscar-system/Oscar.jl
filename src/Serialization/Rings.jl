@@ -221,7 +221,6 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
   end
 end
 
-
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
@@ -255,6 +254,7 @@ end
 @register_serialization_type MPolyLocalizedIdeal
 @register_serialization_type MPolyQuoLocalizedIdeal
 @register_serialization_type MPolyQuoIdeal
+@register_serialization_type Hecke.PIDIdeal
 
 function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb

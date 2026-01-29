@@ -143,6 +143,8 @@ from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realiza
 """
 realization_matrix(RS::MatroidRealizationSpace) = RS.realization_matrix
 
+
+#this does not use the defining ideal of the realization space at all! It fills the matrix purely by combinatorics: deciding which entries can be scaled to 1 from the nonIdentity part of the matrix (column & row scaling) and setting to zero. The rest gets variables (these are later simplified)
 function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   # prepare the combinatorial data
 
@@ -191,12 +193,12 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
     circ = circs[col]
     c = nonIdCols[col]
 
-    if B[row] == minimum(circ)
+    if B[row] == minimum(circ) #somehow these minimums of the circuit == B[row] shows the first nonzero entry in each column int he part of the matrix that is not the identity - I don't yet understand why or how that works.
       mat[row, c] = R(1)
     elseif B[row] in circ
       if row in unUsedRowsForOnes
         mat[row, c] = R(1)
-        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
+        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row]) #unUsedRowsForOnes corresponds to scaling the first nonzero entry in each row (for the part of the matrix that is not the identity)
       else
         mat[row, c] = x[varCounter]
         varCounter = varCounter + 1
