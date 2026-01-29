@@ -540,7 +540,7 @@ mutable struct RandomParams_MatSpace  <: RandomParams
 
   function RandomParams_MatSpace(S::MatSpace, density::Float64, coeff_range::RandomParams, structure::Symbol, non_zero::Bool)
     @req (is_compatible(coeff_range, base_ring(S)))  "MatSpace and coeff_range are not compatible"
-    @req (0 <= density && density <= 1)   "Density must be between 0 and 1"
+    @req (0 <= density <= 1)   "Density must be between 0 and 1"
     @req (structure in [:generic, :symmetric, :anti_symmetric])  "structure name not recognized"
     result = new()
     result.matrix_space = S
