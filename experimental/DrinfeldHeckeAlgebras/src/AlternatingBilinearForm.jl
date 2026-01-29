@@ -35,8 +35,8 @@ end
 
 matrix(b::AlternatingBilinearForm) = b.matrix
 is_zero(b::AlternatingBilinearForm) = is_zero(matrix(b))
-==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a.matrix == b.matrix
-Base.hash(b::AlternatingBilinearForm, h::UInt) = hash(b.matrix, h)
+==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = matrix(a) == matrix(b)
+Base.hash(b::AlternatingBilinearForm, h::UInt) = hash(matrix(b), h)
 isequal(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = a == b
 
 #######################################

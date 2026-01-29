@@ -55,7 +55,7 @@ mutable struct DrinfeldHeckeForm{T <: FieldElem, S <: RingElem}
 
     for (g, m) in forms_safe
       if !is_zero(m)
-        kappa.forms[g] = alternating_bilinear_form(m)
+        alternating_bilinear_forms(kappa)[g] = alternating_bilinear_form(m)
       end
     end
 
@@ -112,14 +112,14 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
     println(io, Dedent())
   end
 
-  if (length(kappa.forms) == 0)
+  if is_zero(kappa)
     print(io, "given by 0")
     return
   end
 
   println(io, "given by alternating bilinear forms")
   n = degree(group(kappa))
-  for (k,(g, kappa_g)) in enumerate(kappa.forms)
+  for (k,(g, kappa_g)) in enumerate(alternating_bilinear_forms(kappa))
     A = matrix(g)
     B = matrix(kappa_g)
 
@@ -146,7 +146,7 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
         if j < n print(io, "   ") end
       end
 
-      if i == n && k == length(kappa.forms)
+      if i == n && k == number_of_forms(kappa)
         print(io, "]")
       else
         println(io, "]")
@@ -155,7 +155,7 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
       print(io, Dedent())
     end
 
-    if k < length(kappa.forms)
+    if k < number_of_forms(kappa)
       println(io)
     end
   end
@@ -165,14 +165,14 @@ end
 # Generic functions
 #######################################
 
-is_zero(kappa::DrinfeldHeckeForm) = length(kappa.forms) == 0
-base_field(kappa::DrinfeldHeckeForm) = base_ring(kappa.group)
+is_zero(kappa::DrinfeldHeckeForm) = is_zero(number_of_forms(kappa))
+base_field(kappa::DrinfeldHeckeForm) = base_ring(group(kappa))
 base_ring(kappa::DrinfeldHeckeForm) = kappa.base_ring
 base_algebra(kappa::DrinfeldHeckeForm) = kappa.base_algebra
 group(kappa::DrinfeldHeckeForm) = kappa.group
 group_algebra(kappa::DrinfeldHeckeForm) = kappa.group_algebra
 alternating_bilinear_forms(kappa::DrinfeldHeckeForm) = kappa.forms
-number_of_forms(kappa::DrinfeldHeckeForm) = length(kappa.forms)
+number_of_forms(kappa::DrinfeldHeckeForm) = length(alternating_bilinear_forms(kappa))
 nforms(kappa::DrinfeldHeckeForm) = number_of_forms(kappa)
 parameters(kappa::DrinfeldHeckeForm) = if base_ring(kappa) isa MPolyRing return gens(base_ring(kappa)) else return [] end
 number_of_parameters(kappa::DrinfeldHeckeForm) = length(parameters(kappa))
