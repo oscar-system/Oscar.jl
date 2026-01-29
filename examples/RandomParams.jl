@@ -33,7 +33,9 @@ using Random;
 # We define several concrete subtypes of RandomParams each of which contains
 # the information about the distribution of the random values to generate, and
 # the structure to which those values will belong (e.g. ring, matrix, etc)
-abstract type RandomParams end;
+# The type parameter `T` indicates the type of objects that are produced
+# from these RandomParams (e.g. it could be `Int` or `ZZRingElem`)
+abstract type RandomParams{T} end
 
 
 # We estimate how many distinct values each random generator
