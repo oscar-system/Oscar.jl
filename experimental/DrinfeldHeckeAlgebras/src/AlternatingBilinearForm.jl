@@ -33,7 +33,7 @@ end
 # Generic functions
 #######################################
 
-matrix(b::AlternatingBilinearForm) = b.matrix
+matrix(b::AlternatingBilinearForm{T}) where {T <: RingElem} = b.matrix::dense_matrix_type(T)
 is_zero(b::AlternatingBilinearForm) = is_zero(matrix(b))
 ==(a::AlternatingBilinearForm, b::AlternatingBilinearForm) = matrix(a) == matrix(b)
 Base.hash(b::AlternatingBilinearForm, h::UInt) = hash(matrix(b), h)

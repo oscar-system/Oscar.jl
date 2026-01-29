@@ -170,13 +170,12 @@ end
 
 is_zero(kappa::DrinfeldHeckeForm) = is_zero(number_of_forms(kappa))
 base_field(kappa::DrinfeldHeckeForm) = base_ring(group(kappa))
-base_ring(kappa::DrinfeldHeckeForm) = kappa.base_ring
-base_algebra(kappa::DrinfeldHeckeForm) = kappa.base_algebra
-group(kappa::DrinfeldHeckeForm) = kappa.group
-group_algebra(kappa::DrinfeldHeckeForm) = kappa.group_algebra
+base_ring(kappa::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem} = kappa.base_ring::parent_type(S)
+base_algebra(kappa::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem} = kappa.base_algebra::mpoly_ring_type(S)
+group(kappa::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem} = kappa.group::matrix_group_type(T)
+group_algebra(kappa::DrinfeldHeckeForm{T, S}) where {T <: FieldElem, S <: RingElem} = kappa.group_algebra::GroupAlgebra{mpoly_type(S), matrix_group_type(T), elem_type(matrix_group_type(T))}
 alternating_bilinear_forms(kappa::DrinfeldHeckeForm) = kappa.forms
 number_of_forms(kappa::DrinfeldHeckeForm) = length(alternating_bilinear_forms(kappa))
-nforms(kappa::DrinfeldHeckeForm) = number_of_forms(kappa)
 parameters(kappa::DrinfeldHeckeForm) = if base_ring(kappa) isa MPolyRing return gens(base_ring(kappa)) else return [] end
 number_of_parameters(kappa::DrinfeldHeckeForm) = length(parameters(kappa))
 
