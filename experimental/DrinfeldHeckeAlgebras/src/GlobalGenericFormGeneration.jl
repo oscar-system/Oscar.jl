@@ -112,7 +112,7 @@ function build_relation_matrix(G::MatGroup)
     # Now we add the relations (V) for all h ∈ G and i < j
     for h in G
       # If h is one, they are always true
-      if is_one(h) continue end
+      is_one(h) && continue
 
       c = inv(h) * g * h
       A = matrix(h)

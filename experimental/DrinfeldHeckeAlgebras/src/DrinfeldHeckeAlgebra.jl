@@ -366,7 +366,9 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
             mcl = max_column_length(A, j)
             print(io, repeat(" ", mcl - length(string(A[i,j]))))
             print(io, A[i,j])
-            if j < n print(io, "   ") end
+            if j < n
+              print(io, "   ")
+            end
           end
 
           println(io, "]")
@@ -599,8 +601,8 @@ canonical_unit(a::DrinfeldHeckeAlgebraElem) = one(parent(a))
 isequal(a::DrinfeldHeckeAlgebraElem, b::DrinfeldHeckeAlgebraElem) = a == b
 
 function ^(a::DrinfeldHeckeAlgebraElem, e::Int)
-  if e == 0 return one(parent(a)) end
-  if e == 1 return a end
+  e == 0 && return one(parent(a))
+  e == 1 && return a
 
   return multiply(a,a^(e - 1))
 end

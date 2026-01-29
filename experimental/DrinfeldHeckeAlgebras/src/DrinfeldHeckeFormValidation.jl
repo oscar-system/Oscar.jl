@@ -7,7 +7,7 @@
 #######################################
 function is_drinfeld_hecke_form(forms::Dict{MatGroupElem{T}, MatElem{S}}) where {T <: FieldElem, S <: RingElem}
     # If the forms are empty, they define the trivial (zero) Drinfeld-Hecke form
-    if length(forms) == 0 return true end
+    isempty(forms) && return true
 
     # Otherwise we extract ring data
     g, kappa_g = first(forms)

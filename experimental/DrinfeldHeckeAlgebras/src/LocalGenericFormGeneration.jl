@@ -115,7 +115,7 @@ function calculate_form_for_non_trivial_element(g::MatGroupElem{T}, K::Field) wh
     basis_Vg⊥ = matrix(hcat(A[:,i], A[:,j]))
 
     # If the rank is 2, we stop
-    if rank(basis_Vg⊥) == 2 break end
+    rank(basis_Vg⊥) == 2 && break
   end
 
   # Check det(h⊥) = 1 for elements in the centralizer restricted to (V^g)⊥
@@ -190,7 +190,7 @@ function build_group_invariant_relation_matrix(G::MatGroup)
 
   for g in gens(G)
     # For g = 1 the relations are always true
-    if is_one(g) continue end
+    is_one(g) && continue
 
     A = matrix(g)
     row = zero_matrix(K, 1, m)
@@ -227,7 +227,7 @@ function calculate_form_for_conjugate(
   c::MatGroupElem{T},
   kappa_g::MatElem
 ) where {T <: FieldElem}
-  if c == g return kappa_g end
+  c == g && return kappa_g
 
   is_conj, h = is_conjugate_with_data(parent(g), g, c)
 

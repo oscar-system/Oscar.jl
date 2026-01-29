@@ -130,7 +130,9 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
         mcl = max_column_length(A, j)
         print(io, repeat(" ", mcl - length(string(A[i,j]))))
         print(io, A[i,j])
-        if j < n print(io, "   ") end
+        if j < n
+          print(io, "   ")
+        end
       end
 
       if i == n/2 || i == (n-1)/2
@@ -143,7 +145,9 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
         mcl = max_column_length(B, j)
         print(io, repeat(" ", mcl - length(string(B[i,j]))))
         print(io, B[i,j])
-        if j < n print(io, "   ") end
+        if j < n
+          print(io, "   ")
+        end
       end
 
       if i == n && k == number_of_forms(kappa)
