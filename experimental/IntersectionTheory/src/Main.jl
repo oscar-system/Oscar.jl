@@ -277,11 +277,18 @@ true
 """
 todd_class(F::AbstractBundle) = _todd_class(chern_character(F))
 
-# TODO include an example
 @doc raw"""
     total_pontryagin_class(F::AbstractBundle)
 
 Return the total Pontryagin class of `F`.
+
+# Examples
+```jldoctest
+julia> S = complete_intersection(abstract_projective_space(3), 4);
+
+julia> total_pontryagin_class(tangent_bundle(S))
+-12*h^2 + 1
+```
 """
 function total_pontryagin_class(F::AbstractBundle)
   n = F.parent.dim
@@ -290,11 +297,18 @@ function total_pontryagin_class(F::AbstractBundle)
   sum([(-1)^i*comps[2i+1] for i in 0:n÷2])
 end
 
-# TODO include an example
 @doc raw"""
     pontryagin_class(F::AbstractBundle, k::Int)
 
 Return the `k`-th Pontryagin class of `F`.
+
+# Examples
+```jldoctest
+julia> S = complete_intersection(abstract_projective_space(3), 4);
+
+julia> pontryagin_class(tangent_bundle(S), 1)
+-12*h^2
+```
 """
 pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 
@@ -1260,6 +1274,13 @@ todd_class(X::AbstractVariety) = todd_class(X.T)
     total_pontryagin_class(X::AbstractVariety)
 
 Compute the total Pontryagin class of the tangent bundle of `X`.
+
+# Examples
+```jldoctest
+julia> S = complete_intersection(abstract_projective_space(3), 4);
+
+julia> total_pontryagin_class(S)
+-12*h^2 + 1
 """
 total_pontryagin_class(X::AbstractVariety) = total_pontryagin_class(X.T)
 
@@ -1267,6 +1288,13 @@ total_pontryagin_class(X::AbstractVariety) = total_pontryagin_class(X.T)
     pontryagin_class(X::AbstractVariety, k::Int)
 
 Compute the `k`-th Pontryagin class of the tangent bundle of `X`.
+
+# Examples
+```jldoctest
+julia> S = complete_intersection(abstract_projective_space(3), 4);
+
+julia> pontryagin_class(S, 1)
+-12*h^2
 """
 pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(X.T, k)
 
