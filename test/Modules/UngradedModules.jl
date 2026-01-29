@@ -1955,3 +1955,17 @@ end
   @test O + M != O
   @test M + O == M
 end
+
+@testset "vector space basis for modules" begin
+  R, (x, y) = GF(101)[:x, :y]
+  F = free_module(R, 1)
+  I = ideal(R, gens(R))
+  IF, _ = I*F
+  I2F, _ = I^2*F
+  M, _ = quo(IF, I2F)
+  B = Oscar._vector_space_basis(M)
+  @test length(B) == 2
+  @test x*F[1] in B
+  @test y*F[1] in B
+end
+
