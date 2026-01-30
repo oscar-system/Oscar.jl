@@ -183,10 +183,11 @@ julia> h_vector(torus())
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc raw"""
-    betti_numbers([p::Int=0,] K::SimplicialComplex)
+    betti_numbers([R::Ring=ZZ,] K::SimplicialComplex)
 
 Return the reduced Betti numbers of the abstract simplicial complex `K`.
-Defaults to rational Betti numbers, otherwise computes the Betti numbers over the field with  `p` elements.
+Defaults to rational Betti numbers, otherwise computes the Betti numbers over the ring `R`.
+For large computations over a finite field consider using `fpField`.
 
 # Examples
 ```jldoctest
@@ -196,7 +197,7 @@ julia> betti_numbers(klein_bottle())
  1
  0
 
-julia> betti_numbers(2, klein_bottle())
+julia> betti_numbers(fpField(UInt(2)), klein_bottle())
 3-element Vector{Int64}:
  0
  2
@@ -205,15 +206,15 @@ julia> betti_numbers(2, klein_bottle())
 """
 betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
 
-function betti_numbers(p::Int, K::SimplicialComplex)
-  iszero(p) && return betti_numbers(K)
+function betti_numbers(R::Ring, K::SimplicialComplex)
+  c = characteristic(R)
+  iszero(c) && return betti_numbers(K)
   b = Int[]
-  L = fpField(UInt(p))
-  boundary_m = matrix(L, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
+  boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
   im_dim = 1
   for k = 1:dim(K) + 1
     ker_dim = size(boundary_m)[1] - im_dim
-    boundary_m = matrix(L, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), k))
+    boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), k))
     im_dim = rank(boundary_m)
     
     push!(b, ker_dim - im_dim)
