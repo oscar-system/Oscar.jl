@@ -183,7 +183,7 @@ julia> h_vector(torus())
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc raw"""
-    betti_numbers([R::Ring=ZZ,] K::SimplicialComplex)
+    betti_numbers([R::Union{<: Field, ZZRing}=ZZ,] K::SimplicialComplex)
 
 Return the reduced Betti numbers of the abstract simplicial complex `K`.
 Defaults to rational Betti numbers, otherwise computes the Betti numbers over the ring `R`.
@@ -206,7 +206,7 @@ julia> betti_numbers(fpField(UInt(2)), klein_bottle())
 """
 betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
 
-function betti_numbers(R::Ring, K::SimplicialComplex)
+function betti_numbers(R::Union{<:Field, ZZRing}, K::SimplicialComplex)
   c = characteristic(R)
   iszero(c) && return betti_numbers(K)
   b = Int[]
