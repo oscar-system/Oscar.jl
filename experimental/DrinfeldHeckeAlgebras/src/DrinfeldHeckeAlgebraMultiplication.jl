@@ -137,7 +137,7 @@ end
 # - tail = f - lc * lm
 function split_polynomial(f::DrinfeldHeckeAlgebraElem)
   A = parent(f)
-  elm = coefficient(f.element; copy=false)[1]
+  elm = coefficients(f.element; copy=false)[1]
 
   @req is_zero(elm) == false "zero polynomial can not be split"
 
@@ -153,7 +153,7 @@ end
 # - a = x * m
 function split_monomial_left(a::DrinfeldHeckeAlgebraElem)
   A = parent(a)
-  m = coefficient(a.element; copy=false)[1]
+  m = coefficients(a.element; copy=false)[1]
 
   @req is_monomial(m) "element $m is not a monomial"
 
@@ -172,7 +172,7 @@ end
 # - a = m * x
 function split_monomial_right(a::DrinfeldHeckeAlgebraElem)
   A = parent(a)
-  m = coefficient(a.element; copy=false)[1]
+  m = coefficients(a.element; copy=false)[1]
 
   @req is_monomial(m) "element $m is not a monomial"
 
