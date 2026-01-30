@@ -332,10 +332,11 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   sf = get_attribute(K, :principal_subfields)
   store = sf === nothing
 
-  f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = ZZRingElem(1))*defining_polynomial(K))
-  f = divexact(f, content(f))
+  fQ = defining_polynomial(K)
+  fQ /= content(fQ)
+  f = change_base_ring(ZZ, fQ; parent = Zx)
 
-  p, ct = find_prime(Hecke.Globals.Qx(f), pStart = pStart, prime = prime,
+  p, ct = find_prime(fQ, pStart = pStart, prime = prime,
                                           filter_pattern = x->any(t->degree(t) == 1, first.(collect(x))))
   n = degree(K)
   if primitive_by_shape(ct, n)
@@ -358,7 +359,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   b .*= inv(derivative(f)(gen(K)))
   bt = [parent(defining_polynomial(K))(x) for x = b]
   bd = map(denominator, bt)
-  bz = [Zx(bd[i]*bt[i]) for i=1:length(bd)]
+  bz = [change_base_ring(ZZ, bd[i]*bt[i]; parent = Zx) for i=1:length(bd)]
   @assert parent(f) == parent(bz[1])
 
   lf = Hecke.factor_mod_pk(Array, H, 1)

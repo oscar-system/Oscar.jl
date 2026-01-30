@@ -511,7 +511,7 @@ function kernel(f::GAPGroupHomomorphism)
   return _as_subgroup(domain(f), K)
 end
 
-kernel(f::GAPGroupEmbedding) = trivial_subgroup(f)
+kernel(f::GAPGroupEmbedding) = trivial_subgroup(domain(f))
 
 """
     image(f::GAPGroupHomomorphism)
@@ -628,7 +628,7 @@ function preimage(f::GAPGroupHomomorphism, H::GAPGroup)
 end
 
 function preimage(f::GAPGroupEmbedding, H::GAPGroup)
-  H1 = GAPWrap.Intersection(GapObj(domain(f)), GapObj(H))::GapObj
+  H1 = GAP.Globals.Intersection(GapObj(domain(f)), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
 
@@ -1154,7 +1154,7 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
 
        f = function(a::FinGenAbGroupElem)
          diag = A_to_A2(a)
-         v = zeros(ZZ, m)
+         v = zeros(ZZRingElem, m)
          v[starts] = [diag[i] for i in 1:n]
          exps = GapObj(v, recursive = true)
          return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))

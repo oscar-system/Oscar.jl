@@ -74,7 +74,7 @@ mutable struct EnriquesBorcherdsCtx
   imgs_mod2::Set{FqMatrix}
   # w.r.t the basis given by Dplus
   Gplus
-  Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
+  Gplus_mat::MatGroup{FqFieldElem, FqMatrix}
   volume_index::ZZRingElem
   orderGbar::ZZRingElem
 
@@ -707,7 +707,7 @@ true
 function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   S = Y.SY
   # for G-sets
-  F = FreeModule(ZZ,rank(S), cached=false)
+  F = free_module(ZZ, rank(S), cached=false)
   # initialization
   n = rank(S)
   D = EnriquesChamber(Y, identity_matrix(ZZ, n), zero_matrix(ZZ, 1, n))

@@ -96,20 +96,24 @@ function save_object(s::SerializerState, R::PolyRingUnionType)
   end
 end
 
-function load_object(s::DeserializerState,
-                     T::Type{<: PolyRingUnionType},
-                     params::Ring)
+function load_object(s::DeserializerState, ::Type{<:PolyRing}, params::Ring)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  if T <: PolyRing
-    return polynomial_ring(params, symbols..., cached=false)[1]
-  elseif T <: UniversalPolyRing
-    poly_ring = universal_polynomial_ring(params, cached=false)
-    gens(poly_ring, symbols)
-    return poly_ring
-  elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return laurent_polynomial_ring(params, symbols, cached=false)[1]
-  end
-  return polynomial_ring(params, symbols, cached=false)[1]
+  return polynomial_ring(params, only(symbols); cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return polynomial_ring(params, symbols; cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:UniversalPolyRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return universal_polynomial_ring(params, symbols; cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing}, params::Ring)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
+  return laurent_polynomial_ring(params, symbols; cached=false)[1]
 end
 
 # with grading
@@ -204,7 +208,7 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     end
     degree = max(exponents...)
     coeff_ring = coefficient_ring(parent_ring)
-    loaded_terms = zeros(coeff_ring, degree)
+    loaded_terms = Hecke.zeros_array(coeff_ring, degree)
     coeff_type = elem_type(coeff_ring)
     for (i, exponent) in enumerate(exponents)
       load_node(s, i) do _
@@ -216,7 +220,6 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     return parent_ring(loaded_terms)
   end
 end
-
 
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
@@ -239,7 +242,7 @@ function load_object(s::DeserializerState,
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRingElem)
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
   poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
   return parent_ring(poly)
 end
@@ -251,6 +254,7 @@ end
 @register_serialization_type MPolyLocalizedIdeal
 @register_serialization_type MPolyQuoLocalizedIdeal
 @register_serialization_type MPolyQuoIdeal
+@register_serialization_type Hecke.PIDIdeal
 
 function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb
@@ -468,7 +472,7 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
-  loaded_terms = zeros(base, pol_length)
+  loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
   
   load_node(s, :terms) do _
@@ -485,7 +489,7 @@ function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
-  loaded_terms = zeros(base, pol_length)
+  loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
   load_node(s, :terms) do _
@@ -568,7 +572,7 @@ function load_object(s::DeserializerState,
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
     # account for index shift
-    loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
+    loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
       load_node(s, i) do _
@@ -602,7 +606,7 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoRing}, params::Dict)
   R = params[:base_ring]
   ordering_type = params[:ordering]
   o = load_object(s, ordering_type, R, :ordering)

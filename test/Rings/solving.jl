@@ -246,3 +246,14 @@ end
     @test length(pts) > 0 && length(pts) == 1
   end
 end
+
+@testset "Two cubics" begin
+  k = algebraic_closure(GF(97))
+  R, (x, y) = polynomial_ring(k, [:x, :y])
+  I=ideal([x^3 + 2*y^2 + 3, y^3 + 5*x + 7])
+  pts = rational_solutions(I)
+  pts2 = rational_solutions(I) # this is intentional, see #5593
+  @test length(pts) == 9 == length(pts2)
+  @test issetequal(pts, pts2)
+  @test all(iszero(evaluate(f, p)) for p in pts, f in gens(I))
+end

@@ -76,9 +76,9 @@ function invariant_ring(K::Field, M::Vector{<:MatrixElem})
 end
 
 @doc raw"""
-    invariant_ring(G::MatrixGroup)
+    invariant_ring(G::MatGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
-    invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+    invariant_ring(R::MPolyDecRing, G::MatGroup)
     invariant_ring(R::MPolyDecRing, G::PermGroup)
 
 Return the invariant ring of the finite matrix group or permutation group `G`.
@@ -114,12 +114,12 @@ julia> coefficient_ring(IRp)
 Rational field
 ```
 """
-function invariant_ring(G::MatrixGroup)
+function invariant_ring(G::MatGroup)
   action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action)
 end
 
-function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+function invariant_ring(R::MPolyDecRing, G::MatGroup)
   action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action, R)
 end
@@ -160,7 +160,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   #   gen(R, i)^M = (0 ... 0 1 0 ... 0)*M = (M[i, 1] ... M[i, n])
   #               = M[i, 1]*gen(R, 1) + ... + M[i, n]*gen(R, n)
   # We now compute these actions of M on the variables of R.
-  vars = zeros(R, n)
+  vars = Hecke.zeros_array(R, n)
   x = gens(R)
   for i in 1:n
     for j in 1:n
@@ -178,10 +178,10 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   return MapFromFunc(R, R, right_action_by_M)
 end
 
-right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
+right_action(R::MPolyRing{T}, M::MatGroupElem{T}) where {T} = right_action(R, matrix(M))
 right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+right_action(f::MPolyRingElem{T}, M::MatGroupElem{T}) where {T} =
   right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
@@ -578,7 +578,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   res = zero(fraction_field(Kt))
   for c in C
     g = representative(c)
-    if g isa MatrixGroupElem
+    if g isa MatGroupElem
       f = charpoly(Kt, matrix(g))
     elseif g isa PermGroupElem
       f = charpoly(Kt, permutation_matrix(K, g))
@@ -598,9 +598,9 @@ function _molien_series_nonmodular_via_gap(
 )
   @assert !is_modular(I)
   G = group(I)
-  @assert G isa MatrixGroup || G isa PermGroup
+  @assert G isa MatGroup || G isa PermGroup
   t = GAP.Globals.CharacterTable(GapObj(G))
-  if G isa MatrixGroup
+  if G isa MatGroup
     if is_zero(characteristic(coefficient_ring(I)))
       psi = GapObj(natural_character(G))
     else

@@ -56,7 +56,7 @@ end
 function load_object(s::DeserializerState, ::Type{QuadSpaceWithIsom}, params::Dict)
   quad_space = params[:quad_space]
   mat_space = params[:isom]
-  isom = load_object(s, MatElem{elem_type(mat_space)}, mat_space, :isom)
+  isom = load_object(s, elem_type(mat_space), mat_space, :isom)
   order_type = params[:order]
 
   if Base.issingletontype(order_type)
@@ -84,6 +84,6 @@ end
 function load_object(s::DeserializerState, ::Type{ZZLatWithIsom}, params::Dict)
   quad_space = params[:ambient_space]
   mat_space = params[:basis]
-  B = load_object(s, MatElem{elem_type(mat_space)}, mat_space)
+  B = load_object(s, elem_type(mat_space), mat_space)
   return lattice(quad_space, B; check=false)
 end

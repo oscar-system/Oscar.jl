@@ -1315,8 +1315,8 @@ function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
     end
   end
 
-  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)]; check=false)
-  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)]; check=false)
+  iM = SubQuoHom(M,SQ,elem_type(SQ)[SQ[i] for i=1:ngens(M)]; check=false)
+  iN = SubQuoHom(N,SQ,elem_type(SQ)[SQ[i] for i=ngens(M)+1:ngens(SQ)]; check=false)
 
   register_morphism!(iM)
   register_morphism!(iN)
@@ -2205,13 +2205,6 @@ end
 Return the relations of `M`.
 """
 rels(M::SubquoModule) = isdefined(M, :quo) ? collect(M.quo.gens) : elem_type(M.F)[]
-
-@doc raw"""
-    relations(M::SubquoModule)
-
-Return the relations of `M`.
-"""
-relations(M::SubquoModule) = rels(M)
 
 # the two methods below are needed for the implementation of is_surjective
 function (==)(G::SubquoModule, F::FreeMod)
