@@ -257,3 +257,9 @@ end
   @test nvars(parent(arrangement_polynomial(RAvv, Avv))) == 3
   @test arrangement_polynomial(RAvv, Avv) == apAvv
 end
+
+@testset "primitive_generator" begin
+  P = projective_space(NormalToricVariety, 1)
+  primitive_generator.(rays(P))
+end
+
