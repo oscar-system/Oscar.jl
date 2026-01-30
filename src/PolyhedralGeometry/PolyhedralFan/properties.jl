@@ -339,6 +339,10 @@ function primitive_generator_with_scaling_factor(
   first_scaling_factor = ZZ(lcm(denominator.(r)))
   result = ZZ.(first_scaling_factor * r)
   g = gcd(result)
+  # Over the integers ZZ this can return a negative value!
+  if g < 0
+    g = -g
+  end
   @req g > 0 "The vector `r` cannot be a zero vector"
   scaling_factor = QQ(first_scaling_factor, g)
   result = map(x -> div(x, g), result)
