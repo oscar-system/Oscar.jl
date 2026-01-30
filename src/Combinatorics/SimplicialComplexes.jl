@@ -186,7 +186,7 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
     betti_numbers([R::Union{<: Field, ZZRing}=ZZ,] K::SimplicialComplex)
 
 Return the reduced Betti numbers of the abstract simplicial complex `K`.
-Defaults to rational Betti numbers, otherwise computes the Betti numbers over the ring `R`.
+Defaults to computing Betti numbers over `ZZ`, otherwise computes the Betti numbers over the ring `R`.
 For large computations over a finite field consider using `fpField`.
 
 # Examples
