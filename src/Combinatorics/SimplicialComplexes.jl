@@ -202,7 +202,6 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 Return the reduced Betti numbers of the abstract simplicial complex `K`.
 Defaults to computing Betti numbers over `ZZ`, otherwise computes the Betti numbers over the ring `R`.
-For large computations over a finite field consider using `fpField`.
 
 # Examples
 ```jldoctest
@@ -212,7 +211,7 @@ julia> betti_numbers(klein_bottle())
  1
  0
 
-julia> betti_numbers(fpField(UInt(2)), klein_bottle())
+julia> betti_numbers(GF(2), klein_bottle())
 3-element Vector{Int64}:
  0
  2
