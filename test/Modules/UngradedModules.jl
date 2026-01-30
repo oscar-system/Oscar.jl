@@ -1965,7 +1965,13 @@ end
   M, _ = quo(IF, I2F)
   B = Oscar._vector_space_basis(M)
   @test length(B) == 2
-  @test x*F[1] in B
-  @test y*F[1] in B
+  @test x*F[1] in repres.(B)
+  @test y*F[1] in repres.(B)
+  
+  #=
+  V, inc = vector_space(M)
+  @test dim(V) == 2
+  @test inc.(gens(V)) == B
+  =#
 end
 
