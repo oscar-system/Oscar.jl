@@ -782,12 +782,15 @@ end
 Internal function to test whether M is finite-dimensional vector space. Do not use directly
 """
 function has_monomials_on_all_axes(M::SubquoModule)
-  R = base_ring(M)
-
   length(rels(M)) == 0 || error("not implemented for quotients")
+  return has_monomials_on_all_axes(M.sub)
+end
+
+function has_monomials_on_all_axes(M::SubModuleOfFreeModule)
+  R = base_ring(M)
   
   ambient_rank = ngens(ambient_free_module(M))
-  genlist = ambient_representatives_generators(M)
+  genlist = gens(M)
   explist = Tuple{Vector{Int64}, Int64, Int}[]
   for x in genlist
     tempexp = leading_exponent(x)
@@ -844,12 +847,22 @@ function tensor_product(maps::Vector{<:ModuleFPHom};
 end
 
 @doc raw"""
-    _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+    vector_space_basis(M::SubquoModule{T}; cached::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
 
 Provide a list of monomials `x^a * e[i]` in the `ambient_free_module` of `M` which 
 reduce to a vector space basis of `M` over the `coordinate_ring` of its `base_ring` 
 (which is a field).
 """
+function vector_space_basis(M::SubquoModule{T}; cached::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
+  if cached
+    result = get_attribute!(M, :vector_space_basis) do 
+      _vector_space_basis(M)
+    end
+    return result
+  end
+  return _vector_space_basis(M)
+end
+
 function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
   S = base_ring(M)
   F = ambient_free_module(M)
@@ -859,12 +872,14 @@ function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:Field
     MM = cokernel(map(pres, 1))
     B = _vector_space_basis(MM)
     aug = map(pres, 0)
-    return elem_type(pres[0])[repres(aug(pres[0](coordinates(v)))) for v in B]
+    return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
   end
   # We may assume that M is presented
+  # TODO: This should call Singular's `kbase` instead. But that is not yet available.
   I = M.quo
   lead_I = leading_module(I)
-  result = elem_type(F)[]
+  has_monomials_on_all_axes(lead_I) || return Int64(-1)
+  result = elem_type(M)[]
   for i in 1:ngens(F)
     d = 0 # Iterate through the graded parts for the standard grading.
     done = false # We will quit once no new contributions are found.
@@ -873,10 +888,10 @@ function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:Field
       # `AllMonomials` has a different dispatch in case of graded rings 
       # so we need to strip off the grading if we want to work with the 
       # standard grading by total degree.
-      for m in AllMonomials(is_graded(S) ? forget_grading(S) : S, d)
+      for m in monomials_of_degree(S, d)
         mi = m*F[i] 
         mi in lead_I && continue
-        push!(result, mi)
+        push!(result, M(mi))
         found = true
       end
       done = !found
@@ -885,4 +900,18 @@ function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:Field
   end
   return result
 end
+
+@attr Int function vector_space_dimension(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  return length(_vector_space_basis(M))
+end
+
+#=
+function vector_space(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  B = _vector_space_basis(M)
+  R = base_ring(M)
+  kk = coefficient_ring(R)
+  V = vector_space(kk, length(B))
+  return V, hom(V, M, B)
+end
+=#
 
