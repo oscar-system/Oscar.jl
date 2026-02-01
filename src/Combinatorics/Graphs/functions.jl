@@ -2202,7 +2202,8 @@ are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
 automorphisms if found, otherwise throws an error.
 
 Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
-$\sigma(i) \neq i$ only holds if $\tau(i) = i$ for all vertices $i$ of the graph, and vice-versa.
+$\sigma(i) \neq i$ only holds if $\tau(i) = i$ for all vertices $i$ of the graph, and vice-versa
+(see [Sch20](@cite)).
 
 # Examples
 ```jldoctest
@@ -2211,6 +2212,8 @@ julia> C = clebsch_graph();
 julia> disjoint_automorphisms(C)
 ((2,3)(6,7)(10,11)(14,15), (1,4)(5,8)(9,12)(13,16))
 ```
+
+For a quick boolean check, see [`has_disjoint_automorphisms`](@ref).
 """
 function disjoint_automorphisms(G::Graph)
   ret, a, b = _compute_disjoint_automorphism(G::Graph)
@@ -2231,6 +2234,8 @@ julia> C = petersen_graph();
 julia> has_disjoint_automorphisms(C)
 false
 ```
+
+For retrieving the actual automorphisms, see [`disjoint_automorphisms`](@ref).
 """
 function has_disjoint_automorphisms(G::Graph)
   ret, _, _ = _compute_disjoint_automorphism(G::Graph)
