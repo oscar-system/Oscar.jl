@@ -368,7 +368,7 @@ jobs:
     needs:
       - extra-long-test
     if: "!cancelled() && github.event_name == 'schedule'"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Get branch name

@@ -831,7 +831,6 @@ export induced_action
 export induced_action_function
 export induced_automorphism
 export induced_cyclic
-export induced_map_on_exterior_power
 export induced_ring_ordering
 export induced_subgraph
 export initial

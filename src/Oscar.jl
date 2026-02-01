@@ -192,21 +192,25 @@ function __init__()
   if Oscar.is_dev
     Serialization.get_oscar_serialization_version()
   end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  # see TropicalGeometry/variety_prime.jl
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("""
+    proc tropicalVariety_as_string(ideal I, list #) {
+      if(size(#)==0) {
+        return(string(tropicalVariety(I)));
+      };
+      return(string(tropicalVariety(I,number(#[1]))));
+    }
+    """)
 end
 
-const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
-const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
-const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
+const VERSION_NUMBER = Base.pkgversion(@__MODULE__)
+const PROJECT_UUID = Base.PkgId(@__MODULE__).uuid
 
-const is_dev = (function()
-        deps = Pkg.dependencies()
-        if Base.haskey(deps, PROJECT_UUID)
-          if deps[PROJECT_UUID].is_tracking_path
-            return true
-          end
-        end
-        return occursin("-dev", lowercase(string(VERSION_NUMBER)))
-    end)()
+const is_dev = occursin("-dev", lowercase(string(VERSION_NUMBER)))
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 

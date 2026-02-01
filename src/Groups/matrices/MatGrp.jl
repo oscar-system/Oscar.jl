@@ -477,6 +477,12 @@ function ==(x::MatGroupElem{S,T},y::MatGroupElem{S,T}) where {S,T}
    end
 end
 
+function Base.hash(x::MatGroupElem, h::UInt)
+  b = 0x7ff345869aba5d1c  % UInt
+  h = hash(matrix(x), h)
+  return xor(h, b)
+end
+
 function _common_parent_group(x::T, y::T) where T <: MatGroup
    x === y && return x
    @req degree(x) == degree(y) "the groups have different degrees"

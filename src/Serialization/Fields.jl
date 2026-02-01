@@ -523,7 +523,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{QQBarFieldElem}, ::QQBarField)
   Qx, x = polynomial_ring(QQ, :x; cached=false)
-  min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
+  min_poly = load_object(s, QQPolyRingElem, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
   CC = AcbField(precision; cached = false)
   approximation = load_object(s, AcbFieldElem, CC, :acb)
