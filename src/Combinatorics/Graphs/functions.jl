@@ -2227,6 +2227,8 @@ end
 Return `true` if the graph `G` has a pair of non-trivial, disjoint automorphisms,
 and `false` otherwise.
 
+If such a pair exists, it will be cached and made available via [`disjoint_automorphisms`](@ref).
+
 # Examples
 ```jldoctest
 julia> C = petersen_graph();
@@ -2234,8 +2236,6 @@ julia> C = petersen_graph();
 julia> has_disjoint_automorphisms(C)
 false
 ```
-
-For retrieving the actual automorphisms, see [`disjoint_automorphisms`](@ref).
 """
 function has_disjoint_automorphisms(G::Graph)
   ret, _, _ = _compute_disjoint_automorphism(G::Graph)
