@@ -2202,7 +2202,7 @@ are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
 automorphisms if found, otherwise throws an error.
 
 Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
-$\sigma(i) = i$ if and only if $\tau(i) \neq i$ for all vertices $i$ of the graph.
+$\sigma(i) \neq i$ only holds if $\tau(i) = i$ for all vertices $i$ of the graph, and vice-versa.
 
 # Examples
 ```jldoctest
@@ -2242,13 +2242,11 @@ end
   n = nv(G)
 
   for cc in conjugacy_classes(A)
-    rcc = first(cc)
-    rcc == one(A) && continue
-    stab =  stabilizer(A, moved_points(rcc))[1]
-    order(stab) > 1 || continue
-    for g2 in stab
-      g2 == one(A) && continue
-      return (true, rcc, g2)
+    rcc = representative(cc)
+    is_one(rcc) && continue
+    stab = stabilizer(A, moved_points(rcc))[1]
+    for g2 in gens(stab)
+      !is_one(g2) && return (true, rcc, g2)
     end
   end
   return (false, one(A), one(A))
