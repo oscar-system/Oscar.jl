@@ -170,9 +170,9 @@ function is_selfprojecting(mat::Matroid)::Bool
 end
 
 @doc raw"""
-    selfprojecting_realization_ideal(m::Matroid)
+    selfprojecting_realization_ideal(m::Matroid; saturate::Bool = false, check::Bool = true)
 
-  Function to compute the defining_ideal of a selfprojecting realization space
+  Function to compute the defining_ideal of a selfprojecting realization space. The kwarg saturate is by default set to false, so the saturation of the ideal is only computed if it is set to true. The kwar check enables that the selfprojectivity of the matroid is checked.
 
   !!! warning "This function is slow except for small matroids!"
 # Examples
