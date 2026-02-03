@@ -2244,7 +2244,6 @@ end
 
 @attr Tuple{Bool, PermGroupElem, PermGroupElem} function _compute_disjoint_automorphism(G::Graph)
   A = automorphism_group(G)
-  n = nv(G)
 
   for cc in conjugacy_classes(A)
     rcc = representative(cc)
