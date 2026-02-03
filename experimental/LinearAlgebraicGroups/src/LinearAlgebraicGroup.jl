@@ -159,3 +159,30 @@ function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
 
   return xor(h, b)
 end
+
+############# Root Subgroups ############################
+function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  @req is_root(alpha) "The given element is not a root"
+  @req root_system(alpha) === root_system(LAG) "parent mismatch"
+  G = LAG.G
+  c = coefficients(alpha)
+  l = number_of_simple_roots(root_system(LAG))
+  e = [0,0,0,0]
+  for i in 1:l
+    e[i] = e[i] + Int64(c[i])
+    e[i+1] = e[i+1] -Int64(c[i])
+  end
+  i=0
+  j=0
+  for k in 1:l+1
+    if e[k] == 1
+      i = k
+    elseif e[k] == -1
+      j = k
+    end
+  end
+  m = identity_matrix(LAG.k,l+1)
+  m[i,j] = one(LAG.k)
+  U = sub(G,[G(m)])
+  return U
+end
