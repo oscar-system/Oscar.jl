@@ -315,9 +315,8 @@
       C = clebsch_graph()
       @test has_disjoint_automorphisms(C)
       a,b = disjoint_automorphisms(C)
-      G = automorphism_group(C)
-      @test a != one(G)
-      @test b != one(G)
+      @test !is_one(a)
+      @test !is_one(b)
       @test fixed_points(a) == moved_points(b)
       @test fixed_points(b) == moved_points(a)
     end

@@ -76,6 +76,7 @@ diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```
 
 ### Common Graph Constructions
+```@docs
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 petersen_graph()
