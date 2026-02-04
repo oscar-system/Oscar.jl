@@ -165,17 +165,7 @@ function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
 end
 
 ############# Root Subgroups ############################
-function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-  if isdefined(LAG, :U_alphas)
-    if haskey(LAG.U_alphas, alpha)
-      return LAG.U_alphas[alpha]
-    end
-  else
-    LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
-  end
-  @req is_root(alpha) "The given element is not a root"
-  @req root_system(alpha) === root_system(LAG) "parent mismatch"
-  G = LAG.G
+function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   c = coefficients(alpha)
   l = number_of_simple_roots(root_system(LAG))
   e = [0,0,0,0]
@@ -192,8 +182,23 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
       j = k
     end
   end
-  I = identity_matrix(LAG.k,l+1)
-  m = zero_matrix(LAG.k,l+1,l+1)
+  return i,j
+end
+
+function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  if isdefined(LAG, :U_alphas)
+    if haskey(LAG.U_alphas, alpha)
+      return LAG.U_alphas[alpha]
+    end
+  else
+    LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
+  end
+  @req is_root(alpha) "The given element is not a root"
+  @req root_system(alpha) === root_system(LAG) "parent mismatch"
+  G = LAG.G
+  i,j  = _compute_action(LAG, alpha)
+  I = identity_matrix(LAG.k,degree(LAG))
+  m = zero_matrix(LAG.k,degree(LAG),degree(LAG))
   m[i,j] = one(LAG.k)
   gens = [G(I + lambda * m) for lambda in LAG.k]
   U,_ = sub(G,gens)
