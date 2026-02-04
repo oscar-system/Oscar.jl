@@ -18,14 +18,7 @@ function linear_algebraic_group(rs::RootSystem, k::Field)
 end
 
 function linear_algebraic_group(type::Symbol, n::Int, k::Field)
-  if type == :A
-    R = root_system(type, n)
-    G = special_linear_group(n + 1, k)
-    LAG = LinearAlgebraicGroup(R, G, k)
-  else
-    error("Only type A is implemented so far.")
-  end
-  return LAG
+  return linear_algebraic_group(root_system(type, n), k)
 end
 
 #This is here because of https://github.com/oscar-system/Oscar.jl/issues/5661
