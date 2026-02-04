@@ -136,7 +136,6 @@ julia> is_selfprojecting(m)
 true
 ```
 """
-#A function to test if a matroid is self-projecting
 function is_selfprojecting(mat::Matroid)::Bool
   k = rank(mat)
   n = length(matroid_groundset(mat))
@@ -307,9 +306,6 @@ julia> R, M =selfprojecting_realization_matrix(m,[1,2,3])
 (Quotient of multivariate polynomial ring by ideal (x1*x2*x3 - x1*x2*x4 - x1*x3*x4 + x1*x4 + x2*x3*x4 - x2*x3), [1 0 0 1 1 1; 0 1 0 1 x1 x3; 0 0 1 1 x2 x4])
 ```
 """
-###################
-#Bas are the given columns that will be the identity matrix
-#This function returns the ambient ring and the realization matrix, same as for the classical function realization_space_matrix
 function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}; I::Union{Ideal,Nothing} = nothing, check::Bool = true)
   if check 
     @req is_selfprojecting(m) "The given matroid is not self projecting" 
@@ -332,7 +328,8 @@ function selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}; I::Unio
     end
   end
 end
-
+#Bas are the given columns that will be the identity matrix
+#The above function returns the ambient ring and the realization matrix, same as for the classical function realization_space_matrix
 
 @doc raw"""
   selfprojecting_realization_space(m::Matroid; B::Union{GroundsetType,Nothing}=nothing; check::Bool = true)
@@ -413,7 +410,6 @@ julia> dimension(selfprojecting_realization_space(uniform_matroid(3,6)))
 3
 ```
 """
-
 function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Union{Int,NegInf}
   if iszero(defining_ideal(MRS))
     return length(gens(base_ring(defining_ideal(MRS))))
