@@ -679,7 +679,7 @@ julia> isometry_group(f) == G
 true
 ```
 """
-function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
+function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T <: RingElem
    B = gram_matrix(f)
    n = nrows(B)
    F = base_ring(B)

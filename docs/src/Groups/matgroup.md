@@ -227,7 +227,7 @@ witt_index(f::SesquilinearForm)
 is_degenerate(f::SesquilinearForm)
 is_singular(f::QuadraticForm)
 is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
-isometry_group(f::SesquilinearForm{T}) where T
+isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T <: RingElem
 ```
 
 ## Utilities for matrices
