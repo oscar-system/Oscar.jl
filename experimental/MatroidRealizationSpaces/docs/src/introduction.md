@@ -86,8 +86,8 @@ which is not (yet) supported by the schemes framework.
 
 ### Self-projecting realization spaces of self-projecting matroids
 
-A matroid $M$ of rank $d$ on $[n]$  is self-projecting, if for any two rank $d-1$ flats $F_1,F_2$ there is no element $e\in[n]$ such that $F_1\cup F_2 = [n]\setminus e$. 
-For self-projecting matroids one can compute the self-projecting realization space, a subspace of the realization space of the matroid. This space is the Zariski closre of the space of realizations $V$ which satisfy that there exists a diagonal matrix $D$ with only non-zero entries in the diagonal such that $V\cdot D\cdot V^t = 0$.
+A matroid $M$ of rank $d$ on $[n]$ is self-projecting, if for any two rank $d-1$ flats $F_1,F_2$ there is no element $e\in[n]$ such that $F_1\cup F_2 = [n]\setminus e$. 
+For self-projecting matroids one can compute the self-projecting realization space, a subspace of the realization space of the matroid. This space is the Zariski closure of the space of realizations $V$ which satisfy that there exists a diagonal matrix $D$ with only non-zero entries in the diagonal such that $V\cdot D\cdot V^t = 0$.
 
 ```@docs
 is_selfprojecting(mat::Matroid)
@@ -102,7 +102,7 @@ selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}; I::Union{Ideal,N
 dimension(MRS::MatroidRealizationSpaceSelfProjecting)
 ```
 
-There is a collection with selfprojecting matroids and their (selfprojecting) realization spaces in [oscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/). The object type for the database entries is ``SelfProjectingMatroidRealizations``. It has the following properties.
+There is a collection with selfprojecting matroids and their (selfprojecting) realization spaces in [oscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/). The object type for the database entries is `SelfProjectingMatroidRealizations`. It has the following properties.
 
 ```@docs
 name(MR::SelfProjectingMatroidRealizations)
