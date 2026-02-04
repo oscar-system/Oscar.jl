@@ -13,10 +13,10 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
   #n::Int #GLn in which the LAG is embedded
   #type::Symbol # :SL, :SO, :Sp, :GL, :Other
   rs::RootSystem #in the future to be replaced by RootDatum
-  G::MatrixGroup #the actual group
+  G::MatGroup #the actual group
   k::Field #the field over which the group is defined
 
-  function LinearAlgebraicGroup(R::RootSystem, G::MatrixGroup, k::Field)
+  function LinearAlgebraicGroup(R::RootSystem, G::MatGroup, k::Field)
     return new(R, G, k)
   end
 end
@@ -35,9 +35,9 @@ end
 
 @attributes mutable struct LinearAlgebraicGroupElem <: GroupElem
   parent::LinearAlgebraicGroup
-  mat::MatrixGroupElem #the actual eleemnt
+  mat::MatGroupElem #the actual eleemnt
 
-  function LinearAlgebraicGroupElem(parent::LinearAlgebraicGroup, MGE::MatrixGroupElem)
+  function LinearAlgebraicGroupElem(parent::LinearAlgebraicGroup, MGE::MatGroupElem)
     #add checks here
     return new(parent, MGE)
   end

@@ -119,10 +119,10 @@ end
 
 # function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, mat::MatElem)
 #   #add checks here
-#   return LinearAlgebraicGroupElem(LAG, MatrixGroupElem(LAG.G, mat))
+#   return LinearAlgebraicGroupElem(LAG, MatGroupElem(LAG.G, mat))
 # end
 
-function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatrixGroupElem)
+function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
   #add checks here
   return LinearAlgebraicGroupElem(LAG, MGE)
 end
