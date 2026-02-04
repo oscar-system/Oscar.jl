@@ -39,7 +39,7 @@ end
 
 @attributes mutable struct LinearAlgebraicGroupElem <: GroupElem
   parent::LinearAlgebraicGroup
-  mat::MatGroupElem #the actual eleemnt
+  mat::MatGroupElem #the actual element
 
   function LinearAlgebraicGroupElem(parent::LinearAlgebraicGroup, MGE::MatGroupElem)
     #add checks here
