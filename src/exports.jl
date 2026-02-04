@@ -131,8 +131,8 @@ export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MatrixGroup
-export MatrixGroupElem
+export MatGroup
+export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
@@ -154,6 +154,7 @@ export PcGroup
 export PcGroupElem
 export PermGroup
 export PermGroupElem
+export PhylogeneticTree
 export PointVector
 export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan, polyhedral_fan
@@ -205,6 +206,7 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -322,6 +324,7 @@ export augmented_chow_ring
 export augmented_complex
 export aut
 export automorphism_group
+export automorphism_group_with_inclusion
 export barycentric_subdivision
 export base_ring
 export base_scheme
@@ -378,6 +381,7 @@ export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
+export character_degrees
 export character_field
 export character_lattice
 export character_parameters
@@ -406,6 +410,7 @@ export class_positions_of_pcore
 export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
+export clebsch_graph
 export cm_regularity
 export coatoms
 export cobases
@@ -545,7 +550,6 @@ export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
-export desimulate_valuation
 export det
 export diameter
 export dicyclic_group
@@ -557,6 +561,7 @@ export direct_sum
 export direct_sum_components
 export directed_component
 export discriminant_representation
+export disjoint_automorphisms, has_disjoint_automorphisms
 export disjoint_union
 export div_left
 export div_left!
@@ -598,6 +603,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export encode
 export enriques_surface_automorphism_group
 export enumerate_classes_of_lattices_with_isometry
 export epimorphism_from_free_group
@@ -827,7 +833,6 @@ export induced_action
 export induced_action_function
 export induced_automorphism
 export induced_cyclic
-export induced_map_on_exterior_power
 export induced_ring_ordering
 export induced_subgraph
 export initial
@@ -882,6 +887,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_anti_isomorphic_with_map
 export is_archimedean_solid
 export is_atlas_character_table
 export is_ball
@@ -1086,6 +1092,7 @@ export is_zm_graded
 export isfinite
 export isometry
 export isometry_group
+export isometry_is_positive
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism
@@ -1266,6 +1273,7 @@ export mul!
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
+export multicombinations
 export multipartition
 export multipartitions
 export multiplication_induced_morphism
@@ -1336,6 +1344,7 @@ export normalized_volume
 export normalizer
 export nullity
 export number_of_atlas_groups
+export number_of_combinations
 export number_of_complement_equations
 export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
@@ -1343,7 +1352,9 @@ export number_of_factors
 export number_of_fixed_points
 export number_of_generators
 export number_of_groups_with_class_number, has_number_of_groups_with_class_number
+export number_of_leaves
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
+export number_of_multicombinations
 export number_of_multipartitions
 export number_of_partitions
 export number_of_patches
@@ -1424,6 +1435,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export petersen_graph
 export phylogenetic_tree
 export picard_class
 export picard_group
@@ -1503,6 +1515,7 @@ export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
 export pullback
+export puiseux_expansion
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
@@ -1558,6 +1571,7 @@ export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export ree_group
 export reflect, reflect!
 export reflection
 export register_morphism!
@@ -1680,7 +1694,6 @@ export simplify
 export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
-export simulate_valuation
 export singular_locus
 export singular_locus_reduced
 export slpoly_ring
@@ -1743,6 +1756,7 @@ export subquotient
 export subscheme
 export subsystem
 export support_function
+export suzuki_group
 export syllables
 export sylow_subgroup
 export sylow_system, has_sylow_system, set_sylow_system
@@ -1776,6 +1790,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
@@ -1819,6 +1834,7 @@ export twisting_sheaf
 export two_sided_ideal
 export type
 export underlying_gluing
+export underlying_module
 export underlying_presheaf
 export underlying_quotient
 export underlying_word

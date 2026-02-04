@@ -155,7 +155,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
 
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual,-1), 2, ZZRingElem)
+  sv = short_vectors(Rdual, 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
@@ -164,7 +164,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   gramL = change_base_ring(ZZ,gram_matrix(L))
   gramS = change_base_ring(ZZ,gram_matrix(S))
-  deltaR = [change_base_ring(ZZ, matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(rescale(R,-1),2)]
+  deltaR = [change_base_ring(ZZ, matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(R, 2)]
   dualDeltaR = [gramL*transpose(r) for r in deltaR]
   BCtx = BorcherdsCtx(L, S, weyl, SS, R, deltaR, dualDeltaR, prRdelta, membership_test,
                       gramL, gramS, prS, compute_OR)
@@ -851,7 +851,7 @@ end
 
 function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatrixElem)
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual, -1), 2, ZZRingElem)
+  sv = short_vectors(Rdual, 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
@@ -1318,7 +1318,8 @@ The output is represented with respect to  the basis of `S`.
 
 Note that under our genericity assumptions the kernel of $f$ is of order at most $2$
 and it is equal to $2$ if and only if $S$ is $2$-elementary.
-If an ample class is given, then the generators returned preserve it.
+If an ample class is given, then the generators returned preserve the Weyl chamber
+which contains it. 
 
 This kind of computation can be very expensive. To print progress information
 use `set_verbosity_level(:K3Auto, 2)` or higher.
@@ -1334,7 +1335,7 @@ end
 
 function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix, n::Int=26)
   ample_classS = solve(basis_matrix(S), ample_class; side = :left)
-  L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
+  L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_classS)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
 end
 
@@ -1630,7 +1631,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     E8 = R0
     # normalize the basis
     e8 = rescale(root_lattice(:E,8), -1)
-    _, T = is_isometric_with_isometry(e8, E8, ambient_representation=false)
+    _, T = is_isometric_with_isometry(e8, E8)
     E8 = lattice(V, T * basis_matrix(E8))
     B = vcat(basis_matrix(U), basis_matrix(E8))
     Bdual = inv(gram_matrix(V) * transpose(B))
@@ -1645,7 +1646,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     while true
       R = Hecke.orthogonal_submodule(L,U)
       @vprint :K3Auto 1 "starting isometry test\n"
-      isiso, T = is_isometric_with_isometry(e8e8, R, ambient_representation=false)
+      isiso, T = is_isometric_with_isometry(e8e8, R)
       @vprint :K3Auto 1 "done\n"
       if isiso
         E8E8 = R
@@ -1693,7 +1694,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
   elseif rank(L)==26
     while true
         R = lll(Hecke.orthogonal_submodule(L,U))
-        m = minimum(rescale(R,-1))
+        m = minimum(R)
         @vprint :K3Auto 1 "found a lattice of minimum $(m) \n"
         if m==4
           # R is isomorphic to the Leech lattice
@@ -1795,8 +1796,9 @@ function borcherds_method_preprocessing(L::ZZLat, S::ZZLat; ample=nothing)
     h = ample*basis_matrix(S)
   end
   # double check
+  @assert inner_product(V, h , h)[1,1] > 0
   Q = orthogonal_submodule(S, lattice(V,h))
-  @assert length(short_vectors(rescale(Q,-1),2))==0
+  @assert length(short_vectors(Q, 2))==0
   if (h*gram_matrix(ambient_space(L))*transpose(weyl))[1,1] < 0
     weyl = -weyl
     u0 = -u0
@@ -1842,7 +1844,7 @@ function ample_class(S::ZZLat)
       @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
       # confirm that h is in the interior of a weyl chamber,
       # i.e. check that Q does not contain any -2 vector and h^2>0
-      Q = rescale(Hecke.orthogonal_submodule(S, lattice(V, h)),-1)
+      Q = orthogonal_submodule(S, lattice(V, h))
       @vprint :K3Auto 3 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
       nt = nt+1
       if nt >10
@@ -1899,7 +1901,7 @@ function ample_class(S::ZZLat)
       @assert (h*gram_matrix(S)*transpose(h))[1,1]>0
     end
     h = h*basis_matrix(S)
-    Q = rescale(orthogonal_submodule(S, lattice(V,h)), -1)
+    Q = orthogonal_submodule(S, lattice(V,h))
     if length(short_vectors(Q, 2)) == 0
       return h
     end

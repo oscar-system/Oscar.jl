@@ -131,6 +131,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 
 ```@docs
 block_distribution
+character_degrees
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters
@@ -175,8 +176,8 @@ is_supersolvable(tbl::GAPGroupCharacterTable)
 ```@docs
 linear_characters(G::GAPGroup)
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
-natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+natural_character(G::Union{MatGroup{QQFieldElem}, MatGroup{AbsSimpleNumFieldElem}})
+natural_character(G::MatGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 permutation_character(G::GAPGroup, H::GAPGroup)
 trivial_character(G::GAPGroup)

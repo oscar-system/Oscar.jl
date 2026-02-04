@@ -195,8 +195,8 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   L = try
     monomial_basis(R, g)
   catch e
-    if e isa ArgumentError && e.msg == "The considered graded component is infinite-dimensional"
-      rethrow(ArgumentError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
     else
       rethrow(e)
     end
@@ -1100,7 +1100,7 @@ function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingEl
   GJ = _groebner_basis(J, d, ordering = o)
 
   S, _ = polynomial_ring(base_ring(R), "t#" => 1:length(v); cached=false)
-  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+  TtoS = hom(T, S, append!(Hecke.zeros_array(S, ngens(R)), gens(S)))
 
   return RtoT, TtoS, GJ
 end

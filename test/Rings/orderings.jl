@@ -114,6 +114,23 @@
    @test support(lex([x])) == [x]
    @test support(lex([x, y])) == [x,y] || support(lex([x,y])) == [y,x]
    @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
+
+
+   S, (u, v) = polynomial_ring(QQ, 3)
+
+   @test_throws ErrorException lex([x,u])
+   @test_throws ErrorException degrevlex([x,u])
+   @test_throws ErrorException deglex([x,u])
+   @test_throws ErrorException invlex([x,u])
+   @test_throws ErrorException deginvlex([x,u])
+   @test_throws ErrorException neglex([x,u])
+   @test_throws ErrorException neginvlex([x,u])
+   @test_throws ErrorException negdegrevlex([x,u])
+   @test_throws ErrorException negdeglex([x,u])
+   @test_throws ErrorException wdeglex([x,u], [1,1])
+   @test_throws ErrorException wdegrevlex([x,u], [1,1])
+   @test_throws ErrorException negwdeglex([x,u], [1,1])
+   @test_throws ErrorException negwdegrevlex([x,u], [1,1])
 end
 
 @testset "Polynomial Orderings is_total" begin

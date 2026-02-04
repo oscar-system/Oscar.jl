@@ -48,7 +48,7 @@ end
 
 @doc raw"""
     reduce(g::T, F::Union{Vector{T}, IdealGens{T}};
-           ordering::MonomialOrdering = default_ordering(g)), complete_reduction::Bool = false) where T <: MPolyRingElem
+           ordering::MonomialOrdering = default_ordering(g), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.

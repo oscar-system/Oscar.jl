@@ -157,6 +157,7 @@ julia> factor(characteristic_polynomial(Lf))
 ```
 """
 characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))
+characteristic_polynomial(R::QQPolyRing, Lf::ZZLatWithIsom) = characteristic_polynomial(R, isometry(Lf))
 
 @doc raw"""
     minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
@@ -430,6 +431,9 @@ julia> minimum(Lf)
 """
 function minimum(Lf::ZZLatWithIsom)
   @req is_definite(Lf) "Underlying lattice must be definite"
+  if rank(Lf) == 0
+    return 0
+  end
   return minimum(lattice(Lf))
 end
 
@@ -1083,8 +1087,8 @@ with gram matrix
 [    0       0       0   -1//2       1]
 ```
 """
-function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
-  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check=false)
+function rescale(Lf::ZZLatWithIsom, a::RationalUnion; cached::Bool=false)
+  return lattice(rescale(ambient_space(Lf), a; cached), basis_matrix(Lf); check=false)
 end
 
 @doc raw"""
@@ -1298,13 +1302,13 @@ Integer lattice of rank 10 and degree 10
   [ 0    0    0    0    0   0    0    0    1    0]
 ```
 """
-function direct_sum(x::Vector{ZZLatWithIsom})
-  Vf, inj, proj = direct_sum(ambient_space.(x))
+function direct_sum(x::Vector{ZZLatWithIsom}; cached=false)
+  Vf, inj, proj = direct_sum(ambient_space.(x); cached)
   Bs = block_diagonal_matrix(basis_matrix.(x))
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
+direct_sum(x::Vararg{ZZLatWithIsom}; cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #
@@ -1458,12 +1462,16 @@ end
 
 @doc raw"""
     discriminant_group(Lf::ZZLatWithIsom) -> TorQuadModule, AutomorphismGroupElem
+    discriminant_group(::Type{TorQuadModuleWithIsom}, Lf::ZZLatWithIsom) -> TorQuadModuleWithIsom
 
 Given an integral lattice with isometry $(L, f)$, return the discriminant group
 $D_L$ of the underlying lattice $L$ as well as the image $D_f$ of the
 underlying isometry $f$ inside $O(D_L)$.
 
 See [`discriminant_group(::ZZLat)`](@ref).
+
+Setting as first argument`TorQuadModuleWithIsom`, return the pair $(D_L, D_f)$
+as an instance of [`TorQuadModuleWithIsom`](@ref).
 
 # Examples
 ```jldoctest
@@ -1508,6 +1516,12 @@ Isometry of
   finite quadratic module: Z/6 -> Q/2Z
 with matrix representation
   [5]
+
+julia> discriminant_group(TorQuadModuleWithIsom, Lf)
+Finite quadratic module of order 6
+  with 1 generator
+  with isometry given by
+  [5]
 ```
 """
 function discriminant_group(Lf::ZZLatWithIsom)
@@ -1516,15 +1530,36 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   
-  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  fq = gens(Oscar._orthogonal_group(q, TorQuadModuleMap[f]; check=false))[1]
+  if has_attribute(Lf,:qSalem)
+    Ld = cover(q)
+    L = relations(q)
+    fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
+    T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
+    S = elem_type(T)
+    iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
+    fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
+    fq1 = iso*fT*inv(iso)
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(fq1)]; check=false))[1]
+  else
+    f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+    fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check=false))[1]
+  end
   return q, fq
+end
+
+function discriminant_group(::Type{TorQuadModuleWithIsom}, Lf::ZZLatWithIsom)
+  @req is_integral(Lf) "Underlying lattice must be integral"
+  L = lattice(Lf)
+  f = ambient_isometry(Lf)
+  q = discriminant_group(L)
+  fq = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+  return TorQuadModuleWithIsom(q, fq)
 end
 
 @doc raw"""
     discriminant_representation(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       full::Bool=true,
       check::Bool=true,
@@ -1545,18 +1580,21 @@ See [`discriminant_group(::ZZLat)`](@ref).
 """
 function discriminant_representation(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     full::Bool=true,
     check::Bool=true,
   )
   @req !check || is_isometry_group(L, G, ambient_representation) "G does not define a group of isometries of L"
+  
   if !ambient_representation
-    G = extend_to_ambient_space(L, G; check=false)
+    _G = extend_to_ambient_space(L, G; check=false)
+  else 
+    _G = G
   end
   q = discriminant_group(L)
   imag_lis_map = TorQuadModuleMap[]
-  geneG = gens(G)
+  geneG = gens(_G)
   for g in geneG
     mg = matrix(g)
     push!(imag_lis_map, hom(q, q, TorQuadModuleElem[q(lift(a)*mg) for a in gens(q)]))
@@ -1568,7 +1606,7 @@ function discriminant_representation(
     Oq = Oscar._orthogonal_group(q, imag_lis_map; check=false)
     imag_lis = gens(Oq)
   end
-  return hom(G, Oq, geneG, imag_lis; check=false)
+  return hom(G, Oq, imag_lis; check=false)
 end
 
 @doc raw"""
@@ -1600,10 +1638,10 @@ end
 @doc raw"""
     stable_subgroup(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 kernel $G^\#$ of the orthogonal representation $G\to O(D_L)$ of $G$ on the
@@ -1631,7 +1669,7 @@ julia> index(OA4, H)
 """
 function stable_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -1680,7 +1718,7 @@ function image_centralizer_in_Oq(Lf::ZZLatWithIsom; _local::Bool=false)
     return get_attribute!(Lf, :image_centralizer_in_Oq_local) do
       qL,fqL = discriminant_group(Lf)
       OqL = orthogonal_group(qL)
-      C = centralizer(OqL, OqL(matrix(fqL)))
+      C = centralizer(OqL, OqL(matrix(fqL);check=false))
       return C
     end::T
   end
@@ -1805,10 +1843,10 @@ end
 @doc raw"""
     special_subgroup(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true
-    ) -> MatrixGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 normal subgroup $S$ of $G$ consisting of isometries with determinant ``+1``,
@@ -1834,7 +1872,7 @@ julia> index(OA4, H)
 """
 function special_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -1856,7 +1894,7 @@ end
 
 function _special_stable_subgroup(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2009,14 +2047,14 @@ Integer lattice of rank 4 and degree 5
 """
 kernel_lattice(::ZZLatWithIsom, ::Union{ZZPolyRingElem, QQPolyRingElem})
 
-function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
+function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem; check=true)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = isometry(Lf)
   M = p(f)
   d = denominator(M)
   K = kernel(change_base_ring(ZZ, d*M); side=:left)
-  return lattice(ambient_space(Lf), K*basis_matrix(L))
+  return lattice(ambient_space(Lf), K*basis_matrix(L); check=false) #nothing to check
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -2094,7 +2132,7 @@ invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
 @doc raw"""
     invariant_lattice(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
     ) -> ZZLat
@@ -2124,7 +2162,7 @@ with gram matrix
 """
 function invariant_lattice(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2174,16 +2212,16 @@ function coinvariant_lattice(Lf::ZZLatWithIsom)
       chi = divexact(chi, x-1)
     end
   end
-  return kernel_lattice(Lf, chi)
+  return kernel_lattice(Lf, chi; check=false)
 end
 
 @doc raw"""
     coinvariant_lattice(
       L::ZZLat,
-      G::MatrixGroup;
+      G::MatGroup;
       ambient_representation::Bool=true,
       check::Bool=true,
-    ) -> ZZLat, MatrixGroup
+    ) -> ZZLat, MatGroup
 
 Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
 coinvariant sublattice $L_G$ of $L$, together with the subgroup $H$ of
@@ -2216,7 +2254,7 @@ true
 """
 function coinvariant_lattice(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )
@@ -2256,7 +2294,7 @@ end
       F::T;
       ambient_representation::Bool=true,
       check::Bool=true,
-      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatrixGroup} -> ZZLat, ZZLat, T
+      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> ZZLat, ZZLat, T
 
 Given ``F`` being either:
   * a matrix with rational entries;
@@ -2295,7 +2333,7 @@ with gram matrix
 [6]
 ```
 """
-invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatrixGroup})
+invariant_coinvariant_pair(::ZZLat, ::Union{QQMatrix, Vector{QQMatrix}, MatGroup})
 
 function invariant_coinvariant_pair(
     L::ZZLat,
@@ -2335,7 +2373,7 @@ end
 
 function invariant_coinvariant_pair(
     L::ZZLat,
-    G::MatrixGroup;
+    G::MatGroup;
     ambient_representation::Bool=true,
     check::Bool=true,
   )

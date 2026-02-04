@@ -2040,7 +2040,7 @@ end
 =#
 
 """
-Compute an isomorphic pc-group `G` (and the isomorphism from `M` to `G`).
+Compute an isomorphic pc group `G` (and the isomorphism from `M` to `G`).
 If `refine` is true,
 the pc-generators will all have prime relative order, thus the
 group should be safe to use.
@@ -2134,7 +2134,7 @@ group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns
 the corresponding elt in the extension.
 
-If the gmodule is defined via a pc-group and the 1st argument is the
+If the gmodule is defined via a pc group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
 function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
@@ -2365,15 +2365,15 @@ function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFie
                          y->G(matrix(y)))
 end
 
-function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+function (G::MatGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   return G(matrix(h))
 end
 
-function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+function (G::MatGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
   return h*G
 end
 
-function Oscar.hom(g::MatrixGroupElem)
+function Oscar.hom(g::MatGroupElem)
   G = parent(g)
   p = get_attribute(G, :aut_group)
   p === nothing && error("Matrix group must be the automorphism group of some module")
@@ -2569,7 +2569,7 @@ end
 =#    
 
     
-(G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
+(G::MatGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
 
 @doc raw"""
     gmodule_class_reps(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::Oscar.GAPGroup) -> Vector{GModule}

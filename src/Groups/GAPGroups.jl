@@ -33,8 +33,8 @@ check_parent(G::T, g::GAPGroupElem) where T <: GAPGroup = (T === typeof(g.parent
 # `PermGroup`: compare types and degrees
 check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 
-# `MatrixGroup`: compare types, dimensions, and coefficient rings
-# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+# `MatGroup`: compare types, dimensions, and coefficient rings
+# (This cannot be defined here because `MatGroup` is not yet defined.)
 
 
 # TODO: ideally the `elements` method below would be turned into a method for
@@ -55,6 +55,18 @@ end
 function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
    @req GapObj(x) in GapObj(G) "the element does not embed in the group"
    return group_element(G, GapObj(x))
+end
+
+function ensure_efficient_setup_is_done(_::Group)
+   # currently a groups in general
+   return
+end
+
+function ensure_efficient_setup_is_done(G::MatGroup)
+   if is_infinite(base_ring(G))
+      is_finite(G) # force computation of a nice mono
+   end
+   return
 end
 
 """
@@ -256,7 +268,7 @@ end
 #   with this parent, of type `SubPcGroup`, hence the product of two
 #   `SubPcGroupElem`s with different parents is also a `SubPcGroupElem`.
 #
-# - `MatrixGroup`, `MatrixGroup`:
+# - `MatGroup`, `MatGroup`:
 #   The operation is allowed whenever the two groups have the same `degree`
 #   and `base_ring`,
 #   then the general linear group of that degree over that ring
@@ -383,6 +395,8 @@ function ==(x::GAPGroup, y::GAPGroup)
   return GapObj(x) == GapObj(y)
 end
 
+Base.hash(x::GAPGroup, h::UInt) = h # FIXME
+
 isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 
 # For two `BasicGAPGroupElem`s,
@@ -402,6 +416,16 @@ function ==(x::GAPGroupElem, y::GAPGroupElem)
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
+
+function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
+  b = 0x51e7ebcb0206be89 % UInt
+  G = full_group(parent(x))[1]
+  h = hash(G, h)
+  h = hash(syllables(x), h)
+  return xor(h, b)
+end
+
+Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -684,12 +708,7 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
-   # We claim that the finiteness check is cheap in Oscar.
-   # This does not hold in GAP,
-   # and GAP's method selection benefits from the known finiteness flag.
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-     is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
@@ -969,7 +988,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
+   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(C)), acting_group(C); check = false)
 end
 
 """
@@ -2614,7 +2633,7 @@ about it becomes known to Oscar may yield different outputs.
 The following notation is used in the returned string.
 
 | Description | Syntax |
-| ----------- | ----------- |
+|:----------- |:----------- |
 | trivial group | 1 |
 | finite cyclic group | C<size> |
 | infinite cyclic group | Z |
@@ -2664,9 +2683,7 @@ function describe(G::GAPGroup)
    is_finitely_generated(G) || return "a non-finitely generated group"
 
    # force some checks in some cases
-   if G isa MatrixGroup && is_infinite(base_ring(G))
-      is_finite(G)
-   end
+   ensure_efficient_setup_is_done(G)
 
    # handle groups whose finiteness is known
    if has_is_finite(G)

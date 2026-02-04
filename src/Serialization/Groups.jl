@@ -90,8 +90,6 @@ using Oscar: GAPGroup, _coeff
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = TypeParams(T, parent(p))
-
 #############################################################################
 # attributes handling
 const GAPGroup_attributes = [
@@ -295,15 +293,15 @@ function load_object(s::DeserializerState, ::Type{FinGenAbGroupHom}, params::Dic
 end
 
 ##############################################################################
-# MatrixGroup
+# MatGroup
 
-@register_serialization_type MatrixGroup uses_id
+@register_serialization_type MatGroup uses_id
 
-type_params(G::MatrixGroup) = TypeParams(MatrixGroup,
+type_params(G::MatGroup) = TypeParams(MatGroup,
                                          :base_ring => base_ring(G),
                                          :degree => degree(G))
 
-function save_object(s::SerializerState, G::MatrixGroup)
+function save_object(s::SerializerState, G::MatGroup)
   save_data_dict(s) do
     save_object(s, matrix.(gens(G)), :gens)
 
@@ -313,7 +311,7 @@ function save_object(s::SerializerState, G::MatrixGroup)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
+function load_object(s::DeserializerState, ::Type{<:MatGroup}, params::Dict)
   R = params[:base_ring]
   d = params[:degree]
   generators = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, d, d), :gens)
@@ -325,11 +323,11 @@ function load_object(s::DeserializerState, ::Type{<:MatrixGroup}, params::Dict)
   return G
 end
 
-@register_serialization_type MatrixGroupElem
+@register_serialization_type MatGroupElem
 
-save_object(s::SerializerState, g::MatrixGroupElem) = save_object(s, matrix(g))
+save_object(s::SerializerState, g::MatGroupElem) = save_object(s, matrix(g))
 
-function load_object(s::DeserializerState, ::Type{<:MatrixGroupElem}, G::MatrixGroup)
+function load_object(s::DeserializerState, ::Type{<:MatGroupElem}, G::MatGroup)
   R = base_ring(G)
   d = degree(G)
   return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))); check = false)

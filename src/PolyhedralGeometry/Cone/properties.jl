@@ -13,7 +13,7 @@ _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_t
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_cone}, C::Cone; homogenized=false) =
-  homogenized ? homogenize(pm_object(C).RAYS, 0) : pm_object(C).RAYS
+  homogenized ? homogenize(coefficient_field(C), pm_object(C).RAYS, 0) : pm_object(C).RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -339,8 +339,14 @@ julia> f_vector(square)
 """
 function f_vector(C::Cone)
   pmc = pm_object(C)
-  ldim = pmc.LINEALITY_DIM
-  return Vector{ZZRingElem}(vcat(fill(0, ldim), pmc.F_VECTOR))
+  ld = lineality_dim(C)
+  fv = ld == dim(C) ? ZZRingElem[] : pmc.F_VECTOR::Polymake.Vector{Polymake.Integer}
+  v = zeros(ZZRingElem, ld + length(fv))
+  v[(ld + 1):end] = fv
+  if ld > 0
+    v[ld] = 1
+  end
+  return v
 end
 
 @doc raw"""
@@ -609,7 +615,11 @@ _lineality_cone(
   ray_vector(coefficient_field(C), view(pm_object(C).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_cone}, C::Cone; homogenized=false) =
-  homogenized ? homogenize(pm_object(C).LINEALITY_SPACE, 0) : pm_object(C).LINEALITY_SPACE
+  if homogenized
+    homogenize(coefficient_field(C), pm_object(C).LINEALITY_SPACE, 0)
+  else
+    pm_object(C).LINEALITY_SPACE
+  end
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
