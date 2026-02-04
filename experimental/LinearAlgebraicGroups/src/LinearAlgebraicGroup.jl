@@ -162,6 +162,13 @@ end
 
 ############# Root Subgroups ############################
 function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  if isdefined(LAG, :U_alphas)
+    if haskey(LAG.U_alphas, alpha)
+      return LAG.U_alphas[alpha]
+    end
+  else
+    LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
+  end
   @req is_root(alpha) "The given element is not a root"
   @req root_system(alpha) === root_system(LAG) "parent mismatch"
   G = LAG.G
@@ -185,12 +192,16 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   m = zero_matrix(LAG.k,l+1,l+1)
   m[i,j] = one(LAG.k)
   gens = [G(I + lambda * m) for lambda in LAG.k]
-  U = sub(G,gens)
+  U,_ = sub(G,gens)
+  LAG.U_alphas[alpha] = U
   return U
 end
 
 ########### Tori ############################
 function maximal_torus(LAG::LinearAlgebraicGroup)
+  if isdefined(LAG, :T)
+    return LAG.T
+  end
   G = LAG.G
   gens = MatGroupElem[]
   for i = 1:degree(LAG)-1
@@ -204,6 +215,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
       push!(gens, G(m))
     end
   end
-  T = sub(G, gens)
+  T, _ = sub(G, gens)
+  LAG.T = T
   return T
 end

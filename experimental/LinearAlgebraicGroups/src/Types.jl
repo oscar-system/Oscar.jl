@@ -16,6 +16,10 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
   G::MatGroup #the actual group
   k::Field #the field over which the group is defined
 
+  # The following fields are not set by default, just for caching
+  T::MatGroup #maximal torus
+  U_alphas::Dict{RootSpaceElem,MatGroup} #root subgroups
+
   function LinearAlgebraicGroup(R::RootSystem, G::MatGroup, k::Field)
     return new(R, G, k)
   end
