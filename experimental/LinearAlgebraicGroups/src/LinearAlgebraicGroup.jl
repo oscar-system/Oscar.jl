@@ -185,6 +185,15 @@ function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   return i,j
 end
 
+function _genrating_set_of_unit_group(k::Field)
+  gs = FieldElem[]
+  u, f = unit_group(k)
+  for i in gens(u)
+    push!(gs, f(i))
+  end
+  return gs
+end
+
 function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   if isdefined(LAG, :U_alphas)
     if haskey(LAG.U_alphas, alpha)
@@ -200,8 +209,8 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   I = identity_matrix(LAG.k,degree(LAG))
   m = zero_matrix(LAG.k,degree(LAG),degree(LAG))
   m[i,j] = one(LAG.k)
-  gens = [G(I + lambda * m) for lambda in LAG.k]
-  U,_ = sub(G,gens)
+  gs = [G(I + lambda * m) for lambda in _genrating_set_of_unit_group(LAG.k)]
+  U,_ = sub(G,gs)
   LAG.U_alphas[alpha] = U
   return U
 end
@@ -212,19 +221,19 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
     return LAG.T
   end
   G = LAG.G
-  gens = MatGroupElem[]
+  gs = MatGroupElem[]
   for i = 1:degree(LAG)-1
-    for t in LAG.k
+    for t in _genrating_set_of_unit_group(LAG.k)
       if iszero(t)
         continue
       end
       m = identity_matrix(LAG.k, degree(LAG))
       m[i,i] = t
       m[i+1,i+1] = inv(t)
-      push!(gens, G(m))
+      push!(gs, G(m))
     end
   end
-  T, _ = sub(G, gens)
+  T, _ = sub(G, gs)
   LAG.T = T
   return T
 end
