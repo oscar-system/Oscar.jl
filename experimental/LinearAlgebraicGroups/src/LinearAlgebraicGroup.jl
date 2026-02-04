@@ -113,6 +113,10 @@ function one(LAG::LinearAlgebraicGroup)
   return linear_algebraic_group_elem(LAG, one(LAG.G))
 end
 
+function is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup)
+  return is_subgroup(U, LAG.G)
+end
+
 #################################################
 # Linear Algebraic Group Elements
 #################################################
