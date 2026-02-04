@@ -222,14 +222,12 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   end
   G = LAG.G
   gs = MatGroupElem[]
-  for i = 1:degree(LAG)-1
-    for t in _genrating_set_of_unit_group(LAG.k)
-      if iszero(t)
-        continue
-      end
+  for t in _genrating_set_of_unit_group(LAG.k)
+    it = inv(t)
+    for i = 1:degree(LAG)-1    
       m = identity_matrix(LAG.k, degree(LAG))
       m[i,i] = t
-      m[i+1,i+1] = inv(t)
+      m[i+1,i+1] = it
       push!(gs, G(m))
     end
   end
