@@ -181,8 +181,10 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
       j = k
     end
   end
-  m = identity_matrix(LAG.k,l+1)
+  I = identity_matrix(LAG.k,l+1)
+  m = zero_matrix(LAG.k,l+1,l+1)
   m[i,j] = one(LAG.k)
-  U = sub(G,[G(m)])
+  gens = [G(I + lambda * m) for lambda in LAG.k]
+  U = sub(G,gens)
   return U
 end
