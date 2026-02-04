@@ -102,7 +102,7 @@ selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}; I::Union{Ideal,N
 dimension(MRS::MatroidRealizationSpaceSelfProjecting)
 ```
 
-There is a collection with selfprojecting matroids and their (selfprojecting) realization spaces in [oscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/). The object type for the database entries is ``SelfProjectingMatroidRealizations``. It has the following properties.
+There is a collection with selfprojecting matroids and their (selfprojecting) realization spaces in [oscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/). The object type for the database entries is `SelfProjectingMatroidRealizations`. It has the following properties.
 
 ```@docs
 name(MR::SelfProjectingMatroidRealizations)
