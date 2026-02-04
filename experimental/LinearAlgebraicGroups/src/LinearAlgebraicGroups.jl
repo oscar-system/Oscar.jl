@@ -23,6 +23,7 @@ export root_subgroup
 export maximal_torus
 export torus_element
 export apply_root_to_torus_element
+export representant_of_root_in_group
 
 include("Types.jl")
 include("LinearAlgebraicGroup.jl")
@@ -37,3 +38,4 @@ export root_subgroup
 export maximal_torus
 export torus_element
 export apply_root_to_torus_element
+export representant_of_root_in_group

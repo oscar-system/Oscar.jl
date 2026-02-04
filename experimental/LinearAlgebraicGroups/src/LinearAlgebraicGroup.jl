@@ -248,3 +248,14 @@ function apply_root_to_torus_element(
   i, j = _compute_action(parent(t), alpha)
   return t.mat[i,i] * inv(t.mat[j,j])
 end
+
+function representant_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  @req is_root(alpha) "The given element is not a root"
+  i, j = _compute_action(LAG, alpha)
+  m = identity_matrix(LAG.k, degree(LAG))
+  m[i,i] = zero(LAG.k)
+  m[i,j] = -one(LAG.k)
+  m[j,i] = one(LAG.k)
+  m[j,j] = zero(LAG.k)
+  return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
+end
