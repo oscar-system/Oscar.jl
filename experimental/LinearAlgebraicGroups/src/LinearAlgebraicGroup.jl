@@ -259,3 +259,39 @@ function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootS
   m[j,j] = zero(LAG.k)
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
+
+function borel(LAG::LinearAlgebraicGroup)
+  T = maximal_torus(LAG)
+  G = LAG.G
+  gs = MatGroupElem[]
+  for t in gens(T)
+    push!(gs, t)
+  end
+  n = degree(LAG)
+  for i in 1:n-1
+    for j in i+1:n
+      for lambda in LAG.k
+        m = identity_matrix(LAG.k, n)
+        m[i,j] = lambda
+        push!(gs, G(m))
+      end
+    end
+  end
+  B,_ = sub(G, gs)
+  return B
+end
+
+function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
+  @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
+  B = borel(LAG)
+  rep = identity_matrix(LAG.k, degree(LAG))
+  for i in word(w)
+    alpha = simple_root(root_system(LAG), Int64(i))
+    rep = rep * representative_of_root_in_group(LAG, alpha).mat
+  end
+  return B*LAG.G(rep)*B
+end
+
+function bruhat_decomp(LAG::LinearAlgebraicGroup)
+  return [bruhat_cell(LAG, w) for w in weyl_group(root_system(LAG))]
+end
