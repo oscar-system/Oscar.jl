@@ -228,3 +228,23 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   LAG.T = T
   return T
 end
+
+function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where T <:FieldElem
+  @req length(diag) == degree(LAG) "Length of diag must be equal to degree of LAG"
+  m = identity_matrix(LAG.k, degree(LAG))
+  prod = one(LAG.k)
+  for i in 1:degree(LAG)
+    m[i,i] = diag[i]
+    prod = prod * diag[i]
+  end
+  @req prod == one(LAG.k) "Product of diagonal entries must be 1"
+  return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
+end
+
+function apply_root_to_torus_element(
+  alpha::RootSpaceElem, t::LinearAlgebraicGroupElem
+)
+  @req is_root(alpha) "The given element is not a root"
+  i, j = _compute_action(parent(t), alpha)
+  return t.mat[i,i] * inv(t.mat[j,j])
+end
