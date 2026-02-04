@@ -168,7 +168,7 @@ end
 function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   c = coefficients(alpha)
   l = number_of_simple_roots(root_system(LAG))
-  e = [0,0,0,0]
+  e = zeros(Int64, l+1)
   for i in 1:l
     e[i] = e[i] + Int64(c[i])
     e[i+1] = e[i+1] -Int64(c[i])
