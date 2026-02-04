@@ -188,3 +188,22 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   U = sub(G,gens)
   return U
 end
+
+########### Tori ############################
+function maximal_torus(LAG::LinearAlgebraicGroup)
+  G = LAG.G
+  gens = MatGroupElem[]
+  for i = 1:degree(LAG)-1
+    for t in LAG.k
+      if t == zero(LAG.k)
+        continue
+      end
+      m = identity_matrix(LAG.k, degree(LAG))
+      m[i,i] = t
+      m[i+1,i+1] = inv(t)
+      push!(gens, G(m))
+    end
+  end
+  T = sub(G, gens)
+  return T
+end

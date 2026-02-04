@@ -19,6 +19,7 @@ import ..Oscar: one
 export LinearAlgebraicGroup, LinearAlgebraicGroupElem
 export linear_algebraic_group, linear_algebraic_group_elem
 export root_subgroup
+export maximal_torus
 
 include("Types.jl")
 include("LinearAlgebraicGroup.jl")
@@ -30,3 +31,4 @@ using .LinearAlgebraicGroups
 export LinearAlgebraicGroup, LinearAlgebraicGroupElem
 export linear_algebraic_group, linear_algebraic_group_elem
 export root_subgroup
+export maximal_torus
