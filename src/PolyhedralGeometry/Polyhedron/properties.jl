@@ -1165,6 +1165,50 @@ end
 ## Boolean properties
 ###############################################################################
 @doc raw"""
+    contains(P::Polyhedron, v::AbstractVector)
+
+Check whether the vector `v` is contained in the polyhedron `P`.
+
+See also [`contains_in_interior(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains(PO,[1, 2])
+true
+
+julia> contains(PO,[1, -2])
+false
+```
+"""
+contains(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+@doc raw"""
+    contains_in_interior(P::Polyhedron, v::AbstractVector)
+
+Check whether the vector `v` is contained in the relative interior of the polyhedron `P`.
+
+See also [`contains(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with positive entries in its interior:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains_in_interior(PO,[1, 2])
+true
+
+julia> contains_in_interior(PO,[1, 0])
+false
+```
+"""
+contains_in_interior(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains_in_interior(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+@doc raw"""
     is_lattice_polytope(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is a lattice polytope, i.e. it is bounded and has integral vertices.
@@ -1270,7 +1314,7 @@ false
 ```
 """
 Base.in(v::AbstractVector, P::Polyhedron) =
-  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+  contains(P,v)::Bool
 
 @doc raw"""
     is_smooth(P::Polyhedron{QQFieldElem})

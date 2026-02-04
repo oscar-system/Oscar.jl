@@ -533,6 +533,50 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 ## Points properties
 ###############################################################################
 
+@doc raw"""
+    contains(C::Cone, v::AbstractVector)
+
+Check whether the vector `v` is contained in the cone `C`.
+
+See also [`contains_in_interior(::Cone, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains(C,[1, 2])
+true
+
+julia> contains(C,[1, -2])
+false
+```
+"""
+contains(C::Cone, v::AbstractVector) =
+  Polymake.polytope.contains(pm_object(C), v)::Bool
+
+@doc raw"""
+    contains_in_interior(C::Cone, v::AbstractVector)
+
+Check whether the vector `v` is contained in the relative interior of the cone `C`.
+
+See also [`contains(::Cone, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with positive entries in its interior:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains_in_interior(C,[1, 2])
+true
+
+julia> contains_in_interior(C,[1, 0])
+false
+```
+"""
+contains_in_interior(C::Cone, v::AbstractVector) =
+  Polymake.polytope.contains_in_interior(pm_object(C), v)::Bool
+
 # TODO: facets as `Vector`? or `Matrix`?
 @doc raw"""
     facets(as::Type{T} = LinearHalfspace, C::Cone)
@@ -729,7 +773,7 @@ julia> [1, -2] in C
 false
 ```
 """
-Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v)::Bool
+Base.in(v::AbstractVector, C::Cone) = contains(C,v)::Bool
 
 @doc raw"""
     relative_interior_point(C::Cone)

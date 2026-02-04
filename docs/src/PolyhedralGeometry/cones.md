@@ -37,6 +37,8 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ambient_dim(C::Cone)
 Base.in(v::AbstractVector, C::Cone)
 Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+contains(C::Cone, v::AbstractVector)
+contains_in_interior(C::Cone, v::AbstractVector)
 facet_degrees(C::Cone)
 facets(as::Type{<:Union{LinearHalfspace{T},LinearHyperplane{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types}
 f_vector(C::Cone)

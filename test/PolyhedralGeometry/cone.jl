@@ -15,6 +15,8 @@
     @test is_pointed(Cone1)
     @test issubset(Cone7, Cone1)
     @test !issubset(Cone1, Cone7)
+    @test contains(Cone1, [1,0])
+    @test !contains_in_interior(Cone1, [1,0])
     @test [1, 0] in Cone1
     @test !([-1, -1] in Cone1)
     if T == QQFieldElem
