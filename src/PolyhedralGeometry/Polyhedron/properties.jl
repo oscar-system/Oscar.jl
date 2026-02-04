@@ -1314,7 +1314,7 @@ false
 ```
 """
 Base.in(v::AbstractVector, P::Polyhedron) =
-  contains(P,v)::Bool
+  contains(P, v)
 
 @doc raw"""
     is_smooth(P::Polyhedron{QQFieldElem})

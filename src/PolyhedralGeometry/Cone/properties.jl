@@ -773,7 +773,7 @@ julia> [1, -2] in C
 false
 ```
 """
-Base.in(v::AbstractVector, C::Cone) = contains(C,v)::Bool
+Base.in(v::AbstractVector, C::Cone) = contains(C, v)
 
 @doc raw"""
     relative_interior_point(C::Cone)
