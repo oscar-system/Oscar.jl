@@ -215,7 +215,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   gens = MatGroupElem[]
   for i = 1:degree(LAG)-1
     for t in LAG.k
-      if t == zero(LAG.k)
+      if iszero(t)
         continue
       end
       m = identity_matrix(LAG.k, degree(LAG))
