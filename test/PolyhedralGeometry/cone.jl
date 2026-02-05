@@ -10,6 +10,7 @@
   Cone6 = positive_hull(f, [1//3 1//2; 4//5 2])
   Cone7 = positive_hull(f, [0 1])
   Cone8 = positive_hull(f, [1 1; 1 -1])
+  Cone9 = positive_hull(f, [[]], L)
 
   @testset "core functionality" begin
     @test is_pointed(Cone1)
@@ -80,6 +81,7 @@
 
     @test dim(Cone4) == 2
     @test dim(Cone2) == 3
+    @test dim(Cone9) == 1
     @test ambient_dim(Cone2) == 3
     @test lineality_space(Cone2) isa SubObjectIterator{RayVector{T}}
     @test generator_matrix(lineality_space(Cone2)) == matrix(f, L)
@@ -112,6 +114,7 @@
     @test f_vector(positive_hull([0, 0, 0])) == ZZRingElem[]
     @test lineality_dim(Cone5) == 0
     @test lineality_dim(Cone2) == 1
+    @test lineality_dim(Cone9) == 1
     @test facet_degrees(Cone5) == fill(2, 4)
     @test facet_degrees(Cone6) == fill(1, 2)
     @test ray_degrees(Cone5) == fill(2, 4)
