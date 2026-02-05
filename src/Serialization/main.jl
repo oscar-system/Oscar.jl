@@ -691,8 +691,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
 end
 
 function save(filename::String, obj::Any; compression::Symbol=:none,
-              pretty::Bool=false, inline_limit::Int=0, serializer::OscarSerializer = JSONSerializer(),
-              kwargs...)
+              pretty::Bool=false, inline_limit::Int=0, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
