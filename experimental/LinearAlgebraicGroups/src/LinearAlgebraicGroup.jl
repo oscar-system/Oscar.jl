@@ -161,21 +161,21 @@ end
 function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   c = coefficients(alpha)
   l = number_of_simple_roots(root_system(LAG))
-  e = zeros(Int64, l+1)
+  e = zeros(Int64, l + 1)
   for i in 1:l
     e[i] = e[i] + Int64(c[i])
-    e[i+1] = e[i+1] -Int64(c[i])
+    e[i + 1] = e[i + 1] - Int64(c[i])
   end
-  i=0
-  j=0
-  for k in 1:l+1
+  i = 0
+  j = 0
+  for k in 1:(l + 1)
     if e[k] == 1
       i = k
     elseif e[k] == -1
       j = k
     end
   end
-  return i,j
+  return i, j
 end
 
 function _genrating_set_of_unit_group(k::Field)
@@ -198,12 +198,12 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   @req is_root(alpha) "The given element is not a root"
   @req root_system(alpha) === root_system(LAG) "parent mismatch"
   G = LAG.G
-  i,j  = _compute_action(LAG, alpha)
-  I = identity_matrix(LAG.k,degree(LAG))
-  m = zero_matrix(LAG.k,degree(LAG),degree(LAG))
-  m[i,j] = one(LAG.k)
+  i, j = _compute_action(LAG, alpha)
+  I = identity_matrix(LAG.k, degree(LAG))
+  m = zero_matrix(LAG.k, degree(LAG), degree(LAG))
+  m[i, j] = one(LAG.k)
   gs = [G(I + lambda * m) for lambda in _genrating_set_of_unit_group(LAG.k)]
-  U,_ = sub(G,gs)
+  U, _ = sub(G, gs)
   LAG.U_alphas[alpha] = U
   return U
 end
@@ -217,10 +217,10 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   gs = MatGroupElem[]
   for t in _genrating_set_of_unit_group(LAG.k)
     it = inv(t)
-    for i = 1:degree(LAG)-1    
+    for i in 1:(degree(LAG) - 1)
       m = identity_matrix(LAG.k, degree(LAG))
-      m[i,i] = t
-      m[i+1,i+1] = it
+      m[i, i] = t
+      m[i + 1, i + 1] = it
       push!(gs, G(m))
     end
   end
@@ -229,7 +229,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   return T
 end
 
-function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where T <:FieldElem
+function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
   m = diagonal_matrix(LAG.k, diag)
   @req det(m) == one(LAG.k) "Deteminant of torus element must be 1"
@@ -241,17 +241,17 @@ function apply_root_to_torus_element(
 )
   @req is_root(alpha) "The given element is not a root"
   i, j = _compute_action(parent(t), alpha)
-  return t.mat[i,i] * inv(t.mat[j,j])
+  return t.mat[i, i] * inv(t.mat[j, j])
 end
 
 function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   @req is_root(alpha) "The given element is not a root"
   i, j = _compute_action(LAG, alpha)
   m = identity_matrix(LAG.k, degree(LAG))
-  m[i,i] = zero(LAG.k)
-  m[i,j] = -one(LAG.k)
-  m[j,i] = one(LAG.k)
-  m[j,j] = zero(LAG.k)
+  m[i, i] = zero(LAG.k)
+  m[i, j] = -one(LAG.k)
+  m[j, i] = one(LAG.k)
+  m[j, j] = zero(LAG.k)
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
 
@@ -263,16 +263,16 @@ function borel(LAG::LinearAlgebraicGroup)
     push!(gs, t)
   end
   n = degree(LAG)
-  for i in 1:n-1
-    for j in i+1:n
+  for i in 1:(n - 1)
+    for j in (i + 1):n
       for lambda in LAG.k
         m = identity_matrix(LAG.k, n)
-        m[i,j] = lambda
+        m[i, j] = lambda
         push!(gs, G(m))
       end
     end
   end
-  B,_ = sub(G, gs)
+  B, _ = sub(G, gs)
   return B
 end
 
@@ -284,7 +284,7 @@ function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
     alpha = simple_root(root_system(LAG), Int64(i))
     rep = rep * representative_of_root_in_group(LAG, alpha).mat
   end
-  return B*LAG.G(rep)*B
+  return B * LAG.G(rep) * B
 end
 
 function bruhat_decomp(LAG::LinearAlgebraicGroup)
