@@ -575,7 +575,7 @@ false
 ```
 """
 contains_in_interior(C::Cone, v::AbstractVector) =
-  Polymake.polytope.contains_in_interior(pm_object(C), v)::Bool
+  Polymake.polytope.contains_in_interior(pm_object(C), coefficient_field(C).(v))::Bool
 
 # TODO: facets as `Vector`? or `Matrix`?
 @doc raw"""
