@@ -34,7 +34,7 @@ lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
 [compat]
 AbstractAlgebra = "0.48.0"
-AlgebraicSolving = "0.10.3"
+AlgebraicSolving = "0.10.4"
 CodecZlib = "0.7.8"
 Compat = "4.13.0"
 Distributed = "1.6"
