@@ -625,7 +625,7 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty::Bool=false, inline_limit::Int=0)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
@@ -637,6 +637,8 @@ Setting the optional argument `compression` will compress the file using the giv
 compression method. The `filename` must have the appropriate file extension for the
 chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
+
+The `pretty` and `inline_limit` optional arguments can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
 
@@ -688,7 +690,8 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
+function save(filename::String, obj::Any; compression::Symbol=:none,
+              pretty::Bool=false, inline_limit::Int=0, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
@@ -705,7 +708,13 @@ function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   else
     error("Unsupported compression method: $compression")
   end
-  Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
+  if pretty
+    data = JSON.parsefile(temp_file)
+    write(filename, JSON.json(data; pretty=true, inline_limit=inline_limit))
+    Base.Filesystem.rm(temp_file)
+  else
+    Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
+  end
   return nothing
 end
 
