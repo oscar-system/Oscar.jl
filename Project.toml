@@ -32,6 +32,12 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 f4ncgb_jll = "160f184c-7e1a-5d95-af1f-70d62a450302"
 lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 
+[weakdeps]
+HomotopyContinuation = "f213a82b-91d6-5c5d-acf7-10f1c761b327"
+
+[extensions]
+HomotopyContinuationExt = "HomotopyContinuation"
+
 [compat]
 AbstractAlgebra = "0.48.0"
 AlgebraicSolving = "0.10.4"
@@ -61,3 +67,4 @@ cohomCalg_jll = "0.32.0"
 f4ncgb_jll = "0.300.300"
 julia = "1.10"
 lib4ti2_jll = "1.6.10"
+HomotopyContinuation = "2.16"
