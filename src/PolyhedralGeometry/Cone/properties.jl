@@ -553,7 +553,7 @@ false
 ```
 """
 contains(C::Cone, v::AbstractVector) =
-  Polymake.polytope.contains(pm_object(C), v)::Bool
+  Polymake.polytope.contains(pm_object(C), coefficient_field(C).(v))::Bool
 
 @doc raw"""
     contains_in_interior(C::Cone, v::AbstractVector)
