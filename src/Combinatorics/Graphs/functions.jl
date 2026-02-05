@@ -1077,15 +1077,16 @@ function automorphism_group(g::Graph{T}; labels::Vector{Symbol}=Symbol[]) where 
 
     if !isnothing(gmap.edge_map)
       # partition edges by labels
-      d = Dict(l => NTuple{2, Int}[] for l in unique([gmap.edge_map[e] for e in edges(g)]))
+      d = Dict(l => Vector{Int}[] for l in unique([gmap.edge_map[e] for e in edges(g)]))
 
       for e in edges(g)
-        push!(d[gmap.edge_map[e]], (src(e), dst(e)))
+        push!(d[gmap.edge_map[e]], [src(e), dst(e)])
       end
-      
-      inter = intersect([stabilizer(gset(G, v))[1] for v in values(d)]...)
-      isempty(inter) && return trivial_subgroup(G)[1]
-      G = inter[1]
+
+      Omega = gset(G, on_sets, reduce(vcat, values(d)))
+      println(typeof(Omega))
+      S = [stabilizer(Omega, Set(v)) for v in values(d)]
+      println(collect(S[1]))
     end
 
     if !isnothing(gmap.vertex_map)

@@ -630,3 +630,17 @@ function ci_structure(R::GaussianRing; strategy::Symbol)
   end
   error("no method available to compute the CI structure")
 end
+
+################################################################################
+# Maximum likelihood
+
+function maximum_likelihood_degree(M::GaussianGraphicalModel, S)
+  K = concentration_matrix(M)
+  n = size(K)[1]
+  S, s = polynomial_ring(base_ring(K), :s => 1:divexact((n - 1) * n, 2))
+  tr_der = (matrix(ZZ, 2 * ones(ZZRingElem, size(K))) - identity_matrix(ZZ, size(K)[1])) * matrix(S, s)
+  l_eqs = matrix(S, [derivative(det(K), k) for k in K]) - tr_der * det(K)
+  phi =  Oscar.flatten(S)
+  I = ideal(reduce(vcat, phi.(l_eqs)))
+  eliminate(I, reduce(vcat, phi.(s)))
+end
