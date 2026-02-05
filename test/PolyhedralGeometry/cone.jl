@@ -10,7 +10,7 @@
   Cone6 = positive_hull(f, [1//3 1//2; 4//5 2])
   Cone7 = positive_hull(f, [0 1])
   Cone8 = positive_hull(f, [1 1; 1 -1])
-  Cone9 = positive_hull(f, [[]], L)
+  Cone9 = positive_hull(f, [], L)
 
   @testset "core functionality" begin
     @test is_pointed(Cone1)
