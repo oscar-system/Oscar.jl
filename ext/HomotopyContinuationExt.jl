@@ -28,7 +28,7 @@ end
 Takes an `MPolyIdeal` and turns it into a `HomotopyContinuation.System`
 containing the ideal generators. It forwards all `args` to `HomotopyContinuation.System`.
 """
-Oscar.System(I::MPolyIdeal; args...) = HomotopyContinuation.System(poly_to_expr.(gens(I)); args...)
+Oscar.System(I::MPolyIdeal; args...) = HomotopyContinuation.System(Oscar.poly_to_expr.(gens(I)); args...)
 
 """
     nsolve(I::MPolyIdeal; args...)
@@ -36,9 +36,9 @@ Oscar.System(I::MPolyIdeal; args...) = HomotopyContinuation.System(poly_to_expr.
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
 """
-Oscar.nsolve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(System(I); show_progress, args...)
+Oscar.nsolve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(Oscar.System(I); show_progress, args...)
 
-Oscar.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(System(I); show_progress, args...)
+witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(System(I); show_progress, args...)
 
 """
     ndim(I::MPolyIdeal)
