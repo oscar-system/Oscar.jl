@@ -691,7 +691,8 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
 end
 
 function save(filename::String, obj::Any; compression::Symbol=:none,
-              pretty::Bool=false, inline_limit::Int=0, kwargs...)
+              pretty::Bool=false, inline_limit::Int=0, serializer::OscarSerializer = JSONSerializer(),
+              kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
@@ -699,6 +700,12 @@ function save(filename::String, obj::Any; compression::Symbol=:none,
   if compression == :none
     open(temp_file, "w") do file
       save(file, obj; kwargs...)
+    end
+    if pretty
+      data = JSON.parsefile(temp_file)
+      write(filename, JSON.json(data; pretty=true, inline_limit=inline_limit))
+      Base.Filesystem.rm(temp_file)
+      return nothing
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
@@ -708,13 +715,7 @@ function save(filename::String, obj::Any; compression::Symbol=:none,
   else
     error("Unsupported compression method: $compression")
   end
-  if pretty
-    data = JSON.parsefile(temp_file)
-    write(filename, JSON.json(data; pretty=true, inline_limit=inline_limit))
-    Base.Filesystem.rm(temp_file)
-  else
-    Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
-  end
+  Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
 end
 
