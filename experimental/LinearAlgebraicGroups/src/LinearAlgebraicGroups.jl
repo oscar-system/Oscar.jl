@@ -27,6 +27,7 @@ export representative_of_root_in_group
 export borel
 export bruhat_cell
 export bruhat_decomp
+export bruhat_cell_rep
 
 include("Types.jl")
 include("LinearAlgebraicGroup.jl")
@@ -45,3 +46,4 @@ export representative_of_root_in_group
 export borel
 export bruhat_cell
 export bruhat_decomp
+export bruhat_cell_rep

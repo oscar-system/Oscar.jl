@@ -257,15 +257,20 @@ function borel(LAG::LinearAlgebraicGroup)
   return B
 end
 
-function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
+function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
-  B = borel(LAG)
   rep = identity_matrix(LAG.k, degree(LAG))
   for i in word(w)
     alpha = simple_root(root_system(LAG), Int64(i))
     rep = rep * representative_of_root_in_group(LAG, alpha).mat
   end
-  return B * LAG.G(rep) * B
+  return LAG.G(rep)
+end
+
+function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
+  rep = bruhat_cell_rep(LAG, w)
+  B = borel(LAG)  
+  return double_coset(B, rep, B)
 end
 
 function bruhat_decomp(LAG::LinearAlgebraicGroup)
