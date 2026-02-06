@@ -432,7 +432,7 @@ Returns:
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false, extra::Int = 0)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
@@ -534,7 +534,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   #x -> 1+pi*x is in general, not injective, not even for a basis
   # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
   # be, but we're not using it. This was used to avoid exp
-  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^ex*x)) for x = o])
+  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^(ex+extra)*x)) for x = o])
   S, mS = snf(Q)
   Q = S
   mQ = mQ*inv(mS)
@@ -1153,8 +1153,8 @@ end
 function Oscar.galois_group(A::ClassField)
   return permutation_group(codomain(A.quotientmap))
 end
-
-#we have 1 --> A -a-> B -b-> C --> 1 and
+#                 a      b  
+#we have 1 --> A ---> B ---> C --> 1 and
 # c: G^n -> C a CoChain
 # want b : G^n -> B a CoChain lifting c,
 #all lifts are of the form b+a for a: G^n -> A
@@ -1173,14 +1173,6 @@ function lift_chain(C::CoChain, a::Map, b::Map)
   tB = map_entries(pseudo_inv(b.module_map), C; parent = domain(b))
   tBd = Oscar.GrpCoh.differential(tB)
   @assert all(iszero, values(Oscar.GrpCoh.differential(tBd).d))
-  for (k, v) = tBd.d
-    fl, p = has_preimage(a.module_map, v)
-    if !fl
-      bad += 1
-      @show k, v
-    end
-  end
-  @show bad, length(tBd.d)
   dtB = map_entries(pseudo_inv(a.module_map), tBd; parent = domain(a))
 
 end
