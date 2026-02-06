@@ -245,3 +245,44 @@ end
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
 end
+
+@testset "group/permutation_group from permutation generators" begin
+  p = cperm(1:4)
+  q = cperm([1,2])
+
+  G1 = permutation_group(p, q)
+  G2 = permutation_group([p, q])
+
+  @test degree(G1) == 4
+  @test degree(G2) == 4
+
+  @test order(G1) == order(G2)
+  @test G1 == G2
+
+  H1 = group(p, q)
+  H2 = group([p, q])
+
+  @test degree(H1) == 4
+  @test degree(H2) == 4
+
+  @test order(H1) == order(G1)
+  @test H1 == G1
+  @test H2 == G2
+
+  @test_throws ArgumentError permutation_group(PermGroupElem[])
+  @test_throws ArgumentError group(PermGroupElem[])
+end
+
+@testset "group from matrix generators" begin
+  mats = [matrix(ZZ, [0 -1; 1 -1]), matrix(ZZ, [0 1; 1 0])]
+
+  G1 = group(mats)
+  G2 = group(mats[1], mats[2])
+
+  @test G1 isa MatrixGroup
+  @test G2 isa MatrixGroup
+  @test G1 == matrix_group(mats)
+  @test G2 == matrix_group(mats)
+
+  @test group(mats; check=true) == matrix_group(mats; check=true)
+end
