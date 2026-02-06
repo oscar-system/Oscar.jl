@@ -26,25 +26,50 @@ function gap_likes_the_group(LAG::LinearAlgebraicGroup)
   return is_finite(LAG.k)
 end
 
+"""
+    has_gens(LAG::LinearAlgebraicGroup)
+
+Return whether generators for the group `LAG` are known.
+"""
 function has_gens(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return has_gens(LAG.G)
   return false
 end
 
+@doc raw"""
+    number_of_generators(LAG::LinearAlgebraicGroup) -> Int
+
+Return the number of generators of `LAG`. Errors if `LAG` is not finitely generated.
+"""
 function number_of_generators(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return number_of_generators(LAG.G)
   error("Group is not finitely generated") # as long as field is QQ
 end
 
+@doc raw"""
+    gens(LAG::LinearAlgebraicGroup) -> Vector{LinearAlgebraicGroupElem}
+
+Return the generators of `LAG`. Errors if `LAG` is not finitely generated.
+"""
 function gens(LAG::LinearAlgebraicGroup)
   return [gen(LAG, i) for i in 1:ngens(LAG)]
 end
 
+@doc raw"""
+    gen(LAG::LinearAlgebraicGroup, i::Int) -> Int
+
+Return the i-th generator of `LAG`. Errors if `LAG` is not finitely generated.
+"""
 function gen(LAG::LinearAlgebraicGroup, i::Int)
   gap_likes_the_group(LAG) && return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
   error("Group is not finitely generated") # as long as field is QQ
 end
 
+@doc raw"""
+    is_finite(LAG::LinearAlgebraicGroup) -> Bool
+
+Return whether `LAG` is finite.
+"""
 function isfinite(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return isfinite(LAG.G)
   if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
@@ -54,12 +79,17 @@ function isfinite(LAG::LinearAlgebraicGroup)
   end
 end
 
+@doc raw"""
+    order(LAG::LinearAlgebraicGroup) -> Int
+
+Return the order of `LAG`. Errors if `LAG` is not finite.
+"""
 function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
   if !is_finite(LAG)
     throw(InfiniteOrderError(LAG))
   else
     return order(T, LAG.G)
-  end # as long as field is QQ no else is needed
+  end
 end
 
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlgebraicGroup})
@@ -86,10 +116,20 @@ function elem_type(::Type{LinearAlgebraicGroup})
   return LinearAlgebraicGroupElem
 end
 
+@doc raw"""
+    one(LAG::LinearAlgebraicGroup) -> LinearAlgebraicGroupElem
+
+Return the identity element of `LAG`.
+"""
 function one(LAG::LinearAlgebraicGroup)
   return linear_algebraic_group_elem(LAG, one(LAG.G))
 end
 
+@doc raw"""
+    is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup) -> Bool
+
+Return whether the matrix group `U` is a subgroup of `LAG` as a matrix group.
+"""
 function is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup)
   return is_subgroup(U, LAG.G)
 end
@@ -141,26 +181,32 @@ function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
 end
 
 ############# Root Subgroups ############################
+#internal function to compute action of root alpha, in case :A return the tuple (i, j) for which alpha acts like e_i-e_j
 function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-  c = coefficients(alpha)
-  l = number_of_simple_roots(root_system(LAG))
-  e = zeros(Int64, l + 1)
-  for i in 1:l
-    e[i] = e[i] + Int64(c[i])
-    e[i + 1] = e[i + 1] - Int64(c[i])
-  end
-  i = 0
-  j = 0
-  for k in 1:(l + 1)
-    if e[k] == 1
-      i = k
-    elseif e[k] == -1
-      j = k
+  if root_system_type(root_system(LAG))[1][1] == :A
+    c = coefficients(alpha)
+    l = number_of_simple_roots(root_system(LAG))
+    e = zeros(Int64, l + 1)
+    for i in 1:l
+      e[i] = e[i] + Int64(c[i])
+      e[i + 1] = e[i + 1] - Int64(c[i])
     end
+    i = 0
+    j = 0
+    for k in 1:(l + 1)
+      if e[k] == 1
+        i = k
+      elseif e[k] == -1
+        j = k
+      end
+    end
+    return i, j
+  else
+    error("Only type A is implemented so far.")
   end
-  return i, j
 end
 
+#internal function to get generators of the unit group of the field
 function _generating_set_of_unit_group(k::Field)
   gs = FieldElem[]
   u, f = unit_group(k)
@@ -170,6 +216,30 @@ function _generating_set_of_unit_group(k::Field)
   return gs
 end
 
+@doc raw"""
+    root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> Matrix
+
+Return the Matrix that generates the root subgroup of `LAG` corresponding to the root `alpha`.
+
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> alpha = simple_root(root_system(LAG),2)
+a_2
+
+julia> root_subgroup_generator(LAG, alpha)
+[0   0   0   0]
+[0   0   1   0]
+[0   0   0   0]
+[0   0   0   0]
+```
+"""
 function root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   @req is_root(alpha) "The given element is not a root"
   @req root_system(alpha) === root_system(LAG) "parent mismatch"
@@ -179,6 +249,28 @@ function root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem
   return m
 end
 
+@doc raw"""
+    root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> MatGroup
+
+Return the root subgroup of `LAG` corresponding to the root `alpha`.
+
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> alpha = simple_root(root_system(LAG),2)
+a_2
+
+julia> root_subgroup(LAG, alpha)
+Matrix group of degree 4
+  over prime field of characteristic 5
+```
+"""
 function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   if isdefined(LAG, :U_alphas)
     if haskey(LAG.U_alphas, alpha)
@@ -197,6 +289,25 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 end
 
 ########### Tori ############################
+@doc raw"""
+    maximal_torus(LAG::LinearAlgebraicGroup) -> MatGroup
+
+Return the standard maximal torus of diagonal elements of `LAG`.
+
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> maximal_torus(LAG)
+Matrix group of degree 4
+  over prime field of characteristic 5
+```
+"""
 function maximal_torus(LAG::LinearAlgebraicGroup)
   isdefined(LAG, :T) && return LAG.T
   G = LAG.G
@@ -215,6 +326,24 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   return T
 end
 
+@doc raw"""
+  torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem} -> LinearAlgebraicGroupElem
+
+Return the root element consisting of `diag` as diagonal entries which is an element of the maximal torus of `LAG`.
+
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
+LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef), [1 0 0 0; 0 2 0 0; 0 0 1 0; 0 0 0 3], #undef)
+```
+"""
 function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
   m = diagonal_matrix(LAG.k, diag)
@@ -222,14 +351,58 @@ function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:Fie
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
 
+@doc raw"""
+  apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem) -> FieldElem
+
+Return the field element obtained by applying the root `alpha` to the torus element `t`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> alpha = simple_root(root_system(LAG),2)
+a_2
+
+julia> t = torus_element(LAG, [F(1),F(2),F(1),F(3)])
+LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef), [1 0 0 0; 0 2 0 0; 0 0 1 0; 0 0 0 3], #undef)
+
+julia> apply_root_to_torus_element(alpha, t)
+2
+```
+"""
 function apply_root_to_torus_element(
   alpha::RootSpaceElem, t::LinearAlgebraicGroupElem
 )
   @req is_root(alpha) "The given element is not a root"
+  @req in(t.mat, maximal_torus(parent(t))) "The given element is not a torus element"
   i, j = _compute_action(parent(t), alpha)
   return t.mat[i, i] * inv(t.mat[j, j])
 end
 
+@doc raw"""
+  representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
+
+Return the linear algerbaic group element corresponding to the root `alpha`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(4)
+(Finite field of degree 2 and characteristic 2, o)
+
+julia> LAG = linear_algebraic_group(:A, 4, F)
+LinearAlgebraicGroup(Root system of type A4, SL(5,4), Finite field of degree 2 and characteristic 2, #undef, #undef, #undef)
+
+julia> alpha = simple_root(root_system(LAG),2)
+a_2
+
+julia> representative_of_root_in_group(LAG, alpha)
+LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A4, SL(5,4), Finite field of degree 2 and characteristic 2, #undef, #undef, #undef), [1 0 0 0 0; 0 0 1 0 0; 0 1 0 0 0; 0 0 0 1 0; 0 0 0 0 1], #undef)
+```
+"""
 function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   @req is_root(alpha) "The given element is not a root"
   i, j = _compute_action(LAG, alpha)
@@ -241,6 +414,24 @@ function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootS
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
 
+@doc raw"""
+  borel(LAG::LinearAlgebraicGroup) -> MatGroup
+
+Return the standard borel subgroup of the linear algerbaic group `LAG`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(3)
+(Prime field of characteristic 3, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,3), Prime field of characteristic 3, #undef, #undef, #undef)
+
+julia> borel(LAG)
+Matrix group of degree 4
+  over prime field of characteristic 3
+```
+"""
 function borel(LAG::LinearAlgebraicGroup)
   T = maximal_torus(LAG)
   G = LAG.G
@@ -257,6 +448,34 @@ function borel(LAG::LinearAlgebraicGroup)
   return B
 end
 
+@doc raw"""
+  bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
+
+Return the representative of the bruhat cell corresponding to the weyl group element `w`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> W = weyl_group(root_system(LAG))
+Weyl group
+  of root system of rank 3
+    of type A3
+
+julia> w = W([1,2])
+s1 * s2
+
+julia> bruhat_cell_rep(LAG, w)
+[0   0   1   0]
+[1   0   0   0]
+[0   1   0   0]
+[0   0   0   1]
+```
+"""
 function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
   rep = identity_matrix(LAG.k, degree(LAG))
@@ -267,12 +486,77 @@ function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   return LAG.G(rep)
 end
 
+@doc raw"""
+  bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> GroupDoubleCoset{MatGroup, MatGroupElem}
+
+Return the bruhat cell corresponding to the weyl group element `w`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> W = weyl_group(root_system(LAG))
+Weyl group
+  of root system of rank 3
+    of type A3
+
+julia> w = W([1,2])
+s1 * s2
+
+julia> bruhat_cell(LAG,w)
+Double coset of matrix group of degree 4 over F
+  and matrix group of degree 4 over F
+  with representative [0 0 1 0; 1 0 0 0; 0 1 0 0; 0 0 0 1]
+  in SL(4,5)
+```
+"""
 function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   rep = bruhat_cell_rep(LAG, w)
   B = borel(LAG)
   return double_coset(B, rep, B)
 end
 
+@doc raw"""
+  bruhat_decomp(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
+
+Return the bruhat decomposition of the linear algebraic group `LAG`.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> bruhat_decomp(LAG)
+24-element Vector{GroupDoubleCoset{MatGroup{FqFieldElem, FqMatrix}, MatGroupElem{FqFieldElem, FqMatrix}}}:
+ Double coset of matrix group and matrix group with representative [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 1 0 0 0; 0 0 1 0; 0 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 4 0; 1 0 0 0; 0 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 0 1 0; 0 4 0 0; 1 0 0 0; 0 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 4 0; 0 0 0 4; 1 0 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 1 0; 0 4 0 0; 0 0 0 4; 1 0 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 1 0; 0 0 0 1; 0 4 0 0; 1 0 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 0 0 1 0; 0 4 0 0; 1 0 0 0]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 0 1; 0 0 4 0; 1 0 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 0 4 0 0; 0 0 4 0; 1 0 0 0]
+ ⋮
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 0 0 1 0; 1 0 0 0; 0 1 0 0]
+ Double coset of matrix group and matrix group with representative [1 0 0 0; 0 0 0 1; 0 0 4 0; 0 1 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 1 0 0 0; 0 0 4 0; 0 1 0 0]
+ Double coset of matrix group and matrix group with representative [1 0 0 0; 0 1 0 0; 0 0 0 4; 0 0 1 0]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 1 0 0 0; 0 0 0 4; 0 0 1 0]
+ Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 0 1; 1 0 0 0; 0 0 1 0]
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 0 4 0 0; 1 0 0 0; 0 0 1 0]
+ Double coset of matrix group and matrix group with representative [1 0 0 0; 0 0 0 1; 0 1 0 0; 0 0 1 0]
+ Double coset of matrix group and matrix group with representative [0 0 0 4; 1 0 0 0; 0 1 0 0; 0 0 1 0]
+```
+"""
 function bruhat_decomp(LAG::LinearAlgebraicGroup)
   return [bruhat_cell(LAG, w) for w in weyl_group(root_system(LAG))]
 end
