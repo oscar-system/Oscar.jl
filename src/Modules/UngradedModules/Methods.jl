@@ -619,6 +619,8 @@ function vector_space_dim(M::SubquoModule{T}
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
 
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
@@ -630,6 +632,8 @@ function vector_space_dim(M::SubquoModule{T},d::Int64
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
 
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
@@ -730,6 +734,8 @@ function vector_space_basis(M::SubquoModule{T}
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
 
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
   M_shift,_,_ = shifted_module(Mq)
   if isdefined(F,:ordering) && is_local(F.ordering)
     o = F.ordering
@@ -746,6 +752,8 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
                                <:MPolyComplementOfKPointIdeal}}
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
 
   M_shift,_,_ = shifted_module(Mq)
   if isdefined(F,:ordering) && is_local(F.ordering)
