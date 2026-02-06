@@ -161,13 +161,22 @@ function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   return i, j
 end
 
-function _genrating_set_of_unit_group(k::Field)
+function _generating_set_of_unit_group(k::Field)
   gs = FieldElem[]
   u, f = unit_group(k)
   for i in gens(u)
     push!(gs, f(i))
   end
   return gs
+end
+
+function root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  @req is_root(alpha) "The given element is not a root"
+  @req root_system(alpha) === root_system(LAG) "parent mismatch"
+  i, j = _compute_action(LAG, alpha)
+  m = zero_matrix(LAG.k, degree(LAG), degree(LAG))
+  m[i, j] = one(LAG.k)
+  return m
 end
 
 function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
@@ -178,14 +187,10 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   else
     LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
   end
-  @req is_root(alpha) "The given element is not a root"
-  @req root_system(alpha) === root_system(LAG) "parent mismatch"
   G = LAG.G
-  i, j = _compute_action(LAG, alpha)
-  I = identity_matrix(LAG.k, degree(LAG))
-  m = zero_matrix(LAG.k, degree(LAG), degree(LAG))
-  m[i, j] = one(LAG.k)
-  gs = [G(I + lambda * m) for lambda in _genrating_set_of_unit_group(LAG.k)]
+  I = identity_matrix(LAG.k, degree(LAG)) 
+  m = root_subgroup_generator(LAG, alpha)
+  gs = [G(I + lambda * m) for lambda in _generating_set_of_unit_group(LAG.k)]
   U, _ = sub(G, gs)
   LAG.U_alphas[alpha] = U
   return U
@@ -196,7 +201,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   isdefined(LAG, :T) && return LAG.T
   G = LAG.G
   gs = MatGroupElem[]
-  for t in _genrating_set_of_unit_group(LAG.k)
+  for t in _generating_set_of_unit_group(LAG.k)
     it = inv(t)
     for i in 1:(degree(LAG) - 1)
       m = identity_matrix(LAG.k, degree(LAG))
@@ -243,16 +248,11 @@ function borel(LAG::LinearAlgebraicGroup)
   for t in gens(T)
     push!(gs, t)
   end
-  n = degree(LAG)
-  for i in 1:(n - 1)
-    for j in (i + 1):n
-      for lambda in LAG.k
-        m = identity_matrix(LAG.k, n)
-        m[i, j] = lambda
-        push!(gs, G(m))
+  for lambda in _generating_set_of_unit_group(LAG.k)
+    for alpha in simple_roots(root_system(LAG))
+      push!(gs, MatGroupElem(G, lambda * root_subgroup_generator(LAG, alpha)))
       end
     end
-  end
   B, _ = sub(G, gs)
   return B
 end
