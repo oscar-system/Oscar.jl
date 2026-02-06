@@ -22,7 +22,7 @@ using ..Oscar: _grading,
   VERSION_NUMBER,
   _pmdata_for_oscar
 
-using ..Oscar: is_terse, Lowercase, pretty, terse
+using ..Oscar: is_terse, Lowercase, pretty, terse, Indent, Dedent
 
 using Distributed: RemoteChannel
 
@@ -625,7 +625,7 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty::Bool=false, inline_limit::Int=0)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
@@ -638,7 +638,7 @@ compression method. The `filename` must have the appropriate file extension for 
 chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
-The `pretty` and `inline_limit` optional arguments can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
+The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
 
@@ -663,8 +663,12 @@ julia> load("fourtitwo.mrdi")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
+              pretty_print::Bool=false,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer, with_attrs)
+  if pretty_print
+    io = pretty(io)
+  end
+  s = serializer_open(io, serializer, with_attrs, pretty_print)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -690,8 +694,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none,
-              pretty::Bool=false, inline_limit::Int=0, kwargs...)
+function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
@@ -699,12 +702,6 @@ function save(filename::String, obj::Any; compression::Symbol=:none,
   if compression == :none
     open(temp_file, "w") do file
       save(file, obj; kwargs...)
-    end
-    if pretty
-      data = JSON.parsefile(temp_file)
-      write(filename, JSON.json(data; pretty=true, inline_limit=inline_limit))
-      Base.Filesystem.rm(temp_file)
-      return nothing
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
