@@ -270,6 +270,16 @@
     @test length(findall(f -> [1, 0] in f, facets(Halfspace, Q0))) == 3
 
     @test dim(Q3) < 0
+
+    # empty inputs
+    @test dim(convex_hull(f, [1 1], [], [])) == 0
+    @test ambient_dim(convex_hull(f, [1 1], [], [])) == 2
+    @test dim(convex_hull(f, [], [1 1], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [1 1], [])) == 2
+    @test dim(convex_hull(f, [], [], [1 1])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [1 1])) == 2
+    @test dim(convex_hull(f, [], [], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [])) == -1
   end
 
   @testset "volume" begin
