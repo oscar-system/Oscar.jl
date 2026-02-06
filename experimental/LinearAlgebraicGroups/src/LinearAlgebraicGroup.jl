@@ -190,7 +190,7 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   G = LAG.G
   I = identity_matrix(LAG.k, degree(LAG))
   m = root_subgroup_generator(LAG, alpha)
-  gs = [G(I + lambda * m) for lambda in _generating_set_of_unit_group(LAG.k)]
+  gs = [G(I + lambda * m) for lambda in basis(LAG.k)]
   U, _ = sub(G, gs)
   LAG.U_alphas[alpha] = U
   return U
@@ -248,7 +248,7 @@ function borel(LAG::LinearAlgebraicGroup)
   for t in gens(T)
     push!(gs, t)
   end
-  for lambda in _generating_set_of_unit_group(LAG.k)
+  for lambda in basis(LAG.k)
     for alpha in simple_roots(root_system(LAG))
       push!(gs, MatGroupElem(G, lambda * root_subgroup_generator(LAG, alpha)))
     end
