@@ -332,24 +332,15 @@ function convex_hull(
     eltype(R) <: PointVector &&
       throw(ArgumentError("Second argument must not contain points"))
   end
-  @req !isempty(V) || !isnothing(R) || !isempty(R) || !isnothing(L) || !isempty(L) "either input vertices, rays or lineality must be non-empty"
 
   parent_field, scalar_type = _determine_parent_and_scalar(f, V, R, L)
   # Rays and Points are homogenized and combined and
   # Lineality is homogenized
-  points = if isempty(V) && (isnothing(R) || isempty(R))
-    zero_matrix(parent_field, 0, size(points, 2))
-  elseif isempty(V)
-    homogenized_matrix(parent_field, R, 0)
-  elseif isnothing(R) || isempty(R)
-    homogenized_matrix(parent_field, V, 1)
-  else
-    stack(
-      parent_field,
-      homogenized_matrix(parent_field, V, 1),
-      homogenized_matrix(parent_field, R, 0),
-    )
-  end
+  points = stack(
+    parent_field,
+    homogenized_matrix(parent_field, V, 1),
+    homogenized_matrix(parent_field, R, 0),
+  )
   lineality = if isnothing(L) || isempty(L)
     zero_matrix(parent_field, 0, size(points, 2))
   else

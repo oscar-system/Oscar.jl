@@ -68,19 +68,8 @@ function positive_hull(
   L::Union{AbstractCollection[RayVector],Nothing}=nothing;
   non_redundant::Bool=false,
 )
-  @req !isempty(R) || !isnothing(L) || !isempty(L) "either input rays or lineality must be non-empty"
-
   parent_field, scalar_type = _determine_parent_and_scalar(f, R, L)
-
-  if isempty(R)
-    inputrays = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, _ambient_dim(L))
-  else
-    inputrays = remove_zero_rows(unhomogenized_matrix(R))
-  end
-  if isnothing(L) || isempty(L)
-    L = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, _ambient_dim(R))
-  end
-
+  inputrays = remove_zero_rows(unhomogenized_matrix(R))
   if isnothing(L) || isempty(L)
     L = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, _ambient_dim(R))
   end
