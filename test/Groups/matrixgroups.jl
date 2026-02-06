@@ -627,6 +627,19 @@ end
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
 
+   # minimal and characteristic polynomial
+   @test charpoly(x)(matrix(x)) == 0
+   @test charpoly(y)(matrix(y)) == 0
+   @test minpoly(x)(matrix(x)) == 0
+   @test minpoly(y)(matrix(y)) == 0
+   Fx, = polynomial_ring(F; cached = false)
+   @test charpoly(Fx, x)(matrix(x)) == 0
+   @test charpoly(Fx, y)(matrix(y)) == 0
+   @test minpoly(Fx, x)(matrix(x)) == 0
+   @test minpoly(Fx, y)(matrix(y)) == 0
+   @test parent(charpoly(Fx, x)) === Fx
+   @test parent(minpoly(Fx, x)) === Fx
+
    xg = GAP.Globals.Random(GapObj(G))
    yg = GAP.Globals.Random(GapObj(G))
    pg = MatGroupElem(G, xg*yg)
