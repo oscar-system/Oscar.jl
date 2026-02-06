@@ -2,6 +2,26 @@
 # Linear Algebraic Groups
 #################################################
 
+@doc raw"""
+    linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
+
+Construct the linear algerbaic group of the given type.
+
+Only type :A is implemented so far.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> rs = root_system(:A, 3)
+Root system of rank 3
+  of type A3
+
+julia> LAG = linear_algebraic_group(rs, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+```
+"""
 function linear_algebraic_group(rs::RootSystem, k::Field)
   if !is_finite(k)
     error("Currently only finite fields are supported.")
@@ -17,6 +37,22 @@ function linear_algebraic_group(rs::RootSystem, k::Field)
   return LAG
 end
 
+@doc raw"""
+    linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
+
+Construct the linear algerbaic group of the given type.
+
+Only type :A is implemented so far.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
+LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+```
+"""
 function linear_algebraic_group(type::Symbol, n::Int, k::Field)
   return linear_algebraic_group(root_system(type, n), k)
 end
