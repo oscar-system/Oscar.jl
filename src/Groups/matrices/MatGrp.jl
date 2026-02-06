@@ -672,6 +672,14 @@ frobenius(x::MatGroupElem) = frobenius(x,1)
 transpose(x::MatGroupElem) = MatGroupElem(parent(x), transpose(matrix(x)))
 =#
 
+characteristic_polynomial(R::PolyRing, x::MatGroupElem) = characteristic_polynomial(R, matrix(x))
+
+characteristic_polynomial(x::MatGroupElem) = characteristic_polynomial(matrix(x))
+
+minimal_polynomial(R, x::MatGroupElem) = minimal_polynomial(R, matrix(x))
+
+minimal_polynomial(x::MatGroupElem) = minimal_polynomial(matrix(x))
+
 ########################################################################
 #
 # Methods on groups
