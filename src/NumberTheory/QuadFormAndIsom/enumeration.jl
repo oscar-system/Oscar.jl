@@ -2869,7 +2869,7 @@ function oscar_genus_representatives(
   # where after `stop_after` vain iterations we do not find any new isometry
   # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
-  l, mm = enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
+  l, mm, inv_dict = Hecke._enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
   length(l) == max_lat && return l
 
   # Part of the mass of G which is missing
@@ -2878,18 +2878,6 @@ function oscar_genus_representatives(
   # If `mm` is nonzero, we are missing some isometry classes
   if !iszero(mm)
     allow_info && println("Need to enumerate isometries")
-    # Recollect a dictionary of invariants, which should be fast to compute
-    # about the lattices already known (to ease comparison of lattices)
-    inv_lat = invariant_function(l[1])
-    inv_dict = Dict{typeof(inv_lat), Vector{ZZLat}}(inv_lat => ZZLat[l[1]])
-    for N in l[2:end]
-      inv_lat = invariant_function(N)
-      if haskey(inv_dict, inv_lat)
-        push!(inv_dict[inv_lat], N)
-      else
-        inv_dict[inv_lat] = ZZLat[N]
-      end
-    end
     # Setup a default prime number for looking for certain isometries of
     # lattices in G not already computed
     Lf = integer_lattice_with_isometry(l[1])
@@ -2929,6 +2917,19 @@ function oscar_genus_representatives(
       end
       allow_info && println("$(length(atp)) admissible triples")
       for (A, B) in atp
+        # before we look for representatives, we should make sure that our admissible triple glues genus!
+        # so do the local computation first:
+        Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local=true)
+        Bs_loc = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+1,_local=true)
+        isempty(Bs_loc) && continue
+        As_loc = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1,_local=true)
+        isempty(As_loc) && continue
+        Ns_loc = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local=true)
+        if isempty(Ns_loc)
+          allow_info &&  println("skipped by local computation")
+          continue
+        end
+        # lets go global (somewhat awkwardly ... but since it is just prime order that is not too bad)
         Bs = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+1)
         isempty(Bs) && continue
         As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1)
