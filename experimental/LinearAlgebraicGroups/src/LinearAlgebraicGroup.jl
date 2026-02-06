@@ -179,8 +179,65 @@ end
 #   return LinearAlgebraicGroupElem(LAG, MatGroupElem(LAG.G, mat))
 # end
 
+@doc raw"""
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
+
+Construct the linear algerbaic group element from the given matrix group element `MGE` of the given type.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 2, F)
+LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1])
+[2   1   0]
+[1   4   3]
+[0   1   1]
+
+julia> MGE = MatGroupElem(LAG.G, m)
+[2   1   0]
+[1   4   3]
+[0   1   1]
+
+julia> linear_algebraic_group_elem(LAG,MGE)
+LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
+
+```
+"""
 function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
   #TODO: add checks here
+  return LinearAlgebraicGroupElem(LAG, MGE)
+end
+
+@doc raw"""
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
+
+Construct the linear algerbaic group element from the given matrix group element `MGE` of the given type.
+
+# Examples
+```jldoctest
+julia> F, _  = finite_field(5)
+(Prime field of characteristic 5, 0)
+
+julia> LAG = linear_algebraic_group(:A, 2, F)
+LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef)
+
+julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1])
+[2   1   0]
+[1   4   3]
+[0   1   1]
+
+julia> linear_algebraic_group_elem(LAG, m)
+LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
+```
+"""
+function linear_algebraic_group_elem(
+  LAG::LinearAlgebraicGroup, m::MatrixElem{T}
+) where {T<:FieldElem}
+  MGE = LAG.G(m)
   return LinearAlgebraicGroupElem(LAG, MGE)
 end
 
