@@ -653,7 +653,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   # the minimum is known anyways
   minimum(L1) == minimum(L2) || return false, zero_matrix(QQ, 0, 0)
   # algorithm selection
-  if _direct_is_faster(M1)
+  ind = index(M2,M2s)
+  ind_v = maximum(i[2] for i in factor(ind);init=ZZ(0))
+  D = discriminant_group(M2s,ind)
+  if _direct_is_faster(M1) || (length(elementary_divisors(D))>8 && ind_v>1)
     b, fM = Hecke.__is_isometric_with_isometry_definite(M1, M2;  depth, bacher_depth)
     b || return false, zero_matrix(QQ, 0, 0)
   else 
@@ -661,7 +664,6 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     b || return false, zero_matrix(QQ, 0, 0)
     OM1s,_ = _isometry_group_via_decomposition(M1s; depth, bacher_depth)
     # make it work for now. Go through hecke later?
-    @vprint :Isometry 2 "computing orbit of an overlattice..."
     DM1s = discriminant_group(M1s)
     dM1s = discriminant_representation(M1s, OM1s; check=false, full=false, ambient_representation=false)
     OM1sq = image(dM1s)[1]
@@ -671,6 +673,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     fMsinvB = inv(fMs)*basis_matrix(M1s)
     B2 = basis_matrix(M2)
     J2gap = sub(codomain(to_gapM1s), [to_gapM1s(DM1s(coordinates(B2[i,:],M2s)*fMsinvB)) for i in 1:nrows(B2)])[1]
+    @vprint :Isometry 2 "computing orbit of an overlattice of index=$(factor(index(M1,M1s))) in $(domain(OM1sq))"
     XM = orbit(OM1sq, on_subgroups, J1gap)
     b, tmp = is_conjugate_with_data(XM, J1gap, J2gap)
     b || return false, zero_matrix(QQ, 0, 0)
