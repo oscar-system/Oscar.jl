@@ -82,7 +82,6 @@ function _direct_is_faster(L::ZZLat)
       n += 1
       n == ub && break
     end
-    @show n
     b = n<ub
     b && return b
     # Catches examples like the A24 Niemeier lattice
