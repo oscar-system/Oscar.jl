@@ -36,7 +36,6 @@ end
 @doc raw"""
     LinearAlgebraicGroupElem
 """
-
 @attributes mutable struct LinearAlgebraicGroupElem <: GroupElem
   parent::LinearAlgebraicGroup
   mat::MatGroupElem #the actual element
