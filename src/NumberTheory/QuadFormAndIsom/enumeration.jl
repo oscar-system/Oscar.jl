@@ -2919,12 +2919,11 @@ function oscar_genus_representatives(
       for (A, B) in atp
         # before we look for representatives, we should make sure that our admissible triple glues genus!
         # so do the local computation first:
-        Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local=true)
         Bs_loc = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+1,_local=true)
         isempty(Bs_loc) && continue
         As_loc = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1,_local=true)
         isempty(As_loc) && continue
-        Ns_loc = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local=true)
+        Ns_loc = admissible_equivariant_primitive_extensions(As_loc[1], Bs_loc[1], Lf, p; check=false, _local=true)
         if isempty(Ns_loc)
           allow_info &&  println("skipped by local computation")
           continue
