@@ -681,7 +681,7 @@ function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldEle
 end
 
 function valuations_of_roots(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}) where {T}
-  return [(slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+  return [(-slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
 Hecke.lines(P::Hecke.Polygon) = P.lines
@@ -691,7 +691,7 @@ function valuation_of_roots(f::ZZPolyRingElem, p::ZZRingElem)
   @assert is_prime(p)
   x = gen(parent(f))
   N = Hecke.newton_polygon(f, x, p)
-  return [(slope(l), length(l)) for l = Hecke.lines(N)]
+  return [(-slope(l), length(l)) for l = Hecke.lines(N)]
 end
 
 function valuation_of_roots(f::ZZPolyRingElem, p::Integer)
@@ -721,7 +721,7 @@ end
 
 function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   d = degree(base_ring(f))
-  return [(QQFieldElem(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+  return [(QQFieldElem(-slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
 
