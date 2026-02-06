@@ -27,11 +27,8 @@ function gap_likes_the_group(LAG::LinearAlgebraicGroup)
 end
 
 function has_gens(LAG::LinearAlgebraicGroup)
-  if gap_likes_the_group(LAG)
-    return has_gens(LAG.G)
-  else
-    return false
-  end
+  gap_likes_the_group(LAG) && return has_gens(LAG.G)
+  return false
 end
 
 function number_of_generators(LAG::LinearAlgebraicGroup)
