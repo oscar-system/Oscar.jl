@@ -76,12 +76,13 @@ function _direct_is_faster(L::ZZLat)
   b =(r < 4 && ma <100*mi) || (r < 5 && ma <50*mi)|| (r < 6 && ma <25*mi)|| (r < 7 && ma <12*mi)|| (r < 8 && ma <9*mi) || (r < 9 && ma < 6*mi) || (r < 12 && ma < 4*mi)|| (ma < 2*mi)
   if !b && ma == 2*mi
     # if there are few short vectors plesken souvigner should be fast
-    ub = 2000
+    ub = 500
     n = 0
     for _ in short_vectors_iterator(L, mi, ma)
       n += 1
       n == ub && break
     end
+    @show n
     b = n<ub
     b && return b
     # Catches examples like the A24 Niemeier lattice
@@ -215,7 +216,7 @@ function _isometry_group_via_decomposition(
   # select algorithm
   if _direct_is_faster(M1primitive)
     # compute O(M1primitive) directly in Hecke
-    @vprintln :Isometry 3 "Computing orthogonal group in Hecke"
+    @vprintln :Isometry 3 "Computing orthogonal group in Hecke $M1primitive"
     Hecke.__assert_has_automorphisms(M1primitive; depth, bacher_depth) # avoid an infinite recursion
     O1 = matrix_group(M1primitive.automorphism_group_generators)
   else
