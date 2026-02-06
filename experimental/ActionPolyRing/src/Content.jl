@@ -132,7 +132,7 @@ end
 
 ### Union ###
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
-(apr::ActionPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
+(apr::ActionPolyRing)(upre::AbstractAlgebra.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
 (apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
 (apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
@@ -186,7 +186,7 @@ Return the multiplicitive identity of the action polynomial ring `A`.
 """
 one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
 
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = AbstractAlgebra.Generic.UniversalPolyRing{T}
+base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = AbstractAlgebra.UniversalPolyRing{T}
 
 coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
