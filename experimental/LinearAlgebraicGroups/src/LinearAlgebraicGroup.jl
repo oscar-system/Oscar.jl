@@ -188,7 +188,7 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
     LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
   end
   G = LAG.G
-  I = identity_matrix(LAG.k, degree(LAG)) 
+  I = identity_matrix(LAG.k, degree(LAG))
   m = root_subgroup_generator(LAG, alpha)
   gs = [G(I + lambda * m) for lambda in _generating_set_of_unit_group(LAG.k)]
   U, _ = sub(G, gs)
@@ -251,8 +251,8 @@ function borel(LAG::LinearAlgebraicGroup)
   for lambda in _generating_set_of_unit_group(LAG.k)
     for alpha in simple_roots(root_system(LAG))
       push!(gs, MatGroupElem(G, lambda * root_subgroup_generator(LAG, alpha)))
-      end
     end
+  end
   B, _ = sub(G, gs)
   return B
 end
@@ -269,7 +269,7 @@ end
 
 function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   rep = bruhat_cell_rep(LAG, w)
-  B = borel(LAG)  
+  B = borel(LAG)
   return double_coset(B, rep, B)
 end
 
