@@ -32,38 +32,25 @@ function has_gens(LAG::LinearAlgebraicGroup)
 end
 
 function number_of_generators(LAG::LinearAlgebraicGroup)
-  if gap_likes_the_group(LAG)
-    return number_of_generators(LAG.G)
-  else
-    error("Generators not known") # as long as field is QQ
-  end
+  gap_likes_the_group(LAG) && return number_of_generators(LAG.G)
+  error("Group is not finitely generated") # as long as field is QQ
 end
 
 function gens(LAG::LinearAlgebraicGroup)
-  if gap_likes_the_group(LAG)
-    return [linear_algebraic_group_elem(LAG, g) for g in gens(LAG.G)]
-  else
-    error("Generators not known") # as long as field is QQ
-  end
+  return [gen(LAG, i) for i in 1:ngens(LAG)]
 end
 
 function gen(LAG::LinearAlgebraicGroup, i::Int)
-  if gap_likes_the_group(LAG)
-    return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
-  else
-    error("Generators not known") # as long as field is QQ    
-  end
+  gap_likes_the_group(LAG) && return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
+  error("Group is not finitely generated") # as long as field is QQ
 end
 
 function isfinite(LAG::LinearAlgebraicGroup)
-  if gap_likes_the_group(LAG)
-    return isfinite(LAG.G)
+  gap_likes_the_group(LAG) && return isfinite(LAG.G)
+  if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
+    return true
   else
-    if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
-      return true
-    else
-      return false
-    end
+    return false
   end
 end
 
@@ -117,18 +104,17 @@ end
 # end
 
 function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
-  #add checks here
+  #TODO: add checks here
   return LinearAlgebraicGroupElem(LAG, MGE)
 end
 
 function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
-  return parent(a) == parent(b) && a.mat == b.mat
+  check_perent(a, b)
+  return a.mat == b.mat
 end
 
 function Base.:(*)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
-  if a.parent != b.parent
-    throw(ArgumentError("Elements must be from the same group to be multiplied"))
-  end
+  check_perent(a, b)
   return linear_algebraic_group_elem(parent(a), a.mat * b.mat)
 end
 
@@ -207,9 +193,7 @@ end
 
 ########### Tori ############################
 function maximal_torus(LAG::LinearAlgebraicGroup)
-  if isdefined(LAG, :T)
-    return LAG.T
-  end
+  isdefined(LAG, :T) && return LAG.T
   G = LAG.G
   gs = MatGroupElem[]
   for t in _genrating_set_of_unit_group(LAG.k)
