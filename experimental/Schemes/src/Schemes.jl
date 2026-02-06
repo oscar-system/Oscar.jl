@@ -25,6 +25,8 @@ include("ToricBlowups/methods.jl")
 include("Resolution_structure.jl")
 include("Resolution_tools.jl")
 
+include("RationalSections.jl")
+
 
 # Exports
 export CompleteIntersectionGerm
