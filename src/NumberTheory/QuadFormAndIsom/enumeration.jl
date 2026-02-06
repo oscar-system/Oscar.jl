@@ -2825,7 +2825,7 @@ function oscar_genus_representatives(
   invariant_function::Function=Hecke.default_invariant_function,
   save_partial::Bool=false,
   save_path::Union{IO, String, Nothing}=nothing,
-  stop_after::IntExt=1000,
+  stop_after::IntExt=20000,
   max_lat::IntExt=inf,
   genusDB::Union{Nothing, Dict{ZZGenus, Vector{ZZLat}}}=nothing,
   root_test::Bool=false,
@@ -2894,9 +2894,13 @@ function oscar_genus_representatives(
       end 
     end
     # sort by the estimated complexity of the computation 
-    complexity(x) = max(x[2],x[3])
-    sort!(todo, by=complexity)
-      
+    #complexity(x) = max(x[2],x[3])
+    #sort!(todo, by=complexity)
+    sort!(todo)
+    reverse!(todo)
+    #todo = [i for i in todo if i[1]==7]
+    @show todo
+    
     # Looking for certain lattices with isometry
     while !iszero(mm)
       d = denominator(mm)
@@ -2907,7 +2911,8 @@ function oscar_genus_representatives(
         p, k, _ = todo[i]
         deleteat!(todo, i)
       end
-      allow_info && println("(k, p) = $((k, p))")
+      allow_info && println("(k, p) = $((k, p)) for genus", G)
+      allow_info && println("todo = $todo for genus", G)
       # Take care of how to distribute the signatures between invariant
       # and coinvariant sublattices
       if pos
@@ -2929,9 +2934,9 @@ function oscar_genus_representatives(
           continue
         end
         # lets go global (somewhat awkwardly ... but since it is just prime order that is not too bad)
-        Bs = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+1)
+        Bs = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+2)
         isempty(Bs) && continue
-        As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1)
+        As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+2)
         isempty(As) && continue
         for LA in As, LB in Bs
           Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local)
