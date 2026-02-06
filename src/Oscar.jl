@@ -343,5 +343,10 @@ end
 function nsolve
 end
 
+function witness_set
+end
+
+function ndim
+end
 
 end # module

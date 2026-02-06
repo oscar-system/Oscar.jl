@@ -38,18 +38,18 @@ from `I` forwarding all `args`.
 """
 Oscar.nsolve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(Oscar.System(I); show_progress, args...)
 
-witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(System(I); show_progress, args...)
+Oscar.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(System(I); show_progress, args...)
 
 """
     ndim(I::MPolyIdeal)
 
 Compute the dimension of `I` numerically.
 """
-function ndim(I::MPolyIdeal)
+function Oscar.ndim(I::MPolyIdeal)
   # This is provided by HomotopyContinuation.jl and computes the
   # dimension based on the Jacobian rank at a random point.
-  F = System(I)
-  HomotopyContinuation.nvariables(F) - LinearAlgebra.rank(HomotopyContinuation.fixed(F))
+  F = Oscar.System(I)
+  HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
 end
 
 end
