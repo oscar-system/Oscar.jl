@@ -698,6 +698,7 @@ function representatives_of_hermitian_type(
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     _local::Bool=false,
+    invariant_function=Hecke.default_invariant_function
   )
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
@@ -707,7 +708,7 @@ function representatives_of_hermitian_type(
   n = order_of_isometry(Lf)
   @req is_finite(n) "Isometry must be of finite order"
   k = n*m
-  _reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(k), fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local)
+  _reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(k), fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local, invariant_function)
   # We test the type condition
   if fix_root == k
     # In this case, we have fixed a generator for a cyclic group: we need
@@ -902,7 +903,8 @@ function representatives_of_hermitian_type(
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
-    _local::Bool=false
+    _local::Bool=false,
+    invariant_function=Hecke.default_invariant_function
   )
   chi = min_poly
   @req is_irreducible(chi) "Polynomial must be irreducible"
@@ -942,7 +944,7 @@ function representatives_of_hermitian_type(
     end
     # local conditions are okay, enumerate the genus
     allow_info && !_local && println("Enumerate Z-genus $G")
-    repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local)
+    repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local, invariant_function)
     if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
       if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
         # T is unique in its genus, we can do the root test even when working locally 
@@ -950,7 +952,7 @@ function representatives_of_hermitian_type(
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
       if rank(G) <= 6 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=30, _local=false)
+        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=30, _local=false, invariant_function)
         if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
           return reps 
         end
@@ -2936,7 +2938,7 @@ function oscar_genus_representatives(
         # lets go global (somewhat awkwardly ... but since it is just prime order that is not too bad)
         Bs = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+2)
         isempty(Bs) && continue
-        As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+2)
+        As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+2, invariant_function)
         isempty(As) && continue
         for LA in As, LB in Bs
           Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local)
