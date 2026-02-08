@@ -1,8 +1,9 @@
-using Oscar
 using Test
 using Distributed
-
 import Random
+import DelimitedFiles
+
+using Oscar
 
 numprocs_str = get(ENV, "NUMPROCS", "1")
 
@@ -201,6 +202,12 @@ if haskey(ENV, "GITHUB_STEP_SUMMARY")
   end
 else
   print_stats(stdout, stats; max=10)
+end
+if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
+  open(joinpath(pkgdir(Oscar), "test-stats-$(test_subset).csv"), "a") do io
+    println(io, "path,time,ctime,rctime,gctime,alloc")
+    DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in stats), ",")
+  end
 end
 
 cd(oldWorkingDirectory)
