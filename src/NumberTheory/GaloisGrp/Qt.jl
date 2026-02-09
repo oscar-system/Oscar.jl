@@ -87,7 +87,7 @@ for analysis of the denominator and the infinite valuations
 
 function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   f = defining_polynomial(F)
-  @assert is_monic(f)
+  @req is_monic(f) "the defining polynomial needs to be monic (in x) and integral, i.e. in ZZ[t][x]"
   Zxy, (x, y) = polynomial_ring(ZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
@@ -95,7 +95,7 @@ function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
 
   dd = lcm(map(denominator, coefficients(d)))
   dd = lcm(dd, lcm(map(x->reduce(lcm, map(denominator, coefficients(numerator(x))), init=ZZRingElem(1)), coefficients(df))))
-  @assert isone(dd) #needs fixing....
+  @req isone(dd) "the defining polynomial needs to be monic (in x) and integral, i.e. in ZZ[t][x]"
   df *= dd
 
   for i=0:degree(f)
@@ -177,8 +177,8 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
 
     #need to map the ordering of the roots in C to the one in S
     #the roots in C should be power-series over the field used in S
-    rC = roots(C, (1,1))
-    rS = roots(S, 1)
+    rC = roots(C, (1,1), raw = true)
+    rS = roots(S, 1, raw = true)
 
     F, mF = residue_field(parent(rC[1]))
     G, mG = residue_field(F)
