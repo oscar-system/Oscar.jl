@@ -550,7 +550,7 @@ the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_dim(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, return its dimension; otherwise, return -1.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, return its dimension; otherwise, return ``\infty``.  
 
 # Examples:
 ```jldoctest
@@ -585,7 +585,7 @@ function vector_space_dim(M::SubquoModule)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  has_monomials_on_all_axes(LM) || return Int64(-1)
+  has_monomials_on_all_axes(LM) || return inf
   
   d = 0
   sum_dim = 0
@@ -878,7 +878,7 @@ function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:Field
   # TODO: This should call Singular's `kbase` instead. But that is not yet available.
   I = M.quo
   lead_I = leading_module(I)
-  has_monomials_on_all_axes(lead_I) || return Int64(-1)
+  has_monomials_on_all_axes(lead_I) || return inf
   result = elem_type(M)[]
   for i in 1:ngens(F)
     d = 0 # Iterate through the graded parts for the standard grading.
