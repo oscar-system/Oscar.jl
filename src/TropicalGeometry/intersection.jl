@@ -116,8 +116,8 @@ function intersect_after_lex_perturbation_with_intersection(sigma1::Polyhedron{Q
     V2, L2 = minimal_faces(sigma2)
     R1, _ = rays_modulo_lineality(sigma1)
     R2, _ = rays_modulo_lineality(sigma2)
-    V1p = Ref(p) .- V1
-    V2p = Ref(p) .- V2
+    V1p = V1 .- Ref(p)
+    V2p = V2 .- Ref(p)
     Cp12 = positive_hull(vcat(V1p,-V2p,R1,-R2), vcat(L1,L2))
 
     # and check whether u is contained in C_0(sigma1-sigma2) by checking that it
