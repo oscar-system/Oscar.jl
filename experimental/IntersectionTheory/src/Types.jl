@@ -121,6 +121,7 @@ end
 @doc raw"""
     AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::AffAlgHom, fₓ)
     AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ)
+
 The type of an abstract abstract_variety morphism.
 """
 mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT} <: VarietyHom

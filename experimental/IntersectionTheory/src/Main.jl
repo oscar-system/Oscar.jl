@@ -34,7 +34,7 @@ AbstractBundle of rank 12 on AbstractVariety of dim 4
 julia> C = 5*OO(P4, 3)
 AbstractBundle of rank 5 on AbstractVariety of dim 4
 
-julia> F = B-A-C
+julia> F = B - A - C
 AbstractBundle of rank 2 on AbstractVariety of dim 4
 
 julia> total_chern_class(F)
@@ -93,6 +93,7 @@ julia> chern_character(Q)
 ```
 """
 chern_character(F::AbstractBundle) = (
+  # TODO use the get_attribute system?
   if !isdefined(F, :ch) F.ch = F.rank + _logg(F.chern) end;
   F.ch)
 
@@ -366,7 +367,9 @@ end
 
 function _trim(R::MPolyDecRingOrQuo)
   d = get_attribute(R, :abstract_variety_dim)
+  # TODO use isnothing?
   !(d == nothing) || error("ring is not the Chow ring of an abstract variety")
+
   if isdefined(R, :I)
     gI = gens(R.I) # will consist of the generators of the modulus I of the desired Chow ring
     S = base_ring(R)
@@ -374,10 +377,11 @@ function _trim(R::MPolyDecRingOrQuo)
     gI = MPolyRingElem[] # will consist of the generators of the modulus I of the desired Chow ring
     S = R
   end
+
   w = weights(Int, S)
   if !isdefined(R, :I) || krull_dim(R.I) > 0
     # add powers of variables to gI so that I = <gI> becomes 0-dimensional
-    for (i,x) in enumerate(gens(R))
+    for (i, x) in enumerate(gens(R))
       push!(gI, x^Int(ceil((d+1)//w[i])))
     end
   end
@@ -1614,6 +1618,7 @@ function dual(F::AbstractBundle)
   return Fdual
 end
 
+# TODO this docstring doesn't come out correctly
 @doc raw"""
     -(F::AbstractBundle)
     *(n::RingElement, F::AbstractBundle)
