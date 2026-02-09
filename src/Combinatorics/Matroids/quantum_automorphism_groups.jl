@@ -134,6 +134,7 @@ function quantum_symmetric_group(n::Int; reduced_gb::Bool=true)
   end
   
   I = ideal(relations)
+  I.deg_bound=-1
 
   if n >= 5
     gb = _quantum_symmetric_group_groebner_basis(n; u=u)
