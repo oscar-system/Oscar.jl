@@ -149,7 +149,7 @@ we expect there to be a unique point class, but there are 4 basis elements in th
 The reason is that `h`, `c1`, and `c2` are completely formal variables,
 and we have not specified their relationship.
 
-```julia
+```@julia
 julia> h, c1, c2 = gens(S)
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  h
@@ -284,9 +284,7 @@ The cubic fourfold `Z` is a special cubic fourfold of discriminant 14, see [Has0
 We can verify this as follows:
 
 ```@julia
-julia> H², S = basis(Z)[3];
-
-julia> M = map(integral, matrix([[H² * H², H² * S], [H² * S, S * S]]))
+julia> M = intersection_matrix(basis(Z)[3])
 [3    5]
 [5   13]
 
