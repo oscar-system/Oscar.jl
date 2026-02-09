@@ -1,6 +1,4 @@
-const ColoredGGM{S} where {T <: Union{Mixed, Directed, Undirected}, S <: AbstractGraph{T}} = GaussianGraphicalModel{
-  Graph{T}, @NamedTuple{color::GraphMap{T}}
-}
+const ColoredGGM{T} = GaussianGraphicalModel{Graph{T}, @NamedTuple{color::Oscar.GraphMap{T}}} where {T <: Union{Mixed, Directed, Undirected}, S <: Oscar.AbstractGraph{T}}
 
 @attr Tuple{
   QQMPolyRing,
@@ -24,7 +22,7 @@ end
 @attr Tuple{
   QQMPolyRing,
   GraphDict{QQMPolyRingElem}
-} function parameter_ring(GM::GaussianGraphicalModel{Graph{Directed}, T}; cached=false) where T
+} function parameter_ring(GM::ColoredGGM{Directed})
   G = graph(GM)
   edge_colors = unique([G.color[e] for e in edges(G)])
   vertex_colors = unique([G.color[v] for v in vertices(G)])

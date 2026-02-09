@@ -649,7 +649,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}};
       end
     end
 
-    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in K if !iszero(k)])
+    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in gens(base_ring(K))])
 
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
@@ -671,7 +671,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
   sigma = covariance_matrix(M)
   phi = parametrization(M)
   sigma = phi.(sigma)
-  adj_t = transpose(Oscar.adjugate(phi.(sigma)))
+  adj_t = transpose(Oscar.adjugate(sigma))
   n = size(sigma)[1]
   
   if algorithm == :eliminate
@@ -690,11 +690,11 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
     end
     l_eqs = matrix([det_sigma^2 * derivative(det_adj_t, g) - n * det_adj_t * det_sigma * derivative(det_sigma, g) +
       det_adj_t * derivative(det_sigma, g) * tr(scv_matrix * adj_t) - det_sigma * det_adj_t * derivative(trace(scv_matrix * adj_t), g) for g in gens(base_ring(adj_t))])
-    println(l_eqs)
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
+    eliminate(I, reduce(vcat, flat.(s)))
     J = saturation(I, ideal(det_sigma * det_adj_t))
-    return degree(eliminate(I, reduce(vcat, flat.(s))))
+    return degree(J)
   elseif algorithm == :monte_carlo
     det_sigma = det(sigma)
     det_adj_t = det(adj_t)

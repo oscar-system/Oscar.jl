@@ -81,6 +81,7 @@ export gaussian_graphical_model
 export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 export gaussian_ring, GaussianRing
+export maximum_likelihood_degree
 
 # Discrete graphical models
 export DiscreteGraphicalModel
