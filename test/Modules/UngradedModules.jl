@@ -1963,7 +1963,7 @@ end
   IF, _ = I*F
   I2F, _ = I^2*F
   M, _ = quo(IF, I2F)
-  B = Oscar._vector_space_basis(M)
+  B = vector_space_basis(M)
   @test length(B) == 2
   @test x*F[1] in repres.(B)
   @test y*F[1] in repres.(B)

@@ -579,21 +579,24 @@ function vector_space_dim(M::SubquoModule; check::Bool=true, cached::Bool=true)
   # over the `base_ring` of the ring on which `M` is defined.
   R = base_ring(M)
   @assert base_ring(R) isa Field "`base_ring` of the ring over which the module is defined is not a field"
-  return vector_space_dim(base_ring(R), M; check, cached)
+  cached && has_attribute(M, :vector_space_dimension) && return get_attribute(M, :vector_space_dimension)::Union{Int, PosInf}
+  res = vector_space_dim(base_ring(R), M)
+  cached && set_attribute!(M, :vector_space_dimension=>res)
+  return res
 end
 
 # If the module's ring is already a field, we compute the dimension over that.
 function vector_space_dim(M::SubquoModule{T}; check::Bool=true, cached::Bool=true) where {T <: FieldElem}
-  return vector_space_dim(base_ring(M), M; check, cached)
+  return vector_space_dim(base_ring(M), M)
 end
 
-function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true, cached::Bool=true)
+function vector_space_dim(kk::Field, M::SubquoModule)
   R = base_ring(M)
   kk === R || kk === base_ring(R) || error("not implemented over fields different from the ground ring or the `base_ring` thereof")
   _is_finite(kk, M) || return inf
   # The generic implementation just takes the length of a basis. 
   # This might not be efficient, so consider overwriting it in specific cases.
-  return length(vector_space_basis(kk, M; cached))
+  return length(vector_space_basis(kk, M))
 end
 
 @doc raw"""
@@ -608,7 +611,7 @@ end
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
   @assert kk === base_ring(base_ring(M)) "not implemented for fields other than the `base_ring` of the `base_ring` of the module"
   is_zero(M) && return true
-  !is_defined(M, :quo) && return false
+  !isdefined(M, :quo) && return false
   return has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
 end
 
@@ -664,24 +667,19 @@ function vector_space_basis(kk::Field, M::SubquoModule)
   # to a respective internal method. 
   kk === base_ring(R) || error("`vector_space_basis` not implemented over fields other than the `base_ring` of the ring over which the module is defined")
 
-  has_attribute(M, :vector_space_basis) && return get_attribute(M, :vector_space_basis)::Vector{elem_type(M)}
-
   S = base_ring(M)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
     MM = cokernel(map(pres, 1))
-    B = _vector_space_basis(MM)
+    B = _vector_space_basis(kk, MM)
     aug = map(pres, 0)
     return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
   end
   
   # If execution gets here, `M` is presented.
-  result = is_graded(M) ? _vector_space_basis_graded(M) : _vector_space_basis(M)
-  if cached
-    set_attribute!(M, :vector_space_basis=>result)
-  end
+  result = is_graded(M) ? _vector_space_basis_graded(kk, M) : _vector_space_basis(kk, M)
   return result
 end
 
@@ -783,7 +781,7 @@ function _vector_space_basis(M::SubquoModule{T}, d::Int64) where {T <: MPolyRing
   LM = leading_module(Mq,o)
 
   mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
-  return M.(filter!(mon->!(mon in LM), mons))
+  return [M(mon) for mon in mons if !(mon in LM)]
 end
   
 function _vector_space_basis_graded(M::SubquoModule, d::FinGenAbGroupElem)
