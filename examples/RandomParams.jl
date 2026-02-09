@@ -43,9 +43,7 @@ abstract type RandomParams{T} end
 # large enough to indicate "very many").
 function cap_to_Int64(n::T)  where {T <: Nemo.IntegerUnion}
   @req (n >= 0)  "Must be non-negative"
-  max = typemax(Int64)
-  (n >= max) && return max
-  return Int64(n)
+  return clamp(n, Int64)
 end
 
 
@@ -102,7 +100,7 @@ end
 # "semi-smart" doubling of a StepRange
 # Looks complicated, but isn't really.
 # If range is non-neg, just extend the stop
-# If range is non-posg, just extend the start
+# If range is non-pos, just extend the start
 # O/w straddles zero, so extend both start & stop
 # If step is not 1, we keep the residue class fixed (I hope)
 function double_range(range::StepRange{ZZRingElem,ZZRingElem})
@@ -113,7 +111,7 @@ function double_range(range::StepRange{ZZRingElem,ZZRingElem})
   if first(range) == 0
     return first(range) : step(range) : (2*last(range))
   end
-  if range.stop == 0
+  if last(range) == 0
     return (2*first(range)) : step(range) : last(range)
   end
   width = divexact(last(range)-first(range), step(range))
@@ -350,7 +348,7 @@ mutable struct RandomParams_Poly  <: RandomParams
     result.num_terms = nterms
     result.nz = non_zero
     result.counter = 0
-    max_nterms = (nterms == 0:0) ? length(d) : min(length(d), nterms.stop)
+    max_nterms = (nterms == 0:0) ? length(d) : min(length(d), last(nterms))
     log_est = max_nterms * log2(coeff_range.num_different_values)
     result.num_different_values = (log_est >= 63) ? typemax(Int64) : floor(Int64, exp2(log_est))
     return result
@@ -391,7 +389,7 @@ function extend_range!(R::RandomParams_Poly)
   R.coeff_params = extend_range!(R.coeff_params);
 ## update counter & num_different_values
   R.counter = 0 # ? just reset counter ?
-  max_nterms = (R.num_terms == 0:0) ? length(R.d) : min(length(R.d), R.num_terms.stop)
+  max_nterms = (R.num_terms == 0:0) ? length(R.d) : min(length(R.d), last(R.num_terms))
   log_est = max_nterms * log2(R.coeff_params.num_different_values)
   result.num_different_values = (log_est >= 63) ? typemax(Int64) : floor(Int64, exp2(log_est))
   return R
