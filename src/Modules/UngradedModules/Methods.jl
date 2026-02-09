@@ -745,16 +745,16 @@ julia> F = free_module(R,2);
 julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
 
 julia> vector_space_basis(M,2)
-2-element Vector{FreeModElem{QQMPolyRingElem}}:
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  x*y*e[2]
  y^2*e[2]
 
 julia> vector_space_basis(M,0)
-1-element Vector{FreeModElem{QQMPolyRingElem}}:
+1-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  e[2]
 
 julia> vector_space_basis(M)
-6-element Vector{FreeModElem{QQMPolyRingElem}}:
+6-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
  e[2]
  x*e[2]
  y*e[2]
