@@ -12,7 +12,6 @@ include("PhylogeneticModels.jl")
 include("PhylogeneticModels-functions.jl")
 
 include("MultigradedImplicitization.jl")
-include("model_types/gaussian_types.jl")
 include("serialization.jl")
 
 export indexed_ring

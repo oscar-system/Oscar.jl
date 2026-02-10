@@ -1,9 +1,3 @@
-const ColoredGGM{Directed} = GaussianGraphicalModel{
-  Graph{Directed},
-  @NamedTuple{color::S}
-} where S <: Oscar.GraphMap;
-# 
-
 @testset "GaussianGraphicalModels" begin
   mktempdir() do path
     DG = graph_from_edges(Directed, [[1,2],[2,3]])
@@ -35,7 +29,7 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
       
-      @test isone(maximum_likelihood_degree(M2); algorithm=:monte_carlo)
+      @test isone(maximum_likelihood_degree(M2; algorithm=:monte_carlo))
     end
 
     UG = complete_bipartite_graph(1, 2)
@@ -47,6 +41,7 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
         -cov_mat[1, 1] * cov_mat[2, 3] + cov_mat[1, 2] * cov_mat[1, 3]])
 
       @test isone(maximum_likelihood_degree(M3))
+      @test isone(maximum_likelihood_degree(M3; algorithm=:monte_carlo))
       test_save_load_roundtrip(path, M3) do loaded
         @test vanishing_ideal(loaded) == V3
       end
