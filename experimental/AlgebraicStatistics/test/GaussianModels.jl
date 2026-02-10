@@ -10,13 +10,13 @@
       )
 
       @test isone(maximum_likelihood_degree(M1))
-      
+
       test_save_load_roundtrip(path, M1) do loaded
         @test vanishing_ideal(loaded) == V1
       end
-      
+
       # can't serialize a graph with labels yet
-      
+
       label!(DG,
              Dict((1, 2) => "pink", (2, 3) => "pink"),
              Dict(i => "green" for i in 1:3);
@@ -28,7 +28,7 @@
       @test V2 == ideal(
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
-      
+
       @test isone(maximum_likelihood_degree(M2; algorithm=:monte_carlo))
     end
 
