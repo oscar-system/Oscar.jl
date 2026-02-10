@@ -541,16 +541,12 @@ end
 ## spaces
 ##########################################################################
 @doc raw"""
-    vector_space_dim(M::SubquoModule, d::Int)
-
-Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Return the dimension of the ``k``-vectorspace corresponding to the
-degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
-the one of each generator of the ambient free module of ``M`` as zero.
-
     vector_space_dim(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, return its dimension; otherwise, return ``\infty``.  
+Let ``R`` be a `Ring` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
+Return the dimension of `M`, seen as a the ``k``-vectorspace. 
+
+If `R` itself is a `Field`, this simply returns the dimension of `M`.
 
 # Examples:
 ```jldoctest
@@ -590,10 +586,27 @@ function vector_space_dim(M::SubquoModule{T}; check::Bool=true, cached::Bool=tru
   return vector_space_dim(base_ring(M), M)
 end
 
+# Syntax to be coherent with other methods for `vector_space_dim`.
 function vector_space_dim(kk::Field, M::SubquoModule)
   R = base_ring(M)
   kk === R || kk === base_ring(R) || error("not implemented over fields different from the ground ring or the `base_ring` thereof")
+
+  S = base_ring(M)
+  F = ambient_free_module(M)
+  # We need `M` to be presented  
+  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
+    pres = presentation(M)
+    MM = cokernel(map(pres, 1))
+    return _vector_space_dim(kk, MM)
+  end
+  # At this point we may assume `M` to be presented
+  return _vector_space_dim(kk, M)
+end
+
+# Assumes `M` to be presented
+function vector_space_dim(kk::Field, M::SubquoModule)
   _is_finite(kk, M) || return inf
+
   # The generic implementation just takes the length of a basis. 
   # This might not be efficient, so consider overwriting it in specific cases.
   return length(vector_space_basis(kk, M))
@@ -603,6 +616,9 @@ end
     _is_finite(kk::Field, M::SubquoModule)
 
 Return whether `M` is a finite vector space over `kk`.
+Note that this assumes the `ambient_representatives_generators` of `M` to 
+coincide with the generators of the `ambient_free_module`. This internal 
+function must only be called in such appropriate settings. 
 """
 function _is_finite(kk::Field, M::SubquoModule)
   error("finiteness check for $M over $kk not implemented")
