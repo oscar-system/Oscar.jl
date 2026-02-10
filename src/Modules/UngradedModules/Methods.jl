@@ -604,7 +604,7 @@ function vector_space_dim(kk::Field, M::SubquoModule)
 end
 
 # Assumes `M` to be presented
-function vector_space_dim(kk::Field, M::SubquoModule)
+function _vector_space_dim(kk::Field, M::SubquoModule)
   _is_finite(kk, M) || return inf
 
   # The generic implementation just takes the length of a basis. 
