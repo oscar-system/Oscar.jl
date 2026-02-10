@@ -983,57 +983,51 @@ function tensor_product(maps::Vector{<:ModuleFPHom};
   return tensor_product(domain, codomain, maps)
 end
 
-#=
-function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  S = base_ring(M)
-  F = ambient_free_module(M)
-  # We need `M` to be presented  
-  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
-    pres = presentation(M)
-    MM = cokernel(map(pres, 1))
-    B = _vector_space_basis(MM)
-    aug = map(pres, 0)
-    return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
-  end
-  # We may assume that M is presented
-  # TODO: This should call Singular's `kbase` instead. But that is not yet available.
-  I = M.quo
-  lead_I = leading_module(I)
-  has_monomials_on_all_axes(lead_I) || return inf
-  result = elem_type(M)[]
-  for i in 1:ngens(F)
-    d = 0 # Iterate through the graded parts for the standard grading.
-    done = false # We will quit once no new contributions are found.
-    while !done
-      found = false
-      # `AllMonomials` has a different dispatch in case of graded rings 
-      # so we need to strip off the grading if we want to work with the 
-      # standard grading by total degree.
-      for m in monomials_of_degree(S, d)
-        mi = m*F[i] 
-        mi in lead_I && continue
-        push!(result, M(mi))
-        found = true
-      end
-      done = !found
-      d = d + 1
-    end
-  end
-  return result
-end
 
-@attr Int function vector_space_dimension(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  return length(_vector_space_basis(M))
-end
-=#
-
-#=
-function vector_space(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  B = _vector_space_basis(M)
+# turn a module into a vector space
+function vector_space(M::SubquoModule{T}; check::Bool=false) where {T<:MPolyRingElem{<:FieldElem}}
   R = base_ring(M)
   kk = coefficient_ring(R)
-  V = vector_space(kk, length(B))
-  return V, hom(V, M, B)
+  return vector_space(ModuleFP, kk, M; check)
 end
-=#
+
+function vector_space(
+    ::Type{ResType}, M::SubquoModule{T}; 
+    check::Bool=false
+  ) where {ResType <: ModuleFP, T<:MPolyRingElem{<:FieldElem}}
+  R = base_ring(M)
+  kk = coefficient_ring(R)
+  return vector_space(ResType, kk, M; check)
+end
+
+function vector_space(
+    ::Type{ResType}, kk::Field, M::SubquoModule{T}; 
+    check::Bool=false
+  ) where {ResType <: ModuleFP, T<:MPolyRingElem{<:FieldElem}}
+  R = base_ring(M)
+  @assert kk === coefficient_ring(R) "not implemented for fields other than the `coefficient_ring` of the `base_ring`"
+  @check vector_space_dimension(kk, M) < inf "module is not finite dimensional over the coefficient field"
+  B = vector_space_basis(kk, M)
+  V = FreeMod(kk, length(B))
+  m = MapFromFunc(V, M, x->sum(x[i]*b for (i, b) in enumerate(B); init=zero(M)))
+  return V, m
+end
+
+# sparse modules over a field return themselves 
+function vector_space(
+    M::ModuleFP{T}; 
+    check::Bool=false
+  ) where {T<:FieldElem}
+  kk = base_ring(M)
+  return vector_space(kk, M; check)
+end
+
+function vector_space(
+    kk::Field,
+    M::ModuleFP{T}; 
+    check::Bool=false
+  ) where {T<:FieldElem}
+  @assert kk === base_ring(M) "not implemented for fields other than the `base_ring`"
+  return M, identity_map(M)
+end
 
