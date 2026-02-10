@@ -1068,40 +1068,8 @@ julia> automorphism_group(g)
 Permutation group of degree 4
 ```
 """
-function automorphism_group(g::Graph{T}; labels::Vector{Symbol}=Symbol[]) where {T <: Union{Directed, Undirected}}
-  G = _gens_to_group(automorphism_group_generators(g))
-  isempty(labels) && return G
-
-  for label in labels
-    gmap = getproperty(g, label)
-
-    if !isnothing(gmap.edge_map)
-      # partition edges by labels
-      d = Dict(l => Vector{Int}[] for l in unique([gmap.edge_map[e] for e in edges(g)]))
-
-      for e in edges(g)
-        push!(d[gmap.edge_map[e]], [src(e), dst(e)])
-      end
-
-      Omega = gset(G, on_sets, reduce(vcat, values(d)))
-      println(typeof(Omega))
-      S = [stabilizer(Omega, Set(v)) for v in values(d)]
-      println(collect(S[1]))
-    end
-
-    if !isnothing(gmap.vertex_map)
-      # partition vertices by labels
-      d = Dict(l => Set{Int}([]) for l in unique([gmap.vertex_map[i] for i in 1:n_vertices(g)]))
-
-      for i in 1:n_vertices(g)
-        push!(d[gmap.vertex_map[i]], i)
-      end
-      inter = intersect([stabilizer(gset(G, v), v)[1] for v in values(d)]...)
-      isempty(inter) && return trivial_subgroup(G)[1]
-      G = inter[1]
-    end
-  end
-  return G
+function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+  return _gens_to_group(automorphism_group_generators(g))
 end
 
 
