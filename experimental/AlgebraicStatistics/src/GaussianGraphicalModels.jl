@@ -633,28 +633,28 @@ end
 
 ################################################################################
 # Maximum likelihood
-
-function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:eliminate)
+function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
+  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   K = concentration_matrix(M)
   n = size(K)[1]
 
-  if algorithm == :eliminate
-    S, s = polynomial_ring(base_ring(K), :s => 1:divexact((n + 1) * n, 2))
-    phi = Oscar.flatten(S)
-    K = phi.(K)
-    scv_matrix = phi.(upper_triangular_matrix(s))
+  if algorithm == :generic
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2))
+    R, emb = change_base_ring(S, base_ring(K))
+    K = emb.(K)
+    scv_matrix = upper_triangular_matrix(s)
     for i in 1:n
       for j in 1:i - 1
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
 
-    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in gens(base_ring(K))])
+    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in gens(R)])
 
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
     J = saturation(I, ideal(det(K)))
-    return degree(eliminate(I, reduce(vcat, phi.(s))))
+    return degree(J)
   elseif algorithm == :monte_carlo
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
@@ -667,46 +667,65 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}};
   end
 end
 
-function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:eliminate)
+@doc raw"""
+    maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
+    maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
+
+Returns the maximum likelihood degree of `M` the given `GaussianGraphicalModel`.
+The possible algorithms can be choosen via the `algorithm` kwarg set to either `:generic` or `:monte_carlo`.
+The default is to compute with `:generic` which will use a sample covariance matrix whose entries lie in a rational function field.
+Setting algorithm to `:monte_carlo` will randomly generate a sample covariance matrix.
+
+## Examples
+
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 3], [1, 5], [2, 3], [2, 4], [3, 4], [4, 5]])
+Directed graph with 5 nodes and the following edges:
+(1, 3)(1, 5)(2, 3)(2, 4)(3, 4)(4, 5)
+
+julia> M = gaussian_graphical_model(G)
+Gaussian Graphical Model on a Directed graph with 5 nodes and 6 edges
+
+julia> maximum_likelihood_degree(M)
+1
+```
+"""
+function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
+  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   sigma = covariance_matrix(M)
   phi = parametrization(M)
   sigma = phi.(sigma)
-  adj_t = transpose(Oscar.adjugate(sigma))
+  adj = Oscar.adjugate(sigma)
   n = size(sigma)[1]
   
-  if algorithm == :eliminate
-    S, s = polynomial_ring(base_ring(sigma), :s => 1:divexact((n + 1) * n, 2))
-    flat = Oscar.flatten(S)
-    sigma = flat.(sigma)
-    adj_t = flat.(adj_t)
+  if algorithm == :generic
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2))
+    R, emb = change_base_ring(S, codomain(phi))
+    sigma = emb.(sigma)
+    adj = emb.(adj)
     det_sigma = det(sigma)
-    det_adj_t = det(adj_t)
 
-    scv_matrix = flat.(upper_triangular_matrix(s))
+    scv_matrix = upper_triangular_matrix(s)
     for i in 1:n
       for j in 1:i - 1
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    l_eqs = matrix([det_sigma^2 * derivative(det_adj_t, g) - n * det_adj_t * det_sigma * derivative(det_sigma, g) +
-      det_adj_t * derivative(det_sigma, g) * tr(scv_matrix * adj_t) - det_sigma * det_adj_t * derivative(trace(scv_matrix * adj_t), g) for g in gens(base_ring(adj_t))])
+    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace(scv_matrix * adj)) + det_sigma * derivative(trace(scv_matrix * adj), g) for g in gens(R)])
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
-    eliminate(I, reduce(vcat, flat.(s)))
-    J = saturation(I, ideal(det_sigma * det_adj_t))
+    J = saturation(I, ideal(det_sigma))
     return degree(J)
+
   elseif algorithm == :monte_carlo
     det_sigma = det(sigma)
-    det_adj_t = det(adj_t)
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-
-    l_eqs = matrix([det_sigma^2 * derivative(det_adj_t, g) - n * det_adj_t * det_sigma * derivative(det_sigma, g) +
-      det_adj_t * derivative(det_sigma, g) * tr(scv_matrix * adj_t) - det_sigma * det_adj_t * derivative(trace(scv_matrix * adj_t), g) for g in gens(base_ring(adj_t))])
+    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace(scv_matrix * adj)) + det_sigma * derivative(trace(scv_matrix * adj), g) for g in gens(codomain(phi))])
 
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
-    J = saturation(I, ideal(det_sigma * det_adj_t))
+    J = saturation(I, ideal(det_sigma))
     return degree(J)
   end
 end
