@@ -1,5 +1,6 @@
 import Oscar.Serialization: save_object, load_object,
   type_params, _convert_override_params, params, load_type_params, decode_type
+
 function _convert_override_params(tp::TypeParams{<:GraphicalModel{T}, <:Tuple{Vararg{Pair}}}) where T <: Oscar.AbstractGraph
   param_dict = Dict()
   for p in Oscar.Serialization.params(tp)
