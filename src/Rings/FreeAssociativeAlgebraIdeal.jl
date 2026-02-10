@@ -104,12 +104,10 @@ existing values. If `force` is `false`, the Groebner basis will only be set if
 it is not already defined or if the new degree bound is greater than the
 existing one.
 """
-function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int)
-  if force || !isdefined(I, :gb) || deg_bound == -1 || (I.deg_bound > 0 && I.deg_bound < deg_bound)
-    I.gb = gb
-    I.deg_bound = deg_bound
-    return I
-  end
+function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int;force::Bool=false)
+  @req force || !isdefined(I, :gb) || deg_bound == -1 || (I.deg_bound > 0 && I.deg_bound < deg_bound) "Either force must be true, gb must not be already defined, deg_bound must be -1, or the new deg_bound must be greater than the existing positive deg_bound"
+  I.gb = gb
+  I.deg_bound = deg_bound
   return I
 end
 
@@ -158,6 +156,14 @@ function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssocia
   algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
   return iszero(reducer(a, gb, deg_bound))
 end
+
+_f4ncgb_ideal_membership(
+  a::FreeAssociativeAlgebraElem,
+  g::IdealGens{<:FreeAssociativeAlgebraElem},
+  deg_bound::Int=-1;
+  probabilistic::Bool = false
+) = _f4ncgb_ideal_membership(a, collect(g), deg_bound; probabilistic=probabilistic)
+
 
 function _f4ncgb_ideal_membership(
   a::FreeAssociativeAlgebraElem,
