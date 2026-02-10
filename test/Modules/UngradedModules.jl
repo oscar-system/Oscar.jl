@@ -1968,10 +1968,10 @@ end
   @test x*F[1] in repres.(B)
   @test y*F[1] in repres.(B)
   
-  #=
   V, inc = vector_space(M)
-  @test dim(V) == 2
+  @test V isa FreeMod
+  @test vector_space_dimension(V) == 2
   @test inc.(gens(V)) == B
-  =#
+  @test vector_space(V)[1] === V
 end
 
