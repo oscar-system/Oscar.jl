@@ -171,5 +171,3 @@ function f4ncgb_reduce(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
     add_cb_c::Ptr{Cvoid},
     end_poly_cb_c::Ptr{Cvoid})::Cint
 end
-
-
