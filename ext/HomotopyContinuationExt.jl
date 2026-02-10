@@ -38,7 +38,7 @@ from `I` forwarding all `args`.
 """
 Oscar.nsolve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(Oscar.System(I); show_progress, args...)
 
-Oscar.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(System(I); show_progress, args...)
+Oscar.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(Oscar.System(I); show_progress, args...)
 
 """
     ndim(I::MPolyIdeal)

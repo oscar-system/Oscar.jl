@@ -391,6 +391,10 @@ jobs:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
           cache-scratchspaces: false
+      - name: "Inject HomotopyContinuation as test dependencies"
+        continue-on-error: true
+        run: |
+          sed -i -e "s/\[deps\]/[deps]\nHomotopyContinuation = \"f213a82b-91d6-5c5d-acf7-10f1c761b327\"/" test/Project.toml
       - uses: julia-actions/julia-runtest@v1
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
