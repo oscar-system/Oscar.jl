@@ -2045,10 +2045,55 @@ end
   @test vector_space_basis(O2) == elem_type(O2)[]
   @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
 
-  # quotient of free_module (S_6 space_curve with translated singularity to (1,2,3))
+  # quotient of free_module (S_6 space_curve with singularity translated to (1,2,3))
   rels = [
     ((x-1)^3+(y-2)^2+(z-3)^2)*F[1], ((x-1)*(y-2))*F[1],
     ((x-1)^3+(y-2)^2+(z-3)^2)*F[2], ((x-1)*(y-2))*F[2],
+    3*(x-1)^2*F[1] + (y-2)*F[2],
+    2*(y-2)*F[1] + (x-1)*F[2],
+    2*(z-3)*F[1]
+  ]
+  S = SubquoModule(F, [F[1], F[2]], rels)
+  @test vector_space_dim(S) == 6
+  B = vector_space_basis(S)
+  @test length(B) == 6
+  @test all(b -> parent(b) === S, B)
+  #the computed basis depends on the default monomial order of R
+  @test all(b -> b in repres.(B), [F[1], F[2], (x-1)*F[1], (x-1)^2*F[1], (y-2)*F[1], (z-3)*F[2]]) 
+
+  # quotient of a submodule 
+  T = SubquoModule(F, [(x-1)*F[1], (y-2)*F[2]], rels)
+  @test vector_space_dim(T) == 2
+  C = vector_space_basis(T)
+  @test length(C) == 2
+  @test all(c -> parent(c) === T, C)
+  @test all(c -> c in repres.(C), [(x-1)*F[1], (x-1)^2*F[1]])
+
+  # computing basis for infinite dimensional vector space throws error
+  S = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(S)
+end
+
+@testset "vector space functions for modules over a MPolyQuoLocRing" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  I = ideal(R, [(x-1)^3+(y-2)^2+(z-3)^2, (x-1)*(y-2)])
+  Q,_ = quo(R, I)
+  LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
+  F = free_module(LQ, 2)
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  # quotient of free_module (S_6 space_curve with singularity translated to (1,2,3))
+  rels = [
     3*(x-1)^2*F[1] + (y-2)*F[2],
     2*(y-2)*F[1] + (x-1)*F[2],
     2*(z-3)*F[1]
