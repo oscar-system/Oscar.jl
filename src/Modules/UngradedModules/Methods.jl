@@ -726,19 +726,30 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   LM = leading_module(I, o)
   
   d = 0
-  inc = _vector_space_basis(kk, M, 0)
+  inc = _vector_space_basis(kk, M, 0; check)
   result = elem_type(M)[]
 
   while !isempty(inc)
     result = vcat(result, inc)
     d = d + 1
-    inc = _vector_space_basis(kk, M, d)
+    inc = _vector_space_basis(kk, M, d; check)
   end
   return result
 end
 
 function vector_space_dim(M::SubquoModule, d::Union{FinGenAbGroupElem, Int64})
-  return length(vector_space_basis(M, d))
+  R = base_ring(M)
+  kk = base_ring(R)
+  return vector_space_dim(kk, M, d)
+end
+
+function vector_space_dim(M::SubquoModule{<:FieldElem}, d::Union{FinGenAbGroupElem, Int64})
+  kk = base_ring(M)
+  return vector_space_dim(kk, M, d)
+end
+
+function vector_space_dim(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64})
+  return length(vector_space_basis(kk, M, d))
 end
 
 @doc raw"""
@@ -784,11 +795,21 @@ julia> vector_space_basis(M)
 """
 function vector_space_basis(M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
   kk = base_ring(base_ring(M))
+  return vector_space_basis(kk, M, d; check)
+end
+
+function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
+  @assert kk === base_ring(base_ring(M)) "not implemented for fields other than the `base_ring` of the `base_ring` of the module"
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
 function vector_space_basis(M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true) where {T<:FieldElem}
   kk = base_ring(M)
+  return vector_space_basis(kk, M, d; check)
+end
+
+function vector_space_basis(kk::Field, M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true) where {T<:FieldElem}
+  @assert kk === base_ring(M) "not implemented for fields other than the `baser_ring` of the module" 
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
@@ -797,7 +818,6 @@ function _vector_space_basis(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; c
 end
 
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
-  @check _is_finite(kk, M) "module is not finite over the given field"
   R = base_ring(M)
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
