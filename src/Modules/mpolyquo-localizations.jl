@@ -161,7 +161,7 @@ end
 
 ### To a free module over R = P/I, return the free module over R 
 # in the same number of generators
-@attr FreeMod{<:MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _polyloc_module(F::FreeMod{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
+@attr FreeMod{MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _polyloc_module(F::FreeMod{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
   R = base_ring(F)
   P = localized_ring(R) # the polyloc ring
   r = rank(F)
@@ -179,7 +179,7 @@ end
 end
 
 ### Return the same module, but as a SubquoModule over the localized polynomial ring
-@attr SubquoModule{<:MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _as_polyloc_module(F::FreeMod{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
+@attr SubquoModule{MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _as_polyloc_module(F::FreeMod{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
   R = base_ring(F)
   P = localized_ring(R)
   I = modulus(R)
@@ -217,17 +217,17 @@ end
   return MP
 end
 
-@attr SubquoModule{<:MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _as_polyloc_module(M::SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
+@attr SubquoModule{MPolyLocRingElem{BRT, BRET, RT, RET, MST}} function _as_polyloc_module(M::SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
   F = ambient_free_module(M) 
   FP = _polyloc_module(F)
-  v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
-  w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
+  v = elem_type(FP)[_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
+  w = elem_type(FP)[f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
   w_ext = vcat(w, elem_type(FP)[_lifting_map(F)(g) for g in relations(M)])
   MP = SubquoModule(FP, v, w_ext)
   return MP
 end
 
-@attr SubQuoHom{SubquoModule{<:MPolyLocRingElem{BRT, BRET, RT, RET, MST}}, SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}, MPolyQuoLocRing{BRT, BRET, RT, RET, MST}} function _iso_with_polyloc_module(F::SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
+@attr SubQuoHom{SubquoModule{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}, SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}, MPolyQuoLocRing{BRT, BRET, RT, RET, MST}} function _iso_with_polyloc_module(F::SubquoModule{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
   M = _as_polyloc_module(F)
   return hom(M, F, gens(F), base_ring(F))
 end
