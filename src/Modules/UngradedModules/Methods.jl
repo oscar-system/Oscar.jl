@@ -617,18 +617,18 @@ function vector_space_dim(M::SubquoModule; check::Bool=true, cached::Bool=true)
   R = base_ring(M)
   @assert base_ring(R) isa Field "`base_ring` of the ring over which the module is defined is not a field"
   cached && has_attribute(M, :vector_space_dimension) && return get_attribute(M, :vector_space_dimension)::Union{Int, PosInf}
-  res = vector_space_dim(base_ring(R), M)
+  res = vector_space_dim(base_ring(R), M; check)
   cached && set_attribute!(M, :vector_space_dimension=>res)
   return res
 end
 
 # If the module's ring is already a field, we compute the dimension over that.
 function vector_space_dim(M::SubquoModule{T}; check::Bool=true, cached::Bool=true) where {T <: FieldElem}
-  return vector_space_dim(base_ring(M), M)
+  return vector_space_dim(base_ring(M), M; check)
 end
 
 # Syntax to be coherent with other methods for `vector_space_dim`.
-function vector_space_dim(kk::Field, M::SubquoModule)
+function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   R = base_ring(M)
   kk === R || kk === base_ring(R) || error("not implemented over fields different from the ground ring or the `base_ring` thereof")
 
@@ -638,19 +638,19 @@ function vector_space_dim(kk::Field, M::SubquoModule)
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
     MM = cokernel(map(pres, 1))
-    return _vector_space_dim(kk, MM)
+    return _vector_space_dim(kk, MM; check)
   end
   # At this point we may assume `M` to be presented
-  return _vector_space_dim(kk, M)
+  return _vector_space_dim(kk, M; check)
 end
 
 # Assumes `M` to be presented
-function _vector_space_dim(kk::Field, M::SubquoModule)
+function _vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   _is_finite(kk, M) || return inf
 
   # The generic implementation just takes the length of a basis. 
   # This might not be efficient, so consider overwriting it in specific cases.
-  return length(vector_space_basis(kk, M))
+  return length(vector_space_basis(kk, M; check))
 end
 
 @doc raw"""
@@ -684,28 +684,28 @@ Assume `M` to be defined over a `kk`-algebra `R` which is not a field.
 Return a list of elements in `M` which form a basis for `M` when considered 
 as a vector space over the `base_ring` `kk` of its `base_ring` `R`.
 """
-function vector_space_basis(M::SubquoModule; cached::Bool=true)
+function vector_space_basis(M::SubquoModule; cached::Bool=true, check::Bool=true)
   cached && has_attribute(M, :vector_space_basis) && return get_attribute(M, :vector_space_basis)::Vector{elem_type(M)}
   R = base_ring(M)
   kk = base_ring(R)
-  result = vector_space_basis(kk, M)
+  result = vector_space_basis(kk, M; check)
   if cached
     set_attribute!(M, :vector_space_basis=>result)
   end
   return result
 end
 
-function vector_space_basis(M::SubquoModule{<:FieldElem}; cached::Bool=true)
+function vector_space_basis(M::SubquoModule{<:FieldElem}; cached::Bool=true, check::Bool=true)
   cached && has_attribute(M, :vector_space_basis) && return get_attribute(M, :vector_space_basis)::Vector{elem_type(M)}
   kk = base_ring(M)
-  result = vector_space_basis(kk, M)
+  result = vector_space_basis(kk, M; check)
   if cached
     set_attribute!(M, :vector_space_basis=>result)
   end
   return result
 end
 
-function vector_space_basis(kk::Field, M::SubquoModule{<:FieldElem})
+function vector_space_basis(kk::Field, M::SubquoModule{<:FieldElem}; check::Bool=true)
   kk === base_ring(M) || error("not implemented for other fields than the `base_ring` of the module")
   # TODO: look up the existing implementations of rank and put the relevant things here.
   error("not implemented")
