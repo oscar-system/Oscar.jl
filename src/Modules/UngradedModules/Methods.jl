@@ -1141,3 +1141,28 @@ end
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
+
+### functionality for modules over quotients of localized polynomial rings at a point
+function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+ R = base_ring(M)
+  @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  @check _is_finite(kk, M) "module is not finite over the given field"
+  B = _vector_space_basis(kk, _as_polyloc_module(M), check=false)
+  is_empty(B) && return elem_type(M)[]
+  iota = _iso_with_polyloc_module(M)
+  return iota.(B)
+end
+
+function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyQuoLocRingElem}
+   error("only available in global case and for localization at a point")
+end
+
+function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  return _is_finite(kk, _as_polyloc_module(M))
+end
+
+function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
+  error("only available in global case and for localization at a point")
+end
