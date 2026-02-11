@@ -584,8 +584,9 @@ end
 @doc raw"""
     vector_space_dim(M::SubquoModule)
 
-Let ``R`` be a `Ring` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Return the dimension of `M`, seen as a the ``k``-vectorspace. 
+Let ``R`` be a `Ring` over a `coefficient_ring` ``k`` which is a field and let 
+``M`` be a subquotient module over ``R``. Return the dimension of `M`, seen 
+as a the ``k``-vectorspace. 
 
 If `R` itself is a `Field`, this simply returns the dimension of `M`.
 
@@ -615,9 +616,9 @@ function vector_space_dim(M::SubquoModule; check::Bool=true, cached::Bool=true)
   # Per default we assume that the user means the vector space dimension 
   # over the `base_ring` of the ring on which `M` is defined.
   R = base_ring(M)
-  @assert base_ring(R) isa Field "`base_ring` of the ring over which the module is defined is not a field"
+  @assert coefficient_ring(R) isa Field "`coefficient_ring` of the ring over which the module is defined is not a field"
   cached && has_attribute(M, :vector_space_dimension) && return get_attribute(M, :vector_space_dimension)::Union{Int, PosInf}
-  res = vector_space_dim(base_ring(R), M; check)
+  res = vector_space_dim(coefficient_ring(R), M; check)
   cached && set_attribute!(M, :vector_space_dimension=>res)
   return res
 end
@@ -630,7 +631,7 @@ end
 # Syntax to be coherent with other methods for `vector_space_dim`.
 function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   R = base_ring(M)
-  kk === R || kk === base_ring(R) || error("not implemented over fields different from the ground ring or the `base_ring` thereof")
+  kk === R || kk === coefficient_ring(R) || error("not implemented over fields different from the ground ring or the `coefficient_ring` thereof")
 
   S = base_ring(M)
   F = ambient_free_module(M)
@@ -666,7 +667,7 @@ function _is_finite(kk::Field, M::SubquoModule)
 end
 
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  @assert kk === base_ring(base_ring(M)) "not implemented for fields other than the `base_ring` of the `base_ring` of the module"
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
   return has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
@@ -682,12 +683,12 @@ end
 
 Assume `M` to be defined over a `kk`-algebra `R` which is not a field. 
 Return a list of elements in `M` which form a basis for `M` when considered 
-as a vector space over the `base_ring` `kk` of its `base_ring` `R`.
+as a vector space over the `coefficient_ring` `kk` of its `base_ring` `R`.
 """
 function vector_space_basis(M::SubquoModule; cached::Bool=true, check::Bool=true)
   cached && has_attribute(M, :vector_space_basis) && return get_attribute(M, :vector_space_basis)::Vector{elem_type(M)}
   R = base_ring(M)
-  kk = base_ring(R)
+  kk = coefficient_ring(R)
   result = vector_space_basis(kk, M; check)
   if cached
     set_attribute!(M, :vector_space_basis=>result)
@@ -719,10 +720,10 @@ Return a list of elements in `M` which form a basis of `M` as a vector space ove
 function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   R = base_ring(M)
   # At the moment we do not support vector space dimensions for modules 
-  # in cases different from ``kk`` being the `base_ring` of the `base_ring`
+  # in cases different from ``kk`` being the `coefficient_ring` of the `base_ring`
   # For widening the functionality, catch your case here and delegate 
   # to a respective internal method. 
-  kk === base_ring(R) || error("`vector_space_basis` not implemented over fields other than the `base_ring` of the ring over which the module is defined")
+  kk === coefficient_ring(R) || error("`vector_space_basis` not implemented over fields other than the `coefficient_ring` of the ring over which the module is defined")
 
   S = base_ring(M)
   F = ambient_free_module(M)
@@ -740,7 +741,7 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   return result
 end
 
-# compute a vector space basis over the `base_ring` of the `base_ring`
+# compute a vector space basis over the `coefficient_ring` of the `base_ring`
 function _vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   error("not implemented for modules of type $(typeof(M))")
 end
@@ -780,7 +781,7 @@ end
 
 function vector_space_dim(M::SubquoModule, d::Union{FinGenAbGroupElem, Int64})
   R = base_ring(M)
-  kk = base_ring(R)
+  kk = coefficient_ring(R)
   return vector_space_dim(kk, M, d)
 end
 
@@ -835,12 +836,12 @@ julia> vector_space_basis(M)
 ```
 """
 function vector_space_basis(M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
-  kk = base_ring(base_ring(M))
+  kk = coefficient_ring(base_ring(M))
   return vector_space_basis(kk, M, d; check)
 end
 
 function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
-  @assert kk === base_ring(base_ring(M)) "not implemented for fields other than the `base_ring` of the `base_ring` of the module"
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
@@ -1038,25 +1039,25 @@ end
 
 
 # turn a module into a vector space
-function vector_space(M::SubquoModule{T}; check::Bool=false) where {T<:MPolyRingElem{<:FieldElem}}
+function vector_space(M::SubquoModule; check::Bool=false)
   R = base_ring(M)
   kk = coefficient_ring(R)
   return vector_space(ModuleFP, kk, M; check)
 end
 
 function vector_space(
-    ::Type{ResType}, M::SubquoModule{T}; 
+    ::Type{ResType}, M::SubquoModule; 
     check::Bool=false
-  ) where {ResType <: ModuleFP, T<:MPolyRingElem{<:FieldElem}}
+  ) where {ResType <: ModuleFP}
   R = base_ring(M)
   kk = coefficient_ring(R)
   return vector_space(ResType, kk, M; check)
 end
 
 function vector_space(
-    ::Type{ResType}, kk::Field, M::SubquoModule{T}; 
+    ::Type{ResType}, kk::Field, M::SubquoModule; 
     check::Bool=false
-  ) where {ResType <: ModuleFP, T<:MPolyRingElem{<:FieldElem}}
+  ) where {ResType <: ModuleFP}
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for fields other than the `coefficient_ring` of the `base_ring`"
   @check vector_space_dimension(kk, M) < inf "module is not finite dimensional over the coefficient field"
