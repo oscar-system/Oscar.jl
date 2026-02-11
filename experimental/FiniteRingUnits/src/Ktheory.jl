@@ -60,6 +60,21 @@ function k1_semisimple_ring(R::FiniteRing)
   return direct_product(R, projs, k1s)
 end
 
+@doc raw"""
+    Oscar.k1(R::Union{FiniteRing, Oscar.Hecke.AbstractAssociativeAlgebra}) -> FinGenAbGrp, Map
+
+Return an abelian group $A$ and a map $f \colon A \to R$, such that the composition
+$f \to R^\times \to K_1(R)$ is an isomorphism.
+
+# Examples
+
+```jldoctest
+julia> R, = finite_ring(GF(2)[small_group(4, 2)]);
+
+julia> Oscar.k1(R)
+((Z/2)^3, Map: (Z/2)^3 -> finite ring)
+```
+"""
 function k1(R::Union{FiniteRing, Oscar.Hecke.AbstractAssociativeAlgebra})
   rngs, projs = decompose_into_indecomposable_rings(R)
   k1s = [_k1_naive_nonrec(S) for S in rngs]
