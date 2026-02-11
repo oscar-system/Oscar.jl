@@ -1973,5 +1973,11 @@ end
   @test vector_space_dimension(V) == 2
   @test inc.(gens(V)) == B
   @test vector_space(V)[1] === V
+
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R, 2)
+  S = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(S)
 end
 
