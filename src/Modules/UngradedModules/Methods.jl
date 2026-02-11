@@ -539,6 +539,47 @@ end
 ##########################################################################
 ## Functionality for modules happening to be finite dimensional vector
 ## spaces
+#
+# The general user facing signature is 
+#
+#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP; check::Bool)
+#
+# where we assume that either 1) the `base_ring` of `M` is already the 
+# field `kk`, or 2) the `base_ring` `R` of `M` is an algebra over the 
+# field `kk`. Other cases are possible, but must be caught and delegated 
+# to a custom implementation. 
+#
+# For convenience we also allow 
+#
+#   vector_space[_dimension/_basis](M::ModuleFP; check::Bool, cached::Bool=true)
+#
+# which picks the field `kk` according to the above assumptions. Note 
+# that this has the default option to cache the result (as it does not depend 
+# on a second argument `kk` anymore).
+#
+# Internally we need to first make sure that the module is finitely presented, 
+# i.e. that its `.sub` part is actually the whole `ambient_free_module`. Thus 
+# the generic code passes to a presentation and converts the result back if 
+# necessary. 
+#
+# Once we are sure that the module is presented, we delegate to respective 
+# internal methods 
+#
+#   _vector_space[_dimension/_basis](kk::Field, M::ModuleFP; check::Bool)
+#
+# These might still do internal checks, like e.g. finiteness over `kk`.
+#
+# For the non-graded polynomial case there are methods to filter out a 
+# graded part w.r.t the total degree via 
+#
+#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP, d::Int; check::Bool)
+#
+# These will eventually be deprecated to internal methods, but they are part of 
+# the system for now. In the graded case we aim to have 
+#   
+#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP, d::FinGenAbGroupElem; check::Bool)
+#
+# for which there are stubs at the moment, but only partial implementations.
 ##########################################################################
 @doc raw"""
     vector_space_dim(M::SubquoModule)
