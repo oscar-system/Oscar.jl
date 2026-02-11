@@ -2670,6 +2670,8 @@ function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRin
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
 
+coefficient_ring(L::MPolyQuoLocRing) = coefficient_ring(base_ring(L))
+
 ########################################################################
 # Inverses of homomorphisms                                            #
 ########################################################################
