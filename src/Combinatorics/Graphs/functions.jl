@@ -101,7 +101,7 @@ julia> G = ZZ[0 0; 1 0]
 julia> graph_from_adjacency_matrix(Directed, G)
 Directed graph with 2 nodes and the following edges:
 (2, 1)
-
+    
 julia> graph_from_adjacency_matrix(Undirected, G)
 Undirected graph with 2 nodes and the following edges:
 (2, 1)
@@ -1025,6 +1025,58 @@ function _graph_maps(G::Graph)
   labels = tuple(labelings(G)...)
   isempty(labels) && return Dict{Symbol, GraphMap}()
   return Dict(l => getproperty(G, l) for l in labels)
+end
+
+function _edge_label_to_vertex_label(G::Graph{T}) where T <: Union{Directed, Undirected}
+  iszero(length(labelings(G))) && return G
+  @req isone(length(labelings(G))) "Handling graphs with more than one edge labeling has not been implemented"
+
+  G_map = getproperty(G, only(labelings(G)))
+  label_type = typeof(G_map[1])
+  vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
+                             (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
+                             init=Dict{label_type, Vector{Int}}())
+  edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
+                          (Dict(G_map[e] => [e]) for e in edges(G));
+                          init=Dict{label_type, Vector{Edge}}())
+
+  n_layers = length(digits(length(edges_by_label), base = 2))
+  n_v_per_layer = n_vertices(G) + length(vertices_by_label)
+  n_v = n_layers * (n_v_per_layer)
+  new_G = Graph{T}(n_v)
+  new_vertex_labels = Dict{Int, String}()
+  for layer in 1:n_layers
+    vertex_offset = (layer - 1) * n_v_per_layer
+    label = 1
+    for (_, v_with_label) in vertices_by_label
+      for v in v_with_label
+        e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
+        new_vertex_labels[vertex_offset + v] = "red"
+      end
+      new_vertex_labels[vertex_offset + n_vertices(G) + label] = "blue"
+      label += 1
+    end
+
+    # add edges between the vertex and it's representatives across the layers
+    if layer != n_layers
+      for v in 1:n_vertices(G)
+        add_edge!(new_G, v + vertex_offset, v + vertex_offset + n_v_per_layer)
+      end
+    end
+
+
+    for (i, (_, e_with_label)) in enumerate(edges_by_label)
+      label_base2 = digits(i, base=2, pad=n_layers)
+      
+      for e in e_with_label
+        if isone(label_base2[layer])
+          add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
+        end
+      end
+    end
+  end
+  label!(new_G, nothing, new_vertex_labels; name=:color)
+  return new_G
 end
 
 ################################################################################
