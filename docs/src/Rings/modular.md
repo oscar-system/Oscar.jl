@@ -15,11 +15,18 @@ Given residues `r1`, ..., `rn` and pairwise coprime moduli `m1`, ... `mn`
 we return an `x` so that `x = ri mod mi` for all i.
 This solution is unique modulo `N = lcm(m1, ... mn)`.
 
-Any ring that has a `divrem` method has access to some `crt` methods provided by the `euclidean_interface`:
+If we need to apply the chinese remainder theorem repeatedly
+for a fixed set of (coprime) moduli,
+we can precompute all the necessary information and save it in a prepared environment.
+```@docs
+crt_env(p::Vector{T}) where T
+```
 
+Any ring that has a `divrem` method has access to some `crt` methods provided by the `euclidean_interface`:
 ```@docs; canonical=false
 crt(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElement
 crt(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
+crt(b::Vector{T}, a::crt_env{T}) where T
 ```
 
 ```@docs; canonical=false
@@ -27,14 +34,19 @@ crt_with_lcm(r1::T, m1::T, r2::T, m2::T; check::Bool=true) where T <: RingElemen
 crt_with_lcm(r::Vector{T}, m::Vector{T}; check::Bool=true) where T <: RingElement
 ```
 
-If we need to apply the chinese remainder theorem repeatedly
-for a fixed set of (coprime) moduli,
-we can precompute all the necessary information and save it in a prepared environment.
+We often want to apply the chinese remainder theorem to the coefficients of polynomials,
+or to the entries of a matrix, with respect to the underlying ring.
+For this we use the `induce_crt` method:
 ```@docs
-crt_env(p::Vector{T}) where T
-crt(b::Vector{T}, a::crt_env{T}) where T
-crt_inv(a::T, c::crt_env{T}) where T
+induce_crt(a::ZZPolyRingElem, p::ZZRingElem, b::ZZPolyRingElem, q::ZZRingElem, signed::Bool = false)
+induce_crt(L::Vector{PolyRingElem}, c::crt_env{ZZRingElem})
+induce_crt(L::Vector{MatElem}, c::crt_env{ZZRingElem})
 ```
+
+
+
+<!-- crt_inv(a::T, c::crt_env{T}) where T -->
+<!-- There is also `modular_env` -->
 <!-- No docs for crt_signed -->
 <!-- crt_signed(b::Vector{ZZRingElem}, a::crt_env{ZZRingElem}) -->
 
@@ -44,6 +56,7 @@ along with respective ideals of the corresponding ring of integers.
 These are calculated using a decomposition into idempotents.
 ```@docs; canonical=false
 crt(r1::AbsSimpleNumFieldOrderElem, i1::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, r2::AbsSimpleNumFieldOrderElem, i2::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
+induce_crt(a::Generic.Poly{AbsSimpleNumFieldElem}, p::ZZRingElem, b::Generic.Poly{AbsSimpleNumFieldElem}, q::ZZRingElem)
 ```
 
 This variant is also supported in the following signatures:
