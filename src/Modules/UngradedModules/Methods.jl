@@ -879,19 +879,19 @@ function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check:
   error("not implemented")
 end
   
-function vector_space_dim(M::SubquoModule{T}
-  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
-  F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
+# function vector_space_dim(M::SubquoModule{T}
+#   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+#                                <:MPolyComplementOfKPointIdeal}}
+#   F = ambient_free_module(M)
+#   Mq,_ = sub(F,rels(M))
 
-  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+#   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
 
-  M_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  LM = leading_module(M_shift,o)
-  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)))
-end
+#   M_shift,_,_ = shifted_module(Mq)
+#   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+#   LM = leading_module(M_shift,o)
+#   return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)))
+# end
 
 function vector_space_dim(
     M::SubquoModule{T}, d::Int64;
@@ -909,34 +909,34 @@ function vector_space_dim(
   return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
-function vector_space_dim(M::SubquoModule{T}; check::Bool=true
-  ) where {T<:MPolyLocRingElem}
-  error("only available in global case and for localization at a point")
-end
+# function vector_space_dim(M::SubquoModule{T}; check::Bool=true
+#   ) where {T<:MPolyLocRingElem}
+#   error("only available in global case and for localization at a point")
+# end
 
 function vector_space_dim(M::SubquoModule{T}, d::Int64
   ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
 
-function vector_space_basis(M::SubquoModule{T}
-  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
-  F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
+# function vector_space_basis(M::SubquoModule{T}
+#   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+#                                <:MPolyComplementOfKPointIdeal}}
+#   F = ambient_free_module(M)
+#   Mq,_ = sub(F,rels(M))
 
-  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+#   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
 
-  M_shift,_,_ = shifted_module(Mq)
-  if isdefined(F,:ordering) && is_local(F.ordering)
-    o = F.ordering
-  else
-    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  end
-  LM = leading_module(M_shift,o)
+#   M_shift,_,_ = shifted_module(Mq)
+#   if isdefined(F,:ordering) && is_local(F.ordering)
+#     o = F.ordering
+#   else
+#     o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+#   end
+#   LM = leading_module(M_shift,o)
 
-  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)))
-end
+#   return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)))
+# end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
@@ -957,10 +957,10 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
   return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
-function vector_space_basis(M::SubquoModule{T}
-  ) where {T<:MPolyLocRingElem}
-  error("only available in global case and for localization at a point")
-end
+# function vector_space_basis(M::SubquoModule{T}
+#   ) where {T<:MPolyLocRingElem}
+#   error("only available in global case and for localization at a point")
+# end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem}
@@ -1101,3 +1101,38 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoRingElem{<:
   return _is_finite(kk, _as_poly_module(M))
 end
 
+### functionality for modules over localized polynomial rings at a point
+function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+  R = base_ring(M)
+  @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  @check _is_finite(kk, M) "module is not finite over the given field"
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,relations(M))
+  Mq_shift,_,_= Oscar.shifted_module(Mq)
+  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  LMq = leading_module(Mq_shift, o)
+  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
+  is_empty(B) && return elem_type(M)[]
+  _,back_shift = Oscar.base_ring_shifts(R)
+  iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
+  return iota.(B)
+end
+
+function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyLocRingElem}
+   error("only available in global case and for localization at a point")
+end
+
+function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+  Mq_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  LMq = leading_module(Mq_shift, o)
+  return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
+end
+
+function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
