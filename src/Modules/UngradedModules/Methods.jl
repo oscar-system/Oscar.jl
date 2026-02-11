@@ -637,8 +637,9 @@ function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
-    pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    # pres = presentation(M)
+    # MM = cokernel(map(pres, 1))    # cokernel sometimes returns also the canonical projection
+    MM = present_as_cokernel(M)
     return _vector_space_dim(kk, MM; check)
   end
   # At this point we may assume `M` to be presented
@@ -729,11 +730,15 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
-    pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    # pres = presentation(M)
+    # MM = cokernel(map(pres, 1))    # cokernel sometimes returns also the canonical projection
+    MM = present_as_cokernel(M)
     B = _vector_space_basis(kk, MM; check)
-    aug = map(pres, 0)
-    return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
+    # aug = map(pres, 0)
+    pres0 = ambient_free_module(MM)
+    aug = hom(pres0, M, gens(M))
+    # return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
+    return elem_type(M)[aug(pres0(coordinates(v))) for v in B]
   end
   
   # If execution gets here, `M` is presented.
