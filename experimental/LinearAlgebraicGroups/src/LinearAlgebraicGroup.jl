@@ -402,7 +402,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
     m[i, i] = t
     m[i + 1, i + 1] = it
     push!(gs, G(m))
-  end  
+  end
   T, _ = sub(G, gs)
   LAG.T = T
   return T
