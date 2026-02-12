@@ -1027,11 +1027,10 @@ function _graph_maps(G::Graph)
   return Dict(l => getproperty(G, l) for l in labels)
 end
 
-function _edge_label_to_vertex_label(G::Graph{T}) where T <: Union{Directed, Undirected}
-  iszero(length(labelings(G))) && return G
-  @req isone(length(labelings(G))) "Handling graphs with more than one edge labeling has not been implemented"
-
-  G_map = getproperty(G, only(labelings(G)))
+# this currently will ignore all other labels
+# and creates new labelings such that the labelings are indistinguishable (vertex and edge)
+function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol) where T <: Union{Directed, Undirected}
+  G_map = getproperty(G, label)
   label_type = typeof(G_map[1])
   vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
                              (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
@@ -1042,18 +1041,19 @@ function _edge_label_to_vertex_label(G::Graph{T}) where T <: Union{Directed, Und
 
   n_layers = length(digits(length(edges_by_label), base = 2))
   n_v_per_layer = n_vertices(G) + length(vertices_by_label)
-  n_v = n_layers * (n_v_per_layer)
+  n_v = n_layers * (n_v_per_layer) + length(edges_by_label)
   new_G = Graph{T}(n_v)
-  new_vertex_labels = Dict{Int, String}()
+  new_vertex_labels = Dict{Int, Int}()
   for layer in 1:n_layers
     vertex_offset = (layer - 1) * n_v_per_layer
     label = 1
+    # adds an edge between labeled vertex groups, making vertex labels indistinguishable
     for (_, v_with_label) in vertices_by_label
       for v in v_with_label
         e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
-        new_vertex_labels[vertex_offset + v] = "red"
+        new_vertex_labels[vertex_offset + v] = 1
       end
-      new_vertex_labels[vertex_offset + n_vertices(G) + label] = "blue"
+      new_vertex_labels[vertex_offset + n_vertices(G) + label] = 2
       label += 1
     end
 
@@ -1061,24 +1061,37 @@ function _edge_label_to_vertex_label(G::Graph{T}) where T <: Union{Directed, Und
     if layer != n_layers
       for v in 1:n_vertices(G)
         add_edge!(new_G, v + vertex_offset, v + vertex_offset + n_v_per_layer)
+        T == Directed && add_edge!(new_G, v + vertex_offset + n_v_per_layer, v + vertex_offset)
       end
     end
 
-
+    # adds each labeled edge to a layer corresponding to the label binary expansion
+    label = 1
     for (i, (_, e_with_label)) in enumerate(edges_by_label)
       label_base2 = digits(i, base=2, pad=n_layers)
-      
       for e in e_with_label
         if isone(label_base2[layer])
           add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
+          # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
+          add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
+          add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
         end
       end
+      new_vertex_labels[n_layers * n_v_per_layer + label] = 3
+      label += 1
     end
   end
-  label!(new_G, nothing, new_vertex_labels; name=:color)
+  label!(new_G, nothing, new_vertex_labels; name=:edge_to_vertex)
   return new_G
 end
 
+function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing, seed::Int=42)
+  isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
+  new_G = _edge_label_to_vertex_label(G, label)
+  return Polymake._canonical_hash(pm_object(new_G),
+                                  Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]),
+                                  seed)::Int
+end
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
@@ -1349,7 +1362,7 @@ function diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
+    is_isomorphic(g1::Graph{T}, g2::Graph{T}; label=nothing) where {T <: Union{Directed, Undirected}}
 
 Check if the graph `g1` is isomorphic to the graph `g2`.
 
@@ -1362,7 +1375,16 @@ julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
-is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+  isnothing(label) && Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+
+  if isnothing(Oscar._graph_maps(g1)[label].edge_map)
+    !isnothing(Oscar._graph_maps(g1)[label].edge_map) && return false
+
+    # only labels on the vertices
+    
+  end
+end
 
 @doc raw"""
     is_isomorphic_with_permutation(G1::Graph, G2::Graph) -> Bool, Vector{Int}
