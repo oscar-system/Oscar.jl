@@ -299,16 +299,6 @@ function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   end
 end
 
-#internal function to get generators of the unit group of the field
-function _generating_set_of_unit_group(k::Field)
-  gs = FieldElem[]
-  u, f = unit_group(k)
-  for i in gens(u)
-    push!(gs, f(i))
-  end
-  return gs
-end
-
 @doc raw"""
     root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> Matrix
 
@@ -405,15 +395,14 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   isdefined(LAG, :T) && return LAG.T
   G = LAG.G
   gs = MatGroupElem[]
-  for t in _generating_set_of_unit_group(LAG.k)
-    it = inv(t)
-    for i in 1:(degree(LAG) - 1)
-      m = identity_matrix(LAG.k, degree(LAG))
-      m[i, i] = t
-      m[i + 1, i + 1] = it
-      push!(gs, G(m))
-    end
-  end
+  t = Hecke.primitive_element(LAG.k)
+  it = inv(t)
+  for i in 1:(degree(LAG) - 1)
+    m = identity_matrix(LAG.k, degree(LAG))
+    m[i, i] = t
+    m[i + 1, i + 1] = it
+    push!(gs, G(m))
+  end  
   T, _ = sub(G, gs)
   LAG.T = T
   return T
