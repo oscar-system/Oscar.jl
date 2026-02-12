@@ -247,7 +247,7 @@ function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
 end
 
 function Base.:(*)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
-  check_perent(a, b)
+  check_parent(a, b)
   return linear_algebraic_group_elem(parent(a), a.mat * b.mat)
 end
 
