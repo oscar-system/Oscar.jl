@@ -286,3 +286,30 @@ end
 
   @test group(mats; check=true) == matrix_group(mats; check=true)
 end
+
+@testset "group from PcGroup generators" begin
+  G = cyclic_group(6) 
+  a = gen(G, 1)
+
+  H1 = group(a)
+  H2 = group([a])
+
+  @test H1 isa SubPcGroup
+  @test H2 isa SubPcGroup
+  @test H1 == H2
+end
+
+@testset "group from SubPcGroup generators" begin
+  G = cyclic_group(6)
+  H, emb = derived_subgroup(G)   
+
+  @test order(H) == 1  
+  h = one(H)           
+  K1 = group(h)
+  K2 = group([h])
+
+  @test K1 isa SubPcGroup
+  @test K2 isa SubPcGroup
+  @test K1 == H
+  @test K2 == H
+end
