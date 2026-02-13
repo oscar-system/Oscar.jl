@@ -531,7 +531,7 @@ function borel(LAG::LinearAlgebraicGroup)
 end
 
 @doc raw"""
-  bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
+    bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
 
 Return the representative of the bruhat cell corresponding to the weyl group element `w`.
 
