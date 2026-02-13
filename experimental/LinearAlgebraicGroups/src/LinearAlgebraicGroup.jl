@@ -5,7 +5,7 @@
 @doc raw"""
     linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
 
-Construct the linear algerbaic group of the given type.
+Construct the linear algebraic group of the given type.
 
 Only type ``A_n`` is implemented so far.
 
@@ -40,7 +40,7 @@ end
 @doc raw"""
     linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
 
-Construct the linear algerbaic group of the given type.
+Construct the linear algebraic group of the given type.
 
 Only type :A is implemented so far.
 
@@ -182,7 +182,7 @@ end
 @doc raw"""
     linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
 
-Construct the linear algerbaic group element from the given matrix group element `MGE` of the given type.
+Construct the linear algebraic group element from the given matrix group element `MGE` of the given type.
 
 # Examples
 ```jldoctest
@@ -215,7 +215,7 @@ end
 @doc raw"""
     linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
 
-Construct the linear algerbaic group element from the given matrix group element `MGE` of the given type.
+Construct the linear algebraic group element from the given matrix group element `MGE` of the given type.
 
 # Examples
 ```jldoctest
@@ -468,7 +468,7 @@ end
 @doc raw"""
   representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
 
-Return the linear algerbaic group element corresponding to the root `alpha`.
+Return the linear algebraic group element corresponding to the root `alpha`.
 
 # Examples
 ```jldoctest
