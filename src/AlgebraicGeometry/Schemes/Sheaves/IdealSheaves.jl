@@ -1666,19 +1666,38 @@ function produce_object(F::IdealSheaf, U::SimplifiedAffineScheme)
 end
 
 ### Some generic functionality to allow for the production of objects 
-# to happen only on the `affine_charts` of a given scheme.
+# to happen only on the `patches` of the `default_covering` of the sheaf.
 function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
   X = scheme(F)
 
   # If this is an affine chart, delegate to a specialized production method
-  if any(V->V===U, affine_charts(X))
-    return produce_object_on_affine_chart(F, U)
+  U in default_covering(F) && return produce_object_on_affine_chart(F, U)
+
+  if has_ancestor(W->W in default_covering(F), U)
+    # Otherwise, construct the object generically from the affine charts.
+    V = __find_chart(U, default_covering(F))
+    return OO(X)(V, U)(F(V))
   end
 
-  # Otherwise, construct the object generically from the affine charts.
-  V = __find_chart(U, default_covering(X))
-  return OO(X)(V, U)(F(V))
+  # production on the affine chart of `X`
+  if U in default_covering(X)
+    V = AbsAffineScheme[V for V in default_covering(F) if has_ancestor(W->W===U, V)]
+    result = ideal(OO(U), one(OO(U)))
+    for V in V
+      iso_V = _flatten_open_subscheme(V, U)
+      VV = codomain(iso_V)
+      J = ideal(OO(VV), elem_type(OO(VV))[pullback(inverse(iso_V))(x) for x in gens(F(V))])
+      result = intersect(result, ideal(OO(U), gens(saturated_ideal(J))))
+    end
+    return result
+  end
+
+  # restriction from an affine chart of `X`
+  W = __find_chart(U, default_covering(X))
+  return ideal(OO(U), elem_type(OO(U))[OO(X)(W, U)(x) for x in gens(F(W))])
 end
+
+default_covering(F::AbsPreSheaf) = default_covering(scheme(F))
 
 ### PrimeIdealSheafFromChart
 @doc raw"""
@@ -2092,9 +2111,9 @@ function cheap_sub_ideal(I::PullbackIdealSheaf, U::AbsAffineScheme)
   return OO(X)(V, U)(cheap_sub_ideal(I, V))
 end
 
-function sub(I::AbsIdealSheaf)
+function sub(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  inc = CoveredClosedEmbedding(X, I)
+  inc = CoveredClosedEmbedding(X, I; covering)
   return domain(inc), inc
 end
 
@@ -2344,11 +2363,65 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
   return result
 end
 
-function is_zero(II::AbsIdealSheaf)
-  return all(iszero(II(U)) for U in affine_charts(scheme(II)))
+function is_zero(II::AbsIdealSheaf; covering::Covering=default_covering(scheme(II)))
+  return all(iszero(II(U)) for U in covering)
 end
 
-function is_zero(II::PrimeIdealSheafFromChart)
+function is_zero(II::PrimeIdealSheafFromChart; covering::Covering=default_covering(scheme(II)))
   return is_zero(II(original_chart(II)))
+end
+
+original_sheaf(I::FittingIdealSheaf) = I.M
+scheme(I::FittingIdealSheaf) = I.X
+underlying_presheaf(I::FittingIdealSheaf) = I.F
+default_covering(I::FittingIdealSheaf) = I.default_covering
+
+function produce_object_on_affine_chart(I::FittingIdealSheaf, U::AbsAffineScheme)
+  MM = original_sheaf(I)
+  M = MM(U)
+  res = fitting_ideal(M, I.k)
+  return res
+end
+
+function fitting_ideal(F::FreeMod, i::Int)
+  R = base_ring(F)
+  ngens(F)-i > 0 && return ideal(R, elem_type(R)[])
+  return ideal(R, one(R))
+end
+
+function fitting_ideal(M::SubquoModule, i::Int)
+  F = ambient_free_module(M)
+  R = base_ring(M)
+  ngens(M)-i <= 0 && return ideal(R, one(R))
+  if !all(repres(v) == g for (v, g) in zip(gens(M), gens(F)))
+    return fitting_ideal(simplify(M)[1], i) # presents the module as a cokernel
+  end
+  
+  #=
+  I0 = ideal(R, reduce(vcat, [elem_type(R)[c for (_, c) in coordinates(v)] for v in relations(M)]; init=elem_type(R)[]))
+  any(is_unit, gens(I0)) && return fitting_ideal(simplify(M)[1], i)
+  if is_one(I0)
+    c = coordinates(one(R), I0)
+    fit_gens = elem_type(R)[]
+    for k in 1:ngens(I0)
+      is_zero(c[k]) && continue
+      is_zero(gen(I0, k)) && continue
+      h = gen(I0, k)
+      L, loc = localization(R, powers_of_element(lifted_numerator(h)))
+      M_loc, _ = change_base_ring(loc, M)
+      M_loc_simp, id = simplify(M_loc)
+      J = fitting_ideal(M_loc_simp, i)
+      fit_gens = vcat(fit_gens, R.(lifted_numerator.(gens(J))))
+    end
+    return ideal(R, fit_gens)
+  end
+  =#
+
+  smat = sparse_matrix(R, 0, ngens(F))
+  for v in relations(M)
+    push!(smat, coordinates(v))
+  end
+  res = ideal(R, minors(matrix(smat), ngens(F)-i))
+  return res
 end
 
