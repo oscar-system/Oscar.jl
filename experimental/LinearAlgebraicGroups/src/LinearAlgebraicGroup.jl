@@ -266,7 +266,7 @@ end
 @doc raw"""
     root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> Matrix
 
-Return the Matrix that generates the root subgroup of `LAG` corresponding to the root `alpha`.
+Return the matrix that generates the root subgroup of `LAG` corresponding to the root `alpha`.
 
 
 # Examples
