@@ -497,7 +497,7 @@ function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootS
 end
 
 @doc raw"""
-  borel(LAG::LinearAlgebraicGroup) -> MatGroup
+    borel(LAG::LinearAlgebraicGroup) -> MatGroup
 
 Return the standard borel subgroup of the linear algerbaic group `LAG`.
 
