@@ -285,6 +285,11 @@ complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdea
 Given a prime ideal ``P`` of a multivariate polynomial ring ``R``, say,
 return the multiplicatively closed subset ``R\setminus P.``
 
+Note that for other rings such as quotients and/or localizations of multivariate polynomial 
+rings `complement_of_prime_ideal` will return a multiplicative set in the 
+underlying polynomial ring. This is due to our choice to keep localizations "flat" 
+and to always localize from the top-level polynomial ring. 
+
 !!! note
     If  `check` is set to `true` (default), the function checks whether ``P`` is indeed a prime ideal. 
 
