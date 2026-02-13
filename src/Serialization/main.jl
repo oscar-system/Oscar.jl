@@ -917,6 +917,8 @@ end
 # handle monomial ordering
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
 
+# handle graph labeling
+_convert_override_params(tp::TypeParams{<:Graph, <:Tuple{Vararg{Pair}}}) = Dict(p.first => type(p.second) for p in params(tp))
 
 export @register_serialization_type
 export DeserializerState
