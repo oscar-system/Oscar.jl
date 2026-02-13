@@ -499,7 +499,7 @@ end
 @doc raw"""
     borel(LAG::LinearAlgebraicGroup) -> MatGroup
 
-Return the standard borel subgroup of the linear algerbaic group `LAG`.
+Return the standard Borel subgroup of the linear algebraic group `LAG`.
 
 # Examples
 ```jldoctest
