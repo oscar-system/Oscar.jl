@@ -429,6 +429,7 @@ function apply_root_to_torus_element(
   return t.mat[i, i] * inv(t.mat[j, j])
 end
 
+############### Bruhat decomposition ###########################
 @doc raw"""
   representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
 
