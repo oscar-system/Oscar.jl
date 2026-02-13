@@ -6,6 +6,22 @@ using Oscar: create_gs2num
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
+function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
+  isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
+  labeling_types = Dict{Symbol, TypeParams}()
+  for l in labelings(g)
+    gm = get_attribute(g, l)
+    if !isnothing(gm.edge_map)
+      # currently we can only label using basic types so params are nothing
+      labeling_types[l] = TypeParams(typeof(gm.edge_map[first(edges(g))]), nothing)
+    else
+      labeling_types[l] = TypeParams(typeof(gm.vertex_map[1]), nothing)
+    end
+  end
+  
+  return TypeParams(Graph{T}, map(x -> x.first => x.second, collect(pairs(labeling_types)))...)
+end
+
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
   smallobject = pm_object(g)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, smallobject)
