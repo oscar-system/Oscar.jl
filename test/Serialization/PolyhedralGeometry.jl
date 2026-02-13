@@ -18,6 +18,7 @@ using Oscar: _integer_variables
         @test G.l1[1] == 1
         @test G.l2[2, 1] == "test"
         @test G.l3[1] isa Float64
+        @test G.l3[4, 3] isa Float64
       end
     end
 

@@ -19,7 +19,7 @@ function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
     end
   end
   
-  return TypeParams(Graph{T}, labeling_types...)
+  return TypeParams(Graph{T}, map(x -> x.first => x.second, collect(pairs(labeling_types)))...)
 end
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
