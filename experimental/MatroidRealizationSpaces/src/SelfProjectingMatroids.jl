@@ -99,7 +99,7 @@ ambient_ring(RS::MatroidRealizationSpaceSelfProjecting) = RS.ambient_ring
 @doc raw"""
     selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting)
 
-A matrix with entries in ambient_ring_sp(RS) whose columns, when filled in with values satisfying equalities
+A matrix with entries in `ambient_ring_sp(RS)` whose columns, when filled in with values satisfying equalities
 from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a self-projecting realization for the matroid.
 """
 selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = RS.selfprojecting_realization_matrix
@@ -172,9 +172,11 @@ end
 @doc raw"""
     selfprojecting_realization_ideal(m::Matroid)
 
-  Function to compute the defining_ideal of a selfprojecting realization space
+Compute the defining_ideal of a selfprojecting realization space
 
-  !!! warning "This function is slow except for small matroids!"
+!!! warning
+    This function is slow except for small matroids!
+
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
@@ -280,19 +282,32 @@ end
 
 
 @doc raw"""
-  selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}, F::Ring;Ideal::Union{Ideal,Nothing} = nothing, check::Bool = true)
+    selfprojecting_realization_matrix(m::Matroid, Bas::Vector{Int}, F::Ring;
+                                      Ideal::Union{Ideal,Nothing} = nothing,
+                                      check::Bool = true)
 
-  Function to compute a template for a selfprojecting realization. Returns the ambient ring and the matrix. The input Bas defines the basis of the matriod that is chosen to be represented by the identity matrix in the realization. 
-  The defining_ideal of the selfprojecting realization space of the given matroid can optionally be entered. Otherwise it will be computed. 
-  The kwarg check states whether the matroid will be checked for self-projectivity. The default is true.
+Compute a template for a selfprojecting realization and return the ambient
+ring and the matrix.
 
-  !!! warning "This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids."
+The input `Bas` defines the basis of the matriod that is chosen to be
+represented by the identity matrix in the realization.
+
+The defining ideal of the selfprojecting realization space of the given
+matroid can optionally be entered. Otherwise it will be computed.
+
+The keyword argument `check` states whether the matroid will be checked for
+self-projectivity. The default is true.
+
+!!! warning
+    This function uses the computation of the `selfprojecting_realization_ideal`.
+    Therefore, it is slow except for small matroids.
+
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
 Matroid of rank 3 on 6 elements
 
-julia> R, M =selfprojecting_realization_matrix(m,[1,2,4])
+julia> R, M = selfprojecting_realization_matrix(m,[1,2,4])
 (Multivariate polynomial ring in 2 variables over QQ, [1 0 1 0 1 1; 0 1 1 0 x1 x1; 0 0 0 1 1 x2])
 
 julia> M
@@ -303,7 +318,7 @@ julia> M
 julia> m = uniform_matroid(3,6)
 Matroid of rank 3 on 6 elements
 
-julia> R, M =selfprojecting_realization_matrix(m,[1,2,3])
+julia> R, M = selfprojecting_realization_matrix(m,[1,2,3])
 (Quotient of multivariate polynomial ring by ideal (x1*x2*x3 - x1*x2*x4 - x1*x3*x4 + x1*x4 + x2*x3*x4 - x2*x3), [1 0 0 1 1 1; 0 1 0 1 x1 x3; 0 0 1 1 x2 x4])
 ```
 """
@@ -335,13 +350,20 @@ end
 
 
 @doc raw"""
-  selfprojecting_realization_space(m::Matroid; B::Union{GroundsetType,Nothing}=nothing; check::Bool = true)
+    selfprojecting_realization_space(m::Matroid; B::Union{GroundsetType,Nothing}=nothing; check::Bool = true)
 
-  Function to compute the selfprojecting realization space of a selfprojecting matroid. 
-  A basis B can be given that will correspond to the identity matrix in the realization. If nothing is given, a choice will be made.   
-  The kwarg check states whether the matroid will be checked for self-projectivity. The default is true.
+Compute the selfprojecting realization space of a selfprojecting matroid.
 
-  !!! warning "This function uses the computation of the selfprojecting_realization_ideal. Therefore, it is slow except for small matroids."
+A basis `B` can be given that will correspond to the identity matrix in the realization.
+If nothing is given, a choice will be made.
+
+The keyword argument `check` states whether the matroid will be checked for self-projectivity.
+The default is true.
+
+!!! warning
+    This function uses the computation of the `selfprojecting_realization_ideal`.
+    Therefore, it is slow except for small matroids.
+
 # Examples
 ```jldoctest
 julia> m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
@@ -403,9 +425,9 @@ end
 
 
 @doc raw"""
-  dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
+    dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Int
 
-  Function to compute the dimension of the selfprojecting realization space of a selfprojecting matroid. 
+Return the dimension of the selfprojecting realization space of a selfprojecting matroid.
 
 # Examples
 ```jldoctest
@@ -413,7 +435,6 @@ julia> dimension(selfprojecting_realization_space(uniform_matroid(3,6)))
 3
 ```
 """
-
 function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Union{Int,NegInf}
   if iszero(defining_ideal(MRS))
     return length(gens(base_ring(defining_ideal(MRS))))
@@ -423,9 +444,9 @@ function dimension(MRS::MatroidRealizationSpaceSelfProjecting)::Union{Int,NegInf
 end
 
 @doc raw"""
-  dimension(MRS::MatroidRealizationSpace)::Int
+    dimension(MRS::MatroidRealizationSpace)::Int
 
-  Function to compute the dimension of the realization space of a matroid. 
+Return the dimension of the realization space of a matroid.
 
 # Examples
 ```jldoctest
