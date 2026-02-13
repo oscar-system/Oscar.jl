@@ -536,7 +536,7 @@ function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
 end
 
 @doc raw"""
-  bruhat_decomp(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
+    bruhat_decomp(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
 
 Return the bruhat decomposition of the linear algebraic group `LAG`.
 
