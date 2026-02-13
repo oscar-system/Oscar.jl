@@ -569,7 +569,7 @@ function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
 end
 
 @doc raw"""
-  bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> GroupDoubleCoset{MatGroup, MatGroupElem}
+    bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> GroupDoubleCoset{MatGroup, MatGroupElem}
 
 Return the bruhat cell corresponding to the weyl group element `w`.
 
