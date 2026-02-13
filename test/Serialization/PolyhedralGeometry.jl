@@ -10,6 +10,15 @@ using Oscar: _integer_variables
         @test n_vertices(G) == n_vertices(loaded)
         @test n_edges(G) == n_edges(loaded)
       end
+
+      label!(G, nothing, Dict(v => v for v in 1:n_vertices(G)); name=:l1)
+      label!(G, Dict((src(e), dst(e)) => "test" for e in edges(G)), nothing; name=:l2)
+      label!(G, Dict((src(e), dst(e)) => i/(i + 1) for (i, e) in enumerate(edges(G))), Dict(v => 1/v for v in 1:n_vertices(G)); name=:l3)
+      test_save_load_roundtrip(path, G) do loaded
+        @test G.l1[1] == 1
+        @test G.l2[2, 1] == "test"
+        @test G.l3[1] isa Float64
+      end
     end
 
     @testset "Matroid" begin
