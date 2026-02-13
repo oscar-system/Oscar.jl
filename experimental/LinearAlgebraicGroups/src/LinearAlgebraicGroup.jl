@@ -11,12 +11,9 @@ Only type ``A_n`` is implemented so far.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> rs = root_system(:A, 3)
-Root system of rank 3
-  of type A3
+julia> rs = root_system(:A, 3);
 
 julia> LAG = linear_algebraic_group(rs, F)
 LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
@@ -46,8 +43,7 @@ Only type :A is implemented so far.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
 julia> LAG = linear_algebraic_group(:A, 3, F)
 LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
@@ -186,21 +182,13 @@ Construct the linear algebraic group element from the given matrix group element
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 2, F)
-LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 2, F);
 
-julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1])
-[2   1   0]
-[1   4   3]
-[0   1   1]
+julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 
-julia> MGE = MatGroupElem(LAG.G, m)
-[2   1   0]
-[1   4   3]
-[0   1   1]
+julia> MGE = MatGroupElem(LAG.G, m);
 
 julia> linear_algebraic_group_elem(LAG,MGE)
 LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
@@ -219,16 +207,11 @@ Construct the linear algebraic group element from the given matrix group element
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 2, F)
-LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 2, F);
 
-julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1])
-[2   1   0]
-[1   4   3]
-[0   1   1]
+julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 
 julia> linear_algebraic_group_elem(LAG, m)
 LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
@@ -307,14 +290,11 @@ Return the Matrix that generates the root subgroup of `LAG` corresponding to the
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> alpha = simple_root(root_system(LAG),2)
-a_2
+julia> alpha = simple_root(root_system(LAG),2);
 
 julia> root_subgroup_generator(LAG, alpha)
 [0   0   0   0]
@@ -340,14 +320,11 @@ Return the root subgroup of `LAG` corresponding to the root `alpha`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> alpha = simple_root(root_system(LAG),2)
-a_2
+julia> alpha = simple_root(root_system(LAG),2);
 
 julia> root_subgroup(LAG, alpha)
 Matrix group of degree 4
@@ -380,11 +357,9 @@ Return the standard maximal torus of diagonal elements of `LAG`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> maximal_torus(LAG)
 Matrix group of degree 4
@@ -416,11 +391,9 @@ Return the root element consisting of `diag` as diagonal entries which is an ele
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
 LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef), [1 0 0 0; 0 2 0 0; 0 0 1 0; 0 0 0 3], #undef)
@@ -440,17 +413,13 @@ Return the field element obtained by applying the root `alpha` to the torus elem
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> alpha = simple_root(root_system(LAG),2)
-a_2
+julia> alpha = simple_root(root_system(LAG),2);
 
-julia> t = torus_element(LAG, [F(1),F(2),F(1),F(3)])
-LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef), [1 0 0 0; 0 2 0 0; 0 0 1 0; 0 0 0 3], #undef)
+julia> t = torus_element(LAG, [F(1),F(2),F(1),F(3)]);
 
 julia> apply_root_to_torus_element(alpha, t)
 2
@@ -472,14 +441,11 @@ Return the linear algebraic group element corresponding to the root `alpha`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(4)
-(Finite field of degree 2 and characteristic 2, o)
+julia> F, _  = finite_field(4);
 
-julia> LAG = linear_algebraic_group(:A, 4, F)
-LinearAlgebraicGroup(Root system of type A4, SL(5,4), Finite field of degree 2 and characteristic 2, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 4, F);
 
-julia> alpha = simple_root(root_system(LAG),2)
-a_2
+julia> alpha = simple_root(root_system(LAG),2);
 
 julia> representative_of_root_in_group(LAG, alpha)
 LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A4, SL(5,4), Finite field of degree 2 and characteristic 2, #undef, #undef, #undef), [1 0 0 0 0; 0 0 1 0 0; 0 1 0 0 0; 0 0 0 1 0; 0 0 0 0 1], #undef)
@@ -503,11 +469,9 @@ Return the standard Borel subgroup of the linear algebraic group `LAG`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(3)
-(Prime field of characteristic 3, 0)
+julia> F, _  = finite_field(3);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,3), Prime field of characteristic 3, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> borel(LAG)
 Matrix group of degree 4
@@ -537,19 +501,13 @@ Return the representative of the bruhat cell corresponding to the weyl group ele
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> W = weyl_group(root_system(LAG))
-Weyl group
-  of root system of rank 3
-    of type A3
+julia> W = weyl_group(root_system(LAG));
 
-julia> w = W([1,2])
-s1 * s2
+julia> w = W([1,2]);
 
 julia> bruhat_cell_rep(LAG, w)
 [0   0   1   0]
@@ -575,19 +533,13 @@ Return the bruhat cell corresponding to the weyl group element `w`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> W = weyl_group(root_system(LAG))
-Weyl group
-  of root system of rank 3
-    of type A3
+julia> W = weyl_group(root_system(LAG));
 
-julia> w = W([1,2])
-s1 * s2
+julia> w = W([1,2]);
 
 julia> bruhat_cell(LAG,w)
 Double coset of matrix group of degree 4 over F
@@ -609,11 +561,9 @@ Return the bruhat decomposition of the linear algebraic group `LAG`.
 
 # Examples
 ```jldoctest
-julia> F, _  = finite_field(5)
-(Prime field of characteristic 5, 0)
+julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> bruhat_decomp(LAG)
 24-element Vector{GroupDoubleCoset{MatGroup{FqFieldElem, FqMatrix}, MatGroupElem{FqFieldElem, FqMatrix}}}:
