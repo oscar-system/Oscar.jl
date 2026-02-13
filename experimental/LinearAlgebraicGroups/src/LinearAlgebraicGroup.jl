@@ -478,7 +478,7 @@ end
 @doc raw"""
     bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
 
-Return the representative of the bruhat cell corresponding to the weyl group element `w`.
+Return the representative of the Bruhat cell corresponding to the Weyl group element `w`.
 
 # Examples
 ```jldoctest
