@@ -56,11 +56,16 @@ mutable struct SerializerState{T <: OscarSerializer}
   io::IO
   key::Union{Symbol, Nothing}
   with_attrs::Bool
+  pretty_print::Bool
 end
 
 function begin_node(s::SerializerState)
   if !s.new_level_entry
-    write(s.io, ",")
+    if s.pretty_print
+      println(s.io, ",")
+    else
+      write(s.io, ",")
+    end
   else
     s.new_level_entry = false
   end
@@ -73,11 +78,21 @@ end
 
 function begin_dict_node(s::SerializerState)
   begin_node(s)
-  write(s.io, "{")
+  if s.pretty_print
+    println(s.io, "{")
+    s.pretty_print && print(s.io, Indent())
+  else
+    write(s.io, "{")
+  end
 end
 
 function end_dict_node(s::SerializerState)
-  write(s.io, "}")
+  if s.pretty_print
+    println(s.io, "")
+    print(s.io, Dedent(), "}")
+  else
+    write(s.io, "}")
+  end
 
   if s.new_level_entry
     # makes sure that entries after empty dicts add comma
@@ -87,11 +102,21 @@ end
 
 function begin_array_node(s::SerializerState)
   begin_node(s)
-  write(s.io, "[")
+  if s.pretty_print
+    println(s.io, "[")
+    print(s.io, Indent())
+  else
+    write(s.io, "[")
+  end
 end
 
 function end_array_node(s::SerializerState)
-  write(s.io, "]")
+  if s.pretty_print
+    println(s.io, "")
+    print(s.io, Dedent(), "]")
+  else
+    write(s.io, "]")
+  end
 
   if s.new_level_entry
     # makes sure that entries after empty arrays add comma
@@ -142,7 +167,11 @@ function save_data_basic(s::SerializerState, x::Any,
   !isnothing(key) && set_key(s, key)
   begin_node(s)
   str = string(x)
-  JSON.json(s.io, str)
+  if s.pretty_print
+    print(s.io, "\"" * str * "\"")
+  else
+    JSON.json(s.io, str)
+  end
   nothing
 end
 
@@ -262,10 +291,11 @@ end
 function serializer_open(
   io::IO,
   serializer::OscarSerializer,
-  with_attrs::Bool)
+  with_attrs::Bool,
+  pretty_print::Bool)
   
   # some level of handling should be done here at a later date
-  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
+  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs, pretty_print)
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
