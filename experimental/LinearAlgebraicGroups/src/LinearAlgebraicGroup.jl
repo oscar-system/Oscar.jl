@@ -510,7 +510,7 @@ end
 @doc raw"""
     bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> GroupDoubleCoset{MatGroup, MatGroupElem}
 
-Return the bruhat cell corresponding to the weyl group element `w`.
+Return the Bruhat cell corresponding to the Weyl group element `w`.
 
 # Examples
 ```jldoctest
