@@ -188,7 +188,7 @@ LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), P
 ```
 """
 function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
-  #TODO: add checks here
+  @req MGE in LAG.G "The given matrix group element is not an element of the group"
   return LinearAlgebraicGroupElem(LAG, MGE)
 end
 
