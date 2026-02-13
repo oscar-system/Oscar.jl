@@ -4,6 +4,8 @@ using ..Oscar
 
 import Random
 
+using AbstractAlgebra.PrettyPrinting
+
 import ..Oscar: gen
 import ..Oscar: gens
 import ..Oscar: has_gens

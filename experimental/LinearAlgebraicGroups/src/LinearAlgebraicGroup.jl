@@ -131,6 +131,22 @@ function is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup)
   return is_subgroup(U, LAG.G)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", LAG::LinearAlgebraicGroup)
+  io = pretty(io)
+  println(io, "Linear algebraic group of type ", Oscar._root_system_type_string(root_system_type(root_system(LAG))))
+  print(io, Indent(), "over ",Lowercase(), LAG.k)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, LAG::LinearAlgebraicGroup)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "LAG")
+  else
+    println(io, "Linear algebraic group of type ", Oscar._root_system_type_string(root_system_type(root_system(LAG))), " over ", Lowercase(), LAG.k)
+  end
+end
+
 #################################################
 # Linear Algebraic Group Elements
 #################################################
