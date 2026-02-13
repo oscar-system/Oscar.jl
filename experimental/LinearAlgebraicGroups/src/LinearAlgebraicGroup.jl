@@ -58,50 +58,25 @@ function gap_likes_the_group(LAG::LinearAlgebraicGroup)
   return is_finite(LAG.k)
 end
 
-"""
-    has_gens(LAG::LinearAlgebraicGroup)
-
-Return whether generators for the group `LAG` are known.
-"""
 function has_gens(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return has_gens(LAG.G)
   return false
 end
 
-@doc raw"""
-    number_of_generators(LAG::LinearAlgebraicGroup) -> Int
-
-Return the number of generators of `LAG`. Errors if `LAG` is not finitely generated.
-"""
 function number_of_generators(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return number_of_generators(LAG.G)
   error("Group is not finitely generated") # as long as field is QQ
 end
 
-@doc raw"""
-    gens(LAG::LinearAlgebraicGroup) -> Vector{LinearAlgebraicGroupElem}
-
-Return the generators of `LAG`. Errors if `LAG` is not finitely generated.
-"""
 function gens(LAG::LinearAlgebraicGroup)
   return [gen(LAG, i) for i in 1:ngens(LAG)]
 end
 
-@doc raw"""
-    gen(LAG::LinearAlgebraicGroup, i::Int) -> Int
-
-Return the i-th generator of `LAG`. Errors if `LAG` is not finitely generated.
-"""
 function gen(LAG::LinearAlgebraicGroup, i::Int)
   gap_likes_the_group(LAG) && return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
   error("Group is not finitely generated") # as long as field is QQ
 end
 
-@doc raw"""
-    is_finite(LAG::LinearAlgebraicGroup) -> Bool
-
-Return whether `LAG` is finite.
-"""
 function isfinite(LAG::LinearAlgebraicGroup)
   gap_likes_the_group(LAG) && return isfinite(LAG.G)
   if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
@@ -111,11 +86,6 @@ function isfinite(LAG::LinearAlgebraicGroup)
   end
 end
 
-@doc raw"""
-    order(LAG::LinearAlgebraicGroup) -> Int
-
-Return the order of `LAG`. Errors if `LAG` is not finite.
-"""
 function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
   if !is_finite(LAG)
     throw(InfiniteOrderError(LAG))
@@ -148,11 +118,6 @@ function elem_type(::Type{LinearAlgebraicGroup})
   return LinearAlgebraicGroupElem
 end
 
-@doc raw"""
-    one(LAG::LinearAlgebraicGroup) -> LinearAlgebraicGroupElem
-
-Return the identity element of `LAG`.
-"""
 function one(LAG::LinearAlgebraicGroup)
   return linear_algebraic_group_elem(LAG, one(LAG.G))
 end
