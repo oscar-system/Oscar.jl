@@ -687,7 +687,7 @@ end
 
 Return the length of the vector [`gens`](@ref)`(G)`.
 
-!!! warning "WARNING:"
+!!! warning
     this is *NOT*, in general, the minimum number of generators for G.
 """
 number_of_generators(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(GapObj(G)))

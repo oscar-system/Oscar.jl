@@ -277,6 +277,7 @@ end
 Return the (fixed) defining element(s) of the ideal of `X` in the ring of the ambient germ of `X`. Note that the return value is not an element of a polynomial ring, but of a localization of a polynomial ring the complement of a maximal ideal. (Hence each such element has a numerator and a denominator.)
 
 Caution: This command is not exported and is only provided for convenience in programming.
+
 # Examples:
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x, :y, :z];
@@ -319,7 +320,7 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note
+!!! note
     Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
@@ -413,7 +414,7 @@ may be specified in several equivalent ways:
 
 This variant allows explicit specification of the generator for the hypersurface. The given `f` is checked to generate to modulus of OO(X) or A respectively. In the affirmative case, the given generator will subsequently be used by all methods explicitly accessing a generator.
 
-!!!note
+!!! note
     Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
@@ -571,11 +572,10 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note
+!!! note
     Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
-
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
@@ -647,10 +647,10 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note
+!!! note
     Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
-!!!note
+!!! note
     If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
 # Examples
@@ -700,7 +700,7 @@ hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
 
 Return a hypersurface germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
-!!!note
+!!! note
     If the defining ideal of `(X,p)` is not principal. an error exception occurs.
 """
 hypersurface_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
@@ -724,9 +724,12 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
+!!! note
+    Only `LocalRing`s localized at rational points over the coefficient field are
+    currently fully supported.
 
-!!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
+!!! note
+    If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
 # Examples
 ```jldoctest
@@ -775,7 +778,7 @@ complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
 
 Return a complete intersection germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
-!!!note
+!!! note
     If the defining ideal of `(X,p)` does not describe a complete intersection. an error exception occurs.
 """
 complete_intersection_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
@@ -1006,9 +1009,10 @@ end
 @doc raw"""
     subgerm(X::AbsSpaceGerm, I::Ideal) --> SpaceGerm
 
-Return the space germ (Y,p) of (X,p) defined by the ideal I in the local ring of X at p
+Return the space germ `(Y,p)` of `(X,p)` defined by the ideal `I` in the local ring of `X` at `p`.
 
-!!! note: (Y,p) is of type SpaceGerm, even if (X,p) is a HypersurfaceGerm or a CompleteIntersectionGerm.
+!!! note
+    `(Y,p)` is of type `SpaceGerm`, even if `(X,p)` is a `HypersurfaceGerm` or a `CompleteIntersectionGerm`.
 """
 function subgerm(X::AbsSpaceGerm, I::Ideal)
   base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
@@ -1022,6 +1026,8 @@ subscheme(X::AbsSpaceGerm, I::Ideal) = subgerm(X::AbsSpaceGerm, I::Ideal)
     is_isolated_singularity(X::AbsSpaceGerm)
 
 Return whether `(X,p)` has at most an isolated singularity.
+
+# Examples
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
@@ -1050,7 +1056,7 @@ end
 @doc raw"""
     milnor_algebra(X::HypersurfaceGerm)
 
-Return the local Milnor algebra of `(X,p)` at p
+Return the local Milnor algebra of `(X,p)` at `p`.
 """
 function milnor_algebra(X::HypersurfaceGerm)
   R = localized_ring(OO(X))
@@ -1065,7 +1071,7 @@ end
     milnor_number(X::HypersurfaceGerm)
     milnor_number(X::CompleteIntersectionGerm)
 
-Return the local Milnor number of `(X,p)` at p
+Return the local Milnor number of `(X,p)` at `p`.
 """
 function milnor_number(X::HypersurfaceGerm)
   return vector_space_dim(milnor_algebra(X))
