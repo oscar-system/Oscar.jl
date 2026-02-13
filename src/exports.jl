@@ -477,6 +477,7 @@ export connected_sum
 export connectivity
 export connectivity_function
 export contains
+export contains_in_interior
 export continued_fraction_hirzebruch_jung
 export continued_fraction_hirzebruch_jung_to_rational
 export contraction
