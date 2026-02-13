@@ -181,7 +181,7 @@ function descendants(G::Graph{Directed}, i::Int)::Set{Int}
     C = Oscar.children(G, v)
     append!(queue, [c for c in C if !(c in visited)])
 
-    visited = union(visited, C)
+    union!(visited, C)
     current_index += 1
   end
   return Set(queue)
