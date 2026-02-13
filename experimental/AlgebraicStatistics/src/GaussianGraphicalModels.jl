@@ -630,3 +630,100 @@ function ci_structure(R::GaussianRing; strategy::Symbol)
   end
   error("no method available to compute the CI structure")
 end
+
+################################################################################
+# Maximum likelihood
+function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
+  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
+  K = concentration_matrix(M)
+  n = nrows(K)
+
+  if algorithm == :generic
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
+    R, emb = change_base_ring(S, base_ring(K))
+    K_mapped = map_entries(emb, K)
+    scv_matrix = upper_triangular_matrix(s)
+    for i in 1:n
+      for j in 1:i - 1
+        scv_matrix[i, j] = scv_matrix[j, i]
+      end
+    end
+    detK = det(K_mapped)
+    trace_product = trace(scv_matrix * K_mapped)
+    diff_vars = gens(R)
+  elseif algorithm == :monte_carlo
+    scv_matrix = rand(Int, n, n)
+    scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
+    detK = det(K)
+    trace_product = trace(scv_matrix * K)
+    diff_vars = gens(base_ring(K))
+  end
+
+  l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  gb = groebner_basis(I)
+  J = saturation(I, ideal(det(K)))
+  return degree(J)
+end
+
+@doc raw"""
+    maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
+    maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
+
+Return the maximum likelihood degree of `M` the given `GaussianGraphicalModel`.
+The possible algorithms can be chosen via the `algorithm` keyword argument set to either `:generic` or `:monte_carlo`.
+The default is to compute with `:generic` which will use a sample covariance matrix whose entries lie in a rational function field.
+Setting algorithm to `:monte_carlo` will randomly generate a sample covariance matrix.
+
+## Examples
+
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 3], [1, 5], [2, 3], [2, 4], [3, 4], [4, 5]])
+Directed graph with 5 nodes and the following edges:
+(1, 3)(1, 5)(2, 3)(2, 4)(3, 4)(4, 5)
+
+julia> M = gaussian_graphical_model(G)
+Gaussian Graphical Model on a Directed graph with 5 nodes and 6 edges
+
+julia> maximum_likelihood_degree(M)
+1
+```
+"""
+function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
+  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
+  sigma = covariance_matrix(M)
+  phi = parametrization(M)
+  sigma_mapped = map_entries(phi, sigma)
+  adj = adjugate(sigma)
+  n = nrows(sigma)
+  
+  if algorithm == :generic
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
+    R, emb = change_base_ring(S, codomain(phi))
+    sigma_final = map_entries(emb, sigma_mapped)
+    adj_final = map_entries(emb, adj)
+    det_sigma = det(sigma_final)
+
+    scv_matrix = upper_triangular_matrix(s)
+    for i in 1:n
+      for j in 1:i - 1
+        scv_matrix[i, j] = scv_matrix[j, i]
+      end
+    end
+    product_trace = trace(scv_matrix * adj_final)
+    diff_vars = gens(R)
+  elseif algorithm == :monte_carlo
+    det_sigma = det(sigma_mapped)
+    scv_matrix = rand(Int, n, n)
+    scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
+    product_trace = trace(scv_matrix * adj)
+    diff_vars = gens(codomain(phi))
+  end
+
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - product_trace) + det_sigma * derivative(a, g) for g in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  gb = groebner_basis(I)
+  J = saturation(I, ideal(det_sigma))
+  
+  return degree(J)
+end
