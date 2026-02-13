@@ -538,7 +538,7 @@ end
 @doc raw"""
     bruhat_decomp(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
 
-Return the bruhat decomposition of the linear algebraic group `LAG`.
+Return the Bruhat decomposition of the linear algebraic group `LAG`.
 
 # Examples
 ```jldoctest
