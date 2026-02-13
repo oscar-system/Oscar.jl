@@ -161,7 +161,7 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   unUsedRowsForOnes = collect(2:rk)
   for col in 1:(n - rk), row in 1:rk
     circ = circs[col]
-    if !(B[row] == minimum(circ)) && B[row] in circ
+    if B[row] != minimum(circ) && B[row] in circ
       if row in unUsedRowsForOnes
         unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
       else
