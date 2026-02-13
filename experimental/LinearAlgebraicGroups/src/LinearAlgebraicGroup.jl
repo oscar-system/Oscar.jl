@@ -7,7 +7,7 @@
 
 Construct the linear algerbaic group of the given type.
 
-Only type :A is implemented so far.
+Only type ``A_n`` is implemented so far.
 
 # Examples
 ```jldoctest
