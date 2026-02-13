@@ -641,30 +641,29 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}};
   if algorithm == :generic
     S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
     R, emb = change_base_ring(S, base_ring(K))
-    K = emb.(K)
+    K_mapped = map_entries(emb, K)
     scv_matrix = upper_triangular_matrix(s)
     for i in 1:n
       for j in 1:i - 1
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-
-    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in gens(R)])
-
-    I = ideal(reduce(vcat, l_eqs))
-    gb = groebner_basis(I)
-    J = saturation(I, ideal(det(K)))
-    return degree(J)
+    detK = det(K_mapped)
+    trace_product = trace(scv_matrix * K_mapped)
+    diff_vars = gens(R)
   elseif algorithm == :monte_carlo
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-    l_eqs = matrix([derivative(det(K), k) - det(K) * derivative(trace(scv_matrix * K), k) for k in K if !iszero(k)])
-
-    I = ideal(reduce(vcat, l_eqs))
-    gb = groebner_basis(I)
-    J = saturation(I, ideal(det(K)))
-    return degree(J)
+    detK = det(K)
+    trace_product = trace(scv_matrix * K)
+    diff_vars = gens(base_ring(K))
   end
+
+  l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  gb = groebner_basis(I)
+  J = saturation(I, ideal(det(K)))
+  return degree(J)
 end
 
 @doc raw"""
@@ -694,16 +693,16 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
   @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   sigma = covariance_matrix(M)
   phi = parametrization(M)
-  sigma = phi.(sigma)
-  adj = Oscar.adjugate(sigma)
+  sigma_mapped = map_entries(phi, sigma)
+  adj = adjugate(sigma)
   n = nrows(sigma)
   
   if algorithm == :generic
-    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2))
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
     R, emb = change_base_ring(S, codomain(phi))
-    sigma = emb.(sigma)
-    adj = emb.(adj)
-    det_sigma = det(sigma)
+    sigma_final = map_entries(emb, sigma_mapped)
+    adj_final = map_entries(emb, adj)
+    det_sigma = det(sigma_final)
 
     scv_matrix = upper_triangular_matrix(s)
     for i in 1:n
@@ -711,22 +710,20 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    a = trace(scv_matrix * adj)
-    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - a) + det_sigma * derivative(a, g) for g in gens(R)])
-    I = ideal(reduce(vcat, l_eqs))
-    gb = groebner_basis(I)
-    J = saturation(I, ideal(det_sigma))
-    return degree(J)
-
+    product_trace = trace(scv_matrix * adj_final)
+    diff_vars = gens(R)
   elseif algorithm == :monte_carlo
-    det_sigma = det(sigma)
+    det_sigma = det(sigma_mapped)
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace(scv_matrix * adj)) + det_sigma * derivative(trace(scv_matrix * adj), g) for g in gens(codomain(phi))])
-
-    I = ideal(reduce(vcat, l_eqs))
-    gb = groebner_basis(I)
-    J = saturation(I, ideal(det_sigma))
-    return degree(J)
+    product_trace = trace(scv_matrix * adj)
+    diff_vars = gens(codomain(phi))
   end
+
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - product_trace) + det_sigma * derivative(a, g) for g in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  gb = groebner_basis(I)
+  J = saturation(I, ideal(det_sigma))
+  
+  return degree(J)
 end
