@@ -636,10 +636,10 @@ end
 function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
   @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   K = concentration_matrix(M)
-  n = size(K)[1]
+  n = nrows(K)
 
   if algorithm == :generic
-    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2))
+    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
     R, emb = change_base_ring(S, base_ring(K))
     K = emb.(K)
     scv_matrix = upper_triangular_matrix(s)
@@ -671,8 +671,8 @@ end
     maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
     maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
 
-Returns the maximum likelihood degree of `M` the given `GaussianGraphicalModel`.
-The possible algorithms can be choosen via the `algorithm` kwarg set to either `:generic` or `:monte_carlo`.
+Return the maximum likelihood degree of `M` the given `GaussianGraphicalModel`.
+The possible algorithms can be chosen via the `algorithm` keyword argument set to either `:generic` or `:monte_carlo`.
 The default is to compute with `:generic` which will use a sample covariance matrix whose entries lie in a rational function field.
 Setting algorithm to `:monte_carlo` will randomly generate a sample covariance matrix.
 
@@ -696,7 +696,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
   phi = parametrization(M)
   sigma = phi.(sigma)
   adj = Oscar.adjugate(sigma)
-  n = size(sigma)[1]
+  n = nrows(sigma)
   
   if algorithm == :generic
     S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2))
@@ -711,7 +711,8 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace(scv_matrix * adj)) + det_sigma * derivative(trace(scv_matrix * adj), g) for g in gens(R)])
+    a = trace(scv_matrix * adj)
+    l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - a) + det_sigma * derivative(a, g) for g in gens(R)])
     I = ideal(reduce(vcat, l_eqs))
     gb = groebner_basis(I)
     J = saturation(I, ideal(det_sigma))
