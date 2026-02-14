@@ -18,6 +18,7 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
 
   # The following fields are not set by default, just for caching
   T::MatGroup #maximal torus
+  B::MatGroup #borel subgroup
   U_alphas::Dict{RootSpaceElem,MatGroup} #root subgroups
 
   function LinearAlgebraicGroup(R::RootSystem, G::MatGroup, k::Field)

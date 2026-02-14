@@ -475,18 +475,21 @@ Matrix group of degree 4
 ```
 """
 function borel(LAG::LinearAlgebraicGroup)
+  isdefined(LAG, :B) && return LAG.B
   T = maximal_torus(LAG)
   G = LAG.G
   gs = MatGroupElem[]
   for t in gens(T)
     push!(gs, t)
   end
+  I = identity_matrix(LAG.k, degree(LAG))
   for lambda in basis(LAG.k)
     for alpha in simple_roots(root_system(LAG))
-      push!(gs, MatGroupElem(G, lambda * root_subgroup_generator(LAG, alpha)))
+      push!(gs, MatGroupElem(G, I + lambda * root_subgroup_generator(LAG, alpha)))
     end
   end
   B, _ = sub(G, gs)
+  LAG.B = B
   return B
 end
 
