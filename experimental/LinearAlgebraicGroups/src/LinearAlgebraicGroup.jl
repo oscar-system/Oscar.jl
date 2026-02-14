@@ -248,8 +248,8 @@ function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
   return xor(h, b)
 end
 
-  Base.show(io::IO, g::LinearAlgebraicGroupElem) = show(io, g.mat)
-  Base.show(io::IO, mi::MIME"text/plain", g::LinearAlgebraicGroupElem) = show(io, mi, g.mat)
+Base.show(io::IO, g::LinearAlgebraicGroupElem) = show(io, g.mat)
+Base.show(io::IO, mi::MIME"text/plain", g::LinearAlgebraicGroupElem) = show(io, mi, g.mat)
 
 ############# Root Subgroups ############################
 #internal function to compute action of root alpha, in case :A return the tuple (i, j) for which alpha acts like e_i-e_j
