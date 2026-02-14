@@ -5,19 +5,14 @@ DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
+A linear algebraic group is an affine variety with a group strucutre. These groups can be embedded into a ``GL_n`` and we work with linear algebraic groups as matrix groups. Here we consider reductive linear algebraic groups.
 
-This project aims to demonstrate how to use the experimental folder structure in Oscar.
-We don't have any good textbook to reference here, but this would be the place to do so.
-
-## Status
-
-This part of OSCAR is in an experimental state; please see [Adding new projects to experimental](@ref) for what this means.
 
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [My Name](https://my-webpage.com/)
-* [Other Devs Name](https://other-devs-webpage.com/)
+* Janika Peters
+* [Max Horn](https://math.rptu.de/en/wgs/agag/people/head/prof-dr-max-horn)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

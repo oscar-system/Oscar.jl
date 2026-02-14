@@ -1,6 +1,6 @@
 [
-   "Experimental Template" => [
+   "Linear Algebraic Groups" => [
       "introduction.md",
-      "example_page.md",
+      "overview.md",
    ],
 ]

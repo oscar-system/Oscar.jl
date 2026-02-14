@@ -39,7 +39,7 @@ end
 
 Construct the linear algebraic group of the given type.
 
-Only type :A is implemented so far.
+Only type ``A_n`` is implemented so far.
 
 # Examples
 ```jldoctest
@@ -379,7 +379,7 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
 end
 
 @doc raw"""
-  torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem} -> LinearAlgebraicGroupElem
+    torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem} -> LinearAlgebraicGroupElem
 
 Return the root element consisting of `diag` as diagonal entries which is an element of the maximal torus of `LAG`.
 
@@ -402,7 +402,7 @@ function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:Fie
 end
 
 @doc raw"""
-  apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem) -> FieldElem
+    apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem) -> FieldElem
 
 Return the field element obtained by applying the root `alpha` to the torus element `t`.
 
@@ -431,7 +431,7 @@ end
 
 ############### Bruhat decomposition ###########################
 @doc raw"""
-  representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
+    representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
 
 Return the linear algebraic group element corresponding to the root `alpha`.
 
