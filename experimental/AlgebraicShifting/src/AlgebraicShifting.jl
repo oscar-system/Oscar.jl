@@ -32,22 +32,6 @@ function pivot_columns(A::MatElem)
 end
 
 """
-    eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
-
-Extended argmin function. Allows custom filter, default value and comparator.
-"""
-function eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
-  best = nothing
-  for x in xs
-    filter(x) || continue
-    if isnothing(best) || lt(f(x), best)
-      best = f(x)
-    end
-  end
-  return best
-end
-
-"""
     efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 
 Extended findmin function. Allows custum filter, default value and comparator.

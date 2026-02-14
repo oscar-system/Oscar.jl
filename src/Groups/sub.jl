@@ -38,8 +38,10 @@ function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = t
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
+  flag, GapG = has_GapObj_with_GapObj(G)
+  flag || return matrix_group(base_ring(G), degree(G), gens)
   elems_in_GAP = GapObj(gens; recursive = true)
-  H = GAP.Globals.SubgroupNC(GapObj(G), elems_in_GAP)::GapObj
+  H = GAP.Globals.SubgroupNC(GapG, elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
 

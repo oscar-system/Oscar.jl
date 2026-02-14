@@ -26,3 +26,12 @@ GAP.@install function GapObj(obj::AbstractAlgebra.Generic.MatSpaceElem{AbsSimple
     mat = [GapObj(obj[i,j]) for i in 1:nrows(obj), j in 1:ncols(obj)]
     return GapObj(mat)
 end
+
+function has_GapObj_with_GapObj(input; recursive::Bool = false)
+  try
+    res = GapObj(input, recursive = recursive)
+    return true, res
+  catch e
+    return false, GAP.Globals.fail
+  end
+end

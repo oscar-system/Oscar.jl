@@ -145,8 +145,8 @@ end
 @attr SubquoModule{T} function _as_poly_module(M::SubquoModule{MPolyQuoRingElem{T}}) where {T}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
-  v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
-  w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
+  v = elem_type(FP)[_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
+  w = elem_type(FP)[f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
   w_ext = vcat(w, elem_type(FP)[_lifting_map(F)(g) for g in relations(M)])
   MP = SubquoModule(FP, v, w_ext)
   return MP

@@ -186,7 +186,7 @@ Return the multiplicitive identity of the action polynomial ring `A`.
 """
 one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
 
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = AbstractAlgebra.Generic.UniversalPolyRing{T}
+base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = universal_poly_ring_type(T)
 
 coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
