@@ -279,8 +279,8 @@ end
   G1 = group(mats)
   G2 = group(mats[1], mats[2])
 
-  @test G1 isa MatrixGroup
-  @test G2 isa MatrixGroup
+  @test G1 isa MatGroup
+  @test G2 isa MatGroup
   @test G1 == matrix_group(mats)
   @test G2 == matrix_group(mats)
 
