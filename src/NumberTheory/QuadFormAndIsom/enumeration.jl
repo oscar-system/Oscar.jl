@@ -1486,7 +1486,8 @@ function splitting_of_hermitian_type(
 end 
 
 function _representatives_of_hermitian_type(Lf::ZZLatWithIsom, n::IntegerUnion, k::IntegerUnion; ctx::ZZLatWithIsomEnumCtX)
-  reps = _representatives_of_hermitian_type(genus(L), n, k; ctx)
+  @assert order_of_isometry(Lf)==n
+  reps = _representatives_of_hermitian_type(genus(Lf), n, k; ctx)
   p = divexact(k, n)
   filter!(i->is_of_same_type(Lf, i^p), reps)
   return reps
@@ -1981,10 +1982,12 @@ function _splitting_of_pure_mixed_prime_power(
   # function
   eiglat_cond = ctx.eigenlattice_conditions
   if length(pd) == 1
-    # TODO This can be sharpened using orig_...!!!
+    #=
     for cond in unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
       append!(reps, representatives_of_hermitian_type(Lf, p, ctx.fix_root; cond, genusDB=ctx.genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=ctx.discriminant_annihilator_lb, _local=ctx._local))
     end
+    =#
+    reps = _representatives_of_hermitian_type(Lf, n, n*p; ctx)
     return reps
   end
 
@@ -2005,16 +2008,17 @@ function _splitting_of_pure_mixed_prime_power(
   # `PrimitiveExtensions`.
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
+  ctx_A, ctx_B = _split(ctx, order_of_isometry(A0), order_of_isometry(B0))
   # Compute this one first because it is faster to decide whether it is empty
   condB = unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
   RB = ZZLatWithIsom[]
   for cond in condB
-    # TODO!!
-    append!(RB, representatives_of_hermitian_type(B0, p, ctx.fix_root; cond, genusDB=ctx.genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=q*ctx.discriminant_annihilator_lb, _local=ctx._local))
+    #append!(RB, representatives_of_hermitian_type(B0, p, ctx.fix_root; cond, genusDB=ctx.genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=q*ctx.discriminant_annihilator_lb, _local=ctx._local))
+    append!(RB,_representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B))
   end
   is_empty(RB) && return reps
   ctx_new = _restrict(ctx, q)
-  RA = _splitting_of_pure_mixed_prime_power(A0, p; ctx=ctx_new)
+  RA = _splitting_of_pure_mixed_prime_power(A0, p; ctx=ctx_A)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
     satisfies_eiglat_cond(L1, L2, eiglat_cond) || continue
