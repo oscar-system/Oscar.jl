@@ -29,6 +29,6 @@ end
   zchart = hom(parent(f), R, [x, y, 1])
   fn = tempname()
   desiredfn = joinpath(dir, "harnack6_graph.tikz")
-  draw_curve_tikz(zchart(f); filename=fn, graph=true)
+  draw_curve_tikz(fn, zchart(f); graph=true)
   @test success(`cmp --quiet $fn $desiredfn`)
 end
