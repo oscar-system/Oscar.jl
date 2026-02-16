@@ -58,7 +58,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
     end
 
     ## find minors of jacobian matrix involved in expressing 1
-    RU = base_ring(OO(U))
+    RU = base_ring(ambient_ring(U))
     IUgens = lifted_numerator.(gens(IU))
     JM = jacobian_matrix(IUgens)
     min_list = [a for a in minors_with_position(JM, nvars(RU) - dim(OO(U))) if !is_zero(a[1])]
@@ -80,14 +80,14 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
       else
         JM_essential = JM
       end
-      submat_for_minor = JM[min_list[k][2], min_list[k][3]]
+      submat_for_minor = JM[amb_rows, amb_cols]
       Ainv, _ = pseudo_inv(submat_for_minor)
       JM_essential = JM_essential * Ainv          
       max_contact_data[current_patch] = Oscar.MaxContactChart(
                             U, selected_gens, 
                             [0 for i in 1:(nvars(RU) - dim(OO(U)))],
-                            min_list[k][2],
-                            [(min_list[k][1],length(min_list[k][2]))],
+                            amb_rows,
+                            [(min_list[k][1],length(amb_rows))],
                             [JM_essential])
     end
   end
@@ -97,7 +97,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
   return Oscar.MaxContactObject(W,new_Cov,max_contact_data)
 end
 
-function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
+function _max_contact_step(MC::Oscar.MaxContactObject,I::AbsIdealSheaf,b::Int)
   Cov = covering(MC)
   max_contact_data = maximal_contact_data(MC)
 
@@ -120,7 +120,7 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
     save_list = []
     save_id = ideal(OO(U),[])
     ambient_contribution = ideal(RU,IUgens) + ideal(RU,lifted_numerator.(gens(modulus(OO(U)))))
-    while i < min(nrows(JM),ncols(JM))
+    for i in 1: min(nrows(JM),ncols(JM))
       ## find largest minors providing unit ideal
       testing_list = [a for a in minors_with_position(JM,i) if !is_zero(a[1])]
       testing_ideal =  ideal(RU, [a[1] for a in testing_list])
@@ -128,7 +128,6 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
                              testing_ideal+ambient_contribution) || break 
       save_list = testing_list
       save_id = testing_ideal
-      i = i+1
     end
 
     coord_vec = coordinates(_agnostic_complement_equation(U),
@@ -163,7 +162,7 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
       ## append row indices, new minor 
       dep_vars = copy(dependent_variables(MCU))
       append!(dep_vars,save_list[k][2])
-      minor_data = copy(max_contact_minor_data(MCU))    ## this should save MCU.minor_data from getting altered?
+      minor_data = copy(max_contact_minor_data(MCU))    ## this should save MCU.minor_data from getting altered
       push!(minor_data,(save_list[k][1],length(save_list[k][2])))
 
       ## prepare and append relevant part of JM * pseudoinverse
@@ -194,7 +193,7 @@ function _max_contact_step(MC::Oscar.MaxContactObject,I::IdealSheaf,b::Int)
                             new_max_contact) 
 end
 
-_agnostic_complement_equation(U::PrincipalOpenSubset) = lift(complement_equation(U))
+_agnostic_complement_equation(U::PrincipalOpenSubset) = lifted_numerator(complement_equation(U))
 _agnostic_complement_equation(X::AbsAffineScheme{<:Field, <:MPolyRing}) = one(OO(X))
 _agnostic_complement_equation(X::AbsAffineScheme) =  one(base_ring(OO(X)))
 ########################################################
