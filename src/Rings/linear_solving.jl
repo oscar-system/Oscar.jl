@@ -19,15 +19,15 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::ModuleSolveTrait, 
   for i in 1:nrows(b)
     c = G(b[i, :])
     if !(c in imh)
-      return false
+      return false, sol, sol
     end
-    sol[i, :] = dense_row(coordinates(preimage(h, c)), nrows(A))
+    sol[i, :] = dense_row(coordinates(preimage(h, c))::sparse_row_type(R), nrows(A))
   end
   K, KtoF = kernel(h)
   if ngens(K) == 0
     Ke = zero_matrix(R, 0, nrows(A))
   else
-    Ke = reduce(vcat, dense_row.(coordinates.(KtoF.(gens(K))), rank(F)))
+    Ke = reduce(vcat, dense_row.((coordinates.(KtoF.(gens(K))))::Vector{sparse_row_type(R)}, rank(F)))
   end
   return true, sol, Ke
 end
@@ -44,5 +44,5 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::LaurentSolveTrait,
   AA = map_entries(f, A)
   bb = map_entries(f, b)
   fl, xx, kk = can_solve_with_solution_and_kernel(AA, bb; side)
-  return fl, map_entries(f.inv, xx), map_entries(f.inv, kk)
+  return fl::Bool, map_entries(f.inv, xx)::typeof(A), map_entries(f.inv, kk)::typeof(b)
 end
