@@ -76,8 +76,13 @@ function bezier_curve(p::Vector{Vector{QQFieldElem}})
   end
 end
 
-
 function _draw_edge_sequence_bernstein(io, pts::Vector{_Point}, scale; color::String="black")
+  # Use formula from
+  # https://web.archive.org/web/20131225210855/http://people.sc.fsu.edu/~jburkardt/html/bezier_interpolation.html
+  # linked on Wikipedia to achieve curve through points.
+  ptsmod2 = 1//6*(-5*pts[1]+18*pts[1]-9*pts[3]+2*pts[4])
+  ptsmod3 = 1//6*(-5*pts[4]+18*pts[3]-9*pts[2]+2*pts[1])
+  ptsmod = [pts[1], ptsmod2, ptsmod3, pts[4]]
    f1 = bernstein_polynomial([pt.xcoord for pt in pts])
    f2 = bernstein_polynomial([pt.ycoord for pt in pts])
    pts100 = [_Point(Oscar.evaluate(f1, i//100), Oscar.evaluate(f2, i//100)) for i in 1:100]

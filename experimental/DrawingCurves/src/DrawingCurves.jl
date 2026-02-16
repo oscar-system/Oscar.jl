@@ -39,26 +39,35 @@ function _compute_isotopy_graph(f_in; selected_precision::Int=128)
 end
 
 @doc raw"""
-    draw_curve_tikz(f_in; filename::String="curve.tikz", selected_precision::Int=128, graph::Bool=false, custom_edge_plot=nothing)
+    draw_curve_tikz(filename::String, f_in; selected_precision::Int=128, graph::Bool=false, custom_edge_plot=nothing)
 
 Takes a polynomial in two variables and constructs a plot of the resulting real
 algebraic curve in TikZ.
 """
 function draw_curve_tikz(
+  filename::String,
   f_in;
-  filename::String="curve.tikz",
   selected_precision::Int=128,
   graph::Bool=false,
-  custom_edge_plot=nothing,
+  custom_edge_plot=_draw_edge_sequence_bernstein,
+)
+  io = open(filename, "w")
+  draw_curve_tikz(io, f_in; selected_precision, graph, custom_edge_plot)
+  close(io)
+end
+function draw_curve_tikz(
+  io::IO,
+  f_in;
+  selected_precision::Int=128,
+  graph::Bool=false,
+  custom_edge_plot=_draw_edge_sequence_bernstein,
 )
   IG, scale = _compute_isotopy_graph(f_in; selected_precision)
-  io = open(filename, "w")
   if graph
     draw_graph_tikz(IG, io)
   else
     draw_curve_tikz(IG, scale, io; custom_edge_plot)
   end
-  close(io)
 end
 
 export draw_curve_tikz

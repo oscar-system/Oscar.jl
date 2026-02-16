@@ -29,6 +29,11 @@ struct _Point
   ycoord::QQFieldElem
 end
 Base.:*(M::QQMatrix, pt::_Point) = _Point(M * [pt.xcoord, pt.ycoord]...)
+Base.:*(i::Int, pt::_Point) = _Point(i*pt.xcoord, i*pt.ycoord)
+Base.:*(r::QQFieldElem, pt::_Point) = _Point(r*pt.xcoord, r*pt.ycoord)
+Base.:*(r::Rational, pt::_Point) = _Point(r*pt.xcoord, r*pt.ycoord)
+Base.:+(pt0::_Point, pt1::_Point) = _Point(pt0.xcoord+pt1.xcoord, pt0.ycoord+pt1.ycoord)
+Base.:-(pt0::_Point, pt1::_Point) = _Point(pt0.xcoord-pt1.xcoord, pt0.ycoord-pt1.ycoord)
 
 ################################################################################
 ################################################################################
@@ -100,8 +105,12 @@ function get_scale(IG::_IsotopyGraph, random_transform)
     ymin = min(ymin, ypt)
     ymax = max(ymax, ypt)
   end
-  scale = 100 / (max(xmax - xmin, ymax - ymin))
-  return scale
+  scale = max(xmax - xmin, ymax - ymin)
+  if scale != 0
+    return 100/scale
+  else
+    return 1
+  end
 end
 
 function add_edge_sequence!(IG::_IsotopyGraph, seq::Vector{Vector{Int}})
