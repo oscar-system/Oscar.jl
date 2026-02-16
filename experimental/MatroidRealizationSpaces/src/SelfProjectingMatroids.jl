@@ -104,6 +104,11 @@ from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a self-pr
 """
 selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = RS.selfprojecting_realization_matrix
 
+@doc raw"""
+    satisfies_disjointbasisproperty(mat::Matroid)
+
+Returns a boolean stating whether the given matroid has two disjoint bases.
+"""
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     dmat = dual_matroid(mat)
     boo = false
