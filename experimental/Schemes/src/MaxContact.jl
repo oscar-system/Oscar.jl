@@ -58,7 +58,7 @@ function _initialize_max_contact_object(inc::Oscar.CoveredClosedEmbedding)
     end
 
     ## find minors of jacobian matrix involved in expressing 1
-    RU = base_ring(ambient_coordinate_ring(U))
+    RU = base_ring(OO(U))
     IUgens = lifted_numerator.(gens(IU))
     JM = jacobian_matrix(IUgens)
     min_list = [a for a in minors_with_position(JM, nvars(RU) - dim(OO(U))) if !is_zero(a[1])]
