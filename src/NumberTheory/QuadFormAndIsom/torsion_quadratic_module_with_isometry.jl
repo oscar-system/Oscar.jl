@@ -540,3 +540,7 @@ function Base.hash(T::TorQuadModuleWithIsom, u::UInt)
   u = Base.hash(underlying_module(T), u)
   return Base.hash(matrix(isometry(T)), u)
 end
+
+function Base.:(^)(T::TorQuadModuleWithIsom, n::IntegerUnion)
+  return torsion_quadratic_module_with_isometry(torsion_quadratic_module(T), isometry(T)^n)
+end
