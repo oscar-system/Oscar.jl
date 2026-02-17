@@ -1065,7 +1065,7 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   LMq = leading_module(Mq_shift, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
   is_empty(B) && return elem_type(M)[]
-  _,back_shift = base_ring_shifts(R)
+  _, back_shift = base_ring_shifts(R)
   iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
   return iota.(B)
 end
@@ -1083,17 +1083,30 @@ end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
 function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
- R = base_ring(M)
+  R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  B = _vector_space_basis(kk, _as_polyloc_module(M), check=false)
+  M_poly = Oscar.pre_saturated_module(M)
+  shift, back_shift = Oscar.base_ring_shifts(localized_ring(R))
+  Mq,_ = sub(ambient_free_module(M_poly), relations(M_poly))
+  Mq_shift,_ = Oscar.change_base_ring(shift, Mq)
+  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  LMq = leading_module(Mq_shift, o)
+
+  B = Oscar._vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
   is_empty(B) && return elem_type(M)[]
-  iota = _iso_with_polyloc_module(M)
+  iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
   return iota.(B)
 end
 
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
-  return _is_finite(kk, _as_polyloc_module(M))
+  M_poly = pre_saturated_module(M)
+  shift,_ = base_ring_shifts(localized_ring(base_ring(M)))
+  Mq,_ = sub(ambient_free_module(M_poly), relations(M_poly))
+  Mq_shift,_ = change_base_ring(shift, Mq)
+  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  LMq = leading_module(Mq_shift, o)
+  return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
 end
