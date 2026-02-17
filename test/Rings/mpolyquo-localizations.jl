@@ -46,8 +46,8 @@
   ⊂ = issubset
   @test S ⊂ V
   @test !(V ⊂ S)
-  @test !(T ⊂ V)
-  @test (V ⊂ T)
+  @test (T ⊂ V)
+  @test !(V ⊂ T)
   @test !(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
   @test S ⊂ Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1))
   @test !(Oscar.MPolyPowersOfElement(f) ⊂ V)
