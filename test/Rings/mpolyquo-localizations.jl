@@ -35,7 +35,6 @@
   
   ### second round of tests
   #kk = GF(101)
-  ⊂ = issubset
   kk = QQ
   R, (x,y) = kk[:x, :y]
 
@@ -43,24 +42,23 @@
   S = Oscar.MPolyPowersOfElement(x-1)
   T = Oscar.MPolyComplementOfKPointIdeal(R, [1,1])
   V = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f))
-  ⊂ = issubset
-  @test S ⊂ V
-  @test !(V ⊂ S)
-  @test (T ⊂ V)
-  @test !(V ⊂ T)
-  @test !(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
-  @test S ⊂ Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1))
-  @test !(Oscar.MPolyPowersOfElement(f) ⊂ V)
-  @test Oscar.MPolyPowersOfElement(x-1) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
-  @test Oscar.MPolyPowersOfElement(x-1) * Oscar.MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
-  @test !(Oscar.MPolyPowersOfElement(x) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test issubset(S, V)
+  @test !issubset(V, S)
+  @test issubset(T, V)
+  @test !issubset(V, T)
+  @test !issubset(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)), T)
+  @test issubset(S, Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)))
+  @test !issubset(Oscar.MPolyPowersOfElement(f), V)
+  @test issubset(Oscar.MPolyPowersOfElement(x-1), Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test issubset(Oscar.MPolyPowersOfElement(x-1) * Oscar.MPolyComplementOfKPointIdeal(R, [0,0]), Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test !issubset(Oscar.MPolyPowersOfElement(x), Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
   @test T*T == T
 
   U = S*T
-  @test U[1] ⊂ S || U[1] ⊂ T
-  @test U[2] ⊂ S || U[2] ⊂ T
-  @test S ⊂ U 
-  @test T ⊂ U
+  @test issubset(U[1], S) || issubset(U[1], T)
+  @test issubset(U[2], S) || issubset(U[2], T)
+  @test issubset(S, U) 
+  @test issubset(T, U)
   @test S*U == U
   @test T*U == U 
   @test U*U == U
