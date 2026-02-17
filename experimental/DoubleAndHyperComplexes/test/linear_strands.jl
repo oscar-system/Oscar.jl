@@ -3,7 +3,7 @@
 
   S1 = graded_free_module(S, [0])
   I, inc = sub(S1, [f*S1[1] for f in gens(S)])
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   res, aug = free_resolution(Oscar.SimpleFreeResolution, M)
 

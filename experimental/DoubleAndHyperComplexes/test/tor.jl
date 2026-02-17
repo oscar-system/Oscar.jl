@@ -7,8 +7,8 @@
   Rp1 = FreeMod(Rp, 1)
   IRp1, inc_I = I*Rp1
   YmRp1, inc_Ym = Ym*Rp1
-  M1 = cokernel(inc_I)
-  M2 = cokernel(inc_Ym)
+  M1, _ = cokernel(inc_I)
+  M2, _ = cokernel(inc_Ym)
   H0, _ = tor(M1, M2, 0)
   @test length(H0) == 3
 
@@ -20,8 +20,8 @@
   Rp1 = FreeMod(Rp, 1);
   IRp1, inc_I = I*Rp1;
   YmRp1, inc_Ym = Ym*Rp1;
-  M1 = cokernel(inc_I);
-  M2 = cokernel(inc_Ym);
+  M1, _ = cokernel(inc_I);
+  M2, _ = cokernel(inc_Ym);
   H0, _ = tor(M1, M2, 0);
   @test length(H0) == 3
 
@@ -29,8 +29,8 @@
   Yp = ideal(Rp, [x_0^3+(x_2^2+x_3^2)*x_0-x_1^3+x_2^3+x_3^3]);
   iRp1, inc_i = i*Rp1;
   YpRp1, inc_Yp = Yp*Rp1;
-  N1 = cokernel(inc_i);
-  N2 = cokernel(inc_Yp);
+  N1, _ = cokernel(inc_i);
+  N2, _ = cokernel(inc_Yp);
   H1, _ = tor(N1, N2, 0);
   @test length(H1) == 6
 
@@ -41,8 +41,8 @@
   Rq1 = FreeMod(Rq, 1);
   IRq1, inc_II = II*Rq1;
   YYmRq1, inc_YYm = YYm*Rq1;
-  MM1 = cokernel(inc_II);
-  MM2 = cokernel(inc_YYm);
+  MM1, _ = cokernel(inc_II);
+  MM2, _ = cokernel(inc_YYm);
   HH0, _ = tor(MM1, MM2, 0);
   @test length(HH0) == 3
 
@@ -50,8 +50,8 @@
   YYp = ideal(Rq, [x_0^3+(x_2^2+x_3^2)*x_0-x_1^3+x_2^3+x_3^3]);
   iiRq1, inc_ii = ii*Rq1;
   YYpRq1, inc_YYp = YYp*Rq1;
-  NN1 = cokernel(inc_ii);
-  NN2 = cokernel(inc_YYp);
+  NN1, _ = cokernel(inc_ii);
+  NN2, _ = cokernel(inc_YYp);
   HH1, _ = tor(NN1, NN2, 0);
   @test length(HH1) == 6
 end
