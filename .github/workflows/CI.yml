@@ -379,7 +379,7 @@ jobs:
         os: ['ubuntu-latest']
     env:
       JULIA_PKG_SERVER: ""
-      OSCAR_TEST_SUBSET: "oscar_exts"
+      OSCAR_TEST_SUBSET: "exts"
     steps:
       - uses: actions/checkout@v6
       - name: "Set up Julia"
