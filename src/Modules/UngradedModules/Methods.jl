@@ -884,20 +884,6 @@ function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check:
   error("not implemented")
 end
   
-# function vector_space_dim(M::SubquoModule{T}
-#   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-#                                <:MPolyComplementOfKPointIdeal}}
-#   F = ambient_free_module(M)
-#   Mq,_ = sub(F,rels(M))
-
-#   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
-
-#   M_shift,_,_ = shifted_module(Mq)
-#   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-#   LM = leading_module(M_shift,o)
-#   return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)))
-# end
-
 function vector_space_dim(
     M::SubquoModule{T}, d::Int64;
     check::Bool=true
@@ -913,25 +899,6 @@ function vector_space_dim(
   LM = leading_module(M_shift,o)
   return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
-
-# function vector_space_basis(M::SubquoModule{T}
-#   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-#                                <:MPolyComplementOfKPointIdeal}}
-#   F = ambient_free_module(M)
-#   Mq,_ = sub(F,rels(M))
-
-#   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
-
-#   M_shift,_,_ = shifted_module(Mq)
-#   if isdefined(F,:ordering) && is_local(F.ordering)
-#     o = F.ordering
-#   else
-#     o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-#   end
-#   LM = leading_module(M_shift,o)
-
-#   return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)))
-# end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
