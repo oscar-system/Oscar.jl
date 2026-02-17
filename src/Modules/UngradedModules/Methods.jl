@@ -671,7 +671,7 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:Fie
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
-  return has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
+  return _has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
 end
 
 function _is_finite(kk::Field, M::SubquoModule{<:FieldElem})
@@ -920,16 +920,16 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
 end
 
 @doc raw"""
-    has_monomials_on_all_axes(M::SubquoModule)
+    _has_monomials_on_all_axes(M::SubquoModule)
 
 Internal function to test whether M is finite-dimensional vector space. Do not use directly
 """
-function has_monomials_on_all_axes(M::SubquoModule)
+function _has_monomials_on_all_axes(M::SubquoModule)
   length(rels(M)) == 0 || error("not implemented for quotients")
-  return has_monomials_on_all_axes(M.sub)
+  return _has_monomials_on_all_axes(M.sub)
 end
 
-function has_monomials_on_all_axes(M::SubModuleOfFreeModule)
+function _has_monomials_on_all_axes(M::SubModuleOfFreeModule)
   R = base_ring(M)
   
   ambient_rank = ngens(ambient_free_module(M))
