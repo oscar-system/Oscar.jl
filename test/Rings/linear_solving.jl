@@ -9,10 +9,10 @@
     A = matrix(R, n, m, [r() for i in 1:n, j in 1:m])
     x = matrix(R, l, n, [r() for i in 1:l, j in 1:n])
     b = x * A
-    @test can_solve(A, b)
-    fl, y = can_solve_with_solution(A, b)
+    @test @inferred can_solve(A, b)
+    fl, y = @inferred can_solve_with_solution(A, b)
     @test fl && y * A == b
-    fl, y, K = can_solve_with_solution_and_kernel(A, b)
+    fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
 
@@ -29,10 +29,10 @@
     A = matrix(Q, n, m, [r() for i in 1:n, j in 1:m])
     x = matrix(Q, l, n, [r() for i in 1:l, j in 1:n])
     b = x * A
-    @test can_solve(A, b)
-    fl, y = can_solve_with_solution(A, b)
+    @test @inferred can_solve(A, b)
+    fl, y = @inferred can_solve_with_solution(A, b)
     @test fl && y * A == b
-    fl, y, K = can_solve_with_solution_and_kernel(A, b)
+    fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
 
@@ -52,10 +52,10 @@
     A = matrix(L, n, m, [r() for i in 1:n, j in 1:m])
     x = matrix(L, l, n, [r() for i in 1:l, j in 1:n])
     b = x * A
-    @test can_solve(A, b)
-    fl, y = can_solve_with_solution(A, b)
+    @test @inferred can_solve(A, b)
+    fl, y = @inferred can_solve_with_solution(A, b)
     @test fl && y * A == b
-    fl, y, K = can_solve_with_solution_and_kernel(A, b)
+    fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
 
@@ -73,10 +73,10 @@
     A = matrix(V, n, m, [r() for i in 1:n, j in 1:m])
     x = matrix(V, l, n, [r() for i in 1:l, j in 1:n])
     b = x * A
-    @test can_solve(A, b)
-    fl, y = can_solve_with_solution(A, b)
+    @test @inferred can_solve(A, b)
+    fl, y = @inferred can_solve_with_solution(A, b)
     @test fl && y * A == b
-    fl, y, K = can_solve_with_solution_and_kernel(A, b)
+    fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
 
@@ -91,10 +91,10 @@
     A = matrix(R, n, m, [r() for i in 1:n, j in 1:m])
     x = matrix(R, l, n, [r() for i in 1:l, j in 1:n])
     b = x * A
-    @test can_solve(A, b)
-    fl, y = can_solve_with_solution(A, b)
+    @test @inferred can_solve(A, b)
+    fl, y = @inferred can_solve_with_solution(A, b)
     @test fl && y * A == b
-    fl, y, K = can_solve_with_solution_and_kernel(A, b)
+    fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
 end
