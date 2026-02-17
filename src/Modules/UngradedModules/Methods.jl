@@ -1113,12 +1113,12 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   @check _is_finite(kk, M) "module is not finite over the given field"
   F = ambient_free_module(M)
   Mq,_ = sub(F,relations(M))
-  Mq_shift,_,_= Oscar.shifted_module(Mq)
+  Mq_shift,_,_= shifted_module(Mq)
   o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
   LMq = leading_module(Mq_shift, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
   is_empty(B) && return elem_type(M)[]
-  _,back_shift = Oscar.base_ring_shifts(R)
+  _,back_shift = base_ring_shifts(R)
   iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
   return iota.(B)
 end
