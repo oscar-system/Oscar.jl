@@ -101,11 +101,10 @@ end
 Set the Groebner basis of the ideal `I` to `gb` with an associated degree bound
 `deg_bound`. If `force` is `true`, the Groebner basis will be set regardless of
 existing values. If `force` is `false`, the Groebner basis will only be set if
-it is not already defined or if the new degree bound is greater than the
-existing one.
+it is not already defined.
 """
-function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int;force::Bool=false)
-  @req force || !isdefined(I, :gb) || deg_bound == -1 || (I.deg_bound > 0 && I.deg_bound < deg_bound) "Either force must be true, gb must not be already defined, deg_bound must be -1, or the new deg_bound must be greater than the existing positive deg_bound"
+function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)
+  @req force || !isdefined(I, :gb) "Groebner basis is already defined. Use force=true to overwrite."
   I.gb = gb
   I.deg_bound = deg_bound
   return I
