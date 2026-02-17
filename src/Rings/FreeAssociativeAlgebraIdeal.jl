@@ -118,8 +118,9 @@ Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_b
 If `deg_bound` is not specified, the default value is `-1`, which means that no degree bound is imposed,
 resulting in a calculation using a much slower algorithm that may not terminate, but will return a full Groebner basis if it does.
 
-The `algorithm` keyword controls the method used for the ideal membership test itself, not for Groebner basis computation.
-Set `algorithm=:default` for the standard normal form reduction, or `algorithm=:f4` to use an much faster f4ncgb reduction.
+The `algorithm` keyword controls the reduction method used for the ideal
+membership test: set `algorithm=:default` for standard normal form reduction,
+or `algorithm=:f4` to use the F4-based reduction algorithm.
 ```jldoctest
 julia> free, (x,y,z) = free_associative_algebra(QQ, [:x, :y, :z]);
 
@@ -139,7 +140,7 @@ function ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgeb
   algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
 
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(reducer(a, I.gb, I.deg_bound))
-  groebner_basis(I, deg_bound)
+  groebner_basis(I, deg_bound; algorithm=algorithm)
   return ideal_membership(a, I, deg_bound; algorithm=algorithm)
 end
 function ideal_membership(a::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; algorithm::Symbol=:default)
@@ -150,7 +151,7 @@ function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssocia
   R = parent(a)
   @req all(x -> parent(x) == R, I) "parent mismatch"
 
-  gb = groebner_basis(I, deg_bound)
+  gb = groebner_basis(I, deg_bound; algorithm=algorithm)
 
   algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
   return iszero(reducer(a, gb, deg_bound))
