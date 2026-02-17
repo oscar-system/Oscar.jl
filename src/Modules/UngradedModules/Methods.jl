@@ -914,16 +914,6 @@ function vector_space_dim(
   return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
-# function vector_space_dim(M::SubquoModule{T}; check::Bool=true
-#   ) where {T<:MPolyLocRingElem}
-#   error("only available in global case and for localization at a point")
-# end
-
-function vector_space_dim(M::SubquoModule{T}, d::Int64
-  ) where {T<:MPolyLocRingElem}
-  error("only available in global case and for localization at a point")
-end
-
 # function vector_space_basis(M::SubquoModule{T}
 #   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
 #                                <:MPolyComplementOfKPointIdeal}}
@@ -960,16 +950,6 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
   LM = leading_module(M_shift,o)
 
   return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)),d)
-end
-
-# function vector_space_basis(M::SubquoModule{T}
-#   ) where {T<:MPolyLocRingElem}
-#   error("only available in global case and for localization at a point")
-# end
-
-function vector_space_basis(M::SubquoModule{T},d::Int64
-  ) where {T<:MPolyLocRingElem}
-  error("only available in global case and for localization at a point")
 end
 
 @doc raw"""
@@ -1123,10 +1103,6 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   return iota.(B)
 end
 
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyLocRingElem}
-   error("only available in global case and for localization at a point")
-end
-
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
@@ -1136,10 +1112,6 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:
   o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
   LMq = leading_module(Mq_shift, o)
   return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
-end
-
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem}
-  error("only available in global case and for localization at a point")
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
@@ -1153,16 +1125,8 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   return iota.(B)
 end
 
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyQuoLocRingElem}
-   error("only available in global case and for localization at a point")
-end
-
 function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   return _is_finite(kk, _as_polyloc_module(M))
-end
-
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
-  error("only available in global case and for localization at a point")
 end
