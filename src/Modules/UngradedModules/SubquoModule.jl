@@ -571,7 +571,7 @@ by graded submodule of G with 3 generators
 ```
 """
 function cokernel(f::ModuleFPHom{T1, T2}) where {T1, T2}
-  return quo_object(codomain(f), image(f)[1])::SubquoModule{elem_type(base_ring_type(T2))}
+  return quo(codomain(f), image(f)[1])::Tuple{SubquoModule{elem_type(base_ring_type(T2))}, ModuleFPHom}
 end
 
 @doc raw"""

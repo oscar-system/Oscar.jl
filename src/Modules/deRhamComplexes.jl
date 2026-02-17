@@ -52,7 +52,7 @@ function kaehler_differentials(R::MPolyQuoRing; cached::Bool=true)
   Pr = FreeMod(P, r)
   phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
   phi_res, _, _ = change_base_ring(R, phi)
-  M = cokernel(phi_res)
+  M, _  = cokernel(phi_res)
   set_attribute!(M, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = M)
@@ -74,7 +74,7 @@ function kaehler_differentials(R::MPolyQuoRing{<:MPolyDecRingElem}; cached::Bool
   phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
   phi_res = _change_base_ring_and_preserve_gradings(R, phi)
   @assert is_graded(codomain(phi_res))
-  M = cokernel(phi_res)
+  M, _ = cokernel(phi_res)
   @assert is_graded(M)
   set_attribute!(M, :show, show_kaehler_differentials)
 
@@ -95,7 +95,7 @@ function kaehler_differentials(R::MPolyQuoLocRing; cached::Bool=true)
   Pr = FreeMod(P, r)
   phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
   phi_res, _, _ = change_base_ring(R, phi)
-  M = cokernel(phi_res)[1]
+  M, _ = cokernel(phi_res)
   set_attribute!(M, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = M)
