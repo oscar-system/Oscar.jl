@@ -535,3 +535,13 @@ end
   @test coordinates(x, I)[1] == one(L)
 end
 
+@testset "issue 5783" begin
+  R, (x,y) = QQ[:x,:y]
+  p = ideal(R, [x])
+  T = complement_of_prime_ideal(p)
+  U = complement_of_point_ideal(R, [0,0])
+  @test !issubset(T, U)
+  @test issubset(T, U) == issubset(prime_ideal(U), prime_ideal(T))
+  @test issubset(U, T)
+  @test issubset(U, T) == issubset(prime_ideal(T), prime_ideal(U))
+end
