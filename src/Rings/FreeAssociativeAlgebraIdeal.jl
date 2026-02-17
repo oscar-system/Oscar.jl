@@ -111,7 +111,7 @@ function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociative
 end
 
 @doc raw"""
-    ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
+    ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int; algorithm::Symbol=:default)
 
 Return `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
 Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_bound`s give more confidence in a negative answer. 
