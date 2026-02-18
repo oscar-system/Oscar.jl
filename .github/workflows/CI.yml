@@ -327,7 +327,6 @@ jobs:
           # Maps tcp port 27017 on service container to the host
           - 27017:27017
     env:
-      JULIA_PKG_SERVER: ""
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
       OSCAR_TEST_SUBSET: "oscar_db"
     steps:
