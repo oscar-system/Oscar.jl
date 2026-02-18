@@ -467,7 +467,8 @@ end
 @doc raw"""
     cokernel(a::ModuleFPHom)
 
-Return the cokernel of `a` as an object of type `SubquoModule`.
+Return the cokernel of `a` as an object of type `SubquoModule`, 
+together with the projection morphism form the codomain.
 
 # Examples
 ```jldoctest
@@ -484,7 +485,9 @@ julia> W = R[y 0; x y; 0 z]
 
 julia> a = hom(F, G, W);
 
-julia> cokernel(a)
+julia> M, pr = cokernel(a);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -492,6 +495,11 @@ by submodule with 3 generators
   1: y*e[1]
   2: x*e[1] + y*e[2]
   3: z*e[2]
+
+julia> pr
+Module homomorphism
+  from G
+  to M
 ```
 
 ```jldoctest
@@ -526,16 +534,14 @@ julia> V = [y^2*N[1], x*N[2]]
 
 julia> a = hom(M, N, V);
 
-julia> cokernel(a)
-Subquotient of submodule with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by submodule with 5 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-  4: x*y^2*e[1]
-  5: x*y*e[1]
+julia> CK, _ cokernel(a);
+ERROR: ParseError:
+# Error @ none:1:6
+CK, _ cokernel(a);
+#    └───────────┘ ── extra tokens after end of expression
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 ```
 
 ```jldoctest
@@ -559,7 +565,9 @@ defined by
   e[2] -> x*e[1] + y*e[2]
   e[3] -> z*e[2]
 
-julia> M = cokernel(a)
+julia> M, _ = cokernel(a);
+
+julia> M
 Graded subquotient of graded submodule of G with 2 generators
   1: e[1]
   2: e[2]
@@ -577,7 +585,8 @@ end
 @doc raw"""
     cokernel(F::FreeMod{R}, A::MatElem{R}) where R
 
-Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`, 
+together with the canonical projection from `F`.
 
 # Examples
 ```jldoctest
@@ -590,7 +599,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -601,6 +612,10 @@ by submodule with 2 generators
 julia> ambient_free_module(M) === F
 true
 
+julia> pr
+Module homomorphism
+  from F
+  to M
 ```
 
 ```jldoctest
@@ -613,7 +628,9 @@ julia> A = Rg[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Graded subquotient of graded submodule of F with 2 generators
   1: e[1]
   2: e[2]
@@ -628,6 +645,14 @@ julia> degrees_of_generators(M)
 2-element Vector{FinGenAbGroupElem}:
  [8]
  [8]
+
+julia> pr
+Homogeneous module homomorphism
+  from F
+  to M
+defined by
+  e[1] -> e[1]
+  e[2] -> e[2]
 ```
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -648,12 +673,17 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [2*x^2   3*y^2]
  
 julia> M = cokernel(A)
-Subquotient of submodule with 2 generators
+(Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
 by submodule with 2 generators
   1: x*e[1] + y*e[2]
-  2: 2*x^2*e[1] + 3*y^2*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2], Hom: R^2 -> subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1] + y*e[2]
+  2: 2*x^2*e[1] + 3*y^2*e[2])
 
 ```
 """
