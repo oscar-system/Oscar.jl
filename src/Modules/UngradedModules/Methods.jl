@@ -856,14 +856,15 @@ function vector_space_basis(M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int6
 end
 
 function vector_space_basis(kk::Field, M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true) where {T<:FieldElem}
-  @assert kk === base_ring(M) "not implemented for fields other than the `baser_ring` of the module" 
+  @assert kk === base_ring(M) "not implemented for fields other than the `base_ring` of the module" 
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
-function _vector_space_basis(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
+function _vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
   error("module needs to be graded")
 end
 
+# This is an internal method which assumes `M` to be presented.
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
   R = base_ring(M)
   F = ambient_free_module(M)
@@ -884,41 +885,6 @@ function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check:
   error("not implemented")
 end
   
-function vector_space_dim(
-    M::SubquoModule{T}, d::Int64;
-    check::Bool=true
-  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
-  F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
-
-  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
-
-  M_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  LM = leading_module(M_shift,o)
-  return vector_space_dim(quo_object(ambient_free_module(LM),gens(LM)),d)
-end
-
-function vector_space_basis(M::SubquoModule{T},d::Int64
-  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
-  F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
-
-  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
-
-  M_shift,_,_ = shifted_module(Mq)
-  if isdefined(F,:ordering) && is_local(F.ordering)
-    o = F.ordering
-  else
-    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  end
-  LM = leading_module(M_shift,o)
-
-  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)),d)
-end
-
 @doc raw"""
     _has_monomials_on_all_axes(M::SubquoModule)
 
@@ -1079,6 +1045,25 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:
   o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
   LMq = leading_module(Mq_shift, o)
   return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
+end
+
+# This is an internal method which assumes `M` to be presented. It exists purely for back backwards compatibility.
+function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bool=true) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+  L = base_ring(M)
+  R = base_ring(L)
+  Mq,_ = sub(F, relations(M))
+  Mq_shift,_, back_shift = shifted_module(Mq)
+  F_poly = ambient_free_module(Mq_shift)
+  o = negdegrevlex(base_ring(Mq_shift))*lex(F_poly)
+  LMq = leading_module(Mq_shift, o)
+  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), d; check)
+  is_empty(B) && return elem_type(M)[]
+  _, back_shift = base_ring_shifts(L)
+  iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
+  return iota.(B)
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
