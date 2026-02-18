@@ -169,7 +169,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
+    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -194,7 +194,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
+    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -318,7 +318,7 @@ end
   O = R(1)
   B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
   A = transpose(matrix(B));
-  M = graded_cokernel(A)
+  M, _ = graded_cokernel(A)
   FM1 = free_resolution(M, length = 2)
   FM1[4]
   @test all(iszero, homology(FM1))
@@ -365,7 +365,7 @@ end
         @test H[1] == ker_d
         coker_d, coker_proj = cokernel(d)
         @test dim(coker_d) == 1
-        @test H[2][1] == coker_d
+        @test H[2] == coker_d
         @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
     end
 end
@@ -730,13 +730,13 @@ end
   R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, [:x0, :x1, :x2, :x3, :x4, :x5])
   f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
   g1 = transpose(R[x0*x1 x2*x3 x4*x5])
-  M = cokernel(f1)
-  N = cokernel(g1)
+  M, _ = cokernel(f1)
+  N, _ = cokernel(g1)
   SQ = hom(M,N)[1]
 
   f2 = R[0 0]
-  M = cokernel(f1)
-  N = cokernel(f2)
+  M, _ = cokernel(f1)
+  N, _ = cokernel(f2)
   SQ = hom(M,N)[1]
 
 
@@ -1465,7 +1465,7 @@ end
   O = R(1)
   B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
   A = transpose(matrix(B));
-  M = graded_cokernel(A)
+  M, _ = graded_cokernel(A)
   FM2 = free_resolution(M, algorithm = :mres)
   @test all(iszero, homology(FM2))
 end
@@ -1801,25 +1801,25 @@ end
   @testset "size of modules" begin
     R = ZZ
     F = free_module(FreeMod, R, 2)
-    M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
+    M, _ = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
     @test size(M) == 6
 
-    N = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
+    N, _ = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
     @test size(N) == PosInf()
 
     K, a = finite_field(7, "a")
     G = free_module(FreeMod, K, 3)
     H = free_module(FreeMod, K, 1)
-    L = cokernel(hom(H, G, matrix(K, [1 0 0])))
+    L, _ = cokernel(hom(H, G, matrix(K, [1 0 0])))
     @test size(L) == 49
 
     K, a = finite_field(7, "a")
     G = free_module(FreeMod, K, 3)
-    L = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
+    L, _ = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
     @test size(L) == 1
 
     G = free_module(FreeMod, QQ, 3)
-    L = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
+    L, _ = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
     @test size(L) == 1
   end
 end

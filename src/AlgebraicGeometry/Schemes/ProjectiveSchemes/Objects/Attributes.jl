@@ -575,7 +575,7 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
   jac_res = _change_base_ring_and_preserve_gradings(phi, jac, codomain_change = res_Omega1)
   img_gens = [preimage(inc_W1X, jac_res(x)) for x in gens(domain(jac_res))]
   psi = hom(domain(jac_res), W1X, img_gens; check=false)
-  return cokernel(psi)
+  return first(cokernel(psi))
 end
 
 @doc raw"""

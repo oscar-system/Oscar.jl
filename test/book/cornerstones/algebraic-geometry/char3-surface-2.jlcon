@@ -14,7 +14,7 @@ julia> NN = matrix(map(FQm, 2))[1:15, 1:10];
 julia> size(NN)
 (15, 10)
 
-julia> D = graded_cokernel(transpose(MM*NN));
+julia> D, _ = graded_cokernel(transpose(MM*NN));
 
 julia> FD = free_resolution(D, algorithm = :mres);
 
@@ -28,7 +28,7 @@ degree:  0   1  2
 -----------------
  total: 10  10  2
 
-julia> P = cokernel(transpose(matrix(map(FD, 2))));
+julia> P, _ = cokernel(transpose(matrix(map(FD, 2))));
 
 julia> I = annihilator(P);
 

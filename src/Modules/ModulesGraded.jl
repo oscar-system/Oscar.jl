@@ -1711,7 +1711,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
@@ -1829,7 +1829,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2, algorithm = :loccoh)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
@@ -1890,7 +1890,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = Oscar._sheaf_cohomology_loccoh(M, -6, 2)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
@@ -2594,15 +2594,15 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 
 julia> A = transpose(matrix(B));
 
-julia> M = graded_cokernel(A)
-Graded subquotient of graded submodule of R^2 with 2 generators
+julia> M, _ = graded_cokernel(A)
+(Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
 by graded submodule of R^2 with 4 generators
   1: w*y*e[2]
   2: (w*z - x*y)*e[2]
   3: (x*z - y^2)*e[2]
-  4: e[1]
+  4: e[1], Hom: R^2 -> M)
 
 julia> FM = free_resolution(M)
 Free resolution of M

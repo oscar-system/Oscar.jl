@@ -541,7 +541,9 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 
 julia> A = transpose(matrix(B));
 
-julia> M = graded_cokernel(A)
+julia> M, _ = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]

@@ -467,7 +467,10 @@ end
 @doc raw"""
     cokernel(a::ModuleFPHom)
 
-Return the cokernel of `a` as an object of type `SubquoModule`.
+Return the cokernel of `a` as an object of type `SubquoModule`, 
+together with the projection morphism form the codomain.
+
+Use `cokernel_object` to obtain only the module, but not the projection.
 
 # Examples
 ```jldoctest
@@ -484,7 +487,9 @@ julia> W = R[y 0; x y; 0 z]
 
 julia> a = hom(F, G, W);
 
-julia> cokernel(a)
+julia> M, pr = cokernel(a);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -492,6 +497,11 @@ by submodule with 3 generators
   1: y*e[1]
   2: x*e[1] + y*e[2]
   3: z*e[2]
+
+julia> pr
+Module homomorphism
+  from G
+  to M
 ```
 
 ```jldoctest
@@ -526,7 +536,9 @@ julia> V = [y^2*N[1], x*N[2]]
 
 julia> a = hom(M, N, V);
 
-julia> cokernel(a)
+julia> CK, _ = cokernel(a);
+
+julia> CK
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -559,7 +571,9 @@ defined by
   e[2] -> x*e[1] + y*e[2]
   e[3] -> z*e[2]
 
-julia> M = cokernel(a)
+julia> M, _ = cokernel(a);
+
+julia> M
 Graded subquotient of graded submodule of G with 2 generators
   1: e[1]
   2: e[2]
@@ -571,13 +585,20 @@ by graded submodule of G with 3 generators
 ```
 """
 function cokernel(f::ModuleFPHom{T1, T2}) where {T1, T2}
+  return quo(codomain(f), image(f)[1])::Tuple{SubquoModule{elem_type(base_ring_type(T2))}, ModuleFPHom}
+end
+
+function cokernel_object(f::ModuleFPHom{T1, T2}) where {T1, T2}
   return quo_object(codomain(f), image(f)[1])::SubquoModule{elem_type(base_ring_type(T2))}
 end
 
 @doc raw"""
     cokernel(F::FreeMod{R}, A::MatElem{R}) where R
 
-Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`, 
+together with the canonical projection from `F`.
+
+Use `cokernel_object` to obtain only the module, but not the projection.
 
 # Examples
 ```jldoctest
@@ -590,7 +611,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -601,6 +624,10 @@ by submodule with 2 generators
 julia> ambient_free_module(M) === F
 true
 
+julia> pr
+Module homomorphism
+  from F
+  to M
 ```
 
 ```jldoctest
@@ -613,7 +640,9 @@ julia> A = Rg[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Graded subquotient of graded submodule of F with 2 generators
   1: e[1]
   2: e[2]
@@ -628,6 +657,14 @@ julia> degrees_of_generators(M)
 2-element Vector{FinGenAbGroupElem}:
  [8]
  [8]
+
+julia> pr
+Homogeneous module homomorphism
+  from F
+  to M
+defined by
+  e[1] -> e[1]
+  e[2] -> e[2]
 ```
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -637,7 +674,9 @@ end
 @doc raw"""
     cokernel(A::MatElem)
 
-Return the cokernel of `A` as an object of type `SubquoModule`.
+Return the cokernel of `A` as an object of type `SubquoModule`, 
+together with the projection from the free module for the codomain 
+of `A` interpreted as a morphism.
 
 # Examples
 ```jldoctest
@@ -647,7 +686,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(A)
+julia> M, _ = cokernel(A);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]

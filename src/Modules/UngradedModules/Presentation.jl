@@ -224,7 +224,17 @@ julia> A = transpose(matrix(B))
 [0   x*z - y^2]
 [1           0]
 
-julia> M = graded_cokernel(A)
+julia> M, _ = graded_cokernel(A)
+(Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1], Hom: R^2 -> M)
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -523,7 +533,9 @@ julia> A = transpose(matrix(B))
 [0   x*z - y^2]
 [1           0]
 
-julia> M = graded_cokernel(A)
+julia> M, _ = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -734,21 +746,21 @@ julia> F = free_module(FreeMod, R, 2);
 
 julia> A = matrix(ZZ, [2 0; 0 3]);
 
-julia> M = cokernel(hom(F, F, A));
+julia> M, _ = cokernel(hom(F, F, A));
 
 julia> is_finite(M)
 true
 
 julia> B = matrix(ZZ, [0 0; 0 0]);
 
-julia> N = cokernel(hom(F, F, B));
+julia> N, _ = cokernel(hom(F, F, B));
 
 julia> is_finite(N)
 false
 
 julia> B = matrix(ZZ, [0 0; 0 0]);
 
-julia> N = cokernel(hom(F, F, B));
+julia> N, _ = cokernel(hom(F, F, B));
 
 julia> is_finite(N)
 false
@@ -759,19 +771,19 @@ julia> G = free_module(FreeMod, K, 3);
 
 julia> C = matrix(K, [1 0 0; 0 1 0; 0 0 1]);
 
-julia> L = cokernel(hom(G, G, C));
+julia> L, _ = cokernel(hom(G, G, C));
 
 julia> is_finite(L)
 true
 
 julia> H = free_module(FreeMod, QQ, 1);
 
-julia> P = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
+julia> P, _ = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
 
 julia> is_finite(P)
 false
 
-julia> Z = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
+julia> Z, _ = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
 
 julia> is_finite(Z)
 true
@@ -813,12 +825,12 @@ julia> R = ZZ;
 
 julia> F = free_module(FreeMod, R, 2);
 
-julia> M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
+julia> M, _ = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
 
 julia> size(M)
 6
 
-julia> N = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
+julia> N, _ = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
 
 julia> size(N)
 infinity
@@ -829,7 +841,7 @@ julia> G = free_module(FreeMod, K, 3);
 
 julia> H = free_module(FreeMod, K, 1);
 
-julia> L = cokernel(hom(H, G, matrix(K, [1 0 0])));
+julia> L, _ = cokernel(hom(H, G, matrix(K, [1 0 0])));
 
 julia> size(L)
 49
