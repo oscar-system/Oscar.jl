@@ -451,6 +451,8 @@ function is_isomorphic_with_map(
   return true, phi
 end
 
+is_isomorphic(x::TorQuadModuleWithIsom, y::TorQuadModuleWithIsom) = is_isomorphic_with_map(x,y)[1]
+
 @doc raw"""
     is_anti_isomorphic_with_map(
       Tf::TorQuadModuleWithIsom,
