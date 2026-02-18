@@ -21,7 +21,12 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::ModuleSolveTrait, 
     if !(c in imh)
       return false, sol, sol
     end
-    sol[i, :] = dense_row(coordinates(preimage(h, c))::sparse_row_type(R), nrows(A))
+    if task !== :only_check
+      sol[i, :] = dense_row(coordinates(preimage(h, c))::sparse_row_type(R), nrows(A))
+    end
+  end
+  if task !== :with_kernel
+    return true, sol, sol
   end
   K, KtoF = kernel(h)
   if ngens(K) == 0
@@ -44,5 +49,12 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::LaurentSolveTrait,
   AA = map_entries(f, A)
   bb = map_entries(f, b)
   fl, xx, kk = can_solve_with_solution_and_kernel(AA, bb; side)
-  return fl::Bool, map_entries(f.inv, xx)::typeof(A), map_entries(f.inv, kk)::typeof(b)
+  fl::Bool, sol::typeof(AA), K::typeof(AA) = AbstractAlgebra.Solve._can_solve_internal_no_check(AbstractAlgebra.Solve.matrix_normal_form_type(AA), AA, bb, task; side)
+  if task === :only_check
+    return fl, A, A
+  elseif task === :with_solution
+    return fl::Bool, map_entries(f.inv, xx)::typeof(A), A
+  else
+    return fl::Bool, map_entries(f.inv, xx)::typeof(A), map_entries(f.inv, kk)::typeof(b)
+  end
 end
