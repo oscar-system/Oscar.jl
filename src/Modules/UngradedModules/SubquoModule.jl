@@ -470,6 +470,8 @@ end
 Return the cokernel of `a` as an object of type `SubquoModule`, 
 together with the projection morphism form the codomain.
 
+Use `cokernel_object` to obtain only the module, but not the projection.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
@@ -534,7 +536,7 @@ julia> V = [y^2*N[1], x*N[2]]
 
 julia> a = hom(M, N, V);
 
-julia> CK, _ cokernel(a);
+julia> CK, _ = cokernel(a);
 ERROR: ParseError:
 # Error @ none:1:6
 CK, _ cokernel(a);
@@ -582,11 +584,17 @@ function cokernel(f::ModuleFPHom{T1, T2}) where {T1, T2}
   return quo(codomain(f), image(f)[1])::Tuple{SubquoModule{elem_type(base_ring_type(T2))}, ModuleFPHom}
 end
 
+function cokernel_object(f::ModuleFPHom{T1, T2}) where {T1, T2}
+  return quo_object(codomain(f), image(f)[1])::SubquoModule{elem_type(base_ring_type(T2))}
+end
+
 @doc raw"""
     cokernel(F::FreeMod{R}, A::MatElem{R}) where R
 
 Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`, 
 together with the canonical projection from `F`.
+
+Use `cokernel_object` to obtain only the module, but not the projection.
 
 # Examples
 ```jldoctest
@@ -662,7 +670,9 @@ end
 @doc raw"""
     cokernel(A::MatElem)
 
-Return the cokernel of `A` as an object of type `SubquoModule`.
+Return the cokernel of `A` as an object of type `SubquoModule`, 
+together with the projection from the free module for the codomain 
+of `A` interpreted as a morphism.
 
 # Examples
 ```jldoctest
@@ -672,7 +682,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(A)
+julia> M, _ = cokernel(A);
+
+julia> M
 (Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
