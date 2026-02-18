@@ -475,7 +475,7 @@ function double_dual(M::FreeMod{T}; codomain::Union{FreeMod, Nothing}=nothing, c
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        FreeModuleHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        FreeModuleHom(M_dual, codomain, elem_type(codomain)[element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
@@ -495,7 +495,7 @@ function double_dual(M::SubquoModule{T}; codomain::Union{FreeMod, Nothing}=nothi
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        SubQuoHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        SubQuoHom(M_dual, codomain, elem_type(codomain)[element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
@@ -530,7 +530,7 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
   return hom(N_dual, M_dual, 
              [homomorphism_to_element(M_dual, 
                                       hom(M, codomain, 
-                                          [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
+                                          elem_type(codomain)[element_to_homomorphism(phi)(f(v)) for v in gens(M)]
                                          )
                                      )
               for phi in gens(N_dual)])
