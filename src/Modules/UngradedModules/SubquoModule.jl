@@ -537,13 +537,17 @@ julia> V = [y^2*N[1], x*N[2]]
 julia> a = hom(M, N, V);
 
 julia> CK, _ = cokernel(a);
-ERROR: ParseError:
-# Error @ none:1:6
-CK, _ cokernel(a);
-#    └───────────┘ ── extra tokens after end of expression
-Stacktrace:
- [1] top-level scope
-   @ none:1
+
+julia> CK
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 5 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+  4: x*y^2*e[1]
+  5: x*y*e[1]
 ```
 
 ```jldoctest
