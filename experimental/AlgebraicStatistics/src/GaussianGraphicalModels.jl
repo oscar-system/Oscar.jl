@@ -275,7 +275,7 @@ function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing}; al
   T = topological_sort(G)
   J = ideal(S, [ci_polynomial(A, ci_stmt(T[i], T[j], parents(G, T[j])))
                 for i in 1:length(T) for j in (i+1):length(T)
-                if !has_edge(G, T[i], T[j])])
+                  if !has_edge(G, T[i], T[j])])
   loc, iota = localization(S, U)
   saturated_ideal(iota(J))
 end
@@ -341,7 +341,7 @@ end
 } function parameter_ring(GM::GaussianGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
+               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
@@ -662,7 +662,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}};
   l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
   gb = groebner_basis(I)
-  J = saturation(I, ideal(det(K)))
+  J = saturation(I, ideal(detK))
   return degree(J)
 end
 
@@ -694,7 +694,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
   sigma = covariance_matrix(M)
   phi = parametrization(M)
   sigma_mapped = map_entries(phi, sigma)
-  adj = adjugate(sigma)
+  adj = adjugate(sigma_mapped)
   n = nrows(sigma)
   
   if algorithm == :generic
@@ -710,17 +710,17 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; a
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    product_trace = trace(scv_matrix * adj_final)
+    trace_product = trace(scv_matrix * adj_final)
     diff_vars = gens(R)
   elseif algorithm == :monte_carlo
     det_sigma = det(sigma_mapped)
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-    product_trace = trace(scv_matrix * adj)
+    trace_product = trace(scv_matrix * adj)
     diff_vars = gens(codomain(phi))
   end
 
-  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - product_trace) + det_sigma * derivative(a, g) for g in diff_vars])
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
   gb = groebner_basis(I)
   J = saturation(I, ideal(det_sigma))
