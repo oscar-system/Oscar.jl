@@ -638,7 +638,7 @@ function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    MM, _ = cokernel(map(pres, 1))
     return _vector_space_dim(kk, MM; check)
   end
   # At this point we may assume `M` to be presented
@@ -730,7 +730,7 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    MM, _ = cokernel(map(pres, 1))
     B = _vector_space_basis(kk, MM; check)
     aug = map(pres, 0)
     return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
