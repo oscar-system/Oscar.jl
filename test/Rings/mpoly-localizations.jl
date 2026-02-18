@@ -7,7 +7,7 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2 -1
   m = ideal(R, [x, y])
   I = ideal(R, f)
-  S = Oscar.MPolyComplementOfPrimeIdeal(I)
+  S = MPolyComplementOfPrimeIdeal(I)
   V, _ = localization(S)
   
   k = QQ
@@ -19,7 +19,7 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2 - p^2 - q^2
   m = ideal(R, [x, y])
   I = ideal(R, f)
-  S = Oscar.MPolyComplementOfPrimeIdeal(I)
+  S = MPolyComplementOfPrimeIdeal(I)
   @test ring(S) == R
   @test !( f in S )
   @test x in S
@@ -27,7 +27,7 @@ const rng = Oscar.get_seeded_rng()
   @test base_ring(V) == R
   @test inverted_set(V) == S
 
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [k(p), k(q)])
+  T = MPolyComplementOfKPointIdeal(R, [k(p), k(q)])
   @test ring(T) == R
   @test typeof(point_coordinates(T)) == Vector{elem_type(k)}
   @test x in T
@@ -53,8 +53,8 @@ const rng = Oscar.get_seeded_rng()
   J = ideal(W, [W(x-3), W(y-4)])
 
   J = ideal(W, [f, y-q])
-  @test I_loc + J isa Oscar.MPolyLocalizedIdeal
-  @test I_loc * J isa Oscar.MPolyLocalizedIdeal
+  @test I_loc + J isa MPolyLocalizedIdeal
+  @test I_loc * J isa MPolyLocalizedIdeal
 
  # @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
 
@@ -70,9 +70,9 @@ const rng = Oscar.get_seeded_rng()
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)^2
-  T = Oscar.MPolyPowersOfElement(R, [f])
-  S = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, [x, y]))
-  U = Oscar.MPolyProductOfMultSets(R, [S, T])
+  T = MPolyPowersOfElement(R, [f])
+  S = MPolyComplementOfPrimeIdeal(ideal(R, [x, y]))
+  U = MPolyProductOfMultSets(R, [S, T])
   @test f in U
   @test (f*(x-1) in U)
   @test !(f*x in U)
@@ -87,8 +87,8 @@ const rng = Oscar.get_seeded_rng()
   small_generating_set(I; algorithm = :with_saturation)
 
   R, (x, y) = QQ[:x, :y]
-  U = Oscar.MPolyPowersOfElement(R, [x])
-  L = Oscar.MPolyLocRing(R, U)
+  U = MPolyPowersOfElement(R, [x])
+  L = MPolyLocRing(R, U)
   I = ideal(L, [y*(y-x)])
   small_generating_set(I; algorithm = :simple)
   small_generating_set(I; algorithm = :with_saturation)
@@ -101,8 +101,8 @@ const rng = Oscar.get_seeded_rng()
   I = ideal(R, [f])
   small_generating_set(I; algorithm = :simple)
   small_generating_set(I; algorithm = :with_saturation)
-  U = Oscar.MPolyComplementOfPrimeIdeal(I)
-  L = Oscar.MPolyLocRing(R, U)
+  U = MPolyComplementOfPrimeIdeal(I)
+  L = MPolyLocRing(R, U)
   I = ideal(L, [f^4])
   small_generating_set(I; algorithm = :simple)
   small_generating_set(I; algorithm = :with_saturation)
@@ -116,8 +116,8 @@ const rng = Oscar.get_seeded_rng()
   I = ideal(R, [f])
   small_generating_set(I; algorithm = :simple)
   small_generating_set(I; algorithm = :with_saturation)
-  U = Oscar.MPolyComplementOfKPointIdeal(R, [1, 1])
-  L = Oscar.MPolyLocRing(R, U)
+  U = MPolyComplementOfKPointIdeal(R, [1, 1])
+  L = MPolyLocRing(R, U)
   I = ideal(L, [y^2*f^4])
   small_generating_set(I; algorithm = :simple)
   small_generating_set(I; algorithm = :with_saturation)
@@ -132,7 +132,7 @@ end
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
-  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
+  S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # 5 is not a unit in R
   @test !(5*f in S)
@@ -141,7 +141,7 @@ end
   x = variabs[1]
   y = variabs[2]
   f = x^2 + y^4-120
-  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
+  S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # Now 5 is a unit in R
   @test (5*f in S)
@@ -166,7 +166,7 @@ end
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
-  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
+  S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   @test !(5*f in S)
 
@@ -192,9 +192,9 @@ end
 #
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-# S = Oscar.MPolyPowersOfElement(R, d)
-# T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-# U = Oscar.MPolyComplementOfPrimeIdeal(I)
+# S = MPolyPowersOfElement(R, d)
+# T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+# U = MPolyComplementOfPrimeIdeal(I)
 #
 # ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
 # ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
@@ -216,9 +216,9 @@ end
     f = rand(rng, R, 1:3, 0:3, 1:10)::elem_type(R)
     iszero(f) || push!(d, f)
   end
-  S = Oscar.MPolyPowersOfElement(R, d)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-  U = Oscar.MPolyComplementOfPrimeIdeal(I)
+  S = MPolyPowersOfElement(R, d)
+  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+  U = MPolyComplementOfPrimeIdeal(I)
 
   ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
   ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
@@ -233,8 +233,8 @@ end
 #
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-# S = Oscar.MPolyPowersOfElement(R, d)
-# U = Oscar.MPolyComplementOfPrimeIdeal(I)
+# S = MPolyPowersOfElement(R, d)
+# U = MPolyComplementOfPrimeIdeal(I)
 #
 # ConformanceTests.test_Ring_interface_recursive(localization(S)[1])
 # ConformanceTests.test_Ring_interface_recursive(localization(T)[1])
@@ -270,7 +270,7 @@ end
 @testset "localizations at k-points" begin
   R, (x, y, z) = QQ[:x, :y, :z]
   p = [-5, 8, 1//2]
-  U = Oscar.MPolyComplementOfKPointIdeal(R, p)
+  U = MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(x+5), (y-8)*y-z*(x+5)])
   L, _ = localization(R, U)
   LI = L(I)
@@ -289,19 +289,19 @@ end
 @testset "successive localizations" begin
   R, (x, y, z) = QQ[:x, :y, :z]
   p = [0,0,0]
-  U = Oscar.MPolyComplementOfKPointIdeal(R, p)
+  U = MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(y-1)-z*(x-2), y*x])
   L, _ = localization(R, U)
   LI = L(I)
   W, _ = quo(L, LI)
-  S = Oscar.MPolyPowersOfElement(R, [y])
+  S = MPolyPowersOfElement(R, [y])
   RS, _ = localization(R, S)
   RSI = RS(I)
   saturated_ideal(RSI, with_generator_transition=true)
   J = L(Oscar.pre_saturated_ideal(RSI))
   z in J
   W, _ = quo(L, LI)
-  S = Oscar.MPolyPowersOfElement(R, [y])
+  S = MPolyPowersOfElement(R, [y])
   WS, _ = localization(W, S)
   @test !iszero(W(z))
   @test iszero(WS(z))
@@ -316,8 +316,8 @@ end
 @testset "saturated_ideals" begin
   R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x, y^2+1])
-  U = Oscar.MPolyComplementOfPrimeIdeal(I)
-  L = Oscar.MPolyLocRing(R, U)
+  U = MPolyComplementOfPrimeIdeal(I)
+  L = MPolyLocRing(R, U)
   J = ideal(L,[y*(x^2+(y^2+1)^2)])
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat
@@ -535,3 +535,13 @@ end
   @test coordinates(x, I)[1] == one(L)
 end
 
+@testset "issue 5783" begin
+  R, (x,y) = QQ[:x,:y]
+  p = ideal(R, [x])
+  T = complement_of_prime_ideal(p)
+  U = complement_of_point_ideal(R, [0,0])
+  @test !issubset(T, U)
+  @test issubset(T, U) == issubset(prime_ideal(U), prime_ideal(T))
+  @test issubset(U, T)
+  @test issubset(U, T) == issubset(prime_ideal(T), prime_ideal(U))
+end
