@@ -685,17 +685,12 @@ julia> A = R[x y; 2*x^2 3*y^2]
 julia> M, _ = cokernel(A);
 
 julia> M
-(Subquotient of submodule with 2 generators
+Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
 by submodule with 2 generators
   1: x*e[1] + y*e[2]
-  2: 2*x^2*e[1] + 3*y^2*e[2], Hom: R^2 -> subquotient of submodule with 2 generators
-  1: e[1]
-  2: e[2]
-by submodule with 2 generators
-  1: x*e[1] + y*e[2]
-  2: 2*x^2*e[1] + 3*y^2*e[2])
+  2: 2*x^2*e[1] + 3*y^2*e[2]
 
 ```
 """
