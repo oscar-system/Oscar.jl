@@ -11,6 +11,9 @@ function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   labeling_types = Dict{Symbol, TypeParams}()
   for l in labelings(g)
     gm = get_attribute(g, l)
+    # at least one of edge_map and vertex_map must not be nothing
+    # we use the first entry to get the type since this is always defined by polymake
+    # and the type of the values of the map is not accessible from the GraphMap type
     if !isnothing(gm.edge_map)
       # currently we can only label using basic types so params are nothing
       labeling_types[l] = TypeParams(typeof(gm.edge_map[first(edges(g))]), nothing)
