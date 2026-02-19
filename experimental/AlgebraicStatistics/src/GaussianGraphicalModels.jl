@@ -633,38 +633,45 @@ end
 
 ################################################################################
 # Maximum likelihood
-function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
-  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
+
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:FieldElem})
+  @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
   n = nrows(K)
+  @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
 
-  if algorithm == :generic
-    S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
-    R, emb = change_base_ring(S, base_ring(K))
-    K_mapped = map_entries(emb, K)
-    scv_matrix = upper_triangular_matrix(s)
-    for i in 1:n
-      for j in 1:i - 1
-        scv_matrix[i, j] = scv_matrix[j, i]
-      end
-    end
-    detK = det(K_mapped)
-    trace_product = trace(scv_matrix * K_mapped)
-    diff_vars = gens(R)
-  elseif algorithm == :monte_carlo
-    scv_matrix = rand(Int, n, n)
-    scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-    detK = det(K)
-    trace_product = trace(scv_matrix * K)
-    diff_vars = gens(base_ring(K))
-  end
-
+  R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
+  K_mapped = map_entries(emb, K)
+  detK = det(K_mapped)
+  trace_product = trace(scv_matrix * K_mapped)
+  diff_vars = gens(R)
   l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
-  gb = groebner_basis(I)
-  J = saturation(I, ideal(detK))
-  return degree(J)
+  return I
 end
+
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:FieldElem})
+  @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
+  sigma = covariance_matrix(M)
+  n = nrows(sigma)
+  @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+
+  phi = parametrization(M)
+  sigma_mapped = map_entries(phi, sigma)
+  adj = adjugate(sigma_mapped)
+
+  R, emb = change_base_ring(base_ring(scv_matrix), base_ring(codomain(phi)))
+  sigma_final = map_entries(emb, sigma_mapped)
+  adj_final = map_entries(emb, adj)
+  det_sigma = det(sigma_final)
+  trace_product = trace(scv_matrix * adj_final)
+  diff_vars = gens(R)
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  
+  return I
+end
+
 
 @doc raw"""
     maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Undirected}}; algorithm=:generic)
@@ -691,39 +698,22 @@ julia> maximum_likelihood_degree(M)
 """
 function maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
   @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
-  sigma = covariance_matrix(M)
-  phi = parametrization(M)
-  sigma_mapped = map_entries(phi, sigma)
-  adj = adjugate(sigma_mapped)
-  n = nrows(sigma)
+  n = n_vertices(graph(M))
   
   if algorithm == :generic
     S, s = rational_function_field(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
-    R, emb = change_base_ring(S, codomain(phi))
-    sigma_final = map_entries(emb, sigma_mapped)
-    adj_final = map_entries(emb, adj)
-    det_sigma = det(sigma_final)
-
     scv_matrix = upper_triangular_matrix(s)
     for i in 1:n
       for j in 1:i - 1
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    trace_product = trace(scv_matrix * adj_final)
-    diff_vars = gens(R)
   elseif algorithm == :monte_carlo
-    det_sigma = det(sigma_mapped)
     scv_matrix = rand(Int, n, n)
     scv_matrix = matrix(ZZ, scv_matrix * transpose(scv_matrix))
-    trace_product = trace(scv_matrix * adj)
-    diff_vars = gens(codomain(phi))
   end
-
-  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
-  I = ideal(reduce(vcat, l_eqs))
+  I = score_equations_ideal(M, scv_matrix)
   gb = groebner_basis(I)
-  J = saturation(I, ideal(det_sigma))
-  
+  J = saturation(I, ideal(detK))
   return degree(J)
 end
