@@ -287,6 +287,16 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
+    elseif params(tp) isa Dict{Symbol, Dict{Symbol, TypeParams}}
+      save_data_dict(s, :params) do
+        for (k1, d) in params(tp)
+          save_data_dict(s, k1) do
+            for (k2, v) in d
+              save_type_params(s, v, k2)
+            end
+          end
+        end
+      end
     else
       save_typed_object(s, params(tp), :params)
     end
@@ -304,6 +314,11 @@ function save_type_params(s::SerializerState,
   else
     save_object(s, type_encoding)
   end
+end
+
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{TypeParams{T, Nothing}, Nothing}) where T
+  save_object(s, encode_type(T))
 end
 
 function save_type_params(s::SerializerState,
@@ -390,14 +405,26 @@ function load_type_params(s::DeserializerState, T::Type)
           params = load_type_params(s, U)[2]
         end
       # handle cases where type_params is a dict of params
-      elseif !haskey(obj, type_key) 
+      elseif !haskey(obj, type_key)
         params = Dict{Symbol, Any}()
-        for (k, _) in obj
-          params[k] = load_node(s, k) do obj
+        for (k1, _) in obj
+          params[k1] = load_node(s, k1) do obj
             if obj isa JSON3.Array || obj isa Vector
               return load_type_array_params(s)
             end
-            
+
+            if obj isa JSON3.Object
+              sub_params = Dict{Symbol, Any}()
+              for (k2, _) in obj
+                sub_params[k2] = load_node(s, k2) do _
+                  U = decode_type(s)
+                  S, p =  load_type_params(s, U)
+                  isnothing(p) && return S
+                  return (S, p)
+                end
+              end
+              return sub_params
+            end
             U = decode_type(s)
             if obj isa String && isnothing(tryparse(UUID, obj))
               return U

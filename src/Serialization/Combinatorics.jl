@@ -11,19 +11,20 @@ _node_map_elem_type(::Polymake.NodeMap{S,T}) where {S,T} = Polymake.to_jl_type(T
 
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
-  labeling_types = Dict{Symbol, TypeParams}()
+  labeling_types = Dict{Symbol, Dict{Symbol, TypeParams}}()
   for l in labelings(g)
     gm = get_attribute(g, l)
-    # at least one of edge_map and vertex_map must not be nothing
+    labeling_types[l] = Dict{Symbol, TypeParams}()
     if !isnothing(gm.edge_map)
       # currently we can only label using basic types so params are nothing
-      labeling_types[l] = TypeParams(_edge_map_elem_type(gm.edge_map), nothing)
-    else
-      labeling_types[l] = TypeParams(_node_map_elem_type(gm.vertex_map), nothing)
+      labeling_types[l][:edge_map] = TypeParams(_edge_map_elem_type(gm.edge_map), nothing)
+    end
+    if !isnothing(gm.vertex_map)
+      labeling_types[l][:vertex_map] = TypeParams(_node_map_elem_type(gm.vertex_map), nothing)
     end
   end
   
-  return TypeParams(Graph{T}, map(x -> x.first => x.second, collect(pairs(labeling_types)))...)
+  return TypeParams(Graph{T}, labeling_types)
 end
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
@@ -36,7 +37,7 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
   else
     save_data_dict(s) do
       save_data_json(s, jsonstr, :graph)
-      labels_d = Dict{Symbol, NamedTuple}()
+      labels_d = Dict{Symbol, Dict}()
       for l in labelings(g)
         gm = get_attribute(g, l)
         if !isnothing(gm.edge_map)
@@ -47,7 +48,7 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
         # QQ has nothing to do with serialization, just how the pm functions was implemented
         vm = _pmdata_for_oscar(gm.vertex_map, QQ)
         
-        labels_d[l] = (edge_map = em, vertex_map = vm)
+        labels_d[l] = Dict(:edge_map => em, :vertex_map => vm)
       end
 
       save_object(s, labels_d, :labelings)
@@ -64,15 +65,16 @@ function load_object(s::DeserializerState, G::Type{Graph{T}}, params::Dict) wher
   g = load_node(s, :graph) do _
     G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj)))
   end
-
   load_node(s, :labelings) do _
     for label in keys(params)
       load_node(s, label) do _
-        edge_labels = load_node(s, 1) do em
-          isnothing(em) ? nothing : load_object(s, Dict{Tuple{Int, Int}, params[label]}, nothing)
+        edge_labels = nothing
+        if haskey(s, :edge_map)
+          edge_labels = load_object(s, Dict{Tuple{Int, Int}, params[label][:edge_map]}, nothing, :edge_map)
         end
-        vertex_labels =load_node(s, 2) do vm
-          isnothing(vm) ? nothing : load_object(s, Dict{Int, params[label]}, nothing)
+        vertex_labels = nothing
+        if haskey(s, :vertex_map)
+          vertex_labels = load_object(s, Dict{Int, params[label][:vertex_map]}, nothing, :vertex_map)
         end
         label!(g, edge_labels, vertex_labels; name=label)
       end

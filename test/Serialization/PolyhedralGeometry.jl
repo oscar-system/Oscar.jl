@@ -14,11 +14,14 @@ using Oscar: _integer_variables
       label!(G, nothing, Dict(v => v for v in 1:n_vertices(G)); name=:l1)
       label!(G, Dict((src(e), dst(e)) => "test" for e in edges(G)), nothing; name=:l2)
       label!(G, Dict((src(e), dst(e)) => i/(i + 1) for (i, e) in enumerate(edges(G))), Dict(v => 1/v for v in 1:n_vertices(G)); name=:l3)
+      label!(G, Dict((src(e), dst(e)) => "test" for e in edges(G)), Dict{Int, Int}(); name=:l4)
       test_save_load_roundtrip(path, G) do loaded
         @test G.l1[1] == 1
         @test G.l2[2, 1] == "test"
         @test G.l3[1] isa Float64
         @test G.l3[4, 3] isa Float64
+        @test iszero(G.l4[4])
+        @test G.l2[3, 1] == "test"
       end
     end
 
