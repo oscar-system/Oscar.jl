@@ -21,7 +21,7 @@ using Oscar: _integer_variables
         @test G.l3[1] isa Float64
         @test G.l3[4, 3] isa Float64
         @test iszero(G.l4[4])
-        @test G.l2[3, 1] == "test"
+        @test G.l4[3, 1] == "test"
       end
     end
 

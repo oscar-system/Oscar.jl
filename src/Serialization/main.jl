@@ -412,8 +412,9 @@ function load_type_params(s::DeserializerState, T::Type)
             if obj isa JSON3.Array || obj isa Vector
               return load_type_array_params(s)
             end
-
-            if obj isa JSON3.Object
+            
+            # check for graph here to avoid conflicts with polyhedral objects over number fields
+            if obj isa JSON3.Object && T <: Graph
               sub_params = Dict{Symbol, Any}()
               for (k2, _) in obj
                 sub_params[k2] = load_node(s, k2) do _
@@ -945,7 +946,9 @@ end
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
 
 # handle graph labeling
-_convert_override_params(tp::TypeParams{<:Graph, <:Tuple{Vararg{Pair}}}) = Dict(p.first => type(p.second) for p in params(tp))
+function _convert_override_params(tp::TypeParams{<:Graph, <:Dict{Symbol, Dict{Symbol, TypeParams}}}) 
+  return Dict(p.first => Dict(k => type(v) for (k, v) in p.second) for p in params(tp))
+end
 
 export @register_serialization_type
 export DeserializerState
