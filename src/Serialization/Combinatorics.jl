@@ -6,6 +6,8 @@ using Oscar: create_gs2num
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
+_edge_map_elem_type(::Polymake.EdgeMap{S,T}) where {S,T} = Polymake.to_jl_type(T)
+
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
   labeling_types = Dict{Symbol, TypeParams}()
