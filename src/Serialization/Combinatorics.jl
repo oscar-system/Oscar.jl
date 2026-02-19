@@ -7,6 +7,7 @@ using Oscar: create_gs2num
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
 _edge_map_elem_type(::Polymake.EdgeMap{S,T}) where {S,T} = Polymake.to_jl_type(T)
+_node_map_elem_type(::Polymake.NodeMap{S,T}) where {S,T} = Polymake.to_jl_type(T)
 
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
@@ -14,13 +15,11 @@ function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   for l in labelings(g)
     gm = get_attribute(g, l)
     # at least one of edge_map and vertex_map must not be nothing
-    # we use the first entry to get the type since this is always defined by polymake
-    # and the type of the values of the map is not accessible from the GraphMap type
     if !isnothing(gm.edge_map)
       # currently we can only label using basic types so params are nothing
-      labeling_types[l] = TypeParams(typeof(gm.edge_map[first(edges(g))]), nothing)
+      labeling_types[l] = TypeParams(_edge_map_elem_type(gm.edge_map), nothing)
     else
-      labeling_types[l] = TypeParams(typeof(gm.vertex_map[1]), nothing)
+      labeling_types[l] = TypeParams(_node_map_elem_type(gm.vertex_map), nothing)
     end
   end
   
