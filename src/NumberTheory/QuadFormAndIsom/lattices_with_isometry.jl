@@ -1243,8 +1243,9 @@ end
 
 Given a finite collection of lattices with isometries
 $(L_1, f_1), \ldots, (L_n, f_n)$, return the lattice with isometry $(L, f)$
-together with the embeddings of lattices $L_i \to L$ and the projections, of
-$\mathbb{Z}$-modules, $L\to L_i$.
+together with the embeddings of lattices $L_i \to L$ and the projections of
+$\mathbb{Z}$-modules $L\to L_i$.
+
 Here $L$ is the direct sum of lattices $L := L_1 \oplus \ldots \oplus L_n$ and
 $f$ is the isometry of $L$ induced by the diagonal actions of the $f_i$'s.
 
@@ -1308,7 +1309,7 @@ function direct_sum(x::Vector{ZZLatWithIsom}; cached=false)
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{ZZLatWithIsom}; cached=false) = direct_sum(collect(x);cached)
+direct_sum(x::Vararg{ZZLatWithIsom}; cached=false) = direct_sum(collect(x); cached)
 
 ###############################################################################
 #
@@ -1530,11 +1531,11 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   
-  if has_attribute(Lf,:qSalem)
+  if has_attribute(Lf, :qSalem)
     Ld = cover(q)
     L = relations(q)
-    fL = lattice_in_same_ambient_space(L,basis_matrix(L)*f)
-    T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0,modulus_qf=0)
+    fL = lattice_in_same_ambient_space(L, basis_matrix(L)*f)
+    T = torsion_quadratic_module(fL+Ld, L+fL; modulus=0, modulus_qf=0)
     S = elem_type(T)
     iso = hom(q, T, S[T(lift(i)) for i in gens(q)])
     fT = hom(T, T, S[T(lift(i)) for i in gens(q)], S[T(lift(t)*f) for t in gens(q)])
@@ -2294,7 +2295,7 @@ end
       F::T;
       ambient_representation::Bool=true,
       check::Bool=true,
-      ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> ZZLat, ZZLat, T
+    ) where T <: Union{QQMatrix, Vector{QQMatrix}, MatGroup} -> ZZLat, ZZLat, T
 
 Given ``F`` being either:
   * a matrix with rational entries;
