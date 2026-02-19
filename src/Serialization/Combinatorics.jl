@@ -45,7 +45,7 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
           em = nothing
         end
         # QQ has nothing to do with serialization, just how the pm functions was implemented
-        vm = !isnothing(gm.vertex_map) ? _pmdata_for_oscar(gm.vertex_map, QQ) : nothing
+        vm = _pmdata_for_oscar(gm.vertex_map, QQ)
         
         labels_d[l] = (edge_map = em, vertex_map = vm)
       end
