@@ -2,7 +2,7 @@
 
 struct SelfProjectingMatroidRealizations
   name::String #name will be of the form "rk_3_n_6_index_1"
-  matroid::Matroid 
+  matroid::Matroid
   rank::Int
   length_groundset::Int
   realization_space::MatroidRealizationSpace
