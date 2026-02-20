@@ -17,9 +17,7 @@ function HomotopyContinuation.Expression(f::MPolyRingElem)
   # same as the ones in the Oscar polynomial f.
   v = Variable.(symbols(parent(f)))
   # Make the HomotopyContinuation expression
-  +([
-    *([Float64(c), [v[i]^e for (i,e) in enumerate(a)]...]...)
-    for (c,a) in coefficients_and_exponents(f) ]...)
+  sum(Float64(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f))
 end
 
 """
@@ -49,7 +47,7 @@ function HomotopyContinuation.dim(I::MPolyIdeal)
   # This is provided by HomotopyContinuation.jl and computes the
   # dimension based on the Jacobian rank at a random point.
   F = HomotopyContinuation.System(I)
-  HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
+  return HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
 end
 
 end
