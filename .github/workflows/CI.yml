@@ -378,7 +378,6 @@ jobs:
           - 'nightly'
         os: ['ubuntu-latest']
     env:
-      JULIA_PKG_SERVER: ""
       OSCAR_TEST_SUBSET: "oscar_exts"
     steps:
       - uses: actions/checkout@v6
