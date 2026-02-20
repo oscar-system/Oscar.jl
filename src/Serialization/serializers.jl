@@ -168,7 +168,9 @@ function save_data_basic(s::SerializerState, x::Any,
   begin_node(s)
   str = string(x)
   if s.pretty_print
-    print(s.io, "\"" * str * "\"")
+    print(s.io, "")
+    JSON.json(s.io, str)
+    print(s.io, "")
   else
     JSON.json(s.io, str)
   end
