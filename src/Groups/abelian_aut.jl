@@ -573,7 +573,7 @@ function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::Tor
         end
     push!(restr, g)
   end
-  H = _orthogonal_group(domain(i), unique(restr); check)
+  H = _orthogonal_group(domain(i), restr; check)
   res = hom(G, H, gens(G), H.(restr); check)
   return H, res
 end
