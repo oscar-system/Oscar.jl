@@ -378,7 +378,7 @@ jobs:
           - 'nightly'
         os: ['ubuntu-latest']
     env:
-      OSCAR_TEST_SUBSET: "oscar_exts"
+      OSCAR_TEST_SUBSET: "exts"
     steps:
       - uses: actions/checkout@v6
       - name: "Set up Julia"

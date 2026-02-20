@@ -5,14 +5,14 @@ using Oscar, HomotopyContinuation
 import HomotopyContinuation: HomotopyContinuation, Variable
 
 """
-    poly_to_expr(f::MPolyRingElem)
+    Expression(f::MPolyRingElem)
 
 Takes a polynomial `f` an `MPolyRingElem` and converts it into a
 `HomotopyContinuation.Expression`. The `HomotopyContinuation.Variable`
 objects used in the expression have the same names as the generators
 in the `parent(f)` (including brackets as in `x[1]`).
 """
-function Oscar.poly_to_expr(f::MPolyRingElem)
+function HomotopyContinuation.Expression(f::MPolyRingElem)
   # Get a list of HomotopyContinuation variables whose names are the
   # same as the ones in the Oscar polynomial f.
   v = Variable.(symbols(parent(f)))
@@ -28,27 +28,27 @@ end
 Takes an `MPolyIdeal` and turns it into a `HomotopyContinuation.System`
 containing the ideal generators. It forwards all `args` to `HomotopyContinuation.System`.
 """
-Oscar.System(I::MPolyIdeal; args...) = HomotopyContinuation.System(Oscar.poly_to_expr.(gens(I)); args...)
+HomotopyContinuation.System(I::MPolyIdeal; args...) = HomotopyContinuation.System(Expression.(gens(I)); args...)
 
 """
-    nsolve(I::MPolyIdeal; args...)
+    solve(I::MPolyIdeal; args...)
 
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
 """
-Oscar.nsolve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(Oscar.System(I); show_progress, args...)
+HomotopyContinuation.solve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(HomotopyContinuation.System(I); show_progress, args...)
 
-Oscar.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(Oscar.System(I); show_progress, args...)
+HomotopyContinuation.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(HomotopyContinuation.System(I); show_progress, args...)
 
 """
-    ndim(I::MPolyIdeal)
+    dim(I::MPolyIdeal)
 
 Compute the dimension of `I` numerically.
 """
-function Oscar.ndim(I::MPolyIdeal)
+function HomotopyContinuation.dim(I::MPolyIdeal)
   # This is provided by HomotopyContinuation.jl and computes the
   # dimension based on the Jacobian rank at a random point.
-  F = Oscar.System(I)
+  F = HomotopyContinuation.System(I)
   HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
 end
 
