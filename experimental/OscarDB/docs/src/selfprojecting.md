@@ -4,30 +4,30 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 # Realizations of self-projecting matroids
-This collection contains the (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for (k,n) in {(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}.
+This collection contains the (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for ``(k,n)`` in ``{(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}``.
 It accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon [GZ25](@cite).
 
 **Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 4 on 9 elements and for selfprojecting matroids of rank 5 on 10 elements are not complete yet, but underway.
 
-For the cases {(2,4),(3,6),(4,8),(5,10)} the database stores material from the  article [GHSV24](@cite), for which the accompanying code (in Macaulay2, Magma, Matlab, OSCAR and SageMath) can be found on [github](https://github.com/sachihashimoto/self-dual).
+For the cases ``{(2,4),(3,6),(4,8),(5,10)}`` the database stores material from the  article [GHSV24](@cite), for which the accompanying code (in Macaulay2, Magma, Matlab, OSCAR and SageMath) can be found on [github](https://github.com/sachihashimoto/self-dual).
 
 ## How to access the database
 After installing OSCAR, you can access the database as described here https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/#get_db
 The realization spaces of the matroids are contained in the collection
- ``Combinatorics.SelfProjectingMatroids``
+ `Combinatorics.SelfProjectingMatroids`
 
 You can query the database using the following parameters
- * identifier of the database entry ``data.name``
- * rank of the matroid ``data.rank``
- * size of the groundset of the matroid ``data.length_groundset``
- * dimension of its realization space ``data.dim_r``
- * dimension of its self-projecting realization space ``data.dim_s``
- * whether the realization space and the self-projecting realization space are equal ``data.equality_of_realizationspaces``
+ * identifier of the database entry `data.name`
+ * rank of the matroid `data.rank`
+ * size of the groundset of the matroid `data.length_groundset`
+ * dimension of its realization space `data.dim_r`
+ * dimension of its self-projecting realization space `data.dim_s`
+ * whether the realization space and the self-projecting realization space are equal `data.equality_of_realizationspaces`
  
- Note that all query entries in the according dictionaries are strings, except if the value asked for is ``nothing``.
+ Note that all query entries in the according dictionaries are strings, except if the value asked for is `nothing`.
 
- Warning: for rank 3 on 8 elements, for rank 4 on 9 elements and for rank 5 on 10 elements the computation of the selfprojecting realization space did not always terminate. In these cases (as in the example above) the proeprties that could not be computed, like``dim_s``, ``equality_of_realizationspaces`` and 
-``selfprojecting_realization_space``, are set to ``nothing``.
+ Warning: for rank 3 on 8 elements, for rank 4 on 9 elements and for rank 5 on 10 elements the computation of the selfprojecting realization space did not always terminate. In these cases (as in the example above) the proeprties that could not be computed, like `dim_s`, `equality_of_realizationspaces` and 
+`selfprojecting_realization_space`, are set to `nothing`.
 
 ```julia-repl
 julia> r3n8 = find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.rank"=>"3", "data.length_groundset"=>"8", "data.dim_s"=>nothing]))
@@ -116,7 +116,7 @@ julia> dim_s(MR)
 julia> equality_of_realizationspaces(MR)
 false
 ```
-The realization space $\mathcal{R}$ obtained by ``realization_space(MR)`` and the self-projecting realization space $\mathcal{S}$ obtained by ``selfprojecting_realization_space(MR)`` can be investigated using the code in the experimental section of OSCAR on MatroidRealizationSpaces.
+The realization space $\mathcal{R}$ obtained by `realization_space(MR)` and the self-projecting realization space $\mathcal{S}$ obtained by `selfprojecting_realization_space(MR)` can be investigated using the code in the experimental section of OSCAR on `MatroidRealizationSpaces`.
 
 ```julia-repl
 julia> R = realization_space(MR);
@@ -283,7 +283,7 @@ true
 
 ## How to verify claims from the article
 To verify Tables 2, 3, and 4 from the article, one can use queries to the database. The example below shows how to generate the line of Table 2 with respect to the matroids of rank 3 on 7 elements. Recall that the uniform matroids are not stored in the database.
-The other rows as well as Table 3 can be verified similarly. Note that the database collection for (4,9) is not filled completely yet.
+The other rows as well as Table 3 can be verified similarly. Note that the database collection for (4,9) and (5,10) is not filled completely yet.
 ```julia-repl
 julia> t2 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"3", "data.length_groundset"=>"7","data.dim_s"=>"$i")) for i in -1:5]
 7-element Vector{Int64}:
@@ -312,7 +312,7 @@ One can count the matroids for which $\mathcal{R}$ and $\mathcal{S}$ are known a
 julia> length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"4", "data.length_groundset"=>"9","data.equality_of_realizationspaces"=>"false"))
 5399
 ```
-Theorem 4.11 claims that there are at least 5400 matroids of rank 4 on 9 elements with $\mathcal{R}\supsetneq\mathcal{S}$. Since the database does not count the uniform matroid $U_{4,9}$, the claim is verified.
+Theorem 4.11 claims that there are at least ``5400`` matroids of rank 4 on 9 elements with $\mathcal{R}\supsetneq\mathcal{S}$. Since the database does not count the uniform matroid $U_{4,9}$, the claim is verified.
 
 The user can find the selfprojecting matroids for which the computation of the selfprojecting realization space was too costly and did not terminate as follows:
 ```julia-repl
@@ -347,7 +347,7 @@ The closures of the realization space and the self-projecting realization space 
 
 ## Additional Code
 
-Additional code as well as the original code and output from the computations in magma can be found at https://github.com/AlheydisGeiger/selfprojectingGrassmannian
+Additional code as well as the original code and output from the computations in magma can be found on [GitHub](https://github.com/AlheydisGeiger/selfprojectingGrassmannian)
 
 ## Contact
 
@@ -361,9 +361,9 @@ You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/communit
 Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 
 
-Software used to create the database collection ``Combinatorics.SelfProjectingMatroids``: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 1.6.0-DEV), 
+Software used to create the database collection `Combinatorics.SelfProjectingMatroids`: Magma (V2.27), Julia (Version 1.12.1), OSCAR (version 1.6.0-DEV), 
 GNU parallel 20221122
 
 
-Last updated 11/12/2025.
+Last updated 20/02/2026.
 
