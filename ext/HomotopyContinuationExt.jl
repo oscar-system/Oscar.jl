@@ -38,14 +38,14 @@ Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
 """
 function HomotopyContinuation.solve(I::Vector{QQMPolyRingElem}; show_progress=false, args...)
-  return HomotopyContinuation.solve(HomotopyContinuation.System(Expression.(I), args...), show_progress=show_progress)
+  return HomotopyContinuation.solve(System(Expression.(I), args...), show_progress=show_progress)
 end
                                     
 function HomotopyContinuation.solve(I::MPolyIdeal{QQMPolyRingElem}; args...)
   return HomotopyContinuation.solve(gens(I); args...)
 end
 
-witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(HomotopyContinuation.System(I); show_progress, args...)
+witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
 witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...) = witness_set(gens(I); show_progress, args...)
 
 """
@@ -56,7 +56,7 @@ Compute the dimension of `I` numerically.
 function Oscar.dim_numerical(I::MPolyIdeal{QQMPolyRingElem})
   # This is provided by HomotopyContinuation.jl and computes the
   # dimension based on the Jacobian rank at a random point.
-  F = HomotopyContinuation.System(I)
+  F = System(I)
   return HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
 end
 
