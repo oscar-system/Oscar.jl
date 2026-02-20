@@ -32,20 +32,27 @@ HomotopyContinuation.System(I::MPolyIdeal; args...) = HomotopyContinuation.Syste
 
 """
     solve(I::MPolyIdeal; args...)
+    solve(I::Vector{MPolyRingElem})
 
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
 """
-HomotopyContinuation.solve(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.solve(HomotopyContinuation.System(I); show_progress, args...)
+function HomotopyContinuation.solve(I::Vector{MPolyRingElem}; show_progress=false, args...)
+  HomotopyContinuation.solve(Expression.(I); show_progress, args...)
+end
+
+function HomotopyContinuation.solve(I::MPolyIdeal; args...)
+  return HomotopyContinuation.solve(HomotopyContinuation.System(gens(I)); args...)
+end
 
 HomotopyContinuation.witness_set(I::MPolyIdeal; show_progress=false, args...) = HomotopyContinuation.witness_set(HomotopyContinuation.System(I); show_progress, args...)
 
 """
-    dim(I::MPolyIdeal)
+    dim_numerical(I::MPolyIdeal)
 
 Compute the dimension of `I` numerically.
 """
-function HomotopyContinuation.dim(I::MPolyIdeal)
+function Oscar.dim_numerical(I::MPolyIdeal)
   # This is provided by HomotopyContinuation.jl and computes the
   # dimension based on the Jacobian rank at a random point.
   F = HomotopyContinuation.System(I)

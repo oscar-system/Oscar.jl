@@ -329,4 +329,12 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
 module ANTIC
 end
 
+################################################################################
+#
+#  Extension functions for HomotopyContinuationExt
+#
+################################################################################
+function dim_numerical
+end
+
 end # module
