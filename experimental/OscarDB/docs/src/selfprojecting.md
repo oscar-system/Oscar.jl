@@ -12,11 +12,11 @@ It accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger
 For the cases ``{(2,4),(3,6),(4,8),(5,10)}`` the database stores material from the  article [GHSV24](@cite), for which the accompanying code (in Macaulay2, Magma, Matlab, OSCAR and SageMath) can be found on [github](https://github.com/sachihashimoto/self-dual).
 
 ## How to access the database
-After installing OSCAR, you can access the database as described here https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/#get_db
+After installing OSCAR, you can access the database as described [here](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/#get_db).
 The realization spaces of the matroids are contained in the collection
- `Combinatorics.SelfProjectingMatroids`
+ `Combinatorics.SelfProjectingMatroids`.
 
-You can query the database using the following parameters
+You can query the database using the following parameters:
  * identifier of the database entry `data.name`
  * rank of the matroid `data.rank`
  * size of the groundset of the matroid `data.length_groundset`
