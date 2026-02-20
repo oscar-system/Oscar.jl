@@ -113,5 +113,13 @@ dim_r(MR::SelfProjectingMatroidRealizations)
 dim_s(MR::SelfProjectingMatroidRealizations)
 equality_of_realizationspaces(MR::SelfProjectingMatroidRealizations)
 ```
+#### Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Alheydis Geiger](https://www.mis.mpg.de/people/alheydis-geiger),
+* [Francesca Zaffalon](https://sites.google.com/view/francescazaffalon/home).
 
 
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
