@@ -1,3 +1,5 @@
+using HomotopyContinuation
+
 @testset "Extensions" begin
   @testset "HomotopyContinuation" begin
     Qxy, (x, y) = QQ[:x, :y]
