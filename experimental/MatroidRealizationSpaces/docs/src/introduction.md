@@ -113,12 +113,21 @@ dim_r(MR::SelfProjectingMatroidRealizations)
 dim_s(MR::SelfProjectingMatroidRealizations)
 equality_of_realizationspaces(MR::SelfProjectingMatroidRealizations)
 ```
-#### Contact
+## Status
 
-Please direct questions about this part of OSCAR to the following people:
+This part of OSCAR is in an experimental state; please see [Adding new projects to experimental](@ref) for what this means.
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people.
+
+On general matroid realizations:
+* [Lukas Kühne](https://www.math.uni-bielefeld.de/~lkuehne/),
+* [Benjamin Schröter](https://www.kth.se/profile/schrot?l=en).
+
+On selfprojecting matroid realizations:
 * [Alheydis Geiger](https://www.mis.mpg.de/people/alheydis-geiger),
 * [Francesca Zaffalon](https://sites.google.com/view/francescazaffalon/home).
-
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
