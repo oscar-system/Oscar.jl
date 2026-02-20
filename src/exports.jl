@@ -556,7 +556,6 @@ export dicyclic_group
 export dihedral_group
 export dim
 export dim_of_torusfactor
-export dim_numerical
 export direct_product
 export direct_sum
 export direct_sum_components
