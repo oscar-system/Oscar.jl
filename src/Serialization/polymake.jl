@@ -18,10 +18,15 @@ function load_from_polymake(::Type{PhylogeneticTree{T}}, jsondict::Dict{Symbol, 
 end
 
 const polymake2OscarTypes = Dict{String, Type}([
+  "polytope::Cone<Float>" => Cone{Float64},
   "polytope::Cone<Rational>" => Cone{QQFieldElem},
+  "polytope::Polytope<Float>" => Polyhedron{Float64},
   "polytope::Polytope<Rational>" => Polyhedron{QQFieldElem},
+  "fan::PolyhedralFan<Float>" => PolyhedralFan{Float64},
   "fan::PolyhedralFan<Rational>" => PolyhedralFan{QQFieldElem},
+  "fan::PolyhedralComplex<Float>" => PolyhedralComplex{Float64},
   "fan::PolyhedralComplex<Rational>" => PolyhedralComplex{QQFieldElem},
+  "fan::SubdivisionOfPoints<Float>" => SubdivisionOfPoints{Float64},
   "fan::SubdivisionOfPoints<Rational>" => SubdivisionOfPoints{QQFieldElem},
   "topaz::SimplicialComplex" => SimplicialComplex,
   "common::GraphAdjacency<Undirected>" => Graph{Undirected},
