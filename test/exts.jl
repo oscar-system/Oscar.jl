@@ -4,7 +4,7 @@ using HomotopyContinuation
   @testset "HomotopyContinuation" begin
     Qxy, (x, y) = QQ[:x, :y]
     I = ideal([x^2 - x * y + y^3, y^2 - x - 4//5])
-    @test iszero(Oscar.numerical_dim(I))
+    @test iszero(dim_numerical(I))
     result = HomotopyContinuation.solve(I)
     @test [r.multiplicity for r in result.path_results] == [1, 1, 1, 1]
 

@@ -252,6 +252,16 @@ end
 
 include("assertions.jl")
 
+
+################################################################################
+#
+#  Extension functions for HomotopyContinuationExt
+#
+################################################################################
+function dim_numerical
+end
+################################################################################
+
 include("exports.jl")
 
 include("aliases.jl")
@@ -327,14 +337,6 @@ ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   for more information
 """
 module ANTIC
-end
-
-################################################################################
-#
-#  Extension functions for HomotopyContinuationExt
-#
-################################################################################
-function dim_numerical
 end
 
 end # module

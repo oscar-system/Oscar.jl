@@ -31,7 +31,7 @@ System(I::Vector{QQMPolyRingElem}; args...) = System(Expression.(I); args...)
 System(I::MPolyIdeal{QQMPolyRingElem}; args...) = System(gens(I); args...)
 
 """
-    solve(I::MPolyIdeal; show_progress=false, args...)
+    solve(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...)
     solve(I::Vector{MPolyRingElem}; show_progress=false, args...)
 
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
