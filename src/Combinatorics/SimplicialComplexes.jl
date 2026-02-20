@@ -198,9 +198,10 @@ julia> h_vector(torus())
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc raw"""
-    betti_numbers(K::SimplicialComplex)
+    betti_numbers([R::Union{<: Field, ZZRing}=ZZ,] K::SimplicialComplex)
 
-Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
+Return the reduced Betti numbers of the abstract simplicial complex `K`.
+Defaults to computing Betti numbers over `ZZ`, otherwise computes the Betti numbers over the ring `R`.
 
 # Examples
 ```jldoctest
@@ -209,9 +210,31 @@ julia> betti_numbers(klein_bottle())
  0
  1
  0
+
+julia> betti_numbers(GF(2), klein_bottle())
+3-element Vector{Int64}:
+ 0
+ 2
+ 1
 ```
 """
 betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
+
+function betti_numbers(R::Union{<:Field, ZZRing}, K::SimplicialComplex)
+  c = characteristic(R)
+  iszero(c) && return betti_numbers(K)
+  b = Int[]
+  boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
+  im_dim = 1
+  for k = 1:dim(K) + 1
+    ker_dim = size(boundary_m)[1] - im_dim
+    boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), k))
+    im_dim = rank(boundary_m)
+    
+    push!(b, ker_dim - im_dim)
+  end
+  return b
+end
 
 @doc raw"""
     euler_characteristic(K::SimplicialComplex)

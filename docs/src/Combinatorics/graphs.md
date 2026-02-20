@@ -75,13 +75,18 @@ weakly_connected_components(g::Graph{Directed})
 diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```
 
+### Common Graph Constructions
+```@docs
+complete_graph(n::Int64)
+complete_bipartite_graph(n::Int64, m::Int64)
+petersen_graph()
+clebsch_graph()
+
 ### Others
 ```@docs
 adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-complete_graph(n::Int64)
-complete_bipartite_graph(n::Int64, m::Int64)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge
@@ -101,6 +106,8 @@ is_bipartite(g::Graph{Undirected})
 is_acyclic(G::Graph{Directed})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
+has_disjoint_automorphisms(G::Graph)
+disjoint_automorphisms(G::Graph)
 ```
 
 ### Edges
