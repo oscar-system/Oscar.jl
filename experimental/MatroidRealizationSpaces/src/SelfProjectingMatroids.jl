@@ -107,7 +107,7 @@ selfprojecting_realization_matrix(RS::MatroidRealizationSpaceSelfProjecting) = R
 @doc raw"""
     satisfies_disjointbasisproperty(mat::Matroid)
 
-Returns a boolean stating whether the given matroid has two disjoint bases.
+Return a boolean stating whether `mat` has two disjoint bases.
 """
 function satisfies_disjointbasisproperty(mat::Matroid)::Bool
     dmat = dual_matroid(mat)
@@ -131,7 +131,7 @@ end
 @doc raw"""
     is_selfprojecting(mat::Matroid)
 
-Returns a boolean which states whether the given matroid satisfies the property to be self-projecting.
+Return a boolean which states whether `mat` satisfies the property to be self-projecting.
 # Examples
 ```jldoctest
 julia> m = fano_matroid()
