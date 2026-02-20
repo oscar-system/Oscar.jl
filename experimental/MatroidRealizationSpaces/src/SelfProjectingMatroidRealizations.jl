@@ -15,59 +15,59 @@ end
 @doc raw"""
     matroid(MR::SelfProjectingMatroidRealizations)
 
-Returns the matroid of the given SelfProjectingMatroidRealization.
+Return the matroid of `MR`.
 """
 matroid(MR::SelfProjectingMatroidRealizations) = MR.matroid
 
 @doc raw"""
     realization_space(MR::SelfProjectingMatroidRealizations)
 
-Returns the realization space of the given SelfProjectingMatroidRealization.
+Return the realization space of `MR`.
 """
 realization_space(MR::SelfProjectingMatroidRealizations) = MR.realization_space
 
 @doc raw"""
     selfprojecting_realization_space(MR::SelfProjectingMatroidRealizations)
 
-Returns the self-projecting realization space of the given SelfProjectingMatroidRealization.
+Return the self-projecting realization space of `MR`.
 """
 selfprojecting_realization_space(MR::SelfProjectingMatroidRealizations) = MR.selfprojecting_realization_space
 
 @doc raw"""
     dim_r(MR::SelfProjectingMatroidRealizations)
 
-Returns the (affine) dimension of the realization space of the given SelfProjectingMatroidRealization.
+Return the (affine) dimension of the realization space of `MR`.
 """
 dim_r(MR::SelfProjectingMatroidRealizations) = MR.dim_r
 
 @doc raw"""
     dim_s(MR::SelfProjectingMatroidRealizations)
 
-Returns the (affine) dimension of the self-projecting realization space of the given SelfProjectingMatroidRealization."""
+Return the (affine) dimension of the self-projecting realization space of `MR`."""
 dim_s(MR::SelfProjectingMatroidRealizations) = MR.dim_s
 
 @doc raw"""
     equality_of_realizationspaces(MR::SelfProjectingMatroidRealizations)
 
-Returns a boolean which states whether the self-projecting realization space  and the realization space of the given SelfProjectingMatroidRealization are equal."""
+Return a boolean which states whether the self-projecting realization space  and the realization space of `MR` are equal."""
 equality_of_realizationspaces(MR::SelfProjectingMatroidRealizations) = MR.equality_of_realizationspaces
 
 @doc raw"""
     name(MR::SelfProjectingMatroidRealizations)
 
-Returns the  identifier of the given SelfProjectingMatroidRealization in the database."""
+Return the  identifier of `MR` in the database."""
 name(MR::SelfProjectingMatroidRealizations) = MR.name
 
 @doc raw"""
     length_groundset(MR::SelfProjectingMatroidRealizations)
 
-Returns the size of the groundset of the matroid underlying the given SelfProjectingMatroidRealization."""
+Return the size of the groundset of the matroid underlying `MR`."""
 length_groundset(MR::SelfProjectingMatroidRealizations) = MR.length_groundset
 
 @doc raw"""
     rank(MR::SelfProjectingMatroidRealizations)
 
-Returns the rank of the matroid underlying the given SelfProjectingMatroidRealization."""
+Return the rank of the matroid underlying `MR`."""
 rank(MR::SelfProjectingMatroidRealizations) = MR.rank
 
 #function to deal with a nice display of the Matroid realizations
