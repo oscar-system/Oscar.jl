@@ -94,6 +94,8 @@ function doit(
   warnonly=false,
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
+  formats::Vector{Symbol} = [:html],
+  pdf_method::Symbol = :pdf_via_latex,
 )
   oscardir = Base.pkgdir(Oscar)
 
@@ -181,15 +183,30 @@ function doit(
       Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters())
     end
 
+    format_list = Any[]
+    if :html in formats
+      push!(format_list, Documenter.HTML(
+        prettyurls = !local_build,
+        collapselevel = 1,
+        size_threshold = 409600,
+        size_threshold_warn = 204800,
+        size_threshold_ignore = ["manualindex.md"],
+        canonical = "https://docs.oscar-system.org/stable/",
+      ))
+    end
+
+    if :pdf in formats
+      if pdf_method == :pdf_via_docker
+        push!(format_list, Documenter.LaTeX(platform = "docker"))
+    elseif pdf_method == :pdf_via_latex
+        push!(format_list, Documenter.LaTeX())
+    else
+        error("Unknown pdf_method: $pdf_method")
+      end
+    end
+
     makedocs(;
-      format=Documenter.HTML(;
-        prettyurls=!local_build,
-        collapselevel=1,
-        size_threshold=409600,
-        size_threshold_warn=204800,
-        size_threshold_ignore=["manualindex.md"],
-        canonical="https://docs.oscar-system.org/stable/",
-      ),
+      format = format_list,
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
