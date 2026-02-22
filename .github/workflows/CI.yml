@@ -108,7 +108,7 @@ jobs:
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
       - name: "set test subgroup"
-        if: ${{ matrix.group }} != ''
+        if: matrix.group != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
@@ -116,6 +116,14 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v6
+        continue-on-error: true
+        with:
+          name: stats-${{ matrix.group }}-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats-*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -172,6 +180,13 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: Archive stats
+        uses: actions/upload-artifact@v6
+        continue-on-error: true
+        with:
+          name: stats-book-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats-*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10'
         uses: julia-actions/julia-processcoverage@v1
@@ -279,6 +294,14 @@ jobs:
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
               doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v6
+        continue-on-error: true
+        with:
+          name: stats-doctest-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats-*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
