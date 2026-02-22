@@ -3422,10 +3422,10 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_B.discriminant_action = nothing
   
   ctx_A.eigenlattice_conditions = Dict{Int,Vector{Int}}[]
-  ctx_B.eigenlattice_conditions = Dict{Int,Tuple{Int}}[]
+  ctx_B.eigenlattice_conditions = Dict{Int,Vector{Int}}[]
   for eig in ctx.eigenlattice_conditions
     dA = Dict([i=>eig[i] for i in keys(eig) if i!=b])
-    dB = Dict{Int,Tuple{Int,Int,Int}}([b=>get(eig, b, [-1,-1,-1])])
+    dB = Dict{Int,Vector{Int}}([b=>get(eig, b, [-1,-1,-1])])
     push!(ctx_A.eigenlattice_conditions, dA)
     push!(ctx_B.eigenlattice_conditions, dB)
   end
