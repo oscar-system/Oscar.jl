@@ -1600,7 +1600,7 @@ function _splitting_of_hermitian_type(
   eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   _eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   for cond in eiglat_cond
-    T = Dict{Int64,Vector{Int64}}()
+    T = Dict{Int,Vector{Int}}()
     T[n] = get(cond, n, Int[-1, -1, -1])
     T[k] = get(cond, k, Int[-1, -1, -1])
     push!(_eiglat_cond_trimmed, T)
@@ -2178,7 +2178,7 @@ end
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}[],
       fix_root::Int=-1,
       genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
       root_test::Bool=false,
@@ -2251,7 +2251,7 @@ function splitting(
     rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-    eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}= Dict{Int64, Vector{Int64}}[],
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}}= Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
     genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
     root_test::Bool=false,
@@ -2390,7 +2390,7 @@ end
       rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-      eiglat_cond::Vector{Dict{Int64, Vector{Int64}}}=Dict{Int64, Vector{Int64}}[],
+      eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}[],
       fix_root::Int=-1,
       genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
       root_test::Bool=false,
@@ -2469,7 +2469,7 @@ function enumerate_classes_of_lattices_with_isometry(
     rks::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     pos_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
-    eiglat_cond::Vector{Dict{Int64, Vector{Int64}}} = Dict{Int64, Vector{Int64}}[],
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}} = Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
     genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
     root_test::Bool=false,
@@ -3421,11 +3421,11 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_A.discriminant_action = nothing
   ctx_B.discriminant_action = nothing
   
-  ctx_A.eigenlattice_conditions = Dict{Int,Tuple{Int,Int,Int}}[]
-  ctx_B.eigenlattice_conditions = Dict{Int,Tuple{Int,Int,Int}}[]
+  ctx_A.eigenlattice_conditions = Dict{Int,Vector{Int}}[]
+  ctx_B.eigenlattice_conditions = Dict{Int,Tuple{Int}}[]
   for eig in ctx.eigenlattice_conditions
     dA = Dict([i=>eig[i] for i in keys(eig) if i!=b])
-    dB = Dict{Int,Tuple{Int,Int,Int}}([b=>get(eig, b, (-1,-1,-1))])
+    dB = Dict{Int,Tuple{Int,Int,Int}}([b=>get(eig, b, [-1,-1,-1])])
     push!(ctx_A.eigenlattice_conditions, dA)
     push!(ctx_B.eigenlattice_conditions, dB)
   end
@@ -3433,7 +3433,7 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
 end
 
 function enum_lat_with_isom_init(;
-    eiglat_cond::Vector{Dict{Int64, Vector{Int64}}},
+    eiglat_cond::Vector{Dict{Int, Vector{Int}}},
     discriminant_annihilator_lb::Union{Nothing,MPolyIdeal{ZZMPolyRingElem}}=nothing,
     discriminant_annihilator_ub::Union{Nothing,MPolyIdeal{ZZMPolyRingElem}}=nothing,
     discriminant_action::Union{Nothing,TorQuadModuleWithIsom}=nothing,
