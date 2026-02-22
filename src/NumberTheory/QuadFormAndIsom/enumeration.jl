@@ -1988,14 +1988,9 @@ function _splitting_of_pure_mixed_prime_power(
   # `PrimitiveExtensions`.
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
-  ctx_A, ctx_B = _split(ctx, order_of_isometry(A0), order_of_isometry(B0))
+  ctx_A, ctx_B = _split(ctx, n, n*p)
   # Compute this one first because it is faster to decide whether it is empty
-  condB = unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
-  RB = ZZLatWithIsom[]
-  for cond in condB
-    #append!(RB, representatives_of_hermitian_type(B0, p, ctx.fix_root; cond, genusDB=ctx.genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=q*ctx.discriminant_annihilator_lb, _local=ctx._local))
-    append!(RB,_representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B))
-  end
+  RB = _representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B)
   is_empty(RB) && return reps
   ctx_new = _restrict(ctx, q)
   RA = _splitting_of_pure_mixed_prime_power(A0, p; ctx=ctx_A)
@@ -3409,7 +3404,6 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   p = only(prime_divisors(divexact(b,a)))
   if !(ctx.discriminant_annihilator_lb isa Nothing)
     I = ctx.discriminant_annihilator_lb
-    # there is some stupid bug here!
     R = base_ring(I)
     Rp = R(ZZ(p))
     J = ideal(R,[Rp*i(gen(R,1)) for i in gens(I)])
@@ -3430,8 +3424,8 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_A.eigenlattice_conditions = Dict{Int,Tuple{Int,Int,Int}}[]
   ctx_B.eigenlattice_conditions = Dict{Int,Tuple{Int,Int,Int}}[]
   for eig in ctx.eigenlattice_conditions
-    dA = Dict([i=>eig[i] for i in keys(eig) if divides(a,i)[1]])
-    dB = Dict([b=>eig[b]])
+    dA = Dict([i=>eig[i] for i in keys(eig) if i!=b])
+    dB = Dict{Int,Tuple{Int,Int,Int}}([b=>get(eig, b, (-1,-1,-1))])
     push!(ctx_A.eigenlattice_conditions, dA)
     push!(ctx_B.eigenlattice_conditions, dB)
   end
