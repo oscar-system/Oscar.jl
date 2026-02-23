@@ -14,7 +14,7 @@ import AbstractAlgebra: LaurentMPolyRing, LaurentMPolyRingElem
 end
 
 mutable struct LaurentMPolyIdeal{T} <: Ideal{T}
-  R::LaurentMPolyRing{T}
+  R
   gens::Vector{T}
   data # ideal of of _polyringquo(R)
 
