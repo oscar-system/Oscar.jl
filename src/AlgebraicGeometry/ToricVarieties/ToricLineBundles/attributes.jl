@@ -290,19 +290,9 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :lo
 ```
 """
 function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::Symbol=:cohomcalg)
-  if has_attribute(l, :sheaf_cohomology)
-    return ((get_attribute(l, :sheaf_cohomology)::Vector{ZZRingElem})[i + 1])::ZZRingElem
-  end
-  table = get_attribute!(l, :sheaf_cohomology_table) do
-    Dict{Int,ZZRingElem}()
-  end
-  return get!(table, i) do
-    v = toric_variety(l)
-    if has_attribute(v, :vanishing_sets)
-      contains(vanishing_sets(v)[i + 1], l) && return ZZ(0)
-    end
-    return sheaf_cohomology(l; algorithm)[i + 1]
-  end
+  v = toric_variety(l)
+  has_attribute(v, :vanishing_sets) && contains(vanishing_sets(v)[i + 1], l) && return ZZ(0)
+  return sheaf_cohomology(l; algorithm)[i + 1]
 end
 
 @doc raw"""
