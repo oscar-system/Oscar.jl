@@ -1,0 +1,23 @@
+* OscarPuiseuxPolynomials.jl
+
+[[https://codecov.io/github/ollieclarke8787/OscarPuiseuxPolynomials][https://codecov.io/github/ollieclarke8787/OscarPuiseuxPolynomials/graph/badge.svg?token=L8X00DWXEQ]]
+
+** Introduction
+This software package contains implements sparse univariate Puiseux polynomials
+for the computer algebra system [[https://www.oscar-system.org/][OSCAR]].
+
+The ring of Puiseux polynomials over a coefficient field $K$ is defined as
+
+$$ K\{t\} = \left\{ {\sum}_ {k=k_0} ^ {k_1} c_ {k/d} t^ {k/d} \mid d\in\mathbb{Z}_ {>0}, k_0,k_1\in\mathbb{Z}_ {\geq 0}, k_0\leq k_1, c_ {k/d}\in K \right\}. $$
+
+This package is meant to be used in conjunction with OSCAR and should
+interoperate with many features in OSCAR, such as
+
++ working with matrices over $K\{t\}$,
++ working with polynomials over $K\{t\}$,
++ using $K\{t\}$ as codomain for tropical semiring maps.
+
+** Similar Packages
+
+*** [[https://github.com/jmichel7/PuiseuxPolynomials.jl][PuiseuxPolynomials.jl]]
+A stand-alone julia package for multivariate Puiseux polynomials.
