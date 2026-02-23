@@ -41,6 +41,11 @@
     @test !issubset(Q1, Q0)
     @test contains(Q0, [1, 0])
     @test !contains_in_interior(Q0, [1, 0])
+    @test contains(Q1, [3, 3])
+    @test contains(Q1, ray_vector(f, [3, 3]))
+    @test contains_in_interior(Q1, ray_vector(f, [1, 1]))
+    @test contains_in_interior(Pos, ray_vector(f, [1, 1, 1]))
+    @test !contains_in_interior(Pos, ray_vector(f, [1, 0, 1]))
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
