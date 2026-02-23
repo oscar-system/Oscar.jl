@@ -339,7 +339,7 @@ then it is a random choice which reflection chamber next to `v0` will be compute
 - `divisibilities`: a dictionary; The keys are the root lengths and the values are the divisibilities for the given root length. If given requires that a fundamental root $r$ has one of the specified divisibilities.
 """
 function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=QQ[0;]::QQMatrix, divisibilities::Union{Nothing,Dict{ZZRingElem,Vector{ZZRingElem}}}=nothing)
-  Q = gram_matrix(S)
+  Q = change_base_ring(ZZ, gram_matrix(S))
   if !iszero(v0)
     v0 = solve(basis_matrix(S),v0; side=:left)
   end
