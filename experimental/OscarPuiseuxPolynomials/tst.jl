@@ -1,5 +1,5 @@
 using Revise
-using PuiseuxPolynomials
+using OscarPuiseuxPolynomials
 using Oscar
 
 K, (t,) = puiseux_polynomial_ring(QQ, ["t"])
