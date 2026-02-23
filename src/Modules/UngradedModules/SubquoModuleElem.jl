@@ -1001,4 +1001,3 @@ function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRing
   x = reduce(repres(m), C.quo)
   return iszero(x)
 end
-
