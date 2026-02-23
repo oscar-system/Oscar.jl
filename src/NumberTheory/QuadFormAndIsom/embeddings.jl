@@ -1390,6 +1390,9 @@ Here is a complete list of currently supported keyword arguments:
   computed.
 - `exist_only::Bool` -> if set to `true`, return only whether a primitive
   embedding exists together with an empty list.
+- `check::Bool` -> is set to `true` and the first input is a lattice $L_0$,
+  the function filters the output to keep only triples $(L, M_1, N)$ such that
+  $L$ is isometric to $L_0$.
 
 !!! note
     If `right_action` is provided by the user, then the algorithm assumes that
@@ -1636,9 +1639,20 @@ end
 function primitive_embeddings(
     L::ZZLat,
     M::ZZLat;
+    check::Bool=false,
     kwargs...,
   )
-  return primitive_embeddings(genus(L), M; kwargs...)
+  G = genus(L)
+  ok, reps = primitive_embeddings(G, M; kwargs...)
+
+  if !ok || !check
+    return ok, reps
+  elseif !is_definite(G) && length(representatives(G)) == 1
+    return ok, reps
+  else
+    filter!(Base.Fix1(is_isometric, L)∘first, reps)
+    return length(reps) > 0, reps
+  end
 end
 
 function primitive_embeddings(

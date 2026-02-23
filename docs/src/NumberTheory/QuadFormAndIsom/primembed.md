@@ -14,7 +14,7 @@ methods about primitive embeddings. Most of the content is taken from
 
 Given an embedding $i\colon S\hookrightarrow T$ of nondegenerate integer
 lattices, we call $i$ *primitive* if its cokernel $T/i(S)$ is torsionfree.
-There are a left action of the orthogonal group $O(T)$ and a right action
+There is a left action of the orthogonal group $O(T)$ and a right action
 of the orthogonal group $O(S)$ on the set of primitive embeddings as before.
 A problem which often arises is to determine representatives for the associated
 double cosets.
@@ -44,17 +44,18 @@ O_M\backslash \{M\hookrightarrow L \text{ primitive embedding}\}/O(L)
 where $L$ runs over all the $L_i$'s.
 
 !!! note
-    The lattice $M$ might not admit a primitive embedding in each of the
+    The lattice $M$ may not admit a primitive embedding in each of the
     $L_i$'s. In particular, if $G$ consists of more than one isometry class,
     Nikulin's approach does not allow to choose into which of the $L_i$'s we
     embed $M$: This would require instead to filter the output using some
-    isometry test. However, if $M$ embed in some $L_i$, then any lattice in
-    the same genus as $M$ also embeds primitively into $L_i$ (the nature of
-    Nikulin's approach actually only see local invariants of lattices; global
-    invariants such as $O(M)$ are only used for a classification purpose).
+    isometry test. However, if $M$ embeds into one of the $L_i$'s, then any
+    lattice in the same genus as $M$ also embeds primitively some of the
+    $L_j$'s (the nature of Nikulin's approach actually only see local
+    invariants of lattices; global invariants such as $O(M)$ are only used
+    for a classification purpose).
 
-Such an algorithm has been designed and implemented into this package, and can
-be accessed via the following function.
+Such an algorithm has been designed and implemented as part of this package,
+and it can be accessed via the following function.
 
 ```@docs
 primitive_embeddings(::ZZGenus, ::ZZLat)
@@ -95,13 +96,13 @@ O_S\backslash \{S\oplus T\subset L \text{ primitive extension}\}/O_T.
 
 !!! note
     As in the case of primitive embeddings, since Nikulin's approach focuses on
-    working with the discriminant group of lattices involved, all of our
-    classification are made up to the actions of the group of isometries acting
-    trivially on said discriminant group. Therefore, in order to make sense,
+    working with the discriminant groups of lattices involved, all of our
+    classifications are up to the actions of the group of isometries acting
+    trivially on said discriminant groups. Therefore, in order to make sense,
     we need to add the action of such groups to our problems.
 
 An algorithm answering to the previous problem, based on Nikulin's work, has
-been implemented and is accessible via the following function.
+been implemented and it is accessible via the following function.
 
 ```@docs
 primitive_extensions(::ZZLat, ::ZZLat)
