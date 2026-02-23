@@ -78,9 +78,8 @@ function Base.:+(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIde
 end
 
 function Base.:*(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
-  R = base_ring(a)
-  @req R == base_ring(b) "parent mismatch"
-  return ideal(R, [i*j for i in gens(a) for j in gens(b)])
+  # replace the generic implementation as it is incorrect in the non-commutative case.
+  throw(NotImplementedError(:*, a, b))
 end
 
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) = normal_form(f, gens(I))
