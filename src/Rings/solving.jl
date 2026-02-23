@@ -2,7 +2,7 @@
     real_solutions(I::MPolyIdeal, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return a pair `r,p` where `p` is the rational parametrization of the solution set and `r` represents the real roots of `Ì`  with a given precision (default 32 bits).
-See [BES21](@cite) for more information.
+See [BES-E-D21](@cite) for more information.
 
 **Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
 is greater than zero an empty array is returned.
