@@ -299,18 +299,9 @@ function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCa
   return get!(table, i) do
     v = toric_variety(l)
     if has_attribute(v, :vanishing_sets)
-      tvs = vanishing_sets(v)[i + 1]
-      if contains(tvs, l)
-        return 0
-      end
+      contains(vanishing_sets(v)[i + 1], l) && return ZZ(0)
     end
-    if occursin("cohomcalg", lowercase(algorithm))
-      return sheaf_cohomology(l; algorithm="cohomCalg")[i + 1]
-    elseif occursin("chamber", lowercase(algorithm))
-      return sheaf_cohomology(l; algorithm="chamber")[i + 1]
-    elseif occursin("local", lowercase(algorithm))
-      return sheaf_cohomology(l; algorithm="local")[i + 1]
-    end
+    return sheaf_cohomology(l; algorithm=algorithm)[i + 1]
   end
 end
 
