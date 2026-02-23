@@ -29,6 +29,14 @@ function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
   print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
 end
 
+function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
+  return is_subset(I1,I2) && is_subset(I2,I1)
+end
+
+function Base.hash(a::FreeAssociativeAlgebraIdeal, h::UInt)
+  return hash(base_ring(a), h)
+end
+
 @doc raw"""
     ideal(R::FreeAssociativeAlgebra, g::Vector{<:FreeAssociativeAlgebraElem})
 
@@ -61,6 +69,12 @@ end
 
 function gens(a::FreeAssociativeAlgebraIdeal{T}) where T
   return T[gen(a,i) for i in 1:ngens(a)]
+end
+
+function Base.:+(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
+  R = base_ring(a)
+  @req R == base_ring(b) "parent mismatch"
+  return ideal(R, vcat(gens(a), gens(b)))
 end
 
 function Base.:*(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
