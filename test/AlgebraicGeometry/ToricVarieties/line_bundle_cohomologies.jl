@@ -52,30 +52,30 @@
   end
 
   @testset "Cohomology with chamber counting" begin
-    @test sheaf_cohomology(l5; algorithm="chamber counting") == [0, 2, 0]
-    @test sheaf_cohomology(l6; algorithm="chamber counting") == [21, 0, 0, 0]
+    @test sheaf_cohomology(l5; algorithm=:chamber) == [0, 2, 0]
+    @test sheaf_cohomology(l6; algorithm=:chamber) == [21, 0, 0, 0]
   end
 
   @testset "Cohomology with local cohomology" begin
     l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
-    @test sheaf_cohomology(l5; algorithm="local cohomology") == [0, 2, 0]
+    @test sheaf_cohomology(l5; algorithm=:local) == [0, 2, 0]
     l5 = toric_line_bundle(F0, [0, -3]) # overwrite the cache
-    @test sheaf_cohomology(l5, 1; algorithm="local cohomology") == 2
+    @test sheaf_cohomology(l5, 1; algorithm=:local) == 2
 
     # We test for different caching patterns here
     delete!(X.__attrs, :anticanonical_bundle)
     l6 = anticanonical_bundle(X)
-    @test sheaf_cohomology(l6, 0; algorithm="local cohomology") == 21
+    @test sheaf_cohomology(l6, 0; algorithm=:local) == 21
 
     delete!(X.__attrs, :anticanonical_bundle)
     l6 = anticanonical_bundle(X)
-    [sheaf_cohomology(l6, i; algorithm="local cohomology") for i in 0:dim(X)]
+    [sheaf_cohomology(l6, i; algorithm=:local) for i in 0:dim(X)]
     @test sheaf_cohomology(l6) == [21, 0, 0, 0]
 
     delete!(X.__attrs, :anticanonical_bundle)
     l6 = anticanonical_bundle(X)
     sheaf_cohomology(l6) == [21, 0, 0, 0]
-    @test [sheaf_cohomology(l6, i; algorithm="local cohomology") for i in 0:dim(X)] ==
+    @test [sheaf_cohomology(l6, i; algorithm=:local) for i in 0:dim(X)] ==
       [21, 0, 0, 0]
   end
 
