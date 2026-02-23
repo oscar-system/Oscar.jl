@@ -75,14 +75,14 @@ function Base.:^(I::MPolyIdeal, m::Int)
 end
 
 function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  check_base_ring(I, J)
+  AbstractAlgebra.check_base_ring(I, J)
   newgens = filter!(!iszero, unique!(vcat(oscar_generators(I), oscar_generators(J))))
   return ideal(base_ring(I), newgens)
 end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
 function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  check_base_ring(I, J)
+  AbstractAlgebra.check_base_ring(I, J)
   newgens = elem_type(base_ring(I))[]
   for g in oscar_generators(I)
     for h in oscar_generators(J)
@@ -1635,7 +1635,7 @@ function triangular_decomposition(I::MPolyIdeal; algorithm::Symbol=:lazard, ord:
 end
 
 function ==(I::MPolyIdeal, J::MPolyIdeal)
-  check_base_ring(I, J)
+  AbstractAlgebra.check_base_ring(I, J)
   I === J && return true
   gens(I) == gens(J) && return true
   return issubset(I, J) && issubset(J, I)
@@ -1644,7 +1644,7 @@ end
 ### todo: wenn schon GB's  bekannt ...
 
 function is_subset(I::MPolyIdeal, J::MPolyIdeal)
-  check_base_ring(I, J)
+  AbstractAlgebra.check_base_ring(I, J)
   return Singular.iszero(Singular.reduce(singular_generators(I), singular_groebner_generators(J)))
 end
 
