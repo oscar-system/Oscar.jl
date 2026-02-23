@@ -1217,7 +1217,8 @@ contains_in_interior(P::Polyhedron, v::AbstractVector) =
 
 # this cannot use Polymake.polytope.contains_in_interior directly because rays are always
 # on the x0>=0 homogenization facet (of the cone representing the polytope)
-contains_in_interior(P::Polyhedron, v::RayVector) = contains_in_interior(recession_cone(P), v)
+contains_in_interior(P::Polyhedron, v::RayVector) =
+  contains_in_interior(recession_cone(P), v)
 
 @doc raw"""
     is_lattice_polytope(P::Polyhedron{QQFieldElem})
