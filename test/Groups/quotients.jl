@@ -56,10 +56,17 @@ end
    #    return a group of this type if possible
 #  for T in [ PermGroup, PcGroup ]
 #TODO: support `abelian_group(PcGroup, [2, 3, 4])`, using GAP's PcpGroup
-   for T in [ PermGroup, SubPcGroup ]
-      G = abelian_group(T, [2, 3, 4])
-      @test maximal_abelian_quotient(G)[1] isa T
-      @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   types = [ PermGroup, SubPcGroup, FinGenAbGroup, FPGroup ]
+   for T1 in types
+     G = abelian_group(T1, [2, 3, 4])
+     for T2 in types
+       Q, map = maximal_abelian_quotient(T2, G)
+       @test isa(Q, T2)
+       @test is_abelian(Q)
+       @test order(Q) == order(G)
+#TODO: check `is_isomorphic` or equality of `abelian_invariants`
+#      as soon as the GAP bug is fixed
+     end
    end
    T = FPGroup
    G = abelian_group(T, [2, 3, 4])
@@ -81,6 +88,8 @@ end
    @test maximal_abelian_quotient(G)[1] isa FPGroup
    @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
    @test_throws MethodError quo(PcGroup, G)
+   G = abelian_group([2, 3, 4])
+   @test maximal_abelian_quotient(G)[1] isa FinGenAbGroup
 
    # `abelian_invariants`
    @test abelian_invariants(free_group(2)) == [0, 0]

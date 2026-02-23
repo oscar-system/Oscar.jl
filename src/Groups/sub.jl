@@ -863,6 +863,7 @@ end
 
 """
     maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+    maximal_abelian_quotient([::Type{Q}, ]G::FinGenAbGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
@@ -904,6 +905,10 @@ function maximal_abelian_quotient(G::GAPGroup)
   return F, GAPGroupHomomorphism(G, F, map)
 end
 
+function maximal_abelian_quotient(G::FinGenAbGroup)
+  return G, id_hom(G)
+end
+
 function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
@@ -912,6 +917,12 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGr
     epi = compose(epi, map)
   end
   return F, epi
+end
+
+function maximal_abelian_quotient(::Type{Q}, G::FinGenAbGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+  G isa Q && return G, id_hom(G)
+  map = isomorphism(Q, G)
+  return codomain(map), map
 end
 
 has_maximal_abelian_quotient(G::GAPGroup) = GAPWrap.HasMaximalAbelianQuotient(GapObj(G))
