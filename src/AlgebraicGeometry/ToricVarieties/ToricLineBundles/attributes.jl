@@ -363,7 +363,9 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
  0
 ```
 """
-@attr Vector{ZZRingElem} function sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
+@attr Vector{ZZRingElem} function sheaf_cohomology(
+  l::ToricLineBundle; algorithm::Symbol=:cohomcalg
+)
   v = toric_variety(l)
   if algorithm === :cohomcalg
     @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
@@ -377,6 +379,8 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
     coh = cohomology_model(ctx, d)
     return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
   else
-    throw(ArgumentError("Unknown algorithm=$algorithm. Use :cohomcalg, :chamber, or :local."))
+    throw(
+      ArgumentError("Unknown algorithm=$algorithm. Use :cohomcalg, :chamber, or :local.")
+    )
   end
 end

@@ -6,7 +6,7 @@ function all_cohomologies_via_cohomcalg(l::ToricLineBundle)::Vector{ZZRingElem}
   v = toric_variety(l)
   @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
   class = vec([ZZRingElem(x) for x in divisor_class(toric_divisor_class(l)).coeff])
-  
+
   # Minimal example:
   #
   # The following lines provide an interface to cohomCalg. This is easiest explained with an example.
@@ -111,7 +111,6 @@ function all_cohomologies_via_cohomcalg(l::ToricLineBundle)::Vector{ZZRingElem}
 
   # return result
   return result
-
 end
 
 ###################################
