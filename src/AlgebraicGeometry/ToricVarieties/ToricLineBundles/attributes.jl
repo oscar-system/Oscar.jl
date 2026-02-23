@@ -376,5 +376,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
     d = divisor_class(toric_divisor_class(l))
     coh = cohomology_model(ctx, d)
     return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
+  else
+    throw(ArgumentError("Unknown algorithm=$algorithm. Use :cohomcalg, :chamber, or :local."))
   end
 end
