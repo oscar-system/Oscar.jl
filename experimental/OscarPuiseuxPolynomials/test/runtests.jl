@@ -1,4 +1,4 @@
-using PuiseuxPolynomials
+using OscarPuiseuxPolynomials
 using Test
 using Oscar
 
@@ -13,15 +13,15 @@ using Oscar
         K, (t1,t2,t3) = Oscar.polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
         @test K_p.underlyingPolynomialRing == K
-        @test K_p == PuiseuxPolynomials.MPuiseuxPolyRing(K)
+        @test K_p == OscarPuiseuxPolynomials.MPuiseuxPolyRing(K)
 
         h = 1+t1 + 2*t2+3*t1^4+t1*t2^4+t3^2
-        g = PuiseuxPolynomials.MPuiseuxPolyRingElem(K_p,h)
+        g = OscarPuiseuxPolynomials.MPuiseuxPolyRingElem(K_p,h)
         @test h != g
         @test g.scale == 1
         @test g.shift == [0,0,0]
 
-        g = PuiseuxPolynomials.MPuiseuxPolyRingElem(K_p,h,[ZZ(1),ZZ(1),ZZ(1)],ZZ(3))
+        g = OscarPuiseuxPolynomials.MPuiseuxPolyRingElem(K_p,h,[ZZ(1),ZZ(1),ZZ(1)],ZZ(3))
         @test g.scale==3
         @test g.shift==[ZZ(1),ZZ(1),ZZ(1)]
 
@@ -62,25 +62,25 @@ using Oscar
         Kp, (tp1,tp2,tp3) = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
 
 	    @test K == PuiseuxPolynomial.underlying_polynomial_ring(Kp)
-        @test QQ == PuiseuxPolynomials.base_ring(Kp)
-        @test QQ == PuiseuxPolynomials.coefficient_ring(Kp)
-        @test PuiseuxPolynomials.ngens(Kp) == 3
-        @test PuiseuxPolynomials.gens(Kp) == [tp1,tp2,tp3]
+        @test QQ == OscarPuiseuxPolynomials.base_ring(Kp)
+        @test QQ == OscarPuiseuxPolynomials.coefficient_ring(Kp)
+        @test OscarPuiseuxPolynomials.ngens(Kp) == 3
+        @test OscarPuiseuxPolynomials.gens(Kp) == [tp1,tp2,tp3]
         
         g = tp1^(1//2)+tp3^(1//3)
-        @test PuiseuxPolynomials.elem_type(Kp) == typeof(g)
-        @test PuiseuxPolynomials.parent_type(g) == typeof(Kp)
-        @test PuiseuxPolynomials.base_ring_type(Kp) == typeof(QQ)
-        @test PuiseuxPolynomials.parent(g) == Kp
-        @test PuiseuxPolynomials.poly(g) == t1^3 + t3^2
-        @test PuiseuxPolynomials.scale(g) == 6
-        @test PuiseuxPolynomials.shift(g) == [0,0,0]
+        @test OscarPuiseuxPolynomials.elem_type(Kp) == typeof(g)
+        @test OscarPuiseuxPolynomials.parent_type(g) == typeof(Kp)
+        @test OscarPuiseuxPolynomials.base_ring_type(Kp) == typeof(QQ)
+        @test OscarPuiseuxPolynomials.parent(g) == Kp
+        @test OscarPuiseuxPolynomials.poly(g) == t1^3 + t3^2
+        @test OscarPuiseuxPolynomials.scale(g) == 6
+        @test OscarPuiseuxPolynomials.shift(g) == [0,0,0]
 
         g = tp1^(2//3)*tp1*tp2^(1//2)*tp3 + tp3^(3//7)*tp1*tp2^(1//2)*tp3 + tp2^(1//2)*tp1*tp2^(1//2)*tp3
-        @test PuiseuxPolynomials.parent(g) == Kp
-        @test PuiseuxPolynomials.poly(g) == t1^28 + t2^21 + t3^18
-        @test PuiseuxPolynomials.shift(g) == [42,21,42]
-        @test PuiseuxPolynomials.scale(g) == 2*3*7
+        @test OscarPuiseuxPolynomials.parent(g) == Kp
+        @test OscarPuiseuxPolynomials.poly(g) == t1^28 + t2^21 + t3^18
+        @test OscarPuiseuxPolynomials.shift(g) == [42,21,42]
+        @test OscarPuiseuxPolynomials.scale(g) == 2*3*7
 
         
         K, (t,) = puiseux_polynomial_ring(QQ,["t"])
@@ -125,16 +125,16 @@ using Oscar
         g = puiseux_polynomial_ring_elem(K,up*vp*wp*((up^4)*(vp^4)*(wp^4)+1),[ZZ(5),ZZ(9),ZZ(13)],ZZ(4),skip_normalization=true)
         @test monomials(g) == [u^(5//2)*v^(7//2)*w^(9//2),u^(3//2)*v^(5//2)*w^(7//2)]
         @test collect(exponents(g)) == [[5//2,7//2,9//2],[3//2,5//2,7//2]]
-        @test PuiseuxPolynomials.poly(g) == up*vp*wp*(up^4*vp^4*wp^4+1)
-        @test PuiseuxPolynomials.scale(g) == 4
-        @test PuiseuxPolynomials.shift(g) == [ZZ(5),ZZ(9),ZZ(13)]
+        @test OscarPuiseuxPolynomials.poly(g) == up*vp*wp*(up^4*vp^4*wp^4+1)
+        @test OscarPuiseuxPolynomials.scale(g) == 4
+        @test OscarPuiseuxPolynomials.shift(g) == [ZZ(5),ZZ(9),ZZ(13)]
         @test normalize!(g) == true
-        @test PuiseuxPolynomials.poly(g) == 1+up^2*vp^2*wp^2
-        @test PuiseuxPolynomials.scale(g) == 2
-        g_c = PuiseuxPolynomials.rescale(g,ZZ(10))
-        @test PuiseuxPolynomials.scale(g_c) == 10
-        @test PuiseuxPolynomials.poly(g_c) == 1+up^10*vp^10*wp^10
-        @test PuiseuxPolynomials.shift(g_c) == [ZZ(15),ZZ(25),ZZ(35)]
+        @test OscarPuiseuxPolynomials.poly(g) == 1+up^2*vp^2*wp^2
+        @test OscarPuiseuxPolynomials.scale(g) == 2
+        g_c = OscarPuiseuxPolynomials.rescale(g,ZZ(10))
+        @test OscarPuiseuxPolynomials.scale(g_c) == 10
+        @test OscarPuiseuxPolynomials.poly(g_c) == 1+up^10*vp^10*wp^10
+        @test OscarPuiseuxPolynomials.shift(g_c) == [ZZ(15),ZZ(25),ZZ(35)]
         @test collect(exponents(g_c)) == [[5//2,7//2,9//2],[3//2,5//2,7//2]]
         @test normalize!(K(0)) == false
     end

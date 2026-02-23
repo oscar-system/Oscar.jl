@@ -9,7 +9,7 @@ initial(t,nu)
 
 R,(x,y) = K["x","y"]
 f = x + y + t
-PuiseuxPolynomials.tropical_hypersurface_over_fraction_field(f,nu)
+OscarPuiseuxPolynomials.tropical_hypersurface_over_fraction_field(f,nu)
 tropical_polynomial(f,nu)
 tropical_hypersurface(ans)
 

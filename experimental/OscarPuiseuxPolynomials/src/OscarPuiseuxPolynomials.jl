@@ -1,4 +1,4 @@
-module PuiseuxPolynomials
+module OscarPuiseuxPolynomials
 
 using Oscar
 
