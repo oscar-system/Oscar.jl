@@ -279,7 +279,7 @@ as in [CLS11](@cite), Section 9.5 by specifying algorithm = "local".
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal toric variety
 
-julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :cohomCalg)
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12
 
 julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :chamber)
@@ -292,7 +292,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :lo
 function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::Symbol=:cohomcalg)
   v = toric_variety(l)
   has_attribute(v, :vanishing_sets) && contains(vanishing_sets(v)[i + 1], l) && return ZZ(0)
-  return sheaf_cohomology(l; algorithm)[i + 1]
+  return sheaf_cohomology(l; algorithm=algorithm)[i + 1]
 end
 
 @doc raw"""
@@ -351,8 +351,8 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
 """
 @attr Vector{ZZRingElem} function sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
   v = toric_variety(l)
-  if has_attribute(v, :sheaf_cohomology_table)
-    table = get_attribute(v, :sheaf_cohomology_table)::Dict{Int,ZZRingElem}
+  if has_attribute(l, :sheaf_cohomology_table)
+    table = get_attribute(l, :sheaf_cohomology_table)::Dict{Int,ZZRingElem}
     all(haskey(table, i) for i in 0:dim(v)) && return ZZRingElem[table[i] for i in 0:dim(v)]
   end
   if algorithm === :cohomcalg
