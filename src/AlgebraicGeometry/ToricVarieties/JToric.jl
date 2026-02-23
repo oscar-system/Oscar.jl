@@ -63,7 +63,7 @@ include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/construct
 include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/attributes.jl")
 include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/methods.jl")
 include("ToricLineBundles/LineBundleCohomology/cohomCalg/auxiliary.jl")
-include("ToricLineBundles/LineBundleCohomology/cohomCalg/special_attributes.jl")
+include("ToricLineBundles/special_attributes.jl")
 
 include("CohomologyClasses/constructors.jl")
 include("CohomologyClasses/properties.jl")
