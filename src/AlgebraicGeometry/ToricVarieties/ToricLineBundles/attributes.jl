@@ -265,14 +265,20 @@ end
 @doc raw"""
     sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::Symbol=:cohomcalg)
 
-Compute the dimension of the i-th sheaf cohomology of the
-toric line bundle `l`. The third argument allows to choose an algorithm.
-By default, we employ the cohomCalg algorithm [BJRR10](@cite), [BJRR10*1](@cite),
-see also [RR10](@cite), [Jow11](@cite) and [BJRR12](@cite).
+Compute the dimension of the *i*-th sheaf cohomology group of the toric line bundle `l`.
 
-It is also possible to specify algorithm = "chamber" in which case the chamber counting
-algorithm will be used [CLS11](@cite) p.398. Also, it is possible to use local cohomology
-as in [CLS11](@cite), Section 9.5 by specifying algorithm = "local".
+The keyword argument `algorithm::Symbol` selects the algorithm used for the computation.
+
+Allowed values are:
+  - `:cohomcalg` — use the cohomCalg algorithm (cf. [BJRR10](@cite), [BJRR10*1](@cite)).
+    Requires the toric variety to be simplicial and projective.
+
+  - `:chamber` — chamber counting algorithm (cf. [CLS11](@cite), p.398).
+    Requires the toric variety to be simplicial and complete.
+
+  - `:local` — local cohomology method (cf. [CLS11](@cite), Section 9.5).
+
+By default, `:cohomcalg` is used.
 
 # Examples
 ```jldoctest
@@ -298,14 +304,20 @@ end
 @doc raw"""
     sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
 
-Compute the dimension of all sheaf cohomologies of the 
-toric line bundle `l`. The default algorithm is the cohomCalg algorithm 
-[BJRR10](@cite), [BJRR10*1](@cite) (see also [RR10](@cite),
-[Jow11](@cite) and [BJRR12](@cite)). 
+Compute the dimension of the sheaf cohomology groups of the toric line bundle `l`.
 
-It is also possible to specify algorithm = "chamber" in which case the chamber counting
-algorithm will be used [CLS11](@cite) p.398. Also, it is possible to use local cohomology
-as in [CLS11](@cite), Section 9.5 by specifying algorithm = "local".
+The keyword argument `algorithm::Symbol` selects the algorithm used for the computation.
+
+Allowed values are:
+  - `:cohomcalg` — use the cohomCalg algorithm (cf. [BJRR10](@cite), [BJRR10*1](@cite)).
+    Requires the toric variety to be simplicial and projective.
+
+  - `:chamber` — chamber counting algorithm (cf. [CLS11](@cite), p.398).
+    Requires the toric variety to be simplicial and complete.
+
+  - `:local` — local cohomology method (cf. [CLS11](@cite), Section 9.5).
+
+By default, `:cohomcalg` is used.
 
 # Examples
 ```jldoctest
