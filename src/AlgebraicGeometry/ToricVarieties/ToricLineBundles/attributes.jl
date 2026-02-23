@@ -351,10 +351,6 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
 """
 @attr Vector{ZZRingElem} function sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
   v = toric_variety(l)
-  if has_attribute(l, :sheaf_cohomology_table)
-    table = get_attribute(l, :sheaf_cohomology_table)::Dict{Int,ZZRingElem}
-    all(haskey(table, i) for i in 0:dim(v)) && return ZZRingElem[table[i] for i in 0:dim(v)]
-  end
   if algorithm === :cohomcalg
     @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
     return all_cohomologies_via_cohomcalg(l)
