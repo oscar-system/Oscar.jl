@@ -1,5 +1,5 @@
 using Revise
-using OscarPuiseuxPolynomial
+using PuiseuxPolynomial
 using Oscar
 
 K, (t,) = puiseux_polynomial_ring(QQ, ["t"])
@@ -9,7 +9,7 @@ initial(t,nu)
 
 R,(x,y) = K["x","y"]
 f = x + y + t
-OscarPuiseuxPolynomial.tropical_hypersurface_over_fraction_field(f,nu)
+PuiseuxPolynomial.tropical_hypersurface_over_fraction_field(f,nu)
 tropical_polynomial(f,nu)
 tropical_hypersurface(ans)
 
