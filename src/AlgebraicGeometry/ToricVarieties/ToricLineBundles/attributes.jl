@@ -285,13 +285,13 @@ By default, `:cohomcalg` is used.
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal toric variety
 
-julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :cohomcalg)
 12
 
-julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :chamber)
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :chamber)
 12
 
-julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0, algorithm = :local)
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :local)
 12
 ```
 """
@@ -304,7 +304,9 @@ end
 @doc raw"""
     sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
 
-Compute the dimension of the sheaf cohomology groups of the toric line bundle `l`.
+Compute the dimensions of all sheaf cohomology groups of the toric line bundle `l`.
+
+Returns a vector `[h⁰, …, hᵈ]` whose entries are the dimensions of the cohomology groups `H^i(X, l)`, where `d = dim(X)`.
 
 The keyword argument `algorithm::Symbol` selects the algorithm used for the computation.
 
