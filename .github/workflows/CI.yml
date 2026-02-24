@@ -196,7 +196,7 @@ jobs:
     # Extra long tests
     # Only happens during the daily run, triggered by schedule
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
-    runs-on: [Linux, RPTU, normal-memory]
+    runs-on: [Linux, RPTU, high-memory]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -208,6 +208,9 @@ jobs:
           version: "1.10"
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
+      - name: "reduce concurrent jobs"
+        if: runner.environment == 'self-hosted'
+        run: echo "NUMPROCS=4" >> $GITHUB_ENV
       - name: "set test subgroup"
         run: echo "OSCAR_TEST_SUBSET=extra_long" >> $GITHUB_ENV
       - name: "Run tests"

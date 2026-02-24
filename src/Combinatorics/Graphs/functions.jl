@@ -2164,3 +2164,95 @@ end
 
 _is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
 
+
+@doc raw"""
+    petersen_graph()
+
+Construct and return the Petersen graph as a simple undirected graph.
+
+"""
+function petersen_graph()
+  e = Vector{Int}[[1,3],[1,4],[2,4],[2,5],[3,5],[1,6],[6,7],[2,7],[7,8],[3,8],[8,9],[4,9],[9,10],[5,10],[10,6]]
+  return graph_from_edges(e)
+end
+
+@doc raw"""
+    clebsch_graph()
+
+Construct and return the 5-regular Clebsch graph.
+
+The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free and has degree 5.
+"""
+function clebsch_graph()
+  e = Vector{Int}[[1, 2], [1, 3], [1, 5], [1, 9], [1, 16], [2, 4], [2, 6],
+                  [2, 10], [2, 15], [3, 4], [3, 7], [3, 11], [3, 14], [4, 8],
+                  [4, 12], [4, 13], [5, 6], [5, 7], [5, 13], [5, 12], [6, 8],
+                  [6, 14], [6, 11], [7, 8], [7, 15], [7, 10], [8, 16], [8, 9],
+                  [9, 10], [9, 11], [9, 13], [10, 12], [10, 14], [11, 12],
+                  [11, 15], [12, 16], [13, 14], [13, 15], [14, 16], [15, 16]]
+  return graph_from_edges(e)
+end
+
+@doc raw"""
+    disjoint_automorphisms(G::Graph)
+
+Find and return a pair of automorphisms of the graph `G` which are disjoint and
+neither is the identity (thus neither fixes all vertices; and hence, since they
+are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
+automorphisms if found, otherwise throws an error.
+
+Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
+$\sigma(i) \neq i$ only holds if $\tau(i) = i$ for all vertices $i$ of the graph, and vice-versa
+(see [Sch20](@cite)).
+
+# Examples
+```jldoctest
+julia> C = clebsch_graph();
+
+julia> disjoint_automorphisms(C)
+((2,3)(6,7)(10,11)(14,15), (1,4)(5,8)(9,12)(13,16))
+```
+
+For a quick boolean check, see [`has_disjoint_automorphisms`](@ref).
+"""
+function disjoint_automorphisms(G::Graph)
+  ret, a, b = _compute_disjoint_automorphism(G::Graph)
+  @req ret "The graph has no disjoint automorphisms"
+  return a, b
+end
+
+@doc raw"""
+    has_disjoint_automorphisms(G::Graph)
+
+Return `true` if the graph `G` has a pair of non-trivial, disjoint automorphisms,
+and `false` otherwise.
+
+If such a pair exists, it will be cached and made available via [`disjoint_automorphisms`](@ref).
+
+# Examples
+```jldoctest
+julia> C = petersen_graph();
+
+julia> has_disjoint_automorphisms(C)
+false
+```
+"""
+function has_disjoint_automorphisms(G::Graph)
+  ret, _, _ = _compute_disjoint_automorphism(G::Graph)
+  return ret
+end
+
+@attr Tuple{Bool, PermGroupElem, PermGroupElem} function _compute_disjoint_automorphism(G::Graph)
+  A = automorphism_group(G)
+
+  for cc in conjugacy_classes(A)
+    rcc = representative(cc)
+    is_one(rcc) && continue
+    stab = stabilizer(A, moved_points(rcc))[1]
+    for g2 in gens(stab)
+      !is_one(g2) && return (true, rcc, g2)
+    end
+  end
+  return (false, one(A), one(A))
+end
+
