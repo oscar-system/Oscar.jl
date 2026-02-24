@@ -45,4 +45,5 @@ include("base_change.jl")
 # Geometric functionality building on the homological algebra in this package.
 include("DerivedPushforward.jl")
 include("SpectralSequences.jl")
+include("Objects/simplicial_complex.jl")
 
