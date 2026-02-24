@@ -120,6 +120,7 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
           end
         end
       end
+      isempty(result.coeff) && return zero(A)
       return result
     else # b is homogeneous
       q = b.homog_deg
@@ -134,6 +135,7 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
           result.coeff[q] = res
         end
       end
+      isempty(result.coeff) && return zero(A)
       return result
     end
   else # a is homogeneous
@@ -151,15 +153,18 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
           result.coeff[q] = res
         end
       end
+      isempty(result.coeff) && return zero(A)
       return result
     else # b is homogeneous
       p = b.homog_deg
       if p == q
         result.homog_deg = p
         result.homog_elem = a.homog_elem + b.homog_elem
+        is_zero(result.homog_elem) && return zero(A)
         return result
       else
         result.coeff = Dict{Int, SubquoModuleElem{T}}([q => a.homog_elem, p => b.homog_elem])
+        isempty(result.coeff) && return zero(A)
         return result
       end
     end
