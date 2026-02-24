@@ -25,22 +25,22 @@
 #
 #################################################################################
 
-struct MPuiseuxPolyRing{T <: FieldElement} <: Ring
+struct PuiseuxMPolyRing{T <: FieldElement} <: Ring
     underlyingPolynomialRing::MPolyRing
 
-    function MPuiseuxPolyRing(R::MPolyRing)
+    function PuiseuxMPolyRing(R::MPolyRing)
         return new{elem_type(base_ring_type(R))}(R)
     end
 end
 
-mutable struct MPuiseuxPolyRingElem{T <: FieldElement} <: RingElem
-    parent::MPuiseuxPolyRing{T}
+mutable struct PuiseuxMPolyRingElem{T <: FieldElement} <: RingElem
+    parent::PuiseuxMPolyRing{T}
     poly::MPolyRingElem
     shift::Vector{ZZRingElem}
     scale::ZZRingElem
 
-    function MPuiseuxPolyRingElem(
-        Kt::MPuiseuxPolyRing,
+    function PuiseuxMPolyRingElem(
+        Kt::PuiseuxMPolyRing,
         f::MPolyRingElem,
         k::Vector{ZZRingElem} = zeros(ZZRingElem, nvars(Kt)),
         d::ZZRingElem = one(ZZ)
@@ -53,13 +53,13 @@ mutable struct MPuiseuxPolyRingElem{T <: FieldElement} <: RingElem
 end
 
 function puiseux_polynomial_ring_elem(
-    Kt::MPuiseuxPolyRing,
+    Kt::PuiseuxMPolyRing,
     f::MPolyRingElem,
     k::Vector{ZZRingElem} = zeros(ZZRingElem, nvars(Kt)),
     d::ZZRingElem = one(ZZ);
     skip_normalization::Bool = false
     )
-    pf = MPuiseuxPolyRingElem(Kt, f, k, d)
+    pf = PuiseuxMPolyRingElem(Kt, f, k, d)
     if !skip_normalization
         normalize!(pf)
     end
@@ -70,12 +70,12 @@ end
 #
 # Constructors
 #
-##################################################################################
+#################################################################################
 
 function puiseux_polynomial_ring(K::Field, variableName::Vector{String})
     @assert !isempty(variableName) "list of variables must not be empty"
     base_ring, _ = polynomial_ring(K, variableName)
-    Kt = MPuiseuxPolyRing(base_ring)
+    Kt = PuiseuxMPolyRing(base_ring)
     return Kt, gens(Kt)
 end
 
@@ -86,14 +86,14 @@ end
 #
 #################################################################################
 
-underlying_polynomial_ring(R::MPuiseuxPolyRing) = R.underlyingPolynomialRing
-base_ring(R::MPuiseuxPolyRing) = base_ring(underlying_polynomial_ring(R))
-coefficient_ring(R::MPuiseuxPolyRing) = base_ring(R)
+underlying_polynomial_ring(R::PuiseuxMPolyRing) = R.underlyingPolynomialRing
+base_ring(R::PuiseuxMPolyRing) = base_ring(underlying_polynomial_ring(R))
+coefficient_ring(R::PuiseuxMPolyRing) = base_ring(R)
 
-Base.parent(f::MPuiseuxPolyRingElem) = f.parent
-poly(f::MPuiseuxPolyRingElem) = f.poly
-shift(f::MPuiseuxPolyRingElem) = f.shift
-scale(f::MPuiseuxPolyRingElem) = f.scale
+Base.parent(f::PuiseuxMPolyRingElem) = f.parent
+poly(f::PuiseuxMPolyRingElem) = f.poly
+shift(f::PuiseuxMPolyRingElem) = f.shift
+scale(f::PuiseuxMPolyRingElem) = f.scale
 
 
 #################################################################################
@@ -103,7 +103,7 @@ scale(f::MPuiseuxPolyRingElem) = f.scale
 #################################################################################
 
 # WARNING: input is not assumed to be normalized
-function normalize!(f::MPuiseuxPolyRingElem)
+function normalize!(f::PuiseuxMPolyRingElem)
     if iszero(f)
         return false
     end
@@ -132,7 +132,7 @@ function normalize!(f::MPuiseuxPolyRingElem)
 end
 
 # WARNING: output may not be normalized
-function rescale(f::MPuiseuxPolyRingElem, newScale::ZZRingElem)
+function rescale(f::PuiseuxMPolyRingElem, newScale::ZZRingElem)
     @assert newScale > 0 "new scale must be positive"
 
     # we assume f is normalized
@@ -146,7 +146,7 @@ function rescale(f::MPuiseuxPolyRingElem, newScale::ZZRingElem)
     t = gens(underlying_polynomial_ring(parent(f)))
     newPoly = evaluate(poly(f), t .^ scaleQuotient)
     newShift = shift(f) * scaleQuotient
-    return MPuiseuxPolyRingElem(parent(f), newPoly, newShift, newScale)
+    return PuiseuxMPolyRingElem(parent(f), newPoly, newShift, newScale)
 end
 
 
@@ -156,22 +156,22 @@ end
 #
 #################################################################################
 
-function (Kt::MPuiseuxPolyRing)(c::Int)
-    return MPuiseuxPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
+function (Kt::PuiseuxMPolyRing)(c::Int)
+    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
 
-function (Kt::MPuiseuxPolyRing)(c::Rational{Int})
-    return MPuiseuxPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
+function (Kt::PuiseuxMPolyRing)(c::Rational{Int})
+    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
 
-function (Kt::MPuiseuxPolyRing)(c::RingElem)
-    return MPuiseuxPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
+function (Kt::PuiseuxMPolyRing)(c::RingElem)
+    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
 
-function (Kt::MPuiseuxPolyRing{T})(c::T) where T <: FieldElement
-    return MPuiseuxPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
+function (Kt::PuiseuxMPolyRing{T})(c::T) where T <: FieldElement
+    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
-function (Kt::MPuiseuxPolyRing{T})(ct::MPuiseuxPolyRingElem{T}) where T <: FieldElement
+function (Kt::PuiseuxMPolyRing{T})(ct::PuiseuxMPolyRingElem{T}) where T <: FieldElement
     return ct
 end
 
@@ -181,35 +181,35 @@ end
 #
 #################################################################################
 
-elem_type(::Type{MPuiseuxPolyRing{T}}) where T <: FieldElement = MPuiseuxPolyRingElem{T}
-parent_type(::Type{MPuiseuxPolyRingElem{T}}) where T <: FieldElement = MPuiseuxPolyRing{T}
-base_ring_type(::Type{MPuiseuxPolyRing{T}}) where T <: FieldElement = parent_type(T)
+elem_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = PuiseuxMPolyRingElem{T}
+parent_type(::Type{PuiseuxMPolyRingElem{T}}) where T <: FieldElement = PuiseuxMPolyRing{T}
+base_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = parent_type(T)
 
-function Base.hash(f::MPuiseuxPolyRingElem, h::UInt)
+function Base.hash(f::PuiseuxMPolyRingElem, h::UInt)
     normalize!(f)
     return hash((parent(f), poly(f), shift(f), scale(f)), h)
 end
 
-gens(R::MPuiseuxPolyRing) = puiseux_polynomial_ring_elem.(Ref(R), gens(underlying_polynomial_ring(R)))
-ngens(R::MPuiseuxPolyRing) = ngens(underlying_polynomial_ring(R))
-nvars(R::MPuiseuxPolyRing) = nvars(underlying_polynomial_ring(R))
-zero(R::MPuiseuxPolyRing) = puiseux_polynomial_ring_elem(R, zero(underlying_polynomial_ring(R)); skip_normalization=true)
-one(R::MPuiseuxPolyRing) = puiseux_polynomial_ring_elem(R, one(underlying_polynomial_ring(R)); skip_normalization=true)
-iszero(f::MPuiseuxPolyRingElem) = iszero(poly(f))
-isone(f::MPuiseuxPolyRingElem) = isone(poly(f)) && shift(f) == 0 && scale(f) == 1
+gens(R::PuiseuxMPolyRing) = puiseux_polynomial_ring_elem.(Ref(R), gens(underlying_polynomial_ring(R)))
+ngens(R::PuiseuxMPolyRing) = ngens(underlying_polynomial_ring(R))
+nvars(R::PuiseuxMPolyRing) = nvars(underlying_polynomial_ring(R))
+zero(R::PuiseuxMPolyRing) = puiseux_polynomial_ring_elem(R, zero(underlying_polynomial_ring(R)); skip_normalization=true)
+one(R::PuiseuxMPolyRing) = puiseux_polynomial_ring_elem(R, one(underlying_polynomial_ring(R)); skip_normalization=true)
+iszero(f::PuiseuxMPolyRingElem) = iszero(poly(f))
+isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && shift(f) == 0 && scale(f) == 1
 
-function Base.:(==)(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
+function Base.:(==)(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     @assert parent(f) == parent(g) "elements must be in the same ring"
     return poly(f) == poly(g) && shift(f) == shift(g) && scale(f) == scale(g)
 end
 
-coefficients(f::MPuiseuxPolyRingElem) = coefficients(poly(f))
-exponents(f::MPuiseuxPolyRingElem) = [ (e + shift(f)) // scale(f) for e in exponents(poly(f)) ]
-monomials(f::MPuiseuxPolyRingElem) = puiseux_polynomial_ring_elem.(Ref(parent(f)), monomials(poly(f)), Ref(shift(f)), Ref(scale(f)))
+coefficients(f::PuiseuxMPolyRingElem) = coefficients(poly(f))
+exponents(f::PuiseuxMPolyRingElem) = [ (e + shift(f)) // scale(f) for e in exponents(poly(f)) ]
+monomials(f::PuiseuxMPolyRingElem) = puiseux_polynomial_ring_elem.(Ref(parent(f)), monomials(poly(f)), Ref(shift(f)), Ref(scale(f)))
 
-Base.length(f::MPuiseuxPolyRingElem) = length(poly(f))
+Base.length(f::PuiseuxMPolyRingElem) = length(poly(f))
 
-function valuation(f::MPuiseuxPolyRingElem)
+function valuation(f::PuiseuxMPolyRingElem)
     @assert nvars(parent(f)) == 1 "valuation is only defined for univariate Puiseux polynomials"
     if iszero(f)
         return PosInf()
@@ -224,11 +224,11 @@ end
 #
 #################################################################################
 
-function Base.show(io::IO, R::MPuiseuxPolyRing)
+function Base.show(io::IO, R::PuiseuxMPolyRing)
     print(io, "Puiseux polynomial ring over ", coefficient_ring(R))
 end
 
-function Base.show(io::IO, f::MPuiseuxPolyRingElem)
+function Base.show(io::IO, f::PuiseuxMPolyRingElem)
     if iszero(f)
         print(io, "0")
         return
@@ -273,7 +273,7 @@ end
 #
 #################################################################################
 
-function Base.:+(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
+function Base.:+(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     @assert parent(f) == parent(g) "elements must be in the same ring"
     if iszero(f)
         return g
@@ -292,7 +292,7 @@ function Base.:+(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
     newPoly = prod(t.^(shift(frescaled)-newShift))*poly(frescaled) + prod(t.^(shift(grescaled)-newShift))*poly(grescaled)
 
     # normalize output, in case of cancellations
-    fplusg = MPuiseuxPolyRingElem(
+    fplusg = PuiseuxMPolyRingElem(
         parent(f),
         newPoly,
         newShift,
@@ -301,15 +301,15 @@ function Base.:+(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
     return fplusg
 end
 
-function Base.:-(f::MPuiseuxPolyRingElem)
-    return MPuiseuxPolyRingElem(parent(f), -poly(f), shift(f), scale(f))
+function Base.:-(f::PuiseuxMPolyRingElem)
+    return PuiseuxMPolyRingElem(parent(f), -poly(f), shift(f), scale(f))
 end
 
-function Base.:-(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
+function Base.:-(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     return f + (-g)
 end
 
-function Base.:*(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
+function Base.:*(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     @assert parent(f) == parent(g) "elements must be in the same ring"
     if iszero(f) || iszero(g)
         return zero(parent(f))
@@ -328,7 +328,7 @@ function Base.:*(f::MPuiseuxPolyRingElem, g::MPuiseuxPolyRingElem)
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
 
-function Base.:^(f::MPuiseuxPolyRingElem, a::QQFieldElem)
+function Base.:^(f::PuiseuxMPolyRingElem, a::QQFieldElem)
 
     if denominator(a) == 1
         return f^numerator(a)
@@ -345,11 +345,11 @@ function Base.:^(f::MPuiseuxPolyRingElem, a::QQFieldElem)
     )
 end
 
-function Base.:^(f::MPuiseuxPolyRingElem, a::Rational{Int})
+function Base.:^(f::PuiseuxMPolyRingElem, a::Rational{Int})
     return f^(QQ(a))
 end
 
-function Base.:^(f::MPuiseuxPolyRingElem, a::ZZRingElem)
+function Base.:^(f::PuiseuxMPolyRingElem, a::ZZRingElem)
     if a == 0
         return one(parent(f))
     end
@@ -374,15 +374,15 @@ function Base.:^(f::MPuiseuxPolyRingElem, a::ZZRingElem)
     return reduce(*, [ f for i in 1:a ])
 end
 
-function Base.:^(f::MPuiseuxPolyRingElem, a::Int)
+function Base.:^(f::PuiseuxMPolyRingElem, a::Int)
     return f^(ZZ(a))
 end
 
-function Base.:(//)(f::MPuiseuxPolyRingElem{K}, a::K) where K <: FieldElement
+function Base.:(//)(f::PuiseuxMPolyRingElem{K}, a::K) where K <: FieldElement
     @assert !iszero(a) "division by zero"
     return puiseux_polynomial_ring_elem(parent(f), poly(f)*1//a, shift(f), scale(f); skip_normalization=true)
 end
 
-function Base.:(//)(f::MPuiseuxPolyRingElem, a::Int)
+function Base.:(//)(f::PuiseuxMPolyRingElem, a::Int)
     return f//coefficient_ring(f)(a)
 end

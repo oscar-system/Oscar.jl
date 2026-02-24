@@ -1,7 +1,7 @@
 using Test
 using Oscar
 
-@testset "PuiseuxPolynomial.jl" begin
+@testset "PuiseuxPolynomials.jl" begin
     @testset "TrivialTests" begin
         @test 1+1==2
         @test 1+2==3
@@ -12,15 +12,15 @@ using Oscar
         K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
         @test K_p.underlyingPolynomialRing == K
-        @test K_p == Oscar.MPuiseuxPolyRing(K)
+        @test K_p == Oscar.PuiseuxMPolyRing(K)
 
         h = 1+t1 + 2*t2+3*t1^4+t1*t2^4+t3^2
-        g = Oscar.MPuiseuxPolyRingElem(K_p,h)
+        g = Oscar.PuiseuxMPolyRingElem(K_p,h)
         @test_throws NotImplementedError h != g
         @test g.scale == 1
         @test g.shift == [0,0,0]
 
-        g = Oscar.MPuiseuxPolyRingElem(K_p,h,[ZZ(1),ZZ(1),ZZ(1)],ZZ(3))
+        g = Oscar.PuiseuxMPolyRingElem(K_p,h,[ZZ(1),ZZ(1),ZZ(1)],ZZ(3))
         @test g.scale==3
         @test g.shift==[ZZ(1),ZZ(1),ZZ(1)]
 

@@ -32,7 +32,7 @@ julia> nu(0)
 
 ```
 """
-function tropical_semiring_map(R::MPuiseuxPolyRing, t::MPuiseuxPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_semiring_map(R::PuiseuxMPolyRing, t::PuiseuxMPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
     @assert ngens(R) == 1 "The tropical_semiring_map is only implemented for Puiseux polynomial rings in one variable."
     @assert t == first(gens(R)) "The uniformizer must be the generator of the Puiseux polynomial ring."
 
@@ -52,12 +52,12 @@ function tropical_semiring_map(R::MPuiseuxPolyRing, t::MPuiseuxPolyRingElem, min
 end
 
 # Print string
-function Base.show(io::IO, nu::TropicalSemiringMap{<:MPuiseuxPolyRing,<:MPuiseuxPolyRingElem,MinOrMax}) where {MinOrMax<:Union{typeof(min),typeof(max)}}
+function Base.show(io::IO, nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax}) where {MinOrMax<:Union{typeof(min),typeof(max)}}
     print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(Oscar.valued_ring(nu))")
 end
 
 # Mapping an element of the valued field or ring to the tropical semiring
-function (nu::TropicalSemiringMap{<:MPuiseuxPolyRing,<:MPuiseuxPolyRingElem,MinOrMax})(c::MPuiseuxPolyRingElem) where MinOrMax<:Union{typeof(min),typeof(max)}
+function (nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax})(c::PuiseuxMPolyRingElem) where MinOrMax<:Union{typeof(min),typeof(max)}
     # return tropical zero if c is zero and valuation otherwise
     iszero(c) && return zero(tropical_semiring(nu))
     # preserve_ordering ensures that valuation is negated if convention(nu)==max
@@ -65,7 +65,7 @@ function (nu::TropicalSemiringMap{<:MPuiseuxPolyRing,<:MPuiseuxPolyRingElem,MinO
 end
 
 # Mapping an element of the valued field or ring to the residue field
-function initial(c::MPuiseuxPolyRingElem, nu::TropicalSemiringMap{<:MPuiseuxPolyRing,<:MPuiseuxPolyRingElem,MinOrMax}) where MinOrMax<:Union{typeof(min),typeof(max)}
+function initial(c::PuiseuxMPolyRingElem, nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax}) where MinOrMax<:Union{typeof(min),typeof(max)}
     # return residue field zero if c is zero and the correct non-zero residue otherwise
     iszero(c) && return zero(residue_field(nu))
     C = collect(coefficients(c))
