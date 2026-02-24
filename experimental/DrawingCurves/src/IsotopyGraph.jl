@@ -146,6 +146,7 @@ function _assemble_isotopy_graph!(
   selected_precision,
   root_finder,
 )
+  # println("singcoords: ",singcoords)
   xcoords = [s[1] for s in singcoords]
   xmin = minimum(xcoords)
   xmax = maximum(xcoords)

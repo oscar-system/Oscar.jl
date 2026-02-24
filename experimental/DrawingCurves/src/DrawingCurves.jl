@@ -9,7 +9,7 @@ include("bezier.jl")
 ################################################################################
 ##
 ## Main interface
-## 
+##
 ################################################################################
 ################################################################################
 
@@ -18,24 +18,29 @@ isotopy_graph_from_curve_inner(
   selected_precision::Int,
 ) = isotopy_graph_from_msolve(IG, f_in, random_transform, selected_precision)::Bool
 
-function _compute_isotopy_graph(f_in; selected_precision::Int=128)
-  # Oscar.@check !isfile(filename) "Output file exists"
+function _compute_isotopy_graph(f_in, transform::MatrixElem, ntries::Int; selected_precision::Int=128)
   IG = _IsotopyGraph()
-  # Small rotation
-  base_transform = matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055])
-  # Small shearing
-  random_transform = matrix(QQ, base_transform)
-  # base_transform *= matrix(QQ, [1 1//16; 0 1])
-  result = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
-  println("result is $result")
-  while !result
+  random_transform = matrix(QQ, transform)
+  success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
+  println("result is $success")
+  counter = 1
+  while counter<ntries
     # println("Turning!")
-    random_transform *= base_transform
-    result = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
-    println("result is $result")
+    random_transform *= transform
+    success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
+    println("result is $success")
+    counter += 1
   end
   scale = get_scale(IG, random_transform)
-  return IG, scale
+  return IG, scale, success
+end
+
+function get_random_transform_matrices()
+  random_transform_list = [
+    matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055]),
+    matrix(QQ, [1 1//16; 0 1])
+  ]
+  return random_transform_list
 end
 
 @doc raw"""
@@ -47,27 +52,58 @@ algebraic curve in TikZ.
 function draw_curve_tikz(
   filename::String,
   f_in;
-  selected_precision::Int=128,
-  graph::Bool=false,
-  custom_edge_plot=_draw_edge_sequence_bernstein,
+  kwargs...
 )
+  # Oscar.@check !isfile(filename) "Output file exists"
   io = open(filename, "w")
-  draw_curve_tikz(io, f_in; selected_precision, graph, custom_edge_plot)
+  result = draw_curve_tikz(io, f_in; kwargs...)
   close(io)
+  return result
 end
 function draw_curve_tikz(
   io::IO,
   f_in;
+  transform::Union{MatrixElem, AbstractMatrix,Nothing}=nothing,
+  ntries::Int=1,
   selected_precision::Int=128,
   graph::Bool=false,
   custom_edge_plot=_draw_edge_sequence_bernstein,
 )
-  IG, scale = _compute_isotopy_graph(f_in; selected_precision)
-  if graph
-    draw_graph_tikz(IG, io)
+  if transform === nothing
+    success = false
+    for R in get_random_transform_matrices()
+      success = _draw_curve_tikz(io, f_in, R, 3, selected_precision, graph, custom_edge_plot)
+      if success
+        break
+      end
+    end
+    return success
   else
-    draw_curve_tikz(IG, scale, io; custom_edge_plot)
+    @assert ntries>0 "Number of tries needs to be positive"
+    return _draw_curve_tikz(f_in, transform, ntries, selected_precision, graph, custom_edge_plot)
   end
+end
+function _draw_curve_tikz(
+  io::IO,
+  f_in,
+  transform::Union{MatrixElem, AbstractMatrix},
+  ntries::Int,
+  selected_precision::Int,
+  graph::Bool,
+  custom_edge_plot
+)
+  T = matrix(base_ring(f_in), transform)
+  IG, scale, success = _compute_isotopy_graph(f_in, T, ntries; selected_precision)
+  if success
+    if graph
+      draw_graph_tikz(IG, io)
+    else
+      draw_curve_tikz(IG, scale, io; custom_edge_plot)
+    end
+  else
+    # Some error?
+  end
+  return success
 end
 
 export draw_curve_tikz
