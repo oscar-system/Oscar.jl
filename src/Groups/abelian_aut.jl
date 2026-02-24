@@ -845,7 +845,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     GAP.Globals.ConvertToMatrixRep(BL2mod_gap)
     mats_gap = GapObj([GapObj(x) for x in mats])
     img = GAP.Globals.RepresentativeAction(Gnice, BL1mod_gap, BL2mod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats_gap, GAP.Globals.OnSubspacesByCanonicalBasis)
-    img == GAP.Globals.fail && error("") && return false, one(G)
+    img == GAP.Globals.fail && return false, one(G)
     mono = GAP.Globals.NiceMonomorphism(GapObj(G))
     _g = G(GAP.Globals.PreImage(mono, img))
     @vprintln :Isometry 4 " done"
