@@ -1,5 +1,6 @@
 mutable struct SimplicialCohomologyRing{T} <: NCRing
   C::SimplicialCoComplex
+  graded_parts::Vector{SubquoModule{T}}
 
   function SimplicialCohomologyRing(K::SimplicialComplex)
     return SimplicialCohomologyRing(SimplicialCoComplex(K))
@@ -12,8 +13,31 @@ end
 
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
 
+function graded_parts(A::SimplicialCohomologyRing)
+  if !isdefined(A, :graded_parts)
+    K = simplicial_complex(A)
+    A.graded_parts = [homology(A.C, i)[1] for i in 0:dim(K)]
+  end
+  return A.graded_parts
+end
+
+function graded_part(A::SimplicialCohomologyRing, i::Int)
+  return graded_parts(A)[i+1]
+end
+
 mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   parent::SimplicialCohomologyRing{T}
+  # Elements can be represented in three ways:
+  #  1) no fields assigned (the zero element)
+  #  2) `homog_elem` and `homog_deg` assigned (homogeneously stored element)
+  #  3) a dictionary `p => v` where the degree points to the cohomology 
+  #     class for the degree `p` part of this element.
+  # The values of `coeff` must not be zero. The zero element in 
+  # the ring must be stored as as the empty element. 
+  #
+  # The distinction whether or not an element is stored as a homogeneous 
+  # element can be made by whether or not the field `.homog_elem` is set 
+  # to `nothing`. The field `.coeff` is not assigned if it's not needed. 
   homog_elem::Union{SubquoModuleElem{T}, Nothing}
   homog_deg::Union{Int, Nothing}
   coeff::Dict{Int, SubquoModuleElem{T}}
@@ -23,14 +47,17 @@ mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
       A::SimplicialCohomologyRing{T}, 
       p::Int, v::SubquoModuleElem{T}
     ) where {T}
+    @assert parent(v) === graded_part(A, p)
     return new{T}(A, v, p)
   end
 
   # Constructor for mixed elements
   function SimplicialCohomologyRingElem(
       A::SimplicialCohomologyRing{T}, 
-      coeff::Dict{Int, SubquoModuleElem{T}}
+      coeff::Dict{Int, SubquoModuleElem{T}};
+      check::Bool=true
     ) where {T}
+    @check all(parent(v) === graded_part(A, p) for (p, v) in coeff) "degree/element incompatibility"
     return new{T}(A, nothing, nothing, coeff)
   end
 
@@ -208,3 +235,26 @@ function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
     return homogeneous_parts(a) == homogeneous_parts(b)
   end
 end
+
+function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
+  A = parent(a)
+  r = 0x60125ab8e8cd44ca
+  if isdefined(a, :homog_elem)
+    r = xor(r, hash(a.homog_deg, u))
+    r = xor(r, hash(a.homog_elem, u))
+    return r
+  end
+
+  !isdefined(a, :coeff) && return xor(r, u)
+  
+  # we need to catch the case where homogeneous elements use the dictionary
+  if isone(length(a.coeff))
+    p, c = only(a.coeff)
+    r = xor(r, hash(p, u))
+    r = xor(r, hash(c))
+    return r
+  end
+
+  return hash(a.coeff, u)
+end
+
