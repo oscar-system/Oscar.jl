@@ -22,7 +22,7 @@ using ..Oscar: _grading,
   VERSION_NUMBER,
   _pmdata_for_oscar
 
-using ..Oscar: is_terse, Lowercase, pretty, terse
+using ..Oscar: is_terse, Lowercase, pretty, terse, Indent, Dedent
 
 using Distributed: RemoteChannel
 
@@ -625,7 +625,7 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
@@ -637,6 +637,8 @@ Setting the optional argument `compression` will compress the file using the giv
 compression method. The `filename` must have the appropriate file extension for the
 chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
+
+The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
 
@@ -661,8 +663,12 @@ julia> load("fourtitwo.mrdi")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
+              pretty_print::Bool=false,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer, with_attrs)
+  if pretty_print
+    io = pretty(io)
+  end
+  s = serializer_open(io, serializer, with_attrs, pretty_print)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
