@@ -66,3 +66,7 @@ end
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::SimplicialCoComplex) = c.internal_complex
 
+### additional getters
+simplicial_complex(C::SimplicialCoComplex) = chain_factory(C).K
+base_ring(C::SimplicialCoComplex) = chain_factory(C).R
+
