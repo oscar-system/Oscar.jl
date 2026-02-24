@@ -297,6 +297,14 @@ true
 ```
 
 ## Vanishing sets and solving multivariate polynomial systems
+For solving multivariate polynomial systems using the below functions
+we provide an introductory tutorial
+[here](https://www.oscar-system.org/tutorials/CommutativeAlgebra).
+
+
+```@docs
+real_solutions
+```
 
 ```@docs
 rational_solutions
