@@ -761,10 +761,10 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   iS = id_hom(O)
   for p in prime_divisors(n)
     Ap, ip = primary_part(domain(i), p)
-    Bp, jp = primary_part(codomain(i), p)
-    ApinBp, Ap_to_Bp = sub(Bp, [jp\i(ip(x)) for x in gens(Ap)])
+    Cp, jp = primary_part(codomain(i), p)
+    ApinCp, Ap_to_Cp = sub(Cp, [jp\i(ip(x)) for x in gens(Ap)])
     Op,iOp = restrict_automorphism_group(S,jp;check=false)
-    Sp, _ = stabilizer(Op, Ap_to_Bp)
+    Sp, _ = stabilizer(Op, Ap_to_Cp)
     S,iS1 = preimage(iOp, Sp)
     iS = iS1*iS
   end
@@ -774,56 +774,55 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
 end
 
 # We adapt the strategy in stabilizer to compute a transporter.
-function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQuadModMor, i2::TorQuadModMor)
-  @req domain(G)===codomain(i1) "Domain of automorphism group must agree with codomain of inclusion." 
-  @req domain(G)===codomain(i2) "Domain of automorphism group must agree with codomain of inclusion."
-  @assert codomain(i1)===codomain(i2)
-  D1 = domain(i1)
-  D2 = domain(i2)
-  eldiv_1 = elementary_divisors(D1)
-  eldiv_1 == elementary_divisors(D2) || return false, one(G)
-  length(eldiv_1) == 0 && return true, one(G)
-  #is_isometric_with_isometry(D1, D2)[1] || return false, one(G)
-  _exponent = eldiv_1[end]
+function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQuadModMor, i2::TorQuadModMor)
+  @req domain(O)===codomain(i1) "Domain of automorphism group must agree with codomain of inclusion." 
+  @req domain(O)===codomain(i2) "Domain of automorphism group must agree with codomain of inclusion."
+  #i1: A1 -> C
+  #i2: A2 -> C
+  A1 = domain(i1)
+  A2 = domain(i2)
+  C = codomain(i1)
+  eldiv_1 = elementary_divisors(A1)
+  eldiv_1 == elementary_divisors(A2) || return false, one(O)
+  length(eldiv_1) == 0 && return true, one(O)
+  expA = exponent(A1)
   
   # don't do fancy stuff if the group is small
-  if order(G)<80 || (eldiv_1[1]!=eldiv_1[end] && order(G)<130)
-    @vprint :Isometry 4 "transporter via GAP group order $(order(G))"
-    to_gap = get_attribute(G, :to_gap)
+  if order(O)<80 || (eldiv_1[1]!=eldiv_1[end] && order(O)<130)
+    @vprint :Isometry 4 "transporter via GAP group order $(order(O))"
+    to_gap = get_attribute(O, :to_gap)
     Agap = codomain(to_gap)
     H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
     H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
-    X = orbit(G, on_subgroups, H1gap)
+    X = orbit(O, on_subgroups, H1gap)
     fl, g = is_conjugate_with_data(X, H1gap, H2gap)
     @vprintln :Isometry 4 " done"
     return fl, g
   end
   
-  A1 = domain(i1)
-  A2 = domain(i2)
-  C = codomain(i1)
-  if exponent(C) > exponent(A1)
-    expA = exponent(A1)
+  if exponent(C) > expA
+    # We can always reduce to an action on Ck < C (see next line)
     Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
     A1k, a1k = sub(Ck, [ck\i1(x) for x in gens(A1)])
     A2k, a2k = sub(Ck, [ck\i2(x) for x in gens(A2)])
-    Ok, iOk = restrict_automorphism_group(G, ck; check=false)
+    Ok, iOk = restrict_automorphism_group(O, ck; check=false)
     flag, _transporter = _is_conjugate_with_data(Ok, a1k, a2k)
-    !flag && return flag, one(G)
+    !flag && return flag, one(O)
     transporter = iOk\_transporter
     return flag, transporter
   end
   
   BL1 = matrix(abelian_group_homomorphism(i1))
   BL2 = matrix(abelian_group_homomorphism(i2))
-  if is_prime(_exponent)
-    p = _exponent
+  # The vector space case is the base case of the recursion.
+  if is_prime(expA)
+    p = expA
     @vprint :Isometry 4 "transporter elementary $p "
     # prime
-    mats = matrix.(gens(G))
+    mats = matrix.(gens(O))
     if length(mats)==0
       # catch a corner case which may make gap choke
-      return D1==D2, one(G)
+      return A1==A2, one(O)
     end
     R = fpField(UInt(p))
     BL1mod = change_base_ring(R, BL1)
@@ -837,6 +836,7 @@ function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQua
       BL2mod = BL2mod[1:r,:]
     end 
 
+    G = O
     Gnice = GAP.Globals.NiceObject(GapObj(G))
     # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
     BL1mod_gap = GapObj(lift(BL1mod)) * GAP.Globals.Z(GapObj(p))^0
@@ -849,23 +849,23 @@ function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQua
     mono = GAP.Globals.NiceMonomorphism(GapObj(G))
     _g = G(GAP.Globals.PreImage(mono, img))
     @vprintln :Isometry 4 " done"
-
-    to_gap = get_attribute(G, :to_gap)
-    Agap = codomain(to_gap)
-    H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
-    H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
-    @assert on_subgroups(H1gap,_g)==H2gap    
+    if get_assertion_level(:Isometry) > 0
+      to_gap = get_attribute(G, :to_gap)
+      Agap = codomain(to_gap)
+      H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
+      H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
+      @assert on_subgroups(H1gap,_g)==H2gap
+    end
     return true, _g
   end
-  n = _exponent
-  D = domain(G)
-  ed = elementary_divisors(D)
+  n = expA
   R, iR = residue_ring(ZZ, Int(n); cached=false)
-  fl, v, p = is_prime_power_with_data(_exponent)
-  if ed[1] == ed[end]
+  fl, v, p = is_prime_power_with_data(expA)
+  # we can work with the Howell form
+  # if D is a free R module
+  eldivC = elementary_divisors(C)
+  if eldivC[1] == eldivC[end]
     @vprint :Isometry 4 "transporter via Howell"
-    # we can work with the howell form
-    # if D is a free R module
     BL1mod = change_base_ring(R, BL1)
     BL2mod = change_base_ring(R, BL2)
     k1 = ncols(BL1) - nrows(BL1)
@@ -880,21 +880,24 @@ function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQua
     end
     howell_form!(BL1mod)
     howell_form!(BL2mod)
-    X = orbit(G, on_howell_form, BL1mod)
+    X = orbit(O, on_howell_form, BL1mod)
     flag, _g = is_conjugate_with_data(X, BL1mod, BL2mod)
     @vprintln :Isometry 4 " done"
   elseif fl
     @vprintln :Isometry 4 "transporter via prime power"
-    A1 = domain(i1)
-    A2 = domain(i2)
-    C = codomain(i1)
-    S = G
+    S = O
     iS = id_hom(S)
-    transporter = one(G)
+    transporter = one(O)
     pA1 = [i1(p*x) for x in gens(A1)]
     _i2 = i2
+    # We move A1 to A2 step by step going through the quotients 
+    # (A1 + p^k C) / (p^(k+1)C + pA1)
+    # and compute their stabilizers
+    # Note that at each step _A2 := _i2(A2)
+    # is contained in A1 + p^k C
+    # The basic idea is the same as in 
+    # stabilizer(::AutomorphismGroup,::TorQuadModMor) above
     for k in 0:v
-      # (A1+A2 + p^k*C) / (p^(k+1)C + pA1+pA2)
       piC = [p^k*x for x in gens(C)]
       D, iD = sub(C, append!(piC, i1.(gens(A1))))
       SD, iSD = restrict_automorphism_group(S, iD; check=false)
@@ -904,9 +907,9 @@ function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQua
       B1,j1 = sub(K, [iK(iD\(i1(x))) for x in gens(A1)])
       B2,j2 = sub(K, [iK(iD\(_i2(x))) for x in gens(A2)])
       flag, _transporter = _is_conjugate_with_data(SK, j1, j2)
-      !flag && return false, one(G)
+      !flag && return false, one(O)
       _transporter = iS(iSD\(toSK\_transporter))
-      @assert parent(_transporter) == G
+      @assert parent(_transporter) == O
       transporter = _transporter * transporter
       _i2 = _i2*hom(inv(_transporter))
       toperm = isomorphism(PermGroup, domain(toSK))
@@ -917,51 +920,54 @@ function _is_conjugate_with_data(G::AutomorphismGroup{TorQuadModule}, i1::TorQua
         @vtime :Isometry 4 S,_ = preimage(toSK, S)
         @vtime :Isometry 4 S,iS1 = preimage(iSD, S)
         iS = iS1*iS
-        @assert codomain(iS)==G
+        @assert codomain(iS)==O
       end
     end
     _g = transporter
   else 
     @vprintln :Isometry 4 "transporter via composite"
-    # for composite order iterate over the primes 
-    _G = G
-    _g = one(G)
-    _phi = id_hom(G)
+    # for composite order map A1 to A2 prime by prime
+    # compute stabilizers to preserve the progress
+    _O = O
+    _g = one(O)
+    _phi = id_hom(O)
     _i2 = i2
-    for p in prime_divisors(_exponent)
+    for p in prime_divisors(expA)
       R, iR = residue_ring(ZZ, Int(n); cached=false)
       A1p, i1p = primary_part(domain(i1), p)
       A2p, i2p = primary_part(domain(_i2), p)
-      Bp, jp = primary_part(D, p)
-      @assert is_snf(Bp)
-      A1pinBp, A1p_to_Bp = sub(Bp, [jp\i1(i1p(x)) for x in gens(A1p)])
-      A2pinBp, A2p_to_Bp = sub(Bp, [jp\_i2(i2p(x)) for x in gens(A2p)])
+      Cp, jp = primary_part(C, p)
+      @assert is_snf(Cp)
+      A1pinCp, A1p_to_Cp = sub(Cp, [jp\i1(i1p(x)) for x in gens(A1p)])
+      A2pinCp, A2p_to_Cp = sub(Cp, [jp\_i2(i2p(x)) for x in gens(A2p)])
       
-      Gp, iGp = restrict_automorphism_group(_G, jp; check=false)
-      @vtime :Isometry 4 flag, transporter = _is_conjugate_with_data(Gp, A1p_to_Bp, A2p_to_Bp)
-      !flag && return false, one(G)
-      @vtime :Isometry 4 _transporter = _phi(preimage(iGp, transporter))
+      Op, iOp = restrict_automorphism_group(_O, jp; check=false)
+      @vtime :Isometry 4 flag, transporter = _is_conjugate_with_data(Op, A1p_to_Cp, A2p_to_Cp)
+      !flag && return false, one(O)
+      @vtime :Isometry 4 _transporter = _phi(preimage(iOp, transporter))
       _g = _transporter*_g
-      stab_p, istab_p = stabilizer(Gp, A1p_to_Bp)
+      stab_p, istab_p = stabilizer(Op, A1p_to_Cp)
       # permutation group seems to be a bit faster 
       # ... but still slowish!
-      to_Gperm = isomorphism(PermGroup, _G)
-      to_Gp_perm = isomorphism(PermGroup, Gp)
-      @vtime :Isometry 4 _tmp = preimage(inv(to_Gperm)*iGp*to_Gp_perm, to_Gp_perm(stab_p)[1])[1]
-      @vtime :Isometry 4 _G,i_G = preimage(to_Gperm,_tmp)
-      _phi = i_G*_phi
+      to_Operm = isomorphism(PermGroup, _O)
+      to_Op_perm = isomorphism(PermGroup, Op)
+      @vtime :Isometry 4 _tmp = preimage(inv(to_Operm)*iOp*to_Op_perm, to_Op_perm(stab_p)[1])[1]
+      @vtime :Isometry 4 _O,i_O = preimage(to_Operm,_tmp)
+      _phi = i_O*_phi
       _i2 = _i2*hom(inv(_transporter))
-      @assert codomain(_phi) === G
+      @assert codomain(_phi) === O
       @vprintln :Isometry 4 "done $p"
     end
   end
-  # confirm the positive result
-  to_gap = get_attribute(G, :to_gap)
-  Agap = codomain(to_gap)
-  H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
-  H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
-  if flag
-    @assert on_subgroups(H1gap,_g)==H2gap    
+  if get_assertion_level(:Isometry) > 0
+    # confirm a positive result
+    to_gap = get_attribute(O, :to_gap)
+    Agap = codomain(to_gap)
+    H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
+    H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
+    if flag
+      @assert on_subgroups(H1gap,_g)==H2gap    
+    end
   end
   return flag, _g
 end
