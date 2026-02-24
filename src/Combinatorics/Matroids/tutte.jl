@@ -1,6 +1,7 @@
 
 
 function circuits(M::Matroid, S)
+  @req all(s in matroid_groundset(M) for s in S) "The restriction set has to be a subset of the matroid's ground set"
   return circuits(restriction(M,S))
 end
 
