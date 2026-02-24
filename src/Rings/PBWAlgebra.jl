@@ -912,22 +912,10 @@ function is_subset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T
         # Ditto comment ideal_membership
         return Singular.is_zero(Singular.reduce(a.sdata, singular_groebner_basis(b)))
     else
-        return Singular.is_zero(Singular.reduce(a.sopdata, singular_opgroebner_basis(b)))
+        return Singular.is_zero(Singular.reduce(get_sopdata(a), singular_opgroebner_basis(b)))
     end
 end
 
-
-
-function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
-  a === b && return true
-  gens(a) == gens(b) && return true
-  return is_subset(a, b) && is_subset(b, a)
-end
-
-function Base.hash(a::PBWAlgIdeal{D, T, S}, h::UInt) where {D, T, S}
-  b = 0x91c65dda1eed350f % UInt
-  return xor(hash(base_ring(a), hash(D, h)), b)
-end
 
 #### elimination
 
