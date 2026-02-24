@@ -132,7 +132,6 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
     end
     return G
   end
-
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
