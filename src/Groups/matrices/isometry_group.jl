@@ -647,7 +647,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   if _direct_is_faster(L1)
     b,fL = Hecke.__is_isometric_with_isometry_definite(L1, L2; depth, bacher_depth)
     @hassert :Isometry 1 !b || fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
-     @hassert :Isometry 1 denominator(fL)==1 && abs(det(fL))==1
+    @hassert :Isometry 1 denominator(fL)==1 && abs(det(fL))==1
     return b, fL
   end
   

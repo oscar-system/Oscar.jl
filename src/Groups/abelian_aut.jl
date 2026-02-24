@@ -774,7 +774,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
 end
 
 # We adapt the strategy in stabilizer to compute a transporter.
-function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQuadModMor, i2::TorQuadModMor)
+function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQuadModuleMap, i2::TorQuadModuleMap)
   @req domain(O)===codomain(i1) "Domain of automorphism group must agree with codomain of inclusion." 
   @req domain(O)===codomain(i2) "Domain of automorphism group must agree with codomain of inclusion."
   #i1: A1 -> C
