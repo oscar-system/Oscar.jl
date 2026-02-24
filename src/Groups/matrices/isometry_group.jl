@@ -84,19 +84,22 @@ function _direct_is_faster(L::ZZLat)
     end
     b = n<ub
     b && return b
+    n > 5000 && return false
     # Catches examples like the A24 Niemeier lattice
-    # where generic stabilizer computations are 
-    # currently out of reach but Plesken-Souvignier is reasonable
-    R = Hecke._shortest_vectors_sublattice(L)[1]
-    if rank(R) == rank(L) && index(L, R) > 20
-      if !is_integral(R)
-        _R = rescale(R,1//denominator(scale(R)); cached=false)
+    # where generic stabilizer computations are
+    # currently out of reach or just slow
+    # but Plesken-Souvignier is reasonable
+    A, B, _ = Hecke._shortest_vectors_sublattice(L)
+    if 3*rank(A) > rank(L) && index(B, A) > 20
+      if !is_integral(A)
+        _A = rescale(A, 1//denominator(scale(A)); cached=false)
       else 
-        _R = R
-      end 
-      ediv = elementary_divisors(discriminant_group(R))
-      b = length(ediv) > 16
+        _A = A
+      end
+      ediv = elementary_divisors(discriminant_group(A))
+      b = length(ediv) > 4
     end
+    
   end
   return b
 end 
@@ -400,14 +403,15 @@ function _overlattice_stabilizer(G::MatGroup{ZZRingElem,ZZMatrix}, S::ZZLat, L::
   end
   # cheap heuristic when howell is faster, may need to be adapted
   ed = elementary_divisors(discriminant_group(S))
-  if length(ed)<6 && length(prime_divisors(n))<=2
+  if length(ed)<6 && sum(i[2] for i in factor(ed[end]))<=2 && ed[1]==ed[end]
     howell=true
-  end 
+  end
   BL = numerator(_BL)
   if is_prime(n)
     stab = _stab_via_fin_field(G, BL, n)
   elseif howell # do everything in one go, usually the slowest
     @vprintln :Isometry 5 "stabilizer via Howell with n=$n and index $(index(L,S))"
+    @assert ed[1]==ed[end]
     stab = _stab_via_howell(G, BL, Int(n))
   else 
     @vprintln :Isometry 5 "stabilizer via recursion with n=$n and index $(index(L,S))"
@@ -472,6 +476,7 @@ function _stab_via_howell(G, BL, n)
   end
   howell_form!(BLmod)
   stab = stabilizer(G, BLmod, on_howell_form)
+  return stab
 end
 
 function on_howell_form(M::zzModMatrix, g::MatGroupElem{ZZRingElem,ZZMatrix})
@@ -628,6 +633,7 @@ function Hecke._is_isometric_with_isometry_definite(L1::ZZLat,
    return _is_isometric_with_isometry_definite_via_decomposition(L1, L2; kwargs...)
 end
 
+
 function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat, 
                                                                 L2::ZZLat; 
                                                                 depth::Int = -1, 
@@ -640,7 +646,8 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   rank(L1) != rank(L2) && return false, zero_matrix(QQ, 0, 0)
   if _direct_is_faster(L1)
     b,fL = Hecke.__is_isometric_with_isometry_definite(L1, L2; depth, bacher_depth)
-    @hassert :Isometry 3 !b || fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
+    @hassert :Isometry 1 !b || fL*gram_matrix(L2)*transpose(fL) == gram_matrix(L1)
+     @hassert :Isometry 1 denominator(fL)==1 && abs(det(fL))==1
     return b, fL
   end
   
@@ -656,10 +663,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   ind = index(M2,M2s)
   ind_v = maximum(i[2] for i in factor(ind);init=ZZ(0))
   D = discriminant_group(M2s,ind)
-  if _direct_is_faster(M1) || (length(elementary_divisors(D))>8 && ind_v>1)
+  if _direct_is_faster(M1)
     b, fM = Hecke.__is_isometric_with_isometry_definite(M1, M2;  depth, bacher_depth)
     b || return false, zero_matrix(QQ, 0, 0)
-  else 
+  else
     b, fMs = Hecke.__is_isometric_with_isometry_definite(M1s, M2s;  depth, bacher_depth)
     b || return false, zero_matrix(QQ, 0, 0)
     OM1s,_ = _isometry_group_via_decomposition(M1s; depth, bacher_depth)
@@ -669,13 +676,12 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     OM1sq = image(dM1s)[1]
     to_gapM1s = get_attribute(OM1sq,:to_gap)
     B1 = basis_matrix(M1)
-    J1gap = sub(codomain(to_gapM1s), [to_gapM1s(DM1s(B1[i,:])) for i in 1:nrows(B1)])[1]
-    fMsinvB = inv(fMs)*basis_matrix(M1s)
     B2 = basis_matrix(M2)
-    J2gap = sub(codomain(to_gapM1s), [to_gapM1s(DM1s(coordinates(B2[i,:],M2s)*fMsinvB)) for i in 1:nrows(B2)])[1]
+    fMsinvB = inv(fMs)*basis_matrix(M1s)
     @vprint :Isometry 2 "computing orbit of an overlattice of index=$(factor(index(M1,M1s))) in $(domain(OM1sq))"
-    XM = orbit(OM1sq, on_subgroups, J1gap)
-    b, tmp = is_conjugate_with_data(XM, J1gap, J2gap)
+    J1, j1 = sub(DM1s, [DM1s(B1[i,:]) for i in 1:nrows(B1)])
+    J2, j2 = sub(DM1s, [DM1s(coordinates(B2[i,:],M2s)*fMsinvB) for i in 1:nrows(B2)])
+    @vtime :Isometry 4 b, tmp = _is_conjugate_with_data(OM1sq, j1, j2)   
     b || return false, zero_matrix(QQ, 0, 0)
     @vprintln :Isometry 2 "done"
     # transform back to the bases of M1 and M2
@@ -683,8 +689,8 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     T2 = solve(basis_matrix(M2), basis_matrix(M2s); side=:left)
     fM = inv(T1)*matrix(dM1s\tmp)*fMs*T2
   end
-  @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
-  
+  @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)  
+  @hassert :Isometry 1 denominator(fM)==1
   # base case of the recursion 
   if rank(M1) == rank(L1)
     @assert degree(M1)==rank(M1)
@@ -718,7 +724,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   phi1, iHM1, iHN1 = glue_map(L1, M1,N1;_snf=true, check=false)
   phi2, iHM2, iHN2 = glue_map(L2, M2,N2;_snf=true, check=false)
   
-  # TODO: early out if direct sum. 
+  # TODO: early out if direct sum
   
   # Modify (fM,fN) so that fM(HM1) = HM2 and fN(HN1) = HN2
   HM1 = domain(phi1)
@@ -726,13 +732,9 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   HM2 = domain(phi2)
   HN2 = codomain(phi2)
   
-  to_gapM1 = get_attribute(OM1q,:to_gap)
-  #to_oscarM = get_attribute(OM1q,:to_oscar)
-  HM1gap = sub(codomain(to_gapM1), [to_gapM1(iHM1(i)) for i in gens(HM1)])[1]
   fMinvB = inv(fM)*basis_matrix(M1)
-  HM2gap = sub(codomain(to_gapM1), [to_gapM1(DM1(coordinates(lift(i),M2)*fMinvB)) for i in gens(HM2)])[1]
-  @vtime :Isometry 4 XM = orbit(OM1q, on_subgroups, HM1gap)
-  @vtime :Isometry 4 (b, tmp) = is_conjugate_with_data(XM, HM1gap, HM2gap)
+  HM2_in_DM1, iHM2_in_DM1 = sub(DM1, [DM1(coordinates(lift(i),M2)*fMinvB) for i in gens(HM2)])
+  b, tmp = _is_conjugate_with_data(OM1q, iHM1, iHM2_in_DM1)
   b || return false, zero_matrix(QQ, 0, 0)
   
   fM = matrix(dM1\tmp)*fM
@@ -740,15 +742,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   # confirm result
   @hassert :Isometry 3 all(coordinates(lift(i),M1)*fMB in cover(HM2) for i in gens(HM1))
   @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
-
-  to_gapN1 = get_attribute(ON1q,:to_gap)
-  #to_oscarN = get_attribute(ON1q,:to_oscar)
-  HN1gap = sub(codomain(to_gapN1), [to_gapN1(iHN1(i)) for i in gens(HN1)])[1]
-  fNinvB = inv(fN)*basis_matrix(N1)
-  HN2gap = sub(codomain(to_gapN1), [to_gapN1(DN1(coordinates(lift(i),N2)*fNinvB)) for i in gens(HN2)])[1]
-  XN = orbit(ON1q, on_subgroups, HN1gap)
   
-  b, tmp = is_conjugate_with_data(XN, HN1gap, HN2gap)
+  fNinvB = inv(fN)*basis_matrix(N1)
+  HN2_in_DN1, iHN2_in_DN1 = sub(DN1, [DN1(coordinates(lift(i),N2)*fNinvB) for i in gens(HN2)])
+  b, tmp = _is_conjugate_with_data(ON1q, iHN1, iHN2_in_DN1)
   b || return false, zero_matrix(QQ, 0, 0)
   # fN is represented w.r.t. the bases of N1 and N2
   fN = matrix(dN1\tmp)*fN
@@ -763,25 +760,30 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   # if the square commutes, g is trivial 
   # thus we check if we can make g trivial by modifying f
   _g = fHM1_HM2*phi2*inv(fHN1_HN2)*inv(phi1)
-  OHM1 = orthogonal_group(HM1) 
-  g = OHM1(_g)
+  #@vtime :Isometry 4 OHM1 = orthogonal_group(HM1)
   
-  # setup the induced orthogonal groups
-  stabHM1,inc_stabHM1 = stabilizer(OM1q, HM1gap, on_subgroups)
-  stabHN1,inc_stabHN1 = stabilizer(ON1q, HN1gap, on_subgroups)
+  # the induced orthogonal groups
+  stabHM1,inc_stabHM1 = stabilizer(OM1q, iHM1)
+  stabHN1,inc_stabHN1 = stabilizer(ON1q, iHN1)
+  
   stabHM1_on_HM1,res_stabM = restrict_automorphism_group(stabHM1, iHM1; check=false)
   stabHN1_on_HN1,res_stabN= restrict_automorphism_group(stabHN1, iHN1;check=false)
-  phi_stabHN1_on_HN1_phiinv,_ = sub(OHM1, elem_type(OHM1)[OHM1(phi1*hom(i)*inv(phi1)) for i in gens(stabHN1_on_HN1)])
+  #avoid orthogonal_group(HM1) because it can be slow in the non-split degenerate case
+  gensV = [phi1*hom(i)*inv(phi1) for i in gens(stabHN1_on_HN1)]
+  phi_stabHN1_on_HN1_phiinv = _orthogonal_group(HM1, gensV)  
   
+  #g = OHM1(_g)
   
   # notation D:= UgV \subseteq G
   # find u,v with 1 = u g v
-  G = OHM1
+  #G = OHM1
   U = stabHM1_on_HM1
+  G = _orthogonal_group(HM1, vcat(gensV,[_g],hom.(gens(U))))
+  g = G(_g)
   V = phi_stabHN1_on_HN1_phiinv
   
   # permutation groups are faster
-  GtoGperm = isomorphism(PermGroup, G) # there are other ways to get a permutation group
+  GtoGperm = isomorphism(PermGroup, G)
   Gperm = codomain(GtoGperm)
   Uperm = GtoGperm(U)[1]
   Vperm = GtoGperm(V)[1]
@@ -810,7 +812,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     fNB = fN*basis_matrix(N2)
     fHN1_HN2 = hom(HN1, HN2, [HN2(coordinates(lift(i), N1)*fNB) for i in gens(HN1)])
     _g = fHM1_HM2*phi2*inv(fHN1_HN2)*inv(phi1)
-    g = OHM1(_g)
+    g = G(_g)
     @hassert :Isometry 1 isone(g)
   end
   
