@@ -79,11 +79,11 @@ julia> length(maximal_cones(C))
 function common_refinement(
   PF1::PolyhedralFan{T}, PF2::PolyhedralFan{T}
 ) where {T<:scalar_types}
-  U, f = _promote_scalar_field(coefficient_field(PC1), coefficient_field(PC2))
-  pm_PC1 = pm_object(PC1)
-  pm_PC2 = pm_object(PC2)
+  U, f = _promote_scalar_field(coefficient_field(PF1), coefficient_field(PF2))
+  pm_PF1 = pm_object(PF1)
+  pm_PF2 = pm_object(PF2)
   result = Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
-    Polymake.fan.common_refinement(pm_PC1, pm_PC2)
+    Polymake.fan.common_refinement(pm_PF1, pm_PF2)
   )
   return PolyhedralFan{T}(result, f)
 end
