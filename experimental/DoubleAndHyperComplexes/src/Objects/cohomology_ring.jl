@@ -191,6 +191,15 @@ function mul_homog(a, b)
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
 end
 
+# Parent and element types
+elem_type(::Type{SimplicialCohomologyRing{T}}) where {T} = SimplicialCohomologyRingElem{T}
+parent_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = SimplicialCohomologyRing{T}
+
+
+# Base ring and base ring type
+base_ring(C::SimplicialCohomologyRing) = base_ring(simplicial_co_complex(C))
+base_ring_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = parent_type(T)
+
 # Equality for homogeneous elements is straight foward; for inhomogeneous, do it by sets of homogeneous parts
 function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   if is_homogeneous_normalized(a) && is_homogeneous_normalized(b)
@@ -199,5 +208,3 @@ function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
     return homogeneous_parts(a) == homogeneous_parts(b)
   end
 end
-
-
