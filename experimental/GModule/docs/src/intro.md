@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Introduction
 
-The central objetct here are $G$-modules: 
+The central objects here are $G$-modules: 
 Let $G$ be a finite group and $M$ be any abelian group. A $G$-module
 $C$ is given by specifying automorphisms of $M$ for each generator of $G$, 
 thus as a $G$-action on $M$. Here $M$ can have a wide range of types, 
