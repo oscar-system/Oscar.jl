@@ -99,7 +99,6 @@ function _direct_is_faster(L::ZZLat)
       ediv = elementary_divisors(discriminant_group(A))
       b = length(ediv) > 4
     end
-    
   end
   return b
 end 
