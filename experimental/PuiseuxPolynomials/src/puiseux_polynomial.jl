@@ -374,7 +374,7 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::ZZRingElem)
     return reduce(*, [ f for i in 1:a ])
 end
 
-function Base.:^(f::PuiseuxMPolyRingElem, a::Int)
+function Base.:^(f::PuiseuxMPolyRingElem, a::Integer)
     return f^(ZZ(a))
 end
 
