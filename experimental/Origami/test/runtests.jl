@@ -6,7 +6,7 @@
   @test degree(o) == max(degree(h), degree(v))
   @test (@inferred degree(o)) == 3
 
-  G = symmetric_group(degree(o))
+  G = perm_group(o)
 
   @test horizontal_perm(o) == G(h)
   @test vertical_perm(o) == G(v)
