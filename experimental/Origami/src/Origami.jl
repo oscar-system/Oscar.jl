@@ -63,10 +63,10 @@ function from_GAP_origami(o::GapObj)
 end
 
 @doc raw"""
-    origami_disconnected(h::PermGroupElem, v::PermGroupElem)
+    origami_disconnected(h::PermGroupElem, v::PermGroupElem, d::Integer)
 
-This function constructs an Origami object from two given permutations h and v, without checking
-whether or not the described surface is connected.
+This function constructs an Origami object from two given permutations h and v of degree d,
+without checking whether or not the described surface is connected.
 
 # Examples
 ```jldoctest
@@ -310,8 +310,8 @@ julia> is_hyperelliptic(o)
 false
 ```
 """
-# TODO elaborate on what hyperelliptic means for origamis?
 function is_hyperelliptic(o::Origami)
+  # TODO elaborate on what hyperelliptic means for origamis?
   # check whether -1 is in the veech group
   if !veech_group_is_even(o)
     return false
