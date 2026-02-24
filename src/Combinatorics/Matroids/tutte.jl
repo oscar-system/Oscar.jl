@@ -34,16 +34,19 @@ end
   Computes the Tutte group of a matroid M for a ring with characteristic `char`.
   For more details; see [DW89](@cite).
 """
-function tutte_group(R::Ring, M::Matroid)
+function tutte_group(M::Matroid; char::Int=-1)
   B = bases(M)
   idx = Dict{Set{Int}, Int}(Set(k) => i for (i,k) in enumerate(B))
   #idx[Set{Int}()] = length(B) + 1 #this is to index the epsilon
   gs = matroid_groundset(M)
-  v = zeros(Int, length(B)+1)
-  if char == 2
+  if char==2
+    v = zeros(Int, length(B)+1)
     v[end] = 1 #this is for the epsilon
+    relations = [v]
   else
+    v = zeros(Int, length(B)+1)
     v[end] = 2
+    relations = [v]
   end
   relations = [v]
   for X in nonbases(M)
@@ -72,18 +75,21 @@ function tutte_group(R::Ring, M::Matroid)
 end
 
 """
-  False if matroid M is not realizable over R.
+    tutte_realizable(M::Matroid; char::Int=-1)
+    tutte_realizable(G::FinGenAbGroup)
+
+  False if matroid M is not realizable over a ring with characteristic 
   True if inconclusive. 
   Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
   see Corollary 1 in Section 3 of [DW89](@cite).
 ```julia
 julia> tutte_realizable(QQ,uniform_matroid(2,4));
-false
-julia> tutte_realizable(QQ,fano_matroid())
 true
+julia> tutte_realizable(QQ,fano_matroid())
+false
 ```
 """
-function tutte_realizable(R::Ring, M::Matroid)
+function tutte_realizable(M::Matroid; char::Int=-1)
   T = tutte_group(R,M);
   return tutte_realizable(T)
 end
