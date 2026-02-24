@@ -1,4 +1,5 @@
 dir = joinpath(Oscar.oscardir, "experimental", "DrawingCurves", "test")
+T = matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055])
 
 @testset "Robinson6" begin
   R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
@@ -7,7 +8,7 @@ dir = joinpath(Oscar.oscardir, "experimental", "DrawingCurves", "test")
     60 * x^2 * y^2 * z^2 − 20 * y^4 * z^2 − 20 * x^2 * z^4 − 20 * y^2 * z^4 + 19 * z^6
   zchart_ring, (zx, zy) = polynomial_ring(QQ, [:x, :y])
   zchart_hom = hom(R, zchart_ring, [zx, zy, 1])
-  IG = Oscar._compute_isotopy_graph(zchart_hom(r6))[1]
+  IG = Oscar._compute_isotopy_graph(zchart_hom(r6), T, 1)[1]
   desiredG = load(joinpath(dir, "robinson6.graph"))
   computedG = IG.G
   @test Polymake.graph.isomorphic(desiredG.pm_graph, computedG.pm_graph)
@@ -30,5 +31,11 @@ end
   fn = tempname()
   desiredfn = joinpath(dir, "harnack6_graph.tikz")
   draw_curve_tikz(fn, zchart(f); graph=true)
+  IG = Oscar._compute_isotopy_graph(zchart(f), T, 1)[1]
+  # Number of affine components should always be the same.
+  # This is a better check than the file comparison later, nevertheless the file
+  # check is also necessary. But the file might change a lot, so this check
+  # gives some confidence whether we can update it.
+  @test length(connected_components(IG.G)) == 16
   @test success(`cmp --quiet $fn $desiredfn`)
 end

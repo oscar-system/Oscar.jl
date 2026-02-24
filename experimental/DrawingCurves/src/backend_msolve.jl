@@ -17,6 +17,7 @@ function _analyse_singularity_msolve(
   ypt::Vector{QQFieldElem};
   selected_precision::Int,
 )
+  verbose = false
   Rxy = parent(f)
   y = gens(Rxy)[2]
   x = gens(Rxy)[1]
@@ -122,6 +123,7 @@ function isotopy_graph_from_msolve(
   IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform::QQMatrix,
   selected_precision::Int,
 )
+  verbose = false
   Rxy = parent(f_in)
   @assert nvars(Rxy) == 2 "Need curve in affine plane"
 
@@ -134,7 +136,9 @@ function isotopy_graph_from_msolve(
   Ry, t = polynomial_ring(K, [:y])
   projy = hom(Rxy, Ry, [0, t[1]])
   sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
-  println("There are ", length(sings), " points to investigate")
+  if verbose
+    println("There are ", length(sings), " points to investigate")
+  end
   svecs = []
   sindices = []
   stypes = Symbol[]
@@ -147,8 +151,10 @@ function isotopy_graph_from_msolve(
     (svec, si, type) = _analyse_singularity_msolve(
       f, dfx, projy, xpt, ypt; selected_precision
     )
-    println("$i $(Float64(xpt[1]))")
-    println("$i Was this singular? $type")
+    if verbose
+      println("$i $(Float64(xpt[1]))")
+      println("$i Was this singular? $type")
+    end
     if type == :broken
       return false
     end
