@@ -21,9 +21,6 @@ function cocircuit(M::Matroid, S)
   return cocircuits(M,S)[1] 
 end
 
-
-
-
 function tutte_group(R::Ring, M::Matroid)
   B = bases(M)
   idx = Dict{Set{Int}, Int}(Set(k) => i for (i,k) in enumerate(B))
@@ -64,9 +61,7 @@ function tutte_group(R::Ring, M::Matroid)
 end
 
 
+
 export tutte_group, circuits, circuit, circuit
 
-struct TutteGroup
-  group::FinGenAbGroup
-end
 
