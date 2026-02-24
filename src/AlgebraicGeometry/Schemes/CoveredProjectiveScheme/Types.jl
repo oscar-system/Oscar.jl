@@ -164,7 +164,7 @@ end
       projective_gluings::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing};
       check::Bool=true
     )
-    C in coverings(Y) || error("covering not listed")
+    #C in coverings(Y) || error("covering not listed")
     for P in values(projective_patches)
       any(x->x===base_scheme(P), patches(C)) || error("base scheme not found in covering")
     end
