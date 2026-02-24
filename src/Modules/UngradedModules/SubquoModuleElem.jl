@@ -437,7 +437,7 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
-function Base.hash(a::SubquoModuleElem)
+function Base.hash(a::SubquoModuleElem, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)

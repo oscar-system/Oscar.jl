@@ -139,8 +139,10 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
   end
 end
 
+is_homogeneous_normalized(a::SimplicialCohomologyRingElem) = !isnothing(a.homog_elem)
+
 # extract homogeneous parts
-homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a]
+homogeneous_parts(a::SimplicialCohomologyRingElem) = Set(isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a])
 
 # distribute over homogeneous parts
 *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
@@ -170,3 +172,16 @@ function mul_homog(a, b)
   end
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
 end
+
+# Equality for homogeneous elements is straight foward; for inhomogeneous, do it by sets of homogeneous parts
+function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+  if is_homogeneous_normalized(a) && is_homogeneous_normalized(b)
+    return a.homog_elem == b.homog_elem && a.homog_deg == b.homog_deg
+  else
+    return homogeneous_parts(a) == homogeneous_parts(b)
+  end
+end
+
+import Base.hash
+# Either hash the homogeneous information, OR the inhomogeneous information (for homogeneous elements, `coeff` is #undef)
+hash(a::SimplicialCohomologyRingElem, h::UInt) = is_homogeneous_normalized(a) ? hash(a.homog_elem, hash(a.homog_deg, h)) : hash(a.coeff, h)
