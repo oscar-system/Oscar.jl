@@ -61,8 +61,27 @@ function tutte_group(R::Ring, M::Matroid)
   return abelian_group(relations_matrix)
 end
 
+"""
+  DW_condition(R::Ring, M::Matroid)
 
 
-export tutte_group, circuits, circuit, circuit
+```julia
+julia> DW_condition(QQ,uniform_matroid(2,4));
+false
+julia> DW_condition(QQ,fano_matroid())
+true
+```
 
+```
+"""
+function DW_condition(R::Ring, M::Matroid)
+  T = tutte_group(R,M);
+  return DW_condition(T)
+end
+function DW_condition(G::FinGenAbGroup)
+  n = ngens(G)
+  e = G([ i == n ? 1 : 0 for i in 1:n])
+  return is_one(e)
+end
 
+export tutte_group, circuits, circuit, cocircuit, DW_condition
