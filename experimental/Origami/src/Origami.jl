@@ -76,7 +76,7 @@ julia> h = @perm (1,2,3,4)
 julia> v = @perm (4,5)
 (4,5)
 
-julia> o = origami_disconnected(h,v)
+julia> o = origami_disconnected(h,v,5)
 Origami ((1,2,3,4),(4,5), 5)
 ```
 """
