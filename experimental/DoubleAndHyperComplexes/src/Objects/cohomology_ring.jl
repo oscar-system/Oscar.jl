@@ -42,7 +42,9 @@ mutable struct SimplicialCohomologyRingElem{T}
   end
 end
 
+parent(a::SimplicialCohomologyRingElem) = a.parent
 zero(A::SimplicialCohomologyRing) = SimplicialCohomologyRingElem(A)
+zero(a::SimplicialCohomologyRingElem) = zero(parent(a))
 
 function one(A::SimplicialCohomologyRing)
   SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_co_complex(A), 0)[1])))
