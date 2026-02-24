@@ -22,7 +22,7 @@ function _compute_isotopy_graph(f_in, transform::MatrixElem, ntries::Int; select
   IG = _IsotopyGraph()
   random_transform = matrix(QQ, transform)
   success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
-  println("result is $success")
+  @vprintln :DrawingCurves 2 "Was isotopy graph generated successfully? $success"
   counter = 1
   while counter<ntries
     # println("Turning!")

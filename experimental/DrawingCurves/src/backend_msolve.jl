@@ -3,7 +3,6 @@ function _real_roots(f::QQMPolyRingElem; selected_precision::Int)
   (result, _) = Oscar.real_solutions(
     Vector{QQFieldElem}, ideal(f); precision=selected_precision
   )
-  # println("res: ",result)
   result = [r[1] for r in result]
   sort!(result)
   return result
@@ -17,7 +16,6 @@ function _analyse_singularity_msolve(
   ypt::Vector{QQFieldElem};
   selected_precision::Int,
 )
-  verbose = false
   Rxy = parent(f)
   y = gens(Rxy)[2]
   x = gens(Rxy)[1]
@@ -123,7 +121,6 @@ function isotopy_graph_from_msolve(
   IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform::QQMatrix,
   selected_precision::Int,
 )
-  verbose = false
   Rxy = parent(f_in)
   @assert nvars(Rxy) == 2 "Need curve in affine plane"
 
@@ -136,9 +133,7 @@ function isotopy_graph_from_msolve(
   Ry, t = polynomial_ring(K, [:y])
   projy = hom(Rxy, Ry, [0, t[1]])
   sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
-  if verbose
-    println("There are ", length(sings), " points to investigate")
-  end
+  @vprintln :DrawingCurves 2  "There are $(length(sings)) points to investigate"
   svecs = []
   sindices = []
   stypes = Symbol[]
@@ -147,20 +142,16 @@ function isotopy_graph_from_msolve(
   i = 0
   for (xpt, ypt) in sings
     i += 1
-    # println(Float64(xpt[1])," ",Float64(xpt[2])," ",Float64(ypt[1])," ",Float64(ypt[2]))
     (svec, si, type) = _analyse_singularity_msolve(
       f, dfx, projy, xpt, ypt; selected_precision
     )
-    if verbose
-      println("$i $(Float64(xpt[1]))")
-      println("$i Was this singular? $type")
-    end
+    @vprintln :DrawingCurves 2 "$i $(Float64(xpt[1]))"
+    @vprintln :DrawingCurves 2 "$i Was this singular? $type"
     if type == :broken
       return false
     end
     push!(svecs, svec)
     push!(sindices, si)
-    # println("si: $si $(length(svec))")
     push!(stypes, type)
   end
 
