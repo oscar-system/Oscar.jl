@@ -77,12 +77,6 @@ function Base.:+(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIde
   return ideal(R, vcat(gens(a), gens(b)))
 end
 
-function Base.:*(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
-  R = base_ring(a)
-  @req R == base_ring(b) "parent mismatch"
-  return ideal(R, [i*j for i in gens(a) for j in gens(b)])
-end
-
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) = normal_form(f, gens(I))
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}) = normal_form(f, collect(I))
 
