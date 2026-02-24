@@ -71,7 +71,7 @@ function deepcopy_internal(a::SimplicialCohomologyRingElem, d::IdDict)
   return result
 end
 
-function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T}) where {T}
   @assert parent(a) === parent(b) "parent mismatch"
   is_zero(a) && return deepcopy(b)
   is_zero(b) && return deepcopy(a)
@@ -107,6 +107,7 @@ function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
           result.coeff[q] = res
         end
       end
+      return result
     end
   else # a is homogeneous
     q = a.homog_deg
@@ -138,15 +139,18 @@ function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   end
 end
 
-function *(a, b)
-  (
-    isnothing(a.homog_elem) && isnothing(a.homog_elem) ? sum(mul_homog(ah, bh) for ah in a.coeff, bh in b.coeff) :
-    isnothing(a.homog_elem)                            ? sum(mul_homog(ah, b)  for ah in a.coeff) :
-    isnothing(b.homog_elem)                            ? sum(mul_homog(a, bh)  for bh in b.coeff) :
-                                                         mul_homog(a, b)
-  )
-end
+# extract homogeneous parts
+homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a]
 
+# distribute over homogeneous parts
+*(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
+   isnothing(a.homog_elem) && isnothing(a.homog_elem) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
+   isnothing(a.homog_elem)                            ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
+   isnothing(b.homog_elem)                            ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
+                                                        mul_homog(a, b)
+)
+
+# Multiplication on homogeneous parts
 function mul_homog(a, b)
   @req parent(a) === parent(b) "parent mismatch"
   p = a.homog_deg
