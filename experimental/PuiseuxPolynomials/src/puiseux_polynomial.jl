@@ -156,6 +156,15 @@ end
 #
 #################################################################################
 
+# The next function is required but not tested in AbstractAlgebra.
+# The following code errors without it:
+#   QQt,(t,) = puiseux_polynomial_ring(QQ,["t"]);
+#   QQtx, x = polynomial_ring(QQt,3);
+#   prod(x .^ rand(1:9,3)) # calls mul_johnson in AA/src/generic/MPoly,jl
+function (R::PuiseuxMPolyRing)()
+    return zero(R)
+end
+
 function (Kt::PuiseuxMPolyRing)(c::Int)
     return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
@@ -171,6 +180,7 @@ end
 function (Kt::PuiseuxMPolyRing{T})(c::T) where T <: FieldElement
     return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
+
 function (Kt::PuiseuxMPolyRing{T})(ct::PuiseuxMPolyRingElem{T}) where T <: FieldElement
     return ct
 end
@@ -184,6 +194,21 @@ end
 elem_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = PuiseuxMPolyRingElem{T}
 parent_type(::Type{PuiseuxMPolyRingElem{T}}) where T <: FieldElement = PuiseuxMPolyRing{T}
 base_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = parent_type(T)
+
+# The next function is required but not tested in AbstractAlgebra.
+# The following code errors without it:
+# K = algebraic_closure(QQ);
+# Kz, z = polynomial_ring(K, "z");
+# C = roots(rand(Int8)*z^2+rand(Int8)*z+rand(Int8))
+# for _ in 1:99
+#     C = vcat(C,roots(rand(Int8)*z^2+rand(Int8)*z+rand(Int8)))
+# end
+# Kt,(t,) = puiseux_polynomial_ring(K,["t"]);
+# Ct = [ Kt(c) * t^rand(Int8) for c in C ]
+# Ktx,x = polynomial_ring(Kt,3);
+# f = sum([ rand(Ct) * prod(x .^ rand(1:9,3))  for _ in 1:9])
+# evaluate(f, [Ktx(1), Ktx(1), Ktx(1)+x[3]]) # runs ^(::MPoly,Int) in AA/src/generic/MPoly,jl
+characteristic(R::PuiseuxMPolyRing) = characteristic(coefficient_ring(R))
 
 function Base.hash(f::PuiseuxMPolyRingElem, h::UInt)
     normalize!(f)
@@ -385,4 +410,39 @@ end
 
 function Base.:(//)(f::PuiseuxMPolyRingElem, a::Int)
     return f//coefficient_ring(f)(a)
+end
+
+# The next function is required but not tested in AbstractAlgebra.
+# The following code errors without it (after implenenting characteristic above):
+# K = algebraic_closure(QQ);
+# Kz, z = polynomial_ring(K, "z");
+# C = roots(rand(Int8)*z^2+rand(Int8)*z+rand(Int8))
+# for _ in 1:99
+#     C = vcat(C,roots(rand(Int8)*z^2+rand(Int8)*z+rand(Int8)))
+# end
+# Kt,(t,) = puiseux_polynomial_ring(K,["t"]);
+# Ct = [ Kt(c) * t^rand(Int8) for c in C ]
+# Ktx,x = polynomial_ring(Kt,3);
+# f = sum([ rand(Ct) * prod(x .^ rand(1:9,3))  for _ in 1:9])
+# evaluate(f, [Ktx(1), Ktx(1), Ktx(1)+x[3]]) # runs pow_fps in AA/src/generic/MPoly.jl
+function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
+    @assert parent(f) == parent(g) "elements must be in the same ring"
+    @assert !iszero(g) "division by zero"
+
+    if iszero(f)
+        return zero(parent(f))
+    end
+    if isone(g)
+        return f
+    end
+
+    @assert length(g) == 1 "can only divide by monomials"
+
+    # subtract shifts, multiply scales and divide poly(f) by coefficient of poly(g)
+    newShift = shift(f)*scale(g) - shift(g)*scale(f)
+    newScale = scale(f)*scale(g)
+    xPrimes = gens(parent(poly(f)))
+    newPoly = evaluate(poly(f), xPrimes .^ scale(g)) / first(coefficients(poly(g)))
+
+    return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
