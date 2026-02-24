@@ -138,5 +138,31 @@ function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   end
 end
 
+function *(a, b)
+  (
+    isnothing(a.homog_elem) && isnothing(a.homog_elem) ? sum(mul_homog(ah, bh) for ah in a.coeff, bh in b.coeff) :
+    isnothing(a.homog_elem)                            ? sum(mul_homog(ah, b)  for ah in a.coeff) :
+    isnothing(b.homog_elem)                            ? sum(mul_homog(a, bh)  for bh in b.coeff) :
+                                                         mul_homog(a, b)
+  )
+end
 
-
+function mul_homog(a, b)
+  @req parent(a) === parent(b) "parent mismatch"
+  p = a.homog_deg
+  q = b.homog_deg
+  A = parent(a)
+  C = simplicial_co_complex(A)
+  H = homology(C, p+q)[1]
+  K = simplicial_complex(C)
+  cochain = zero(ambient_free_module(H))
+  f = Dict(s => i for (i,s) in enumerate(faces(K, p+q)))
+  for (ga, ca) in coordinates(repres(a.homog_elem)), (gb, cb) in coordinates(repres(b.homog_elem))
+    sa = faces(K, p)[ga]
+    sb = faces(K, q)[gb]
+    s = union(sa, sb)
+    (maximum(sa) == minimum(sb) && s in keys(f)) || continue
+    cochain += ca * cb * gens(C[p+q])[f[s]]
+  end
+  return SimplicialCohomologyRingElem(A, p+q, H(cochain))
+end
