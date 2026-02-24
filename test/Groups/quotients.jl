@@ -64,8 +64,8 @@ end
        @test isa(Q, T2)
        @test is_abelian(Q)
        @test order(Q) == order(G)
-#TODO: check `is_isomorphic` or equality of `abelian_invariants`
-#      as soon as the GAP bug is fixed
+#TODO: better check `is_isomorphic` or equality of `abelian_invariants`
+#      as soon as https://github.com/gap-system/gap/pull/6246 is available
      end
    end
    T = FPGroup

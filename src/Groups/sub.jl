@@ -862,8 +862,7 @@ function quo(::Type{Q}, G::GAPGroup, N::GAPGroup) where Q <: GAPGroup
 end
 
 """
-    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
-    maximal_abelian_quotient([::Type{Q}, ]G::FinGenAbGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+    maximal_abelian_quotient([::Type{Q}, ]G::Group) where Q <: Union{GAPGroup, FinGenAbGroup}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
