@@ -573,7 +573,10 @@ and by assigning an image to each variable of $R$.
 In OSCAR, such homomorphisms are created by using the following constructor:
 
 ```@docs
-hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector;
+    check::Bool = true,
+    grading_group_hom = nothing,
+    degree_shift = nothing)
 ```
 
 Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
