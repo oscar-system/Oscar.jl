@@ -961,39 +961,6 @@ Return the zero element of `M`.
 """
 zero(M::SubquoModule) = SubquoModuleElem(sparse_row(base_ring(M)), M)
 
-@doc raw"""
-    is_zero(M::SubquoModule)
-
-Return `true` if `M` is the zero module, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> A = R[x^2+y^2;]
-[x^2 + y^2]
-
-julia> B = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Subquotient of submodule with 1 generator
-  1: (x^2 + y^2)*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M)
-false
-```
-"""
 @attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
@@ -1017,76 +984,6 @@ function *(a::FreeModElem, b::Vector{FreeModElem})
   return s
 end
 
-@doc raw"""
-    is_zero(m::SubquoModuleElem)
-
-Return `true` if `m` is zero, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> A = R[x; y]
-[x]
-[y]
-
-julia> B = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Subquotient of submodule with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M[1])
-false
-
-julia> is_zero(x*M[1])
-true
-```
-
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> F = graded_free_module(Rg, 1)
-Graded free module Rg^1([0]) of rank 1 over Rg
-
-julia> A = Rg[x; y]
-[x]
-[y]
-
-julia> B = Rg[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by graded submodule of F with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M[1])
-false
-
-julia> is_zero(x*M[1])
-true
-
-```
-"""
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
   m.is_reduced && return false
@@ -1104,5 +1001,3 @@ function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRing
   x = reduce(repres(m), C.quo)
   return iszero(x)
 end
-
-
