@@ -159,7 +159,7 @@ end
 
 -(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = a + (-b)
 
-# extract homogeneous parts
+# extract homogeneous parts. We do a set, because we need it for ==
 homogeneous_parts(a::SimplicialCohomologyRingElem) = Set(isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a])
 
 # distribute over homogeneous parts
