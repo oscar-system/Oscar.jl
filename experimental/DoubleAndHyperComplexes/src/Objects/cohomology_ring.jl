@@ -170,3 +170,13 @@ function mul_homog(a, b)
   end
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
 end
+
+
+# Parent and element types
+elem_type(::Type{SimplicialCohomologyRing{T}}) where {T} = SimplicialCohomologyRingElem{T}
+parent_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = SimplicialCohomologyRing{T}
+
+
+# Base ring and base ring type
+base_ring(C::SimplicialCohomologyRing) = base_ring(simplicial_co_complex(C))
+base_ring_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = parent_type(T)
