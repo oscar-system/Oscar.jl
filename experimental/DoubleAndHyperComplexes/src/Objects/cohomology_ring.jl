@@ -1,10 +1,11 @@
 mutable struct SimplicialCohomologyRing{T} <: NCRing
-  C::SimplicialCoComplex{T}
+  C::SimplicialCoComplex
 
   function SimplicialCohomologyRing(K::SimplicialComplex)
     return SimplicialCohomologyRing(SimplicialCoComplex(K))
   end
-  function SimplicialCohomologyRing(C::SimplicialCoComplex{T}) where {T}
+  function SimplicialCohomologyRing(C::SimplicialCoComplex)
+    T = elem_type(base_ring(C))
     return new{T}(C)
   end
 end
