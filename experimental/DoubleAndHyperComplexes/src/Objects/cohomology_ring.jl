@@ -12,7 +12,7 @@ end
 
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
 
-mutable struct SimplicialCohomologyRingElem{T}
+mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   parent::SimplicialCohomologyRing{T}
   homog_elem::Union{SubquoModuleElem{T}, Nothing}
   homog_deg::Union{Int, Nothing}
@@ -45,30 +45,40 @@ end
 parent(a::SimplicialCohomologyRingElem) = a.parent
 zero(A::SimplicialCohomologyRing) = SimplicialCohomologyRingElem(A)
 zero(a::SimplicialCohomologyRingElem) = zero(parent(a))
+(A::SimplicialCohomologyRing)() = zero(A)
 
 function one(A::SimplicialCohomologyRing)
   SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_co_complex(A), 0)[1])))
 end
 
-function deepcopy_internal(d::IdDict, a::SimplicialCohomologyRingElem)
+function is_zero(a::SimplicialCohomologyRingElem)
+  if isnothing(a.homog_elem)
+    !isdefined(a, :coeff) && return true
+    isempty(a.coeff) && return true
+    return all(iszero(b) for (_, b) in a.coeff)
+  end
+  return is_zero(a.homog_elem)
+end
+
+function deepcopy_internal(a::SimplicialCohomologyRingElem, d::IdDict)
   result = parent(a)()
   if !isnothing(a.homog_elem)
-    result.homog_elem = deepcopy_internal(d, a.homog_elem)
-    result.homog_deg = copy(a.homog_deg)
+    result.homog_elem = deepcopy_internal(a.homog_elem, d)
+    result.homog_deg = deepcopy(a.homog_deg)
     return result
   end
-  result.coeff = deepcopy_internal(d, a.coeff)
+  result.coeff = deepcopy_internal(a.coeff, d)
   return result
 end
 
 function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   @assert parent(a) === parent(b) "parent mismatch"
-  is_zero(a) && return copy(b)
-  is_zero(b) && return copy(a)
+  is_zero(a) && return deepcopy(b)
+  is_zero(b) && return deepcopy(a)
   result = parent(a)() # unassigned zero element
   if isnothing(a.homog_elem)
-    result.coeff = copy(a.coeff) # the result will not be homogeneously stored 
-    !isdefined(a.coeff) && return copy(b) # a was the zero element in the end
+    result.coeff = deepcopy(a.coeff) # the result will not be homogeneously stored 
+    !isdefined(a, :coeff) && return deepcopy(b) # a was the zero element in the end
     if isnothing(b.homog_elem)
       for (q, v) in b.coeff
         w = get(result.coeff, q, nothing)
@@ -101,7 +111,7 @@ function +(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   else # a is homogeneous
     q = a.homog_deg
     if isnothing(b.homog_elem) # b is not homogeneous
-      result.coeff = copy(b.coeff) # result will not be homogeneously stored
+      result.coeff = deepcopy(b.coeff) # result will not be homogeneously stored
       w = get(result.coeff, q, nothing)
       if isnothing(w)
         result.coeff[q] = a.homog_elem
