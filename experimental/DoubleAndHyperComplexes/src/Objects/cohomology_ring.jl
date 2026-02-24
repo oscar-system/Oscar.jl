@@ -139,15 +139,35 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
   end
 end
 
-# extract homogeneous parts
-homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a]
+is_homogeneous_normalized(a::SimplicialCohomologyRingElem) = !isnothing(a.homog_elem)
+
+is_homogeneous_denormalized(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) && isone(length(a.coeff))
+
+is_homogeneous(a::SimplicialCohomologyRingElem) = iszero(a) || is_homogeneous_normalized(a) || is_homogeneous_denormalized(a)
+
+function degree(a::SimplicialCohomologyRingElem)
+  if is_homogeneous_normalized(a)
+    return a.homog_deg
+  elseif is_homogeneous_denormalized(a)
+    return only(keys(a.coeff))
+  else
+    throw(ArgumentError("not homogeneous"))
+  end
+end
+
+-(a::SimplicialCohomologyRingElem) = is_homogeneous_normalized(a) ? SimplicialCohomologyRingElem(parent(a), a.homog_deg, -a.homog_elem) : sum(-b for b in homogeneous_parts(a))
+
+-(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = a + (-b)
+
+# extract homogeneous parts. We do a set, because we need it for ==
+homogeneous_parts(a::SimplicialCohomologyRingElem) = Set(isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a])
 
 # distribute over homogeneous parts
 *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
-   isnothing(a.homog_elem) && isnothing(a.homog_elem) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
-   isnothing(a.homog_elem)                            ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
-   isnothing(b.homog_elem)                            ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
-                                                        mul_homog(a, b)
+   is_homogeneous_normalized(a) && is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
+   is_homogeneous_normalized(a)                                 ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
+   is_homogeneous_normalized(b)                                 ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
+                                                                  mul_homog(a, b)
 )
 
 # Multiplication on homogeneous parts
@@ -170,3 +190,14 @@ function mul_homog(a, b)
   end
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
 end
+
+# Equality for homogeneous elements is straight foward; for inhomogeneous, do it by sets of homogeneous parts
+function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+  if is_homogeneous_normalized(a) && is_homogeneous_normalized(b)
+    return a.homog_elem == b.homog_elem && a.homog_deg == b.homog_deg
+  else
+    return homogeneous_parts(a) == homogeneous_parts(b)
+  end
+end
+
+
