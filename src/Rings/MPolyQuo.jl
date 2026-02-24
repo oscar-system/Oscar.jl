@@ -708,10 +708,6 @@ function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_groebner_generators(b)))
 end
 
-function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
-  return issubset(a, b) && issubset(b, a)
-end
-
 @doc raw"""
     simplify(f::MPolyQuoRingElem)
 
