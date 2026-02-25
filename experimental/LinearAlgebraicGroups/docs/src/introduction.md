@@ -5,7 +5,8 @@ DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
-A linear algebraic group is an affine variety with a group strucutre. These groups can be embedded into a ``GL_n`` and we work with linear algebraic groups as matrix groups. Here we consider reductive linear algebraic groups.
+A linear algebraic group is an affine variety with a group structure. These groups can be embedded into a ``GL_n``
+and we represent linear algebraic groups as matrix groups. Here we consider reductive linear algebraic groups.
 
 
 ## Contact
