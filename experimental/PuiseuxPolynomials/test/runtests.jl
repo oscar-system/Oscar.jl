@@ -113,7 +113,7 @@ using Oscar
         @test (g)^3 == u^(3//2) + 3*u*v^(1//3) + 3*u^(1//2)*v^(2//3) + v
         @test (g)^1 == g
         @test (g)^0 == 1
-        @test g//(2) == (1//2)*u^(1//2) + (1//2)*v^(1//3)
+        @test divexact(g, 2) == (1//2)*u^(1//2) + (1//2)*v^(1//3)
 
         g = u^(1//2)*v^(2//3) + w^(1//4)
         h = u^(2//3)
@@ -152,7 +152,7 @@ using Oscar
     @testset "Conformance tests" begin
         K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
-        ConformanceTests.test_Ring_interface(K_p) # basic tests
-        # ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
+        # ConformanceTests.test_Ring_interface(K_p) # basic tests
+        ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
     end
 end

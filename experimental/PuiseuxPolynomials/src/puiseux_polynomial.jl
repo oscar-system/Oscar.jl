@@ -243,6 +243,8 @@ is_gen(f::PuiseuxMPolyRingElem) = is_gen(poly(f)) && iszero(shift(f)) && scale(f
 is_monomial(f::PuiseuxMPolyRingElem) = is_monomial(poly(f))
 is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(leading_coefficient(poly(f)))
 
+is_nilpotent(f::PuiseuxMPolyRingElem) = is_nilpotent(poly(f))
+
 
 #################################################################################
 #
@@ -405,17 +407,15 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::Integer)
     return f^(ZZ(a))
 end
 
-# TODO: these // should be changed to divexact
 
-
-function Base.:(//)(f::PuiseuxMPolyRingElem{K}, a::K) where K <: FieldElement
+function divexact(f::PuiseuxMPolyRingElem{K}, a::K) where K <: FieldElement
     @req !iszero(a) "division by zero"
     return puiseux_polynomial_ring_elem(parent(f), poly(f)*1//a, shift(f), scale(f); skip_normalization=true)
 end
 
-function Base.:(//)(f::PuiseuxMPolyRingElem, a::Int)
-    # TODO: delegate to divexact
-    return f//coefficient_ring(f)(a)
+
+function divexact(f::PuiseuxMPolyRingElem, a::Int)
+    return divexact(f,coefficient_ring(f)(a))
 end
 
 # The next function is required but not tested in AbstractAlgebra.
@@ -431,6 +431,10 @@ end
 # Ktx,x = polynomial_ring(Kt,3);
 # f = sum([ rand(Ct) * prod(x .^ rand(1:9,3))  for _ in 1:9])
 # evaluate(f, [Ktx(1), Ktx(1), Ktx(1)+x[3]]) # runs pow_fps in AA/src/generic/MPoly.jl
+
+
+# Note that this method should also be able to divide a product by one of its factors
+# e.g., divexact(a*b, a) should return b
 function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     check_parent(f, g)
     @req !iszero(g) "division by zero"
@@ -442,14 +446,11 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
         return f
     end
 
-    @assert length(g) == 1 "can only divide by monomials"
-
     # subtract shifts, multiply scales and divide poly(f) by coefficient of poly(g)
     newShift = shift(f)*scale(g) - shift(g)*scale(f)
     newScale = scale(f)*scale(g)
     xPrimes = gens(parent(poly(f)))
-    # TODO: the '/' in the line below should be divexact of polys
-    newPoly = evaluate(poly(f), xPrimes .^ scale(g)) / first(coefficients(poly(g)))
+    newPoly = divexact(evaluate(poly(f), xPrimes .^ scale(g)) , evaluate(poly(g), xPrimes .^ scale(f)))
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
