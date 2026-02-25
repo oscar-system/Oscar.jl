@@ -212,10 +212,10 @@ homogeneous_parts(a::SimplicialCohomologyRingElem) = Set(isnothing(a.homog_elem)
 
 # distribute over homogeneous parts
 *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
-   is_homogeneous_normalized(a) && is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
-   is_homogeneous_normalized(a)                                 ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
-   is_homogeneous_normalized(b)                                 ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
-                                                                  mul_homog(a, b)
+   !is_homogeneous_normalized(a) && !is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
+   !is_homogeneous_normalized(a)                                  ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
+   !is_homogeneous_normalized(b)                                  ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
+                                                                    mul_homog(a, b)
 )
 
 # Multiplication on homogeneous parts
