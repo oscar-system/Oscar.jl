@@ -1,16 +1,18 @@
+#Laufzeit? ->gucken wo die Laufzeit reingeht (vorher raten)
+
 """
   circuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
 
   Return the list of circuits of the matroid contained in `S`. 
 """
-function circuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+function circuits(M::Matroid, S::T) where T<:GroundsetType
   @req all(s in matroid_groundset(M) for s in S) "The restriction set has to be a subset of the matroid's ground set"
   return circuits(restriction(M,S))
 end
 
-function _circuit(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+function _circuit(M::Matroid, S::T) where T<:GroundsetType
   C = circuits(M, S)
-    @req len(C) > 0 "S does not contain a circuit of the matroid"
+    @req length(C) > 0 "S does not contain a circuit of the matroid"
   return C[1] 
 end
 
@@ -19,12 +21,12 @@ end
 
   Return the list of cocircuits of matroid contained in S.
 """
-function cocircuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+function cocircuits(M::Matroid, S::T) where T<:GroundsetType #Tut diese Funktion genau das was wir wollen? 
   MD = dual_matroid(M)
   return circuits(MD,S)
 end
 
-function _cocircuit(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
   
   @req !iszero(rank(M)) "The rank of the matroid should be smaller than the cardinality of the ground set"
   return cocircuits(M,S)[1] 
@@ -51,8 +53,8 @@ function tutte_group(M::Matroid; char::Int=-1)
   relations = [v]
   for X in nonbases(M)
     if rank(M,X) == rank(M)-1
-      C = _circuit(M,X)
-      D = cocircuit(M,setdiff(gs,X))
+      C = _circuit(M,X) #hier ist di Julia Logik eigentlich, einen Iterator zu verwenden
+      D = _cocircuit(M,setdiff(gs,X))
       e = popfirst!(C)
       f = popfirst!(D)
       #push!(ret,D)
@@ -71,36 +73,31 @@ function tutte_group(M::Matroid; char::Int=-1)
     end
   end
   relations_matrix = matrix(ZZ, relations)
-  return abelian_group(relations_matrix)
+  return abelian_group(relations_matrix) #Hier wird die Smith Normal form direkt ausgerechnet (richtig?)
 end
 
 """
-    tutte_realizable(M::Matroid; char::Int=-1)
-    tutte_realizable(G::FinGenAbGroup)
+  is_tutte_realizable(M::Matroid)
 
-  False if matroid M is not realizable over a ring with characteristic 
+  False if matroid M is not realizable over R.
   True if inconclusive. 
   Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
   see Corollary 1 in Section 3 of [DW89](@cite).
-```julia
-julia> is_tutte_realizable(QQ,uniform_matroid(2,4));
-false
-julia> is_tutte_realizable(QQ,fano_matroid())
+
+# Example
+```jldoctest
+julia> is_tutte_realizable(uniform_matroid(2,4));
 true
+julia> is_tutte_realizable(fano_matroid())
+false
 ```
 """
-function is_tutte_realizable(R::Ring, M::Matroid)
-  char = characteristic(R)
-  return is_tutte_realizable(M, char=char)
-end
-
-function is_tutte_realizable(M::Matroid; char::Int=-1)
-  T = tutte_group(M; char=char);
+function is_tutte_realizable(M::Matroid)
+  T = tutte_group(M);
   return is_tutte_realizable(T)
 end
 
 function is_tutte_realizable(G::FinGenAbGroup)
-  return !is_one(G[end])
+  n=ngens(G)
+  return !is_one(G[n])
 end
-
-export tutte_group, circuits, cocircuit, tutte_realizable
