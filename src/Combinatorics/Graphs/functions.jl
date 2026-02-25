@@ -1376,14 +1376,12 @@ false
 ```
 """
 function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
-  isnothing(label) && Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
-
+  isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+  
   if isnothing(Oscar._graph_maps(g1)[label].edge_map)
-    !isnothing(Oscar._graph_maps(g1)[label].edge_map) && return false
-
-    # only labels on the vertices
-    
+    !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
   end
+  error("Not implemented yet")
 end
 
 @doc raw"""
