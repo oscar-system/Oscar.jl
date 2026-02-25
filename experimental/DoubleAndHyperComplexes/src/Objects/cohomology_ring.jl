@@ -308,6 +308,12 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
   end
 end
 
+# The canonical unit is the one of the cohomology ring. 
+canonical_unit(A::SimplicialCohomologyRing) = one(A)
+
+# isone checks if the element is the natural one element
+isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
+
 #TODO Not clear how to pretty print (with parentheses) using expressify
 # function expressify(a::SimplicialCohomologyRingElem; context=nothing)
 #   if is_homogeneous_normalized(a)
