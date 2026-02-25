@@ -84,9 +84,29 @@ Return the codomain of `f`.
 """
 codomain(X::VarietyHom) = X.codomain
 
-Base.show(io::IO, F::Bundle) = print(io, "$(typeof(F).name.name) of rank $(F.rank) on $(F.parent)")
-Base.show(io::IO, X::Variety) = print(io, "$(typeof(X).name.name) of dim $(X.dim)")
-Base.show(io::IO, f::VarietyHom) = print(io, "$(typeof(f).name.name) from $(f.domain) to $(f.codomain)")
+function Base.show(io::IO, F::Bundle)
+  if Oscar.is_terse(io)
+    print(io, "AbstractBundle")
+  else
+    print(io, "AbstractBundle of rank $(F.rank) on $(F.parent)")
+  end
+end
+
+function Base.show(io::IO, X::Variety)
+  if Oscar.is_terse(io)
+    print(io, "AbstractVariety")
+  else
+    print(io, "AbstractVariety of dim $(X.dim)")
+  end
+end
+
+function Base.show(io::IO, f::VarietyHom)
+  if Oscar.is_terse(io)
+    print(io, "AbstractVarietyMap")
+  else
+    print(io, "AbstractVarietyMap from $(f.domain) to $(f.codomain)")
+  end
+end
 
 abstract type AbstractVarietyT <: Variety end
 
