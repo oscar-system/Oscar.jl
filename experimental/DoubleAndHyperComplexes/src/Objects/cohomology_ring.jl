@@ -278,3 +278,12 @@ function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
 end
 
 
+# This only says that not every cohomology ring is a domain, it does not look at a specific ring.
+function is_domain_type(::Type{SimplicialCohomologyRingElem})
+  return false
+end
+
+function is_exact_type(::Type{SimplicialCohomologyRingElem{T}}) where T
+  return is_exact_type(T)
+end
+
