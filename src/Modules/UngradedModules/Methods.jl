@@ -633,7 +633,6 @@ function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   R = base_ring(M)
   kk === R || kk === coefficient_ring(R) || error("not implemented over fields different from the ground ring or the `coefficient_ring` thereof")
 
-  S = base_ring(M)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
@@ -726,7 +725,6 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   # to a respective internal method. 
   kk === coefficient_ring(R) || error("`vector_space_basis` not implemented over fields other than the `coefficient_ring` of the ring over which the module is defined")
 
-  S = base_ring(M)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
@@ -1004,7 +1002,10 @@ function vector_space(
 end
 
 ### functionality for modules over quotient rings
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
@@ -1014,19 +1015,27 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   return iota.(B)
 end
 
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+function _is_finite(
+    kk::Field, M::SubquoModule{T}
+  ) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   return _is_finite(kk, _as_poly_module(M))
 end
 
 ### functionality for modules over localized polynomial rings at a point
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, 
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
   F = ambient_free_module(M)
-  Mq,_ = sub(F,relations(M))
-  Mq_shift,_,_= shifted_module(Mq)
+  Mq,_ = sub(F, relations(M))
+  Mq_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
   LMq = leading_module(Mq_shift, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
@@ -1036,8 +1045,12 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   return iota.(B)
 end
 
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
+function _is_finite(
+    kk::Field, M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   F = ambient_free_module(M)
   Mq,_ = sub(F,rels(M))
@@ -1048,7 +1061,12 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyLocRingElem{<:
 end
 
 # This is an internal method which assumes `M` to be presented. It exists purely for back backwards compatibility.
-function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bool=true) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bool=true
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
   F = ambient_free_module(M)
   
   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
@@ -1067,7 +1085,12 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bo
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
+                                  <:MPolyRing, <:MPolyRingElem,
+                                  <:MPolyComplementOfKPointIdeal
+                                }}
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
@@ -1083,8 +1106,12 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   return iota.(B)
 end
 
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
-                               <:MPolyComplementOfKPointIdeal}}
+function _is_finite(
+    kk::Field, M::SubquoModule{T}
+  ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
+                                  <:MPolyRing, <:MPolyRingElem, 
+                                  <:MPolyComplementOfKPointIdeal
+                                 }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   M_poly = pre_saturated_module(M)
   shift,_ = base_ring_shifts(localized_ring(base_ring(M)))
