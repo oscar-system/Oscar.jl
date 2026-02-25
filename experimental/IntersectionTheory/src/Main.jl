@@ -1303,6 +1303,8 @@ julia> S = complete_intersection(abstract_projective_space(3), 4);
 
 julia> total_pontryagin_class(S)
 -12*h^2 + 1
+
+```
 """
 total_pontryagin_class(X::AbstractVariety) = total_pontryagin_class(X.T)
 
@@ -1317,6 +1319,8 @@ julia> S = complete_intersection(abstract_projective_space(3), 4);
 
 julia> pontryagin_class(S, 1)
 -12*h^2
+
+```
 """
 pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(X.T, k)
 
