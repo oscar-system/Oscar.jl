@@ -14,8 +14,6 @@ end
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
 simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
 
-simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
-
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)
     K = simplicial_complex(A)
@@ -116,6 +114,7 @@ end
 
 function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T}) where {T}
   @assert parent(a) === parent(b) "parent mismatch"
+  A = parent(a)
   is_zero(a) && return deepcopy(b)
   is_zero(b) && return deepcopy(a)
   result = parent(a)() # unassigned zero element
