@@ -103,8 +103,9 @@ groups (for example, flag varieties), and in general any variety with an affine 
 projective bundles, flag bundles, and blowups with center in this class will remain in this class. As Eisenbud and Harris
 [EH16](@cite) put it:
 
-> This class represents a tiny fraction of all varieties, but a large fraction of the set of varieties on which
-we can effectively carry out intersection theory.
+> This class represents a tiny fraction of all varieties,
+> but a large fraction of the set of varieties on which we can
+> effectively carry out intersection theory.
 
 In OSCAR, internally, we use `set_attribute(X, :alg => true)` to declare that $X$ satisfies this property.
 Accordingly, entering `get_attribute(X, :alg)` reveals whether `:alg` has been set to true or not.
