@@ -346,8 +346,8 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   f.T = AbstractBundle(Xplus, Xplus(0)) # there is no relative tangent bundle
   Xplus.point = f.pullback(X.point)
   if isdefined(X, :O1) Xplus.O1 = f.pullback(X.O1) end
-  j_pull = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
-  j_pushfwd = MapFromFunc(Z.ring, Xplus.ring, x -> Xplus(j_push(x)))
-  j = AbstractVarietyMap(Z, Xplus, j_pull, j_pushfwd)
+  j_pullback = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
+  j_pushforward = MapFromFunc(Z.ring, Xplus.ring, x -> Xplus(j_push(x)))
+  j = AbstractVarietyMap(Z, Xplus, j_pullback, j_pushforward)
   return j
 end
