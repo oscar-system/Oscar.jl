@@ -14,6 +14,8 @@ end
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
 simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
 
+simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
+
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)
     K = simplicial_complex(A)
@@ -206,14 +208,14 @@ end
 -(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = a + (-b)
 
 # extract homogeneous parts. We do a set, because we need it for ==
-homogeneous_parts(a::SimplicialCohomologyRingElem) = Set(isnothing(a.homog_elem) ? [SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)] : [a])
+homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? Set(SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)) : Set(a)
 
 # distribute over homogeneous parts
 *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
-   is_homogeneous_normalized(a) && is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
-   is_homogeneous_normalized(a)                                 ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
-   is_homogeneous_normalized(b)                                 ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
-                                                                  mul_homog(a, b)
+   !is_homogeneous_normalized(a) && !is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
+   !is_homogeneous_normalized(a)                                  ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
+   !is_homogeneous_normalized(b)                                  ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
+                                                                    mul_homog(a, b)
 )
 
 # Multiplication on homogeneous parts
@@ -277,7 +279,6 @@ function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
   return hash(a.coeff, u)
 end
 
-
 # This only says that not every cohomology ring is a domain, it does not look at a specific ring.
 function is_domain_type(::Type{SimplicialCohomologyRingElem})
   return false
@@ -287,3 +288,33 @@ function is_exact_type(::Type{SimplicialCohomologyRingElem{T}}) where T
   return is_exact_type(T)
 end
 
+Base.show(io::IO, a::SimplicialCohomologyRingElem) = Base.show(io, MIME"text/plain"(), a)
+
+# Show cohomology ring element as string.
+# If context provides :parens=>true, wrap result in parenthesis
+function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingElem)
+  if get(io, :parens, false)
+    print(io, "(")
+  end
+  if is_homogeneous_normalized(a)
+    print(io, a.homog_elem, " + ", a.homog_deg, "-coboundaries")
+  elseif is_homogeneous_denormalized(a)
+    print(IOContext(io, :parens=>false), only(homogeneous_parts(a)))
+  else
+    join(IOContext(io, :parens=>true), homogeneous_parts(a), " + ")
+  end
+  if get(io, :parens, false)
+    print(io, ")")
+  end
+end
+
+#TODO Not clear how to pretty print (with parentheses) using expressify
+# function expressify(a::SimplicialCohomologyRingElem; context=nothing)
+#   if is_homogeneous_normalized(a)
+#     return Expr(:call, :+, expressify(repres(a.homog_elem); context=context), Symbol(a.homog_deg, "-boundaries"))
+#   else
+#     return Expr(:call, :+, (expressify(ah; context=context) for ah in homogeneous_parts(a))...)
+#   end
+# end
+# 
+# @enable_all_show_via_expressify SimplicialCohomologyRingElem
