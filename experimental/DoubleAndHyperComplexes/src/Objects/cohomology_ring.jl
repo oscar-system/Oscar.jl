@@ -187,6 +187,9 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
   end
 end
 
+# get i-th (module) generator of H^p
+Base.getindex(A::SimplicialCohomologyRing, p::Int, i::Int) = Oscar.SimplicialCohomologyRingElem(A, p, gens(homology(A.C, p)[1])[i])
+
 is_homogeneous_normalized(a::SimplicialCohomologyRingElem) = !isnothing(a.homog_elem)
 
 is_homogeneous_denormalized(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) && isone(length(a.coeff))
