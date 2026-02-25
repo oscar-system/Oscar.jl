@@ -30,14 +30,6 @@ function Base.show(io::IO, a::FreeAssociativeAlgebraIdeal)
   print(io, "Ideal of ", base_ring(a), " with ", ItemQuantity(ngens(a), "generator"))
 end
 
-function Base.:(==)(I2::FreeAssociativeAlgebraIdeal, I1::FreeAssociativeAlgebraIdeal)
-  return is_subset(I1,I2) && is_subset(I2,I1)
-end
-
-function Base.hash(a::FreeAssociativeAlgebraIdeal, h::UInt)
-  return hash(base_ring(a), h)
-end
-
 @doc raw"""
     ideal(R::FreeAssociativeAlgebra, g::Vector{<:FreeAssociativeAlgebraElem})
 
@@ -72,23 +64,7 @@ function gens(a::FreeAssociativeAlgebraIdeal{T}) where T
   return T[gen(a,i) for i in 1:ngens(a)]
 end
 
-function Base.:+(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
-  R = base_ring(a)
-  @req R == base_ring(b) "parent mismatch"
-  return ideal(R, vcat(gens(a), gens(b)))
-end
-
-function Base.:*(a::FreeAssociativeAlgebraIdeal{T}, b::FreeAssociativeAlgebraIdeal{T}) where T
-  R = base_ring(a)
-  @req R == base_ring(b) "parent mismatch"
-  return ideal(R, [i*j for i in gens(a) for j in gens(b)])
-end
-
-function AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) 
-  isdefined(I, :gb) && (I.deg_bound == -1) || return normal_form(f, gens(I))
-  return normal_form(f, I.gb)
-end
-
+AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) = normal_form(f, gens(I))
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}) = normal_form(f, collect(I))
 
 function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)

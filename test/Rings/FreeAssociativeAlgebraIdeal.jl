@@ -36,7 +36,6 @@ end
   @test ideal_membership(f1, I2.gens)
   gb = groebner_basis(I2, 3; protocol=false)
   @test isdefined(I2, :gb)
-  @test length(gens(I * I2)) == 2
 end
 
 @testset "FreeAssociativeAlgebraIdeal.utils" begin

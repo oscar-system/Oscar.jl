@@ -149,6 +149,9 @@ end
      x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
+
+     iso = isomorphism(PermGroup, G0)
+     @test order(codomain(iso)) == order(G0)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -249,6 +252,13 @@ end
    @test_throws ErrorException G[1]
    G = SO(3, residue_ring(ZZ, 9)[1])
    @test nrows(G[1]) == 3
+
+   G = GL(2, QQ)
+   @test_throws ErrorException GapObj(G)
+   S = sub(G, [G(QQ[0 -1; 1 0])])
+   @test order(S) == 4
+   S = sub(G, [G(QQ[1 2; 5 6])])
+   @test ! is_finite(S)
 end
 
 @testset "Type operations" begin
