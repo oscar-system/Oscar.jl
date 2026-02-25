@@ -20,15 +20,15 @@ isotopy_graph_from_curve_inner(
 
 function _compute_isotopy_graph(f_in, transform::MatrixElem, ntries::Int; selected_precision::Int=128)
   IG = _IsotopyGraph()
-  random_transform = matrix(QQ, transform)
+  random_transform = identity_matrix(base_ring(f_in), 2)
   success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
   @vprintln :DrawingCurves 2 "Was isotopy graph generated successfully? $success"
   counter = 1
-  while counter<ntries
+  while counter<ntries && !success
     # println("Turning!")
     random_transform *= transform
     success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
-    println("result is $success")
+    @vprintln :DrawingCurves 2 "Was isotopy graph generated successfully? $success"
     counter += 1
   end
   scale = get_scale(IG, random_transform)

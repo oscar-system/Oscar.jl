@@ -203,6 +203,9 @@ function _assemble_isotopy_graph!(
 
   # Collect some points before the first and after the last one.
   dist = (xmax - xmin) / 20
+  if dist == 0
+    dist = 1
+  end
   # Loops are very similar, to reduce duplication:
   # - coeff means direction, 1 for before, -1 for after
   # - pos means position of singularity, 1 for first, ... for last
