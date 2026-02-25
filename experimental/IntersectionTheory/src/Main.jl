@@ -1249,7 +1249,7 @@ total_chern_class(X::AbstractVariety) = total_chern_class(X.T)
     chern_class(X::AbstractVariety, k::Int)
     chern_class(X::TnVariety, k::Int)
 
-Return the `k'-th Chern class of the tangent bundle of `X`.
+Return the `k`-th Chern class of the tangent bundle of `X`.
 """
 chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
 
