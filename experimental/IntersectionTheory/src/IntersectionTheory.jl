@@ -16,6 +16,13 @@ import ..AbstractAlgebra: polynomial
 
 export a_hat_genus
 export abstract_bundle
+export abstract_cayley_grassmannian
+export abstract_cayley_plane
+export abstract_curve
+export abstract_K3_surface
+export abstract_quadric
+export adams
+export cannibalistic
 export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
@@ -122,6 +129,13 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
+export abstract_cayley_grassmannian
+export abstract_cayley_plane
+export abstract_curve
+export abstract_K3_surface
+export abstract_quadric
+export adams
+export cannibalistic
 export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
