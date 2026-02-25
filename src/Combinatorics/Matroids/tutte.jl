@@ -60,7 +60,7 @@ end
 
 Computes the Tutte group of a matroid `M` over a ring with characteristic `char`.
 It should be noted, that the `char` only matters if it is two.
-For more details; see [DW89](@cite).
+For more details see [DW89](@cite).
 
 # Example
 ```jldoctest
@@ -113,7 +113,7 @@ Returns whether the matroid fulfills the Tutte realizability condition.
 If `false`, this implies that the matroid cannot be realized over a field with characteristic other than `2`.
 If `true`, we don't have a conclusive answer on realizability, since the Tutte
 group only yields a necessary (and no sufficient) criterion for realizability
-of M; see Corollary 1 in Section 3 of [DW89] (@cite).
+of `M`; See Corollary 1 in Section 3 of [DW89] (@cite).
 
 # Example
 ```jldoctest
