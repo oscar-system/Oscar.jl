@@ -394,8 +394,8 @@ LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), P
 """
 function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
+  @req isone(product(diag)) "Deteminant of torus element must be 1"
   m = diagonal_matrix(LAG.k, diag)
-  @req det(m) == one(LAG.k) "Deteminant of torus element must be 1"
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
 
