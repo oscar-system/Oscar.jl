@@ -212,7 +212,7 @@ function _isometry_group_via_decomposition(
     # compute O(L) directly in Hecke
     # needed here for the recursion
     @vprintln :Isometry 3 "Computing orthogonal group in Hecke $L"
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, use_weyl=true) # avoid an infinite recursion
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth) # avoid an infinite recursion
     O1 = matrix_group(L.automorphism_group_generators)
     _sv = Hecke._short_vector_generators(L)
     sv = [matrix(ZZ,1,rank(L),i) for i in _sv]
