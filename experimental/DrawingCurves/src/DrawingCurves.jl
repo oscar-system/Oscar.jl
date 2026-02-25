@@ -48,6 +48,16 @@ end
 
 Takes a polynomial in two variables and constructs a plot of the resulting real
 algebraic curve in TikZ.
+
+The algorithm is based on the critical points of $f$, points where both $f$ and
+its $y$-derivative vanish. If there are no such points, e.g. if $f$ is strictly
+positive everywhere or consists of a bunch of parallel lines, currently an
+`NotImplementedError` is thrown.
+
+The red points are the singularities of $f$ and the blue points are the places
+where the tangent is parallel to the $y$-axis. However, a random transformation
+may have been applied beforehand, so the blue points may not be critical points
+in the original coordinate system.
 """
 function draw_curve_tikz(
   filename::String,
