@@ -344,7 +344,9 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   Xplus.structure_map = f
   Xplus.T = pullback(f, X.T)
   f.T = AbstractBundle(Xplus, Xplus(0)) # there is no relative tangent bundle
-  Xplus.point = f.pullback(X.point)
+  if isdefined(X, :point)
+    Xplus.point = f.pullback(X.point)
+  end
   if isdefined(X, :O1) Xplus.O1 = f.pullback(X.O1) end
   j_pullback = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
   j_pushforward = MapFromFunc(Z.ring, Xplus.ring, x -> Xplus(j_push(x)))
