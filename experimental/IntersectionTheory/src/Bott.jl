@@ -102,6 +102,14 @@ fixed points of the base abstract variety.
 end
 
 
+function Base.show(io::IO, F::TnBundle)
+  if Oscar.is_terse(io)
+    print(io, "TnBundle")
+  else
+    print(io, "TnBundle of rank $(F.rank) on $(F.parent)")
+  end
+end
+
 @doc raw"""
     localization(F::TnBundle)
 
