@@ -86,7 +86,7 @@ using Oscar
         @test valuation(K(0)) == PosInf()
         @test valuation(t^(-1)) == -1
         @test valuation(t^(-2//3)+t^(-1//2)) == -2//3
-        @test_throws AssertionError valuation(g)
+        @test_throws ArgumentError valuation(g)
     end
 
     @testset "Arithmetic" begin

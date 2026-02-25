@@ -234,6 +234,9 @@ end
 
 is_univariate(R::PuiseuxMPolyRing) = nvars(R) == 1
 is_gen(f::PuiseuxMPolyRingElem) = f == first(gens(parent(f)))
+is_monomial(f::PuiseuxMPolyRingElem) = length(f) == 1
+is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(coefficients(f))
+
 
 #################################################################################
 #
