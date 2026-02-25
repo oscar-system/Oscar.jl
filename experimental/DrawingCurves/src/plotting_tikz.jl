@@ -37,7 +37,7 @@ function draw_graph_tikz(IG::_IsotopyGraph, io)
   for p in IG.ytangentNodes
     pt = IG.node2pair[p]
     ptstr = "($(pt[1]/3), $(pt[2]))"
-    write(io, "\\fill[yellow] $ptstr circle (2pt);\n")
+    write(io, "\\fill[blue] $ptstr circle (2pt);\n")
   end
 end
 
@@ -66,6 +66,6 @@ function draw_curve_tikz(IG::_IsotopyGraph, scale, io; custom_edge_plot=nothing)
   end
   for p in IG.ytangentNodes
     pt = IG.node2coordinates[p]
-    _draw_pt_tikz(io, pt, scale; color="yellow", size=2)
+    _draw_pt_tikz(io, pt, scale; color="blue", size=2)
   end
 end
