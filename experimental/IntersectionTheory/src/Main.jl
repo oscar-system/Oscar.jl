@@ -829,7 +829,7 @@ julia> R, (h,) = graded_polynomial_ring(QQ, [:h])
 (Graded multivariate polynomial ring in 1 variable over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[h])
 
 julia> A, _ = quo(R, ideal(R, [h^3]))
-(Quotient of multivariate polynomial ring by ideal (h^3), Map: R -> A)
+(Quotient of multivariate polynomial ring by ideal (h^3), Map: R -> quotient of multivariate polynomial ring)
 
 julia> P2 = abstract_variety(2, A)
 AbstractVariety of dim 2
