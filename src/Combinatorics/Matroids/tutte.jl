@@ -1,5 +1,3 @@
-#Laufzeit? ->gucken wo die Laufzeit reingeht (vorher raten)
-
 """
   circuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
 
@@ -21,7 +19,7 @@ end
 
   Return the list of cocircuits of matroid contained in S.
 """
-function cocircuits(M::Matroid, S::T) where T<:GroundsetType #Tut diese Funktion genau das was wir wollen? 
+function cocircuits(M::Matroid, S::T) where T<:GroundsetType
   MD = dual_matroid(M)
   return circuits(MD,S)
 end
@@ -53,7 +51,7 @@ function tutte_group(M::Matroid; char::Int=-1)
   relations = [v]
   for X in nonbases(M)
     if rank(M,X) == rank(M)-1
-      C = _circuit(M,X) #hier ist di Julia Logik eigentlich, einen Iterator zu verwenden
+      C = _circuit(M,X)
       D = _cocircuit(M,setdiff(gs,X))
       e = popfirst!(C)
       f = popfirst!(D)
@@ -73,7 +71,7 @@ function tutte_group(M::Matroid; char::Int=-1)
     end
   end
   relations_matrix = matrix(ZZ, relations)
-  return abelian_group(relations_matrix) #Hier wird die Smith Normal form direkt ausgerechnet (richtig?)
+  return abelian_group(relations_matrix) #this implicitely computes the Smith normal form
 end
 
 """

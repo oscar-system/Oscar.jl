@@ -120,6 +120,12 @@ automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
 ```
 
+### Tutte Group
+```@docs
+tutte_group(M::Matroid, char::Int=-1)
+is_tutte_realizable(M::Matroid)
+```
+
 
 ### Chow Rings
 ```@docs
