@@ -232,6 +232,8 @@ function valuation(f::PuiseuxMPolyRingElem)
     return first(shift(f)) // scale(f)
 end
 
+is_univariate(R::PuiseuxMPolyRing) = nvars(R) == 1
+is_gen(f::PuiseuxMPolyRingElem) = f == first(gens(parent(f)))
 
 #################################################################################
 #
