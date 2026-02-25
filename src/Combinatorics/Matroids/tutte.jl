@@ -4,20 +4,20 @@
 Return the list of circuits of the matroid contained in `S`. 
 """
 function circuits(M::Matroid, S::T) where T<:GroundsetType
-  @req all(s in matroid_groundset(M) for s in S) "The restriction set has to be a subset of the matroid's ground set"
+  @req issubset(S, matroid_groundset(M)) "The restriction set has to be a subset of the matroid's ground set"
   return circuits(restriction(M,S))
 end
 
 function _circuit(M::Matroid, S::T) where T<:GroundsetType
   C = circuits(M, S)
-    @req length(C) > 0 "S does not contain a circuit of the matroid"
+  @req !isempty(C) "S does not contain a circuit of the matroid"
   return C[1] 
 end
 
 @doc raw"""
     cocircuits(M::Matroid, S::T) where T<:GroundsetType
 
-Return the list of cocircuits of matroid contained in S.
+Return the list of cocircuits of matroid contained in `S`.
 """
 function cocircuits(M::Matroid, S::T) where T<:GroundsetType
   MD = dual_matroid(M)
@@ -33,7 +33,7 @@ end
 @doc raw"""
     tutte_group(M::Matroid; char::Int=0)
 
-Computes the Tutte group of a matroid M for a ring with characteristic `char`.
+Computes the Tutte group of a matroid `M` over a ring with characteristic `char`.
 It should be noted, that the `char` only matters if it is two.
 For more details; see [DW89](@cite).
 """
@@ -63,7 +63,7 @@ function tutte_group(M::Matroid; char::Int=0)
           v[idx[union(I, [g,h])]] = 1
           v[idx[union(I, [e,h])]] = -1
           v[idx[union(I, [g,f])]] = -1
-          v[end] = sum([e<g, g<f, f<h, h<e]) #this is the index for the epsilon
+          v[end] = count([e<g, g<f, f<h, h<e]) #this is the index for the epsilon
           push!(relations, v)
        end
      end
@@ -85,7 +85,7 @@ of M; see Corollary 1 in Section 3 of [DW89] (@cite).
 # Example
 
 ```jldoctest
-julia> is_tutte_realizable(uniform_matroid(2,4));
+julia> is_tutte_realizable(uniform_matroid(2,4))
 true
 
 julia> is_tutte_realizable(fano_matroid())
@@ -93,7 +93,7 @@ false
 ```
 """
 function is_tutte_realizable(M::Matroid)
-  T = tutte_group(M);
+  T = tutte_group(M)
   return is_tutte_realizable(T)
 end
 

@@ -122,7 +122,7 @@ matroid_base_polytope(M::Matroid)
 
 ### Tutte Group
 ```@docs
-tutte_group(M::Matroid, char::Int=-1)
+tutte_group
 is_tutte_realizable(M::Matroid)
 ```
 
