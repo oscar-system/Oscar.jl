@@ -79,6 +79,26 @@ end
 
 Return the Chern character of `F`.
 
+!!! note "Chern classes vs. Chern character"
+    The **Chern classes** ${\rm c}_k(F)\in A^k(X)$ are the coefficients of the total
+    Chern class ${\rm c}(F)=1+{\rm c}_1(F)+{\rm c}_2(F)+\cdots$, which is
+    *multiplicative*: ${\rm c}(F\oplus G)={\rm c}(F)\cdot{\rm c}(G)$.
+
+    The **Chern character** $\operatorname{ch}(F)\in A^*(X)\otimes\mathbb Q$ is
+    instead *additive* and *multiplicative*:
+    $\operatorname{ch}(F\oplus G)=\operatorname{ch}(F)+\operatorname{ch}(G)$ and
+    $\operatorname{ch}(F\otimes G)=\operatorname{ch}(F)\cdot\operatorname{ch}(G)$.
+    It is related to the Chern classes by the Newton identity
+    $\operatorname{ch}(F)=\operatorname{rk}(F)+\sum_{k\ge1}\frac{1}{k!}s_k$
+    where $s_k$ is the $k$-th Newton polynomial in the Chern roots.
+    In particular $\operatorname{ch}_0=\operatorname{rk}$,
+    $\operatorname{ch}_1={\rm c}_1$,
+    $\operatorname{ch}_2=\frac12({\rm c}_1^2-2{\rm c}_2)$.
+
+    Because of these ring-homomorphism properties, the Chern character — not the total
+    Chern class — is used as the internal representation of a bundle in this package
+    (see `AbstractBundle`).
+
 # Examples
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
