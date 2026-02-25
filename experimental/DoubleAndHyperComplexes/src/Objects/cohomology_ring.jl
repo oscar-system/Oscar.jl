@@ -79,6 +79,19 @@ function one(A::SimplicialCohomologyRing)
   SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_co_complex(A), 0)[1])))
 end
 
+# Coercion from base ring
+function (A::SimplicialCohomologyRing{T})(c::T) where T
+  one_A = one(A)
+  one_A.homog_elem = c*one_A.homog_elem
+  return one_A
+end
+
+# General coercion
+function (A::SimplicialCohomologyRing)(c)
+  R = base_ring(A)
+  return(A(R(c)))
+end
+
 function is_zero(a::SimplicialCohomologyRingElem)
   if isnothing(a.homog_elem)
     !isdefined(a, :coeff) && return true
@@ -263,6 +276,7 @@ function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
 
   return hash(a.coeff, u)
 end
+
 
 # This only says that not every cohomology ring is a domain, it does not look at a specific ring.
 function is_domain_type(::Type{SimplicialCohomologyRingElem})
