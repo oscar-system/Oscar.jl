@@ -35,7 +35,7 @@ function linear_algebraic_group(rs::RootSystem, k::Field)
 end
 
 @doc raw"""
-    linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
+    linear_algebraic_group(type::Symbol, n::Int, k::Field) -> LinearAlgebraicGroup
 
 Construct the linear algebraic group of the given type.
 
