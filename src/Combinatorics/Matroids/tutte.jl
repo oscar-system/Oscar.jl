@@ -83,18 +83,23 @@ end
   Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
   see Corollary 1 in Section 3 of [DW89](@cite).
 ```julia
-julia> tutte_realizable(QQ,uniform_matroid(2,4));
-true
-julia> tutte_realizable(QQ,fano_matroid())
+julia> is_tutte_realizable(QQ,uniform_matroid(2,4));
 false
+julia> is_tutte_realizable(QQ,fano_matroid())
+true
 ```
 """
-function tutte_realizable(M::Matroid; char::Int=-1)
-  T = tutte_group(R,M);
-  return tutte_realizable(T)
+function is_tutte_realizable(R::Ring, M::Matroid)
+  char = characteristic(R)
+  return is_tutte_realizable(M, char=char)
 end
 
-function tutte_realizable(G::FinGenAbGroup)
+function is_tutte_realizable(M::Matroid; char::Int=-1)
+  T = tutte_group(M; char=char);
+  return is_tutte_realizable(T)
+end
+
+function is_tutte_realizable(G::FinGenAbGroup)
   return !is_one(G[end])
 end
 
