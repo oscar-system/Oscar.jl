@@ -150,7 +150,9 @@ using Oscar
     end
 
     @testset "Conformance tests" begin
-        # ConformanceTests.test_Ring_interface(your_ring) # basic tests
-        ConformanceTests.test_Ring_interface_recursive(your_ring) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
+        K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
+        K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
+        ConformanceTests.test_Ring_interface(K_p) # basic tests
+        # ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
     end
 end

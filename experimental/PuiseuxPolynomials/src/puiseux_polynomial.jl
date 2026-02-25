@@ -448,9 +448,9 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
 end
 
 # The following function is required for running the Conformance Tests
-function ConformanceTests.generate_element(R::PuiseuxMPolyRingElem)
-    f = MPolyRing.generate_element(underlying_polynomial_ring(R));
-    shift = rand(ZZ, nvars(R))
+function ConformanceTests.generate_element(R::PuiseuxMPolyRing)
+    f = ConformanceTests.generate_element(underlying_polynomial_ring(R));
+    shift = [rand(ZZ, -10:10) for i in 1:nvars(R)]
     scale = rand(ZZ, 1:10)
     return puiseux_polynomial_ring_elem(R, f, shift, scale)
 end
