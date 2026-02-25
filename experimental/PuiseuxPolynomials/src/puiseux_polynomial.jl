@@ -46,8 +46,8 @@ mutable struct PuiseuxMPolyRingElem{T <: FieldElement} <: RingElem
         d::ZZRingElem = one(ZZ)
         )
 
-        @assert parent(f) == underlying_polynomial_ring(Kt) "polynomial must be in the underlying polynomial ring"
-        @assert d > 0 "scale must be positive"
+        @req parent(f) == underlying_polynomial_ring(Kt) "polynomial must be in the underlying polynomial ring"
+        @req d > 0 "scale must be positive"
         return new{elem_type(base_ring_type(parent(f)))}(Kt, f, k, d)
     end
 end
@@ -73,7 +73,7 @@ end
 #################################################################################
 
 function puiseux_polynomial_ring(K::Field, variableName::Vector{String})
-    @assert !isempty(variableName) "list of variables must not be empty"
+    @req !isempty(variableName) "list of variables must not be empty"
     base_ring, _ = polynomial_ring(K, variableName)
     Kt = PuiseuxMPolyRing(base_ring)
     return Kt, gens(Kt)
@@ -86,12 +86,12 @@ end
 #
 #################################################################################
 
-underlying_polynomial_ring(R::PuiseuxMPolyRing) = R.underlyingPolynomialRing
+underlying_polynomial_ring(R::PuiseuxMPolyRing{T}) where T = R.underlyingPolynomialRing::mpoly_ring_type(T)
 base_ring(R::PuiseuxMPolyRing) = base_ring(underlying_polynomial_ring(R))
 coefficient_ring(R::PuiseuxMPolyRing) = base_ring(R)
 
 Base.parent(f::PuiseuxMPolyRingElem) = f.parent
-poly(f::PuiseuxMPolyRingElem) = f.poly
+poly(f::PuiseuxMPolyRingElem{T}) where {T} = f.poly::mpoly_type(T)
 shift(f::PuiseuxMPolyRingElem) = f.shift
 scale(f::PuiseuxMPolyRingElem) = f.scale
 
@@ -133,7 +133,7 @@ end
 
 # WARNING: output may not be normalized
 function rescale(f::PuiseuxMPolyRingElem, newScale::ZZRingElem)
-    @assert newScale > 0 "new scale must be positive"
+    @req newScale > 0 "new scale must be positive"
 
     # we assume f is normalized
     if newScale == scale(f)
@@ -141,7 +141,7 @@ function rescale(f::PuiseuxMPolyRingElem, newScale::ZZRingElem)
     end
 
     newScaleMultipleOfCurrentScale, scaleQuotient = divides(newScale, scale(f))
-    @assert newScaleMultipleOfCurrentScale "new scale must be a multiple of the current scale"
+    @req newScaleMultipleOfCurrentScale "new scale must be a multiple of the current scale"
 
     t = gens(underlying_polynomial_ring(parent(f)))
     newPoly = evaluate(poly(f), t .^ scaleQuotient)
@@ -173,19 +173,7 @@ function (Kt::PuiseuxMPolyRing)(c::Bool)
     end
 end
 
-function (Kt::PuiseuxMPolyRing)(c::Int)
-    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
-end
-
-function (Kt::PuiseuxMPolyRing)(c::Rational{Int})
-    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
-end
-
-function (Kt::PuiseuxMPolyRing)(c::RingElem)
-    return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
-end
-
-function (Kt::PuiseuxMPolyRing{T})(c::T) where T <: FieldElement
+function (Kt::PuiseuxMPolyRing)(c::RingElement)
     return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
 
@@ -234,7 +222,7 @@ iszero(f::PuiseuxMPolyRingElem) = iszero(poly(f))
 isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && shift(f) == 0 && scale(f) == 1
 
 function Base.:(==)(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
-    @assert parent(f) == parent(g) "elements must be in the same ring"
+    check_parent(f, g)
     return poly(f) == poly(g) && shift(f) == shift(g) && scale(f) == scale(g)
 end
 
@@ -245,7 +233,7 @@ monomials(f::PuiseuxMPolyRingElem) = puiseux_polynomial_ring_elem.(Ref(parent(f)
 Base.length(f::PuiseuxMPolyRingElem) = length(poly(f))
 
 function valuation(f::PuiseuxMPolyRingElem)
-    @assert nvars(parent(f)) == 1 "valuation is only defined for univariate Puiseux polynomials"
+    @req nvars(parent(f)) == 1 "valuation is only defined for univariate Puiseux polynomials"
     if iszero(f)
         return PosInf()
     end
@@ -260,7 +248,8 @@ end
 #################################################################################
 
 function Base.show(io::IO, R::PuiseuxMPolyRing)
-    print(io, "Puiseux polynomial ring over ", coefficient_ring(R))
+    io = pretty(io)
+    print(io, LowercaseOff(), "Puiseux polynomial ring over ", Lowercase(), coefficient_ring(R))
 end
 
 function Base.show(io::IO, f::PuiseuxMPolyRingElem)
@@ -309,7 +298,7 @@ end
 #################################################################################
 
 function Base.:+(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
-    @assert parent(f) == parent(g) "elements must be in the same ring"
+    check_parent(f, g)
     if iszero(f)
         return g
     elseif iszero(g)
@@ -345,7 +334,7 @@ function Base.:-(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
 end
 
 function Base.:*(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
-    @assert parent(f) == parent(g) "elements must be in the same ring"
+    check_parent(f, g)
     if iszero(f) || iszero(g)
         return zero(parent(f))
     elseif isone(f)
@@ -369,8 +358,8 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::QQFieldElem)
         return f^numerator(a)
     end
 
-    @assert length(f) == 1 "only monomials can be exponentiated to rational powers"
-    @assert isone(first(coefficients(f))) "only monomials with coefficient 1 can be exponentiated to rational powers"
+    @req length(f) == 1 "only monomials can be exponentiated to rational powers"
+    @req isone(first(coefficients(f))) "only monomials with coefficient 1 can be exponentiated to rational powers"
 
     return puiseux_polynomial_ring_elem(
         parent(f),
@@ -414,7 +403,7 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::Integer)
 end
 
 function Base.:(//)(f::PuiseuxMPolyRingElem{K}, a::K) where K <: FieldElement
-    @assert !iszero(a) "division by zero"
+    @req !iszero(a) "division by zero"
     return puiseux_polynomial_ring_elem(parent(f), poly(f)*1//a, shift(f), scale(f); skip_normalization=true)
 end
 
@@ -436,8 +425,8 @@ end
 # f = sum([ rand(Ct) * prod(x .^ rand(1:9,3))  for _ in 1:9])
 # evaluate(f, [Ktx(1), Ktx(1), Ktx(1)+x[3]]) # runs pow_fps in AA/src/generic/MPoly.jl
 function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
-    @assert parent(f) == parent(g) "elements must be in the same ring"
-    @assert !iszero(g) "division by zero"
+    check_parent(f, g)
+    @req !iszero(g) "division by zero"
 
     if iszero(f)
         return zero(parent(f))
@@ -459,7 +448,7 @@ end
 
 # The following function is required for running the Conformance Tests
 function ConformanceTests.generate_element(R::PuiseuxMPolyRing)
-    f = ConformanceTests.generate_element(underlying_polynomial_ring(R));
+    f = ConformanceTests.generate_element(underlying_polynomial_ring(R))
     shift = [rand(ZZ, -10:10) for i in 1:nvars(R)]
     scale = rand(ZZ, 1:10)
     return puiseux_polynomial_ring_elem(R, f, shift, scale)
