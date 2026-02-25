@@ -446,3 +446,11 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
+
+# The following function is required for running the Conformance Tests
+function ConformanceTests.generate_element(R::PuiseuxMPolyRingElem)
+    f = MPolyRing.generate_element(underlying_polynomial_ring(R));
+    shift = rand(ZZ, nvars(R))
+    scale = rand(ZZ, 1:10)
+    return puiseux_polynomial_ring_elem(R, f, shift, scale)
+end

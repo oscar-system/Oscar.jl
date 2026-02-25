@@ -148,4 +148,9 @@ using Oscar
         @test K(0) == zero(K)
         @test K(1) == one(K)
     end
+
+    @testset "Conformance tests" begin
+        # ConformanceTests.test_Ring_interface(your_ring) # basic tests
+        ConformanceTests.test_Ring_interface_recursive(your_ring) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
+    end
 end
