@@ -2754,7 +2754,7 @@ julia> integral(A^2) # degree of first adjoint surface which is a del Pezzo surf
 function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
   F, G = _coerce(F, G)
   m, n = rank(F), rank(G)
-  @assert k < min(m,n)
+  @assert 0 <= k < min(m,n)
 
   if class
     # return only the class of D in the Chow ring of X
@@ -2763,6 +2763,17 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
     else # expected dimension is negative
       return F.parent.ring(0)
     end
+  end
+
+  if k == 0
+    # k=0: the degeneracy locus where the map is zero.
+    # Use zero_locus_section of dual(F) * G directly on the base variety.
+    D = zero_locus_section(dual(F) * G)
+    if isdefined(F.parent, :O1)
+      D.O1 = pullback(D.structure_map, F.parent.O1)
+    end
+    set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
+    return D
   end
 
   Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
