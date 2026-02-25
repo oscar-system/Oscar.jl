@@ -165,14 +165,6 @@ function (R::PuiseuxMPolyRing)()
     return zero(R)
 end
 
-function (Kt::PuiseuxMPolyRing)(c::Bool)
-    if c
-        return one(Kt)
-    else
-        return zero(Kt)
-    end
-end
-
 function (Kt::PuiseuxMPolyRing)(c::RingElement)
     return PuiseuxMPolyRingElem(Kt,underlying_polynomial_ring(Kt)(c))
 end
