@@ -124,6 +124,7 @@ end
 
 function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T}) where {T}
   @assert parent(a) === parent(b) "parent mismatch"
+  A = parent(a)
   is_zero(a) && return deepcopy(b)
   is_zero(b) && return deepcopy(a)
   result = parent(a)() # unassigned zero element
@@ -223,6 +224,7 @@ homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? S
 
 # distribute over homogeneous parts
 *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
+   iszero(a) || iszero(b)                                         ? zero(a) :
    !is_homogeneous_normalized(a) && !is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
    !is_homogeneous_normalized(a)                                  ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
    !is_homogeneous_normalized(b)                                  ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
@@ -307,7 +309,9 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
   if get(io, :parens, false)
     print(io, "(")
   end
-  if is_homogeneous_normalized(a)
+  if iszero(a)
+    print(io, "0")
+  elseif is_homogeneous_normalized(a)
     print(io, a.homog_elem, " + ", a.homog_deg, "-coboundaries")
   elseif is_homogeneous_denormalized(a)
     print(IOContext(io, :parens=>false), only(homogeneous_parts(a)))
