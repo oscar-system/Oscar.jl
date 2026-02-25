@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Abstract Varieties
+# Abstract varieties
 
 ## Types
 
@@ -16,7 +16,7 @@ The OSCAR type for abstract varieties is `AbstractVariety`.
 abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
-### Specialized Constructors
+### Specialized constructors
 
 
 ```@docs
@@ -31,11 +31,11 @@ abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
 abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::Ring = QQ, symbol::String = "c")
 ```
 
-```@docs 
+```@docs
 abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
 ```
 
-### New Varieties From Given Varieties/Bundles
+### New varieties from given varieties/bundles
 
 ```@docs
 complete_intersection(X::AbstractVariety, degs::Int...)
@@ -64,7 +64,7 @@ degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false
 !!! note
     Products and blow-ups are described elsewhere.
 
-## Underlying Data of an Abstract Variety
+## Underlying data of an abstract variety
 
 An abstract variety is made up from (a selection of) the data discussed here:
 
@@ -100,7 +100,7 @@ tautological_bundles(X::AbstractVariety)
 structure_map(X::AbstractVariety)
 ```
 
-## Further Data Associated to an Abstract Variety
+## Further data associated to an abstract variety
 
 
 ```@docs
@@ -153,10 +153,10 @@ euler_number(X::AbstractVariety)
 
 !!! note
     If `X` is of type `AbstractVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
-    Similarly for entering `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, and `pontryagin_class(X, k)`.
-    Moreover, `gens(X)` returns the generators of the Chow Ring of `X`.
+    Similarly for entering `chern_class(X, k)`, `todd_class(X)`, `total_pontryagin_class(X)`, and `pontryagin_class(X, k)`.
+    Moreover, `gens(X)` returns the generators of the Chow ring of `X`.
 
-## Operations on Abstract Varieties
+## Operations on abstract varieties
 
 ```@docs
 product(X::AbstractVariety, Y::AbstractVariety)
@@ -165,7 +165,7 @@ product(X::AbstractVariety, Y::AbstractVariety)
 !!! note
     Blow-Ups are described in their own section.
 
-## Integrating Chow Ring Elements
+## Integrating Chow ring elements
 
 ```@julia
 integral(c::Union{MPolyDecRingElem, MPolyQuoRingElem})
@@ -177,7 +177,7 @@ Given an element `c` of the Chow ring of an abstract variety, return the integra
     If the abstract variety has been given a (unique) point class,
     then the integral will be an element of the coefficient ring of the Chow ring.
     That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
-    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$. If one of the conditions is not fulfilled, the 0-dimensional
     part of `c` is returned.
 
 

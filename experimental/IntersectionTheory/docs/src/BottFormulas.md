@@ -4,10 +4,10 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Localization and Bott's Formula
+# Localization and Bott's formula
 
 Recall that our focus in this chapter is on computations which manipulate collections of data
-referred to as abstract varieties, and that we interprete the results as applying to all (smooth projective complex) varieties sharing the data.
+referred to as abstract varieties, and that we interpret the results as applying to all (smooth projective complex) varieties sharing the data.
 The tools presented in this section allow for more efficient computations in the case of varieties with a (split) torus action whose
 fixed point set is finite. They are based on localization and a version of Bott's formula which is formulated in the language of
 equivariant intersection theory. See [Dan14](@cite) and the references cited there.
@@ -19,15 +19,15 @@ Using Bott's formula in enumerative geometry goes back to [ES02](@cite). We quot
 We represent an *abstract variety with a torus action* by specifying its dimension together with the fixed points of the action and, possibly, further data.
 
 !!! note
-    In order to work with a version of Bott's formula for orbifolds, it is allowed to specify multiplicities at the fixed points. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
+    In order to work with a version of Bott's formula for orbifolds, it is allowed to specify multiplicities at the fixed points. Here, the multiplicity at a fixed point $P$ is the order of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
 
-An *abstract equivariant vector bundle under a torus action*  is represented by its rank and its base variety, together with its localizations at the fixed points.
+An *abstract equivariant vector bundle under a torus action* is represented by its rank and its base variety, together with its localizations at the fixed points.
 
 !!! note
     Recall that an equivariant vector bundle over a point is a representation of the group under consideration (in our case, a torus).
 
 
-## Torus Representations
+## Torus representations
 
 ### Types
 
@@ -39,13 +39,13 @@ For our purposes here, we offer the type `TnRep`.
 tn_representation(w::Vector{<:IntegerUnion})
 ```
 
-## Operations on Torus Representations
+## Operations on torus representations
 
 ```@docs
 dual(F::TnRep)
 ```
 
-## Varieties With a Torus Action
+## Varieties with a torus action
 
 ### Types
 
@@ -57,7 +57,7 @@ The OSCAR type for abstract varieties with a torus action is `TnVariety`.
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P
 ```
 
-### Specialized Constructors
+### Specialized constructors
 
 ```@docs
 tn_grassmannian(k::Int, n::Int; weights = :int)
@@ -67,7 +67,7 @@ tn_grassmannian(k::Int, n::Int; weights = :int)
 tn_flag_variety(dims::Int...; weights = :int)
 ```
 
-### Underlying Data of an Abstract Variety With a Torus Action
+### Underlying data of an abstract variety with a torus action
 
 
 ```@docs
@@ -86,14 +86,14 @@ tangent_bundle(X::TnVariety)
 tautological_bundles(X::TnVariety)
 ```
 
-### Further Data Associated to an Abstract Variety With a Torus Action
+### Further data associated to an abstract variety with a torus action
 
 As for the type `AbstractVariety`, we have the methods `trivial_line_bundle(X::TnVariety)` (alternatively, `OO(X::TnVariety)`),
 `cotangent_bundle(X::TnVariety)`, and `euler_number(X::TnVariety)`. Morever, if `X` is of type `TnVariety`, entering `total_chern_class(X)`
 returns the total Chern class of the tangent bundle of `X`. Similarly for entering `chern_class(X, k)`.
 	
 
-## Abstract Equivariant Vector Bundles Under a Torus Action
+## Abstract equivariant vector bundles under a torus action
 
 ### Types
 
@@ -105,7 +105,7 @@ The OSCAR type for an abstract equivariant vector bundle under a torus action is
 tn_bundle(X::TnVariety, r::Int, f::Function)
 ```
 
-### Underlying Data of an Equivariant Bundle
+### Underlying data of an equivariant bundle
 
 If `F` is of type `TnBundle`, then `rank(F)` and `parent(F)` return the rank and the
 underlying variety of `F`, respectively. Moreover, we have:
@@ -114,13 +114,13 @@ underlying variety of `F`, respectively. Moreover, we have:
 localization(F::TnBundle)
 ```
 
-### Operations on Abstract Equivariant Vector Bundles
+### Operations on abstract equivariant vector bundles
 
 ```@docs
 dual(F::TnBundle)
 ```
 
-## Chern Classes and Their Integration
+## Chern classes and their integration
 
 In contrast to the varieties of type `AbstractVariety`, there are no associated Chow rings for the varieties of type `TnVariety`.
 In order to work with polynomial expressions in the Chern classes of an abstract equivariant vector bundle, Oscar
@@ -128,8 +128,8 @@ internally creates an appropriate polynomial ring. We illustrate this in the exa
 
 ### Types
 
-To work with with polynomial expressions in Chern classes, we offer the type `TnBundleChern`.
- 
+To work with polynomial expressions in Chern classes, we offer the type `TnBundleChern`.
+
 ### Constructors
 
 ```@docs
@@ -140,7 +140,7 @@ chern_class(F::TnBundle, f::RingElem)
 total_chern_class(F::TnBundle)
 ```
 
-### Underlying Data of Chern Classes
+### Underlying data of Chern classes
 
 ```@docs
 tn_bundle(c::TnBundleChern)
@@ -150,7 +150,7 @@ tn_bundle(c::TnBundleChern)
 polynomial(c::TnBundleChern)
 ```
 
-### Operations on Chern Classes
+### Operations on Chern classes
 
 The usual arithmetic operations are available.
 
@@ -182,19 +182,19 @@ TnBundleChern
 integral(c::TnBundleChern)
 ```
 
-## Examples: Linear Subspaces on Hypersurfaces
+## Examples: Linear subspaces on hypersurfaces
 
 ```@docs
 linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
 ```
 
-## Kontsevich Moduli Spaces
+## Kontsevich moduli spaces
 
 ```@docs
 kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
 ```
 
-## Examples: Gromov-Witten Invariants
+## Examples: Gromov-Witten invariants
 
 Based on the implementation of Kontsevich Moduli Spaces, we can compute Gromov-Witten invariants as follows:
 

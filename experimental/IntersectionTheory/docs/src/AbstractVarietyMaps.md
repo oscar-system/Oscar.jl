@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Abstract Variety Maps
+# Abstract variety maps
 
 ## Types
 
@@ -20,7 +20,7 @@ map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusi
 identity_map(X::AbstractVariety)
 ```
 
-## Underlying Data of an Abstract Variety Map
+## Underlying data of an abstract variety map
 
 An abstract variety map is made up from (a selection of) the data discussed here:
 
@@ -48,7 +48,7 @@ pushforward(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem)
 tangent_bundle(f::AbstractVarietyMap)
 ```
 
-## Further Data Associated to an Abstract Variety Map
+## Further data associated to an abstract variety map
 
 ```@docs
 cotangent_bundle(f::AbstractVarietyMap)
@@ -58,7 +58,7 @@ cotangent_bundle(f::AbstractVarietyMap)
 todd_class(f::AbstractVarietyMap)
 ```
 
-## Operations on Abstract Variety Maps
+## Operations on abstract variety maps
 
 ```@docs
 compose(f::AbstractVarietyMap, g::AbstractVarietyMap)

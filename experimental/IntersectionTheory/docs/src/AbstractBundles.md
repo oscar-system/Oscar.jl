@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Abstract Bundles
+# Abstract bundles
 
 ## Types
 
@@ -16,7 +16,7 @@ The OSCAR type for abstract vector bundles is `AbstractBundle`.
 abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
-## Underlying Data of an Abstract Bundle
+## Underlying data of an abstract bundle
 
 An abstract bundle is made up from (a selection of) the data discussed here:
 
@@ -36,7 +36,7 @@ rank(F::AbstractBundle)
 total_chern_class(F::AbstractBundle)
 ```
 
-## Further Data Associated to an Abstract Bundle
+## Further data associated to an abstract bundle
 
 ```@docs
 chern_class(F::AbstractBundle, k::Int)
@@ -74,7 +74,7 @@ euler_characteristic(F::AbstractBundle)
 hilbert_polynomial(F::AbstractBundle)
 ```
 
-## Operations on Abstract Bundles
+## Operations on abstract bundles
 
 ```@docs
 -(F::AbstractBundle)
@@ -104,7 +104,7 @@ pullback(f::AbstractVarietyMap, F::AbstractBundle)
 pushforward(f::AbstractVarietyMap, F::AbstractBundle)
 ```
 
-## Tests on Abstract Bundles
+## Tests on abstract bundles
 
 ```@docs
 ==(F::AbstractBundle, G::AbstractBundle)

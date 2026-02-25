@@ -4,12 +4,12 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Schubert Calculus
+# Schubert calculus
 
-The term `Schubert Calculus` refers to the intersection theory of Grassmannians. This is to honor Hermann Schubert,
+The term *Schubert calculus* refers to the intersection theory of Grassmannians. This is to honor Hermann Schubert,
 a German 18th century mathematician who solved a variety of problems in enumerative geometry by reducing them
-to the combinatorics and  intersection theory of certain cycles on Grassmanians. These cycles are nowadays called
-`Schubert cycles`, their cycle classes are called `Schubert classes`.
+to the combinatorics and intersection theory of certain cycles on Grassmannians. These cycles are nowadays called
+*Schubert cycles*, their cycle classes are called *Schubert classes*.
 
 We show how to define such classes in OSCAR.
 
@@ -20,7 +20,7 @@ A *flag* in $W$ is a strictly increasing sequence of linear subspaces
 
 $\{0\} \subset W_1 \subset \dots \subset W_{n-1} \subset W_n = W, \; \text{ with }\; \dim(W_i) = i.$
 
-Let such a flag  $\mathcal{W}$ be given. For any sequence $a = (a_1, \ldots, a_k)$
+Let such a flag $\mathcal{W}$ be given. For any sequence $a = (a_1, \ldots, a_k)$
 of integers with $n-k \geq a_1 \geq \ldots \geq a_k \geq 0$, we define
 the *Schubert cycle* $\Sigma_a(\mathcal{W})$ by setting
 
@@ -36,11 +36,11 @@ $\sigma_a := [\Sigma_a(\mathcal{W})] \,.$
 
 The number of Schubert classes on the Grassmannian $\mathrm{G}(k, n)$ is equal to $\binom{n}{k}$.
 
-Instead of $\sigma_a$, we write $\sigma_{a_1,\ldots,a_s}$  whenever
+Instead of $\sigma_a$, we write $\sigma_{a_1,\ldots,a_s}$ whenever
 $a = (a_1, \ldots, a_s, 0, \ldots, 0)$, and $\sigma_{p^i}$ whenever
 $a = (p, \ldots, p, 0, \ldots, 0) \in \mathbb Z^i \times \{0\}^{k-i}$.
 
-The classes  $\sigma_{1^i}$, $i = 1, \ldots, k$, and $\sigma_i$, $i = 1, \ldots, n-k$, are
+The classes $\sigma_{1^i}$, $i = 1, \ldots, k$, and $\sigma_i$, $i = 1, \ldots, n-k$, are
 called *special Schubert classes*. They are closely related to the Chern classes of the tautological
 vector bundles on $\mathrm{G}(k, W)$. Recall:
 
@@ -51,7 +51,7 @@ We denote these vector bundles by $S$ and $Q$, respectively.
 
 The Chern classes of $S$ and $Q$ are
 
-$c_i(S) = (-1)^i \sigma_{1^i} \; \text{ for } \;  i = 1, \ldots, k$
+$c_i(S) = (-1)^i \sigma_{1^i} \; \text{ for } \; i = 1, \ldots, k$
 
 and
 
@@ -60,7 +60,7 @@ $c_i(Q) = \sigma_i \; \text{ for }\; i = 1, \ldots, n-k,$
 respectively.
 
 All Schubert classes form a $K$-vector space basis of the Chow ring of $\mathrm{G}(k,n)$.
-The  Chern classes of $S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
+The Chern classes of $S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
 form a minimal set of generators for the Chow ring of $\mathrm{G}(k,n)$ as a $K$-algebra.
 See [EH16](@cite) for the relations on these generators.
 
@@ -71,7 +71,3 @@ schubert_class(G::AbstractVariety, λ::Int...)
 ```@docs
 schubert_classes(G::AbstractVariety)
 ```
-
-
-
-

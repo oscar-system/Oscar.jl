@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Blow-Ups
+# Blow-ups
 
 ```@docs
 blow_up(i::AbstractVarietyMap; symbol::String = "e")
