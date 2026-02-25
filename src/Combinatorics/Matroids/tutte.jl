@@ -44,7 +44,7 @@ function tutte_group(M::Matroid; char::Int=-1)
   if char == 2
     v[end] = 1 #this is for the epsilon
   else
-    v[end] = 2
+    v[end] = 2 #this is for the epsilon
   end
   relations = [v]
   for X in nonbases(M)
@@ -59,9 +59,9 @@ function tutte_group(M::Matroid; char::Int=-1)
           v = zeros(Int, length(B)+1)
           I = setdiff(Set(X), [e,g])
           v[idx[union(I, [e,f])]] = 1
-          v[idx[union(I, [e,h])]] = 1
+          v[idx[union(I, [g,h])]] = 1
+          v[idx[union(I, [e,h])]] = -1
           v[idx[union(I, [g,f])]] = -1
-          v[idx[union(I, [g,h])]] = -1
           v[end] = sum([e<g, g<f, f<h, h<e]) #this is the index for the epsilon
           push!(relations, v)
        end
@@ -75,7 +75,7 @@ end
 """
   is_tutte_realizable(M::Matroid)
 
-  False if matroid M is not realizable over R.
+  False if matroid M is not realizable.
   True if inconclusive. 
   Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
   see Corollary 1 in Section 3 of [DW89](@cite).
