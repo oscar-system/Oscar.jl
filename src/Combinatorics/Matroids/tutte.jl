@@ -2,6 +2,21 @@
     circuits(M::Matroid, S::T) where T<:GroundsetType
 
 Return the list of circuits of the matroid contained in `S`. 
+
+# Example
+```jldoctest
+julia> M = uniform_matroid(3,7);
+
+julia> S = [1,3,4,6,7];
+
+julia> circuits(M,S)
+5-element Vector{Vector{Int64}}:
+ [1, 3, 4, 6]
+ [1, 3, 4, 7]
+ [1, 3, 6, 7]
+ [1, 4, 6, 7]
+ [3, 4, 6, 7]
+```
 """
 function circuits(M::Matroid, S::T) where T<:GroundsetType
   @req issubset(S, matroid_groundset(M)) "The restriction set has to be a subset of the matroid's ground set"
@@ -18,6 +33,17 @@ end
     cocircuits(M::Matroid, S::T) where T<:GroundsetType
 
 Return the list of cocircuits of matroid contained in `S`.
+
+# Example
+```jldoctest
+julia> M = uniform_matroid(3,7);
+
+julia> S = [1,3,4,6,7];
+
+julia> cocircuits(M,S)
+1-element Vector{Vector{Int64}}:
+ [1, 3, 4, 6, 7]
+```
 """
 function cocircuits(M::Matroid, S::T) where T<:GroundsetType
   MD = dual_matroid(M)
@@ -35,6 +61,14 @@ end
 Computes the Tutte group of a matroid `M` over a ring with characteristic `char`.
 It should be noted, that the `char` only matters if it is two.
 For more details; see [DW89](@cite).
+
+# Example
+```jldoctest
+julia> T = tutte_group(fano_matroid());
+
+julia> ngens(T)
+29
+```
 """
 function tutte_group(M::Matroid; char::Int=0)
   B = bases(M)
@@ -82,7 +116,6 @@ group only yields a necessary (and no sufficient) criterion for realizability
 of M; see Corollary 1 in Section 3 of [DW89] (@cite).
 
 # Example
-
 ```jldoctest
 julia> is_tutte_realizable(uniform_matroid(2,4))
 true
