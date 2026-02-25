@@ -1369,7 +1369,7 @@ for g in [:a_hat_genus, :l_genus]
   end
 
   @eval function $g(X::AbstractVariety)
-    !iseven(X.dim) && error("the abstract_variety is not of even dimension")
+    !iseven(X.dim) && error("the abstract variety is not of even dimension")
     integral($g(X.dim÷2, X))
   end
 end
@@ -1377,35 +1377,76 @@ end
 @doc raw"""
     a_hat_genus(k::Int, X::AbstractVariety)
 
-Compute the `k`-th $\hat A$ genus of the abstract_variety `X`.
+Compute the `k`-th $\hat A$ genus of the abstract variety `X`.
+
+# Examples
+```jldoctest
+julia> P4 = abstract_projective_space(4)
+AbstractVariety of dim 4
+
+julia> a_hat_genus(1, P4)
+-5//24*h^2
+
+```
 """
 a_hat_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     l_genus(k::Int, X::AbstractVariety)
 
-Compute the `k`-th L genus of the abstract_variety `X`.
+Compute the `k`-th L genus of the abstract variety `X`.
+
+# Examples
+```jldoctest
+julia> P4 = abstract_projective_space(4)
+AbstractVariety of dim 4
+
+julia> l_genus(1, P4)
+5//3*h^2
+
+```
 """
 l_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     a_hat_genus(X::AbstractVariety)
 
-Compute the top $\hat A$ genus of the abstract_variety `X` of even dimension.
+Compute the top $\hat A$ genus of the abstract variety `X` of even dimension.
+
+# Examples
+```jldoctest
+julia> a_hat_genus(abstract_projective_space(4))
+3//128
+
+```
 """
 a_hat_genus(X::AbstractVariety)
 
 @doc raw"""
     l_genus(X::AbstractVariety)
 
-Compute the top L genus of the abstract_variety `X` of even dimension.
+Compute the top L genus of the abstract variety `X` of even dimension.
+
+# Examples
+```jldoctest
+julia> l_genus(abstract_projective_space(4))
+1
+
+```
 """
 l_genus(X::AbstractVariety)
 
 @doc raw"""
     signature(X::AbstractVariety)
 
-Compute the signature of the abstract_variety `X` of even dimension.
+Compute the signature of the abstract variety `X` of even dimension.
+
+# Examples
+```jldoctest
+julia> signature(complete_intersection(abstract_projective_space(3), 4))
+-16
+
+```
 """
 signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 
