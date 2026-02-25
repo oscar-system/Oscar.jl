@@ -119,10 +119,10 @@ mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
 end
 
 @doc raw"""
-    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::AffAlgHom, fₓ)
-    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ)
+    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, f_pullback::AffAlgHom, f_pushforward)
+    AbstractVarietyMap(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward)
 
-The type of an abstract abstract_variety morphism.
+The type of an abstract variety morphism.
 """
 mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT} <: VarietyHom
   domain::V1
@@ -133,37 +133,37 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
 
-  function AbstractVarietyMap(X::V1, Y::V2, fˣ::AffAlgHom, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
-    if !(fₓ isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
+  function AbstractVarietyMap(X::V1, Y::V2, f_pullback::AffAlgHom, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
+    if !(f_pushforward isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
       # - Y is a point or a curve
       # - all algebraic classes for Y are known
-      f_is_alg = fₓ == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_attribute(Y, :alg) == true
-      fₓ = x -> (
+      f_is_alg = f_pushforward == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_attribute(Y, :alg) == true
+      f_pushforward = x -> (
         if !f_is_alg
           @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
         end;
-        sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
+        sum(integral(xi*f_pullback(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
             if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
-      fₓ = MapFromFunc(X.ring, Y.ring, fₓ)
+      f_pushforward = MapFromFunc(X.ring, Y.ring, f_pushforward)
     end
-    f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)
+    f = new{V1, V2}(X, Y, X.dim-Y.dim, f_pullback)
     try
-      f.pushforward = fₓ
+      f.pushforward = f_pushforward
     catch
     end
     if isdefined(X, :T) && isdefined(Y, :T)
-      f.T = AbstractBundle(X, chern_character(X.T) - fˣ(chern_character(Y.T)))
+      f.T = AbstractBundle(X, chern_character(X.T) - f_pullback(chern_character(Y.T)))
     end
     return f
   end
 
-  function AbstractVarietyMap(X::V1, Y::V2, l::Vector, fₓ=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
+  function AbstractVarietyMap(X::V1, Y::V2, l::Vector, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     # TODO: this fails with check = false
-    fˣ = hom(Y.ring, X.ring, l, check = false)
-    AbstractVarietyMap(X, Y, fˣ, fₓ)
+    f_pullback = hom(Y.ring, X.ring, l, check = false)
+    AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   end
 end
 

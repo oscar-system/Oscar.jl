@@ -443,7 +443,7 @@ end
 ### constructor
 
 @doc raw"""
-    map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+    map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of
 the Chow ring ${\rm N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map ${\rm N}^*(X)_{\mathbb Q} \rightarrow {\rm N}^*(Y)_{\mathbb Q}.$
@@ -502,10 +502,10 @@ true
 
 ```
 """
-function map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
-  #AbstractVarietyMap(X, Y, fˣ, fₓ)
-  !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
-  extend_inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
+function map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = nothing; inclusion::Bool = false, symbol::String = "x")
+  #AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
+  !inclusion && return AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
+  extend_inclusion(AbstractVarietyMap(X, Y, f_pullback), symbol=symbol)
 end
 
 @doc raw"""
@@ -721,12 +721,12 @@ function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
 
   Z = g.codomain
 
-  gofₓ = nothing
+  gof_pushforward = nothing
   if isdefined(f, :pushforward) && isdefined(g, :pushforward)
-    gofₓ = MapFromFunc(X.ring, Z.ring, g.pushforward ∘ f.pushforward)
+    gof_pushforward = MapFromFunc(X.ring, Z.ring, g.pushforward ∘ f.pushforward)
   end
 
-  gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
+  gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gof_pushforward)
 
   return gof
 end
@@ -2687,9 +2687,9 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   # construct the abstract variety
 
   PF = AbstractVariety(X.dim+r-1, APF)
-  pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
-  pₓ = MapFromFunc(PF.ring, X.ring, pₓ)
-  p = AbstractVarietyMap(PF, X, PF.(imgs_in_R1), pₓ)
+  p_pushforward = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
+  p_pushforward = MapFromFunc(PF.ring, X.ring, p_pushforward)
+  p = AbstractVarietyMap(PF, X, PF.(imgs_in_R1), p_pushforward)
   if isdefined(X, :point)
     PF.point = p.pullback(X.point) * z^(r-1)
   end
@@ -3033,9 +3033,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   if isdefined(X, :point)
     Fl.point = pback(X.point.f) * section ### TODO better when fglm is used (take section from _find_sect as second output
   end
-  pˣ = Fl.(imgs_in_R1)
+  p_pullback = Fl.(imgs_in_R1)
 
-  ###pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
+  ###p_pushforward = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
 
   ##################################
   ##alternative approach
@@ -3051,12 +3051,12 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   ds = [degree(Int, gs[i]) for i = 1:1:nl]
   dm = argmax(ds)
   ### TODO find an return section
-  fm = hom(R, AFl, pˣ)
-  pₓ = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
+  fm = hom(R, AFl, p_pullback)
+  p_pushforward = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
   ##################################
 
-  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
-  p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
+  p_pushforward = MapFromFunc(Fl.ring, X.ring, p_pushforward)
+  p = AbstractVarietyMap(Fl, X, p_pullback, p_pushforward)
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1
   p.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
