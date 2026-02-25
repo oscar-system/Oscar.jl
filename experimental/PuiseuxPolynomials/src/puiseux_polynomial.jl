@@ -219,7 +219,7 @@ nvars(R::PuiseuxMPolyRing) = nvars(underlying_polynomial_ring(R))
 zero(R::PuiseuxMPolyRing) = puiseux_polynomial_ring_elem(R, zero(underlying_polynomial_ring(R)); skip_normalization=true)
 one(R::PuiseuxMPolyRing) = puiseux_polynomial_ring_elem(R, one(underlying_polynomial_ring(R)); skip_normalization=true)
 iszero(f::PuiseuxMPolyRingElem) = iszero(poly(f))
-isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && shift(f) == 0 && scale(f) == 1
+isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && iszero(shift(f)) && scale(f) == 1
 
 function Base.:(==)(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     check_parent(f, g)
