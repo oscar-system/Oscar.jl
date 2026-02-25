@@ -12,6 +12,7 @@ mutable struct SimplicialCohomologyRing{T} <: NCRing
 end
 
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
+simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
 
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)

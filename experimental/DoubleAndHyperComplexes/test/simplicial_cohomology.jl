@@ -4,7 +4,7 @@
 
     @test typeof(CZ) <: Oscar.SimplicialCoComplex
 
-    AKZ = SimplicialCohomologyRing(CZ)
+    AKZ = Oscar.SimplicialCohomologyRing(CZ)
 
     @test AKZ <: Oscar.SimplicialCohomologyRing
 
@@ -12,7 +12,7 @@
 
     CF_23 = Oscar.SimplicialCoComplex(GF(23), K)
 
-    AK_23 = SimplicialCohomologyRing(CZ)
+    AK_23 = Oscar.SimplicialCohomologyRing(CZ)
 
     @test AK_23 <: Oscar.SimplicialCohomologyRing
 
