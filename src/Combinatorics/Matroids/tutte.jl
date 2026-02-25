@@ -1,7 +1,7 @@
-"""
-  circuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+@doc raw"""
+    circuits(M::Matroid, S::T) where T<:GroundsetType
 
-  Return the list of circuits of the matroid contained in `S`. 
+Return the list of circuits of the matroid contained in `S`. 
 """
 function circuits(M::Matroid, S::T) where T<:GroundsetType
   @req all(s in matroid_groundset(M) for s in S) "The restriction set has to be a subset of the matroid's ground set"
@@ -14,10 +14,10 @@ function _circuit(M::Matroid, S::T) where T<:GroundsetType
   return C[1] 
 end
 
-"""
-  cocircuits(M::Matroid, S::Union{AbstractVector{T}, AbstractSet{T}}) where T<:GroundsetType
+@doc raw"""
+    cocircuits(M::Matroid, S::T) where T<:GroundsetType
 
-  Return the list of cocircuits of matroid contained in S.
+Return the list of cocircuits of matroid contained in S.
 """
 function cocircuits(M::Matroid, S::T) where T<:GroundsetType
   MD = dual_matroid(M)
@@ -30,11 +30,11 @@ function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
   return cocircuits(M,S)[1] 
 end
 
-"""
-  tutte_group(M::Matroid; char::Int=-1)
+@doc raw"""
+    tutte_group(M::Matroid; char::Int=-1)
 
-  Computes the Tutte group of a matroid M for a ring with characteristic `char`.
-  For more details; see [DW89](@cite).
+Computes the Tutte group of a matroid M for a ring with characteristic `char`.
+For more details; see [DW89](@cite).
 """
 function tutte_group(M::Matroid; char::Int=-1)
   B = bases(M)
@@ -72,18 +72,21 @@ function tutte_group(M::Matroid; char::Int=-1)
   return abelian_group(relations_matrix) #this implicitely computes the Smith normal form
 end
 
-"""
-  is_tutte_realizable(M::Matroid)
+@doc raw"""
+    is_tutte_realizable(M::Matroid)
 
-  False if matroid M is not realizable.
-  True if inconclusive. 
-  Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
-  see Corollary 1 in Section 3 of [DW89](@cite).
+False if matroid M is not realizable.
+True if inconclusive. 
+Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
+see Corollary 1 in Section 3 of [DW89](@cite).
 
 # Example
+
+
 ```jldoctest
 julia> is_tutte_realizable(uniform_matroid(2,4));
 true
+
 julia> is_tutte_realizable(fano_matroid())
 false
 ```
