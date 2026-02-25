@@ -104,6 +104,7 @@ scale(f::PuiseuxMPolyRingElem) = f.scale
 
 # WARNING: input is not assumed to be normalized
 function normalize!(f::PuiseuxMPolyRingElem)
+    #TODO: Normalise zero correctly - it is possible for zeros to have different shifts
     if iszero(f)
         return false
     end
@@ -215,8 +216,17 @@ isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && iszero(shift(f)) && scale(f) 
 
 function Base.:(==)(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     check_parent(f, g)
+    # TODO: remove this once normalize! does zero correctly
+    if iszero(f) && iszero(g)
+        return true
+    end
     return poly(f) == poly(g) && shift(f) == shift(g) && scale(f) == scale(g)
 end
+
+function Base.deepcopy_internal(f::PuiseuxMPolyRingElem, dict::IdDict)
+    return puiseux_polynomial_ring_elem(parent(f), deepcopy(poly(f), dict), deepcopy(shift(f), dict), deepcopy(scale(f), dict); skip_normalization=true)
+end
+
 
 coefficients(f::PuiseuxMPolyRingElem) = coefficients(poly(f))
 exponents(f::PuiseuxMPolyRingElem) = [ (e + shift(f)) // scale(f) for e in exponents(poly(f)) ]
@@ -399,12 +409,16 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::Integer)
     return f^(ZZ(a))
 end
 
+# TODO: these // should be changed to divexact
+
+
 function Base.:(//)(f::PuiseuxMPolyRingElem{K}, a::K) where K <: FieldElement
     @req !iszero(a) "division by zero"
     return puiseux_polynomial_ring_elem(parent(f), poly(f)*1//a, shift(f), scale(f); skip_normalization=true)
 end
 
 function Base.:(//)(f::PuiseuxMPolyRingElem, a::Int)
+    # TODO: delegate to divexact
     return f//coefficient_ring(f)(a)
 end
 
@@ -438,6 +452,7 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     newShift = shift(f)*scale(g) - shift(g)*scale(f)
     newScale = scale(f)*scale(g)
     xPrimes = gens(parent(poly(f)))
+    # TODO: the '/' in the line below should be divexact of polys
     newPoly = evaluate(poly(f), xPrimes .^ scale(g)) / first(coefficients(poly(g)))
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
