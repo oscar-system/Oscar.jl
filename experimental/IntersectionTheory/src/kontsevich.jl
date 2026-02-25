@@ -68,7 +68,7 @@ end
 # 
 
 @doc raw"""
-     kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
+    kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
 
 Return the Kontsevich moduli space $\overline{M}(\mathbb P^n, d)$ as a `TnVariety` (abstract orbifold).
 
@@ -428,8 +428,8 @@ end
 ################################################################
 
 @doc raw"""
-     gromov_witten_invariant(d::Int, ns::Vector{Int})
-     gromov_witten_invariant(d::Int, ns::Int...)
+    gromov_witten_invariant(d::Int, ns::Vector{Int})
+    gromov_witten_invariant(d::Int, ns::Int...)
 
 Return the Gromov-Witten invariant $N_d^{(d_1, \dots, d_k)}$, where $d_1, \dots, d_k$ are the integers given by `ns`.
 
@@ -470,7 +470,7 @@ end
 gromov_witten_invariant(d::Int, ns::Int...) = gromov_witten_invariant(d, collect(ns))
 
 @doc raw"""
-     instanton_number(d::Int, ns::Vector{Int})
+    instanton_number(d::Int, ns::Vector{Int})
 
 Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots, d_k$ are the integers given by `ns`.
 

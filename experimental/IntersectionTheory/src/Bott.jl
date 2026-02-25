@@ -178,7 +178,7 @@ Return an abstract variety with a (split) torus action by specifying its dimensi
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 
 @doc raw"""
-     dim(X::TnVariety)
+    dim(X::TnVariety)
 
 Return the dimension of `X`.
 
@@ -194,7 +194,7 @@ julia> dim(G)
 dim(X::TnVariety) = X.dim
 
 @doc raw"""
-     fixed_points(X::TnVariety)
+    fixed_points(X::TnVariety)
 
 Return the fixed points representing `X` and their multiplicities.
 
@@ -226,7 +226,7 @@ julia> P = V[10][1]
 fixed_points(X::TnVariety) = X.points
 
 @doc raw"""
-     tangent_bundle(X::TnVariety)
+    tangent_bundle(X::TnVariety)
 
 Return the tangent bundle of `X`.
 
@@ -265,7 +265,7 @@ TnRep(2, ZZRingElem[-2, -1])
 tangent_bundle(X::TnVariety) = X.T
 
 @doc raw"""
-     tautological_bundles(X::TnVariety)
+    tautological_bundles(X::TnVariety)
 
 If `X` has been given tautological bundles, return these bundles.
 
@@ -344,9 +344,9 @@ function _get_ring(F::TnBundle)
 end
 
 @doc raw"""
-     total_chern_class(F::TnBundle)
-     chern_class(F::TnBundle, k::Int)
-     top_chern_class(F::TnBundle)
+    total_chern_class(F::TnBundle)
+    chern_class(F::TnBundle, k::Int)
+    top_chern_class(F::TnBundle)
 
 Return the total Chern class, the `k`-th Chern class, and the top Chern class of `F`, respectively.
 
@@ -368,7 +368,7 @@ chern_class(F::TnBundle, k::Int) = TnBundleChern(F, total_chern_class(F).c[k])
 top_chern_class(F::TnBundle) = chern_class(F, F.rank)
 
 @doc raw"""
-     chern_class(F::TnBundle, f::RingElem)
+    chern_class(F::TnBundle, f::RingElem)
 
 Return the evaluation of `f` in the Chern classes of `F`.
 
@@ -403,7 +403,7 @@ chern_class(F::TnBundle, x::RingElem) = begin
 end
 
 @doc raw"""
-     tn_bundle(c::TnBundleChern)
+    tn_bundle(c::TnBundleChern)
 
 Return the `tn_bundle` to which `c` belongs.
 """
@@ -437,7 +437,7 @@ total_chern_class(X::TnVariety) = total_chern_class(X.T)
 chern_class(X::TnVariety, k::Int) = chern_class(X.T, k)
 
 @doc raw"""
-     integral(c::TnBundleChern)
+    integral(c::TnBundleChern)
 
 Return the integral of `c`.
 

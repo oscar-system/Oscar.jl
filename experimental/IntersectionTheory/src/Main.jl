@@ -801,7 +801,7 @@ end
 
 # abstract_variety with dimension and Chow ring
 @doc raw"""
-     abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
+    abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
 
 Return an abstract variety by specifying its dimension `n` and its Chow ring `A`.
 

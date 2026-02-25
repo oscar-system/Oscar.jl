@@ -1,6 +1,6 @@
 ######################################
 @doc raw"""
-      blow_up(i::AbstractVarietyMap; symbol::String="e")
+    blow_up(i::AbstractVarietyMap; symbol::String="e")
 
 Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
 

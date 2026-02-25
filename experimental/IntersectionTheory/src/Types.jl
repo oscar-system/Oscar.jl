@@ -7,7 +7,7 @@ abstract type Bundle end
 
 
 @doc raw"""
-     parent(F::AbstractBundle)
+    parent(F::AbstractBundle)
 
 Return the underlying abstract variety of `F`.
 
@@ -27,7 +27,7 @@ true
 Base.parent(F::Bundle) = F.parent
 
 @doc raw"""
-     rank(F::AbstractBundle)
+    rank(F::AbstractBundle)
 
 Return the rank of `F`.
 
@@ -49,7 +49,7 @@ rank(F::Bundle) = F.rank
 abstract type Variety end
 
 @doc raw"""
-     dim(X::AbstractVariety)
+    dim(X::AbstractVariety)
 
 Return the dimension of `X`.
 
@@ -71,14 +71,14 @@ dim(X::Variety) = X.dim
 abstract type VarietyHom end
 
 @doc raw"""
-     domain(f::AbstractVarietyMap)
+    domain(f::AbstractVarietyMap)
 
 Return the domain of `f`.
 """
 domain(X::VarietyHom) = X.domain
 
 @doc raw"""
-     codomain(f::AbstractVarietyMap)
+    codomain(f::AbstractVarietyMap)
 
 Return the codomain of `f`.
 """
