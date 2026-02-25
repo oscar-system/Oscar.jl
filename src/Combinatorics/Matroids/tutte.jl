@@ -25,7 +25,6 @@ function cocircuits(M::Matroid, S::T) where T<:GroundsetType
 end
 
 function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
-  
   @req !iszero(rank(M)) "The rank of the matroid should be smaller than the cardinality of the ground set"
   return cocircuits(M,S)[1] 
 end
