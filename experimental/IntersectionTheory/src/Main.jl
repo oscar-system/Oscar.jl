@@ -325,11 +325,7 @@ pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 @doc raw"""
     euler_characteristic(F::AbstractBundle)
 
-Return the Euler characteristic $\chi(F)$
-
-    euler_pairing(F::AbstractBundle, G::AbstractBundle)
-
-Return the Euler pairing $\chi(F, G)$.
+Return the Euler characteristic $\chi(F)$ computed via the Hirzebruch-Riemann-Roch formula.
 
 # Examples
 ```jldoctest
@@ -343,9 +339,6 @@ julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
 AbstractVariety of dim 2
 
 julia> TZ = tangent_bundle(Z);
-
-julia> tc = todd_class(TZ)
--1//2*z + 1//8*H^2 + 1//2*H + 1
 
 julia> K = canonical_class(Z)
 z - H
@@ -362,6 +355,22 @@ true
 ```
 """
 Oscar.euler_characteristic(F::AbstractBundle) = integral(chern_character(F) * todd_class(F.parent)) # Hirzebruch-Riemann-Roch
+
+@doc raw"""
+    euler_pairing(F::AbstractBundle, G::AbstractBundle)
+
+Return the Euler pairing $\chi(F, G) = \int \operatorname{ch}(F^\vee) \cdot \operatorname{ch}(G) \cdot \operatorname{td}(X)$.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> euler_pairing(OO(P2, 1), OO(P2, 2))
+3
+
+```
+"""
 euler_pairing(F::AbstractBundle, G::AbstractBundle) = begin
   F, G = _coerce(F, G)
   integral(chern_character(dual(F)) * chern_character(G) * todd_class(F.parent))
