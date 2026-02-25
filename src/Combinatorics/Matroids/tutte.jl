@@ -31,12 +31,13 @@ function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
 end
 
 @doc raw"""
-    tutte_group(M::Matroid; char::Int=-1)
+    tutte_group(M::Matroid; char::Int=0)
 
 Computes the Tutte group of a matroid M for a ring with characteristic `char`.
+It should be noted, that the `char` only matters if it is two.
 For more details; see [DW89](@cite).
 """
-function tutte_group(M::Matroid; char::Int=-1)
+function tutte_group(M::Matroid; char::Int=0)
   B = bases(M)
   idx = Dict{Set{Int}, Int}(Set(k) => i for (i,k) in enumerate(B))
   gs = matroid_groundset(M)
@@ -75,13 +76,13 @@ end
 @doc raw"""
     is_tutte_realizable(M::Matroid)
 
-False if matroid M is not realizable.
-True if inconclusive. 
-Note that the Tutte group only yields a necessary (and no sufficient) criterion for realizability of M over R;
-see Corollary 1 in Section 3 of [DW89](@cite).
+Returns whether the matroid fulfills the Tutte realizability condition.
+If `false`, this implies that the matroid cannot be realized over a field with characteristic other than `2`.
+If `true`, we don't have a conclusive answer on realizability, since the Tutte
+group only yields a necessary (and no sufficient) criterion for realizability
+of M; see Corollary 1 in Section 3 of [DW89] (@cite).
 
 # Example
-
 
 ```jldoctest
 julia> is_tutte_realizable(uniform_matroid(2,4));
