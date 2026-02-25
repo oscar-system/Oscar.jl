@@ -438,7 +438,7 @@ Return the Gromov-Witten invariant $N_d^{(d_1, \dots, d_k)}$, where $d_1, \dots,
 
 # Examples
 ```jldoctest
-julia> [gromov_witten_invariant(d, 5) for d = 1:3]
+julia> [gromov_witten_invariant(d, 5) for d in 1:3]
 3-element Vector{QQFieldElem}:
  2875
  4876875//8
@@ -482,7 +482,7 @@ Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots
 
 # Examples
 ```jldoctest
-julia> [instanton_number(d, 5) for d = 1:3]
+julia> [instanton_number(d, 5) for d in 1:3]
 3-element Vector{QQFieldElem}:
  2875
  609250
@@ -506,12 +506,12 @@ julia> instanton_number(2, 2, 2, 2, 2)
 ```
 """
 function instanton_number(d::Int, ns::Vector{Int})
-  V = [gromov_witten_invariant(i, ns) for i = 1:d]
+  V = [gromov_witten_invariant(i, ns) for i in 1:d]
   W = [V[1]]
-  for i = 2:d
+  for i in 2:d
     E = divisors(i)
     lE = length(E)
-    push!(W, V[i] - sum(W[div(i, E[j])]//E[j]^3 for j = 2:lE))
+    push!(W, V[i] - sum(W[div(i, E[j])]//E[j]^3 for j in 2:lE))
   end
   return W[d]
 end

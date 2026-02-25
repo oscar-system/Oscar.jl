@@ -2776,7 +2776,7 @@ Quotient
 julia> S = tautological_bundles(G)[1]
 AbstractBundle of rank 2 on AbstractVariety of dim 4
 
-julia> V = [chern_class(S, i) for i = 1:2]
+julia> V = [chern_class(S, i) for i in 1:2]
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  c[1]
  c[2]
@@ -3046,9 +3046,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   wcs = reduce(vcat, [1:r for r in ranks])
   Rcs, _ = graded_polynomial_ring(X.base, syms; weights = wcs)
   RcstoR1 = hom(Rcs, R1, gens_for_rels_R1)
-  gs = [monomial(Rcs, [Int(ME[i, j]) for j = 1:n]) for i = nl:-1:1]
-  gs = [RcstoR1(gs[i]) for i = 1:length(gs)]
-  ds = [degree(Int, gs[i]) for i = 1:1:nl]
+  gs = [monomial(Rcs, [Int(ME[i, j]) for j in 1:n]) for i in nl:-1:1]
+  gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
+  ds = [degree(Int, gs[i]) for i in 1:1:nl]
   dm = argmax(ds)
   ### TODO find an return section
   fm = hom(R, AFl, p_pullback)
@@ -3090,8 +3090,8 @@ function _matrix_of_exponents(ni::Vector{Int}) # [GSS22](@cite) Thm 2.15
  C = zero_matrix(ZZ, r, n)
  d = zero_matrix(ZZ, r, 1)
  s = 0
- for i=1:r
-   for j=1:ni[i]
+ for i in 1:r
+   for j in 1:ni[i]
      C[i, j+s] = 1
    end
    s += ni[i]
@@ -3115,10 +3115,10 @@ function  _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_fini
   end
   if B isa MPolyQuoRing
     BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
+    M = [F(gens(A)[i]).f for i in 1:a]
   else
     BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
+    M = [F(gens(A)[i]) for i in 1:a]
   end
 
   @assert base_ring(AR) == base_ring(BR)

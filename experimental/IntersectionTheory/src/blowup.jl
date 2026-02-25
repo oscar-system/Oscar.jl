@@ -254,7 +254,7 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
   Bl = X
   P = abstract_point(base = X.base)
   for i in 1:n
-    Bl = blow_up(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
+    Bl = blow_up(map(P, Bl, [zero(P.ring) for j in 1:i]), symbol=symbs[i])[1]
   end
   set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
   Bl.struct_map = map(Bl, X)

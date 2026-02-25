@@ -127,7 +127,7 @@ julia> schubert_classes(G, 2)
 function schubert_classes(G::AbstractVariety)
    @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
    S, Q = G.bundles
-   return [schubert_classes(G, i) for i = 0:rank(S)*rank(Q)]
+   return [schubert_classes(G, i) for i in 0:rank(S)*rank(Q)]
 end
 
 function schubert_classes(G::AbstractVariety, m::Int)
