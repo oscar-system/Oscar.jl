@@ -92,10 +92,13 @@ julia> chern_character(Q)
 
 ```
 """
-chern_character(F::AbstractBundle) = (
+function chern_character(F::AbstractBundle)
   # TODO use the get_attribute system?
-  if !isdefined(F, :ch) F.ch = F.rank + _logg(F.chern) end;
-  F.ch)
+  if !isdefined(F, :ch)
+    F.ch = F.rank + _logg(F.chern)
+  end
+  return F.ch
+end
 
 @doc raw"""
     total_chern_class(F::AbstractBundle)
@@ -121,9 +124,12 @@ c[1]^2 - c[2]
 
 ```
 """
-total_chern_class(F::AbstractBundle) = (
-  if !isdefined(F, :chern) F.chern = _expp(F.ch) end;
-  F.chern)
+function total_chern_class(F::AbstractBundle)
+  if !isdefined(F, :chern)
+    F.chern = _expp(F.ch)
+  end
+  return F.chern
+end
 
 @doc raw"""
     chern_class(F::AbstractBundle, k::Int)
@@ -162,9 +168,12 @@ julia> chern_class(F*OO(P4, -3), 2)
 
 ```
 """
-chern_class(F::AbstractBundle, k::Int) = (
-  isdefined(F, :chern) && return total_chern_class(F)[k];
-  _expp(F.ch, truncate=k)[k])
+function chern_class(F::AbstractBundle, k::Int)
+  if isdefined(F, :chern)
+    return total_chern_class(F)[k]
+  end
+  return _expp(F.ch, truncate=k)[k]
+end
 
 @doc raw"""
     top_chern_class(F::AbstractBundle)
