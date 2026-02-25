@@ -31,22 +31,20 @@ function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
 end
 
 """
+  tutte_group(M::Matroid; char::Int=-1)
+
   Computes the Tutte group of a matroid M for a ring with characteristic `char`.
   For more details; see [DW89](@cite).
 """
 function tutte_group(M::Matroid; char::Int=-1)
   B = bases(M)
   idx = Dict{Set{Int}, Int}(Set(k) => i for (i,k) in enumerate(B))
-  #idx[Set{Int}()] = length(B) + 1 #this is to index the epsilon
   gs = matroid_groundset(M)
-  if char==2
-    v = zeros(Int, length(B)+1)
+  v = zeros(Int, length(B)+1)
+  if char == 2
     v[end] = 1 #this is for the epsilon
-    relations = [v]
   else
-    v = zeros(Int, length(B)+1)
     v[end] = 2
-    relations = [v]
   end
   relations = [v]
   for X in nonbases(M)
