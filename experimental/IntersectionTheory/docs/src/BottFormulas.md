@@ -91,7 +91,7 @@ tautological_bundles(X::TnVariety)
 As for the type `AbstractVariety`, we have the methods `trivial_line_bundle(X::TnVariety)` (alternatively, `OO(X::TnVariety)`),
 `cotangent_bundle(X::TnVariety)`, and `euler_number(X::TnVariety)`. Morever, if `X` is of type `TnVariety`, entering `total_chern_class(X)`
 returns the total Chern class of the tangent bundle of `X`. Similarly for entering `chern_class(X, k)`.
-	
+
 
 ## Abstract equivariant vector bundles under a torus action
 
