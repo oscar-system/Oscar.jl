@@ -1033,16 +1033,17 @@ function _vector_space_basis(
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  F = ambient_free_module(M)
-  Mq,_ = sub(F, relations(M))
-  Mq_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
-  LMq = leading_module(Mq_shift, o)
+  M_shift,_,_ = shifted_module(M)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LMq = leading_module(M_shift.quo, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
   is_empty(B) && return elem_type(M)[]
-  _, back_shift = base_ring_shifts(R)
-  iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
-  return iota.(B)
+  # move basis elements back to M
+  F = ambient_free_module(M)
+  F_poly,_,back_shift = shifted_module(F)
+  iota = base_ring_module_map(F)
+  # LMq(shifted) -> F_poly(shifted) -> F_poly -> F -> M
+  return M.(iota.(back_shift.(ambient_representative.(B))))
 end
 
 function _is_finite(
@@ -1052,11 +1053,9 @@ function _is_finite(
                                <:MPolyComplementOfKPointIdeal
                               }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
-  F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
-  Mq_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
-  LMq = leading_module(Mq_shift, o)
+  M_shift,_,_ = shifted_module(M)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LMq = leading_module(M_shift.quo, o)
   return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
 end
 
@@ -1070,18 +1069,17 @@ function _vector_space_basis(
   F = ambient_free_module(M)
   
   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
-  L = base_ring(M)
-  R = base_ring(L)
-  Mq,_ = sub(F, relations(M))
-  Mq_shift,_, back_shift = shifted_module(Mq)
-  F_poly = ambient_free_module(Mq_shift)
-  o = negdegrevlex(base_ring(Mq_shift))*lex(F_poly)
-  LMq = leading_module(Mq_shift, o)
+  M_shift,_,_ = shifted_module(M)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LMq = leading_module(M_shift.quo, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), d; check)
   is_empty(B) && return elem_type(M)[]
-  _, back_shift = base_ring_shifts(L)
-  iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
-  return iota.(B)
+  # move basis elements back to M
+  F = ambient_free_module(M)
+  F_poly,_,back_shift = shifted_module(F)
+  iota = base_ring_module_map(F)
+  # LMq(shifted) -> F_poly(shifted) -> F_poly -> F -> M
+  return M.(iota.(back_shift.(ambient_representative.(B))))  
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
