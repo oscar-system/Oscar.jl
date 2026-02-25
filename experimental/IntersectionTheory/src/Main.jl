@@ -597,6 +597,23 @@ cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
     todd_class(f::AbstractVarietyMap)
 
 Return the Todd class of the relative tangent bundle of `f`.
+
+# Examples
+
+The fibre variable `z` is the relative polarization of the projective bundle:
+
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> PF = projective_bundle(P2.bundles[2]);
+
+julia> z = polarization(PF)  # relative O(1) class on the fibre
+z
+
+julia> todd_class(structure_map(PF))
+z - 1//4*h^2 + 1//2*h + 1
+
+```
 """
 todd_class(f::AbstractVarietyMap) = todd_class(f.T)
 
@@ -1289,6 +1306,16 @@ euler_number(X::AbstractVariety) = integral(total_chern_class(X.T))
     todd_class(X::AbstractVariety)
 
 Compute the Todd class of the tangent bundle of `X`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> todd_class(P2)
+h^2 + 3//2*h + 1
+
+```
 """
 todd_class(X::AbstractVariety) = todd_class(X.T)
 
@@ -1339,9 +1366,32 @@ end
     chern_number(X::AbstractVariety, λ::Vector{Int})
     chern_number(X::AbstractVariety, λ::Partition)
 
-Compute the Chern number $c_\lambda (X):=\int_X c_{\lambda_1}(X)\cdots
-c_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
+Compute the Chern number ${\rm c}_\lambda (X):=\int_X {\rm c}_{\lambda_1}(X)\cdots
+{\rm c}_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
 of the dimension of `X`.
+
+# Examples
+
+A quartic surface in $\mathbb P^3$ (a K3 surface) and a quintic threefold in $\mathbb P^4$:
+
+```jldoctest
+julia> K3 = zero_locus_section(OO(abstract_projective_space(3), 4));
+
+julia> chern_number(K3, 2)
+24
+
+julia> chern_number(K3, 1, 1)
+0
+
+julia> Q = zero_locus_section(OO(abstract_projective_space(4), 5));
+
+julia> chern_number(Q, 3)
+-200
+
+julia> chern_number(Q, 2, 1)
+0
+
+```
 """
 chern_number(X::AbstractVariety, λ::Int...) = chern_number(X, collect(λ))
 chern_number(X::AbstractVariety, λ::Partition) = chern_number(X, Vector(λ))
@@ -2242,27 +2292,74 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   end
 end
 
-# TODO add examples
 @doc raw"""
     todd_class(n::Int)
 
-Compute the (generic) $n$-th Todd genus.
+Compute the (generic) $n$-th Todd genus as a polynomial in the Chern classes
+${\rm c}_1, \ldots, {\rm c}_n$.
+
+# Examples
+
+```jldoctest
+julia> todd_class(1)
+1//2*c[1]
+
+julia> todd_class(2)
+1//12*c[1]^2 + 1//12*c[2]
+
+julia> todd_class(3)
+1//24*c[1]*c[2]
+
+julia> todd_class(4)
+-1//720*c[1]^4 + 1//180*c[1]^2*c[2] + 1//720*c[1]*c[3] + 1//240*c[2]^2 - 1//720*c[4]
+
+```
 """
 todd_class(n::Int)
 
-# TODO add examples
 @doc raw"""
     l_genus(n::Int)
 
-Compute the (generic) $n$-th L genus.
+Compute the (generic) $n$-th L genus as a polynomial in the Pontryagin classes
+$p_1, \ldots, p_n$. The first L genus $L_1 = p_1/3$ recovers the Hirzebruch
+signature formula in dimension 4.
+
+# Examples
+
+```jldoctest
+julia> l_genus(1)
+1//3*p[1]
+
+julia> l_genus(2)
+-1//45*p[1]^2 + 7//45*p[2]
+
+julia> l_genus(3)
+2//945*p[1]^3 - 13//945*p[1]*p[2] + 62//945*p[3]
+
+```
 """
 l_genus(n::Int)
 
-# TODO add examples
 @doc raw"""
     a_hat_genus(n::Int)
 
-Compute the (generic) $n$-th $\hat A$ genus.
+Compute the (generic) $n$-th $\hat A$ genus as a polynomial in the Pontryagin
+classes $p_1, \ldots, p_n$. The first $\hat A$ genus $\hat A_1 = -p_1/24$
+appears in the Atiyah-Singer index theorem (Dirac operator).
+
+# Examples
+
+```jldoctest
+julia> a_hat_genus(1)
+-1//24*p[1]
+
+julia> a_hat_genus(2)
+7//5760*p[1]^2 - 1//1440*p[2]
+
+julia> a_hat_genus(3)
+-31//967680*p[1]^3 + 11//241920*p[1]*p[2] - 1//60480*p[3]
+
+```
 """
 a_hat_genus(n::Int)
 
