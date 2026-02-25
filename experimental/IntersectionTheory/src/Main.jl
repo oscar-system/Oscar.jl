@@ -756,7 +756,7 @@ end
 #
 # AbstractVariety
 #
-# generic abstract_variety with some classes in given degrees
+# generic abstract variety with some classes in given degrees
 # TODO this could do with better documentation and examples
 @doc raw"""
     abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
@@ -771,7 +771,7 @@ function abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; ba
   return AbstractVariety(n, R), x
 end
 
-# generic abstract_variety with some bundles in given ranks
+# generic abstract variety with some bundles in given ranks
 @doc raw"""
     abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}) where T
 
@@ -799,7 +799,7 @@ end
 
 Construct a generic abstract variety of dimension $n$ and define its tangent bundle.
 
-Return the abstract_variety.
+Return the abstract variety.
 """
 function abstract_variety(n::Int; base::Ring=QQ)
   n == 0 && return abstract_point()
@@ -808,7 +808,7 @@ function abstract_variety(n::Int; base::Ring=QQ)
   return X
 end
 
-# abstract_variety with dimension and Chow ring
+# abstract variety with dimension and Chow ring
 @doc raw"""
     abstract_variety(n::Int, A::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}})
 
@@ -1483,7 +1483,7 @@ julia> euler_characteristic(OO(P2, 3))
 ```
 """
 function hilbert_polynomial(F::AbstractBundle)
-  !isdefined(F.parent, :O1) && error("no polarization is specified for the abstract_variety")
+  !isdefined(F.parent, :O1) && error("no polarization is specified for the abstract variety")
   X, O1 = F.parent, F.parent.O1
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
@@ -1556,7 +1556,7 @@ function map(X::AbstractVariety, Y::AbstractVariety)
   _map(X, Y)
 end
 
-# product abstract_variety
+# product abstract variety
 @doc raw"""
     product(X::AbstractVariety, Y::AbstractVariety)
 
@@ -2544,7 +2544,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
-  D.struct_map = map(D, F.parent) # skip the flag abstract_variety
+  D.struct_map = map(D, F.parent) # skip the flag abstract variety
   if isdefined(F.parent, :O1) ### DIFF Song
     D.O1 = pullback(D.struct_map, F.parent.O1) ### DIFF Song
   end ### DIFF Song
@@ -2993,7 +2993,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   Fl.point = prod(top_chern_class(E)^dims[i] for (i,E) in enumerate(Fl.bundles[2:end]))
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
   Fl.struct_map = map(Fl, abstract_point(base=base), [Fl(1)])
-  set_attribute!(Fl, :description => "Flag abstract_variety Flag$(tuple(dims...))")
+  set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   if l == 2 set_attribute!(Fl, :grassmannian => :absolute) end
   set_attribute!(Fl, :alg => true)
   # if all(r->r==1, ranks)
@@ -3104,7 +3104,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   AFl = quo(R1, ideal(rels))[1]
   c = AFl.(c)
 
-  # construct the abstract_variety
+  # construct the abstract variety
 
   Fl = AbstractVariety(X.dim + d, AFl)
   Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
@@ -3143,7 +3143,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
     Fl.T = pullback(p, X.T) + p.T
   end
   Fl.struct_map = p
-  set_attribute!(Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F")
+  set_attribute!(Fl, :description => "Relative flag abstract variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
 
   if get_attribute(X, :alg) == true ### DIFF Song

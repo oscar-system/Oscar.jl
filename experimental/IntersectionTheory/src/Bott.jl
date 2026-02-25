@@ -70,7 +70,7 @@ tn_representation(w::Vector{<:IntegerUnion}) = TnRep(w)
 #
 # TnBundle, TnVariety - varieties with a torus action and equivariant bundles
 #
-# A Tⁿ-abstract_variety X is represented as the set of fixed points X.points, each
+# A Tⁿ-abstract variety X is represented as the set of fixed points X.points, each
 # labeled using some value of type P (e.g. an array), and has a multiplicity e
 # (orbifold multiplicity);
 #
@@ -84,7 +84,7 @@ abstract type TnVarietyT{P} <: Variety end
     TnBundle(X::TnVariety, r::Int, f::Function)
 
 The type of a torus-equivariant bundle, represented by its localizations to the
-fixed points of the base abstract_variety.
+fixed points of the base abstract variety.
 """
 @attributes mutable struct TnBundle{P, V <: TnVarietyT{P}} <: Bundle
   parent::V
@@ -583,7 +583,7 @@ function tn_flag_variety(dims::Vector{Int}; weights = :int)
   w = _parse_weight(n, weights)
   Fl.bundles = [TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)]
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
-  set_attribute!(Fl, :description => "Flag abstract_variety Flag$(tuple(dims...))")
+  set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   return Fl
 end
 
