@@ -217,17 +217,12 @@ isone(f::PuiseuxMPolyRingElem) = isone(poly(f)) && iszero(shift(f)) && scale(f) 
 
 function Base.:(==)(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     check_parent(f, g)
-    # TODO: remove this once normalize! does zero correctly
-    if iszero(f) && iszero(g)
-        return true
-    end
     return poly(f) == poly(g) && shift(f) == shift(g) && scale(f) == scale(g)
 end
 
 function Base.deepcopy_internal(f::PuiseuxMPolyRingElem, dict::IdDict)
-    return puiseux_polynomial_ring_elem(parent(f), deepcopy(poly(f), dict), deepcopy(shift(f), dict), deepcopy(scale(f), dict); skip_normalization=true)
+    return puiseux_polynomial_ring_elem(parent(f), deepcopy_internal(poly(f), dict), deepcopy_internal(shift(f), dict), deepcopy_internal(scale(f), dict); skip_normalization=true)
 end
-
 
 coefficients(f::PuiseuxMPolyRingElem) = coefficients(poly(f))
 exponents(f::PuiseuxMPolyRingElem) = [ (e + shift(f)) // scale(f) for e in exponents(poly(f)) ]
@@ -243,10 +238,10 @@ function valuation(f::PuiseuxMPolyRingElem)
     return first(shift(f)) // scale(f)
 end
 
-is_univariate(R::PuiseuxMPolyRing) = nvars(R) == 1
-is_gen(f::PuiseuxMPolyRingElem) = f == first(gens(parent(f)))
-is_monomial(f::PuiseuxMPolyRingElem) = length(f) == 1
-is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(coefficients(f))
+is_univariate(R::PuiseuxMPolyRing) = is_univariate(underlying_polynomial_ring(R))
+is_gen(f::PuiseuxMPolyRingElem) = is_gen(poly(f)) && iszero(shift(f)) && scale(f) == 1
+is_monomial(f::PuiseuxMPolyRingElem) = is_monomial(poly(f))
+is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(leading_coefficient(poly(f)))
 
 
 #################################################################################
