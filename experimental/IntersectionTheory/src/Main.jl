@@ -1117,7 +1117,7 @@ AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
 
 ```
 """
-structure_map(X::AbstractVariety) = X.struct_map
+structure_map(X::AbstractVariety) = X.structure_map
 
 
 @doc raw"""
@@ -1535,9 +1535,9 @@ function _map(X::AbstractVariety, Y::AbstractVariety)
   else
     # follow the chain of structure maps to see if we can arrive at Y
     homs = AbstractVarietyMap[]
-    while isdefined(X, :struct_map) && X != Y
-      push!(homs, X.struct_map)
-      X = X.struct_map.codomain
+    while isdefined(X, :structure_map) && X != Y
+      push!(homs, X.structure_map)
+      X = X.structure_map.codomain
     end
     X == Y && return reduce(*, homs)
   end
@@ -1780,7 +1780,7 @@ end
 function symmetric_power(F::AbstractBundle, k::RingElement)
   X = F.parent
   PF = projective_bundle(dual(F))
-  p = PF.struct_map
+  p = PF.structure_map
   AbstractBundle(X, p.pushforward(sum((chern_character(line_bundle(PF, k)) * todd_class(p))[0:PF.dim])))
 end
 
@@ -2305,11 +2305,11 @@ function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{
 end
 
 function set_structure_map(X::AbstractVariety, f::AbstractVarietyMap)
-  if isdefined(X, :struct_map)
+  if isdefined(X, :structure_map)
     error("Structure map already set")
   end
   @assert domain(f) == X
-  X.struct_map = f
+  X.structure_map = f
 end
 
 ###############################################
@@ -2413,7 +2413,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
   @assert R isa MPolyQuoRing
   i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), iₓ)
   i.T = pullback(i, -F)
-  Z.struct_map = i
+  Z.structure_map = i
   set_attribute!(Z, :description, "Zero locus of a section of $F")
 
   return Z
@@ -2544,9 +2544,9 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
-  D.struct_map = map(D, F.parent) # skip the flag abstract variety
+  D.structure_map = map(D, F.parent) # skip the flag abstract variety
   if isdefined(F.parent, :O1) ### DIFF Song
-    D.O1 = pullback(D.struct_map, F.parent.O1) ### DIFF Song
+    D.O1 = pullback(D.structure_map, F.parent.O1) ### DIFF Song
   end ### DIFF Song
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
@@ -2645,7 +2645,7 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
   S = AbstractBundle(P, 1, 1-h)
   Q = trivial_line_bundle(P)*(n+1) - S
   P.bundles = [S, Q]
-  P.struct_map = map(P, abstract_point(base=base), [P(1)])
+  P.structure_map = map(P, abstract_point(base=base), [P(1)])
   set_attribute!(P, :description => "Projective space of dim $n")
   set_attribute!(P, :grassmannian => :absolute)
   set_attribute!(P, :alg => true)
@@ -2781,7 +2781,7 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
     PF.T = pullback(p, X.T) + p.T
   end
   PF.bundles = [S, Q]
-  PF.struct_map = p
+  PF.structure_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
   if get_attribute(X, :alg) == true ### DIFF Song
@@ -2916,7 +2916,7 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String =
   Gr.point = Gr((-1)^d*c[end]^(n-k))
   Gr.T = dual(S) * Q
   Gr.bundles = [S, Q]
-  Gr.struct_map = map(Gr, abstract_point(base=base), [Gr(1)])
+  Gr.structure_map = map(Gr, abstract_point(base=base), [Gr(1)])
   set_attribute!(Gr, :description => "Grassmannian Gr($k, $n)")
   set_attribute!(Gr, :grassmannian => :absolute)
   set_attribute!(Gr, :alg => true)
@@ -2992,7 +2992,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   Fl.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.point = prod(top_chern_class(E)^dims[i] for (i,E) in enumerate(Fl.bundles[2:end]))
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
-  Fl.struct_map = map(Fl, abstract_point(base=base), [Fl(1)])
+  Fl.structure_map = map(Fl, abstract_point(base=base), [Fl(1)])
   set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   if l == 2 set_attribute!(Fl, :grassmannian => :absolute) end
   set_attribute!(Fl, :alg => true)
@@ -3142,7 +3142,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   if isdefined(X, :T)
     Fl.T = pullback(p, X.T) + p.T
   end
-  Fl.struct_map = p
+  Fl.structure_map = p
   set_attribute!(Fl, :description => "Relative flag abstract variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
 

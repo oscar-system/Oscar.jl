@@ -177,7 +177,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 	     X(RBltoRX(xf));)
   f_pushforward = MapFromFunc(ABl, AX, f_pushforward)
   f = AbstractVarietyMap(Bl, X, Bl.(xv), f_pushforward)
-  Bl.struct_map = f
+  Bl.structure_map = f
   if isdefined(X, :point) Bl.point = f.pullback(X.point) end
 
   # pullback of j
@@ -257,7 +257,7 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
     Bl = blow_up(map(P, Bl, [zero(P.ring) for j in 1:i]), symbol=symbs[i])[1]
   end
   set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
-  Bl.struct_map = map(Bl, X)
+  Bl.structure_map = map(Bl, X)
   if get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
@@ -341,7 +341,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   set_attribute!(Xplus, :description => "$X")
   f_pushforward = MapFromFunc(Xplus.ring, X.ring, x -> error("not defined"))  # TODO check this
   f = AbstractVarietyMap(Xplus, X, Xplus.(xv), f_pushforward)
-  Xplus.struct_map = f
+  Xplus.structure_map = f
   Xplus.T = pullback(f, X.T)
   f.T = AbstractBundle(Xplus, Xplus(0)) # there is no relative tangent bundle
   Xplus.point = f.pullback(X.point)

@@ -196,7 +196,7 @@ end
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle
   bundles::Vector{AbstractBundle}
-  struct_map::AbstractVarietyMap
+  structure_map::AbstractVarietyMap
 
   function AbstractVariety(n::Int, R::MPolyDecRingOrQuo)
     base = R isa MPolyQuoRing ? base_ring(base_ring(R)) : base_ring(R)
