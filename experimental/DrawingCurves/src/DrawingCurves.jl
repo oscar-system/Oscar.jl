@@ -58,6 +58,15 @@ The red points are the singularities of $f$ and the blue points are the places
 where the tangent is parallel to the $y$-axis. However, a random transformation
 may have been applied beforehand, so the blue points may not be critical points
 in the original coordinate system.
+
+Keyword arguments:
+  - `transform::Union{MatrixElem, AbstractMatrix}`: Provide a matrix such that
+    transforming the curve with said transformation results in a curve with
+    generic set of critical points, i.e. distinct $x$-coordinates.
+    The default is to loop over a hard-coded list of transformation matrices.
+  - `ntries::Int`: Apply `transform` repeatedly to reach generic critical
+    points, but at most `ntries` times.
+  - `graph::Bool=false`: Only draw isotopy graph. 
 """
 function draw_curve_tikz(
   filename::String,
