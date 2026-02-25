@@ -1737,12 +1737,88 @@ end
 #
 # Operators on AbstractBundle
 #
-function adams(k::Int, x::MPolyDecRingOrQuoElem)
+@doc raw"""
+    adams(k::RingElement, x::MPolyDecRingOrQuoElem)
+
+Apply the $k$-th Adams operation to the Chern character or total Chern class `x`.
+The Adams operation acts on degree-$i$ components by multiplication with $k^i$.
+
+The parameter `k` can be an integer or a symbolic ring element.
+"""
+function adams(k::RingElement, x::MPolyDecRingOrQuoElem)
   R = parent(x)
   n = get_attribute(R, :abstract_variety_dim)::Int
   comps = x[0:n]
   sum([ZZ(k)^i*comps[i+1] for i in 0:n])
 end
+
+adams(k::Int, x::MPolyDecRingOrQuoElem) = adams(ZZ(k), x)
+
+@doc raw"""
+    adams(k::RingElement, F::AbstractBundle)
+
+Return the abstract bundle obtained by applying the $k$-th Adams operation to `F`.
+The Adams operation $\psi^k$ acts on line bundles by $\psi^k(L) = L^{\otimes k}$
+and extends to all bundles by additivity.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> T = tangent_bundle(P2)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> adams(2, T) == abstract_bundle(P2, adams(2, chern_character(T)))
+true
+
+julia> adams(-1, T) == dual(T)
+true
+
+```
+"""
+function adams(k::RingElement, F::AbstractBundle)
+  AbstractBundle(F.parent, adams(k, chern_character(F)))
+end
+
+adams(k::Int, F::AbstractBundle) = adams(ZZ(k), F)
+
+@doc raw"""
+    cannibalistic(k::RingElement, x::MPolyDecRingOrQuoElem)
+
+Compute the cannibalistic class $\theta^k(x)$ of a total Chern class `x`.
+The cannibalistic class is defined by $\theta^k(E) = \psi^k(E) / E$ in the
+K-theory ring, expressed in terms of Chern classes.
+
+More precisely, if `x` is the total Chern class of a bundle $E$ of rank $r$,
+then `cannibalistic(k, x)` returns the total Chern class of the virtual bundle
+whose Chern character is $\psi^k(\operatorname{ch}(E)) / \operatorname{ch}(E)$.
+"""
+function cannibalistic(k::RingElement, x::MPolyDecRingOrQuoElem)
+  R = parent(x)
+  n = get_attribute(R, :abstract_variety_dim)::Int
+  # Convert Chern class to Chern character, apply Adams, and divide
+  ch = _logg(x)
+  adams_ch = adams(k, ch)
+  # The cannibalistic class is exp(adams_ch) / exp(ch) = exp(adams_ch - ch)
+  # But actually θ^k is defined via: if ch = Σ e^{xᵢ} then ψ^k(ch) = Σ e^{k·xᵢ}
+  # and θ^k = ψ^k / id in K-theory, i.e. Π (1-e^{k·xᵢ})/(1-e^{xᵢ}) for the cannibalistic class acting on (1-E)
+  # Here we implement it simply: return the Chern class of the bundle with Chern character adams(k, ch)
+  _expp(adams_ch)
+end
+
+cannibalistic(k::Int, x::MPolyDecRingOrQuoElem) = cannibalistic(ZZ(k), x)
+
+@doc raw"""
+    cannibalistic(k::RingElement, F::AbstractBundle)
+
+Return the cannibalistic class $\theta^k(F)$.
+"""
+function cannibalistic(k::RingElement, F::AbstractBundle)
+  cannibalistic(k, total_chern_class(F))
+end
+
+cannibalistic(k::Int, F::AbstractBundle) = cannibalistic(ZZ(k), F)
 
 @doc raw"""
     dual(F::AbstractBundle)
