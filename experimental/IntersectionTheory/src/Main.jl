@@ -1426,7 +1426,38 @@ end
     chern_numbers(X::AbstractVariety)
 
 Compute all the Chern numbers of `X` as a list of pairs $\lambda\Rightarrow
-c_\lambda(X)$.
+{\rm c}_\lambda(X)$.
+
+# Examples
+
+A K3 surface (quartic in $\mathbb P^3$):
+
+```jldoctest
+julia> K3 = complete_intersection(abstract_projective_space(3), 4);
+
+julia> chern_numbers(K3)
+2-element Vector{Pair{Partition{Int64}, QQFieldElem}}:
+    [2] => 24
+ [1, 1] => 0
+
+```
+
+The Fano variety of lines on a cubic fourfold, a hyperkähler fourfold:
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 6);
+
+julia> F = zero_locus_section(symmetric_power(dual(tautological_bundles(G)[1]), 3));
+
+julia> chern_numbers(F)
+5-element Vector{Pair{Partition{Int64}, QQFieldElem}}:
+          [4] => 324
+       [3, 1] => 0
+       [2, 2] => 828
+    [2, 1, 1] => 0
+ [1, 1, 1, 1] => 0
+
+```
 """
 function chern_numbers(X::AbstractVariety)
   c = total_chern_class(X)[1:X.dim]
