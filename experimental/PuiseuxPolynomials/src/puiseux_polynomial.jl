@@ -104,8 +104,9 @@ scale(f::PuiseuxMPolyRingElem) = f.scale
 
 # WARNING: input is not assumed to be normalized
 function normalize!(f::PuiseuxMPolyRingElem)
-    #TODO: Normalise zero correctly - it is possible for zeros to have different shifts
     if iszero(f)
+        f.shift .= zeros(ZZRingElem, nvars(parent(f)))
+        f.scale = one(ZZ)
         return false
     end
 
