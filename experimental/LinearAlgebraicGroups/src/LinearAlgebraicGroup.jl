@@ -147,14 +147,12 @@ function Base.show(io::IO, LAG::LinearAlgebraicGroup)
   if is_terse(io)
     print(io, "LAG")
   else
-    println(
+    print(
       io,
       "Linear algebraic group of type ",
-      Oscar._root_system_type_string(root_system_type(root_system(LAG))),
-      " over ",
-      Lowercase(),
-      LAG.k,
+      Oscar._root_system_type_string(root_system_type(root_system(LAG)))
     )
+    print(terse(io), " over ", Lowercase(), LAG.k)
   end
 end
 
