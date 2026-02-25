@@ -1832,6 +1832,13 @@ Return the Betti numbers of the Chow ring of `X`.
 !!! note
     The Betti number of `X` in a given degree is the number of elements of `basis(X)` in that degree.
 
+!!! note
+    These are the Betti numbers of the *numerical* Chow ring, not the topological Betti numbers.
+    For example, for a quartic surface in $\mathbb P^3$, the numerical Chow ring sees only the
+    algebraic classes, so the Betti numbers are `[1, 1, 1]`, while the topological Betti numbers
+    would be `[1, 0, 22, 0, 1]` (since `h^{1,1} = 20` but only 1 algebraic class is detected
+    by the Chow ring).
+
 # Examples
 ```jldoctest
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
@@ -1852,6 +1859,15 @@ julia> basis(P2xP2)
  [l^2, k*l, k^2]
  [k*l^2, k^2*l]
  [k^2*l^2]
+
+```
+
+```jldoctest
+julia> betti_numbers(complete_intersection(abstract_projective_space(3), 4))
+3-element Vector{Int64}:
+ 1
+ 1
+ 1
 
 ```
 """
