@@ -2279,7 +2279,7 @@ function set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
 end
 
 function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
-  if isdefined(X, :t)
+  if isdefined(X, :T)
     error("Tangent bundle already set")
   end
   @assert parent(t) == X
@@ -2287,7 +2287,7 @@ function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
 end
 
 function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
-  if isdefined(X, :polarization)
+  if isdefined(X, :O1)
     error("Polarization already set")
   end
   @assert parent(o1) == chow_ring(X)
@@ -2295,8 +2295,8 @@ function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
 end
 
 function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{T}}) where T
-  if isdefined(X, :tautological_bundles)
-    error("Tautological_bundles already set")
+  if isdefined(X, :bundles)
+    error("Tautological bundles already set")
   end
   for b in vb
     @assert parent(b) ==  X
@@ -2305,7 +2305,7 @@ function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{
 end
 
 function set_structure_map(X::AbstractVariety, f::AbstractVarietyMap)
-  if isdefined(X, :structure_map)
+  if isdefined(X, :struct_map)
     error("Structure map already set")
   end
   @assert domain(f) == X
