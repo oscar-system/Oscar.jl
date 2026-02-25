@@ -103,7 +103,7 @@ function tutte_group(M::Matroid; char::Int=0)
     end
   end
   relations_matrix = matrix(ZZ, relations)
-  return abelian_group(relations_matrix)s
+  return abelian_group(relations_matrix)
 end
 
 @doc raw"""
