@@ -120,7 +120,7 @@ end
 function isotopy_graph_from_msolve(
   IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform::QQMatrix,
   selected_precision::Int,
-)
+)::Bool
   Rxy = parent(f_in)
   @assert nvars(Rxy) == 2 "Need curve in affine plane"
 
@@ -134,6 +134,9 @@ function isotopy_graph_from_msolve(
   projy = hom(Rxy, Ry, [0, t[1]])
   sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
   @vprintln :DrawingCurves 2  "There are $(length(sings)) points to investigate"
+  if(length(sings) == 0)
+    throw(NotImplementedError(:isotopy_graph, "Curve has no critical points, it may be definite, this situation is not implemented yet."))
+  end
   svecs = []
   sindices = []
   stypes = Symbol[]

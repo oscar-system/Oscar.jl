@@ -8,7 +8,7 @@ T = matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055])
     60 * x^2 * y^2 * z^2 − 20 * y^4 * z^2 − 20 * x^2 * z^4 − 20 * y^2 * z^4 + 19 * z^6
   zchart_ring, (zx, zy) = polynomial_ring(QQ, [:x, :y])
   zchart_hom = hom(R, zchart_ring, [zx, zy, 1])
-  IG = Oscar._compute_isotopy_graph(zchart_hom(r6), T, 1)[1]
+  IG = Oscar._compute_isotopy_graph(zchart_hom(r6), T, 2)[1]
   desiredG = load(joinpath(dir, "robinson6.graph"))
   computedG = IG.G
   @test Polymake.graph.isomorphic(desiredG.pm_graph, computedG.pm_graph)
@@ -38,4 +38,31 @@ end
   # gives some confidence whether we can update it.
   @test length(connected_components(IG.G)) == 16
   @test success(`cmp --quiet $fn $desiredfn`)
+end
+
+@testset "Not implemented yet" begin
+  # The following testsets contain situations we are currently unable to draw.
+  # Some of them will be easy to deal with and we will get back to those.
+  @testset "Parabola" begin
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    f = y-x^2
+    fn = tempname()
+    @test_throws NotImplementedError draw_curve_tikz(fn, f)
+  end
+
+  @testset "Empty" begin
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    f = x^2+y^2+1
+    fn = tempname()
+    @test_throws NotImplementedError draw_curve_tikz(fn, f)
+  end
+
+  @testset "Lines" begin
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    f1 = y-2*x
+    f2 = f1*(y-2*x-1)
+    fn = tempname()
+    @test_throws NotImplementedError draw_curve_tikz(fn, f1)
+    @test_throws NotImplementedError draw_curve_tikz(fn, f2)
+  end
 end
