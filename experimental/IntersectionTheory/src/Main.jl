@@ -3056,6 +3056,50 @@ function abstract_hirzebruch_surface(n::Int)
 end
 
 
+###############################################################################
+
+@doc raw"""
+    abstract_curve(g::IntegerUnion; base::Ring = QQ)
+
+Return an abstract smooth curve of genus `g`.
+
+The Chow ring is $\mathbb{Q}[p]/(p^2)$ where $p$ is the point class.
+The tangent bundle has total Chern class $1 + (2-2g) \cdot p$, reflecting
+the Euler number $\chi_{\text{top}} = 2 - 2g$.
+
+# Examples
+```jldoctest
+julia> C = abstract_curve(0)
+AbstractVariety of dim 1
+
+julia> euler_number(C)
+2
+
+julia> euler_characteristic(OO(C))
+1
+
+julia> C2 = abstract_curve(2)
+AbstractVariety of dim 1
+
+julia> euler_number(C2)
+-2
+
+```
+"""
+function abstract_curve(g::IntegerUnion; base::Ring=QQ)
+  R, (p,) = graded_polynomial_ring(base, ["p"], [1])
+  I = ideal(R, [p^2])
+  C = AbstractVariety(1, quo(R, I)[1])
+  p = gens(C.ring)[1]
+  C.point = p
+  C.O1 = C.ring(0)
+  # Tangent bundle: rank 1, total Chern class 1 + (2-2g)·p
+  C.T = AbstractBundle(C, 1, 1 + (2 - 2*g)*p)
+  C.structure_map = map(C, abstract_point(base=base), [C(1)])
+  set_attribute!(C, :description, "Curve of genus $g")
+  set_attribute!(C, :alg, true)
+  return C
+end
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
