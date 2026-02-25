@@ -298,7 +298,9 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
   if get(io, :parens, false)
     print(io, "(")
   end
-  if is_homogeneous_normalized(a)
+  if iszero(a)
+    print(io, "0")
+  elseif is_homogeneous_normalized(a)
     print(io, a.homog_elem, " + ", a.homog_deg, "-coboundaries")
   elseif is_homogeneous_denormalized(a)
     print(IOContext(io, :parens=>false), only(homogeneous_parts(a)))
