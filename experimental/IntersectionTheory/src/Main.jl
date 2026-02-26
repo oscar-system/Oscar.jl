@@ -1738,7 +1738,7 @@ function _map(X::AbstractVariety, Y::AbstractVariety)
       push!(homs, structure_map(X))
       X = codomain(structure_map(X))
     end
-    X == Y && return reduce(*, homs)
+    X == Y && return reduce(compose, homs)
   end
   error("no canonical homomorphism between the given varieties")
 end
