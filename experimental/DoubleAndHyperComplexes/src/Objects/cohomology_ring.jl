@@ -226,32 +226,24 @@ end
 homogeneous_parts(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) ? Set(SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in pairs(a.coeff)) : Set(a)
 
 # distribute over homogeneous parts
-*(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = (
-   iszero(a) || iszero(b)                                         ? zero(a) :
+function *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+  @req parent(a) === parent(b) "parent mismatch"
+  return (iszero(a) || iszero(b)                                  ? zero(a) :
    !is_homogeneous_normalized(a) && !is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
    !is_homogeneous_normalized(a)                                  ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
    !is_homogeneous_normalized(b)                                  ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
                                                                     mul_homog(a, b)
-)
+  )
+end
 
 # Multiplication on homogeneous parts
 function mul_homog(a, b)
-  @req parent(a) === parent(b) "parent mismatch"
   p = a.homog_deg
   q = b.homog_deg
   A = parent(a)
   C = simplicial_co_complex(A)
   H = homology(C, p+q)[1]
-  K = simplicial_complex(C)
-  cochain = zero(ambient_free_module(H))
-  f = Dict(s => i for (i,s) in enumerate(faces(K, p+q)))
-  for (ga, ca) in coordinates(repres(a.homog_elem)), (gb, cb) in coordinates(repres(b.homog_elem))
-    sa = faces(K, p)[ga]
-    sb = faces(K, q)[gb]
-    s = union(sa, sb)
-    (maximum(sa) == minimum(sb) && s in keys(f)) || continue
-    cochain += ca * cb * gens(C[p+q])[f[s]]
-  end
+  cochain = mul_cochains(C, repres(a.homog_elem), p, repres(b.homog_elem), q)
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
 end
 
