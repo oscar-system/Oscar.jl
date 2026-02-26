@@ -10,7 +10,7 @@ Return the Bernstein basis polynomial B_{i,n}(t) = binomial(n,i) * t^i * (1-t)^(
 function bernstein_basis_polynomial(R::PolyRing, i::Int, n::Int)
   @req 0 ≤ i ≤ n "i must be in 0..n"
   t = gen(R)
-  binomial(n,i) * (t^i) * ((1 - t)^(n-i))
+  binomial(n, i) * (t^i) * ((1 - t)^(n - i))
 end
 
 """
@@ -35,8 +35,8 @@ Return the Bernstein polynomial which is the linear combination of the Bernstein
 - `coeffs`: vector of rational coefficients
 """
 function bernstein_polynomial(R::QQPolyRing, coeffs::Vector{QQFieldElem})
-  n = length(coeffs)-1
-  sum([ coeffs[i+1] * bernstein_basis_polynomial(R, i, n) for i in 0:n ])
+  n = length(coeffs) - 1
+  sum([coeffs[i + 1] * bernstein_basis_polynomial(R, i, n) for i in 0:n])
 end
 
 """
@@ -64,34 +64,36 @@ However, the convergence is rather slow.
 function bernstein_01_approximation(f::QQPolyRingElem, n::Int)
   @req 0 < n "n must be positive"
   R = parent(f)
-  g = bernstein_polynomial(R, [ f(i//n) for i in 0:n ])
-  return g, f-g
+  g = bernstein_polynomial(R, [f(i//n) for i in 0:n])
+  return g, f - g
 end
 
 function bezier_curve(p::Vector{Vector{QQFieldElem}})
   n = length(p) # deg+1
   d = length(p[1])
   for k in 1:d
-    @show bernstein_polynomial([ p[i][k] for i in 1:n ] )
+    @show bernstein_polynomial([p[i][k] for i in 1:n])
   end
 end
 
 function _draw_edge_sequence_bernstein(T::MatrixElem)
-  return function _draw_edge_sequence_bernstein(io, ptsmapped::Vector{_Point}, scale; color::String="black")
+  return function _draw_edge_sequence_bernstein(
+    io, ptsmapped::Vector{_Point}, scale; color::String="black"
+  )
     # Use formula from
     # https://web.archive.org/web/20131225210855/http://people.sc.fsu.edu/~jburkardt/html/bezier_interpolation.html
     # linked on Wikipedia to achieve curve through points.
     Tinv = inv(T)
-    pts = [Tinv*pt for pt in ptsmapped]
+    pts = [Tinv * pt for pt in ptsmapped]
     (y1, y2, y3, y4) = (pts[1].ycoord, pts[2].ycoord, pts[3].ycoord, pts[4].ycoord)
-    y2mod = 1//6*(-5*y1+18*y2-9*y3+2*y4)
-    y3mod = 1//6*(-5*y4+18*y3-9*y2+2*y1)
+    y2mod = 1//6 * (-5 * y1 + 18 * y2 - 9 * y3 + 2 * y4)
+    y3mod = 1//6 * (-5 * y4 + 18 * y3 - 9 * y2 + 2 * y1)
     f2 = bernstein_polynomial([y1, y2mod, y3mod, y4])
     p1x = pts[1].xcoord
-    dist = pts[4].xcoord-p1x
-    pts100 = [_Point(p1x+dist*i//100, Oscar.evaluate(f2, i//100)) for i in 0:100]
-    for i in 1:length(pts100)-1
-      Oscar._draw_edge_tikz(io, T*pts100[i], T*pts100[i+1], scale; color="blue")
+    dist = pts[4].xcoord - p1x
+    pts100 = [_Point(p1x + dist * i//100, Oscar.evaluate(f2, i//100)) for i in 0:100]
+    for i in 1:(length(pts100) - 1)
+      Oscar._draw_edge_tikz(io, T * pts100[i], T * pts100[i + 1], scale; color="blue")
     end
   end
 end

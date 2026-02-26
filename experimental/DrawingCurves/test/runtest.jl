@@ -45,22 +45,22 @@ end
   # Some of them will be easy to deal with and we will get back to those.
   @testset "Parabola" begin
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
-    f = y-x^2
+    f = y - x^2
     fn = tempname()
     @test_throws NotImplementedError draw_curve_tikz(fn, f)
   end
 
   @testset "Empty" begin
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
-    f = x^2+y^2+1
+    f = x^2 + y^2 + 1
     fn = tempname()
     @test_throws NotImplementedError draw_curve_tikz(fn, f)
   end
 
   @testset "Lines" begin
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
-    f1 = y-2*x
-    f2 = f1*(y-2*x-1)
+    f1 = y - 2 * x
+    f2 = f1 * (y - 2 * x - 1)
     fn = tempname()
     @test_throws NotImplementedError draw_curve_tikz(fn, f1)
     @test_throws NotImplementedError draw_curve_tikz(fn, f2)

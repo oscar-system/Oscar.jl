@@ -18,13 +18,15 @@ isotopy_graph_from_curve_inner(
   selected_precision::Int,
 ) = isotopy_graph_from_msolve(IG, f_in, random_transform, selected_precision)::Bool
 
-function _compute_isotopy_graph(f_in, transform::MatrixElem, ntries::Int; selected_precision::Int=128)
+function _compute_isotopy_graph(
+  f_in, transform::MatrixElem, ntries::Int; selected_precision::Int=128
+)
   IG = _IsotopyGraph()
   random_transform = identity_matrix(base_ring(f_in), 2)
   success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
   @vprintln :DrawingCurves 2 "Was isotopy graph generated successfully? $success"
   counter = 0
-  while counter<ntries && !success
+  while counter < ntries && !success
     # println("Turning!")
     random_transform *= transform
     success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
@@ -38,7 +40,7 @@ end
 function get_random_transform_matrices()
   random_transform_list = [
     matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055]),
-    matrix(QQ, [1 1//16; 0 1])
+    matrix(QQ, [1 1//16; 0 1]),
   ]
   return random_transform_list
 end
@@ -71,7 +73,7 @@ Keyword arguments:
 function draw_curve_tikz(
   filename::String,
   f_in;
-  kwargs...
+  kwargs...,
 )
   # Oscar.@check !isfile(filename) "Output file exists"
   io = open(filename, "w")
@@ -82,7 +84,7 @@ end
 function draw_curve_tikz(
   io::IO,
   f_in;
-  transform::Union{MatrixElem, AbstractMatrix,Nothing}=nothing,
+  transform::Union{MatrixElem,AbstractMatrix,Nothing}=nothing,
   ntries::Int=1,
   selected_precision::Int=128,
   graph::Bool=false,
@@ -91,25 +93,29 @@ function draw_curve_tikz(
   if transform === nothing
     success = false
     for R in get_random_transform_matrices()
-      success = _draw_curve_tikz(io, f_in, R, 3, selected_precision, graph, custom_edge_plot)
+      success = _draw_curve_tikz(
+        io, f_in, R, 3, selected_precision, graph, custom_edge_plot
+      )
       if success
         break
       end
     end
     return success
   else
-    @req ntries>0 "Number of tries needs to be positive"
-    return _draw_curve_tikz(f_in, transform, ntries, selected_precision, graph, custom_edge_plot)
+    @req ntries > 0 "Number of tries needs to be positive"
+    return _draw_curve_tikz(
+      f_in, transform, ntries, selected_precision, graph, custom_edge_plot
+    )
   end
 end
 function _draw_curve_tikz(
   io::IO,
   f_in,
-  transform::Union{MatrixElem, AbstractMatrix},
+  transform::Union{MatrixElem,AbstractMatrix},
   ntries::Int,
   selected_precision::Int,
   graph::Bool,
-  custom_edge_plot
+  custom_edge_plot,
 )
   T = matrix(base_ring(f_in), transform)
   IG, scale, success = _compute_isotopy_graph(f_in, T, ntries; selected_precision)
@@ -117,7 +123,7 @@ function _draw_curve_tikz(
     if graph
       draw_graph_tikz(IG, io)
     else
-      draw_curve_tikz(IG, scale, io; custom_edge_plot = custom_edge_plot(T))
+      draw_curve_tikz(IG, scale, io; custom_edge_plot=custom_edge_plot(T))
     end
   else
     # Some error?

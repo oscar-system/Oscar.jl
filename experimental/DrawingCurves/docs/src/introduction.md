@@ -4,6 +4,8 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
+# Introduction
+
 This module provides functionality for drawing real plane algebraic curves
 defined by a polynomial $f$ in two variables over $\mathbb{Q}$.
 
