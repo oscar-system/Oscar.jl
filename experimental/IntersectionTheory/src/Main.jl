@@ -810,9 +810,6 @@ function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   return gof
 end
 
-# TODO I'm not convinced this is a good choice
-*(f::AbstractVarietyMap, g::AbstractVarietyMap) = compose(f, g) # TODO mention in docu, skip?
-
 ###############################################################################
 #
 # AbstractVariety
