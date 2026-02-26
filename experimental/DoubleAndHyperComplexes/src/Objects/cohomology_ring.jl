@@ -26,16 +26,6 @@ function graded_part(A::SimplicialCohomologyRing, i::Int)
   return graded_parts(A)[i+1]
 end
 
-function graded_part(a::SimplicialCohomologyRingElem, p::Int)
-  A = parent(a)
-  is_zero(a) && return zero(graded_part(A, p))
-  if !isnothing(a.homog_elem)
-    p == a.homog_deg || return zero(graded_part(A, p))
-    return a.homog_elem
-  end
-  return get(a.coeff, p, zero(graded_part(A, p)))
-end
-
 mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   parent::SimplicialCohomologyRing{T}
   # Elements can be represented in three ways:
@@ -89,6 +79,17 @@ function one(A::SimplicialCohomologyRing)
   SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_co_complex(A), 0)[1])))
 end
 
+
+function graded_part(a::SimplicialCohomologyRingElem, p::Int)
+  A = parent(a)
+  is_zero(a) && return zero(graded_part(A, p))
+  if !isnothing(a.homog_elem)
+    p == a.homog_deg || return zero(graded_part(A, p))
+    return a.homog_elem
+  end
+  return get(a.coeff, p, zero(graded_part(A, p)))
+end
+
 # Coercion from base ring
 function (A::SimplicialCohomologyRing{T})(c::T) where T
   one_A = one(A)
@@ -118,7 +119,9 @@ function deepcopy_internal(a::SimplicialCohomologyRingElem, d::IdDict)
     result.homog_deg = deepcopy(a.homog_deg)
     return result
   end
-  result.coeff = deepcopy_internal(a.coeff, d)
+  if isdefined(a, :coeff)
+    result.coeff = deepcopy_internal(a.coeff, d)
+  end
   return result
 end
 

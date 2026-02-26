@@ -1,3 +1,5 @@
+using Test
+
 @testset "simplicial_cohomology" begin
     K = torus()
     CZ = Oscar.SimplicialCoComplex(ZZ, K)
@@ -30,3 +32,29 @@
     @test is_domain_type(typeof(one(R))) == false
 
 end
+
+function generate_homogeneous_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
+    degree = rand(1:dim(Oscar.simplicial_complex(R))+1) # indexing starts at 1 (for degree 0)
+    n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
+    x = zero(R)
+    for i=1:n_gens
+        n = rand(-100:100)
+        x = x+n*R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+    end
+    return x
+end
+
+function ConformanceTests.generate_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
+    n_degrees = rand(0:5)
+    x = zero(R)
+    for i=1:n_degrees
+        x = x+Oscar.generate_homogeneous_element(R)
+    end
+    return x
+end
+
+
+
+
+
+
