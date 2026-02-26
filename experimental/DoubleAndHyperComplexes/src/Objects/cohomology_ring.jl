@@ -252,7 +252,7 @@ function degree(a::SimplicialCohomologyRingElem)
   end
 end
 
--(a::SimplicialCohomologyRingElem) = is_homogeneous_normalized(a) ? SimplicialCohomologyRingElem(parent(a), a.homog_deg, -a.homog_elem) : sum(-b for b in homogeneous_parts(a))
+-(a::SimplicialCohomologyRingElem) = is_homogeneous_normalized(a) ? SimplicialCohomologyRingElem(parent(a), a.homog_deg, -a.homog_elem) : sum(-b for b in homogeneous_parts(a); init=zero(parent(a)))
 
 -(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = a + (-b)
 
@@ -261,7 +261,7 @@ function homogeneous_parts(a::SimplicialCohomologyRingElem)
   A = parent(a)
   is_zero(a) && return Set{elem_type(graded_part(A, 0))}()
   isnothing(a.homog_elem) && return Set(SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in a.coeff)
-  return Set(a)
+  return Set([a])
 end
 
 # distribute over homogeneous parts
@@ -282,6 +282,7 @@ function mul_homog(a, b)
   q = b.homog_deg
   A = parent(a)
   C = simplicial_co_complex(A)
+  !can_compute_index(C, p+q) && return zero(A)
   H = homology(C, p+q)[1]
   cochain = mul_cochains(C, repres(a.homog_elem), p, repres(b.homog_elem), q)
   return SimplicialCohomologyRingElem(A, p+q, H(cochain))
@@ -366,6 +367,18 @@ canonical_unit(A::SimplicialCohomologyRing) = one(A)
 # isone checks if the element is the natural one element
 isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 
+#TODO Not clear how to pretty print (with parentheses) using expressify
+# function expressify(a::SimplicialCohomologyRingElem; context=nothing)
+#   if is_homogeneous_normalized(a)
+#     return Expr(:call, :+, expressify(repres(a.homog_elem); context=context), Symbol(a.homog_deg, "-boundaries"))
+#   else
+#     return Expr(:call, :+, (expressify(ah; context=context) for ah in homogeneous_parts(a))...)
+#   end
+# end
+# 
+# @enable_all_show_via_expressify SimplicialCohomologyRingElem
+
+
 function generate_homogeneous_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
     degree = rand(1:dim(Oscar.simplicial_complex(R))+1) # indexing starts at 1 (for degree 0)
     n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
@@ -403,6 +416,16 @@ function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomology
 end
 
 
+function ConformanceTests.generate_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
+    n_degrees = rand(0:5)
+    x = zero(R)
+    for i=1:n_degrees
+        x = x+Oscar.generate_homogeneous_element(R)
+    end
+    return x
+end
+
+# This is not mathematically true
 function is_unit(a::SimplicialCohomologyRingElem)
     if a==one(parent(a)) 
         return true
@@ -410,3 +433,12 @@ function is_unit(a::SimplicialCohomologyRingElem)
     return false
 end
 
+# we need exponentiation for tests
+function ^(a::Oscar.SimplicialCohomologyRingElem,n::Int)
+  n >= 0 || error("negative exponent")
+  x = one(parent(a))
+  for i=1:n
+    x=x*a
+  end
+  return x
+end
