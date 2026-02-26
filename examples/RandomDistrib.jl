@@ -321,9 +321,10 @@ function RAND(RNG::Random.AbstractRNG, parent::T, distr::UnimodularMatrixDistr) 
   num_iters = distr.num_iters
   M = parent(1)
   for k in 1:num_iters
+    # Pick a pair of (distinct) row indexes: i, j
     i = rand(RNG, 1:n)
     j = rand(RNG, 1:n-1); if (j==i)  j = n; end
-    add_row!(M, RAND(RNG, base_ring(parent), distr.EntryDistr), i, j)
+    add_row!(M, PostFilter(!is_zero, RNG, base_ring(parent), distr.EntryDistr), i, j)
   end
   return M
 end
