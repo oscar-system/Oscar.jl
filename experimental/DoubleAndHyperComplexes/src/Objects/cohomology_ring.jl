@@ -423,15 +423,6 @@ function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomology
 end
 
 
-function ConformanceTests.generate_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
-    n_degrees = rand(0:5)
-    x = zero(R)
-    for i=1:n_degrees
-        x = x+Oscar.generate_homogeneous_element(R)
-    end
-    return x
-end
-
 # This is not mathematically true
 function is_unit(a::SimplicialCohomologyRingElem)
     if a==one(parent(a)) 
