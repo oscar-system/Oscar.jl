@@ -980,10 +980,43 @@ Quotient
 chow_ring(X::AbstractVariety) = X.ring
 
 
-# TODO document?
-(X::AbstractVariety)(f::RingElement) = X.ring(f)
-# TODO document?
-gens(X::AbstractVariety) = gens(X.ring)
+@doc raw"""
+    (X::AbstractVariety)(f::RingElement)
+
+Coerce the ring element `f` into the Chow ring of `X`.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> h = gens(P2)[1]
+h
+
+julia> P2(h^2 + 1)
+h^2 + 1
+
+```
+"""
+(X::AbstractVariety)(f::RingElement) = chow_ring(X)(f)
+
+@doc raw"""
+    gens(X::AbstractVariety)
+
+Return the generators of the Chow ring of `X`.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> gens(P2)
+1-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ h
+
+```
+"""
+gens(X::AbstractVariety) = gens(chow_ring(X))
 
 @doc raw"""
     base(X::AbstractVariety)
@@ -1116,6 +1149,20 @@ trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
 
 If `X` has been given tautological bundles, return these bundles.
 
+!!! note
+    The tautological bundles depend on the construction of `X`. Here are the
+    conventions for the standard constructors:
+    - `abstract_projective_space(n)`: returns `[O(-1), Q]`, the tautological
+      line bundle and the tautological quotient bundle of rank `n`.
+    - `abstract_grassmannian(k, n)`: returns `[S, Q]`, the universal subbundle
+      of rank `k` and the universal quotient bundle of rank `n - k`.
+    - `abstract_flag_variety(d₁, d₂, ..., dₛ, n)`: returns the subquotient
+      bundles of ranks `d₁, d₂ - d₁, ..., n - dₛ`.
+    - `projective_bundle(F)`: returns `[O(-1), Q]` on ``\mathbb P(F)``.
+    - `flag_bundle(F, d₁, d₂, ...)`: returns the subquotient bundles of `F`.
+    - `zero_locus_section(s)`: inherits the tautological bundles from the ambient
+      variety, restricted to the zero locus.
+
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -1212,7 +1259,6 @@ true
 line_bundle(X::AbstractVariety, n::RingElement) = AbstractBundle(X, 1, 1+n*polarization(X))
 line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = AbstractBundle(X, 1, 1+D[1])
 
-# TODO doesn't appear in docs?
 (OO)(X::AbstractVariety, n::RingElement) = line_bundle(X, n)
 OO(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = line_bundle(X, D)
 
@@ -1393,12 +1439,39 @@ julia> pontryagin_class(S, 1)
 
 ```
 """
-pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(X.T, k)
+pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(tangent_bundle(X), k)
 
-# TODO document this? or make it internal?
-chi(p::Int, X::AbstractVariety) = chi(exterior_power(dual(X.T), p)) # generalized Todd genus
+@doc raw"""
+    chi(p::Int, X::AbstractVariety)
 
-# TODO document this
+Return the generalized Todd genus $\chi_p(X) = \chi(\Omega^p_X)$, the holomorphic
+Euler characteristic of the `p`-th exterior power of the cotangent bundle of `X`.
+
+For $p = 0$ this is the arithmetic genus $\chi(\mathcal{O}_X)$.
+# Examples
+```jldoctest
+julia> P3 = abstract_projective_space(3)
+AbstractVariety of dim 3
+
+julia> chi(0, P3)
+1
+
+julia> chi(1, P3)
+
+```
+"""
+chi(p::Int, X::AbstractVariety) = euler_characteristic(exterior_power(dual(tangent_bundle(X)), p)) # generalized Todd genus
+
+@doc raw"""
+    todd_polynomial(n::Int)
+
+Return the Todd polynomial $T_n(y) = \sum_{p=0}^{n} \chi_p \cdot (y-1)^p$ of a
+generic variety of dimension `n`.
+
+!!! warning "Experimental"
+    This function requires a generic abstract variety with symbolic Chern classes.
+    It may not work correctly in all cases due to the symbolic integral computation.
+"""
 function todd_polynomial(n::Int)
   X = abstract_variety(n)
   R, z = chow_ring(X)[:z]
@@ -1410,8 +1483,8 @@ end
     chern_number(X::AbstractVariety, λ::Vector{Int})
     chern_number(X::AbstractVariety, λ::Partition)
 
-Compute the Chern number ${\rm c}_\lambda (X):=\int_X {\rm c}_{\lambda_1}(X)\cdots
-{\rm c}_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
+Compute the Chern number $\operatorname{c}_\lambda (X):=\int_X \operatorname{c}_{\lambda_1}(X)\cdots
+\operatorname{c}_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
 of the dimension of `X`.
 
 # Examples
@@ -1450,7 +1523,7 @@ end
     chern_numbers(X::AbstractVariety)
 
 Compute all the Chern numbers of `X` as a list of pairs $\lambda\Rightarrow
-{\rm c}_\lambda(X)$.
+\operatorname{c}_\lambda(X)$.
 
 # Examples
 
@@ -1568,7 +1641,8 @@ l_genus(X::AbstractVariety)
 @doc raw"""
     signature(X::AbstractVariety)
 
-Compute the signature of the abstract variety `X` of even dimension.
+Compute the signature of the abstract variety `X` by evaluating the Hirzebruch
+L-genus in the Chow ring.
 
 # Examples
 ```jldoctest
@@ -1966,6 +2040,12 @@ function exterior_power(F::AbstractBundle, k::Int)
   AbstractBundle(parent(F), _wedge(k, chern_character(F))[end])
 end
 
+@doc raw"""
+    exterior_power(F::AbstractBundle)
+
+Return the total exterior power $\lambda_{-1}(F) = \sum_{k=0}^{r} (-1)^k \bigwedge^k F$,
+where $r$ is the rank of `F`.
+"""
 function exterior_power(F::AbstractBundle)
   AbstractBundle(parent(F), sum([(-1)^(i-1) * w for (i, w) in enumerate(_wedge(rank(F), chern_character(F)))]))
 end
@@ -2450,7 +2530,7 @@ end
     todd_class(n::Int)
 
 Compute the (generic) $n$-th Todd genus as a polynomial in the Chern classes
-${\rm c}_1, \ldots, {\rm c}_n$.
+$\operatorname{c}_1, \ldots, \operatorname{c}_n$.
 
 # Examples
 
@@ -2521,6 +2601,28 @@ a_hat_genus(n::Int)
 ### setter functions
 ###############################################
 
+@doc raw"""
+    set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
+
+Set the point class of `X` to `p`, an element of the Chow ring of `X` representing
+the class of a point.
+
+Once set, `integral` can be used to compute intersection numbers.
+
+!!! note
+    The point class can only be set once.
+
+# Examples
+```jldoctest
+julia> X, (h,) = abstract_variety(2, ["h"], [1]);
+
+julia> set_point_class(X, h^2)
+
+julia> integral(h^2)
+1
+
+```
+"""
 function set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
   if isdefined(X, :point)
     error("Point class already set")
@@ -2529,6 +2631,33 @@ function set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
   X.point = p
 end
 
+@doc raw"""
+    set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
+
+Set the tangent bundle of `X` to `t`.
+
+Once set, characteristic classes (Chern classes, Todd class, etc.) of `X`
+can be computed.
+
+!!! note
+    The tangent bundle can only be set once.
+
+# Examples
+```jldoctest
+julia> X, (c,) = abstract_variety(2, ["c"], [2]);
+
+julia> set_point_class(X, c)
+
+julia> T = abstract_bundle(X, 2, 1 + c)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> set_tangent_bundle(X, T)
+
+julia> euler(X)
+0
+
+```
+"""
 function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
   if isdefined(X, :T)
     error("Tangent bundle already set")
@@ -2537,6 +2666,27 @@ function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
   X.T = t
 end
 
+@doc raw"""
+    set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
+
+Set the polarization of `X` to `o1`, an element of degree 1 in the Chow ring.
+This represents the first Chern class of an ample line bundle.
+
+Once set, Hilbert polynomials can be computed.
+
+!!! note
+    The polarization can only be set once.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> hilbert_polynomial(P2)
+1//2*t^2 + 3//2*t + 1
+
+```
+"""
 function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
   if isdefined(X, :O1)
     error("Polarization already set")
@@ -2545,6 +2695,33 @@ function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
   X.O1 = o1
 end
 
+@doc raw"""
+    set_tautological_bundles(X::AbstractVariety, vb::Vector{<:AbstractBundle})
+
+Set the tautological bundles of `X` to `vb`.
+
+Tautological bundles are the distinguished bundles that arise naturally from
+the construction of `X` (e.g., the universal sub- and quotient bundles on a
+Grassmannian).
+
+!!! note
+    The tautological bundles can only be set once.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(2, 4)
+AbstractVariety of dim 4
+
+julia> length(tautological_bundles(G))
+2
+
+julia> rank.(tautological_bundles(G))
+2-element Vector{Int64}:
+ 2
+ 2
+
+```
+"""
 function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{T}}) where T
   if isdefined(X, :bundles)
     error("Tautological bundles already set")
@@ -2555,6 +2732,15 @@ function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{
   X.bundles = vb
 end
 
+@doc raw"""
+    set_structure_map(X::AbstractVariety, f::AbstractVarietyMap)
+
+Set the structure map of `X` to `f`. The structure map is a morphism from `X`
+to some base variety, used for push-forward (`integral`) and pull-back computations.
+
+!!! note
+    The structure map can only be set once.
+"""
 function set_structure_map(X::AbstractVariety, f::AbstractVarietyMap)
   if isdefined(X, :structure_map)
     error("Structure map already set")
@@ -2711,7 +2897,13 @@ end
 
 Return the `k`-th degeneracy locus of a general map from `F` to `G`.
 
-Use the argument `class = true` to only compute the class of the degeneracy locus (Porteous' formula).
+The `k`-th degeneracy locus $\mathrm{D}_k(\varphi)$ of a map $\varphi\colon F \to G$
+is the locus where $\operatorname{rank}(\varphi) \leq k$.
+
+Use the argument `class = true` to only compute the class of the degeneracy locus
+(Porteous' formula). This corresponds to `degeneracyLocus2` in Schubert2 (Macaulay2).
+Without `class = true`, the actual variety is constructed, corresponding to
+`degeneracyLocus` in Schubert2.
 
 # Examples
 ```jldoctest
@@ -3349,7 +3541,7 @@ end
 Return the abstract Cayley Grassmannian $\mathbf{CG}$.
 
 This is an 8-dimensional smooth projective variety, constructed as the
-zero locus of a section of $\bigwedge^3 S^*$ on $\mathrm{G}(4, 7)$,
+zero locus of a section of $\bigwedge^3 S^*$ on $\mathrm{Gr}(4, 7)$,
 where $S$ is the tautological subbundle.
 
 # Examples
@@ -3374,16 +3566,16 @@ end
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
-Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an
+Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspaces of an
 `n`-dimensional vector space.
 
 !!! note
     The string `symbol` specifies how to print the generators of the Chow ring.
 
 !!! tip
-    There are several useful ways of representing the Chow ring of $\mathrm{G}(k, n)$ in terms
+    There are several useful ways of representing the Chow ring of $\mathrm{Gr}(k, n)$ in terms
     of generators and relations. The function `abstract_grassmannian` yields a minimal
-    set of generators, the Chern classes of the universal subbundle on $\mathrm{G}(k, n)$, with
+    set of generators, the Chern classes of the universal subbundle on $\mathrm{Gr}(k, n)$, with
     relations as described, for example, in [EH16](@cite). Another way is to handle the Grassmannian as a
     special case of a flag variety: Entering `abstract_flag_variety(k, n)`, the returned generators
     will be the Chern classes of the tautological subquotient bundles, with relations as described,
