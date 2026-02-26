@@ -459,4 +459,27 @@
     @test !is_tutte_realizable(M)
     @test is_tutte_realizable(U)
   end
+    
+    @testset "bergman_fan" begin
+        M = cycle_matroid(complete_graph(4))
+        BF1 = bergman_fan(M, fan_structure = :fine)
+        BF2 = bergman_fan(M, fan_structure = :cyclic)
+        BF3 = bergman_fan(M, fan_structure = :coarse)
+    
+        @test n_maximal_cones(BF3) == 15
+        @test all(c in maximal_cones(BF2) for c in maximal_cones(BF3)) #BF2 and BF3 coincide
+        @test all(any(is_subset.(Ref(c), maximal_cones(BF3))) for c in maximal_cones(BF1)) #BF1 refines BF3
+            
+        M = direct_sum(uniform_matroid(2,3), uniform_matroid(2,3))
+        BF1 = bergman_fan(M, fan_structure = :fine)
+        BF2 = bergman_fan(M, fan_structure = :coarse)
+        BF3 = bergman_fan(M, fan_structure = :fine, convention = :max)   
+        BF4 = bergman_fan(M, fan_structure = :coarse, convention = :max)
+            
+        @test lineality_dim(BF1) == 1
+        @test lineality_dim(BF2) == 2
+        @test maximal_cones(BF1) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF3)]
+        @test maximal_cones(BF2) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF4)]
+    end
+>>>>>>> 8138c64f66 (wrote bergman_fan(), added tests for it, exported it)
 end
