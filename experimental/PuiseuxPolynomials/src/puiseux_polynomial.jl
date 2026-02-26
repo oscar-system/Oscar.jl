@@ -145,7 +145,7 @@ function rescale(f::PuiseuxMPolyRingElem, newScale::ZZRingElem)
     newScaleMultipleOfCurrentScale, scaleQuotient = divides(newScale, scale(f))
     @req newScaleMultipleOfCurrentScale "new scale must be a multiple of the current scale"
 
-    newPoly = inflate(newPoly, scaleQuotient)
+    newPoly = inflate(poly(f), [Int(scaleQuotient) for i in 1:nvars(parent(f))])
     newShift = shift(f) * scaleQuotient
     return PuiseuxMPolyRingElem(parent(f), newPoly, newShift, newScale)
 end
@@ -351,7 +351,7 @@ function Base.:*(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     # add shifts, multiply scales and polys
     newShift = shift(f)*scale(g) + shift(g)*scale(f)
     newScale = scale(f)*scale(g)
-    newPoly = inflate(poly(f), scale(g)) * inflate(poly(g), scale(f))
+    newPoly = inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]) * inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))])
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
@@ -448,7 +448,7 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     # subtract shifts, multiply scales and divide poly(f) by coefficient of poly(g)
     newShift = shift(f)*scale(g) - shift(g)*scale(f)
     newScale = scale(f)*scale(g)
-    newPoly = divexact(inflate(poly(f), scale(g)), inflate(poly(g), scale(f)))
+    newPoly = divexact(inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]), inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))]))
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
