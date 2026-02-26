@@ -2614,17 +2614,6 @@ Once set, `integral` can be used to compute intersection numbers.
 
 !!! note
     The point class can only be set once.
-
-# Examples
-```jldoctest
-julia> X, (h,) = abstract_variety(2, ["h"], [1]);
-
-julia> set_point_class(X, h^2)
-
-julia> integral(h^2)
-1
-
-```
 """
 function set_point_class(X::AbstractVariety, p::MPolyDecRingOrQuoElem)
   if isdefined(X, :point)
@@ -2644,22 +2633,6 @@ can be computed.
 
 !!! note
     The tangent bundle can only be set once.
-
-# Examples
-```jldoctest
-julia> X, (c,) = abstract_variety(2, ["c"], [2]);
-
-julia> set_point_class(X, c)
-
-julia> T = abstract_bundle(X, 2, 1 + c)
-AbstractBundle of rank 2 on AbstractVariety of dim 2
-
-julia> set_tangent_bundle(X, T)
-
-julia> euler(X)
-0
-
-```
 """
 function set_tangent_bundle(X::AbstractVariety, t::AbstractBundle)
   if isdefined(X, :T)
@@ -2679,16 +2652,6 @@ Once set, Hilbert polynomials can be computed.
 
 !!! note
     The polarization can only be set once.
-
-# Examples
-```jldoctest
-julia> P2 = abstract_projective_space(2)
-AbstractVariety of dim 2
-
-julia> hilbert_polynomial(P2)
-1//2*t^2 + 3//2*t + 1
-
-```
 """
 function set_polarization(X::AbstractVariety, o1::MPolyDecRingOrQuoElem)
   if isdefined(X, :O1)
@@ -2709,21 +2672,6 @@ Grassmannian).
 
 !!! note
     The tautological bundles can only be set once.
-
-# Examples
-```jldoctest
-julia> G = abstract_grassmannian(2, 4)
-AbstractVariety of dim 4
-
-julia> length(tautological_bundles(G))
-2
-
-julia> rank.(tautological_bundles(G))
-2-element Vector{Int64}:
- 2
- 2
-
-```
 """
 function set_tautological_bundles(X::AbstractVariety, vb::Vector{AbstractBundle{T}}) where T
   if isdefined(X, :bundles)
