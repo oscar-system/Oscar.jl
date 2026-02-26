@@ -186,3 +186,39 @@ and OSCAR's IntersectionTheory module.
 | `abstractSheaf(X, ...)`   | `abstract_bundle(X, r, c)`     |
 | `degeneracyLocus(k,F,G)`  | `degeneracy_locus(F, G, k)`    |
 | `degeneracyLocus2(k,F,G)` | `degeneracy_locus(F, G, k; class=true)` |
+
+## Schubert2 code snippets (for direct comparison)
+
+### 27 lines on a cubic surface
+
+```macaulay2
+G = flagBundle({2,2})
+bundles G
+integral chern(4, symmetricPower(3, QQ_G))
+```
+
+### 2875 lines on a quintic threefold
+
+```macaulay2
+G = flagBundle({2,3})
+bundles G
+integral chern(6, symmetricPower(5, dual SS_G))
+```
+
+### 609250 conics on a quintic threefold
+
+```macaulay2
+G = flagBundle({3,2})
+S = dual (bundles G)#0
+X = projectiveBundle'(symmetricPower(2,S))
+integral chern(11, symmetricPower(5,S) - symmetricPower(3,S)*OO_X(-1))
+```
+
+### 92 conics in space meeting 8 lines
+
+```macaulay2
+G = flagBundle({3,1})
+S = dual (bundles G)#0
+X = projectiveBundle'(symmetricPower(2,S))
+integral((2 * pullback chern(1,(bundles G)#1) + chern(1,OO_X(1)))^8)
+```
