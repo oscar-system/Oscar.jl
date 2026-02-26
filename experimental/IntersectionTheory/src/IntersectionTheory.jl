@@ -58,6 +58,7 @@ export hom
 export identity_map
 export instanton_number
 export intersection_matrix
+export kernel_bundle
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
@@ -78,6 +79,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export section_class
 export total_segre_class
 export segre_class
 export set_point_class
@@ -112,11 +114,11 @@ export TnRep
 export TnVariety
 
 
-include("Types.jl")
-include("Misc.jl")
+include("types.jl")
+include("misc.jl")
 
-include("Bott.jl")   # integration using Bott's formula
-include("Main.jl")   # basic constructors and functionality
+include("bott.jl")   # integration using Bott's formula
+include("main.jl")   # basic constructors and functionality
 include("blowup.jl") # blow_up
 include("schubert.jl") # Schubert calculus
 include("kontsevich.jl") # Kontsevich moduli spaces
@@ -171,6 +173,7 @@ export hom
 export identity_map
 export instanton_number
 export intersection_matrix
+export kernel_bundle
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
@@ -191,6 +194,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export section_class
 export total_segre_class
 export segre_class
 export set_point_class
