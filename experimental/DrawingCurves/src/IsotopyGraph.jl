@@ -115,7 +115,7 @@ end
 
 function add_edge_sequence!(IG::_IsotopyGraph, seq::Vector{Vector{Int}})
   for p in seq
-    @assert p in keys(IG.pair2node) "$p does not specify a node."
+    @req p in keys(IG.pair2node) "$p does not specify a node."
   end
   seqi = [IG.pair2node[p] for p in seq]
   push!(IG.edge4sequences, seqi)
@@ -127,8 +127,8 @@ end
 function add_edge!(
   IG::_IsotopyGraph, p0::Vector{Int}, p1::Vector{Int}; nosequence::Bool=false
 )
-  @assert p0 in keys(IG.pair2node) "$p0 does not specify a node."
-  @assert p1 in keys(IG.pair2node) "$p1 does not specify a node."
+  @req p0 in keys(IG.pair2node) "$p0 does not specify a node."
+  @req p1 in keys(IG.pair2node) "$p1 does not specify a node."
   Oscar.add_edge!(IG.G, IG.pair2node[p0], IG.pair2node[p1])
   if nosequence
     push!(IG.nosequenceedges, [IG.pair2node[p0], IG.pair2node[p1]])

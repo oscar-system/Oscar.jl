@@ -34,7 +34,7 @@ function _patchworks2polynomial(
   # Since we still get faulty data...
   mc = incidence_matrix([collect(row(mc, i)) for i in 1:nrows(mc)])
   sop = subdivision_of_points(pts, mc)
-  # @assert is_regular(sop) "Subdivision is not regular"
+  # @req is_regular(sop) "Subdivision is not regular"
   w = min_weights(sop)
 
   result = elem_type(R)[]

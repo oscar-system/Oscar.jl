@@ -8,7 +8,7 @@ T = matrix(QQ, [2052//2055 -111//2055; 111//2055 2052//2055])
     60 * x^2 * y^2 * z^2 − 20 * y^4 * z^2 − 20 * x^2 * z^4 − 20 * y^2 * z^4 + 19 * z^6
   zchart_ring, (zx, zy) = polynomial_ring(QQ, [:x, :y])
   zchart_hom = hom(R, zchart_ring, [zx, zy, 1])
-  IG = Oscar._compute_isotopy_graph(zchart_hom(r6), T, 2)[1]
+  IG = Oscar._compute_isotopy_graph(zchart_hom(r6), T, 1)[1]
   desiredG = load(joinpath(dir, "robinson6.graph"))
   computedG = IG.G
   @test Polymake.graph.isomorphic(desiredG.pm_graph, computedG.pm_graph)
