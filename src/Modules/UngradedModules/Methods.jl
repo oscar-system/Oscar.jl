@@ -1082,7 +1082,6 @@ end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
 
-#TODO: refactor when infrastructure for caching GB-basis is available in this setting
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}; check::Bool=true
   ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
@@ -1093,6 +1092,7 @@ function _vector_space_basis(
   @assert kk === coefficient_ring(LQ) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
   M_poly = pre_saturated_module(M)
+  #TODO: refactor when infrastructure for caching GB-basis is available in this setting
   shift, back_shift = base_ring_shifts(localized_ring(LQ))
   Mq,_ = sub(ambient_free_module(M_poly), relations(M_poly))
   Mq_shift,_ = change_base_ring(shift, Mq)
@@ -1105,7 +1105,6 @@ function _vector_space_basis(
   return iota.(B)
 end
 
-#TODO: refactor when infrastructure for caching GB-basis is available in this setting
 function _is_finite(
     kk::Field, M::SubquoModule{T}
   ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
@@ -1114,6 +1113,7 @@ function _is_finite(
                                  }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   M_poly = pre_saturated_module(M)
+  #TODO: refactor when infrastructure for caching GB-basis is available in this setting
   shift,_ = base_ring_shifts(localized_ring(base_ring(M)))
   Mq,_ = sub(ambient_free_module(M_poly), relations(M_poly))
   Mq_shift,_ = change_base_ring(shift, Mq)
