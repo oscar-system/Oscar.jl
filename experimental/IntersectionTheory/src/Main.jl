@@ -818,7 +818,6 @@ end
 # AbstractVariety
 #
 # generic abstract variety with some classes in given degrees
-# TODO this could do with better documentation and examples
 @doc raw"""
     abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
 
