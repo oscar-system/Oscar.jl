@@ -185,6 +185,7 @@ end
 elem_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = PuiseuxMPolyRingElem{T}
 parent_type(::Type{PuiseuxMPolyRingElem{T}}) where T <: FieldElement = PuiseuxMPolyRing{T}
 base_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = mpoly_ring_type(T)
+coefficient_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = parent_type(T)
 
 # The next function is required but not tested in AbstractAlgebra.
 # The following code errors without it:
