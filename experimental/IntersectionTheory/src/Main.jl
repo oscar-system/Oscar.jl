@@ -393,7 +393,7 @@ julia> euler_pairing(OO(P2, 1), OO(P2, 2))
 """
 euler_pairing(F::AbstractBundle, G::AbstractBundle) = begin
   F, G = _coerce(F, G)
-  integral(chern_character(dual(F)) * chern_character(G) * todd_class(parent(F)))
+  euler_characteristic(dual(F) * G)
 end
 
 ###############################################################################
