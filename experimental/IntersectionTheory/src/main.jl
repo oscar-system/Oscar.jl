@@ -3913,8 +3913,14 @@ Return the section class of the flag bundle map `f`. The section class is a
 cycle class on the flag variety of the correct codimension such that its
 push-forward to the base is 1.
 
-This is computed internally during the construction of flag bundles and stored
-as an attribute. It corresponds to `sectionClass` in Schubert2 (Macaulay2).
+In particular, `pushforward(f, section_class(f)) == 1` in the Chow ring of the
+base. Integrating that class then depends on the base dimension; for example,
+on `\mathbb{P}^3` it is `0`, while multiplying by the point class gives `1`.
+
+This corresponds to `sectionClass` in Schubert2 (Macaulay2), where the method
+is defined for abstract variety maps in general. In this implementation, the
+class is currently provided for maps whose source carries a precomputed section
+class attribute (notably structure maps of flag bundles).
 
 # Examples
 ```jldoctest
@@ -3926,7 +3932,32 @@ julia> p = structure_map(Fl);
 
 julia> sc = section_class(p);
 
+julia> pushforward(p, sc)
+1
+
 julia> integral(pushforward(p, sc))
+0
+
+julia> integral(pushforward(p, sc) * point_class(X))
+1
+
+```
+
+```jldoctest
+julia> pt = abstract_point();
+
+julia> F = 4*trivial_line_bundle(pt);
+
+julia> G = flag_bundle(F, 2);
+
+julia> f = structure_map(G);
+
+julia> sc = section_class(f);
+
+julia> pushforward(f, sc)
+1
+
+julia> integral(sc)
 1
 
 ```
