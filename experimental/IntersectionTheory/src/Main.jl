@@ -113,7 +113,6 @@ julia> chern_character(Q)
 ```
 """
 function chern_character(F::AbstractBundle)
-  # TODO use the get_attribute system?
   if !isdefined(F, :ch)
     F.ch = rank(F) + _logg(total_chern_class(F))
   end
