@@ -342,3 +342,18 @@ isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 # end
 # 
 # @enable_all_show_via_expressify SimplicialCohomologyRingElem
+
+# Interface specific to noncommutative rings
+function divexact_left(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+  if a == b 
+    return one(parent(a))
+  end 
+  error("No exact quotient exists")
+end
+
+function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomologyRingElem)
+  if a == b 
+    return one(parent(a))
+  end 
+  error("No exact quotient exists")
+end
