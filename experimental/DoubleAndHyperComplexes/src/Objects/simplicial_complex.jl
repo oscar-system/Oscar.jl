@@ -64,6 +64,17 @@ end
   end
 end
 
+### Show the simplices belonging to the cochain a
+function show_elem(io::IO, C::SimplicialCoComplex, a::FreeModElem, p::Int)
+  @req parent(a) === C[p] "parent mismatch"
+  fst = true
+  for (c, g) in coordinates(a)
+    !fst && print(io, " + ")
+    fst = false
+    print(io, g, "*", sort(collect(faces(simplicial_complex(C), p)[c])))
+  end
+end
+
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::SimplicialCoComplex) = c.internal_complex
 

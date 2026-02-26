@@ -307,7 +307,9 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
   if iszero(a)
     print(io, "0")
   elseif is_homogeneous_normalized(a)
-    print(io, a.homog_elem, " + ", a.homog_deg, "-coboundaries")
+    # defer printing on the actual cochain to the cochain complex
+    show_elem(io, simplicial_co_complex(parent(a)), repres(a.homog_elem), a.homog_deg)
+    print(io, " + ", a.homog_deg, "-coboundaries")
   elseif is_homogeneous_denormalized(a)
     print(IOContext(io, :parens=>false), only(homogeneous_parts(a)))
   else
@@ -324,13 +326,3 @@ canonical_unit(A::SimplicialCohomologyRing) = one(A)
 # isone checks if the element is the natural one element
 isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 
-#TODO Not clear how to pretty print (with parentheses) using expressify
-# function expressify(a::SimplicialCohomologyRingElem; context=nothing)
-#   if is_homogeneous_normalized(a)
-#     return Expr(:call, :+, expressify(repres(a.homog_elem); context=context), Symbol(a.homog_deg, "-boundaries"))
-#   else
-#     return Expr(:call, :+, (expressify(ah; context=context) for ah in homogeneous_parts(a))...)
-#   end
-# end
-# 
-# @enable_all_show_via_expressify SimplicialCohomologyRingElem
