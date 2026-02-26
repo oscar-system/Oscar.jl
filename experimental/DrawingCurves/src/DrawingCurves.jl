@@ -23,7 +23,7 @@ function _compute_isotopy_graph(f_in, transform::MatrixElem, ntries::Int; select
   random_transform = identity_matrix(base_ring(f_in), 2)
   success = isotopy_graph_from_curve_inner(IG, f_in, random_transform, selected_precision)
   @vprintln :DrawingCurves 2 "Was isotopy graph generated successfully? $success"
-  counter = 1
+  counter = 0
   while counter<ntries && !success
     # println("Turning!")
     random_transform *= transform
@@ -98,7 +98,7 @@ function draw_curve_tikz(
     end
     return success
   else
-    @assert ntries>0 "Number of tries needs to be positive"
+    @req ntries>0 "Number of tries needs to be positive"
     return _draw_curve_tikz(f_in, transform, ntries, selected_precision, graph, custom_edge_plot)
   end
 end
@@ -117,7 +117,7 @@ function _draw_curve_tikz(
     if graph
       draw_graph_tikz(IG, io)
     else
-      draw_curve_tikz(IG, scale, io; custom_edge_plot)
+      draw_curve_tikz(IG, scale, io; custom_edge_plot = custom_edge_plot(T))
     end
   else
     # Some error?
