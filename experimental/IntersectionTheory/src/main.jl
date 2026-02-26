@@ -887,8 +887,7 @@ Return an abstract variety by specifying its dimension `n` and its Chow ring `A`
 julia> R, (h,) = graded_polynomial_ring(QQ, [:h])
 (Graded multivariate polynomial ring in 1 variable over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[h])
 
-julia> A, _ = quo(R, ideal(R, [h^3]))
-(Quotient of multivariate polynomial ring by ideal (h^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+julia> A, _ = quo(R, ideal(R, [h^3]));
 
 julia> P2 = abstract_variety(2, A)
 AbstractVariety of dim 2
@@ -933,7 +932,7 @@ AbstractVariety of dim 2
 
 julia> chow_ring(P2)
 Quotient
-  of multivariate polynomial ring in 1 variable over fraction field graded by
+  of multivariate polynomial ring in 1 variable over QT graded by
     h -> [1]
   by ideal (h^3)
 
@@ -3130,7 +3129,7 @@ AbstractVariety of dim 3
 
 julia> chow_ring(P3)
 Quotient
-  of multivariate polynomial ring in 1 variable over fraction field graded by
+  of multivariate polynomial ring in 1 variable over QT graded by
     h -> [1]
   by ideal (h^4)
 
