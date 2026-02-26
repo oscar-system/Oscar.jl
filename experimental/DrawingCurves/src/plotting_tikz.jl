@@ -50,12 +50,6 @@ function draw_curve_tikz(IG::_IsotopyGraph, scale, io; custom_edge_plot=nothing)
   for s in IG.edge4sequences
     pts = [IG.node2coordinates[si] for si in s]
     _draw_edge_sequence_tikz(io, pts, scale; color="purple")
-    if s[1] in IG.ytangentNodes
-      pts[2] = _Point(pts[1].xcoord, pts[2].ycoord)
-    end
-    if s[4] in IG.ytangentNodes
-      pts[3] = _Point(pts[4].xcoord, pts[3].ycoord)
-    end
     if custom_edge_plot !== nothing
       custom_edge_plot(io, pts, scale; color="blue")
     end
