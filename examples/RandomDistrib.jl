@@ -48,6 +48,9 @@ function ApproxCard(D::AbstractRndDistr)
 end
 
 function PostFilter(predicate, RNG::Random.AbstractRNG, parent, distr::AbstractRndDistr)
+  # Generate a random value satisfying predicate: give up after 50 attempts if no suitable value found.
+  # Assuming we have at least 50% chance of generating a suitable value, this will fail needlessly
+  # only very rarely.
   count_trials = 0
   while true
     val = RAND(RNG, parent, distr)
@@ -55,7 +58,7 @@ function PostFilter(predicate, RNG::Random.AbstractRNG, parent, distr::AbstractR
       return val
     end
     count_trials += 1
-    (count_trials > 30) && error("Failed to find random element satsfying given predicate")
+    (count_trials > 50) && error("Failed to find random element satsfying given predicate")
   end
   # never get here
 end
