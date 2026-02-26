@@ -3957,6 +3957,35 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   return Fl
 end
 
+@doc raw"""
+    section_class(f::AbstractVarietyMap)
+
+Return the section class of the flag bundle map `f`. The section class is a
+cycle class on the flag variety of the correct codimension such that its
+push-forward to the base is 1.
+
+This is computed internally during the construction of flag bundles and stored
+as an attribute. It corresponds to `sectionClass` in Schubert2 (Macaulay2).
+
+# Examples
+```jldoctest
+julia> X = abstract_projective_space(3);
+
+julia> Fl = flag_bundle(tangent_bundle(X), 1, 2);
+
+julia> p = structure_map(Fl);
+
+julia> sc = section_class(p);
+
+julia> integral(pushforward(p, sc))
+1
+
+```
+"""
+function section_class(f::AbstractVarietyMap)
+  get_attribute(domain(f), :section)
+end
+
 ###########################################################
 #helper functions above
 ###########################################################
