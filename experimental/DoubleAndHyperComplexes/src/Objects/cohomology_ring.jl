@@ -1,3 +1,10 @@
+@doc raw"""
+    mutable struct SimplicialCohomologyRing{T} <: NCRing
+
+A struct for cohomology rings `A` which arise from a cocomplex `C` 
+which is equipped with a structure of a differential graded (DG) algebra 
+by implementing a method for the internal function `mul_cochains`.
+"""
 mutable struct SimplicialCohomologyRing{T} <: NCRing
   C::SimplicialCoComplex
   graded_parts::Vector{SubquoModule{T}}
@@ -11,9 +18,21 @@ mutable struct SimplicialCohomologyRing{T} <: NCRing
   end
 end
 
+@doc raw"""
+    simplicial_co_complex(A::SimplicialCohomologyRing)
+
+Return the internal cocomplex (which needs to implement a structure as a DG-algebra).
+"""
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
+
+### This is not allowed with the new architecture!
 simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
 
+@doc raw"""
+    graded_parts(A::SimplicialCohomologyRing)
+
+Return a list of the cohomology groups for `A`.
+"""
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)
     K = simplicial_complex(A)
@@ -22,6 +41,11 @@ function graded_parts(A::SimplicialCohomologyRing)
   return A.graded_parts
 end
 
+@doc raw"""
+    graded_part(A::SimplicialCohomologyRing, i::Int)
+
+Return the `i`-th cohomology group of the cocomplex for `A`.
+"""
 function graded_part(A::SimplicialCohomologyRing, i::Int)
   return graded_parts(A)[i+1]
 end
@@ -80,6 +104,11 @@ function one(A::SimplicialCohomologyRing)
 end
 
 
+@doc raw"""
+    graded_part(a::SimplicialCohomologyRingElem, p::Int)
+
+Return the homogeneous component of `a` of cohomological degree `p`.
+"""
 function graded_part(a::SimplicialCohomologyRingElem, p::Int)
   A = parent(a)
   is_zero(a) && return zero(graded_part(A, p))
@@ -373,15 +402,6 @@ function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomology
   error("No exact quotient exists")
 end
 
-
-function ConformanceTests.generate_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
-    n_degrees = rand(0:5)
-    x = zero(R)
-    for i=1:n_degrees
-        x = x+Oscar.generate_homogeneous_element(R)
-    end
-    return x
-end
 
 function is_unit(a::SimplicialCohomologyRingElem)
     if a==one(parent(a)) 
