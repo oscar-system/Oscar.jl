@@ -3,7 +3,7 @@ using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
+import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map, fixed_points, number_of_fixed_points
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
@@ -32,8 +32,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blow_up
-export blow_up_points
+export blowup
+export blowup_points
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -75,7 +75,9 @@ export pontryagin_class
 export product
 export projective_bundle
 export pullback
+export pullback_morphism
 export pushforward
+export pushforward_morphism
 export schubert_class
 export schubert_classes
 export schur_functor
@@ -119,7 +121,7 @@ include("misc.jl")
 
 include("bott.jl")   # integration using Bott's formula
 include("main.jl")   # basic constructors and functionality
-include("blowup.jl") # blow_up
+include("blowup.jl") # blowup
 include("schubert.jl") # Schubert calculus
 include("kontsevich.jl") # Kontsevich moduli spaces
 # include("Moduli.jl") # moduli of matrices, twisted cubics
@@ -147,8 +149,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blow_up
-export blow_up_points
+export blowup
+export blowup_points
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -190,7 +192,9 @@ export pontryagin_class
 export product
 export projective_bundle
 export pullback
+export pullback_morphism
 export pushforward
+export pushforward_morphism
 export schubert_class
 export schubert_classes
 export schur_functor

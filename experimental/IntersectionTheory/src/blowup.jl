@@ -1,6 +1,6 @@
 ######################################
 @doc raw"""
-    blow_up(i::AbstractVarietyMap; symbol::String="e")
+    blowup(i::AbstractVarietyMap; symbol::String="e")
 
 Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
 
@@ -31,7 +31,7 @@ julia> k, l = gens(P2xP2)
 julia> Se = map(P2xP2, P8, [k+l])
 AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
 
-julia> Bl, E, j = blow_up(Se)
+julia> Bl, E, j = blowup(Se)
 (AbstractVariety of dim 8, AbstractVariety of dim 7, AbstractVarietyMap from AbstractVariety of dim 7 to AbstractVariety of dim 8)
 
 julia> betti_numbers(Bl)
@@ -66,7 +66,7 @@ H
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blow_up(i)
+julia> Bl, E, j = blowup(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))
@@ -79,7 +79,7 @@ julia> integral((6*HBl-2*e)^5)
 
 ```
 """
-function blow_up(i::AbstractVarietyMap; symbol::String = "e")
+function blowup(i::AbstractVarietyMap; symbol::String = "e")
   # use construction via generators and relations as in [EH16](@cite), Section 13.6
   #  E ---j---> Bl
   #  |          |
@@ -214,7 +214,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   Bl.T.chern = simplify(pullback(f, total_chern_class(tangent_bundle(X))) + pushforward(j, pullback(g, total_chern_class(tangent_bundle(Z))) * α))
   set_attribute!(E, :projections => [j, g])
   set_attribute!(Bl, :exceptional_divisor => E)
-  set_attribute!(Bl, :description => "Blow-Up of $X with center $Z")
+  set_attribute!(Bl, :description => "Blow-up of $X with center $Z")
   if get_attribute(Z, :alg) == true && get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
@@ -223,7 +223,7 @@ end
 
 
 @doc raw"""
-    function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
+    function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
 
 Return the blow-up of `X` at `n` points.
 
@@ -232,7 +232,7 @@ Return the blow-up of `X` at `n` points.
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
-julia> Bl = blow_up_points(P2, 1)
+julia> Bl = blowup_points(P2, 1)
 AbstractVariety of dim 2
 
 julia> chow_ring(Bl)
@@ -244,7 +244,7 @@ Quotient
 
 ```
 """
-function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
+function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
   SED = symbol # SED = "e"
   if n == 1
     symbs = [SED]
@@ -254,9 +254,9 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
   Bl = X
   P = abstract_point(base = base(X))
   for i in 1:n
-    Bl = blow_up(map(P, Bl, [zero(chow_ring(P)) for j in 1:i]), symbol=symbs[i])[1]
+    Bl = blowup(map(P, Bl, [zero(chow_ring(P)) for j in 1:i]), symbol=symbs[i])[1]
   end
-  set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
+  set_attribute!(Bl, :description => "Blow-up of $X at $n points")
   Bl.structure_map = map(Bl, X)
   if get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)

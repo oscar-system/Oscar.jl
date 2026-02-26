@@ -98,7 +98,7 @@ H
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blow_up(i)
+julia> Bl, E, j = blowup(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))

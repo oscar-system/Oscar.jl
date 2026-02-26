@@ -12,15 +12,15 @@ $Z$ in $X$. The resulting variety $\widetilde{X}$ comes equipped with a map $\pi
 that is an isomorphism away from $E$.
 
 In OSCAR, a blow-up is constructed from an inclusion map $i\colon Z \hookrightarrow X$ (an
-`AbstractVarietyMap` with `inclusion = true`). The function `blow_up` returns the map
+`AbstractVarietyMap` with `inclusion = true`). The function `blowup` returns the map
 $\pi\colon \widetilde{X}\to X$. The exceptional divisor $E$ and the
 tautological line bundle $\mathcal{O}_E(-1)$ are accessible via the attributes of the
 returned map.
 
 ```@docs
-blow_up(i::AbstractVarietyMap; symbol::String = "e")
+blowup(i::AbstractVarietyMap; symbol::String = "e")
 ```
 
 ```@docs
-blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
+blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
 ```
