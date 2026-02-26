@@ -1,14 +1,14 @@
 [
    "Intersection Theory" => [
       "intro.md",
+      "schubert2.md"
       "AbstractVarieties.md",
       "AbstractBundles.md",
       "AbstractVarietyMaps.md",
-      "BlowUps.md",
-      "schubert.md",
-      "BottFormulas.md",
-      "ParticularConstructions.md",
+      "blowups.md",
+      "schubert_calculus.md",
+      "constructions.md",
       "examples.md",
-      "schubert2.md"
+      "bott.md",
    ],
 ]

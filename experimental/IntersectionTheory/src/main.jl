@@ -500,7 +500,8 @@ the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushfor
     This is the case in the following situations:
     - When $Y$ is a point or a curve;
     - when all classes in $\mathrm{N}^*(Y)_{\mathbb Q}$ are known;
-    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in $\mathrm{N}^*(X)_{\mathbb Q}$ are known.
+    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward
+      is correct, even though not all classes in $\mathrm{N}^*(X)_{\mathbb Q}$ are known.
     In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
@@ -1642,6 +1643,10 @@ l_genus(X::AbstractVariety)
 
 Compute the signature of the abstract variety `X` by evaluating the Hirzebruch
 L-genus in the Chow ring.
+
+For smooth compact complex varieties of even complex dimension $2m$, this agrees
+with the topological signature of the intersection form on middle cohomology,
+i.e. the difference $b_+ - b_-$ on $H^{2m}(X, \mathbb Q)$.
 
 # Examples
 ```jldoctest
