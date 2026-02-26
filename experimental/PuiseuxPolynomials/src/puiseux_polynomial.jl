@@ -240,6 +240,7 @@ end
 
 is_univariate(R::PuiseuxMPolyRing) = is_univariate(underlying_polynomial_ring(R))
 is_gen(f::PuiseuxMPolyRingElem) = is_gen(poly(f)) && iszero(shift(f)) && scale(f) == 1
+is_term(f::PuiseuxMPolyRingElem) = is_term(poly(f))
 is_monomial(f::PuiseuxMPolyRingElem) = is_monomial(poly(f))
 is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(leading_coefficient(poly(f)))
 
