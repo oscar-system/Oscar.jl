@@ -69,7 +69,7 @@ function _analyse_singularity_msolve(
     ptsafter = _real_roots(projy(Oscar.evaluate(f, [Rxy(xafter), y])); selected_precision)
 
     # Just guessing some precision, not optimal...
-    yinterval = [ypt[1] - QQ(1,2)^64, ypt[2] + QQ(1,2)^64]
+    yinterval = [ypt[1] - QQ(1, 2)^64, ypt[2] + QQ(1, 2)^64]
     result = ptsbefore
     diff = length(ptsbefore) - length(ptsafter)
     if diff < 0
@@ -117,7 +117,7 @@ function msolve_sings(I; info_level::Int=0, precision::Int=128)
   return sings
 end
 
-_interval_contains(i1::QQFieldElem, i2::QQFieldElem, x::QQFieldElem) = i1<=x && x<=i2
+_interval_contains(i1::QQFieldElem, i2::QQFieldElem, x::QQFieldElem) = i1 <= x && x <= i2
 
 function isotopy_graph_from_msolve(
   IG::_IsotopyGraph, f_in::QQMPolyRingElem, random_transform::QQMatrix,
@@ -135,20 +135,25 @@ function isotopy_graph_from_msolve(
   Ry, t = polynomial_ring(K, [:y])
   projy = hom(Rxy, Ry, [0, t[1]])
   sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
-  @vprintln :DrawingCurves 2  "There are $(length(sings)) points to investigate"
-  for (a,b) in subsets(sings, 2)
+  @vprintln :DrawingCurves 2 "There are $(length(sings)) points to investigate"
+  for (a, b) in subsets(sings, 2)
     # Check for genericity
     a1 = a[1][1]
     a2 = a[1][2]
     b1 = b[1][1]
     b2 = b[1][2]
     if !(b2 < a1 || a2 < b1)
-      @vprintln :DrawingCurves 2  "Critical points were not in general position."
+      @vprintln :DrawingCurves 2 "Critical points were not in general position."
       return false
     end
   end
-  if(length(sings) == 0)
-    throw(NotImplementedError(:isotopy_graph, "Curve has no critical points, it may be definite, this situation is not implemented yet."))
+  if (length(sings) == 0)
+    throw(
+      NotImplementedError(
+        :isotopy_graph,
+        "Curve has no critical points, it may be definite, this situation is not implemented yet.",
+      ),
+    )
   end
   svecs = []
   sindices = []
