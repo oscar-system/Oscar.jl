@@ -1448,6 +1448,7 @@ Return the generalized Todd genus $\chi_p(X) = \chi(\Omega^p_X)$, the holomorphi
 Euler characteristic of the `p`-th exterior power of the cotangent bundle of `X`.
 
 For $p = 0$ this is the arithmetic genus $\chi(\mathcal{O}_X)$.
+
 # Examples
 ```jldoctest
 julia> P3 = abstract_projective_space(3)
@@ -1457,6 +1458,7 @@ julia> chi(0, P3)
 1
 
 julia> chi(1, P3)
+-1
 
 ```
 """
@@ -3004,6 +3006,63 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   end ### DIFF Song
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
+end
+
+@doc raw"""
+    kernel_bundle(F::AbstractBundle, G::AbstractBundle, k::Int)
+
+Given a general map $\varphi\colon F \to G$, construct the `k`-th degeneracy
+locus $\mathrm{D}_k$ where $\operatorname{rank}(\varphi) \leq k$, and return a pair
+`(D, K)` where `D` is the degeneracy locus and `K` is the kernel bundle
+$\ker(\varphi|_{\mathrm{D}_k})$ on `D`.
+
+This corresponds to `kernelBundle` in Schubert2 (Macaulay2).
+
+# Examples
+
+The universal kernel on the degeneracy locus of a map between bundles on $\mathbb{P}^4$:
+
+```jldoctest
+julia> P4 = abstract_projective_space(4)
+AbstractVariety of dim 4
+
+julia> F = 3*OO(P4, -1)
+AbstractBundle of rank 3 on AbstractVariety of dim 4
+
+julia> G = cotangent_bundle(P4)*OO(P4,1)
+AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> D, K = kernel_bundle(F, G, 2);
+
+julia> dim(D)
+2
+
+julia> rank(K)
+1
+
+```
+"""
+function kernel_bundle(F::AbstractBundle, G::AbstractBundle, k::Int)
+  F, G = _coerce(F, G)
+  m, n = rank(F), rank(G)
+  @assert 0 < k < min(m, n) "k must satisfy 0 < k < min(rank(F), rank(G))"
+
+  # Build the Grassmannian Gr(m-k, F) and the zero locus inside it
+  Gr = (m-k == 1) ? projective_bundle(F) : flag_bundle(F, m-k)
+  S = tautological_bundles(Gr)[1]   # tautological subbundle of rank m-k on Gr
+  D = zero_locus_section(dual(S) * G)
+
+  # Pull back the tautological subbundle to D (before resetting structure map)
+  D_to_Gr = D.structure_map
+  K = pullback(D_to_Gr, S)
+
+  # Reset the structure map to go directly to X
+  D.structure_map = map(D, parent(F))
+  if isdefined(parent(F), :O1)
+    D.O1 = pullback(D.structure_map, polarization(parent(F)))
+  end
+  set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
+  return D, K
 end
 
 ###############################################################################
