@@ -192,6 +192,8 @@ function chern_class(F::AbstractBundle, k::Int)
   if isdefined(F, :chern)
     return total_chern_class(F)[k]
   end
+  # we don't compute `total_chern_class` here, in case it is an expensive computation
+  # whether this is actually a useful choice is not supported by evidence at this point, so it may be changed in the future
   return _expp(chern_character(F), truncate=k)[k]
 end
 
