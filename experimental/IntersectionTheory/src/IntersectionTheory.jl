@@ -40,6 +40,7 @@ export chern_character
 export chern_class
 export chern_number
 export chern_numbers
+export chi
 export chow_ring
 export complete_intersection
 export compose
@@ -157,6 +158,7 @@ export chern_character
 export chern_class
 export chern_number
 export chern_numbers
+export chi
 export chow_ring
 export complete_intersection
 export compose
