@@ -242,7 +242,7 @@ const __euler = Cycle(_euler, 3)
 function oeis_A81(n::Int)
   n == 1 && return 1
   ans = 0
-  for p in artitions(n-1)
+  for p in partitions(n-1)
     ans += prod(binomial(oeis_A81(k)+c-1, c) for (k,c) in _tally(p))
   end
   ans
