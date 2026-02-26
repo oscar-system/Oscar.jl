@@ -387,7 +387,7 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::ZZRingElem)
 
     if a < 0
         # test whether f is a monomial
-        @assert length(f) == 1 "only monomials can be exponentiated to negative powers"
+        @req is_term(f) "only monomials can be exponentiated to negative powers"
         R = parent(f)
         Runder = base_ring(R)
         c = first(coefficients(f))
