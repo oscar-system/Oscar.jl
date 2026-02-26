@@ -451,7 +451,7 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
     newShift = shift(f)*scale(g) - shift(g)*scale(f)
     newScale = scale(f)*scale(g)
     xPrimes = gens(parent(poly(f)))
-    newPoly = divexact(evaluate(poly(f), xPrimes .^ scale(g)) , evaluate(poly(g), xPrimes .^ scale(f)))
+    newPoly = divexact(inflate(poly(f), scale(g)), inflate(poly(g), scale(f)))
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newShift, newScale)
 end
