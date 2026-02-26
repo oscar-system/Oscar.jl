@@ -3,6 +3,5 @@ export puiseux_polynomial_ring_elem
 
 export scale
 export shift
-export underlying_polynomial_ring
 
 export initial

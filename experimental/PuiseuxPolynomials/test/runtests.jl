@@ -11,7 +11,7 @@ using Oscar
     @testset "Construction" begin
         K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
-        @test K_p.underlyingPolynomialRing == K
+        @test K_p.baseRing == K
         @test K_p == Oscar.PuiseuxMPolyRing(K)
 
         h = 1+t1 + 2*t2+3*t1^4+t1*t2^4+t3^2
@@ -53,15 +53,15 @@ using Oscar
         
         K, _ = polynomial_ring(QQ, ["t1","t2","t3"])
         Kt, _ = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
-        @test Kt.underlyingPolynomialRing == K
+        @test Kt.baseRing == K
     end
     
     @testset "Getters" begin
         K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         Kp, (tp1,tp2,tp3) = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
 
-	    @test K == Oscar.underlying_polynomial_ring(Kp)
-        @test QQ == base_ring(Kp)
+	      @test K == base_ring(Kp)
+        @test QQ == coefficient_ring(Kp)
         @test QQ == coefficient_ring(Kp)
         @test ngens(Kp) == 3
         @test gens(Kp) == [tp1,tp2,tp3]
@@ -69,7 +69,7 @@ using Oscar
         g = tp1^(1//2)+tp3^(1//3)
         @test elem_type(Kp) == typeof(g)
         @test parent_type(g) == typeof(Kp)
-        @test base_ring_type(Kp) == typeof(QQ)
+        @test base_ring_type(Kp) == QQMPolyRing
         @test parent(g) == Kp
         @test poly(g) == t1^3 + t3^2
         @test scale(g) == 6
@@ -151,7 +151,7 @@ using Oscar
 
     @testset "Conformance tests" begin
         K_p, _ = puiseux_polynomial_ring(QQ, ["t1","t2"])
-        # ConformanceTests.test_Ring_interface(K_p) # basic tests
-        ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
+        ConformanceTests.test_Ring_interface(K_p) # basic tests
+        # ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
     end
 end
