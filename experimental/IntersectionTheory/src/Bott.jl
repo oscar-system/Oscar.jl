@@ -106,9 +106,12 @@ function Base.show(io::IO, F::TnBundle)
   if Oscar.is_terse(io)
     print(io, "TnBundle")
   else
-    print(io, "TnBundle of rank $(F.rank) on $(F.parent)")
+    print(io, "TnBundle of rank $(rank(F)) on $(parent(F))")
   end
 end
+
+rank(F::TnBundle) = F.rank
+parent(F::TnBundle) = F.parent
 
 @doc raw"""
     localization(F::TnBundle)
@@ -166,7 +169,7 @@ The type of an abstract variety with a (split) torus action, represented by its 
 end
 
 Base.show(io::IO, X::TnVariety) = print(io,
-  "TnVariety of dim ", X.dim, " with ", length(X.points), " fixed points")
+  "TnVariety of dim ", dim(X), " with ", length(fixed_points(X)), " fixed points")
 
 @doc raw"""
     tn_bundle(X::TnVariety, r::Int, f::Function)
@@ -290,8 +293,8 @@ julia> tautological_bundles(G)
 """
 tautological_bundles(X::TnVariety) = X.bundles  ### CHECK bundles( --> tautological_bundles(
 
-euler_number(X::TnVariety) = sum(1//ZZ(e) for (p,e) in X.points) # special case of Bott's formula
-cotangent_bundle(X::TnVariety) = dual(X.T)
+euler_number(X::TnVariety) = sum(1//ZZ(e) for (p,e) in fixed_points(X)) # special case of Bott's formula
+cotangent_bundle(X::TnVariety) = dual(tangent_bundle(X))
 trivial_line_bundle(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
 (OO)(X::TnVariety) = trivial_line_bundle(X)
 
@@ -305,22 +308,22 @@ trivial_line_bundle(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
 
 Return the dual of `F`, the `k`-th symmetric power of `F`, the `k`-th exterior power of `F`, the determinant of `F`, the sum `F` $+$ `G`, and the tensor product of `F` and `G`, respectively.
 """
-dual(F::TnBundle) = TnBundle(F.parent, F.rank, p -> dual(F.loc(p)))
-det(F::TnBundle) = TnBundle(F.parent, 1, p -> det(F.loc(p)))
-+(F::TnBundle, G::TnBundle) = TnBundle(F.parent, F.rank + G.rank, p -> F.loc(p) + G.loc(p))
-*(F::TnBundle, G::TnBundle) = TnBundle(F.parent, F.rank * G.rank, p -> F.loc(p) * G.loc(p))
+dual(F::TnBundle) = TnBundle(parent(F), rank(F), p -> dual(localization(F)(p)))
+det(F::TnBundle) = TnBundle(parent(F), 1, p -> det(localization(F)(p)))
++(F::TnBundle, G::TnBundle) = TnBundle(parent(F), rank(F) + rank(G), p -> localization(F)(p) + localization(G)(p))
+*(F::TnBundle, G::TnBundle) = TnBundle(parent(F), rank(F) * rank(G), p -> localization(F)(p) * localization(G)(p))
 
 # avoid computing `_sym` for each F.loc(p)
 function symmetric_power(F::TnBundle, k::Int)
-  l = _sym(k, F.rank)
-  TnBundle(F.parent, binomial(F.rank+k-1, k), p -> (
-    Fp = F.loc(p);
+  l = _sym(k, rank(F))
+  TnBundle(parent(F), binomial(rank(F)+k-1, k), p -> (
+    Fp = localization(F)(p);
     TnRep([sum(Fp.w[i] for i in c) for c in l])))
 end
 function exterior_power(F::TnBundle, k::Int)
-  l = combinations(F.rank, k)
-  TnBundle(F.parent, binomial(F.rank, k), p -> (
-    Fp = F.loc(p);
+  l = combinations(rank(F), k)
+  TnBundle(parent(F), binomial(rank(F), k), p -> (
+    Fp = localization(F)(p);
     TnRep([sum(Fp.w[i] for i in c) for c in l])))
 end
 
@@ -343,9 +346,9 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 # create a ring to hold the chern classes of F
 function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
-    r = min(F.parent.dim, F.rank)
+    r = min(dim(parent(F)), rank(F))
     R, _ = graded_polynomial_ring(QQ, :c => 1:r; weights = 1:r)
-    set_attribute!(R, :abstract_variety_dim => F.parent.dim)
+    set_attribute!(R, :abstract_variety_dim => dim(parent(F)))
     set_attribute!(F, :R => R)
   end
   get_attribute(F, :R)
@@ -373,7 +376,7 @@ Chern class c[1] + c[2] + 1 of TnBundle of rank 2 on TnVariety of dim 2 with 3 f
 """
 total_chern_class(F::TnBundle) = TnBundleChern(F, 1+sum(gens(_get_ring(F))))
 chern_class(F::TnBundle, k::Int) = TnBundleChern(F, total_chern_class(F).c[k])
-top_chern_class(F::TnBundle) = chern_class(F, F.rank)
+top_chern_class(F::TnBundle) = chern_class(F, rank(F))
 
 @doc raw"""
     chern_class(F::TnBundle, f::RingElem)
@@ -441,8 +444,8 @@ Multivariate polynomial ring in 2 variables over QQ graded by
 """
 polynomial(c::TnBundleChern) = c.c
 
-total_chern_class(X::TnVariety) = total_chern_class(X.T)
-chern_class(X::TnVariety, k::Int) = chern_class(X.T, k)
+total_chern_class(X::TnVariety) = total_chern_class(tangent_bundle(X))
+chern_class(X::TnVariety, k::Int) = chern_class(tangent_bundle(X), k)
 
 @doc raw"""
     integral(c::TnBundleChern)
@@ -466,18 +469,18 @@ julia> integral(top_chern_class(E))
 """
 function integral(c::TnBundleChern)
   F, R = c.F, parent(c.c)
-  X = F.parent
-  n, r = X.dim, length(gens(R))
+  X = parent(F)
+  n, r = dim(X), length(gens(R))
   top = c.c[n].f
   top == 0 && return QQ()
   exp_vec = sum(AbstractAlgebra.exponent_vectors(top))
   idx = filter(i -> exp_vec[i] > 0, 1:r)
   ans = 0
-  for (p,e) in X.points # Bott's formula
-    Fp = F.loc(p)
+  for (p,e) in fixed_points(X) # Bott's formula
+    Fp = localization(F)(p)
     # this avoids the computations of Chern classes that are not needed
     cherns = [i in idx ? chern_class(Fp, i) : QQ() for i in 1:r]
-    ans += top(cherns...) * (1 // (e * top_chern_class(X.T.loc(p))))
+    ans += top(cherns...) * (1 // (e * top_chern_class(localization(tangent_bundle(X))(p))))
   end
   ans
 end
@@ -499,7 +502,7 @@ end
 @doc raw"""
     tn_grassmannian(k::Int, n::Int; weights = :int)
 
-Return the Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an
+Return the Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspaces of an
 `n`-dimensional standard vector space as a `TnVariety`, where the action is induced by
 the diagonal action with `weights` on the standard vector space.
 
@@ -590,7 +593,7 @@ function tn_flag_variety(dims::Vector{Int}; weights = :int)
   Fl = TnVariety(d, points)
   w = _parse_weight(n, weights)
   Fl.bundles = [TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)]
-  Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
+  Fl.T = sum(dual(tautological_bundles(Fl)[i]) * sum([tautological_bundles(Fl)[j] for j in i+1:l]) for i in 1:l-1)
   set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   return Fl
 end
@@ -643,7 +646,7 @@ function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
   else
     G = abstract_grassmannian(k+1, n+1)
   end
-  S, Q = G.bundles
+  S, Q = tautological_bundles(G)
   integral(top_chern_class(symmetric_power(dual(S), d)))
 end
 
