@@ -1195,3 +1195,60 @@ end
 function indicator_vector(S::Vector{Int}, n::Int)
     return map(x -> x in S ? 1 : 0 , 1:n)
 end
+
+
+
+function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
+    if convention == :min
+        conv = min
+    elseif convention == :max
+        conv = max
+    else
+        error("Convention must be either :min or :max.")
+    end
+    
+    if fan_structure == :fine
+        PMTC = Polymake.tropical.matroid_fan_from_flats{conv}(M.pm_matroid)
+        PMTC.FAN_DIM #this forces polymake to compute the necessary properties
+        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(PMTC))
+        return polyhedral_fan([cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)])
+        
+    elseif fan_structure == :cyclic
+        PMTC = Polymake.tropical.matroid_fan{conv}(M.pm_matroid)
+        PMTC.FAN_DIM #this forces polymake to compute the necessary properties
+        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(PMTC))
+        return polyhedral_fan([cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)])
+        
+    elseif fan_structure == :coarse
+        P = matroid_base_polytope(M)
+        NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:,2:end]
+    
+        FP = face_poset(P) 
+        DF = Polymake.graph.dual_faces(FP.pm_poset)
+        st = findfirst(==(length(M) - rank(M) + 1), rank.(elements(FP)))
+        fi = findlast(==(length(M) - rank(M) + 1), rank.(elements(FP)))
+        
+        V = vertices(P)
+        FF = [f.a[1, :] for f in facets(P)]
+        
+        BC = Cone{QQFieldElem}[]
+        for i in st:fi #assumes elements of a given rank are consecutive in elements(FP)
+            f = elements(FP)[i]
+            if rank(f) == length(M) - rank(M) + 1
+                verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1] #assumes the numbering of vertices used in decorations agrees with V
+                inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset)
+                if is_loopless(inM)
+                    R = FF[Vector(DF[i]) .+ 1] #assumes the numbering of facets used in DF agrees with FF
+                    push!(BC, cone(-conv(1, -1)*R, -conv(1, -1)*NS))
+                end
+            end
+        end
+                        
+        return polyhedral_fan(BC)
+        
+    else
+        error("The supported fan structures are :fine, :cylcic and :coarse.")
+    end
+end
+        
+        
