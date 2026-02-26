@@ -165,8 +165,8 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
         if !f_is_alg
           @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
         end;
-        sum(integral(xi*f_pullback(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
-            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
+        sum((integral(xi*f_pullback(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
+            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))); init=Y.ring(0)))
       f_pushforward = MapFromFunc(X.ring, Y.ring, f_pushforward)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, f_pullback)
