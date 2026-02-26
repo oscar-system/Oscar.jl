@@ -1198,6 +1198,26 @@ end
 
 
 
+@doc raw"""
+    bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
+
+The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` (as defined in [Rin13](@cite)). Convention `:min` or `:max` can be specified using the optional argument `convention`, where `:min` agrees with the aforecited papers. 
+
+!!! note
+Following the conventions in the above sources, the output has ambient dimension `length(M)` and dimension `rank(M)`. Therefore, its lineality dimension is always at least 1.
+
+# Examples
+```
+julia> M = cycle_matroid(complete_graph(5))
+Matroid of rank 4 on 10 elements
+
+julia> F = bergman_fan(M, fan_structure = :coarse) #this Bergman fan is the space of phylogenetic trees and has 7!! maximal cones
+Polyhedral fan in ambient dimension 10
+
+julia> n_maximal_cones(F)
+105
+```
+"""
 function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
     if convention == :min
         conv = min
@@ -1221,7 +1241,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
         
     elseif fan_structure == :coarse
         P = matroid_base_polytope(M)
-        NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:,2:end]
+        NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:, 2:end]
     
         FP = face_poset(P) 
         DF = Polymake.graph.dual_faces(FP.pm_poset)
