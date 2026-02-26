@@ -362,8 +362,7 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::QQFieldElem)
         return f^numerator(a)
     end
 
-    @req length(f) == 1 "only monomials can be exponentiated to rational powers"
-    @req isone(first(coefficients(f))) "only monomials with coefficient 1 can be exponentiated to rational powers"
+    @req is_monomial(f) "only monomials can be exponentiated to rational powers"
 
     return puiseux_polynomial_ring_elem(
         parent(f),
