@@ -51,6 +51,7 @@ end
 ### The concrete struct
 @attributes mutable struct SimplicialCoComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
+  face_to_index_map::Dict{Int, Dict{Set{Int}, Int}}
 
   function SimplicialCoComplex(R::Ring, K::SimplicialComplex)
     chain_fac = SimplicialCoChainFactory(R::Ring, K::SimplicialComplex)
@@ -66,7 +67,31 @@ end
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::SimplicialCoComplex) = c.internal_complex
 
+function face_to_index_map(c::SimplicialCoComplex, p::Int)
+  if !isdefined(c, :face_to_index_map)
+    c.face_to_index_map = Dict{Int, Dict{Set{Int}, Int}}()
+  end
+  return get!(c.face_to_index_map, p) do
+    Dict{Set{Int}, Int}(s => i for (i,s) in enumerate(faces(simplicial_complex(c), p)))
+  end
+end
+
 ### additional getters
 simplicial_complex(C::SimplicialCoComplex) = chain_factory(C).K
 base_ring(C::SimplicialCoComplex) = chain_factory(C).R
 
+### cup product for (composable) dual simplices
+function mul_cochains(C::SimplicialCoComplex, a::FreeModElem, p::Int, b::FreeModElem, q::Int)
+  @req parent(a) === C[p] && parent(b) === C[q] "parent mismatch"
+  K = simplicial_complex(C)
+  cochain = zero(C[p+q])
+  f = face_to_index_map(C, p+q)
+  for (ga, ca) in coordinates(a), (gb, cb) in coordinates(b)
+    sa = faces(K, p)[ga]
+    sb = faces(K, q)[gb]
+    s = union(sa, sb)
+    (maximum(sa) == minimum(sb) && s in keys(f)) || continue
+    cochain += ca * cb * gens(C[p+q])[f[s]]
+  end
+  return cochain
+end
