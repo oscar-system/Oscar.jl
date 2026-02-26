@@ -1,7 +1,7 @@
 [
    "Intersection Theory" => [
       "intro.md",
-      "schubert2.md"
+      "schubert2.md",
       "AbstractVarieties.md",
       "AbstractBundles.md",
       "AbstractVarietyMaps.md",
@@ -9,6 +9,6 @@
       "schubert_calculus.md",
       "constructions.md",
       "examples.md",
-      "bott.md",
+      "bott.md"
    ],
 ]
