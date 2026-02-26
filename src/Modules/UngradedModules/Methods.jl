@@ -1100,6 +1100,7 @@ function _vector_space_basis(
   LMq = leading_module(Mq_shift, o)
   B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
   is_empty(B) && return elem_type(M)[]
+  iota_ring = hom(base_ring(R), R, elem_type(R)[R(x) for x in images_of_generators(back_shift))])
   iota = hom(parent(B[1]), M, gens(M), a -> R(back_shift(a)))
   return iota.(B)
 end
