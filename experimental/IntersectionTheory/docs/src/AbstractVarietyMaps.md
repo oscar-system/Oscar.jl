@@ -6,6 +6,19 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract variety maps
 
+An *abstract variety map* $f\colon X \to Y$ encodes a morphism between abstract varieties at the level
+of intersection theory. It is determined by:
+
+- the **pullback** $f^*\colon \mathrm{N}^*(Y)_{\mathbb Q}\to \mathrm{N}^*(X)_{\mathbb Q}$, a ring homomorphism on Chow rings;
+- optionally, a **pushforward** $f_*\colon \mathrm{N}^*(X)_{\mathbb Q}\to \mathrm{N}^*(Y)_{\mathbb Q}$, a group homomorphism satisfying the projection formula.
+
+When the pushforward is not given explicitly, it can sometimes be computed automatically via the
+projection formula, provided enough information about the Chow ring of $Y$ is available (see the
+documentation of `map` for details).
+
+Abstract variety maps also carry a *relative tangent bundle* $\mathrm{T}_f$, which satisfies
+$\mathrm{T}_X = f^* \mathrm{T}_Y \oplus \mathrm{T}_f$, and may carry a *relative polarization* $\mathcal{O}_f(1)$.
+
 ## Types
 
 The OSCAR type for abstract variety maps is `AbstractVarietyMap`.

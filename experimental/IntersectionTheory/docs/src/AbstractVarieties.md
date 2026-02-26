@@ -6,6 +6,16 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract varieties
 
+An *abstract variety* $X$ of dimension $n$ is determined by its numerical Chow ring
+$\mathrm{N}^*(X)_{\mathbb Q}$, together with an integration map (degree map)
+$\int_X\colon \mathrm{N}^n(X)_{\mathbb Q}\to \mathbb Q$. It may additionally carry
+a tangent bundle, a polarization, tautological bundles, and a structure map to a base variety.
+
+Abstract varieties can be constructed either from scratch by specifying a graded ring
+and integration map, or via specialized constructors for standard algebraic-geometric
+objects such as projective spaces, Grassmannians, flag varieties, complete intersections,
+and projective bundles.
+
 ## Types
 
 The OSCAR type for abstract varieties is `AbstractVariety`.

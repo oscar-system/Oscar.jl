@@ -6,6 +6,16 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract bundles
 
+An *abstract bundle* on an abstract variety $X$ is determined by its rank and its Chern character
+(or, equivalently, its total Chern class). Abstract bundles support the standard operations on vector bundles
+in algebraic geometry: direct sum, tensor product, duals, determinant bundles, exterior and symmetric powers,
+as well as pullback and pushforward along abstract variety maps.
+They also carry the usual characteristic classes: Chern classes, Segre classes, Todd class, and Pontryagin classes.
+
+The arithmetic operations `+`, `-`, `*` on abstract bundles correspond to direct sum, formal difference,
+and tensor product, respectively. In particular, multiplying a bundle by an integer `n` gives the
+direct sum of `n` copies.
+
 ## Types
 
 The OSCAR type for abstract vector bundles is `AbstractBundle`.
@@ -76,8 +86,16 @@ hilbert_polynomial(F::AbstractBundle)
 
 ## Operations on abstract bundles
 
-```@docs
--(F::AbstractBundle)
+The arithmetic operations `+`, `-`, `*` on abstract bundles correspond to direct sum, formal
+difference, and tensor product, respectively. Multiplying a bundle by an integer `n` gives the
+direct sum of `n` copies.
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> 4*OO(P3, 1) - OO(P3) == tangent_bundle(P3) # Euler sequence
+true
+
 ```
 
 ```@docs
