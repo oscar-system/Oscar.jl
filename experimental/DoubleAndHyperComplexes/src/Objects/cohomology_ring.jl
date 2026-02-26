@@ -19,6 +19,17 @@ mutable struct SimplicialCohomologyRing{T} <: NCRing
 end
 
 @doc raw"""
+    mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
+
+Cochain complexes to be used in `SimplicialCohomologyRing`s need to be endowed with 
+the structure of a DG-algebra. To achieve this, the programmer needs to overwrite 
+the method for this function in accordance with https://stacks.math.columbia.edu/tag/061V.
+"""
+function mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
+  error("not implemented for complexes of type $(typeof(C)); see the source code for more information")
+end
+
+@doc raw"""
     simplicial_co_complex(A::SimplicialCohomologyRing)
 
 Return the internal cocomplex (which needs to implement a structure as a DG-algebra).
