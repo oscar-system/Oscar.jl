@@ -170,6 +170,7 @@ function (Kt::PuiseuxMPolyRing)(c::RingElement)
 end
 
 function (Kt::PuiseuxMPolyRing{T})(ct::PuiseuxMPolyRingElem{T}) where T <: FieldElement
+    @req parent(ct) == Kt "element must be in the ring"
     return ct
 end
 
