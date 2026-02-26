@@ -70,7 +70,7 @@ end
 
 function puiseux_polynomial_ring(K::Field, variableName::Vector{String})
     @req !isempty(variableName) "list of variables must not be empty"
-    base_ring, _ = polynomial_ring(K, variableName)
+    base_ring, _ = laurent_polynomial_ring(K, variableName)
     Kt = PuiseuxMPolyRing(base_ring)
     return Kt, gens(Kt)
 end
@@ -82,12 +82,12 @@ end
 #
 #################################################################################
 
-underlying_polynomial_ring(R::PuiseuxMPolyRing{T}) where T = R.underlyingPolynomialRing::mpoly_ring_type(T)
+underlying_polynomial_ring(R::PuiseuxMPolyRing{T}) where T = R.underlyingPolynomialRing
 base_ring(R::PuiseuxMPolyRing) = base_ring(underlying_polynomial_ring(R))
 coefficient_ring(R::PuiseuxMPolyRing) = base_ring(R)
 
 Base.parent(f::PuiseuxMPolyRingElem) = f.parent
-poly(f::PuiseuxMPolyRingElem{T}) where {T} = f.poly::mpoly_type(T)
+poly(f::PuiseuxMPolyRingElem) = f.poly
 scale(f::PuiseuxMPolyRingElem) = f.scale
 
 
