@@ -73,7 +73,7 @@ let pushforward = IntersectionTheory.pushforward
     @test A == 2trivial_line_bundle(PF)
 
     # test that hom works for blow_up
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     @test e == gens(Bl.ring)[1]
     @test integral(e^2) == -1
@@ -292,7 +292,7 @@ let pushforward = IntersectionTheory.pushforward
     P2 = abstract_projective_space(2)
     P5 = abstract_projective_space(5)
     i = map(P2, P5, [2P2.O1])
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     c = top_chern_class(tangent_bundle(Bl))
     @test integral(pushforward(structure_map(Bl), c)) == 12
     @test integral(c) == 12
@@ -305,7 +305,7 @@ let pushforward = IntersectionTheory.pushforward
     # blow_up point in P2
     P2 = abstract_projective_space(2)
     P = abstract_point(base = P2.base)
-    Bl, E, j = blow_up(map(P, P2, [zero(P.ring)]))
+    Bl, E, j = blowup(map(P, P2, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test integral(e^2) == -1
     @test integral(pullback(j, e)) == -1
@@ -314,7 +314,7 @@ let pushforward = IntersectionTheory.pushforward
     # blow_up point in P7
     P7 = abstract_projective_space(7)
     P = abstract_point(base = P2.base)
-    Bl, E, j = blow_up(map(P, P7, [zero(P.ring)]))
+    Bl, E, j = blowup(map(P, P7, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test euler_number(Bl) == 14
 
@@ -322,7 +322,7 @@ let pushforward = IntersectionTheory.pushforward
     P1 = abstract_projective_space(1)
     P3 = abstract_projective_space(3)
     i = map(P1, P3, [3P1.O1])
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     quad = pullback(structure_map(Bl), 2P3.O1) - e
     @test integral(quad^3) == 0
@@ -336,7 +336,7 @@ let pushforward = IntersectionTheory.pushforward
     P1 = abstract_projective_space(1, base = F)
     P3 = abstract_projective_space(3, base = F)
     i = map(P1, P3, [3P1.O1])
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
     @test integral(rH * sH * tH) == r*s*t - 3*r - 3*s - 3*t + 10
@@ -344,7 +344,7 @@ let pushforward = IntersectionTheory.pushforward
     G = abstract_grassmannian(2, 5)
     P9 = abstract_projective_space(9)
     i = map(G, P9, [G.O1])
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     quad = pullback(structure_map(Bl), 2P9.O1)-e
     @test simplify(quad^5) == 0
@@ -359,14 +359,14 @@ let pushforward = IntersectionTheory.pushforward
     C = zero_locus_section(OO(P2,d))
     C.point = 1//(2-2g) * chern_class(C, 1)
     i = map(C, P3, [d * C.point])
-    Bl, E, j = blow_up(i)
+    Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
     @test integral(rH * sH * tH) == r*s*t - d*(r+s+t) + (2g-2+4d)
 
     G = abstract_grassmannian(2, 5)
     Z = zero_locus_section(3line_bundle(G, 1))
-    Bl, E = blow_up(structure_map(Z))
+    Bl, E = blowup(structure_map(Z))
     @test dim(Bl) == 6
     @test euler_number(Bl) == 18
     @test betti_numbers(Bl) == [1,2,4,4,4,2,1]
