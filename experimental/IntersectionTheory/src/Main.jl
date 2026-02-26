@@ -80,9 +80,9 @@ end
 Return the Chern character of `F`.
 
 !!! note "Chern classes vs. Chern character"
-    The **Chern classes** ${\rm c}_k(F)\in A^k(X)$ are the coefficients of the total
-    Chern class ${\rm c}(F)=1+{\rm c}_1(F)+{\rm c}_2(F)+\cdots$, which is
-    *multiplicative*: ${\rm c}(F\oplus G)={\rm c}(F)\cdot{\rm c}(G)$.
+    The **Chern classes** $\operatorname{c}_k(F)\in A^k(X)$ are the coefficients of the total
+    Chern class $\operatorname{c}(F)=1+\operatorname{c}_1(F)+\operatorname{c}_2(F)+\cdots$, which is
+    *multiplicative*: $\operatorname{c}(F\oplus G)=\operatorname{c}(F)\cdot\operatorname{c}(G)$.
 
     The **Chern character** $\operatorname{ch}(F)\in A^*(X)\otimes\mathbb Q$ is
     instead *additive* and *multiplicative*:
@@ -92,8 +92,8 @@ Return the Chern character of `F`.
     $\operatorname{ch}(F)=\operatorname{rk}(F)+\sum_{k\ge1}\frac{1}{k!}s_k$
     where $s_k$ is the $k$-th Newton polynomial in the Chern roots.
     In particular $\operatorname{ch}_0=\operatorname{rk}$,
-    $\operatorname{ch}_1={\rm c}_1$,
-    $\operatorname{ch}_2=\frac12({\rm c}_1^2-2{\rm c}_2)$.
+    $\operatorname{ch}_1=\operatorname{c}_1$,
+    $\operatorname{ch}_2=\frac12(\operatorname{c}_1^2-2\operatorname{c}_2)$.
 
     Because of these ring-homomorphism properties, the Chern character — not the total
     Chern class — is used as the internal representation of a bundle in this package
@@ -484,26 +484,26 @@ end
     map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of
-the Chow ring ${\rm N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map ${\rm N}^*(X)_{\mathbb Q} \rightarrow {\rm N}^*(Y)_{\mathbb Q}.$
+the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map $\mathrm{N}^*(X)_{\mathbb Q} \rightarrow \mathrm{N}^*(Y)_{\mathbb Q}.$
 
 !!! note
     The pullback is relatively easy to describe since it is functorial, while the pushforward is usually more complicated.
-    In some cases, the pushforward of an element $x \in {\rm N}^*(X)_{\mathbb Q}$ can be automatically computed via pullback.
+    In some cases, the pushforward of an element $x \in \mathrm{N}^*(X)_{\mathbb Q}$ can be automatically computed via pullback.
     Specifically, the projection formula tells us that
 
-    $f_\ast(f^\ast(y)\cdot x) = f_\ast(x)\cdot y \;\text{ for all }\; x\in {\rm N}^*(X)_{\mathbb Q}, y\in {\rm N}^*(Y)_{\mathbb Q}.$
+    $f_\ast(f^\ast(y)\cdot x) = f_\ast(x)\cdot y \;\text{ for all }\; x\in \mathrm{N}^*(X)_{\mathbb Q}, y\in \mathrm{N}^*(Y)_{\mathbb Q}.$
 
     Since we are working with numerical equivalence, to determine $f_\ast(x)$, it suffices to know all its intersection numbers.
-    These can be readily computed via pullback, provided that all classes in ${\rm N}^*(Y)_{\mathbb Q}$ are known (or at least those
+    These can be readily computed via pullback, provided that all classes in $\mathrm{N}^*(Y)_{\mathbb Q}$ are known (or at least those
     classes having non-zero intersection numbers with $f_\ast(x)$).
     This is the case in the following situations:
     - When $Y$ is a point or a curve;
-    - when all classes in ${\rm N}^*(Y)_{\mathbb Q}$ are known;
-    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in ${\rm N}^*(X)_{\mathbb Q}$ are known.
+    - when all classes in $\mathrm{N}^*(Y)_{\mathbb Q}$ are known;
+    - when `:alg` is passed as the fourth argument. This can be done when we are certain that the computed pushforward  is correct, even though not all classes in $\mathrm{N}^*(X)_{\mathbb Q}$ are known.
     In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
-    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in ${\rm N}^*(Y)_{\mathbb Q}$
+    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in $\mathrm{N}^*(Y)_{\mathbb Q}$
     is not known, use the argument `extend_inclusion = true`. Then,
     a modified version of `Y` will be created, with extra classes added so that one can
     pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
