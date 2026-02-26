@@ -267,12 +267,19 @@ end
 # distribute over homogeneous parts
 function *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   @req parent(a) === parent(b) "parent mismatch"
-  return (iszero(a) || iszero(b)                                  ? zero(a) :
-   !is_homogeneous_normalized(a) && !is_homogeneous_normalized(b) ? sum(mul_homog(ah, bh) for ah in homogeneous_parts(a) for bh in homogeneous_parts(b); init = zero(a)) :
-   !is_homogeneous_normalized(a)                                  ? sum(mul_homog(ah, b)  for ah in homogeneous_parts(a); init = zero(a)) :
-   !is_homogeneous_normalized(b)                                  ? sum(mul_homog(a, bh)  for bh in homogeneous_parts(b); init = zero(a)) :
-                                                                    mul_homog(a, b)
-  )
+  if is_zero(a) || is_zero(b)
+    return zero(a)
+  end
+  if !is_homogeneous_normalized(a)
+    return sum(ah*b for ah in homogeneous_parts(a); init=zero(a))
+  end
+  # a is homogeneous
+  if !is_homogeneous_normalized(b)
+    return sum(a*bh for bh in homogeneous_parts(b); init=zero(a))
+  end
+
+  # both a and b are homogeneous
+  return mul_homog(a, b)
 end
 
 # Multiplication on homogeneous parts
