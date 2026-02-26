@@ -88,28 +88,28 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   #  Z ---i---> X
 
   SED = symbol # SED = "e"
-  Z, X = i.domain, i.codomain
-  AZ, RZ = Z.ring, base_ring(Z.ring)
-  AX, RX = X.ring, base_ring(X.ring)
+  Z, X = domain(i), codomain(i)
+  AZ, RZ = chow_ring(Z), base_ring(chow_ring(Z))
+  AX, RX = chow_ring(X), base_ring(chow_ring(X))
 
   # we write N for the normal bundle N_{ZX}
 
-  N = -i.T # normal bundle
+  N = -tangent_bundle(i) # normal bundle
   rN = rank(N) # codimension of Z in X
   rN <= 0 && error("not a proper subvariety")
 
   # we construct E as the projective bundle PN of N, see [EH16](@cite), page 472
 
   E = projective_bundle(N)
-  AE, RE = E.ring, base_ring(E.ring)
-  g = E.structure_map
-  ζ = g.O1  # the first Chern class of O_E(1)
+  AE, RE = chow_ring(E), base_ring(chow_ring(E))
+  g = structure_map(E)
+  ζ = polarization(g)  # the first Chern class of O_E(1)
 
   # we set up the generators of ABl
 
   # we first represent AZ as an AX-module
 
-  gs, PM, sect = present_finite_extension_ring(i.pullback)
+  gs, PM, sect = present_finite_extension_ring(pullback_morphism(i))
   ngs = length(gs)
   # note: gs is a vector of polynomials representing generators for AZ as an AX-module;
   #       write Z(gs[i]) for the class in AZ represented by gs[i];
@@ -123,7 +123,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   push!(syms, SED)
   degs = [degree(Int, Z(gs[i])) + 1 for i in 1:ngs]
   degsRX = [Int(degree(g)[1])  for g in gens(RX)]
-  RBl, ev, xv = graded_polynomial_ring(X.base, syms, symbols(RX); weights = vcat(degs, degsRX))
+  RBl, ev, xv = graded_polynomial_ring(base(X), syms, symbols(RX); weights = vcat(degs, degsRX))
 
   RXtoRBl = hom(RX, RBl, xv) # f_pull on polynomial ring level
   j_push_g_pull = x -> sum(ev .* RXtoRBl.(sect(x.f))) # AZ --> RBl
@@ -159,14 +159,14 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   # we have ctop(Q) = ∑ g_pull(c_{k-1}(N)) ⋅ ζ^(d-k), [EH16](@cite), page 477
 
   for j in 1:ngs
-    lhs = RXtoRBl(i.pushforward(Z(gs[j])).f) # this is the crucial step where i_push is needed
+    lhs = RXtoRBl(pushforward(i, Z(gs[j])).f) # this is the crucial step where i_push is needed
     rhs = sum([j_push_g_pull(Z(gs[j]) * cN[k]) * (-ev[end])^(rN-k) for k in 1:rN])
     push!(Rels, lhs - rhs)
   end
 
   Rels = minimal_generating_set(ideal(RBl, Rels)) ### TODO: make this an option?
   ABl, _ = quo(RBl, Rels)
-  Bl = abstract_variety(X.dim, ABl)
+  Bl = abstract_variety(dim(X), ABl)
 
   # Bl and g being constructed, we set up the morphisms f and j
 
@@ -178,11 +178,11 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   f_pushforward = MapFromFunc(ABl, AX, f_pushforward)
   f = AbstractVarietyMap(Bl, X, Bl.(xv), f_pushforward)
   Bl.structure_map = f
-  if isdefined(X, :point) Bl.point = f.pullback(X.point) end
+  if isdefined(X, :point) Bl.point = pullback(f, point_class(X)) end
 
   # pullback of j
 
-  j_pull = vcat([-ζ * g.pullback(Z(xi)) for xi in gs], [g.pullback(i.pullback(f)) for f in gens(AX)])
+  j_pull = vcat([-ζ * pullback(g, Z(xi)) for xi in gs], [pullback(g, pullback(i, f)) for f in gens(AX)])
 
   # pushforward of j: write as a polynomial in ζ, and compute term by term
 
@@ -200,18 +200,18 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
 
   # the normal bundle of E in Bl is O(-1)
 
-  j.T = -E.bundles[1]
+  j.T = -tautological_bundles(E)[1]
 
   # finally, compute the tangent bundle of Bl
 
   # 0 → Bl.T → RXtoRBl(X.T) → jₓ(Q) → 0 where Q is the tautological quotient bundle
 
-  f.T = -pushforward(j, E.bundles[2])
-  Bl.T = pullback(f, X.T) + f.T
+  f.T = -pushforward(j, tautological_bundles(E)[2])
+  Bl.T = pullback(f, tangent_bundle(X)) + tangent_bundle(f)
 
 # chern(Bl.T) can be readily computed from its Chern character, but the following is faster
-  α = sum(sum((binomial(ZZ(rN-j), ZZ(k)) - binomial(ZZ(rN-j), ZZ(k+1))) * ζ^k for k in 0:rN-j) * g.pullback(chern_class(N, j)) for j in 0:rN)
-  Bl.T.chern = simplify(f.pullback(total_chern_class(X.T)) + j.pushforward(g.pullback(total_chern_class(Z.T)) * α))
+  α = sum(sum((binomial(ZZ(rN-j), ZZ(k)) - binomial(ZZ(rN-j), ZZ(k+1))) * ζ^k for k in 0:rN-j) * pullback(g, chern_class(N, j)) for j in 0:rN)
+  Bl.T.chern = simplify(pullback(f, total_chern_class(tangent_bundle(X))) + pushforward(j, pullback(g, total_chern_class(tangent_bundle(Z))) * α))
   set_attribute!(E, :projections => [j, g])
   set_attribute!(Bl, :exceptional_divisor => E)
   set_attribute!(Bl, :description => "Blow-Up of $X with center $Z")
@@ -252,9 +252,9 @@ function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
     symbs = ["$SED[$i]" for i in 1:n]
   end
   Bl = X
-  P = abstract_point(base = X.base)
+  P = abstract_point(base = base(X))
   for i in 1:n
-    Bl = blow_up(map(P, Bl, [zero(P.ring) for j in 1:i]), symbol=symbs[i])[1]
+    Bl = blow_up(map(P, Bl, [zero(chow_ring(P)) for j in 1:i]), symbol=symbs[i])[1]
   end
   set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
   Bl.structure_map = map(Bl, X)
@@ -285,17 +285,17 @@ end
 #
 function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   SED = symbol # SED = "e"
-  Z, X = i.domain, i.codomain
-  AX, RX = X.ring, base_ring(X.ring)
+  Z, X = domain(i), codomain(i)
+  AX, RX = chow_ring(X), base_ring(chow_ring(X))
 
   # we write N for the normal bundle N_{ZX}
 
-  N = -i.T # normal bundle
+  N = -tangent_bundle(i) # normal bundle
   rN = rank(N) # codimension of Z in X
   rN <= 0 && error("not a proper subvariety")
   c = top_chern_class(N)
 
-  gs, PM, sect = present_finite_extension_ring(i.pullback)
+  gs, PM, sect = present_finite_extension_ring(pullback_morphism(i))
   ngs = length(gs)
 
   # similar to blowup: the last variable below is the class of Z in Xplus
@@ -304,7 +304,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   push!(syms, SED)
   degs = [degree(Int, Z(gs[i])) + rN for i in 1:ngs]
   degsRX = [Int(degree(g)[1])  for g in gens(RX)]
-  RXplus, ev, xv = graded_polynomial_ring(X.base, syms, symbols(RX); weights = vcat(degs, degsRX))
+  RXplus, ev, xv = graded_polynomial_ring(base(X), syms, symbols(RX); weights = vcat(degs, degsRX))
   RXtoRXplus = hom(RX, RXplus, xv) # f_pull on polynomial ring level
   j_push = x -> sum(ev .* RXtoRXplus.(sect(x.f))) # AZ --> RXplus
 
@@ -331,25 +331,25 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
   # 4) the points are the same
 
   if isdefined(Z, :point) && isdefined(X, :point)
-    push!(Rels, RXtoRXplus(X.point.f) - j_push(Z.point))
+    push!(Rels, RXtoRXplus(point_class(X).f) - j_push(point_class(Z)))
   end
 
   Rels = minimal_generating_set(ideal(RXplus, Rels)) ### TODO: make this an option?
   AXplus, _ = quo(RXplus, Rels)
-  Xplus = abstract_variety(X.dim, AXplus)
+  Xplus = abstract_variety(dim(X), AXplus)
 
   set_attribute!(Xplus, :description => "$X")
-  f_pushforward = MapFromFunc(Xplus.ring, X.ring, x -> error("not defined"))  # TODO check this
+  f_pushforward = MapFromFunc(chow_ring(Xplus), chow_ring(X), x -> error("not defined"))  # TODO check this
   f = AbstractVarietyMap(Xplus, X, Xplus.(xv), f_pushforward)
   Xplus.structure_map = f
-  Xplus.T = pullback(f, X.T)
+  Xplus.T = pullback(f, tangent_bundle(X))
   f.T = AbstractBundle(Xplus, Xplus(0)) # there is no relative tangent bundle
   if isdefined(X, :point)
-    Xplus.point = f.pullback(X.point)
+    Xplus.point = pullback(f, point_class(X))
   end
-  if isdefined(X, :O1) Xplus.O1 = f.pullback(X.O1) end
-  j_pullback = vcat(Z.(gs) .* c, [i.pullback(f) for f in gens(AX)])
-  j_pushforward = MapFromFunc(Z.ring, Xplus.ring, x -> Xplus(j_push(x)))
+  if isdefined(X, :O1) Xplus.O1 = pullback(f, polarization(X)) end
+  j_pullback = vcat(Z.(gs) .* c, [pullback(i, f) for f in gens(AX)])
+  j_pushforward = MapFromFunc(chow_ring(Z), chow_ring(Xplus), x -> Xplus(j_push(x)))
   j = AbstractVarietyMap(Z, Xplus, j_pullback, j_pushforward)
   return j
 end
