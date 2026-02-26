@@ -81,8 +81,9 @@ schubert_class(G::AbstractVariety, λ::Int...) = schubert_class(G, collect(λ))
 schubert_class(G::AbstractVariety, λ::Partition) = schubert_class(G, Vector(λ))
 function schubert_class(G::AbstractVariety, λ::Vector{Int})
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-  (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
-  giambelli(G.bundles[2], λ)
+  S, Q = tautological_bundles(G)
+  (length(λ) > rank(S) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
+  giambelli(Q, λ)
 end
 
 @doc raw"""
@@ -126,14 +127,14 @@ julia> schubert_classes(G, 2)
 """
 function schubert_classes(G::AbstractVariety)
    @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-   S, Q = G.bundles
+   S, Q = tautological_bundles(G)
    return [schubert_classes(G, i) for i in 0:rank(S)*rank(Q)]
 end
 
 function schubert_classes(G::AbstractVariety, m::Int)
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-  S, Q = G.bundles
-  res = elem_type(G.ring)[]
+  S, Q = tautological_bundles(G)
+  res = elem_type(chow_ring(G))[]
   for i in 0:rank(S)
     append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
   end

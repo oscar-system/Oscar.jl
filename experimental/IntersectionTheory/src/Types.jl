@@ -88,7 +88,7 @@ function Base.show(io::IO, F::Bundle)
   if Oscar.is_terse(io)
     print(io, "AbstractBundle")
   else
-    print(io, "AbstractBundle of rank $(F.rank) on $(F.parent)")
+    print(io, "AbstractBundle of rank $(rank(F)) on $(parent(F))")
   end
 end
 
@@ -96,7 +96,7 @@ function Base.show(io::IO, X::Variety)
   if Oscar.is_terse(io)
     print(io, "AbstractVariety")
   else
-    print(io, "AbstractVariety of dim $(X.dim)")
+    print(io, "AbstractVariety of dim $(dim(X))")
   end
 end
 
@@ -104,7 +104,7 @@ function Base.show(io::IO, f::VarietyHom)
   if Oscar.is_terse(io)
     print(io, "AbstractVarietyMap")
   else
-    print(io, "AbstractVarietyMap from $(f.domain) to $(f.codomain)")
+    print(io, "AbstractVarietyMap from $(domain(f)) to $(codomain(f))")
   end
 end
 
@@ -166,23 +166,23 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
           @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
         end;
         sum((integral(xi*f_pullback(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
-            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))); init=Y.ring(0)))
-      f_pushforward = MapFromFunc(X.ring, Y.ring, f_pushforward)
+            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))); init=chow_ring(Y)(0)))
+      f_pushforward = MapFromFunc(chow_ring(X), chow_ring(Y), f_pushforward)
     end
-    f = new{V1, V2}(X, Y, X.dim-Y.dim, f_pullback)
+    f = new{V1, V2}(X, Y, dim(X)-dim(Y), f_pullback)
     try
       f.pushforward = f_pushforward
     catch
     end
     if isdefined(X, :T) && isdefined(Y, :T)
-      f.T = AbstractBundle(X, chern_character(X.T) - f_pullback(chern_character(Y.T)))
+      f.T = AbstractBundle(X, chern_character(tangent_bundle(X)) - f_pullback(chern_character(tangent_bundle(Y))))
     end
     return f
   end
 
   function AbstractVarietyMap(X::V1, Y::V2, l::Vector, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     # TODO: this fails with check = false
-    f_pullback = hom(Y.ring, X.ring, l, check = false)
+    f_pullback = hom(chow_ring(Y), chow_ring(X), l, check = false)
     AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   end
 end
