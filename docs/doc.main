@@ -58,12 +58,8 @@
      "Rings/intro.md",
      "AbstractAlgebra/ring.md",
      "Rings/integer.md",
-     "Univariate Polynomials" => [
-        "AbstractAlgebra/polynomial.md",
-     ],
-     "Multivariate Polynomials" => [
-        "AbstractAlgebra/mpolynomial.md",
-     ],
+     "Univariate Polynomials" => "AbstractAlgebra/polynomial.md",
+     "Multivariate Polynomials" => "AbstractAlgebra/mpolynomial.md",
      "Modular Methods" => [
          "AbstractAlgebra/euclidean_interface.md",
      ],
