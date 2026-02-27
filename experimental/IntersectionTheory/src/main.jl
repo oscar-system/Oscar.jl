@@ -1811,9 +1811,9 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   b = base(X)
   A, B = chow_ring(X), chow_ring(Y)
   R, x, y = graded_polynomial_ring(b, symbols(A), symbols(B); weights = vcat(gradings(A), gradings(B)))
-  # TODO: fails with check = true
-  AtoR = hom(A, R, x, check = false)
-  BtoR = hom(B, R, y, check = false)
+  # we must bypass the check because R is not yet the appropriate quotient
+  AtoR = Oscar.hom(A, R, x, check = false)
+  BtoR = Oscar.hom(B, R, y, check = false)
   IA = ideal(A isa MPolyQuoRing ? AtoR.(A.(gens(A.I))) : [R()])
   IB = ideal(B isa MPolyQuoRing ? BtoR.(B.(gens(B.I))) : [R()])
   AXY, _ = quo(R, IA + IB)
