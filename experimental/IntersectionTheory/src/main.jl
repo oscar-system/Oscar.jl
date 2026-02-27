@@ -57,6 +57,8 @@ abstract_bundle(X::AbstractVariety, r::RingElement, c::MPolyDecRingOrQuoElem) = 
     ==(F::AbstractBundle, G::AbstractBundle)
 
 Return `true` if `F` is equal to `G`, and `false` otherwise.
+This means that the underlying varieties of `F` and `G` are the same,
+and that the Chern characters of `F` and `G` are equal.
 
 # Examples
 ```jldoctest
@@ -68,7 +70,7 @@ true
 
 ```
 """
-==(F::AbstractBundle, G::AbstractBundle) = chern_character(F) == chern_character(G)
+==(F::AbstractBundle, G::AbstractBundle) = parent(F) == parent(G) && chern_character(F) == chern_character(G)
 
 function Base.hash(F::AbstractBundle, h::UInt)
   return hash(chern_character(F), h)
