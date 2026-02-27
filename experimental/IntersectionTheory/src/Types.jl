@@ -180,7 +180,7 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
 
   function AbstractVarietyMap(X::V1, Y::V2, l::Vector, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
     # TODO: this fails with check = false
-    f_pullback = hom(chow_ring(Y), chow_ring(X), l, check = false)
+    f_pullback = Oscar.hom(chow_ring(Y), chow_ring(X), l, check = false)
     AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   end
 end
