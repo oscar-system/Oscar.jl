@@ -1975,15 +1975,16 @@ function dual(F::AbstractBundle)
   return Fdual
 end
 
-# TODO this docstring doesn't come out correctly
 @doc raw"""
     -(F::AbstractBundle)
-    *(n::RingElement, F::AbstractBundle)
+    *(n::Integer, F::AbstractBundle)
+    *(F::AbstractBundle, n::Integer)
+    ^(F::AbstractBundle, n::Integer)
     +(F::AbstractBundle, G::AbstractBundle)
     -(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
 
-Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
+Compute the negation, n-fold sum, n-fold tensor product, sum, difference, and tensor product of abstract bundles, respectively.
 
 # Examples
 ```jldoctest
@@ -1996,12 +1997,9 @@ true
 ```
 """
 -(F::AbstractBundle) = AbstractBundle(parent(F), -chern_character(F))
-+(n::RingElement, F::AbstractBundle) = AbstractBundle(parent(F), n + chern_character(F))
-*(n::RingElement, F::AbstractBundle) = AbstractBundle(parent(F), n * chern_character(F))
-+(F::AbstractBundle, n::RingElement) = n + F
-*(F::AbstractBundle, n::RingElement) = n * F
-^(F::AbstractBundle, n::Int) = AbstractBundle(parent(F), chern_character(F)^n)
-
+*(n::Integer, F::AbstractBundle) = AbstractBundle(parent(F), n * chern_character(F))
+*(F::AbstractBundle, n::Integer) = AbstractBundle(parent(F), n * chern_character(F))
+^(F::AbstractBundle, n::Integer) = AbstractBundle(parent(F), chern_character(F)^n)
 for O in [:(+), :(-), :(*)]
   @eval ($O)(F::AbstractBundle, G::AbstractBundle) = (
     (F, G) = _coerce(F, G);
