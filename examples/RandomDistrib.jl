@@ -72,41 +72,48 @@ end
 # ------------------------------------------------------------------
 # ----- UniformDistr -----
 
-struct UniformDistr <: AbstractRndDistr
-  ApproxCardinality::Int  # UH OH  !!! BIG PROBLEM !!!
+struct FiniteFieldDistr <: AbstractRndDistr
+  ApproxCardinality::Int
 
-  function UniformDistr()
-    return new()
+  function FiniteFieldDistr(card::Int)
+    (is_prime_power_with_data(card)[1]) || error("cardinality must be a prime power");
+    return new(card)
   end
 end
 
-function ContainsZero(D::UniformDistr)
-  return true # assuming it is applied to a finite ring/field
+function ContainsZero(D::FiniteFieldDistr)
+  return true
 end
 
-function RAND(RNG::Random.AbstractRNG, parent::T, D::UniformDistr) where { T <: FinField }
-  return parent(rand(RNG, 0:characteristic(parent)-1))  # !!! WRONG !!! (valid only for prime subfield)
+function RAND(RNG::Random.AbstractRNG, parent::T, D::FiniteFieldDistr) where { T <: FinField }
+  (size(parent) == D.ApproxCardinality) || error("Incompatible field size and distribution")
+  return rand(parent)
 end
   
-function RAND(RNG::Random.AbstractRNG, parent::T, D::UniformDistr) where { T <: zzModRing }
-  return parent(rand(RNG, 0:characteristic(parent)-1))  # !!! WRONG !!! (valid on for base subring)
+struct PrimeFieldDistr <: AbstractRndDistr
+  ApproxCardinality::Int
+
+  function PrimeFieldDistr(card::Int)
+    abc = is_prime_power_with_data(card)
+    (abc[1]) || error("cardinality must be a prime power");
+    return new(abc[2])
+  end
 end
-  
-function RAND(RNG::Random.AbstractRNG, parent::T, D::UniformDistr) where { T <: ZZModRing }
-  return parent(rand(RNG, 0:characteristic(parent)-1))  # !!! WRONG !!! (valid on for base subring)
+
+function ContainsZero(D::PrimeFieldDistr)
+  return true
+end
+
+function RAND(RNG::Random.AbstractRNG, parent::T, D::PrimeFieldDistr) where { T <: FinField }
+  p = is_prime_power_with_data(size(parent))[2]
+  (p == D.ApproxCardinality) || error("Incompatible field size and distribution")
+  return parent(rand(0:p-1))
 end
   
 function DistrList(::T) where { T <: FinField }
-  return [UniformDistr];
+  return [FiniteFieldDistr, PrimeFieldDistr];
 end
 
-function DistrList(::T) where { T <: zzModRing }
-  return [UniformDistr];
-end
-
-function DistrList(::T) where { T <: ZZModRing }
-  return [UniformDistr];
-end
 
 
 # ------------------------------------------------------------------
@@ -218,19 +225,22 @@ end
 # ----- MultivariatePoly -----
 
 struct MultivariatePolyCubeDistr <: AbstractRndDistr
+  nvars::Int
   deg::Int  # each variable appears to degree at most deg
   nterms::Int # polynomial will have at most nterms terms
   CoeffDistr::AbstractRndDistr
   ApproxCardinality::Int64
 
-  function MultivariatePolyCubeDistr(d::Int, t::Int, coeff::AbstractRndDistr)
+  function MultivariatePolyCubeDistr(nvars::Int, d::Int, t::Int, CoeffDistr::AbstractRndDistr)
+    (nvars > 0) || error("Number of variabls must be positive")
     (d >= 0) || error("Degree must be non-negative")
     (t >= 0) || error("Number of terms must be non-negative")
-    CardLC = ApproxCard(coeff); if ContainsZero(coeff)  CardLC -= 1; end
+    CardLC = ApproxCard(CoeffDistr); if ContainsZero(CoeffDistr)  CardLC -= 1; end
     (CardLC > 0) || error("Coeff distribution must allow non-zero values")
-    card = clamp(ZZ(CardLC)^t, 0, typemax(Int64))  # wasteful power 
+    MaxNumTerms = ZZ(d+1)^nvars
+    card = clamp(binomial(MaxNumTerms,min(t,MaxNumTerms))*ZZ(CardLC)^t, 0, typemax(Int64))
     card = Int64(card)
-    return new(d, t, coeff, card)
+    return new(nvars, d, t, CoeffDistr, card)
   end
 end
 
@@ -239,8 +249,9 @@ function ContainsZero(D::MultivariatePolyCubeDistr)
 end
 
 function RAND(RNG::Random.AbstractRNG, parent::T, distr::MultivariatePolyCubeDistr) where { T <: MPolyRing }
+  n = ngens(parent)
+  (n == distr.nvars) || error("Incompatible number of variables between ring and distribution")
   d = distr.deg
-#  n = ngens(parent)
   vars = gens(parent)
   k = coefficient_ring(parent)
   poly = zero(parent)
@@ -253,6 +264,7 @@ end
 function DistrList(::T) where { T <: MPolyRing }
   return [MultivariatePolyCubeDistr];
 end
+
 
 # ------------------------------------------------------------------
 # ----- (uniform, dense) Matrix -----
@@ -354,16 +366,17 @@ end
 
 # Default distributions
 
-function DefaultDistribution(::T) where {T <: FinField }
-  return UniformDistr()
+function DefaultDistribution(F::T) where {T <: FinField }
+  return PrimeFieldDistr(F)
 end
 
-function DefaultDistribution(::T) where {T <: zzModRing }
-  return UniformDistr()
+function DefaultDistribution(D::PrimeFieldDistr)
+  return D
 end
 
-function DefaultDistribution(::T) where {T <: ZZModRing }
-  return UniformDistr()
+function DefaultDistribution(D::FiniteFieldDistr)
+  p = is_prime_power_with_data(D.ApproxCard)[2]
+  return PrimeFieldDistr(p)
 end
 
 function DefaultDistribution(::ZZRing)
@@ -391,11 +404,11 @@ function DefaultDistribution(D::UnivariatePolyDistr)
 end
 
 function DefaultDistribution(P::T) where { T <: MPolyRing }
-  return MultivariatePolyCubeDistr(2, 2, DefaultDistribution(coefficient_ring(P)))
+  return MultivariatePolyCubeDistr(ngens(P), 2, 2, DefaultDistribution(coefficient_ring(P)))
 end
 
 function DefaultDistribution(D::MultivariatePolyCubeDistr)
-  return MultivariatePolyCubeDistr(2, 2, DefaultDistribution(D.CoeffDistr))
+  return MultivariatePolyCubeDistr(D.nvars, 2, 2, DefaultDistribution(D.CoeffDistr))
 end
 
 function DefaultDistribution(S::T) where { T <: MatSpace }
@@ -410,7 +423,11 @@ end
 
 # Widening
 
-function WidenDistr(D::UniformDistr)
+function WidenDistr(D::PrimeFieldDistr)
+  return D  # !!!!! BUG !!!!! need to know the parent
+end
+
+function WidenDistr(D::FiniteFieldDistr)
   return D  # do nothing
 end
 
@@ -447,15 +464,24 @@ end
 function WidenDistr(D::MultivariatePolyCubeDistr)
   # Next line is boolean HEURISTIC whether to incr deg or CoeffDistr
   if D.nterms <= D.deg^2
-    return MultivariatePolyCubeDistr(D.deg, 1+D.nterms, DefaultDistribution(D.CoeffDistr))
+    return MultivariatePolyCubeDistr(D.nvars, D.deg, 1+D.nterms, DefaultDistribution(D.CoeffDistr))
   end
   IncrDeg = (ApproxCard(DefaultDistribution(D.CoeffDistr)) < ApproxCard(D.CoeffDistr))
   if IncrDeg
-    return MultivariatePolyCubeDistr(1+D.deg, 2, DefaultDistribution(D.CoeffDistr))
+    return MultivariatePolyCubeDistr(D.nvars, 1+D.deg, 2, DefaultDistribution(D.CoeffDistr))
   end
-  return MultivariatePolyCubeDistr(D.deg, 2, WidenDistr(D.CoeffDistr))
+  return MultivariatePolyCubeDistr(D.nvars, D.deg, 2, WidenDistr(D.CoeffDistr))
 end
 
 function WidenDistr(D::UnifDenseMatrixDistr)
   return UnifDenseMatrixDistr(D.nr, D.nc, WidenDistr(D.EntryDistr))
+end
+
+function WidenDistr(D::UnimodularMatrixDistr)
+  r = D.num_iters;
+  if r < 5*D.n
+    return UnimodularMatrixDistr(D.n, 2+D.num_iters, D.EntryDistr)
+  else
+    return UnimodularMatrixDistr(D.n, 2, WidenDistr(D.EntryDistr))
+  end
 end
