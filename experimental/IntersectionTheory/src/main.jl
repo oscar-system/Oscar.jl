@@ -3256,9 +3256,8 @@ end
 
 Return the `n`-th Hirzebruch surface.
 
-!!! note
-    Recall that the `n`-th Hirzebruch surface is the projective bundle associated to
-    the bundle $\mathcal O_{\mathbb P_1} \oplus O_{\mathbb P_1(-n)}$.
+Recall that the `n`-th Hirzebruch surface is the projective bundle associated to
+the bundle $\mathcal O_{\mathbb P_1} \oplus O_{\mathbb P_1(-n)}$.
 
 # Examples
 
