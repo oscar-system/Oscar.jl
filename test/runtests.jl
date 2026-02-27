@@ -140,7 +140,7 @@ test_subsets = Dict(
                                "test/book/test.jl",
                      ],
                  :oscar_db => ["experimental/OscarDB/test/runtests.jl"],
-                     :exts => ["experimental/Extensions/test/exts.jl"]
+                     :exts => ["experimental/Extensions/test/runtests.jl"]
 )
 
 tests_on_main = Dict(
@@ -162,8 +162,6 @@ elseif test_subset == :default
     @info "Skipping Oscar book tests"
     filter!(x-> !in(relpath(x, Oscar.oscardir), test_subsets[:book]), testlist)
   end
-elseif test_subset == :exts
-  testlist = test_subsets[:exts]
 else
   error("invalid test subset specified via `OSCAR_TEST_SUBSET` environment variable")
 end
