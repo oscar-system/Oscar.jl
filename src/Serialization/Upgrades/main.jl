@@ -149,7 +149,14 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
       dict[:_type][:params] = ref_entry[:_type]
     end
   end
-  if dict[:_type][:name] in ["Vector", "Set", "Matrix"] 
+
+  if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+    type_name = dict[:_type][:name]
+  else
+    type_name = dict[:_type]
+  end
+
+  if type_name in ["Vector", "Set", "Matrix"]
     subtype = dict[:_type][:params]
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
@@ -161,7 +168,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
       dict[:_type][:params] = upgraded_entry[:_type]
     end
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
-  elseif dict[:_type][:name] == "MultiDimArray"
+  elseif type_name == "MultiDimArray"
     subtype = dict[:_type][:params][:subtype_params]
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
@@ -174,7 +181,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
     end
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
-  elseif dict[:_type][:name] == "Tuple"
+  elseif type_name == "Tuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for (type, entry) in zip(dict[:_type][:params], dict[:data])
@@ -184,7 +191,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
-  elseif dict[:_type][:name] == "NamedTuple"
+  elseif type_name == "NamedTuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
@@ -193,7 +200,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
     end
     dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
-  elseif dict[:_type][:name] == "Dict"
+  elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
     if haskey(dict[:_type][:params], :value_params)
@@ -226,6 +233,52 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
                                          :data => entry.second))
         dict[:data][entry.first] = upgraded_entry[:data]
         dict[:_type][:params][entry.first] = upgraded_entry[:_type]
+      end
+    end
+  elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan", "SubdivisionOfPoints")
+    if haskey(dict[:_type][:params], :pm_params)
+      pm_dict = Dict{Symbol, Any}(
+        :_type => dict[:_type][:params][:pm_params],
+        :data => dict[:data]
+      )
+      upgraded_pm_dict = upgrade(s, pm_dict)
+      dict[:_type][:params][:pm_params] = upgraded_pm_dict[:_type]
+      dict[:data] = upgraded_pm_dict[:data]
+    end
+  elseif type_name in ("LinearProgram", "MixedIntegerLinearProgram")
+    if haskey(dict[:_type][:params], :pm_params)
+      pm_dict = Dict{Symbol, Any}(
+        :_type => dict[:_type][:params][:pm_params],
+        :data => dict[:data][:feasible_region]
+      )
+      upgraded_pm_dict = upgrade(s, pm_dict)
+      dict[:_type][:params][:pm_params] = upgraded_pm_dict[:_type]
+      dict[:data][:feasible_region] = upgraded_pm_dict[:data]
+    end
+  else
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :params) && dict[:_type][:params] isa AbstractDict
+      if haskey(dict[:_type][:params], :_type)
+        d = Dict{Symbol, Any}(
+          :_type => dict[:_type][:params][:_type],
+          :data => dict[:data]
+        )
+        upgraded_d = upgrade(s, d)
+        dict[:_type][:params][:_type] = upgraded_d[:_type]
+        dict[:data] = upgraded_d[:data]
+      else
+        for (k, v) in dict[:_type][:params]
+          if dict[:data] isa AbstractDict && haskey(dict[:data], k)
+            d = Dict{Symbol, Any}(
+              :_type => dict[:_type][:params][k],
+              :data => dict[:data][k]
+            )
+            upgraded_d = upgrade(s, d)
+            dict[:_type][:params][k] = upgraded_d[:_type]
+            dict[:data][k] = upgraded_d[:data]
+          elseif dict[:_type][:params][k] isa AbstractDict && haskey(dict[:_type][:params][k], :_type)
+            dict[:_type][:params][k] = upgrade(s, dict[:_type][:params][k])
+          end
+        end
       end
     end
   end
