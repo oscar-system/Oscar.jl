@@ -19,10 +19,12 @@ struct SimplicialCoChainFactory{ChainType} <: HyperComplexChainFactory{ChainType
   end
 end
 
+### Initializes the free modules over the ring of appropriate rank in the relevant degrees. 
 function (fac::SimplicialCoChainFactory)(self::AbsHyperComplex, i::Tuple)
   return FreeMod(fac.R, length(faces(fac.K, only(i))))
 end
 
+### Cohomology is only computable in at most the dimension of the simplicial complex
 function can_compute(fac::SimplicialCoChainFactory, self::AbsHyperComplex, i::Tuple)
   return 0 <= only(i) <= dim(fac.K)
 end
@@ -34,6 +36,7 @@ struct SimplicialCoMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismTy
   end
 end
 
+### Populates morphisms with matrices defined by the boundary matrices of the simplicial complexes. 
 function (::SimplicialCoMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   fac = chain_factory(self)
   i = only(I)
@@ -42,6 +45,7 @@ function (::SimplicialCoMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   return hom(dom, cod, transpose(matrix(fac.R, Polymake.topaz.boundary_matrix(fac.K.pm_simplicialcomplex, i+1))))
 end
 
+### 
 function can_compute(fac::SimplicialCoMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   fac = chain_factory(self)
   p == 1 || return false
@@ -49,6 +53,13 @@ function can_compute(fac::SimplicialCoMapFactory, self::AbsHyperComplex, p::Int,
 end
 
 ### The concrete struct
+@doc raw"""
+    SimplicialCoComplex(R::Ring, K::SimplicialComplex)
+
+Given a ring and a simplicial complex (in OSCAR), produces the cochain complex which computes simplicial cohomology of the complex. 
+
+This relies on the abstract type for hypercomplexes. 
+"""
 @attributes mutable struct SimplicialCoComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
   face_to_index_map::Dict{Int, Dict{Set{Int}, Int}}
@@ -84,6 +95,7 @@ end
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::SimplicialCoComplex) = c.internal_complex
 
+### 
 function face_to_index_map(c::SimplicialCoComplex, p::Int)
   if !isdefined(c, :face_to_index_map)
     c.face_to_index_map = Dict{Int, Dict{Set{Int}, Int}}()
@@ -94,10 +106,26 @@ function face_to_index_map(c::SimplicialCoComplex, p::Int)
 end
 
 ### additional getters
+@doc raw"""
+    simplicial_complex(C::SimplicialCoComplex)
+
+Given a simplicial cochain complex, recovers the underlying simplicial complex. 
+"""
 simplicial_complex(C::SimplicialCoComplex) = chain_factory(C).K
+
+@doc raw"""
+    base_ring(C::SimplicialCoComplex)
+
+Given a simplicial cochain complex, recovers the ring over which the cochain complex is defined. 
+"""
 base_ring(C::SimplicialCoComplex) = chain_factory(C).R
 
 ### cup product for (composable) dual simplices
+@doc raw"""
+    mul_cochains(C::SimplicialCoComplex, a::FreeModElem, p::Int, b::FreeModElem, q::Int)
+
+Computes the cup product of two classes in simplicial cohomology follwing the formula in Chapter 3.2 of Hatcher's text on algebraic topology (https://pi.math.cornell.edu/~hatcher/AT/ATch3.pdf). 
+"""
 function mul_cochains(C::SimplicialCoComplex, a::FreeModElem, p::Int, b::FreeModElem, q::Int)
   @req parent(a) === C[p] && parent(b) === C[q] "parent mismatch"
   K = simplicial_complex(C)
