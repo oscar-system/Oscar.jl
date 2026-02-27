@@ -125,7 +125,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   degsRX = [Int(degree(g)[1])  for g in gens(RX)]
   RBl, ev, xv = graded_polynomial_ring(base(X), syms, symbols(RX); weights = vcat(degs, degsRX))
 
-  RXtoRBl = hom(RX, RBl, xv) # f_pull on polynomial ring level
+  RXtoRBl = Oscar.hom(RX, RBl, xv) # f_pull on polynomial ring level
   j_push_g_pull = x -> sum(ev .* RXtoRBl.(sect(x.f))) # AZ --> RBl
 
   # we set up the relations of ABl
@@ -164,7 +164,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
     push!(Rels, lhs - rhs)
   end
 
-  Rels = minimal_generating_set(ideal(RBl, Rels)) ### TODO: make this an option?
+  Rels = minimal_generating_set(ideal(RBl, Rels))
   ABl, _ = quo(RBl, Rels)
   Bl = abstract_variety(dim(X), ABl)
 
@@ -172,7 +172,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 
   # pushforward of f and more
 
-  RBltoRX = hom(RBl, RX, vcat(repeat([RX()], ngs), gens(RX)))
+  RBltoRX = Oscar.hom(RBl, RX, vcat(repeat([RX()], ngs), gens(RX)))
   f_pushforward = x -> (xf = simplify(x).f;
 	     X(RBltoRX(xf));)
   f_pushforward = MapFromFunc(ABl, AX, f_pushforward)
@@ -186,7 +186,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 
   # pushforward of j: write as a polynomial in ζ, and compute term by term
 
-  REtoRZ = hom(RE, RZ, pushfirst!(gens(RZ), RZ()))
+  REtoRZ = Oscar.hom(RE, RZ, pushfirst!(gens(RZ), RZ()))
   j_push = x -> (xf = simplify(x).f;
             ans = RBl();
 	    for k in rN-1:-1:0
@@ -309,10 +309,10 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 
   syms = ["$SED[$i]" for i in 1:ngs-1]
   push!(syms, SED)
-  degs = [degree(Int, Z(gs[i])) + rN for i in 1:ngs]
-  degsRX = [Int(degree(g)[1])  for g in gens(RX)]
+  degs = [Oscar.degree(Int, Z(gs[i])) + rN for i in 1:ngs]
+  degsRX = [Int(Oscar.degree(g)[1])  for g in gens(RX)]
   RXplus, ev, xv = graded_polynomial_ring(base(X), syms, symbols(RX); weights = vcat(degs, degsRX))
-  RXtoRXplus = hom(RX, RXplus, xv) # f_pull on polynomial ring level
+  RXtoRXplus = Oscar.hom(RX, RXplus, xv) # f_pull on polynomial ring level
   j_push = x -> sum(ev .* RXtoRXplus.(sect(x.f))) # AZ --> RXplus
 
   # we set up the relations of AXplus
@@ -341,7 +341,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
     push!(Rels, RXtoRXplus(point_class(X).f) - j_push(point_class(Z)))
   end
 
-  Rels = minimal_generating_set(ideal(RXplus, Rels)) ### TODO: make this an option?
+  Rels = minimal_generating_set(ideal(RXplus, Rels))
   AXplus, _ = quo(RXplus, Rels)
   Xplus = abstract_variety(dim(X), AXplus)
 
