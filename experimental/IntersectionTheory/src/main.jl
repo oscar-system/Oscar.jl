@@ -1984,7 +1984,7 @@ end
     -(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
 
-Compute the negation, n-fold sum, n-fold tensor product, sum, difference, and tensor product of abstract bundles, respectively.
+Compute the negation, scalar product, n-fold tensor product, sum, difference, and tensor product of abstract bundles, respectively.
 
 # Examples
 ```jldoctest
@@ -1997,8 +1997,8 @@ true
 ```
 """
 -(F::AbstractBundle) = AbstractBundle(parent(F), -chern_character(F))
-*(n::Integer, F::AbstractBundle) = AbstractBundle(parent(F), n * chern_character(F))
-*(F::AbstractBundle, n::Integer) = AbstractBundle(parent(F), n * chern_character(F))
+*(n::RingElement, F::AbstractBundle) = AbstractBundle(parent(F), n * chern_character(F))
+*(F::AbstractBundle, n::RingElement) = n * F
 ^(F::AbstractBundle, n::Integer) = AbstractBundle(parent(F), chern_character(F)^n)
 for O in [:(+), :(-), :(*)]
   @eval ($O)(F::AbstractBundle, G::AbstractBundle) = (
