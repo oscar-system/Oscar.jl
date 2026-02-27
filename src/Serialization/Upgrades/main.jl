@@ -235,11 +235,12 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
         dict[:_type][:params][:value_params] = first_pair[2][:_type]
       end
     else
-      for entry in dict[:data]
-        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][entry.first],
-                                         :data => entry.second))
-        dict[:data][entry.first] = upgraded_entry[:data]
-        dict[:_type][:params][entry.first] = upgraded_entry[:_type]
+      for k in keys(dict[:_type][:params])
+        k === :key_params && continue
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][k],
+                                         :data => dict[:data][k]))
+        dict[:data][k] = upgraded_entry[:data]
+        dict[:_type][:params][k] = upgraded_entry[:_type]
       end
     end
   elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan", "SubdivisionOfPoints")
