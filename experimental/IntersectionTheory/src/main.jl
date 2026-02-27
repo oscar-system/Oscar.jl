@@ -2099,12 +2099,12 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   sch = det(matrix(S, M)) # Jacobi-Trudi
   R = chow_ring(X)
   if R isa MPolyQuoRing
-    # StoX = hom(S, R.R.R, [wi.f.f for wi in w])
-    StoX = hom(S, base_ring(R).R, [wi.f.f for wi in w])
+    # StoX = Oscar.hom(S, R.R.R, [wi.f.f for wi in w])
+    StoX = Oscar.hom(S, base_ring(R).R, [wi.f.f for wi in w])
     # return AbstractBundle(X, X(R.R(StoX(sch))))
     return AbstractBundle(X, X(base_ring(R)(StoX(sch))))
   else
-    StoX = hom(S, R.R, [wi.f for wi in w])
+    StoX = Oscar.hom(S, R.R, [wi.f for wi in w])
     return AbstractBundle(X, X(StoX(sch)))
   end
 end
@@ -3227,8 +3227,8 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   else
     PR = R
   end
-  pback = hom(PR, R1, imgs_in_R1)
-  pfwd = hom(R1, R, pushfirst!(gens(R), R()))
+  pback = Oscar.hom(PR, R1, imgs_in_R1)
+  pfwd = Oscar.hom(R1, R, pushfirst!(gens(R), R()))
 
   # construct the relations
 
@@ -3844,8 +3844,8 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   w = reduce(vcat, [1:r for r in ranks])
   append!(w, gradings(R))
   R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(base(X), syms, symbols(PR); weights = w)
-  pback = hom(PR, R1, imgs_in_R1)
-  pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
+  pback = Oscar.hom(PR, R1, imgs_in_R1)
+  pfwd = Oscar.hom(R1, R, vcat(repeat([R()], n), gens(R)))
 
   # compute the relations
 
@@ -3883,13 +3883,13 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   nl = size(ME)[1]
   wcs = reduce(vcat, [1:r for r in ranks])
   Rcs, _ = graded_polynomial_ring(base(X), syms; weights = wcs)
-  RcstoR1 = hom(Rcs, R1, gens_for_rels_R1)
+  RcstoR1 = Oscar.hom(Rcs, R1, gens_for_rels_R1)
   gs = [monomial(Rcs, [Int(ME[i, j]) for j in 1:n]) for i in nl:-1:1]
   gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
   ds = [degree(Int, gs[i]) for i in 1:1:nl]
   dm = argmax(ds)
   ### TODO find an return section
-  fm = hom(R, AFl, p_pullback)
+  fm = Oscar.hom(R, AFl, p_pullback)
   p_pushforward = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
   ##################################
 
@@ -4023,9 +4023,9 @@ function  _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_fini
 
   R, _ = tensor_product(BR, AR, use_product_ordering = true)
   ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
-  RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
+  ARtoR = Oscar.hom(AR, R, ba[b+1:end], check = false)
+  BRtoR = Oscar.hom(BR, R, ba[1:b], check = false)
+  RtoAR = Oscar.hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
 
   # compute the ideal J of the graph of F
