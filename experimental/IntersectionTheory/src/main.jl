@@ -2409,7 +2409,8 @@ julia> integral(b[3][2]*bd[3][2])
 dual_basis(X::AbstractVariety) = [dual_basis(X, k) for k in 0:dim(X)]
 
 function dual_basis(X::AbstractVariety, k::Int)
-  isdefined(X, :point) || error("point class not defined") ### DIFF Song
+  isdefined(X, :point) || error("point class not defined")
+
   R = chow_ring(X)
   T = Dict{Int, Vector{elem_type(R)}}
   d = get_attribute!(X, :dual_basis) do
@@ -2951,9 +2952,10 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   S = tautological_bundles(Gr)[1]
   D = zero_locus_section(dual(S) * G)
   D.structure_map = map(D, parent(F)) # skip the flag abstract variety
-  if isdefined(parent(F), :O1) ### DIFF Song
-    D.O1 = pullback(D.structure_map, polarization(parent(F))) ### DIFF Song
-  end ### DIFF Song
+
+  if isdefined(parent(F), :O1)
+    D.O1 = pullback(D.structure_map, polarization(parent(F)))
+  end
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
@@ -3240,16 +3242,12 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   S = AbstractBundle(PF, 1, 1-z)
   Q = pullback(p, F) - S
   p.T = dual(S)*Q
-  if isdefined(X, :T)
-    PF.T = pullback(p, tangent_bundle(X)) + tangent_bundle(p)
-  end
+  isdefined(X, :T) && (PF.T = pullback(p, tangent_bundle(X)) + tangent_bundle(p))
   PF.bundles = [S, Q]
   PF.structure_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
-  if get_attribute(X, :alg) == true ### DIFF Song
-    set_attribute!(PF, :alg => true) ### DIFF Song
-  end ### DIFF Song
+  get_attribute(X, :alg) == true && set_attribute!(PF, :alg => true)
   return PF
 end
 
@@ -3896,14 +3894,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   Fl.structure_map = p
   set_attribute!(Fl, :description => "Relative flag abstract variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
+  get_attribute(X, :alg) == true && set_attribute!(Fl, :alg => true)
 
-  if get_attribute(X, :alg) == true ### DIFF Song
-    set_attribute!(Fl, :alg => true) ### DIFF Song
-  end ### DIFF Song
-
-  if l == 2
-     set_attribute!(Fl, :grassmannian => :relative)
-  end
+  l == 2 && set_attribute!(Fl, :grassmannian => :relative)
   return Fl
 end
 
