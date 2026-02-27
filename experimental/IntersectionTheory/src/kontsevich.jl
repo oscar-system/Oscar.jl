@@ -92,19 +92,14 @@ function kontsevich_moduli_space(n::Int, d::Int; weights=nothing)
   points = [(g, c) => g.aut for g in multi_trees(d) for c in colors(g.g, n)]
   M = TnVariety(N, points)
   set_attribute!(M, :dim => n)
-  #set_special(M, :dim => n)
   set_attribute!(M, :deg => d)
-  #set_special(M, :deg => d)
   set_attribute!(M, :weights => weights)
-  #set_special(M, :weights => weights)
   M
 end
 
 function integral(X::TnVariety, cycle::Cycle; noretry::Bool=false)
   n = get_attribute(X, :dim)
-  #n = get_special(X, :dim)
   λ = get_attribute(X, :weights)
-  #λ = get_special(X, :weights)
   if isnothing(λ)
     λ = Int[rand(Int16) for _ in 0:n]
   end
