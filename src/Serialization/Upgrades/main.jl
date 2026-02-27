@@ -138,15 +138,22 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
   return dict
 end
 
-function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDict)
+function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   # all containers have a Dict for their type description
   # with a name and a params key
-  dict[:_type] isa String && return dict
-  if !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
+  if haskey(dict, :data) && dict[:data] isa AbstractDict && !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
     ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
     if !isnothing(ref_entry)
       ref_entry = upgrade(s, ref_entry)
       dict[:_type][:params] = ref_entry[:_type]
+    end
+  end
+
+  if haskey(dict, :attrs)
+    for (k, v) in dict[:attrs]
+      if v isa AbstractDict
+        dict[:attrs][k] = upgrade(s, v)
+      end
     end
   end
 
