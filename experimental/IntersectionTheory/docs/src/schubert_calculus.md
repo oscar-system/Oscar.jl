@@ -14,7 +14,7 @@ to the combinatorics and intersection theory of certain cycles on Grassmannians.
 We show how to define such classes in OSCAR.
 
 To recall the definition of Schubert cycles on a Grassmannian $\mathrm{Gr}(k,n)$, we think of $\mathrm{Gr}(k, n)$ as the
-Grassmannian $\mathrm{Gr}(k, W)$ of $k$-dimensional subspaces of an $n$-dimensional $K$-vector space $W$.
+Grassmannian $\mathrm{Gr}(k, W)$ of $k$-dimensional subspaces of an $n$-dimensional $\mathbb{Q}$-vector space $W$.
 
 A *flag* in $W$ is a strictly increasing sequence of linear subspaces
 
@@ -61,7 +61,7 @@ respectively.
 
 All Schubert classes form a $\mathbb{Q}$-vector space basis of the Chow ring of $\mathrm{Gr}(k,n)$.
 The Chern classes of $S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
-form a minimal set of generators for the Chow ring of $\mathrm{Gr}(k,n)$ as a $K$-algebra.
+form a minimal set of generators for the Chow ring of $\mathrm{Gr}(k,n)$ as a $\mathbb{Q}$-algebra.
 See [EH16](@cite) for the relations on these generators.
 
 ## Some classic computations
