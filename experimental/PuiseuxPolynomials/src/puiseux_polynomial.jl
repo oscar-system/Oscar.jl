@@ -113,6 +113,7 @@ function normalize!(f::PuiseuxMPolyRingElem)
 
     # make sure shift is correct, i.e., for every variable poly(f) has a
     # monomial that is constant in that variable
+
     shiftDifference = [ reduce(min,[e[i] for e in exponents(poly(f))]) for i in 1:nvars(parent(poly(f))) ]
     if !iszero(shiftDifference)
         t = gens(baseRing)
@@ -376,6 +377,10 @@ end
 function Base.:^(f::PuiseuxMPolyRingElem, a::Rational{Int})
     return f^(QQ(a))
 end
+
+# TODO: refactor this exponentiation (final return statement) to use exponentiation of the base polynomial
+# TODO: change @req is_term(f) to @req is_term(f) && is_unit(leading_coefficient(f))
+#     then we can change the initial Struct to use RingElem instead of FieldElement for more generality
 
 function Base.:^(f::PuiseuxMPolyRingElem, a::ZZRingElem)
     if a == 0
