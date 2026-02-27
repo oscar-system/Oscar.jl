@@ -8,7 +8,7 @@
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
   n = get_attribute(R, :abstract_variety_dim)::Union{Nothing, Int}
-  n === nothing && return x
+  isnothing(n) && return x
   return sum(x[0:n])
 end
 

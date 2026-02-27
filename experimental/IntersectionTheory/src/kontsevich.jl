@@ -105,7 +105,7 @@ function integral(X::TnVariety, cycle::Cycle; noretry::Bool=false)
   #n = get_special(X, :dim)
   λ = get_attribute(X, :weights)
   #λ = get_special(X, :weights)
-  if λ === nothing
+  if isnothing(λ)
     λ = Int[rand(Int16) for _ in 0:n]
   end
   retry = true

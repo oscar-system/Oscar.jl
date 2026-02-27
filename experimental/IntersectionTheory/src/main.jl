@@ -408,8 +408,7 @@ end
 
 function _trim(R::MPolyDecRingOrQuo)
   d = get_attribute(R, :abstract_variety_dim)
-  # TODO use isnothing?
-  !(d == nothing) || error("ring is not the Chow ring of an abstract variety")
+  isnothing(d) && error("ring is not the Chow ring of an abstract variety")
 
   if isdefined(R, :I)
     gI = gens(R.I) # will consist of the generators of the modulus I of the desired Chow ring
@@ -1734,7 +1733,7 @@ function _map(X::AbstractVariety, Y::AbstractVariety)
   X == Y && return identity_map(X)
   # first handle the case where X is a (fibered) product
   projs = get_attribute(X, :projections)
-  if projs !== nothing
+  if !isnothing(projs)
     for p in projs
       codomain(p) == Y && return p
     end
@@ -1757,8 +1756,8 @@ end
 Return a canonically defined map from `X` to `Y`.
 """
 function map(X::AbstractVariety, Y::AbstractVariety)
-  get_attribute(Y, :point) !== nothing && return map(X, Y, [X(0)]) # Y is a point
-  get_attribute(X, :point) !== nothing && return map(X, Y, repeat([X(0)], length(gens(Y)))) # X is a point
+  !isnothing(get_attribute(Y, :point)) && return map(X, Y, [X(0)]) # Y is a point
+  !isnothing(get_attribute(X, :point)) && return map(X, Y, repeat([X(0)], length(gens(Y)))) # X is a point
   _map(X, Y)
 end
 
@@ -1790,8 +1789,8 @@ Quotient
 """
 function product(X::AbstractVariety, Y::AbstractVariety)
   prod_cache = get_attribute(X, :prod_cache)
-  prod_cache !== nothing && Y in keys(prod_cache) && return prod_cache[Y]
-  if prod_cache === nothing
+  !isnothing(prod_cache) && Y in keys(prod_cache) && return prod_cache[Y]
+  if isnothing(prod_cache)
     prod_cache = Dict{AbstractVariety, AbstractVariety}()
     set_attribute!(X, :prod_cache => prod_cache)
   end
@@ -2354,7 +2353,7 @@ julia> integral(b[4]*b[4])
 intersection_matrix(X::AbstractVariety) = intersection_matrix(reduce(vcat, basis(X)))
 
 function intersection_matrix(a::Vector{}, b=nothing)
-  if b === nothing b = a end
+  if isnothing(b) b = a end
   matrix([integral(ai*bj) for ai in a, bj in b])
 end
 

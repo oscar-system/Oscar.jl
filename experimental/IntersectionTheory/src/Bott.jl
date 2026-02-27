@@ -345,7 +345,7 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 
 # create a ring to hold the chern classes of F
 function _get_ring(F::TnBundle)
-  if get_attribute(F, :R) === nothing
+  if isnothing(get_attribute(F, :R))
     r = min(dim(parent(F)), rank(F))
     R, _ = graded_polynomial_ring(QQ, :c => 1:r; weights = 1:r)
     set_attribute!(R, :abstract_variety_dim => dim(parent(F)))
