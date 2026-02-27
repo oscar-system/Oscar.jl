@@ -74,7 +74,7 @@ end
 
 function puiseux_polynomial_ring(K::Field, variableName::Vector{String})
     @req !isempty(variableName) "list of variables must not be empty"
-    base_ring, _ = polynomial_ring(K, variableName)
+    base_ring = AbstractAlgebra.poly_ring(K, variableName)
     Kt = PuiseuxMPolyRing(base_ring)
     return Kt, gens(Kt)
 end
