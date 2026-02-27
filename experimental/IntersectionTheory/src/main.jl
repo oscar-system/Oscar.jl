@@ -52,7 +52,6 @@ abstract_bundle(X::AbstractVariety, ch::MPolyDecRingOrQuoElem) = AbstractBundle(
 abstract_bundle(X::AbstractVariety, r::RingElement, c::MPolyDecRingOrQuoElem) = AbstractBundle(X, r, c)
 
 #######################################################
-# TODO is a comparison of bases needed?
 @doc raw"""
     ==(F::AbstractBundle, G::AbstractBundle)
 
@@ -840,13 +839,14 @@ Construct a generic abstract variety of dimension $n$ with some bundles of given
 Return the abstract variety and the list of bundles.
 """
 function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) where T
-  symbols = reduce(vcat, [_parse_symbol(s,1:r) for (r,s) in bundles])
-  degs = reduce(vcat, [1:r for (r,s) in bundles])
+  symbols = reduce(vcat, [_parse_symbol(s, 1:r) for (r, s) in bundles])
+  degs = reduce(vcat, [1:r for (r, _) in bundles])
   X = abstract_variety(n, symbols, degs, base=base)[1]
   i = 1
   X.bundles = AbstractBundle[]
-  # TODO s is not used?
-  for (r, s) in bundles
+  # we create a bundle for each rank
+  # the Chern character of the bundle is set to be the sum of the generators of the corresponding degrees
+  for (r, _) in bundles
     push!(X.bundles, AbstractBundle(X, r, 1 + sum(gens(X)[i:i+r-1])))
     i += r
   end
@@ -860,6 +860,15 @@ end
 Construct a generic abstract variety of dimension $n$ and define its tangent bundle.
 
 Return the abstract variety.
+
+# Examples
+```jldoctest
+julia> X = abstract_variety(3)
+AbstractVariety of dim 3
+
+julia> chern_character(tangent_bundle(X))
+1//6*c[1]^3 + 1//2*c[1]^2 - 1//2*c[1]*c[2] + c[1] - c[2] + 1//2*c[3] + 3
+```
 """
 function abstract_variety(n::Int; base::Ring=QQ)
   n == 0 && return abstract_point()
