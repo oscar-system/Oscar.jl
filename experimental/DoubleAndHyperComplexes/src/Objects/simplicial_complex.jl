@@ -63,6 +63,7 @@ This relies on the abstract type for hypercomplexes.
 @attributes mutable struct SimplicialCoComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
   face_to_index_map::Dict{Int, Dict{Set{Int}, Int}}
+  multiplication_dict::Dict{Tuple{Int, Int, Int, Int}, <:FreeModElem}
 
   function SimplicialCoComplex(R::Ring, K::SimplicialComplex)
     chain_fac = SimplicialCoChainFactory(R::Ring, K::SimplicialComplex)
@@ -105,6 +106,13 @@ function face_to_index_map(c::SimplicialCoComplex, p::Int)
   end
 end
 
+function multiplication_dict(c::SimplicialCoComplex)
+  if !isdefined(c, :multiplication_dict)
+    c.multiplication_dict = Dict{Tuple{Int, Int, Int, Int}, FreeModElem{elem_type(base_ring(c))}}()
+  end
+  return c.multiplication_dict::Dict{Tuple{Int, Int, Int, Int}, FreeModElem{elem_type(base_ring(c))}}
+end
+
 ### additional getters
 @doc raw"""
     simplicial_complex(C::SimplicialCoComplex)
@@ -131,12 +139,20 @@ function mul_cochains(C::SimplicialCoComplex, a::FreeModElem, p::Int, b::FreeMod
   K = simplicial_complex(C)
   cochain = zero(C[p+q])
   f = face_to_index_map(C, p+q)
+  mdict = multiplication_dict(C)
   for (ga, ca) in coordinates(a), (gb, cb) in coordinates(b)
-    sa = faces(K, p)[ga]
-    sb = faces(K, q)[gb]
-    s = union(sa, sb)
-    (maximum(sa) == minimum(sb) && s in keys(f)) || continue
-    cochain += ca * cb * gens(C[p+q])[f[s]]
+    res = get!(mdict, (ga, p, gb, q)) do
+      sa = faces(K, p)[ga]
+      sb = faces(K, q)[gb]
+      s = union(sa, sb)
+      maximum(sa) == minimum(sb) && s in keys(f) && return gen(C[p+q], f[s])
+      zero(C[p+q])
+    end
+    @assert parent(res) === C[p+q]
+    if !iszero(res)
+      cochain += ca * cb * res
+    end
   end
   return cochain
 end
+

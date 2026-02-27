@@ -303,7 +303,7 @@ function mul_homog(a, b)
   !can_compute_index(C, p+q) && return zero(A)
   H = homology(C, p+q)[1]
   cochain = mul_cochains(C, repres(a.homog_elem), p, repres(b.homog_elem), q)
-  return SimplicialCohomologyRingElem(A, p+q, H(cochain))
+  return SimplicialCohomologyRingElem(A, p+q, H(cochain; check=false))
 end
 
 # Parent and element types
