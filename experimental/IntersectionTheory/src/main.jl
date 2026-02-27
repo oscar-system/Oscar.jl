@@ -1698,8 +1698,8 @@ function hilbert_polynomial(F::AbstractBundle)
   X = parent(F)
   !isdefined(X, :O1) && error("no polarization is specified for the abstract variety")
   O1 = polarization(X)
-  # extend the coefficient ring to QQ(t)
-  # TODO should we use FunctionField here?
+
+  # extend the coefficient ring to QQ[t] to allow for the parameter t in the Hilbert polynomial
   Qt, t = polynomial_ring(QQ, :t)
   R_chow = chow_ring(X)
   @assert R_chow isa MPolyQuoRing
@@ -1709,12 +1709,14 @@ function hilbert_polynomial(F::AbstractBundle)
   I = ideal(toR.(gens(R_chow.I)))
   R_ = quo(GR, I)[1]
   set_attribute!(R_, :abstract_variety_dim => dim(X))
+
+  # translate the bundles to new coefficient ring
   ch_O_t = 1 + _logg(1 + t * R_(toR(O1.f)))
   ch_F = R_(toR(chern_character(F).f))
   td = R_(toR(todd_class(X).f))
   pt = R_(toR(point_class(X).f))
-  hilb = constant_coefficient(div(simplify(ch_F * ch_O_t * td).f, simplify(pt).f))
-  return hilb
+
+  constant_coefficient(div(simplify(ch_F * ch_O_t * td).f, simplify(pt).f))
 end
 
 @doc raw"""
