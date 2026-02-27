@@ -1,8 +1,6 @@
 const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
-
 const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
 
-# TODO Bundle or AbstractBundle?
 abstract type Bundle end
 
 
