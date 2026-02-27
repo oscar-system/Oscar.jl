@@ -162,6 +162,8 @@ elseif test_subset == :default
     @info "Skipping Oscar book tests"
     filter!(x-> !in(relpath(x, Oscar.oscardir), test_subsets[:book]), testlist)
   end
+elseif test_subset == :exts
+  testlist = test_subsets[:exts]
 else
   error("invalid test subset specified via `OSCAR_TEST_SUBSET` environment variable")
 end
