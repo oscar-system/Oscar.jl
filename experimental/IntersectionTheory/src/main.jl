@@ -1799,12 +1799,14 @@ Quotient
 ```
 """
 function product(X::AbstractVariety, Y::AbstractVariety)
-  prod_cache = get_attribute(X, :prod_cache)
-  !isnothing(prod_cache) && Y in keys(prod_cache) && return prod_cache[Y]
-  if isnothing(prod_cache)
-    prod_cache = Dict{AbstractVariety, AbstractVariety}()
-    set_attribute!(X, :prod_cache => prod_cache)
+  # caching products for when we deal with maps
+  product_cache = get_attribute(X, :prod_cache)
+  !isnothing(product_cache) && Y in keys(product_cache) && return product_cache[Y]
+  if isnothing(product_cache)
+    product_cache = Dict{AbstractVariety, AbstractVariety}()
+    set_attribute!(X, :prod_cache => product_cache)
   end
+
   @assert base(X) == base(Y)
   b = base(X)
   A, B = chow_ring(X), chow_ring(Y)
@@ -1832,7 +1834,7 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   end
   set_attribute!(XY, :projections => [p, q])
   set_attribute!(XY, :description => "Product of $X and $Y")
-  prod_cache[Y] = XY
+  product_cache[Y] = XY
   return XY
 end
 *(X::AbstractVariety, Y::AbstractVariety) = product(X, Y)
