@@ -77,13 +77,14 @@ julia> integral(s1^4)
 
 ```
 """
-schubert_class(G::AbstractVariety, λ::Int...) = schubert_class(G, collect(λ))
-schubert_class(G::AbstractVariety, λ::Partition) = schubert_class(G, Vector(λ))
-function schubert_class(G::AbstractVariety, λ::Vector{Int})
+schubert_class(G::AbstractVariety, lambda::Int...) = schubert_class(G, collect(lambda))
+schubert_class(G::AbstractVariety, lambda::Partition) = schubert_class(G, Vector(lambda))
+function schubert_class(G::AbstractVariety, lambda::Vector{Int})
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
   S, Q = tautological_bundles(G)
-  (length(λ) > rank(S) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
-  giambelli(Q, λ)
+  (length(lambda) > rank(S) || sort(lambda; rev=true) != lambda) &&
+    error("the Schubert input is not well-formed")
+  giambelli(Q, lambda)
 end
 
 @doc raw"""
@@ -126,9 +127,9 @@ julia> schubert_classes(G, 2)
 
 """
 function schubert_classes(G::AbstractVariety)
-   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-   S, Q = tautological_bundles(G)
-   return [schubert_classes(G, i) for i in 0:rank(S)*rank(Q)]
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+  S, Q = tautological_bundles(G)
+  return [schubert_classes(G, i) for i in 0:(rank(S) * rank(Q))]
 end
 
 function schubert_classes(G::AbstractVariety, m::Int)

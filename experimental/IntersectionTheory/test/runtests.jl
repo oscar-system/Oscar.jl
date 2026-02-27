@@ -28,11 +28,11 @@ let pushforward = IntersectionTheory.pushforward
     # @test rank(symmetric_power(g, 2trivial_line_bundle(C))) == g + 1
 
     # generic abstract_variety with bundles
-    X, (A, B) = abstract_variety(2, [3=>"a", 3=>"b"])
-    @test schur_functor(A, [1,1]) == exterior_power(A, 2)
+    X, (A, B) = abstract_variety(2, [3 => "a", 3 => "b"])
+    @test schur_functor(A, [1, 1]) == exterior_power(A, 2)
     @test schur_functor(A, [2]) == symmetric_power(A, 2)
     D = degeneracy_locus(A, B, 2)
-    @test pushforward(map(D, X), D(1)) == degeneracy_locus(A, B, 2, class=true)
+    @test pushforward(map(D, X), D(1)) == degeneracy_locus(A, B, 2; class=true)
 
     # characteristic classes
     t = todd_class(2)
@@ -44,11 +44,9 @@ let pushforward = IntersectionTheory.pushforward
     a = a_hat_genus(2)
     p = gens(parent(a))
     @test a == QQ(7//5760) * p[1]^2 - QQ(1//1440) * p[2]
-
   end
 
   @testset "VarietyHom" begin
-
     p = abstract_point()
     P2 = abstract_projective_space(2)
     i = map(P2, P2)
@@ -79,7 +77,7 @@ let pushforward = IntersectionTheory.pushforward
     @test integral(e^2) == -1
     @test pullback(structure_map(E), p(1)) == E(1)
 
-    P5 = abstract_projective_space(5, symbol="H")
+    P5 = abstract_projective_space(5; symbol="H")
     h, H = P2.O1, P5.O1
     v = map(P2, P5, [2h])
     @test pullback(v, H) == 2h
@@ -98,7 +96,7 @@ let pushforward = IntersectionTheory.pushforward
     # cubic containing a plane
     P2 = abstract_projective_space(2)
     Y = complete_intersection(abstract_projective_space(5), 3)
-    i = map(P2, Y, [P2.O1], inclusion=true)
+    i = map(P2, Y, [P2.O1]; inclusion=true)
     Y1 = i.codomain
     p = pushforward(i, P2(1))
     h = Y1.O1
@@ -114,7 +112,6 @@ let pushforward = IntersectionTheory.pushforward
     G = abstract_grassmannian(3, 6)
     S = G.bundles[1]
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 3402
-
   end
 
   @testset "Constructors" begin
@@ -128,7 +125,7 @@ let pushforward = IntersectionTheory.pushforward
     @test P2.point == h^2
     @test S == line_bundle(P2, -1)
     @test Q == abstract_bundle(P2, 2, 1 + h + h^2)
-    @test Q == abstract_bundle(P2, 2 + h - QQ(1//2)*h^2)
+    @test Q == abstract_bundle(P2, 2 + h - QQ(1//2) * h^2)
     @test hom(S, Q) == P2.T
     @test euler_number(P2) == 3
     @test total_chern_class(P2) == 1 + 3h + 3h^2
@@ -136,35 +133,35 @@ let pushforward = IntersectionTheory.pushforward
     @test top_chern_class(P2.T) == chern_class(P2, 2)
     @test total_segre_class(P2.T) == 1 - 3h + 6h^2
     @test segre_class(P2.T, 2) == 6h^2
-    @test todd_class(P2) == 1 + QQ(3//2)*h + h^2
+    @test todd_class(P2) == 1 + QQ(3//2) * h + h^2
     @test integral(todd_class(P2)) == 1
     @test total_pontryagin_class(P2) == 1 + 3h^2
     @test pontryagin_class(P2, 1) == 3h^2
     @test a_hat_genus(P2) == -1//8
     @test signature(P2) == 1
     @test chern_number(P2, 2) == 3
-    @test chern_numbers(P2) == [partition([2]) => 3, partition([1,1]) => 9]
+    @test chern_numbers(P2) == [partition([2]) => 3, partition([1, 1]) => 9]
     @test euler_characteristic(trivial_line_bundle(P2)) == 1
     @test euler_characteristic(cotangent_bundle(P2)) == -1
     hilb = hilbert_polynomial(P2)
     t = gens(parent(hilb))[1]
     @test hilb isa QQPolyRingElem
-    @test hilb == 1 + 3//2*t + 1//2*t^2
+    @test hilb == 1 + 3//2 * t + 1//2 * t^2
 
     # Grassmannian
     G = abstract_grassmannian(2, 4)
     S, Q = tautological_bundles(G)
     c1, c2 = gens(G.ring)
-    @test betti_numbers(G) == [1,1,2,1,1]
+    @test betti_numbers(G) == [1, 1, 2, 1, 1]
     @test euler_number(G) == 6
     @test chern_class(G, 1) == -4chern_class(S, 1)
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 27
     @test integral(chern_class(dual(S), 1)^4) == 2
     @test integral(chern_class(G, 2)^2) == 98
-    @test schubert_class(G, 2) == c1^2-c2
+    @test schubert_class(G, 2) == c1^2 - c2
     @test schubert_class(G, [1, 1]) == c2
     @test schubert_class(G, partition([2, 1])) == -c1^3 + c1 * c2
-    @test [length(schubert_classes(G, i)) for i in 0:4] == [1,1,2,1,1]
+    @test [length(schubert_classes(G, i)) for i in 0:4] == [1, 1, 2, 1, 1]
 
     # Grassmannian: TnVariety version
     G = tn_grassmannian(2, 4)
@@ -182,7 +179,7 @@ let pushforward = IntersectionTheory.pushforward
     A, B, C = tautological_bundles(F)
     @test dim(F) == 3
     @test rank.(tautological_bundles(F)) == [1, 1, 1]
-    @test betti_numbers(F) == [1,2,2,1]
+    @test betti_numbers(F) == [1, 2, 2, 1]
     @test euler_number(F) == 6
 
     # flag abstract_variety: TnVariety version
@@ -193,7 +190,7 @@ let pushforward = IntersectionTheory.pushforward
     #@test euler_number(F) == 6
 
     # projective bundle
-    X, (F,) = abstract_variety(3, [3=>"c"])
+    X, (F,) = abstract_variety(3, [3 => "c"])
     PF = projective_bundle(F)
     @test dim(PF) == 5
     @test rank.(tautological_bundles(PF)) == [1, 2]
@@ -204,7 +201,7 @@ let pushforward = IntersectionTheory.pushforward
     @test pushforward(p, p.O1^2) == 1
 
     # flag bundle
-    X, (F,) = abstract_variety(2, [4=>"c"])
+    X, (F,) = abstract_variety(2, [4 => "c"])
     FlF = flag_bundle(F, 2)
     @test dim(FlF) == 6
     @test rank.(tautological_bundles(FlF)) == [2, 2]
@@ -213,8 +210,7 @@ let pushforward = IntersectionTheory.pushforward
     @test pullback(p, X(1)) == 1
     @test pushforward(p, FlF(1)) == 0
     @test pushforward(p, p.O1^4) == 2
-    @test [length(schubert_classes(FlF, i)) for i in 0:4] == [1,1,2,1,1]
-
+    @test [length(schubert_classes(FlF, i)) for i in 0:4] == [1, 1, 2, 1, 1]
   end
 
   @testset "SpecialVarieties" begin
@@ -262,7 +258,6 @@ let pushforward = IntersectionTheory.pushforward
     CG = abstract_cayley_grassmannian()
     @test dim(CG) == 8
     @test euler_number(CG) == 15
-
   end
 
   # @testset "Pushfwd" begin
@@ -304,7 +299,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # blow_up point in P2
     P2 = abstract_projective_space(2)
-    P = abstract_point(base = P2.base)
+    P = abstract_point(; base=P2.base)
     Bl, E, j = blowup(map(P, P2, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test integral(e^2) == -1
@@ -313,7 +308,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # blow_up point in P7
     P7 = abstract_projective_space(7)
-    P = abstract_point(base = P2.base)
+    P = abstract_point(; base=P2.base)
     Bl, E, j = blowup(map(P, P7, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test euler_number(Bl) == 14
@@ -330,49 +325,49 @@ let pushforward = IntersectionTheory.pushforward
     @test integral(quad^2 * cubic) == 1
 
     # blow_up twisted cubic, with parameters
-    T, (r, s, t) =  polynomial_ring(QQ, [:r, :s, :t])
+    T, (r, s, t) = polynomial_ring(QQ, [:r, :s, :t])
     F = fraction_field(T)
     (r, s, t) = gens(F)
-    P1 = abstract_projective_space(1, base = F)
-    P3 = abstract_projective_space(3, base = F)
+    P1 = abstract_projective_space(1; base=F)
+    P3 = abstract_projective_space(3; base=F)
     i = map(P1, P3, [3P1.O1])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
-    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
-    @test integral(rH * sH * tH) == r*s*t - 3*r - 3*s - 3*t + 10
+    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r, s, t]]
+    @test integral(rH * sH * tH) == r * s * t - 3 * r - 3 * s - 3 * t + 10
 
     G = abstract_grassmannian(2, 5)
     P9 = abstract_projective_space(9)
     i = map(G, P9, [G.O1])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
-    quad = pullback(structure_map(Bl), 2P9.O1)-e
+    quad = pullback(structure_map(Bl), 2P9.O1) - e
     @test simplify(quad^5) == 0
     @test simplify(e^5) != 0
 
     # blow_up space curve of degree d and genus g
-    T, (r,s,t,d,g) =  polynomial_ring(QQ, [:r, :s, :t, :d, :g])
+    T, (r, s, t, d, g) = polynomial_ring(QQ, [:r, :s, :t, :d, :g])
     F = fraction_field(T)
     (r, s, t, d, g) = gens(F)
-    P2 = abstract_projective_space(2, base = F)
-    P3 = abstract_projective_space(3, base = F)
-    C = zero_locus_section(OO(P2,d))
-    C.point = 1//(2-2g) * chern_class(C, 1)
+    P2 = abstract_projective_space(2; base=F)
+    P3 = abstract_projective_space(3; base=F)
+    C = zero_locus_section(OO(P2, d))
+    C.point = 1//(2 - 2g) * chern_class(C, 1)
     i = map(C, P3, [d * C.point])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
-    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
-    @test integral(rH * sH * tH) == r*s*t - d*(r+s+t) + (2g-2+4d)
+    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r, s, t]]
+    @test integral(rH * sH * tH) == r * s * t - d * (r + s + t) + (2g - 2 + 4d)
 
     G = abstract_grassmannian(2, 5)
     Z = zero_locus_section(3line_bundle(G, 1))
     Bl, E = blowup(structure_map(Z))
     @test dim(Bl) == 6
     @test euler_number(Bl) == 18
-    @test betti_numbers(Bl) == [1,2,4,4,4,2,1]
-    @test [euler_characteristic(exterior_power(cotangent_bundle(Bl), i)) for i in 0:6] == [1,-2,4,-4,4,-2,1]
-
-   end
+    @test betti_numbers(Bl) == [1, 2, 4, 4, 4, 2, 1]
+    @test [euler_characteristic(exterior_power(cotangent_bundle(Bl), i)) for i in 0:6] ==
+      [1, -2, 4, -4, 4, -2, 1]
+  end
 
   @testset "Setters" begin
 
@@ -412,7 +407,6 @@ let pushforward = IntersectionTheory.pushforward
     set_structure_map(X, f)
     @test structure_map(X) === f
     @test_throws ErrorException set_structure_map(X, f)
-
   end
 
   @testset "CharacteristicClasses" begin
@@ -435,7 +429,7 @@ let pushforward = IntersectionTheory.pushforward
     P3 = abstract_projective_space(3)
     hilb = hilbert_polynomial(P3)
     t = gens(parent(hilb))[1]
-    @test hilb == 1 + 11//6*t + t^2 + 1//6*t^3
+    @test hilb == 1 + 11//6 * t + t^2 + 1//6 * t^3
 
     # chern_numbers of P3
     cn = chern_numbers(P3)
@@ -447,7 +441,6 @@ let pushforward = IntersectionTheory.pushforward
     @test instanton_number(1, 5) == 2875
     @test instanton_number(2, 5) == 609250
     @test instanton_number(2, 4, 2) == 92288
-
   end
 
   @testset "AdamsOperations" begin
@@ -476,7 +469,6 @@ let pushforward = IntersectionTheory.pushforward
     # cannibalistic on bundles
     can2_bundle = cannibalistic(2, T)
     @test parent(can2_bundle) == P2.ring
-
   end
 
   @testset "AbstractCurve" begin
@@ -503,7 +495,6 @@ let pushforward = IntersectionTheory.pushforward
     # genus 3 curve
     C3 = abstract_curve(3)
     @test euler_number(C3) == -4
-
   end
 
   @testset "DegeneracyLocusK0" begin
@@ -511,15 +502,15 @@ let pushforward = IntersectionTheory.pushforward
     # k=0 with class=true: Porteous formula for where the map is zero
     G24 = abstract_grassmannian(2, 4)
     S, Q = tautological_bundles(G24)
-    cl = degeneracy_locus(S, Q, 0, class=true)
+    cl = degeneracy_locus(S, Q, 0; class=true)
     c2 = gens(G24.ring)[2]
-    @test cl == 6*c2^2  # Porteous formula: schur_functor(Q-S, [2,2]) in top degree
+    @test cl == 6 * c2^2  # Porteous formula: schur_functor(Q-S, [2,2]) in top degree
 
     # k=0 with class=true should work and give a ring element
     P4 = abstract_projective_space(4)
-    F = 2*OO(P4, -1)
-    G = 3*OO(P4)
-    cl2 = degeneracy_locus(F, G, 0, class=true)
+    F = 2 * OO(P4, -1)
+    G = 3 * OO(P4)
+    cl2 = degeneracy_locus(F, G, 0; class=true)
     @test parent(cl2) == P4.ring  # should return an element (possibly 0)
 
   end

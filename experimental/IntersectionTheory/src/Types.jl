@@ -1,8 +1,7 @@
-const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
-const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
+const MPolyDecRingOrQuo = Union{MPolyDecRing,MPolyQuoRing{<:MPolyDecRingElem}}
+const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem,MPolyQuoRingElem}
 
 abstract type Bundle end
-
 
 @doc raw"""
     parent(F::AbstractBundle)
@@ -114,22 +113,25 @@ abstract type AbstractVarietyT <: Variety end
 
 The type of an abstract bundle.
 """
-mutable struct AbstractBundle{V <: AbstractVarietyT} <: Bundle
+mutable struct AbstractBundle{V<:AbstractVarietyT} <: Bundle
   parent::V
   rank::RingElement
   ch::MPolyDecRingOrQuoElem
   chern::MPolyDecRingOrQuoElem
 
-  function AbstractBundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
+  function AbstractBundle(X::V, ch::MPolyDecRingOrQuoElem) where {V<:AbstractVarietyT}
     ch = simplify(ch)
     r = constant_coefficient(ch.f)
-    try r = Int(ZZ(QQ(r)))
+    try
+      r = Int(ZZ(QQ(r)))
     catch # r can contain symbolic variables
     end
     new{V}(X, r, ch)
   end
 
-  function AbstractBundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT
+  function AbstractBundle(
+    X::V, r::RingElement, c::MPolyDecRingOrQuoElem
+  ) where {V<:AbstractVarietyT}
     F = new{V}(X, r)
     F.chern = c
     return F
@@ -142,7 +144,7 @@ end
 
 The type of an abstract variety morphism.
 """
-mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT} <: VarietyHom
+mutable struct AbstractVarietyMap{V1<:AbstractVarietyT,V2<:AbstractVarietyT} <: VarietyHom
   domain::V1
   codomain::V2
   dim::Int
@@ -151,40 +153,53 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
   O1::MPolyDecRingOrQuoElem
   T::AbstractBundle{V1}
 
-  function AbstractVarietyMap(X::V1, Y::V2, f_pullback::AffAlgHom, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
+  function AbstractVarietyMap(
+    X::V1, Y::V2, f_pullback::AffAlgHom, f_pushforward=nothing
+  ) where {V1<:AbstractVarietyT,V2<:AbstractVarietyT}
     if !(f_pushforward isa MapFromFunc) && isdefined(X, :point) && isdefined(Y, :point)
       # pushforward can be deduced from pullback in the following cases
       # - explicitly specified (f is relatively algebraic)
       # - X is a point
       # - Y is a point or a curve
       # - all algebraic classes for Y are known
-      f_is_alg = f_pushforward == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_attribute(Y, :alg) == true
-      f_pushforward = x -> (
-        if !f_is_alg
-          @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
-        end;
-        sum((integral(xi*f_pullback(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
-            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))); init=chow_ring(Y)(0)))
+      f_is_alg =
+        f_pushforward == :alg || dim(X) == 0 || dim(Y) <= 1 ||
+        get_attribute(Y, :alg) == true
+      f_pushforward =
+        x -> (
+          if !f_is_alg
+            @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
+          end;
+          sum(
+            (
+              integral(xi * f_pullback(yi)) * di for
+              (i, xi) in zip(dim(Y):-1:0, x[(dim(X) - dim(Y)):dim(X)])
+              if xi != 0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))
+            ); init=chow_ring(Y)(0)))
       f_pushforward = MapFromFunc(chow_ring(X), chow_ring(Y), f_pushforward)
     end
-    f = new{V1, V2}(X, Y, dim(X)-dim(Y), f_pullback)
+    f = new{V1,V2}(X, Y, dim(X) - dim(Y), f_pullback)
     try
       f.pushforward = f_pushforward
     catch
     end
     if isdefined(X, :T) && isdefined(Y, :T)
-      f.T = AbstractBundle(X, chern_character(tangent_bundle(X)) - f_pullback(chern_character(tangent_bundle(Y))))
+      f.T = AbstractBundle(
+        X,
+        chern_character(tangent_bundle(X)) - f_pullback(chern_character(tangent_bundle(Y))),
+      )
     end
     return f
   end
 
-  function AbstractVarietyMap(X::V1, Y::V2, l::Vector, f_pushforward=nothing) where {V1 <: AbstractVarietyT, V2 <: AbstractVarietyT}
+  function AbstractVarietyMap(
+    X::V1, Y::V2, l::Vector, f_pushforward=nothing
+  ) where {V1<:AbstractVarietyT,V2<:AbstractVarietyT}
     # TODO: this fails with check = false
-    f_pullback = hom(chow_ring(Y), chow_ring(X), l, check = false)
+    f_pullback = hom(chow_ring(Y), chow_ring(X), l; check=false)
     AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   end
 end
-
 
 @attributes mutable struct AbstractVariety <: AbstractVarietyT
   dim::Int

@@ -326,7 +326,7 @@ function total_pontryagin_class(F::AbstractBundle)
   n = dim(parent(F))
   x = total_chern_class(F) * total_chern_class(dual(F))
   comps = x[0:n]
-  sum([(-1)^i*comps[2i+1] for i in 0:n÷2])
+  sum([(-1)^i*comps[2i+1] for i in 0:div(n, 2)])
 end
 
 @doc raw"""
@@ -804,7 +804,7 @@ function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
 
   gof_pushforward = nothing
   if isdefined(f, :pushforward) && isdefined(g, :pushforward)
-    gof_pushforward = MapFromFunc(chow_ring(X), chow_ring(Z), pushforward_morphism(g) ∘ pushforward_morphism(f))
+    gof_pushforward = MapFromFunc(chow_ring(X), chow_ring(Z), x -> pushforward_morphism(g)(pushforward_morphism(f)(x)))
   end
 
   gof = AbstractVarietyMap(X, Z, pullback_morphism(g) * pullback_morphism(f), gof_pushforward)
@@ -1519,13 +1519,13 @@ julia> chern_number(Q, 2, 1)
 
 ```
 """
-chern_number(X::AbstractVariety, λ::Int...) = chern_number(X, collect(λ))
-chern_number(X::AbstractVariety, λ::Partition) = chern_number(X, Vector(λ))
+chern_number(X::AbstractVariety, lambda::Int...) = chern_number(X, collect(lambda))
+chern_number(X::AbstractVariety, lambda::Partition) = chern_number(X, Vector(lambda))
 
-function chern_number(X::AbstractVariety, λ::Vector{Int})
-  @assert sum(λ) == dim(X)
+function chern_number(X::AbstractVariety, lambda::Vector{Int})
+  @assert sum(lambda) == dim(X)
   c = total_chern_class(X)[1:dim(X)]
-  integral(prod([c[i] for i in λ]))
+  integral(prod([c[i] for i in lambda]))
 end
 
 @doc raw"""
@@ -1567,7 +1567,7 @@ julia> chern_numbers(F)
 """
 function chern_numbers(X::AbstractVariety)
   c = total_chern_class(X)[1:dim(X)]
-  [λ => integral(prod([c[i] for i in λ])) for λ in partitions(dim(X))]
+  [lambda => integral(prod([c[i] for i in lambda])) for lambda in partitions(dim(X))]
 end
 
 for g in [:a_hat_genus, :l_genus]
@@ -1581,7 +1581,7 @@ for g in [:a_hat_genus, :l_genus]
 
   @eval function $g(X::AbstractVariety)
     !iseven(dim(X)) && error("the abstract variety is not of even dimension")
-    integral($g(dim(X)÷2, X))
+    integral($g(div(dim(X), 2), X))
   end
 end
 
@@ -2088,14 +2088,14 @@ end
 
 Return the result of the Schur functor $\mathbf S^\lambda$.
 """
-function schur_functor(F::AbstractBundle, λ::Vector{Int}) schur_functor(F, partition(λ)) end
-function schur_functor(F::AbstractBundle, λ::Partition)
-  λ = conjugate(λ)
+function schur_functor(F::AbstractBundle, lambda::Vector{Int}) schur_functor(F, partition(lambda)) end
+function schur_functor(F::AbstractBundle, lambda::Partition)
+  lambda = conjugate(lambda)
   X = parent(F)
-  w = _wedge(sum(λ), chern_character(F))
+  w = _wedge(sum(lambda), chern_character(F))
   S, ei = polynomial_ring(QQ, "e#" => 1:length(w))
   e = i -> i < 0 ? S() : ei[i+1]
-  M = [e(λ[i]-i+j) for i in 1:length(λ), j in 1:length(λ)]
+  M = [e(lambda[i]-i+j) for i in 1:length(lambda), j in 1:length(lambda)]
   sch = det(matrix(S, M)) # Jacobi-Trudi
   R = chow_ring(X)
   if R isa MPolyQuoRing
@@ -2109,9 +2109,9 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   end
 end
 
-function giambelli(F::AbstractBundle, λ::Vector{Int})
+function giambelli(F::AbstractBundle, lambda::Vector{Int})
   R = chow_ring(parent(F))
-  M = [chern_class(F, λ[i]-i+j).f for i in 1:length(λ), j in 1:length(λ)]
+  M = [chern_class(F, lambda[i]-i+j).f for i in 1:length(lambda), j in 1:length(lambda)]
   R(det(matrix(R, M)))
 end
 
@@ -2796,7 +2796,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     ps = basis(Z, dim(Z)) # the 0-cycles
     @assert length(ps) == 1 # make sure that the 0-cycle is unique
     p = ps[1]
-    degp = integral(R(p.f) * cZ) # compute the degree of iₓp
+    degp = integral(R(p.f) * cZ) # compute the degree of i_x p
     Z.point = Z(inv(degp) * p.f)
   end
 
@@ -2808,11 +2808,11 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     Z.O1 = Z(polarization(X).f)
   end
 
-  iₓ = x -> x.f * cZ
-  iₓ = MapFromFunc(chow_ring(Z), chow_ring(X), iₓ)
+  i_x = x -> x.f * cZ
+  i_x = MapFromFunc(chow_ring(Z), chow_ring(X), i_x)
 
   @assert R isa MPolyQuoRing
-  i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), iₓ)
+  i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), i_x)
   i.T = pullback(i, -F)
   Z.structure_map = i
   set_attribute!(Z, :description, "Zero locus of a section of $F")
@@ -3440,7 +3440,7 @@ function abstract_quadric(n::Int; base::Ring=QQ)
     return Q
   else
     m = div(n, 2)
-    R, (h, l1, l2) = graded_polynomial_ring(base, ["h", "l₁", "l₂"], [1, m, m])
+    R, (h, l1, l2) = graded_polynomial_ring(base, ["h", "l1", "l2"], [1, m, m])
     p = (1 // ZZ(2)) * h^n
     # Relations depend on parity of m
     if isodd(m)
@@ -3507,7 +3507,7 @@ julia> betti_numbers(X)
 ```
 """
 function abstract_cayley_plane(; base::Ring=QQ)
-  R, (H, s4p, s8, p) = graded_polynomial_ring(base, ["H", "σ₄'", "σ₈", "p"], [1, 4, 8, 16])
+  R, (H, s4p, s8, p) = graded_polynomial_ring(base, ["H", "s4p", "s8", "p"], [1, 4, 8, 16])
   s4pp = H^4 - s4p
   s6p = 2*s4p*H^2 - s4pp*H^2
   s6pp = s4pp*H^2 - s4p*H^2
@@ -3547,7 +3547,7 @@ function abstract_cayley_plane(; base::Ring=QQ)
   P26 = abstract_projective_space(26, base=base)
   X.structure_map = map(X, P26, [H])
   X.T = pullback(X.structure_map, tangent_bundle(P26)) - N
-  set_attribute!(X, :description, "Cayley plane OP²")
+  set_attribute!(X, :description, "Cayley plane OP^2")
   set_attribute!(X, :alg, true)
   return X
 end
