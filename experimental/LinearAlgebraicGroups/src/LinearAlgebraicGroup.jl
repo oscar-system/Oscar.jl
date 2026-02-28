@@ -421,17 +421,18 @@ julia> F, _  = finite_field(5);
 
 julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
+julia> torus_element(LAG, [1,2,1,3])
 [1   0   0   0]
 [0   2   0   0]
 [0   0   1   0]
 [0   0   0   3]
 ```
 """
-function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{<:FieldElem})
+function torus_element(LAG::LinearAlgebraicGroup, diag::Vector)
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
-  @req isone(prod(diag)) "Deteminant of torus element must be 1"
-  m = diagonal_matrix(base_ring(LAG), diag)
+  diag_ = [base_ring(LAG)(d) for d in diag]
+  @req isone(prod(diag_)) "Deteminant of torus element must be 1"
+  m = diagonal_matrix(base_ring(LAG), diag_)
   return linear_algebraic_group_elem(LAG, m; check=false)
 end
 

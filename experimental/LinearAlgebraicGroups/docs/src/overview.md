@@ -23,19 +23,13 @@ Depth = 2:5
 ## Constructing groups
 ```@docs
 linear_algebraic_group(type::Symbol, n::Int, k::Field)
-```
-
-```@docs
 linear_algebraic_group(rs::RootSystem, k::Field)
 ```
 
 ## Constructing elements
 ```@docs
-linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
-```
-
-```@docs
-linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatrixElem{T}) where {T<:FieldElem}
+linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, MGE::MatGroupElem{C}) where {C<:FieldElem}
+linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, m::MatElem{C}) where {C<:FieldElem}
 ```
 
 ## Root subgroups
@@ -54,7 +48,7 @@ maximal_torus(LAG::LinearAlgebraicGroup)
 ```
 
 ```@docs
-torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
+torus_element(LAG::LinearAlgebraicGroup, diag::Vector)
 ```
 
 ```@docs
