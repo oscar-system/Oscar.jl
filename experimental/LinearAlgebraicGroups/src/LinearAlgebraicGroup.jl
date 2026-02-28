@@ -571,30 +571,16 @@ Return the Bruhat decomposition of the linear algebraic group `LAG`.
 ```jldoctest
 julia> F, _  = finite_field(5);
 
-julia> LAG = linear_algebraic_group(:A, 3, F);
+julia> LAG = linear_algebraic_group(:A, 2, F);
 
 julia> bruhat_decomp(LAG)
-24-element Vector{GroupDoubleCoset{MatGroup{FqFieldElem, FqMatrix}, MatGroupElem{FqFieldElem, FqMatrix}}}:
- Double coset of matrix group and matrix group with representative [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 1 0 0 0; 0 0 1 0; 0 0 0 1]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 4 0; 1 0 0 0; 0 0 0 1]
- Double coset of matrix group and matrix group with representative [0 0 1 0; 0 4 0 0; 1 0 0 0; 0 0 0 1]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 4 0; 0 0 0 4; 1 0 0 0]
- Double coset of matrix group and matrix group with representative [0 0 1 0; 0 4 0 0; 0 0 0 4; 1 0 0 0]
- Double coset of matrix group and matrix group with representative [0 0 1 0; 0 0 0 1; 0 4 0 0; 1 0 0 0]
- Double coset of matrix group and matrix group with representative [0 0 0 4; 0 0 1 0; 0 4 0 0; 1 0 0 0]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 0 1; 0 0 4 0; 1 0 0 0]
- Double coset of matrix group and matrix group with representative [0 0 0 4; 0 4 0 0; 0 0 4 0; 1 0 0 0]
- ⋮
- Double coset of matrix group and matrix group with representative [0 0 0 4; 0 0 1 0; 1 0 0 0; 0 1 0 0]
- Double coset of matrix group and matrix group with representative [1 0 0 0; 0 0 0 1; 0 0 4 0; 0 1 0 0]
- Double coset of matrix group and matrix group with representative [0 0 0 4; 1 0 0 0; 0 0 4 0; 0 1 0 0]
- Double coset of matrix group and matrix group with representative [1 0 0 0; 0 1 0 0; 0 0 0 4; 0 0 1 0]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 1 0 0 0; 0 0 0 4; 0 0 1 0]
- Double coset of matrix group and matrix group with representative [0 4 0 0; 0 0 0 1; 1 0 0 0; 0 0 1 0]
- Double coset of matrix group and matrix group with representative [0 0 0 4; 0 4 0 0; 1 0 0 0; 0 0 1 0]
- Double coset of matrix group and matrix group with representative [1 0 0 0; 0 0 0 1; 0 1 0 0; 0 0 1 0]
- Double coset of matrix group and matrix group with representative [0 0 0 4; 1 0 0 0; 0 1 0 0; 0 0 1 0]
+6-element Vector{GroupDoubleCoset{MatGroup{FqFieldElem, FqMatrix}, MatGroupElem{FqFieldElem, FqMatrix}}}:
+ Double coset of matrix group and matrix group with representative [1 0 0; 0 1 0; 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 4 0; 1 0 0; 0 0 1]
+ Double coset of matrix group and matrix group with representative [0 4 0; 0 0 4; 1 0 0]
+ Double coset of matrix group and matrix group with representative [0 0 1; 0 4 0; 1 0 0]
+ Double coset of matrix group and matrix group with representative [1 0 0; 0 0 4; 0 1 0]
+ Double coset of matrix group and matrix group with representative [0 0 1; 1 0 0; 0 1 0]
 ```
 """
 function bruhat_decomp(LAG::LinearAlgebraicGroup)
