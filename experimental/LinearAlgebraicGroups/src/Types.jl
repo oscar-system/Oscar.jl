@@ -24,14 +24,6 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
   end
 end
 
-function root_system(LAG::LinearAlgebraicGroup)
-  return LAG.rs
-end
-
-function degree(LAG::LinearAlgebraicGroup)
-  return degree(LAG.G)
-end
-
 @doc raw"""
     LinearAlgebraicGroupElem
 """
@@ -47,8 +39,4 @@ end
     end
     return new{C}(parent, MGE)
   end
-end
-
-function parent(a::LinearAlgebraicGroupElem)
-  return a.parent
 end

@@ -55,6 +55,14 @@ function linear_algebraic_group(type::Symbol, n::Int, k::Field)
   return linear_algebraic_group(root_system(type, n), k)
 end
 
+function root_system(LAG::LinearAlgebraicGroup)
+  return LAG.rs
+end
+
+function _underlying_matrix_group(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
+  return LAG.G::matrix_group_type(C)
+end
+
 function base_ring(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
   return LAG.k::parent_type(C)
 end
@@ -63,18 +71,22 @@ function base_ring_type(::Type{<:LinearAlgebraicGroup{C}}) where {C<:FieldElem}
   return parent_type(C)
 end
 
+function degree(LAG::LinearAlgebraicGroup)
+  return degree(_underlying_matrix_group(LAG))
+end
+
 #This is here because of https://github.com/oscar-system/Oscar.jl/issues/5661
 function gap_likes_the_group(LAG::LinearAlgebraicGroup)
   return is_finite(base_ring(LAG))
 end
 
 function has_gens(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return has_gens(LAG.G)
+  gap_likes_the_group(LAG) && return has_gens(_underlying_matrix_group(LAG))
   return false
 end
 
 function number_of_generators(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return number_of_generators(LAG.G)
+  gap_likes_the_group(LAG) && return number_of_generators(_underlying_matrix_group(LAG))
   error("Group is not finitely generated") # as long as field is QQ
 end
 
@@ -84,12 +96,14 @@ end
 
 function gen(LAG::LinearAlgebraicGroup, i::Int)
   gap_likes_the_group(LAG) &&
-    return linear_algebraic_group_elem(LAG, gen(LAG.G, i); check=false)
+    return linear_algebraic_group_elem(
+      LAG, gen(_underlying_matrix_group(LAG), i); check=false
+    )
   error("Group is not finitely generated") # as long as field is QQ
 end
 
 function isfinite(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return isfinite(LAG.G)
+  gap_likes_the_group(LAG) && return isfinite(_underlying_matrix_group(LAG))
   if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
     return true
   else
@@ -99,7 +113,7 @@ end
 
 function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
   is_finite(LAG) || throw(InfiniteOrderError(LAG))
-  return order(T, LAG.G)
+  return order(T, _underlying_matrix_group(LAG))
 end
 
 function Base.rand(
@@ -107,7 +121,9 @@ function Base.rand(
 )
   LAG = rs[]
   if gap_likes_the_group(LAG)
-    return linear_algebraic_group_elem(LAG, rand(LAG.G); check=false)
+    return linear_algebraic_group_elem(
+      LAG, rand(_underlying_matrix_group(LAG)); check=false
+    )
   else
     error("Random elements not implemented for this field yet.")
   end
@@ -126,7 +142,7 @@ function parent_type(::Type{LinearAlgebraicGroupElem{C}}) where {C<:FieldElem}
 end
 
 function one(LAG::LinearAlgebraicGroup)
-  return linear_algebraic_group_elem(LAG, one(LAG.G); check=false)
+  return linear_algebraic_group_elem(LAG, one(_underlying_matrix_group(LAG)); check=false)
 end
 
 @doc raw"""
@@ -135,7 +151,7 @@ end
 Return whether the matrix group `U` is a subgroup of `LAG` as a matrix group.
 """
 function is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup)
-  return is_subgroup(U, LAG.G)
+  return is_subgroup(U, _underlying_matrix_group(LAG))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", LAG::LinearAlgebraicGroup)
@@ -182,7 +198,7 @@ julia> LAG = linear_algebraic_group(:A, 2, F);
 
 julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 
-julia> MGE = MatGroupElem(LAG.G, m);
+julia> MGE = MatGroupElem(GL(3,F), m);
 
 julia> linear_algebraic_group_elem(LAG, MGE)
 [2   1   0]
@@ -222,8 +238,12 @@ julia> linear_algebraic_group_elem(LAG, m)
 function linear_algebraic_group_elem(
   LAG::LinearAlgebraicGroup{C}, m::MatElem{C}; check::Bool=true
 ) where {C<:FieldElem}
-  MGE = LAG.G(m; check)
+  MGE = _underlying_matrix_group(LAG)(m; check)
   return LinearAlgebraicGroupElem(LAG, MGE; check=false)
+end
+
+function parent(a::LinearAlgebraicGroupElem)
+  return a.parent
 end
 
 function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
@@ -344,7 +364,7 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   else
     LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
   end
-  G = LAG.G
+  G = _underlying_matrix_group(LAG)
   I = identity_matrix(base_ring(LAG), degree(LAG))
   m = root_subgroup_generator(LAG, alpha)
   gs = [G(I + lambda * m) for lambda in basis(base_ring(LAG))]
@@ -371,21 +391,22 @@ Matrix group of degree 4
   over prime field of characteristic 5
 ```
 """
-function maximal_torus(LAG::LinearAlgebraicGroup)
-  isdefined(LAG, :T) && return LAG.T
-  G = LAG.G
-  gs = MatGroupElem[]
-  t = Hecke.primitive_element(base_ring(LAG))
-  it = inv(t)
-  for i in 1:(degree(LAG) - 1)
-    m = identity_matrix(base_ring(LAG), degree(LAG))
-    m[i, i] = t
-    m[i + 1, i + 1] = it
-    push!(gs, G(m))
+function maximal_torus(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
+  if !isdefined(LAG, :T)
+    G = _underlying_matrix_group(LAG)
+    gs = elem_type(G)[]
+    t = Hecke.primitive_element(base_ring(LAG))
+    it = inv(t)
+    for i in 1:(degree(LAG) - 1)
+      m = identity_matrix(base_ring(LAG), degree(LAG))
+      m[i, i] = t
+      m[i + 1, i + 1] = it
+      push!(gs, G(m))
+    end
+    T, _ = sub(G, gs)
+    LAG.T = T
   end
-  T, _ = sub(G, gs)
-  LAG.T = T
-  return T
+  return LAG.T::matrix_group_type(C)
 end
 
 @doc raw"""
@@ -491,24 +512,25 @@ Matrix group of degree 4
   over prime field of characteristic 3
 ```
 """
-function borel_subgroup(LAG::LinearAlgebraicGroup)
-  isdefined(LAG, :B) && return LAG.B
-  T = maximal_torus(LAG)
-  G = LAG.G
-  gs = MatGroupElem[]
-  for t in gens(T)
-    push!(gs, t)
-  end
-  I = identity_matrix(base_ring(LAG), degree(LAG))
-  for alpha in simple_roots(root_system(LAG))
-    rsg = root_subgroup_generator(LAG, alpha)
-    for lambda in basis(base_ring(LAG))
-      push!(gs, MatGroupElem(G, I + lambda * rsg))
+function borel_subgroup(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
+  if !isdefined(LAG, :B)
+    T = maximal_torus(LAG)
+    G = _underlying_matrix_group(LAG)
+    gs = elem_type(G)[]
+    for t in gens(T)
+      push!(gs, t)
     end
+    I = identity_matrix(base_ring(LAG), degree(LAG))
+    for alpha in simple_roots(root_system(LAG))
+      rsg = root_subgroup_generator(LAG, alpha)
+      for lambda in basis(base_ring(LAG))
+        push!(gs, MatGroupElem(G, I + lambda * rsg))
+      end
+    end
+    B, _ = sub(G, gs)
+    LAG.B = B
   end
-  B, _ = sub(G, gs)
-  LAG.B = B
-  return B
+  return LAG.B::matrix_group_type(C)
 end
 
 @doc raw"""
@@ -540,7 +562,7 @@ function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
     alpha = simple_root(root_system(LAG), Int64(i))
     rep = rep * representative_of_root_in_group(LAG, alpha).mat
   end
-  return LAG.G(rep)
+  return _underlying_matrix_group(LAG)(rep)
 end
 
 @doc raw"""
