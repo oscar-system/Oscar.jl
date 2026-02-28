@@ -66,7 +66,7 @@ borel_subgroup(LAG::LinearAlgebraicGroup)
 ```
 
 ```@docs
-bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
+bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
 ```
 
 ```@docs
@@ -74,6 +74,6 @@ bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
 ```
 
 ```@docs
-bruhat_decomp(LAG::LinearAlgebraicGroup)
+bruhat_decomposition(LAG::LinearAlgebraicGroup)
 ```
 

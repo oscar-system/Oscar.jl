@@ -535,7 +535,7 @@ function borel_subgroup(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
 end
 
 @doc raw"""
-    bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
+    bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
 
 Return the representative of the Bruhat cell corresponding to the Weyl group element `w`.
 
@@ -549,14 +549,14 @@ julia> W = weyl_group(root_system(LAG));
 
 julia> w = W([1,2]);
 
-julia> bruhat_cell_rep(LAG, w)
+julia> bruhat_cell_representative(LAG, w)
 [0   0   1   0]
 [1   0   0   0]
 [0   1   0   0]
 [0   0   0   1]
 ```
 """
-function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
+function bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
   rep = identity_matrix(base_ring(LAG), degree(LAG))
   for i in word(w)
@@ -589,13 +589,13 @@ Double coset of matrix group of degree 4 over F
 ```
 """
 function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
-  rep = bruhat_cell_rep(LAG, w)
+  rep = bruhat_cell_representative(LAG, w)
   B = borel_subgroup(LAG)
   return double_coset(B, rep, B)
 end
 
 @doc raw"""
-    bruhat_decomp(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
+    bruhat_decomposition(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
 
 Return the Bruhat decomposition of the linear algebraic group `LAG`.
 
@@ -605,7 +605,7 @@ julia> F, _  = finite_field(5);
 
 julia> LAG = linear_algebraic_group(:A, 2, F);
 
-julia> bruhat_decomp(LAG)
+julia> bruhat_decomposition(LAG)
 6-element Vector{GroupDoubleCoset{MatGroup{FqFieldElem, FqMatrix}, MatGroupElem{FqFieldElem, FqMatrix}}}:
  Double coset of matrix group and matrix group with representative [1 0 0; 0 1 0; 0 0 1]
  Double coset of matrix group and matrix group with representative [0 4 0; 1 0 0; 0 0 1]
@@ -615,6 +615,6 @@ julia> bruhat_decomp(LAG)
  Double coset of matrix group and matrix group with representative [0 0 1; 1 0 0; 0 1 0]
 ```
 """
-function bruhat_decomp(LAG::LinearAlgebraicGroup)
+function bruhat_decomposition(LAG::LinearAlgebraicGroup)
   return [bruhat_cell(LAG, w) for w in weyl_group(root_system(LAG))]
 end

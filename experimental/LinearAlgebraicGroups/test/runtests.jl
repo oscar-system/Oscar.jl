@@ -27,7 +27,7 @@ end
 
 @testset "Bruhat decomposition" begin
   LAG = linear_algebraic_group(root_system(:A, 2), GF(3))
-  bruh = bruhat_decomp(LAG)
+  bruh = bruhat_decomposition(LAG)
   W = weyl_group(root_system(LAG))
   @test length(bruh) == order(W)
   @test sum(order, bruh; init=ZZ(0)) == order(LAG)
