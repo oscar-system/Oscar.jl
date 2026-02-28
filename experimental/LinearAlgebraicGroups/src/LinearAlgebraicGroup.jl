@@ -89,11 +89,8 @@ function isfinite(LAG::LinearAlgebraicGroup)
 end
 
 function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
-  if !is_finite(LAG)
-    throw(InfiniteOrderError(LAG))
-  else
-    return order(T, LAG.G)
-  end
+  is_finite(LAG) || throw(InfiniteOrderError(LAG))
+  return order(T, LAG.G)
 end
 
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlgebraicGroup})
