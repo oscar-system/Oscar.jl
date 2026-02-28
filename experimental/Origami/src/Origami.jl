@@ -350,9 +350,24 @@ function is_hyperelliptic(o::Origami)
   return false
 end
 
+@doc raw"""
+    cylinder_structure(o::Origami)
+Returns a list of integer tuples, where each tuple (h, w) corresponds to a cylinder of o of height
+h and width w.
+# Examples
+```jldoctest
+julia> o = origami(cperm([1,2],[3,4]), cperm([1,3,5,6],[2,4]))
+Origami ((1,2)(3,4),(1,3,5,6)(2,4), 6)
+
+julia> cylinder_structure(o)
+2-element Vector{Tuple{Int64, Int64}}}:
+ (2, 2)
+ (2, 1)
+```
+"""
 function cylinder_structure(o::Origami)
   gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
-  cyl_tuples = Vector{Tuple{Int,Int}}(gap_obj)
+  cyl_tuples = Vector{Tuple{Int,Int}}(gap_obj)::Vector{Tuple{Int,Int}}
   return cyl_tuples
 end
 
@@ -364,6 +379,22 @@ function veech_group_is_even(o::Origami)
   return GAP.Globals.VeechGroupIsEven(GapObj(o))::Bool
 end
 
+@doc raw"""
+    are_equivalent(o1::Origami, o2::Origami)
+Checks whether two given origamis are equivalent, i.e. whether the permutations describing them are
+simultaneously conjugated.
+# Examples
+```jldoctest
+julia> o1 = origami(cperm([1,2,3,4]), cperm([3,4]))
+Origami ((1,2,3,4),(3,4), 4)
+
+julia> o2 = origami(cperm([1,3,2,4]), cperm([2,3]))
+Origami ((1,3,2,4),(2,3), 4)
+
+julia> are_equivalent(o1, o2)
+true
+```
+"""
 function are_equivalent(o1::Origami, o2::Origami)
   return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))::Bool
 end
@@ -412,7 +443,25 @@ function normalform_conjugators(o::Origami)
   return G
 end
 
+@doc raw"""
+    point_reflections(o::Origami)
+
+Computes all point reflections of the origami o as permutations of the squares of o. A point
+reflection is an affine homeomorphism with derivative -I, where I is the identity matrix. This is
+equivalent to the permutations t which satisfy h^t == h^-1 and v^t == v^-1.
+# Examples
+```jldoctest
+julia> o = origami(cperm([1,2,3,4]), cperm([1,2],[3,4]))
+Origami ((1,2,3,4),(1,2)(3,4), 4)
+
+julia> point_reflections(o)
+2-element Vector{PermGroupElem}:
+ (1,2)(3,4)
+ (1,4)(2,3)
+```
+"""
 function point_reflections(o::Origami)
+  # TODO do we really want an exception here, or maybe just return an empty list?
   if !veech_group_is_even(o)
     throw("VeechGroup must contain -1")
   end

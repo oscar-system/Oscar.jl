@@ -13,6 +13,7 @@
   @test stratum(o) == [2]
   @test genus(o) == 2
   @test index_monodromy_group(o) == 1
+  @test cylinder_structure(o) == [(1, 2), (1, 1)]
 
   h2 = @perm (1, 2)(3, 4)
   v2 = @perm (2, 5, 3, 6)(4, 7)
@@ -22,6 +23,7 @@
   @test (@inferred genus(o2)) == 3
   @test (@inferred index_monodromy_group(o2)) == 2
   @test (@inferred sum_of_lyapunov_exponents(o2)) == 11//6
+  @test (@inferred cylinder_structure(o2)) == [(1, 2), (1, 2), (1, 1), (1, 1), (1, 1)]
 
   h3 = @perm (1, 2, 3, 4, 5, 6)
   v3 = @perm (1, 6, 5, 4, 3, 2)
@@ -47,4 +49,11 @@
     cperm([1, 4], [2, 5], [3, 6]), one(perm_group(o4))
   ]
   @test (@inferred is_hyperelliptic(o4)) == false
+  @test (@inferred point_reflections(o4)) ==
+    [cperm([2, 6], [3, 5]), cperm([1, 4], [2, 3], [5, 6])]
+
+  @test (@inferred are_equivalent(o3, o4)) == false
+  v5 = @perm (2, 5)(1, 6, 4, 3)
+  o5 = origami(h4, v5)
+  @test are_equivalent(o4, o5) == true
 end

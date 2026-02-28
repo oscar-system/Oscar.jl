@@ -15,6 +15,7 @@ horizontal_perm(o::Origami)
 vertical_perm(o::Origami)
 degree(o::Origami)
 perm_group(o::Origami)
+are_equivalent(o1::Origami, o2::Origami)
 ```
 
 ## Computing attributes of origamis
@@ -25,5 +26,7 @@ genus(o::Origami)
 index_monodromy_group(o::Origami)
 sum_of_lyapunov_exponents(o::Origami)
 translations(o::Origami)
+point_reflections(o::Origami)
 is_hyperelliptic(o::Origami)
+cylinder_structure(o::Origami)
 ```
