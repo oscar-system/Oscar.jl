@@ -34,10 +34,6 @@ linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, m::MatElem{C}) where {
 
 ## Root subgroups
 ```@docs
-root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-```
-
-```@docs
 root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 ```
 

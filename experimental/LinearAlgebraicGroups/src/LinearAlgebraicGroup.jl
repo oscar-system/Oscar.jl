@@ -308,36 +308,6 @@ function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 end
 
 @doc raw"""
-    root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> Matrix
-
-Return the matrix that generates the root subgroup of `LAG` corresponding to the root `alpha`.
-
-
-# Examples
-```jldoctest
-julia> F, _  = finite_field(5);
-
-julia> LAG = linear_algebraic_group(:A, 3, F);
-
-julia> alpha = simple_root(root_system(LAG),2);
-
-julia> root_subgroup_generator(LAG, alpha)
-[0   0   0   0]
-[0   0   1   0]
-[0   0   0   0]
-[0   0   0   0]
-```
-"""
-function root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-  @req is_root(alpha) "The given element is not a root"
-  @req root_system(alpha) === root_system(LAG) "parent mismatch"
-  i, j = _compute_action(LAG, alpha)
-  m = zero_matrix(base_ring(LAG), degree(LAG), degree(LAG))
-  m[i, j] = one(base_ring(LAG))
-  return m
-end
-
-@doc raw"""
     root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> MatGroup
 
 Return the root subgroup of `LAG` corresponding to the root `alpha`.
@@ -365,9 +335,14 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
     LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
   end
   G = _underlying_matrix_group(LAG)
-  I = identity_matrix(base_ring(LAG), degree(LAG))
-  m = root_subgroup_generator(LAG, alpha)
-  gs = [G(I + lambda * m) for lambda in basis(base_ring(LAG))]
+  i, j = _compute_action(LAG, alpha)
+  gs = [
+    begin
+      g = identity_matrix(base_ring(LAG), degree(LAG))
+      g[i, j] = lambda
+      G(g)
+    end for lambda in basis(base_ring(LAG))
+  ]
   U, _ = sub(G, gs)
   LAG.U_alphas[alpha] = U
   return U
@@ -521,11 +496,12 @@ function borel_subgroup(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
     for t in gens(T)
       push!(gs, t)
     end
-    I = identity_matrix(base_ring(LAG), degree(LAG))
     for alpha in simple_roots(root_system(LAG))
-      rsg = root_subgroup_generator(LAG, alpha)
+      i, j = _compute_action(LAG, alpha)
       for lambda in basis(base_ring(LAG))
-        push!(gs, MatGroupElem(G, I + lambda * rsg))
+        g = identity_matrix(base_ring(LAG), degree(LAG))
+        g[i, j] = lambda
+        push!(gs, G(g))
       end
     end
     B, _ = sub(G, gs)

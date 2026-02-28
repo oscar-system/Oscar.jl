@@ -31,7 +31,6 @@ export borel_subgroup
 export bruhat_cell
 export bruhat_decomposition
 export bruhat_cell_representative
-export root_subgroup_generator
 
 include("Types.jl")
 include("LinearAlgebraicGroup.jl")
@@ -51,4 +50,3 @@ export borel_subgroup
 export bruhat_cell
 export bruhat_decomposition
 export bruhat_cell_representative
-export root_subgroup_generator
