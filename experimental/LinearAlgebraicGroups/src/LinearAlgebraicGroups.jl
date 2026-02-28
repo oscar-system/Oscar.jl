@@ -26,7 +26,7 @@ export maximal_torus
 export torus_element
 export apply_root_to_torus_element
 export representative_of_root_in_group
-export borel
+export borel_subgroup
 export bruhat_cell
 export bruhat_decomp
 export bruhat_cell_rep
@@ -46,7 +46,7 @@ export maximal_torus
 export torus_element
 export apply_root_to_torus_element
 export representative_of_root_in_group
-export borel
+export borel_subgroup
 export bruhat_cell
 export bruhat_decomp
 export bruhat_cell_rep

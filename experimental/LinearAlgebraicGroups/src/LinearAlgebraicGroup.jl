@@ -470,7 +470,7 @@ function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootS
 end
 
 @doc raw"""
-    borel(LAG::LinearAlgebraicGroup) -> MatGroup
+    borel_subgroup(LAG::LinearAlgebraicGroup) -> MatGroup
 
 Return the standard Borel subgroup of the linear algebraic group `LAG`.
 
@@ -480,12 +480,12 @@ julia> F, _  = finite_field(3);
 
 julia> LAG = linear_algebraic_group(:A, 3, F);
 
-julia> borel(LAG)
+julia> borel_subgroup(LAG)
 Matrix group of degree 4
   over prime field of characteristic 3
 ```
 """
-function borel(LAG::LinearAlgebraicGroup)
+function borel_subgroup(LAG::LinearAlgebraicGroup)
   isdefined(LAG, :B) && return LAG.B
   T = maximal_torus(LAG)
   G = LAG.G
@@ -560,7 +560,7 @@ Double coset of matrix group of degree 4 over F
 """
 function bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   rep = bruhat_cell_rep(LAG, w)
-  B = borel(LAG)
+  B = borel_subgroup(LAG)
   return double_coset(B, rep, B)
 end
 

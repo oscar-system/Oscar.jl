@@ -68,7 +68,7 @@ representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 ```
 
 ```@docs
-borel(LAG::LinearAlgebraicGroup)
+borel_subgroup(LAG::LinearAlgebraicGroup)
 ```
 
 ```@docs
