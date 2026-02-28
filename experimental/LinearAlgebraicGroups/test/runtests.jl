@@ -18,7 +18,7 @@ end
     @test b
   end
   T = maximal_torus(LAG)
-  B = borel(LAG)
+  B = borel_subgroup(LAG)
   b, _ = is_subgroup(B, LAG)
   @test b
   b, _ = is_subgroup(T, LAG)
