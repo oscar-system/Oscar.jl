@@ -49,3 +49,15 @@ end
     end
   end
 end
+
+@testset "pretty printing" begin
+  mktempdir() do path
+    filename = joinpath(path, "pretty.mrdi")
+    save(filename, [[1, 2], [3, 4], [5, 6]]; pretty_print=true)
+    str = read(filename, String)
+    version_info = Oscar.Serialization.get_oscar_serialization_version()[:Oscar][2]
+    cmp_str = "{\n  \"_ns\":{\n    \"Oscar\":[\n      \"https://github.com/oscar-system/Oscar.jl\",\n      \"" * version_info * "\"\n    ]\n  },\n  \"_type\":{\n    \"name\":\"Vector\",\n    \"params\":{\n      \"name\":\"Vector\",\n      \"params\":\"Base.Int\"\n    }\n  },\n  \"data\":[\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      \"3\",\n      \"4\"\n    ],\n    [\n      \"5\",\n      \"6\"\n    ]\n  ]\n}"
+
+    @test str == cmp_str
+  end
+end

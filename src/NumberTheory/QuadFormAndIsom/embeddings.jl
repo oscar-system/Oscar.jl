@@ -53,6 +53,7 @@ end
 function _direct_sum_with_embeddings_orthogonal_groups(
     A::TorQuadModule,
     B::TorQuadModule,
+    from_function::Bool=true
   )
   D, inj = direct_sum(A, B;cached=false)
   AinD, BinD = inj
@@ -61,21 +62,33 @@ function _direct_sum_with_embeddings_orthogonal_groups(
   OB = orthogonal_group(B)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
-  geneOAinOD = elem_type(OD)[]
-  for f in gens(OA)
-    m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
-    fD = OD(hom(D, D, m); check=false)
-    push!(geneOAinOD, fD)
+  if from_function
+    function OAtoOD_func(f)
+      m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
+      return OD(hom(D, D, m); check=false)
+    end
+    function OBtoOD_func(f)
+      m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
+      return OD(hom(D, D, m); check=false)
+    end
+    OAtoOD = hom(OA, OD, OAtoOD_func)
+    OBtoOD = hom(OB, OD, OBtoOD_func)
+  else
+    geneOAinOD = elem_type(OD)[]
+    for f in gens(OA)
+      m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
+      fD = OD(hom(D, D, m); check=false)
+      push!(geneOAinOD, fD)
+    end
+    geneOBinOD = elem_type(OD)[]
+    for f in gens(OB)
+      m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
+      fD = OD(hom(D, D, m); check=false)
+      push!(geneOBinOD, fD)
+    end
+    OAtoOD = hom(OA, OD, geneOAinOD; check=false)
+    OBtoOD = hom(OB, OD, geneOBinOD; check=false)
   end
-
-  geneOBinOD = elem_type(OD)[]
-  for f in gens(OB)
-    m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
-    fD = OD(hom(D, D, m); check=false)
-    push!(geneOBinOD, fD)
-  end
-  OAtoOD = hom(OA, OD, geneOAinOD; check=false)
-  OBtoOD = hom(OB, OD, geneOBinOD; check=false)
   return D, AinD, BinD, OD, OAtoOD, OBtoOD
 end
 
@@ -884,7 +897,9 @@ function _subgroups_orbit_representatives_and_stabilizers(
     subs = collect(submodules(V; order=ord))
     filter!(s -> is_invariant(fV, s[2]), subs)
   end
-
+  if iszero(length(subs))
+    return res
+  end 
   to_gap = get_attribute(O, :to_gap)
   to_oscar = get_attribute(O, :to_oscar)
 
@@ -2334,14 +2349,15 @@ function _glue_stabilizers(
   @vprint :ZZLatWithIsom 8 "computing glue stabilizer "
   OD = codomain(OqAinOD)
   OqA = domain(OqAinOD)
+
   imA, _ = image(actA)
-  @vprint :ZZLatWithIsom 11 "kernelA "
+  @vprint :ZZLatWithIsom 11 "kernelA $actA"
   kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]
   push!(kerA, one(OD))
 
   OqB = domain(OqBinOD)
   imB, _ = image(actB)
-  @vprint :ZZLatWithIsom 11 "kernelB "
+  @vprint :ZZLatWithIsom 11 "kernelB $actB"
   kerB = elem_type(OD)[OqBinOD(x) for x in gens(kernel(actB)[1])]
   push!(kerB, one(OD))
 

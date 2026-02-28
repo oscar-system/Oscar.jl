@@ -8,8 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 The existence, integrality and positivity of wreath Macdonald polynomials
  has been conjectured by Haiman [Hai02](@cite) and proved by Bezrukavnikov and Finkelberg [BF14](@cite).
-Here we have implemented an algorithm computing the wreath Macdonald
- polynomials as defined in the survey by Orr and Shimozono on this topic [OS23](@cite).
+Here we have implemented an algorithm due to Haiman, that computes the wreath Macdonald polynomials as defined in the survey by Orr and Shimozono on this topic [OS23](@cite).
 
 Take ``r`` and ``n`` two integers and consider the complex reflection group ``G(r,1,n):= (\mathbb{Z}/r\mathbb{Z})^n \rtimes \mathfrak{S}_n`` with its natural ``n``-dimensional reflection representation
 ``\mathfrak{h}_n``. Let ``\Lambda^i\mathfrak{h}_n^*`` denote the exterior power of ``\mathfrak{h}_n^*``. The irreducible representations over ``\mathbb{C}`` of ``G(r,1,n)`` are indexed by the ``r``-multipartitions of size ``n``. For ``\lambda^{\bullet}`` such a multipartition, let us denote by ``V_{\lambda^{\bullet}}`` the associated irreducible representation. If ``V`` is a representation of ``G(r,1,n)``, let ``\left[V\right]`` denote the class of ``V`` in ``K_{G(r,1,n)}``, the Grothendieck ring of ``G(r,1,n)``.\
@@ -25,13 +24,13 @@ For each partition ``\lambda`` such that ``|\mathrm{quot}_r(\lambda)|=n`` and ea
 * ``H^{\omega}_{\lambda} \otimes \sum_{i=0}^n(-t)^{-i}\left[\Lambda^i\mathfrak{h}_n^*\right] \in \bigoplus_{\mu \leq_{\omega} \lambda, \mathrm{core}_r(\mu)=\mathrm{core}_r(\lambda)}{\mathbb{K}\left[V_{\mathrm{quot}(\mu)}\right]}``,
 * ``\langle H^{\omega}_{\lambda},[\mathrm{triv}]\rangle = 1``.
 
-Remark that when ``r=1``, wreath Macdonald polynomials are equal to the Haiman-Macdonald polynomials, used to prove the Macdonald positivity conjecture.
+Remark that when ``r=1``, wreath Macdonald polynomials are equal to the modified Macdonald polynomials ``\tilde{H}_{\lambda}``.
 
-These polynomials, apart from generalizing the Haiman-Macdonald polynomials and giving access to new combinatorics, have a geometric counterpart.
+These polynomials, apart from generalizing the modified Macdonald polynomials and giving access to new combinatorics, have a geometric counterpart.
 Denote by ``\mathbb{T}`` the maximal diagonal torus of ``\mathrm{GL}_2(\mathbb{C})``.
 To be more precise, Bezrukavnikov and Finkelberg prove that ``H^{\omega}_{\lambda}`` can be realized as the bigraded ``G(r,1,n)`` Frobenius character of the fiber of a wreath Procesi bundle (see [Los18](@cite)) at the ``\mathbb{T}``-fixed point associated with ``\mathrm{quot}_r(\lambda)``.
 
-Finally, the wreath Macdonald polynomials can be interpreted as the eigenbasis of explicit vertex operators, see [Wen19](@cite).
+Finally, the wreath Macdonald polynomials can be interpreted as the eigenbasis of explicit vertex operators, see [Wen19](@cite) and as explicit difference operators, in finitely many variables, see [OSW25](@cite).
 
 In our implementation, wreath Macdonald polynomials depend on two parameters. The first parameter is an ``r``-multipartition of ``n`` . The second parameter is an element of the affine Weyl group
  of type ``A^{(1)}_{r-1}`` which is isomorphic to the semi-direct product of the finite Weyl group of type ``A_{r-1}`` (the symmetric group on ``r`` letters) and of the coroot lattice of type ``A_{r-1}``, where the finite Weyl group acts by permutation. The element of the coroot lattice is given in the canonical basis. It is then the sublattice

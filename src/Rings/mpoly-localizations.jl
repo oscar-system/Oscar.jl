@@ -549,26 +549,26 @@ function issubset(
 end
 
 function issubset(
-    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
-    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  R = ring(T)
-  R == ring(U) || error("multiplicative sets do not belong to the same ring")
-  a = point_coordinates(T)
-  for i in 1:length(a)
-    (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
-  end
-  return true
-end
-
-function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   R = ring(T)
   R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
-  for f in gens(prime_ideal(T))
+  for i in 1:length(a)
+    (gen(R, i) - R(a[i])) in prime_ideal(T) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(T)
+  for f in gens(prime_ideal(U))
     iszero(evaluate(f, a)) || return false
   end
   return true
