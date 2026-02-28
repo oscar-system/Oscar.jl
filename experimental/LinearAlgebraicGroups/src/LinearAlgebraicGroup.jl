@@ -75,7 +75,8 @@ function gens(LAG::LinearAlgebraicGroup)
 end
 
 function gen(LAG::LinearAlgebraicGroup, i::Int)
-  gap_likes_the_group(LAG) && return linear_algebraic_group_elem(LAG, gen(LAG.G, i))
+  gap_likes_the_group(LAG) &&
+    return linear_algebraic_group_elem(LAG, gen(LAG.G, i); check=false)
   error("Group is not finitely generated") # as long as field is QQ
 end
 
@@ -96,14 +97,7 @@ end
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlgebraicGroup})
   LAG = rs[]
   if gap_likes_the_group(LAG)
-    return linear_algebraic_group_elem(LAG, rand(LAG.G))
-  elseif LAG.k == QQ #pseudo random matrices in SLn(QQ)
-    M = matrix_space(QQ, degree(LAG), degree(LAG))
-    a = rand(M, 0:(degree(LAG) * 10))
-    while det(a) == 0
-      a = rand(M, 0:3)
-    end
-    return linear_algebraic_group_elem(LAG, multiply_row(a, inv(det(a)), rand(1:6)))
+    return linear_algebraic_group_elem(LAG, rand(LAG.G); check=false)
   else
     error("Random elements not implemented for this field yet.")
   end
@@ -118,7 +112,7 @@ function elem_type(::Type{LinearAlgebraicGroup})
 end
 
 function one(LAG::LinearAlgebraicGroup)
-  return linear_algebraic_group_elem(LAG, one(LAG.G))
+  return linear_algebraic_group_elem(LAG, one(LAG.G); check=false)
 end
 
 @doc raw"""
@@ -149,7 +143,7 @@ function Base.show(io::IO, LAG::LinearAlgebraicGroup)
     print(
       io,
       "Linear algebraic group of type ",
-      Oscar._root_system_type_string(root_system_type(root_system(LAG)))
+      Oscar._root_system_type_string(root_system_type(root_system(LAG))),
     )
     print(terse(io), " over ", Lowercase(), LAG.k)
   end
@@ -159,15 +153,12 @@ end
 # Linear Algebraic Group Elements
 #################################################
 
-# function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, mat::MatElem)
-#   #add checks here
-#   return LinearAlgebraicGroupElem(LAG, MatGroupElem(LAG.G, mat))
-# end
-
 @doc raw"""
-    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem; check::Bool = true) -> LinearAlgebraicGroupElem
 
-Construct the linear algebraic group element from the given matrix group element `MGE` of the given type.
+Coerce `MGE` into an element of `LAG`.
+
+Setting `check` to `false` disables the check whether the element `MGE` actually lies in the group.
 
 # Examples
 ```jldoctest
@@ -179,22 +170,26 @@ julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 
 julia> MGE = MatGroupElem(LAG.G, m);
 
-julia> linear_algebraic_group_elem(LAG,MGE)
+julia> linear_algebraic_group_elem(LAG, MGE)
 [2   1   0]
 [1   4   3]
 [0   1   1]
 
 ```
 """
-function linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem)
-  @req MGE in LAG.G "The given matrix group element is not an element of the group"
-  return LinearAlgebraicGroupElem(LAG, MGE)
+function linear_algebraic_group_elem(
+  LAG::LinearAlgebraicGroup, MGE::MatGroupElem; check::Bool=true
+)
+  return LinearAlgebraicGroupElem(LAG, MGE; check)
 end
 
 @doc raw"""
-    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem) -> LinearAlgebraicGroupElem
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatElem{<:FieldElem}; check::Bool = true) -> LinearAlgebraicGroupElem
 
-Construct the linear algebraic group element from the given matrix group element `MGE` of the given type.
+Coerce `m` into an element of `LAG`.
+
+Setting `check` to `false` disables the check whether the element `m` actually lies in the group.
+
 
 # Examples
 ```jldoctest
@@ -211,10 +206,10 @@ julia> linear_algebraic_group_elem(LAG, m)
 ```
 """
 function linear_algebraic_group_elem(
-  LAG::LinearAlgebraicGroup, m::MatrixElem{T}
-) where {T<:FieldElem}
-  MGE = LAG.G(m)
-  return LinearAlgebraicGroupElem(LAG, MGE)
+  LAG::LinearAlgebraicGroup, m::MatElem{<:FieldElem}; check::Bool=true
+)
+  MGE = LAG.G(m; check)
+  return LinearAlgebraicGroupElem(LAG, MGE; check=false)
 end
 
 function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
@@ -224,16 +219,16 @@ end
 
 function Base.:(*)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
   check_parent(a, b)
-  return linear_algebraic_group_elem(parent(a), a.mat * b.mat)
+  return linear_algebraic_group_elem(parent(a), a.mat * b.mat; check=false)
 end
 
 function Base.inv(a::LinearAlgebraicGroupElem)
-  return linear_algebraic_group_elem(parent(a), inv(a.mat))
+  return linear_algebraic_group_elem(parent(a), inv(a.mat); check=false)
 end
 
 function Base.deepcopy_internal(a::LinearAlgebraicGroupElem, dict::IdDict)
   return get!(dict, a) do
-    linear_algebraic_group_elem(parent(a), Base.deepcopy_internal(a.mat, dict))
+    linear_algebraic_group_elem(parent(a), Base.deepcopy_internal(a.mat, dict); check=false)
   end
 end
 
@@ -398,11 +393,11 @@ julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
 [0   0   0   3]
 ```
 """
-function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
+function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{<:FieldElem})
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
   @req isone(prod(diag)) "Deteminant of torus element must be 1"
   m = diagonal_matrix(LAG.k, diag)
-  return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
+  return linear_algebraic_group_elem(LAG, m; check=false)
 end
 
 @doc raw"""
@@ -463,7 +458,7 @@ function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootS
   m[i, j] = -one(LAG.k)
   m[j, i] = one(LAG.k)
   m[j, j] = zero(LAG.k)
-  return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
+  return linear_algebraic_group_elem(LAG, m; check=true) # TODO: eventually set check to false
 end
 
 @doc raw"""

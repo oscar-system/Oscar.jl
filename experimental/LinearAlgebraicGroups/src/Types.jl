@@ -41,8 +41,12 @@ end
   parent::LinearAlgebraicGroup
   mat::MatGroupElem #the actual element
 
-  function LinearAlgebraicGroupElem(parent::LinearAlgebraicGroup, MGE::MatGroupElem)
-    #add checks here
+  function LinearAlgebraicGroupElem(
+    parent::LinearAlgebraicGroup, MGE::MatGroupElem; check::Bool=true
+  )
+    if check
+      @req MGE in parent.G "The given matrix group element is not an element of the group"
+    end
     return new(parent, MGE)
   end
 end
