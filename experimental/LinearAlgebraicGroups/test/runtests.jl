@@ -30,9 +30,5 @@ end
   bruh = bruhat_decomp(LAG)
   W = weyl_group(root_system(LAG))
   @test length(bruh) == order(W)
-  check = 0
-  for cell in bruh
-    check += order(cell)
-  end
-  @test check == order(LAG)
+  @test sum(order, bruh; init=ZZ(0)) == order(LAG)
 end
