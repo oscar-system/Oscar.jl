@@ -55,9 +55,17 @@ function linear_algebraic_group(type::Symbol, n::Int, k::Field)
   return linear_algebraic_group(root_system(type, n), k)
 end
 
+function base_ring(LAG::LinearAlgebraicGroup{C}) where {C<:FieldElem}
+  return LAG.k::parent_type(C)
+end
+
+function base_ring_type(::Type{<:LinearAlgebraicGroup{C}}) where {C<:FieldElem}
+  return parent_type(C)
+end
+
 #This is here because of https://github.com/oscar-system/Oscar.jl/issues/5661
 function gap_likes_the_group(LAG::LinearAlgebraicGroup)
-  return is_finite(LAG.k)
+  return is_finite(base_ring(LAG))
 end
 
 function has_gens(LAG::LinearAlgebraicGroup)
@@ -94,7 +102,9 @@ function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
   return order(T, LAG.G)
 end
 
-function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlgebraicGroup})
+function Base.rand(
+  rng::Random.AbstractRNG, rs::Random.SamplerTrivial{<:LinearAlgebraicGroup}
+)
   LAG = rs[]
   if gap_likes_the_group(LAG)
     return linear_algebraic_group_elem(LAG, rand(LAG.G); check=false)
@@ -103,12 +113,16 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{LinearAlge
   end
 end
 
-function Base.eltype(::Type{LinearAlgebraicGroup})
-  return LinearAlgebraicGroupElem
+function Base.eltype(::Type{LinearAlgebraicGroup{C}}) where {C<:FieldElem}
+  return LinearAlgebraicGroupElem{C}
 end
 
-function elem_type(::Type{LinearAlgebraicGroup})
-  return LinearAlgebraicGroupElem
+function elem_type(::Type{LinearAlgebraicGroup{C}}) where {C<:FieldElem}
+  return LinearAlgebraicGroupElem{C}
+end
+
+function parent_type(::Type{LinearAlgebraicGroupElem{C}}) where {C<:FieldElem}
+  return LinearAlgebraicGroup{C}
 end
 
 function one(LAG::LinearAlgebraicGroup)
@@ -131,7 +145,7 @@ function Base.show(io::IO, ::MIME"text/plain", LAG::LinearAlgebraicGroup)
     "Linear algebraic group of type ",
     Oscar._root_system_type_string(root_system_type(root_system(LAG))),
   )
-  print(io, Indent(), "over ", Lowercase(), LAG.k)
+  print(io, Indent(), "over ", Lowercase(), base_ring(LAG))
   print(io, Dedent())
 end
 
@@ -145,7 +159,7 @@ function Base.show(io::IO, LAG::LinearAlgebraicGroup)
       "Linear algebraic group of type ",
       Oscar._root_system_type_string(root_system_type(root_system(LAG))),
     )
-    print(terse(io), " over ", Lowercase(), LAG.k)
+    print(terse(io), " over ", Lowercase(), base_ring(LAG))
   end
 end
 
@@ -178,8 +192,8 @@ julia> linear_algebraic_group_elem(LAG, MGE)
 ```
 """
 function linear_algebraic_group_elem(
-  LAG::LinearAlgebraicGroup, MGE::MatGroupElem; check::Bool=true
-)
+  LAG::LinearAlgebraicGroup{C}, MGE::MatGroupElem{C}; check::Bool=true
+) where {C<:FieldElem}
   return LinearAlgebraicGroupElem(LAG, MGE; check)
 end
 
@@ -206,8 +220,8 @@ julia> linear_algebraic_group_elem(LAG, m)
 ```
 """
 function linear_algebraic_group_elem(
-  LAG::LinearAlgebraicGroup, m::MatElem{<:FieldElem}; check::Bool=true
-)
+  LAG::LinearAlgebraicGroup{C}, m::MatElem{C}; check::Bool=true
+) where {C<:FieldElem}
   MGE = LAG.G(m; check)
   return LinearAlgebraicGroupElem(LAG, MGE; check=false)
 end
@@ -298,8 +312,8 @@ function root_subgroup_generator(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem
   @req is_root(alpha) "The given element is not a root"
   @req root_system(alpha) === root_system(LAG) "parent mismatch"
   i, j = _compute_action(LAG, alpha)
-  m = zero_matrix(LAG.k, degree(LAG), degree(LAG))
-  m[i, j] = one(LAG.k)
+  m = zero_matrix(base_ring(LAG), degree(LAG), degree(LAG))
+  m[i, j] = one(base_ring(LAG))
   return m
 end
 
@@ -331,9 +345,9 @@ function root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
     LAG.U_alphas = Dict{WeightLatticeElem,MatGroup}()
   end
   G = LAG.G
-  I = identity_matrix(LAG.k, degree(LAG))
+  I = identity_matrix(base_ring(LAG), degree(LAG))
   m = root_subgroup_generator(LAG, alpha)
-  gs = [G(I + lambda * m) for lambda in basis(LAG.k)]
+  gs = [G(I + lambda * m) for lambda in basis(base_ring(LAG))]
   U, _ = sub(G, gs)
   LAG.U_alphas[alpha] = U
   return U
@@ -361,10 +375,10 @@ function maximal_torus(LAG::LinearAlgebraicGroup)
   isdefined(LAG, :T) && return LAG.T
   G = LAG.G
   gs = MatGroupElem[]
-  t = Hecke.primitive_element(LAG.k)
+  t = Hecke.primitive_element(base_ring(LAG))
   it = inv(t)
   for i in 1:(degree(LAG) - 1)
-    m = identity_matrix(LAG.k, degree(LAG))
+    m = identity_matrix(base_ring(LAG), degree(LAG))
     m[i, i] = t
     m[i + 1, i + 1] = it
     push!(gs, G(m))
@@ -396,7 +410,7 @@ julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
 function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{<:FieldElem})
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
   @req isone(prod(diag)) "Deteminant of torus element must be 1"
-  m = diagonal_matrix(LAG.k, diag)
+  m = diagonal_matrix(base_ring(LAG), diag)
   return linear_algebraic_group_elem(LAG, m; check=false)
 end
 
@@ -453,11 +467,11 @@ julia> representative_of_root_in_group(LAG, alpha)
 function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
   @req is_root(alpha) "The given element is not a root"
   i, j = _compute_action(LAG, alpha)
-  m = identity_matrix(LAG.k, degree(LAG))
-  m[i, i] = zero(LAG.k)
-  m[i, j] = -one(LAG.k)
-  m[j, i] = one(LAG.k)
-  m[j, j] = zero(LAG.k)
+  m = identity_matrix(base_ring(LAG), degree(LAG))
+  m[i, i] = zero(base_ring(LAG))
+  m[i, j] = -one(base_ring(LAG))
+  m[j, i] = one(base_ring(LAG))
+  m[j, j] = zero(base_ring(LAG))
   return linear_algebraic_group_elem(LAG, m; check=true) # TODO: eventually set check to false
 end
 
@@ -485,10 +499,10 @@ function borel_subgroup(LAG::LinearAlgebraicGroup)
   for t in gens(T)
     push!(gs, t)
   end
-  I = identity_matrix(LAG.k, degree(LAG))
+  I = identity_matrix(base_ring(LAG), degree(LAG))
   for alpha in simple_roots(root_system(LAG))
     rsg = root_subgroup_generator(LAG, alpha)
-    for lambda in basis(LAG.k)
+    for lambda in basis(base_ring(LAG))
       push!(gs, MatGroupElem(G, I + lambda * rsg))
     end
   end
@@ -521,7 +535,7 @@ julia> bruhat_cell_rep(LAG, w)
 """
 function bruhat_cell_rep(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
-  rep = identity_matrix(LAG.k, degree(LAG))
+  rep = identity_matrix(base_ring(LAG), degree(LAG))
   for i in word(w)
     alpha = simple_root(root_system(LAG), Int64(i))
     rep = rep * representative_of_root_in_group(LAG, alpha).mat

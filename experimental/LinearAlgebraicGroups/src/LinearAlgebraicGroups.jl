@@ -17,6 +17,7 @@ import ..Oscar: root_system
 import ..Oscar: degree
 import ..Oscar: elem_type
 import ..Oscar: parent
+import ..Oscar: parent_type
 import ..Oscar: one
 
 export LinearAlgebraicGroup, LinearAlgebraicGroupElem
