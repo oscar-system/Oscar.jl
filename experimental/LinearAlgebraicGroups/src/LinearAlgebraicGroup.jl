@@ -16,7 +16,8 @@ julia> F, _  = finite_field(5);
 julia> rs = root_system(:A, 3);
 
 julia> LAG = linear_algebraic_group(rs, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+Linear algebraic group of type A3
+  over prime field of characteristic 5
 ```
 """
 function linear_algebraic_group(rs::RootSystem, k::Field)
@@ -46,7 +47,8 @@ Only type ``A_n`` is implemented so far.
 julia> F, _  = finite_field(5);
 
 julia> LAG = linear_algebraic_group(:A, 3, F)
-LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef)
+Linear algebraic group of type A3
+  over prime field of characteristic 5
 ```
 """
 function linear_algebraic_group(type::Symbol, n::Int, k::Field)
@@ -181,7 +183,9 @@ julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 julia> MGE = MatGroupElem(LAG.G, m);
 
 julia> linear_algebraic_group_elem(LAG,MGE)
-LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
+[2   1   0]
+[1   4   3]
+[0   1   1]
 
 ```
 """
@@ -204,7 +208,9 @@ julia> LAG = linear_algebraic_group(:A, 2, F);
 julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
 
 julia> linear_algebraic_group_elem(LAG, m)
-LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A2, SL(3,5), Prime field of characteristic 5, #undef, #undef, #undef), [2 1 0; 1 4 3; 0 1 1], #undef)
+[2   1   0]
+[1   4   3]
+[0   1   1]
 ```
 """
 function linear_algebraic_group_elem(
@@ -389,12 +395,15 @@ julia> F, _  = finite_field(5);
 julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> torus_element(LAG, [F(1),F(2),F(1),F(3)])
-LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A3, SL(4,5), Prime field of characteristic 5, #undef, #undef, #undef), [1 0 0 0; 0 2 0 0; 0 0 1 0; 0 0 0 3], #undef)
+[1   0   0   0]
+[0   2   0   0]
+[0   0   1   0]
+[0   0   0   3]
 ```
 """
 function torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem}
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
-  @req isone(product(diag)) "Deteminant of torus element must be 1"
+  @req isone(prod(diag)) "Deteminant of torus element must be 1"
   m = diagonal_matrix(LAG.k, diag)
   return linear_algebraic_group_elem(LAG, MatGroupElem(LAG.G, m))
 end
@@ -442,7 +451,11 @@ julia> LAG = linear_algebraic_group(:A, 4, F);
 julia> alpha = simple_root(root_system(LAG),2);
 
 julia> representative_of_root_in_group(LAG, alpha)
-LinearAlgebraicGroupElem(LinearAlgebraicGroup(Root system of type A4, SL(5,4), Finite field of degree 2 and characteristic 2, #undef, #undef, #undef), [1 0 0 0 0; 0 0 1 0 0; 0 1 0 0 0; 0 0 0 1 0; 0 0 0 0 1], #undef)
+[1   0   0   0   0]
+[0   0   1   0   0]
+[0   1   0   0   0]
+[0   0   0   1   0]
+[0   0   0   0   1]
 ```
 """
 function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
