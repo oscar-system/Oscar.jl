@@ -436,7 +436,7 @@ function _get_h(L::ZZLat, v, w, bi_form)
 end
 
 function _get_R(L, h::ZZMatrix)
-  return short_vectors_affine_iterator(change_base_ring(ZZ, gram_matrix(L)),h,0,-2) #better to use iterator, but there is no equivalent function that returns iterator
+  return short_vectors_affine_iterator(change_base_ring(ZZ, gram_matrix(L)),h,0,-2)
 end
 
 @doc raw"""
