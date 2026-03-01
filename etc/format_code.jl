@@ -58,6 +58,7 @@ files_and_dirs_to_be_formatted = [
   "experimental/ExperimentalTemplate",
   "experimental/ExteriorAlgebra",
   "experimental/LieAlgebras",
+  "experimental/LinearAlgebraicGroups",
   "experimental/LinearQuotients",
   "experimental/FTheoryTools",
 ]
