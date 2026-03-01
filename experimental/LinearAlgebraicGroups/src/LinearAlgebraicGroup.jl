@@ -352,8 +352,9 @@ end
 @doc raw"""
     maximal_torus(LAG::LinearAlgebraicGroup) -> MatGroup
 
-Return the standard maximal torus of diagonal elements of `LAG`.
+Return the standard maximal torus of `LAG`.
 
+In the case of type ``A`` and ``SL_n``, this consists of the diagonal matrices with determinant 1.
 
 # Examples
 ```jldoctest
@@ -387,8 +388,9 @@ end
 @doc raw"""
     torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem} -> LinearAlgebraicGroupElem
 
-Return the root element consisting of `diag` as diagonal entries which is an element of the maximal torus of `LAG`.
+Return the [`maximal_torus`](@ref maximal_torus(::LinearAlgebraicGroup{<:FieldElem})) element parameterized by `diag` as an element of `LAG`.
 
+In the case of type ``A`` and ``SL_n``, this is a diagonal matrix with diagonal `diag`.
 
 # Examples
 ```jldoctest
@@ -441,41 +443,11 @@ end
 
 ############### Bruhat decomposition ###########################
 @doc raw"""
-    representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem) -> LinearAlgebraicGroupElem
-
-Return the linear algebraic group element corresponding to the root `alpha`.
-
-# Examples
-```jldoctest
-julia> F, _  = finite_field(4);
-
-julia> LAG = linear_algebraic_group(:A, 4, F);
-
-julia> alpha = simple_root(root_system(LAG),2);
-
-julia> representative_of_root_in_group(LAG, alpha)
-[1   0   0   0   0]
-[0   0   1   0   0]
-[0   1   0   0   0]
-[0   0   0   1   0]
-[0   0   0   0   1]
-```
-"""
-function representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-  @req is_root(alpha) "The given element is not a root"
-  i, j = _compute_action(LAG, alpha)
-  m = identity_matrix(base_ring(LAG), degree(LAG))
-  m[i, i] = zero(base_ring(LAG))
-  m[i, j] = -one(base_ring(LAG))
-  m[j, i] = one(base_ring(LAG))
-  m[j, j] = zero(base_ring(LAG))
-  return linear_algebraic_group_elem(LAG, m; check=true) # TODO: eventually set check to false
-end
-
-@doc raw"""
     borel_subgroup(LAG::LinearAlgebraicGroup) -> MatGroup
 
-Return the standard Borel subgroup of the linear algebraic group `LAG`.
+Return the standard Borel subgroup of `LAG`.
+
+In the case of type ``A`` and ``SL_n``, this consists of the upper triangular matrices with determinant 1.
 
 # Examples
 ```jldoctest
@@ -513,7 +485,11 @@ end
 @doc raw"""
     bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> MatGroupElem
 
-Return the representative of the Bruhat cell corresponding to the Weyl group element `w`.
+Return a representative ``n_w \in G`` of the Bruhat cell corresponding to the Weyl group element `w`, i.e. ``BwB = Bn_w B``.
+
+``B`` is the Borel subgroup returned by [`borel_subgroup`](@ref borel_subgroup(::LinearAlgebraicGroup{<:FieldElem})).
+
+To obtain the Bruhat cell as a double coset, use [`bruhat_cell`](@ref bruhat_cell(::LinearAlgebraicGroup, ::WeylGroupElem)) instead.
 
 # Examples
 ```jldoctest
@@ -535,9 +511,14 @@ julia> bruhat_cell_representative(LAG, w)
 function bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
   @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
   rep = identity_matrix(base_ring(LAG), degree(LAG))
-  for i in word(w)
-    alpha = simple_root(root_system(LAG), Int64(i))
-    rep = rep * representative_of_root_in_group(LAG, alpha).mat
+  for i in letters(w)
+    j = i + 1 # i is the index of a simple reflection -> _compute_action would return (i, i+1), but we cut short 
+    m = identity_matrix(base_ring(LAG), degree(LAG))
+    m[i, i] = zero(base_ring(LAG))
+    m[i, j] = -one(base_ring(LAG))
+    m[j, i] = one(base_ring(LAG))
+    m[j, j] = zero(base_ring(LAG))
+    rep = rep * m
   end
   return _underlying_matrix_group(LAG)(rep)
 end
@@ -545,7 +526,11 @@ end
 @doc raw"""
     bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem) -> GroupDoubleCoset{MatGroup, MatGroupElem}
 
-Return the Bruhat cell corresponding to the Weyl group element `w`.
+Return the Bruhat cell ``BwB`` corresponding to the Weyl group element `w` as a double coset.
+
+``B`` is the Borel subgroup returned by [`borel_subgroup`](@ref borel_subgroup(::LinearAlgebraicGroup{<:FieldElem})).
+
+If only a representative of the Bruhat cell is needed, use [`bruhat_cell_representative`](@ref bruhat_cell_representative(::LinearAlgebraicGroup, ::WeylGroupElem)) instead.
 
 # Examples
 ```jldoctest
@@ -573,7 +558,11 @@ end
 @doc raw"""
     bruhat_decomposition(LAG::LinearAlgebraicGroup) -> Vector{GroupDoubleCoset{MatGroup, MatGroupElem}}
 
-Return the Bruhat decomposition of the linear algebraic group `LAG`.
+Return a Bruhat decompostion of `LAG`, i.e. a list of all Bruhat cells ``BwB`` as double cosets.
+
+``B`` is the Borel subgroup returned by [`borel_subgroup`](@ref borel_subgroup(::LinearAlgebraicGroup{<:FieldElem})).
+
+See [`bruhat_cell`](@ref bruhat_cell(::LinearAlgebraicGroup, ::WeylGroupElem)) for a single Bruhat cell.
 
 # Examples
 ```jldoctest

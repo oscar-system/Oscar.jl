@@ -38,38 +38,17 @@ root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 ```
 
 ## Tori
-We work with the standard torus of diagonal elements.
 ```@docs
 maximal_torus(LAG::LinearAlgebraicGroup)
-```
-
-```@docs
 torus_element(LAG::LinearAlgebraicGroup, diag::Vector)
-```
-
-```@docs
 apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem)
 ```
 
 ## Bruhat decomposition
-We work with the standard Borel of upper triangular matrices.
-```@docs
-representative_of_root_in_group(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
-```
-
 ```@docs
 borel_subgroup(LAG::LinearAlgebraicGroup)
-```
-
-```@docs
 bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
-```
-
-```@docs
 bruhat_cell(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
-```
-
-```@docs
 bruhat_decomposition(LAG::LinearAlgebraicGroup)
 ```
 
