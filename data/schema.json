@@ -22,6 +22,9 @@
         },
         {
           "$ref": "https://polymake.org/schemas/data.json"
+        },
+        {
+          "type": "null"
         }
       ]
     }
