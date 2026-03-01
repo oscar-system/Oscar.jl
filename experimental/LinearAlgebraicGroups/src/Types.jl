@@ -4,11 +4,6 @@
 #
 ###############################################################################
 
-@doc raw"""
-    LinearAlgebraicGroup
-
-See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
-"""
 @attributes mutable struct LinearAlgebraicGroup{C<:FieldElem} <: Group
   rs::RootSystem #in the future to be replaced by RootDatum
   G::MatGroup{C} #the actual group
@@ -24,9 +19,6 @@ See [`linear_algebraic_group(::RootSystem)`](@ref) for the constructor.
   end
 end
 
-@doc raw"""
-    LinearAlgebraicGroupElem
-"""
 @attributes mutable struct LinearAlgebraicGroupElem{C<:FieldElem} <: GroupElem
   parent::LinearAlgebraicGroup{C}
   mat::MatGroupElem{C} #the actual element

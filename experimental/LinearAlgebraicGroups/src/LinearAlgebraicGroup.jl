@@ -5,9 +5,9 @@
 @doc raw"""
     linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
 
-Construct the linear algebraic group of the given type.
+Construct the simply connected linear algebraic group of the given type over ``k``.
 
-Only type ``A_n`` is implemented so far.
+Only type ``A_n`` is implemented so far and results in ``SL_{n+1}``. In the future also root data should be added.
 
 # Examples
 ```jldoctest
@@ -38,9 +38,9 @@ end
 @doc raw"""
     linear_algebraic_group(type::Symbol, n::Int, k::Field) -> LinearAlgebraicGroup
 
-Construct the linear algebraic group of the given type.
+Construct the simply connected linear algebraic group of the given type over ``k``.
 
-Only type ``A_n`` is implemented so far.
+Only type ``A_n`` is implemented so far and results in ``SL_{n+1}``. In the future also root data should be added.
 
 # Examples
 ```jldoctest

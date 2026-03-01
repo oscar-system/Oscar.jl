@@ -8,6 +8,14 @@ DocTestSetup = Oscar.doctestsetup()
 A linear algebraic group is an affine variety with a group structure. These groups can be embedded into a ``GL_n``
 and we represent linear algebraic groups as matrix groups. Here we consider reductive linear algebraic groups.
 
+We follow the conventions of [MT11](@cite).
+
+!!! warning
+    Currently only simply connected linear algebraic groups of type A_n are supported. In the future, the functionality could be extended to support arbitrary root data.
+
+!!! warning
+    Most functionality is currently limited to finite fields.
+
 
 ## Contact
 
