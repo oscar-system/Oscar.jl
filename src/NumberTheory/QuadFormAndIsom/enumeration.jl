@@ -3175,11 +3175,13 @@ end
 function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
+
 ######################################################################################
 #
 # Legacy interface ... to be deprecated at some point
 #
 ######################################################################################
+
 splitting_by_prime_power!(args...;eiglat_cond::Dict{Int,Vector{Int}}, kwargs...) = splitting_by_prime_power!(args...;eiglat_cond=[eiglat_cond], kwargs...)
 
 splitting_of_hermitian_type(args...; eiglat_cond::Dict{Int, Vector{Int}}, kwargs...) = splitting_of_hermitian_type(args...;eiglat_cond=[eiglat_cond], kwargs...)
