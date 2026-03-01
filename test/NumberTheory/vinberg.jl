@@ -100,7 +100,7 @@ end
   @test bi_form(h,h)>0
   Rh = Oscar._get_R(lattice(L), h)
   if !isempty(Rh)
-    @test Oscar._check_R(iterate(Rh)[1], v, w, bi_form) == false
+    @test Oscar._check_R(first(Rh), v, w, bi_form) == false
   end
   @test isometry_is_positive(L, h)[1] == true
 end
