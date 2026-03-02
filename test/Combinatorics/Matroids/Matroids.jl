@@ -460,8 +460,8 @@
         BF3 = bergman_fan(M, fan_structure = :coarse)
     
         @test n_maximal_cones(BF3) == 15
-        @test all(c in maximal_cones(BF2) for c in maximal_cones(BF3)) #BF2 and BF3 coincide
-        @test all(any(is_subset.(Ref(c), maximal_cones(BF3))) for c in maximal_cones(BF1)) #BF1 refines BF3
+        @test all(c in maximal_cones(BF2) for c in maximal_cones(BF3))  # BF2 and BF3 coincide
+        @test all(any(is_subset.(Ref(c), maximal_cones(BF3))) for c in maximal_cones(BF1))  # BF1 refines BF3
             
         M = direct_sum(uniform_matroid(2,3), uniform_matroid(2,3))
         BF1 = bergman_fan(M, fan_structure = :fine)
