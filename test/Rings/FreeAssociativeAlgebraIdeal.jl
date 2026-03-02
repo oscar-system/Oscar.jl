@@ -21,12 +21,18 @@ end
   @test !ideal_membership(x, I, 10)
   @test ideal_membership(x*y*z - y*z*x, I, 9) # 9 should be enough
 
+  @test !ideal_membership(x, I, 5; algorithm=:f4)
+  @test !ideal_membership(x, I, 10; algorithm=:f4)
+  @test ideal_membership(x*y*z - y*z*x, I, 9; algorithm=:f4) 
+
   f1 = x*y + y*z
   I2 = ideal([f1])
   @test !ideal_membership(x*y, I2, 3)
   @test ideal_membership(f1, I2, 4) 
   @test ideal_membership(f1, I2.gens, 4)
   @test ideal_membership(f1, I2) 
+  @test ideal_membership(f1, I2; algorithm=:f4)
+  @test ideal_membership(f1, I2.gens; algorithm=:f4)
   @test ideal_membership(f1, I2.gens)
   gb = groebner_basis(I2, 3; protocol=false)
   @test isdefined(I2, :gb)
