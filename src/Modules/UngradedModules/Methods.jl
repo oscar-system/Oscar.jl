@@ -880,7 +880,7 @@ end
 @doc raw"""
     _has_monomials_on_all_axes(M::SubquoModule)
 
-Internal function to test whether M is finite-dimensional vector space. Do not use directly
+Internal function to test for a submodule `M` of a free module `F` whether the quotient `F/M` is a finite-dimensional vector space. Do not use directly.
 """
 function _has_monomials_on_all_axes(M::SubquoModule)
   length(rels(M)) == 0 || error("not implemented for quotients")
