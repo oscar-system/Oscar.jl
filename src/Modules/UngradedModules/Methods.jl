@@ -759,7 +759,6 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  F = ambient_free_module(M)
   if !isdefined(M, :quo)
     is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
     return elem_type(M)[]
@@ -1045,10 +1044,11 @@ function _is_finite(
                                <:MPolyComplementOfKPointIdeal
                               }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  is_zero(M) && return true
+  !isdefined(M, :quo) && return false
   M_shift,_,_ = shifted_module(M)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  LMq = leading_module(M_shift.quo, o)
-  return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
+  return _has_monomials_on_all_axes(leading_module(M_shift.quo, o))
 end
 
 # This is an internal method which assumes `M` to be presented. It exists purely for back backwards compatibility.
@@ -1068,9 +1068,9 @@ function _vector_space_basis(
   is_empty(B) && return elem_type(M)[]
   # move basis elements back to M
   F = ambient_free_module(M)
-  F_poly,_,back_shift = shifted_module(F)
+  F_shift_poly,_,back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
-  # LMq(shifted) -> F_poly(shifted) -> F_poly -> F -> M
+  # LMq(shifted & poly) -> F_shift_poly -> F_poly -> F -> M
   return M.(iota.(back_shift.(ambient_representative.(B))))  
 end
 
