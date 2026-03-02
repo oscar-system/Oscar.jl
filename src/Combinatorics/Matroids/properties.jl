@@ -1199,30 +1199,32 @@ end
 @doc raw"""
     bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
 
-The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` (as defined in [Rin13](@cite)). Convention `:min` or `:max` can be chosen using the optional argument `convention`, where `:min` agrees with the aforecited papers. 
+The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
+which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
+(as defined in [Rin13](@cite)). Convention `min` or `max` can be chosen using the optional argument 
+`convention`, where `min` agrees with the aforecited papers. 
 
 !!! note
     Via the conventions in the above sources, the output always has a lineality dimension of at least 1.
 
 # Examples
+The Bergman fan of the complete graph on $n$ vertices is the space of phylogenetic trees, its coarse
+fan structure has $(2n-3)!!=(2n-3)\cdot(2n-5)\cdot...\cdot 3\cdot 1$ maximal cones.
 ```
 julia> M = cycle_matroid(complete_graph(4))
 Matroid of rank 3 on 6 elements
 
-julia> F = bergman_fan(M, fan_structure = :coarse) #this Bergman fan is the space of phylogenetic trees with 5!! maximal cones
+julia> F = bergman_fan(M, fan_structure = :coarse)
 Polyhedral fan in ambient dimension 6
 
 julia> n_maximal_cones(F)
 15
 ```
 """
-function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
-    if convention == :min
-        conv = min
-    elseif convention == :max
-        conv = max
-    else
-        throw(ArgumentError("convention must be :min or :max."))
+function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Union{typeof(min),typeof(max)} = min)
+    conv = convention
+    if !(conv in [min, max])
+        throw(ArgumentError("convention must be min or max."))
     end
     
     if !(fan_structure in [:fine, :cyclic, :coarse])
