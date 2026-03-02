@@ -1254,14 +1254,13 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
     
         FP = face_poset(P) 
         DF = Polymake.graph.dual_faces(FP.pm_poset) #face-facet incidence
-        st = findfirst(==(length(M) - rank(M) + 1), rank.(elements(FP)))
-        fi = findlast(==(length(M) - rank(M) + 1), rank.(elements(FP)))
+        indices = findall(==(length(M) - rank(M) + 1), rank.(elements(FP)))
         
         V = vertices(P)
         FF = [f.a[1, :] for f in facets(P)]
         
         BC = Cone{QQFieldElem}[]
-        for i in st:fi #assumes elements of a given rank are consecutive in elements(FP)
+        for i in indices
             verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1] #assumes the numbering of vertices used in decorations agrees with V
             inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset) #initial matroid from vertices
             if is_loopless(inM)
