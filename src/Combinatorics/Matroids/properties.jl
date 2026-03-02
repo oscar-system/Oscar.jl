@@ -1226,7 +1226,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
     end
     
     if !(fan_structure in [:fine, :cyclic, :coarse])
-        throw(ArgumentError("the supported fan structures are :fine, :cylcic and :coarse."))
+        throw(ArgumentError("fan structure '$(fan_structure)' is not supported"))
     end
     
     if rank(M) == 0
