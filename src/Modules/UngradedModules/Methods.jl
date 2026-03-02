@@ -765,11 +765,6 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
     return elem_type(M)[]
   end
 
-  I = M.quo
-
-  o = default_ordering(M)
-  LM = leading_module(I, o)
-  
   d = 0
   inc = _vector_space_basis(kk, M, 0; check)
   result = elem_type(M)[]
@@ -866,10 +861,9 @@ end
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
   R = base_ring(M)
   F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
 
   o = default_ordering(M)
-  LM = leading_module(Mq,o)
+  LM = leading_module(M.quo, o)
 
   mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
   return [M(mon) for mon in mons if !(mon in LM)]
