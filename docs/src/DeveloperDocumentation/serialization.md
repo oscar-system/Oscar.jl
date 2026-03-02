@@ -186,7 +186,7 @@ With the corresponding loading function similar to this.
 ```julia
 function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
-    if entry isa JSON3.Object
+    if entry isa JSON.Object
       obj3 = load_object(s, Obj3Type, :key1)
       obj4 = load_object(s, Obj3Type, :key2)
       return OtherType(obj3, obj4)
