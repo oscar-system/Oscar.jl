@@ -75,19 +75,12 @@ function degree(LAG::LinearAlgebraicGroup)
   return degree(_underlying_matrix_group(LAG))
 end
 
-#This is here because of https://github.com/oscar-system/Oscar.jl/issues/5661
-function gap_likes_the_group(LAG::LinearAlgebraicGroup)
-  return is_finite(base_ring(LAG))
-end
-
 function has_gens(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return has_gens(_underlying_matrix_group(LAG))
-  return false
+  return has_gens(_underlying_matrix_group(LAG))
 end
 
 function number_of_generators(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return number_of_generators(_underlying_matrix_group(LAG))
-  error("Group is not finitely generated") # as long as field is QQ
+  return number_of_generators(_underlying_matrix_group(LAG))
 end
 
 function gens(LAG::LinearAlgebraicGroup)
@@ -95,20 +88,13 @@ function gens(LAG::LinearAlgebraicGroup)
 end
 
 function gen(LAG::LinearAlgebraicGroup, i::Int)
-  gap_likes_the_group(LAG) &&
-    return linear_algebraic_group_elem(
-      LAG, gen(_underlying_matrix_group(LAG), i); check=false
-    )
-  error("Group is not finitely generated") # as long as field is QQ
+  return linear_algebraic_group_elem(
+    LAG, gen(_underlying_matrix_group(LAG), i); check=false
+  )
 end
 
 function isfinite(LAG::LinearAlgebraicGroup)
-  gap_likes_the_group(LAG) && return isfinite(_underlying_matrix_group(LAG))
-  if degree(LAG) == 0 || degree(LAG) == 1 #Should not occur
-    return true
-  else
-    return false
-  end
+  return isfinite(_underlying_matrix_group(LAG))
 end
 
 function order(::Type{T}, LAG::LinearAlgebraicGroup) where {T}
@@ -120,13 +106,9 @@ function Base.rand(
   rng::Random.AbstractRNG, rs::Random.SamplerTrivial{<:LinearAlgebraicGroup}
 )
   LAG = rs[]
-  if gap_likes_the_group(LAG)
-    return linear_algebraic_group_elem(
-      LAG, rand(_underlying_matrix_group(LAG)); check=false
-    )
-  else
-    error("Random elements not implemented for this field yet.")
-  end
+  return linear_algebraic_group_elem(
+    LAG, rand(_underlying_matrix_group(LAG)); check=false
+  )
 end
 
 function Base.eltype(::Type{LinearAlgebraicGroup{C}}) where {C<:FieldElem}
