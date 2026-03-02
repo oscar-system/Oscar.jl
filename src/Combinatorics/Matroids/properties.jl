@@ -1197,7 +1197,7 @@ function indicator_vector(S::Vector{Int}, n::Int)
 end
 
 @doc raw"""
-    bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
+    bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Union{typeof(min),typeof(max)} = min)
 
 The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
 which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
@@ -1266,7 +1266,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Unio
             verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1]  # assumes numbering of vertices used in decorations agrees with V
             inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset)  # initial matroid from vertices
             if is_loopless(inM)
-                R = FF[Vector(DF[i]) .+ 1]  # assumes the numbering of facets used in DF agrees with FF
+                R = FF[Vector(DF[i]) .+ 1]  # assumes numbering of facets used in DF agrees with FF
                 push!(BC, cone(-conv(1, -1)*R, -conv(1, -1)*NS))
             end
         end
