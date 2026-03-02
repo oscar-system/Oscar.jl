@@ -1224,7 +1224,7 @@ julia> n_maximal_cones(F)
 function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Union{typeof(min),typeof(max)} = min)
     conv = convention
     if !(conv in [min, max])
-        throw(ArgumentError("convention must be min or max."))
+        throw(ArgumentError("convention '$(conv)' is not supported"))
     end
     
     if !(fan_structure in [:fine, :cyclic, :coarse])
@@ -1255,7 +1255,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Unio
         NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:, 2:end]
     
         FP = face_poset(P) 
-        DF = Polymake.graph.dual_faces(FP.pm_poset) #face-facet incidence
+        DF = Polymake.graph.dual_faces(FP.pm_poset)  # face-facet incidence
         indices = findall(==(length(M) - rank(M) + 1), rank.(elements(FP)))
         
         V = vertices(P)
@@ -1263,10 +1263,10 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Unio
         
         BC = Cone{QQFieldElem}[]
         for i in indices
-            verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1] #assumes the numbering of vertices used in decorations agrees with V
-            inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset) #initial matroid from vertices
+            verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1]  # assumes numbering of vertices used in decorations agrees with V
+            inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset)  # initial matroid from vertices
             if is_loopless(inM)
-                R = FF[Vector(DF[i]) .+ 1] #assumes the numbering of facets used in DF agrees with FF
+                R = FF[Vector(DF[i]) .+ 1]  # assumes the numbering of facets used in DF agrees with FF
                 push!(BC, cone(-conv(1, -1)*R, -conv(1, -1)*NS))
             end
         end
