@@ -1069,7 +1069,7 @@ Permutation group of degree 4
 ```
 """
 function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return _gens_to_group(automorphism_group_generators(g))
+  return _gens_to_group(automorphism_group_generators(g))
 end
 
 

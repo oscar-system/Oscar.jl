@@ -1,9 +1,3 @@
-const ColoredGGM{Directed} = GaussianGraphicalModel{
-  Graph{Directed},
-  @NamedTuple{color::S}
-} where S <: Oscar.GraphMap;
-# 
-
 @testset "GaussianGraphicalModels" begin
   mktempdir() do path
     DG = graph_from_edges(Directed, [[1,2],[2,3]])
@@ -15,12 +9,14 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
 
+      @test isone(maximum_likelihood_degree(M1))
+
       test_save_load_roundtrip(path, M1) do loaded
         @test vanishing_ideal(loaded) == V1
       end
 
       # can't serialize a graph with labels yet
-      
+
       label!(DG,
              Dict((1, 2) => "pink", (2, 3) => "pink"),
              Dict(i => "green" for i in 1:3);
@@ -28,9 +24,12 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
       M2 = gaussian_graphical_model(DG)
       cov_mat = covariance_matrix(M2)
       V2 = vanishing_ideal(M2)
+
       @test V2 == ideal(
         [-cov_mat[1, 2] * cov_mat[2, 3] + cov_mat[1, 3] * cov_mat[2, 2]]
       )
+
+      @test isone(maximum_likelihood_degree(M2; algorithm=:monte_carlo))
     end
 
     UG = complete_bipartite_graph(1, 2)
@@ -41,6 +40,8 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
       @test V3 == ideal([
         -cov_mat[1, 1] * cov_mat[2, 3] + cov_mat[1, 2] * cov_mat[1, 3]])
 
+      @test isone(maximum_likelihood_degree(M3))
+      @test isone(maximum_likelihood_degree(M3; algorithm=:monte_carlo))
       test_save_load_roundtrip(path, M3) do loaded
         @test vanishing_ideal(loaded) == V3
       end

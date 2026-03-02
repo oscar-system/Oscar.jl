@@ -45,3 +45,9 @@ When the graphs do not have a labeling our vanishing ideal algorithms will defau
 vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing})
 vanishing_ideal(M::GaussianGraphicalModel{Graph{Undirected}, Nothing})
 ```
+
+## Maximum Likelihood
+```@docs
+maximum_likelihood_degree(M::GaussianGraphicalModel{Graph{Directed}}; algorithm=:generic)
+```
+
