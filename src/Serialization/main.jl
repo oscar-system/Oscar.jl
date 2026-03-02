@@ -498,7 +498,7 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
     end
     reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
     if default
-      reverse_type_map[str] = merge(Dict{String, Type}("default" => T), init)
+      reverse_type_map[str] = merge(Dict{String, Type}("default" => T), reverse_type_map[str])
     end
   elseif default
     error("Keyword default used during Type registration when only one instance of type encoding")
