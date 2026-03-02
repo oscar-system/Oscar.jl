@@ -473,8 +473,8 @@
         M = direct_sum(uniform_matroid(2,3), uniform_matroid(2,3))
         BF1 = bergman_fan(M, fan_structure = :fine)
         BF2 = bergman_fan(M, fan_structure = :coarse)
-        BF3 = bergman_fan(M, fan_structure = :fine, convention = :max)   
-        BF4 = bergman_fan(M, fan_structure = :coarse, convention = :max)
+        BF3 = bergman_fan(M, fan_structure = :fine, convention = max)   
+        BF4 = bergman_fan(M, fan_structure = :coarse, convention = max)
             
         @test lineality_dim(BF1) == 1
         @test lineality_dim(BF2) == 2
