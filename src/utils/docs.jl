@@ -291,12 +291,11 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
+  BuildDoc = @invokelatest Main.BuildDoc
   withenv("COLUMNS"=>80, "LINES"=>24) do
     with_unicode(false) do
       Pkg.activate(docsproject) do
-        Base.invokelatest(
-          Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest
-        )
+        @invokelatest BuildDoc.doit(Oscar; warnonly=warnonly, local_build=true, doctest=doctest)
       end
     end
   end
