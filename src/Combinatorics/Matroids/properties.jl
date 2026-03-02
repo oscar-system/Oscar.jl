@@ -1236,7 +1236,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
     
     if fan_structure == :fine
         pmTC = Polymake.tropical.matroid_fan_from_flats{conv}(M.pm_matroid)
-        pmTC.FAN_DIM #this forces polymake to compute the necessary properties
+        pmTC.FAN_DIM  # this forces polymake to compute the necessary properties
         PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(pmTC))
         BC = [cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)]
         return polyhedral_fan(BC)
