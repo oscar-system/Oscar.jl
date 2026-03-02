@@ -139,7 +139,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       mockdule = Module(sym)
       # make it accessible from Main
       @eval Main global $sym::Module
-      @invokelatest Main.sym = mockdule
+      invokelatest(setproperty!, Main, sym, mockdule)
       Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
       Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
 
