@@ -105,27 +105,27 @@ function _canonical_matrix(w)
     if !isone(c)
       divexact!(nw, nw, c)
     end
-    for j in 1:k
-      h = piv[j]
-      if !is_zero_entry(nw, 1, h)
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*view(ww, j:j, :)
-      end
+    for j in 1:nrows(ww)
+      iszero(ww[j]) && continue
+      h = ww[j].pos[1]
+      # TODO: Provide an "in place" getindex for ZZRingElem_Array
+      ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ptr{Int}), ent, Hecke.get_ptr(ww[j].values, 1))
+      hnw = findfirst(isequal(h), nw.pos)
+      hnw == nothing && continue
+      nw = abs(ent)*nw - sign(ent)*nw.values[hnw]*ww[j]
     end
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
         divexact!(nw, nw, c)
       end
-      ww[(k + 1):(k + 1), :] = nw
-      push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
-      k += 1
+      push!(ww, nw)
     end
   end
   ww = view(ww, 1:k, :)
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
-
 
 # convert (y,x,z) => (2,1,3) and check uniqueness
 function _unique_var_indices(a::AbstractVector{<:MPolyRingElem})
@@ -185,7 +185,7 @@ mutable struct MonomialOrdering{S} <: Base.Order.Ordering
   o::AbsGenOrdering
   is_total::Bool
   is_total_is_known::Bool
-  canonical_matrix::ZZMatrix
+  canonical_matrix::SMat{ZZRingElem}
 
   function MonomialOrdering(R::S, o::AbsGenOrdering) where {S}
     return new{S}(R, o, false, false)
@@ -1395,7 +1395,7 @@ function Hecke.simplify(M::MonomialOrdering)
 end
 
 function canonical_matrix(nvars::Int, M::AbsOrdering)
-  return _canonical_matrix(_matrix(nvars, M))
+  return _canonical_matrix(_matrix(nvars, M))::sparse_matrix_type(ZZRingElem)
 end
 
 @doc raw"""
@@ -1847,7 +1847,7 @@ mutable struct ModuleOrdering{S} <: Base.Order.Ordering
   M::S
   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 
-  canonical_matrix::ZZMatrix
+  canonical_matrix::SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}
 
   function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
     return new{S}(M, o)
@@ -1901,7 +1901,7 @@ end
 function _canonical_matrix_intern(o::ModuleOrdering)
   nvrs = ngens(o.M) + ngens(base_ring(o.M))
   eo = _embedded_ring_ordering(o)
-  return canonical_matrix(nvrs, eo)
+  return canonical_matrix(nvrs, eo)::sparse_matrix_type(ZZRingElem)
 end
 
 function canonical_matrix(o::ModuleOrdering)
@@ -1912,7 +1912,7 @@ function canonical_matrix(o::ModuleOrdering)
       o.canonical_matrix = _canonical_matrix_intern(o)
     end
   end
-  return o.canonical_matrix
+  return o.canonical_matrix::sparse_matrix_type(ZZRingElem)
 end
 
 # is_obviously_equal checks whether the two orderings are defined in the exact
