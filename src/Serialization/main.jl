@@ -140,12 +140,16 @@ function decode_type(s::DeserializerState)
       s.obj = obj
       return T
     end
-    return decode_type(s.obj)
+    obj = decode_type(s.obj)
+    obj isa AbstractDict && return obj["default"]
+    return obj
   end
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
-      decode_type(s)
+      obj = decode_type(s)
+      obj isa AbstractDict && return obj["default"]
+      return obj
     end
   end
 
@@ -157,7 +161,9 @@ function decode_type(s::DeserializerState)
       end
     else
       return load_node(s, :name) do _
-        decode_type(s)
+        obj = decode_type(s)
+        obj isa AbstractDict && return obj["default"]
+        return obj
       end
     end
   end
