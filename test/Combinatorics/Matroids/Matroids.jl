@@ -480,6 +480,10 @@
         @test lineality_dim(BF2) == 2
         @test maximal_cones(BF1) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF3)]
         @test maximal_cones(BF2) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF4)]
+        
+        M = matroid_from_bases([[]], 4)
+        BF = bergman_fan(M, fan_structure = :coarse)
+        @test (dim(BF), n_maximal_cones(BF)) == (0, 1) 
     end
 >>>>>>> 8138c64f66 (wrote bergman_fan(), added tests for it, exported it)
 end

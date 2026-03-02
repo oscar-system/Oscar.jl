@@ -1196,8 +1196,6 @@ function indicator_vector(S::Vector{Int}, n::Int)
     return map(x -> x in S ? 1 : 0 , 1:n)
 end
 
-
-
 @doc raw"""
     bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symbol = :min)
 
@@ -1224,27 +1222,38 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
     elseif convention == :max
         conv = max
     else
-        error("Convention must be either :min or :max.")
+        throw(ArgumentError("convention must be :min or :max."))
+    end
+    
+    if !(fan_structure in [:fine, :cyclic, :coarse])
+        throw(ArgumentError("the supported fan structures are :fine, :cylcic and :coarse."))
+    end
+    
+    if rank(M) == 0
+        pt = cone(zeros(QQ, length(M)))
+        return polyhedral_fan(pt)
     end
     
     if fan_structure == :fine
-        PMTC = Polymake.tropical.matroid_fan_from_flats{conv}(M.pm_matroid)
-        PMTC.FAN_DIM #this forces polymake to compute the necessary properties
-        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(PMTC))
-        return polyhedral_fan([cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)])
+        pmTC = Polymake.tropical.matroid_fan_from_flats{conv}(M.pm_matroid)
+        pmTC.FAN_DIM #this forces polymake to compute the necessary properties
+        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(pmTC))
+        BC = [cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)]
+        return polyhedral_fan(BC)
         
     elseif fan_structure == :cyclic
-        PMTC = Polymake.tropical.matroid_fan{conv}(M.pm_matroid)
-        PMTC.FAN_DIM #this forces polymake to compute the necessary properties
-        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(PMTC))
-        return polyhedral_fan([cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)])
+        pmTC = Polymake.tropical.matroid_fan{conv}(M.pm_matroid)
+        pmTC.FAN_DIM #this forces polymake to compute the necessary properties
+        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(pmTC))
+        BC = [cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)]
+        return polyhedral_fan(BC)
         
     elseif fan_structure == :coarse
         P = matroid_base_polytope(M)
         NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:, 2:end]
     
         FP = face_poset(P) 
-        DF = Polymake.graph.dual_faces(FP.pm_poset)
+        DF = Polymake.graph.dual_faces(FP.pm_poset) #face-facet incidence
         st = findfirst(==(length(M) - rank(M) + 1), rank.(elements(FP)))
         fi = findlast(==(length(M) - rank(M) + 1), rank.(elements(FP)))
         
@@ -1253,21 +1262,15 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Symb
         
         BC = Cone{QQFieldElem}[]
         for i in st:fi #assumes elements of a given rank are consecutive in elements(FP)
-            f = elements(FP)[i]
-            if rank(f) == length(M) - rank(M) + 1
-                verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1] #assumes the numbering of vertices used in decorations agrees with V
-                inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset)
-                if is_loopless(inM)
-                    R = FF[Vector(DF[i]) .+ 1] #assumes the numbering of facets used in DF agrees with FF
-                    push!(BC, cone(-conv(1, -1)*R, -conv(1, -1)*NS))
-                end
+            verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1] #assumes the numbering of vertices used in decorations agrees with V
+            inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset) #initial matroid from vertices
+            if is_loopless(inM)
+                R = FF[Vector(DF[i]) .+ 1] #assumes the numbering of facets used in DF agrees with FF
+                push!(BC, cone(-conv(1, -1)*R, -conv(1, -1)*NS))
             end
         end
                         
         return polyhedral_fan(BC)
-        
-    else
-        error("The supported fan structures are :fine, :cylcic and :coarse.")
     end
 end
         
