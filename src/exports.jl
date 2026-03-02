@@ -1077,6 +1077,7 @@ export is_transitive
 export is_transverse_intersection
 export is_trivial
 export is_tropically_generic
+export is_tutte_realizable
 export is_two_sided
 export is_unipotent
 export is_unit
@@ -1827,6 +1828,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_group
 export tutte_lifting
 export tutte_polynomial
 export twist
