@@ -146,7 +146,7 @@ function _derived_pushforward(M::SubquoModule{T}) where {T <:MPolyRingElem{<:Fie
   K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
 
   pres = presentation(M)
-  N = cokernel(map(pres, 1))
+  N, _ = cokernel(map(pres, 1))
 
   KoM = hom(K, N)
   st = strand(KoM, 0)

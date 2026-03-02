@@ -45,7 +45,7 @@
   I2 = ideal(S, minors(M2, 2))
 
   J, inc = (I1 + I2)*S1
-  OX = cokernel(inc)
+  OX, _ = cokernel(inc)
   OX_res, _ = free_resolution(Oscar.SimpleFreeResolution, OX);
 
   # restriction of the resolution of the Nash bundle
@@ -178,7 +178,7 @@ end
   I2 = ideal(S, minors(M2, 2))
 
   J, inc = (I1 + I2)*S1
-  OX = cokernel(inc)
+  OX, _ = cokernel(inc)
   OX_res, _ = free_resolution(Oscar.SimpleFreeResolution, OX);
   all_res = tensor_product(OX_res, tot);
   tot = simplify(total_complex(all_res));
