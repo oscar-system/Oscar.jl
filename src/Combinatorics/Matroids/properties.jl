@@ -1202,7 +1202,7 @@ end
 The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` (as defined in [Rin13](@cite)). Convention `:min` or `:max` can be chosen using the optional argument `convention`, where `:min` agrees with the aforecited papers. 
 
 !!! note
-Via the conventions in the above sources, the output always has a lineality dimension of at least 1.
+    Via the conventions in the above sources, the output always has a lineality dimension of at least 1.
 
 # Examples
 ```
