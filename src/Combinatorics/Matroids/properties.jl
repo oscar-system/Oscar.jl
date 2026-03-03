@@ -1197,7 +1197,7 @@ function indicator_vector(S::Vector{Int}, n::Int)
 end
 
 @doc raw"""
-    bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Union{typeof(min),typeof(max)} = min)
+    bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
 
 The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
 which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
@@ -1221,7 +1221,7 @@ julia> n_maximal_cones(F)
 15
 ```
 """
-function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Union{typeof(min),typeof(max)} = min)
+function bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
     @req convention in [min, max] "convention '$(convention)' is not supported"
     @req fan_structure in [:fine, :cyclic, :coarse] "fan structure '$(fan_structure)' is not supported"
     
@@ -1233,16 +1233,20 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :fine, convention::Unio
     if fan_structure == :fine
         pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(M.pm_matroid)
         pmTC.FAN_DIM  # this forces polymake to compute the necessary properties
-        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(pmTC))
-        BC = [cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)]
-        return polyhedral_fan(BC)
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
         
     elseif fan_structure == :cyclic
         pmTC = Polymake.tropical.matroid_fan{convention}(M.pm_matroid)
         pmTC.FAN_DIM  # this forces polymake to compute the necessary properties
-        PC = polyhedral_complex(Polymake.fan.PolyhedralComplex(pmTC))
-        BC = [cone(rays(mc), [fill(1, length(M))]) for mc in maximal_polyhedra(PC)]
-        return polyhedral_fan(BC)
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
         
     elseif fan_structure == :coarse
         P = matroid_base_polytope(M)
