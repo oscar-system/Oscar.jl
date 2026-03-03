@@ -52,7 +52,7 @@ function special_flux_family(
   m::AbstractFTheoryModel;
   not_breaking::Bool=false,
   completeness_check::Bool=true,
-  algorithm::Symbol = :default,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
 
