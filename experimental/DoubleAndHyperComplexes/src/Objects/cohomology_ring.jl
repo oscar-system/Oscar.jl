@@ -9,9 +9,6 @@ mutable struct SimplicialCohomologyRing{T} <: NCRing
   C::SimplicialCoComplex
   graded_parts::Vector{SubquoModule{T}}
 
-  function SimplicialCohomologyRing(K::SimplicialComplex)
-    return SimplicialCohomologyRing(SimplicialCoComplex(K))
-  end
   function SimplicialCohomologyRing(C::SimplicialCoComplex)
     T = elem_type(base_ring(C))
     return new{T}(C)
@@ -24,6 +21,10 @@ end
 Cochain complexes to be used in `SimplicialCohomologyRing`s need to be endowed with 
 the structure of a DG-algebra. To achieve this, the programmer needs to overwrite 
 the method for this function in accordance with https://stacks.math.columbia.edu/tag/061V.
+
+In short this must implement the multiplication of two representatives `a` and `b` of 
+cohomology classes in `C` of degrees `p` and `q` and return a representative of a 
+class in degree `p + q`. 
 """
 function mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
   error("not implemented for complexes of type $(typeof(C)); see the source code for more information")
@@ -36,8 +37,6 @@ Return the internal cocomplex (which needs to implement a structure as a DG-alge
 """
 simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
 
-### This is not allowed with the new architecture!
-simplicial_complex(A::SimplicialCohomologyRing) = simplicial_complex(A.C)
 
 @doc raw"""
     graded_parts(A::SimplicialCohomologyRing)
@@ -46,7 +45,6 @@ Return a list of the cohomology groups for `A`.
 """
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)
-    K = simplicial_complex(A)
     A.graded_parts = [homology(A.C, i)[1] for i in 0:dim(K)]
   end
   return A.graded_parts
@@ -397,13 +395,14 @@ isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 # @enable_all_show_via_expressify SimplicialCohomologyRingElem
 
 
-function generate_homogeneous_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
-    degree = rand(1:dim(Oscar.simplicial_complex(R))+1) # indexing starts at 1 (for degree 0)
+function generate_homogeneous_element(R::SimplicialCohomologyRing{ZZRingElem})
+    ub = upper_bound(simplicial_co_complex(R), 1)
+    degree = rand(0:ub) # indexing starts at 1 (for degree 0)
     n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
     x = zero(R)
     for i=1:n_gens
         n = rand(-100:100)
-        x = x+n*R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+        x = x+n*R[degree-1,rand(1:length(gens(graded_parts(R)[degree])))]
     end
     return x
 end
@@ -434,20 +433,21 @@ function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomology
 end
 
 
-# This is not mathematically true
+# TODO: This is not mathematically true! 
+# Once PR #2362 to AbstractAlgebra.jl is merged we should remove this stub.
 function is_unit(a::SimplicialCohomologyRingElem)
-    if a==one(parent(a)) 
-        return true
-    end   
-    return false
+  if a == one(parent(a)) 
+    return true
+  end   
+  return false
 end
 
 # we need exponentiation for tests
-function ^(a::Oscar.SimplicialCohomologyRingElem,n::Int)
+function ^(a::SimplicialCohomologyRingElem, n::Int)
   n >= 0 || error("negative exponent")
   x = one(parent(a))
-  for i=1:n
-    x=x*a
+  for i = 1:n
+    x *= a
   end
   return x
 end

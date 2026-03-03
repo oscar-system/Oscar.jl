@@ -69,7 +69,7 @@ This relies on the abstract type for hypercomplexes.
     chain_fac = SimplicialCoChainFactory(R::Ring, K::SimplicialComplex)
     map_fac = SimplicialCoMapFactory()
 
-    internal_complex = HyperComplex(1, chain_fac, map_fac, [:cochain])
+    internal_complex = HyperComplex(1, chain_fac, map_fac, [:cochain]; upper_bounds=Union{Int, Nothing}[dim(K)], lower_bounds=Union{Int, Nothing}[0])
     ChainType = FreeMod{elem_type(R)}
     MorphismType = FreeModuleHom
     return new{ChainType, MorphismType}(internal_complex)
