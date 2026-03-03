@@ -46,7 +46,13 @@ end
 function doc_init(;path=mktempdir())
   global docsproject = path
   if !isfile(joinpath(docsproject,"Project.toml"))
-    cp(joinpath(oscardir, "docs", "Project.toml"), joinpath(docsproject,"Project.toml"))
+    target = joinpath(docsproject,"Project.toml")
+    cp(joinpath(oscardir, "docs", "Project.toml"), target)
+    # we need to make sure this tempfile is writable even
+    # when copied from a readonly pkg directory
+    if uperm(target) & 0o2 == 0
+      chmod(target, filemode(target) | 0o200)
+    end
   end
   Pkg.activate(docsproject) do
     # we dev all "our" packages with the paths from where they are currently
