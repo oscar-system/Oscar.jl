@@ -461,29 +461,28 @@
   end
     
     @testset "bergman_fan" begin
-        M = cycle_matroid(complete_graph(4))
+        M = cycle_matroid(complete_graph(5))
         BF1 = bergman_fan(M, fan_structure = :fine)
         BF2 = bergman_fan(M, fan_structure = :cyclic)
         BF3 = bergman_fan(M, fan_structure = :coarse)
     
-        @test n_maximal_cones(BF3) == 15
+        @test n_maximal_cones(BF3) == 105
         @test all(c in maximal_cones(BF2) for c in maximal_cones(BF3))  # BF2 and BF3 coincide
         @test all(any(is_subset.(Ref(c), maximal_cones(BF3))) for c in maximal_cones(BF1))  # BF1 refines BF3
             
-        M = direct_sum(uniform_matroid(2,3), uniform_matroid(2,3))
+        M = direct_sum(uniform_matroid(2, 4), uniform_matroid(2, 4))
         BF1 = bergman_fan(M, fan_structure = :fine)
-        BF2 = bergman_fan(M, fan_structure = :coarse)
+        BF2 = bergman_fan(M)
         BF3 = bergman_fan(M, fan_structure = :fine, convention = max)   
-        BF4 = bergman_fan(M, fan_structure = :coarse, convention = max)
+        BF4 = bergman_fan(M, convention = max)
             
-        @test lineality_dim(BF1) == 1
-        @test lineality_dim(BF2) == 2
+        @test f_vector(BF1) == [0, 34, 120, 96]
+        @test f_vector(BF2) == [0, 0, 8, 16]
         @test maximal_cones(BF1) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF3)]
         @test maximal_cones(BF2) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF4)]
         
         M = matroid_from_bases([[]], 4)
-        BF = bergman_fan(M, fan_structure = :coarse)
-        @test (dim(BF), n_maximal_cones(BF)) == (0, 1) 
+        @test bergman_fan(M) == polyhedral_fan(cone([0 0 0 0]))
     end
 >>>>>>> 8138c64f66 (wrote bergman_fan(), added tests for it, exported it)
 end
