@@ -1507,7 +1507,8 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
                                               discriminant_annihilator=ctx.discriminant_annihilator_lb)
     g = gcd([reduce(gcd,keys(i);init=0) for i in ctx.orig_eigenlattice_conditions])
     if is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
-      # an action of order g=p^n has to come from L because p^n only divides it.
+      # Let f  in O(L) be of order k = p^i = g and suppose that D_f is of order k as well.
+      # Then we know that D_{f|L_k} is of order k, because f|L_k^\perp is of order at most n=k/p. 
       if order(ctx.orig_discriminant_action)==g
         filter!(order(discriminant_group(i)[2])==g, reps)
       end 
@@ -1519,8 +1520,16 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
   # g / gcd(g, j) = k.
   reps = ZZLatWithIsom[]
   ords = Set{Int}()
+  #=
+  We deal the following kind of situation:
+  $(L,f) = L_{12} + L_{20}$, $k=2$, $n=1$, and $j = 30$. So $(L, f)$ is of order $lcm(12,20)=60$ and 
+  $(L,f^{30})$ (which is the one we seek) is of order $2$. But it is coming from the hermitian lattice
+  $(L,f^{15}) =: N = N_{4}$. It is this situation we model.
+  Then $g = gcd(12,20)=4$ is indeed the right number.
+  Note that g does not appear in in orig_eigenlattice_conditions.
+  =#  
   for eig in ctx.orig_eigenlattice_conditions
-    V = [i for i in keys(eig) if divides(i,k*gcd(i,j))[1] && divides(k,divexact(i,gcd(i,j)))[1] && eig[i][1]!=0 && i == k*gcd(i, j)]
+    V = [i for i in keys(eig) if eig[i][1] != 0 && i == k*gcd(i, j)]
     g = gcd(V)
     g>0 && push!(ords, g)
   end
@@ -1607,7 +1616,7 @@ function _splitting_of_hermitian_type(
   end 
   unique!(_eiglat_cond_trimmed)
 
-  
+
   for cond in _eiglat_cond_trimmed
     condp = _conditions_after_power(cond, p)
     if !all(get(condp, i, [-1])[1] == V[i] || get(condp, i, [-1])[1] == -1 for i in keys(V))
@@ -2264,7 +2273,7 @@ function splitting(
   @req iseven(Lf) "Lattice must be even"
   @req is_finite(n) "Isometry must be of finite order"
   @req is_prime(p) "p must be a prime number"
-  
+
   if min_poly === nothing
     if char_poly !== nothing
       min_poly = _radical(char_poly)
