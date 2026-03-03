@@ -1979,6 +1979,9 @@ end
   S = SubquoModule(F, gens(F), [F[1]])
   # not a finite module over `QQ`
   @test_throws ErrorException vector_space_basis(S)
+  # for pure submodules this is always checked, even with ckeck=false
+  S2 = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(S2; check=false)
 end
 
 @testset "vector space functions for modules over a MPolyQuoRing" begin
@@ -2070,9 +2073,12 @@ end
   @test all(c -> c in repres.(C), [(x-1)*F[1], (x-1)^2*F[1]])
 
   # computing basis for infinite dimensional vector space throws error
-  S = SubquoModule(F, gens(F), [F[1]])
+  T1 = SubquoModule(F, gens(F), [F[1]])
   # not a finite module over `QQ`
-  @test_throws ErrorException vector_space_basis(S)
+  @test_throws ErrorException vector_space_basis(T1)
+  # for pure submodules this is always checked, even with ckeck=false
+  T2 = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(T2; check=false)
 end
 
 @testset "vector space functions for modules over a MPolyQuoLocRing" begin

@@ -1024,14 +1024,20 @@ function _vector_space_basis(
                               }}
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
+
+  if !isdefined(M, :quo) # exists to prevent an infinite runtime for a submodule `M` when called with check=false
+    is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
+    return elem_type(M)[]
+  end
+
+  F = ambient_free_module(M)
+  F_shift_poly,_,back_shift = shifted_module(F)
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
   LMq = leading_module(M_shift.quo, o)
-  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
+  B = _vector_space_basis(kk, quo_object(F_shift_poly, gens(LMq)), check=false) # check=false, since `_is_finite` has already been checked, if check=true
   is_empty(B) && return elem_type(M)[]
   # move basis elements back to M
-  F = ambient_free_module(M)
-  F_poly,_,back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
   # LMq(shifted) -> F_poly(shifted) -> F_poly -> F -> M
   return M.(iota.(back_shift.(ambient_representative.(B))))
