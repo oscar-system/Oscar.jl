@@ -1506,8 +1506,9 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
                                               root_test=ctx.root_test,
                                               discriminant_annihilator=ctx.discriminant_annihilator_lb)
     g = gcd([reduce(gcd,keys(i);init=0) for i in ctx.orig_eigenlattice_conditions])
-    if is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
-      # an action of order g=p^n has to come from L because p^n only divides it.
+    if g!=0 && is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
+      # Let f  in O(L) be of order k = p^i = g and suppose that D_f is of order k as well.
+      # Then we know that D_{f|L_k} is of order k, because f|L_k^\perp is of order at most n=k/p. 
       if order(ctx.orig_discriminant_action)==g
         filter!(order(discriminant_group(i)[2])==g, reps)
       end 
@@ -1519,8 +1520,16 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
   # g / gcd(g, j) = k.
   reps = ZZLatWithIsom[]
   ords = Set{Int}()
+  #=
+  We deal the following kind of situation:
+  $(L,f) = L_{12} + L_{20}$, $k=2$, $n=1$, and $j = 30$. So $(L, f)$ is of order $lcm(12,20)=60$ and 
+  $(L,f^{30})$ (which is the one we seek) is of order $2$. But it is coming from the hermitian lattice
+  $(L,f^{15}) =: N = N_{4}$. It is this situation we model.
+  Then $g = gcd(12,20)=4$ is indeed the right number.
+  Note that g does not appear in in orig_eigenlattice_conditions.
+  =#  
   for eig in ctx.orig_eigenlattice_conditions
-    V = [i for i in keys(eig) if divides(i,k*gcd(i,j))[1] && divides(k,divexact(i,gcd(i,j)))[1] && eig[i][1]!=0 && i == k*gcd(i, j)]
+    V = [i for i in keys(eig) if eig[i][1] != 0 && i == k*gcd(i, j)]
     g = gcd(V)
     g>0 && push!(ords, g)
   end
@@ -1582,7 +1591,6 @@ function _splitting_of_hermitian_type(
   k = p*n
   n = order_of_isometry(Lf)
   
-  eiglat_cond = ctx.eigenlattice_conditions
   # If p divides n, then any output is still of hermitian type since taking pth
   # power decreases the order of the isometry
   if iszero(mod(n, p))
@@ -1597,9 +1605,11 @@ function _splitting_of_hermitian_type(
   end
   
   # avoid overcounting
+  # the reason that this is necessary is that _restrict
+  # is a bit sloppy and does not clean up the eiglat conditions
   eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   _eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
-  for cond in eiglat_cond
+  for cond in ctx.eigenlattice_conditions
     T = Dict{Int,Vector{Int}}()
     T[n] = get(cond, n, Int[-1, -1, -1])
     T[k] = get(cond, k, Int[-1, -1, -1])
@@ -1607,7 +1617,7 @@ function _splitting_of_hermitian_type(
   end 
   unique!(_eiglat_cond_trimmed)
 
-  
+
   for cond in _eiglat_cond_trimmed
     condp = _conditions_after_power(cond, p)
     if !all(get(condp, i, [-1])[1] == V[i] || get(condp, i, [-1])[1] == -1 for i in keys(V))
@@ -1616,7 +1626,6 @@ function _splitting_of_hermitian_type(
     push!(eiglat_cond_trimmed, cond)
   end
   
-  # this is a bit hacky and could cause trouble!
   ctx_trimmed = deepcopy(ctx)
   ctx_trimmed.eigenlattice_conditions = eiglat_cond_trimmed
   for eiglat_cond in eiglat_cond_trimmed
@@ -1698,7 +1707,7 @@ function __splitting_of_hermitian_type(
     end
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
-    if ctx.info_depth >= 10
+    if ctx.info_depth >= 5
       println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
     end
     for (A, B) in atp
@@ -1709,10 +1718,10 @@ function __splitting_of_hermitian_type(
           continue
         end
       end
-      As = _representatives_of_hermitian_type(A, n; ctx=ctx_A)
-      isempty(As) && continue
       Bs = _representatives_of_hermitian_type(B, n, k; ctx=ctx_B)
       isempty(Bs) && continue
+      As = _representatives_of_hermitian_type(A, n; ctx=ctx_A)
+      isempty(As) && continue
       if ctx.info_depth >= 10
         println("$A found $(length(As)),    $B found $(length(Bs))  hermitian representatives")
       end
@@ -1853,14 +1862,14 @@ function _splitting_of_prime_power(
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, x^(q^(e-1))-1)
   B0 = kernel_lattice(Lf, q^e)
-  # Compute this one first because it is faster to decide whether it is empty
-  ctx_A, ctx_B = _split(ctx, q^(e-1), q^e)
   
-  RB = _splitting_of_hermitian_type(B0, p; ctx=ctx_A)
+  ctx_A, ctx_B = _split(ctx, q^(e-1), q^e)
+  # Compute this one first because it is faster to decide whether it is empty
+  RB = _splitting_of_hermitian_type(B0, p; ctx=ctx_B)
   is_empty(RB) && return reps
   # Recursive part of the function, with termination when the isometry of A0
   # is trivial
-  RA = _splitting_of_prime_power(A0, p; ctx=ctx_B)
+  RA = _splitting_of_prime_power(A0, p; ctx=ctx_A)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
     satisfies_eiglat_cond(L1, L2, ctx.eigenlattice_conditions) || continue
@@ -1947,7 +1956,6 @@ function _splitting_of_pure_mixed_prime_power(
     ctx::ZZLatWithIsomEnumCtX
   )
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
-
   n = order_of_isometry(Lf)
 
   @req iseven(Lf) "Lattice must be even"
@@ -1988,11 +1996,12 @@ function _splitting_of_pure_mixed_prime_power(
   # `PrimitiveExtensions`.
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
-  ctx_A, ctx_B = _split(ctx, n, n*p)
+  # In the target we split off the n*p term and the rest is of order (dividing) np/q
+  ctx_A, ctx_B = _split(ctx, divexact(n*p,q), n*p)
+
   # Compute this one first because it is faster to decide whether it is empty
   RB = _representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B)
   is_empty(RB) && return reps
-  ctx_new = _restrict(ctx, q)
   RA = _splitting_of_pure_mixed_prime_power(A0, p; ctx=ctx_A)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
@@ -2294,7 +2303,6 @@ function _splitting(
     ctx::ZZLatWithIsomEnumCtX,
     min_poly::Union{Nothing,ZZPolyRingElem}=nothing
   )
-
   @req b == 0 || b == 1 "b must be an integer equal to 0 or 1"
   # Default output
   if rank(Lf) == 0
@@ -3034,7 +3042,7 @@ function oscar_genus_representatives(
   # where after `stop_after` vain iterations we do not find any new isometry
   # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
-  l, mm, inv_dict = Hecke._enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
+  l, mm, inv_dict = Hecke._enumerate_definite_genus!(copy(known), algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
   length(l) == max_lat && return l
 
   # Part of the mass of G which is missing
@@ -3381,6 +3389,9 @@ function Base.:(^)(ctx::ZZLatWithIsomEnumCtX, n)
 end
 
 # conditions under restriction to a kernel lattice C_1 + C_2 with  p L <= C_1+C_2
+# it is a bit sloppy because it does not clean up the eigenlattice conditions afterwards
+# ideally what _restrict does should be handled by _split 
+# ... but that would require a better _split function
 function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
   ctx_new = deepcopy(ctx)
   if !(ctx_new.discriminant_annihilator_lb isa Nothing)
@@ -3398,6 +3409,11 @@ function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
 end 
 
 
+# ctx into two parts 
+# ctx_A containing the part of order a 
+# and ctx_B the part with minimal polynomial \Phi_b 
+# requires that b/a is prime 
+# adapt the conditions accordingly
 function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_A = deepcopy(ctx)
   ctx_B = deepcopy(ctx)
@@ -3429,6 +3445,9 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
     push!(ctx_A.eigenlattice_conditions, dA)
     push!(ctx_B.eigenlattice_conditions, dB)
   end
+  # after splitting some eigenlattice conditions may now agree, get rid of duplicates
+  unique!(ctx_A.eigenlattice_conditions)
+  unique!(ctx_B.eigenlattice_conditions)
   return ctx_A, ctx_B
 end
 
