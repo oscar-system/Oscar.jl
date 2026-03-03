@@ -1506,7 +1506,7 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
                                               root_test=ctx.root_test,
                                               discriminant_annihilator=ctx.discriminant_annihilator_lb)
     g = gcd([reduce(gcd,keys(i);init=0) for i in ctx.orig_eigenlattice_conditions])
-    if is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
+    if g!=0 && is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
       # Let f  in O(L) be of order k = p^i = g and suppose that D_f is of order k as well.
       # Then we know that D_{f|L_k} is of order k, because f|L_k^\perp is of order at most n=k/p. 
       if order(ctx.orig_discriminant_action)==g
@@ -1954,7 +1954,6 @@ function _splitting_of_pure_mixed_prime_power(
     ctx::ZZLatWithIsomEnumCtX
   )
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
-
   n = order_of_isometry(Lf)
 
   @req iseven(Lf) "Lattice must be even"
@@ -1995,7 +1994,9 @@ function _splitting_of_pure_mixed_prime_power(
   # `PrimitiveExtensions`.
   A0 = kernel_lattice(Lf, r)
   B0 = kernel_lattice(Lf, n)
-  ctx_A, ctx_B = _split(ctx, n, n*p)
+  # In the target we split off the n*p term and the rest is of order (dividing) np/q
+  ctx_A, ctx_B = _split(ctx, divexact(n*p,q), n*p)
+
   # Compute this one first because it is faster to decide whether it is empty
   RB = _representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B)
   is_empty(RB) && return reps
@@ -2300,7 +2301,6 @@ function _splitting(
     ctx::ZZLatWithIsomEnumCtX,
     min_poly::Union{Nothing,ZZPolyRingElem}=nothing
   )
-
   @req b == 0 || b == 1 "b must be an integer equal to 0 or 1"
   # Default output
   if rank(Lf) == 0
