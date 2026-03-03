@@ -1996,6 +1996,13 @@ end
   # for pure submodules this is always checked, even with ckeck=false
   S2 = SubquoModule(F, gens(F))
   @test_throws ErrorException vector_space_basis(S2; check=false)
+
+  #test ungraded total degree "graded" case
+  @test vector_space_dim(O2, 3) == 0
+  @test vector_space_basis(O2, 3) == elem_type(O2)[]
+  F_subquo,_ = sub(F, gens(F))
+  @test vector_space_dim(F_subquo, 2) == 6 
+  @test vector_space_basis(F_subquo, 2) == F_subquo.([x^2*F[1], x*y*F[1], y^2*F[1], x^2*F[2], x*y*F[2], y^2*F[2]])
 end
 
 @testset "vector space functions for modules over a MPolyQuoRing" begin
@@ -2003,6 +2010,7 @@ end
   I = ideal(R, [x^3+y^2+z^2, x*y])
   Q,_ = quo(R, I)
   F = free_module(Q, 2)
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2051,6 +2059,7 @@ end
   R, (x,y,z) = QQ[:x,:y,:z]
   L,_ =  localization(R, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(L, 2)
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2061,6 +2070,13 @@ end
   @test vector_space_dim(O2) == 0
   @test vector_space_basis(O2) == elem_type(O2)[]
   @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  #test ungraded total degree "graded" case
+  @test vector_space_dim(O2, 3) == 0
+  @test vector_space_basis(O2, 3) == elem_type(O2)[]
+  F_subquo,_ = sub(F, gens(F))
+  @test vector_space_dim(F_subquo, 1) == 6 
+  @test vector_space_basis(F_subquo, 1) == F_subquo.([(x-1)*F[1], (y-2)*F[1], (z-3)*F[1], (x-1)*F[2], (y-2)*F[2], (z-3)*F[2]])
 
   # quotient of free_module (S_6 space_curve with singularity translated to (1,2,3))
   rels = [
@@ -2101,6 +2117,7 @@ end
   Q,_ = quo(R, I)
   LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(LQ, 2)
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0

@@ -861,10 +861,16 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Boo
   R = base_ring(M)
   F = ambient_free_module(M)
 
+  mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
+
+  if !isdefined(M, :quo) || is_zero(M.quo)  # exists for pure submodules to prevent a undefined field access and select
+    # is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
+    return [M(mon) for mon in mons if (mon in M.sub)]
+  end
+
   o = default_ordering(M)
   LM = leading_module(M.quo, o)
 
-  mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
   return [M(mon) for mon in mons if !(mon in LM)]
 end
   
@@ -1064,6 +1070,7 @@ function _vector_space_basis(
                                <:MPolyRing, <:MPolyRingElem,
                                <:MPolyComplementOfKPointIdeal
                               }}
+  is_zero(M) && return elem_type(M)[]
   F = ambient_free_module(M)
   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
   F_shift_poly,_,back_shift = shifted_module(F)
