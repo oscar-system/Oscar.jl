@@ -839,6 +839,24 @@ end
 
 function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  is_zero(M) && return elem_type(M)[]
+  F = ambient_free_module(M)
+  # We need `M` to be presented  
+  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
+    # pres = presentation(M)
+    # MM = cokernel(map(pres, 1))    # cokernel sometimes returns also the canonical projection
+    MM = present_as_cokernel(M)
+    B = is_graded(MM) ? _vector_space_basis_graded(kk, MM, d; check) : error("not implemented for M/N with non-trivial M") 
+    # _vector_space_basis(kk, MM, d; check)
+    
+    # aug = map(pres, 0)
+    pres0 = ambient_free_module(MM)
+    aug = hom(pres0, M, gens(M))
+    # return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
+    return elem_type(M)[aug(pres0(coordinates(v))) for v in B]
+  end
+  
+  # If execution gets here, `M` is presented.
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
@@ -863,9 +881,8 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Boo
 
   mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
 
-  if !isdefined(M, :quo) || is_zero(M.quo)  # exists for pure submodules to prevent a undefined field access and select
-    # is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
-    return [M(mon) for mon in mons if (mon in M.sub)]
+  if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
+    return M.(vec(mons))
   end
 
   o = default_ordering(M)
@@ -1071,8 +1088,7 @@ function _vector_space_basis(
                                <:MPolyComplementOfKPointIdeal
                               }}
   is_zero(M) && return elem_type(M)[]
-  F = ambient_free_module(M)
-  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+  F = ambient_free_module(M)  
   F_shift_poly,_,back_shift = shifted_module(F)
   M_shift,_,_ = shifted_module(M)
   o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
