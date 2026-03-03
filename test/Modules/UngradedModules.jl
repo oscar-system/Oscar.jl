@@ -2109,6 +2109,16 @@ end
   # for pure submodules this is always checked, even with ckeck=false
   T2 = SubquoModule(F, gens(F))
   @test_throws ErrorException vector_space_basis(T2; check=false)
+
+  #testing if computation is actually local
+  R, (x,y) = QQ[:x, :y]
+  L,_ =  localization(R, complement_of_point_ideal(R, [0,0]))
+  F = free_module(L, 2)
+  # I = [x*y*(y-1)]
+  rels = [x*y*(y-1)*F[1], y*(y-1)*F[1], x*(2*y-1)*F[1], F[2]]
+  M = SubquoModule(F, gens(F), rels)
+  @test vector_space_dim(M) == 1
+  @test vector_space_dim(Oscar.pre_saturated_module(M)) == 2
 end
 
 @testset "vector space functions for modules over a MPolyQuoLocRing" begin
