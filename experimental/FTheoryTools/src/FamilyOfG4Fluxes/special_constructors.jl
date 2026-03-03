@@ -8,7 +8,7 @@ quantization and transversality checks.
 Optional keyword arguments:
 - `not_breaking`: if `true`, restricts to fluxes preserving the non-abelian gauge group.
 - `completeness_check`: if `false`, skips completeness check of the ambient toric variety for improved performance.
-- `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = "special"` activates a faster variant described in [BMT25](@cite BMT25).
+- `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = :special` activates a faster variant described in [BMT25](@cite BMT25).
 
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
@@ -52,7 +52,7 @@ function special_flux_family(
   m::AbstractFTheoryModel;
   not_breaking::Bool=false,
   completeness_check::Bool=true,
-  algorithm::String="default",
+  algorithm::Symbol = :default,
   rng::AbstractRNG=Random.default_rng(),
 )
 
@@ -97,7 +97,7 @@ function special_flux_family(
   end
 
   # (2) Consistency checks
-  if arxiv_doi(m) == "10.48550/arXiv.1511.03209" && algorithm == "default"
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209" && algorithm === :default
     error(
       "The default algorithm for intersection computations will likely not terminate in a reasonable time for this model and is therefore not supported"
     )
@@ -112,14 +112,16 @@ function special_flux_family(
   # (3) Result not known, compute it!
   final_shift = Vector{QQFieldElem}()
   res = Vector{ZZMatrix}()
-  if algorithm == "special"
+  if algorithm === :special
     final_shift, res = special_flux_family_with_special_algorithm(
       m::AbstractFTheoryModel; not_breaking, completeness_check, rng=rng
     )
-  else
+  elseif algorithm === :default
     final_shift, res = special_flux_family_with_default_algorithm(
       m::AbstractFTheoryModel; not_breaking, completeness_check
     )
+  else
+    throw(ArgumentError("Unknown value for keyword `algorithm`: $algorithm"))
   end
 
   # (4) Set attributes accordingly, and return result

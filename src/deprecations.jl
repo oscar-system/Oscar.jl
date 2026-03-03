@@ -227,3 +227,17 @@ Base.@deprecate_binding ZZMatrixGroup ZZMatGroup
 Base.@deprecate_binding QQMatrixGroup QQMatGroup
 Base.@deprecate_binding MatrixGroup MatGroup
 Base.@deprecate_binding MatrixGroupElem MatGroupElem
+
+@deprecate special_flux_family(
+    m::AbstractFTheoryModel;
+    not_breaking::Bool=false,
+    completeness_check::Bool=true,
+    algorithm::String="default",
+    rng::AbstractRNG=Random.default_rng(),
+) special_flux_family(
+    m;
+    not_breaking=not_breaking,
+    completeness_check=completeness_check,
+    algorithm=Symbol(algorithm),
+    rng=rng,
+)
