@@ -1591,7 +1591,6 @@ function _splitting_of_hermitian_type(
   k = p*n
   n = order_of_isometry(Lf)
   
-  eiglat_cond = ctx.eigenlattice_conditions
   # If p divides n, then any output is still of hermitian type since taking pth
   # power decreases the order of the isometry
   if iszero(mod(n, p))
@@ -1608,7 +1607,7 @@ function _splitting_of_hermitian_type(
   # avoid overcounting
   eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   _eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
-  for cond in eiglat_cond
+  for cond in ctx.eigenlattice_conditions
     T = Dict{Int,Vector{Int}}()
     T[n] = get(cond, n, Int[-1, -1, -1])
     T[k] = get(cond, k, Int[-1, -1, -1])
@@ -1625,7 +1624,6 @@ function _splitting_of_hermitian_type(
     push!(eiglat_cond_trimmed, cond)
   end
   
-  # this is a bit hacky and could cause trouble!
   ctx_trimmed = deepcopy(ctx)
   ctx_trimmed.eigenlattice_conditions = eiglat_cond_trimmed
   for eiglat_cond in eiglat_cond_trimmed
@@ -1707,7 +1705,7 @@ function __splitting_of_hermitian_type(
     end
     # We follow part the same ideas as in Algorithm 4 of [BH23]
     atp = admissible_triples(Lf, p; IrA=[_rA], IpA, InA, IrB=[_rB], IpB, InB, b)
-    if ctx.info_depth >= 10
+    if ctx.info_depth >= 5
       println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
     end
     for (A, B) in atp
@@ -1718,10 +1716,10 @@ function __splitting_of_hermitian_type(
           continue
         end
       end
-      As = _representatives_of_hermitian_type(A, n; ctx=ctx_A)
-      isempty(As) && continue
       Bs = _representatives_of_hermitian_type(B, n, k; ctx=ctx_B)
       isempty(Bs) && continue
+      As = _representatives_of_hermitian_type(A, n; ctx=ctx_A)
+      isempty(As) && continue
       if ctx.info_depth >= 10
         println("$A found $(length(As)),    $B found $(length(Bs))  hermitian representatives")
       end
@@ -3042,7 +3040,7 @@ function oscar_genus_representatives(
   # where after `stop_after` vain iterations we do not find any new isometry
   # class, we stop Kneser's algorithm and we start isometry enumeration instead.
   allow_info && println("Definite genus of rank bigger than 2")
-  l, mm, inv_dict = Hecke._enumerate_definite_genus(known, algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
+  l, mm, inv_dict = Hecke._enumerate_definite_genus!(copy(known), algorithm; rand_neigh, invariant_function, save_partial, save_path, stop_after, max=max_lat, distinct, add_spinor_generators)
   length(l) == max_lat && return l
 
   # Part of the mass of G which is missing
@@ -3438,6 +3436,9 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
     push!(ctx_A.eigenlattice_conditions, dA)
     push!(ctx_B.eigenlattice_conditions, dB)
   end
+  # after splitting some eigenlattice conditions may now agree, get rid of duplicates
+  unique!(ctx_A.eigenlattice_conditions)
+  unique!(ctx_B.eigenlattice_conditions)
   return ctx_A, ctx_B
 end
 
