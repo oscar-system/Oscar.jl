@@ -1605,6 +1605,8 @@ function _splitting_of_hermitian_type(
   end
   
   # avoid overcounting
+  # the reason that this is necessary is that _restrict
+  # is a bit sloppy and does not clean up the eiglat conditions
   eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   _eiglat_cond_trimmed = Vector{Dict{Int, Vector{Int}}}()
   for cond in ctx.eigenlattice_conditions
@@ -3387,6 +3389,9 @@ function Base.:(^)(ctx::ZZLatWithIsomEnumCtX, n)
 end
 
 # conditions under restriction to a kernel lattice C_1 + C_2 with  p L <= C_1+C_2
+# it is a bit sloppy because it does not clean up the eigenlattice conditions afterwards
+# ideally what _restrict does should be handled by _split 
+# ... but that would require a better _split function
 function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
   ctx_new = deepcopy(ctx)
   if !(ctx_new.discriminant_annihilator_lb isa Nothing)
@@ -3404,7 +3409,11 @@ function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
 end 
 
 
-# Split off the hermitian part of order b and leave the rest 
+# ctx into two parts 
+# ctx_A containing the part of order a 
+# and ctx_B the part with minimal polynomial \Phi_b 
+# requires that b/a is prime 
+# adapt the conditions accordingly
 function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_A = deepcopy(ctx)
   ctx_B = deepcopy(ctx)
