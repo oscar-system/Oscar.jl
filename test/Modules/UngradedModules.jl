@@ -1974,8 +1974,22 @@ end
   @test inc.(gens(V)) == B
   @test vector_space(V)[1] === V
 
+
   R, (x,y) = QQ[:x,:y]
   F = free_module(R, 2)
+
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  # computing basis for infinite dimensional vector space throws error
   S = SubquoModule(F, gens(F), [F[1]])
   # not a finite module over `QQ`
   @test_throws ErrorException vector_space_basis(S)
