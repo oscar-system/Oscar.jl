@@ -1862,14 +1862,14 @@ function _splitting_of_prime_power(
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, x^(q^(e-1))-1)
   B0 = kernel_lattice(Lf, q^e)
-  # Compute this one first because it is faster to decide whether it is empty
-  ctx_A, ctx_B = _split(ctx, q^(e-1), q^e)
   
-  RB = _splitting_of_hermitian_type(B0, p; ctx=ctx_A)
+  ctx_A, ctx_B = _split(ctx, q^(e-1), q^e)
+  # Compute this one first because it is faster to decide whether it is empty
+  RB = _splitting_of_hermitian_type(B0, p; ctx=ctx_B)
   is_empty(RB) && return reps
   # Recursive part of the function, with termination when the isometry of A0
   # is trivial
-  RA = _splitting_of_prime_power(A0, p; ctx=ctx_B)
+  RA = _splitting_of_prime_power(A0, p; ctx=ctx_A)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
     satisfies_eiglat_cond(L1, L2, ctx.eigenlattice_conditions) || continue
@@ -2001,7 +2001,6 @@ function _splitting_of_pure_mixed_prime_power(
   # Compute this one first because it is faster to decide whether it is empty
   RB = _representatives_of_hermitian_type(B0, n, n*p; ctx=ctx_B)
   is_empty(RB) && return reps
-  ctx_new = _restrict(ctx, q)
   RA = _splitting_of_pure_mixed_prime_power(A0, p; ctx=ctx_A)
   is_empty(RA) && return reps
   for L1 in RA, L2 in RB
@@ -3407,6 +3406,7 @@ function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
 end 
 
 
+# Split off the hermitian part of order b and leave the rest 
 function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   ctx_A = deepcopy(ctx)
   ctx_B = deepcopy(ctx)
