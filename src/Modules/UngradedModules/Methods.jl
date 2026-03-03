@@ -1001,7 +1001,7 @@ function _vector_space_basis(
 
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  B = _vector_space_basis(kk, _as_poly_module(M), check=false)
+  B = _vector_space_basis(kk, _as_poly_module(M), check=false) # check=false, since `_is_finite` has already been checked, if check=true
   is_empty(B) && return elem_type(M)[]
   iota = _iso_with_poly_module(M)
   return iota.(B)
@@ -1065,16 +1065,14 @@ function _vector_space_basis(
                                <:MPolyComplementOfKPointIdeal
                               }}
   F = ambient_free_module(M)
-  
   ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+  F_shift_poly,_,back_shift = shifted_module(F)
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  LMq = leading_module(M_shift.quo, o)
-  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), d; check)
+  o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
+  LMq = leading_module(M_shift.quo, o)      # M_shift.quo is always defined after using `shifted_module`, even when M_shift.quo == 0
+  B = _vector_space_basis(kk, quo_object(F_shift_poly, gens(LMq)), d; check)
   is_empty(B) && return elem_type(M)[]
   # move basis elements back to M
-  F = ambient_free_module(M)
-  F_shift_poly,_,back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
   # LMq(shifted & poly) -> F_shift_poly -> F_poly -> F -> M
   return M.(iota.(back_shift.(ambient_representative.(B))))  
@@ -1098,7 +1096,7 @@ function _vector_space_basis(
   Mq_shift,_ = change_base_ring(shift, Mq)
   o = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
   LMq = leading_module(Mq_shift, o)
-  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false)
+  B = _vector_space_basis(kk, quo_object(ambient_free_module(LMq), gens(LMq)), check=false) # check=false, since `_is_finite` has already been checked, if check=true
   is_empty(B) && return elem_type(M)[]
   iota_ring = hom(base_ring(LQ), LQ, elem_type(LQ)[LQ(x) for x in images_of_generators(back_shift)])
   iota = hom(parent(B[1]), M, gens(M), iota_ring)
