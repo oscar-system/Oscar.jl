@@ -605,7 +605,7 @@ function is_transversal_with_presentation(M::Matroid)
     if polymakeReturn == false
         return false, Vector{Int}[]
     else
-        return true, [w.+1 for w in polymakeReturn]
+        return true, _pmset_to_indices(polymakeReturn)::Vector{Vector{Int}}
     end
 end
 
