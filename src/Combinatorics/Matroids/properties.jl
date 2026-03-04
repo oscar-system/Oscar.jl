@@ -600,7 +600,7 @@ julia> is_transversal_with_presentation(M)
 
 ```
 """
-function is_transversal_with_presentation(M::Matroid)
+function is_transversal_with_presentation(::Type{Int}, M::Matroid)
     polymakeReturn = Polymake.matroid.check_transversality(pm_object(M))
     if polymakeReturn == false
         return false, Vector{Int}[]
