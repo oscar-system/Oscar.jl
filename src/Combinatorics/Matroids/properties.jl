@@ -582,7 +582,7 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
-    is_transversal_with_presentation(M::Matroid)
+    is_transversal_with_presentation([::Type{Int},] M::Matroid)
 
 If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
 
