@@ -9,7 +9,7 @@ The standard interfaces for groups are implemented, including `has_gens`, `numbe
 Basic operations for group elements are also implemented. See [Basics of Groups](@ref basics_of_groups) for more details.
 
 !!! warning
-    Currently only simply connected linear algebraic groups of type A_n are supported. In the future, the functionality could be extended to support arbitrary root data.
+    Currently only simply connected linear algebraic groups of type ``A_n`` are supported. In the future, the functionality could be extended to support arbitrary root data.
 
 !!! warning
     Most functionality is currently limited to finite fields.
