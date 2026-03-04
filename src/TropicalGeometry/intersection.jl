@@ -103,9 +103,9 @@ function intersect_after_lex_perturbation_with_intersection(sigma1::Polyhedron{Q
     #   sigma1 and sigma2 (the correctness of this test requires sigma1 and
     #   sigma2 spannig the entire space)
     p = relative_interior_point(sigma12)
-    # if contains_in_interior(sigma1, p) && contains_in_interior(sigma2, p)
-    #     return true, sigma12
-    # end
+    if contains_in_interior(sigma1, p) && contains_in_interior(sigma2, p)
+        return true, sigma12
+    end
 
     ###
     # Actual test: check that u := ε¹·e₁+...+εⁿ·eₙ is in the tangent cone
