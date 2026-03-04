@@ -368,14 +368,6 @@ function abs_irred(C::GModule)
   end
 end
 
-function maximal_supersolvable_quotient(G::GAPGroup)
-  R = GAP.Globals.SupersolvableResiduum(GapObj(G))
-  map = GAP.Globals.NaturalHomomorphismByNormalSubgroup(GapObj(G), R)::GapObj
-  F = Oscar.GAPWrap.Range(map)::GapObj
-  F = Oscar._oscar_group(F)
-  return F, GAPGroupHomomorphism(G, F, map)
-end
-
 function Oscar.inflate(C::Oscar.GAPGroupClassFunction, mp::GAPGroupHomomorphism)
   @assert codomain(mp) == group(C)
   iC = GAP.Globals.RestrictedClassFunction(C.values, mp.map)
