@@ -172,16 +172,28 @@ function is_conjugate(LAG::LinearAlgebraicGroup, h1::MatGroupElem, h2::MatGroupE
   return is_conjugate(_underlying_matrix_group(LAG), h1, h2)
 end
 
-function is_conjugate(LAG::LinearAlgebraicGroup, h1::LinearAlgebraicGroupElem, h2::LinearAlgebraicGroupElem)
-  return is_conjugate(_underlying_matrix_group(LAG), _underlying_matrix_group_elem(h1), _underlying_matrix_group_elem(h2))
+function is_conjugate(
+  LAG::LinearAlgebraicGroup, h1::LinearAlgebraicGroupElem, h2::LinearAlgebraicGroupElem
+)
+  return is_conjugate(
+    _underlying_matrix_group(LAG),
+    _underlying_matrix_group_elem(h1),
+    _underlying_matrix_group_elem(h2),
+  )
 end
 
 function is_conjugate(LAG::LinearAlgebraicGroup, H1::MatGroup, H2::MatGroup)
   return is_conjugate(_underlying_matrix_group(LAG), H1, H2)
 end
 
-function is_conjugate(LAG::LinearAlgebraicGroup, H1::LinearAlgebraicGroup, H2::LinearAlgebraicGroup)
-  return is_conjugate(_underlying_matrix_group(LAG), _underlying_matrix_group(H1), _underlying_matrix_group(H2))
+function is_conjugate(
+  LAG::LinearAlgebraicGroup, H1::LinearAlgebraicGroup, H2::LinearAlgebraicGroup
+)
+  return is_conjugate(
+    _underlying_matrix_group(LAG),
+    _underlying_matrix_group(H1),
+    _underlying_matrix_group(H2),
+  )
 end
 
 function conjugate_group(LAG::LinearAlgebraicGroup, h::MatGroupElem)
