@@ -582,6 +582,34 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
+    is_transversal_with_presentation(M::Matroid)
+
+If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal_with_presentation(M)
+(true, [[1, 2, 3, 4], [1, 2, 3, 4]])
+
+julia> M = fano_matroid();
+
+julia> is_transversal_with_presentation(M)
+(false, Vector{Int64}[])
+
+```
+"""
+function is_transversal_with_presentation(M::Matroid)
+    polymakeReturn = Polymake.matroid.check_transversality(pm_object(M))
+    if polymakeReturn == false
+        return false, Vector{Int}[]
+    else
+        return true, [w.+1 for w in polymakeReturn]
+    end
+end
+
+@doc raw"""
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
