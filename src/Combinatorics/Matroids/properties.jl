@@ -585,6 +585,7 @@ end
     is_transversal_with_presentation([::Type{Int},] M::Matroid)
 
 If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
+If `Int` is passed as a first argument then the return value will contain indices instead of ground set elements.
 
 # Examples
 ```jldoctest
