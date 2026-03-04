@@ -138,7 +138,12 @@ type_params(pm::PhylogeneticModel) = TypeParams(
   :base_field => base_field(pm),
   # needed until serialization can handle types as parameters
   :graph_type => TypeParams(typeof(graph(pm)), nothing), 
-  :graph_params => type_params(graph(pm))
+  :graph_params => type_params(graph(pm)),
+  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
+  :transition_matrix_entry_type => TypeParams(eltype(transition_matrix(pm)), nothing),
+  :transition_matrix_params => type_params(transition_matrix(pm)),
+  :root_distribution_entry_type => TypeParams(eltype(root_distribution(pm)), nothing),
+  :root_distribution_params => type_params(root_distribution(pm))
 )
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
@@ -152,13 +157,14 @@ function save_object(s::SerializerState, pm::PhylogeneticModel)
 end
 
 function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Dict)
+  T1, p1 = params[:transition_matrix_entry_type], params[:transition_matrix_params]
+  T2, p2 = params[:root_distribution_entry_type], params[:root_distribution_params]
   return PhylogeneticModel(
     params[:base_field],
     load_object(s, params[:graph_type], params[:graph_params], :graph),
-
-    load_object(s, Matrix{Symbol}, :transition_matrix),
-    load_object(s, Vector{QQFieldElem}, :root_distribution),
-    load_object(s, Symbol, :model_parameter_name)
+    load_object(s, Matrix{T1}, p1, :transition_matrix),
+    load_object(s, Vector{T2}, p2, :root_distribution),
+    load_object(s, params[:model_parameter_name_type], :model_parameter_name)
   )
 end
 
@@ -169,7 +175,8 @@ type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
   :phylo_model => phylogenetic_model(pm),
   # see comment in GroupBasedPhylogeneticModel constructor about group
-  :group => parent(first(group(pm))) 
+  :group => parent(first(group(pm))),
+  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
 )
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
@@ -184,7 +191,7 @@ function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, 
   GroupBasedPhylogeneticModel(params[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, Vector{FinGenAbGroupElem}, params[:group], :group_elems),
-                              load_object(s, Symbol, :varnames_group_based))
+                              load_object(s, params[:model_parameter_name_type], :varnames_group_based))
 end
 
 
