@@ -19,6 +19,10 @@ import ..Oscar: elem_type
 import ..Oscar: parent
 import ..Oscar: parent_type
 import ..Oscar: one
+import ..Oscar: normalizer
+import ..Oscar: centralizer
+import ..Oscar: is_conjugate
+import ..Oscar: conjugate_group
 
 export LinearAlgebraicGroup, LinearAlgebraicGroupElem
 export linear_algebraic_group, linear_algebraic_group_elem

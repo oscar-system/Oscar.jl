@@ -136,6 +136,66 @@ function is_subgroup(U::MatGroup, LAG::LinearAlgebraicGroup)
   return is_subgroup(U, _underlying_matrix_group(LAG))
 end
 
+function normalizer(LAG::LinearAlgebraicGroup, H::LinearAlgebraicGroup)
+  return normalizer(_underlying_matrix_group(LAG), _underlying_matrix_group(H))
+end
+
+function normalizer(LAG::LinearAlgebraicGroup, H::MatGroup)
+  return normalizer(_underlying_matrix_group(LAG), H)
+end
+
+function normalizer(LAG::LinearAlgebraicGroup, h::MatGroupElem)
+  return normalizer(_underlying_matrix_group(LAG), h)
+end
+
+function normalizer(LAG::LinearAlgebraicGroup, h::LinearAlgebraicGroupElem)
+  return normalizer(_underlying_matrix_group(LAG), _underlying_matrix_group_elem(h))
+end
+
+function centralizer(LAG::LinearAlgebraicGroup, H::LinearAlgebraicGroup)
+  return centralizer(_underlying_matrix_group(LAG), _underlying_matrix_group(H))
+end
+
+function centralizer(LAG::LinearAlgebraicGroup, H::MatGroup)
+  return centralizer(_underlying_matrix_group(LAG), H)
+end
+
+function centralizer(LAG::LinearAlgebraicGroup, h::MatGroupElem)
+  return centralizer(_underlying_matrix_group(LAG), h)
+end
+
+function centralizer(LAG::LinearAlgebraicGroup, h::LinearAlgebraicGroupElem)
+  return centralizer(_underlying_matrix_group(LAG), _underlying_matrix_group_elem(h))
+end
+
+function is_conjugate(LAG::LinearAlgebraicGroup, h1::MatGroupElem, h2::MatGroupElem)
+  return is_conjugate(_underlying_matrix_group(LAG), h1, h2)
+end
+
+function is_conjugate(LAG::LinearAlgebraicGroup, h1::LinearAlgebraicGroupElem, h2::LinearAlgebraicGroupElem)
+  return is_conjugate(_underlying_matrix_group(LAG), _underlying_matrix_group_elem(h1), _underlying_matrix_group_elem(h2))
+end
+
+function is_conjugate(LAG::LinearAlgebraicGroup, H1::MatGroup, H2::MatGroup)
+  return is_conjugate(_underlying_matrix_group(LAG), H1, H2)
+end
+
+function is_conjugate(LAG::LinearAlgebraicGroup, H1::LinearAlgebraicGroup, H2::LinearAlgebraicGroup)
+  return is_conjugate(_underlying_matrix_group(LAG), _underlying_matrix_group(H1), _underlying_matrix_group(H2))
+end
+
+function conjugate_group(LAG::LinearAlgebraicGroup, h::MatGroupElem)
+  return conjugate_group(_underlying_matrix_group(LAG), h)
+end
+
+function conjugate_group(LAG::LinearAlgebraicGroup, h::LinearAlgebraicGroupElem)
+  return conjugate_group(_underlying_matrix_group(LAG), _underlying_matrix_group_elem(h))
+end
+
+function conjugate_group(LAG::MatGroup, h::LinearAlgebraicGroupElem)
+  return conjugate_group(LAG, _underlying_matrix_group_elem(h))
+end
+
 function Base.show(io::IO, ::MIME"text/plain", LAG::LinearAlgebraicGroup)
   io = pretty(io)
   println(
@@ -222,6 +282,10 @@ function linear_algebraic_group_elem(
 ) where {C<:FieldElem}
   MGE = _underlying_matrix_group(LAG)(m; check)
   return LinearAlgebraicGroupElem(LAG, MGE; check=false)
+end
+
+function _underlying_matrix_group_elem(g::LinearAlgebraicGroupElem{C}) where {C<:FieldElem}
+  return g.mat::elem_type(matrix_group_type(C))
 end
 
 function parent(a::LinearAlgebraicGroupElem)
