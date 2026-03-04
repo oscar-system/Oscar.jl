@@ -1226,7 +1226,7 @@ function bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Un
     @req fan_structure in [:fine, :cyclic, :coarse] "fan structure '$(fan_structure)' is not supported"
     
     if rank(M) == 0
-        pt = cone(zeros(QQ, length(M)))
+        pt = cone(zeros(QQFieldElem, length(M)))
         return polyhedral_fan(pt)
     end
     
