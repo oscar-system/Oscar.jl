@@ -408,7 +408,7 @@ julia> LAG = linear_algebraic_group(:A, 3, F);
 
 julia> alpha = simple_root(root_system(LAG),2);
 
-julia> t = torus_element(LAG, [F(1),F(2),F(1),F(3)]);
+julia> t = torus_element(LAG, [1,2,1,3]);
 
 julia> apply_root_to_torus_element(alpha, t)
 2
