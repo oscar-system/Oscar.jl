@@ -609,6 +609,11 @@ function is_transversal_with_presentation(M::Matroid)
     end
 end
 
+function is_transversal_with_presentation(M::Matroid{T}) where T
+  res, indices = is_transversal_with_presentation(Int, M)
+  return res, _indices_to_gs(indices, M.groundset)::Vector{Vector{T}}
+end
+
 @doc raw"""
     n_connected_components(M::Matroid)
 
