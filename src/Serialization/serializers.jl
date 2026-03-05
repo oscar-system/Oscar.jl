@@ -59,7 +59,8 @@ mutable struct SerializerState{T <: OscarSerializer}
   pretty_print::Bool
 end
 
-function begin_node(s::SerializerState)
+function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
+  !isnothing(key) && set_key(s, key)
   if !s.new_level_entry
     if s.pretty_print
       println(s.io, ",")
@@ -86,8 +87,7 @@ end
 
 function save_data_dict(f::Function, s::SerializerState,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   if s.pretty_print
     println(s.io, "{")
     s.pretty_print && print(s.io, Indent())
@@ -111,8 +111,7 @@ end
 
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   if s.pretty_print
     println(s.io, "[")
     print(s.io, Indent())
@@ -136,8 +135,7 @@ end
 
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   str = string(x)
   if s.pretty_print
     print(s.io, "")
@@ -151,8 +149,7 @@ end
 
 function save_data_json(s::SerializerState, jsonstr::Any,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   write(s.io, jsonstr)
 end
 
