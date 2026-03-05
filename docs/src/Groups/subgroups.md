@@ -83,6 +83,7 @@ subgroups(G::GAPGroup)
 ## Conjugation action of elements and subgroups
 
 ```@docs
+conjugate_group(G::GAPGroup, x::GAPGroupElem)
 is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
