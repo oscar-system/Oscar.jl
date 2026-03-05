@@ -239,11 +239,11 @@ end
 #################################################
 
 @doc raw"""
-    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, MGE::MatGroupElem; check::Bool = true) -> LinearAlgebraicGroupElem
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatGroupElem; check::Bool = true) -> LinearAlgebraicGroupElem
 
-Coerce `MGE` into an element of `LAG`.
+Coerce `m` into an element of `LAG`.
 
-Setting `check` to `false` disables the check whether the element `MGE` actually lies in the group.
+Setting `check` to `false` disables the check whether the element `m` actually lies in the group.
 
 # Examples
 ```jldoctest
