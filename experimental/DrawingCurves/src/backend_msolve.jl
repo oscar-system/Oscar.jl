@@ -134,7 +134,12 @@ function isotopy_graph_from_msolve(
   K = base_ring(Rxy)
   Ry, t = polynomial_ring(K, [:y])
   projy = hom(Rxy, Ry, [0, t[1]])
-  sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
+  sings = []
+  try
+    sings = msolve_sings(ideal([f, derivative(f, y)]); precision=selected_precision)
+  catch Exception
+    return false
+  end
   @vprintln :DrawingCurves 2 "There are $(length(sings)) points to investigate"
   for (a, b) in subsets(sings, 2)
     # Check for genericity
