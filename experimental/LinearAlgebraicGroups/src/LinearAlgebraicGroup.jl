@@ -292,38 +292,47 @@ end
 
 function Base.:(==)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
   check_parent(a, b)
-  return a.mat == b.mat
+  return _underlying_matrix_group_elem(a) == _underlying_matrix_group_elem(b)
 end
 
 function Base.:(*)(a::LinearAlgebraicGroupElem, b::LinearAlgebraicGroupElem)
   check_parent(a, b)
-  return linear_algebraic_group_elem(parent(a), a.mat * b.mat; check=false)
+  return linear_algebraic_group_elem(
+    parent(a),
+    _underlying_matrix_group_elem(a) * _underlying_matrix_group_elem(b);
+    check=false,
+  )
 end
 
 function Base.inv(a::LinearAlgebraicGroupElem)
-  return linear_algebraic_group_elem(parent(a), inv(a.mat); check=false)
+  return linear_algebraic_group_elem(
+    parent(a), inv(_underlying_matrix_group_elem(a)); check=false
+  )
 end
 
 function Base.deepcopy_internal(a::LinearAlgebraicGroupElem, dict::IdDict)
   return get!(dict, a) do
-    linear_algebraic_group_elem(parent(a), Base.deepcopy_internal(a.mat, dict); check=false)
+    linear_algebraic_group_elem(
+      parent(a), Base.deepcopy_internal(_underlying_matrix_group_elem(a), dict); check=false
+    )
   end
 end
 
 function order(::Type{T}, a::LinearAlgebraicGroupElem) where {T}
-  return order(T, a.mat)
+  return order(T, _underlying_matrix_group_elem(a))
 end
 
 function Base.hash(a::LinearAlgebraicGroupElem, h::UInt)
   b = 0x1df4d55a7b37db2f % UInt
   h = hash(parent(a), h)
-  h = hash(a.mat, h)
+  h = hash(_underlying_matrix_group_elem(a), h)
 
   return xor(h, b)
 end
 
-Base.show(io::IO, g::LinearAlgebraicGroupElem) = show(io, g.mat)
-Base.show(io::IO, mi::MIME"text/plain", g::LinearAlgebraicGroupElem) = show(io, mi, g.mat)
+Base.show(io::IO, g::LinearAlgebraicGroupElem) = show(io, _underlying_matrix_group_elem(g))
+Base.show(io::IO, mi::MIME"text/plain", g::LinearAlgebraicGroupElem) =
+  show(io, mi, _underlying_matrix_group_elem(g))
 
 ############# Root Subgroups ############################
 #internal function to compute action of root alpha, in case :A return the tuple (i, j) for which alpha acts like e_i-e_j
@@ -485,9 +494,10 @@ function apply_root_to_torus_element(
   alpha::RootSpaceElem, t::LinearAlgebraicGroupElem
 )
   @req is_root(alpha) "The given element is not a root"
-  @req in(t.mat, maximal_torus(parent(t))) "The given element is not a torus element"
+  @req in(t, maximal_torus(parent(t))) "The given element is not a torus element"
   i, j = _compute_action(parent(t), alpha)
-  return t.mat[i, i] * inv(t.mat[j, j])
+  return _underlying_matrix_group_elem(t)[i, i] *
+         inv(_underlying_matrix_group_elem(t)[j, j])
 end
 
 ############### Bruhat decomposition ###########################
