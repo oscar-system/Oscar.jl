@@ -1,5 +1,5 @@
 @doc raw"""
-    circuits(M::Matroid, S::T) where T<:GroundsetType
+    circuits(M::Matroid, S:: GroundsetType)
 
 Return the list of circuits of the matroid contained in `S`. 
 
@@ -109,11 +109,11 @@ end
 @doc raw"""
     is_tutte_realizable(M::Matroid)
 
-Returns whether the matroid fulfills the Tutte realizability condition.
+Returns whether the matroid satisfies the Tutte realizability condition.
 If `false`, this implies that the matroid cannot be realized over a field with characteristic other than `2`.
 If `true`, we don't have a conclusive answer on realizability, since the Tutte
 group only yields a necessary (and no sufficient) criterion for realizability
-of `M`; See Corollary 1 in Section 3 of [DW89] (@cite).
+of `M`; see Corollary 1 in Section 3 of [DW89](@cite).
 
 # Example
 ```jldoctest
