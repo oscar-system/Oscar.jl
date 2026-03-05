@@ -1,3 +1,4 @@
+using Base: base62digits, base_project
 #################################################################################
 #
 # Puiseux polynomials
@@ -99,19 +100,25 @@ scale(f::PuiseuxMPolyRingElem) = f.scale
 # WARNING: input is not assumed to be normalized
 function normalize!(f::PuiseuxMPolyRingElem)
     if iszero(f)
-        f.scale = one(ZZ)
-        return false
+        if !isone(scale(f))
+            f.scale = one(ZZ)
+            return true
+        else
+            return false
+        end
     end
-
-    baseRing = base_ring(parent(f))
-    mpolyring = base_ring(parent(f)).mpolyring
 
     # make sure scale is correct,
     # i.e., gcd of numerators (= exponents of poly + shift) and denominatos (= scale) is 1
     gcdExponents = gcd(vcat(scale(f), reduce(vcat,[e for e in exponents(poly(f))])))
     if gcdExponents > 1
+        # TODO: use delflate for laurent polys when it is implemented
 
-        f.poly = baseRing(sum([c*monomial(mpolyring, Int.(div.(e, gcdExponents))) for (c, e) in zip(coefficients(poly(f)), exponents(poly(f)))]))
+        vars = gens(base_ring(parent(f)))
+        f.poly = sum(c*prod(vars[i].^(Int.(div.(e, gcdExponents))[i]) for i in 1:nvars(parent(f)))
+            for (c, e) in zip(coefficients(poly(f)), exponents(poly(f)))
+            )
+
         f.scale = div(f.scale, gcdExponents)
     end
 
@@ -130,7 +137,11 @@ function rescale(f::PuiseuxMPolyRingElem, newScale::ZZRingElem)
     newScaleMultipleOfCurrentScale, scaleQuotient = divides(newScale, scale(f))
     @req newScaleMultipleOfCurrentScale "new scale must be a multiple of the current scale"
 
-    newPoly = inflate(poly(f), [Int(scaleQuotient) for i in 1:nvars(parent(f))])
+
+    newPoly = evaluate(poly(f), gens(base_ring(parent(f))).^(scaleQuotient))
+
+    # when updating to the latest version of AbstractAlgebra, use the new inflate function as below
+    # newPoly = inflate(poly(f), [Int(scaleQuotient) for i in 1:nvars(parent(f))])
     return PuiseuxMPolyRingElem(parent(f), newPoly, newScale)
 end
 
@@ -208,7 +219,7 @@ function Base.deepcopy_internal(f::PuiseuxMPolyRingElem, dict::IdDict)
 end
 
 coefficients(f::PuiseuxMPolyRingElem) = coefficients(poly(f))
-exponents(f::PuiseuxMPolyRingElem) = [ e // scale(f) for e in exponents(poly(f)) ]
+exponents(f::PuiseuxMPolyRingElem) = [ e .// scale(f) for e in exponents(poly(f)) ]
 monomials(f::PuiseuxMPolyRingElem) = puiseux_polynomial_ring_elem.(Ref(parent(f)), monomials(poly(f)), Ref(scale(f)))
 
 Base.length(f::PuiseuxMPolyRingElem) = length(poly(f))
@@ -218,7 +229,7 @@ function valuation(f::PuiseuxMPolyRingElem)
     if iszero(f)
         return PosInf()
     end
-    return first(leading_exponent(poly(f))) // scale(f)
+    return minimum(e[1] for e in exponents(f))
 end
 
 is_univariate(R::PuiseuxMPolyRing) = is_univariate(base_ring(R))
@@ -330,7 +341,11 @@ function Base.:*(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
 
     # multiply scales and polys
     newScale = scale(f)*scale(g)
-    newPoly = inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]) * inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))])
+
+    newPoly = evaluate(poly(f), gens(base_ring(parent(f))).^scale(g)) * evaluate(poly(g), gens(base_ring(parent(f))).^scale(f))
+
+    # when updating to the latest version of AbstractAlgebra, use the new inflate function as below
+    # newPoly = inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]) * inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))])
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newScale)
 end
@@ -346,7 +361,7 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::QQFieldElem)
 
     return puiseux_polynomial_ring_elem(
         parent(f),
-        poly(f),
+        poly(f)^numerator(a),
         scale(f)*denominator(a)
     )
 end
@@ -363,20 +378,12 @@ function Base.:^(f::PuiseuxMPolyRingElem, a::ZZRingElem)
         return f
     end
 
-    if a < 0
-        # test whether f is a monomial
-        @assert length(f) == 1 "only monomials can be exponentiated to negative powers"
-        R = parent(f)
-        Runder = base_ring(R)
-        c = first(coefficients(f))
-        return puiseux_polynomial_ring_elem(
-            R,
-            Runder(c^a),
-            scale(f)
-        )
-    end
-
-    return reduce(*, [ f for i in 1:a ])
+    @req a >= 0 || length(f) == 1 "only monomials can be exponentiated to negative powers"
+    return puiseux_polynomial_ring_elem(
+        parent(f),
+        poly(f)^a,
+        scale(f)
+    )
 end
 
 function Base.:^(f::PuiseuxMPolyRingElem, a::Integer)
@@ -424,14 +431,20 @@ function divexact(f::PuiseuxMPolyRingElem, g::PuiseuxMPolyRingElem)
 
     # multiply scales and divide poly(f) by coefficient of poly(g)
     newScale = scale(f)*scale(g)
-    newPoly = divexact(inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]), inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))]))
+
+    vars = gens(base_ring(parent(f)))
+    newPoly = divexact(evaluate(poly(f), vars.^scale(g)), evaluate(poly(g), vars.^scale(f)))
+
+    # when updating to the latest version of AbstractAlgebra, use the new inflate function as below
+    # newPoly = divexact(inflate(poly(f), [Int(scale(g)) for i in 1:nvars(parent(f))]), inflate(poly(g), [Int(scale(f)) for i in 1:nvars(parent(f))]))
 
     return puiseux_polynomial_ring_elem(parent(f), newPoly, newScale)
 end
 
 # The following function is required for running the Conformance Tests
 function ConformanceTests.generate_element(R::PuiseuxMPolyRing)
-    f = ConformanceTests.generate_element(base_ring(R))
+    f = ConformanceTests.generate_element(base_ring(R).mpolyring)
+    f_laurent = base_ring(R)(f)
     scale = rand(ZZ, 1:10)
-    return puiseux_polynomial_ring_elem(R, f, scale)
+    return puiseux_polynomial_ring_elem(R, f_laurent, scale)
 end
