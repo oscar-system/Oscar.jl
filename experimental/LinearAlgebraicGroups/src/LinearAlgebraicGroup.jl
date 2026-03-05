@@ -371,7 +371,6 @@ end
 
 Return the root subgroup of `LAG` corresponding to the root `alpha`.
 
-
 # Examples
 ```jldoctest
 julia> F, _  = finite_field(5);
