@@ -545,18 +545,22 @@ julia> bruhat_cell_representative(LAG, w)
 ```
 """
 function bruhat_cell_representative(LAG::LinearAlgebraicGroup, w::WeylGroupElem)
-  @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
-  rep = identity_matrix(base_ring(LAG), degree(LAG))
-  for i in letters(w)
-    j = i + 1 # i is the index of a simple reflection -> _compute_action would return (i, i+1), but we cut short 
-    m = identity_matrix(base_ring(LAG), degree(LAG))
-    m[i, i] = zero(base_ring(LAG))
-    m[i, j] = -one(base_ring(LAG))
-    m[j, i] = one(base_ring(LAG))
-    m[j, j] = zero(base_ring(LAG))
-    rep = rep * m
+  if root_system_type(root_system(LAG))[1][1] == :A
+    @req parent(w) == weyl_group(root_system(LAG)) "parent mismatch"
+    rep = identity_matrix(base_ring(LAG), degree(LAG))
+    for i in letters(w)
+      j = i + 1 # i is the index of a simple reflection -> _compute_action would return (i, i+1), but we cut short 
+      m = identity_matrix(base_ring(LAG), degree(LAG))
+      m[i, i] = zero(base_ring(LAG))
+      m[i, j] = -one(base_ring(LAG))
+      m[j, i] = one(base_ring(LAG))
+      m[j, j] = zero(base_ring(LAG))
+      rep = rep * m
+    end
+    return _underlying_matrix_group(LAG)(rep)
+  else
+    error("Only type A is implemented so far.")
   end
-  return _underlying_matrix_group(LAG)(rep)
 end
 
 @doc raw"""
