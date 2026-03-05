@@ -85,52 +85,38 @@ end
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
-function save_data_dict(f::Function, s::SerializerState,
-                        key::Union{Symbol, Nothing} = nothing)
+function _save_data_container(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing}, start::String, stop::String)
   begin_node(s, key)
   if s.pretty_print
-    println(s.io, "{")
+    println(s.io, start)
     print(s.io, Indent())
   else
-    write(s.io, "{")
+    write(s.io, start)
   end
   s.new_level_entry = true
   f()
   if s.pretty_print
     println(s.io, "")
-    print(s.io, Dedent(), "}")
+    print(s.io, Dedent(), stop)
   else
-    write(s.io, "}")
+    write(s.io, stop)
   end
 
   if s.new_level_entry
-    # makes sure that entries after empty dicts add comma
+    # makes sure that entries after empty arrays or dicts add comma
     s.new_level_entry = false
   end
 end
 
+function save_data_dict(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing} = nothing)
+  _save_data_container(f, s, key, "{", "}")
+end
+
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
-  begin_node(s, key)
-  if s.pretty_print
-    println(s.io, "[")
-    print(s.io, Indent())
-  else
-    write(s.io, "[")
-  end
-  s.new_level_entry = true
-  f()
-  if s.pretty_print
-    println(s.io, "")
-    print(s.io, Dedent(), "]")
-  else
-    write(s.io, "]")
-  end
-
-  if s.new_level_entry
-    # makes sure that entries after empty arrays add comma
-    s.new_level_entry = false
-  end
+  _save_data_container(f, s, key, "[", "]")
 end
 
 function save_data_basic(s::SerializerState, x::Any,
