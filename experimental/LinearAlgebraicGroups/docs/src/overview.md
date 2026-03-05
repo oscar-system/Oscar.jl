@@ -60,4 +60,6 @@ bruhat_decomposition(LAG::LinearAlgebraicGroup)
 ## Technicalities
 The used types are `LinearAlgebraicGroup{C}` for the groups and `LinearAlgebraicGroupElem{C}` for their elements.
 The type parameter `C` is the element type of the base field.
-The type wraps a `MatGroup{C}` or a `MatGroupElem{C}` respectively to be able to also store additional information about the group that would not be possible if we would just use the existing matrix groups.
+These types wrap a `MatGroup{C}` or a `MatGroupElem{C}` respectively, but can
+store additional information about the group that would not be possible if we
+would just use the existing matrix groups.
