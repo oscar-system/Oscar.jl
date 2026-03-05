@@ -1,13 +1,27 @@
 import Oscar.Serialization: save_object, load_object,
   type_params, _convert_override_params, params, load_type_params, decode_type
 
-function _convert_override_params(tp::TypeParams{<:GraphicalModel{T}, <:Tuple{Vararg{Pair}}}) where T <: Oscar.AbstractGraph
+function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
   param_dict = Dict()
   for p in Oscar.Serialization.params(tp)
-    if p.first == :graph_type
-      param_dict[:graph_type] = Oscar.Serialization.type(p.second)
+    if p.first == :graph_type 
+      param_dict[p.first] = Oscar.Serialization.type(p.second)
     else
       param_dict[p.first] = p.second
+    end
+  end
+  return param_dict
+end
+
+function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T <: Union{GroupBasedPhylogeneticModel, PhylogeneticModel}
+  param_dict = Dict()
+  type_keys = [:transition_matrix_entry_type, :graph_type,
+               :model_parameter_name_type, :root_distribution_entry_type]
+  for p in Oscar.Serialization.params(tp)
+    if p.first in type_keys
+      param_dict[p.first] = Oscar.Serialization.type(p.second)
+    else
+      param_dict[p.first] = _convert_override_params(p.second)
     end
   end
   return param_dict
@@ -77,7 +91,7 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
 end
 
 function load_type_params(s::DeserializerState, T::Type{GenDict})
-  subtype, params = load_node(s, :params) do obj
+  subtype, params = load_node(s, p:params) do obj
     S, key_params = load_node(s, :key_params) do params
       params isa String && return decode_type(s), nothing
       load_type_params(s, decode_type(s))
@@ -128,6 +142,7 @@ function load_object(s::DeserializerState, ::Type{DiscreteGraphicalModel}, param
   )
 end
 
+# needs to use id to have attributes
 @register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
                                                         :model_ring,
                                                         :reduced_parameter_ring,

@@ -407,9 +407,9 @@
       tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
       M = [:m11 :m12; :m21 :m22]
       root_dist = [:r1, :r2]
-      fourier_params = [:x, :y];
+      fourier_params = [:x, :y]
       pm = group_based_phylogenetic_model(tree, M, fourier_params, nothing, nothing, "p", "q")
-      phi  = paramertrization(pm)
+      phi  = parametrization(pm)
       function check(loaded)
         varnames(loaded) isa String || return false
         varnames(phylogenetic_tree(loaded)) isa String || return false
