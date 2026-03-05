@@ -642,5 +642,13 @@ julia> bruhat_decomposition(LAG)
 ```
 """
 function bruhat_decomposition(LAG::LinearAlgebraicGroup)
+  # TODO: this code could be optimized if desired, to reduce the number of
+  # matrix multiplications, by computing a version of the Dimino algorithm,
+  # resp. by computing a Schreier tree for the Weyl group W, and then only
+  # need about |W| matrix multiplications, while the straight-forward
+  # implementation we use right now uses far, far more (the optimial algorithm
+  # uses that $n_{ws}=n_w n_s$ to perform a single multiplication to compute
+  # $n_{sw}$, while the algorithm below requires len(sw)-1=len(w)
+  # multiplications.
   return [bruhat_cell(LAG, w) for w in weyl_group(root_system(LAG))]
 end
