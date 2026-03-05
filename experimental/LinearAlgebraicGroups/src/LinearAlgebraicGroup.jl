@@ -475,7 +475,9 @@ end
 @doc raw"""
     apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem) -> FieldElem
 
-Return the field element obtained by applying the root `alpha` to the torus element `t`.
+Return the field element obtained by applying the root `alpha` to `t`, which must be an element of the standard maximal torus.
+
+In case of type ``A`` that means `t` must be a diagonal matrix with determinant 1.
 
 # Examples
 ```jldoctest
