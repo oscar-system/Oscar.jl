@@ -121,6 +121,12 @@ matroid_base_polytope(M::Matroid)
 bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
 ```
 
+### Tutte Group
+```@docs
+tutte_group
+is_tutte_realizable(M::Matroid)
+```
+
 
 ### Chow Rings
 ```@docs

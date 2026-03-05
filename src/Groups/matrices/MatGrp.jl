@@ -511,6 +511,9 @@ end
 Base.:*(x::MatGroupElem, y::MatElem) = matrix(x)*y
 Base.:*(x::MatElem, y::MatGroupElem) = x*matrix(y)
 
+Base.:*(x::Int, y::MatGroupElem) = error("Multiplying a matrix group element by an integer is not implemented. Use `matrix` to access the underlying matrix of the group element")
+Base.:*(y::MatGroupElem, x::Int) = x * y
+
 function Base.:^(x::MatGroupElem, n::Int)
   m = matrix(x)
   # Raising a `ZZMatrix` to a negative power is not supported.
