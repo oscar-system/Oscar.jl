@@ -412,7 +412,7 @@ end
 
 Return the standard maximal torus of `LAG`.
 
-In the case of type ``A`` and ``SL_n``, this consists of the diagonal matrices with determinant 1.
+In the case of type ``A`` and ``SL_n``, this is the subgroup of diagonal matrices with determinant 1.
 
 # Examples
 ```jldoctest
