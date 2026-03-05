@@ -424,6 +424,8 @@ which is parameterized by `diag`.
 
 In the case of type ``A`` and ``SL_n``, this is a diagonal matrix with diagonal `diag`.
 
+Setting `check` to `false` disables the check whether the element actually lies in the group.
+
 # Examples
 ```jldoctest
 julia> F, _  = finite_field(5);
@@ -437,10 +439,10 @@ julia> torus_element(LAG, [1,2,1,3])
 [0   0   0   3]
 ```
 """
-function torus_element(LAG::LinearAlgebraicGroup, diag::Vector)
+function torus_element(LAG::LinearAlgebraicGroup, diag::Vector; check::Bool=true)
   @req length(diag) == degree(LAG) "Wrong number of diagonal entries"
   diag_ = [base_ring(LAG)(d) for d in diag]
-  @req isone(prod(diag_)) "Deteminant of torus element must be 1"
+  check && @req isone(prod(diag_)) "Deteminant of torus element must be 1"
   m = diagonal_matrix(base_ring(LAG), diag_)
   return linear_algebraic_group_elem(LAG, m; check=false)
 end
