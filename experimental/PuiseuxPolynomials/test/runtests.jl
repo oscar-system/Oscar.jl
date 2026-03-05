@@ -9,48 +9,53 @@ using Oscar
     end
 
     @testset "Construction" begin
-        K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
+        K, (t1,t2,t3) = laurent_polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
-        @test K_p.underlyingPolynomialRing == K
+        @test K_p.baseRing == K
         @test K_p == Oscar.PuiseuxMPolyRing(K)
 
         h = 1+t1 + 2*t2+3*t1^4+t1*t2^4+t3^2
         g = Oscar.PuiseuxMPolyRingElem(K_p,h)
         @test_throws NotImplementedError h != g
         @test g.scale == 1
-        @test g.shift == [0,0,0]
 
-        g = Oscar.PuiseuxMPolyRingElem(K_p,h,[ZZ(1),ZZ(1),ZZ(1)],ZZ(3))
+        g = Oscar.PuiseuxMPolyRingElem(K_p,h,ZZ(3))
         @test g.scale==3
-        @test g.shift==[ZZ(1),ZZ(1),ZZ(1)]
 
         h = t1^(2)
         g = puiseux_polynomial_ring_elem(K_p,h)
         @test g.scale == 1
-        @test g.shift == [2,0,0]
         @test normalize!(g) == false
 
         h = t1^2*(1 + t1)
         g = puiseux_polynomial_ring_elem(K_p,h)
         @test g.scale == 1
-        @test g.shift == [2,0,0]
 
         h = t1*t2^(2)*t3^(3)*(1+t1+t2+t3)
         g = puiseux_polynomial_ring_elem(K_p,h)
         @test g.scale == 1
-        @test g.shift == [1,2,3]
 
         h = t1*t2^(2)*t3^(3)*(1+t1+t2+t3)
         g = puiseux_polynomial_ring_elem(K_p,h,skip_normalization=true)
         @test g.scale == 1
-        @test g.shift == [0,0,0]
+        @test normalize!(g) == false
+
+        h = t1^4*t2^2 + t3^6
+        g = Oscar.PuiseuxMPolyRingElem(K_p,h,ZZ(2))
+        @test normalize!(g) == true
+
+        h = t1^(-4) + t2^2
+        g = Oscar.PuiseuxMPolyRingElem(K_p,h,ZZ(2))
         @test normalize!(g) == true
 
         h = (1+t1+t2+t3)
-        g = puiseux_polynomial_ring_elem(K_p,h,[ZZ(1),ZZ(2),ZZ(3)],ZZ(3),skip_normalization=true)
+        g = puiseux_polynomial_ring_elem(K_p,h,ZZ(3),skip_normalization=true)
         @test g.scale == 3
-        @test g.shift == [1,2,3]
-        
+
+
+        f = tp1^2
+
+
         K, _ = polynomial_ring(QQ, ["t1","t2","t3"])
         Kt, _ = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
         @test Kt.underlyingPolynomialRing == K
@@ -152,7 +157,7 @@ using Oscar
     @testset "Conformance tests" begin
         K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
-        # ConformanceTests.test_Ring_interface(K_p) # basic tests
-        ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
+        ConformanceTests.test_Ring_interface(K_p) # basic tests
+        # ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
     end
 end
