@@ -73,12 +73,10 @@ using Oscar
         @test parent(g) == Kp
         @test poly(g) == t1^3 + t3^2
         @test scale(g) == 6
-        @test shift(g) == [0,0,0]
 
         g = tp1^(2//3)*tp1*tp2^(1//2)*tp3 + tp3^(3//7)*tp1*tp2^(1//2)*tp3 + tp2^(1//2)*tp1*tp2^(1//2)*tp3
         @test parent(g) == Kp
-        @test poly(g) == t1^28 + t2^21 + t3^18
-        @test shift(g) == [42,21,42]
+        @test poly(g) == t1^70*t2^21*t3^42 + t1^42*t2^42*t3^42 + t1^42*t2^21*t3^60
         @test scale(g) == 2*3*7
 
         
@@ -121,25 +119,24 @@ using Oscar
 
         @test (u^(1//2)+u^(-1//2))^2 == u+2+u^(-1)
 
-        g = puiseux_polynomial_ring_elem(K,up*vp*wp*((up^4)*(vp^4)*(wp^4)+1),[ZZ(5),ZZ(9),ZZ(13)],ZZ(4),skip_normalization=true)
-        @test monomials(g) == [u^(5//2)*v^(7//2)*w^(9//2),u^(3//2)*v^(5//2)*w^(7//2)]
-        @test collect(exponents(g)) == [[5//2,7//2,9//2],[3//2,5//2,7//2]]
+        g = puiseux_polynomial_ring_elem(K,up*vp*wp*((up^4)*(vp^4)*(wp^4)+1),ZZ(4),skip_normalization=true)
+        @test monomials(g) == [u^(5//4)*v^(5//4)*w^(5//4),u^(1//4)*v^(1//4)*w^(1//4)]
+        @test collect(exponents(g)) == [[5//4,5//4,5//4],[1//4,1//4,1//4]]
         @test poly(g) == up*vp*wp*(up^4*vp^4*wp^4+1)
         @test scale(g) == 4
-        @test shift(g) == [ZZ(5),ZZ(9),ZZ(13)]
-        @test normalize!(g) == true
-        @test poly(g) == 1+up^2*vp^2*wp^2
+        @test normalize!(g) == false
+
+        g = puiseux_polynomial_ring_elem(K,up^2*vp^4*wp^8*(1+up^4 - vp^6 + wp^10),ZZ(4))
         @test scale(g) == 2
         g_c = rescale(g,ZZ(10))
         @test scale(g_c) == 10
-        @test poly(g_c) == 1+up^10*vp^10*wp^10
-        @test shift(g_c) == [ZZ(15),ZZ(25),ZZ(35)]
-        @test collect(exponents(g_c)) == [[5//2,7//2,9//2],[3//2,5//2,7//2]]
+        @test poly(g_c) == up^5*vp^10*wp^20*(1+up^10 - vp^15 + wp^25)
+        @test collect(exponents(g_c)) == [[3//2, 1, 2], [1//2, 5//2, 2], [1//2, 1, 9//2], [1//2, 1, 2]]
         @test normalize!(K(0)) == false
     end
 
     @testset "Conversions" begin
-        F, (up,vp,wp) = polynomial_ring(QQ,["u","v","w"])
+        F, (up,vp,wp) = laurent_polynomial_ring(QQ,["u","v","w"])
         K, (u,v,w) = puiseux_polynomial_ring(QQ,["u","v","w"])
         @test typeof(3) == Int64
         @test K(3) == puiseux_polynomial_ring_elem(K,F(3))
@@ -150,7 +147,6 @@ using Oscar
     end
 
     @testset "Conformance tests" begin
-        K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
         K_p,(tp1,tp2,tp3) = puiseux_polynomial_ring(QQ, ["t1","t2","t3"])
         ConformanceTests.test_Ring_interface(K_p) # basic tests
         # ConformanceTests.test_Ring_interface_recursive(K_p) # also tests constructions like mpoly over your ring; if you have this, you don't need the line above
