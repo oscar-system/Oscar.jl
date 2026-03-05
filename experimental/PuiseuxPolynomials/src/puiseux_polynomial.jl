@@ -179,7 +179,8 @@ end
 
 elem_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = PuiseuxMPolyRingElem{T}
 parent_type(::Type{PuiseuxMPolyRingElem{T}}) where T <: FieldElement = PuiseuxMPolyRing{T}
-base_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = parent_type(T)
+base_ring_type(::Type{PuiseuxMPolyRing{T}}) where T <: FieldElement = AbstractAlgebra.Generic.LaurentMPolyWrapRing{T, mpoly_ring_type(T)}
+coefficient_ring_type(::Type{PuiseuxMPolyRing{T}}) where T = parent_type(T)
 
 # The next function is required but not tested in AbstractAlgebra.
 # The following code errors without it:
@@ -235,7 +236,7 @@ end
 is_univariate(R::PuiseuxMPolyRing) = is_univariate(base_ring(R))
 is_gen(f::PuiseuxMPolyRingElem) = is_gen(poly(f)) && scale(f) == 1
 is_term(f::PuiseuxMPolyRingElem) = is_term(poly(f))
-is_monomial(f::PuiseuxMPolyRingElem) = is_monomial(poly(f))
+is_monomial(f::PuiseuxMPolyRingElem) = is_monomial(poly(f).mpoly)
 is_unit(f::PuiseuxMPolyRingElem) = is_monomial(f) && is_unit(leading_coefficient(poly(f)))
 
 is_nilpotent(f::PuiseuxMPolyRingElem) = is_nilpotent(poly(f))

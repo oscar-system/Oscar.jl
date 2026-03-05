@@ -69,7 +69,7 @@ using Oscar
         g = tp1^(1//2)+tp3^(1//3)
         @test elem_type(Kp) == typeof(g)
         @test parent_type(g) == typeof(Kp)
-        @test base_ring_type(Kp) == typeof(QQ)
+        @test coefficient_ring_type(Kp) == typeof(QQ)
         @test parent(g) == Kp
         @test poly(g) == t1^3 + t3^2
         @test scale(g) == 6
