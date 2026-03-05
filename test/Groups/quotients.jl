@@ -95,6 +95,20 @@ end
    @test abelian_invariants(free_group(2)) == [0, 0]
    @test abelian_invariants(alternating_group(5)) == []
    @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
+
+   # `maximal_supersolvable_quotient`
+   G = symmetric_group(4)
+   @test_throws ArgumentError maximal_supersolvable_quotient(FinGenAbGroup, G)
+   grps = [(G, PcGroup),
+           (codomain(isomorphism(FPGroup, G)), PermGroup),
+           (dihedral_group(PermGroup, 8), PermGroup),
+           (codomain(isomorphism(PcGroup, G)), PcGroup),
+           (abelian_group([2, 3, 4]), FinGenAbGroup)]
+   for (G, T) in grps
+     @test maximal_supersolvable_quotient(G)[1] isa T
+     @test maximal_supersolvable_quotient(PermGroup, G)[1] isa PermGroup
+   end
+   @test maximal_supersolvable_quotient(free_group(1))[1] isa FPGroup
 end
 
 @testset "Relators" begin
