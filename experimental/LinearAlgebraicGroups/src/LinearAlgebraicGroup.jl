@@ -198,6 +198,18 @@ function conjugate_group(LAG::MatGroup, h::LinearAlgebraicGroupElem)
   return conjugate_group(LAG, _underlying_matrix_group_elem(h))
 end
 
+function Base.in(g::LinearAlgebraicGroupElem, LAG::LinearAlgebraicGroup)
+  return in(_underlying_matrix_group_elem(g), _underlying_matrix_group(LAG))
+end
+
+function Base.in(g::LinearAlgebraicGroupElem, LAG::MatGroup)
+  return in(_underlying_matrix_group_elem(g), LAG)
+end
+
+function Base.in(g::MatGroupElem, LAG::LinearAlgebraicGroup)
+  return in(g, _underlying_matrix_group(LAG))
+end
+
 function Base.show(io::IO, ::MIME"text/plain", LAG::LinearAlgebraicGroup)
   io = pretty(io)
   println(
