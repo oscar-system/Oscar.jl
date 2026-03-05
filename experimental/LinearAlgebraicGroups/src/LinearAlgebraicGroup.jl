@@ -328,6 +328,7 @@ Base.show(io::IO, mi::MIME"text/plain", g::LinearAlgebraicGroupElem) = show(io, 
 ############# Root Subgroups ############################
 #internal function to compute action of root alpha, in case :A return the tuple (i, j) for which alpha acts like e_i-e_j
 function _compute_action(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
+  @assert root_system(alpha) === root_system(LAG)
   if root_system_type(root_system(LAG))[1][1] == :A
     c = coefficients(alpha)
     l = number_of_simple_roots(root_system(LAG))
