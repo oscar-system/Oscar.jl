@@ -52,21 +52,16 @@ using Oscar
         g = puiseux_polynomial_ring_elem(K_p,h,ZZ(3),skip_normalization=true)
         @test g.scale == 3
 
-
-        f = tp1^2
-
-
-        K, _ = polynomial_ring(QQ, ["t1","t2","t3"])
+        K, _ = laurent_polynomial_ring(QQ, ["t1","t2","t3"])
         Kt, _ = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
-        @test Kt.underlyingPolynomialRing == K
+        @test Kt.baseRing == K
     end
     
     @testset "Getters" begin
-        K, (t1,t2,t3) = polynomial_ring(QQ, ["t1","t2","t3"])
+        K, (t1,t2,t3) = laurent_polynomial_ring(QQ, ["t1","t2","t3"])
         Kp, (tp1,tp2,tp3) = puiseux_polynomial_ring(QQ,["t1","t2","t3"])
 
-	    @test K == Oscar.underlying_polynomial_ring(Kp)
-        @test QQ == base_ring(Kp)
+	      @test K == base_ring(Kp)
         @test QQ == coefficient_ring(Kp)
         @test ngens(Kp) == 3
         @test gens(Kp) == [tp1,tp2,tp3]
@@ -96,7 +91,7 @@ using Oscar
 
     @testset "Arithmetic" begin
 
-        F, (up,vp,wp) = polynomial_ring(QQ,["u","v","w"])
+        F, (up,vp,wp) = laurent_polynomial_ring(QQ,["u","v","w"])
         K, (u,v,w) = puiseux_polynomial_ring(QQ,["u","v","w"])
         g = v^(1//3)+u^(1//2)
         h = v^(1//3) + w^(1//3)
