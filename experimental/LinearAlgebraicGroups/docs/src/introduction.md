@@ -11,7 +11,7 @@ and we represent linear algebraic groups as matrix groups. Here we consider redu
 We follow the conventions of [MT11](@cite).
 
 !!! warning
-    Currently only simply connected linear algebraic groups of type A_n are supported. In the future, the functionality could be extended to support arbitrary root data.
+    Currently only simply connected linear algebraic groups of type ``A_n`` are supported. In the future, the functionality could be extended to support arbitrary root data.
 
 !!! warning
     Most functionality is currently limited to finite fields.
