@@ -410,15 +410,20 @@
       fourier_params = [:x, :y]
       pm = group_based_phylogenetic_model(tree, M, fourier_params, nothing, nothing, "p", "q")
       phi  = parametrization(pm)
+      
       function check(loaded)
         varnames(loaded) isa String || return false
-        varnames(phylogenetic_tree(loaded)) isa String || return false
-        model_ring(loaded) isa IndexedRing || return false
-        parameter_ring isa MPolyRing || return false
+        varnames(phylogenetic_model(loaded)) isa String || return false
         return true
       end
-      test_save_load_roundtrip(path, model; check_func=check) do loaded
+      test_save_load_roundtrip(path, pm; check_func=check) do loaded
       end
+
+      pm = phylogenetic_model(pm)
+      phi = parametrization(pm)
+      test_save_load_roundtrip(path, pm; check_func=check) do loaded
+      end
+      
     end
   end
 end
