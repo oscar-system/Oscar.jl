@@ -446,7 +446,8 @@ end
 @doc raw"""
     torus_element(LAG::LinearAlgebraicGroup, diag::Vector{T}) where {T<:FieldElem} -> LinearAlgebraicGroupElem
 
-Return the [`maximal_torus`](@ref maximal_torus(::LinearAlgebraicGroup{<:FieldElem})) element parameterized by `diag` as an element of `LAG`.
+Return the element of the standard maximal torus (see [`maximal_torus`](@ref maximal_torus(::LinearAlgebraicGroup{<:FieldElem})))
+which is parameterized by `diag`.
 
 In the case of type ``A`` and ``SL_n``, this is a diagonal matrix with diagonal `diag`.
 
