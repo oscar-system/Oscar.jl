@@ -90,7 +90,7 @@ function save_data_dict(f::Function, s::SerializerState,
   begin_node(s, key)
   if s.pretty_print
     println(s.io, "{")
-    s.pretty_print && print(s.io, Indent())
+    print(s.io, Indent())
   else
     write(s.io, "{")
   end
