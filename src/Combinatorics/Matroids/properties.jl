@@ -1211,14 +1211,14 @@ which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) 
 The Bergman fan of the complete graph on $n$ vertices is the space of phylogenetic trees, its coarse
 fan structure has $(2n-3)!!=(2n-3)\cdot(2n-5)\cdot...\cdot 3\cdot 1$ maximal cones.
 ```
-julia> M = cycle_matroid(complete_graph(5))
-Matroid of rank 4 on 10 elements
+julia> M = cycle_matroid(complete_graph(4))
+Matroid of rank 3 on 6 elements
 
 julia> F = bergman_fan(M)
-Polyhedral fan in ambient dimension 10
+Polyhedral fan in ambient dimension 6
 
 julia> n_maximal_cones(F)
-105
+15
 ```
 """
 function bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
