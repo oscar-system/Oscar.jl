@@ -4,6 +4,7 @@
 
 @doc raw"""
     linear_algebraic_group(rs::RootSystem, k::Field) -> LinearAlgebraicGroup
+    linear_algebraic_group(type::Symbol, n::Int, k::Field) -> LinearAlgebraicGroup
 
 Construct the simply connected linear algebraic group of the given type over ``k``.
 
@@ -17,6 +18,10 @@ julia> F, _  = finite_field(5);
 julia> rs = root_system(:A, 3);
 
 julia> LAG = linear_algebraic_group(rs, F)
+Linear algebraic group of type A3
+  over prime field of characteristic 5
+
+julia> LAG = linear_algebraic_group(:A, 3, F)
 Linear algebraic group of type A3
   over prime field of characteristic 5
 ```
@@ -36,22 +41,6 @@ function linear_algebraic_group(rs::RootSystem, k::Field)
   return LAG
 end
 
-@doc raw"""
-    linear_algebraic_group(type::Symbol, n::Int, k::Field) -> LinearAlgebraicGroup
-
-Construct the simply connected linear algebraic group of the given type over ``k``.
-
-Only type ``A_n`` is implemented so far and results in ``SL_{n+1}``. In the future also root data should be added.
-
-# Examples
-```jldoctest
-julia> F, _  = finite_field(5);
-
-julia> LAG = linear_algebraic_group(:A, 3, F)
-Linear algebraic group of type A3
-  over prime field of characteristic 5
-```
-"""
 function linear_algebraic_group(type::Symbol, n::Int, k::Field)
   return linear_algebraic_group(root_system(type, n), k)
 end
@@ -240,6 +229,7 @@ end
 
 @doc raw"""
     linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatGroupElem; check::Bool = true) -> LinearAlgebraicGroupElem
+    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatElem{<:FieldElem}; check::Bool = true) -> LinearAlgebraicGroupElem
 
 Coerce `m` into an element of `LAG`.
 
@@ -260,6 +250,11 @@ julia> linear_algebraic_group_elem(LAG, MGE)
 [1   4   3]
 [0   1   1]
 
+julia> linear_algebraic_group_elem(LAG, m)
+[2   1   0]
+[1   4   3]
+[0   1   1]
+
 ```
 """
 function linear_algebraic_group_elem(
@@ -268,28 +263,6 @@ function linear_algebraic_group_elem(
   return LinearAlgebraicGroupElem(LAG, MGE; check)
 end
 
-@doc raw"""
-    linear_algebraic_group_elem(LAG::LinearAlgebraicGroup, m::MatElem{<:FieldElem}; check::Bool = true) -> LinearAlgebraicGroupElem
-
-Coerce `m` into an element of `LAG`.
-
-Setting `check` to `false` disables the check whether the element `m` actually lies in the group.
-
-
-# Examples
-```jldoctest
-julia> F, _  = finite_field(5);
-
-julia> LAG = linear_algebraic_group(:A, 2, F);
-
-julia> m = matrix(F, [2 1 0; 1 4 3; 0 1 1]);
-
-julia> linear_algebraic_group_elem(LAG, m)
-[2   1   0]
-[1   4   3]
-[0   1   1]
-```
-"""
 function linear_algebraic_group_elem(
   LAG::LinearAlgebraicGroup{C}, m::MatElem{C}; check::Bool=true
 ) where {C<:FieldElem}

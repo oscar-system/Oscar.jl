@@ -22,14 +22,12 @@ Depth = 2:5
 
 ## Constructing groups
 ```@docs
-linear_algebraic_group(type::Symbol, n::Int, k::Field)
 linear_algebraic_group(rs::RootSystem, k::Field)
 ```
 
 ## Constructing elements
 ```@docs
 linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, MGE::MatGroupElem{C}) where {C<:FieldElem}
-linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, m::MatElem{C}) where {C<:FieldElem}
 ```
 
 ## Special subgroups
