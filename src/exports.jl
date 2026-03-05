@@ -477,6 +477,7 @@ export connected_sum
 export connectivity
 export connectivity_function
 export contains
+export contains_in_interior
 export continued_fraction_hirzebruch_jung
 export continued_fraction_hirzebruch_jung_to_rational
 export contraction
@@ -1228,6 +1229,7 @@ export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
+export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
