@@ -7,7 +7,8 @@
 
 Construct the simply connected linear algebraic group of the given type over ``k``.
 
-Only type ``A_n`` is implemented so far and results in ``SL_{n+1}``. In the future also root data should be added.
+Only type ``A_n`` is implemented so far and results in ``SL_{n+1}``.
+In the future we hope to support arbitrary root data.
 
 # Examples
 ```jldoctest
