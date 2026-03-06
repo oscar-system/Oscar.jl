@@ -1029,7 +1029,7 @@ end
 
 @testset "natural characters" begin
   G = symmetric_group(4)
-  chi = Oscar.natural_character(G)
+  chi = natural_character(G)
   @test degree(chi) == 4
   psi = chi
   @test scalar_product(chi, psi) == 2
@@ -1047,11 +1047,12 @@ end
     [ matrix(L, 2, 2, [b, 0, -b - 1, 1]), matrix(L, 2, 2, [1, b + 1, 0, b]) ],
     [ matrix(F, [1 0 0 ; 0 -1 0 ; 0 0 -1]),
       matrix(F, [1//2 -sqrt3//2 0 ; sqrt3//2 1//2 0 ; 0 0 1]) ],
+    gens(GL(2, 3))
   ]
 
   @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
     G = matrix_group(mats)
-    chi = Oscar.natural_character(G)
+    chi = natural_character(G)
     @test degree(chi) == degree(G)
     @test chi == natural_character(hom(G, G, gens(G)))
   end
@@ -1068,6 +1069,10 @@ end
 
   G = small_group(4, 1)  # pc group
   @test_throws MethodError natural_character(G)
+  @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
+
+  G = GL(2, 5)  # nonsolvable matrix group in positive characteristic
+  @test_throws ArgumentError natural_character(G)
   @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
 end
 
