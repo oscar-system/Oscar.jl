@@ -84,7 +84,6 @@ function _direct_is_faster(L::ZZLat)
     end
     b = n<ub
     b && return b
-    n > 5000 && return false
     # Catches examples like the A24 Niemeier lattice
     # where generic stabilizer computations are
     # currently out of reach or just slow
