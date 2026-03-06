@@ -291,8 +291,6 @@ end
 
 struct TimeoutException <: Exception end
 
-  return push!(wp.wp, a)
-
 @doc raw"""
      remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...; kwargs...)
 
