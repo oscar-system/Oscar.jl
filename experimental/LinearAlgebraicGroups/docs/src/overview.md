@@ -32,7 +32,8 @@ linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, MGE::MatGroupElem{C}) 
 ```
 
 ## Properties
-With `root_system` it is possible to get the root system of the linear algebraic group and `base_ring` returns the base field.
+Use `root_system` to obtain the root system of the linear algebraic group.
+`base_ring` returns the field the group is defined over.
 
 ## Special subgroups
 ### Root subgroups
