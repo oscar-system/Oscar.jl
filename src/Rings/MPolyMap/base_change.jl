@@ -27,3 +27,8 @@ function change_base_ring(phi::Any, Q::MPolyQuoRing)
   return res, hom(Q, res, phi, gens(res), check=false)
 end
 
+function change_base_ring(A::AbstractAlgebra.Generic.RationalFunctionField, P::MPolyRing{<:MPolyRingElem})
+  coeff_map = hom(base_ring(P), A, gens(A))
+  res, _ = polynomial_ring(A, symbols(P); cached=false)
+  return res, hom(P, res, coeff_map, gens(res), check=false)
+end
