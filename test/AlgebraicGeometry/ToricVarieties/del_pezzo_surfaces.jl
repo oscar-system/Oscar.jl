@@ -4,7 +4,7 @@
   dP2 = del_pezzo_surface(NormalToricVariety, 2)
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (del Pezzo surfaces as toric varieties)" begin
     @test_throws ArgumentError del_pezzo_surface(NormalToricVariety, -1)
     @test_throws ArgumentError del_pezzo_surface(NormalToricVariety, 4)
   end
