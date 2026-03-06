@@ -504,11 +504,11 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
   end
 
   if default
-    if "default" in reverse_type_map[str]
+    haskey(reverse_type_map[str], "default")
       S = reverse_type_map[str]["default"]
       error("Attempting to overwrite registered default type $S with $T")
     end
-    reverse_type_map[str] = merge(Dict{String, Type}("default" => T), reverse_type_map[str])
+    reverse_type_map[str]["default"] = T
   end
 end
 
