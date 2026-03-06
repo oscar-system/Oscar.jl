@@ -291,9 +291,15 @@ end
 
 struct TimeoutException <: Exception end
 
-function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
-                                 timeout=1,
-                                 args...; kwargs...)
+  return push!(wp.wp, a)
+
+@doc raw"""
+     remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...; kwargs...)
+
+Will kill the worker if the timeout is reached. If the one of the workers in the `wp` worker pool
+is killed, it will be replaced.
+"""
+function remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...; kwargs...)
   wid = take!(wp)
   
   # Prepare type parameters
