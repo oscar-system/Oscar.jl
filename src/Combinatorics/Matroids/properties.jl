@@ -1221,8 +1221,7 @@ julia> n_maximal_cones(F)
 105
 ```
 """
-function bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
-    @req convention in [min, max] "convention '$(convention)' is not supported"
+function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
     @req fan_structure in [:fine, :cyclic, :coarse] "fan structure '$(fan_structure)' is not supported"
     
     if rank(M) == 0
