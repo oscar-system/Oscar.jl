@@ -473,8 +473,8 @@
         M = direct_sum(uniform_matroid(2, 4), uniform_matroid(2, 4))
         BF1 = bergman_fan(M, fan_structure = :fine)
         BF2 = bergman_fan(M)
-        BF3 = bergman_fan(M, fan_structure = :fine, convention = max)   
-        BF4 = bergman_fan(M, convention = max)
+        BF3 = bergman_fan(M, max, fan_structure = :fine)   
+        BF4 = bergman_fan(M, max)
             
         @test f_vector(BF1) == [0, 34, 120, 96]
         @test f_vector(BF2) == [0, 0, 8, 16]
