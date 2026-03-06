@@ -338,4 +338,4 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...
   return fetch(fut) 
 end
 
-export oscar_worker_pool
+export oscar_worker_pool, remotecall_with_timeout
