@@ -17,6 +17,7 @@ which we think might affect some users directly.
 
 - [#5681](https://github.com/oscar-system/Oscar.jl/pull/5681) Add some minor improvements for finitely presented modules and cache representatives of inverses in quotient rings
 - [#5626](https://github.com/oscar-system/Oscar.jl/pull/5626) Add `ample_class` for `EllipticSurface`
+- [#5629](https://github.com/oscar-system/Oscar.jl/pull/5629) Add methods for drawing real plane curves.
 
 #### Other fixed bugs
 
