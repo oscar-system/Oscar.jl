@@ -254,3 +254,21 @@ function is_known(
   return haskey(I.gb, ordering)
 end
 
+
+@doc raw"""
+     comprehensive_groebner_system(I::MPolyIdeal [, o::MonomialOrdering])
+
+"""
+function comprehensive_groebner_system(I::MPolyIdeal, o::MonomialOrdering)
+  cgs = Singular.LibGrobcov.cgsdr(Oscar.singular_generators(I, o))
+  R = base_ring(I)
+  return [
+    # each entry describes describes a reduce groebner basis on where the coefficients
+    # live on the variety V(full) \ V(hole), the entries are ordered as
+    # [ full, hole, gb ]
+    [ideal(R, SI) for SI in full_hole_basis] for full_hole_basis in cgs
+  ]
+end
+
+comprehensive_groebner_system(I::MPolyIdeal) = comprehensive_groebner_system(I, degrevlex(base_ring(I)))
+  
