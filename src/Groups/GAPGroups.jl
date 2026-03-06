@@ -592,7 +592,7 @@ end
 Base.length(x::GAPGroup)::Int = order(Int, x)
 
 """
-    Base.in(g::GAPGroupElem, G::GAPGroup)
+    in(g::GAPGroupElem, G::GAPGroup)
 
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
