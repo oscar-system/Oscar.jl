@@ -10,6 +10,7 @@ The following functions are available in OSCAR for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
+in(g::GAPGroupElem, G::GAPGroup)
 is_subset(H::GAPGroup, G::GAPGroup)
 is_subgroup(H::GAPGroup, G::GAPGroup)
 embedding(H::GAPGroup, G::GAPGroup)
