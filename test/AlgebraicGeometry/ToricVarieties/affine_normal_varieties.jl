@@ -55,7 +55,7 @@
     @test is_finalized(antv4) == true
   end
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (affine normal toric varieties)" begin
     @test_throws ArgumentError ideal_of_linear_relations(antv6)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
       antv4
