@@ -7,6 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 The standard interfaces for groups are implemented, including `has_gens`, `number_of_generators`, `gens`, `gen`, `is_finite` and `order`.
 Basic operations for group elements are also implemented. See [Basics of Groups](@ref basics_of_groups) for more details.
+Additionally we provide `normalizer`, `centralizer`, `is_conjugate`, `conjugate_group` and `in`.
 
 !!! warning
     Currently only simply connected linear algebraic groups of type ``A_n`` are supported. In the future, the functionality could be extended to support arbitrary root data.
@@ -29,6 +30,9 @@ linear_algebraic_group(rs::RootSystem, k::Field)
 ```@docs
 linear_algebraic_group_elem(LAG::LinearAlgebraicGroup{C}, MGE::MatGroupElem{C}) where {C<:FieldElem}
 ```
+
+## Properties
+With `root_system` it is possible to get the root system of the linear algebraic group and `base_ring` returns the base field.
 
 ## Special subgroups
 ### Root subgroups
