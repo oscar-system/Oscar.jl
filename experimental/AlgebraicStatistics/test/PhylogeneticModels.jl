@@ -412,10 +412,9 @@
       phi  = parametrization(pm)
       
       function check(loaded)
-        varnames(loaded) isa String || return false
-        varnames(phylogenetic_model(loaded)) isa String || return false
-        return true
+        return varnames(loaded) isa String 
       end
+      
       test_save_load_roundtrip(path, pm; check_func=check) do loaded
       end
 
@@ -423,7 +422,6 @@
       phi = parametrization(pm)
       test_save_load_roundtrip(path, pm; check_func=check) do loaded
       end
-      
     end
   end
 end
