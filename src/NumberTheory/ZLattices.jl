@@ -159,8 +159,8 @@ Return a set of characterisitc vectors of ``L`` up to sign.
 We follow ideas of Sikirić Haensch, Voight and van Woerden [SHVW20](@cite).
 
 !!! Note
-  We do not give any guarantees that the characterisitc vector set stays the same 
-  between different versions of Oscar.
+    We do not give any guarantees that the characterisitc vector set stays the same 
+    between different versions of Oscar.
 """
 function characteristic_vectors(L::ZZLat)
   L = lattice(rational_span(L))
@@ -185,8 +185,7 @@ function characteristic_vectors(L::ZZLat)
   proj2 = orthogonal_projection(ambient_space(L), basis_matrix(P1))
   L2 = proj2(L)
   proj1 = orthogonal_projection(ambient_space(L), basis_matrix(L2))
-  L1 = proj1(L)
-  P_Z = ZZ.(solve(basis_matrix(L2),proj2.matrix;side=:left))    
+  P_Z = ZZ.(solve(basis_matrix(L2), proj2.matrix;side=:left))    
   # recurse 
   for a in characteristic_vectors(L2)
     aL = a*basis_matrix(L2)
