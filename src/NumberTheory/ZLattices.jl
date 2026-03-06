@@ -158,7 +158,7 @@ Return a set of characterisitc vectors of ``L`` up to sign.
 
 We follow ideas of Sikirić Haensch, Voight and van Woerden [SHVW20](@cite).
 
-!!! Note
+!!! note
     We do not give any guarantees that the characterisitc vector set stays the same 
     between different versions of Oscar.
 """
