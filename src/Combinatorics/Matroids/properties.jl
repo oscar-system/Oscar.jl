@@ -616,6 +616,32 @@ function is_transversal_with_presentation(M::Matroid{T}) where T
 end
 
 @doc raw"""
+    is_transversal(M::Matroid)
+
+Return `true` if `M` is transversal, return `false` otherwise.
+
+For a transversal presentation, see [`is_transversal_with_presentation(::Type{Int},::Matroid)`](@ref).
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal(M)
+true
+
+julia> M = fano_matroid();
+
+julia> is_transversal(M)
+false
+
+```
+"""
+function is_transversal(M::Matroid)
+    return is_transversal_with_presentation(M)[1]
+end
+
+
+@doc raw"""
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
