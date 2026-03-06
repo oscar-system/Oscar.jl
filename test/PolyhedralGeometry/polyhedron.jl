@@ -7,6 +7,7 @@
   @test convex_hull(f, pts; non_redundant=true) == Q0
   Q1 = convex_hull(f, pts, [1 1])
   Q2 = convex_hull(f, pts, [1 1], [1 1])
+  Q3 = convex_hull(f, [], [1 1])
   square = cube(f, 2)
   CR = cube(f, 2, 0, 3//2)
   Pos = polyhedron(f, [-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0])
@@ -38,6 +39,13 @@
     @test issetequal(matrix(f, vertices(Q1)) * v, T[f(1), f(0), f(1)])
     @test issubset(Q0, Q1)
     @test !issubset(Q1, Q0)
+    @test contains(Q0, [1, 0])
+    @test !contains_in_interior(Q0, [1, 0])
+    @test contains(Q1, [3, 3])
+    @test contains(Q1, ray_vector(f, [3, 3]))
+    @test contains_in_interior(Q1, ray_vector(f, [1, 1]))
+    @test contains_in_interior(Pos, ray_vector(f, [1, 1, 1]))
+    @test !contains_in_interior(Pos, ray_vector(f, [1, 0, 1]))
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
@@ -267,6 +275,18 @@
     @test lineality_dim(full) == 3
     @test length(findall(f -> [1, 0] in f, facets(Hyperplane, Q0))) == 2
     @test length(findall(f -> [1, 0] in f, facets(Halfspace, Q0))) == 3
+
+    @test dim(Q3) < 0
+
+    # empty inputs
+    @test dim(convex_hull(f, [1 1], [], [])) == 0
+    @test ambient_dim(convex_hull(f, [1 1], [], [])) == 2
+    @test dim(convex_hull(f, [], [1 1], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [1 1], [])) == 2
+    @test dim(convex_hull(f, [], [], [1 1])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [1 1])) == 2
+    @test dim(convex_hull(f, [], [], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [])) == -1
   end
 
   @testset "volume" begin

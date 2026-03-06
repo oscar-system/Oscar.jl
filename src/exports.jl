@@ -410,6 +410,7 @@ export class_positions_of_pcore
 export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
+export clebsch_graph
 export cm_regularity
 export coatoms
 export cobases
@@ -476,6 +477,7 @@ export connected_sum
 export connectivity
 export connectivity_function
 export contains
+export contains_in_interior
 export continued_fraction_hirzebruch_jung
 export continued_fraction_hirzebruch_jung_to_rational
 export contraction
@@ -560,6 +562,7 @@ export direct_sum
 export direct_sum_components
 export directed_component
 export discriminant_representation
+export disjoint_automorphisms, has_disjoint_automorphisms
 export disjoint_union
 export div_left
 export div_left!
@@ -1075,6 +1078,7 @@ export is_transitive
 export is_transverse_intersection
 export is_trivial
 export is_tropically_generic
+export is_tutte_realizable
 export is_two_sided
 export is_unipotent
 export is_unit
@@ -1226,6 +1230,7 @@ export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
+export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
@@ -1433,6 +1438,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export petersen_graph
 export phylogenetic_tree
 export picard_class
 export picard_group
@@ -1824,6 +1830,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_group
 export tutte_lifting
 export tutte_polynomial
 export twist

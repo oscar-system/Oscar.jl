@@ -58,12 +58,8 @@
      "Rings/intro.md",
      "AbstractAlgebra/ring.md",
      "Rings/integer.md",
-     "Univariate Polynomials" => [
-        "AbstractAlgebra/polynomial.md",
-     ],
-     "Multivariate Polynomials" => [
-        "AbstractAlgebra/mpolynomial.md",
-     ],
+     "Univariate Polynomials" => "AbstractAlgebra/polynomial.md",
+     "Multivariate Polynomials" => "AbstractAlgebra/mpolynomial.md",
      "Modular Methods" => [
          "AbstractAlgebra/euclidean_interface.md",
      ],
@@ -148,7 +144,13 @@
       "NumberTheory/QuadFormAndIsom/enumeration.md",
       "NumberTheory/QuadFormAndIsom/primembed.md",
       "NumberTheory/QuadFormAndIsom/fingrpact.md",
-    ],
+     ],
+     "Finite rings" => [
+      "Hecke/manual/finiterings/intro.md",
+      "Hecke/manual/finiterings/basics.md",
+      "Hecke/manual/finiterings/ideal.md",
+      "NumberTheory/finiteringunits.md",
+     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],

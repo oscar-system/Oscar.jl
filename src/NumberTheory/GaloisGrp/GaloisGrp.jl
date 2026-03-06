@@ -604,7 +604,7 @@ function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   C1 = maximum(map(x->evaluate(x, ZZRingElem[r, 0]), coefficients(ff, 2)))
   #the infinite valuation... need Newton
   vl = valuations_of_roots(F)
-  return (C+1, 0, maximum(x[1] for x = vl)), r
+  return (C+1, 0, maximum(-x[1] for x = vl)), r
 end
 
 function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})

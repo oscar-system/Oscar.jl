@@ -1291,8 +1291,9 @@ the associated projectivization ``ℙ (E) → X`` as a `CoveredProjectiveScheme`
 A list of names for the variables of the relative homogeneous coordinate
 rings can be provided with `var_names`.
 
-!!! note: The sheaf ``E`` needs to be locally free so that a `trivializing_covering`
-can be computed. The check for this can be turned off by setting `check=false`.
+!!! note
+    The sheaf ``E`` needs to be locally free so that a `trivializing_covering` can be
+    computed. The check for this can be turned off by setting `check=false`.
 """
 function projectivization(E::AbsCoherentSheaf;
     var_names::Vector{<:VarName}=Vector{Symbol}(),

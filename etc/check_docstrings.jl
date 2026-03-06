@@ -31,6 +31,10 @@ function has_broken_doctest(md::Markdown.MD)
           if contains(string(block),"```jldoctest")
             return "Unterminated jldoctest: $(string(block))"
           end
+          if contains(string(block), r"^!!!")
+            # if an admonition appears in a Paragraph it failed parsing
+            return "Broken admonition header, must be '!!! admonition_type \"Optional title\"' and have indented lines below: $(string(block))"
+          end
         end
       elseif elem isa Markdown.Admonition
         if !(elem.category in admonition_types)
