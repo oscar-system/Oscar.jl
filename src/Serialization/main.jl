@@ -504,7 +504,7 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
   end
 
   if default
-    haskey(reverse_type_map[str], "default")
+    if haskey(reverse_type_map[str], "default")
       S = reverse_type_map[str]["default"]
       error("Attempting to overwrite registered default type $S with $T")
     end
