@@ -812,8 +812,8 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     return flag, transporter
   end
   
-  BL1 = matrix(abelian_group_homomorphism(i1))
-  BL2 = matrix(abelian_group_homomorphism(i2))
+  BL1 = matrix(i1)
+  BL2 = matrix(i2)
   # The vector space case is the base case of the recursion.
   if is_prime(expA)
     p = expA

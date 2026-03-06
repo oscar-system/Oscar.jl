@@ -96,7 +96,7 @@ function _direct_is_faster(L::ZZLat)
       else 
         _A = A
       end
-      ediv = elementary_divisors(discriminant_group(A))
+      ediv = elementary_divisors(discriminant_group(_A))
       b = length(ediv) > 4
     end
     
@@ -705,7 +705,7 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     T2 = solve(basis_matrix(M2), basis_matrix(M2s); side=:left)
     fM = inv(T1)*matrix(dM1s\tmp)*fMs*T2
   end
-  @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)  
+  @hassert :Isometry 3 fM*gram_matrix(M2)*transpose(fM) == gram_matrix(M1)
   @hassert :Isometry 1 denominator(fM)==1
   # base case of the recursion 
   if rank(M1) == rank(L1)
