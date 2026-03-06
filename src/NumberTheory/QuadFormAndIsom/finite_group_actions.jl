@@ -412,7 +412,16 @@ function stabilizer_in_diagonal_action(
     @req iszero(basis_matrix(N) * gram_matrix(ambient_space(L)) * transpose(basis_matrix(K))) "Sublattices are not orthogonal"
     @req rank(N) + rank(K) == rank(L) "Incompatible ranks"
   end
-
+  if !is_even(N)
+    # below we move computations to K
+    # The glue diagram: D_K > H_K <-\phi-> H_N < D_N 
+    # if N is odd an K is even then \phi is an anti isometry 
+    # of the bilinear form only 
+    # and so O(H_K)=O(H_K,q) may be smaller than O(H_N)=O(H_N,b)
+    # to remedy this, we can just swap N and K
+    (N,K) = (K,N)
+    (OK,ON) = (ON,OK)
+  end
   # Can speed up kernel computations
   if is_finite_known[1]
     set_is_finite(OK, true)
@@ -430,6 +439,7 @@ function stabilizer_in_diagonal_action(
   # K^\vee\oplus N^\vee
   phi, HKinqK, HNinqN = glue_map(L, K, N)
   iphi = inv(phi)
+  
 
   gen = QQMatrix[]
   discN = discriminant_representation(N, ON; check=false, full=false)
