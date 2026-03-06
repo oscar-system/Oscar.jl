@@ -97,8 +97,7 @@ end
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
-  push!(wp.wids, id) # update the list of associated workers
-  return push!(wp.wp, a)
+  return push!(wp.wids, id) # update the list of associated workers
 end
 
 # Take a worker from the pool; this marks it as being busy.
@@ -288,6 +287,51 @@ type_params(p::Base.Iterators.Zip) = type_params(first(p))
 function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
   put_type_params(wp, c)
   pmap(f, wp.wp, c; kwargs...)
+end
+
+struct TimeoutException <: Exception end
+
+function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
+                                 timeout=1,
+                                 args...; kwargs...)
+  wid = take!(wp)
+  
+  # Prepare type parameters
+  for a in args
+    put_type_params(get_channel(wp, wid), a)
+  end
+  for a in kwargs
+    put_type_params(get_channel(wp, wid), a)
+  end
+  
+  local fut
+  try
+    fut = @async remotecall_fetch(f, wid, args...; kwargs...)
+  catch
+    put!(wp, wid)  # Return worker to pool on setup failure
+    rethrow()
+  end
+  
+  try
+    if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
+      # Add replacement worker
+      new_wid = first(addprocs(1))
+      push!(wp, new_wid)
+      println("pushed worker to pool")
+      # Remove the problematic worker
+      rmprocs(wid)
+      println("removed worker")
+      throw(TimeoutException())
+    end
+  catch e
+    if !(e isa TimeoutException)
+      put!(wp, wid)  # Return worker if it's not a timeout error
+    end
+    rethrow(e)
+  end
+  
+  put!(wp, wid)  # Return worker to pool on success
+  return fetch(fut) 
 end
 
 export oscar_worker_pool
