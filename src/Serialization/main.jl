@@ -497,14 +497,18 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
       init = Dict{String, Type}(convert_type_to_string(init) => init)
     end
     reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
-    if default
-      "default" in reverse_type_map[str] && error("Attempting to overwrite registered default type $(reverse_type_map[str]["default"]) with $T") 
-      reverse_type_map[str] = merge(Dict{String, Type}("default" => T), reverse_type_map[str])
-    end
   elseif default
-    error("Keyword default used during Type registration when only one instance of type encoding")
+    reverse_type_map[str] = Dict{String, Type}(convert_type_to_string(T) => T)
   else
     reverse_type_map[str] = T
+  end
+
+  if default
+    if "default" in reverse_type_map[str]
+      S = reverse_type_map[str]["default"]
+      error("Attempting to overwrite registered default type $S with $T")
+    end
+    reverse_type_map[str] = merge(Dict{String, Type}("default" => T), reverse_type_map[str])
   end
 end
 
