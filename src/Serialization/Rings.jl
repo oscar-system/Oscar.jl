@@ -630,6 +630,8 @@ end
 ### Serialization of Monomial orderings
 @register_serialization_type MonomialOrdering
 
+type_params(o::T) where T <: MonomialOrdering = TypeParams(T, base_ring(o))
+
 function save_object(s::SerializerState, o::MonomialOrdering)
   save_data_dict(s) do
     save_object(s, o.o, :internal_ordering) # TODO: Is there a getter for this?
