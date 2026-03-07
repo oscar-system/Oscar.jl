@@ -41,7 +41,7 @@
   GB = orthogonal_group(B)
   L = lattice_in_same_ambient_space(AB, BL)
   GAB,_ = Oscar._isometry_group_via_decomposition(AB)
-  G1 = Oscar._overlattice_stabilizer(G,AB,L)
+  G1,_ = Oscar._overlattice_stabilizer(G,AB,L)
   G2 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,A,B,GA,GB))
   G3 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,B,A,GB,GA))
   @test order(G1) == order(G2) == order(G3)
