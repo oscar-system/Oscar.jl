@@ -582,6 +582,66 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
+    is_transversal_with_presentation([::Type{Int},] M::Matroid)
+
+If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
+If `Int` is passed as a first argument then the return value will contain indices instead of ground set elements.
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal_with_presentation(M)
+(true, [[1, 2, 3, 4], [1, 2, 3, 4]])
+
+julia> M = fano_matroid();
+
+julia> is_transversal_with_presentation(M)
+(false, Vector{Int64}[])
+
+```
+"""
+function is_transversal_with_presentation(::Type{Int}, M::Matroid)
+    polymakeReturn = Polymake.matroid.check_transversality(pm_object(M))
+    if polymakeReturn == false
+        return false, Vector{Int}[]
+    else
+        return true, _pmset_to_indices(polymakeReturn)::Vector{Vector{Int}}
+    end
+end
+
+function is_transversal_with_presentation(M::Matroid{T}) where T
+  res, indices = is_transversal_with_presentation(Int, M)
+  return res, _indices_to_gs(indices, M.groundset)::Vector{Vector{T}}
+end
+
+@doc raw"""
+    is_transversal(M::Matroid)
+
+Return `true` if `M` is transversal, return `false` otherwise.
+
+For a transversal presentation, see [`is_transversal_with_presentation(::Type{Int},::Matroid)`](@ref).
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal(M)
+true
+
+julia> M = fano_matroid();
+
+julia> is_transversal(M)
+false
+
+```
+"""
+function is_transversal(M::Matroid)
+    return is_transversal_with_presentation(Int, M)[1]
+end
+
+
+@doc raw"""
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
