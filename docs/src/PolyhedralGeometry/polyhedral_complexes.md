@@ -34,6 +34,7 @@ polyhedral_complex
 ```@docs
 ambient_dim(PC::PolyhedralComplex)
 codim(PC::PolyhedralComplex)
+common_refinement(PC1::PolyhedralComplex{T}, PC2::PolyhedralComplex{T}) where T<:scalar_types
 dim(PC::PolyhedralComplex)
 f_vector(PC::PolyhedralComplex)
 is_embedded(PC::PolyhedralComplex)

@@ -72,7 +72,7 @@ end
   end
   flux_vector = transpose(matrix(QQ, [flux_vector]))
   fg = special_flux_family(
-    qsm_model; not_breaking=true, completeness_check=false, algorithm="special", rng=our_rng
+    qsm_model; not_breaking=true, completeness_check=false, algorithm=:special, rng=our_rng
   )
   @test ncols(matrix_integral(fg)) == 1
   @test nrows(matrix_integral(fg)) == nrows(matrix_rational(fg))
