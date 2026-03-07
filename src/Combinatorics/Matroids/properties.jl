@@ -637,7 +637,7 @@ false
 ```
 """
 function is_transversal(M::Matroid)
-    return is_transversal_with_presentation(M)[1]
+    return is_transversal_with_presentation(Int, M)[1]
 end
 
 
