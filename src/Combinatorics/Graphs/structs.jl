@@ -1,8 +1,3 @@
-import Oscar: Polymake
-import Oscar.Polymake:
-  Directed, Undirected,
-  EdgeMap, NodeMap
-
 struct Mixed end
 
 const GraphTypes = Union{Directed, Undirected, Mixed}
