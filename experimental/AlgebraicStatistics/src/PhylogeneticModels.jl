@@ -293,7 +293,7 @@ base field (e.g., `QQ` for rational numbers).
                              G::T, # Is it ok to just have  G <: PhylogeneticTree ?
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p") where T <: PhylogeneticTree
+                             varname::VarName=:p) where T <: PhylogeneticTree
 
     n_states = size(trans_matrix_structure)[1]
     if isnothing(root_distribution)
@@ -315,7 +315,7 @@ base field (e.g., `QQ` for rational numbers).
                              G::N,
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varnames::VarName="p") where N <: PhylogeneticNetwork
+                             varnames::VarName=:p) where N <: PhylogeneticNetwork
 
     if n_hybrid(G) == 0
       @warn("The phylogenetic network has no hybrid nodes and is therefore a phylogenetic tree. Consider converting it to a PhylogeneticTree for efficiency.")
@@ -343,7 +343,7 @@ base field (e.g., `QQ` for rational numbers).
                              G::Graph{Directed},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varname::VarName="p")
+                             varname::VarName=:p)
 
     if _is_tree(G)
       pt = phylogenetic_tree(QQFieldElem, G)
@@ -361,7 +361,7 @@ base field (e.g., `QQ` for rational numbers).
   function PhylogeneticModel(G::AbstractGraph{Directed},
                              trans_matrix_structure::Matrix{M},
                              root_distribution::Vector{T},
-                             varnames::VarName="p") where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+                             varnames::VarName=:p) where {M <:  MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
     trans_ring = parent(first(trans_matrix_structure))
     root_ring = base_ring(trans_ring)
     F = coefficient_ring(root_ring)
@@ -376,7 +376,7 @@ base field (e.g., `QQ` for rational numbers).
   function PhylogeneticModel(G::AbstractGraph{Directed},
                              trans_matrix_structure::Matrix,
                              root_distribution::Union{Nothing, Vector} = nothing,
-                             varnames::VarName="p")
+                             varnames::VarName=:p)
     return PhylogeneticModel(QQ, G, trans_matrix_structure, 
                              root_distribution, varnames)
   end
@@ -384,9 +384,9 @@ base field (e.g., `QQ` for rational numbers).
 end
 
 @doc raw"""
-    phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
-    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName="p")
-    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, R <: MPolyRing}
+    phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName=:p)
+    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix, root_distribution::Union{Nothing, Vector} = nothing, varnames::VarName=:p)
+    phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{M}, root_distribution::Vector{T}, varnames::VarName=:p) where {M <: MPolyRing{<:MPolyRingElem}, R <: MPolyRing}
       
 Construct a `PhylogeneticModel` from a field `F`, a graph `G`, a symbolic transition matrix `trans_matrix_structure`, and an optional `root_distribution`.
 
@@ -414,19 +414,19 @@ Phylogenetic model on a tree with 3 leaves and 3 edges
 function phylogenetic_model(F::Field, G::AbstractGraph{Directed},
                             trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
-                            varnames::VarName="p")
+                            varnames::VarName=:p)
   PhylogeneticModel(F, G, trans_matrix_structure, root_distribution, varnames)
 end
 
 function phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{M},
                             root_distribution::Vector{T},
-                            varnames::VarName="p") where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
+                            varnames::VarName=:p) where {M <: MPolyRing{<:MPolyRingElem}, T <: MPolyRing}
   PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
 
 function phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix,
                             root_distribution::Union{Nothing, Vector} = nothing,
-                            varnames::VarName="p")
+                            varnames::VarName=:p)
   return PhylogeneticModel(G, trans_matrix_structure, root_distribution, varnames)
 end
 
@@ -459,7 +459,7 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
   function GroupBasedPhylogeneticModel(pm::PhylogeneticModel{GT, L},
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
-                                       varnames_group_based::VarName="q") where {GT, L}
+                                       varnames_group_based::VarName=:q) where {GT, L}
 
     if isnothing(group)
       # this feels weird to me, I dont see why you can't just use the group itself?
@@ -479,8 +479,8 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       varnames_phylo_model::VarName="p",
-                                       varnames_group_based::VarName="q")
+                                       varnames_phylo_model::VarName=:p,
+                                       varnames_group_based::VarName=:q)
     PM = PhylogeneticModel(F, G, trans_matrix_structure, 
                            root_distribution,
                            varnames_phylo_model)
@@ -508,8 +508,8 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
                                        fourier_param_structure::Vector{<: VarName},
                                        group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                        root_distribution::Union{Nothing, Vector} = nothing,
-                                       varnames_phylo_model::VarName="p",
-                                       varnames_group_based::VarName="q")
+                                       varnames_phylo_model::VarName=:p,
+                                       varnames_group_based::VarName=:q)
     return GroupBasedPhylogeneticModel(QQ, G, trans_matrix_structure, fourier_param_structure,
                                        group, root_distribution, 
                                        varnames_phylo_model, varnames_group_based)
@@ -518,8 +518,8 @@ leaf probabilities can be described by a set of Fourier parameters related to a 
 end
 
 @doc raw"""
-    group_based_phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q"))
-    group_based_phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName="p", varnames_group_based::VarName="q")
+    group_based_phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName=:p, varnames_group_based::VarName=:q))
+    group_based_phylogenetic_model(G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName=:p, varnames_group_based::VarName=:q)
 
 Construct a `GroupBasedPhylogeneticModel` from a field `F`, a graph `G` (of type `Graph{Directed}`, `PhylogeneticTree` or `PhylogeneticNetwork`), a symbolic transition matrix, symbolic Fourier parameters, an optional group, and optional root distribution. 
 
@@ -549,8 +549,8 @@ function group_based_phylogenetic_model(F::Field,
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                       root_distribution::Union{Nothing, Vector} = nothing,
-                                      varnames_phylo_model::VarName="p",
-                                      varnames_group_based::VarName="q")
+                                      varnames_phylo_model::VarName=:p,
+                                      varnames_group_based::VarName=:q)
    GroupBasedPhylogeneticModel(F, G, trans_matrix_structure, fourier_param_structure, group,
                                root_distribution, varnames_phylo_model, varnames_group_based)
 end
@@ -560,8 +560,8 @@ function group_based_phylogenetic_model(G::AbstractGraph{Directed},
                                       fourier_param_structure::Vector{<: VarName},
                                       group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing,
                                       root_distribution::Union{Nothing, Vector} = nothing,
-                                      varnames_phylo_model::VarName="p",
-                                      varnames_group_based::VarName="q")
+                                      varnames_phylo_model::VarName=:p,
+                                      varnames_group_based::VarName=:q)
   return GroupBasedPhylogeneticModel(G, trans_matrix_structure, fourier_param_structure,
                                       group, root_distribution, 
                                       varnames_phylo_model, varnames_group_based)
@@ -707,10 +707,10 @@ julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]])
 julia> PM = general_markov_model(tree);
 
 julia> varnames(PM)
-"p"
+:p
 
 julia> varnames(jukes_cantor_model(tree))
-"q"
+:q
 ```
 """
 varnames(PM::PhylogeneticModel) = PM.model_parameter_name

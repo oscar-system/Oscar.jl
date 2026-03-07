@@ -11,7 +11,7 @@ struct IndexedRing{T, U}
     return new{Int, elem_type(R)}(R, index_to_gen, gen_to_index)
   end
 
-  function IndexedRing(S::Ring, varnames::Pair{String, <: Array{T}}; kw...) where T
+  function IndexedRing(S::Ring, varnames::Pair{<:VarName, <: Array{T}}; kw...) where T
     gen_names = ["$(varnames.first)[$(join(x, ","))]" for x in varnames.second]
     R, r =  polynomial_ring(S, gen_names; kw...)
     U = elem_type(R)
