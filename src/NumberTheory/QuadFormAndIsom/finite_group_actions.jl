@@ -412,16 +412,6 @@ function stabilizer_in_diagonal_action(
     @req iszero(basis_matrix(N) * gram_matrix(ambient_space(L)) * transpose(basis_matrix(K))) "Sublattices are not orthogonal"
     @req rank(N) + rank(K) == rank(L) "Incompatible ranks"
   end
-  if !is_even(N)
-    # below we move computations to K
-    # The glue diagram: D_K > H_K <-\phi-> H_N < D_N 
-    # if N is odd an K is even then \phi is an anti isometry 
-    # of the bilinear form only 
-    # and so O(H_K)=O(H_K,q) may be smaller than O(H_N)=O(H_N,b)
-    # to remedy this, we can just swap N and K
-    (N,K) = (K,N)
-    (OK,ON) = (ON,OK)
-  end
   # Can speed up kernel computations
   if is_finite_known[1]
     set_is_finite(OK, true)
@@ -461,12 +451,13 @@ function stabilizer_in_diagonal_action(
   append!(gen, matrix.(gens(kerK)))
 
   SNphi = Oscar._orthogonal_group(domain(SK), TorQuadModuleMap[phi * hom(g) * iphi for g in gens(SN)]; check=false)
+  
+  ambient = Oscar._orthogonal_group(domain(SK), append!(TorQuadModuleMap[hom(g) for g in gens(SNphi)], TorQuadModuleMap[hom(g) for g in gens(SK)]); check=false)
     
   # permutation groups are faster 
   # C is isomorphic to kerK\P/kerN where P is the group we aim to construct
   # C, _ = intersect(SK, SNphi)
-  tmp = orthogonal_group(domain(SK))
-  to_perm = isomorphism(PermGroup, tmp)
+  to_perm = isomorphism(PermGroup, ambient)
   C1,_ = intersect(to_perm(SK)[1],to_perm(SNphi)[1])
   C,_ = preimage(to_perm,C1)
 
