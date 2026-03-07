@@ -139,7 +139,8 @@ test_subsets = Dict(
                      :book => [
                                "test/book/test.jl",
                      ],
-  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+                 :oscar_db => ["experimental/OscarDB/test/runtests.jl"],
+                     :exts => ["experimental/Extensions/test/runtests.jl"]
 )
 
 tests_on_main = Dict(
