@@ -264,3 +264,4 @@ Finite quadratic module of order 3
     return new(T, f)
   end
 end
+
