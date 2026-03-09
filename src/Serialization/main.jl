@@ -308,7 +308,9 @@ end
 
 function save_type_params(s::SerializerState,
                           tp::TypeParams{TypeParams{T, Nothing}, Nothing}) where T
-  save_object(s, encode_type(T))
+  for param in params(tp)
+    save_type_params(s, param.second, Symbol(param.first))
+  end
 end
 
 function save_type_params(s::SerializerState,
