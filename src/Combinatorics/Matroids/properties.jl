@@ -624,16 +624,11 @@ For a transversal presentation, see [`is_transversal_with_presentation(::Type{In
 
 # Examples
 ```jldoctest
-julia> M = uniform_matroid(2,4);
-
-julia> is_transversal(M)
+julia> is_transversal(uniform_matroid(2,4))
 true
 
-julia> M = fano_matroid();
-
-julia> is_transversal(M)
+julia> is_transversal(fano_matroid())
 false
-
 ```
 """
 function is_transversal(M::Matroid)
