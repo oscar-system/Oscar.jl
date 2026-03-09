@@ -1030,7 +1030,9 @@ end
 # this currently will ignore all other labels
 # and creates new labelings such that the labelings on the vertices are indistinguishable
 # there is also a flag that can handle indistinguishable edges
-function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol; edges_indistinguishable::Bool=false) where T <: Union{Directed, Undirected}
+function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
+                                     vertex_distinguishable::Bool=true,
+                                     edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
   G_map = getproperty(G, label)
   label_type = typeof(G_map[1])
   vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
@@ -1040,22 +1042,39 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol; edges_indisting
                           (Dict(G_map[e] => [e]) for e in edges(G));
                           init=Dict{label_type, Vector{Edge}}())
 
+  # an edge of a given coloring appears in the nth layer if there is a one in
+  # the nth entry of its binary expansion
   n_layers = length(digits(length(edges_by_label), base = 2))
-  n_v_per_layer = n_vertices(G) + length(vertices_by_label)
-  n_v = n_layers * (n_v_per_layer) + length(edges_by_label)
+
+  # to make vertices indistinguishable we attach an edge between vertices labeled with
+  # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
+  n_v_per_layer = vertex_distinguishable ? n_vertices(G) : n_vertices(G) + length(vertices_by_label)
+  
+  # if edge labels are indistinguishable we add a new vertex v for each edge label l and connect the vertices
+  # of each edge labeled with l to this vertex v
+  n_v = edge_distinguishable ? n_layers * (n_v_per_layer) : n_layers * (n_v_per_layer) + length(edges_by_label)
   new_G = Graph{T}(n_v)
   new_vertex_labels = Dict{Int, Int}()
   for layer in 1:n_layers
     vertex_offset = (layer - 1) * n_v_per_layer
-    label = 1
-    # adds an edge between labeled vertex groups, making vertex labels indistinguishable
-    for (_, v_with_label) in vertices_by_label
-      for v in v_with_label
-        e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
-        new_vertex_labels[vertex_offset + v] = 1
+    if vertex_distinguishable
+      # each vertex layer gets the same new label
+      for (l, (_, vertices)) in enumerate(vertices_by_label)
+        for v in vertices
+          new_vertex_labels[v + vertex_offset] = l + layer * n_v_per_layer
+        end
       end
-      new_vertex_labels[vertex_offset + n_vertices(G) + label] = 2
-      label += 1
+    else
+      label = 1
+      # adds an edge between labeled vertex groups, making vertex labels indistinguishable
+      for (_, v_with_label) in vertices_by_label
+        for v in v_with_label
+          e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
+          new_vertex_labels[vertex_offset + v] = 1
+        end
+        new_vertex_labels[vertex_offset + n_vertices(G) + label] = 2
+        label += 1
+      end
     end
 
     # add edges between the vertex and it's representatives across the layers
@@ -1073,28 +1092,76 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol; edges_indisting
       for e in e_with_label
         if isone(label_base2[layer])
           add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
-          if edges_indistinguishable
+          if !edge_distinguishable
             # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
             add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
             add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
           end
         end
       end
-      new_vertex_labels[n_layers * n_v_per_layer + label] = 3
-      label += 1
+      if !edge_distinguishable
+        new_vertex_labels[n_layers * n_v_per_layer + label] = 3
+        label += 1
+      end
     end
   end
   label!(new_G, nothing, new_vertex_labels; name=:edge_to_vertex)
   return new_G
 end
 
-function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing, edges_indistinguishable::Bool=false, seed::Int=42)
+function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
+                         edge_distinguishable::Bool=true,
+                         vertex_distinguishable::Bool=true,
+                         seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
-  new_G = _edge_label_to_vertex_label(G, label; edges_indistinguishable=edges_indistinguishable)
+  new_G = _edge_label_to_vertex_label(G, label;
+                                      edge_distinguishable=edge_distinguishable,
+                                      vertex_distinguishable=vertex_distinguishable)
   return Polymake._canonical_hash(pm_object(new_G),
                                   Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]),
                                   seed)::Int
 end
+
+function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
+                         vertex_distinguishable::Bool=true,
+                         edge_distinguishable::Bool=true)
+  isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
+
+  if vertex_distinguishable && edge_distinguishable
+    new_G = _edge_label_to_vertex_label(G, label;
+                                        edge_distinguishable=edge_distinguishable,
+                                        vertex_distinguishable=vertex_distinguishable)
+    
+    perm = Polymake._canonical_perm(pm_object(new_G),
+                                    Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
+    # permutation is defined on vertex classes, see _edge_label_to_vertex_label
+    return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
+  end
+  error("unimplemented for either indistinguishable vertex or edge labels")
+end
+  
+function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where T <: Union{Directed, Undirected}
+  isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
+
+  p = _canonical_perm(G; label=label, kwargs...)
+  new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
+
+  graph_map = _graph_maps(G)[label]
+  new_vertex_labels = nothing
+  new_edge_labels = nothing
+  permute = inv(perm(p))
+  if !isnothing(graph_map.vertex_map)
+    new_vertex_labels = Dict(permute(v) => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+  end
+
+  if !isnothing(graph_map.edge_map)
+    new_edge_labels = Dict((permute(src(e)), permute(dst(e))) => graph_map.edge_map[e] for e in edges(G))
+  end
+  label!(new_G, new_edge_labels, new_vertex_labels)
+  return new_G
+end
+
+
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
