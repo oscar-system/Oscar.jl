@@ -1,15 +1,15 @@
 @doc raw"""
     mutable struct SimplicialCohomologyRing{T} <: NCRing
 
-A struct for cohomology rings `A` which arise from a cocomplex `C` 
+A struct for cohomology rings `A` which arise from a cochain complex `C` 
 which is equipped with a structure of a differential graded (DG) algebra 
 by implementing a method for the internal function `mul_cochains`.
 """
 mutable struct SimplicialCohomologyRing{T} <: NCRing
-  C::SimplicialCoComplex
+  C::SimplicialCochainComplex
   graded_parts::Vector{SubquoModule{T}}
 
-  function SimplicialCohomologyRing(C::SimplicialCoComplex)
+  function SimplicialCohomologyRing(C::SimplicialCochainComplex)
     T = elem_type(base_ring(C))
     return new{T}(C)
   end
@@ -20,7 +20,7 @@ end
 
 Cochain complexes to be used in `SimplicialCohomologyRing`s need to be endowed with 
 the structure of a DG-algebra. To achieve this, the programmer needs to overwrite 
-the method for this function in accordance with https://stacks.math.columbia.edu/tag/061V.
+the method for this function in accordance with `https://stacks.math.columbia.edu/tag/061V`.
 
 In short this must implement the multiplication of two representatives `a` and `b` of 
 cohomology classes in `C` of degrees `p` and `q` and return a representative of a 
@@ -31,11 +31,11 @@ function mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
 end
 
 @doc raw"""
-    simplicial_co_complex(A::SimplicialCohomologyRing)
+    simplicial_cochain_complex(A::SimplicialCohomologyRing)
 
 Return the internal cocomplex (which needs to implement a structure as a DG-algebra).
 """
-simplicial_co_complex(A::SimplicialCohomologyRing) = A.C
+simplicial_cochain_complex(A::SimplicialCohomologyRing) = A.C
 
 
 @doc raw"""
@@ -45,7 +45,13 @@ Return a list of the cohomology groups for `A`.
 """
 function graded_parts(A::SimplicialCohomologyRing)
   if !isdefined(A, :graded_parts)
-    A.graded_parts = [homology(A.C, i)[1] for i in 0:dim(K)]
+    list = [homology(A.C, 0)[1]]
+    i = 1
+    while can_compute_index(A.C, (i,))
+      push!(list, homology(A.C, i)[1])
+      i += 1
+    end
+    A.graded_parts = list
   end
   return A.graded_parts
 end
@@ -109,7 +115,7 @@ zero(a::SimplicialCohomologyRingElem) = zero(parent(a))
 (A::SimplicialCohomologyRing)() = zero(A)
 
 function one(A::SimplicialCohomologyRing)
-  SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_co_complex(A), 0)[1])))
+  SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_cochain_complex(A), 0)[1])))
 end
 
 
@@ -243,7 +249,7 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
 end
 
 # get i-th (module) generator of H^p
-Base.getindex(A::SimplicialCohomologyRing, p::Int, i::Int) = Oscar.SimplicialCohomologyRingElem(A, p, gens(homology(A.C, p)[1])[i])
+Base.getindex(A::SimplicialCohomologyRing, p::Int, i::Int) = SimplicialCohomologyRingElem(A, p, gens(homology(A.C, p)[1])[i])
 
 is_homogeneous_normalized(a::SimplicialCohomologyRingElem) = !isnothing(a.homog_elem)
 
@@ -257,7 +263,7 @@ function degree(a::SimplicialCohomologyRingElem)
   elseif is_homogeneous_denormalized(a)
     return only(keys(a.coeff))
   else
-    throw(ArgumentError("not homogeneous"))
+    throw(ArgumentError("element is not homogeneous"))
   end
 end
 
@@ -297,7 +303,7 @@ function mul_homog(a, b)
   p = a.homog_deg
   q = b.homog_deg
   A = parent(a)
-  C = simplicial_co_complex(A)
+  C = simplicial_cochain_complex(A)
   !can_compute_index(C, p+q) && return zero(A)
   H = homology(C, p+q)[1]
   cochain = mul_cochains(C, repres(a.homog_elem), p, repres(b.homog_elem), q)
@@ -310,7 +316,7 @@ parent_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = SimplicialCohom
 
 
 # Base ring and base ring type
-base_ring(C::SimplicialCohomologyRing) = base_ring(simplicial_co_complex(C))
+base_ring(C::SimplicialCohomologyRing) = base_ring(simplicial_cochain_complex(C))
 base_ring_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = parent_type(T)
 base_ring_type(::Type{SimplicialCohomologyRing{T}}) where {T} = parent_type(T)
 # Equality for homogeneous elements is straight foward; for inhomogeneous, do it by sets of homogeneous parts
@@ -365,7 +371,7 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
     print(io, "0")
   elseif is_homogeneous_normalized(a)
     # defer printing on the actual cochain to the cochain complex
-    show_elem(io, simplicial_co_complex(parent(a)), repres(a.homog_elem), a.homog_deg)
+    show_elem(io, simplicial_cochain_complex(parent(a)), repres(a.homog_elem), a.homog_deg)
     print(io, " + ", a.homog_deg, "-coboundaries")
   elseif is_homogeneous_denormalized(a)
     print(IOContext(io, :parens=>false), only(homogeneous_parts(a)))
@@ -393,28 +399,6 @@ isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 # end
 # 
 # @enable_all_show_via_expressify SimplicialCohomologyRingElem
-
-
-function generate_homogeneous_element(R::SimplicialCohomologyRing{ZZRingElem})
-    ub = upper_bound(simplicial_co_complex(R), 1)
-    degree = rand(0:ub) # indexing starts at 1 (for degree 0)
-    n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
-    x = zero(R)
-    for i=1:n_gens
-        n = rand(-100:100)
-        x = x+n*R[degree-1,rand(1:length(gens(graded_parts(R)[degree])))]
-    end
-    return x
-end
-
-function ConformanceTests.generate_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
-    n_degrees = rand(0:5)
-    x = zero(R)
-    for i=1:n_degrees
-        x = x+Oscar.generate_homogeneous_element(R)
-    end
-    return x
-end
 
 
 # Interface specific to noncommutative rings
@@ -445,9 +429,21 @@ end
 # we need exponentiation for tests
 function ^(a::SimplicialCohomologyRingElem, n::Int)
   n >= 0 || error("negative exponent")
-  x = one(parent(a))
-  for i = 1:n
-    x *= a
+  is_one(n) && return deepcopy(a)
+  is_zero(n) && return one(a)
+  p, r = divrem(n, 2)
+  return a^p * a^(p+r)
+end
+
+# needed for the test suite but not to be used elsewhere!
+function generate_homogeneous_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
+  degree = rand(1:dim(simplicial_complex(simplicial_cochain_complex(R)))+1) # indexing starts at 1 (for degree 0)
+  n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
+  x = zero(R)
+  for i=1:n_gens
+    n = rand(-100:100)
+    x = x+n*R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
   end
   return x
 end
+
