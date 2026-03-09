@@ -29,7 +29,6 @@ export linear_algebraic_group, linear_algebraic_group_elem
 export root_subgroup
 export maximal_torus
 export torus_element
-export apply_root_to_torus_element
 export borel_subgroup
 export bruhat_cell
 export bruhat_decomposition
@@ -47,7 +46,6 @@ export linear_algebraic_group, linear_algebraic_group_elem
 export root_subgroup
 export maximal_torus
 export torus_element
-export apply_root_to_torus_element
 export borel_subgroup
 export bruhat_cell
 export bruhat_decomposition

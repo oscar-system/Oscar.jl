@@ -470,8 +470,7 @@ function torus_element(LAG::LinearAlgebraicGroup, diag::Vector; check::Bool=true
 end
 
 @doc raw"""
-    apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem) -> FieldElem
-
+    (alpha::RootSpaceElem)(t::LinearAlgebraicGroupElem) -> FieldElem
 Return the field element obtained by applying the root `alpha` to `t`, which must be an element of the standard maximal torus.
 
 In case of type ``A`` that means `t` must be a diagonal matrix with determinant 1.
@@ -486,13 +485,11 @@ julia> alpha = simple_root(root_system(LAG),2);
 
 julia> t = torus_element(LAG, [1,2,1,3]);
 
-julia> apply_root_to_torus_element(alpha, t)
+julia> alpha(t)
 2
 ```
 """
-function apply_root_to_torus_element(
-  alpha::RootSpaceElem, t::LinearAlgebraicGroupElem
-)
+function (alpha::RootSpaceElem)(t::LinearAlgebraicGroupElem)
   @req is_root(alpha) "The given element is not a root"
   @req in(t, maximal_torus(parent(t))) "The given element is not a torus element"
   i, j = _compute_action(parent(t), alpha)

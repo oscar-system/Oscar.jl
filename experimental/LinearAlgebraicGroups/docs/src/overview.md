@@ -45,8 +45,8 @@ root_subgroup(LAG::LinearAlgebraicGroup, alpha::RootSpaceElem)
 ```@docs
 maximal_torus(LAG::LinearAlgebraicGroup)
 torus_element(LAG::LinearAlgebraicGroup, diag::Vector)
-apply_root_to_torus_element(alpha::RootSpaceElem, t::LinearAlgebraicGroupElem)
 ```
+A root `alpha` can be applied to a torus element `t` by doing `alpha(t)`.
 
 ### Borel subgroup
 ```@docs
