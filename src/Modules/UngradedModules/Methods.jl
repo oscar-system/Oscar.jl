@@ -633,7 +633,6 @@ function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   R = base_ring(M)
   kk === R || kk === coefficient_ring(R) || error("not implemented over fields different from the ground ring or the `coefficient_ring` thereof")
 
-  S = base_ring(M)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
@@ -725,7 +724,6 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   # to a respective internal method. 
   kk === coefficient_ring(R) || error("`vector_space_basis` not implemented over fields other than the `coefficient_ring` of the ring over which the module is defined")
 
-  S = base_ring(M)
   F = ambient_free_module(M)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
@@ -756,16 +754,10 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) wh
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  F = ambient_free_module(M)
   if !isdefined(M, :quo)
     is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
     return elem_type(M)[]
   end
-
-  I = M.quo
-
-  o = default_ordering(M)
-  LM = leading_module(I, o)
   
   d = 0
   inc = _vector_space_basis(kk, M, 0; check)
@@ -851,14 +843,15 @@ function vector_space_basis(M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int6
 end
 
 function vector_space_basis(kk::Field, M::SubquoModule{T}, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true) where {T<:FieldElem}
-  @assert kk === base_ring(M) "not implemented for fields other than the `baser_ring` of the module" 
+  @assert kk === base_ring(M) "not implemented for fields other than the `base_ring` of the module" 
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
-function _vector_space_basis(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
+function _vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
   error("module needs to be graded")
 end
 
+# This is an internal method which assumes `M` to be presented.
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
   R = base_ring(M)
   F = ambient_free_module(M)
@@ -1086,17 +1079,22 @@ function vector_space(
 end
 
 ### functionality for modules over quotient rings
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
-  R = base_ring(M)
-  @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
-  B = _vector_space_basis(kk, _as_poly_module(M), check=false)
+  B = _vector_space_basis(kk, _as_poly_module(M), check=false) # check=false, since `_is_finite` has already been checked, if check=true
   is_empty(B) && return elem_type(M)[]
   iota = _iso_with_poly_module(M)
   return iota.(B)
 end
 
-function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+function _is_finite(
+    kk::Field, M::SubquoModule{T}
+  ) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   return _is_finite(kk, _as_poly_module(M))
 end
