@@ -389,7 +389,7 @@ function load_type_params(s::DeserializerState, T::Type)
         else
           params = load_type_params(s, U)[2]
         end
-        # handle cases where type_params is a dict of params
+      # handle cases where type_params is a dict of params
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
         for (k, _) in obj
