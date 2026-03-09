@@ -13,6 +13,7 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
   save_data_json(s, jsonstr)
 end
 
+
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
   smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
   return g(smallobj)

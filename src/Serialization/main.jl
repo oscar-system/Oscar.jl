@@ -307,7 +307,7 @@ function save_type_params(s::SerializerState,
 end
 
 function save_type_params(s::SerializerState,
-                          tp::TypeParams{TypeParams{T, Nothing}, Nothing}) where T
+                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
   for param in params(tp)
     save_type_params(s, param.second, Symbol(param.first))
   end
@@ -389,11 +389,21 @@ function load_type_params(s::DeserializerState, T::Type)
         else
           params = load_type_params(s, U)[2]
         end
-      # handle cases where type_params is a dict of params
-      elseif !haskey(obj, type_key)
+        # handle cases where type_params is a dict of params
+      elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
-        if obj isa JSON3.Array || obj isa Vector
-          return load_type_array_params(s)
+        for (k, _) in obj
+          params[k] = load_node(s, k) do obj
+            if obj isa JSON3.Array || obj isa Vector
+              return load_type_array_params(s)
+            end
+            
+            U = decode_type(s)
+            if obj isa String && isnothing(tryparse(UUID, obj))
+              return U
+            end
+            return load_type_params(s, U)[2]
+          end
         end
       else
         params = load_typed_object(s)
