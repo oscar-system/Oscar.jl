@@ -417,15 +417,6 @@ function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomology
 end
 
 
-# TODO: This is not mathematically true! 
-# Once PR #2362 to AbstractAlgebra.jl is merged we should remove this stub.
-function is_unit(a::SimplicialCohomologyRingElem)
-  if a == one(parent(a)) 
-    return true
-  end   
-  return false
-end
-
 # we need exponentiation for tests
 function ^(a::SimplicialCohomologyRingElem, n::Int)
   n >= 0 || error("negative exponent")
