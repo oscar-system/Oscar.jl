@@ -834,6 +834,20 @@ end
 
 function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupElem, Int64}; check::Bool=true)
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  is_zero(M) && return elem_type(M)[]
+  F = ambient_free_module(M)
+  # We need `M` to be presented  
+  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
+    pres = presentation(M)
+    MM = cokernel(map(pres, 1))
+    B = is_graded(MM) ? _vector_space_basis_graded(kk, MM, d; check) : error("not implemented for M/N with non-trivial M") 
+    # _vector_space_basis(kk, MM, d; check)
+    
+    aug = map(pres, 0)
+    return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
+  end
+  
+  # If execution gets here, `M` is presented.
   return is_graded(M) ? _vector_space_basis_graded(kk, M, d; check) : _vector_space_basis(kk, M, d; check)
 end
 
