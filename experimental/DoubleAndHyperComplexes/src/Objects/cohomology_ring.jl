@@ -1,5 +1,5 @@
 @doc raw"""
-    mutable struct SimplicialCohomologyRing{T} <: NCRing
+    SimplicialCohomologyRing{T} <: NCRing
 
 A struct for cohomology rings `A` which arise from a cochain complex `C` 
 which is equipped with a structure of a differential graded (DG) algebra 
@@ -9,6 +9,13 @@ mutable struct SimplicialCohomologyRing{T} <: NCRing
   C::SimplicialCochainComplex
   graded_parts::Vector{SubquoModule{T}}
 
+@doc raw"""
+    SimplicialCohomologyRing(C::SimplicialCochainComplex)
+
+Given a cochain complex `C` with a structure as a differential graded algebra 
+(via implementation of the internal function `mul_cochains`) this creates the 
+associated cohomology ring.
+"""
   function SimplicialCohomologyRing(C::SimplicialCochainComplex)
     T = elem_type(base_ring(C))
     return new{T}(C)
@@ -406,14 +413,14 @@ function divexact_left(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyR
   if a == b 
     return one(parent(a))
   end 
-  error("No exact quotient exists")
+  error("no exact quotient exists")
 end
 
 function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomologyRingElem)
   if a == b 
     return one(parent(a))
   end 
-  error("No exact quotient exists")
+  error("no exact quotient exists")
 end
 
 
