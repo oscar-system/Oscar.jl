@@ -1028,8 +1028,9 @@ function _graph_maps(G::Graph)
 end
 
 # this currently will ignore all other labels
-# and creates new labelings such that the labelings are indistinguishable (vertex and edge)
-function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol) where T <: Union{Directed, Undirected}
+# and creates new labelings such that the labelings on the vertices are indistinguishable
+# there is also a flag that can handle indistinguishable edges
+function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol; edges_indistinguishable::Bool=false) where T <: Union{Directed, Undirected}
   G_map = getproperty(G, label)
   label_type = typeof(G_map[1])
   vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
@@ -1072,9 +1073,11 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol) where T <: Unio
       for e in e_with_label
         if isone(label_base2[layer])
           add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
-          # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
-          add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
-          add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
+          if edges_indistinguishable
+            # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
+            add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
+            add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
+          end
         end
       end
       new_vertex_labels[n_layers * n_v_per_layer + label] = 3
@@ -1085,9 +1088,9 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol) where T <: Unio
   return new_G
 end
 
-function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing, seed::Int=42)
+function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing, edges_indistinguishable::Bool=false, seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
-  new_G = _edge_label_to_vertex_label(G, label)
+  new_G = _edge_label_to_vertex_label(G, label; edges_indistinguishable=edges_indistinguishable)
   return Polymake._canonical_hash(pm_object(new_G),
                                   Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]),
                                   seed)::Int
