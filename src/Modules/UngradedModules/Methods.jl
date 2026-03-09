@@ -869,12 +869,16 @@ end
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
   R = base_ring(M)
   F = ambient_free_module(M)
-  Mq,_ = sub(F,rels(M))
-
-  o = default_ordering(M)
-  LM = leading_module(Mq,o)
 
   mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
+
+  if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
+    return M.(vec(mons))
+  end
+
+  o = default_ordering(M)
+  LM = leading_module(M.quo, o)
+
   return [M(mon) for mon in mons if !(mon in LM)]
 end
   
