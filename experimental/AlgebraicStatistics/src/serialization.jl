@@ -69,7 +69,7 @@ end
 
 #TODO still need to handle other GraphDict cases
 function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
-  graph_gen_dict = Dict{Union{Int, Edge}, MPolyRingElem}()
+  graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
     if k isa Oscar.Serialization.JSON3.Array
       key = load_object(s, Edge, 1)
@@ -78,16 +78,16 @@ function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
     end
     graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
-  return GraphDict(graph_gen_dict)
+  return GraphDict{elem_type(R)}(graph_gen_dict)
 end
 
 function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
-  graph_trans_dict = Dict{Tuple{Symbol, Edge}, MPolyRingElem}()
+  graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
     key = load_object(s, Tuple{Symbol, Edge}, 1)
     graph_trans_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
-  return GraphTransDict(graph_trans_dict)
+  return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
 function load_type_params(s::DeserializerState, T::Type{GenDict})
@@ -144,9 +144,7 @@ end
 
 # needs to use id to have attributes
 @register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
-                                                        :model_ring,
-                                                        :reduced_parameter_ring,
-                                                        :reduced_model_ring]
+                                                        :model_ring]
 
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
@@ -184,7 +182,8 @@ function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Di
 end
 
 # not exactly sure what the attributes shold be yet
-@register_serialization_type GroupBasedPhylogeneticModel uses_id
+@register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring,
+                                                                  :model_ring]
 
 type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
