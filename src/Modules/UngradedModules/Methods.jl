@@ -614,7 +614,7 @@ julia> vector_space_dim(M)
 """
 function vector_space_dim(M::SubquoModule; check::Bool=true, cached::Bool=true)
   # Per default we assume that the user means the vector space dimension 
-  # over the `base_ring` of the ring on which `M` is defined.
+  # over the `coefficient_ring` of the `base_ring` on which `M` is defined.
   R = base_ring(M)
   @assert coefficient_ring(R) isa Field "`coefficient_ring` of the ring over which the module is defined is not a field"
   cached && has_attribute(M, :vector_space_dimension) && return get_attribute(M, :vector_space_dimension)::Union{Int, PosInf}
@@ -841,8 +841,6 @@ function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupEl
     pres = presentation(M)
     MM = cokernel(map(pres, 1))
     B = is_graded(MM) ? _vector_space_basis_graded(kk, MM, d; check) : error("not implemented for M/N with non-trivial M") 
-    # _vector_space_basis(kk, MM, d; check)
-    
     aug = map(pres, 0)
     return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
   end
@@ -870,7 +868,7 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Boo
   R = base_ring(M)
   F = ambient_free_module(M)
 
-  mons = [a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
+  mons = elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
 
   if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
     return M.(vec(mons))
@@ -879,7 +877,7 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Boo
   o = default_ordering(M)
   LM = leading_module(M.quo, o)
 
-  return [M(mon) for mon in mons if !(mon in LM)]
+  return elem_type(M)[M(mon) for mon in mons if !(mon in LM)]
 end
   
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
@@ -909,7 +907,7 @@ function _has_monomials_on_all_axes(M::SubModuleOfFreeModule)
   for x in genlist
     tempexp = leading_exponent(x)
     tempdeg = sum(tempexp[1])
-    push!(explist,(tempexp[1],tempexp[2],tempdeg))
+    push!(explist, (tempexp[1], tempexp[2], tempdeg))
   end
   for i in 1:ngens(R), j in 1:ambient_rank
     if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
@@ -977,6 +975,22 @@ function vector_space(
   return vector_space(ResType, kk, M; check)
 end
 
+@doc raw"""
+    vector_space(::Type{ResType}, kk::Field, M::SubquoModule; check::Bool=false) where ResType
+
+Return `M` as a vector space over the field `kk` as an object of type `ResType`, 
+together with a map identifying the two objects.
+
+For the user's convenience there exist various shortcut methods for which the 
+return type or the field does not need to be specified, but chosen from context. 
+"""
+function vector_space(
+    ::Type{ResType}, kk::Field, M::SubquoModule; 
+    check::Bool=false
+  ) where ResType
+  error("not implemented for return type $ResType")
+end
+
 function vector_space(
     ::Type{ResType}, kk::Field, M::SubquoModule; 
     check::Bool=false
@@ -1009,6 +1023,9 @@ function vector_space(
 end
 
 ### functionality for modules over quotient rings
+# This uses the internal methods for conversion into a module over the 
+# underlying polynomial ring. We can think about how to do this directly 
+# with Singular's quotient rings. 
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}; check::Bool=true
   ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
@@ -1030,6 +1047,11 @@ function _is_finite(
 end
 
 ### functionality for modules over localized polynomial rings at a point
+# This uses the `shifted_module` which is a module over the underlying 
+# polynomial ring `P` which localizes to `M` under a change of coordinates. 
+# The change of coordinates puts the rational point at which the localization 
+# happens at the origin. This has the advantage that one can work with local 
+# orderings. 
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}; check::Bool=true
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, 
@@ -1045,10 +1067,11 @@ function _vector_space_basis(
   end
 
   F = ambient_free_module(M)
-  F_shift_poly,_,back_shift = shifted_module(F)
-  M_shift,_,_ = shifted_module(M)
+  F_shift_poly, _, back_shift = shifted_module(F)
+  M_shift, _, _ = shifted_module(M)
   o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
   LMq = leading_module(M_shift.quo, o)
+  # TODO: Do we really need to recreate the module from the leading module here???
   B = _vector_space_basis(kk, quo_object(F_shift_poly, gens(LMq)), check=false) # check=false, since `_is_finite` has already been checked, if check=true
   is_empty(B) && return elem_type(M)[]
   # move basis elements back to M
@@ -1071,7 +1094,11 @@ function _is_finite(
   return _has_monomials_on_all_axes(leading_module(M_shift.quo, o))
 end
 
-# This is an internal method which assumes `M` to be presented. It exists purely for back backwards compatibility.
+# This is an internal method which assumes `M` to be presented. 
+# It exists purely for back backwards compatibility.
+# The difference compared to the method above is that a degree `d` 
+# is specified so that the basis w.r.t this graded piece for the 
+# grading by total degree is computed. 
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bool=true
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
@@ -1093,6 +1120,8 @@ function _vector_space_basis(
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
+# This uses the `pre_saturated_module` in the background, together 
+# with a change of coordinates which puts the point of localization to the origin.
 
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}; check::Bool=true
@@ -1133,3 +1162,4 @@ function _is_finite(
   LMq = leading_module(Mq_shift, o)
   return _is_finite(kk, quo_object(ambient_free_module(LMq), gens(LMq)))
 end
+
