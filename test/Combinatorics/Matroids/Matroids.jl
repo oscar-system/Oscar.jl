@@ -476,13 +476,12 @@
         BF3 = bergman_fan(M, max, fan_structure = :fine)   
         BF4 = bergman_fan(M, max)
             
-        @test f_vector(BF1) == [0, 34, 120, 96]
-        @test f_vector(BF2) == [0, 0, 8, 16]
+        @test f_vector(BF1) == [1, 34, 120, 96]
+        @test f_vector(BF2) == [0, 1, 8, 16]
         @test maximal_cones(BF1) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF3)]
         @test maximal_cones(BF2) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF4)]
         
         M = matroid_from_bases([[]], 4)
         @test f_vector(bergman_fan(M)) == ZZRingElem[]
     end
->>>>>>> 8138c64f66 (wrote bergman_fan(), added tests for it, exported it)
 end
