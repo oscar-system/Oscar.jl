@@ -3,6 +3,8 @@ module Serialization
 using ..Oscar
 using UUIDs
 import JSON
+import TranscodingStreams # for gzip
+import CodecZlib          # for gzip
 
 using ..Oscar: _grading,
   FreeAssociativeAlgebraIdeal,
@@ -20,7 +22,7 @@ using ..Oscar: _grading,
   VERSION_NUMBER,
   _pmdata_for_oscar
 
-using ..Oscar: is_terse, Lowercase, pretty, terse
+using ..Oscar: is_terse, Lowercase, pretty, terse, Indent, Dedent
 
 using Distributed: RemoteChannel
 
@@ -127,15 +129,15 @@ end
 
 function decode_type(s::DeserializerState)
   if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      id = s.obj
-      obj = s.obj
+    uuid = tryparse(UUID, s.obj)
+    if !isnothing(uuid)
       if isnothing(s.refs)
-        return typeof(global_serializer_state.id_to_obj[UUID(id)])
+        return typeof(global_serializer_state.id_to_obj[uuid])
       end
+      id = s.obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      s.obj = obj
+      s.obj = id
       return T
     end
     return decode_type(s.obj)
@@ -282,6 +284,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     end
     
     save_object(s, type_encoding, :name)
+
     # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
@@ -537,7 +540,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
       Oscar.Serialization.register_attr_list($ex, $attrs)
 
       # only extend serialize on non std julia types
-      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array})
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set, Array, Nothing})
         function Oscar.Serialization.serialize(s::Oscar.Serialization.AbstractSerializer, obj::T) where T <: $ex
           Oscar.Serialization.serialize_type(s, T)
           Oscar.Serialization.save(s.io, obj; serializer=Oscar.Serialization.IPCSerializer())
@@ -623,13 +626,20 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=true)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
 save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration see
-[`@register_serialization_type`](@ref)
+The attributes that will be saved are defined during type registration, see
+[`@register_serialization_type`](@ref).
+
+Setting the optional argument `compression` will compress the file using the given
+compression method. The `filename` must have the appropriate file extension for the
+chosen compression method.
+Currently, only `:none` (default) and `:gzip` are supported.
+
+The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
 
@@ -654,8 +664,12 @@ julia> load("fourtitwo.mrdi")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
+              pretty_print::Bool=false,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer, with_attrs)
+  if pretty_print
+    io = pretty(io)
+  end
+  s = serializer_open(io, serializer, with_attrs, pretty_print)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -681,19 +695,22 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any;
-              metadata::Union{MetaData, Nothing}=nothing,
-              serializer::OscarSerializer=JSONSerializer(),
-              with_attrs::Bool=true)
+function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
-  open(temp_file, "w") do file
-    save(file, obj;
-         metadata=metadata,
-         with_attrs=with_attrs,
-         serializer=serializer)
+  if compression == :none
+    open(temp_file, "w") do file
+      save(file, obj; kwargs...)
+    end
+  elseif compression == :gzip
+    @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
+    open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+      save(file, obj; kwargs...)
+    end
+  else
+    error("Unsupported compression method: $compression")
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
@@ -717,6 +734,9 @@ being loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
+
+If the file was created with setting the `compression` argument, and the filename
+has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
@@ -757,7 +777,7 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer=JSONSerializer(), with_attrs::Bool=true)
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
@@ -850,11 +870,15 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::Any = nothing,
-              type::Any = nothing, with_attrs::Bool=true,
-              serializer::OscarSerializer=JSONSerializer())
-  open(filename) do file
-    return load(file; params=params, type=type, serializer=serializer)
+function load(filename::String; kwargs...)
+  if endswith(filename, ".gz")
+    open(CodecZlib.GzipDecompressorStream, filename) do file
+      return load(file; kwargs...)
+    end
+  else
+    open(filename) do file
+      return load(file; kwargs...)
+    end
   end
 end
 

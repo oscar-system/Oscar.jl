@@ -81,6 +81,12 @@
         @test f_vector(TropV) == [1,3]
 
         # general ideals, see doctests
+        I = grassmann_pluecker_ideal(2, 5)
+        nu = tropical_semiring_map(QQ, 3)
+        TropI = tropical_variety(I; skip_saturation=true, skip_decomposition=true)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
+        TropI = tropical_variety(I,nu; skip_saturation=true, skip_decomposition=true)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
     end
 
     @testset "testing tropical_variety respecting conventions" begin

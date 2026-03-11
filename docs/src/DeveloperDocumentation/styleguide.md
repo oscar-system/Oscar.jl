@@ -293,7 +293,7 @@ the user's convenience.
 Let's see an example. Say, you want to implement the characteristic 
 polynomial of a matrix. You could do it as follows:
 ```julia
-function characteristic_polynomial(A::MatrixElem)
+function characteristic_polynomial(A::MatElem)
   kk = base_ring(A)
   P, x = kk[:x]
   AP = change_base_ring(P, A)
@@ -310,7 +310,7 @@ To solve this, we should have implemented the function differently:
 ```julia
 # Implementation of the recommended keyword argument signature:
 function characteristic_polynomial(
-    A::MatrixElem;
+    A::MatElem;
     parent::AbstractAlgebra.Ring=polynomial_ring(base_ring(A), :t)[1]
   )
   AP = change_base_ring(parent, A)
@@ -322,7 +322,7 @@ end
 # output's parent as the first argument:
 function characteristic_polynomial(
     P::PolyRing,
-    A::MatrixElem
+    A::MatElem
   )
   coefficient_ring(P) === base_ring(A) || error("coefficient rings incompatible")
   return characteristic_polynomial(A, parent=P)

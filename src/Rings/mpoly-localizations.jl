@@ -285,6 +285,11 @@ complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdea
 Given a prime ideal ``P`` of a multivariate polynomial ring ``R``, say,
 return the multiplicatively closed subset ``R\setminus P.``
 
+Note that for other rings such as quotients and/or localizations of multivariate polynomial 
+rings `complement_of_prime_ideal` will return a multiplicative set in the 
+underlying polynomial ring. This is due to our choice to keep localizations "flat" 
+and to always localize from the top-level polynomial ring. 
+
 !!! note
     If  `check` is set to `true` (default), the function checks whether ``P`` is indeed a prime ideal. 
 
@@ -544,26 +549,26 @@ function issubset(
 end
 
 function issubset(
-    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
-    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  R = ring(T)
-  R == ring(U) || error("multiplicative sets do not belong to the same ring")
-  a = point_coordinates(T)
-  for i in 1:length(a)
-    (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
-  end
-  return true
-end
-
-function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   R = ring(T)
   R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
-  for f in gens(prime_ideal(T))
+  for i in 1:length(a)
+    (gen(R, i) - R(a[i])) in prime_ideal(T) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(T)
+  for f in gens(prime_ideal(U))
     iszero(evaluate(f, a)) || return false
   end
   return true
@@ -1925,24 +1930,6 @@ function ideal(
     I::Ideal
   )
   return MPolyLocalizedIdeal(W, W.(gens(I)))
-end
-
-### additional functionality
-function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
-  for g in gens(I)
-    g in J || return false
-  end
-  return true
-end
-
-function ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  I === J && return true
-  (issubset(I, J) && issubset(J, I))
-end
-
-function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  return ideal(base_ring(I), vcat(gens(I), gens(J)))
 end
 
 # TODO: The following method can probably be fine tuned for specific localizations.

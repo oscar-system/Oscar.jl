@@ -477,6 +477,12 @@ function ==(x::MatGroupElem{S,T},y::MatGroupElem{S,T}) where {S,T}
    end
 end
 
+function Base.hash(x::MatGroupElem, h::UInt)
+  b = 0x7ff345869aba5d1c  % UInt
+  h = hash(matrix(x), h)
+  return xor(h, b)
+end
+
 function _common_parent_group(x::T, y::T) where T <: MatGroup
    x === y && return x
    @req degree(x) == degree(y) "the groups have different degrees"
@@ -504,6 +510,9 @@ end
 
 Base.:*(x::MatGroupElem, y::MatElem) = matrix(x)*y
 Base.:*(x::MatElem, y::MatGroupElem) = x*matrix(y)
+
+Base.:*(x::Int, y::MatGroupElem) = error("Multiplying a matrix group element by an integer is not implemented. Use `matrix` to access the underlying matrix of the group element")
+Base.:*(y::MatGroupElem, x::Int) = x * y
 
 function Base.:^(x::MatGroupElem, n::Int)
   m = matrix(x)
@@ -665,6 +674,14 @@ frobenius(x::MatGroupElem) = frobenius(x,1)
 
 transpose(x::MatGroupElem) = MatGroupElem(parent(x), transpose(matrix(x)))
 =#
+
+characteristic_polynomial(R::PolyRing, x::MatGroupElem) = characteristic_polynomial(R, matrix(x))
+
+characteristic_polynomial(x::MatGroupElem) = characteristic_polynomial(matrix(x))
+
+minimal_polynomial(R, x::MatGroupElem) = minimal_polynomial(R, matrix(x))
+
+minimal_polynomial(x::MatGroupElem) = minimal_polynomial(matrix(x))
 
 ########################################################################
 #

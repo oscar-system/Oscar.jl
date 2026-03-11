@@ -1665,8 +1665,14 @@ ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatGroup{E}, k::Int; algorithm=:default) where E <: FinFieldElem
-  if algorithm==:default 
-    algorithm=:perm 
+  if algorithm==:default
+    if 128 < order(base_ring(G))^degree(G) < ZZ(2)^32
+      # permutation degrees must be small integers in gap
+      # no need to do anything fancy if the order is small
+      algorithm=:perm
+    else 
+      algorithm=:gset
+    end
   end
   if algorithm==:gset
     return _orbit_representatives_and_stabilizers_gset_gap(G, k)

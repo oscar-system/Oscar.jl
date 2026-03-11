@@ -179,7 +179,7 @@ function standard_irreducible_coefficient_list(
   a::FinFieldElem,
 )
   q = order(F)
-  l = zeros(F, Int(r) + 1)
+  l = Hecke.zeros_array(F, Int(r) + 1)
   l[Int(r)+1] = one(F)
   l[1] = a
   l[2] = one(F)
@@ -376,9 +376,9 @@ function _extension_with_tower_basis(
   # The idea is to collect (bX)^i mod f for 1 in 0..d*dK-1
   # and use this to compute the minimal polynomial of bX over F.
   # Should we just form the polynomial and compute "mod"???
-  vec = zeros(F, d)
+  vec = Hecke.zeros_array(F, d)
   vec[1] = one(F)
-  v = zeros(K, Int(deg))
+  v = Hecke.zeros_array(K, Int(deg))
   v[1] = one(K)
 
   vecs = Vector{Vector{eltype(F)}}(undef, d)
@@ -392,7 +392,7 @@ function _extension_with_tower_basis(
       pmat[i, :] = vec
     end
 
-    poly = zeros(F, i)
+    poly = Hecke.zeros_array(F, i)
     poly[end] = one(F)
 
     w = copy(vec)

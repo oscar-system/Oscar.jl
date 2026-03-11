@@ -47,14 +47,15 @@ const ColoredGGM{Directed} = GaussianGraphicalModel{
     end
 
     @testset "Mixed" begin
-      MG = graph_from_edges(Mixed, collect(edges(DG)), collect(edges(UG)))
+      MG = graph_from_edges(Mixed, [[1, 2], [1, 3], [2, 3], [3, 4]], [[1, 2], [2, 4]])
       M4 = gaussian_graphical_model(MG)
       s = covariance_matrix(M4)
-      V4 = vanishing_ideal(M4; algorithm=:kernel)
+      V4 = vanishing_ideal(M4)
 
-      @test V4 == ideal(-s[1, 1]*s[1, 2]*s[2, 3] +
-        s[1, 1]*s[1, 3]*s[2, 2] - s[1, 1]*s[2, 3] +
-        s[1, 2]*s[1, 3] - s[1, 2]*s[2, 3] + s[1, 3]*s[2, 2] - s[2, 3])
+      @test V4 == ideal(-s[1, 1]*s[1, 3]*s[2, 2]*s[3, 4] + s[1, 1]*s[1, 3]*s[2, 3]*s[2, 4] + s[1, 1]*s[1, 4]*s[2, 2]*s[3, 3]
+                        - s[1, 1]*s[1, 4]*s[2, 3]^2 + s[1, 2]^2*s[1, 3]*s[3, 4] - s[1, 2]^2*s[1, 4]*s[3, 3]
+                        - s[1, 2]*s[1, 3]^2*s[2, 4] + s[1, 2]*s[1, 3]*s[1, 4]*s[2, 3])
+
 
       # can't save mices graphs yet
       # test_save_load_roundtrip(path, M4) do loaded

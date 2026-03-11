@@ -41,7 +41,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
     Ek = identity_matrix(R, ni)
     Zk = zero_matrix(R, ni, ni)
     if p == 2 && a == 1
-      genskmodp = Hecke._solve_X_ker(Zk, zeros(R, ni), diagonal(Gk_inv))
+      genskmodp = Hecke._solve_X_ker(Zk, Hecke.zeros_array(R, ni), diagonal(Gk_inv))
       gensk = [change_base_ring(R,lift(g)) for g in genskmodp]
     else
       # basis for the space of anti-symmetric matrices
@@ -264,10 +264,10 @@ function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
       gens1 = _orthogonal_grp_quadratic(G[1:end-2,1:end-2])
       gens1 = [_lift(G, g, 0) for g in gens1]
       Id = identity_matrix(R, r - 2)
-      z = zeros(R, r-2)
+      z = Hecke.zeros_array(R, r-2)
       A = typeof(z)[]
       for i in 1:r-2
-        z = zeros(R, r-2)
+        z = Hecke.zeros_array(R, r-2)
         z[i] = R(1)
         push!(gens1,_lift(G, Id, z))
       end
@@ -371,7 +371,7 @@ function _lift(q::T, f::T, a) where T <: Union{ZZModMatrix, zzModMatrix}
     g[end:end,1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
   else
     if a == 0
-      a = zeros(R, ncols(q)-2)
+      a = Hecke.zeros_array(R, ncols(q)-2)
     end
     g[1:end-2,end-1] = a
     g[[end],1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
@@ -1245,7 +1245,7 @@ function _stabilizer_isotropic_elementary_semiregular(
   O = orthogonal_group(N)
   check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
-    Z, iZ = sub(N, TorQuadModElem[])
+    Z, iZ = sub(N, TorQuadModuleElem[])
     return [(iZ, id_hom(O))]
   end 
   G = ZZ.(p*gram_matrix_quadratic(N))
@@ -1822,7 +1822,7 @@ function _stabilizer_elementary_regular_odd(
   O = orthogonal_group(N)
   check = 0 < get_assertion_level(:OrthogonalStablizer)
   if rank == 0 
-    Z, iZ = sub(N, TorQuadModElem[])
+    Z, iZ = sub(N, TorQuadModuleElem[])
     return (iZ, id_hom(O))
   end 
   G = ZZ.(p*gram_matrix_quadratic(N))

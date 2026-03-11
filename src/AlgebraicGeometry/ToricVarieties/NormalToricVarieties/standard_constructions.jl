@@ -409,7 +409,7 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix)
   integral_rays = transpose(embedding.map)
 
   # identify the points to be triangulated
-  pts = matrix(ZZ, zeros(nrows(integral_rays) + 1, ncols(integral_rays)))
+  pts = zero_matrix(ZZ, nrows(integral_rays) + 1, ncols(integral_rays))
   pts[2:end, :] = integral_rays
 
   # construct varieties
@@ -478,7 +478,7 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix)
   initial_rays = transpose(embedding.map)
 
   # identify the points to be triangulated
-  pts = zeros(QQ, nrows(initial_rays), ncols(charges) - nrows(charges))
+  pts = zeros(QQFieldElem, nrows(initial_rays), ncols(charges) - nrows(charges))
   for i in 1:nrows(initial_rays)
     pts[i, :] = [ZZRingElem(c) for c in initial_rays[i, :]]
   end

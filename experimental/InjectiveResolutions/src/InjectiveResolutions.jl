@@ -523,7 +523,7 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
   # get socle degrees of indecomposable injectives kQ{a + F - Q}, i.e. compute a k[F]-basis of the localisation (0 :_M P_F)[ZZ F]
   Bp = ZF_basis(N, p_F)
   if is_empty(Bp)
-    return [], zeros(kQ, 1, 1)
+    return Bp, Hecke.zeros_array(kQ, 1, 1)
   end
 
   R = relations(N) #get all relations of N

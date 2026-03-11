@@ -395,6 +395,8 @@ function ==(x::GAPGroup, y::GAPGroup)
   return GapObj(x) == GapObj(y)
 end
 
+Base.hash(x::GAPGroup, h::UInt) = h # FIXME
+
 isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 
 # For two `BasicGAPGroupElem`s,
@@ -414,6 +416,16 @@ function ==(x::GAPGroupElem, y::GAPGroupElem)
   _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
   throw(ArgumentError("== is not implemented for the given types"))
 end
+
+function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
+  b = 0x51e7ebcb0206be89 % UInt
+  G = full_group(parent(x))[1]
+  h = hash(G, h)
+  h = hash(syllables(x), h)
+  return xor(h, b)
+end
+
+Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -580,7 +592,7 @@ end
 Base.length(x::GAPGroup)::Int = order(Int, x)
 
 """
-    Base.in(g::GAPGroupElem, G::GAPGroup)
+    in(g::GAPGroupElem, G::GAPGroup)
 
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
@@ -675,7 +687,7 @@ end
 
 Return the length of the vector [`gens`](@ref)`(G)`.
 
-!!! warning "WARNING:"
+!!! warning
     this is *NOT*, in general, the minimum number of generators for G.
 """
 number_of_generators(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(GapObj(G)))
@@ -1133,7 +1145,7 @@ julia> length(collect(low_index_subgroups(G, 6)))
 low_index_subgroups(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(low_index_subgroup_classes(G, n))
 
 """
-    conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
+    conjugate_group(G::GAPGroup, x::GAPGroupElem)
 
 Return the group `G^x` that consists of the elements `g^x`, for `g` in `G`.
 
@@ -1149,7 +1161,7 @@ Permutation group of degree 4 and order 3
 
 ```
 """
-function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
+function conjugate_group(G::GAPGroup, x::GAPGroupElem)
   P = Oscar._common_parent_group(G, parent(x))
   return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), P)
 end

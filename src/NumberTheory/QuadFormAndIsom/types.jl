@@ -264,3 +264,29 @@ Finite quadratic module of order 3
     return new(T, f)
   end
 end
+
+mutable struct ZZLatWithIsomEnumCtX
+  # what we want now
+  power::Int
+  discriminant_action::Union{Nothing,TorQuadModuleWithIsom}
+  discriminant_annihilator_lb::MPolyIdeal{ZZMPolyRingElem}
+  discriminant_annihilator_ub::MPolyIdeal{ZZMPolyRingElem}
+  eigenlattice_conditions::Vector{Dict{Int,Vector{Int}}}
+  fix_root::Int
+  # what we want in the end
+  orig_fix_root::Int
+  orig_discriminant_action::TorQuadModuleWithIsom
+  orig_discriminant_annihilator_lb::MPolyIdeal{ZZMPolyRingElem}
+  orig_discriminant_annihilator_ub::MPolyIdeal{ZZMPolyRingElem}
+  orig_eigenlattice_conditions::Vector{Dict{Int,Vector{Int}}}
+
+  # global settings
+  _local::Bool
+  root_test::Bool
+  info_depth::Int
+  genusDB::Dict{ZZGenus, Vector{ZZLat}}
+  
+  function ZZLatWithIsomEnumCtX()
+    return new()
+  end
+end

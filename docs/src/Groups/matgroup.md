@@ -227,7 +227,7 @@ witt_index(f::SesquilinearForm)
 is_degenerate(f::SesquilinearForm)
 is_singular(f::QuadraticForm)
 is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
-isometry_group(f::SesquilinearForm{T}) where T
+isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T <: RingElem
 ```
 
 ## Utilities for matrices
@@ -243,7 +243,6 @@ matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 permutation_matrix(R::NCRing, Q::AbstractVector{<:IntegerUnion})
-is_alternating(M::MatrixElem)
 is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 ```
 

@@ -12,10 +12,11 @@ For a *versal* [^1] morphism ``f : M → F`` of a module ``M`` into a free
 module ``F`` this computes the Rees algebra of ``M`` according to
 [EHU03](@cite)[^2].
 
-!!! note If `check` is set to `true`, the method will check the sufficient
-         criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
-         Since no general criterion is known, this will abort with an error message
-         in the non-affirmative case.
+!!! note
+    If `check` is set to `true`, the method will check the sufficient
+    criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
+    Since no general criterion is known, this will abort with an error message
+    in the non-affirmative case.
 
 [^1]: A morphism of ``M`` into a free module ``F`` as above is called versal if any other morphism ``g : M → F'`` from ``M`` to another free module ``F'`` factors through ``f``.
 

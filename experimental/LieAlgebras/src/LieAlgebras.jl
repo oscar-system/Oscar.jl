@@ -60,7 +60,6 @@ import ..Oscar:
   ideal,
   id_hom,
   image,
-  induced_map_on_exterior_power,
   inner_direct_product,
   inv,
   is_abelian,

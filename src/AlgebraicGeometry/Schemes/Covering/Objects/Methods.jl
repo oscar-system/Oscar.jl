@@ -312,10 +312,11 @@ For two `Covering`s `C` and `D`, calculate a common refinement
 `E` and return a triple ``(E, φ, ψ)`` with ``φ : E → C``
 and ``ψ : E → D`` the `CoveringMorphism`s with the inclusion maps.
 
-!!! note Since the `Covering`s do not know about any `AbsCoveredScheme`,
-the computation of the refinement has to rely on the intrinsic tree
-structure of their `patches`. Due to these limitations, only special
-cases are implemented; see the source code for details.
+!!! note
+    Since the `Covering`s do not know about any `AbsCoveredScheme`, the computation of
+    the refinement has to rely on the intrinsic tree structure of their `patches`. Due
+    to these limitations, only special cases are implemented; see the source code for
+    details.
 """
 function common_refinement(C::Covering, D::Covering)
   if C === D

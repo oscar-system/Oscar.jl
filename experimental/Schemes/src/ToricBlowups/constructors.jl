@@ -121,7 +121,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(X::NormalToricVarietyType, n::Int; coordinate_name::Union{VarName, Nothing} = nothing)
-  coords = zeros(QQ, n_rays(X))
+  coords = zeros(QQFieldElem, n_rays(X))
   for i in 1:number_of_rays(X)
     cones(X)[n, i] && (coords[i] = QQ(1))
   end

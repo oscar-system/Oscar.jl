@@ -2999,3 +2999,20 @@ function is_known(::typeof(is_one),
 end
 
 
+# Some additional methods for `complement_of_prime_ideal`
+#
+# Note that these give an object in the `base_ring`, rather than 
+# the ring of the ideal itself, due to the general philosophy to 
+# always flatten the localizations. 
+function complement_of_prime_ideal(P::MPolyQuoIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
+
+function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
+
+function complement_of_prime_ideal(P::MPolyLocalizedIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
+

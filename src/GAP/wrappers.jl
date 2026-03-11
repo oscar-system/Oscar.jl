@@ -146,6 +146,7 @@ GAP.@wrap HasClassParameters(x::GapObj)::Bool
 GAP.@wrap HasConjugacyClassesSubgroups(x::GapObj)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap HasGrp(x::GapObj)::Bool
+GAP.@wrap HashPermutation(x::GapObj, y::GapInt)::Int
 GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForSimpleGroup(x::GapObj)::Bool
@@ -316,11 +317,13 @@ GAP.@wrap MarksTom(x::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap MatTom(x::GapObj)::GapObj
 GAP.@wrap Maxes(x::GapObj)::GapObj
+GAP.@wrap MaximalAbelianQuotient(x::GapObj)::GapObj
 GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
 GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NameFunction(x::GapObj)::GapObj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
+GAP.@wrap NaturalHomomorphismByNormalSubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NiceGens(x::GapObj)::GapObj
 GAP.@wrap NormalClosure(x::GapObj, y::GapObj)::GapObj
@@ -406,6 +409,7 @@ GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
 GAP.@wrap SubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubsTom(x::GapObj)::GapObj
+GAP.@wrap SupersolvableResiduum(x::GapObj)::GapObj
 GAP.@wrap SylowSubgroup(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj

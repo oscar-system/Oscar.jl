@@ -59,5 +59,7 @@ canonical_projections(::LieAlgebraModule)
 canonical_projection(::LieAlgebraModule, ::Int)
 hom_direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Matrix{<:LieAlgebraModuleHom}) where {C<:FieldElem}
 hom_tensor(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleHom}) where {C<:FieldElem}
-hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::LieAlgebraModuleHom) where {C<:FieldElem}
+exterior_power(::LieAlgebraModuleHom, ::Int)
+symmetric_power(::LieAlgebraModuleHom, ::Int)
+tensor_power(::LieAlgebraModuleHom, ::Int)
 ```

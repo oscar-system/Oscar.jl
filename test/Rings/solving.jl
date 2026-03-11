@@ -131,6 +131,15 @@ end
     @test issetequal(pts_swapped, [K.([0, 1]), K.([0, -1]), K.([2, 1]), K.([2, -1])])
   end
 
+  # issue 5741
+  let
+     P, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+     I = ideal(P,[(x-1)*x, y-2, z-3])
+     rat_sols = rational_solutions(I)
+     @test isequal(map(point -> map(gen -> evaluate(gen, point), gens(I)), rat_sols),
+                   [QQFieldElem[0,0,0],[0,0,0]])
+  end
+
   let
     K = algebraic_closure(QQ)
     R, (x, y) = polynomial_ring(K, [:x, :y])

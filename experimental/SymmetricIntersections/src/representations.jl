@@ -867,7 +867,7 @@ end
 
 function _tensor_in_basis(w, bas)
   @assert length(w[1][2]) == length(bas[1])
-  v = zeros(parent(w[1][1]), 1, length(bas))
+  v = Hecke.zeros_array(parent(w[1][1]), 1, length(bas))
   for ww in w
     j = findfirst(j -> bas[j] == ww[2], 1:length(bas))
     v[j] = ww[1]
@@ -976,7 +976,7 @@ function _wedge_product(V::Vector{T}) where T
   wp = _wedge_product(copy(V))
   std_bas, dec = _decompose_in_standard_basis(v)
   bas = basis_exterior_power(std_bas, length(V)+1)
-  coeffs = zeros(parent(dec[1][1]), length(bas))
+  coeffs = Hecke.zeros_array(parent(dec[1][1]), length(bas))
   for l in dec
     for w in wp
       if l[2] in w[2]
