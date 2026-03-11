@@ -194,7 +194,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
+    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -730,13 +730,13 @@ end
   R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, [:x0, :x1, :x2, :x3, :x4, :x5])
   f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
   g1 = transpose(R[x0*x1 x2*x3 x4*x5])
-  M, _ = cokernel(f1)
-  N, _ = cokernel(g1)
+  M = cokernel(f1)
+  N = cokernel(g1)
   SQ = hom(M,N)[1]
 
   f2 = R[0 0]
-  M, _ = cokernel(f1)
-  N, _ = cokernel(f2)
+  M = cokernel(f1)
+  N = cokernel(f2)
   SQ = hom(M,N)[1]
 
 
