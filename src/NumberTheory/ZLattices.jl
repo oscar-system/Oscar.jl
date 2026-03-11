@@ -49,7 +49,7 @@ graph_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.can
 function invariant_function_graph_hash(L::ZZLat; max_size = 6000)
   @assert is_integral(L)
   if rank(L)==0 
-    return UInt(0)
+    return BigInt(0)
   end
   lb = minimum(L)
   ub = lb + 2*scale(L)
@@ -154,12 +154,12 @@ end
 """
     characteristic_vectors(L::ZZLat) -> Vector{ZZMatrix}
     
-Return a set of characterisitc vectors of ``L`` up to sign.
+Return a set of characteristic vectors of ``L`` up to sign.
 
-We follow ideas of Sikirić Haensch, Voight and van Woerden [SHVW20](@cite).
+We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 
 !!! note
-    We do not give any guarantees that the characterisitc vector set stays the same 
+    We do not give any guarantees that the characteristic vector set stays the same 
     between different versions of Oscar.
 """
 function characteristic_vectors(L::ZZLat)
