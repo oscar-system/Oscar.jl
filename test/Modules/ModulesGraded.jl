@@ -137,7 +137,7 @@ end
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
     MM, _ = cokernel(F2, A1)
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
-    MM, _ = graded_cokernel(A1)
+    MM = graded_cokernel(A1)
     @test degrees_of_generators(MM) == [Z[0], Z[0]]
     MM = graded_image(F2, A1)
     @test degrees_of_generators(MM) == [9*Z[1], 10*Z[1]]
