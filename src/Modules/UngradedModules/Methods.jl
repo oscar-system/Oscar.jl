@@ -750,9 +750,15 @@ end
 
 ### the ungraded case of polynomial rings over fields
 # This is an internal method which assumes `M` to be presented.
-function _vector_space_basis(kk::Field, M::SubquoModule{T}; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
+function _vector_space_basis(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: Union{MPolyRingElem{<:FieldElem}, 
+                      MPolyLocRingElem{<:Field, <:FieldElem, 
+                                       <:MPolyRing, <:MPolyRingElem,
+                                       <:MPolyComplementOfKPointIdeal}
+                      }}
   R = base_ring(M)
-  @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the polynomial ring"
+  @assert kk === coefficient_ring(R) "not implemented for other fields than the coefficients of the underlying polynomial ring"
   @check _is_finite(kk, M) "module is not finite over the given field"
   if !isdefined(M, :quo)
     is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
@@ -1052,33 +1058,12 @@ end
 # The change of coordinates puts the rational point at which the localization 
 # happens at the origin. This has the advantage that one can work with local 
 # orderings. 
-function _vector_space_basis(
-    kk::Field, M::SubquoModule{T}; check::Bool=true
-  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, 
-                               <:MPolyRing, <:MPolyRingElem,
-                               <:MPolyComplementOfKPointIdeal
-                              }}
-  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
-  @check _is_finite(kk, M) "module is not finite over the given field"
 
-  if !isdefined(M, :quo) # exists to prevent an infinite runtime for a submodule `M` when called with check=false
-    is_zero(M) || error("vector space basis of an infinite dimensional module can not be computed")
-    return elem_type(M)[]
-  end
 
-  F = ambient_free_module(M)
-  F_shift_poly, _, back_shift = shifted_module(F)
-  M_shift, _, _ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
-  LMq = leading_module(M_shift.quo, o)
-  # TODO: Do we really need to recreate the module from the leading module here???
-  B = _vector_space_basis(kk, quo_object(F_shift_poly, gens(LMq)), check=false) # check=false, since `_is_finite` has already been checked, if check=true
-  is_empty(B) && return elem_type(M)[]
-  # move basis elements back to M
-  iota = base_ring_module_map(F)
-  # LMq(shifted) -> F_poly(shifted) -> F_poly -> F -> M
-  return M.(iota.(back_shift.(ambient_representative.(B))))
-end
+# The function for computing the entire `vector_space_basis` of `M` is 
+# implemented in the `MPolyRing` section above, since it is the same, 
+# reducing to computing the `vector_space_bases` for all non-zero 
+#
 
 function _is_finite(
     kk::Field, M::SubquoModule{T}
@@ -1095,28 +1080,38 @@ function _is_finite(
 end
 
 # This is an internal method which assumes `M` to be presented. 
-# It exists purely for back backwards compatibility.
 # The difference compared to the method above is that a degree `d` 
 # is specified so that the basis w.r.t this graded piece for the 
 # grading by total degree is computed. 
+# It exists for two reasons:
+#   1.) for backwards compatibility and 
+#   2.) for being able to compute `vector_space_basis` for `M`
+#       graded piece by graded piece.
 function _vector_space_basis(
     kk::Field, M::SubquoModule{T}, d::Int64 ; check::Bool=true
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
                                <:MPolyRing, <:MPolyRingElem,
                                <:MPolyComplementOfKPointIdeal
                               }}
-  is_zero(M) && return elem_type(M)[]
-  F = ambient_free_module(M)  
-  F_shift_poly,_,back_shift = shifted_module(F)
-  M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(F_shift_poly)
-  LMq = leading_module(M_shift.quo, o)      # M_shift.quo is always defined after using `shifted_module`, even when M_shift.quo == 0
-  B = _vector_space_basis(kk, quo_object(F_shift_poly, gens(LMq)), d; check)
-  is_empty(B) && return elem_type(M)[]
-  # move basis elements back to M
+  L = base_ring(M)
+  R = base_ring(L)
+  F = ambient_free_module(M)
+  
+  F_shift, _, back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
-  # LMq(shifted & poly) -> F_shift_poly -> F_poly -> F -> M
-  return M.(iota.(back_shift.(ambient_representative.(B))))  
+  
+  mons = elem_type(F_shift)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F_shift))]
+  
+  if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
+    return M.(iota.(back_shift.(vec(mons))))
+  end
+  
+  M_shift, _, _ = shifted_module(M)
+  o = negdegrevlex(base_ring(M_shift))*lex(F_shift)
+  LMq = leading_module(M_shift.quo, o)
+
+  B = elem_type(F_shift)[mon for mon in mons if !(mon in LMq)]
+  return M.(iota.(back_shift.(B)))
 end
 
 ### functionality for modules over quotients of localized polynomial rings at a point
