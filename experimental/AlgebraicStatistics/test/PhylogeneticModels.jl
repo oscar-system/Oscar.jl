@@ -1,3 +1,10 @@
+# checks that attributes are loaded properly from empty state
+function check_ring_loading(loaded)
+  model_ring(loaded)
+  parameter_ring(loaded)
+  return true
+end
+
 @testset "PhylogeneticModels" begin # Changed from "Graphical Models tests"
   mktempdir() do path
     tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
@@ -29,7 +36,7 @@
       @test ngens(full_model_ring(model)[1]) ==
         ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
 
-      test_save_load_roundtrip(path, model) do loaded
+      test_save_load_roundtrip(path, model; check_func=check_ring_loading) do loaded
         @test ngens(full_model_ring(loaded)[1]) ==
           ngens(full_model_ring(phylogenetic_model(loaded))[1]) ==  n_states(loaded)^(n_leaves(tree))
       end
@@ -403,7 +410,8 @@
       end
     end
 
-    @testset "Serialization edge cases" begin
+    
+    @testset "Serialization with String Varnames" begin
       tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
       M = [:m11 :m12; :m21 :m22]
       root_dist = [:r1, :r2]

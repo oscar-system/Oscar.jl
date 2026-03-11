@@ -145,8 +145,7 @@ end
 # needs to use id to have attributes
 @register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
                                                         :model_ring,
-                                                        :reduced_parameter_ring,
-                                                        :reduced_model_ring]
+                                                        :full_model_ring]
 
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
