@@ -224,7 +224,7 @@ julia> A = transpose(matrix(B))
 [0   x*z - y^2]
 [1           0]
 
-julia> M, _ = graded_cokernel(A)
+julia> M = graded_cokernel(A)
 (Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -533,7 +533,7 @@ julia> A = transpose(matrix(B))
 [0   x*z - y^2]
 [1           0]
 
-julia> M, _ = graded_cokernel(A);
+julia> M = graded_cokernel(A);
 
 julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators

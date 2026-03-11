@@ -320,14 +320,14 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
          dd = dim(ideal(Pn, rd*gens(Pn))+I)
       end
 
-      I = annihilator(cokernel(adj)[1])
+      I = annihilator(cokernel(adj))
       Pn = base_ring(I)
     
       Ipts = ideal(Pn, [zero(Pn)])    
       RD =  map_entries(constant_coefficient, rd)   
       for i = 1:3
           KKi = map_entries(Pn, kernel(matrix(RD[i,:])))
-          AAi = annihilator(cokernel(adj*transpose(KKi))[1])
+          AAi = annihilator(cokernel(adj*transpose(KKi)))
 	  Ipts = Ipts+AAi
       end
       Ipts = saturation(Ipts, ideal(Pn, gens(Pn)))

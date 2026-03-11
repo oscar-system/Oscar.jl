@@ -686,7 +686,7 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M, _ = cokernel(A);
+julia> M = cokernel(A);
 
 julia> M
 Subquotient of submodule with 2 generators

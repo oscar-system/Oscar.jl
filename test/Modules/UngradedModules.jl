@@ -194,7 +194,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
+    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -318,7 +318,7 @@ end
   O = R(1)
   B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
   A = transpose(matrix(B));
-  M, _ = graded_cokernel(A)
+  M = graded_cokernel(A)
   FM1 = free_resolution(M, length = 2)
   FM1[4]
   @test all(iszero, homology(FM1))
@@ -1465,7 +1465,7 @@ end
   O = R(1)
   B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
   A = transpose(matrix(B));
-  M, _ = graded_cokernel(A)
+  M = graded_cokernel(A)
   FM2 = free_resolution(M, algorithm = :mres)
   @test all(iszero, homology(FM2))
 end
