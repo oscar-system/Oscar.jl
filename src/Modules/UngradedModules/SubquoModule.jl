@@ -699,7 +699,7 @@ by submodule with 2 generators
 ```
 """
 function cokernel(A::MatElem)
-  return cokernel(map(A))
+  return cokernel(map(A))[1]
 end
 
 @doc raw"""

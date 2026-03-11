@@ -982,7 +982,7 @@ end
 # mostly automatic, just needed for matrices
 
 function graded_cokernel(A::MatElem)
-  return cokernel(graded_map(A))
+  return cokernel(graded_map(A))[1]
 end
 
 function graded_cokernel(F::FreeMod{R}, A::MatElem{R}) where R
