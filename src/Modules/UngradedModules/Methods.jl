@@ -1061,9 +1061,9 @@ end
 
 
 # The function for computing the entire `vector_space_basis` of `M` is 
-# implemented in the `MPolyRing` section above, since it is the same, 
-# reducing to computing the `vector_space_bases` for all non-zero 
-#
+# implemented in the `MPolyRing` section above, since it is the same: 
+# reducing the computation to computing the `vector_space_bases` for 
+# all non-zero homogeneous components of `M` w.r.t. total degree.
 
 function _is_finite(
     kk::Field, M::SubquoModule{T}
