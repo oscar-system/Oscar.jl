@@ -4092,8 +4092,8 @@ function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finit
 
   R, _ = tensor_product(BR, AR; use_product_ordering=true)
   ba = gens(R)
-  ARtoR = Oscar.hom(AR, R, ba[(b + 1):end]; check=false)
-  BRtoR = Oscar.hom(BR, R, ba[1:b]; check=false)
+  ARtoR = Oscar.hom(AR, R, ba[(b + 1):end])
+  BRtoR = Oscar.hom(BR, R, ba[1:b])
   RtoAR = Oscar.hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
 
