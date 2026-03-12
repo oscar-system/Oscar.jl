@@ -3661,7 +3661,7 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String =
   for i=1:n-1
     push!(l, l[1]*l[end])
   end
-  inv_c = sum(l) # this is c(Q) since c(S)⋅c(Q) = 1
+  inv_c = sum(l) # this is c(Q) since c(S) * c(Q) = 1
 
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
 
@@ -3822,7 +3822,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   X, n = parent(F), rank(F)
   !(n isa Int) && error("expect rank to be an integer")
 
-  # compute the ranks of successive subqotients and the relative dimension
+  # compute the ranks of successive subquotients and the relative dimension
 
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
@@ -3888,7 +3888,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
   ds = [degree(Int, gs[i]) for i in 1:1:nl]
   dm = argmax(ds)
-  ### TODO find an return section
+  ### TODO find and return section
   fm = Oscar.hom(R, AFl, p_pullback)
   p_pushforward = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
   ##################################

@@ -12,7 +12,7 @@ function Oscar.simplify(x::MPolyDecRingElem)
   return sum(x[0:n])
 end
 
-# FIXME this only treat the case when the grading is ZZ
+# FIXME this only treats the case when the grading is ZZ
 # same for `total_degree` and `getindex` below
 function gradings(R::MPolyDecRingOrQuo)
   [Int(x.coeff[1]) for x in (R isa MPolyQuoRing ? base_ring(R).d : R.d)]

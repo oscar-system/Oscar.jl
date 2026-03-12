@@ -70,11 +70,11 @@ tn_representation(w::Vector{<:IntegerUnion}) = TnRep(w)
 #
 # TnBundle, TnVariety - varieties with a torus action and equivariant bundles
 #
-# A Tⁿ-abstract variety X is represented as the set of fixed points X.points, each
+# A Tn-abstract variety X is represented as the set of fixed points X.points, each
 # labeled using some value of type P (e.g. an array), and has a multiplicity e
 # (orbifold multiplicity);
 #
-# A Tⁿ-equivariant bundle on X is represented by its localization/restriction
+# A Tn-equivariant bundle on X is represented by its localization/restriction
 # to each of the points in X.points, which will be of type `TnRep`.
 # They are stored as a function to allow lazy evaluation: this is crucial for
 # large examples, since otherwise we may run into memory problems.
@@ -184,7 +184,7 @@ tn_bundle(X::TnVariety, r::Int, f::Function) = TnBundle(X, r, f)
 Return an abstract variety with a (split) torus action by specifying its dimension `n` and the fixed points of the action together with their multiplicities.
 
 !!! note
-    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces in the Oscar documentation for an example.
+    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of a local chart group at $P$. See the section on Kontsevich moduli spaces in the Oscar documentation for an example.
 """
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 
@@ -210,7 +210,7 @@ dim(X::TnVariety) = X.dim
 Return the fixed points representing `X` and their multiplicities.
 
 !!! note
-    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
+    Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of a local chart group at $P$. See the section on Kontsevich moduli spaces for an example.
 
 # Examples
 ```jldoctest
