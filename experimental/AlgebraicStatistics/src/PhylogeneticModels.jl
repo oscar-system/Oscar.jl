@@ -1023,10 +1023,10 @@ end
 end
 
 @attr Tuple{
-  MPolyRing,
-  GraphTransDict,
+  <: MPolyRing,
+  <:GraphTransDict,
   Vector{<:MPolyRingElem},
-  GraphDict{MPolyDecRingElem}
+  GraphDict{<: MPolyRingElem}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: VarName}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing)  where {L}
   N = graph(PM)
@@ -1040,21 +1040,23 @@ end
                                   edge_gens...; cached=cached)
 
   hyb = hybrids(N)                               
-  return R, Dict{Tuple{VarName, Edge}, MPolyRingElem}(
+  return R, GraphTransDict{elem_type(R)}(
+  Dict{Tuple{VarName, Edge}, elem_type(R)}(
     (vars[i], e) => x[i][j] for i in 1:length(vars), 
       (j,e) in enumerate(sort_edges(N, sorted_edges))
-      ), r, GraphDict{MPolyRingElem}(
-        Dict{Edge, MPolyRingElem}(
-          hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2
-            )
       )
+  ), r, GraphDict{MPolyRingElem}(
+    Dict{Edge, elem_type(R)}(
+      hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2
+        )
+  )
 end
 
 @attr Tuple{
-  MPolyRing, 
-  GraphDict{Oscar.MPolyAnyMap}, 
+  <:MPolyRing, 
+  GraphDict{<:Oscar.MPolyAnyMap}, 
   Vector{RT},
-  GraphDict{MPolyRingElem}
+  GraphDict{<:MPolyRingElem}
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: FieldElem}
   N = graph(PM)
@@ -1066,7 +1068,7 @@ end
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(base_field(PM), :l => (1:length(h_nodes), 1:2), edge_gens...; cached=cached)
   
-  dict_map = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
+  dict_maps = Dict{Union{Edge, Int}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
       dict_maps[e] = hom(trans_ring, R, map)
@@ -1076,8 +1078,8 @@ end
   return R,
   GraphDict{MPolyAnyMap}(dict_maps),
   root_distribution(PM),
-  GraphDict{MPolyDecRingElem}(
-    Dict{Edge, MPolyRingElem}(
+  GraphDict{elem_type(R)}(
+    Dict{Edge, elem_type(R)}(
       hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2
         )
   )
