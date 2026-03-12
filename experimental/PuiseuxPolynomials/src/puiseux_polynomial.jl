@@ -1,4 +1,3 @@
-using Base: base62digits, base_project
 #################################################################################
 #
 # Puiseux polynomials
