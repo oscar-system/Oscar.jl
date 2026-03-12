@@ -16,6 +16,52 @@ The arithmetic operations `+`, `-`, `*` on abstract bundles correspond to direct
 and tensor product, respectively. In particular, multiplying a bundle by an integer `n` gives the
 direct sum of `n` copies.
 
+### Grothendieck ring and virtual bundles
+
+Abstract bundles live in the Grothendieck ring $\mathrm{K}^0(X)$ of vector bundles on $X$.
+In this ring, every element can be written as a formal difference $[E] - [F]$ of genuine
+bundles. The Chern character $\mathrm{ch}\colon\mathrm{K}^0(X) \to \mathrm{N}^*(X)_{\mathbb Q}$ is
+a ring homomorphism that identifies the Grothendieck ring (after tensoring with $\mathbb Q$)
+with the Chow ring.
+
+In OSCAR, an `AbstractBundle` is stored as a pair (rank, Chern character), so virtual bundles
+with zero (and negative) rank are fully supported:
+
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> T = tangent_bundle(P2);
+
+julia> F = T - 2*OO(P2); # a virtual bundle of rank 0
+
+julia> rank(F)
+0
+
+julia> chern_character(F)
+3*h - 1//2*h^2
+
+```
+
+### Segre classes
+
+The *total Segre class* $s(E) = c(E)^{-1}$ is the formal inverse of the total Chern class
+and arises naturally as the fundamental class of a projective bundle. For a bundle $E$ of
+rank $r$ the individual Segre classes satisfy $s_k(E) = (-1)^k c_k(E^\vee)$ when $k \le r$,
+but the relation $s(E)\cdot c(E) = 1$ also determines the higher Segre classes uniquely.
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> T = tangent_bundle(P3);
+
+julia> total_segre_class(T)
+1 - 4*h + 10*h^2 - 20*h^3
+
+julia> total_segre_class(T) * total_chern_class(T) # must be 1
+1
+
+```
+
 ## Types
 
 The OSCAR type for abstract vector bundles is `AbstractBundle`.
@@ -95,6 +141,27 @@ julia> P3 = abstract_projective_space(3);
 
 julia> 4*OO(P3, 1) - OO(P3) == tangent_bundle(P3) # Euler sequence
 true
+
+```
+
+### Euler characteristics of line bundles on $\mathbb P^n$
+
+The Euler characteristic $\chi(\mathcal{O}_{\mathbb P^n}(d)) = \binom{n+d}{n}$
+can be computed directly:
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> [euler_characteristic(OO(P3, d)) for d in -2:5]
+8-element Vector{QQFieldElem}:
+ 0
+ 0
+ 1
+ 4
+ 10
+ 20
+ 35
+ 56
 
 ```
 
