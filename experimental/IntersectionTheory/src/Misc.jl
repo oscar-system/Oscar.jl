@@ -3,8 +3,8 @@
 # hacks related to graded rings
 #
 
-# FIXME this way `simplify` can be used when the ring is not a quotient
-# it will remove all the higher degree / codimension stuff
+# this way `simplify` can be used when the ring is not a quotient
+# it will remove all the higher degree / codimension stuff, even if there are higher-degree terms left
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
   n = get_attribute(R, :abstract_variety_dim)::Union{Nothing,Int}
