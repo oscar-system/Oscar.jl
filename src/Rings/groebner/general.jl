@@ -143,7 +143,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   elseif algorithm == :f4
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
-    groebner_basis_f4(I, complete_reduction=true)
+    I.gb[ordering] = groebner_basis_f4(I, complete_reduction=true)
   elseif algorithm == :markov
     @req _islattice(I) "Ideal needs to be a lattice ideal to use Markov algorithm."
     I.gb[ordering] = _groebner4ti2(I, ordering)
