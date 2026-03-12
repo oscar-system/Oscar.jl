@@ -291,7 +291,7 @@ julia> tautological_bundles(G)
 
 ```
 """
-tautological_bundles(X::TnVariety) = X.bundles  ### CHECK bundles( --> tautological_bundles(
+tautological_bundles(X::TnVariety) = X.bundles
 
 euler_number(X::TnVariety) = sum(1//ZZ(e) for (p, e) in fixed_points(X)) # special case of Bott's formula
 cotangent_bundle(X::TnVariety) = dual(tangent_bundle(X))
