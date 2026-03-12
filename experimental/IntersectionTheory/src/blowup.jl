@@ -322,7 +322,6 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   j_push = x -> sum(e_vars .* RXtoRXplus.(sect(x.f))) # AZ --> RXplus
 
   # we set up the relations of AXplus
-
   relations = elem_type(RXplus)[]
 
   # 1) relations from AX
@@ -332,10 +331,9 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   append!(relations, RXtoRXplus.(PM) * e_vars)
 
   # 3) j_push(x) * j_push(y) = j_push(x * y * c)
-  append!(
-    relations,
-    [e_vars[j] * e_vars[k] - j_push(Z(gs[j]) * Z(gs[k]) * c) for j in 1:ngs, k in j:ngs],
-  )
+  for j in 1:ngs, k in j:ngs
+    push!(relations, e_vars[j] * e_vars[k] - j_push(Z(gs[j]) * Z(gs[k]) * c))
+  end
 
   # 4) the points are the same
   if isdefined(Z, :point) && isdefined(X, :point)
