@@ -353,11 +353,18 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   AXplus, _ = quo(RXplus, relations)
   Xplus = abstract_variety(dim(X), AXplus)
 
+  # X and Xplus are the same variety
   set_attribute!(Xplus, :description => "$X")
-  # Xplus and X are the same variety, so pushforward must not be defined
-  f_pushforward = MapFromFunc(
-    chow_ring(Xplus), chow_ring(X), x -> error("This map cannot be defined")
-  )
+  # but Xplus has more classes; we set up the morphism f: Xplus -> X as the identity on the level of varieties, and the natural map on Chow rings
+  # f_pushforward works as follows:
+  # * simplify(x) reduces x modulo the ideal of AXplus; crucially, relation (3) above
+  #   (the self-intersection formula e[j]*e[k] = j_push(gs[j]*gs[k]*c)) rewrites products
+  #   of e_vars into x_vars, encoding the pushforward classes i_*(gs[j]) in A*(X)
+  # * RXplustoRX then sends the x_vars to the corresponding generators of RX (identity on A*(X))
+  #   and any e_vars that survive simplify to 0, which is correct since those classes have
+  #   degree exceeding dim(X) and thus no image in A*(X)
+  RXplustoRX = Oscar.hom(RXplus, RX, vcat(repeat([RX()], ngs), gens(RX)))
+  f_pushforward = MapFromFunc(chow_ring(Xplus), chow_ring(X), x -> (xf = simplify(x).f; X(RXplustoRX(xf))))
   f = AbstractVarietyMap(Xplus, X, Xplus.(x_vars), f_pushforward)
   Xplus.structure_map = f
   Xplus.T = pullback(f, tangent_bundle(X))
