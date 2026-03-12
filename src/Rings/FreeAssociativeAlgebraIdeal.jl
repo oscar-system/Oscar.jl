@@ -21,6 +21,7 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
   function FreeAssociativeAlgebraIdeal(g::IdealGens{T}) where T <: FreeAssociativeAlgebraElem
     r = new{T}()
     r.gens = g
+    r.deg_bound = -2
     return r
   end
 end
@@ -66,13 +67,36 @@ end
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) = normal_form(f, gens(I))
 AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}) = normal_form(f, collect(I))
 
+function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)
+  return set_gb!(I, IdealGens(gb), deg_bound; force=force)
+end
+
 @doc raw"""
-    ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
+    set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)
+
+Set the Groebner basis of the ideal `I` to `gb` with an associated degree bound
+`deg_bound`. If `force` is `true`, the Groebner basis will be set regardless of
+existing values. If `force` is `false`, the Groebner basis will only be set if
+it is not already defined.
+"""
+function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)
+  @req force || !isdefined(I, :gb) "Groebner basis is already defined. Use force=true to overwrite."
+  I.gb = gb
+  I.deg_bound = deg_bound
+  return I
+end
+
+@doc raw"""
+    ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int; algorithm::Symbol=:default)
 
 Return `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
 Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_bound`s give more confidence in a negative answer. 
 If `deg_bound` is not specified, the default value is `-1`, which means that no degree bound is imposed,
 resulting in a calculation using a much slower algorithm that may not terminate, but will return a full Groebner basis if it does.
+
+The `algorithm` keyword controls the reduction method used for the ideal
+membership test: set `algorithm=:default` for standard normal form reduction,
+or `algorithm=:f4` to use the F4-based reduction algorithm.
 ```jldoctest
 julia> free, (x,y,z) = free_associative_algebra(QQ, [:x, :y, :z]);
 
@@ -82,21 +106,68 @@ julia> I = ideal([f1]);
 
 julia> ideal_membership(f1, I, 4)
 true
+
+julia> ideal_membership(f1, I, 4; algorithm=:f4)
+true
 ```
 """
-function ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1)
-  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(normal_form(a, I.gb))
-  groebner_basis(I, deg_bound)
-  return ideal_membership(a, I, deg_bound)
+function ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; algorithm::Symbol=:default)
+  @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported for ideal membership testing"
+  algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
+
+  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(reducer(a, I.gb, I.deg_bound))
+  groebner_basis(I, deg_bound; algorithm=algorithm)
+  return ideal_membership(a, I, deg_bound; algorithm=algorithm)
 end
-function ideal_membership(a::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1)
-  return ideal_membership(a, collect(I), deg_bound)
+function ideal_membership(a::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; algorithm::Symbol=:default)
+  return ideal_membership(a, collect(I), deg_bound; algorithm=algorithm)
 end
-function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1)
+function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; algorithm::Symbol=:default)
+  @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported for ideal membership testing"
   R = parent(a)
   @req all(x -> parent(x) == R, I) "parent mismatch"
-  gb = groebner_basis(I, deg_bound)
-  return iszero(normal_form(a, gb))
+
+  gb = groebner_basis(I, deg_bound; algorithm=algorithm)
+
+  algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
+  return iszero(reducer(a, gb, deg_bound))
+end
+
+_f4ncgb_ideal_membership(
+  a::FreeAssociativeAlgebraElem,
+  g::IdealGens{<:FreeAssociativeAlgebraElem},
+  deg_bound::Int=-1;
+  probabilistic::Bool = false
+) = _f4ncgb_ideal_membership(a, collect(g), deg_bound; probabilistic=probabilistic)
+
+
+function _f4ncgb_ideal_membership(
+  a::FreeAssociativeAlgebraElem,
+  g::Vector{<:FreeAssociativeAlgebraElem},
+  deg_bound::Int=-1;
+  probabilistic::Bool = false
+) 
+  @req length(g) > 0 "Vector must not be empty"
+  R = parent(g[1])
+  handle = f4ncgb_init()
+  userdata = nothing
+  try
+    f4ncgb_set_nvars(handle, UInt32(ngens(R)))
+    f4ncgb_set_blocks(handle, UInt32[ngens(R)])
+    f4ncgb_set_threads(handle, UInt32(1))
+    f4ncgb_set_tracer(handle, probabilistic)
+    f4ncgb_set_maxiter(handle, UInt32(typemax(Int32)))
+
+    deg_bound > 0 && f4ncgb_set_maxdeg(handle, UInt32(deg_bound))
+
+    f4ncgb_add.(Ref(handle), g)
+    f4ncgb_add(handle, a)
+    userdata = f4ncgb_polys_helper(R)
+    f4ncgb_reduce(handle, userdata)
+  finally
+    f4ncgb_free(handle)
+  end
+  return userdata.gens[1]
 end
 
 function Base.in(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal)
@@ -178,8 +249,8 @@ function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   probabilistic::Bool = false
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
-  I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
-  I.deg_bound = deg_bound
+  gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
+  set_gb!(I, gb, deg_bound; force=true)
   return I.gb
 end
 function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
@@ -284,7 +355,7 @@ function is_groebner_basis(gb::Vector{<:FreeAssociativeAlgebraElem})
 end
 
 function interreduce!(I::FreeAssociativeAlgebraIdeal)
-  I.gb = interreduce!(I.gb)
+  set_gb!(I, interreduce!(I.gb), I.deg_bound; force=true)
   return I
 end
 function interreduce!(gb::IdealGens{<:FreeAssociativeAlgebraElem})

@@ -13,7 +13,7 @@
   D8 = toric_divisor(P2, [1, -1, 0])
   D9 = toric_divisor(P2, [0, -1, 0])
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (toric divisors)" begin
     @test_throws ArgumentError toric_divisor(F5, [0, 0, 0])
     @test_throws ArgumentError D + D3
     @test_throws ArgumentError D - D3
@@ -65,7 +65,7 @@
     @test coefficients(D2 - D2) == [0, 0, 0, 0]
   end
 
-  @testset "Error handling" begin
+  @testset "Should fail due to bad arguments (toric divisors II)" begin
     X = normal_toric_variety(
       [[1, 2], [1, 3, 4], [2, 3, 4]], [[-1, -1, 0], [-1, -1, -2], [3, 0, 2], [0, 3, 2]]
     )
