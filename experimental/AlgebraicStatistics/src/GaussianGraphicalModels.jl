@@ -633,30 +633,39 @@ end
 
 ################################################################################
 # Maximum likelihood
+function _trace_and_det(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{QQFieldElem})
+  
+end
 
-function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:RingElem})
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem;
+                               
+                               kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
   n = nrows(K)
   @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+
+  K = concentration_matrix(M)
   R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
   K_mapped = map_entries(emb, K)
-  detK = det(K_mapped)
-  trace_product = trace(scv_matrix * K_mapped)
-  diff_vars = gens(R)
-
-  l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
+  phi = Oscar.flatten(R)
+  Ko = monomial_ordering(gens(codomain(phi))[1:ngens(base_ring(K))], :degrevlex)
+  So = monomial_ordering(gens(codomain(phi))[ngens(base_ring(K)) + 1:end], :degrevlex)
+  o = Ko * So
+  trace_product = phi(trace(scv_matrix * K_mapped))
+  detK = phi(det(K_mapped))
+  diff_vars = (phi(g) for g in gens(R))
+  
+  l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
-  println("gb")
+  groebner_basis(I; ordering=o, kwargs...)
 
-  groebner_basis(I; algorithm)
-  println("dim")
-  @req iszero(dim(I)) "Dimension of score equation ideal was positive for input $scv_matrix"
-
-  return saturation(I, ideal(det_sigma))
+  I_sat =  saturation(I, ideal(detK))
+  phi_inv = inverse(phi)
+  return phi_inv(I_sat)
 end
 
-function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:RingElem})
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:RingElem}; kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   sigma = covariance_matrix(M)
   n = nrows(sigma)
@@ -667,20 +676,22 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_m
   adj = adjugate(sigma_mapped)
 
   R, emb = change_base_ring(base_ring(scv_matrix), base_ring(codomain(phi)))
+    phi = flatten(R)  
+  
   sigma_final = map_entries(emb, sigma_mapped)
   adj_final = map_entries(emb, adj)
   det_sigma = det(sigma_final)
   trace_product = trace(scv_matrix * adj_final)
   diff_vars = gens(R)
-  println("taking derivatives")
-  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
-  I = ideal(reduce(vcat, l_eqs))
-  groebner_basis(I)
-  @req iszero(dim(I)) "Dimension of score equation ideal was positive for input $scv_matrix"
-  println("before gb")
 
-  println("before sat")
-  return saturation(I, ideal(det_sigma))
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
+
+  I = ideal(reduce(vcat, map_entries(phi, l_eqs)))
+  
+  groebner_basis(I; kwargs...)
+  I_sat =  saturation(I, ideal(phi(det_sigma)))
+  @req iszero(dim(I_sat)) "Dimension of score equation ideal was positive for input $scv_matrix"
+  return I_sat
 end
 
 @doc raw"""
@@ -710,7 +721,6 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel, rank::Int; algorit
   n = n_vertices(graph(M))
   
   if algorithm == :generic
-
     if rank == n
       S, s = polynomial_ring(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
       scv_matrix = upper_triangular_matrix(s)
@@ -725,7 +735,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel, rank::Int; algorit
     end
   elseif algorithm == :monte_carlo
     scv_matrix = rand(Int, rank, n)
-    scv_matrix = matrix(ZZ, transpose(scv_matrix) * scv_matrix)
+    scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
   end
   I = score_equations_ideal(M, scv_matrix)
 

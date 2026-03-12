@@ -460,6 +460,7 @@ export compose
 export composition
 export composition_series, has_composition_series, set_composition_series
 export compositions
+export comprehensive_groebner_system
 export cone
 export cone_from_equations
 export cone_from_inequalities
