@@ -638,7 +638,6 @@ function _trace_and_det(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix
 end
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem;
-                               
                                kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
@@ -662,7 +661,9 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
 
   I_sat =  saturation(I, ideal(detK))
   phi_inv = inverse(phi)
-  return phi_inv(I_sat)
+  gb = groebner_basis(I_sat; ordering=o)
+  mo = monomial_ordering(gens(base_ring(K)), :degrevlex)
+  return ideal(IdealGens([phi_inv(g) for g in gb], mo; isGB=true))
 end
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:RingElem}; kwargs...)
