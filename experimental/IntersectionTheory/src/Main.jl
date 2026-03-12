@@ -2970,11 +2970,6 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   Fl = AbstractVariety(X.dim + d, AFl)
   Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
 
-  ### old approach to push forward
-  ### R1toR = hom(R1, R, vcat(repeat([R()], n), gens(R)))
-  ### section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
-  ###pₓ = x -> (@warn("possibly wrong ans"); X(R1toR(div(simplify(x).f, simplify(section).f))))
-
   # constructing the projection map
 
   # 1. pullback
@@ -2994,19 +2989,24 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   dm = argmax(ds)
   fm = hom(R, AFl, pˣ)
   pₓ = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
-  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
 
+  ### old approach to push forward
+  ###  R1toR = hom(R1, R, vcat(repeat([R()], n), gens(R)))
+  ###  section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
+  ###  pₓ = x -> (@warn("possibly wrong ans"); X(R1toR(div(simplify(x).f, simplify(section).f))))
+
+  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
   p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
   Fl.struct_map = p
-
-  ### old approach to point class
-  ### if isdefined(X, :point)
-  ###  Fl.point = PRtoR1(X.point.f) * section
-  ###end
 
   if isdefined(X, :point)
     Fl.point = PRtoR1(X.point.f) * gs[dm]
   end
+
+  ### old approach to point class
+  ###if isdefined(X, :point)
+  ###Fl.point = PRtoR1(X.point.f) * section
+  ###end
 
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1
@@ -3094,7 +3094,14 @@ function  _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_fini
   if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoR(g)) end end
   J = ideal(R, Rels) # the ideal of the graph of F
   W = vcat(weights(Int, BR), weights(Int, AR))
-  V = fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
+  try
+    fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
+  catch e
+    if !(e isa ErrorException && e.msg == "Dimension of corresponding ideal must be zero.")
+      rethrow(e)
+    end
+  end
+  V = groebner_basis(J)
 
   sect = x -> (y = reduce(BRtoR(x), gens(V), complete_reduction=true);
 	      ans = elem_type(AR)[];
