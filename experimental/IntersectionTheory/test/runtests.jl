@@ -369,6 +369,91 @@ let pushforward = IntersectionTheory.pushforward
       [1, -2, 4, -4, 4, -2, 1]
   end
 
+  @testset "ExtendInclusion" begin
+
+    # extend_inclusion pushforward: cubic fourfold containing a plane
+    P2 = abstract_projective_space(2)
+    Y = complete_intersection(abstract_projective_space(5), 3)
+    i = map(P2, Y, [P2.O1]; inclusion=true)
+    Y1 = i.codomain
+    p = pushforward(i, P2(1))
+    h = Y1.O1
+    @test Y1 != Y
+    @test euler_number(Y1) == euler_number(Y)
+    @test betti_numbers(Y1)[3] == 2
+
+    # structure map pushforward: should not error
+    f = structure_map(Y1)
+    pt_Y1 = point_class(Y1)
+    f_pt = pushforward(f, pt_Y1)
+    @test integral(f_pt) == 1
+
+    # extend_inclusion pushforward preserves degree-0 class
+    f_one = pushforward(f, Y1(1))
+    @test f_one == Y(1)  # identity on A^0
+  end
+
+  @testset "GrassmannianDuality" begin
+
+    # Gr(2,5) and Gr(3,5) are isomorphic
+    G1 = abstract_grassmannian(2, 5)
+    G2 = abstract_grassmannian(3, 5)
+    @test betti_numbers(G1) == betti_numbers(G2)
+    @test euler_number(G1) == euler_number(G2)
+    @test euler_number(G1) == 10
+
+    # degree in Plücker embedding
+    S1 = tautological_bundles(G1)[1]
+    S2 = tautological_bundles(G2)[1]
+    @test integral(chern_class(dual(S1), 1)^6) == 5
+    @test integral(chern_class(dual(S2), 1)^6) == 5
+
+    # Schubert classes have the same structure
+    @test [length(schubert_classes(G1, k)) for k in 0:6] == [1, 1, 2, 2, 2, 1, 1]
+    @test [length(schubert_classes(G2, k)) for k in 0:6] == [1, 1, 2, 2, 2, 1, 1]
+  end
+
+  @testset "EulerCharacteristicsOO" begin
+
+    # Euler characteristics of O(n) on P^3
+    P3 = abstract_projective_space(3)
+    @test [euler_characteristic(OO(P3, n)) for n in 0:6] ==
+          [1, 4, 10, 20, 35, 56, 84]
+
+    # Serre duality: chi(O(-n-4)) = (-1)^3 * chi(O(n)) on P^3
+    @test [euler_characteristic(OO(P3, -n - 4)) for n in 0:4] ==
+          [-euler_characteristic(OO(P3, n)) for n in 0:4]
+
+    # Euler characteristics on P^2
+    P2 = abstract_projective_space(2)
+    @test [euler_characteristic(OO(P2, n)) for n in 0:5] ==
+          [1, 3, 6, 10, 15, 21]
+  end
+
+  @testset "BlowupVeroneseInvariants" begin
+
+    # Veronese blowup: Chow ring, tangent bundle, Betti numbers
+    P2 = abstract_projective_space(2)
+    P5 = abstract_projective_space(5)
+    i = map(P2, P5, [2P2.O1])
+    Bl, E, j = blowup(i)
+
+    @test betti_numbers(Bl) == [1, 2, 3, 3, 2, 1]
+    @test euler_number(Bl) == 12
+    @test integral(top_chern_class(tangent_bundle(Bl))) == 12
+
+    e = pushforward(j, E(1))
+    quad = pullback(structure_map(Bl), 2P5.O1) - e
+    @test integral(quad^5) == 1
+
+    sext = pullback(structure_map(Bl), 6P5.O1) - 2e
+    @test integral(sext^5) == 3264
+
+    # pushforward through structure map of blowup
+    c = top_chern_class(tangent_bundle(Bl))
+    @test integral(pushforward(structure_map(Bl), c)) == 12
+  end
+
   @testset "Setters" begin
 
     # set_point_class
