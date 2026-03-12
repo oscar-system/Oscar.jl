@@ -9,7 +9,7 @@ The type of a representation of a torus, specified by its weights.
 struct TnRep
   n::Int
   w::Vector
-  function TnRep(w::Vector{W}) where W
+  function TnRep(w::Vector{W}) where {W}
     # be sure to use ZZRingElem to avoid overflow
     W == Int && return new(length(w), ZZ.(w))
     new(length(w), w)
@@ -40,7 +40,7 @@ TnRep(9, ZZRingElem[2, 2, 2, 3, 3, 3, 4, 4, 4])
 dual(F::TnRep) = TnRep(-F.w)
 det(F::TnRep) = TnRep([sum(F.w)])
 +(F::TnRep, G::TnRep) = TnRep(vcat(F.w, G.w))
-*(F::TnRep, G::TnRep) = TnRep([a+b for a in F.w for b in G.w])
+*(F::TnRep, G::TnRep) = TnRep([a + b for a in F.w for b in G.w])
 
 top_chern_class(F::TnRep) = prod(F.w)
 function chern_class(F::TnRep, n::Int)
@@ -48,7 +48,7 @@ function chern_class(F::TnRep, n::Int)
 end
 function _sym(k::Int, n::Int)
   k == 0 && return [Int[]]
-  vcat([[push!(c, i) for c in _sym(k-1,i)] for i in 1:n]...)
+  vcat([[push!(c, i) for c in _sym(k - 1, i)] for i in 1:n]...)
 end
 
 @doc raw"""
@@ -64,7 +64,6 @@ TnRep(3, ZZRingElem[1, 2, 3])
 ```
 """
 tn_representation(w::Vector{<:IntegerUnion}) = TnRep(w)
-
 
 ###############################################################################
 #
@@ -86,21 +85,20 @@ abstract type TnVarietyT{P} <: Variety end
 The type of a torus-equivariant bundle, represented by its localizations to the
 fixed points of the base abstract variety.
 """
-@attributes mutable struct TnBundle{P, V <: TnVarietyT{P}} <: Bundle
+@attributes mutable struct TnBundle{P,V<:TnVarietyT{P}} <: Bundle
   parent::V
   rank::Int
   loc::Function
 
-  function TnBundle(X::V, r::Int) where V <: TnVarietyT
+  function TnBundle(X::V, r::Int) where {V<:TnVarietyT}
     P = V.parameters[1]
-    new{P, V}(X, r)
+    new{P,V}(X, r)
   end
-  function TnBundle(X::V, r::Int, f::Function) where V <: TnVarietyT
+  function TnBundle(X::V, r::Int, f::Function) where {V<:TnVarietyT}
     P = V.parameters[1]
-    new{P, V}(X, r, f)
+    new{P,V}(X, r, f)
   end
 end
-
 
 function Base.show(io::IO, F::TnBundle)
   if Oscar.is_terse(io)
@@ -159,11 +157,11 @@ The type of an abstract variety with a (split) torus action, represented by its 
 """
 @attributes mutable struct TnVariety{P} <: TnVarietyT{P}
   dim::Int
-  points::Vector{Pair{P, Int}}
+  points::Vector{Pair{P,Int}}
   T::TnBundle
   bundles::Vector{TnBundle}
 
-  function TnVariety(n::Int, points::Vector{Pair{P, Int}}) where P
+  function TnVariety(n::Int, points::Vector{Pair{P,Int}}) where {P}
     new{P}(n, points)
   end
 end
@@ -186,7 +184,9 @@ Return an abstract variety with a (split) torus action by specifying its dimensi
 !!! note
     Specifying multiplicities at the fixed points allows one to work with a version of Bott's formula for orbifolds. Here, the multiplicity at a fixed point $P$ is the order of a local chart group at $P$. See the section on Kontsevich moduli spaces in the Oscar documentation for an example.
 """
-tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
+tn_variety(n::Int, points::Vector{Pair{P,Int}}) where {P} = TnVariety(
+  n::Int, points::Vector{Pair{P,Int}}
+)
 
 @doc raw"""
     dim(X::TnVariety)
@@ -293,7 +293,7 @@ julia> tautological_bundles(G)
 """
 tautological_bundles(X::TnVariety) = X.bundles  ### CHECK bundles( --> tautological_bundles(
 
-euler_number(X::TnVariety) = sum(1//ZZ(e) for (p,e) in fixed_points(X)) # special case of Bott's formula
+euler_number(X::TnVariety) = sum(1//ZZ(e) for (p, e) in fixed_points(X)) # special case of Bott's formula
 cotangent_bundle(X::TnVariety) = dual(tangent_bundle(X))
 trivial_line_bundle(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
 (OO)(X::TnVariety) = trivial_line_bundle(X)
@@ -310,21 +310,32 @@ Return the dual of `F`, the `k`-th symmetric power of `F`, the `k`-th exterior p
 """
 dual(F::TnBundle) = TnBundle(parent(F), rank(F), p -> dual(localization(F)(p)))
 det(F::TnBundle) = TnBundle(parent(F), 1, p -> det(localization(F)(p)))
-+(F::TnBundle, G::TnBundle) = TnBundle(parent(F), rank(F) + rank(G), p -> localization(F)(p) + localization(G)(p))
-*(F::TnBundle, G::TnBundle) = TnBundle(parent(F), rank(F) * rank(G), p -> localization(F)(p) * localization(G)(p))
++(F::TnBundle, G::TnBundle) = TnBundle(
+  parent(F), rank(F) + rank(G), p -> localization(F)(p) + localization(G)(p)
+)
+*(F::TnBundle, G::TnBundle) = TnBundle(
+  parent(F), rank(F) * rank(G), p -> localization(F)(p) * localization(G)(p)
+)
 
 # avoid computing `_sym` for each F.loc(p)
 function symmetric_power(F::TnBundle, k::Int)
   l = _sym(k, rank(F))
-  TnBundle(parent(F), binomial(rank(F)+k-1, k), p -> (
-    Fp = localization(F)(p);
-    TnRep([sum(Fp.w[i] for i in c) for c in l])))
+  TnBundle(
+    parent(F),
+    binomial(rank(F) + k - 1, k),
+    p -> (
+      Fp=localization(F)(p);
+      TnRep([sum(Fp.w[i] for i in c) for c in l])),
+  )
 end
 function exterior_power(F::TnBundle, k::Int)
   l = combinations(rank(F), k)
-  TnBundle(parent(F), binomial(rank(F), k), p -> (
-    Fp = localization(F)(p);
-    TnRep([sum(Fp.w[i] for i in c) for c in l])))
+  TnBundle(
+    parent(F), binomial(rank(F), k),
+    p -> (
+      Fp=localization(F)(p);
+      TnRep([sum(Fp.w[i] for i in c) for c in l]))
+  )
 end
 
 # we want the same syntax `integral(total_chern_class(F))` as in Schubert calculus
@@ -339,15 +350,15 @@ for O in [:(+), :(-), :(*)]
     TnBundleChern(a.F, $O(a.c, b.c)))
 end
 ^(a::TnBundleChern, n::Int) = TnBundleChern(a.F, a.c^n)
-*(a::TnBundleChern, n::RingElement) = TnBundleChern(a.F, a.c*n)
-*(n::RingElement, a::TnBundleChern) = TnBundleChern(a.F, n*a.c)
+*(a::TnBundleChern, n::RingElement) = TnBundleChern(a.F, a.c * n)
+*(n::RingElement, a::TnBundleChern) = TnBundleChern(a.F, n * a.c)
 Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 
 # create a ring to hold the chern classes of F
 function _get_ring(F::TnBundle)
   if isnothing(get_attribute(F, :R))
     r = min(dim(parent(F)), rank(F))
-    R, _ = graded_polynomial_ring(QQ, :c => 1:r; weights = 1:r)
+    R, _ = graded_polynomial_ring(QQ, :c => 1:r; weights=1:r)
     set_attribute!(R, :abstract_variety_dim => dim(parent(F)))
     set_attribute!(F, :R => R)
   end
@@ -374,7 +385,7 @@ Chern class c[1] + c[2] + 1 of TnBundle of rank 2 on TnVariety of dim 2 with 3 f
 
 ```
 """
-total_chern_class(F::TnBundle) = TnBundleChern(F, 1+sum(gens(_get_ring(F))))
+total_chern_class(F::TnBundle) = TnBundleChern(F, 1 + sum(gens(_get_ring(F))))
 chern_class(F::TnBundle, k::Int) = TnBundleChern(F, total_chern_class(F).c[k])
 top_chern_class(F::TnBundle) = chern_class(F, rank(F))
 
@@ -476,11 +487,11 @@ function integral(c::TnBundleChern)
   exp_vec = sum(AbstractAlgebra.exponent_vectors(top))
   idx = filter(i -> exp_vec[i] > 0, 1:r)
   ans = 0
-  for (p,e) in fixed_points(X) # Bott's formula
+  for (p, e) in fixed_points(X) # Bott's formula
     Fp = localization(F)(p)
     # this avoids the computations of Chern classes that are not needed
     cherns = [i in idx ? chern_class(Fp, i) : QQ() for i in 1:r]
-    ans += top(cherns...) * (1 // (e * top_chern_class(localization(tangent_bundle(X))(p))))
+    ans += top(cherns...) * (1//(e * top_chern_class(localization(tangent_bundle(X))(p))))
   end
   ans
 end
@@ -494,7 +505,9 @@ end
 function _parse_weight(n::Int, w)
   w == :int && return ZZ.(collect(1:n))
   w == :poly && return polynomial_ring(QQ, "u#" => 1:n)[2]
-  if (w isa AbstractUnitRange) w = collect(w) end
+  if (w isa AbstractUnitRange)
+    w = collect(w)
+  end
   w isa Vector && length(w) == n && return w
   error("incorrect specification for weights")
 end
@@ -532,14 +545,14 @@ julia> P = V[10][1]
 
 ```
 """
-function tn_grassmannian(k::Int, n::Int; weights = :int)
+function tn_grassmannian(k::Int, n::Int; weights=:int)
   @assert k < n
-  points = [p=>1 for p in combinations(n, k)]
-  d = k*(n-k)
+  points = [p => 1 for p in combinations(n, k)]
+  d = k * (n - k)
   G = TnVariety(d, points)
   w = _parse_weight(n, weights)
   S = TnBundle(G, k, p -> TnRep([w[i] for i in p]))
-  Q = TnBundle(G, n-k, p -> TnRep([w[i] for i in setdiff(1:n, p)]))
+  Q = TnBundle(G, n - k, p -> TnRep([w[i] for i in setdiff(1:n, p)]))
   G.bundles = [S, Q]
   G.T = dual(S) * Q
   set_attribute!(G, :description => "Grassmannian Gr($k, $n)")
@@ -576,24 +589,32 @@ julia> fixed_points(F)
 
 ```
 """
-function tn_flag_variety(dims::Int...; weights = :int)
-  return tn_flag_variety(collect(dims), weights  = weights)
+function tn_flag_variety(dims::Int...; weights=:int)
+  return tn_flag_variety(collect(dims); weights=weights)
 end
 
-function tn_flag_variety(dims::Vector{Int}; weights = :int)
+function tn_flag_variety(dims::Vector{Int}; weights=:int)
   n, l = dims[end], length(dims)
-  ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
+  ranks = pushfirst!([dims[i + 1] - dims[i] for i in 1:(l - 1)], dims[1])
   @assert all(>(0), ranks)
-  d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
+  d = sum(ranks[i] * sum(dims[end] - dims[i]) for i in 1:(l - 1))
   function enum(i::Int, rest::Vector{Int})
     i == l && return [[rest]]
-    [pushfirst!(y, x) for x in combinations(rest, ranks[i]) for y in enum(i+1, setdiff(rest, x))]
+    [
+      pushfirst!(y, x) for x in combinations(rest, ranks[i]) for
+      y in enum(i + 1, setdiff(rest, x))
+    ]
   end
-  points = [p=>1 for p in enum(1, collect(1:n))]
+  points = [p => 1 for p in enum(1, collect(1:n))]
   Fl = TnVariety(d, points)
   w = _parse_weight(n, weights)
-  Fl.bundles = [TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)]
-  Fl.T = sum(dual(tautological_bundles(Fl)[i]) * sum([tautological_bundles(Fl)[j] for j in i+1:l]) for i in 1:l-1)
+  Fl.bundles = [
+    TnBundle(Fl, r, p -> TnRep([w[j] for j in p[i]])) for (i, r) in enumerate(ranks)
+  ]
+  Fl.T = sum(
+    dual(tautological_bundles(Fl)[i]) *
+    sum([tautological_bundles(Fl)[j] for j in (i + 1):l]) for i in 1:(l - 1)
+  )
   set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   return Fl
 end
@@ -637,20 +658,20 @@ julia> [lines_on_hypersurface(n) for n=2:10]
 
 ```
 """
-function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
-  n = binomial(d+k, d) // (k+1)
+function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool=true)
+  n = binomial(d + k, d)//(k + 1)
   is_integer(n) || error("binomial(d+k, d) // (k+1) is not an integer")
-  n = Int(n)+k
+  n = Int(n) + k
   if bott == true
-    G = tn_grassmannian(k+1, n+1)
+    G = tn_grassmannian(k + 1, n + 1)
   else
-    G = abstract_grassmannian(k+1, n+1)
+    G = abstract_grassmannian(k + 1, n + 1)
   end
   S, Q = tautological_bundles(G)
   integral(top_chern_class(symmetric_power(dual(S), d)))
 end
 
-function lines_on_hypersurface(n::Int; bott::Bool = true)
+function lines_on_hypersurface(n::Int; bott::Bool=true)
   n >= 2 || error("n must be at least 2")
-  return linear_subspaces_on_hypersurface(1, 2*n-3)
+  return linear_subspaces_on_hypersurface(1, 2 * n - 3)
 end

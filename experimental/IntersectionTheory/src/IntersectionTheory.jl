@@ -16,7 +16,6 @@ import ..Oscar: localization
 import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
 
-
 export a_hat_genus
 export abstract_bundle
 export abstract_cayley_grassmannian

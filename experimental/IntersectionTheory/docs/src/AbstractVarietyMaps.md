@@ -26,7 +26,7 @@ The OSCAR type for abstract variety maps is `AbstractVarietyMap`.
 ## Constructors
 
 ```@docs
-map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = nothing; inclusion::Bool = false, symbol::String = "x")
 ```
 
 ```@docs
