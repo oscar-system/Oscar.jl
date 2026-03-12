@@ -184,7 +184,8 @@ end
 
 # not exactly sure what the attributes shold be yet
 @register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring,
-                                                                  :model_ring]
+                                                                  :model_ring,
+                                                                  :full_model_ring]
 
 type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
