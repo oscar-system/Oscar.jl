@@ -19,6 +19,53 @@ documentation of `map` for details).
 Abstract variety maps also carry a *relative tangent bundle* $\mathrm{T}_f$, which satisfies
 $\mathrm{T}_X = f^* \mathrm{T}_Y \oplus \mathrm{T}_f$, and may carry a *relative polarization* $\mathcal{O}_f(1)$.
 
+### Pullback and pushforward semantics
+
+The **pullback** $f^*$ is a ring homomorphism: it preserves products and sends $1$ to $1$. It is
+always available once a map is constructed.
+
+The **pushforward** $f_*$ is only a group homomorphism (it does *not* preserve products in general),
+but it satisfies the **projection formula**:
+
+$$f_*(f^*(y) \cdot x) = y \cdot f_*(x) \quad \text{for all } x \in \mathrm{N}^*(X),\; y \in \mathrm{N}^*(Y).$$
+
+When the pushforward is not specified explicitly, OSCAR attempts to compute it from the pullback
+using the projection formula together with the intersection pairing on $Y$. This succeeds
+automatically when:
+
+- $Y$ is a point or a curve;
+- all algebraic classes in $\mathrm{N}^*(Y)_{\mathbb Q}$ are known (e.g., projective spaces, Grassmannians, complete intersections);
+- the flag `:alg` is set on $Y$.
+
+In other cases, a warning is issued and the result may be incorrect.
+
+### Inclusions and `extend_inclusion`
+
+For an inclusion $i\colon Z \hookrightarrow X$ where the class $[Z]$ is not already representable
+in $\mathrm{N}^*(X)$, the pushforward $i_*$ cannot be expressed in the existing Chow ring of $X$.
+Setting `inclusion = true` in the `map` constructor calls `extend_inclusion`
+to create a modified variety $X^+$ with extra generators, so that $i_*$ becomes well-defined.
+The structure map $X^+ \to X$ gives access to the enlarged ring while preserving the original
+ring via pullback.
+
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> P5 = abstract_projective_space(5, symbol = "H");
+
+julia> h = gens(P2)[1]
+h
+
+julia> i = map(P2, P5, [2*h]); # Veronese embedding
+
+julia> pushforward(i, h) # pushforward works via projection formula
+2*H^4
+
+julia> pushforward(i, P2(1)) # pushforward of the fundamental class
+4*H^3
+
+```
+
 ## Types
 
 The OSCAR type for abstract variety maps is `AbstractVarietyMap`.
@@ -31,6 +78,10 @@ map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = 
 
 ```@docs
 identity_map(X::AbstractVariety)
+```
+
+```@docs
+extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 ```
 
 ## Underlying data of an abstract variety map
