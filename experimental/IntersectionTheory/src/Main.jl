@@ -3096,7 +3096,10 @@ function  _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_fini
   W = vcat(weights(Int, BR), weights(Int, AR))
   try
     fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
-    catch e
+  catch e
+    if !(e isa ErrorException && e.msg == "Dimension of corresponding ideal must be zero.")
+      rethrow(e)
+    end
   end
   V = groebner_basis(J)
 
