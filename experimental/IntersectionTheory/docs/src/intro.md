@@ -168,19 +168,13 @@ General textbooks offering details on theory and algorithms include
 Generators and relations for the Chow ring of a flag bundle are described in [Gro58](@cite).
 For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
 
-## Tutorials
-
-We encourage you to take a look at the tutorials on intersection theory in OSCAR,
-which can be found [here](https://www.oscar-system.org/tutorials/IntersectionTheory/).
-
-
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
 
-* [Pieter Belmans](https://pbelmans.ncag.info/),
-* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker),
-* [Tommy Hofmann](https://www.thofma.com/).
+- [Pieter Belmans](https://pbelmans.ncag.info/),
+- [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker),
+- [Tommy Hofmann](https://www.thofma.com/).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
