@@ -3169,7 +3169,7 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
   S = AbstractBundle(P, 1, 1-h)
   Q = trivial_line_bundle(P)*(n+1) - S
   P.bundles = [S, Q]
-  P.structure_map = map(P, abstract_point(base=base), [P(1)])
+  P.structure_map = map(P, abstract_point(base=base), [P(0)])
   set_attribute!(P, :description => "Projective space of dim $n")
   set_attribute!(P, :grassmannian => :absolute)
   set_attribute!(P, :alg => true)
@@ -3378,7 +3378,7 @@ function abstract_curve(g::IntegerUnion; base::Ring=QQ)
   C.O1 = chow_ring(C)(0)
   # Tangent bundle: rank 1, total Chern class 1 + (2-2g)·p
   C.T = AbstractBundle(C, 1, 1 + (2 - 2*g)*p)
-  C.structure_map = map(C, abstract_point(base=base), [C(1)])
+  C.structure_map = map(C, abstract_point(base=base), [C(0)])
   set_attribute!(C, :description, "Curve of genus $g")
   set_attribute!(C, :alg, true)
   return C
@@ -3721,7 +3721,7 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c"
   Gr.point = Gr((-1)^d*c[end]^(n-k))
   Gr.T = dual(S) * Q
   Gr.bundles = [S, Q]
-  Gr.structure_map = map(Gr, abstract_point(base=base), [Gr(1)])
+  Gr.structure_map = map(Gr, abstract_point(base=base), [Gr(0)])
   set_attribute!(Gr, :description => "Grassmannian Gr($k, $n)")
   set_attribute!(Gr, :grassmannian => :absolute)
   set_attribute!(Gr, :alg => true)
@@ -3809,7 +3809,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
     dual(tautological_bundles(Fl)[i]) *
     sum([tautological_bundles(Fl)[j] for j in (i + 1):l]) for i in 1:(l - 1)
   )
-  Fl.structure_map = map(Fl, abstract_point(; base=base), [Fl(1)])
+  Fl.structure_map = map(Fl, abstract_point(; base=base), [Fl(0)])
   set_attribute!(Fl, :description => "Flag abstract variety Flag$(tuple(dims...))")
   if l == 2
     set_attribute!(Fl, :grassmannian => :absolute)
