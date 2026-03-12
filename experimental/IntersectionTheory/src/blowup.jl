@@ -145,7 +145,12 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
 
   # 3) relation from AE: sum g_pull(c_k(N)) * zeta^(d-k) = 0, see [EH16](@cite), Theorem 9.6
   cN = total_chern_class(N)[0:codimension] # cN[k] = c_(k-1)(N)
-  push!(relations, sum([j_push_g_pull(cN[k + 1]) * (-e_vars[end])^(codimension - k) for k in 0:codimension]))
+  push!(
+    relations,
+    sum([
+      j_push_g_pull(cN[k + 1]) * (-e_vars[end])^(codimension - k) for k in 0:codimension
+    ]),
+  )
 
   # 4) j_push(x) * j_push(y) = -j_push(x * y * zeta) # rule for multiplication, [EH16](@cite), Proposition 13.12
   # recall that e[i] = j_push_g_pull(Z(gs[i]))
@@ -158,7 +163,10 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # we have ctop(Q) = sum g_pull(c_{k-1}(N)) * zeta^(d-k), [EH16](@cite), page 477
   for j in 1:ngs
     lhs = RXtoRBl(pushforward(i, Z(gs[j])).f) # this is the crucial step where i_push is needed
-    rhs = sum([j_push_g_pull(Z(gs[j]) * cN[k]) * (-e_vars[end])^(codimension - k) for k in 1:codimension])
+    rhs = sum([
+      j_push_g_pull(Z(gs[j]) * cN[k]) * (-e_vars[end])^(codimension - k) for
+      k in 1:codimension
+    ])
     push!(relations, lhs - rhs)
   end
 
@@ -209,7 +217,8 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # chern(Bl.T) can be readily computed from its Chern character, but the following is faster
   alpha = sum(
     sum(
-      (binomial(ZZ(codimension - j), ZZ(k)) - binomial(ZZ(codimension - j), ZZ(k + 1))) * zeta^k for
+      (binomial(ZZ(codimension - j), ZZ(k)) - binomial(ZZ(codimension - j), ZZ(k + 1))) *
+      zeta^k for
       k in 0:(codimension - j)
     ) * pullback(g, chern_class(N, j)) for j in 0:codimension
   )
