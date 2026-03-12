@@ -512,6 +512,5 @@ let pushforward = IntersectionTheory.pushforward
     G = 3 * OO(P4)
     cl2 = degeneracy_locus(F, G, 0; class=true)
     @test parent(cl2) == P4.ring  # should return an element (possibly 0)
-
   end
 end

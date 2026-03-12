@@ -334,7 +334,7 @@ function exterior_power(F::TnBundle, k::Int)
     parent(F), binomial(rank(F), k),
     p -> (
       Fp=localization(F)(p);
-      TnRep([sum(Fp.w[i] for i in c) for c in l]))
+      TnRep([sum(Fp.w[i] for i in c) for c in l])),
   )
 end
 

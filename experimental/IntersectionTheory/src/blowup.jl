@@ -179,8 +179,7 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # pushforward of f and more
 
   RBltoRX = Oscar.hom(RBl, RX, vcat(repeat([RX()], ngs), gens(RX)))
-  f_pushforward = x -> (xf = simplify(x).f;
-  X(RBltoRX(xf)))
+  f_pushforward = x -> (xf=simplify(x).f; X(RBltoRX(xf)))
   f_pushforward = MapFromFunc(ABl, AX, f_pushforward)
   f = AbstractVarietyMap(Bl, X, Bl.(xv), f_pushforward)
   Bl.structure_map = f
@@ -198,14 +197,15 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # pushforward of j: write as a polynomial in zeta, and compute term by term
 
   REtoRZ = Oscar.hom(RE, RZ, pushfirst!(gens(RZ), RZ()))
-  j_push = x -> (xf = simplify(x).f;
-  ans = RBl();
-  for k in (rN - 1):-1:0
-    q = div(xf, zeta.f^k)
-    ans += j_push_g_pull(Z(REtoRZ(q))) * (-ev[end])^k
-    xf -= q * zeta.f^k
-  end;
-  Bl(ans))
+  j_push =
+    x -> (xf=simplify(x).f;
+      ans=RBl();
+      for k in (rN - 1):-1:0
+        q = div(xf, zeta.f^k)
+        ans += j_push_g_pull(Z(REtoRZ(q))) * (-ev[end])^k
+        xf -= q * zeta.f^k
+      end;
+      Bl(ans))
   j_push = MapFromFunc(AE, ABl, j_push)
   j = AbstractVarietyMap(E, Bl, j_pull, j_push)
 
