@@ -303,63 +303,55 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   # we write N for the normal bundle N_{ZX}
 
   N = -tangent_bundle(i) # normal bundle
-  rN = rank(N) # codimension of Z in X
-  rN <= 0 && error("not a proper subvariety")
+  codimension = rank(N) # codimension of Z in X
+  codimension <= 0 && error("not a proper subvariety")
   c = top_chern_class(N)
 
   gs, PM, sect = present_finite_extension_ring(pullback_morphism(i))
   ngs = length(gs)
 
   # similar to blowup: the last variable below is the class of Z in Xplus
-
   syms = ["$SED[$i]" for i in 1:(ngs - 1)]
   push!(syms, SED)
-  degs = [Oscar.degree(Int, Z(gs[i])) + rN for i in 1:ngs]
-  degsRX = [Int(Oscar.degree(g)[1]) for g in gens(RX)]
-  RXplus, ev, xv = graded_polynomial_ring(
-    base(X), syms, symbols(RX); weights=vcat(degs, degsRX)
+  degrees = [Oscar.degree(Int, Z(gs[i])) + codimension for i in 1:ngs]
+  degrees_RX = [Int(Oscar.degree(g)[1]) for g in gens(RX)]
+  RXplus, e_vars, x_vars = graded_polynomial_ring(
+    base(X), syms, symbols(RX); weights=vcat(degrees, degrees_RX)
   )
-  RXtoRXplus = Oscar.hom(RX, RXplus, xv) # f_pull on polynomial ring level
-  j_push = x -> sum(ev .* RXtoRXplus.(sect(x.f))) # AZ --> RXplus
+  RXtoRXplus = Oscar.hom(RX, RXplus, x_vars) # f_pull on polynomial ring level
+  j_push = x -> sum(e_vars .* RXtoRXplus.(sect(x.f))) # AZ --> RXplus
 
   # we set up the relations of AXplus
 
-  Rels = elem_type(RXplus)[]
+  relations = elem_type(RXplus)[]
 
   # 1) relations from AX
-
-  if isdefined(AX, :I)
-    for r in RXtoRXplus.(gens(AX.I))
-      push!(Rels, r)
-    end
-  end
+  isdefined(AX, :I) && append!(relations, RXtoRXplus.(gens(AX.I)))
 
   # 2) relations for AZ as an AX-module
-
-  for r in RXtoRXplus.(PM) * ev
-    push!(Rels, r)
-  end
+  append!(relations, RXtoRXplus.(PM) * e_vars)
 
   # 3) j_push(x) * j_push(y) = j_push(x * y * c)
-
-  for j in 1:ngs, k in j:ngs
-    push!(Rels, ev[j] * ev[k] - j_push(Z(gs[j]) * Z(gs[k]) * c))
-  end
+  append!(
+    relations,
+    [e_vars[j] * e_vars[k] - j_push(Z(gs[j]) * Z(gs[k]) * c) for j in 1:ngs, k in j:ngs],
+  )
 
   # 4) the points are the same
-
   if isdefined(Z, :point) && isdefined(X, :point)
-    push!(Rels, RXtoRXplus(point_class(X).f) - j_push(point_class(Z)))
+    push!(relations, RXtoRXplus(point_class(X).f) - j_push(point_class(Z)))
   end
 
-  Rels = minimal_generating_set(ideal(RXplus, Rels))
-  AXplus, _ = quo(RXplus, Rels)
+  relations = minimal_generating_set(ideal(RXplus, relations))
+  AXplus, _ = quo(RXplus, relations)
   Xplus = abstract_variety(dim(X), AXplus)
 
   set_attribute!(Xplus, :description => "$X")
   # Xplus and X are the same variety, so pushforward must not be defined
-  f_pushforward = MapFromFunc(chow_ring(Xplus), chow_ring(X), x -> error("This map cannot be defined"))
-  f = AbstractVarietyMap(Xplus, X, Xplus.(xv), f_pushforward)
+  f_pushforward = MapFromFunc(
+    chow_ring(Xplus), chow_ring(X), x -> error("This map cannot be defined")
+  )
+  f = AbstractVarietyMap(Xplus, X, Xplus.(x_vars), f_pushforward)
   Xplus.structure_map = f
   Xplus.T = pullback(f, tangent_bundle(X))
   f.T = AbstractBundle(Xplus, Xplus(0)) # there is no relative tangent bundle
