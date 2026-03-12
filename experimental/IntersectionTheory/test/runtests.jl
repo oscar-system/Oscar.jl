@@ -381,6 +381,16 @@ let pushforward = IntersectionTheory.pushforward
     @test Y1 != Y
     @test euler_number(Y1) == euler_number(Y)
     @test betti_numbers(Y1)[3] == 2
+
+    # structure map pushforward: should not error
+    f = structure_map(Y1)
+    pt_Y1 = point_class(Y1)
+    f_pt = pushforward(f, pt_Y1)
+    @test integral(f_pt) == 1
+
+    # extend_inclusion pushforward preserves degree-0 class
+    f_one = pushforward(f, Y1(1))
+    @test f_one == Y(1)  # identity on A^0
   end
 
   @testset "GrassmannianDuality" begin
