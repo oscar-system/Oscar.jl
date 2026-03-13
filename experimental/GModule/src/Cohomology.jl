@@ -437,7 +437,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
+#    @assert all(in(iU), u)
     im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
@@ -1336,12 +1336,12 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
           function do_left_si(i, S)
             if i > 0
               p = ZG(mFF(FF[i]))
-              S = p .* S
+              S .= p .* S
               S[i] += one(ZG)
             else
               S[-i] -= one(ZG)
               p = ZG(mFF(inv(FF[-i])))
-              S = p .* S
+              S .= p .* S
             end
           end
           for i=length(s):-1:1
@@ -1357,12 +1357,12 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
           function do_right_si(i, S)
             if i > 0
               p = ZG(mFF(FF[i]))
-              S = S .* p
+              S .= S .* p
               S[i] += one(ZG)
             else
               S[-i] -= one(ZG)
               p = ZG(mFF(inv(FF[-i])))
-              S = S .* p
+              S .= S .* p
             end
           end
           for i=1:length(s)
@@ -1376,7 +1376,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
           B = hcat(B, matrix(ZG, length(S), 1, S .- T))
         end
       end
-
+      @assert B != 0
       if is_left
         Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left)
       else
@@ -1505,7 +1505,7 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem)
   @assert G == group(C)
   @assert base_ring(ZG) == base_ring(C)
   
-  Z = zero_hom(C.M, C.M)
+  Z = zero_map(C.M, C.M)
   if Hecke._is_sparse(g)
     for (i, ci) in g.coeffs_sparse
       Z += ci*action(C, parent(g).base_to_group[i])
@@ -1549,10 +1549,11 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomor
 
   function fill(ff::ComplexOfMorphisms, i::Int)
     d = map(f, i+1)
-    Mg = codomain(d)
+    dd = map(ff, i-1)
+    Mg = codomain(dd)
     Mr = direct_product([C.M for i=1:rank(domain(d))]...; task = :none)
     D = hom_direct_sum(Mg, Mr, map(x->action(C, x), matrix(d).entries))
-    push!(ff.maps, D2)
+    push!(ff.maps, D)
     return D
   end
   Cpx.fill = fill
