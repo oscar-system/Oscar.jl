@@ -1288,7 +1288,7 @@ function swap_rows!(A::MatElem, pi::PermGroupElem)
     length(C) == 1 && continue
     j = C[end] 
     for i=1:m
-      tmp[i] = A[i, j]
+      tmp[i] = A[j, i]
     end
     for j = length(C)-1:-1:1
       Cj = C[j]
