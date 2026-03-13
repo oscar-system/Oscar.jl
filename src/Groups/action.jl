@@ -237,6 +237,7 @@ julia> on_sets_tuples(((1, 2), (3, 4)), g[1])
 ((1, 4), (2, 3))
 
 julia> settuple = Set([[1, 2], [3, 4]]);
+
 julia> on_sets_tuples(settuple, g[1])
 Set{Vector{Int64}} with 2 elements:
   [2, 3]
