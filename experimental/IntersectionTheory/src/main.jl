@@ -4121,7 +4121,10 @@ function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finit
     end
   end
   J = ideal(R, Rels) # the ideal of the graph of F
-  W = vcat(weights(Int, BR), weights(Int, AR))
+  W = vcat(
+    BR isa MPolyDecRing ? weights(Int, BR) : fill(1, ngens(BR)),
+    AR isa MPolyDecRing ? weights(Int, AR) : fill(1, ngens(AR)),
+  )
   try
     fglm(J; start_ordering=wdegrevlex(R, W), destination_ordering=default_ordering(R))
   catch e
