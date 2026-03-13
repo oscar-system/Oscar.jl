@@ -122,7 +122,7 @@ julia> integral(top_chern_class(symmetric_power(dual(S), 5)))
 ## Functions
 
 ```@docs
-schubert_class(G::AbstractVariety, λ::Int...)
+schubert_class(G::AbstractVariety, lambda::Int...)
 ```
 
 ```@docs

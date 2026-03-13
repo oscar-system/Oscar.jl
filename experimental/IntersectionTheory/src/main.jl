@@ -3937,7 +3937,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
 
   p_star = Fl.(imgs_in_R1)
 
-  # 2. pushforward ([GSS22](@cite) Thm 2.15, Cor 5.3)
+  # 2. pushforward ([GSS22](@cite) Theorem 2.15, Corollary 5.3)
 
   ME = _matrix_of_exponents(ranks)
   nl = size(ME)[1]
