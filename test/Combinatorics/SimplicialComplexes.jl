@@ -19,6 +19,7 @@
     @test f_vector(sphere) == [4, 6, 4]
     @test h_vector(sphere) == [1, 1, 1, 1]
     @test betti_numbers(sphere) == [0, 0, 1]
+    @test betti_numbers(fpField(UInt(2)), real_projective_plane()) == [0, 1, 1]
     @test euler_characteristic(sphere) == 1
     @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
     R, _ = polynomial_ring(ZZ, [:a, :x, :i_7, :n])

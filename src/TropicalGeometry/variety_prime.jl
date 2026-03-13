@@ -21,14 +21,8 @@ end
 
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    R = base_ring(I)
-    singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
-                            "ideal I = "*join(string.(gens(I)), ",")*";",
-                            "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; };",
-                            "fan TropI = tropicalVariety(I);",
-                            "string TropIString = string(TropI);"])
-    Singular.call_interpreter(singularCommand)
-    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
+    sI = Oscar.singular_generators(I)
+    TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", (sI, ))
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==min,false)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
@@ -39,16 +33,10 @@ function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{
 end
 
 # p-adic valuation
-function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    R = base_ring(I)
-    singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
-                            "ideal I = "*join(string.(gens(I)), ",")*";",
-                            "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; };",
-                            "fan TropI = tropicalVariety(I,number("*string(uniformizer(nu))*"));",
-                            "string TropIString = string(TropI);"])
-    Singular.call_interpreter(singularCommand)
-    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
-    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==max,true)
+function tropical_variety_prime_singular(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}}, nu::TropicalSemiringMap{QQField,ZZRingElem}; weighted_polyhedral_complex_only::Bool=false)
+    sI = Oscar.singular_generators(I)
+    TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", (sI, Int(uniformizer_in_ring(nu))))
+    Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==min,true)
     TropI = compute_weights_and_construct_tropical_variety(Sigma,I,nu)
     if !weighted_polyhedral_complex_only
         set_attribute!(TropI,:algebraic_ideal,I)
@@ -102,12 +90,22 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
     end
 
     if dehomogenizeFan
-        # if the singular fan is a homogenized polyhedral complex,
-        # identify which rays have a non-zero first entry and actually represent vertices
-        # then strip the first coordinate of the rays and lineality generators
+        # if the singular fan is a homogenized polyhedral complex:
+        # - entries of rayGenerators should have zero or positive first coordinate
+        # - entries with zero first coordinate represent rays
+        # - entries with positive first coordinate represent vertices
+        # - rays need to be stripped of their zero first coordinate
+        # - vertices need to be divided by their positive first coordinate, then stripped of it
+        # - entries of linealityGenerators should all have zero first coordinate
+        #   and need to be stripped of it
+        @req all(r -> r[1] >= 0, eachrow(rayGenerators)) "All ray and vertex generators must have non-negative first coordinate to dehomogenize"
         rayIndices = findall(iszero, rayGenerators[:,1])
+        rayGenerators ./= [iszero(r1) ? 1 : r1 for r1 in rayGenerators[:, 1]]
         rayGenerators = rayGenerators[:,2:end]
+
+        @req all(iszero(linealityGenerators[:,1])) "Lineality space must have zero first coordinate to dehomogenize"
         linealityGenerators = linealityGenerators[:,2:end]
+
         # in some cases, the first unit vector can be a lineality generator
         # hence we need to filter out potential zero rows from linealityGenerators
         linealityGenerators = linealityGenerators[findall(i->!iszero(linealityGenerators[i,:]),1:nrows(linealityGenerators)),:]

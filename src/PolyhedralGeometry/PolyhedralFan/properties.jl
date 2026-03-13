@@ -680,8 +680,14 @@ julia> f_vector(nfc)
 """
 function f_vector(PF::_FanLikeType)
   pmf = pm_object(PF)
-  ldim = pmf.LINEALITY_DIM
-  return Vector{ZZRingElem}(vcat(fill(0, ldim), pmf.F_VECTOR))
+  ld = lineality_dim(PF)
+  fv = ld == dim(PF) ? ZZRingElem[] : pmf.F_VECTOR::Polymake.Vector{Polymake.Integer}
+  v = zeros(ZZRingElem, ld + length(fv))
+  v[(ld + 1):end] = fv
+  if ld > 0
+    v[ld] = 1
+  end
+  return v
 end
 
 @doc raw"""

@@ -3892,7 +3892,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   @assert all(>(0), ranks) && dims[end] <= n
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:(l - 1))
 
-  # construct the ring
+  # construct the (numerical) Chow-ring (Grothendieck, Seminaire Chevalley, tome 3 (1985))
+
+  # 1. implement the generators
 
   R = chow_ring(X)
   if R isa MPolyQuoRing
@@ -3903,45 +3905,37 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i, r) in enumerate(ranks)])
   w = reduce(vcat, [1:r for r in ranks])
   append!(w, gradings(R))
-  R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(
-    base(X), syms, symbols(PR); weights=w
-  )
-  pback = Oscar.hom(PR, R1, imgs_in_R1)
-  pfwd = Oscar.hom(R1, R, vcat(repeat([R()], n), gens(R)))
+  R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(X.base, syms, symbols(PR); weights = w)
+  PRtoR1 = hom(PR, R1, imgs_in_R1)
 
-  # compute the relations
+  # 2. implement the relations
 
   c = [1+sum(gens_for_rels_R1[(dims[i] + 1):dims[i + 1]]) for i in 1:(l - 1)]
   pushfirst!(c, 1+sum(gens_for_rels_R1[1:dims[1]]))
   Rx, x = R1[:x]
-  fi = pback(total_chern_class(F).f)[0:n]
-  f = sum(fi[i + 1].f * x^(n-i) for i in 0:n)
+  fi = PRtoR1(total_chern_class(F).f)[0:n]
+  f = sum(fi[i+1].f * x^(n-i) for i in 0:n)
   gi = prod(c)[0:n]
   g = sum(gi[i + 1].f * x^(n-i) for i in 0:n)
   rels = [R1(coeff(mod(f, g), i)) for i in 0:(n - 1)]
   if R isa MPolyQuoRing
-    rels = vcat(pback.(gens(R.I)), rels)
+    rels = vcat(PRtoR1.(gens(R.I)), rels)
   end
   AFl = quo(R1, ideal(rels))[1]
   c = AFl.(c)
 
   # construct the abstract variety
 
-  Fl = AbstractVariety(dim(X) + d, AFl)
-  Fl.bundles = [AbstractBundle(Fl, r, ci) for (r, ci) in zip(ranks, c)]
-  section = prod(
-    top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(tautological_bundles(Fl)[2:end])
-  )### TODO skip when fglm is used
-  if isdefined(X, :point)
-    Fl.point = pback(point_class(X).f) * section ### TODO better when fglm is used (take section from _find_sect as second output
-  end
-  p_pullback = Fl.(imgs_in_R1)
+  Fl = AbstractVariety(X.dim + d, AFl)
+  Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
 
-  ###p_pushforward = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
+  # constructing the projection map
 
-  ##################################
-  ##alternative approach
-  ##TODO: To be discussed. Use fglm in _find_sect as soon as fglm is fixed.
+  # 1. pullback
+
+  pˣ = Fl.(imgs_in_R1)
+
+  # 2. pushforward ([GSS22](@cite) Thm 2.15, Cor 5.3)
 
   ME = _matrix_of_exponents(ranks)
   nl = size(ME)[1]
@@ -3952,26 +3946,36 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
   ds = [degree(Int, gs[i]) for i in 1:1:nl]
   dm = argmax(ds)
-  ### TODO find and return section
-  fm = Oscar.hom(R, AFl, p_pullback)
-  p_pushforward = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
-  ##################################
+  fm = hom(R, AFl, pˣ)
+  pₓ = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
 
-  p_pushforward = MapFromFunc(chow_ring(Fl), chow_ring(X), p_pushforward)
-  p = AbstractVarietyMap(Fl, X, p_pullback, p_pushforward)
-  p.O1 = simplify(sum((i-1)*chern_class(tautological_bundles(Fl)[i], 1) for i in 1:l))
+  ### old approach to push forward
+  ###  R1toR = hom(R1, R, vcat(repeat([R()], n), gens(R)))
+  ###  section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
+  ###  pₓ = x -> (@warn("possibly wrong ans"); X(R1toR(div(simplify(x).f, simplify(section).f))))
+
+  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
+  p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
+  Fl.struct_map = p
+
+  if isdefined(X, :point)
+    Fl.point = PRtoR1(X.point.f) * gs[dm]
+  end
+
+  ### old approach to point class
+  ###if isdefined(X, :point)
+  ###Fl.point = PRtoR1(X.point.f) * section
+  ###end
+
+  p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1
-  p.T = sum(
-    dual(tautological_bundles(Fl)[i]) *
-    sum([tautological_bundles(Fl)[j] for j in (i + 1):l]) for i in 1:(l - 1)
-  )
+
+  p.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
   if isdefined(X, :T)
     Fl.T = pullback(p, tangent_bundle(X)) + tangent_bundle(p)
   end
-  Fl.structure_map = p
-  set_attribute!(
-    Fl, :description => "Relative flag abstract variety Flag$(tuple(dims...)) for $F"
-  )
+
+  set_attribute!(Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F")
   set_attribute!(Fl, :section => section)
   get_attribute(X, :alg) == true && set_attribute!(Fl, :alg => true)
 
@@ -4043,11 +4047,11 @@ end
 #helper functions above
 ###########################################################
 
-function _matrix_of_exponents(ni::Vector{Int}) # [GSS22](@cite) Thm 2.15
-  n = sum(ni)
-  r = length(ni)
-  A = zero_matrix(ZZ, n, n)
-  b = zero_matrix(ZZ, n, 1)
+function _matrix_of_exponents(ni::Vector{Int})
+ n = sum(ni)
+ r = length(ni)
+ A = zero_matrix(ZZ,n, n)
+ b = zero_matrix(ZZ, n, 1)
 
   C = zero_matrix(ZZ, r, n)
   d = zero_matrix(ZZ, r, 1)
@@ -4111,9 +4115,15 @@ function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finit
     end
   end
   J = ideal(R, Rels) # the ideal of the graph of F
-  V = groebner_basis(J) ###TODO replace by fglm below as soon as fglm is fixed
-  ###W = vcat(weights(Int, BR), weights(Int, AR)) ####
-  ###V = fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
+  W = vcat(weights(Int, BR), weights(Int, AR))
+  try
+    fglm(J, start_ordering = wdegrevlex(R, W), destination_ordering = default_ordering(R))
+  catch e
+    if !(e isa ErrorException && e.msg == "Dimension of corresponding ideal must be zero.")
+      rethrow(e)
+    end
+  end
+  V = groebner_basis(J)
 
   sect =
     x -> (y=reduce(BRtoR(x), gens(V); complete_reduction=true);

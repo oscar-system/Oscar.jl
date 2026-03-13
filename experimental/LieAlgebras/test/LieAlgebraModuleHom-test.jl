@@ -184,7 +184,7 @@
       W, _ = f_power(Wb, k)
       hb = hom(Vb, Wb, [2 * b for b in basis(Wb)])
 
-      h = hom(V, W, hb)
+      h = f_power(hb, k; domain=V, codomain=W)
       @test domain(h) == V
       @test codomain(h) == W
       @test is_welldefined(h)
