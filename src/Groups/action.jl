@@ -280,27 +280,27 @@ julia> l = GapObj([[1, 2], [3, 4]]; recursive = true)
 GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 
 julia> on_tuples_sets(l, g[1])
-GAP: [ [ 1, 4 ], [ 2, 3 ] ]
+GAP: [ [ 2, 3 ], [ 1, 4 ] ]
 
 julia> on_tuples_sets([[1, 2], [3, 4]], g[1])
 2-element Vector{Vector{Int64}}:
- [1, 4]
  [2, 3]
+ [1, 4]
 
 julia> on_tuples_sets(((1, 2), (3, 4)), g[1])
-((1, 4), (2, 3))
+((2, 3), (1, 4))
 
 julia> on_tuples_sets([[1, 2], [3, 4]], g[1])
-Set{Vector{Int64}} with 2 elements:
-  [2, 3]
-  [1, 4]
+2-element Vector{Vector{Int64}}:
+ [2, 3]
+ [1, 4]
 
 julia> tupleset = [BitSet([1, 2]), BitSet([3, 4])];
 
 julia> on_tuples_sets(tupleset, g[1])
-Set{BitSet} with 2 elements:
-  BitSet([1, 4])
-  BitSet([2, 3])
+2-element Vector{BitSet}:
+ BitSet([2, 3])
+ BitSet([1, 4])
 
 julia> ans == tupleset^g[1]
 true
