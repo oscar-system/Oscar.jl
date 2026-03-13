@@ -344,7 +344,8 @@ let pushforward = IntersectionTheory.pushforward
     P2 = abstract_projective_space(2; base=F)
     P3 = abstract_projective_space(3; base=F)
     C = zero_locus_section(OO(P2, d))
-    set_point_class(C, 1//(2 - 2g) * chern_class(C, 1))
+    # deliberately override the auto-set point class to use the genus parameter
+    C.point = 1//(2 - 2g) * chern_class(C, 1)
     i = map(C, P3, [d * point_class(C)])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
