@@ -10,15 +10,27 @@ let pushforward = IntersectionTheory.pushforward
     @test rank(tangent_bundle(C)) isa Int
     @test total_chern_class(tangent_bundle(C)) == 1 + c
     # generic abstract variety with parameter
-    # NOTE: function_field(Singular.QQ, ...) is no longer available
-    # F, (g,) = function_field(Singular.QQ, ["g"])
-    # C = abstract_variety(1, base=F)
-    # c = gens(C.ring)[1]
-    # trim!(C.ring)
-    # C.point = 1//(2 - 2g) * total_chern_class(1, C)
-    # @test euler_number(C) == 2 - 2g
-    # @test rank(trivial_line_bundle(C) * g) == g
-    # @test rank(symmetric_power(g, 2*trivial_line_bundle(C))) == g + 1
+    # Build a genus-g curve over the fraction field F = QQ(g).
+    # We build the Chow ring as F[p]/(p^2) directly (as a quotient ring from
+    # the start) rather than using abstract_variety(1; base=F) + trim!.
+    # The trim! approach causes a type mismatch: the tangent bundle's chern
+    # class lives in the original decorated ring (giving .f :: MPoly), while
+    # the point class set afterwards lives in the trimmed quotient ring (giving
+    # .f :: MPolyDecRingElem), breaking the div() call inside integral().
+    let
+      T_g, (g_poly,) = polynomial_ring(QQ, [:g])
+      F = fraction_field(T_g)
+      g = gens(F)[1]
+      R_g, _ = graded_polynomial_ring(F, ["p"], [1])
+      A_g, _ = quo(R_g, ideal(R_g, [gens(R_g)[1]^2]))
+      Cg = abstract_variety(1, A_g)
+      p_g = gens(chow_ring(Cg))[1]
+      set_point_class(Cg, p_g)
+      set_tangent_bundle(Cg, abstract_bundle(Cg, 1, chow_ring(Cg)(1) + (2 - 2g) * p_g))
+      @test euler_number(Cg) == 2 - 2g
+      @test rank(trivial_line_bundle(Cg) * g) == g
+      @test rank(symmetric_power(2 * trivial_line_bundle(Cg), g)) == g + 1
+    end
 
     # generic abstract_variety with bundles
     X, (A, B) = abstract_variety(2, [3 => "a", 3 => "b"])
@@ -252,25 +264,45 @@ let pushforward = IntersectionTheory.pushforward
     @test euler_number(CG) == 15
   end
 
-  # @testset "Pushfwd" begin
-  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:x,:y,:z,:w])[1], [3,3,3,3])
-  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:s,:t])[1], [1,1])
-  #   s, t = gens(B)
-  #   f = IntersectionTheory.ChAlgHom(A, B, [s^3,s^2*t,s*t^2,t^3]) # twisted cubic
-  #   M, g, pf = IntersectionTheory._pushfwd(f)
-  #   @test length(g) == 6
-  #   x = s^3 + 5s*t + t^20 # random element from B
-  #   @test sum(g .* f.salg.(pf(x.f))) == x.f
+  @testset "Pushfwd" begin
 
-  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:x,:y,:z,:w])[1], [4,4,2,1])
-  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:s,:t,:u])[1], [1,1,1])
-  #   s, t, u = gens(B)
-  #   f = IntersectionTheory.ChAlgHom(A, B, [s^4+u^4,s*t^2*u,s^2-t^2-u^2,t]) # random morphism
-  #   M, g, pf = IntersectionTheory._pushfwd(f)
-  #   @test length(g) == 8
-  #   x = s^2 + 2s*t + 3s*t*u + t^2*u + 20t*u + u^20 # random element from B
-  #   @test sum(g .* f.salg.(pf(x.f))) == x.f
-  # end
+    # Test the algebraic pushforward decomposition (_find_sect), the modern
+    # replacement for the old Singular-based _pushfwd / ChAlgHom machinery.
+    # Given a finite ring map f: A → B, _find_sect(f, gs) returns a function
+    # sect such that for any x ∈ B:  x = Σᵢ gs[i] * f(sect(x)[i]).
+    # gs is an ordered basis of B as an A-module (last element must be 1).
+    # Rings must be plain (ungraded) polynomial rings over QQ.
+
+    # Test 1: twisted cubic parameterisation
+    # f: QQ[x,y,z,w] → QQ[s,t],  x↦s³, y↦s²t, z↦st², w↦t³
+    # B = QQ[s,t] is a free rank-6 module over f(A) = QQ[s³,s²t,st²,t³];
+    # basis = monomials of degree ≤ 2 in s,t, ordered by grevlex (largest first).
+    let
+      A, _ = polynomial_ring(QQ, ["x", "y", "z", "w"])
+      B, (s, t) = polynomial_ring(QQ, ["s", "t"])
+      f = Oscar.hom(A, B, [s^3, s^2 * t, s * t^2, t^3])
+      gs = [s^2, s * t, t^2, s, t, B(1)]
+      @test length(gs) == 6
+      sect = IntersectionTheory._find_sect(f, gs)
+      x_elem = s^3 + 5 * s * t + t^20
+      @test sum(gs[i] * f(sect(x_elem)[i]) for i in 1:6) == x_elem
+    end
+
+    # Test 2: random finite morphism in 3 variables
+    # f: QQ[x,y,z,w] → QQ[s,t,u],  x↦s⁴+u⁴, y↦st²u, z↦s²−t²−u², w↦t
+    # Since t=f(w) and s²−u²=f(z)+f(w²) are both in f(A), the basis of B over
+    # f(A) consists of 8 elements in {s,u} (no t), ordered by grevlex.
+    let
+      A, _ = polynomial_ring(QQ, ["x", "y", "z", "w"])
+      B, (s, t, u) = polynomial_ring(QQ, ["s", "t", "u"])
+      f = Oscar.hom(A, B, [s^4 + u^4, s * t^2 * u, s^2 - t^2 - u^2, t])
+      gs = [s * u^3, s * u^2, u^3, s * u, u^2, s, u, B(1)]
+      @test length(gs) == 8
+      sect = IntersectionTheory._find_sect(f, gs)
+      x_elem = s^2 + 2 * s * t + 3 * s * t * u + t^2 * u + 20 * t * u + u^20
+      @test sum(gs[i] * f(sect(x_elem)[i]) for i in 1:8) == x_elem
+    end
+  end
 
   # testset borrowed from Schubert2
   @testset "Blowups" begin
