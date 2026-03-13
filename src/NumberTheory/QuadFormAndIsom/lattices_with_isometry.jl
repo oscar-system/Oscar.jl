@@ -1881,8 +1881,7 @@ function special_subgroup(
     @req is_isometry_group(L, G, ambient_representation) "Group does not define a group of isometries of the lattice"
   end
   mu = matrix_group(QQMatrix[QQ[-1;]])
-  j = one(mu)
-  d = hom(G, mu, [Int(det(m))*j for m in gens(G)]; check=false)
+  d = hom(G, mu, [mu(QQ[det(m);;]) for m in gens(G)]; check=false)
   return kernel(d)
 end
 

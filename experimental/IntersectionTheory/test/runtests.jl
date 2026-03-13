@@ -72,12 +72,12 @@ let pushforward = IntersectionTheory.pushforward
     @test parent(A) == PF
     @test A == 2trivial_line_bundle(PF)
 
-    # # test that hom works for blow_up
-    # Bl, E = blow_up(i)
-    # e = pushforward(E → Bl, E(1))
-    # @test e == gens(Bl.ring)[1]
-    # @test integral(e^2) == -1
-    # @test pullback(E → p, p(1)) == E(1)
+    # test that hom works for blow_up
+    Bl, E, j = blow_up(i)
+    e = pushforward(j, E(1))
+    @test e == gens(Bl.ring)[1]
+    @test integral(e^2) == -1
+    @test pullback(E.struct_map, p(1)) == E(1)
 
     P5 = abstract_projective_space(5, symbol="H")
     h, H = P2.O1, P5.O1
@@ -108,6 +108,21 @@ let pushforward = IntersectionTheory.pushforward
     # @test betti_numbers(Y1)[3] == 2
     # @test basis(2, Y1) == [h^2, p]
     # @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
+
+    # cubic containing a plane
+    P2 = abstract_projective_space(2)
+    Y = complete_intersection(abstract_projective_space(5), 3)
+    i = map(P2, Y, [P2.O1], inclusion = true)
+    Y1 = i.codomain
+    p = pushforward(i, P2(1))
+    h = Y1.O1
+    @test Y1 != Y
+    @test euler_number(Y1) == euler_number(Y)
+    # @test (Y1 → Y).T.ch == 0
+    @test betti_numbers(Y1)[3] == 2
+    @test basis(Y1, 2) == [h^2, p]
+    @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
+
 
     # a related result:
     # the degree of the hypersurface of cubics containing a plane
@@ -211,8 +226,8 @@ let pushforward = IntersectionTheory.pushforward
     p = FlF.struct_map
     @test p.codomain == X
     @test pullback(p, X(1)) == 1
-    # @test pushforward(p, FlF(1)) == 0
-    # @test pushforward(p, p.O1^4) == 2
+    @test pushforward(p, FlF(1)) == 0
+    @test pushforward(p, p.O1^4) == 2
     @test [length(schubert_classes(FlF, i)) for i in 0:4] == [1,1,2,1,1]
 
   end

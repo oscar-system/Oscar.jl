@@ -149,6 +149,9 @@ end
      x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
+
+     iso = isomorphism(PermGroup, G0)
+     @test order(codomain(iso)) == order(G0)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -633,6 +636,8 @@ end
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
+   @test_throws ErrorException -1 * x
+   @test_throws ErrorException x * -1
 
    # minimal and characteristic polynomial
    @test charpoly(x)(matrix(x)) == 0

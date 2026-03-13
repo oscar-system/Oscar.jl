@@ -64,8 +64,11 @@
      "Multivariate Polynomials" => [
         "AbstractAlgebra/mpolynomial.md",
      ],
-     "Modular Methods" => [
+     "Euclidean Rings" => [
          "AbstractAlgebra/euclidean_interface.md",
+     ],
+     "Modular Methods" => [
+         "Rings/modular.md",
      ],
      "Series Rings" => [
         "AbstractAlgebra/series.md",

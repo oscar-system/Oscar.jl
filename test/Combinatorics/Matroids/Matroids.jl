@@ -452,4 +452,11 @@
     @test is_isomorphic(NN, NN1)
 
   end
+
+  @testset "tutte_group" begin
+    M = fano_matroid() 
+    U = uniform_matroid(2,4) 
+    @test !is_tutte_realizable(M)
+    @test is_tutte_realizable(U)
+  end
 end

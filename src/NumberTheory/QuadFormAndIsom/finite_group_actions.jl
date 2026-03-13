@@ -412,7 +412,6 @@ function stabilizer_in_diagonal_action(
     @req iszero(basis_matrix(N) * gram_matrix(ambient_space(L)) * transpose(basis_matrix(K))) "Sublattices are not orthogonal"
     @req rank(N) + rank(K) == rank(L) "Incompatible ranks"
   end
-
   # Can speed up kernel computations
   if is_finite_known[1]
     set_is_finite(OK, true)
@@ -430,6 +429,7 @@ function stabilizer_in_diagonal_action(
   # K^\vee\oplus N^\vee
   phi, HKinqK, HNinqN = glue_map(L, K, N)
   iphi = inv(phi)
+  
 
   gen = QQMatrix[]
   discN = discriminant_representation(N, ON; check=false, full=false)
@@ -451,12 +451,13 @@ function stabilizer_in_diagonal_action(
   append!(gen, matrix.(gens(kerK)))
 
   SNphi = Oscar._orthogonal_group(domain(SK), TorQuadModuleMap[phi * hom(g) * iphi for g in gens(SN)]; check=false)
+  
+  ambient = Oscar._orthogonal_group(domain(SK), append!(TorQuadModuleMap[hom(g) for g in gens(SNphi)], TorQuadModuleMap[hom(g) for g in gens(SK)]); check=false)
     
   # permutation groups are faster 
   # C is isomorphic to kerK\P/kerN where P is the group we aim to construct
   # C, _ = intersect(SK, SNphi)
-  tmp = orthogonal_group(domain(SK))
-  to_perm = isomorphism(PermGroup, tmp)
+  to_perm = isomorphism(PermGroup, ambient)
   C1,_ = intersect(to_perm(SK)[1],to_perm(SNphi)[1])
   C,_ = preimage(to_perm,C1)
 
