@@ -63,6 +63,9 @@ julia> integral(top_chern_class(A))
 
 The Horrocks–Mumford bundle is a rank-2 vector bundle on $\mathbb{P}^4$
 with Chern class $1 + 5h + 10h^2$.
+It is the cohomology bundle of its Beilinson monad:
+
+$0 \rightarrow \mathcal{O}_{\mathbb{P}^4}^5(2) \rightarrow \bigwedge^2\mathrm{T}^*_{\mathbb{P}^4}(5) \rightarrow \mathcal{O}_{\mathbb{P}^4}^5(3) \rightarrow 0.$
 
 ```jldoctest
 julia> P4 = abstract_projective_space(4);
@@ -76,22 +79,10 @@ julia> rank(F)
 
 julia> hilbert_polynomial(F)
 5//6*t^4 + 5//3*t^3 + 25//6*t^2 + 25//3*t + 2
+
+julia> 2*exterior_power(cotangent_bundle(P4), 2)*OO(P4, 5) - 5*OO(P4, 2) - 5*OO(P4, 3) == F
+true
 ```
-
-The Horrocks–Mumford bundle can also be constructed via a monad:
-
-```jldoctest
-julia> Fprime = 2 * exterior_power(cotangent_bundle(P4), 2) * OO(P4, 2) - 5*OO(P4, -1) - 5*OO(P4);
-
-julia> dual(Fprime) * OO(P4, 2) == F
-false
-```
-
-!!! note
-    The monad verification (`dual(Fprime) * OO(P4, 2) == F`) returns `false`
-    because equality of abstract bundles in OSCAR compares Chern characters in the
-    Chow ring, and the K-theoretic identity only holds modulo higher-order terms.
-    The bundles do have the same Chern classes.
 
 ## Riemann–Roch on a surface
 
