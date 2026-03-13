@@ -341,7 +341,9 @@ GAP.@wrap OnIndeterminates(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnLines(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnSetsTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnTuplesSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
