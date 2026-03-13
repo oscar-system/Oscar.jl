@@ -206,6 +206,115 @@ function on_sets_sets(set::T, x::GroupElem) where {T<:Tuple}
     return T(res)
 end
 
+"""
+    on_sets_tuples(set::GapObj, x::GAPGroupElem)
+    on_sets_tuples(set::Vector, x::GAPGroupElem)
+    on_sets_tuples(set::Tuple, x::GAPGroupElem)
+    on_sets_tuples(set::AbstractSet, x::GAPGroupElem)
+
+Return the image of `set` under `x`,
+where the action is given by applying `on_tuples` to the entries
+of `set`, and then turning the result into a sorted vector/tuple or a set,
+respectively.
+
+# Examples
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> g = symmetric_group(3);  g[1]
+(1,2,3)
+
+julia> l = GapObj([[1, 2], [3, 4]]; recursive = true)
+GAP: [ [ 1, 2 ], [ 3, 4 ] ]
+
+julia> on_sets_tuples(l, g[1])
+GAP: [ [ 1, 4 ], [ 2, 3 ] ]
+
+julia> on_sets_tuples([[1, 2], [3, 4]], g[1])
+2-element Vector{Vector{Int64}}:
+ [1, 4]
+ [2, 3]
+
+julia> on_sets_tuples(((1, 2), (3, 4)), g[1])
+((1, 4), (2, 3))
+
+julia> settuple = Set([[1, 2], [3, 4]]);
+julia> on_sets_tuples(settuple, g[1])
+Set{Vector{Int64}} with 2 elements:
+  [2, 3]
+  [1, 4]
+
+julia> ans == settuple^g[1]
+true
+```
+"""
+on_sets_tuples(set::GapObj, x::GAPGroupElem) = GAPWrap.OnSetsTuples(set, GapObj(x))
+
+function on_sets_tuples(set::Vector{T}, x::GroupElem) where {T}
+    res = T[on_tuples(pnt, x) for pnt in set]
+    sort!(res)
+    return res
+end
+
+on_sets_tuples(set::T, x::GroupElem) where {T<:AbstractSet} =
+  T(on_tuples(pnt, x) for pnt in set)
+
+function on_sets_tuples(set::T, x::GroupElem) where {T<:Tuple}
+    res = [on_tuples(pnt, x) for pnt in set]
+    sort!(res)
+    return T(res)
+end
+
+"""
+    on_tuples_sets(tuple::GapObj, x::GAPGroupElem)
+    on_tuples_sets(tuple::Vector, x::GAPGroupElem)
+    on_tuples_sets(tuple::Tuple, x::GAPGroupElem)
+
+Return the image of `tuple` under `x`,
+where the action is given by applying `on_sets` to the entries of `tuple`.
+
+# Examples
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> g = symmetric_group(3);  g[1]
+(1,2,3)
+
+julia> l = GapObj([[1, 2], [3, 4]]; recursive = true)
+GAP: [ [ 1, 2 ], [ 3, 4 ] ]
+
+julia> on_tuples_sets(l, g[1])
+GAP: [ [ 1, 4 ], [ 2, 3 ] ]
+
+julia> on_tuples_sets([[1, 2], [3, 4]], g[1])
+2-element Vector{Vector{Int64}}:
+ [1, 4]
+ [2, 3]
+
+julia> on_tuples_sets(((1, 2), (3, 4)), g[1])
+((1, 4), (2, 3))
+
+julia> on_tuples_sets([[1, 2], [3, 4]], g[1])
+Set{Vector{Int64}} with 2 elements:
+  [2, 3]
+  [1, 4]
+
+julia> tupleset = [BitSet([1, 2]), BitSet([3, 4])];
+
+julia> on_tuples_sets(tupleset, g[1])
+Set{BitSet} with 2 elements:
+  BitSet([1, 4])
+  BitSet([2, 3])
+
+julia> ans == tupleset^g[1]
+true
+```
+"""
+on_tuples_sets(tuple::GapObj, x::GAPGroupElem) = GAPWrap.OnTuplesSets(tuple, GapObj(x))
+
+function on_tuples_sets(tuple::Vector{T}, x::GroupElem) where {T}
+    return T[on_sets(pnt, x) for pnt in tuple]
+end
+
+function on_tuples_sets(tuple::T, x::GroupElem) where {T<:Tuple}
+    return T([on_sets(pnt, x) for pnt in tuple])
+end
 
 """
     permuted(pnt::GapObj, x::PermGroupElem)
