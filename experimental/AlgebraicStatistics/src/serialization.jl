@@ -67,7 +67,6 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, Graph
   end
 end
 
-#TODO still need to handle other GraphDict cases
 function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
@@ -79,6 +78,24 @@ function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
     graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
   return GraphDict{elem_type(R)}(graph_gen_dict)
+end
+
+# might need to have more type specification in the future here
+# for now we know that the params are a dict with domain and codomain
+function load_object(s::DeserializerState, ::Type{GraphDict}, d::Dict)
+  cdom = d[:codomain]
+  dom = d[:domain]
+  map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
+  graph_gen_dict = Dict{Union{Int, Edge}, map_type}()
+  load_array_node(s) do (_, (k, v))
+    if k isa Oscar.Serialization.JSON3.Array
+      key = load_object(s, Edge, 1)
+    else
+      key = load_object(s, Int, 1)
+    end
+    graph_gen_dict[key] = load_object(s, Oscar.MPolyAnyMap, d, 2)
+  end
+  return GraphDict{map_type}(graph_gen_dict)
 end
 
 function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
