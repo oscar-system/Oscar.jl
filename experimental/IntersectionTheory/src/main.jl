@@ -3958,7 +3958,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
 
   p_push = MapFromFunc(Fl.ring, X.ring, p_push)
   p = AbstractVarietyMap(Fl, X, p_star, p_push)
-  Fl.struct_map = p
+  Fl.structure_map = p
 
   if isdefined(X, :point)
     Fl.point = PRtoR1(X.point.f) * gs[dm]
