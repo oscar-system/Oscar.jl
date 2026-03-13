@@ -3961,7 +3961,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   Fl.structure_map = p
 
   if isdefined(X, :point)
-    Fl.point = PRtoR1(X.point.f) * gs[dm]
+    Fl.point = AFl(PRtoR1(X.point.f) * gs[dm])
   end
 
   ### old approach to point class
@@ -3982,7 +3982,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   set_attribute!(
     Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F"
   )
-  set_attribute!(Fl, :section => section)
+  set_attribute!(Fl, :section => AFl(gs[dm]))
   get_attribute(X, :alg) == true && set_attribute!(Fl, :alg => true)
 
   l == 2 && set_attribute!(Fl, :grassmannian => :relative)
