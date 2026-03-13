@@ -186,7 +186,7 @@ julia> integral(C*(2*p + z))
 ## How many conics lie on the general quintic hypersurface in $\mathbb P^4$?
 
 This is a famous question, relevant for the development of mirror symmetry.
-See Theorem 3.1 in [K86](@cite).
+See Theorem 3.1 in [Kat86](@cite).
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
