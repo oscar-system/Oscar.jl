@@ -657,11 +657,10 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   
   l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
-  groebner_basis(I; ordering=o, kwargs...)
+  I_sat = saturation(I, ideal(detK))
+  gb = groebner_basis(I_sat; ordering=o, kwargs...)
 
-  I_sat =  saturation(I, ideal(detK))
   phi_inv = inverse(phi)
-  gb = groebner_basis(I_sat; ordering=o)
   mo = monomial_ordering(gens(base_ring(K)), :degrevlex)
   return ideal(IdealGens([phi_inv(g) for g in gb], mo; isGB=true))
 end
