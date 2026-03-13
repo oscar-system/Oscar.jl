@@ -95,6 +95,8 @@ if and only if the section vanishes on it.
 The answer is the top Chern class of $\operatorname{Sym}^3 S^*$:
 
 ```jldoctest
+julia> G = abstract_grassmannian(2, 4);
+
 julia> S, Q = tautological_bundles(G);
 
 julia> integral(top_chern_class(symmetric_power(dual(S), 3)))
