@@ -212,7 +212,6 @@ function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}
 
   interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
   vertices_states = leaves_states
-
   poly = MPolyBuildCtx(parameter_ring(PM)[1])
   for labels in interior_indices
     for (int_node, label) in zip(int_nodes, labels)

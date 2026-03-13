@@ -27,6 +27,8 @@ function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) wher
   return param_dict
 end
 
+################################################################################
+# Special Dict Types
 @register_serialization_type GraphDict 
 @register_serialization_type GraphTransDict
 @register_serialization_type GenDict
@@ -127,6 +129,9 @@ function load_object(s::DeserializerState, T::Type{GenDict{S}}, params::Dict) wh
   return GenDict(load_object(s, Dict{S, MPolyRingElem}, params))
 end
 
+################################################################################
+# Model Types
+
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
 @register_serialization_type DiscreteGraphicalModel uses_id [:parameter_ring, :model_ring]
 
@@ -199,7 +204,6 @@ function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Di
   )
 end
 
-# not exactly sure what the attributes shold be yet
 @register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring,
                                                                   :model_ring,
                                                                   :full_model_ring]
@@ -228,6 +232,8 @@ function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, 
 end
 
 
+################################################################################
+# IndexedRing
 @register_serialization_type IndexedRing uses_id
 
 type_params(IR::IndexedRing) = TypeParams(IndexedRing, coefficient_ring(IR))
@@ -242,4 +248,18 @@ function load_object(s::DeserializerState, ::Type{<:IndexedRing}, R::Ring)
   syms = load_object(s, Vector{Symbol}, :symbols)
 
   return indexed_ring(R, syms; cached=false)[1]
+end
+
+################################################################################
+# Phylogenetic Networks
+@register_serialization_type PhylogeneticNetwork
+
+type_params(::PhylogeneticNetwork) = nothing
+
+function save_object(s::SerializerState, pn::PhylogeneticNetwork)
+  save_object(s, graph(pn))
+end
+
+function load_object(s::DeserializerState, ::Type{PhylogeneticNetwork})
+  return phylogenetic_network(load_object(s, Graph{Directed}))
 end

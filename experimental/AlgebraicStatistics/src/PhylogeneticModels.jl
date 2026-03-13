@@ -1034,18 +1034,18 @@ end
   vars = unique(transition_matrix(PM))
   edge_gens = [x => 1:n_edges(N) for x in vars]
   h_nodes = hybrid_vertices(N)
-  R, r, l, x... = polynomial_ring(base_field(PM),
-                                  root_distribution(PM),
-                                  :l => (1:length(h_nodes), 1:2),
-                                  edge_gens...; cached=cached)
+  RR, r = polynomial_ring(base_field(PM), root_distribution(PM); cached=false)
+  R, l, x... = polynomial_ring(RR,
+                               :l => (1:length(h_nodes), 1:2),
+                               edge_gens...; cached=cached)
 
   hyb = hybrids(N)                               
   return R, GraphTransDict{elem_type(R)}(
-  Dict{Tuple{VarName, Edge}, elem_type(R)}(
-    (vars[i], e) => x[i][j] for i in 1:length(vars), 
-      (j,e) in enumerate(sort_edges(N, sorted_edges))
-      )
-  ), r, GraphDict{MPolyRingElem}(
+    Dict{Tuple{VarName, Edge}, elem_type(R)}(
+      (vars[i], e) => x[i][j] for i in 1:length(vars), 
+        (j,e) in enumerate(sort_edges(N, sorted_edges))
+        )
+  ), r, GraphDict{elem_type(R)}(
     Dict{Edge, elem_type(R)}(
       hyb[h_nodes[i]][j] => l[i,j] for i in 1:length(h_nodes) for j in 1:2
         )
@@ -1093,21 +1093,21 @@ end
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: MPolyRingElem}
   N = graph(PM)
-
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
-  root_vars = gens(coefficient_ring(trans_ring))
+  RR = coefficient_ring(trans_ring)
+  rv = gens(coefficient_ring(trans_ring))
 
   edge_gens = [x => 1:n_edges(N) for x in Symbol.(transition_vars)]
   h_nodes = hybrid_vertices(N)
-  R, rv, l, x... = polynomial_ring(base_field(PM), Symbol.(root_vars), :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
+  R, l, x... = polynomial_ring(RR, :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
 
-  coef_map = hom(coefficient_ring(trans_ring), R, rv)
+  #coef_map = hom(RR, R, rv)
 
   dict_maps = Dict{Union{Int, Edge}, Oscar.MPolyAnyMap}()
   for (j,e) in enumerate(Oscar.sort_edges(N, sorted_edges))
       map = [x[i][j] for i in 1:length(transition_vars)]
-      dict_maps[e] = hom(trans_ring, R, coef_map, map)
+      dict_maps[e] = hom(trans_ring, R, map)
   end
 
   hyb = hybrids(N)
@@ -1129,11 +1129,9 @@ end
 } function parameter_ring(PM::PhylogeneticModel{<:PhylogeneticNetwork, L, <: MPolyRingElem, RT}; cached=false,
                           sorted_edges::Union{Vector{Edge}, Nothing} = nothing) where {L, RT <: AbstractAlgebra.Generic.RationalFunctionFieldElem}
   N = graph(PM)
-
   trans_ring = parent(first(transition_matrix(PM)))
   transition_vars = gens(trans_ring)
   root_vars = gens(coefficient_ring(trans_ring))
-
   edge_gens = [x => 1:n_edges(N) for x in Symbol.(transition_vars)]
   h_nodes = hybrid_vertices(N)
   R, l, x... = polynomial_ring(coefficient_ring(trans_ring), :l => (1:length(h_nodes), 1:2), edge_gens..., ; cached=cached)
