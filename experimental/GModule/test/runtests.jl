@@ -352,3 +352,17 @@ end
   reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 4))
   @test multiset(map(dim, reps)) == multiset(Dict(1 => 5))
 end
+
+
+@testset "Experimental.gmodule FreeRes" begin
+  k, a= wildanger_field(3, 13)
+  k = normal_closure(k)
+  k = k[1]
+  I = idele_class_gmodule(k)
+  G = group(I.data[1])
+  ZG = group_algebra(ZZ, G)
+  fr = Oscar.GrpCoh.free_res(ZG; side = :right)
+  h = hom(fr, I.data[1])
+  @test is_isomorphic(abelian_group([6]), quo(kernel(map(h, 2))[1], image(map(h, 1))[1])[1])
+  @test is_isomorphic(abelian_group([1]), quo(kernel(map(h, 1))[1], image(map(h, 1))[0])[1])
+end
