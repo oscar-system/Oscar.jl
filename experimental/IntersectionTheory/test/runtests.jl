@@ -114,17 +114,16 @@ let pushforward = IntersectionTheory.pushforward
     # cubic containing a plane
     P2 = abstract_projective_space(2)
     Y = complete_intersection(abstract_projective_space(5), 3)
-    i = map(P2, Y, [P2.O1], inclusion = true)
+    i = map(P2, Y, [P2.O1], inclusion=true)
     Y1 = i.codomain
     p = pushforward(i, P2(1))
     h = Y1.O1
     @test Y1 != Y
     @test euler_number(Y1) == euler_number(Y)
-    # @test (Y1 → Y).T.ch == 0
+    # @test map(Y1, Y).T.ch == 0
     @test betti_numbers(Y1)[3] == 2
     @test basis(Y1, 2) == [h^2, p]
     @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
-
 
     # a related result:
     # the degree of the hypersurface of cubics containing a plane
@@ -283,15 +282,15 @@ let pushforward = IntersectionTheory.pushforward
 
     # Test the algebraic pushforward decomposition (_find_sect), the modern
     # replacement for the old Singular-based _pushfwd / ChAlgHom machinery.
-    # Given a finite ring map f: A → B, _find_sect(f, gs) returns a function
-    # sect such that for any x ∈ B:  x = Σᵢ gs[i] * f(sect(x)[i]).
+    # Given a finite ring map f: A -> B, _find_sect(f, gs) returns a function
+    # sect such that for any x in B:  x = sum_i gs[i] * f(sect(x)[i]).
     # gs is an ordered basis of B as an A-module (last element must be 1).
     # Rings must be plain (ungraded) polynomial rings over QQ.
 
     # Test 1: twisted cubic parameterisation
-    # f: QQ[x,y,z,w] → QQ[s,t],  x↦s³, y↦s²t, z↦st², w↦t³
-    # B = QQ[s,t] is a free rank-6 module over f(A) = QQ[s³,s²t,st²,t³];
-    # basis = monomials of degree ≤ 2 in s,t, ordered by grevlex (largest first).
+    # f: QQ[x,y,z,w] -> QQ[s,t],  x|->s^3, y|->s^2*t, z|->s*t^2, w|->t^3
+    # B = QQ[s,t] is a free rank-6 module over f(A) = QQ[s^3,s^2*t,s*t^2,t^3];
+    # basis = monomials of degree <= 2 in s,t, ordered by grevlex (largest first).
     let
       A, _ = polynomial_ring(QQ, ["x", "y", "z", "w"])
       B, (s, t) = polynomial_ring(QQ, ["s", "t"])
@@ -304,8 +303,8 @@ let pushforward = IntersectionTheory.pushforward
     end
 
     # Test 2: random finite morphism in 3 variables
-    # f: QQ[x,y,z,w] → QQ[s,t,u],  x↦s⁴+u⁴, y↦st²u, z↦s²−t²−u², w↦t
-    # Since t=f(w) and s²−u²=f(z)+f(w²) are both in f(A), the basis of B over
+    # f: QQ[x,y,z,w] -> QQ[s,t,u],  x|->s^4+u^4, y|->s*t^2*u, z|->s^2-t^2-u^2, w|->t
+    # Since t=f(w) and s^2-u^2=f(z)+f(w^2) are both in f(A), the basis of B over
     # f(A) consists of 8 elements in {s,u} (no t), ordered by grevlex.
     let
       A, _ = polynomial_ring(QQ, ["x", "y", "z", "w"])
@@ -497,13 +496,13 @@ let pushforward = IntersectionTheory.pushforward
   @testset "Setters" begin
 
     # set_point_class
-    X, x = abstract_variety(2, ["c₁", "c₂"], [1, 2])
+    X, x = abstract_variety(2, ["c1", "c2"], [1, 2])
     set_point_class(X, x[2])
     @test point_class(X) == x[2]
     @test_throws ErrorException set_point_class(X, x[2])
 
     # set_tangent_bundle
-    X, x = abstract_variety(2, ["c₁", "c₂"], [1, 2])
+    X, x = abstract_variety(2, ["c1", "c2"], [1, 2])
     T = abstract_bundle(X, 2, 1 + x[1] + x[2])
     set_tangent_bundle(X, T)
     @test tangent_bundle(X) === T
@@ -512,13 +511,13 @@ let pushforward = IntersectionTheory.pushforward
     # set_polarization
     P2 = abstract_projective_space(2)
     @test_throws ErrorException set_polarization(P2, polarization(P2))
-    X, x = abstract_variety(2, ["h₁", "h₂"], [1, 2])
+    X, x = abstract_variety(2, ["h1", "h2"], [1, 2])
     set_polarization(X, x[1])
     @test polarization(X) == x[1]
     @test_throws ErrorException set_polarization(X, x[1])
 
     # set_tautological_bundles
-    X, x = abstract_variety(4, ["a₁", "a₂", "b₁", "b₂"], [1, 2, 1, 2])
+    X, x = abstract_variety(4, ["a1", "a2", "b1", "b2"], [1, 2, 1, 2])
     S = abstract_bundle(X, 2, 1 + x[1] + x[2])
     Q = abstract_bundle(X, 2, 1 + x[3] + x[4])
     set_tautological_bundles(X, [S, Q])
@@ -526,7 +525,7 @@ let pushforward = IntersectionTheory.pushforward
     @test_throws ErrorException set_tautological_bundles(X, [S, Q])
 
     # set_structure_map
-    X, x = abstract_variety(2, ["c₁", "c₂"], [1, 2])
+    X, x = abstract_variety(2, ["c1", "c2"], [1, 2])
     pt = abstract_point()
     f = map(X, pt)
     set_structure_map(X, f)
@@ -574,7 +573,7 @@ let pushforward = IntersectionTheory.pushforward
     P2 = abstract_projective_space(2)
     h = gens(chow_ring(P2))[1]
     ch_T = chern_character(tangent_bundle(P2))
-    @test adams(1, ch_T) == ch_T  # ψ¹ = identity
+    @test adams(1, ch_T) == ch_T  # psi^1 = identity
     @test adams(-1, ch_T) == chern_character(dual(tangent_bundle(P2)))
 
     # adams on bundles

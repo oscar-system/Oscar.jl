@@ -1,7 +1,7 @@
 @doc raw"""
-    schubert_class(G::AbstractVariety, λ::Int...)
-    schubert_class(G::AbstractVariety, λ::Vector{Int})
-    schubert_class(G::AbstractVariety, λ::Partition)
+    schubert_class(G::AbstractVariety, lambda::Int...)
+    schubert_class(G::AbstractVariety, lambda::Vector{Int})
+    schubert_class(G::AbstractVariety, lambda::Partition)
 
 Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian `G`.
 

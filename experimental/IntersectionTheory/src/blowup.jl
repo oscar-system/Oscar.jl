@@ -155,7 +155,9 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # 4) j_push(x) * j_push(y) = -j_push(x * y * zeta) # rule for multiplication, [EH16](@cite), Proposition 13.12
   # recall that e[i] = j_push_g_pull(Z(gs[i]))
   for j in 1:(ngs - 1), k in j:(ngs - 1)
-    push!(relations, e_vars[j] * e_vars[k] + j_push_g_pull(Z(gs[j] * Z(gs[k]))) * (-e_vars[end]))
+    push!(
+      relations, e_vars[j] * e_vars[k] + j_push_g_pull(Z(gs[j] * Z(gs[k]))) * (-e_vars[end])
+    )
   end
 
   # 5) relation as in the proof of [EH16](@cite), Theorem 13.14:
@@ -364,7 +366,9 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   #   and any e_vars that survive simplify to 0, which is correct since those classes have
   #   degree exceeding dim(X) and thus no image in A*(X)
   RXplustoRX = Oscar.hom(RXplus, RX, vcat(repeat([RX()], ngs), gens(RX)))
-  f_pushforward = MapFromFunc(chow_ring(Xplus), chow_ring(X), x -> (xf = simplify(x).f; X(RXplustoRX(xf))))
+  f_pushforward = MapFromFunc(
+    chow_ring(Xplus), chow_ring(X), x -> (xf=simplify(x).f; X(RXplustoRX(xf)))
+  )
   f = AbstractVarietyMap(Xplus, X, Xplus.(x_vars), f_pushforward)
   Xplus.structure_map = f
   Xplus.T = pullback(f, tangent_bundle(X))
