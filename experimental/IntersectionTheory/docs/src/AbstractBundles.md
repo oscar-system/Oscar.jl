@@ -38,7 +38,7 @@ julia> rank(F)
 0
 
 julia> chern_character(F)
-3*h - 1//2*h^2
+3//2*h^2 + 3*h
 
 ```
 
@@ -55,7 +55,7 @@ julia> P3 = abstract_projective_space(3);
 julia> T = tangent_bundle(P3);
 
 julia> total_segre_class(T)
-1 - 4*h + 10*h^2 - 20*h^3
+-20*h^3 + 10*h^2 - 4*h + 1
 
 julia> total_segre_class(T) * total_chern_class(T) # must be 1
 1

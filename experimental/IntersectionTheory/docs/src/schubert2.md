@@ -78,7 +78,7 @@ julia> rank(F)
 2
 
 julia> hilbert_polynomial(F)
-5//6*t^4 + 5//3*t^3 + 25//6*t^2 + 25//3*t + 2
+1//12*t^4 + 5//3*t^3 + 125//12*t^2 + 125//6*t + 2
 
 julia> 2*exterior_power(cotangent_bundle(P4), 2)*OO(P4, 5) - 5*OO(P4, 2) - 5*OO(P4, 3) == F
 true
@@ -105,7 +105,13 @@ julia> G = abstract_grassmannian(2, 4);
 julia> S, Q = tautological_bundles(G);
 
 julia> total_chern_class(S * Q)
-c[1]^2*c[2] - c[1]*c[2]^2 + c[2]^2 - c[1]*c[2] + c[1]^2 + c[2] + 1
+c[1]^2 + 2*c[2]^2 + 1
+
+julia> total_chern_class(dual(S) * Q)
+7*c[1]^2 - 12*c[1]*c[2] - 4*c[1] + 6*c[2]^2 + 1
+
+julia> total_chern_class(dual(S) * Q) == total_chern_class(tangent_bundle(G))
+true
 ```
 
 Lines on a quintic threefold via Schubert calculus on $\mathrm{Gr}(2,5)$:

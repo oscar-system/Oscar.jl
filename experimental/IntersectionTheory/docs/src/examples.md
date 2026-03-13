@@ -413,6 +413,6 @@ julia> euler_number(Bl)
 36
 
 julia> length(gens(chow_ring(Bl)))  # number of generators
-5
+4
 
 ```
