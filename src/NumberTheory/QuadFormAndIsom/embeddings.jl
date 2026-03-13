@@ -4,91 +4,98 @@
 #
 ###############################################################################
 
-# This function is called whenever `A` and `B` are in orthogonal direct sum in
-# a bigger torsion module. Let `D` be this sum. Since `A` and `B` are in
-# orthogonal direct sum in `D`, we can embed `O(A)` and `O(B)` in `O(D)` by
-# setting the identity on the complement.
-#
-# This function returns `D`, the embeddings $A\to D$ and $B\to D$, as well as
-# $O(D)$ together with the embeddings $O(A)\to O(D)$ and $O(B)\to O(D)$
-function _sum_with_embeddings_orthogonal_groups(
+function __direct_sum(
     A::TorQuadModule,
     B::TorQuadModule,
+    same_ambient::Bool = false,
   )
-  D = A+B
-  gensDA = elem_type(D)[D(lift(a)) for a in gens(A)]
-  gensDB = elem_type(D)[D(lift(b)) for b in gens(B)]
-  AinD = hom(A, D, gensDA)
-  BinD = hom(B, D, gensDB)
-  @hassert :ZZLatWithIsom 1 all(a*b == 0 for a in gensDA, b in gensDB)
-  OD = orthogonal_group(D)
-  OA = orthogonal_group(A)
-  OB = orthogonal_group(B)
-
-  gene = union(gensDA, gensDB)
-  geneOAinOD = elem_type(OD)[]
-  for f in gens(OA)
-    imgf = union!(AinD.(f.(gens(A))), gensDB)
-    fD = OD(hom(D, D, gene, imgf); check=false)
-    push!(geneOAinOD, fD)
+  if !same_ambient
+    return direct_sum(A, B; cached=false)
   end
 
-  geneOBinOD = elem_type(OD)[]
-  for f in gens(OB)
-    imgf = union(gensDA, BinD.(f.(gens(B))))
-    fD = OD(hom(D, D, gene, imgf); check=false)
-    push!(geneOBinOD, fD)
-  end
-  OAtoOD = hom(OA, OD, geneOAinOD; check=false)
-  OBtoOD = hom(OB, OD, geneOBinOD; check=false)
-  return D, AinD, BinD, OD, OAtoOD, OBtoOD
+  # Test that A and B have the same moduli and same ambient quadratic space
+  @assert modulus_bilinear_form(A) == modulus_bilinear_form(B)
+  @assert modulus_quadratic_form(A) == modulus_quadratic_form(B)
+  @assert ambient_space(cover(A)) === ambient_space(cover(B))
+  V = ambient_space(cover(A))
+
+  # Test that the modules are indeed in orthogonal direct sum
+  # It should be used internally so we do not want to test that all the time
+  @hassert :ZZLatWithIsom 1 iszero(inner_product(V, basis_matrix(cover(A)), basis_matrix(cover(B))))
+  @hassert :ZZLatWithIsom 1 iszero(rank(intersect(cover(A), cover(B))))
+
+  bas_cov_D = reduce(vcat, [basis_matrix(cover(A)), basis_matrix(cover(B))])
+  covD = lattice(V, bas_cov_D; isbasis=true)
+  bas_rel_D = reduce(vcat, [basis_matrix(relations(A)), basis_matrix(relations(B))])
+  relD = lattice(V, bas_rel_D; isbasis=true)
+  gensDA = Vector{QQFieldElem}[lift(a) for a in gens(A)]
+  gensDB = Vector{QQFieldElem}[lift(b) for b in gens(B)]
+  # D is A\oplus B, and we fix a set of generators given first the generators
+  # of A and then the ones of B
+  D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=modulus_bilinear_form(A), modulus_qf=modulus_quadratic_form(A))
+  IA = identity_matrix(ZZ, ngens(A))
+  IB = identity_matrix(ZZ, ngens(B))
+  AinD = hom(A, D, reduce(hcat, ZZMatrix[IA, zero_matrix(ZZ, ngens(A), ngens(B))]))
+  BinD = hom(B, D, reduce(hcat, ZZMatrix[zero_matrix(ZZ, ngens(B), ngens(A)), IB]))
+  return D, (AinD, BinD)
 end
 
-# Construct the direct sum `D` of `A` and `B`. Since the images of `A` and `B`
-# are in orthogonal direct sum, we can embed `O(A)` in `O(D)` and `O(B)` in
-# `O(D)`.
-#
-# This function returns `D` together with the injections $A\to D$ and $B\to D$,
-# as well as `O(D)` with the embeddings $O(A)\to O(D)$ and $O(B)\to O(D)$.
+@doc raw"""
+    _direct_sum_with_embeddings_orthogonal_groups(
+      A::TorQuadModule,
+      B::TorQuadModule;
+      same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B))),
+    ) -> TorQuadModule, TorQuadModuleMap, TorQuadModuleMap,
+         AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism,
+         GAPGroupHomomorphism
+
+Return the orthogonal direct sum ``D`` of the torsion modules ``A`` and ``B``,
+together with the embeddings ``A\to D`` and ``B\to D``. The function also
+computes the orthogonal groups of ``A``, ``B`` and ``D`` and returns the
+embeddings ``O(A)\to O(D)`` and ``O(B)\to O(D)``.
+
+If the ``A`` and ``B`` are defined by lattices in a same quadratic space ``V``,
+then the module ``D`` is of the form ``L/M`` where ``L`` and ``M`` are the sums
+of the covers (resp. the relations) defining ``A`` and ``B``. In that case,
+``A`` and ``B`` should have the same moduli and their covers should indeed be
+in orthogonal direct sum.
+
+Otherwise, if `same_ambient` is set to be `false`, then ``D`` is constructed
+as a standalone object in the external direct sums of the ambient spaces of
+the respective covers of ``A`` and ``B``.
+
+!!! note
+    If the respective covers of ``A`` and ``B`` are in orthogonal direct sum
+    in a fixed quadratic space, then setting `same_ambient` to true or false
+    give rise to isometric direct sums ``D``. The same difference here, is
+    that setting `same_ambient` to `true` allows to do everythin is a same
+    fixed quadratic space which sometimes helps avoiding expensive
+    computations.
+
+"""
 function _direct_sum_with_embeddings_orthogonal_groups(
     A::TorQuadModule,
-    B::TorQuadModule,
-    from_function::Bool=true
+    B::TorQuadModule;
+    same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B)))
   )
-  D, inj = direct_sum(A, B; cached=false)
+  D, inj = __direct_sum(A, B, same_ambient)
   AinD, BinD = inj
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
-  if from_function
-    function OAtoOD_func(f)
-      m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
-      return OD(hom(D, D, m); check=false)
-    end
-    function OBtoOD_func(f)
-      m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
-      return OD(hom(D, D, m); check=false)
-    end
-    OAtoOD = hom(OA, OD, OAtoOD_func)
-    OBtoOD = hom(OB, OD, OBtoOD_func)
-  else
-    geneOAinOD = elem_type(OD)[]
-    for f in gens(OA)
-      m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
-      fD = OD(hom(D, D, m); check=false)
-      push!(geneOAinOD, fD)
-    end
-    geneOBinOD = elem_type(OD)[]
-    for f in gens(OB)
-      m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
-      fD = OD(hom(D, D, m); check=false)
-      push!(geneOBinOD, fD)
-    end
-    OAtoOD = hom(OA, OD, geneOAinOD; check=false)
-    OBtoOD = hom(OB, OD, geneOBinOD; check=false)
+
+  function OAtoOD_func(f)
+    m = block_diagonal_matrix(ZZMatrix[matrix(f), IB])
+    return OD(hom(D, D, m); check=false)
   end
+  function OBtoOD_func(f)
+    m = block_diagonal_matrix(ZZMatrix[IA, matrix(f)])
+    return OD(hom(D, D, m); check=false)
+  end
+  OAtoOD = hom(OA, OD, OAtoOD_func)
+  OBtoOD = hom(OB, OD, OBtoOD_func)
   return D, AinD, BinD, OD, OAtoOD, OBtoOD
 end
 
@@ -111,8 +118,7 @@ function _get_V(
     p::IntegerUnion,
   )
   q = domain(f)
-  V, _ = primary_part(q, p)
-  _, Vinq = sub(q, elem_type(q)[q(lift(divexact(order(g), p)*g)) for g in gens(V) if !(order(g)==1)])
+  V, Vinq = kernel(hom(q, q, p*identity_matrix(ZZ, ngens(q)))) # TODO: remove once Hecke function implemented
   fpV = restrict_endomorphism(f, Vinq; check=false)
   fpV = evaluate(mu, fpV)
   V, _ = kernel(fpV)
@@ -219,30 +225,24 @@ function _overlattice(
     HAinD::TorQuadModuleMap,
     HBinD::TorQuadModuleMap,
     fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD))));
-    same_ambient::Bool=false,
+    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
   )
   HA = domain(HAinD)
   HB = domain(HBinD)
   A = relations(HA)
   B = relations(HB)
   D = codomain(HAinD)
-  if same_ambient
-    bAB = reduce(vcat, basis_matrix.([A, B]))
-    _glue = Vector{QQFieldElem}[lift(g) + lift(gamma(g)) for g in gens(domain(gamma))]
-  else
-    bAB = block_diagonal_matrix(basis_matrix.([A, B]))
-    _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(domain(gamma))]
-  end
-  z = zero_matrix(QQ, 0, degree(cover(D)))
-  glue = reduce(vcat, QQMatrix[matrix(QQ, 1, degree(cover(D)), g) for g in _glue]; init=z)
-  glue = vcat(bAB, glue)
+  L = relations(D)
+  _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(HA)]
+  z = zero_matrix(QQ, 0, degree(L))
+  glue = reduce(vcat, QQMatrix[matrix(QQ, 1, degree(L), g) for g in _glue]; init=z)
+  glue = vcat(basis_matrix(L), glue)
   Fakeglue = Hecke.FakeFmpqMat(glue)
   _FakeB = hnf(Fakeglue)
   _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
-  C = lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
+  C = lattice(ambient_space(L), _B[end-rank(A)-rank(B)+1:end, :])
   fC = block_diagonal_matrix(QQMatrix[fA, fB])
-  _B = solve(bAB, basis_matrix(C); side=:left)
+  _B = solve(basis_matrix(L), basis_matrix(C); side=:left)
   fC = _B*fC*inv(_B)
   @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
   _, graph = sub(D, D.(_glue))
@@ -258,15 +258,16 @@ function _overlattice(
     DAinD::TorQuadModuleMap,
     DBinD::TorQuadModuleMap,
     fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD))));
-    same_ambient::Bool=false,
+    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
   )
   DA = domain(DAinD)
   DB = domain(DBinD)
-  zA, _ = sub(DA, TorQuadModuleElem[])
-  zB, _ = sub(DB, TorQuadModuleElem[])
+  zA, zAinDA = sub(DA, TorQuadModuleElem[])
+  zB, zBinDB = sub(DB, TorQuadModuleElem[])
+  zAinD = compose(zAinDA, DAinD)
+  zBinD = compose(zBinDB, DBinD)
   gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0))
-  return _overlattice(gamma, DAinD, DBinD, fA, fB; same_ambient)
+  return _overlattice(gamma, zAinD, zBinD, fA, fB)
 end
 
 ###############################################################################
@@ -274,47 +275,6 @@ end
 #  Generic primitive extensions method
 #
 ###############################################################################
-
-# Given two integral integer lattices $M$ and $N$, with respective discriminant
-# $q_M$ and $q_N$, return the module $D := q_M\oplus q_N$, together with the
-# embeddings $q_M, q_N\to D$ and the orthogonal group $O(D)$.
-#
-# If `same_ambient` is set to true, then $M$ and $N$ are seen as in the same
-# ambient quadratic space.
-#
-# If `compute_bar_Gf` is set to true, compute the embeddings
-# $O(q_M), O(q_N)\to O(D)$. This can be useful if one wants to compute the
-# discriminant representation of the centralizer of any given equivariant
-# primitive extension of $M$ and $N$, equipped with some isometries.
-# The default value, in case `compute_bar_Gf == false`, is set to be the
-# identity morphism of $O(D)$.
-function _gluing_context(
-    qM::TorQuadModule,
-    qN::TorQuadModule,
-    compute_bar_Gf::Bool,
-    same_ambient::Bool,
-  )
-  if compute_bar_Gf
-    # We pushforward the orthogonal groups along the (orthogonal) sum
-    # (this is Witt's theorem).
-    if same_ambient
-      return _sum_with_embeddings_orthogonal_groups(qM, qN)
-    else
-      return _direct_sum_with_embeddings_orthogonal_groups(qM, qN)
-    end
-  else
-    if same_ambient
-      D = qM+qN
-      qMinD = hom(qM, D, TorQuadModuleElem[D(lift(x)) for x in gens(qM)])
-      qNinD = hom(qN, D, TorQuadModuleElem[D(lift(x)) for x in gens(qN)])
-    else
-      D, inj = direct_sum(qM, qN; cached=false)
-      qMinD, qNinD = inj
-    end
-    OD = orthogonal_group(D)
-    return D, qMinD, qNinD, OD, id_hom(OD), id_hom(OD)
-  end
-end
 
 # Given a torsion quadratic module $q_M$, return the associated torsion
 # bilinear module. Here $G_M$ and $f_{q_M}$ are respectively a group of
@@ -326,7 +286,7 @@ function _change_to_bilinear_module(
     GM::AutomorphismGroup{TorQuadModule},
     fqM::TorQuadModuleMap,
   )
-  qM = Hecke._as_finite_bilinear_module(qM)
+  qM = Hecke._as_finite_bilinear_module(qM) # TODO: to be changed
   OqM = orthogonal_group(qM)
   GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check=false) for g in gens(GM)])
   fqM = hom(qM, qM, matrix(fqM))
@@ -339,6 +299,8 @@ end
 #
 # One can choose a default value `glue_order`, useful in functions with keyword
 # arguments.
+#
+# TODO: To be removed once appropriate Hecke functions implemented
 function _possible_glue_orders(
     qM::TorQuadModule,
     qN::TorQuadModule,
@@ -378,7 +340,7 @@ function _can_be_made_equivariant(
   fHMinOHN = OHN(compose(inv(phi), compose(fHM, phi)); check=false)
   bool, g0 = is_conjugate_with_data(OHN, fHMinOHN, OHN(fHN; check=false))
   !bool && return false, phi
-  phi = compose(phi, hom(OHN(g0)))
+  phi = compose(phi, hom(g0))
   @hassert :ZZLatWithIsom 1 OHN(compose(inv(phi), compose(fHM, phi)); check=false) == OHN(fHN; check=false)
   return true, phi
 end
@@ -623,6 +585,7 @@ function _primitive_extensions_generic(
     OqfM::Union{Nothing, AutomorphismGroup{TorQuadModule}}=nothing,
     OqfN::Union{Nothing, AutomorphismGroup{TorQuadModule}}=nothing,
     discrep::Union{GAPGroupHomomorphism, Nothing}=nothing,
+    _local::Bool=false,
   ) where T <: Hecke.IntegerUnion
   @assert ext_type[2] == :plain || ext_type[1] == :equivariant
 
@@ -641,6 +604,8 @@ function _primitive_extensions_generic(
 
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
+  #
+  # TODO: Add a dedicated manager to take of this
   if !isempty(glue_order)
     _glue_order = sort!(unique!(deepcopy(glue_order)))
     @req all(>(0), _glue_order) "Orders of glue groups must be positive integers"
@@ -687,6 +652,8 @@ function _primitive_extensions_generic(
   end
 
   # Methods are simpler if we work in a fixed space
+  #
+  # TODO: Do we really want to keep that ?
   same_ambient = ambient_space(M) === ambient_space(N)
   @req !same_ambient || iszero(basis_matrix(M)*gram_matrix(ambient_space(M))*transpose(basis_matrix(N))) "Lattices in same ambient space must be orthogonal"
 
@@ -696,6 +663,8 @@ function _primitive_extensions_generic(
   # If we want an odd extension, then we consider M and N as odd lattices. In
   # particular, we forget about the quadratic forms on the discriminant groups
   # which we see as a finite bilinear module.
+  #
+  # TODO: Adapt methods to take of this internally
   if !even && is_even(M)
     qM, OqM, GM, fqM = _change_to_bilinear_module(qM, GM, fqM)
     if !isnothing(OqfM)
@@ -714,7 +683,7 @@ function _primitive_extensions_generic(
   end
 
   # We perform the gluing in D
-  D, qMinD, qNinD, OD, OqMinOD, OqNinOD = _gluing_context(qM, qN, compute_bar_Gf, same_ambient)
+  D, qMinD, qNinD, OD, OqMinOD, OqNinOD = _direct_sum_with_embeddings_orthogonal_groups(qM, qN; same_ambient)
 
   # Depending the abelian group structure on qM and qN, if glue_order is not
   # know, we have restriction on the order of possible common subgroups.
@@ -838,7 +807,7 @@ function _primitive_extensions_generic(
           end
 
           for b in reporb
-            L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b; same_ambient)
+            L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b)
 
             if !isempty(Gs)
               any(isequal(genus(L)), Gs) || continue
@@ -874,6 +843,8 @@ end
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
+#
+# TODO: Replace by dedicated function for p-group and subgroup types
 function _subgroups_orbit_representatives_and_stabilizers(
     Vinq::TorQuadModuleMap,
     O::AutomorphismGroup{TorQuadModule},
@@ -1120,6 +1091,8 @@ end
 #
 # The code splits the computation into primary parts since they are orthogonal
 # to each others.
+#
+# TODO: Remove this old bad code within the new infrastructure
 function _classes_isomorphic_subgroups(
     q::TorQuadModule,
     O::AutomorphismGroup{TorQuadModule},
@@ -1586,8 +1559,13 @@ function primitive_embeddings(
     #
     # We use `_glue_stabilizers` which has been designed especially to compute
     # such diagonal subgroup.
-    GVbar, _ = _glue_stabilizers(V, M2, T2; right_discriminant_action=GMbar)
-    qV = domain(GV)
+
+    # The gram matrix of M and M2 are the same, so we can just transport
+    # the isometries in GMbar to the discriminant group of M2 with identical
+    # matrix representation
+    GM2bar = Oscar._orthogonal_group(discriminant_group(M2), matrix.(gens(GMbar)))
+    GVbar, _ = _glue_stabilizers(V, M2, T2; right_discriminant_action=GM2bar)
+    qV = domain(GVbar)
     qK = rescale(qV, -1; cached=false) # Bilinear form of a complement of V in GL
 
     GKs = ZZGenus[]
@@ -1757,11 +1735,11 @@ function equivariant_primitive_extensions(
   left_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
   left_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
   classification::Symbol=:subsub, # For backward compatibility
+  first::Bool=false,
+  exist_only::Bool=false,
   glue_order::AbstractVector{T}=Int[],
   form_over::Vector{TorQuadModule}=TorQuadModule[],
   even::Bool=(is_even(M) && is_even(N)),
-  first::Bool=false,
-  exist_only::Bool=false,
   compute_bar_Gf::Bool=true,
   first_fitting_isometry::Bool=false,
   _local::Bool=false
@@ -1801,7 +1779,7 @@ function equivariant_primitive_extensions(
     first = true
   elseif classification == :none
     exist_only = true
-  end
+  end  
 
   if compute_bar_Gf
     OqfM, _ = image_centralizer_in_Oq(M; _local)
@@ -1845,6 +1823,8 @@ function equivariant_primitive_extensions(
     glue_order::AbstractVector{T}=Int[],
     form_over::Vector{TorQuadModule}=TorQuadModule[],
     even::Bool=(is_even(M) && is_even(N)),
+    first::Bool=false,
+    exist_only::Bool=false,
     compute_bar_Gf::Bool=false,
     first_fitting_isometry::Bool=false,
     _local::Bool=false,
@@ -1869,6 +1849,7 @@ function equivariant_primitive_extensions(
 
   qN = discriminant_group(N)
   discN = discriminant_representation(N, orthogonal_group(N); full=false)
+  OqfN, _ = image(discN)
   if isnothing(left_discriminant_action)
     if isnothing(left_action)
       if classification == :subemb || classification == :embemb
@@ -1900,8 +1881,8 @@ function equivariant_primitive_extensions(
   return _primitive_extensions_generic(
                                        lattice(M),
                                        N,
-                                       GM,
-                                       GN,
+                                       GMbar,
+                                       GNbar,
                                        (:equivariant, :plain);
                                        even,
                                        exist_only,
@@ -1938,7 +1919,7 @@ function equivariant_primitive_extensions(
                                              right_discriminant_action=left_discriminant_action,
                                              left_action=right_action,
                                              left_discriminant_action=right_discriminant_action,
-                                             classification=res_symbol,
+                                             classification=rev_symbol,
                                              kwargs...,
                                             )
 
@@ -2029,11 +2010,7 @@ function admissible_equivariant_primitive_extensions(
   @hassert :ZZLatWithIsom 1 fqB in GB
 
   # this is where we will perform the gluing
-  if same_ambient
-    D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _sum_with_embeddings_orthogonal_groups(qA, qB)
-  else
-    D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _direct_sum_with_embeddings_orthogonal_groups(qA, qB)
-  end
+  D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _direct_sum_with_embeddings_orthogonal_groups(qA, qB; same_ambient)
 
   OqA = domain(OqAinOD)
   OqB = domain(OqBinOD)
@@ -2048,7 +2025,7 @@ function admissible_equivariant_primitive_extensions(
     union!(geneA, geneB)
 
     # We compute the overlattice in this context
-    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B); same_ambient)
+    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B))
     C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
     # If not of the good type, we discard it
@@ -2187,7 +2164,7 @@ function admissible_equivariant_primitive_extensions(
 
       # We compute the overlattice in this context, keeping track whether we
       # work in a fixed ambient quadratic space
-      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B); same_ambient)
+      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B))
       C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
@@ -2422,7 +2399,7 @@ function _glue_stabilizers(
   )
   qM, fqM = discriminant_group(M)
   if isnothing(right_discriminant_action)
-    if isnohting(right_action)
+    if isnothing(right_action)
       GMbar = subM ? image_centralizer_in_Oq(M)[1] : Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
     else
       GMbar, _ = image(discriminant_representation(M, right_action; full=false))
@@ -2449,7 +2426,7 @@ function _glue_stabilizers(
   HN = domain(HNinqN)
   OHN = orthogonal_group(HN)
 
-  _, qMinD, qNinD, _, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
+  _, qMinD, qNinD, _, OqMinOD, OqNinOD = _direct_sum_with_embeddings_orthogonal_groups(qM, qN; same_ambient=true)
   HMinD = compose(HMinqM, qMinD)
   HNinD = compose(HNinqN, qNinD)
 
@@ -2459,7 +2436,7 @@ function _glue_stabilizers(
   actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check=false)) for x in gens(stabM)])
   actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check=false)) for x in gens(stabN)])
 
-  _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N); same_ambient=true)
+  _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N))
   disc, _stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
   qL, fqL = discriminant_group(L)
   OqL = orthogonal_group(qL)
