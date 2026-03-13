@@ -256,10 +256,13 @@ julia> [euler_characteristic(OO(P3, n)) for n in 0:6]
 
 ## Grassmannian duality: $\mathrm{Gr}(2,5) \cong \mathrm{Gr}(3,5)$
 
-The Grassmannians $\mathrm{Gr}(k,n)$ and $\mathrm{Gr}(n-k,n)$ are isomorphic.
-In particular they have the same Betti numbers, Euler number, and basis
-structure. The universal sub-bundle of one corresponds to the dual of the
-universal quotient bundle of the other:
+The Grassmannians $\mathrm{Gr}(k,n)$ and $\mathrm{Gr}(n-k,n)$ are isomorphic
+via the orthogonal complement map $V \mapsto V^\perp$.
+In particular they have the same Betti numbers and Euler number.
+Under this isomorphism the dual of the universal sub-bundle of $\mathrm{Gr}(2,5)$
+corresponds to the universal quotient bundle of $\mathrm{Gr}(3,5)$.
+Both have rank 2, so, for instance, the enumerative computation of the 2875 lines on a
+general quintic threefold in $\mathbb{P}^4$ can be performed on either side:
 
 ```jldoctest
 julia> G1 = abstract_grassmannian(2, 5);
@@ -275,11 +278,11 @@ julia> euler_number(G1)
 julia> euler_number(G2)
 10
 
-julia> integral(top_chern_class(symmetric_power(dual(tautological_bundles(G1)[1]), 3)))
-27
+julia> integral(top_chern_class(symmetric_power(dual(tautological_bundles(G1)[1]), 5)))
+2875
 
-julia> integral(top_chern_class(symmetric_power(dual(tautological_bundles(G2)[1]), 3)))
-27
+julia> integral(top_chern_class(symmetric_power(tautological_bundles(G2)[2], 5)))
+2875
 
 ```
 
