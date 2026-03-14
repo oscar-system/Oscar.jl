@@ -1230,7 +1230,7 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
     end
     
     if fan_structure == :fine
-        pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(M.pm_matroid)
+        pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(pm_object(M))
         pmTC.FAN_DIM  # this forces polymake to compute the necessary properties
         
         i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
