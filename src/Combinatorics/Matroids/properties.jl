@@ -1210,7 +1210,7 @@ which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) 
 # Examples
 The Bergman fan of the complete graph on $n$ vertices is the space of phylogenetic trees, its coarse
 fan structure has $(2n-3)!!=(2n-3)\cdot(2n-5)\cdots 3\cdot 1$ maximal cones.
-```
+```jldoctest
 julia> M = cycle_matroid(complete_graph(5))
 Matroid of rank 4 on 10 elements
 
