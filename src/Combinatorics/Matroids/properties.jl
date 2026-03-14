@@ -1250,7 +1250,7 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
         P = matroid_base_polytope(M)
     
         FP = face_poset(P) 
-        DF = Polymake.graph.dual_faces(FP.pm_poset)  # face-facet incidence
+        DF = Polymake.graph.dual_faces(pm_object(FP))  # face-facet incidence
         elems = elements_of_rank(FP, length(M) - rank(M) + 1)
         
         V = vertices(P)
