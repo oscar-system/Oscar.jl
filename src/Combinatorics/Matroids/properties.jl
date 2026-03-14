@@ -1266,7 +1266,7 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
             end
         end
                         
-        NS = matrix(QQ, P.pm_polytope.AFFINE_HULL)[:, 2:end]
+        NS = normal_vector.(affine_hull(P))
         return polyhedral_fan(IncidenceMatrix(IM), -convention(1, -1)*FF, NS)
     end
 end
