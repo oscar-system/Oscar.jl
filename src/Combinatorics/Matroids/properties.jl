@@ -1257,11 +1257,12 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
         FF = normal_vector.(facets(P))
         
         IM = Vector{Int64}[]
-        for i in indices
-            verts = V[Vector(Oscar._get_decoration(FP, i)) .+ 1]  # assumes numbering of vertices used in decorations agrees with V
-            inM = matroid_from_bases([M.groundset[findall(==(1), v)] for v in verts], M.groundset)  # initial matroid from vertices
+        for pe in elems
+            verts = V[data(pe)]
+            # initial matroid from vertices
+            inM = matroid_from_bases([findall(isone, v) for v in verts], length(M); check=false)
             if is_loopless(inM)
-                push!(IM, Vector(DF[i]) .+ 1)  # assumes numbering of facets used in DF agrees with FF
+                push!(IM, Vector(Polymake.to_one_based_indexing(DF[node_id(pe)])))
             end
         end
                         
