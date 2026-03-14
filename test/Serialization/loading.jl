@@ -1,4 +1,9 @@
 @testset "loading" begin
+  @testset "Test Default Finite Field" begin
+    a = load(joinpath(@__DIR__, "finite-field-default.mrdi"))
+    @test a isa FqFieldElem
+  end
+
   @testset "loading file format paper example" begin
     F = GF(7, 2)
     o = gen(F)
