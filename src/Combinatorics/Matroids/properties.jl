@@ -1254,7 +1254,7 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
         indices = findall(==(length(M) - rank(M) + 1), rank.(elements(FP)))
         
         V = vertices(P)
-        FF = [f.a[1, :] for f in facets(P)]
+        FF = normal_vector.(facets(P))
         
         IM = Vector{Int64}[]
         for i in indices
