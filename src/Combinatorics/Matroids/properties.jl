@@ -1231,7 +1231,6 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
     
     if fan_structure == :fine
         pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(pm_object(M))
-        pmTC.FAN_DIM  # this forces polymake to compute the necessary properties
         
         i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
         IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
