@@ -1251,7 +1251,7 @@ function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = mi
     
         FP = face_poset(P) 
         DF = Polymake.graph.dual_faces(FP.pm_poset)  # face-facet incidence
-        indices = findall(==(length(M) - rank(M) + 1), rank.(elements(FP)))
+        elems = elements_of_rank(FP, length(M) - rank(M) + 1)
         
         V = vertices(P)
         FF = normal_vector.(facets(P))
