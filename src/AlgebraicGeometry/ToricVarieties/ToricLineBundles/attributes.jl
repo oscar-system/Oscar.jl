@@ -257,3 +257,130 @@ function generic_section(
 
   return sum(rand(rng, range) * b for b in global_sections)
 end
+
+###########################
+# (4) Sheaf Cohomology
+###########################
+
+@doc raw"""
+    sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::Symbol=:cohomcalg)
+
+Compute the dimension of the *i*-th sheaf cohomology group of the toric line bundle `l`.
+
+The keyword argument `algorithm::Symbol` selects the algorithm used for the computation.
+
+Allowed values are:
+  - `:cohomcalg` — use the cohomCalg algorithm (cf. [BJRR10](@cite), [BJRR10*1](@cite)).
+    Requires the toric variety to be simplicial and projective.
+
+  - `:chamber` — chamber counting algorithm (cf. [CLS11](@cite), p.398).
+    Requires the toric variety to be simplicial and complete.
+
+  - `:local` — local cohomology method (cf. [CLS11](@cite), Section 9.5).
+
+By default, `:cohomcalg` is used.
+
+# Examples
+```jldoctest
+julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :cohomcalg)
+12
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :chamber)
+12
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0; algorithm = :local)
+12
+```
+"""
+function sheaf_cohomology(l::ToricLineBundle, i::Int; algorithm::Symbol=:cohomcalg)
+  v = toric_variety(l)
+  has_attribute(v, :vanishing_sets) && contains(vanishing_sets(v)[i + 1], l) && return ZZ(0)
+  return sheaf_cohomology(l; algorithm=algorithm)[i + 1]
+end
+
+@doc raw"""
+    sheaf_cohomology(l::ToricLineBundle; algorithm::Symbol=:cohomcalg)
+
+Compute the dimensions of all sheaf cohomology groups of the toric line bundle `l`.
+
+Returns a vector `[h⁰, …, hᵈ]` whose entries are the dimensions of the cohomology groups `H^i(X, l)`, where `d = dim(X)`.
+
+The keyword argument `algorithm::Symbol` selects the algorithm used for the computation.
+
+Allowed values are:
+  - `:cohomcalg` — use the cohomCalg algorithm (cf. [BJRR10](@cite), [BJRR10*1](@cite)).
+    Requires the toric variety to be simplicial and projective.
+
+  - `:chamber` — chamber counting algorithm (cf. [CLS11](@cite), p.398).
+    Requires the toric variety to be simplicial and complete.
+
+  - `:local` — local cohomology method (cf. [CLS11](@cite), Section 9.5).
+
+By default, `:cohomcalg` is used.
+
+# Examples
+```jldoctest
+julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]))
+3-element Vector{ZZRingElem}:
+ 0
+ 16
+ 0
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = :chamber)
+3-element Vector{ZZRingElem}:
+ 0
+ 16
+ 0
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = :local)
+3-element Vector{ZZRingElem}:
+ 0
+ 16
+ 0
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]))
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :chamber)
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
+
+julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :local)
+3-element Vector{ZZRingElem}:
+ 0
+ 2
+ 0
+```
+"""
+@attr Vector{ZZRingElem} function sheaf_cohomology(
+  l::ToricLineBundle; algorithm::Symbol=:cohomcalg
+)
+  v = toric_variety(l)
+  if algorithm === :cohomcalg
+    @req (is_simplicial(v) && is_projective(v)) "the currently implemented cohomCalg algorithm only applies to toric varieties that are simplicial and projective"
+    return all_cohomologies_via_cohomcalg(l)
+  elseif algorithm === :chamber
+    @req (is_complete(v) && is_simplicial(v)) "the chamber counting algorithm only applies to toric varieties that are simplicial and complete"
+    return _all_cohomologies_via_cech(l)
+  elseif algorithm === :local
+    ctx = local_cohomology_context_object(v)
+    d = divisor_class(toric_divisor_class(l))
+    coh = cohomology_model(ctx, d)
+    return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
+  else
+    throw(
+      ArgumentError("Unknown algorithm=$algorithm. Use :cohomcalg, :chamber, or :local.")
+    )
+  end
+end
