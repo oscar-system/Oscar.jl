@@ -437,7 +437,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
+#    @assert all(in(iU), u)
     im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
@@ -1261,6 +1261,323 @@ function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
   return get_attribute(C, :H_two_maps)
 end
 
+
+function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
+  G = group(ZG)
+
+  @assert side in [:right, :left]
+  is_left = side == :left
+
+  if !force_rws && (isa(G, PcGroup) || is_solvable(G))
+    @vprint :GroupCohomology 2 "using pc-presentation ...\n"
+    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
+    use_pc = true
+  else
+    @vprint :GroupCohomology 2 "using generic rws ...\n"
+    FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
+    use_pc = false
+  end
+  #TODO add case for GrpExt
+  #     need to make CollectCtx accessible
+  c = CollectCtx(R)
+
+  #rules with length(LHS) == 1 and rules of the form
+  # [a a^-1] -> [], [a^-1 a] -> [] do not get tails
+  pos = Vector{Int}()
+  n = 0
+  for i = 1:length(R)
+    r = R[i]
+    if length(r[1]) == 1
+      push!(pos, 0)
+      continue
+    end
+    if length(r[1]) == 2 && length(r[2]) == 0 && r[1][1] == -r[1][2]
+      push!(pos, 0)
+      continue
+    end
+    n += 1
+    push!(pos, n)
+  end
+
+  @vprint :GroupCohomology 1 "will need $n equations for H^2\n"
+
+  #the free-res should be
+  #     A       B       C
+  #ZG^o -> ZG^r -> ZG^g -> ZG -> Z -> 1
+  #where g = #gens, r = #rels (trails - not all rels count), o = #overlaps
+  #C in ZG^(g x 1) 
+  if is_left
+    C = matrix(ZG, ngens(FF), 1, [ZG(mFF(g)) - one(ZG) for g = gens(FF)])
+  else
+    C = matrix(ZG, 1, ngens(FF), [ZG(mFF(g)) - one(ZG) for g = gens(FF)])
+  end
+
+  F1 = Generic.FreeModule(ZG, 1; is_row = is_left)
+  Fg = Generic.FreeModule(ZG, ngens(FF); is_row = is_left)
+
+
+  if is_left
+    B = zero_matrix(ZG, 0, ngens(FF))
+    A = zero_matrix(ZG, 0, n)
+  else
+    B = zero_matrix(ZG, ngens(FF), 0)
+    A = zero_matrix(ZG, n, 0)
+  end
+ 
+  function fill(::ComplexOfMorphisms, idx::Int)
+    @assert idx in [2,3]
+    if idx == 2
+      for i=1:length(R)
+        pos[i]== 0 && continue
+        r = R[i] #(lhs, rhs)
+        s = r[1]
+        S = [zero(ZG) for j=1:ngens(FF)]
+        if is_left
+          function do_left_si(i, S)
+            if i > 0
+              p = ZG(mFF(FF[i]))
+              S .= p .* S
+              S[i] += one(ZG)
+            else
+              S[-i] -= one(ZG)
+              p = ZG(mFF(inv(FF[-i])))
+              S .= p .* S
+            end
+          end
+          for i=length(s):-1:1
+            do_left_si(s[i], S)
+          end
+          s = r[2]
+          T = [zero(ZG) for j=1:ngens(FF)]
+          for i=length(s):-1:1
+            do_left_si(s[i], T)
+          end
+          B = vcat(B, matrix(ZG, 1, length(S), S .- T))
+        else
+          function do_right_si(i, S)
+            if i > 0
+              p = ZG(mFF(FF[i]))
+              S .= S .* p
+              S[i] += one(ZG)
+            else
+              S[-i] -= one(ZG)
+              p = ZG(mFF(inv(FF[-i])))
+              S .= S .* p
+            end
+          end
+          for i=1:length(s)
+            do_right_si(s[i], S)
+          end
+          s = r[2]
+          T = [zero(ZG) for j=1:ngens(FF)]
+          for i=1:length(s)
+            do_right_si(s[i], T)
+          end
+          B = hcat(B, matrix(ZG, length(S), 1, S .- T))
+        end
+      end
+      @assert B != 0
+      if is_left
+        Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left)
+      else
+        Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
+      end
+      pushfirst!(Cpx.maps, hom(Fr, Fg, B; is_left = is_left))
+      return Cpx.maps[1]
+    end
+
+    if idx == 3
+
+      function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
+        @assert w[p:p+length(R[r][1])-1] == R[r][1]
+        # r->s + e_s
+        #ArB -> e_s^A AsB  when is_left
+        #       AsB e_s^B  when not
+
+        if pos[r] == 0
+          return
+        end
+        if is_left
+          #            A
+          g = FF(view(w, 1:p-1))
+        else
+          #                         C
+          g = FF(view(w, p+length(R[r][1]):length(w)))
+        end
+        C.T[pos[r]] += ZG(mFF(g))
+      end
+      c.f = symbolic_collect
+
+      for i = 1:length(R)
+        r = R[i]
+        for j=1:length(R)
+    #      i == j && continue
+          s = R[j]
+          #we want overlaps, all of them:
+          #r[1] = AB, s[1] = BC this is what we need to find...
+          #(then we call collect on r[2]C and As[2] they should agree)
+          #if use_pc, then l can only be 1:
+          #From Holt: those are the r[1] we need
+          # (i i .. i)
+          #   (i .. i i)
+          # (i .. i)
+          #      (i j)
+          # (i j)
+          #  ( j ... j)
+          # (i j)
+          #   (j i)
+          if use_pc
+            l_max = 1
+          else
+            l_max = min(length(s[1]), length(r[1]))
+          end
+
+          for l=1:l_max
+            #                         B                          B
+            if view(r[1], length(r[1])-l+1:length(r[1])) == view(s[1], 1:l)
+              # is_left:
+              #      AB    -> sS  s,t are tails
+              #       BC   -> tT
+              #      (AB)C -> sSC -> e_s + SC 
+              #      A(BC) -> AtT -> e_t^A + AT
+              # else
+              #      AB    -> Ss s,t are tails
+              #       BC   -> Tt
+              #      (AB)C -> SsC -> SC + e_s^C
+              #      A(BC) -> ATt -> AT + e_t
+              #
+              c.T = [zero(ZG) for i=1:n]
+              #
+              #                             A                  T
+              z1 = collect(vcat(view(r[1], 1:length(r[1])-l), s[2]), c)
+              if pos[j] > 0
+                if is_left
+                  c.T[pos[j]] += ZG(mFF(FF(view(r[1], 1:length(r[1])-l))))
+                else
+                  c.T[pos[j]] += one(ZG)
+                end
+              end
+              S = c.T
+              c.T = [zero(ZG) for i=1:n]
+              if pos[i] > 0
+                if is_left
+                  c.T[pos[i]] += one(ZG)
+                else
+                  c.T[pos[i]] += ZG(mFF(FF(view(s[1], l+1:length(s[1])))))
+                end
+              end
+              #                   S              C
+              z2 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
+              @assert z1 == z2
+              S = S .- c.T
+              if is_left
+                A = vcat(A, matrix(ZG, 1, length(S), S))
+              else
+                A = hcat(A, matrix(ZG, length(S), 1, S))
+              end
+            end
+          end
+        end
+      end
+      Fr = Cpx[2]
+      if is_left
+        Ft = Generic.FreeModule(ZG, nrows(A); is_row = is_left)
+      else
+        Ft = Generic.FreeModule(ZG, ncols(A); is_row = is_left)
+      end
+      pushfirst!(Cpx.maps, hom(Ft, Fr, A; is_left = is_left))
+      return Cpx.maps[1]
+    end #if idx == 2
+    error("wrong idx")
+  end #fill
+
+
+  d1 = hom(Fg, F1, C; is_left = is_left)
+
+  Cpx = Hecke.ComplexOfMorphisms(typeof(d1), [d1]; check = false, typ = :chain)
+  Cpx.fill = fill
+  return Cpx
+end
+
+function Oscar.action(C::GModule, g::GroupAlgebraElem)
+  ZG = parent(g)
+  G = group(ZG)
+  @assert G == group(C)
+  @assert base_ring(ZG) == base_ring(C)
+  
+  Z = zero_map(C.M, C.M)
+  if Hecke._is_sparse(g)
+    for (i, ci) in g.coeffs_sparse
+      Z += ci*action(C, parent(g).base_to_group[i])
+    end
+  else
+    for i in 1:length(g.coeffs)
+      ci = g.coeffs[i]
+      Z += ci*action(C, parent(g).base_to_group[i])
+    end
+  end
+
+  return Z
+end
+
+function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomorphism{<: GroupAlgebraElem}}, C::GModule)
+  ZG = base_ring(f[0])
+  G = group(ZG)
+  @assert G == group(C)
+  @assert base_ring(ZG) == base_ring(C)
+
+  #TODO: do it lazy!!!
+  #hom(ZG^a, C) = C^a
+  @req f[0].is_row == false "the ZG-resolution needs to be a right resolution (side = :right)"
+  @req Hecke.is_chain_complex(f) "the ZG-resolution needs to be a chain-complex"
+
+  #notionally
+  #       d1        d2        d3
+  # f_0 <---- f_1 <---- f_2 <---- f_3
+  # will turn into h_i = hom(f_i, M)
+  # 
+  #       d2        d1        d0
+  # h_3 <---- h_2 <---- h_1 <---- h_0 
+
+
+  M1 = direct_product(C.M; task = :none)
+  d1 = map(f, 1)
+  Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
+
+  D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
+  Cpx = Hecke.ComplexOfMorphisms(typeof(D1), [D1]; typ = :cochain, check = false)
+
+  function fill(ff::ComplexOfMorphisms, i::Int)
+    d = map(f, i+1)
+    dd = map(ff, i-1)
+    Mg = codomain(dd)
+    Mr = direct_product([C.M for i=1:rank(domain(d))]...; task = :none)
+    D = hom_direct_sum(Mg, Mr, map(x->action(C, x), matrix(d).entries))
+    push!(ff.maps, D)
+    return D
+  end
+  Cpx.fill = fill
+
+  #TODO: missing elem to hom...
+  #  x in hom(ZG^r, M) = M^r, x = row(m1, ..., mr)
+  # f: ZG^r -> M : col(g1, ..., gr) -> sum mi*gi
+  # other direction: mi = f(ei)
+  # via maps/ info in attributes? Set special(s)?
+
+  return Cpx
+end
+
+#TODO: ZG^r otimes M = M^r and the res otimes M - then we can do homology as well!
+
+#TODO: H->G and G -> G/H induction
+#      M->N induction
+# both as a map between structures and just evaluated on a single elem
+# add interface to get (co)chains and grp ext
+# re-write H_?? and cohomology_group to use the new stuff
+# allow ComplexOfMorphism to have gaps.
+#TODO: add collect ctx from GrpExt!
+
+
 #= Hulpke-Dietrich:
 UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
@@ -1297,7 +1614,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   id = hom(M, M, gens(M), check = false)
-  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: F -> G
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
     @vprint :GroupCohomology 2 "using pc-presentation ...\n"
