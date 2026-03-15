@@ -332,7 +332,7 @@ end
       pointwise::Bool=false,
       ambient_representation::Bool=true,
       check::Bool=true,
-   ) -> MatGroup, GAPGroupHomomorphism
+    ) -> MatGroup, GAPGroupHomomorphism
 
 Given an integral lattice ``L``, a group ``G`` of isometries of ``L`` and a
 submodule ``H`` of the discriminant group $D_L$ of ``L``, return the largest
