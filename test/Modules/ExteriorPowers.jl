@@ -149,7 +149,7 @@ end
 
   phi = hom(FreeMod(A, 2), FreeMod(A, 3), change_base_ring(A, M))
 
-  MM = cokernel(phi)
+  MM, _ = cokernel(phi)
 
   MM2, mm2 = exterior_power(MM, 2)
   MM1, mm1 = exterior_power(MM, 1)
