@@ -249,9 +249,6 @@ end
 function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom::String)
   # (1) which variables appear in the monom?
   present_variables = map(cv -> occursin(string(cv), monom), coordinate_names(variety))
-  println(monom)
-  println(present_variables)
-  println(coordinate_names(variety))
 
   # (2) compute generators of the semigroup
   weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
@@ -263,10 +260,11 @@ function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom
   )
 
   # (3) compute offset
-  if length(present_variables) == 0
-    offset = zero(parent(weights[1]))
-  else
-    offset = -sum(weights[present_variables])
-  end
+  offset = zero(parent(weights[1]))
+  for i in 1:length(present_variables)
+    if present_variables[i]
+      offset -= weights[i]
+    end
+  end  
   return convex_hull(offset, gens)
 end
