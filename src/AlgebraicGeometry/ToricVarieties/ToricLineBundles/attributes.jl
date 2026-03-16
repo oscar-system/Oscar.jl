@@ -313,10 +313,8 @@ The keyword argument `algorithm::Symbol` selects the algorithm used for the comp
 Allowed values are:
   - `:cohomcalg` — use the cohomCalg algorithm (cf. [BJRR10](@cite), [BJRR10*1](@cite)).
     Requires the toric variety to be simplicial and projective.
-
   - `:chamber` — chamber counting algorithm (cf. [CLS11](@cite), p.398).
     Requires the toric variety to be simplicial and complete.
-
   - `:local` — local cohomology method (cf. [CLS11](@cite), Section 9.5).
 
 By default, `:cohomcalg` is used.
