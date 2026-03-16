@@ -109,7 +109,6 @@ function all_cohomologies_via_cohomcalg(l::ToricLineBundle)::Vector{ZZRingElem}
     )
   end
 
-  # return result
   return result
 end
 
@@ -243,7 +242,6 @@ function contributing_denominators(variety::NormalToricVarietyType)
     end
   end
 
-  # return result
   return contributing_monomials
 end
 
