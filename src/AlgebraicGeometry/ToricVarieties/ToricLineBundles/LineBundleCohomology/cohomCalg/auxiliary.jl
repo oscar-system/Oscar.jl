@@ -248,10 +248,10 @@ end
 
 function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom::String)
   # (1) which variables appear in the monom?
-  present_variables = findall(cv ->
-      occursin(string(cv), monom),
-    coordinate_names(variety),
-  )
+  present_variables = map(cv -> occursin(string(cv), monom), coordinate_names(variety))
+  println(monom)
+  println(present_variables)
+  println(coordinate_names(variety))
 
   # (2) compute generators of the semigroup
   weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
