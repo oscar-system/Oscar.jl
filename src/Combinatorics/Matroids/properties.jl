@@ -1197,7 +1197,7 @@ function indicator_vector(S::Vector{Int}, n::Int)
 end
 
 @doc raw"""
-    bergman_fan(M::Matroid; fan_structure::Symbol = :coarse, convention::Union{typeof(min),typeof(max)} = min)
+    bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
 
 The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
 which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
