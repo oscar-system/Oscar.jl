@@ -204,12 +204,7 @@ function contributing_denominators(variety::NormalToricVarietyType)
   end
 
   # at what positions in the output_string does the list of contributions to cohomology group i end and that of i+1 begins?
-  hlist = Int[]
-  for i in 1:(length(output_string_reduced) - 1)
-    if output_string_reduced[i][1] == 'H'
-      push!(hlist, i)
-    end
-  end
+  hlist = findall(osr->osr[1]=='H', output_string_reduced[1:length(output_string_reduced)-1])
 
   # form list of the contributing monomials
   contributing_monomials = [[""] for i in 1:(dim(variety) + 1)]
@@ -272,6 +267,27 @@ function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom
     if present_variables[i]
       offset -= weights[i]
     end
+  end
+  # (1) which variables appear in the monom?
+  present_variables = findall(cv->
+    occursin(string(cv), monom),
+    coordinate_names(variety)
+  (
+
+  # (2) compute generators of the semigroup
+  weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
+  gens = reduce(
+    vcat,
+    unique([
+      (-1)^Int(present_variables[i]) * weights[i] for i in 1:ngens(cox_ring(variety))
+    ]),
+  )
+
+  # (3) compute offset
+  if length(present_variables) == 0
+  	offset = zero(parent(weights[1]))
+  else
+  	offset = -sum(weights[present_variables])
   end
   return convex_hull(offset, gens)
 end
