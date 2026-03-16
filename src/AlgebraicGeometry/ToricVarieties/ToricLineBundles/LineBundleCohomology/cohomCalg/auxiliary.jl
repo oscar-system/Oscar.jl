@@ -250,7 +250,7 @@ function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom
   coords = coordinate_names(variety)
   weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
   present = map(cv -> occursin(string(cv), monom), coords)
-  gens = vcat((-1).^Int.(present) .* weights...)
+  gens = vcat((-1) .^ Int.(present) .* weights...)
   offset = zero(parent(weights[1]))
   if any(present)
     offset = -sum(weights[i] for (i, pres) in enumerate(present) if pres)
