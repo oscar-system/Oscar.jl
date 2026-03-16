@@ -272,7 +272,7 @@ function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom
   present_variables = findall(cv->
     occursin(string(cv), monom),
     coordinate_names(variety)
-  (
+  )
 
   # (2) compute generators of the semigroup
   weights = [k.coeff for k in Oscar._cox_ring_weights(variety)]
