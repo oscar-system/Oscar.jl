@@ -453,10 +453,15 @@ end
 
 @doc raw"""
     set_volume_form!(A::DGAlgCohRing, v::DGAlgCohRingElem)
+    set_volume_form!(A::DGAlgCohRing)
 
-A volume form `v` is a cohomology class in the top-dimensional degree of a cohomology 
-ring which generates that degree as a free module of rank one over the `coefficient_ring`. 
-It needs to be chosen for `integral` to work. 
+A volume form `v` is a cohomology class in the top-dimensional non-trivial degree of a 
+cohomology ring which generates that degree as a free module of rank one over the 
+`coefficient_ring`. 
+
+In case no element `v` is provided, a heuristic is applied to determine a random 
+suitable element. This heuristic may fail depending on existence of implementations 
+for `ModuleFP`s for the chosen `coefficient_ring`. 
 """
 function set_volume_form!(A::DGAlgCohRing, v::DGAlgCohRingElem)
   isdefined(A, :volume_form) && error("volume form is already defined; changes are not possible")
@@ -473,11 +478,9 @@ function set_volume_form!(A::DGAlgCohRing)
     b -= 1
   end
   b == 0 && error("no non-zero cohomology group found")
-  Hb = graded_part(A, b)
-  M, iso = simplify(Hb)
-  @assert is_one(length(gens(M))) "top cohomology group is not freely generated of rank one"
-  v = iso(only(gens(M)))
-  set_volume_form!(A, DGAlgCohRingElem(A, b, v))
+  g = small_generating_set(A, b)
+  @assert is_one(length(g)) "top cohomology group could not be identified as free of rank one"
+  set_volume_form!(A, only(g))
 end
 
 @doc raw"""
@@ -489,7 +492,7 @@ part over the `coefficient_ring` via `set_volume_form!`. This returns the once
 chosen form if it was set.
 """
 function volume_form(A::DGAlgCohRing)
-  !isdefined(A, :volume_form) && error("volume form has not been chosen")
+  !isdefined(A, :volume_form) && error("volume form has not been chosen; use `set_volume_form!` for that")
   d, v = A.volume_form
   DGAlgCohRingElem(A, d, v)
 end
@@ -499,6 +502,8 @@ end
 
 Assuming the `parent` of `a` is provided with a chosen `volume_form`, return 
 the integral of `a` with respect to that form.
+
+Use `set_volume_form!` to choose a volume form on a `DGAlgCohRing`. 
 """
 function integral(a::DGAlgCohRingElem)
   A = parent(a)
