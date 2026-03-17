@@ -41,3 +41,26 @@
   ConformanceTests.test_NCRing_interface(R);
 end
 
+@testset "integration" begin
+  T = torus()
+  C = Oscar.SimplicialCochainComplex(ZZ, T)
+  A = Oscar.DGAlgCohRing(C)
+  top = Oscar.graded_part(A, 2)
+  v = first(filter(!is_zero, gens(top)))
+  v = Oscar.DGAlgCohRingElem(A, 2, v)
+  Oscar.set_volume_form!(A, v)
+  # double assignment is forbidden, as it would create inconsistencies. 
+  @test_throws ErrorException Oscar.set_volume_form!(A, v)
+  
+  # automated version which seeks out a single generator for the top cohomology
+  A = Oscar.DGAlgCohRing(C)
+  Oscar.set_volume_form!(A)
+  v = Oscar.volume_form(A)
+  @test is_one(integral(v))
+  @test length(small_generating_set(A, 1)) == 2
+  g = small_generating_set(A, 1)
+  # compose the gram matrix for the middle cohomology degree
+  G = matrix_space(ZZ, 2, 2)([integral(a*b) for a in g for b in g])
+  @assert is_one(det(G))
+end
+

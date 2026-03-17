@@ -10,6 +10,7 @@ mutable struct DGAlgCohRing{T} <: NCRing
   graded_parts::Vector{SubquoModule{T}}
   volume_form::Tuple{Int, SubquoModuleElem{T}}
   vol_form_inc::SubQuoHom
+  small_gens::Dict{Int, Vector{SubquoModuleElem{T}}}
 
 @doc raw"""
     DGAlgCohRing(C::SimplicialCochainComplex)
@@ -515,6 +516,18 @@ function volume_form_inclusion(A::DGAlgCohRing)
     A.vol_form_inc = inc
   end
   return A.vol_form_inc
+end
+
+function small_generating_set(A::DGAlgCohRing{T}, d::Int) where T
+  if !isdefined(A, :small_gens)
+    A.small_gens = Dict{Int, Vector{SubquoModuleElem{T}}}()
+  end
+  g = get!(A.small_gens, d) do
+    Hd = graded_part(A, d)
+    M, iso = simplify(Hd)
+    return iso.(gens(M))
+  end
+  return elem_type(A)[DGAlgCohRingElem(A, d, v) for v in g]
 end
 
 
