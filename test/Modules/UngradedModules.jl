@@ -188,7 +188,7 @@ end
   # issue 5869
   R, (x) = polynomial_ring(QQ, [:x])
   M = free_module(R,1)
-  @test length(free_resolution(M1)) == 0
+  @test length(free_resolution(M)) == 0
 
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
