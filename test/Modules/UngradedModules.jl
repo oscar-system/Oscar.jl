@@ -185,6 +185,11 @@ end
   FIm = free_resolution(I, algorithm = :mres)
   @test is_graded(FIm)
 
+  # issue 5869
+  R, (x) = polynomial_ring(QQ, [:x])
+  M = free_module(R,1)
+  @test length(free_resolution(M)) == 0
+
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
