@@ -1,5 +1,6 @@
+using Test
 
-@testset "all test - Clifford orders" begin
+@testset "all test - Clifford orders" verbose = true begin
   _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
   mul_with_gen = Oscar._mul_with_gen
   @testset "failing constructions" begin
@@ -31,8 +32,8 @@
       C = clifford_order(ls)
       @test is_commutative(C)
       @testset "Construction" begin
-        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
-        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
+        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(OK)
         @test base_ring_type(C) == typeof(base_ring(C))
@@ -86,7 +87,7 @@
         @test_throws ArgumentError divexact(x, OK(2))
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C(a)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -183,7 +184,7 @@
         @test_throws ArgumentError divexact(x, 2//1)
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C(17)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -242,9 +243,9 @@
     @test !is_commutative(C)
     
     @testset "construction" begin
-      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
       @test elem_type(C) ==
-      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -304,7 +305,7 @@
       @test divexact(2 * x, K(2)) == x
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C([1, a, 1+a, 0])
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -403,9 +404,9 @@
       @test !is_commutative(C)
     
       @testset "construction" begin
-        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
         @test elem_type(C) ==
-        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -462,7 +463,7 @@
         @test divexact(2 * x, K(2)) == x
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C([1, a, 1+a, 0])
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -597,7 +598,7 @@
         @test divexact(2 * x, ZZ(2)) == x
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C([1, 8, 9, 0])
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -733,7 +734,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C(QQ.(1:64))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -860,7 +861,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C(QQ.(1:32))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))

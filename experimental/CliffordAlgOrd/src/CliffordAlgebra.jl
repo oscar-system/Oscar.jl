@@ -1,92 +1,3 @@
-export CliffordAlgebra,
-  CliffordAlgebraElem,
-  clifford_algebra,
-  even_coefficients,
-  odd_coefficients,
-  even_part,
-  odd_part,
-  basis_of_center,
-  basis_of_centroid,
-  quadratic_discriminant,
-  disq
-
-################################################################################
-#
-#  Datatypes
-#
-################################################################################
-
-### Algebra ###
-# Data structure for Clifford algebras. The type variable 'T' represents the element type
-# of the base ring, i.e. it is usually QQFieldElem or AbsSimpleNumFieldElem.
-# The type variable 'S' represents the type of the Gram matrix of the underlying quadratic space,
-# i.e. it is usually QQMatrix or AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}.
-mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
-  base_ring::Ring
-  space::Hecke.QuadSpace{K,S} where {K} # K = parent_type(T), e.g. T is of type AbsSimpleNumFieldElem and K is of type AbsSimpleNumField
-  gram::S
-  dim::Int
-  basis_of_centroid::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
-  disq::T
-  basis_of_center::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
-
-  #Return the Clifford algebra of the quadratic space 'qs' 
-  function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
-    gram = gram_matrix(qs)
-    return new{T,S}(base_ring(qs), qs, gram, 2^ncols(gram))
-  end
-end
-
-### Elements ###
-# Data structure for the elements of a Clifford algebra. The type variables serve the
-# same purpose as they do for Clifford algebras.
-mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{T}
-  parent::CliffordAlgebra{T, S}
-  coeffs::Vector{T}
-  even_coeffs::Vector{T}
-  odd_coeffs::Vector{T}
-
-  #Return the 0-element of the Clifford algebra C
-  function CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S}
-    newelt = new{T,S}(C, fill(C.base_ring(), C.dim))
-    _set_even_odd_coefficients!(newelt)
-    return newelt
-  end
-
-  CliffordAlgebraElem(C::CliffordAlgebra) =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C)
-
-  #Return the element in the Clifford algebra C with coefficient vector coeff wrt. the canonical basis
-  function CliffordAlgebraElem{T,S}(
-    C::CliffordAlgebra{T,S}, coeff::Vector{R}
-  ) where {T,S,R<:FieldElem}
-    @req length(coeff) == C.dim "invalid length of coefficient vector"
-    newelt = new{T,S}(C, coeff)
-    _set_even_odd_coefficients!(newelt)
-    return newelt
-  end
-
-  CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{T}) where {T,S} =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C, coeff)
-
-  function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
-    K = C.base_ring
-    @req __can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(
-      C, K.(coeff)
-    )
-  end
-end
-
-elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
-
-parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
-
-base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
-
-is_domain_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = false
-
-is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
 
 ################################################################################
 #
@@ -234,6 +145,16 @@ end
 #  basic functionality
 #
 ################################################################################
+
+elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
+
+parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
+
+base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
+
+is_domain_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = false
+
+is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
 
 @doc raw"""
     zero(C::CliffordAlgebra) -> CliffordAlgebraElem
@@ -448,57 +369,6 @@ function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
     end
   end
   return res
-end
-
-################################################################################
-#
-#  unary operators
-#
-################################################################################
-
-Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
-
-################################################################################
-#
-#  binary operators
-#
-################################################################################
-
-function Base.:+(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
-  check_parent(x, y)
-  return parent(x)(coefficients(x) .+ coefficients(y))
-end
-
-Base.:-(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem} = x + -y
-
-function Base.:*(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
-  check_parent(x, y)
-  xcoeffs, ycoeffs = copy(coefficients(x)), copy(coefficients(y))
-  return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
-end
-
-@doc raw"""
-    divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} -> CliffordAlgebraElem
-
-Return the element `y` in the Clifford algebra containing $x$ such that $ay = x$,
-if it exists. Otherwise an error is raised.
-"""
-divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} =
-  parent(x)(divexact.(coefficients(x), a))
-
-################################################################################
-#
-#  Equality and hash
-#
-################################################################################
-
-Base.:(==)(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T} = parent(x) === parent(y) && coefficients(x) == coefficients(y)
-
-function Base.hash(x::CliffordAlgebraElem, h::UInt)
-  b = 0x1c4629b4de23b24c % UInt
-  h = hash(parent(x), h)
-  h = hash(coefficients(x), h)
-  return xor(h, b)
 end
 
 ################################################################################
