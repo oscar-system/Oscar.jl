@@ -1,22 +1,22 @@
 @doc raw"""
-    SimplicialCohomologyRing{T} <: NCRing
+    DGAlgCohRing{T} <: NCRing
 
 A struct for cohomology rings `A` which arise from a cochain complex `C` 
 which is equipped with a structure of a differential graded (DG) algebra 
 by implementing a method for the internal function `mul_cochains`.
 """
-mutable struct SimplicialCohomologyRing{T} <: NCRing
+mutable struct DGAlgCohRing{T} <: NCRing
   C::SimplicialCochainComplex
   graded_parts::Vector{SubquoModule{T}}
 
 @doc raw"""
-    SimplicialCohomologyRing(C::SimplicialCochainComplex)
+    DGAlgCohRing(C::SimplicialCochainComplex)
 
 Given a cochain complex `C` with a structure as a differential graded algebra 
 (via implementation of the internal function `mul_cochains`) this creates the 
 associated cohomology ring.
 """
-  function SimplicialCohomologyRing(C::SimplicialCochainComplex)
+  function DGAlgCohRing(C::SimplicialCochainComplex)
     T = elem_type(base_ring(C))
     return new{T}(C)
   end
@@ -25,7 +25,7 @@ end
 @doc raw"""
     mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
 
-Cochain complexes to be used in `SimplicialCohomologyRing`s need to be endowed with 
+Cochain complexes to be used in `DGAlgCohRing`s need to be endowed with 
 the structure of a DG-algebra. To achieve this, the programmer needs to overwrite 
 the method for this function in accordance with `https://stacks.math.columbia.edu/tag/061V`.
 
@@ -38,19 +38,19 @@ function mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
 end
 
 @doc raw"""
-    simplicial_cochain_complex(A::SimplicialCohomologyRing)
+    simplicial_cochain_complex(A::DGAlgCohRing)
 
 Return the internal cocomplex (which needs to implement a structure as a DG-algebra).
 """
-simplicial_cochain_complex(A::SimplicialCohomologyRing) = A.C
+simplicial_cochain_complex(A::DGAlgCohRing) = A.C
 
 
 @doc raw"""
-    graded_parts(A::SimplicialCohomologyRing)
+    graded_parts(A::DGAlgCohRing)
 
 Return a list of the cohomology groups for `A`.
 """
-function graded_parts(A::SimplicialCohomologyRing)
+function graded_parts(A::DGAlgCohRing)
   if !isdefined(A, :graded_parts)
     list = [homology(A.C, 0)[1]]
     i = 1
@@ -64,16 +64,16 @@ function graded_parts(A::SimplicialCohomologyRing)
 end
 
 @doc raw"""
-    graded_part(A::SimplicialCohomologyRing, i::Int)
+    graded_part(A::DGAlgCohRing, i::Int)
 
 Return the `i`-th cohomology group of the cocomplex for `A`.
 """
-function graded_part(A::SimplicialCohomologyRing, i::Int)
+function graded_part(A::DGAlgCohRing, i::Int)
   return graded_parts(A)[i+1]
 end
 
-mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
-  parent::SimplicialCohomologyRing{T}
+mutable struct DGAlgCohRingElem{T} <: NCRingElem
+  parent::DGAlgCohRing{T}
   # Elements can be represented in three ways:
   #  1) no fields assigned (the zero element)
   #  2) `homog_elem` and `homog_deg` assigned (homogeneously stored element)
@@ -90,8 +90,8 @@ mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   coeff::Dict{Int, SubquoModuleElem{T}}
 
   # Constructor for homogeneous elements
-  function SimplicialCohomologyRingElem(
-      A::SimplicialCohomologyRing{T}, 
+  function DGAlgCohRingElem(
+      A::DGAlgCohRing{T}, 
       p::Int, v::SubquoModuleElem{T}
     ) where {T}
     @assert parent(v) === graded_part(A, p)
@@ -99,8 +99,8 @@ mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   end
 
   # Constructor for mixed elements
-  function SimplicialCohomologyRingElem(
-      A::SimplicialCohomologyRing{T}, 
+  function DGAlgCohRingElem(
+      A::DGAlgCohRing{T}, 
       coeff::Dict{Int, SubquoModuleElem{T}};
       check::Bool=true
     ) where {T}
@@ -109,29 +109,29 @@ mutable struct SimplicialCohomologyRingElem{T} <: NCRingElem
   end
 
   # Constructor for the zero
-  function SimplicialCohomologyRingElem(
-      A::SimplicialCohomologyRing{T}
+  function DGAlgCohRingElem(
+      A::DGAlgCohRing{T}
     ) where {T}
     return new{T}(A, nothing, nothing)
   end
 end
 
-parent(a::SimplicialCohomologyRingElem) = a.parent
-zero(A::SimplicialCohomologyRing) = SimplicialCohomologyRingElem(A)
-zero(a::SimplicialCohomologyRingElem) = zero(parent(a))
-(A::SimplicialCohomologyRing)() = zero(A)
+parent(a::DGAlgCohRingElem) = a.parent
+zero(A::DGAlgCohRing) = DGAlgCohRingElem(A)
+zero(a::DGAlgCohRingElem) = zero(parent(a))
+(A::DGAlgCohRing)() = zero(A)
 
-function one(A::SimplicialCohomologyRing)
-  SimplicialCohomologyRingElem(A, 0, sum(gens(homology(simplicial_cochain_complex(A), 0)[1])))
+function one(A::DGAlgCohRing)
+  DGAlgCohRingElem(A, 0, sum(gens(homology(simplicial_cochain_complex(A), 0)[1])))
 end
 
 
 @doc raw"""
-    graded_part(a::SimplicialCohomologyRingElem, p::Int)
+    graded_part(a::DGAlgCohRingElem, p::Int)
 
 Return the homogeneous component of `a` of cohomological degree `p`.
 """
-function graded_part(a::SimplicialCohomologyRingElem, p::Int)
+function graded_part(a::DGAlgCohRingElem, p::Int)
   A = parent(a)
   is_zero(a) && return zero(graded_part(A, p))
   if !isnothing(a.homog_elem)
@@ -142,24 +142,24 @@ function graded_part(a::SimplicialCohomologyRingElem, p::Int)
 end
 
 # Coercion from base ring
-function (A::SimplicialCohomologyRing{T})(c::T) where T
+function (A::DGAlgCohRing{T})(c::T) where T
   one_A = one(A)
   one_A.homog_elem = c*one_A.homog_elem
   return one_A
 end
 
 # General coercion
-function (A::SimplicialCohomologyRing)(c)
+function (A::DGAlgCohRing)(c)
   R = base_ring(A)
   return(A(R(c)))
 end
 
-function (A::SimplicialCohomologyRing)(c::SimplicialCohomologyRingElem)
+function (A::DGAlgCohRing)(c::DGAlgCohRingElem)
   parent(c) === A || error("wrong parent")
   return(c)    
 end
 
-function is_zero(a::SimplicialCohomologyRingElem)
+function is_zero(a::DGAlgCohRingElem)
   if isnothing(a.homog_elem)
     !isdefined(a, :coeff) && return true
     isempty(a.coeff) && return true
@@ -168,7 +168,7 @@ function is_zero(a::SimplicialCohomologyRingElem)
   return is_zero(a.homog_elem)
 end
 
-function deepcopy_internal(a::SimplicialCohomologyRingElem, d::IdDict)
+function deepcopy_internal(a::DGAlgCohRingElem, d::IdDict)
   result = parent(a)()
   if !isnothing(a.homog_elem)
     result.homog_elem = deepcopy_internal(a.homog_elem, d)
@@ -181,7 +181,7 @@ function deepcopy_internal(a::SimplicialCohomologyRingElem, d::IdDict)
   return result
 end
 
-function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T}) where {T}
+function +(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
   @assert parent(a) === parent(b) "parent mismatch"
   A = parent(a)
   is_zero(a) && return deepcopy(b)
@@ -256,15 +256,15 @@ function +(a::SimplicialCohomologyRingElem{T}, b::SimplicialCohomologyRingElem{T
 end
 
 # get i-th (module) generator of H^p
-Base.getindex(A::SimplicialCohomologyRing, p::Int, i::Int) = SimplicialCohomologyRingElem(A, p, gens(homology(A.C, p)[1])[i])
+Base.getindex(A::DGAlgCohRing, p::Int, i::Int) = DGAlgCohRingElem(A, p, gens(homology(A.C, p)[1])[i])
 
-is_homogeneous_normalized(a::SimplicialCohomologyRingElem) = !isnothing(a.homog_elem)
+is_homogeneous_normalized(a::DGAlgCohRingElem) = !isnothing(a.homog_elem)
 
-is_homogeneous_denormalized(a::SimplicialCohomologyRingElem) = isnothing(a.homog_elem) && isone(length(a.coeff))
+is_homogeneous_denormalized(a::DGAlgCohRingElem) = isnothing(a.homog_elem) && isone(length(a.coeff))
 
-is_homogeneous(a::SimplicialCohomologyRingElem) = iszero(a) || is_homogeneous_normalized(a) || is_homogeneous_denormalized(a)
+is_homogeneous(a::DGAlgCohRingElem) = iszero(a) || is_homogeneous_normalized(a) || is_homogeneous_denormalized(a)
 
-function degree(a::SimplicialCohomologyRingElem)
+function degree(a::DGAlgCohRingElem)
   if is_homogeneous_normalized(a)
     return a.homog_deg
   elseif is_homogeneous_denormalized(a)
@@ -274,20 +274,20 @@ function degree(a::SimplicialCohomologyRingElem)
   end
 end
 
--(a::SimplicialCohomologyRingElem) = is_homogeneous_normalized(a) ? SimplicialCohomologyRingElem(parent(a), a.homog_deg, -a.homog_elem) : sum(-b for b in homogeneous_parts(a); init=zero(parent(a)))
+-(a::DGAlgCohRingElem) = is_homogeneous_normalized(a) ? DGAlgCohRingElem(parent(a), a.homog_deg, -a.homog_elem) : sum(-b for b in homogeneous_parts(a); init=zero(parent(a)))
 
--(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem) = a + (-b)
+-(a::DGAlgCohRingElem, b::DGAlgCohRingElem) = a + (-b)
 
 # extract homogeneous parts. We do a set, because we need it for ==
-function homogeneous_parts(a::SimplicialCohomologyRingElem)
+function homogeneous_parts(a::DGAlgCohRingElem)
   A = parent(a)
   is_zero(a) && return Set{elem_type(graded_part(A, 0))}()
-  isnothing(a.homog_elem) && return Set(SimplicialCohomologyRingElem(parent(a), i, m) for (i,m) in a.coeff)
+  isnothing(a.homog_elem) && return Set(DGAlgCohRingElem(parent(a), i, m) for (i,m) in a.coeff)
   return Set([a])
 end
 
 # distribute over homogeneous parts
-function *(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+function *(a::DGAlgCohRingElem, b::DGAlgCohRingElem)
   @req parent(a) === parent(b) "parent mismatch"
   if is_zero(a) || is_zero(b)
     return zero(a)
@@ -314,20 +314,20 @@ function mul_homog(a, b)
   !can_compute_index(C, p+q) && return zero(A)
   H = homology(C, p+q)[1]
   cochain = mul_cochains(C, repres(a.homog_elem), p, repres(b.homog_elem), q)
-  return SimplicialCohomologyRingElem(A, p+q, H(cochain; check=false))
+  return DGAlgCohRingElem(A, p+q, H(cochain; check=false))
 end
 
 # Parent and element types
-elem_type(::Type{SimplicialCohomologyRing{T}}) where {T} = SimplicialCohomologyRingElem{T}
-parent_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = SimplicialCohomologyRing{T}
+elem_type(::Type{DGAlgCohRing{T}}) where {T} = DGAlgCohRingElem{T}
+parent_type(::Type{DGAlgCohRingElem{T}}) where {T} = DGAlgCohRing{T}
 
 
 # Base ring and base ring type
-base_ring(C::SimplicialCohomologyRing) = base_ring(simplicial_cochain_complex(C))
-base_ring_type(::Type{SimplicialCohomologyRingElem{T}}) where {T} = parent_type(T)
-base_ring_type(::Type{SimplicialCohomologyRing{T}}) where {T} = parent_type(T)
+base_ring(C::DGAlgCohRing) = base_ring(simplicial_cochain_complex(C))
+base_ring_type(::Type{DGAlgCohRingElem{T}}) where {T} = parent_type(T)
+base_ring_type(::Type{DGAlgCohRing{T}}) where {T} = parent_type(T)
 # Equality for homogeneous elements is straight foward; for inhomogeneous, do it by sets of homogeneous parts
-function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+function ==(a::DGAlgCohRingElem, b::DGAlgCohRingElem)
   if is_homogeneous_normalized(a) && is_homogeneous_normalized(b)
     return a.homog_elem == b.homog_elem && a.homog_deg == b.homog_deg
   else
@@ -335,7 +335,7 @@ function ==(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
   end
 end
 
-function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
+function Base.hash(a::DGAlgCohRingElem, u::UInt)
   A = parent(a)
   r = 0x60125ab8e8cd44ca
   if isdefined(a, :homog_elem)
@@ -358,19 +358,19 @@ function Base.hash(a::SimplicialCohomologyRingElem, u::UInt)
 end
 
 # This only says that not every cohomology ring is a domain, it does not look at a specific ring.
-function is_domain_type(::Type{SimplicialCohomologyRingElem})
+function is_domain_type(::Type{DGAlgCohRingElem})
   return false
 end
 
-function is_exact_type(::Type{SimplicialCohomologyRingElem{T}}) where T
+function is_exact_type(::Type{DGAlgCohRingElem{T}}) where T
   return is_exact_type(T)
 end
 
-Base.show(io::IO, a::SimplicialCohomologyRingElem) = Base.show(io, MIME"text/plain"(), a)
+Base.show(io::IO, a::DGAlgCohRingElem) = Base.show(io, MIME"text/plain"(), a)
 
 # Show cohomology ring element as string.
 # If context provides :parens=>true, wrap result in parenthesis
-function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingElem)
+function Base.show(io::IO, mime::MIME"text/plain", a::DGAlgCohRingElem)
   if get(io, :parens, false)
     print(io, "(")
   end
@@ -391,13 +391,13 @@ function Base.show(io::IO, mime::MIME"text/plain", a::SimplicialCohomologyRingEl
 end
 
 # The canonical unit is the one of the cohomology ring. 
-canonical_unit(A::SimplicialCohomologyRing) = one(A)
+canonical_unit(A::DGAlgCohRing) = one(A)
 
 # isone checks if the element is the natural one element
-isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
+isone(a::DGAlgCohRingElem) = (a == one(parent(a)))
 
 #TODO Not clear how to pretty print (with parentheses) using expressify
-# function expressify(a::SimplicialCohomologyRingElem; context=nothing)
+# function expressify(a::DGAlgCohRingElem; context=nothing)
 #   if is_homogeneous_normalized(a)
 #     return Expr(:call, :+, expressify(repres(a.homog_elem); context=context), Symbol(a.homog_deg, "-boundaries"))
 #   else
@@ -405,18 +405,18 @@ isone(a::SimplicialCohomologyRingElem) = (a == one(parent(a)))
 #   end
 # end
 # 
-# @enable_all_show_via_expressify SimplicialCohomologyRingElem
+# @enable_all_show_via_expressify DGAlgCohRingElem
 
 
 # Interface specific to noncommutative rings
-function divexact_left(a::SimplicialCohomologyRingElem, b::SimplicialCohomologyRingElem)
+function divexact_left(a::DGAlgCohRingElem, b::DGAlgCohRingElem)
   if a == b 
     return one(parent(a))
   end 
   error("no exact quotient exists")
 end
 
-function divexact_right(b::SimplicialCohomologyRingElem, a::SimplicialCohomologyRingElem)
+function divexact_right(b::DGAlgCohRingElem, a::DGAlgCohRingElem)
   if a == b 
     return one(parent(a))
   end 
@@ -425,7 +425,7 @@ end
 
 
 # we need exponentiation for tests
-function ^(a::SimplicialCohomologyRingElem, n::Int)
+function ^(a::DGAlgCohRingElem, n::Int)
   n >= 0 || error("negative exponent")
   is_one(n) && return deepcopy(a)
   is_zero(n) && return one(a)
@@ -434,7 +434,7 @@ function ^(a::SimplicialCohomologyRingElem, n::Int)
 end
 
 # needed for the test suite but not to be used elsewhere!
-function generate_homogeneous_element(R::Oscar.SimplicialCohomologyRing{ZZRingElem})
+function generate_homogeneous_element(R::Oscar.DGAlgCohRing{ZZRingElem})
   degree = rand(1:dim(simplicial_complex(simplicial_cochain_complex(R)))+1) # indexing starts at 1 (for degree 0)
   n_gens = rand(0:2*length(gens(Oscar.graded_parts(R)[degree])))
   x = zero(R)
