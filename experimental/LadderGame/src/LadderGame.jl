@@ -10,6 +10,24 @@ module LadderGame
 using Oscar
 
 
+struct LadderData
+  A::PermGroup
+  Aprev::PermGroup
+  T::Vector
+  Tmap::Map
+  D::Vector
+  St::Vector
+  I::Vector
+  m::Map
+  
+  function LadderData(A, Aprev)
+    rec = new()
+    rec.A = A
+    rec.Aprev = Aprev
+    return rec
+  end
+end
+
 # Compute A\G/U
 # we need: a subgroup ladder L = (A_i)_(0<=i<=a)
 # Need a transversal chain for U:
@@ -20,7 +38,7 @@ using Oscar
 # Test functions: For each i with A_i+1 <= A_i,
 #           tau_i : A_i+1\A_i >-> NN (injection)
 function ladder_game(L, G, U)
-  r = ladder_start(G, U)
+  r = _ladder_start(G, U)
   H = L[1]
   for i in 2:length(L)
     if is_subgroup(H, L[i])
@@ -33,19 +51,18 @@ function ladder_game(L, G, U)
   return r
 end
 
-function ladder_start(G, U)
+function _ladder_start(G, U)
   st = [get_transversal_chain(U)]
-  r = LadderData(
-        # Ai = G
-        # T = [ one(G) ]
-        # mT =  ** map G ->G, x :-> one(G) **
-        # I = [ one(G) ]
-        # S3 = [ (one(G), one(G)) ]
-        # Di = [ one(G) ]
-        # St = st
-        # g,s for env variable "F" set to false
-  )
-  # what about this environment variable "F" set to false?
+  r = LadderData(G,G)
+  r.T = [one(G)]
+  r.Tmap = [ map_from_func(G, G, x -> one(G)) ]
+  r.D = [one(G)]
+  r.St = [st]
+  r.I = [one(G)]
+  r.m = map_from_func(r.I, (r.D, U), x -> (one(G), one(U)))
+  # g,s for env variable "F" set to nothing
+  # what about this environment variable "F" set to nothing?
+
   return r
 end
 
@@ -106,7 +123,7 @@ function up_step(A, U, rec)
         # g,s for ev variable "F" set to false
   )
 
-  T, mT = transversal(A, R.Ai)
+  T, mT = transversal(A, rec.Ai)
   r.T = T
   r.mT = mT
   Di = []
@@ -159,19 +176,30 @@ end
 
 # I think this gives a transversal chain ???
 # can streamline wrt tUU / last_tUU
-function _induce_chain(V, Tm, C ; conj=nothing)
+function _induce_chain(V, Tm, C ; conj=one(C[1][1]))
   # Tm is a MAP: transversal map for C[1][1]/V
-  # assert V subgroup C[1][1]
-  c = [ (subgroup(V, []), [one(V)]) ]
-  conj===nothing && (conj = one(C[1][1]))
+  # assert is_subgroup(V, C[1][1])
+
+  
+  
+  
+  
+  
+  c = Tuple{PermGroup, Vector{PermGroupElem}}[ (sub(V, [one(V)])[1], [one(V)]) ]
+  # conj===nothing && (conj = one(C[1][1]))
+  # 
   last_tUU = [ one(C[end][1]) ]
-  tUU = change_universe(last_tUU, C[1][1]) # - unnecessary???
+  # tUU = change_universe(last_tUU, C[1][1]) # - unnecessary???
+  tUU = copy(last_tUU)
   tU = [ Tm( one(universe(codomain(Tm)))^inv(conj) ) ] # isn't this just Tm(1)?
+  
   for i in (length(C)-1):-1:1
-    U = intersect(C[i][1], V)
     tUU = change_universe(last_tUU, C[i][1])
-    tV = []
     change_universe!(last_tUU, C[i][1])
+    
+    U = intersect(C[i][1], V)
+    tV = []
+
     for t in last_tUU, s in C[i][2]
       x = t*s
       if x in V
@@ -197,23 +225,25 @@ function _induce_chain(V, Tm, C ; conj=nothing)
   return reverse(c), tUU
 end
 
-function get_transversal_chain(U)
-  c = [U]
-  while length(U) != 1
-    I = support(U)
-    U = stabilizer(U, rep(I))
-    append!(c, U)
+function get_transversal_chain(U::PermGroup)
+  # c = PermGroup[U]
+  U0 = U
+  C = Tuple{PermGroup, Vector{PermGroupElem}}[]
+  while length(U0) != 1
+    s = first(moved_points(U0))
+    U = stabilizer(U0, s)[1]
+    T = right_transversal(U0, U)
+    push!(C, (U0, T) )
+    U0 = U
   end
-  C = []
-  for i in 1:(length(c)-1)
-    append!(C, (c[i], transversal(c[i], c[i+1])) )
-  end
-  append!(C, (c[end], [one(c[end])]) )
-
+  push!(C, (U0, [one(U0)]))
   return C
 end
 
-function get_rep(g, rec)
+
+
+
+function _get_rep(g, rec)
   F = rec.F
   if F!==nothing
     rec = F[end]
