@@ -182,48 +182,51 @@ function deepcopy_internal(a::DGAlgCohRingElem, d::IdDict)
 end
 
 function +(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
+  return add!(deepcopy(a), b)
+end
+
+function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
   @assert parent(a) === parent(b) "parent mismatch"
   A = parent(a)
   is_zero(a) && return deepcopy(b)
-  is_zero(b) && return deepcopy(a)
-  result = parent(a)() # unassigned zero element
+  is_zero(b) && return a
   if isnothing(a.homog_elem)
-    result.coeff = deepcopy(a.coeff) # the result will not be homogeneously stored 
     !isdefined(a, :coeff) && return deepcopy(b) # a was the zero element in the end
     if isnothing(b.homog_elem)
       for (q, v) in b.coeff
-        w = get(result.coeff, q, nothing)
+        w = get(a.coeff, q, nothing)
         if isnothing(w)
-          result.coeff[q] = v
+          a.coeff[q] = v
         else
           res = w + v
           if is_zero(res)
-            delete!(result.coeff, q)
+            delete!(a.coeff, q)
           else
-            result.coeff[q] = res
+            a.coeff[q] = res
           end
         end
       end
-      isempty(result.coeff) && return zero(A)
-      return result
+      isempty(a.coeff) && return zero(A)
+      return a
     else # b is homogeneous
       q = b.homog_deg
-      w = get(result.coeff, q, nothing)
+      w = get(a.coeff, q, nothing)
       if isnothing(w)
-        result.coeff[q] = b.homog_elem
+        a.coeff[q] = b.homog_elem
       else
         res = w + b.homog_elem
         if is_zero(res)
-          delete!(result.coeff, q)
+          delete!(a.coeff, q)
         else
-          result.coeff[q] = res
+          a.coeff[q] = res
         end
       end
-      isempty(result.coeff) && return zero(A)
-      return result
+      isempty(a.coeff) && return zero(A)
+      return a
     end
   else # a is homogeneous
     q = a.homog_deg
+    result = zero(A) # we allocate new because we can not delete a.homog_elem
     if isnothing(b.homog_elem) # b is not homogeneous
       result.coeff = deepcopy(b.coeff) # result will not be homogeneously stored
       w = get(result.coeff, q, nothing)
