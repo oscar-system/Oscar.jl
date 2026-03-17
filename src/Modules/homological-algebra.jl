@@ -73,8 +73,11 @@ function fitting_ideal(M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
- U = C.quo
- SG = singular_generators(U.gens)
+ rels = relations(C)
+ if isempty(rels)
+  return fitting_ideal(ambient_free_module(C), i)
+ end
+ SG = singular_generators(rels)
  return MPolyIdeal(R, Singular.LibHomolog.fitting(SG, i)) #TODO result is standard_basis
 end
 
