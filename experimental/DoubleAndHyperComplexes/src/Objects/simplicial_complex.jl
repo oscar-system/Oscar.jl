@@ -81,18 +81,9 @@ function show_elem(io::IO, C::SimplicialCochainComplex, a::FreeModElem, p::Int)
   end
 end
 
-### Generic version (TODO: move elsewhere)
-#=
-function show_elem(io::IO, C::AbsHyperComplex, a::FreeModElem, p::Int)
-  @req parent(a) === C[p] "parent mismatch"
-  print(io, a)
-end
-=#
-
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::SimplicialCochainComplex) = c.internal_complex
 
-### 
 function face_to_index_map(c::SimplicialCochainComplex, p::Int)
   if !isdefined(c, :face_to_index_map)
     c.face_to_index_map = Dict{Int, Dict{Set{Int}, Int}}()

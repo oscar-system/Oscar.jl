@@ -402,18 +402,6 @@ canonical_unit(A::DGAlgCohRing) = one(A)
 # isone checks if the element is the natural one element
 isone(a::DGAlgCohRingElem) = (a == one(parent(a)))
 
-#TODO Not clear how to pretty print (with parentheses) using expressify
-# function expressify(a::DGAlgCohRingElem; context=nothing)
-#   if is_homogeneous_normalized(a)
-#     return Expr(:call, :+, expressify(repres(a.homog_elem); context=context), Symbol(a.homog_deg, "-boundaries"))
-#   else
-#     return Expr(:call, :+, (expressify(ah; context=context) for ah in homogeneous_parts(a))...)
-#   end
-# end
-# 
-# @enable_all_show_via_expressify DGAlgCohRingElem
-
-
 # Interface specific to noncommutative rings
 function divexact_left(a::DGAlgCohRingElem, b::DGAlgCohRingElem)
   if a == b 
