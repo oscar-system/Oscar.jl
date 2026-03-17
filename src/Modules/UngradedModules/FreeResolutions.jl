@@ -1238,8 +1238,8 @@ julia> length(fr)
 ```
 """
 function length(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
+  ub = findfirst(i -> is_zero(F.C[i]), 1:first(map_range(F.C)))
   isnothing(ub) && return first(map_range(F.C))
-  return ub::Int
+  return ub-1::Int
 end
 
