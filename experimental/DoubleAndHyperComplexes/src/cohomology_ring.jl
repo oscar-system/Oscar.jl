@@ -8,6 +8,8 @@ by implementing a method for the internal function `mul_cochains`.
 mutable struct DGAlgCohRing{T} <: NCRing
   C::SimplicialCochainComplex
   graded_parts::Vector{SubquoModule{T}}
+  volume_form::Tuple{Int, SubquoModuleElem{T}}
+  vol_form_inc::SubQuoHom
 
 @doc raw"""
     DGAlgCohRing(C::SimplicialCochainComplex)
@@ -447,4 +449,72 @@ function generate_homogeneous_element(R::Oscar.DGAlgCohRing{ZZRingElem})
   end
   return x
 end
+
+@doc raw"""
+    set_volume_form!(A::DGAlgCohRing, v::DGAlgCohRingElem)
+
+A volume form `v` is a cohomology class in the top-dimensional degree of a cohomology 
+ring which generates that degree as a free module of rank one over the `coefficient_ring`. 
+It needs to be chosen for `integral` to work. 
+"""
+function set_volume_form!(A::DGAlgCohRing, v::DGAlgCohRingElem)
+  isdefined(A, :volume_form) && error("volume form is already defined; changes are not possible")
+  @assert is_homogeneous(v)
+  d = degree(v)
+  A.volume_form = (d, graded_part(v, d))
+  return A
+end
+
+function set_volume_form!(A::DGAlgCohRing)
+  @assert has_upper_bound(A.C) "upper bound for the underlying complex needs to be known"
+  b = upper_bound(A.C)
+  while (is_zero(A.C[b]) || is_zero(homology(A.C, b)[1])) && b >= 0
+    b -= 1
+  end
+  b == 0 && error("no non-zero cohomology group found")
+  Hb = graded_part(A, b)
+  M, iso = simplify(Hb)
+  @assert is_one(length(gens(M))) "top cohomology group is not freely generated of rank one"
+  v = iso(only(gens(M)))
+  set_volume_form!(A, DGAlgCohRingElem(A, b, v))
+end
+
+@doc raw"""
+    volume_form(A::DGAlgCohRing)
+
+If the top-dimensional, non-trivial graded part of `A` is freely generated 
+of rank one, one may choose a `volume_form`, i.e. a generator of that graded 
+part over the `coefficient_ring` via `set_volume_form!`. This returns the once 
+chosen form if it was set.
+"""
+function volume_form(A::DGAlgCohRing)
+  !isdefined(A, :volume_form) && error("volume form has not been chosen")
+  d, v = A.volume_form
+  DGAlgCohRingElem(A, d, v)
+end
+
+@doc raw"""
+    integral(a::DGAlgCohRingElem)
+
+Assuming the `parent` of `a` is provided with a chosen `volume_form`, return 
+the integral of `a` with respect to that form.
+"""
+function integral(a::DGAlgCohRingElem)
+  A = parent(a)
+  inc = volume_form_inclusion(A)
+  d, _ = A.volume_form # grabbing the field is OK as the previous call makes sure it's set
+  return preimage(inc, graded_part(a, d))[1]
+end
+
+function volume_form_inclusion(A::DGAlgCohRing)
+  if !isdefined(A, :vol_form_inc)
+    vol = volume_form(A)
+    d = degree(vol)
+    v = graded_part(vol, d)
+    _, inc = sub(graded_part(A, d), [v])
+    A.vol_form_inc = inc
+  end
+  return A.vol_form_inc
+end
+
 
