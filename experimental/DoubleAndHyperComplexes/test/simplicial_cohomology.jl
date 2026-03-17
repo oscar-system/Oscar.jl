@@ -39,6 +39,5 @@
   @test is_domain_type(typeof(one(R))) == false
 
   ConformanceTests.test_NCRing_interface(R);
-  #ConformanceTests.test_NCRing_interface(R_p);
 end
 
