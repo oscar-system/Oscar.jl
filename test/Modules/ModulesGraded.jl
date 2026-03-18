@@ -345,6 +345,17 @@ end
   mp = presentation(M, minimal = true)
   @test rank(mp[0]) == 1
   @test rank(mp[1]) == 2
+
+  R1, (u,) = graded_polynomial_ring(QQ, [:u])
+  Z1 = grading_group(R1)
+  N = graded_image(matrix([u]))
+  mp = presentation(N, minimal = true)
+  @test degrees(mp[0]) == [Z1[1]]
+
+  fr = free_resolution(N)
+  frmin = free_resolution(N, algorithm = :mres)
+  @test degrees(fr[0]) == [Z1[1]]
+  @test degrees(frmin[0]) == degrees(fr[0])
 end
 
 
