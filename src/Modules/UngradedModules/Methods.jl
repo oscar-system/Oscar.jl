@@ -845,7 +845,7 @@ function vector_space_basis(kk::Field, M::SubquoModule, d::Union{FinGenAbGroupEl
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    MM, _ = cokernel(map(pres, 1))
     B = is_graded(MM) ? _vector_space_basis_graded(kk, MM, d; check) : error("not implemented for M/N with non-trivial M") 
     aug = map(pres, 0)
     return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]
