@@ -475,7 +475,7 @@ function double_dual(M::FreeMod{T}; codomain::Union{FreeMod, Nothing}=nothing, c
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        FreeModuleHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        FreeModuleHom(M_dual, codomain, elem_type(codomain)[element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
@@ -495,7 +495,7 @@ function double_dual(M::SubquoModule{T}; codomain::Union{FreeMod, Nothing}=nothi
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        SubQuoHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        SubQuoHom(M_dual, codomain, elem_type(codomain)[element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
@@ -530,7 +530,7 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
   return hom(N_dual, M_dual, 
              [homomorphism_to_element(M_dual, 
                                       hom(M, codomain, 
-                                          [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
+                                          elem_type(codomain)[element_to_homomorphism(phi)(f(v)) for v in gens(M)]
                                          )
                                      )
               for phi in gens(N_dual)])
@@ -638,7 +638,7 @@ function vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    MM, _ = cokernel(map(pres, 1))
     return _vector_space_dim(kk, MM; check)
   end
   # At this point we may assume `M` to be presented
@@ -730,7 +730,7 @@ function vector_space_basis(kk::Field, M::SubquoModule; check::Bool=true)
   # We need `M` to be presented  
   if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
     pres = presentation(M)
-    MM = cokernel(map(pres, 1))
+    MM, _ = cokernel(map(pres, 1))
     B = _vector_space_basis(kk, MM; check)
     aug = map(pres, 0)
     return elem_type(M)[aug(pres[0](coordinates(v))) for v in B]

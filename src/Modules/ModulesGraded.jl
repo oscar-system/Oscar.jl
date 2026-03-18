@@ -982,7 +982,7 @@ end
 # mostly automatic, just needed for matrices
 
 function graded_cokernel(A::MatElem)
-  return cokernel(graded_map(A))
+  return cokernel(graded_map(A))[1]
 end
 
 function graded_cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -1711,7 +1711,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
@@ -1829,7 +1829,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology(M, -6, 2, algorithm = :loccoh)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
@@ -1890,7 +1890,7 @@ Free resolution of I
 S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 0         1         2         3         4
 
-julia> M = cokernel(map(FI, 2));
+julia> M, _ = cokernel(map(FI, 2));
 
 julia> tbl = Oscar._sheaf_cohomology_loccoh(M, -6, 2)
 twist: -6 -5 -4 -3 -2 -1  0  1  2
