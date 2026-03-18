@@ -6,13 +6,16 @@
  @test fitting_ideal(F, 3) == R
 end
 
-@testset "mpoly_affine_homological-algebra.fitting_ideal.free_submodule" begin
- R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+@testset "mpoly_affine_homological-algebra.free_submodule_without_relations" begin
+ R, _ = polynomial_ring(QQ, [:x]);
  I = ideal(R, [zero(R)])
+ J = ideal(R, [one(R)])
  A = matrix(R, [1 0; 0 1])
  M = image(A)
  @test fitting_ideal(M, 1) == I
  @test fitting_ideal(M, 2) == R
+ @test is_flat(M) == true
+ @test non_flat_locus(M) == J
 end
 
 
