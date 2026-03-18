@@ -43,27 +43,25 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
   end
 
   CliffordAlgebraElem(C::CliffordAlgebra) =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C)
+    CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C)
 
   #Return the element in the Clifford algebra C with coefficient vector coeff wrt. the canonical basis
   function CliffordAlgebraElem{T,S}(
-    C::CliffordAlgebra{T,S}, coeff::Vector{R}
+    C::CliffordAlgebra{T,S}, coeffs::Vector{R}
   ) where {T,S,R<:FieldElem}
-    @req length(coeff) == C.dim "invalid length of coefficient vector"
-    newelt = new{T,S}(C, coeff)
+    @req length(coeffs) == C.dim "invalid length of coefficient vector"
+    newelt = new{T,S}(C, coeffs)
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
-  CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{T}) where {T,S} =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C, coeff)
-
+  CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeffs::Vector{T}) where {T,S} =
+    CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C, coeffs)
+  
   function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
     K = C.base_ring
     @req __can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(
-      C, K.(coeff)
-    )
+    return CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C, K.(coeff))
   end
 end
 
@@ -135,22 +133,23 @@ mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T
   CliffordOrderElem(CO::CliffordOrder) = CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra)}(CO)
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
-  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S<:NumFieldElem}
-    @req length(coeff) == rank(CO) "invalid length of coefficient vector"
+  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S<:NumFieldElem}
+    @req length(coeffs) == CO.rank "invalid length of coefficient vector"
     
-    for i in 1:rank(CO)
-      @req coeff[i] in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
+    for i in 1:CO.rank
+      ci = coeffs[i]
+      is_zero(ci) || @req ci in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
     end
 
-    newelt = new{T, C}(CO, coeff)
+    newelt = new{T, C}(CO, coeffs)
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
-  function CliffordOrderElem(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S}
+  function CliffordOrderElem(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
     K = base_ring(ambient_algebra(CO))
-    @req _can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordOrderElem{elem_type(base_ring(CO)), typeof(ambient_algebra(CO))}(CO, K.(coeff))
+    @req _can_convert_coefficients(coeffs, K) "entries of coefficient vector are not contained in $(K)"
+    return CliffordOrderElem{elem_type(base_ring(CO)), typeof(ambient_algebra(CO))}(CO, K.(coeffs))
   end
 
 end
@@ -170,19 +169,19 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
   end
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
-  function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeff::Vector{QQFieldElem})
-    @req length(coeff) == CO.rank "invalid length of coefficient vector"
+  function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{QQFieldElem})
+    @req length(coeffs) == CO.rank "invalid length of coefficient vector"
     for i in 1:CO.rank
-      @req is_integer(coeff[i]) "The element does not lie in the Clifford order."
+      @req is_integer(coeffs[i]) "The element does not lie in the Clifford order."
     end
-    newelt = new(CO, coeff)
+    newelt = new(CO, coeffs)
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
-  function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeff::Vector{S}) where {S}
-    @req _can_convert_coefficients(coeff, QQ) "entries of coefficient vector are not contained in $(QQField)"
-    return ZZCliffordOrderElem(CO, QQ.(coeff))
+  function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{S}) where {S}
+    @req _can_convert_coefficients(coeffs, QQ) "entries of coefficient vector are not contained in $(QQField)"
+    return ZZCliffordOrderElem(CO, QQ.(coeffs))
   end
 
 end

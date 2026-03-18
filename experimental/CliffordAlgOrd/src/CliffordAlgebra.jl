@@ -64,28 +64,28 @@ end
 @doc raw"""
     base_ring(C::CliffordAlgebra) -> Ring
 
-Return the base ring of the Clifford algebra $C$.
+Return the base ring of the Clifford algebra `C`.
 """
 base_ring(C::CliffordAlgebra) = C.base_ring::base_ring_type(typeof(C))
 
 @doc raw"""
     space(C::CliffordAlgebra) -> QuadSpace
 
-Return the underlying quadratic space of the Clifford algebra $C$.
+Return the underlying quadratic space of the Clifford algebra `C`.
 """
 space(C::CliffordAlgebra{T, S}) where {T, S} = C.space::Hecke.QuadSpace{parent_type(T), S}
 
 @doc raw"""
     gram_matrix(C::CliffordAlgebra) -> MatElem
 
-Return the Gram matrix of the free quadratic module with Clifford algebra $C$.
+Return the Gram matrix of the free quadratic module with Clifford algebra `C`.
 """
 gram_matrix(C::CliffordAlgebra) = C.gram
 
 @doc raw"""
     dim(C::CliffordAlgebra) -> Int
 
-Return the dimension of the Clifford algebra $C$ over its base ring.
+Return the dimension of the Clifford algebra `C` over its base ring.
 """
 dim(C::CliffordAlgebra) = C.dim
 
@@ -93,14 +93,14 @@ dim(C::CliffordAlgebra) = C.dim
 @doc raw"""
     parent(x::CliffordAlgebraElem) -> CliffordAlgebra
 
-Return the Clifford algebra containing $x$.
+Return the Clifford algebra containing `x`.
 """
 parent(x::CliffordAlgebraElem) = x.parent
 
 @doc raw"""
     coefficients(x::CliffordAlgebraElem) -> Vector
 
-Return the coefficient vector of $x$ wrt the
+Return the coefficient vector of `x` wrt the
 canonical basis of its parent Clifford algebra.  
 """
 coefficients(x::CliffordAlgebraElem) = x.coeffs
@@ -108,7 +108,7 @@ coefficients(x::CliffordAlgebraElem) = x.coeffs
 @doc raw"""
     even_coefficients(x::CliffordAlgebraElem) -> Vector
 
-Return the coefficient vector of $x$ wrt the
+Return the coefficient vector of `x` wrt the
 canonical basis of its parent Clifford algebra,
 but all coefficients corresponding to basis elements
 with odd grading are set to zero. This also updates
@@ -125,7 +125,7 @@ end
 @doc raw"""
     odd_coefficients(x::CliffordAlgebraElem) -> Vector
 
-Return the coefficient vector of $x$ wrt the
+Return the coefficient vector of `x` wrt the
 canonical basis of its parent Clifford algebra,
 but all coefficients corresponding to basis elements
 with even grading are set to zero. This also updates
@@ -139,45 +139,36 @@ function odd_coefficients(x::CliffordAlgebraElem)
   return x.odd_coeffs
 end
 
-
 ################################################################################
 #
 #  basic functionality
 #
 ################################################################################
 
-elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
-
-parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
-
 base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
-
+elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
 is_domain_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = false
-
 is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
+parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
 
 @doc raw"""
     zero(C::CliffordAlgebra) -> CliffordAlgebraElem
 
-Return the additive identity of the Clifford algebra $C$.
+Return the additive identity of the Clifford algebra `C`.
 """
 zero(C::CliffordAlgebra) = C()
 
 @doc raw"""
     one(C::CliffordAlgebra) -> CliffordAlgebraElem
 
-Return the multiplicative identity of the Clifford algebra $C$.
+Return the multiplicative identity of the Clifford algebra `C`.
 """
-function one(C::CliffordAlgebra)
-  res = C()
-  res[1] = base_ring(C)(1)
-  return res
-end
+one(C::CliffordAlgebra) = C(1)
 
 @doc raw"""
     basis(C::CliffordAlgebra, i::Int) -> CliffordAlgebraElem
 
-Return the $i$-th canonical basis vector of the Clifford algebra $C$.
+Return the `i`-th canonical basis vector of the Clifford algebra `C`.
 
 # Examples
 
@@ -198,16 +189,17 @@ julia> basis(C,4)
 ```
 """
 function basis(C::CliffordAlgebra, i::Int)
-  res = C()
-  res[i] = base_ring(C)(1)
-  return res
+  R = base_ring(C)
+  coeffs = fill(zero(R), dim(C))
+  coeffs[i] = one(R)
+  return C(coeffs)
 end
 
 @doc raw"""
     gen(C::CliffordAlgebra, i::Int) -> CliffordAlgebraElem
 
-Return the $i$-th canonical algebra generator of the Clifford
-algebra $C$. This is just the image of the $i$-th basis vector
+Return the `i`-th canonical algebra generator of the Clifford
+algebra `C`. This is just the image of the `i`-th basis vector
 of the underlying quadratic space under the canonical embedding
 into the Clifford algebra.
 
@@ -227,25 +219,24 @@ julia> gen(C, 3)
 ```
 """
 function gen(C::CliffordAlgebra, i::Int)
-  res = C()
-  if i <= 0
-    throw(BoundsError(res, i))
-  end
-  res[2^(i - 1) + 1] = base_ring(C)(1)
-  return res
+  R = base_ring(C)
+  coeffs = fill(zero(R), dim(C))
+  i > 0 || throw(BoundsError(coeffs, i))
+  coeffs[2^(i - 1) + 1] = one(R)
+  return C(coeffs)
 end
 
 @doc raw"""
     basis(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return the canonical basis of the Clifford algebra $C$.
+Return the canonical basis of the Clifford algebra `C`.
 """
 basis(C::CliffordAlgebra) = map(i -> basis(C, i), 1:dim(C))
 
 @doc raw"""
     gens(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return the vector of canonical algebra generators of the Clifford algebra $C$, i.e.,
+Return the vector of canonical algebra generators of the Clifford algebra `C`, i.e.,
 if `gram_matrix(C)` is the Gram matrix of the underlying quadratic space with respect
 to the basis (e_1,...,e_n) then the vector of images under the canonical embedding into
 the Clifford algebra is returned.
@@ -255,7 +246,7 @@ gens(C::CliffordAlgebra) = map(i -> gen(C, i), 1:_dim_qf(C))
 @doc raw"""
     is_commutative(C::CliffordAlgebra) -> Bool
 
-Return `true` if $C$ is commutative and `false` otherwise.
+Return `true` if `C` is commutative and `false` otherwise.
 """
 is_commutative(C::CliffordAlgebra) = dim(C) == 1 || dim(C) == 2
 
@@ -275,7 +266,9 @@ coeff(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 
 function setindex!(x::CliffordAlgebraElem, newentry::RingElement, i::Int64) 
-  coefficients(x)[i] = newentry
+  
+  coefficients(x)[i] = base_ring(x)(newentry)
+  _set_even_odd_coefficients!(x)
 end
 
 ################################################################################
@@ -287,9 +280,21 @@ end
 @doc raw"""
     basis_of_centroid(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return a basis of the centroid of $C$. Unless `dim(space(C)) = 0`, it consists of
-two elements. The first one is the multiplicative identity of $C$. The square of
-the second basis element, if present, equals `quadratic_discriminant(C)`.
+Return a basis of the centroid of `C`. Unless `dim(space(C)) = 0`, it consists of
+two elements. The first one is the multiplicative identity of `C`. The square of
+the second basis element, if present, equals `quadratic_discriminant(C)`; see
+[`quadratic_discriminant`](@ref quadratic_discriminant(C::CliffordOrder)).
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, gram_matrix(root_lattice(:A, 4))));
+
+julia> basis_of_centroid(C)
+2-element Vector{CliffordAlgebraElem{QQFieldElem, QQMatrix}}:
+ [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ [1, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 4]
+```
 """
 function basis_of_centroid(C::CliffordAlgebra)
   if isdefined(C, :basis_of_centroid)
@@ -304,13 +309,14 @@ function basis_of_centroid(C::CliffordAlgebra)
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
   C.disq = (orth_elt^2)[1]
-  C.basis_of_centroid = [one(C), orth_elt]::Vector{elem_type(C)}
+  C.basis_of_centroid = [one(C), orth_elt]
+  return C.basis_of_centroid::Vector{elem_type(C)}
 end
 
 @doc raw"""
     quadratic_discriminant(C::CliffordAlgebra) -> FieldElem
 
-Return the quadratic discriminant of $C$ as an element of `base_ring(C)`.
+Return the quadratic discriminant of `C` as an element of `base_ring(C)`.
 """
 function quadratic_discriminant(C::CliffordAlgebra)
   if isdefined(C, :disq)
@@ -326,16 +332,16 @@ end
 @doc raw"""
     disq(C::CliffordAlgebra) -> FieldElem
 
-Alias for `quadratic_discriminant`.
+Alias for [`quadratic_discriminant`](@ref quadratic_discriminant(C::CliffordAlgebra)).
 """
 disq(C::CliffordAlgebra) = quadratic_discriminant(C)
 
 @doc raw"""
     basis_of_center(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return a basis of the center of $C$. It equals `basis_of_centroid(C)`, if and only
+Return a basis of the center of `C`. It equals `basis_of_centroid(C)`, if and only
 if `dim(space(C))` is odd. Otherwise it contains only the
-multiplicative identity of $C$.
+multiplicative identity of `C`.
 """
 function basis_of_center(C::CliffordAlgebra)
   if isdefined(C, :basis_of_center)
@@ -351,11 +357,11 @@ end
 @doc raw"""
     representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left) -> MatElem
 
-Return the representation matrix of the element $x$ with respect to `basis(parent(x))`. The multiplication is from
+Return the representation matrix of the element `x` with respect to `basis(parent(x))`. The multiplication is from
 the left if `action == :left` and from the right if `action == :right`.
 """
 function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
-  @req (action == :left) || (action == :right) "The action is either $(:left) or $(:right)."
+  @req (action == :left) || (action == :right) "The action is either `(:left) or `(:right)."
   C = parent(x)
   n = dim(C)
   res = zero_matrix(base_ring(C), n, n)
@@ -380,7 +386,7 @@ end
 @doc raw"""
     even_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
-Return the projection of $x$ onto the even Clifford algebra
+Return the projection of `x` onto the even Clifford algebra
 
 # Examples
 
@@ -395,9 +401,17 @@ julia> even_part(x)
 even_part(x::CliffordAlgebraElem) = parent(x)(even_coefficients(x))
 
 @doc raw"""
+    is_even(x::CliffordAlgebraElem) -> Bool
+
+Return 'true' if 'x' is even, i.e. if [`even_part(x)`](@ref even_part(x::CliffordAlgebraElem))
+and `x` coincide. Otherwise, return `false`.
+"""
+is_even(x::CliffordAlgebraElem) = (x == even_part(x))
+
+@doc raw"""
     odd_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
-Return the projection of $x$ onto the odd Clifford algebra.
+Return the projection of `x` onto the odd Clifford algebra.
 
 # Examples
 
@@ -410,6 +424,14 @@ julia> odd_part(x)
 ```
 """
 odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coefficients(x))
+
+@doc raw"""
+    is_odd(x::CliffordAlgebraElem) -> Bool
+
+Return 'true' if 'x' is odd, i.e. if [`odd_part(x)`](@ref even_part(x::CliffordAlgebraElem))
+and `x` coincide. Otherwise, return `false`.
+"""
+is_odd(x::CliffordAlgebraElem) = (x == odd_part(x))
 
 ################################################################################
 #

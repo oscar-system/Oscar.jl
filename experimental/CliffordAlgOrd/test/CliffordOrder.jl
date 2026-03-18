@@ -372,7 +372,7 @@ using Test
       for i in 1:4
         x[i] = K()
       end
-      x == C()
+      @test x == C()
     end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
@@ -523,9 +523,9 @@ using Test
       @testset "setindex!" begin
         x = C([a, 2 * a, 3 * a, 4 * a])
         for i in 1:4
-          x[i] = K()
+          x[i] = zero(K)
         end
-        x == C()
+        @test is_zero(x)
       end
       @testset "center and centroid" begin
         @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
@@ -660,7 +660,7 @@ using Test
         for i in 1:4
           x[i] = QQ()
         end
-        x == C()
+        @test x == C()
       end
       @testset "center and centroid" begin
         @test basis_of_center(C) == [basis(C, 1)]
