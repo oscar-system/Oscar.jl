@@ -73,8 +73,10 @@ function fitting_ideal(M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
- U = C.quo
- SG = singular_generators(U.gens)
+ if iszero(C.quo)
+  return fitting_ideal(ambient_free_module(C), i)
+ end
+ SG = singular_generators(C.quo.gens)
  return MPolyIdeal(R, Singular.LibHomolog.fitting(SG, i)) #TODO result is standard_basis
 end
 
@@ -133,8 +135,10 @@ function is_flat(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
- U = C.quo
- SG = singular_generators(U.gens)
+ if iszero(C.quo)
+  return true
+ end
+ SG = singular_generators(C.quo.gens)
  res = Singular.LibHomolog.isFlat(SG)
  if res == 1 return true end
  return false
@@ -191,8 +195,10 @@ function non_flat_locus(M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(M)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  C = present_as_cokernel(M)
- U = C.quo
- SG = singular_generators(U.gens)
+ if iszero(C.quo)
+  return ideal(R, [one(R)])
+ end
+ SG = singular_generators(C.quo.gens)
  return MPolyIdeal(R, Singular.LibHomolog.flatLocus(SG))
 end
 
