@@ -570,6 +570,12 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   # work around if we're passing the zero module to singular, see
   # https://github.com/oscar-system/Singular.jl/issues/796
   if iszero(krnel)
+    if is_graded(M)
+      F0 = pm[0]
+      M_new = SubquoModule(F0, gens(F0))
+      phi = hom(M_new, M, gens(M); check=false)
+      return M_new, phi
+    end
     return M, id_hom(M)
   end
   
