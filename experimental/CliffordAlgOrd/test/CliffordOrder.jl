@@ -7,14 +7,25 @@ using Test
     # Over an order in a number field
     K, b = quadratic_field(5)
     a = 1//2 * (1 + b)
-    lsK = lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)]))
-    Oscar.ConformanceTests.test_NCRing_interface(clifford_order(lsK))
+    C = clifford_order(lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)])))
+    ConformanceTests.test_NCRing_interface(C)
+
+    # Matrices over Clifford orders
+    M = matrix_ring(C, 2)
+    ConformanceTests.test_NCRing_interface(M)
+
   end 
 
   @testset "ZZCliffordOrder - conformance tests" begin
     lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
     ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
-    ConformanceTests.test_NCRing_interface(clifford_order(root_lattice(:A, 3)))
+    
+    C = clifford_order(root_lattice(:A, 3))
+    ConformanceTests.test_NCRing_interface(C)
+    
+    # Matrices over ZZClifford orders
+    M = matrix_ring(C, 2)
+    ConformanceTests.test_NCRing_interface(M)
   end 
   
   @testset "failing constructions" begin

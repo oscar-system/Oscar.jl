@@ -12,8 +12,13 @@ using Test
     # Over a number field
     K, a = quadratic_field(-5)
     ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(K, K[0 1; 1 0])))    
-    qsK = quadratic_space(K, K[2*a -1 0; -1 2*a -1; 0 -1 2*a])
-    ConformanceTests.test_NCRing_interface(clifford_algebra(qsK))
+    C = clifford_algebra(quadratic_space(K, K[2*a -1 0; -1 2*a -1; 0 -1 2*a]))
+    ConformanceTests.test_NCRing_interface(C)
+  
+    # Matrices over Clifford Algebras
+    M = matrix_ring(C, 2)
+    ConformanceTests.test_NCRing_interface(M)
+
   end
 
   @testset "zero-dimensional corner case" begin
