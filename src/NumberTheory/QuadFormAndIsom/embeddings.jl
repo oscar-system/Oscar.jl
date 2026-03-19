@@ -242,7 +242,7 @@ function _overlattice(
   _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
   C = lattice(ambient_space(L), _B[end-rank(A)-rank(B)+1:end, :])
   fC = block_diagonal_matrix(QQMatrix[fA, fB])
-  _B = solve(basis_matrix(L), basis_matrix(C); side=:left)
+  _B = coordinates(basis_matrix(C), L)
   fC = _B*fC*inv(_B)
   @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
   _, graph = sub(D, D.(_glue))
