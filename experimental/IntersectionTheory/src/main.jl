@@ -1831,17 +1831,40 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   @assert base(X) == base(Y)
   b = base(X)
   A, B = chow_ring(X), chow_ring(Y)
+  na, nb = ngens(A), ngens(B)
+
+  if A isa MPolyQuoRing
+    AR = base_ring(A)
+  else
+    AR = A
+  end
+  if B isa MPolyQuoRing
+    BR = base_ring(B)
+  else
+    BR = B
+  end
+
   R, x, y = graded_polynomial_ring(
     b, symbols(A), symbols(B); weights=vcat(gradings(A), gradings(B))
   )
-  AtoR = Oscar.hom(A, R, x)
-  BtoR = Oscar.hom(B, R, y)
-  IA = ideal(A isa MPolyQuoRing ? AtoR.(A.(gens(A.I))) : [R()])
-  IB = ideal(B isa MPolyQuoRing ? BtoR.(B.(gens(B.I))) : [R()])
+  ARtoR = Oscar.hom(AR, R, x)
+  BRtoR = Oscar.hom(BR, R, y)
+  IA = ideal(A isa MPolyQuoRing ? ARtoR.(gens(A.I)) : [R()])
+  IB = ideal(B isa MPolyQuoRing ? BRtoR.(gens(B.I)) : [R()])
   AXY, _ = quo(R, IA + IB)
   XY = AbstractVariety(dim(X)+dim(Y), AXY)
   if isdefined(X, :point) && isdefined(Y, :point)
-    XY.point = XY(AtoR(point_class(X)) * BtoR(point_class(Y)))
+    if A isa MPolyQuoRing
+      pA = point_class(X).f
+    else
+      pA = point_class(X)
+    end
+    if B isa MPolyQuoRing
+      pB = point_class(Y).f
+    else
+      pB = point_class(Y)
+    end
+    XY.point = XY(pA * pB)
   end
   p = AbstractVarietyMap(XY, X, XY.(x))
   q = AbstractVarietyMap(XY, Y, XY.(y))
