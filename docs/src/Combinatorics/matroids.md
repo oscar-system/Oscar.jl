@@ -120,6 +120,7 @@ is_minor(M::Matroid, N::Matroid)
 matroid_hex(M::Matroid)
 automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
+bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
 ```
 
 ### Tutte Group
