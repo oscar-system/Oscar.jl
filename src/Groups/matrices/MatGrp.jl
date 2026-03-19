@@ -389,7 +389,8 @@ end
 # this saves the value of x.X
 # x_gap = x.X if this is already known, x_gap = nothing otherwise
 function lies_in(x::MatElem, G::MatGroup, x_gap)
-   if base_ring(x) != base_ring(G) || nrows(x) != degree(G) return false, x_gap end
+   AbstractAlgebra.check_base_ring(x, G)
+   if nrows(x) != degree(G) return false, x_gap end
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
       for g in gens(G)
