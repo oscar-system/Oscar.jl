@@ -5,7 +5,8 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
-export restriction_of_scalars
+function restriction_of_scalars end
+export  restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
@@ -22,6 +23,7 @@ include("Misc.jl")
 module GModuleFromGap
 using Oscar
 import Hecke: data
+import Oscar: restriction_of_scalars
 
 #XXX: clash of names!
 #   gmodule(k, C) vs gmodule_ver(k, C)
@@ -1230,10 +1232,6 @@ that is induced by the permutation action of `G` on the basis of the  module.
 function natural_gmodule(G::PermGroup, R::Ring)
   M = free_module(R, degree(G); cached = false)
   return GModule(M, G, [hom(M, M, PermMat(R, a)) for a in gens(G)])
-  return GModule(M, G, [hom(M, M, permutation_matrix(R, a)) for a in gens(G)])
-#TODO: We do not really want to write down these matrices.
-#      What is the appropriate way to construct a module homomorphism
-#      without storing a matrix?
 end
 
 ######################################################################
@@ -3131,7 +3129,6 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
-export restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
