@@ -1831,7 +1831,6 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   @assert base(X) == base(Y)
   b = base(X)
   A, B = chow_ring(X), chow_ring(Y)
-  na, nb = ngens(A), ngens(B)
 
   if A isa MPolyQuoRing
     AR = base_ring(A)
