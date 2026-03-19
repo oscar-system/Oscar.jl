@@ -1831,18 +1831,8 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   @assert base(X) == base(Y)
   b = base(X)
   A, B = chow_ring(X), chow_ring(Y)
-
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-  else
-    BR = B
-  end
-
+  AR = A isa MPolyQuoRing ? base_ring(A) : A
+  BR = B isa MPolyQuoRing ? base_ring(B) : B
   R, x, y = graded_polynomial_ring(
     b, symbols(A), symbols(B); weights=vcat(gradings(A), gradings(B))
   )
@@ -1852,19 +1842,12 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   IB = ideal(B isa MPolyQuoRing ? BRtoR.(gens(B.I)) : [R()])
   AXY, _ = quo(R, IA + IB)
   XY = AbstractVariety(dim(X)+dim(Y), AXY)
+
   if isdefined(X, :point) && isdefined(Y, :point)
-    if A isa MPolyQuoRing
-      pA = point_class(X).f
-    else
-      pA = point_class(X)
-    end
-    if B isa MPolyQuoRing
-      pB = point_class(Y).f
-    else
-      pB = point_class(Y)
-    end
-    XY.point = XY(pA * pB)
+      pA = A isa MPolyQuoRing ? point_class(X).f : point_class(X)
+      pB = B isa MPolyQuoRing ? point_class(Y).f : point_class(Y)
   end
+  XY.point = XY(ARtoR(pA) *  BRtoR(pB))
   p = AbstractVarietyMap(XY, X, XY.(x))
   q = AbstractVarietyMap(XY, Y, XY.(y))
   if isdefined(X, :T) && isdefined(Y, :T)
