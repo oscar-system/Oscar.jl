@@ -105,40 +105,6 @@ canonical basis of its parent Clifford algebra.
 """
 coefficients(x::CliffordAlgebraElem) = x.coeffs
 
-@doc raw"""
-    even_coefficients(x::CliffordAlgebraElem) -> Vector
-
-Return the coefficient vector of `x` wrt the
-canonical basis of its parent Clifford algebra,
-but all coefficients corresponding to basis elements
-with odd grading are set to zero. This also updates
-the field `x.even_coeffs`.
-"""
-function even_coefficients(x::CliffordAlgebraElem)
-  if isdefined(x, :even_coeffs)
-    return x.even_coeffs
-  end
-  _set_even_odd_coefficients!(x)
-  return x.even_coeffs
-end
-
-@doc raw"""
-    odd_coefficients(x::CliffordAlgebraElem) -> Vector
-
-Return the coefficient vector of `x` wrt the
-canonical basis of its parent Clifford algebra,
-but all coefficients corresponding to basis elements
-with even grading are set to zero. This also updates
-the field `x.odd_coeffs`.
-"""
-function odd_coefficients(x::CliffordAlgebraElem)
-  if isdefined(x, :odd_coeffs)
-    return x.odd_coeffs
-  end
-  _set_even_odd_coefficients!(x)
-  return x.odd_coeffs
-end
-
 ################################################################################
 #
 #  basic functionality
@@ -261,15 +227,11 @@ is_commutative(C::CliffordAlgebra) = dim(C) == 1 || dim(C) == 2
 
 Return the `i`-th coefficient of the element `x`.
 """
-coeff(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
+coeff(x::CliffordAlgebraElem, i::Int) = coefficients(x)[i]
 
-getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
+getindex(x::CliffordAlgebraElem, i::Int) = coefficients(x)[i]
 
-function setindex!(x::CliffordAlgebraElem, newentry::RingElement, i::Int64) 
-  
-  coefficients(x)[i] = base_ring(x)(newentry)
-  _set_even_odd_coefficients!(x)
-end
+setindex!(x::CliffordAlgebraElem, newentry::RingElement, i::Int) = (coefficients(x)[i] = base_ring(x)(newentry))
 
 ################################################################################
 #
@@ -384,6 +346,16 @@ end
 ################################################################################
 
 @doc raw"""
+    even_coefficients(x::CliffordAlgebraElem) -> Vector
+
+Return the coefficient vector of `x` with respect to the
+canonical basis of its parent Clifford algebra,
+but with all its coefficients that correspond to basis
+elements with odd grading set to zero.
+"""
+even_coefficients(x::CliffordAlgebraElem) = [iseven(count_ones(y - 1)) ? coefficients(x)[y] : zero(base_ring(parent(x))) for y in 1:dim(parent(x))]
+
+@doc raw"""
     even_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
 Return the projection of `x` onto the even Clifford algebra
@@ -407,6 +379,16 @@ Return 'true' if 'x' is even, i.e. if [`even_part(x)`](@ref even_part(x::Cliffor
 and `x` coincide. Otherwise, return `false`.
 """
 is_even(x::CliffordAlgebraElem) = (x == even_part(x))
+
+@doc raw"""
+    odd_coefficients(x::CliffordAlgebraElem) -> Vector
+
+Return the coefficient vector of `x` with respect to the
+canonical basis of its parent Clifford algebra,
+but with all its coefficients that correspond to basis elements
+with even grading set to zero.
+"""
+odd_coefficients(x::CliffordAlgebraElem) = [isodd(count_ones(y - 1)) ? coefficients(x)[y] : zero(base_ring(parent(x))) for y in 1:dim(parent(x))]
 
 @doc raw"""
     odd_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
@@ -457,6 +439,7 @@ function rand(rng::Random.AbstractRNG, C::CliffordAlgebra, v...)
   coeffs = [rand(rng, base_ring(C), v...) for _ in 1:C.dim]
   return C(coeffs)
 end
+
 rand(C::CliffordAlgebra, v...) = rand(Random.default_rng(), C, v...)
 
 ################################################################################
@@ -465,24 +448,13 @@ rand(C::CliffordAlgebra, v...) = rand(Random.default_rng(), C, v...)
 #
 ################################################################################
 
-function ConformanceTests.generate_element(C::CliffordAlgebra)
-  coeffs = [ConformanceTests.generate_element(base_ring(C)) for _ in 1:C.dim]
-  return C(coeffs)
-end
+ConformanceTests.generate_element(C::CliffordAlgebra) = C([base_ring(C)(rand(-3:3)) for _ in 1:dim(C)])
 
 ################################################################################
 #
 #  Auxillary functions
 #
 ################################################################################
-
-function _set_even_odd_coefficients!(x::CliffordAlgebraElem)
-  R = base_ring(parent(x))
-  d = dim(parent(x))
-  x.even_coeffs = [ iseven(count_ones(y - 1)) ? x.coeffs[y] : R() for y in 1:d]
-  x.odd_coeffs = x.coeffs - x.even_coeffs
-  return x
-end
 
 function __can_convert_coefficients(coeff::Vector{R}, K::Field) where {R}
   if length(coeff) == 0

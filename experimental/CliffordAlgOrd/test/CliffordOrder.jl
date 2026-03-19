@@ -1,7 +1,6 @@
 using Test
 
 @testset "all test - Clifford orders" verbose = true begin
-  _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
   mul_with_gen = Oscar._mul_with_gen
 
   @testset "CliffordOrder - conformance tests" begin
@@ -15,7 +14,7 @@ using Test
   @testset "ZZCliffordOrder - conformance tests" begin
     lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
     ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
-    ConformanceTests.test_NCRing_interface(clifford_order(root_lattice(:E, 6)))
+    ConformanceTests.test_NCRing_interface(clifford_order(root_lattice(:A, 3)))
   end 
   
   @testset "failing constructions" begin
@@ -86,12 +85,8 @@ using Test
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = Kzer, [K(1)]
-        @test xeven != x.even_coeffs
-        @test xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([17]))
+        @test is_odd(C([0])) && is_even(C([0]))
 
         @test +x == x
         @test -x == C([-17])
@@ -183,12 +178,8 @@ using Test
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = QQzer, [QQ(1)]
-        @test xeven != even_coefficients(x)
-        @test xodd != odd_coefficients(x)
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([17]))
+        @test is_odd(C([0])) && is_even(C([0]))
 
         @test +x == x
         @test -x == C([-17])
@@ -308,11 +299,8 @@ using Test
 
       @test even_part(x) == C([-1, 0, 0, a + 1])
       @test odd_part(x) == C([0, 1, a, 0])
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = Kzer, Kzer
-      @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+      @test is_even(C([-1, 0, 0, a + 1]))
+      @test is_odd(C([0, 1, a, 0]))
 
       @test +x == x
       @test -x == C([1, -1, -a, -(a + 1)])
@@ -466,11 +454,8 @@ using Test
 
         @test even_part(x) == C([-1, 0, 0, a + 1])
         @test odd_part(x) == C([0, 1, a, 0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = Kzer, Kzer
-        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([-1, 0, 0, a + 1]))
+        @test is_odd(C([0, 1, a, 0]))
 
         @test +x == x
         @test -x == C([1, -1, -a, -(a + 1)])
@@ -601,11 +586,8 @@ using Test
 
         @test even_part(x) == C([-1, 0, 0, 8])
         @test odd_part(x) == C([0, 1, 0, 0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = QQzer, QQzer
-        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(even_part(x))
+        @test is_odd(odd_part(x))
 
         @test +x == x
         @test -x == C([1, -1, 0, -8])
@@ -731,12 +713,6 @@ using Test
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coefficients(x)
-      @test xodd != odd_coefficients(x)
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1
@@ -858,12 +834,6 @@ using Test
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coefficients(x)
-      @test xodd != odd_coefficients(x)
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1

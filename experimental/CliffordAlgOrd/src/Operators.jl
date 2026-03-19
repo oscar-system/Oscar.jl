@@ -170,12 +170,53 @@ end
 #
 ################################################################################
 
-##### Algebra #####
+function zero!(c::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  cs = coefficients(c)
+  for i in 1:length(cs)
+    cs[i] = zero(cs[i])
+  end
+  return c
+end
 
+function one!(c::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  cs = coefficients(c)
+  cs[1] = one(cs[1])
+  for i in 2:length(cs)
+    cs[i] = zero(cs[i])
+  end
+  return c
+end
 
-##### Order #####
+function neg!(c::T, a::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  cs, as = coefficients(c), coefficients(a)
+  for i in 1:length(cs)
+    cs[i] = -as[i]
+  end 
+  return c
+end
 
+function add!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  as, bs, cs = coefficients(a), coefficients(b), coefficients(c)
+  for i in 1:length(cs)
+    cs[i] = as[i] + bs[i]
+  end
+  return c
+end
 
-### ZZ ###
+function sub!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  as, bs, cs = coefficients(a), coefficients(b), coefficients(c)
+  for i in 1:length(cs)
+    cs[i] = as[i] - bs[i]
+  end
+  return c
+end
 
+function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
+  tmp = a * b
+  cs, tmps = coefficients(c), coefficients(tmp)
+  for i in 1:length(cs)
+    cs[i] = tmps[i]
+  end
+  return c
+end
 

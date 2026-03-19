@@ -32,27 +32,17 @@ end
 mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{T}
   parent::CliffordAlgebra{T, S}
   coeffs::Vector{T}
-  even_coeffs::Vector{T}
-  odd_coeffs::Vector{T}
 
   #Return the 0-element of the Clifford algebra C
-  function CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S}
-    newelt = new{T,S}(C, fill(C.base_ring(), C.dim))
-    _set_even_odd_coefficients!(newelt)
-    return newelt
-  end
+  CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S} = new{T,S}(C, fill(C.base_ring(), C.dim))
 
   CliffordAlgebraElem(C::CliffordAlgebra) =
     CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C)
 
   #Return the element in the Clifford algebra C with coefficient vector coeff wrt. the canonical basis
-  function CliffordAlgebraElem{T,S}(
-    C::CliffordAlgebra{T,S}, coeffs::Vector{R}
-  ) where {T,S,R<:FieldElem}
+  function CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}, coeffs::Vector{R}) where {T,S,R<:FieldElem}
     @req length(coeffs) == C.dim "invalid length of coefficient vector"
-    newelt = new{T,S}(C, coeffs)
-    _set_even_odd_coefficients!(newelt)
-    return newelt
+    return new{T,S}(C, coeffs)
   end
 
   CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeffs::Vector{T}) where {T,S} =
@@ -119,16 +109,10 @@ end
 mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T}
   parent::CliffordOrder{T, C}
   coeffs::Any 
-  even_coeffs::Any
-  odd_coeffs::Any
 
   #Return the 0-element of the Clifford order C
-  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}) where {T, C}
-    ambalg = CO.ambient_algebra
-    newelt = new{T, C}(CO, fill(ambalg.base_ring(), CO.rank))
-    _set_even_odd_coefficients!(newelt)
-    return newelt
-  end
+  CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}) where {T, C} =
+    new{T, C}(CO, fill(CO.ambient_algebra.base_ring(), CO.rank))
 
   CliffordOrderElem(CO::CliffordOrder) = CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra)}(CO)
 
@@ -140,10 +124,8 @@ mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T
       ci = coeffs[i]
       is_zero(ci) || @req ci in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
     end
-
-    newelt = new{T, C}(CO, coeffs)
-    _set_even_odd_coefficients!(newelt)
-    return newelt
+    
+    return new{T, C}(CO, coeffs)
   end
 
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
@@ -158,15 +140,9 @@ end
 mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRingElem}
   parent::ZZCliffordOrder
   coeffs::Vector{QQFieldElem}
-  even_coeffs::Vector{QQFieldElem}
-  odd_coeffs::Vector{QQFieldElem}
 
   #Return the 0-element of the Clifford order CO
-  function ZZCliffordOrderElem(CO::ZZCliffordOrder)
-    newelt = new(CO, fill(QQ(), CO.rank))
-    _set_even_odd_coefficients!(newelt)
-    return newelt
-  end
+  ZZCliffordOrderElem(CO::ZZCliffordOrder) = new(CO, fill(QQ(), CO.rank))
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
   function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{QQFieldElem})
@@ -174,9 +150,7 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
     for i in 1:CO.rank
       @req is_integer(coeffs[i]) "The element does not lie in the Clifford order."
     end
-    newelt = new(CO, coeffs)
-    _set_even_odd_coefficients!(newelt)
-    return newelt
+    return new(CO, coeffs)
   end
 
   function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{S}) where {S}

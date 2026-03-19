@@ -328,40 +328,6 @@ canonical pseudo-basis of its parent Clifford order.
 """
 coefficients(x::CliffordOrderElem) = x.coeffs::Vector{elem_type(base_ring(ambient_algebra(parent(x))))}
 
-@doc raw"""
-    even_coefficients(x::CliffordOrderElem) -> Vector
-
-Return the coefficient vector of `x` wrt the
-canonical pseudo-basis of its parent Clifford order,
-but all coefficients corresponding to basis elements
-with odd grading are set to zero. This also updates
-the field `x.even_coeffs`.
-"""
-function even_coefficients(x::CliffordOrderElem)
-  if isdefined(x, :even_coefficientss)
-    return x.even_coeffs::Vector{elem_type(base_ring(ambient_algebra(parent(x))))}
-  end
-  _set_even_odd_coefficients!(x)
-  return x.even_coeffs::Vector{elem_type(base_ring(ambient_algebra(parent(x))))}
-end
-
-@doc raw"""
-    odd_coefficients(x::CliffordOrderElem) -> Vector
-
-Return the coefficient vector of `x` wrt the
-canonical pseudo-basis of its parent Clifford order,
-but all coefficients corresponding to basis elements
-with even grading are set to zero. This also updates
-the field `x.odd_coeffs`.
-"""
-function odd_coefficients(x::CliffordOrderElem)
-  if isdefined(x, :odd_coeffs)
-    return x.odd_coeffs::Vector{elem_type(base_ring(ambient_algebra(parent(x))))}
-  end
-  _set_even_odd_coefficients!(x)
-  return x.odd_coeffs::Vector{elem_type(base_ring(ambient_algebra(parent(x))))}
-end
-
 ### ZZ ###
 
 @doc raw"""
@@ -378,40 +344,6 @@ Return the coefficient vector of `x` with respect to the
 canonical basis of its parent Clifford order.
 """
 coefficients(x::ZZCliffordOrderElem) = x.coeffs
-
-@doc raw"""
-    even_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
-
-Return the coefficient vector of `x` with respect to the
-canonical basis of its parent Clifford order,
-but all coefficients corresponding to basis elements
-with odd grading are set to zero. This also updates
-the field `x.even_coeffs`.
-"""
-function even_coefficients(x::ZZCliffordOrderElem)
-  if isdefined(x, :even_coeffs)
-    return x.even_coeffs
-  end
-  _set_even_odd_coefficients!(x)
-  return x.even_coeffs
-end
-
-@doc raw"""
-    odd_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
-
-Return the coefficient vector of `x` with respect to the
-canonical basis of its parent Clifford order,
-but all coefficients corresponding to basis elements
-with even grading are set to zero. This also updates
-the field `x.odd_coeffs`.
-"""
-function odd_coefficients(x::ZZCliffordOrderElem)
-  if isdefined(x, :odd_coeffs)
-    return x.odd_coeffs
-  end
-  _set_even_odd_coefficients!(x)
-  return x.odd_coeffs
-end
 
 ################################################################################
 #
@@ -588,24 +520,18 @@ coeff(x::CliffordOrderElem, i::Int) = coefficients(x)[i]
 
 getindex(x::CliffordOrderElem, i::Int) = coefficients(x)[i]
 
-function setindex!(x::CliffordOrderElem, newentry::RingElement, i::Int64) 
-  coefficients(x)[i] = number_field(base_ring(x))(newentry)
-  _set_even_odd_coefficients!(x)
-end
+setindex!(x::CliffordOrderElem, newentry::RingElement, i::Int) = (coefficients(x)[i] = number_field(base_ring(x))(newentry))
 
 @doc raw"""
     coeff(x::ZZCliffordOrderElem, i::Int) -> ZZRingElem
 
 Return the `i`-th coefficient of the element `x`.
 """
-coeff(x::ZZCliffordOrderElem, i::Int64) = coefficients(x)[i]
+coeff(x::ZZCliffordOrderElem, i::Int) = coefficients(x)[i]
 
-getindex(x::ZZCliffordOrderElem, i::Int64) = coefficients(x)[i]
+getindex(x::ZZCliffordOrderElem, i::Int) = coefficients(x)[i]
 
-function setindex!(x::ZZCliffordOrderElem, newentry::RingElement, i::Int64) 
-  coefficients(x)[i] = QQ(newentry)
-  _set_even_odd_coefficients!(x)
-end
+setindex!(x::ZZCliffordOrderElem, newentry::RingElement, i::Int) = (coefficients(x)[i] = QQ(newentry))
 
 ################################################################################
 #
@@ -784,6 +710,16 @@ characteristic_polynomial(x::ZZCliffordOrderElem) = characteristic_polynomial(am
 ################################################################################
 
 @doc raw"""
+    even_coefficients(x::CliffordOrderElem) -> Vector
+
+Return the coefficient vector of `x` with respect to the
+canonical pseudo-basis of its parent Clifford order,
+but with all its coefficients that correspond to basis
+elements with odd grading set to zero.
+"""
+even_coefficients(x::CliffordOrderElem) = [iseven(count_ones(y - 1)) ? coefficients(x)[y] : zero(base_ring(ambient_algebra(parent(x)))) for y in 1:rank(parent(x))]
+
+@doc raw"""
     even_part(x::CliffordOrderElem) -> CliffordOrderElem
 
 Return the projection of `x` onto the even Clifford order.
@@ -797,6 +733,16 @@ Return 'true' if 'x' is even, i.e. if [`even_part(x)`](@ref even_part(x::Cliffor
 and `x` coincide. Otherwise, return `false`.
 """
 is_even(x::CliffordOrderElem) = (even_part(x) == x)
+
+@doc raw"""
+    odd_coefficients(x::CliffordOrderElem) -> Vector
+
+Return the coefficient vector of `x` with respect to the
+canonical pseudo-basis of its parent Clifford order,
+but with all its coefficients that correspond to basis elements
+with even grading set to zero.
+"""
+odd_coefficients(x::CliffordOrderElem) = [isodd(count_ones(y - 1)) ? coefficients(x)[y] : zero(base_ring(ambient_algebra(parent(x)))) for y in 1:rank(parent(x))]
 
 @doc raw"""
     odd_part(x::CliffordOrderElem) -> CliffordOrderElem
@@ -813,6 +759,17 @@ and `x` coincide. Otherwise, return `false`.
 """
 is_odd(x::CliffordOrderElem) = (odd_part(x) == x)
 
+### ZZ ###
+@doc raw"""
+    even_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
+
+Return the coefficient vector of `x` with respect to the
+canonical pseudo-basis of its parent Clifford order,
+but with all its coefficients that correspond to basis
+elements with odd grading set to zero.
+"""
+even_coefficients(x::ZZCliffordOrderElem) = [iseven(count_ones(y - 1)) ? coefficients(x)[y] : QQ() for y in 1:rank(parent(x))]
+
 @doc raw"""
     even_part(x::ZZCliffordOrderElem) -> ZZCliffordOrderElem
 
@@ -827,6 +784,16 @@ Return 'true' if 'x' is even, i.e. if [`even_part(x)`](@ref even_part(x::ZZCliff
 and `x` coincide. Otherwise, return `false`.
 """
 is_even(x::ZZCliffordOrderElem) = (even_part(x) == x)
+
+@doc raw"""
+    odd_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
+
+Return the coefficient vector of `x` with respect to the
+canonical pseudo-basis of its parent Clifford order,
+but with all its coefficients that correspond to basis elements
+with even grading set to zero.
+"""
+odd_coefficients(x::ZZCliffordOrderElem) = [isodd(count_ones(y - 1)) ? coefficients(x)[y] : QQ() for y in 1:rank(parent(x))]
 
 @doc raw"""
     odd_part(x::ZZCliffordOrderElem) -> ZZCliffordOrderElem
@@ -893,16 +860,15 @@ rand(CO::ZZCliffordOrder, v...) = rand(Random.default_rng(), CO, v...)
 #############################################################
 
 function ConformanceTests.generate_element(CO::CliffordOrder)
-  ids = coefficient_ideals(CO)
-  coeffs = [ConformanceTests.generate_element(ids[i]) for i in 1:CO.rank]
+  K = base_ring(ambient_algebra(CO))
+  coeffs = map(coefficient_ideals(CO)) do id
+    sum((K(rand(-3:3)) * b for b in basis(id)), init=zero(K))
+  end
   return CO(coeffs)
 end
 
 ### ZZ ###
-function ConformanceTests.generate_element(CO::ZZCliffordOrder)
-  coeffs = [ConformanceTests.generate_element(base_ring(CO)) for _ in 1:CO.rank]
-  return CO(coeffs)
-end
+ConformanceTests.generate_element(CO::ZZCliffordOrder) = CO([QQ(rand(-3:3)) for _ in 1:rank(CO)])
 
 #############################################################
 #
@@ -921,15 +887,6 @@ function _set_coefficient_ideals!(ls::QuadLat)
   end
   return res::Vector{typeof(fractional_ideal(base_ring(ls), one(base_ring(ls))))}
 end
-
-function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
-  R = base_ring(ambient_algebra(parent(x)))
-  d = rank(parent(x))
-  x.even_coeffs = [ iseven(count_ones(y - 1)) ? x.coeffs[y] : R() for y in 1:d]
-  x.odd_coeffs = x.coeffs - x.even_coeffs
-  return x
-end
-
 
 function _can_convert_coefficients(coeff::Vector{S}, K::Field) where {S}
   if length(coeff) == 0
