@@ -43,6 +43,7 @@ struct GModuleElem{T}
   data::T
 end
 
+Oscar.elem_type(::Type{GModule{PermGroup, T}}) where T = GModuleElem{elem_type(T)} 
 parent(a::GModuleElem) = a.parent
 
 function (C::GModule)(a::Union{ModuleElem, FinGenAbGroupElem})
