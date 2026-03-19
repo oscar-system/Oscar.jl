@@ -1830,13 +1830,14 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
   C, _ = quo(BR, I)
   gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
+                         # monomial_basis checks finiteness
   @assert gs[end] == 1 # the last one should always be 1
   g = length(gs)
 
   R, _ = tensor_product(BR, AR, use_product_ordering = true)
   ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
+  ARtoR = hom(AR, R, ba[b+1:end])
+  BRtoR = hom(BR, R, ba[1:b])
   RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
   

@@ -33,7 +33,7 @@ When the pushforward is not specified explicitly, OSCAR attempts to compute it f
 using the projection formula together with the intersection pairing on $Y$. This succeeds
 automatically when:
 
-- $Y$ is a point or a curve;
+- **Y** is a point or a curve;
 - all algebraic classes in $\mathrm{N}^*(Y)_{\mathbb Q}$ are known (e.g., projective spaces, Grassmannians, complete intersections);
 - the flag `:alg` is set on $Y$.
 
