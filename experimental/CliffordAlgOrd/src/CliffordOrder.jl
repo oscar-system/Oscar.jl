@@ -845,6 +845,67 @@ is_odd(x::ZZCliffordOrderElem) = (odd_part(x) == x)
 
 #############################################################
 #
+#  Promotion rules 
+#
+#############################################################
+
+function AbstractAlgebra.promote_rule(::Type{COE}, ::Type{V}) where
+        {T<:RingElement, S, COE<:CliffordOrderElem{T, S}, V<:RingElement}
+    AbstractAlgebra.promote_rule(T, V) == T ? COE : Union{}
+end
+
+AbstractAlgebra.promote_rule(::Type{COE}, ::Type{COE}) where
+        {T<:RingElement, S, COE<:CliffordOrderElem{T, S}} = COE
+
+### ZZ ###
+function AbstractAlgebra.promote_rule(::Type{ZZCliffordOrderElem}, ::Type{V}) where {V<:RingElement}
+    AbstractAlgebra.promote_rule(ZZRingElem, V) == ZZRingElem ? ZZCliffordOrderElem : Union{}
+end
+
+AbstractAlgebra.promote_rule(::Type{ZZCliffordOrderElem}, ::Type{ZZCliffordOrderElem}) = ZZCliffordOrderElem
+
+#############################################################
+#
+#  Random generation 
+#
+#############################################################
+
+function rand(rng::Random.AbstractRNG, CO::CliffordOrder, v...)
+  ids = coefficient_ideals(CO)
+  coeffs = [rand(rng, ids[i], v...) for i in 1:CO.rank]
+  return CO(coeffs)
+end
+
+rand(CO::CliffordOrder, v...) = rand(Random.default_rng(), CO, v...)
+
+### ZZ ###
+function rand(rng::Random.AbstractRNG, CO::ZZCliffordOrder, v...)
+  coeffs = [rand(rng, base_ring(CO), v...) for _ in 1:CO.rank]
+  return CO(coeffs)
+end
+
+rand(CO::ZZCliffordOrder, v...) = rand(Random.default_rng(), CO, v...)
+
+#############################################################
+#
+#  Conformance test element generation 
+#
+#############################################################
+
+function ConformanceTests.generate_element(CO::CliffordOrder)
+  ids = coefficient_ideals(CO)
+  coeffs = [ConformanceTests.generate_element(ids[i]) for i in 1:CO.rank]
+  return CO(coeffs)
+end
+
+### ZZ ###
+function ConformanceTests.generate_element(CO::ZZCliffordOrder)
+  coeffs = [ConformanceTests.generate_element(base_ring(CO)) for _ in 1:CO.rank]
+  return CO(coeffs)
+end
+
+#############################################################
+#
 #  Auxillary functions
 #
 #############################################################

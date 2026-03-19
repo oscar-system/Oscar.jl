@@ -435,6 +435,43 @@ is_odd(x::CliffordAlgebraElem) = (x == odd_part(x))
 
 ################################################################################
 #
+#  Promotion rules
+#
+################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{CAE}, ::Type{V}) where
+        {T<:RingElement, S, CAE<:CliffordAlgebraElem{T, S}, V<:RingElement}
+    AbstractAlgebra.promote_rule(T, V) == T ? CAE : Union{}
+end
+
+AbstractAlgebra.promote_rule(::Type{CAE}, ::Type{CAE}) where
+        {T<:RingElement, S, CAE<:CliffordAlgebraElem{T, S}} = CAE
+
+################################################################################
+#
+#  Random generation 
+#
+################################################################################
+
+function rand(rng::Random.AbstractRNG, C::CliffordAlgebra, v...)
+  coeffs = [rand(rng, base_ring(C), v...) for _ in 1:C.dim]
+  return C(coeffs)
+end
+rand(C::CliffordAlgebra, v...) = rand(Random.default_rng(), C, v...)
+
+################################################################################
+#
+#  Conformance test element generation 
+#
+################################################################################
+
+function ConformanceTests.generate_element(C::CliffordAlgebra)
+  coeffs = [ConformanceTests.generate_element(base_ring(C)) for _ in 1:C.dim]
+  return C(coeffs)
+end
+
+################################################################################
+#
 #  Auxillary functions
 #
 ################################################################################

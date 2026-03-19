@@ -4,6 +4,18 @@ using Test
   _dim_qf = Oscar._dim_qf
   _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients! 
   mul_with_gen = Oscar._mul_with_gen 
+ 
+  @testset "CliffordAlgebra - conformance tests" begin
+    # Over rationals
+    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0])))    
+    ConformanceTests.test_NCRing_interface(clifford_algebra(rational_span(root_lattice(:E, 6))))
+
+    # Over a number field
+    K, a = quadratic_field(-5)
+    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(K, K[0 1; 1 0])))    
+    qsK = quadratic_space(K, K[2*a -1 0; -1 2*a -1; 0 -1 2*a])
+    ConformanceTests.test_NCRing_interface(clifford_algebra(qsK))
+  end
 
   @testset "zero-dimensional corner case" begin
     empty_qs = quadratic_space(QQ, identity_matrix(QQ, 0)) #zero-dim quad space over QQ

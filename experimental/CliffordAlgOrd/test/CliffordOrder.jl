@@ -3,6 +3,21 @@ using Test
 @testset "all test - Clifford orders" verbose = true begin
   _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
   mul_with_gen = Oscar._mul_with_gen
+
+  @testset "CliffordOrder - conformance tests" begin
+    # Over an order in a number field
+    K, b = quadratic_field(5)
+    a = 1//2 * (1 + b)
+    lsK = lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)]))
+    Oscar.ConformanceTests.test_NCRing_interface(clifford_order(lsK))
+  end 
+
+  @testset "ZZCliffordOrder - conformance tests" begin
+    lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
+    ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
+    ConformanceTests.test_NCRing_interface(clifford_order(root_lattice(:E, 6)))
+  end 
+  
   @testset "failing constructions" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
@@ -21,6 +36,7 @@ using Test
       @test_throws ArgumentError clifford_order(lattice(qs10))
     end
   end
+
   @testset "rank zero corner cases" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
