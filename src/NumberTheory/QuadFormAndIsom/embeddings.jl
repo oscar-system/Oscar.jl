@@ -54,7 +54,7 @@ together with the embeddings ``A\to D`` and ``B\to D``. The function also
 computes the orthogonal groups of ``A``, ``B`` and ``D`` and returns the
 embeddings ``O(A)\to O(D)`` and ``O(B)\to O(D)``.
 
-If the ``A`` and ``B`` are defined by lattices in a same quadratic space ``V``,
+If ``A`` and ``B`` are defined by lattices in a same quadratic space ``V``,
 then the module ``D`` is of the form ``L/M`` where ``L`` and ``M`` are the sums
 of the covers (resp. the relations) defining ``A`` and ``B``. In that case,
 ``A`` and ``B`` should have the same moduli and their covers should indeed be
@@ -67,8 +67,8 @@ the respective covers of ``A`` and ``B``.
 !!! note
     If the respective covers of ``A`` and ``B`` are in orthogonal direct sum
     in a fixed quadratic space, then setting `same_ambient` to true or false
-    give rise to isometric direct sums ``D``. The same difference here, is
-    that setting `same_ambient` to `true` allows to do everythin is a same
+    give rise to isometric direct sums ``D``. The main difference here, is
+    that setting `same_ambient` to `true` allows to do everything in a same
     fixed quadratic space which sometimes helps avoiding expensive
     computations.
 
