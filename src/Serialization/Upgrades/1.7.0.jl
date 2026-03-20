@@ -1,8 +1,8 @@
 ################################################################################
 # Upgrade Summary
 # 
-# `FreeAssAlgebra`: We renamed `FreeAssAlgebra` to `FreeAssociativeAlgebra`, 
-# as well as `FreeAssAlgElem` to `FreeAssociativeAlgebraElem` and this upgrade script takes care of this renaming.
+# We renamed `MatrixGroup` to `MatGroup`, as well as `MatrixGroupElem` to `MatGroupElem`
+# in https://github.com/oscar-system/Oscar.jl/pull/5704 and this upgrade script takes care of this renaming.
   
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.7.0",
