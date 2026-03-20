@@ -561,7 +561,7 @@ function homology(C::Hecke.ComplexOfMorphisms{T}, i::Int) where {T<:Union{Abstra
     return kernel(map(C, first(map_range)))[1]
   elseif i == last(chain_range)
     f = map(C,last(map_range))
-    return cokernel(f)
+    return cokernel(f)[1]
   elseif i in chain_range
     if Hecke.is_chain_complex(C)
       return quo_object(kernel(map(C,i))[1], image(map(C,i+1))[1])

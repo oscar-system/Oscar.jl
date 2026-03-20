@@ -133,9 +133,9 @@ end
     F2 = graded_free_module(Rg,[8,8])
     A1 = Rg[x y;
         2*x^2 3*y^2]
-    MM = graded_cokernel(F2, A1)
+    MM, _ = graded_cokernel(F2, A1)
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
-    MM = cokernel(F2, A1)
+    MM, _ = cokernel(F2, A1)
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
     MM = graded_cokernel(A1)
     @test degrees_of_generators(MM) == [Z[0], Z[0]]
@@ -345,6 +345,17 @@ end
   mp = presentation(M, minimal = true)
   @test rank(mp[0]) == 1
   @test rank(mp[1]) == 2
+
+  R1, (u,) = graded_polynomial_ring(QQ, [:u])
+  Z1 = grading_group(R1)
+  N = graded_image(matrix([u]))
+  mp = presentation(N, minimal = true)
+  @test degrees(mp[0]) == [Z1[1]]
+
+  fr = free_resolution(N)
+  frmin = free_resolution(N, algorithm = :mres)
+  @test degrees(fr[0]) == [Z1[1]]
+  @test degrees(frmin[0]) == degrees(fr[0])
 end
 
 
@@ -943,10 +954,10 @@ end
     F = graded_free_module(Rg, 1)
     B = Rg[x^2; y^3; z^4]
     M, inc = sub(F,B)
-    M = cokernel(inc)
+    M, _ = cokernel(inc)
     fr = free_resolution(M)
     phi = map(fr,4)
-    N = cokernel(phi)
+    N, _ = cokernel(phi)
     f = present_as_cokernel(N)
     @test ngens(f) == 1
 end
@@ -1063,7 +1074,7 @@ julia> F = graded_free_module(R, 1);
 
 julia> sub_F, inc = sub(F, [g*F[1] for g in gens(I)]);
 
-julia> M = cokernel(inc);
+julia> M, _ = cokernel(inc);
 
 julia> A, _ = quo(R, I);
 
@@ -1138,7 +1149,7 @@ degree: 0  1  2  3
   S, _ = graded_polynomial_ring(QQ, :x => 1:4)
   I = ideal(S, gens(S))
   FI = free_resolution(I)
-  M = cokernel(map(FI, 2))
+  M, _ = cokernel(map(FI, 2))
   tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
   @test tbl.values == lbt.values
@@ -1223,7 +1234,7 @@ end
   S1 = graded_free_module(S, [0])
   I = ideal(S, [u^2 for u in gens(S)])
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   a = Oscar.AllSubquoMonomials(M, 3)
   b = Oscar.all_exponents(M, 3)
@@ -1235,7 +1246,7 @@ end
 
   I = ideal(S, [u^3 for u in gens(S)])
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   a = Oscar.AllSubquoMonomials(M, 3)
   b = Oscar.all_exponents(M, 3)

@@ -907,6 +907,7 @@ inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
+gen(W::MPolyLocRing, i::Int) = W(gen(base_ring(W), i))
 number_of_generators(W::MPolyLocRing) = number_of_generators(base_ring(W))
 
 ### required extension of the localization function
