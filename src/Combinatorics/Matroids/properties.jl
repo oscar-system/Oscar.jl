@@ -582,6 +582,61 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
+    is_transversal_with_presentation([::Type{Int},] M::Matroid)
+
+If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
+If `Int` is passed as a first argument then the return value will contain indices instead of ground set elements.
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal_with_presentation(M)
+(true, [[1, 2, 3, 4], [1, 2, 3, 4]])
+
+julia> M = fano_matroid();
+
+julia> is_transversal_with_presentation(M)
+(false, Vector{Int64}[])
+
+```
+"""
+function is_transversal_with_presentation(::Type{Int}, M::Matroid)
+    polymakeReturn = Polymake.matroid.check_transversality(pm_object(M))
+    if polymakeReturn == false
+        return false, Vector{Int}[]
+    else
+        return true, _pmset_to_indices(polymakeReturn)::Vector{Vector{Int}}
+    end
+end
+
+function is_transversal_with_presentation(M::Matroid{T}) where T
+  res, indices = is_transversal_with_presentation(Int, M)
+  return res, _indices_to_gs(indices, M.groundset)::Vector{Vector{T}}
+end
+
+@doc raw"""
+    is_transversal(M::Matroid)
+
+Return `true` if `M` is transversal, return `false` otherwise.
+
+For a transversal presentation, see [`is_transversal_with_presentation(::Type{Int},::Matroid)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_transversal(uniform_matroid(2,4))
+true
+
+julia> is_transversal(fano_matroid())
+false
+```
+"""
+function is_transversal(M::Matroid)
+    return is_transversal_with_presentation(Int, M)[1]
+end
+
+
+@doc raw"""
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
@@ -1195,3 +1250,79 @@ end
 function indicator_vector(S::Vector{Int}, n::Int)
     return map(x -> x in S ? 1 : 0 , 1:n)
 end
+
+@doc raw"""
+    bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+
+The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
+which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
+(as defined in [Rin13](@cite)). Convention `min` or `max` can be chosen using the optional argument 
+`convention`, where `min` agrees with the aforecited papers. 
+
+!!! note
+    Via the conventions in the above sources, the output always has a lineality dimension of at least 1.
+
+# Examples
+The Bergman fan of the complete graph on $n$ vertices is the space of phylogenetic trees, its coarse
+fan structure has $(2n-3)!!=(2n-3)\cdot(2n-5)\cdots 3\cdot 1$ maximal cones.
+```jldoctest
+julia> M = cycle_matroid(complete_graph(5))
+Matroid of rank 4 on 10 elements
+
+julia> F = bergman_fan(M)
+Polyhedral fan in ambient dimension 10
+
+julia> n_maximal_cones(F)
+105
+```
+"""
+function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+    @req fan_structure in [:fine, :cyclic, :coarse] "fan structure '$(fan_structure)' is not supported"
+    
+    if rank(M) == 0
+        pt = cone(zeros(QQFieldElem, length(M)))
+        return polyhedral_fan(pt)
+    end
+    
+    if fan_structure == :fine
+        pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(pm_object(M))
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
+        
+    elseif fan_structure == :cyclic
+        pmTC = Polymake.tropical.matroid_fan{convention}(pm_object(M))
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
+        
+    elseif fan_structure == :coarse
+        P = matroid_base_polytope(M)
+    
+        FP = face_poset(P) 
+        DF = Polymake.graph.dual_faces(pm_object(FP))  # face-facet incidence
+        elems = elements_of_rank(FP, length(M) - rank(M) + 1)
+        
+        V = vertices(P)
+        FF = normal_vector.(facets(P))
+        
+        IM = Vector{Int64}[]
+        for pe in elems
+            verts = V[data(pe)]
+            # initial matroid from vertices
+            inM = matroid_from_bases([findall(isone, v) for v in verts], length(M); check=false)
+            if is_loopless(inM)
+                push!(IM, Vector(Polymake.to_one_based_indexing(DF[node_id(pe)])))
+            end
+        end
+                        
+        NS = normal_vector.(affine_hull(P))
+        return polyhedral_fan(IncidenceMatrix(IM), -convention(1, -1)*FF, NS)
+    end
+end
+        
+        

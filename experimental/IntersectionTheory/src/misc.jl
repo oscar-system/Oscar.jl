@@ -3,16 +3,16 @@
 # hacks related to graded rings
 #
 
-# FIXME this way `simplify` can be used when the ring is not a quotient
-# it will remove all the higher degree / codimension stuff
+# this way `simplify` can be used when the ring is not a quotient
+# it will remove all the higher degree / codimension stuff, even if there are higher-degree terms left
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
-  n = get_attribute(R, :abstract_variety_dim)::Union{Nothing, Int}
-  n === nothing && return x
+  n = get_attribute(R, :abstract_variety_dim)::Union{Nothing,Int}
+  isnothing(n) && return x
   return sum(x[0:n])
 end
 
-# FIXME this only treat the case when the grading is ZZ
+# FIXME this only treats the case when the grading is ZZ
 # same for `total_degree` and `getindex` below
 function gradings(R::MPolyDecRingOrQuo)
   [Int(x.coeff[1]) for x in (R isa MPolyQuoRing ? base_ring(R).d : R.d)]

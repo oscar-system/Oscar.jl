@@ -68,7 +68,7 @@ import Base: ==, +, -, *
 -(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data//b.data, parent(a))
 -(a::MultGrpElem{T}) where T = MultGrpElem{T}(inv(a.data), parent(a))
 ==(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = a.data == b.data
-Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
+Base.hash(a::MultGrpElem, h::UInt) = hash(a.data, h)
 
 
 ##############################################################

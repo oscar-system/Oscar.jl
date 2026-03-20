@@ -105,6 +105,18 @@ end
   @test order(S) == 2
 end
 
+@testset "action on nested objects" begin
+  G = symmetric_group(4)
+  data = [(Set([Set([1, 2]), Set([3, 4])]), on_sets_sets, 3),
+          (Set([(1, 2), (3, 4)]), on_sets_tuples, 12),
+          ((Set([1, 2]), Set([3, 4])), on_tuples_sets, 6)]
+  for (omega, fun, n) in data
+    Omega = gset(G, [omega])
+    @test action_function(Omega) === fun
+    @test length(Omega) == n
+  end
+end
+
 @testset "action on multivariate polynomials: permutations" begin
   g = symmetric_group(3)
   R, vars = polynomial_ring(QQ, 3);
