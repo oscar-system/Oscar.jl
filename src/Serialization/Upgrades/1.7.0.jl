@@ -14,10 +14,6 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     upgraded_dict = rename_types(dict, renamings)
 
-    if haskey(dict, :data) && dict[:data] isa AbstractDict
-      upgraded_dict[:data] = upgrade_1_7_0(s, dict[:data])
-    end
-
     return upgraded_dict
   end
 ))
