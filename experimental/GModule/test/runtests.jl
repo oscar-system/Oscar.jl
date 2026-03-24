@@ -364,5 +364,5 @@ end
   fr = Oscar.GrpCoh.free_res(ZG; side = :right)
   h = hom(fr, I.data[1])
   @test is_isomorphic(abelian_group([6]), quo(kernel(map(h, 2))[1], image(map(h, 1))[1])[1])
-  @test is_isomorphic(abelian_group([1]), quo(kernel(map(h, 1))[1], image(map(h, 1))[0])[1])
+  @test is_isomorphic(abelian_group([1]), quo(kernel(map(h, 1))[1], image(map(h, 0))[1])[1])
 end
