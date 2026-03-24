@@ -27,40 +27,40 @@ end
 #not type restricted: used for number fields as well as
 #LocalFields
 #could be extended to allow more group types
-function Oscar.automorphism_group(::Type{PermGroup}, k)
+function Oscar.automorphism_group(::Type{T}, k) where T <: Oscar.GAPGroup
   a = _can_cache_aut(k)
-  if a !== nothing && haskey(a, (PermGroup, ))
-    mG = a[(PermGroup, )]
+  if a !== nothing && haskey(a, (T, ))
+    mG = a[(T, )]
     return domain(mG), mG
   end
   G, mG = automorphism_group(k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   mmH = inv(mH)*mG
   if a !== nothing 
-    a[(PermGroup, )] = mmH
+    a[(T, )] = mmH
   end
   return codomain(mH), mmH
 end
 
-function Oscar.automorphism_group(::Type{PermGroup}, K, k)
-  a = _can_cache_aut(k)
-  if a !== nothing && haskey(a, (PermGroup, k))
-    mG = a[(PermGroup, k)]
+function Oscar.automorphism_group(::Type{T}, K, k) where T <: Oscar.GAPGroup
+  a = _can_cache_aut(K)
+  if a !== nothing && haskey(a, (T, k))
+    mG = a[(T, k)]
     return domain(mG), mG
   end
 
   G, mG = automorphism_group(K, k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   mmH = inv(mH)*mG
   if a !== nothing 
-    a[(PermGroup, k)] = mmH
+    a[(T, k)] = mmH
   end
   return codomain(mH), mmH
 end
 
-function Oscar.absolute_automorphism_group(::Type{PermGroup}, k)
+function Oscar.absolute_automorphism_group(::Type{T}, k) where T <: Oscar.GAPGroup
   G, mG = absolute_automorphism_group(k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   return codomain(mH), inv(mH)*mG
 end
 
@@ -427,17 +427,22 @@ the quotient is just `ZZ`, for tame fields, it will be isomorphic to
 for the residue field `F_q`. In the wild case a suitable induced
 module is factored out.
 
+If conductor is set to `n`, then the module factored out is guaranteed to 
+be contained in the principal units of level `n`.
+
 Returns: 
  - the gmodule
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false, conductor::Int = 0)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
   #if K/k is tame, then the 1-units are cohomological trivial, hence
   #   Z time k^* is enough...
+  
+  @req conductor >= 0 "conductor must not be negative"
 
   e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
   f = divexact(absolute_degree(K), e)
@@ -446,9 +451,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
   G, mG = automorphism_group(PermGroup, K, k)
 
-  if e == 1 && !full
+  if e == 1 && conductor == 0 #if ramified, then the units are not
+    #cohomologically trivial...
     @vprint :GaloisCohomology 2 " .. unramified, only the free part ..\n"
-#    @show :unram
     A = abelian_group([0])
     Hecke.assure_has_hnf(A)
     pi = uniformizer(K)
@@ -457,7 +462,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       MapFromFunc(A, K, x->pi^x[1], y->Int(e*valuation(y))*A[1])
   end
 
-  if e % prime(K) != 0 && !full #tame!
+  if e % prime(K) != 0 && conductor < 2
     @vprint :GaloisCohomology 2 " .. tame, no 1-units ..\n"
 #    @show :tame
     k, mk = residue_field(K)
@@ -487,7 +492,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end)
   end
- 
+#TODO: make sure the field has enough precision!! 
 #  @show :wild
   @vprint :GaloisCohomology 2 " .. wild case (or requested), unit group ..\n"
   U, mU = unit_group(K)
@@ -525,9 +530,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     #we need val(p^k) > 1/(p-1)
     #val(p) = 1 and the only critical one is p=2, where k>1 is
     #necessary
-    ex = 2
+    ex = maximum(2, conductor)
   else
-    ex = 1
+    ex = conductor
   end
   #x -> 1+pi*x is in general, not injective, not even for a basis
   # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
