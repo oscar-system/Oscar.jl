@@ -530,7 +530,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     #we need val(p^k) > 1/(p-1)
     #val(p) = 1 and the only critical one is p=2, where k>1 is
     #necessary
-    ex = maximum(2, conductor)
+    ex = max(2, conductor)
   else
     ex = conductor
   end
