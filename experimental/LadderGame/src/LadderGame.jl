@@ -37,7 +37,7 @@ end
 #           T_i in R(A_i\A_i+1) or R(A_i+1\A_i) as appropriate
 # Test functions: For each i with A_i+1 <= A_i,
 #           tau_i : A_i+1\A_i >-> NN (injection)
-function ladder_game(L, G, U)
+function ladder_game(L, G::PermGroup, U::PermGroup)
   r = _ladder_start(G, U)
   H = L[1]
   for i in 2:length(L)
@@ -51,7 +51,7 @@ function ladder_game(L, G, U)
   return r
 end
 
-function _ladder_start(G, U)
+function _ladder_start(G::PermGroup, U::PermGroup)
   st = [get_transversal_chain(U)]
   r = LadderData(G,G)
   r.T = [one(G)]
@@ -66,7 +66,7 @@ function _ladder_start(G, U)
   return r
 end
 
-function down_step(A, U, rec)
+function down_step(A::PermGroup, U::PermGroup, rec::LadderData)
   r = LadderData(
         # Ai = A
         # Aim1 = rec.Ai
@@ -115,7 +115,7 @@ function down_step(A, U, rec)
   return r
 end
 
-function up_step(A, U, rec)
+function up_step(A::PermGroup, U::PermGroup, rec::LadderData)
   r = LadderData(
         # Ai = A
         # Aim1 = rec.Ai
@@ -275,6 +275,40 @@ function _get_rep(g, rec)
 
   return dim1, uim1
 end
+
+function young_subgroup(p::Vector{T} ; full::T=sum(p)) where T<:IntegerUnion
+  s = full - sum(p)
+  # should error if s < 0
+  s == 0 && return inner_direct_product([symmetric_group(i) for i in p])
+  return inner_direct_product([symmetric_group(i) for i in vcat(p, ones(T, s))])
+end
+
+
+function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:IntegerUnion
+  n = sum(p)
+  s = n - p[1]
+  L = PermGroup[]
+  pp = copy(p)
+  while s!=0
+    if p[2]==1
+      deleteat!(pp, 2)
+      pp[1]+=1
+      prepend!(L, young_subgroup(pp ; full=full))
+    else
+      prepend!(L, young_subgroup(pp ; full=full))
+      pp[2]-=1
+      insert!(pp,2,1)
+      prepend!(L, young_subgroup(pp ; full=full))
+      deleteat!(pp, 2)
+      pp[1]+=1
+    end
+    s = n-pp[1]
+  end
+  prepend!(L, young_subgroup([pp[1]] ; full=full))
+
+  return L
+end
+
 
 
 end
