@@ -94,9 +94,13 @@ true
 function draw_curve_tikz(
   filename::String,
   f_in;
+  overwrite::Bool=false,
   kwargs...,
 )
-  @req !isfile(filename) "Output file exists"
+  println("overwrite: $overwrite")
+  if !overwrite
+    @req !isfile(filename) "Output file exists"
+  end
   io = open(filename, "w")
   result = draw_curve_tikz(io, f_in; kwargs...)
   close(io)
