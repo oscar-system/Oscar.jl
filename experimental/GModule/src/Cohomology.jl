@@ -1378,7 +1378,6 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
       else
         Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
       end
-      @show Fg
       set_attribute!(Fg, :to_chain => x->to_1chain(word(preimage(mFF, x))))
       #so to get a "proper" 1-cochain from s in C^1(G, M) given
       # as a "black box" s in M^g from this resolution
@@ -1562,7 +1561,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
 
   d1 = hom(Fg, F1, C; is_left = is_left)
 
-  Cpx = Hecke.ComplexOfMorphisms(typeof(d1), [d1]; check = false, typ = :chain)
+  Cpx = Hecke.ComplexOfMorphisms(typeof(Fg), [d1]; check = false, typ = :chain)
   Cpx.fill = fill
   #XXX: Think. What do we need?
   #     mFF: definitely (?) only if collect is also there..
@@ -1618,7 +1617,7 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
   return Z
 end
 
-function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomorphism{<: GroupAlgebraElem}}, C::GModule)
+function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, C::GModule)
   ZG = base_ring(f[0])
   G = group(ZG)
   @assert G == group(C)
@@ -1645,7 +1644,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomor
 
   D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
 
-  Cpx = Hecke.ComplexOfMorphisms(typeof(D1), [D1]; typ = :cochain, check = false)
+  Cpx = Hecke.ComplexOfMorphisms(typeof(M1), [D1]; typ = :cochain, check = false)
 
   function fill(ff::ComplexOfMorphisms, i::Int)
     #=  this is just kern d_0
@@ -1717,8 +1716,9 @@ end
 # allow ComplexOfMorphism to have gaps.
 # better maps between complexes: extendible as well
 #TODO: add collect ctx from GrpExt!
+#TODO/ Think: shouldn't this be mUG*fG giving fU (and the maps)?
 
-function change_group(fU::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomorphism{<: GroupAlgebraElem}}, fG::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHomomorphism{<: GroupAlgebraElem}}, mUG::Map)
+function change_group(fU::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{<: GroupAlgebraElem}}, fG::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{<: GroupAlgebraElem}}, mUG::Map)
   ZG = base_ring(fG[0])
   G = group(ZG)
 
@@ -1773,10 +1773,53 @@ function change_group(fU::ComplexOfMorphisms{<:AbstractAlgebra.Generic.ModuleHom
     end
   end
 
-  return m
-  #the complex of morphisms map seems to be a tad broken...
   return Hecke.ComplexOfMorphismsMap(fU, fG, Dict{Int, typeof(m0)}(i-1 => m[i] for i=1:length(m)))
   return m
+end
+
+#=
+k, a= wildanger_field(3, 13)
+k = normal_closure(k)
+k = k[1]
+lp = prime_decomposition(maximal_order(k), 13)
+c,  mc = completion(k, lp[1][1])
+M = gmodule(c, absolute_base_field(c))
+N = gmodule(c, absolute_base_field(c); conductor = 3)
+h = FinGenAbGroupHom(N[3]*pseudo_inv(M[3]))
+zg = Oscar.GrpCoh.free_res(group_algebra(ZZ, group(M[1])); side = :right)
+hN = hom(zg, N[1])
+hM = hom(zg, M[1])
+hNM = Oscar.GrpCoh.change_module(hN, hM, h)
+
+hom(N[1], M[1], h)
+k = kernel(ans)
+hk = hom(zg, k[1])
+
+hkN = Oscar.GrpCoh.change_module(hk, hN, k[2].module_map)
+preimage(h2[2], h2[1][2])
+g = ans
+hM[2](g)
+z1 = preimage(hNM[2], ans)
+map(hN, 2)(ans)
+preimage(hkN[3], ans)
+preimage(map(hk, 2), ans)
+hkN[2](ans)
+z = z1 - ans
+
+=#
+
+#this is/ should be a special case for the hom(Complex, Complex, Map) in Hecke
+function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorphisms{FinGenAbGroup}, mNM::Map)
+  mp = Dict{Int, Map}()
+  map = Hecke.ComplexOfMorphismsMap(fN, fM, mp)
+  function fill(A::Hecke.ComplexOfMorphismsMap, i::Int)
+    #TODO: special case of M^n -> N^n via coordinates
+    d = length(get_attribute(fN[i], :direct_product))
+    mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
+    return mp[i]
+  end
+  map.fill = fill
+  return map
 end
 """
 Forgets the G-structure...
