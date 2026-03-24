@@ -473,7 +473,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         if haskey(dict[:data], :graph)
           dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict{Symbol, Any}(:_type => String, :data => "graph")
+            :params => Dict{Symbol, Any}(:_type => "String", :data => "graph")
           )
           dict[:data][:graph] = dict[:data][:graph][:data]
         else
