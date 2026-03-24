@@ -10,9 +10,9 @@
 # of the base ring, i.e. it is usually QQFieldElem or AbsSimpleNumFieldElem.
 # The type variable 'S' represents the type of the Gram matrix of the underlying quadratic space,
 # i.e. it is usually QQMatrix or AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}.
-mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
+mutable struct CliffordAlgebra{T, S} <: Hecke.AbstractAssociativeAlgebra{T}
   base_ring::Ring
-  space::Hecke.QuadSpace{K,S} where {K} # K = parent_type(T), e.g. T is of type AbsSimpleNumFieldElem and K is of type AbsSimpleNumField
+  space::Hecke.QuadSpace{K, S} where {K} # K = parent_type(T), e.g. T is of type AbsSimpleNumFieldElem and K is of type AbsSimpleNumField
   gram::S
   dim::Int
   basis_of_centroid::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
@@ -106,18 +106,21 @@ end
 ##### Elements #####
 # Data structure for elements of Clifford orders over rings distinct from the integers. The type
 # variables serve the same purpose as they do for Clifford orders.
-mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T}
+mutable struct CliffordOrderElem{T, C, S} <: Hecke.AbstractAssociativeAlgebraElem{T}
   parent::CliffordOrder{T, C}
-  coeffs::Any 
+  coeffs::Vector{S}
 
   #Return the 0-element of the Clifford order C
-  CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}) where {T, C} =
-    new{T, C}(CO, fill(CO.ambient_algebra.base_ring(), CO.rank))
+  CliffordOrderElem{T, C, S}(CO::CliffordOrder{T, C}) where {T, C, S} =
+    new{T, C, S}(CO, fill(CO.ambient_algebra.base_ring(), CO.rank))
 
-  CliffordOrderElem(CO::CliffordOrder) = CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra)}(CO)
+  function CliffordOrderElem(CO::CliffordOrder)
+    CT = typeof(CO.ambient_algebra)
+    return CliffordOrderElem{elem_type(CO.base_ring), CT, elem_type(base_ring_type(CT))}(CO)
+  end
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
-  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S<:NumFieldElem}
+  function CliffordOrderElem{T, C, S}(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
     @req length(coeffs) == CO.rank "invalid length of coefficient vector"
     
     for i in 1:CO.rank
@@ -125,13 +128,13 @@ mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T
       is_zero(ci) || @req ci in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
     end
     
-    return new{T, C}(CO, coeffs)
+    return new{T, C, S}(CO, coeffs)
   end
 
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
-    K = base_ring(ambient_algebra(CO))
+    K = base_ring(CO.ambient_algebra)
     @req _can_convert_coefficients(coeffs, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordOrderElem{elem_type(base_ring(CO)), typeof(ambient_algebra(CO))}(CO, K.(coeffs))
+    return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra), elem_type(K)}(CO, K.(coeffs))
   end
 
 end

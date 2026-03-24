@@ -5,19 +5,19 @@
 #
 #############################################################
 
-elem_type(::Type{CliffordOrder{T, C}}) where {T, C} = CliffordOrderElem{T, C}
+elem_type(::Type{CliffordOrder{T, C}}) where {T, C} = CliffordOrderElem{T, C, elem_type(base_ring_type(C))}
 elem_type(::Type{ZZCliffordOrder}) = ZZCliffordOrderElem
 
-parent_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = CliffordOrder{T, C}
+parent_type(::Type{CliffordOrderElem{T, C, S}}) where {T, C, S} = CliffordOrder{T, C}
 parent_type(::Type{ZZCliffordOrderElem}) = ZZCliffordOrder
 
 base_ring_type(::Type{CliffordOrder{T, C}}) where {T, C} = parent_type(T)
 base_ring_type(::Type{ZZCliffordOrder}) = ZZRing
 
-is_domain_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = false
+is_domain_type(::Type{CliffordOrderElem{T, C, S}}) where {T, C, S} = false
 is_domain_type(::Type{ZZCliffordOrderElem}) = false
 
-is_exact_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = true
+is_exact_type(::Type{CliffordOrderElem{T, C, S}}) where {T, C, S} = true
 is_exact_type(::Type{ZZCliffordOrderElem}) = true
 
 #############################################################

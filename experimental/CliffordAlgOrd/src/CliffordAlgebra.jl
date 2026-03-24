@@ -10,7 +10,7 @@
 @doc raw"""
     clifford_algebra(qs::QuadSpace) -> CliffordAlgebra
 
-Return the Clifford algebra of the quadratic space 'qs'.
+Return the Clifford algebra of the quadratic space `qs`.
 
 # Examples
 
@@ -141,16 +141,16 @@ Return the `i`-th canonical basis vector of the Clifford algebra `C`.
 ```jldoctest
 julia> C = clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0]));
 
-julia> basis(C,1)
+julia> basis(C, 1)
 [1, 0, 0, 0]
 
-julia> basis(C,2)
+julia> basis(C, 2)
 [0, 1, 0, 0]
 
-julia> basis(C,3)
+julia> basis(C, 3)
 [0, 0, 1, 0]
 
-julia> basis(C,4)
+julia> basis(C, 4)
 [0, 0, 0, 1]
 ```
 """
@@ -196,6 +196,19 @@ end
     basis(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
 Return the canonical basis of the Clifford algebra `C`.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0]));
+
+julia> basis(C)
+4-element Vector{CliffordAlgebraElem{QQFieldElem, QQMatrix}}:
+ [1, 0, 0, 0]
+ [0, 1, 0, 0]
+ [0, 0, 1, 0]
+ [0, 0, 0, 1]
+```
 """
 basis(C::CliffordAlgebra) = map(i -> basis(C, i), 1:dim(C))
 
@@ -206,6 +219,18 @@ Return the vector of canonical algebra generators of the Clifford algebra `C`, i
 if `gram_matrix(C)` is the Gram matrix of the underlying quadratic space with respect
 to the basis (e_1,...,e_n) then the vector of images under the canonical embedding into
 the Clifford algebra is returned.
+
+# Examples
+
+```jldoctest
+julia> C = clifford_algebra(quadratic_space(QQ, identity_matrix(QQ, 3)));
+
+julia> gens(C)
+3-element Vector{CliffordAlgebraElem{QQFieldElem, QQMatrix}}:
+ [0, 1, 0, 0, 0, 0, 0, 0]
+ [0, 0, 1, 0, 0, 0, 0, 0]
+ [0, 0, 0, 0, 1, 0, 0, 0]
+```
 """
 gens(C::CliffordAlgebra) = map(i -> gen(C, i), 1:_dim_qf(C))
 
