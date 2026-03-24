@@ -8,7 +8,7 @@ if !isdefined(Main, :serialization_upgrade_test_path) ||
   !isdir(Main.serialization_upgrade_test_path) ||
   !isfile(joinpath(Main.serialization_upgrade_test_path, "LICENSE.md"))
 
-  serialization_upgrade_test_path = let commit_hash = "086fa620700151b36e94aa96ada8e34e5f4b314e"
+  serialization_upgrade_test_path = let commit_hash = "daf6ca1d4a8f80d2da7d506d4ddb593694dd92a2"
     tarball = Downloads.download("https://github.com/oscar-system/serialization-upgrade-tests/archive/$(commit_hash).tar.gz")
 
     destpath = open(CodecZlib.GzipDecompressorStream, tarball) do io
