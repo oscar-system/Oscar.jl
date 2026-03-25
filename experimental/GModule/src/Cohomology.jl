@@ -394,8 +394,10 @@ The induced module is returned as a product of copies of C. it also returns
   If D and mDC are given then mDC: D -> C.M has to be a Z[U] linear
 homomorphism. I this case a Z[G] linear map to the induced module
 is returned.
+
+The transversal for G/U can also passed in as an kw-argument (`transversal`)
 """
-function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
+function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transversal::Union{Nothing, Oscar.SubgroupTransversal} = nothing) where GT <: GAPGroup where MT  
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
@@ -408,7 +410,13 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
 # the transversal, so cannot use.
 # See https://github.com/gap-system/gap/issues/5337
 # for a discussion whether to return both transversal and action on it.
-  g = right_transversal(G, iU)
+  if isnothing(transversal)
+    g = right_transversal(G, iU)
+  else
+    g = transversal
+    @assert group(g) == G
+    @assert subgroup(g) == iU
+  end
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
 
