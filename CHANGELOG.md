@@ -9,7 +9,7 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
-## [1.7.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.1) - 2026-03-25
+## [1.7.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.1) - 2026-03-26
 
 ### Commutative Algebra
 
