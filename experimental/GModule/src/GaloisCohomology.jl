@@ -526,14 +526,13 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
 
   @vprint :GaloisCohomology 2 " .. quotient ..\n"
-  if prime(k) == 2
-    #we need val(p^k) > 1/(p-1)
-    #val(p) = 1 and the only critical one is p=2, where k>1 is
-    #necessary
-    ex = max(2, conductor)
-  else
-    ex = conductor
-  end
+  #we need k*val(pi) = val(pi^k) > 1/(p-1)
+  #val(pi) = 1/e and the only critical one is p=2, where k>1 is
+  #necessary
+  # k/e > 1/(p-1), k > e/(p-1)
+  ex = Int(1+floor(ZZRingElem, absolute_ramification_index(K)//(prime(K)-1)))
+  ex = max(ex, conductor)
+
   #x -> 1+pi*x is in general, not injective, not even for a basis
   # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
   # be, but we're not using it. This was used to avoid exp
@@ -814,6 +813,22 @@ mutable struct IdeleParent
   end
 end
 
+function _sign(x::FacElem{<:NumFieldElem}, ep::InfPlc)
+  e = embeddings(ep)[1]
+  p = 32
+  while true
+    ex = e(x, p)
+    if !contains_zero(imag(ex))
+      error("element not real")
+    end
+    if contains_zero(real(ex))
+      p *= 2
+      continue
+    end
+    return is_negative(real(ex)) ? -1 : 1
+  end
+end
+
 """
     idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[])
 
@@ -884,7 +899,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   z = MapFromFunc(codomain(mU), k, evaluate, FacElem)
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
-  @hassert :GaloisCohomology -1 is_consistent(E)
+  @hassert :GaloisCohomology 1 is_consistent(E)
 
   if is_totally_real(k)
     @vprint :GaloisCohomology 2 " .. real field, easy case ..\n"
@@ -908,10 +923,12 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
     sigma_q = hom(q, q, [mq(sigma(preimage(mq, x))) for x = gens(q)])
     x, y = debeerst(q, sigma_q)
     # just to verify... Gunter Malle: the C_2 modules are visible over GF(2)...
-    _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
-    _i = indecomposition(_M)
-    @assert length(findall(x->dim(x[1]) == 2, _i)) == length(y)
-    @assert length(findall(x->dim(x[1]) == 1, _i)) == length(x)
+    if get_assert_level(:GaloisCohomology) > 0
+      _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
+      _i = indecomposition(_M)
+      @hassert :GaloisCohomology 1 length(findall(x->dim(x[1]) == 2, _i)) == length(y)
+      @hassert :GaloisCohomology 1 length(findall(x->dim(x[1]) == 1, _i)) == length(x)
+    end
       #possibly: now the H^2 is correct, but the H^1 is not...
       # x^8 - 12*x^7 + 44*x^6 - 24*x^5 - 132*x^4 + 120*x^3 + 208*x^2 - 528*x + 724
 
@@ -956,11 +973,16 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
     im_psi = [U[1], x[1]+ eta_i[1]]
     for i=2:length(not_inv)
       push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
+      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
+        im_psi[end] *= -1
+      end
       @assert sigma(im_psi[end]) == im_psi[end]
-      #should be chosen to be pos. at place, flip signs...
     end
     for i=length(not_inv)+1:length(x)
       push!(im_psi, x[i])
+      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
+        im_psi[end] *= -1
+      end
       @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
     end
@@ -969,8 +991,8 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
       push!(im_psi, sigma(y[i]))
     end
     psi = hom(V, U, im_psi)
-    @assert all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
-    @assert is_bijective(psi)
+    @hassert :GaloisCohomology 5 all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
+    @hassert :GaloisCohomology 5 is_bijective(psi)
     F = abelian_group([0 for i=2:length(x)])
     Hecke.assure_has_hnf(F)
     W, pro, inj = direct_product(V, F, task = :both)
@@ -980,7 +1002,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
          FinGenAbGroupHom(pro[2]*hom(F, W, FinGenAbGroupElem[inj[1](V[i+1]) - inj[2](F[i-1]) for i=2:length(x)]))
 
     Et = gmodule(G_inf, [ac])
-    @assert is_consistent(Et)
+    @hassert :GaloisCohomology 1 is_consistent(Et)
     mq = pseudo_inv(psi)*inj[1]
     iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mq)
   end
