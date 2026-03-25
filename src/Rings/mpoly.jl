@@ -403,7 +403,7 @@ function Base.:(==)(G1::IdealGens, G2::IdealGens)
   if isdefined(G1, :ord) && G1.ord != G2.ord
       return false
   end
-  return G1.gensBiPolyArray == G2.gensBiPolyArray
+  return issetequal(G1.gensBiPolyArray, G2.gensBiPolyArray)
 end
 
 function Base.hash(G::IdealGens, h::UInt)

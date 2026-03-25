@@ -61,6 +61,7 @@ files_and_dirs_to_be_formatted = [
   "experimental/LinearAlgebraicGroups",
   "experimental/LinearQuotients",
   "experimental/FTheoryTools",
+  "experimental/DrawingCurves",
 ]
 # a few files for one reason or another may need to be skipped
 ignore = [
