@@ -702,7 +702,7 @@ Return a list of elements in `M` which form a basis for `M` when considered
 as a vector space over the `coefficient_ring` `kk` of its `base_ring` `R`.
 
 !!! note
-    This is a compatibility function. For more sophisticated functionality see 'vector_space_basis'
+    This is a compatibility function. For more sophisticated functionality see [`vector_space_basis`](@ref).
 """
 monomial_basis(M::SubquoModule; cached::Bool=true)=vector_space_basis(M; cached= cached )
 
