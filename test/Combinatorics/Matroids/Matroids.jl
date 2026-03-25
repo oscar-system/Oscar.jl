@@ -458,6 +458,9 @@
     U = uniform_matroid(2,4) 
     @test !is_tutte_realizable(M)
     @test is_tutte_realizable(U)
+
+    K4_m = matrix([1,0,0,0,0,-1,0,1,0,1,0,-1,0,0,1,-1,1,0]
+   K4_1 = 
   end
     
     @testset "bergman_fan" begin
