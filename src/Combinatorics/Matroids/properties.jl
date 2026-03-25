@@ -79,7 +79,6 @@ nonbases(M::Matroid{T}) where T = _indices_to_gs(nonbases(Int, M), M.groundset):
 
 nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)::Vector{Vector{Int}}
 
-
 @doc raw"""
     circuits(M::Matroid)
 
@@ -96,6 +95,8 @@ julia> circuits(uniform_matroid(2, 4))
 ```
 """
 circuits(M::Matroid{T}) where T = _property_to_gs(M, :CIRCUITS)::Vector{Vector{T}}
+
+circuits(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).CIRCUITS)::Vector{Vector{Int}}
 
 @doc raw"""
     hyperplanes(M::Matroid)
@@ -274,6 +275,11 @@ function rank(M::Matroid, set::GroundsetType)
     else
         return Polymake.matroid.rank(pm_object(M), _gs_to_pmindices(set, M.gs2num; type=Set))::Int
     end
+end
+
+function rank(::Type{Int}, M::Matroid, set::Vector{Int})
+    isempty(set) && return 0
+    return Polymake.matroid.rank(pm_object(M), Polymake.to_zero_based_indexing(Set(set)))::Int
 end
 
 @doc raw"""
