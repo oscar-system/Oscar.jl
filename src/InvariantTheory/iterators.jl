@@ -13,7 +13,7 @@ Return an iterator over all monomials in `R` of degree `d`.
 An additional vector or range of integers may be given to specify a subset of
 variables of `R` to be used.
 
-For related methods see also monomial_basis.
+For related methods see also [`monomial_basis`](@ref).
 
 # Examples
 ```jldoctest
