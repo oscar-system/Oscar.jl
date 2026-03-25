@@ -325,6 +325,17 @@ There is also the possibility to have multiple upgrade scripts per version, this
 In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
 To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
 
+Test examples for each upgrade script should be added to the repository
+<https://github.com/oscar-system/serialization-upgrade-tests>.
+For each type whose serialization format has changed in the current OSCAR
+version, add a file obtained by serializing an object of this type with the
+*previous* OSCAR version, such that the upgrade script for the current version
+has to modify the contents in order to load the object.
+
+In order to achieve that the new test examples get included in the CI tests,
+update the variable `commit_hash` in the file
+`test/Serialization/upgrades/setup_tests.jl` of the OSCAR repository.
+
 ```@docs
 Oscar.Serialization.UpgradeScript
 ```
