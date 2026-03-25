@@ -697,6 +697,7 @@ end
 ## for compatibility
 @doc raw""" 
     monomial_basis(M::SubquoModule; cached::Bool=true)
+
 Assume `M` to be defined over a `kk`-algebra `R` which is not a field.
 Return a list of elements in `M` which form a basis for `M` when considered
 as a vector space over the `coefficient_ring` `kk` of its `base_ring` `R`.
