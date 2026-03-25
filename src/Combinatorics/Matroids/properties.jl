@@ -278,11 +278,8 @@ function rank(M::Matroid, set::GroundsetType)
 end
 
 function rank(::Type{Int}, M::Matroid, set::Vector{Int})
-    if length(set)==0
-        return 0
-    else
+    isempty(set) && return 0
     return Polymake.matroid.rank(pm_object(M), Polymake.to_zero_based_indexing(Set(set)))::Int
-    end
 end
 
 @doc raw"""
