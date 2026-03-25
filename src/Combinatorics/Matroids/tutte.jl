@@ -72,8 +72,8 @@ julia> ngens(T)
 """
 function tutte_group(M::Matroid; char::Int=0)
   B = bases(M)
-  idx = Dict{Set{Int}, Int}(Set(k) => i for (i,k) in enumerate(B))
   gs = matroid_groundset(M)
+  idx = Dict{Set{eltype(gs)}, Int}(Set(k) => i for (i,k) in enumerate(B))
   v = zeros(Int, length(B)+1)
   if char == 2
     v[end] = 1 #this is for the epsilon
