@@ -1811,32 +1811,22 @@ julia> sect(one(B))
 function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   A, B = F.domain, F.codomain
   a, b = ngens(A), ngens(B)
-  
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
-  end
-
+  AR = A isa MPolyQuoRing ? base_ring(A) : A
+  BR = B isa MPolyQuoRing ? base_ring(B) : B
   @assert base_ring(AR) == base_ring(BR)
 
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
+  M = B isa MPolyQuoRing ? [F(gens(A)[i]).f for i = 1:a] : [F(gens(A)[i]) for i = 1:a]
+  I = ideal(BR, B isa MPolyQuoRing ? vcat(gens(B.I), M) : M)
   C, _ = quo(BR, I)
   gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
+                         # monomial_basis checks finiteness
   @assert gs[end] == 1 # the last one should always be 1
   g = length(gs)
 
   R, _ = tensor_product(BR, AR, use_product_ordering = true)
   ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
+  ARtoR = hom(AR, R, ba[b+1:end])
+  BRtoR = hom(BR, R, ba[1:b])
   RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
   
