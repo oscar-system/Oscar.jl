@@ -43,9 +43,6 @@ function root_overlattices(n::Int)
 end
 
 
-
-graph_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
-
 function invariant_function_graph_hash(L::ZZLat; max_size = 6000)
   @assert is_integral(L)
   if rank(L)==0 
@@ -82,10 +79,9 @@ function invariant_function_graph_hash(L::ZZLat; max_size = 6000)
       end
       push!(sv, deepcopy(_v))
     end
-    return BigInt(graph_hash(gamma))
+    return BigInt(canonical_hash(gamma))
   end
   return BigInt(automorphism_group_order(L))
-  #return Hecke.default_invariant_function(L)
 end
 
 function invariant_function_2_4(L::ZZLat; max_size = 10000)  
@@ -109,11 +105,6 @@ function invariant_function_2_4(L::ZZLat; max_size = 10000)
   end
   return m
 end
-
-send_lat(x::ZZLat) = collect(ZZ.(gram_matrix(x))) 
-load_lat(x::Matrix{ZZRingElem}) = integer_lattice(gram=matrix(x),check=false)
-
-aut_order(x) = automorphism_group_order(load_lat(x))
 
 function _default_invariant_function(L::ZZLat)
   kn = kissing_number(L)::Int
