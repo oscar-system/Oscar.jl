@@ -13,6 +13,8 @@ Return an iterator over all monomials in `R` of degree `d`.
 An additional vector or range of integers may be given to specify a subset of
 variables of `R` to be used.
 
+For related methods see also monomial_basis.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = QQ[:x, :y, :z];
