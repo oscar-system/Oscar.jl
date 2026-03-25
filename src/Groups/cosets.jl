@@ -401,7 +401,7 @@ GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = is_left(x) ? "Left" : "Right"
-  println(io, "$side transversal of length $(length(x)) of")
+  println(io, "$side transversal of length $(length(ZZRingElem, x)) of")
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.H, " in")
@@ -428,8 +428,11 @@ Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
 
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
-function Base.getindex(T::SubgroupTransversal, i::Int)
-  res = group_element(T.G, GapObj(T)[i])
+Base.length(::Type{I}, T::SubgroupTransversal) where I <: IntegerUnion = index(I, T.G, T.H)
+
+function Base.getindex(T::SubgroupTransversal, i::IntegerUnion)
+  res = group_element(T.G, GAP.Globals.ELM_LIST(GapObj(T), GAP.Obj(i)))
+#TODO: As soon as `GapObj(T)[i]` works for large `i`, simplify the above line
   if is_left(T)
     res = inv(res)
   end
@@ -579,6 +582,50 @@ function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup w
               GAPWrap.RightTransversal(GapObj(G), GapObj(H)))
 end
 
+"""
+    index_of_coset(::Type{I} = ZZRingElem, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
+
+Return the position `i` in `T` such that
+`g` is an element of `subgroup(T)*T[i]` if `T` is a right transversal and
+`g` is an element of `T[i]*subgroup(T)` if `T` is a left transversal.
+
+The returned value has type `I`.
+
+`parent(g)` must be equal to `group(T)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> H = symmetric_group(3);
+
+julia> Tr = right_transversal(G, H);
+
+julia> index_of_coset(Tr, G[1])
+2
+
+julia> Tl = left_transversal(G, H);
+
+julia> index_of_coset(Tl, G[1])
+4
+
+julia> G[1] in right_coset(H, Tr[2])
+true
+
+julia> G[1] in left_coset(H, Tl[4])
+true
+```
+"""
+index_of_coset(T::SubgroupTransversal, g::GroupElem) = index_of_coset(ZZRingElem, T::SubgroupTransversal, g::GroupElem)
+
+function index_of_coset(::Type{I}, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
+   @req parent(g) === group(T) "parent(g) differs from group(T)"
+   Gap_g = GapObj(g)
+   if is_left(T)
+     Gap_g = inv(Gap_g)
+   end
+   return I(GAPWrap.PositionCanonical(GapObj(T), Gap_g)::GapInt)
+end
 
 @doc raw"""
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
