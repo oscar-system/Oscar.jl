@@ -131,6 +131,7 @@ group(T::SubgroupTransversal)
 subgroup(T::SubgroupTransversal)
 right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+index_of_coset
 is_bicoset(C::GroupCoset)
 ```
 
