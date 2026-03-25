@@ -76,15 +76,16 @@ difference polynomial ring.
 
 # Examples
 
+This constructor is preferred when one only wants to have one elementary symbol:
 ```jldoctest
-# This constructor is preferred when one only wants to have one elementary symbol:
 julia> R, x = difference_polynomial_ring(ZZ, :x, 2)
 (Difference polynomial ring in 1 elementary symbols over ZZ, x[0,0])
 
 julia> x
 x[0,0]
-
-# If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+```
+If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+```jldoctest
 julia> R, x = difference_polynomial_ring(ZZ, [:x], 2)
 (Difference polynomial ring in 1 elementary symbols over ZZ, DifferencePolyRingElem{ZZRingElem}[x[0,0]])
 
