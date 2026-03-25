@@ -1167,7 +1167,7 @@ hessian(f::MPolyRingElem) = det(hessian_matrix(f))
 Return the vector of all monomials of degree 'd' in 'A' with respect to the standard grading of $A$.
 
 !!! note
-    For different gradings choose 'A' of type 'MPolyDecRing' and see respective documentation.
+    For different gradings choose `A` of type `MPolyDecRing` and see respective documentation.
 
 !!! note
     To obtain an iterator instead of a vector as return value use 'monomials_of_degree'
