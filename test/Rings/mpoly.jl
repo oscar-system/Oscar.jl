@@ -347,6 +347,8 @@ end
    R, (x0, x1, x2) = polynomial_ring(QQ, [:x0, :x1, :x2])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
+   h = Oscar.IdealGens([x0*x1,x2])
+   @test h == g
    @test elements(g) == [x0*x1, x2]
    @test g.isGB == false
    @test isdefined(g, :ord) == false
