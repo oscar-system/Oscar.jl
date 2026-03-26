@@ -1171,5 +1171,5 @@ Return the vector of all monomials of degree `d` in `A` with respect to the stan
 
 !!! note
     To obtain an iterator instead of a vector as return value use [`monomials_of_degree`](@ref).
-""
+"""
 monomial_basis(A::MPolyRing, d::IntegerUnion) = collect(monomials_of_degree(A,d))
