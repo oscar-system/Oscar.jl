@@ -694,6 +694,18 @@ function vector_space_basis(M::SubquoModule; cached::Bool=true, check::Bool=true
   end
   return result
 end
+## for compatibility
+@doc raw""" 
+    monomial_basis(M::SubquoModule; cached::Bool=true)
+
+Assume `M` to be defined over a `kk`-algebra `R` which is not a field.
+Return a list of elements in `M` which form a basis for `M` when considered
+as a vector space over the coefficient ring `kk` of its base ring `R`.
+
+!!! note
+    This is a compatibility function. For more sophisticated functionality see [`vector_space_basis`](@ref).
+"""
+monomial_basis(M::SubquoModule; cached::Bool=true) = vector_space_basis(M; cached)
 
 function vector_space_basis(M::SubquoModule{<:FieldElem}; cached::Bool=true, check::Bool=true)
   cached && has_attribute(M, :vector_space_basis) && return get_attribute(M, :vector_space_basis)::Vector{elem_type(M)}
