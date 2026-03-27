@@ -240,7 +240,7 @@ function compute_monomials(
   ZZx::ZZMPolyRing,
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
-   polytope::Union{Dict{WeightLatticeElem,Polyhedron{QQFieldElem}},Nothing},
+  polytope::Union{Dict{WeightLatticeElem,Polyhedron{QQFieldElem}},Nothing},
   no_minkowski::Set{WeightLatticeElem},
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
@@ -273,14 +273,14 @@ function compute_monomials(
         polytope,
         highest_weight(V) => convex_hull(convert_to_point.(monomials)),
       )
-
     end
     return monomials
   else
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
     if !isnothing(polytope)
-      polytope[highest_weight(V)] = convex_hull(point_vector(QQ, exponent_vector(ZZx(1), 1)))
+      polytopes = Vector{Polyhedron{QQFieldElem}}()
+      push!(polytopes, convex_hull(point_vector(QQ, exponent_vector(ZZx(1), 1))))
     end
     sub_weights = sub_weights_proper(highest_weight(V))
     sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
@@ -325,8 +325,11 @@ function compute_monomials(
       # points in ZZ^n
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
       if !isnothing(polytope)
-        polytope[highest_weight(V)] = convex_hull(polytope[highest_weight(V)], polytope[lambda_1] + polytope[lambda_2])
-      end        
+        push!(polytopes, polytope[lambda_1] + polytope[lambda_2])
+      end 
+    end
+    if !isnothing(polytope)
+      polytope[highest_weight(V)] = convex_hull(polytopes)
     end
     # check if we found enough monomials
 
