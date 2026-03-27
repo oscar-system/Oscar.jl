@@ -204,19 +204,19 @@ function poly_to_dict(poly::MPolyRingElem)
 end
 
 function add_terms(pd1::Dict, pd2::Dict)
-    return merge(+, pd1, pd2) 
+  return merge(+, pd1, pd2) 
 end
 
 function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: FieldElem}
-    result = Dict{Vector{Int}, Any}()
-    for (e1, c1) in pd1
-        for (e2, c2) in pd2
-            e_new = e1 .+ e2
-            c_new = c1 * c2
-            result[e_new] = get(result, e_new, zero(c1)) + c_new
-        end
+  result = Dict{Vector{Int}, Any}()
+  for (e1, c1) in pd1
+    for (e2, c2) in pd2
+      e_new = e1 .+ e2
+      c_new = c1 * c2
+      result[e_new] = get(result, e_new, zero(c1)) + c_new
     end
-    return result
+  end
+  return result
 end
 
 ###################################################################################
@@ -226,6 +226,8 @@ end
 ###################################################################################
 
 root(PM::PhylogeneticModel) = _root(adjacency_tree(graph(PM)))
+
+## PROBABILITY PARMAETRIZATION
 
 function leaves_indices(PM::PhylogeneticModel)
   leave_nodes = leaves(graph(PM))
