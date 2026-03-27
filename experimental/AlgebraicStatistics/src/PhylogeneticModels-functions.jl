@@ -204,11 +204,19 @@ function poly_to_dict(poly::MPolyRingElem)
 end
 
 function add_terms(pd1::Dict, pd2::Dict)
+  if !isempty(pd1) && !isempty(pd2)
+    len1 = length(first(keys(pd1)))
+    len2 = length(first(keys(pd2)))
+    if len1 != len2
+      error(DimensionMismatch("Exponent vector length mismatch ($len1 vs $len2). Cannot add polynomials from different rings."))
+    end
+  end
+  
   return merge(+, pd1, pd2) 
 end
 
 function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: FieldElem}
-  result = Dict{Vector{Int}, Any}()
+  result = Dict{Vector{Int}, U}()
   for (e1, c1) in pd1
     for (e2, c2) in pd2
       e_new = e1 .+ e2
@@ -274,6 +282,82 @@ function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}
   end 
   return finish(poly)
 end 
+
+## EFFICIENT PROBABILITY PARMAETRIZATION
+
+function efficient_leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}, tree::AbstractGraph{Directed})
+  R = parameter_ring(PM)[1]
+  n_vars = ngens(R)
+
+  coeff_ring = base_ring(R)
+  coeffType = elem_type(coeff_ring)
+
+  states = 1:n_states(PM)
+  
+  probability = Dict{Int, Dict{Int, Dict{Vector{Int}, coeffType}}}()
+
+  # Initialize the leaves
+  for leaf in leaves(tree)
+    probability[leaf] = Dict{Int, Dict{Vector{Int}, coeffType}}()
+    observed_state = leaves_states[leaf]
+    for s in states
+      if s == observed_state # Prob 1 for the observed states
+        probability[leaf][s] = Dict(zeros(Int, n_vars) => one(coeff_ring))
+      end
+    end
+  end
+
+  # Compute cond probabilities from leaves to root 
+  for u in reverse_order_interior_nodes(tree)
+        
+    probability[u] = Dict{Int, Dict{Vector{Int}, coeffType}}()
+        
+    for s_u in states
+      
+      prob_su = Dict(zeros(Int, n_vars) => one(coeff_ring)) # Start the product with "1"
+            
+      for v in children(tree, u) 
+        if u == v; continue; end # Skip u (as it appears as a descendant of u)
+        prob_v = Dict{Vector{Int}, coeffType}()
+                
+        for s_v in keys(probability[v])              
+          p_su_to_sv = entry_transition_matrix(PM, s_u, s_v, u, v) 
+          p_su_to_sv = poly_to_dict(p_su_to_sv)
+          
+          prob_su_sv = multiply_terms(p_su_to_sv, probability[v][s_v]) # P(s_v | s_u) * P_v(s_v)
+          prob_v = add_terms(prob_v, prob_su_sv)
+        end
+                
+        prob_su = multiply_terms(prob_su, prob_v)
+      end
+
+      probability[u][s_u] = prob_su
+      end
+  end
+
+  # Add coefficients from the root
+  r = root(tree)
+  final_probabilities = Dict{Vector{Int}, coeffType}()
+    
+  for s_r in keys(probability[r])  
+    root_dist = entry_root_distribution(PM, s_r)
+    root_contrib = Dict(e => c * root_dist for (e, c) in probability[r][s_r]) 
+    final_probabilities = add_terms(final_probabilities, root_contrib)
+  end
+
+  # Build the final MPoly 
+  ctx = MPolyBuildCtx(R)
+  for (exp, coeff) in final_probabilities
+    if !iszero(coeff)
+      push_term!(ctx, coeff, exp)
+    end
+  end
+    
+  return finish(ctx)
+end 
+
+
+## FOURIER PARMAETRIZATION
 
 function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}, leaves_states::Dict{Int, Int})
   gr = graph(PM)
