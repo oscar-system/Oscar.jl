@@ -1850,12 +1850,12 @@ Phylogenetic model on a tree with 3 leaves and 3 edges
 """
 function general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
   Rp, r = polynomial_ring(QQ, :r => 1:4);
-  RM, (a, b, c, d, e, f, g) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :g]);
+  RM, (a, b, c, d, e, f, x, y, z, t) = polynomial_ring(Rp, [:a, :b, :c, :d, :e, :f, :x, :y, :z, :t]);
 
-  M = [a*r[1] b*r[2] c*r[3] d*r[4];
-       b*r[1] a*r[2] e*r[3] f*r[4];
-       c*r[1] e*r[2] a*r[3] g*r[4];
-       d*r[1] f*r[2] g*r[3] a*r[4]
+  M = [x*r[1] a*r[2] b*r[3] c*r[4];
+       a*r[1] y*r[2] d*r[3] e*r[4];
+       b*r[1] d*r[2] z*r[3] f*r[4];
+       c*r[1] e*r[2] f*r[3] t*r[4]
   ];
 
   return PhylogeneticModel(F, G, M, r)
