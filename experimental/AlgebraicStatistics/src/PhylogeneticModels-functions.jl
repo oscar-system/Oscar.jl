@@ -22,6 +22,31 @@ sort_edges(N::PhylogeneticNetwork{M,L}, sorted_edges::Union{Vector{Edge}, Nothin
 sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) = sort_edges(adjacency_tree(pt), sorted_edges)
 
 descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
+children(pt::PhylogeneticTree, v::Int) = Oscar.children(adjacency_tree(pt), v)
+
+function reverse_order_interior_nodes(pt::PhylogeneticTree)
+  # Interior nodes from leaves to the root
+  r = root(pt)
+  lvs = leaves(pt)
+  
+  order = Int[]
+  sizehint!(order, length(Oscar.interior_nodes(pt))) 
+    
+  function dfs!(u::Int)
+    # Visit all children first
+    for v in children(pt, u)
+      if u == v; continue; end # Skip u
+      if v in lvs; continue; end # Skip if v is a leaf
+      dfs!(v)
+    end
+    # Push the parent
+    push!(order, u)
+  end
+  
+  dfs!(r)
+  return order
+end
+
 
 ###################################################################################
 #
