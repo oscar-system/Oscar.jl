@@ -8,6 +8,86 @@ function _real_roots(f::QQMPolyRingElem; solver_precision::Int)
   return result
 end
 
+
+function find_ytangent_ybox_tolerance(ypt::Vector{QQFieldElem}, xpt::Vector{QQFieldElem}, pts::Vector{QQFieldElem}, init::Int)
+  ytol = QQ(1, 2)^init
+  yinterval = [ypt[1] - ytol, ypt[2] + ytol]
+  pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
+  if length(pti) == 2
+    return ytol
+  end
+  let toolarge, toosmall
+    if length(pti) > 2
+      @vprintln :DrawingCurves 2 "ybox was too large!"
+      toolarge = ytol
+      pti = findall(r -> ypt[1] <= r && r <= ypt[2], pts)
+      if length(pti) > 2
+        error("ybox too large, increase solver_precision")
+      end
+      if length(pti) == 2
+        return 0
+      end
+      if length(pti) < 2
+        toosmall = 0
+      end
+      maxit = 1000
+      while length(pti) != 2 && maxit > 0
+        ytol = QQ(1,2)*(toolarge+toosmall)
+        yinterval = [ypt[1] - ytol, ypt[2] + ytol]
+        pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
+        if length(pti) > 2
+          toolarge = ytol
+        end
+        if length(pti) < 2
+          toosmall = ytol
+        end
+        maxit -= 1
+      end
+      if length(pti) != 2
+        error("Could not find suitable ybox tolerance.")
+      end
+    else
+      @vprintln :DrawingCurves 2 "ybox was too small!"
+      toosmall = ytol
+      l = (ypt[2]-ypt[1])
+      for i = 1:2000
+        ytol = QQ(2)^i * l
+        pti = findall(r -> ypt[1]-ytol <= r && r <= ypt[2]+ytol, pts)
+        if length(pti) > 2
+          break
+        end
+      end
+      if length(pti) < 2
+        error("ybox too small, increase solver_precision $xpt")
+      end
+      if length(pti) == 2
+        return ytol
+      end
+      if length(pti) > 2
+        toolarge = ytol
+      end
+      maxit = 1000
+      while length(pti) != 2 && maxit > 0
+        ytol = QQ(1,2)*(toolarge+toosmall)
+        yinterval = [ypt[1] - ytol, ypt[2] + ytol]
+        pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
+        if length(pti) > 2
+          toolarge = ytol
+        end
+        if length(pti) < 2
+          toosmall = ytol
+        end
+        maxit -= 1
+      end
+      if length(pti) != 2
+        error("Could not find suitable ybox tolerance.")
+      end
+    end
+  end
+  @vprintln :DrawingCurves 2 "Found ybox tolerance: $ytol"
+  return ytol
+end
+
 function _analyse_singularity_msolve(
   f::QQMPolyRingElem,
   projy::Map,
@@ -30,9 +110,6 @@ function _analyse_singularity_msolve(
     xafter = xpt[2]
     ptsafter = _real_roots(projy(evaluate(f, [Rxy(xafter), y])); solver_precision)
 
-    # Just guessing some precision, not optimal...
-    ytol = QQ(1, 2)^ybox_tolerance
-    yinterval = [ypt[1] - ytol, ypt[2] + ytol]
     result = ptsbefore
     diff = length(ptsbefore) - length(ptsafter)
     if diff < 0
@@ -42,6 +119,13 @@ function _analyse_singularity_msolve(
     if type == :ytangent
       @req abs(diff) == 2 "Could not verify ytangent status"
     end
+    
+    # Just guessing some precision, not optimal...
+    ytol = QQ(1, 2)^ybox_tolerance
+    if type == :ytangent
+      ytol = find_ytangent_ybox_tolerance(ypt, xpt, result, ybox_tolerance)
+    end
+    yinterval = [ypt[1] - ytol, ypt[2] + ytol]
 
     # Just verify that everything fits with float
     pti = findfirst(r -> yinterval[1] <= r && r <= yinterval[2], result)
@@ -76,6 +160,7 @@ function _analyse_singularity_msolve(
     end
     if type == :ytangent
       if length(singindices) != 2
+        @vprintln :DrawingCurves 2 "Wrong length for type ytangent: $(length(singindices))"
         return (result, 0, :fail)
       end
     end
