@@ -2398,3 +2398,13 @@ end
   return (false, one(A), one(A))
 end
 
+"""
+    canonical_hash(g::Graph{T})
+    
+The canonical hash is an isomorphism invariant of a graph. 
+
+!! Warning 
+   The canonical hash depends on the version of Oscar.
+"""
+canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
+
