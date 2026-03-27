@@ -334,6 +334,7 @@ export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
 export basis_of_h4
 export bell
+export bergman_fan
 export betti
 export betti_number
 export betti_numbers
@@ -825,6 +826,7 @@ export inclusion_morphism
 export indegree
 export independent_sets
 export index
+export index_of_coset
 export index_of_gen
 export index_of_leading_term
 export indicator
@@ -1075,6 +1077,8 @@ export is_table_of_marks_name
 export is_ternary
 export is_total
 export is_transitive
+export is_transversal
+export is_transversal_with_presentation
 export is_transverse_intersection
 export is_trivial
 export is_tropically_generic
@@ -1380,9 +1384,11 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_sets_tuples
 export on_simplicial_complex
 export on_subgroups
 export on_tuples
+export on_tuples_sets
 export one!
 export open_subset_type
 export opposite_algebra

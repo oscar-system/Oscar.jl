@@ -341,7 +341,9 @@ GAP.@wrap OnIndeterminates(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnLines(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnSetsTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnTuplesSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
@@ -355,6 +357,7 @@ GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
+GAP.@wrap PositionCanonical(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap POW(x::GAP.Obj, y::GAP.Obj)::GAP.Obj

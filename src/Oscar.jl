@@ -179,6 +179,8 @@ function __init__()
 
   add_verbosity_scope(:DirectImages)
 
+  add_verbosity_scope(:DrawingCurves)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
@@ -277,7 +279,6 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
-include("NumberTheory/ZLattices.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
@@ -286,6 +287,7 @@ include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
+include("NumberTheory/ZLattices.jl") # needs graphs
 
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
