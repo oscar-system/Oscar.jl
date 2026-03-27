@@ -1299,7 +1299,7 @@ If `X` has been given a polarization, return the degree of `X` with respect to t
 julia> G = abstract_grassmannian(2,5)
 AbstractVariety of dim 6
 
-julia> julia> degree(G) == integral(polarization(G)^dim(G)) == 5
+julia> degree(G) == integral(polarization(G)^dim(G)) == 5
 true
 
 ```
@@ -3155,8 +3155,7 @@ c[1, 1]
 julia> f = hom(RP3, RFV, [-c11])
 Ring homomorphism
   from quotient of multivariate polynomial ring by ideal (h^4)
-  to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1,
-   1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
+  to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
 defined by
   h -> c[2, 1]
 
@@ -3815,8 +3814,7 @@ julia> c11, c12 = gens(RFV)[1:2]
 
 julia> f = hom(RG, RFV, [c11, c12])
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -c[1]^5 + 4*c[1]
-  ^3*c[2] - 3*c[1]*c[2]^2)
+  from quotient of multivariate polynomial ring by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]*c[2]^2)
   to quotient of multivariate polynomial ring by ideal with 5 generators
 defined by
   c[1] -> -c[2, 1]
