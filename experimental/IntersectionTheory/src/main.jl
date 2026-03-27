@@ -3155,8 +3155,8 @@ c[1, 1]
 julia> f = hom(RP3, RFV, [-c11])
 Ring homomorphism
   from quotient of multivariate polynomial ring by ideal (h^4)
-  to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] -
-   c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
+  to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1,
+   1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
 defined by
   h -> c[2, 1]
 
@@ -3301,7 +3301,7 @@ julia> FT1 = flag_bundle(T, 1)
 AbstractVariety of dim 7
 
 julia> SQ1, SQ2 = tautological_bundles(FT1) # the subquotient bundles
-2-element Vector{AbstractBundle
+2-element Vector{AbstractBundle}:
  AbstractBundle of rank 1 on AbstractVariety of dim 7
  AbstractBundle of rank 3 on AbstractVariety of dim 7
 
@@ -3815,8 +3815,8 @@ julia> c11, c12 = gens(RFV)[1:2]
 
 julia> f = hom(RG, RFV, [c11, c12])
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -
-  c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]*c[2]^2)
+  from quotient of multivariate polynomial ring by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -c[1]^5 + 4*c[1]
+  ^3*c[2] - 3*c[1]*c[2]^2)
   to quotient of multivariate polynomial ring by ideal with 5 generators
 defined by
   c[1] -> -c[2, 1]
@@ -4043,7 +4043,7 @@ julia> P = abstract_projective_space(4)
 AbstractVariety of dim 4
 
 julia> T = tangent_bundle(P)
-AbstractBundle of rank 9 on AbstractVariety of dim 9
+AbstractBundle of rank 4 on AbstractVariety of dim 4
 
 julia> F = flag_bundle(T, 1, 3)
 AbstractVariety of dim 9
