@@ -1102,7 +1102,8 @@ point_class(X::AbstractVariety) = X.point
 If `X` has been given a polarization, return that polarization.
 
 !!! note
-    To implement a polarization $\mathcal O_X(1)$ means to implement its first Chern class.
+    A polarization of `X` is an element of degree 1 in the Chow ring of `X`
+    which represents the first Chern class of an ample line bundle $\mathcal O_X(1)$.
     For Grassmannians, this is the polarization of the Plücker embedding.
     For the product of two abstract varieties with given polarizations, it is the polarization of the Segre embedding.
 
@@ -1291,15 +1292,15 @@ OO(X::AbstractVariety, D::Union{MPolyDecRingElem,MPolyQuoRingElem}) = line_bundl
 @doc raw"""
     degree(X::AbstractVariety)
 
-If `X` has been given a polarization, return the corresponding degree of `X`.
+If `X` has been given a polarization, return the degree of `X` with respect to that polarization.
 
 # Examples
 ```jldoctest
 julia> G = abstract_grassmannian(2,5)
 AbstractVariety of dim 6
 
-julia> degree(G)
-5
+julia> julia> degree(G) == integral(polarization(G)^dim(G)) == 5
+true
 
 ```
 """
@@ -1859,7 +1860,7 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   if get_attribute(X, :alg) == true && get_attribute(Y, :alg) == true
     set_attribute!(XY, :alg => true)
   end
-  set_attribute!(XY, :projections => [p, q])
+   set_attribute!(XY, :projections => [p, q])
   set_attribute!(XY, :description => "Product of $X and $Y")
   product_cache[Y] = XY
   return XY
@@ -3116,16 +3117,52 @@ Return the abstract projective space of lines in an `n+1`-dimensional vector spa
 !!! note
     The string `symbol` specifies how to print the generators of the Chow ring.
 
+
+!!! note
+    The Chow ring of $\mathbb P^n$ is
+    $\mathrm{N}^\ast(\mathbb P^n)_{\mathbb Q} = \mathbb Q[h]/(h^{n+1}),$
+    where $h$ in degree 1 is the class of a hyperplane.
+
 # Examples
 ```jldoctest
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
-julia> chow_ring(P3)
+julia> RP3 = chow_ring(P3)
 Quotient
   of multivariate polynomial ring in 1 variable over QQ graded by
     h -> [1]
   by ideal (h^4)
+
+julia> point_class(P3)
+h^3
+
+julia> FV = abstract_flag_variety(1, 4)
+AbstractVariety of dim 3
+
+julia> RFV = chow_ring(FV)
+Quotient
+  of multivariate polynomial ring in 4 variables over QQ graded by
+    c[1, 1] -> [1]
+    c[2, 1] -> [1]
+    c[2, 2] -> [2]
+    c[2, 3] -> [3]
+  by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
+
+julia> c11 = gens(RFV)[1]
+c[1, 1]
+
+julia> f = hom(RP3, RFV, [-c11])
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal (h^4)
+  to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] -
+   c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
+defined by
+  h -> c[2, 1]
+
+julia> is_isomorphism(f)
+true
+
 ```
 
 ```jldoctest
@@ -3139,7 +3176,7 @@ Fraction field
 julia> P3 = abstract_projective_space(3, base = QT)
 AbstractVariety of dim 3
 
-julia> chow_ring(P3)
+julia> RP3 = chow_ring(P3)
 Quotient
   of multivariate polynomial ring in 1 variable over QT graded by
     h -> [1]
@@ -3181,17 +3218,28 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
 end
 
 @doc raw"""
-    projective_bundle(F::AbstractBundle; symbol::String = "z")
+    projective_bundle(E::AbstractBundle; symbol::String = "z")
 
-Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
-
-!!! note
-    The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(\mathcal F)}(1)$.
+Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
 
 !!! note
-    For generators and relations of Chow rings of projective bundles see [EH16](@cite).
+    The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(E)}(1)$.
+
+!!! note
+    Let $X$ be a variety, let $E$ a vector bundle on $X$ of rank $n$, and let $\pi : \mathbb P(E) \rightarrow X$
+    be the corresponding projective bundle. Write $\mathcal O_{\mathbb P(E)}(-1)\subset \pi^\ast E$ for the tautological
+    line subbundle and $\xi$ for the first Chern class of the dual bundle $\mathcal O_{\mathbb P(E)}(1)$.
+    Then the pullbacks of the Chern classes of $E$ via $\pi$ satisfy the relation
+    $\xi^n+\pi^\ast c_1(E) \xi^{n-1} + \dots + \pi^\ast c_n(E) = 0$. In fact,
+
+    $\mathrm{N}^\ast(\mathbb P(E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[\xi]/(\xi^n+\pi^\ast c_1(E) \xi^{n-1} + \dots + \pi^\ast c_n(E)),$
+
+    where $\xi$ is in degree 1 (see [Gro58](@cite),  [EH16](@cite)).
+
+!!! note
     For the pushforward of cycle classes from a projective bundle to its base variety
-    see [EH16](@cite) and [DP17](@cite).
+    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle  bundle can also
+    be realized by using the function `flag_bundle` as indicated in the example below.
 
 # Examples
 ```jldoctest
@@ -3211,16 +3259,25 @@ Quotient
     h -> [1]
   by ideal (h^5, z^4 + 5*z^3*h + 10*z^2*h^2 + 10*z*h^3 + 5*h^4)
 
-julia> z, h = gens(R)
-2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- z
- h
+julia> total_chern_class(T)
+5*h^4 + 10*h^3 + 10*h^2 + 5*h + 1
+
+julia> S = tautological_bundles(PT)[1]
+AbstractBundle of rank 1 on AbstractVariety of dim 7
+
+julia> chern_class(dual(S), 1)
+z
 
 julia> polarization(PT)
 z
 
 julia> p = structure_map(PT)
 AbstractVarietyMap from AbstractVariety of dim 7 to AbstractVariety of dim 4
+
+julia> z, h = gens(R)
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ z
+ h
 
 julia> pushforward(p, h)
 0
@@ -3238,6 +3295,47 @@ julia> s = total_segre_class(T)
 70*h^4 - 35*h^3 + 15*h^2 - 5*h + 1
 
 julia> sum(pushforward(p, (z^(i+rank(T)-1))) for i in 0:dim(P4)) == s
+true
+
+julia> FT1 = flag_bundle(T, 1)
+AbstractVariety of dim 7
+
+julia> SQ1, SQ2 = tautological_bundles(FT1) # the subquotient bundles
+2-element Vector{AbstractBundle
+ AbstractBundle of rank 1 on AbstractVariety of dim 7
+ AbstractBundle of rank 3 on AbstractVariety of dim 7
+
+julia> R1 = chow_ring(FT1)
+Quotient
+  of multivariate polynomial ring in 5 variables over QQ graded by
+    c[1, 1] -> [1]
+    c[2, 1] -> [1]
+    c[2, 2] -> [2]
+    c[2, 3] -> [3]
+    h -> [1]
+  by ideal with 5 generators
+
+julia> modulus(R1)
+Ideal generated by
+  h^5
+  -c[1, 1]*c[2, 3] + 5*h^4
+  -c[1, 1]*c[2, 2] - c[2, 3] + 10*h^3
+  -c[1, 1]*c[2, 1] - c[2, 2] + 10*h^2
+  -c[1, 1] - c[2, 1] + 5*h
+
+julia> total_chern_class(SQ1)
+-c[2, 1] + 5*h + 1
+
+julia> total_chern_class(SQ2)
+c[2, 1] + c[2, 2] + c[2, 3] + 1
+
+julia> c11 = gens(R1)[1];
+
+julia> h = gens(R1)[5];
+
+julia> f = hom(R, R1, [-c11, h]);
+
+julia> is_isomorphism(f)
 true
 
 ```
@@ -3639,66 +3737,93 @@ Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspace
 !!! note
     The string `symbol` specifies how to print the generators of the Chow ring.
 
-!!! tip
+!!! note
     There are several useful ways of representing the Chow ring of $\mathrm{Gr}(k, n)$ in terms
     of generators and relations. The function `abstract_grassmannian` yields a minimal
-    set of generators, the Chern classes of the universal subbundle on $\mathrm{Gr}(k, n)$, with
-    relations as described, for example, in [EH16](@cite). Another way is to handle the Grassmannian as a
-    special case of a flag variety: Entering `abstract_flag_variety(k, n)`, the returned generators
+    set of generators. These are the Chern classes $c_i(S)$, $i = 1, \dots, k$, where $S$ is
+    the universal subbundle on $\mathrm{Gr}(k, n)$, and where the $c_i(S)$ are in degree $i$.
+    For the relations, note that the universal quotient bundle $Q$ has rank $n-k$. The relations
+    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots n$ (see,
+    for example, [EH16](@cite)).
+
+!!! tip
+    We may also handle the Grassmannian as a
+    special case of a flag variety: Upon entering `abstract_flag_variety(k, n)`, the returned generators
     will be the Chern classes of the tautological subquotient bundles, with relations as described,
     for example, in [HK-MW24](@cite). Depending on whether $n-k$ is small (large), working with the
     latter (former) recipe may be more performant.
 
 # Examples
 ```jldoctest
-julia> G = abstract_grassmannian(2,4)
-AbstractVariety of dim 4
+julia> G = abstract_grassmannian(2,5)
+AbstractVariety of dim 6
 
-julia> CR = chow_ring(G)
+julia> RG = chow_ring(G)
 Quotient
   of multivariate polynomial ring in 2 variables over QQ graded by
     c[1] -> [1]
     c[2] -> [2]
-  by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
+  by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]*c[2]^2)
 
 julia> S = tautological_bundles(G)[1]
-AbstractBundle of rank 2 on AbstractVariety of dim 4
+AbstractBundle of rank 2 on AbstractVariety of dim 6
 
 julia> V = [chern_class(S, i) for i in 1:2]
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  c[1]
  c[2]
 
-julia> is_regular_sequence(gens(modulus(CR)))
+julia> is_regular_sequence(gens(modulus(RG)))
 true
 
 julia> Q = tautological_bundles(G)[2]
-AbstractBundle of rank 2 on AbstractVariety of dim 4
+AbstractBundle of rank 3 on AbstractVariety of dim 6
 
 julia> tangent_bundle(G) == dual(S)*Q
 true
 
-```
+julia> FV = abstract_flag_variety(2,5)
+AbstractVariety of dim 6
 
-```jldoctest
-julia> G = abstract_flag_variety(2,4)
-AbstractVariety of dim 4
+julia> SQ1, SQ2 = tautological_bundles(FV) # the subquotient bundles
+2-element Vector{AbstractBundle}:
+ AbstractBundle of rank 2 on AbstractVariety of dim 6
+ AbstractBundle of rank 3 on AbstractVariety of dim 6
 
-julia> CR = chow_ring(G)
+julia> RFV = chow_ring(FV)
 Quotient
-  of multivariate polynomial ring in 4 variables over QQ graded by
+  of multivariate polynomial ring in 5 variables over QQ graded by
     c[1, 1] -> [1]
     c[1, 2] -> [2]
     c[2, 1] -> [1]
     c[2, 2] -> [2]
-  by ideal with 4 generators
+    c[2, 3] -> [3]
+  by ideal with 5 generators
 
-julia> modulus(CR)
+julia> modulus(RFV)
 Ideal generated by
-  -c[1, 2]*c[2, 2]
-  -c[1, 1]*c[2, 2] - c[1, 2]*c[2, 1]
+  -c[1, 2]*c[2, 3]
+  -c[1, 1]*c[2, 3] - c[1, 2]*c[2, 2]
+  -c[1, 1]*c[2, 2] - c[1, 2]*c[2, 1] - c[2, 3]
   -c[1, 1]*c[2, 1] - c[1, 2] - c[2, 2]
   -c[1, 1] - c[2, 1]
+
+julia> c11, c12 = gens(RFV)[1:2]
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ c[1, 1]
+ c[1, 2]
+
+julia> f = hom(RG, RFV, [c11, c12])
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal (c[1]^4 - 3*c[1]^2*c[2] + c[2]^2, -
+  c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]*c[2]^2)
+  to quotient of multivariate polynomial ring by ideal with 5 generators
+defined by
+  c[1] -> -c[2, 1]
+  c[2] -> c[2, 1]^2 - c[2, 2]
+
+julia> is_isomorphism(f)
+true
 
 ```
 """
@@ -3744,15 +3869,35 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
     The string `symbol` specifies how to print the generators of the Chow ring.
 
 !!! note
-    The returned generators are the Chern classes of the tautological subquotient bundles, with relations as described,
-    for example, in [HK-MW24](@cite).
+    A flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ as above comes equipped with a sequence of tautological subbundles
+    $0 = S_0 \subset S_1 \subset \dots \subset S_k\subset S_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
+    ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$, together with the corresponding subquotient bundles $SQ_j = S_j/S_{j-1}$,
+    $j = 1,  \dots, k+1$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
+    write $c_{ij} = c_i(SQ_j)$. Then
+
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j]/(\mathrm{relations}).$
+
+    Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
+
+    $\prod_{j = 1}^{k+1} (c(SQ_j)-1) = 0,$
+
+    where $c$ stands for taking the total chern class. See [HK-MW24](@cite).
+
+!!! note
+    A flag variety as above can also be realized as a flag bundle of the trivial rank-$n$ bundle over a point.
 
 # Examples
 ```jldoctest
-julia> F = abstract_flag_variety(1,3,4)
+julia> F = abstract_flag_variety(1, 3, 4)
 AbstractVariety of dim 5
 
-julia> chow_ring(F)
+julia> SQ = tautological_bundles(F)
+3-element Vector{AbstractBundle}:
+ AbstractBundle of rank 1 on AbstractVariety of dim 5
+ AbstractBundle of rank 2 on AbstractVariety of dim 5
+ AbstractBundle of rank 1 on AbstractVariety of dim 5
+
+julia> RF = chow_ring(F)
 Quotient
   of multivariate polynomial ring in 4 variables over QQ graded by
     c[1, 1] -> [1]
@@ -3761,8 +3906,41 @@ Quotient
     c[3, 1] -> [1]
   by ideal with 4 generators
 
-julia> modulus(chow_ring(F))
+julia> modulus(RF)
 Ideal generated by
+  -c[1, 1]*c[2, 2]*c[3, 1]
+  -c[1, 1]*c[2, 1]*c[3, 1] - c[1, 1]*c[2, 2] - c[2, 2]*c[3, 1]
+  -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2]
+  -c[1, 1] - c[2, 1] - c[3, 1]
+
+julia> prod(total_chern_class(SQ[j]) for j =  1:3)
+1
+
+```
+
+```jldoctest
+julia> p = abstract_point()
+AbstractVariety of dim 0
+
+julia> E = 4*OO(p)
+AbstractBundle of rank 4 on AbstractVariety of dim 0
+
+julia> FB = flag_bundle(E, 1, 3)
+AbstractVariety of dim 5
+
+julia> RFB = chow_ring(FB)
+Quotient
+  of multivariate polynomial ring in 5 variables over QQ graded by
+    c[1, 1] -> [1]
+    c[2, 1] -> [1]
+    c[2, 2] -> [2]
+    c[3, 1] -> [1]
+    p -> [1]
+  by ideal with 5 generators
+
+julia> modulus(RFB)
+Ideal generated by
+  p
   -c[1, 1]*c[2, 2]*c[3, 1]
   -c[1, 1]*c[2, 1]*c[3, 1] - c[1, 1]*c[2, 2] - c[2, 2]*c[3, 1]
   -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2]
@@ -3831,14 +4009,32 @@ end
     flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
 Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
-and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences
-of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $F$.
+and given an abstract bundle $E$ of rank $n$, return the abstract flag bundle of nested sequences
+of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 
 !!! note
-    Entering the number $n$ can be omitted since this number can be recovered as the rank of $F$.
+    Entering the number $n$ can be omitted since this number can be recovered as the rank of $E$.
 
 !!! note
-    Generators and relations for the Chow ring of a flag bundle are described in [Gro58](@cite).
+    The string `symbol` specifies how to print the generators of the Chow ring.
+
+!!! note
+    Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $d_1, \dots, d_k$
+    be as above. Then the corresponding flag bundle $\pi : \mathrm{F}(d_1, \dots, d_{k}; E)  \rightarrow X$
+    comes equipped with a sequence of tautological subbundles $0 = S_0, S_1 \subset \dots \subset
+    S_k\subset S_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
+    subquotient bundles $SQ_j = S_j/S_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
+    in terms of generators and relations, write $c_{ij} = c_i(SQ_j)$ and $c_i = \pi^\ast c_i(E)$. Then
+
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E)_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+
+    Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
+
+    $\prod_{j = 1}^{k+1} c(SQ_j) = c(\pi^\ast E),$
+
+    where $c$ stands for taking the total chern class. See [Gro58](@cite).
+
+!!! note
     For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
 
 # Examples
@@ -3846,13 +4042,19 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $F$.
 julia> P = abstract_projective_space(4)
 AbstractVariety of dim 4
 
-julia> F = exterior_power(cotangent_bundle(P),  3)*OO(P,3)
-AbstractBundle of rank 4 on AbstractVariety of dim 4
+julia> T = tangent_bundle(P)
+AbstractBundle of rank 9 on AbstractVariety of dim 9
 
-julia> FB = flag_bundle(F, 1, 3)
+julia> F = flag_bundle(T, 1, 3)
 AbstractVariety of dim 9
 
-julia> CR = chow_ring(FB)
+julia> SQ = tautological_bundles(F)
+3-element Vector{AbstractBundle}:
+ AbstractBundle of rank 1 on AbstractVariety of dim 9
+ AbstractBundle of rank 2 on AbstractVariety of dim 9
+ AbstractBundle of rank 1 on AbstractVariety of dim 9
+
+julia> R = chow_ring(F)
 Quotient
   of multivariate polynomial ring in 5 variables over QQ graded by
     c[1, 1] -> [1]
@@ -3862,19 +4064,22 @@ Quotient
     h -> [1]
   by ideal with 5 generators
 
-julia> modulus(CR)
+julia> modulus(R)
 Ideal generated by
   h^5
-  -c[1, 1]*c[2, 2]*c[3, 1] + h^4
-  -c[1, 1]*c[2, 1]*c[3, 1] - c[1, 1]*c[2, 2] - c[2, 2]*c[3, 1] - 2*h^3
-  -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2] + 4*h^2
-  -c[1, 1] - c[2, 1] - c[3, 1] - 3*h
+  -c[1, 1]*c[2, 2]*c[3, 1] + 5*h^4
+  -c[1, 1]*c[2, 1]*c[3, 1] - c[1, 1]*c[2, 2] - c[2, 2]*c[3, 1] + 10*h^3
+  -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2] + 10*h^2
+  -c[1, 1] - c[2, 1] - c[3, 1] + 5*h
 
-julia> tautological_bundles(FB)
-3-element Vector{AbstractBundle}:
- AbstractBundle of rank 1 on AbstractVariety of dim 9
- AbstractBundle of rank 2 on AbstractVariety of dim 9
- AbstractBundle of rank 1 on AbstractVariety of dim 9
+julia> pi = structure_map(F)
+AbstractVarietyMap from AbstractVariety of dim 9 to AbstractVariety of dim 4
+
+julia> prod(total_chern_class(SQ[j]) for j =  1:3)
+5*h^4 + 10*h^3 + 10*h^2 + 5*h + 1
+
+julia> sum(pullback(pi, chern_class(T, i)) for i = 0:4)
+5*h^4 + 10*h^3 + 10*h^2 + 5*h + 1
 
 ```
 """
