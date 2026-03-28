@@ -1860,7 +1860,7 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   if get_attribute(X, :alg) == true && get_attribute(Y, :alg) == true
     set_attribute!(XY, :alg => true)
   end
-   set_attribute!(XY, :projections => [p, q])
+  set_attribute!(XY, :projections => [p, q])
   set_attribute!(XY, :description => "Product of $X and $Y")
   product_cache[Y] = XY
   return XY
