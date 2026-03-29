@@ -66,7 +66,7 @@ function fitting_ideal(F::FreeMod{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(F)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  if i < rank(F) return ideal(R, [zero(R)]) end
- return R
+ return ideal(R, [one(R)])
 end
 
 function fitting_ideal(M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
