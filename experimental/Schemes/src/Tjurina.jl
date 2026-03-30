@@ -552,8 +552,8 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   @req R === base_ring(B) "A and B must have the same base ring"
   ## shift to origin   
   L, _ = localization(R, complement_of_point_ideal(R, zeros(coefficient_ring(R), ngens(R))))  
-  A,_ = quo(L, L(Oscar.shifted_ideal(modulus(A))))
-  B,_ = quo(L, L(Oscar.shifted_ideal(modulus(B))))   
+  A,_ = quo(L, L(shifted_ideal(modulus(A))))
+  B,_ = quo(L, L(shifted_ideal(modulus(B))))   
   ## check id isomorphism
   modulus(underlying_quotient(A)) != modulus(underlying_quotient(B)) || return true
   ## basic dimension checks
@@ -594,8 +594,8 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   ## check if isomorphism exists
   S, t = polynomial_ring(coefficient_ring(R), ngens_m_k[1]*length(mB_basis), :t, cached = false)
   P, iota = change_base_ring(S, R)    
-  I_A = Oscar.shifted_ideal(ideal(L, minimal_generating_set(modulus(A)))) 
-  I_B = ideal(standard_basis(Oscar.shifted_ideal(modulus(B)), ordering = negdeglex(R))) 
+  I_A = shifted_ideal(ideal(L, minimal_generating_set(modulus(A)))) 
+  I_B = ideal(standard_basis(shifted_ideal(modulus(B)), ordering = negdeglex(R))) 
   ## construct homomorphism with parameters
   phi = elem_type(P)[]  
   for i in 0:ngens_m_k[1]-1
