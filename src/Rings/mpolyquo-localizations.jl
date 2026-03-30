@@ -1931,7 +1931,7 @@ julia> intersection_multiplicity(C, D, C(P))
 ```
 
 ```jldoctest
-julia> R, (x,y) = QQ["x","y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> f = (x^2-y^3)*(y-1);   # 3 singularities, a cusp and two nodes
 

@@ -751,7 +751,7 @@ end
 Return the Tjurina module of the complete intersection germ `(X,p)` at the point `p`.
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x","y","z"];
+julia> R, (x,y,z) = QQ[:x,:y,:z];
 
 julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
 
@@ -804,7 +804,7 @@ end
 Return Tjurina number of the complete intersection germ `(X,p)` at the point `p`. 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x","y","z"];
+julia> R, (x,y,z) = QQ[:x,:y,:z];
 
 julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
 
