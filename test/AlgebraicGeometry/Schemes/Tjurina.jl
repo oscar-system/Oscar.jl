@@ -258,11 +258,27 @@ end
   A = affine_space(QQ, 3)
   R = coordinate_ring(A);
   (x,y,z) = gens(R);
-  X = CompleteIntersectionGerm(spec(quo(R,ideal(R,[x^2+y^2+z^2, x^2+2*y^2+3*z^2]))[1]), [0,0,0])
+  IX = ideal(R, [x^2+y^2+z^2, x^2+2*y^2+3*z^2])
+  X = CompleteIntersectionGerm(spec(R, IX), [0,0,0])
   @test tjurina_number(X) == 5
-  S = spec(quo(R,ideal(R,[x^5+y^6+z^7+x*y*z]))[1])
+  IY = ideal(R, [x^2+y^2, x^2+2*y^2])
+  Y = CompleteIntersectionGerm(spec(R, IY), [0,0,0])
+  @test tjurina_number(Y) == PosInf() 
+  IZ = ideal(R, [x^2+y^3, y^3+z^2])
+  Z = CompleteIntersectionGerm(spec(R, IZ), [0,0,0])
+  @test tjurina_number(Z) == 9
+  # test for HypersurfaceGerm as CompleteIntersectionGerm
+  IS = ideal(R, x^5+y^6+z^7+x*y*z)
+  S = spec(R, IS)
   @test tjurina_number(HypersurfaceGerm(S, [0,0,0])) == tjurina_number(CompleteIntersectionGerm(S, [0,0,0]))
-  Y = CompleteIntersectionGerm(spec(quo(R,ideal(R,[x^2+y^2, x^2+2*y^2]))[1]), [0,0,0])
+  IT = ideal(R, [x^2+y^2, x^2+2*y^2])
+  T = CompleteIntersectionGerm(spec(R, IT), [0,0,0])
   @test tjurina_number(Y) == PosInf()  
+  # tests for shift and local
+  IW = ideal(R, [(x-1)*(x^2+y^2-(z-1)^2), (x-1)x*y])
+  W = CompleteIntersectionGerm(spec(R, IW), [0,0,1])
+  @test tjurina_number(W) == 5
+  W2 = CompleteIntersectionGerm(spec(R, IW), [0,1,2])
+  @test tjurina_number(W2) == 0
 end
 
