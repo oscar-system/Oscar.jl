@@ -9,9 +9,6 @@
           "type": "string"
         },
         {
-          "type": "null"
-        },
-        {
           "patternProperties": {
             "^[a-zA-Z0-9_]*": {
               "$ref": "#/$defs/data"
@@ -28,6 +25,9 @@
         },
         {
           "$ref": "https://polymake.org/schemas/data.json"
+        },
+        {
+          "type": "null"
         }
       ]
     }
