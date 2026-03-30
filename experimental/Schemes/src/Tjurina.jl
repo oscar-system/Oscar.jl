@@ -293,7 +293,7 @@ end
 @doc raw"""
     is_finitely_determined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, equivalence::Symbol = :contact)
 
-Return if 'f' is finitely determined with respect to ':right' or ':contact' equivalence.
+Return if `f` is finitely determined with respect to `:right` or `:contact` equivalence.
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
@@ -339,7 +339,7 @@ end
 @doc raw"""
     is_finitely_determined(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Return if the hypersurface germ 'X' is finitely determined with respect to ':right' or ':contact' equivalence. 
+Return if the hypersurface germ `X` is finitely determined with respect to `:right` or `:contact` equivalence. 
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
@@ -363,10 +363,11 @@ end
 
 
 ###############################################################################
+
 @doc raw"""
     determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
+Compute some determinacy bound of `f` with respect to `:right` or `:contact` equivalence.
 Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
@@ -418,7 +419,7 @@ end
 @doc raw"""
     determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
+Compute some determinacy bound of the hypersurface germ `X` with respect to `:right` or `:contact` equivalence.
 Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
@@ -447,7 +448,7 @@ end
 @doc raw"""
     sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
+Compute some determinacy bound of `f` with respect to `:right` or `:contact` equivalence.
 Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
@@ -509,7 +510,7 @@ end
 @doc raw"""
     sharper_determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
+Compute some determinacy bound of the hypersurface germ `X` with respect to `:right` or `:contact` equivalence.
 Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
@@ -636,7 +637,7 @@ end
 @doc raw"""
     is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
 
-Return if 'f' and 'g' are contact equivalent. 
+Return if `f` and `g` are contact equivalent. 
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
@@ -712,7 +713,7 @@ end
 @doc raw"""
     is_contact_equivalent(X::HypersurfaceGerm, Y::HypersurfaceGerm)
 
-Return if the hypersurface germs 'X' and 'Y' are contact equivalent. 
+Return if the hypersurface germs `X` and `Y` are contact equivalent. 
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
