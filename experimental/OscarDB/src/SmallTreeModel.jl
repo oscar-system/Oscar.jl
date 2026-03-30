@@ -6,10 +6,10 @@ struct SmallTreeModel
   degree::Int
   np::Int
   nq::Int
-  dim_sl::Int
-  deg_sl::Int
-  MLdeg::Int
-  EDdeg::Int
+  dim_sl::Union{Int, Nothing}
+  deg_sl::Union{Int, Nothing}
+  MLdeg::Union{Int, Nothing}
+  EDdeg::Union{Int, Nothing}
   parametrization_p::Oscar.MPolyAnyMap
   parametrization_q::Oscar.MPolyAnyMap
   eq_classes_p::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
@@ -28,28 +28,28 @@ function small_tree_model(name::String,
                           model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
                           model_type::String)
 
-    fq = Oscar.parametrization(model)
-    fp = Oscar.parametrization(phylogenetic_model(model))
-    ec_q = Oscar.equivalent_classes(model)
-    ec_p = Oscar.equivalent_classes(phylogenetic_model(model))
-    I = Oscar.vanishing_ideal(model)
+    fq = parametrization(model)
+    fp = parametrization(phylogenetic_model(model))
+    ec_q = equivalent_classes(model)
+    ec_p = equivalent_classes(phylogenetic_model(model))
+    I = vanishing_ideal(model)
 
   return SmallTreeModel(
     name,
     model,
     model_type,
     dim(I),
-    Oscar.degree(I),
+    degree(I),
     length(ec_p),
     length(ec_q),
-    0,
-    0,
-    0,
-    0,
+    nothing,
+    nothing,
+    nothing,
+    nothing,
     fp, fq, 
     ec_p, ec_q, 
-    Oscar.coordinate_change(model),
-    Oscar.inverse_coordinate_change(model),
+    coordinate_change(model),
+    inverse_coordinate_change(model),
     I
   )
 end
@@ -101,7 +101,7 @@ dim(stm::SmallTreeModel) = stm.dimension
 
 Return the degree of the small tree model `stm`.
 """
-Oscar.degree(stm::SmallTreeModel) = stm.degree
+degree(stm::SmallTreeModel) = stm.degree
 
 @doc raw"""
     n_coordinates(stm::SmallTreeModel)
@@ -122,7 +122,7 @@ n_coordinates_probabilities(stm::SmallTreeModel) = stm.np
 
 Return the parametrization of the small tree model `stm` (in Fourier coordinates).
 """
-Oscar.parametrization(stm::SmallTreeModel) = stm.parametrization_q
+parametrization(stm::SmallTreeModel) = stm.parametrization_q
 
 @doc raw"""
     parametrization_probabilities(stm::SmallTreeModel)
@@ -136,7 +136,7 @@ parametrization_probabilities(stm::SmallTreeModel) = stm.parametrization_p
 
 Return the equivalent classes of the small tree model `stm` (in Fourier coordinates).
 """
-Oscar.equivalent_classes(stm::SmallTreeModel) = stm.parametrization_q
+equivalent_classes(stm::SmallTreeModel) = stm.parametrization_q
 
 @doc raw"""
     equivalent_classes_probabilities(stm::SmallTreeModel)
@@ -150,21 +150,21 @@ equivalent_classes_probabilities(stm::SmallTreeModel) = stm.parametrization_p
 
 Return the linear change of coordinates, from Fourier to probability coordinates of the small tree model `stm`.
 """
-Oscar.coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_q_p
+coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_q_p
 
 @doc raw"""
     inverse_coordinate_change(stm::SmallTreeModel)
 
 Return the linear change of coordinates, from probability to Fourier coordinates of the small tree model `stm`.
 """
-Oscar.inverse_coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_p_q
+inverse_coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_p_q
 
 @doc raw"""
     vanishing_ideal(stm::SmallTreeModel)
 
 Return the vanishing ideal of the small tree model `stm`.
 """
-Oscar.vanishing_ideal(stm::SmallTreeModel) = stm.vanishing_ideal
+vanishing_ideal(stm::SmallTreeModel) = stm.vanishing_ideal
 
 function Base.show(io::IO, stm::SmallTreeModel)
   print(io, "Small tree phylogenetic model $(stm._id)")
