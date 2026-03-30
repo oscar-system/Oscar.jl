@@ -1,7 +1,22 @@
 struct SmallTreeModel
   _id::String # model encoding id, example 3-0-0-JC
-  model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}}
+  model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}} ## Includes the rings??
   model_type::String
+  dimension::Int
+  degree::Int
+  np::Int
+  nq::Int
+  dim_sl::Int
+  deg_sl::Int
+  MLdeg::Int
+  EDdeg::Int
+  parametrization_p::Oscar.MPolyAnyMap
+  parametrization_q::Oscar.MPolyAnyMap
+  eq_classes_p::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
+  eq_classes_q::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
+  coodinate_change_q_p::Oscar.MPolyAnyMap
+  coodinate_change_p_q::Oscar.MPolyAnyMap
+  vanishing_ideal::MPolyIdeal{QQMPolyRingElem}
 end
 
 @doc raw"""
@@ -12,10 +27,31 @@ Creates a `SmallTreeModel` which is the struct used to populate the collection "
 function small_tree_model(name::String,
                           model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
                           model_type::String)
+
+    fq = parametrization(model)
+    fp = parametrization(phylogenetic_model(model))
+    ec_q = equivalent_classes(model)
+    ec_p = equivalent_classes(phylogenetic_model(model))
+    I = vanishing_ideal(model)
+
+
   return SmallTreeModel(
     name,
     model,
-    model_type
+    model_type,
+    dim(I),
+    degree(I),
+    length(ec_p),
+    length(ec_q),
+    0,
+    0,
+    0,
+    0,
+    fp, fq, 
+    ec_p, ec_q, 
+    coordinate_change(model),
+    inverse_coordinate_change(model),
+    I
   )
 end
 
@@ -53,6 +89,90 @@ graph(stm::SmallTreeModel) = graph(group_based_phylogenetic_model(stm))
 Return the number of leaves of the small tree model `stm`.
 """
 n_leaves(stm::SmallTreeModel) = n_leaves(graph(stm))
+
+
+####
+  #dim_sl::Int
+  #deg_sl::Int
+  #MLdeg::Int
+  #EDdeg::Int
+
+@doc raw"""
+    dim(stm::SmallTreeModel)
+
+Return the dimension of the small tree model `stm`.
+"""
+dim(stm::SmallTreeModel) = stm.dimension
+
+@doc raw"""
+    degree(stm::SmallTreeModel)
+
+Return the degree of the small tree model `stm`.
+"""
+degree(stm::SmallTreeModel) = stm.degree
+
+@doc raw"""
+    n_coordinates(stm::SmallTreeModel)
+
+Return the dimension of the smallest linear subspace containing the small tree model `stm` (in Fourier coordinates).
+"""
+n_coordinates(stm::SmallTreeModel) = stm.nq
+
+@doc raw"""
+    n_coordinates_probabilities(stm::SmallTreeModel)
+
+Return the dimension of the smallest linear subspace containing the small tree model `stm` (in probability coordinates).
+"""
+n_coordinates_probabilities(stm::SmallTreeModel) = stm.np
+
+@doc raw"""
+    parametrization(stm::SmallTreeModel)
+
+Return the parametrization of the small tree model `stm` (in Fourier coordinates).
+"""
+parametrization(stm::SmallTreeModel) = stm.parametrization_q
+
+@doc raw"""
+    parametrization_probabilities(stm::SmallTreeModel)
+
+Return the parametrization of the small tree model `stm` (in probability coordinates).
+"""
+parametrization_probabilities(stm::SmallTreeModel) = stm.parametrization_p
+
+@doc raw"""
+    equivalent_classes(stm::SmallTreeModel)
+
+Return the equivalent classes of the small tree model `stm` (in Fourier coordinates).
+"""
+equivalent_classes(stm::SmallTreeModel) = stm.parametrization_q
+
+@doc raw"""
+    equivalent_classes_probabilities(stm::SmallTreeModel)
+
+Return the equivalent classes of the small tree model `stm` (in probability coordinates).
+"""
+equivalent_classes_probabilities(stm::SmallTreeModel) = stm.parametrization_p
+
+@doc raw"""
+    coordinate_change(stm::SmallTreeModel)
+
+Return the linear change of coordinates, from Fourier to probability coordinates of the small tree model `stm`.
+"""
+coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_q_p
+
+@doc raw"""
+    inverse_coordinate_change(stm::SmallTreeModel)
+
+Return the linear change of coordinates, from probability to Fourier coordinates of the small tree model `stm`.
+"""
+inverse_coordinate_change(stm::SmallTreeModel) = stm.coodinate_change_p_q
+
+@doc raw"""
+    vanishing_ideal(stm::SmallTreeModel)
+
+Return the vanishing ideal of the small tree model `stm`.
+"""
+vanishing_ideal(stm::SmallTreeModel) = stm.vanishing_ideal
 
 function Base.show(io::IO, stm::SmallTreeModel)
   print(io, "Small tree phylogenetic model $(stm._id)")
