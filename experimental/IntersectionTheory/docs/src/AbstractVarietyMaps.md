@@ -77,11 +77,11 @@ map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = 
 ```
 
 ```@docs
-identity_map(X::AbstractVariety)
+extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 ```
 
 ```@docs
-extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
+identity_map(X::AbstractVariety)
 ```
 
 ## Underlying data of an abstract variety map
