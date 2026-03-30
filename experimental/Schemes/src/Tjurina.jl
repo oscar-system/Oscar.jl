@@ -592,7 +592,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   mA_basis = lifted_numerator.(mA_basis)
   mB_basis = lifted_numerator.(mB_basis)
   ## check if isomorphism exists
-  S, t = polynomial_ring(coefficient_ring(R), ngens_m_k[1]*length(mB_basis), :t)
+  S, t = polynomial_ring(coefficient_ring(R), ngens_m_k[1]*length(mB_basis), :t, cached = false)
   P, iota = change_base_ring(S, R)    
   I_A = Oscar.shifted_ideal(ideal(L, minimal_generating_set(modulus(A)))) 
   I_B = ideal(standard_basis(Oscar.shifted_ideal(modulus(B)), ordering = negdeglex(R))) 
