@@ -9,6 +9,9 @@
           "type": "string"
         },
         {
+          "type": "null"
+        },
+        {
           "patternProperties": {
             "^[a-zA-Z0-9_]*": {
               "$ref": "#/$defs/data"
