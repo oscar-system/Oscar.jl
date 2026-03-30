@@ -55,30 +55,31 @@ end
 ###################################################################################
 
 function is_phylogenetic_network(G::Graph{Directed})
-  ## We assume phylogenetic networks are binary
+  is_acyclic(G) || return false
 
-  A = matrix(ZZ, adjacency_matrix(G))
-  indegrees = sum(A[i,:] for i in 1:size(A)[1])
-  outdegrees = sum(A[:,i] for i in 1:size(A)[1])
+  roots = 0
+  leaves = 0
 
-  roots = findall(indegrees .== 0) #findall((indegrees .== 0) .& (outdegrees .== 2))
-  lvs = findall((indegrees .== 1) .& (outdegrees .== 0))
-  tree_nodes = findall((indegrees .== 1) .& (outdegrees .<= 2) .& (outdegrees .> 0))
-  h_nodes = findall((indegrees .== 2) .& (outdegrees .== 1))
+  for v in vertices(G)
+    in_d = indegree(G, v)
+    out_d = outdegree(G, v)
 
-  length(roots) != 1 && return false
-  length(lvs) == 0 && return false
-  length(vertices(G)) != length(vcat(roots, lvs, tree_nodes, h_nodes)) &&  return false
+    # Root vertices: indegree 0
+    if in_d == 0
+      roots += 1
+    end
 
-  return true
+    # Leaf vertices: outdegree 0
+    if out_d == 0
+      leaves += 1
+    end
+  end
+
+  return roots == 1 && leaves > 0
 end
 
 function hybrid_vertices(G::Graph{Directed})
-  A = matrix(ZZ, adjacency_matrix(G))
-  indegrees = sum(A[i,:] for i in 1:size(A)[1])
-  outdegrees = sum(A[:,i] for i in 1:size(A)[1])
-
-  return findall((indegrees .== 2) .& (outdegrees .== 1))
+  return [v for v in vertices(G) if indegree(G, v) >= 2]
 end
 
 function hybrid_edges(G::Graph{Directed})
@@ -86,20 +87,21 @@ function hybrid_edges(G::Graph{Directed})
   return [[Edge(j, i) for j in sort(inneighbors(G, i))] for i in hybrid_nodes]
 end
 
-function hybrid_edges(G::Graph{Directed}, i)
-  hybrid_nodes = hybrid_vertices(G)
-  if !(i in hybrid_nodes)
-    error("$i is not a hybrid node.")
+function hybrid_edges(G::Graph{Directed}, i::Int)
+  if indegree(G, i) < 2
+    error("$i is not a hybrid node (indegree is $(indegree(G, i)), expected at least 2).")
   end
   return [Edge(j, i) for j in sort(inneighbors(G, i))]
 end
 
 function level_phylogenetic_network(G::Graph{Directed})
   if !is_phylogenetic_network(G)
-    error("$G is not a phylogenetic network.")
+    error("$G is not a valid phylogenetic network.")
   end
 
   h_nodes = hybrid_vertices(G)
+  isempty(h_nodes) && return 0
+
   bicon_comps = biconnected_components(graph_from_edges(Undirected,edges(G)))
 
   return maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
@@ -107,8 +109,7 @@ end
 
 function tree_edges(N::PhylogeneticNetwork)
   hyb = hybrids(N)
-  egdes_N = collect(edges(N))
-  return egdes_N[findall(e -> !(dst(e) in collect(keys(hyb))), egdes_N)]
+  return [e for e in edges(N) if !haskey(hyb, dst(e))]
 end
 
 ###################################################################################
