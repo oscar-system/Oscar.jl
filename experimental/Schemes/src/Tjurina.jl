@@ -78,7 +78,7 @@ julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3-y^2;
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, f)), [0, 0]);
 
 julia> tjurina_algebra(X)
 Localization
@@ -204,7 +204,7 @@ julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, f)), [0, 0]);
 
 julia> tjurina_number(X)
 2
@@ -347,7 +347,7 @@ julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^2 - y^2;
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, f)), [0, 0]);
 
 julia> is_finitely_determined(X)
 true
@@ -429,7 +429,7 @@ julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5 + x^2*y^2;
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, f)), [0, 0]);
 
 julia> determinacy_bound(X)
 11
@@ -522,7 +522,7 @@ julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5;
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, f)), [0, 0]);
 
 julia> determinacy_bound(X)
 17
@@ -719,11 +719,11 @@ Throws an error if method was unable to determine contact equivalence.
 ```jldoctest
 julia> R, (x,y) = QQ[:x, :y];
 
-julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^3+y^2))[1]), [0, 0]);
+julia> X = HypersurfaceGerm(spec(R, ideal(R, x^3+y^2)), [0, 0]);
 
-julia> Y = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^3+x^2+y^2))[1]), [0, 0]);
+julia> Y = HypersurfaceGerm(spec(R, ideal(R, x^3+x^2+y^2)), [0, 0]);
 
-julia> Z = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^2+y^2))[1]), [0, 0]);
+julia> Z = HypersurfaceGerm(spec(quo(R, ideal(R, x^2+y^2)), [0, 0]);
 
 julia> is_contact_equivalent(X, Y)
 false
@@ -756,7 +756,7 @@ julia> R, (x,y,z) = QQ[:x,:y,:z];
 
 julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
 
-julia> X = CompleteIntersectionGerm(spec(quo(R, I)[1]), [0,0,0])
+julia> X = CompleteIntersectionGerm(spec(R, I), [0,0,0])
 Spectrum
   of localization
     of quotient
@@ -809,7 +809,7 @@ julia> R, (x,y,z) = QQ[:x,:y,:z];
 
 julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
 
-julia> X = CompleteIntersectionGerm(spec(quo(R, I)[1]), [0,0,0])
+julia> X = CompleteIntersectionGerm(spec(R, I), [0,0,0])
 Spectrum
   of localization
     of quotient
