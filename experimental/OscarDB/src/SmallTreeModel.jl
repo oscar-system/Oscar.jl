@@ -118,6 +118,34 @@ Return the dimension of the smallest linear subspace containing the small tree m
 n_coordinates_probabilities(stm::SmallTreeModel) = stm.np
 
 @doc raw"""
+    dimension_singular_locus(stm::SmallTreeModel)
+
+Return the dimension of the singular locus of the small tree model `stm`.
+"""
+dimension_singular_locus(stm::SmallTreeModel) = stm.dim_sl
+
+@doc raw"""
+    degree_singular_locus(stm::SmallTreeModel)
+
+Return the degree of the singular locus of the small tree model `stm`.
+"""
+degree_singular_locus(stm::SmallTreeModel) = stm.deg_sl
+
+@doc raw"""
+    maximum_likelihood_degree(stm::SmallTreeModel)
+
+Return the maximum Likelihood degree the small tree model `stm`.
+"""
+maximum_likelihood_degree(stm::SmallTreeModel) = stm.MLdeg
+
+@doc raw"""
+    euclidean_distance_degree(stm::SmallTreeModel)
+
+Return the Euclidean distance degree the small tree model `stm`.
+"""
+euclidean_distance_degree(stm::SmallTreeModel) = stm.EDdeg
+
+@doc raw"""
     parametrization(stm::SmallTreeModel)
 
 Return the parametrization of the small tree model `stm` (in Fourier coordinates).
