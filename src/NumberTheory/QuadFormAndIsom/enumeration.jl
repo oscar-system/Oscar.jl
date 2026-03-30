@@ -1710,7 +1710,8 @@ function __splitting_of_hermitian_type(
     if ctx.info_depth >= 5
       println("Processing $(length(atp)) admissible triples over $p for $(genus(Lf)) , with order of isometry $(order_of_isometry(Lf))")
     end
-    for (A, B) in atp
+    for (cnt, (A, B)) in enumerate(atp)
+      ctx.info_depth >= 20 && println("processing triple number : $cnt out of $(length(atp))")
       if root_test
         if rank(A) > 0 && _packing_density_test(A)
           continue
@@ -1718,9 +1719,13 @@ function __splitting_of_hermitian_type(
           continue
         end
       end
+      ctx.info_depth >= 20 && println("Computing representatives of hermitian type of $B")
       Bs = _representatives_of_hermitian_type(B, n, k; ctx=ctx_B)
+      ctx.info_depth >= 20 && println("found $(length(Bs))")
       isempty(Bs) && continue
+      ctx.info_depth >= 20 && println("Computing representatives of hermitian type of $A")
       As = _representatives_of_hermitian_type(A, n; ctx=ctx_A)
+      ctx.info_depth >= 20 && println("found $(length(Bs))")
       isempty(As) && continue
       if ctx.info_depth >= 10
         println("$A found $(length(As)),    $B found $(length(Bs))  hermitian representatives")
