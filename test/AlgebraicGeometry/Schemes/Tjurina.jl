@@ -27,7 +27,7 @@ end
   R, (x,y) = QQ[:x, :y]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
   L1,_  = localization(R, complement_of_point_ideal(R, [1, 1]))
-  @test_throws ErrorException("Equivalence typ must be ':right' or ':contact'.") is_finitely_determined(L(0), :leftright)
+  @test_throws ArgumentError("Equivalence type must be ':right' or ':contact'.") is_finitely_determined(L(0), :leftright)
   @test !is_finitely_determined(L(0))
   @test !is_finitely_determined(L(0), :right)  
   @test is_finitely_determined(L(x^2+y))
@@ -72,7 +72,7 @@ end
 @testset "determinacy_bound" begin
   R, (x,y) = QQ[:x, :y]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
-  @test_throws ErrorException("Equivalence typ must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
+  @test_throws ArgumentError("Equivalence type must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
   @test PosInf() == determinacy_bound(L(0)) 
   @test PosInf() == determinacy_bound(L(0), :right)  
   @test 1 == determinacy_bound(L(x^2+y))
@@ -121,7 +121,7 @@ end
 @testset "sharper_determinacy_bound" begin
   R, (x,y) = QQ[:x, :y]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
-  @test_throws ErrorException("Equivalence typ must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
+  @test_throws ArgumentError("Equivalence type must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
   @test PosInf() == sharper_determinacy_bound(L(0)) 
   @test PosInf() == sharper_determinacy_bound(L(0), :right)  
   @test 1 == sharper_determinacy_bound(L(x^2+y))
