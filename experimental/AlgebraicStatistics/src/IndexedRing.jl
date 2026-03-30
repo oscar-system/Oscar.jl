@@ -19,6 +19,10 @@ struct IndexedRing{T, U}
     gen_to_index = Dict{U, T}(v => k for (k, v) in index_to_gen)
     return new{T, U}(R, index_to_gen, gen_to_index)
   end
+
+  function IndexedRing(R::Ring, gen_to_index::Dict{U, T}) where {T, U}
+    return new{T, U}(R, Dict(v => k for (k, v) in gen_to_index), gen_to_index)
+  end
 end
 
 base_ring(R::IndexedRing) = R.R

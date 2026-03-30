@@ -234,20 +234,32 @@ end
 
 ################################################################################
 # IndexedRing
-@register_serialization_type IndexedRing uses_id
+@register_serialization_type IndexedRing
 
-type_params(IR::IndexedRing) = TypeParams(IndexedRing, coefficient_ring(IR))
-
-function save_object(s::SerializerState, R::IndexedRing)
-  save_data_dict(s) do
-    save_object(s, symbols(R), :symbols)
+function type_params(IR::IndexedRing)
+  if isempty(IR.gen_to_index)
+    return TypeParams(IndexedRing,
+               :ring => base_ring(IR),
+               :index_type => TypeParams(Int, nothing))
   end
+  return TypeParams(IndexedRing,
+                    :ring => base_ring(IR),
+                    :index_type => type_params(first(IR.gen_to_index).second))
 end
 
-function load_object(s::DeserializerState, ::Type{<:IndexedRing}, R::Ring)
-  syms = load_object(s, Vector{Symbol}, :symbols)
+save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
 
-  return indexed_ring(R, syms; cached=false)[1]
+function load_object(s::DeserializerState, ::Type{<:IndexedRing}, params::Dict)
+  R = params[:ring]
+  if params[:index_type] isa Tuple
+    gen_to_index = load_object(s, Dict{elem_type(R), Tuple{[Int for _ in 1:fieldcount(typeof(params[:index_type]))]...}},
+                                                           Dict(:key_params => R, :value_params => nothing))
+  else
+    gen_to_index = load_object(s, Dict{elem_type(R), params[:index_type]}, Dict(:key_params => R))
+  end
+  return IndexedRing(
+    R, gen_to_index
+  )
 end
 
 ################################################################################
