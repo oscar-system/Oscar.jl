@@ -17,3 +17,7 @@ export n_coordinates
 export n_coordinates_probabilities
 export parametrization_probabilities
 export equivalent_classes_probabilities
+export dimension_singular_locus
+export degree_singular_locus
+export maximum_likelihood_degree
+export euclidean_distance_degree
