@@ -11,3 +11,9 @@ export transitive_simplicial_complex
 export SmallTreeModel
 export small_tree_model
 export model_type
+
+##
+export n_coordinates
+export n_coordinates_probabilities
+export parametrization_probabilities
+export equivalent_classes_probabilities
