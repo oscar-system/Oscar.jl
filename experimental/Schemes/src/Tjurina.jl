@@ -725,7 +725,7 @@ julia> X = HypersurfaceGerm(spec(R, ideal(R, x^3+y^2)), [0, 0]);
 
 julia> Y = HypersurfaceGerm(spec(R, ideal(R, x^3+x^2+y^2)), [0, 0]);
 
-julia> Z = HypersurfaceGerm(spec(quo(R, ideal(R, x^2+y^2)), [0, 0]);
+julia> Z = HypersurfaceGerm(spec(R, ideal(R, x^2+y^2)), [0, 0]);
 
 julia> is_contact_equivalent(X, Y)
 false
