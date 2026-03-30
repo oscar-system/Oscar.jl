@@ -821,9 +821,5 @@ julia> tjurina_number(X)
 5
 ```
 """
-function tjurina_number(X::CompleteIntersectionGerm)
-  d = vector_space_dim(tjurina_module(X))
-  return d == -1 ? PosInf() : d
-end
-
+tjurina_number(X::CompleteIntersectionGerm) = vector_space_dim(tjurina_module(X))
 
