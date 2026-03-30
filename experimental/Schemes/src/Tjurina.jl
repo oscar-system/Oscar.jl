@@ -496,9 +496,10 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
     ord_f != 0 || return 0
     I = m*a + m^2*jacobian_ideal(a)
   end
-  G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
-  l = total_degree(R(h))  
+  ordering = negdeglex(parent(a))
+  SB = standard_basis(I, ordering = ordering)
+  hc = Singular.highcorner(singular_generators(SB, ordering))
+  l = total_degree(hc)  
   ## m^(l+1) \subseteq I  
   ## char. 0: l
   ## pos. char.: 2*(l-1) - order_as_series(f) + 2
@@ -699,9 +700,10 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   ## calculate smallest k such that m^(deg(highcorner) + 1) = m^([k/2] + ord_f) \subseteq I
   a = numerator(f_poly)
   I = m*a + m^2*jacobian_ideal(a)
-  G = standard_basis(I, ordering = negdeglex(parent(a)))
-  h = Singular.highcorner(G.gensBiPolyArray.S)   # TODO: should this use singular_generators(G)?
-  k = 2*(total_degree(R(h)) + 1 - ord_f)
+  ordering = negdeglex(parent(a))
+  SB = standard_basis(I, ordering = ordering)
+  hc = Singular.highcorner(singular_generators(SB, ordering))
+  k = 2*(total_degree(hc) + 1 - ord_f)
   ## check k-th tjurina number
   tjurina_number(f_poly, k) == tjurina_number(g_poly, k) || return false
   ## check via Mather-Yau-Theorem for positive characteristic
