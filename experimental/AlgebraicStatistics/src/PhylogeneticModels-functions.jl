@@ -254,38 +254,7 @@ function hybrid_indices(PM::Union{GroupBasedPhylogeneticModel{GT}, PhylogeneticM
   return hyb_indices
 end
 
-function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int}, tree::AbstractGraph{Directed}) 
-  r = root(tree)
-  coeff = entry_root_distribution(PM, vertices_states[r])
-  exponent = zeros(Int, ngens(parameter_ring(PM)[1]))
-  for edge in edges(tree)
-    state_parent = vertices_states[src(edge)]
-    state_child = vertices_states[dst(edge)]
-    gen = entry_transition_matrix(PM, state_parent, state_child, edge)
-    exponent += first(exponents(gen))
-  end
-  return coeff, exponent
-end
-
 function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}, tree::AbstractGraph{Directed})
-  int_nodes = interior_nodes(tree)
-
-  interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
-  vertices_states = leaves_states
-
-  poly = MPolyBuildCtx(parameter_ring(PM)[1])
-  for labels in interior_indices
-    for (int_node, label) in zip(int_nodes, labels)
-      vertices_states[int_node] = label
-    end
-    push_term!(poly, fully_observed_probability(PM, vertices_states, tree)...)
-  end 
-  return finish(poly)
-end 
-
-## EFFICIENT PROBABILITY PARMAETRIZATION
-
-function efficient_leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}, tree::AbstractGraph{Directed})
   R = parameter_ring(PM)[1]
   n_vars = ngens(R)
 
