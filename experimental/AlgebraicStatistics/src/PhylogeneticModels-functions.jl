@@ -204,7 +204,7 @@ function poly_to_dict(poly::MPolyRingElem)
   return Dict(e => c for (e, c) in zip(exponents(poly), coefficients(poly)))
 end
 
-function add_terms(pd1::Dict, pd2::Dict)
+function add_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
   if !isempty(pd1) && !isempty(pd2)
     len1 = length(first(keys(pd1)))
     len2 = length(first(keys(pd2)))
@@ -216,7 +216,7 @@ function add_terms(pd1::Dict, pd2::Dict)
   return merge(+, pd1, pd2) 
 end
 
-function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: FieldElem}
+function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
   result = Dict{Vector{Int}, U}()
   for (e1, c1) in pd1
     for (e2, c2) in pd2
