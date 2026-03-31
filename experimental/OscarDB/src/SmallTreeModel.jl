@@ -1,21 +1,42 @@
-struct SmallTreeModel
+struct SmallGroupBasedModel
   _id::String # model encoding id, example 3-0-0-JC
   model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}} ## Includes the rings??
-  model_type::String
+  model_type::String # ex: jukes_cantor_model
+  phylogenetic_model_id
+  n_leaves
+  level
+  n_cycles
+  dimension::Int
+  degree::Int
+  #np::Int
+  nq::Int
+  dim_sl::Union{Int, Nothing}
+  deg_sl::Union{Int, Nothing}
+  #MLdeg::Union{Int, Nothing}
+  EDdeg::Union{Int, Nothing}
+  #parametrization_p::Oscar.MPolyAnyMap
+  parametrization_q::Oscar.MPolyAnyMap
+  #eq_classes_p::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
+  eq_classes_q::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
+  vanishing_ideal::MPolyIdeal{QQMPolyRingElem}
+end
+
+struct SmallPhylogeneticModel
+  _id::String # model encoding id, example 3-0-0-JC
+  model::PhylogeneticModel{PhylogeneticTree{QQFieldElem}} ## Includes the rings??
+  model_type::String # ex: jukes_cantor_model
+  n_leaves
+  level
+  n_cycles
   dimension::Int
   degree::Int
   np::Int
-  nq::Int
   dim_sl::Union{Int, Nothing}
   deg_sl::Union{Int, Nothing}
   MLdeg::Union{Int, Nothing}
   EDdeg::Union{Int, Nothing}
   parametrization_p::Oscar.MPolyAnyMap
-  parametrization_q::Oscar.MPolyAnyMap
   eq_classes_p::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
-  eq_classes_q::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
-  coodinate_change_q_p::Oscar.MPolyAnyMap
-  coodinate_change_p_q::Oscar.MPolyAnyMap
   vanishing_ideal::MPolyIdeal{QQMPolyRingElem}
 end
 
