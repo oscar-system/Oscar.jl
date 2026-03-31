@@ -113,7 +113,12 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
 
     if haskey(d, :name)
       upg_d[:name] = get(renamings, d[:name], d[:name])
-    elseif haskey(d, :params)
+    elseif haskey(d, :_type)
+      upg_d[:_type] = get(renamings, d[:_type], d[:_type])
+      return upg_d
+    end
+
+    if haskey(d, :params)
       if d[:params] isa AbstractDict
         if haskey(d[:params], :_type)
           upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
@@ -126,9 +131,8 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
       elseif d[:params] isa Vector
         upg_d[:params] = upgrade_type(d[:params])
       end
-    else
-      upg_d[:_type] = get(renamings, d[:_type], d[:_type])
     end
+    
     return upg_d
   end
 
