@@ -489,7 +489,7 @@ end
 @doc raw"""
     map(X::AbstractVariety, Y::AbstractVariety,
        f_pullback::Vector, f_pushforward = nothing;
-       inclusion::Bool = false)
+       inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of
 the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map $\mathrm{N}^*(X)_{\mathbb Q} \rightarrow \mathrm{N}^*(Y)_{\mathbb Q}.$
@@ -512,11 +512,12 @@ the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushfor
     In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
-    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in $\mathrm{N}^*(Y)_{\mathbb Q}$
-    is not known, use the argument `inclusion = true`. Then,
-    a modified version of `Y` will be created, with extra classes added so that one can
-    pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
-    of the documentation for an example.
+    In the case of an inclusion $X \hookrightarrow Y$ where the class of $X$ in $\mathrm{N}^*(Y)_{\mathbb Q}$
+    is not already representable in $\mathrm{N}^*(Y)_{\mathbb Q}$, use the argument `inclusion = true`. Then,
+    a modified version $Y^+$ of $Y$ will be created, with extra classes added to the Chow ring so that one can
+    pushforward all classes on $X$. In this case, the string `symbol` specifies how the extra generators of the
+    extended Chow ring $\mathrm{N}^*(Y^+)_{\mathbb Q}$ are printed. See the subsection
+    [Example: Cubic fourfolds](@ref) of the documentation for an example.
 
 # Examples
 
@@ -555,6 +556,7 @@ function map(
   f_pullback::Vector,
   f_pushforward=nothing;
   inclusion::Bool=false,
+  symbol::String="x"
 )
   #AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   !inclusion && return AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
