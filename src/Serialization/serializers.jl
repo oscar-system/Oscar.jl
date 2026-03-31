@@ -59,7 +59,8 @@ mutable struct SerializerState{T <: OscarSerializer}
   pretty_print::Bool
 end
 
-function begin_node(s::SerializerState)
+function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
+  !isnothing(key) && set_key(s, key)
   if !s.new_level_entry
     if s.pretty_print
       println(s.io, ",")
@@ -76,66 +77,6 @@ function begin_node(s::SerializerState)
   end
 end
 
-function begin_dict_node(s::SerializerState)
-  begin_node(s)
-  if s.pretty_print
-    println(s.io, "{")
-    s.pretty_print && print(s.io, Indent())
-  else
-    write(s.io, "{")
-  end
-end
-
-function end_dict_node(s::SerializerState)
-  if s.pretty_print
-    println(s.io, "")
-    print(s.io, Dedent(), "}")
-  else
-    write(s.io, "}")
-  end
-
-  if s.new_level_entry
-    # makes sure that entries after empty dicts add comma
-    s.new_level_entry = false
-  end
-end
-
-function begin_array_node(s::SerializerState)
-  begin_node(s)
-  if s.pretty_print
-    println(s.io, "[")
-    print(s.io, Indent())
-  else
-    write(s.io, "[")
-  end
-end
-
-function end_array_node(s::SerializerState)
-  if s.pretty_print
-    println(s.io, "")
-    print(s.io, Dedent(), "]")
-  else
-    write(s.io, "]")
-  end
-
-  if s.new_level_entry
-    # makes sure that entries after empty arrays add comma
-    s.new_level_entry = false
-  end
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
-end
-
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
   s.key = key
@@ -144,43 +85,57 @@ end
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
+function _save_data_container(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing}, start::String, stop::String)
+  begin_node(s, key)
+  if s.pretty_print
+    println(s.io, start)
+    print(s.io, Indent())
+  else
+    write(s.io, start)
+  end
+  s.new_level_entry = true
+  f()
+  if s.pretty_print
+    println(s.io, "")
+    print(s.io, Dedent(), stop)
+  else
+    write(s.io, stop)
+  end
+
+  if s.new_level_entry
+    # makes sure that entries after empty arrays or dicts add comma
+    s.new_level_entry = false
+  end
+end
+
 function save_data_dict(f::Function, s::SerializerState,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_dict(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "{", "}")
 end
 
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_array(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "[", "]")
 end
 
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
-  str = string(x)
+  begin_node(s, key)
+  data = x isa Bool ? x : string(x)
   if s.pretty_print
     print(s.io, "")
-    JSON.json(s.io, str)
+    JSON.json(s.io, data)
     print(s.io, "")
   else
-    JSON.json(s.io, str)
+    JSON.json(s.io, data)
   end
   nothing
 end
 
 function save_data_json(s::SerializerState, jsonstr::Any,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   write(s.io, jsonstr)
 end
 

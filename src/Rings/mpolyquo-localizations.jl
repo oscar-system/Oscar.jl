@@ -136,6 +136,8 @@ base_ring(L::MPolyQuoLocRing) = L.R
 inverted_set(L::MPolyQuoLocRing) = L.S
 
 ### additional getter functions
+coefficient_ring(L::MPolyQuoLocRing) = coefficient_ring(base_ring(L))
+
 @doc raw"""
     modulus(L::MPolyQuoLocRing)
 

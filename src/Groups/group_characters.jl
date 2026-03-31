@@ -2466,7 +2466,7 @@ function natural_character(G::PermGroup)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
     vals = [FF(n - number_of_moved_points(representative(x))) for x in ccl]
-    return class_function(G, vals)
+    return class_function(tbl, vals)
 end
 
 @doc raw"""
@@ -2489,7 +2489,7 @@ function natural_character(G::Union{MatGroup{ZZRingElem}, MatGroup{QQFieldElem},
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     vals = [FF(tr(representative(x))) for x in ccl]
-    return class_function(G, vals)
+    return class_function(tbl, vals)
 end
 
 @doc raw"""
@@ -2498,6 +2498,9 @@ end
 Return the character that maps each $p$-regular element of `G`,
 where $p$ is the characteristic of the base field of `G`,
 to its Brauer character value.
+
+If the $p$-modular Brauer character table of `G` cannot be computed,
+an exception is thrown.
 
 # Examples
 ```jldoctest
@@ -2510,11 +2513,12 @@ QQAbFieldElem{AbsSimpleNumFieldElem}[2, -1]
 function natural_character(G::MatGroup{T, MT}) where T <: FinFieldElem where MT
     p = characteristic(base_ring(G))
     tbl = character_table(G, p)
+    @req !(tbl === nothing) "cannot compute the Brauer table of the group"
     ccl = conjugacy_classes(tbl)
     vals = [GAPWrap.BrauerCharacterValue(representative(x).X) for x in ccl]
     vals = GAPWrap.ClassFunction(GapObj(tbl), GapObj(vals))
 
-    return class_function(G, vals)
+    return class_function(tbl, vals)
 end
 
 @doc raw"""
@@ -2557,6 +2561,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       else
         # Brauer character
         modtbl = mod(tbl, p)
+        @req !(modtbl === nothing) "cannot compute the Brauer table of the group"
         ccl = conjugacy_classes(modtbl)  # p-regular classes
         vals = [GAPWrap.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
         vals = GAPWrap.ClassFunction(GapObj(modtbl), GapObj(vals))

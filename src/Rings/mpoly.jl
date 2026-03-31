@@ -403,7 +403,7 @@ function Base.:(==)(G1::IdealGens, G2::IdealGens)
   if isdefined(G1, :ord) && G1.ord != G2.ord
       return false
   end
-  return G1.gensBiPolyArray == G2.gensBiPolyArray
+  return issetequal(G1.gensBiPolyArray, G2.gensBiPolyArray)
 end
 
 function Base.hash(G::IdealGens, h::UInt)
@@ -1157,3 +1157,19 @@ function hessian_matrix(f::MPolyRingElem)
 end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
+
+#############################################################################
+##  monomial_basis (compatibility function)
+#############################################################################
+@doc raw"""
+   monomial_basis(A::MPolyRing, d::IntegerUnion)
+
+Return the vector of all monomials of degree `d` in `A` with respect to the standard grading of `A`.
+
+!!! note
+    For different gradings choose `A` of type `MPolyDecRing` and see respective documentation.
+
+!!! note
+    To obtain an iterator instead of a vector as return value use [`monomials_of_degree`](@ref).
+"""
+monomial_basis(A::MPolyRing, d::IntegerUnion) = collect(monomials_of_degree(A,d))

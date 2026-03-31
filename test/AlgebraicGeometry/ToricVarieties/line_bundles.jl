@@ -8,7 +8,7 @@
   l4 = toric_line_bundle(dP3, trivial_divisor(dP3))
   l5 = toric_line_bundle(dP1, [ZZRingElem(1), ZZRingElem(2)])
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (toric line bundles)" begin
     @test_throws ArgumentError l * l5
   end
 

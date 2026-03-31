@@ -10,6 +10,7 @@ The following functions are available in OSCAR for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
+in(g::GAPGroupElem, G::GAPGroup)
 is_subset(H::GAPGroup, G::GAPGroup)
 is_subgroup(H::GAPGroup, G::GAPGroup)
 embedding(H::GAPGroup, G::GAPGroup)
@@ -83,6 +84,7 @@ subgroups(G::GAPGroup)
 ## Conjugation action of elements and subgroups
 
 ```@docs
+conjugate_group(G::GAPGroup, x::GAPGroupElem)
 is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
@@ -129,6 +131,7 @@ group(T::SubgroupTransversal)
 subgroup(T::SubgroupTransversal)
 right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+index_of_coset
 is_bicoset(C::GroupCoset)
 ```
 

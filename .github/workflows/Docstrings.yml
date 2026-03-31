@@ -29,7 +29,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - uses: julia-actions/setup-julia@v2
-    - uses: julia-actions/cache@v2
+    - uses: julia-actions/cache@v3
       id: julia-cache
     - name: Build package
       uses: julia-actions/julia-buildpkg@v1
@@ -39,11 +39,3 @@ jobs:
     - name: 'Check for markdown files with non-standard `@meta` blocks'
       run: |
         julia --color=yes -e 'include("etc/check_meta.jl")'
-    - name: Save Julia depot cache on cancel or failure
-      id: julia-cache-save
-      if: cancelled() || failure()
-      uses: actions/cache/save@v5
-      with: 
-        path: |
-          ${{ steps.julia-cache.outputs.cache-paths }}
-        key: ${{ steps.julia-cache.outputs.cache-key }}

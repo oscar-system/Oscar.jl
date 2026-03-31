@@ -102,6 +102,8 @@ coloops(M::Matroid)
 is_loopless(M::Matroid)
 is_coloopless(M::Matroid)
 is_simple(M::Matroid)
+is_transversal(M::Matroid)
+is_transversal_with_presentation(::Type{Int}, M::Matroid)
 direct_sum_components(M::Matroid)
 connectivity_function(M::Matroid, set::GroundsetType)
 is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType) 
@@ -118,6 +120,13 @@ is_minor(M::Matroid, N::Matroid)
 matroid_hex(M::Matroid)
 automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
+bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+```
+
+### Tutte Group
+```@docs
+tutte_group
+is_tutte_realizable(M::Matroid)
 ```
 
 

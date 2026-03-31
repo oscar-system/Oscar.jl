@@ -389,7 +389,8 @@ end
 # this saves the value of x.X
 # x_gap = x.X if this is already known, x_gap = nothing otherwise
 function lies_in(x::MatElem, G::MatGroup, x_gap)
-   if base_ring(x) != base_ring(G) || nrows(x) != degree(G) return false, x_gap end
+   AbstractAlgebra.check_base_ring(x, G)
+   if nrows(x) != degree(G) return false, x_gap end
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
       for g in gens(G)
@@ -510,6 +511,9 @@ end
 
 Base.:*(x::MatGroupElem, y::MatElem) = matrix(x)*y
 Base.:*(x::MatElem, y::MatGroupElem) = x*matrix(y)
+
+Base.:*(x::Int, y::MatGroupElem) = error("Multiplying a matrix group element by an integer is not implemented. Use `matrix` to access the underlying matrix of the group element")
+Base.:*(y::MatGroupElem, x::Int) = x * y
 
 function Base.:^(x::MatGroupElem, n::Int)
   m = matrix(x)

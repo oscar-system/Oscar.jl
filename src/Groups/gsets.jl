@@ -267,6 +267,22 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
+## action of permutations on sets of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{Set{T2}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on sets of tuples of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{<:Tuple{T2,Vararg{T2}}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_tuples, Omega; closed = closed, check = false)
+end
+
+## action of permutations on tuples of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:Set{<:IntegerUnion}
+  return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on vectors of positive integers
 ## action of matrices on vectors via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
