@@ -1246,7 +1246,7 @@ end
 
 Constructs the parametrization map from the full model ring in _probability_ coordinates (with generators for all leaf probability configurations) to the parameter ring (with generators from the transition matrices and the root distribution).
 """
-function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticTree})
+@attr MPolyAnyMap function full_parametrization(PM::PhylogeneticModel{<:PhylogeneticTree})
   gr = graph(PM)
 
   R, _ = full_model_ring(PM)
@@ -1270,10 +1270,10 @@ end
   S, _ = parameter_ring(PM)
 
   lvs = sort(leaves(N))
-  lvs_indices = Oscar.leaves_indices(PM)
-  h_indices = Oscar.hybrid_indices(PM)
+  lvs_indices = leaves_indices(PM)
+  h_indices = hybrid_indices(PM)
 
-  t_edges = Oscar.tree_edges(N)
+  t_edges = tree_edges(N)
   hyb = hybrids(N)
   h_nodes = collect(keys(hyb))
 
