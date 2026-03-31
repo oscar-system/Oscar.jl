@@ -293,7 +293,7 @@ Return the resulting morphism $j\colon X \to Y^+$.
 
 See the subsection [Example: Cubic fourfolds](@ref) of the documentation for an example.
 """
-function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
+function extend_inclusion(i::AbstractVarietyMap; symbol::String="x")
   ###############################################################################
   #
   # given an AbsVarietyHom i:Z -> X, declare that it is an inclusion and return a
@@ -311,7 +311,7 @@ function extend_inclusion(i::AbstractVarietyMap; symbol::String="e")
   #
   ###############################################################################
   #
-  SED = symbol # SED = "e"
+  SED = symbol # SED = "x"
   Z, X = domain(i), codomain(i)
   AX, RX = chow_ring(X), base_ring(chow_ring(X))
 
