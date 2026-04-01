@@ -65,7 +65,7 @@ function is_phylogenetic_network(G::Graph{Directed})
     out_d = outdegree(G, v)
 
     # Root vertices: indegree 0
-    if in_d == 0
+    if iszero(in_d)
       roots += 1
     end
 
