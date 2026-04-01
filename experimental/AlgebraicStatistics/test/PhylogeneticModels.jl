@@ -259,14 +259,16 @@ end
     @testset "Transition Matrix Types" begin
       tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
       @testset "M = VarName - T = FieldElem" begin
-        m = jukes_cantor_model(tree)
-        parameter_ring(phylogenetic_model(m))
-        entry_transition_matrix(m, 1, 3, 4, 1)
+        PM = jukes_cantor_model(tree)
+        parameter_ring(phylogenetic_model(PM))
+        entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 5
       end
       @testset  "M = VarName - T = VarName" begin
-        m = general_markov_model(tree)
-        parameter_ring(m)
-        entry_transition_matrix(m, 1, 3, 4, 1)
+        PM = general_markov_model(tree)
+        parameter_ring(PM)
+        entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 64
       end
 
       @testset "M = MPolyRingElem - T = MPolyRingElem" begin
@@ -280,7 +282,7 @@ end
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
-
+        @test length(equivalent_classes(PM)) == 64
       end
 
       @testset "M = MPolyRingElem - T = FieldElem" begin 
@@ -293,6 +295,7 @@ end
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 36
       end
 
       @testset "M = MPolyRingElem - T = RationalFunctionFieldElem" begin
@@ -306,6 +309,7 @@ end
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 64
       end
     end
 

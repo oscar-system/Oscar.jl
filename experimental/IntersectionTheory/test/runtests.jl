@@ -111,20 +111,6 @@ let pushforward = IntersectionTheory.pushforward
     @test basis(Y1, 2) == [h^2, p]
     @test intersection_matrix([h^2, p]) == matrix(QQ, [3 1; 1 3])
 
-    # cubic containing a plane
-    P2 = abstract_projective_space(2)
-    Y = complete_intersection(abstract_projective_space(5), 3)
-    i = map(P2, Y, [P2.O1], inclusion=true)
-    Y1 = i.codomain
-    p = pushforward(i, P2(1))
-    h = Y1.O1
-    @test Y1 != Y
-    @test euler_number(Y1) == euler_number(Y)
-    @test iszero(chern_character(tangent_bundle(map(Y1, Y))))
-    @test betti_numbers(Y1)[3] == 2
-    @test basis(Y1, 2) == [h^2, p]
-    @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
-
     # a related result:
     # the degree of the hypersurface of cubics containing a plane
     G = abstract_grassmannian(3, 6)

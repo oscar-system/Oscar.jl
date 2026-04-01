@@ -487,7 +487,9 @@ end
 ### constructor
 
 @doc raw"""
-    map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = nothing; inclusion::Bool = false, symbol::String = "x")
+    map(X::AbstractVariety, Y::AbstractVariety,
+       f_pullback::Vector, f_pushforward = nothing;
+       inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map $f:X \rightarrow Y$ by specifying the pullbacks of the generators of
 the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushforward map $\mathrm{N}^*(X)_{\mathbb Q} \rightarrow \mathrm{N}^*(Y)_{\mathbb Q}.$
@@ -510,11 +512,12 @@ the Chow ring $\mathrm{N}^*(Y)_{\mathbb Q}.$ If needed, also specify the pushfor
     In the other cases, if no pushforward map has been specified, a warning will be given when trying to do pushforward.
 
 !!! note
-    In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` in $\mathrm{N}^*(Y)_{\mathbb Q}$
-    is not known, use the argument `extend_inclusion = true`. Then,
-    a modified version of `Y` will be created, with extra classes added so that one can
-    pushforward all classes on `X`. See the subsection [Example: Cubic fourfolds](@ref)
-    of the documentation for an example.
+    In the case of an inclusion $X \hookrightarrow Y$ where the class of $X$ in $\mathrm{N}^*(Y)_{\mathbb Q}$
+    is not already representable in $\mathrm{N}^*(Y)_{\mathbb Q}$, use the argument `inclusion = true`. Then,
+    a modified version $Y^+$ of $Y$ will be created, with extra classes added to the Chow ring so that one can
+    pushforward all classes on $X$. In this case, the string `symbol` specifies how the extra generators of the
+    extended Chow ring $\mathrm{N}^*(Y^+)_{\mathbb Q}$ are printed. See the subsection
+    [Example: Cubic fourfolds](@ref) of the documentation for an example.
 
 # Examples
 
@@ -553,7 +556,7 @@ function map(
   f_pullback::Vector,
   f_pushforward=nothing;
   inclusion::Bool=false,
-  symbol::String="x",
+  symbol::String="x"
 )
   #AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   !inclusion && return AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
@@ -1321,6 +1324,14 @@ AbstractBundle of rank 6 on AbstractVariety of dim 6
 
 julia> chern_character(TG)
 -5//6*c[1]^3 + 5//24*c[1]^2*c[2] + 3//2*c[1]^2 + 5//2*c[1]*c[2] - 5*c[1] + 7//72*c[2]^3 - 25//24*c[2]^2 - c[2] + 6
+
+julia> S, Q = tautological_bundles(G)
+2-element Vector{AbstractBundle}:
+ AbstractBundle of rank 2 on AbstractVariety of dim 6
+ AbstractBundle of rank 3 on AbstractVariety of dim 6
+
+julia> dual(S)*Q == TG
+true
 
 ```
 """
@@ -2910,14 +2921,14 @@ end
 @doc raw"""
     degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
 
-Return the `k`-th degeneracy locus of a general map from `F` to `G`.
+Return the `k`-th degeneracy locus of a general map from `F` to `G` as an abstract variety.
 
 The `k`-th degeneracy locus $\mathrm{D}_k(\varphi)$ of a map $\varphi\colon F \to G$
 is the locus where $\operatorname{rank}(\varphi) \leq k$.
 
-Use the argument `class = true` to only compute the class of the degeneracy locus
-(Porteous' formula). This corresponds to `degeneracyLocus2` in Schubert2 (Macaulay2).
-Without `class = true`, the actual variety is constructed, corresponding to
+Use the argument `class = true` to only compute the class of the degeneracy locus in the
+original Chow ring (Porteous' formula). This corresponds to `degeneracyLocus2` in Schubert2
+(Macaulay2). Without `class = true`, the actual variety is constructed, corresponding to
 `degeneracyLocus` in Schubert2.
 
 # Examples
@@ -3237,7 +3248,7 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
 
 !!! note
     For the pushforward of cycle classes from a projective bundle to its base variety
-    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle  bundle can also
+    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle can also
     be realized by using the function `flag_bundle` as indicated in the example below.
 
 # Examples
