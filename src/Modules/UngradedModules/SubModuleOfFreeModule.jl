@@ -183,7 +183,7 @@ function standard_basis(
   if !isdefined(submod, :any_gb)
     submod.any_gb = gb
   end
-  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :sparse_transformation_matrix))
     submod.any_gb_with_transition = gb
   end
   return gb
@@ -216,7 +216,7 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   if !isdefined(submod, :any_gb)
     submod.any_gb = gb
   end
-  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :transformation_matrix))
+  if !isdefined(submod, :any_gb_with_transition) && !isnothing(get_attribute(gb, :sparse_transformation_matrix))
     submod.any_gb_with_transition = gb
   end
   return gb
@@ -445,11 +445,11 @@ Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 function lift_std(M::SubModuleOfFreeModule)
   if isdefined(M, :any_gb_with_transition)
-    return M.any_gb_with_transition, get_attribute(M.any_gb_with_transition, :transformation_matrix)::MatrixElem
+    return M.any_gb_with_transition, get_attribute(M.any_gb_with_transition, :sparse_transformation_matrix)::SMat
   end
 
   for (ord, gb) in M.groebner_basis
-    transform = get_attribute(gb, :transformation_matrix)
+    transform = get_attribute(gb, :sparse_transformation_matrix)
     if transform !== nothing
       return gb, transform
     end

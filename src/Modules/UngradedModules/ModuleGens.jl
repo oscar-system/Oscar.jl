@@ -364,9 +364,7 @@ If no such `r` exists, an exception is thrown.
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
   iszero(a) && return sparse_row(base_ring(parent(a)))
   SA = get_attribute!(generators, :sparse_transformation_matrix) do
-    A = get_attribute(generators, :transformation_matrix)
-    A === nothing && error("No transformation matrix in the Gröbner basis.")
-    sparse_matrix(A)
+    error("No transformation matrix in the Gröbner basis.")
   end
 
   @assert generators.isGB
