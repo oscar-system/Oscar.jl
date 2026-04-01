@@ -22,7 +22,8 @@ import Oscar:
   inverse_coordinate_change,
   parametrization,
   equivalent_classes,
-  vanishing_ideal
+  vanishing_ideal,
+  level
 
 # for ca certificates
 import NetworkOptions
