@@ -50,8 +50,8 @@ function small_group_based_model(name::String,
     model_type,
     phylogenetic_model_id,
     Oscar.n_leaves(G),
-    level_phylogenetic_network(G),
-    n_cycles(G),
+    Oscar.level_phylogenetic_network(graph_from_edges(Directed, edges(G))),
+    sum([length(h)-1 for h in Oscar.hybrid_edges(graph_from_edges(Directed, edges(G)))]),
     dim(I),
     degree(I),
     length(ec),
@@ -182,7 +182,7 @@ struct SmallPhylogeneticModel
   model::Union{PhylogeneticModel{PhylogeneticTree{QQFieldElem}},
                PhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}}
   model_type::String # ex: jukes_cantor_model
-  extended_model_id::Union{String, Nothing} ## Link to id of GBmodel (and ATRmodel in the future)
+  extended_model_id::String ## Link to id of GBmodel (and ATRmodel in the future)
   n_leaves::Int
   level::Int
   n_cycles::Int
@@ -207,7 +207,7 @@ function small_phylogenetic_model(name::String,
                           model::Union{PhylogeneticModel{PhylogeneticTree{QQFieldElem}},
                                        PhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}},
                           model_type::String,
-                          extended_model_id::String)
+                          extended_model_id::String="")
 
   G = graph(model)
   f = parametrization(model)
@@ -220,10 +220,10 @@ function small_phylogenetic_model(name::String,
     model_type,
     extended_model_id,
     Oscar.n_leaves(G),
-    level_phylogenetic_network(G),
-    n_cycles(G),
-    dim(I),
-    degree(I),
+    Oscar.level_phylogenetic_network(graph_from_edges(Directed, edges(G))),
+    sum([length(h)-1 for h in Oscar.hybrid_edges(graph_from_edges(Directed, edges(G)))]),
+    0,
+    0,
     length(ec),
     nothing,
     nothing,
@@ -241,7 +241,7 @@ end
 
 Return the `PhylogeneticModel` of the small phylogenetic model `spm`.
 """
-phylogenetic_model(spm::SmallPhylogeneticModel) = phylogenetic_model(group_based_phylogenetic_model(spm))
+phylogenetic_model(spm::SmallPhylogeneticModel) = spm.model
 
 @doc raw"""
     model_type(spm::SmallPhylogeneticModel)
@@ -252,18 +252,18 @@ model_type(spm::SmallPhylogeneticModel) = spm.model_type
 
 #### ????
 @doc raw"""
-    extended_model_id(sgb::SmallGroupBasedModel)
+    extended_model_id(sgb::SmallPhylogeneticModel)
 
 Return the id of the corresponding `GroupBasedModel` from the collection "AlgebraicStatistics.GroupBasedModels" of the `OscarDB`
 """
-extended_model_id(sgb::SmallGroupBasedModel) = sgb.extended_model_id
+extended_model_id(sgb::SmallPhylogeneticModel) = sgb.extended_model_id
 
 @doc raw"""
     graph(spm::SmallPhylogeneticModel)
 
 Return the graph of the small phylogenetic model `spm`.
 """
-graph(spm::SmallPhylogeneticModel) = graph(group_based_phylogenetic_model(spm))
+graph(spm::SmallPhylogeneticModel) = graph(phylogenetic_model(spm))
 
 @doc raw"""
     n_leaves(spm::SmallPhylogeneticModel)
