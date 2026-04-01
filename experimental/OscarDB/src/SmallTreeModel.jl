@@ -8,8 +8,8 @@ end
 ## NEW STRUCTS
 struct SmallGroupBasedModel
   _id::String # model encoding id, example GB-3-0-0-JC
-  model::Union{GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-               GroupBasedPhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}} ## Can this be just ::GroupBasedPhylogeneticModel?
+  model::GroupBasedPhylogeneticModel ## Before: Union{GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
+                                     ## GroupBasedPhylogeneticModel{PhylogeneticNetwork}} --> not sure if necessary
   model_type::String # ex: jukes_cantor_model
   n_leaves::Int
   level::Int
@@ -27,14 +27,12 @@ end
 
 
 @doc raw"""
-    small_group_based_model(name::String, model::Union{GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-                            GroupBasedPhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}}, model_type::String, phylogenetic_model_id::String)
+    small_group_based_model(name::String, model::GroupBasedPhylogeneticModel}, model_type::String, phylogenetic_model_id::String)
 
 Creates a `SmallGroupBasedModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallGroupBasedModels" of the `OscarDB`
 """
 function small_group_based_model(name::String,
-                          model::Union{GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-                                       GroupBasedPhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}},
+                          model::GroupBasedPhylogeneticModel,
                           model_type::String)
 
   G = graph(model)
@@ -46,9 +44,9 @@ function small_group_based_model(name::String,
     name,
     model,
     model_type,
-    Oscar.n_leaves(G),
-    Oscar.level_phylogenetic_network(graph_from_edges(Directed, edges(G))),
-    sum([length(h)-1 for h in Oscar.hybrid_edges(graph_from_edges(Directed, edges(G)))]),
+    n_leaves(G),
+    level(G),
+    sum((length(h) - 1 for h in Oscar.hybrid_edges(G)), init=0),
     dim(I),
     degree(I),
     length(ec),
@@ -190,8 +188,7 @@ end
 
 struct SmallPhylogeneticModel
   _id::String # model encoding id, example 3-0-0-JC
-  model::Union{PhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-               PhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}}
+  model::PhylogeneticModel
   model_type::String # ex: jukes_cantor_model
   extended_model_id::String ## Link to id of GBmodel (and ATRmodel in the future)
   n_leaves::Int
@@ -209,14 +206,13 @@ struct SmallPhylogeneticModel
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
 end
 @doc raw"""
-  small_phylogenetic_model(name::String, model::Union{PhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-                            PhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}}, model_type::String, extended_model_id::Union{String, Nothing})
+  small_phylogenetic_model(name::String, model::PhylogeneticModel, 
+                           model_type::String, extended_model_id::Union{String, Nothing})
 
 Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
 """
 function small_phylogenetic_model(name::String,
-                          model::Union{PhylogeneticModel{PhylogeneticTree{QQFieldElem}},
-                                       PhylogeneticModel{PhylogeneticNetwork{QQFieldElem}}},
+                          model::PhylogeneticModel,
                           model_type::String,
                           extended_model_id::String="")
 
@@ -229,9 +225,9 @@ function small_phylogenetic_model(name::String,
     model,
     model_type,
     extended_model_id,
-    Oscar.n_leaves(G),
-    Oscar.level_phylogenetic_network(graph_from_edges(Directed, edges(G))),
-    sum([length(h)-1 for h in Oscar.hybrid_edges(graph_from_edges(Directed, edges(G)))]),
+    n_leaves(G),
+    level(G),
+    sum((length(h) - 1 for h in Oscar.hybrid_edges(G)), init=0),
     0,
     0,
     length(ec),
