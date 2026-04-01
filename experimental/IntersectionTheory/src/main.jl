@@ -4028,7 +4028,7 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 
     $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
-    Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
+    Here, the $c_{ij}$ are in degree $i$, and we mod out the homogeneous relations arising from the relation
 
     $\prod_{j = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_j) = \mathrm{c}(\pi^\ast E),$
 
