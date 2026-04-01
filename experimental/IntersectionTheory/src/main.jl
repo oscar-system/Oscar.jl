@@ -3225,7 +3225,7 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
     The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(E)}(1)$.
 
 !!! note
-    Let $X$ be a variety, let $E$ a vector bundle on $X$ of rank $n$, and let $\pi : \mathbb P(E) \rightarrow X$
+    Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $\pi : \mathbb P(E) \rightarrow X$
     be the corresponding projective bundle. Write $\mathcal O_{\mathbb P(E)}(-1)\subset \pi^\ast E$ for the tautological
     line subbundle and $\xi$ for the first Chern class of the dual bundle $\mathcal O_{\mathbb P(E)}(1)$.
     Then the pullbacks of the Chern classes of $E$ via $\pi$ satisfy the relation
@@ -3233,12 +3233,12 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
 
     $\mathrm{N}^\ast(\mathbb P(E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[\xi]/(\xi^n+\pi^\ast c_1(E) \xi^{n-1} + \dots + \pi^\ast c_n(E)),$
 
-    where $\xi$ is in degree 1 (see [Gro58](@cite),  [EH16](@cite)).
+    where $\xi$ is in degree 1 (see [Gro58](@cite), [EH16](@cite)).
 
 !!! note
     For the pushforward of cycle classes from a projective bundle to its base variety
-    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle  bundle can also
-    be realized by using the function `flag_bundle` as indicated in the example below.
+    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle can also be realized
+    by using the function `flag_bundle` as indicated in the example below.
 
 # Examples
 ```jldoctest
@@ -3742,7 +3742,7 @@ Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspace
     set of generators. These are the Chern classes $c_i(S)$, $i = 1, \dots, k$, where $S$ is
     the universal subbundle on $\mathrm{Gr}(k, n)$, and where the $c_i(S)$ are in degree $i$.
     For the relations, note that the universal quotient bundle $Q$ has rank $n-k$. The relations
-    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots n$ (see,
+    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots, n$ (see,
     for example, [EH16](@cite)).
 
 !!! tip
@@ -4024,7 +4024,7 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
     subquotient bundles $SQ_j = S_j/S_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
     in terms of generators and relations, write $c_{ij} = c_i(SQ_j)$ and $c_i = \pi^\ast c_i(E)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E)_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
