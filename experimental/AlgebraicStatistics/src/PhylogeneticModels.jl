@@ -42,6 +42,7 @@ struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
     end
 
     level = level_phylogenetic_network(G)
+    # if level = 0, return PhylogeneticTree??
     return new{length(hybrid_edgs), level}(G, hybrid_edgs)
   end
 end
@@ -99,6 +100,7 @@ julia> level(N)
 ```
 """
 level(::PhylogeneticNetwork{N, L}) where {N, L} = L
+level(::PhylogeneticTree) = 0
 
 @doc raw"""
     n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L}
@@ -114,6 +116,7 @@ julia> n_hybrid(N)
 ```
 """
 n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
+n_hybrid(::PhylogeneticTree) = 0
 
 @doc raw"""
     graph(N::PhylogeneticNetwork)
@@ -146,6 +149,8 @@ Dict{Int64, Vector{Edge}} with 1 entry:
 ```
 """
 hybrids(N::PhylogeneticNetwork) = N.hybrids
+hybrids(::PhylogeneticTree) = Dict{Int64, Vector{Edge}}()
+
 @doc raw"""
     hybrid_vertices(N::PhylogeneticNetwork)
 
@@ -161,6 +166,7 @@ julia> hybrid_vertices(N)
 ```
 """
 hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
+hybrid_vertices(::PhylogeneticTree) = []
 
 @doc raw"""
     hybrid_edges(N::PhylogeneticNetwork)
@@ -177,6 +183,7 @@ julia> hybrid_edges(N)
 ```
 """
 hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
+hybrid_edges(::PhylogeneticTree) = []
 
 @doc raw"""
     n_edges(N::PhylogeneticNetwork)
