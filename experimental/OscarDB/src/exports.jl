@@ -8,8 +8,10 @@ export LeechPair
 export TransitiveSimplicialComplex
 export transitive_simplicial_complex
 
-export SmallTreeModel
-export small_tree_model
+export SmallGroupBasedModel
+export SmallPhylogeneticModel
+export small_group_based_model
+export small_phylogenetic_model
 export model_type
 
 ##
