@@ -13,12 +13,10 @@ export SmallPhylogeneticModel
 export small_group_based_model
 export small_phylogenetic_model
 export model_type
+export extended_model_id
 
 ##
 export n_coordinates
-export n_coordinates_probabilities
-export parametrization_probabilities
-export equivalent_classes_probabilities
 export dimension_singular_locus
 export degree_singular_locus
 export maximum_likelihood_degree
