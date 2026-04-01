@@ -1,3 +1,11 @@
+## OLD STRUCT
+struct SmallTreeModel
+  _id::String # model encoding id, example 3-0-0-JC
+  model::GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}}
+  model_type::String
+end
+
+## NEW STRUCTS
 struct SmallGroupBasedModel
   _id::String # model encoding id, example GB-3-0-0-JC
   model::Union{GroupBasedPhylogeneticModel{PhylogeneticTree{QQFieldElem}},
@@ -42,7 +50,7 @@ function small_group_based_model(name::String,
     model_type,
     phylogenetic_model_id,
     Oscar.n_leaves(G),
-    level(G),
+    level_phylogenetic_network(G),
     n_cycles(G),
     dim(I),
     degree(I),
@@ -212,7 +220,7 @@ function small_phylogenetic_model(name::String,
     model_type,
     extended_model_id,
     Oscar.n_leaves(G),
-    level(G),
+    level_phylogenetic_network(G),
     n_cycles(G),
     dim(I),
     degree(I),
@@ -311,7 +319,7 @@ euclidean_distance_degree(spm::SmallPhylogeneticModel) = spm.EDdeg
 
 Return the maximum likelihood degree the small phylogenetic model `spm`.
 """
-euclidean_distance_degree(spm::SmallPhylogeneticModel) = spm.EDdeg
+maximum_likelihood_degree(spm::SmallPhylogeneticModel) = spm.MLdeg
 
 @doc raw"""
     parametrization(spm::SmallPhylogeneticModel)
