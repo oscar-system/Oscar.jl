@@ -73,7 +73,7 @@ function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   mg.S.isGB = true
   mg.ordering = default_ordering(oscar_free_module(M))
   mat = map_entries(R, transpose(Trans_mat))
-  set_attribute!(mg, :transformation_matrix => mat)
+  set_attribute!(mg, :sparse_transformation_matrix => mat)
   return mg, mat
 end
 
@@ -85,7 +85,7 @@ function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: Monoid
 end
 
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  A = get_attribute(generators, :transformation_matrix)
+  A = get_attribute(generators, :sparse_transformation_matrix)
   A === nothing && error("No transformation matrix in the Gröbner basis.")
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
