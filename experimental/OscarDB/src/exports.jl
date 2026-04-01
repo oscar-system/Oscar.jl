@@ -17,6 +17,8 @@ export extended_model_id
 
 ##
 export n_coordinates
+export level
+export n_cycles
 export dimension_singular_locus
 export degree_singular_locus
 export maximum_likelihood_degree
