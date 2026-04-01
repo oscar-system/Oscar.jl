@@ -70,7 +70,7 @@ function is_phylogenetic_network(G::Graph{Directed})
     end
 
     # Leaf vertices: outdegree 0
-    if out_d == 0
+    if iszero(out_d)
       leaves += 1
     end
   end
