@@ -3878,9 +3878,9 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
-    $\prod_{j = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_j)-1) = 0,$
+    $\prod_{j = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_j)) = 1,$
 
-    where $c$ stands for taking the total chern class. See [HK-MW24](@cite).
+    where $\mathrm{c}$ stands for taking the total chern class. See [HK-MW24](@cite).
 
 !!! note
     A flag variety as above can also be realized as a flag bundle of the trivial rank-$n$ bundle over a point.
