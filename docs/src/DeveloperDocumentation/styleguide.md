@@ -43,9 +43,11 @@ deviate from them in some cases; in that case just do so.
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
-  The boolean valued keyword argument `check` is recommended for this purpose,
-  the `@req` macro can be used to execute the check and to throw an
-  `ArgumentError` if it fails.
+  The boolean valued keyword argument `check` is recommended for this purpose.
+  In order to check assertions only if the `check` argument is `true`,
+  the `@check` macro can be used.
+  For argument checks independent of the value of `check`,
+  the `@req` macro can be used.
 - For functions that return iterators
   (see [`combinations`](@ref) for an example),
   the boolean valued keyword argument `inplace` can be used to express
