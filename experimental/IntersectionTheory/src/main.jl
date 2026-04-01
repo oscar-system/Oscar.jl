@@ -3873,7 +3873,7 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
     $j = 1,  \dots, k+1$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
     write $c_{ij} = c_i(SQ_j)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
