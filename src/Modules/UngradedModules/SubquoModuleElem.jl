@@ -251,18 +251,27 @@ end
     lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
 
 Return a standard basis `G` of `F` as an object of type `ModuleGens` along with
-a transformation matrix `T` such that `T*matrix(M) = matrix(G)`.
+a sparse transformation matrix `T` such that `matrix(T)*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
   R = base_ring(M)
-  G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
+  G, Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
+  A = sparse_matrix(R, 0, nrows(Trans_mat))
+  for i in 1:ncols(Trans_mat)
+    row_list = Vector{Tuple{Int, elem_type(R)}}()
+    for j in 1:nrows(Trans_mat)
+      c = Trans_mat[j, i]
+      is_zero(c) && continue
+      push!(row_list, (j, R(c)))
+    end
+    push!(A, sparse_row(R, row_list))
+  end
   mg = ModuleGens(M.F, G)
   mg.isGB = true
   mg.S.isGB = true
   mg.ordering = default_ordering(M.F)
-  mat = map_entries(R, transpose(Trans_mat))
-  set_attribute!(mg, :transformation_matrix => mat)
-  return mg, mat
+  set_attribute!(mg, :sparse_transformation_matrix => A)
+  return mg, A
 end
 
 @doc raw"""
