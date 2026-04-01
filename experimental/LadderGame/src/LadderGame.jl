@@ -20,7 +20,7 @@ struct LadderData
   I::Vector
   m::Map
   
-  function LadderData(A, Aprev)
+  function LadderData(A::PermGroup, Aprev::PermGroup)
     rec = new()
     rec.A = A
     rec.Aprev = Aprev
@@ -276,38 +276,84 @@ function _get_rep(g, rec)
   return dim1, uim1
 end
 
-function young_subgroup(p::Vector{T} ; full::T=sum(p)) where T<:IntegerUnion
+function young_subgroup(p::Vector{T} ; full::T=sum(p)) where T<:Integer
   s = full - sum(p)
   # should error if s < 0
   s == 0 && return inner_direct_product([symmetric_group(i) for i in p])
   return inner_direct_product([symmetric_group(i) for i in vcat(p, ones(T, s))])
 end
 
-
-function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:IntegerUnion
+# Test method - groups only
+# works - matches Magma
+function _young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   n = sum(p)
-  s = n - p[1]
   L = PermGroup[]
   pp = copy(p)
+  pushfirst!(L, young_subgroup(pp ; full=full))
+  s = n - pp[1]
   while s!=0
-    if p[2]==1
+    if pp[2]==1
       deleteat!(pp, 2)
       pp[1]+=1
-      prepend!(L, young_subgroup(pp ; full=full))
     else
-      prepend!(L, young_subgroup(pp ; full=full))
       pp[2]-=1
       insert!(pp,2,1)
-      prepend!(L, young_subgroup(pp ; full=full))
+      pushfirst!(L, young_subgroup(pp ; full=full))
       deleteat!(pp, 2)
       pp[1]+=1
     end
+    pushfirst!(L, young_subgroup(pp ; full=full))
     s = n-pp[1]
   end
-  prepend!(L, young_subgroup([pp[1]] ; full=full))
 
   return L
 end
+
+
+
+
+
+
+
+function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
+  n = sum(p)
+  L = LadderData[]
+  pp = copy(p)
+  H = young_subgroup(pp ; full=full)
+  s = n - pp[1]
+  while s!=0
+    if pp[2]==1
+      
+      Hprev = H
+      deleteat!(pp, 2)
+      pp[1]+=1
+      H = young_subgroup(pp ; full=full)
+      pushfirst!(L, young_subgroup(pp ; full=full))
+      
+    else
+      
+      Hprev = H
+      pp[2]-=1
+      insert!(pp,2,1)
+      H = young_subgroup(pp ; full=full)
+      pushfirst!(L, young_subgroup(pp ; full=full))
+      
+      
+      Hprev = H
+      deleteat!(pp, 2)
+      pp[1]+=1
+      H = young_subgroup(pp ; full=full)
+      pushfirst!(L, young_subgroup(pp ; full=full))
+      
+    end
+    s = n-pp[1]
+  end
+
+  return L
+end
+
+
+
 
 
 
