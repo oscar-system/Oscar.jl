@@ -1849,11 +1849,11 @@ julia> tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]])
 
 julia> general_time_reversible_model(tree)
 Phylogenetic model on a tree with 3 leaves and 3 edges
-  with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form
-   [r[1]*a r[2]*b r[3]*c r[4]*d;
-    r[1]*b r[2]*a r[3]*e r[4]*f;
-    r[1]*c r[2]*e r[3]*a r[4]*g;
-    r[1]*d r[2]*f r[3]*g r[4]*a].
+  with root distribution [r[1], r[2], r[3], r[4]] and transition matrices of the form 
+   [r[1]*x r[2]*a r[3]*b r[4]*c;
+    r[1]*a r[2]*y r[3]*d r[4]*e;
+    r[1]*b r[2]*d r[3]*z r[4]*f;
+    r[1]*c r[2]*e r[3]*f r[4]*t]. 
 ```
 """
 function general_time_reversible_model(F::Field, G::AbstractGraph{Directed})
