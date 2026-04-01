@@ -75,7 +75,7 @@ function is_phylogenetic_network(G::Graph{Directed})
     end
   end
 
-  return roots == 1 && leaves > 0
+  return isone(roots) && leaves > 0
 end
 
 function hybrid_vertices(G::Graph{Directed})
