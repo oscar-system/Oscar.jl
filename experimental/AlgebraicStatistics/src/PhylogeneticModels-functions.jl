@@ -200,9 +200,6 @@ entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetw
 #       Auxiliary functions to treat polynomials as Dictionaries of exp => coeff
 #
 ###################################################################################
-function poly_to_dict(poly::MPolyRingElem)
-  return Dict(e => c for (e, c) in zip(exponents(poly), coefficients(poly)))
-end
 
 function add_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
   if !isempty(pd1) && !isempty(pd2)
