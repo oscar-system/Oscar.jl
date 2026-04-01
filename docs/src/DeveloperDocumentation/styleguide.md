@@ -43,6 +43,19 @@ deviate from them in some cases; in that case just do so.
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
+  The boolean valued keyword argument `check` is recommended for this purpose,
+  the `@req` macro can be used to execute the check and to throw an
+  `ArgumentError` if it fails.
+- For functions that return iterators
+  (see [`combinations`](@ref) for an example),
+  the boolean valued keyword argument `inplace` can be used to express
+  that the objects returned by the iterator may share their memory, that is,
+  an element returned by the iterator may be overwritten "in place"
+  in the next iteration step.
+  This may result in significantly fewer memory allocations.
+  However, using the in-place version is only meaningful
+  if just one element of the iterator is needed at any time.
+  For example, calling `collect` on this iterator will not give useful results.
 - All user-facing functions that expect some kind of indeterminant name etc.
   (like `polynomial_ring(QQ, <indeterminant_name>)`) should accept a
   `VarName = Union{Symbol, Char, String}`, and convert it to a symbol for internal
