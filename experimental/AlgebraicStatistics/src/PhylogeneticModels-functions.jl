@@ -291,7 +291,7 @@ function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}
           p_su_to_sv = entry_transition_matrix(PM, s_u, s_v, u, v) 
           p_su_to_sv_dict = Dict(e => c for (c, e) in coefficients_and_exponents(p_su_to_sv))
           
-          prob_su_sv = multiply_terms(p_su_to_sv, probability[v][s_v]) # P(s_v | s_u) * P_v(s_v)
+          prob_su_sv = multiply_terms(p_su_to_sv_dict, probability[v][s_v]) # P(s_v | s_u) * P_v(s_v)
           prob_v = add_terms(prob_v, prob_su_sv)
         end
                 
