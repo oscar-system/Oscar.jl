@@ -3868,19 +3868,19 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
 
 !!! note
     A flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ as above comes equipped with a sequence of tautological subbundles
-    $0 = S_0 \subset S_1 \subset \dots \subset S_k\subset S_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
+    $0 = \mathcal{S}_0 \subset \mathcal{S}_1 \subset \dots \subset \mathcal{S}_k\subset \mathcal{S}_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
     ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$, together with the corresponding subquotient bundles
     $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$, $j = 1, \dots, k+1$.
     To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
     write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathbb{Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
     $\prod_{j = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_j)) = 1,$
 
-    where $\mathrm{c}$ stands for taking the total chern class. See [HK-MW24](@cite).
+    where $\mathrm{c}$ stands for taking the total Chern class. See [HK-MW24](@cite).
 
 !!! note
     A flag variety as above can also be realized as a flag bundle of the trivial rank-$n$ bundle over a point.
@@ -4020,9 +4020,9 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 !!! note
     Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $d_1, \dots, d_k$
     be as above. Then the corresponding flag bundle $\pi : \mathrm{F}(d_1, \dots, d_{k}; E)  \rightarrow X$
-    comes equipped with a sequence of tautological subbundles $0 = S_0, S_1 \subset \dots \subset
-    S_k\subset S_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
-    subquotient bundles $SQ_j = S_j/S_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
+    comes equipped with a sequence of tautological subbundles $0 = \mathcal{S}_0, \mathcal{S}_1 \subset \dots \subset
+    \mathcal{S}_k\subset \mathcal{S}_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
+    subquotient bundles $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
     in terms of generators and relations, write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$
     and $c_i = \pi^\ast \mathrm{c}_i(E)$. Then
 
@@ -4032,7 +4032,7 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 
     $\prod_{j = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_j) = \mathrm{c}(\pi^\ast E),$
 
-    where $c$ stands for taking the total chern class. See [Gro58](@cite).
+    where $c$ stands for taking the total Chern class. See [Gro58](@cite).
 
 !!! note
     For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
