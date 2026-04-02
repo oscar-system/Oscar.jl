@@ -907,15 +907,16 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
 
   min_degs = _min_degrees_to_check(GB)
   max_degs = _max_degrees_to_check(GB)
-  
+  # Case: We know that all monomials of degree 'd' are in the leading module
   d > maximum(max_degs) && return elem_type(F)[]
+  # Case: no monomials of degree 'd' in the leading module
   if d < minimum(min_degs)
     return vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))])
   end
-
+  # Go through each coordinate individually
   mons_on_axes = _monomials_on_axes_data(GB)
   LM = leading_monomials(GB)
-  LM.isGB = true
+  LM.isGB = true  #hack to be able to use normal_form() below 
 
   B = elem_type(F)[]
   for i in 1:rank(F)
@@ -924,8 +925,10 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
     elseif d < min_degs[i]
       append!(B, [a*F[i] for a in monomials_of_degree(R, d)])
     else
+      # check only monomials with variables, that are not in the leading module
       mons = [a*F[i] for a in monomials_of_degree(R, d, findall(mons_on_axes[i,:] .> 1))]
-      B_i =[mon for mon in mons if !is_zero(normal_form(mon, LM))]
+      B_i = [mon for mon in mons if !is_zero(normal_form(mon, LM))]
+      # improve upper bound for i-th coordinate, if all monomials in it are zero
       if length(B_i) == 0
         max_degs[i] = d-1
       else
@@ -960,12 +963,12 @@ end
 @doc raw"""
     _monomials_on_axes_data(GB::ModuleGens)
 
-Return a (julia)matrix containing the smallest total degrees of univariate 
-monomials in the leading module of `GB` for each coordinate of the ambient free
-module `F` and for each variable of the underlying polynomial ring `R` of `GB`.
-  
-With the entry in the `i`-th row and `j`-th column containing the smallest 
-degree `k` such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
+Return a (julia)matrix containing the smallest degrees of univariate monomials
+in the leading module of `GB` for each coordinate of the ambient free module 
+and variable of the underlying polynomial ring.
+
+The entry in the `i`-th row and `j`-th column contains the smallest degree `k`
+such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
 If such a monomial does not exists the entry is `PosInf()`.
 """
 @attr Matrix{IntExt} function _monomials_on_axes_data(GB::ModuleGens{T}) where {T <: MPolyRingElem}
@@ -993,7 +996,7 @@ end
     _min_degrees_to_check(GB::ModuleGens)
 
 Compute for each coordinate of the ambient free module of the Gröbner basis `GB`
-the smallest total degree appearing in the leading module of `GB`.
+the smallest total degree of monomials in the leading module of `GB`.
 """
 @attr Vector{IntExt} function _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem}
   @assert GB.isGB
@@ -1015,6 +1018,7 @@ end
 
 Compute for each coordinate upper bounds for the total degree of monomials
 not appearing in the leading module of the Gröbner basis `GB`.
+Can be `PosInf()`.
 """
 @attr Vector{IntExt} function _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem}
   @assert GB.isGB
