@@ -1,3 +1,5 @@
+import Random
+
 @testset "Conjugacy classes in symmetric groups" begin
   n = 5
   G = symmetric_group(n)
@@ -285,6 +287,56 @@ end
    @test order(C)==81^2*80^2
    @testset for y in gens(C)
       @test x*y==y*x
+   end
+
+   actual_gap_order(H) = ZZRingElem(Oscar.GAPWrap.Size(GapObj(H)))
+   centralizer_via_gap(G, x) = Oscar._as_subgroup(
+      G, Oscar.GAPWrap.Centralizer(GapObj(G), GapObj(x))
+   )[1]
+   centralizer_agrees_with_gap(G, x) = begin
+      C = centralizer(G, x)[1]
+      Cgap = centralizer_via_gap(G, x)
+      actual_gap_order(C) == order(C) &&
+      actual_gap_order(C) == actual_gap_order(Cgap) &&
+      all(y -> x * y == y * x, gens(C))
+   end
+   exhaustive_centralizer_test(G) = all(
+      c -> centralizer_agrees_with_gap(G, representative(c)),
+      conjugacy_classes(G)
+   )
+   function random_centralizer_test(G, reps)
+      for _ in 1:reps
+         x = rand(G)
+         C = centralizer(G, x)[1]
+         all(y -> x * y == y * x, gens(C)) || return false
+      end
+      return true
+   end
+
+   @testset "Exhaustive centralizer checks in GL(2,$q)" for q in [2, 3, 4, 5, 7, 8, 9]
+      @test exhaustive_centralizer_test(GL(2, q))
+      @test exhaustive_centralizer_test(SL(2, q))
+   end
+   @testset "Exhaustive centralizer checks in GL(3,$q)" for q in [2, 3, 4, 5]
+      @test exhaustive_centralizer_test(GL(3, q))
+      @test exhaustive_centralizer_test(SL(3, q))
+   end
+   @testset "Exhaustive centralizer checks in GL(4,$q)" for q in [2, 3]
+      @test exhaustive_centralizer_test(GL(4, q))
+      @test exhaustive_centralizer_test(SL(4, q))
+   end
+
+   @testset "Randomized centralizer checks in GL($n,$q)" for n in 1:12, q in [2, 3, 4, 5, 7, 8, 9, 25, 37, 64]
+      @test random_centralizer_test(GL(n, q), 2)
+      @test random_centralizer_test(SL(n, q), 2)
+   end
+
+   # FIXME/TODO: for (13,37) or (16,25) and other such "large" combos, we run
+   # into an error, see <https://github.com/thofma/Hecke.jl/issues/2237>.
+   # Once that is fixed in Hecke, merge this loop back with the one above.
+   @testset "Randomized centralizer checks in GL($n,$q)" for n in 13:16, q in [2, 3, 4, 5, 7, 8, 9]
+      @test random_centralizer_test(GL(n, q), 2)
+      @test random_centralizer_test(SL(n, q), 2)
    end
 
 end

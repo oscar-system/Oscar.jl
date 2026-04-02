@@ -91,7 +91,7 @@ end
 # assumes V is sorted (e.g. [1,1,1,2,3,3])
 function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    n = sum(V)
-   _lambda = gen(F)
+   _lambda = primitive_element(F)
 
    # L = multiset(V)
    L=[[V[1],1]]
@@ -107,16 +107,16 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    # generators for GL + internal diagonal blocks
    pos=1
    for l in L
-      idN = identity_matrix(F,n)
       v_g = isSL ? _gens_for_SL(l[2],F) : _gens_for_GL(l[2],F)
       for x in v_g
+         idN = identity_matrix(F,n)
          z = hvcat(l[2], [x[i,j]*identity_matrix(F,l[1]) for j in 1:l[2] for i in 1:l[2]]...)
          idN[pos:pos+l[1]*l[2]-1,pos:pos+l[1]*l[2]-1] = z
          push!(listgens,idN)
       end
-      idN = identity_matrix(F,n)
       if l[1]>1
          for i in 1:l[1]-1, j in 1:degree(F)
+            idN = identity_matrix(F,n)
             z = identity_matrix(F,l[1])
             for k in 1:l[1]-i z[k,i+k]=_lambda^j end
             idN[pos:pos+l[1]-1, pos:pos+l[1]-1] = z
@@ -130,20 +130,23 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    pos=1
    for i in 1:length(L)-1
       pos += L[i][1]*L[i][2]
-      # block above diagonal
-      z = identity_matrix(F,n)
-      for j in 1:L[i][1]
-         idx = pos-L[i][1]+j-1
-         z[idx,idx+L[i+1][1]] = 1
+      for k in 1:degree(F)
+         c = _lambda^k
+         # block above diagonal
+         z = identity_matrix(F,n)
+         for j in 1:L[i][1]
+            idx = pos-L[i][1]+j-1
+            z[idx,idx+L[i+1][1]] = c
+         end
+         push!(listgens,z)
+         # block below diagonal
+         z = identity_matrix(F,n)
+         for j in 1:L[i][1]
+            idx = pos+j-1
+            z[idx,idx-L[i][1]] = c
+         end
+         push!(listgens,z)
       end
-      push!(listgens,z)
-      # block below diagonal
-      z = identity_matrix(F,n)
-      for j in 1:L[i][1]
-         idx = pos+j-1
-         z[idx,idx-L[i][1]]=1
-      end
-      push!(listgens,z)
    end
 
    # cardinality
@@ -186,16 +189,16 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    pos=1
    for l in L
       v_g = isSL ? _gens_for_SL_matrix(f,l[2],F; D=l[1]) : _gens_for_GL_matrix(f,l[2],F; D=l[1])
-      idN = identity_matrix(F,n)
       for x in v_g
+         idN = identity_matrix(F,n)
          idN[pos:pos+nrows(x)-1,pos:pos+ncols(x)-1] = x
          push!(listgens,idN)
       end
       if l[1]>1
-         idN = identity_matrix(F,n)
          for i in 1:l[1]-1
             c = idD
             for j in 1:degree(F)*d
+               idN = identity_matrix(F,n)
                z = identity_matrix(F,l[1]*d)
                for k in 0:l[1]-i-1
                   z[d*k+1:d*(k+1),d*(k+i)+1:d*(k+i+1)] = c
@@ -213,20 +216,24 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    pos=1
    for i in 1:length(L)-1
       pos += L[i][1]*L[i][2]*d
-      # block above diagonal
-      z = idN
-      for j in 1:L[i][1]*d
-         idx = pos-L[i][1]*d+j-1
-         z[idx,idx+L[i+1][1]*d]=1
+      c = idD
+      for j in 1:degree(F)*d
+         # block above diagonal
+         z = identity_matrix(F,n)
+         for k in 0:L[i][1]-1
+            z[pos-L[i][1]*d+k*d:pos-L[i][1]*d+(k+1)*d-1,
+              pos+L[i+1][1]*d+k*d:pos+L[i+1][1]*d+(k+1)*d-1] = c
+         end
+         push!(listgens,z)
+         # block below diagonal
+         z = identity_matrix(F,n)
+         for k in 0:L[i][1]-1
+            z[pos+k*d:pos+(k+1)*d-1,
+              pos-L[i][1]*d+k*d:pos-L[i][1]*d+(k+1)*d-1] = c
+         end
+         push!(listgens,z)
+         c *= C
       end
-      push!(listgens,z)
-      # block below diagonal
-      z = idN
-      for j in 1:L[i][1]*d
-         idx = pos+j-1
-         z[idx,idx-L[i][1]*d]=1
-      end
-      push!(listgens,z)
    end
 
    # cardinality
@@ -326,7 +333,7 @@ function _gens_for_SL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    CPi = inv(CP)
    Df = D*degree(f)
 
-   n != 1 || return dense_matrix_type(F)[]
+   n != 1 || return [cat([CP^(order(F)-1) for i in 1:D]..., dims=(1,2))]
    h1 = identity_matrix(F,n*Df)
    h1[1:Df, 1:Df] = cat([CP for i in 1:D]..., dims=(1,2))
    h1[Df+1:2*Df, Df+1:2*Df] = cat([CPi for i in 1:D]..., dims=(1,2))
