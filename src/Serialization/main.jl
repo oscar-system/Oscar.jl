@@ -51,8 +51,8 @@ end
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
-    obj = JSON3.read(io)
-    println(JSON.json(obj[:meta], 2))
+    obj = JSON.lazy(io)
+    println(JSON.json(JSON.parse(obj[:meta]), 2))
   end
 end
 
