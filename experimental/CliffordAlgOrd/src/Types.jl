@@ -15,9 +15,8 @@ mutable struct CliffordAlgebra{T, S} <: Hecke.AbstractAssociativeAlgebra{T}
   space::Hecke.QuadSpace{K, S} where {K} # K = parent_type(T), e.g. T is of type AbsSimpleNumFieldElem and K is of type AbsSimpleNumField
   gram::S
   dim::Int
-  basis_of_centroid::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
+  orth_elt::Any #elem_type{C}
   disq::T
-  basis_of_center::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
 
   #Return the Clifford algebra of the quadratic space 'qs' 
   function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
@@ -50,8 +49,7 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
   
   function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
     K = C.base_ring
-    @req __can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C, K.(coeff))
+    return CliffordAlgebraElem{elem_type(K), typeof(C.gram)}(C, K.(coeff))
   end
 end
 
@@ -66,18 +64,15 @@ mutable struct CliffordOrder{T, C} <: Hecke.AbstractAssociativeAlgebra{T}
   lattice::QuadLat
   gram::MatElem
 
-  # In the 4 lines below let CO be an instance of CliffordOrder
+  # In the 3 lines below let CO be an instance of CliffordOrder
   coefficient_ideals::Any # Vector{Hecke.fractional_ideal_type(base_ring_type(C))}
-  pseudo_basis_of_centroid::Any # Vector{Tuple{elem_type(CO), Hecke.fractional_ideal_type(base_ring_type(CO))}}
   disq::Any # Tuple{Hecke.fractional_ideal_type(base_ring_type(CO)), elem_type(base_ring(ambient_algebra(CO)))}
-  pseudo_basis_of_center::Any # Vector{Tuple{elem_type(CO), Hecke.fractional_ideal_type(base_ring_type(CO))}}
+  _raw_orth_data::Any #Always of type Tuple{elem_type(ambient_algebra(CO)), Hecke.fractional_ideal_type(base_ring_type(CO))}
 
   function CliffordOrder{T, C}(ls::QuadLat{S, M}) where {T, C, S<:NumField, M<:MatElem}
-    if !is_zero(rank(ls))
-      @req is_integral(fractional_ideal(base_ring(ls), base_field(ls)(1//2)) * norm(ls)) "The given lattice is not even!"
-    end
+    !is_zero(rank(ls)) && @req is_integral(fractional_ideal(base_ring(ls), base_field(ls)(1//2)) * norm(ls)) "The given lattice is not even!"
     qs = rational_span(ls)
-    coeff_ids = _set_coefficient_ideals!(ls)
+    coeff_ids = _coefficient_ideals_of_CO(ls)
     return new{T, C}(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs), coeff_ids)
   end
 end
@@ -89,14 +84,11 @@ mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
   rank::Int
   lattice::ZZLat
   gram::QQMatrix
-  basis_of_centroid::Any #Always of type Vector{ZZCliffordOrderElem} 
   disq::ZZRingElem
-  basis_of_center::Any #Always of type Vector{ZZCliffordOrderElem}
+  max_orth_elt::Any #Always of type ZZCliffordOrderElem
 
   function ZZCliffordOrder(ls::ZZLat)
-    if !is_zero(rank(ls))
-      @req is_even(ls) "The given lattice is not even!"
-    end
+    !is_zero(rank(ls)) && @req is_even(ls) "The given lattice is not even!"
     qs = rational_span(ls) 
     return new(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs))
   end
@@ -132,9 +124,9 @@ mutable struct CliffordOrderElem{T, C, S} <: Hecke.AbstractAssociativeAlgebraEle
   end
 
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
-    K = base_ring(CO.ambient_algebra)
-    @req _can_convert_coefficients(coeffs, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra), elem_type(K)}(CO, K.(coeffs))
+    ambalg = CO.ambient_algebra
+    K = base_ring(ambalg)
+    return CliffordOrderElem{elem_type(CO.base_ring), typeof(ambalg), elem_type(K)}(CO, K.(coeffs))
   end
 
 end
@@ -156,9 +148,6 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
     return new(CO, coeffs)
   end
 
-  function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{S}) where {S}
-    @req _can_convert_coefficients(coeffs, QQ) "entries of coefficient vector are not contained in $(QQField)"
-    return ZZCliffordOrderElem(CO, QQ.(coeffs))
-  end
+  ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{S}) where {S} = ZZCliffordOrderElem(CO, QQ.(coeffs))
 
 end

@@ -118,7 +118,7 @@ using Test
       end
       @testset "defining relations" begin
         @test length(pseudo_basis(C)) == 1
-        @test pseudo_basis(C, 1) == (one(C), fractional_ideal(OK, one(OK)))
+        @test pseudo_basis(C, 1) == (one(ambient_algebra(C)), fractional_ideal(OK, one(OK)))
         @test is_empty(pseudo_gens(C))
         @test_throws BoundsError pseudo_gen(C, 1)
         a, b = rand(ZZ, -100:100), rand(ZZ, -100:100)
@@ -256,7 +256,7 @@ using Test
     lsK = lattice(qsK)
     C = clifford_order(lsK)
     Kzer = K.([0, 0, 0, 0])
-    e(i::Int) = pseudo_gen(C, i)[1]
+    e(i::Int) = C(pseudo_gen(C, i)[1])
     
     @test !is_commutative(C)
     
@@ -329,8 +329,8 @@ using Test
     end
     @testset "defining relations" begin
       @test length(pseudo_gens(C)) == 2
-      @test e(1) == pseudo_gens(C)[1][1]
-      @test e(2) == pseudo_gens(C)[2][1]
+      @test e(1) == C(pseudo_gens(C)[1][1])
+      @test e(2) == C(pseudo_gens(C)[2][1])
       @test_throws BoundsError pseudo_gen(C, 0)
       @test_throws BoundsError pseudo_gen(C, 3)
 
@@ -341,7 +341,7 @@ using Test
       @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
       @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
       @test is_zero(C(1)^2 - C(1))
-      @test e(1) * e(2) == pseudo_basis(C, 4)[1]
+      @test e(1) * e(2) == C(pseudo_basis(C, 4)[1])
       @test e(1) * e(2) == C([0, 0, 0, 1])
       @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
     end
@@ -398,7 +398,7 @@ using Test
     end
     @testset "center and centroid" begin
       @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
-      @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
+      @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (ambient_algebra(C)([1,0,0,-1]), ide)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
     end
@@ -414,7 +414,7 @@ using Test
       lsK = lattice(qsK)
       C = clifford_order(lsK)
       Kzer = K.([0, 0, 0, 0])
-      e(i::Int) = pseudo_gen(C, i)[1]
+      e(i::Int) = C(pseudo_gen(C, i)[1])
     
       @test !is_commutative(C)
     
@@ -484,8 +484,8 @@ using Test
       end
       @testset "defining relations" begin
         @test length(pseudo_gens(C)) == 2
-        @test e(1) == pseudo_gens(C)[1][1]
-        @test e(2) == pseudo_gens(C)[2][1]
+        @test e(1) == C(pseudo_gens(C)[1][1])
+        @test e(2) == C(pseudo_gens(C)[2][1])
         @test_throws BoundsError pseudo_gen(C, 0)
         @test_throws BoundsError pseudo_gen(C, 3)
 
@@ -496,7 +496,7 @@ using Test
         @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
         @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
         @test is_zero(C(1)^2 - C(1))
-        @test e(1) * e(2) == pseudo_basis(C, 4)[1]
+        @test e(1) * e(2) == C(pseudo_basis(C, 4)[1])
         @test e(1) * e(2) == C([0, 0, 0, 1])
         @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
       end
@@ -541,7 +541,7 @@ using Test
       end
       @testset "center and centroid" begin
         @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
-        @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
+        @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (ambient_algebra(C)([1,0,0,-1]), ide)]
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == (ide, K(1))
       end
@@ -796,6 +796,8 @@ using Test
       @test basis_of_centroid(C) == [one(C), z_elt]
       @test is_zero(z_elt^2 - z_elt + one(C))
       orth = 2 * z_elt - one(C)
+      @test Oscar._max_orth_elt(C) == orth
+      @test basis_of_max_orth_suborder_of_centroid(C) == [one(C), orth]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == ZZ(coefficients(orth^2)[1])
       @test disq(C) == ZZ(-3)
@@ -901,6 +903,7 @@ using Test
     end     
     @testset "center and centroid" begin
       @test basis_of_center(C) == basis_of_centroid(C)
+      @test basis_of_max_orth_suborder_of_centroid(C) == basis_of_centroid(C)
       z_elt = copy(QQzer)
       for i in [2, 5, 17]
         z_elt[i] = QQ(1)
@@ -915,6 +918,58 @@ using Test
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == ZZ(coefficients(z_elt^2)[1])
       @test disq(C) == ZZ(3)
+    end
+  end
+  @testset "non-trivial coefficient_ideals" begin
+    K, a = quadratic_field(-5)
+    OK = maximal_order(K)
+    ql = quadratic_lattice(K, pseudo_matrix(K[1 0; 0 1], [ideal(OK, OK(2)), ideal(OK, OK(3))]); gram = K[0 1; 1 0]);
+    C = clifford_order(ql)
+    D = clifford_order(quadratic_lattice(K, pseudo_matrix(identity_matrix(K, 3), [ideal(OK, OK(2)), ideal(OK, OK(3)), ideal(OK, OK(5))]); gram = K[0 0 1; 0 2 0; 1 0 0]))
+    CA = ambient_algebra(C)
+    DA = ambient_algebra(D)
+    @testset "basis and generators" begin
+      @test pseudo_gen(C, 1) == (CA([0, 1, 0, 0]), ideal(OK, OK(2)))
+      @test pseudo_gen(C, 2) == (CA([0, 0, 1, 0]), ideal(OK, OK(3)))
+      @test pseudo_gens(C) == [(CA([0, 1, 0, 0]), ideal(OK, OK(2))), (CA([0, 0, 1, 0]), ideal(OK, OK(3)))]
+
+      @test pseudo_basis(C, 1) == (CA([1, 0, 0, 0]), ideal(OK, OK(1)))
+      @test pseudo_basis(C, 2) == (CA([0, 1, 0, 0]), ideal(OK, OK(2)))
+      @test pseudo_basis(C, 3) == (CA([0, 0, 1, 0]), ideal(OK, OK(3)))
+      @test pseudo_basis(C, 4) == (CA([0, 0, 0, 1]), ideal(OK, OK(6)))
+      @test pseudo_basis(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([0, 1, 0, 0]), ideal(OK, OK(2))), (CA([0, 0, 1, 0]), ideal(OK, OK(3))), (CA([0, 0, 0, 1]), ideal(OK, OK(6)))]
+    end
+    @testset "containment and failing conversions" begin
+      @test pseudo_basis(C, 1)[1] in C
+      @test !(pseudo_basis(C, 2)[1] in C)
+      @test !(pseudo_basis(C, 3)[1] in C)
+      @test !(pseudo_basis(C, 4)[1] in C)
+      @test_throws ArgumentError C(pseudo_basis(C, 2)[1])
+      @test_throws ArgumentError C(pseudo_basis(C, 3)[1])
+      @test_throws ArgumentError C(pseudo_basis(C, 4)[1])
+    end
+    @testset "coefficient assignments" begin
+      x = C(2 * pseudo_basis(C, 2)[1])
+      y = C(3 * pseudo_basis(C, 3)[1])
+      @test_throws ArgumentError x[1] = 1//2
+      @test_throws ArgumentError x[2] = 3
+      @test_throws ArgumentError x[3] = 2
+      x[2] = 0
+      @test is_zero(x)
+      x[1] = 1
+      @test is_one(x)
+
+      @test_throws ArgumentError y[1] = 1//2
+      @test_throws ArgumentError y[2] = 3
+      @test_throws ArgumentError y[3] = 2
+      y[2] = 4
+      y[4] = 36
+      @test y == C([0, 4, 3, 36])
+    end
+    @testset "center and centroid" begin
+      @test pseudo_basis_of_center(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1)))] 
+      @test pseudo_basis_of_centroid(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([1, 0, 0, -1]), ideal(OK, OK(6)))] 
+      @test pseudo_basis_of_center(D) == pseudo_basis_of_centroid(D)
     end
   end
 

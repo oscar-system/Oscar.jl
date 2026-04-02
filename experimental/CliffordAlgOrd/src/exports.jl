@@ -7,6 +7,7 @@ export ZZCliffordOrderElem
 export ambient_algebra
 export basis_of_center
 export basis_of_centroid
+export basis_of_max_orth_suborder_of_centroid
 export clifford_algebra
 export clifford_order
 export disq
@@ -16,6 +17,7 @@ export odd_coefficients
 export odd_part
 export pseudo_basis_of_center
 export pseudo_basis_of_centroid
+export pseudo_basis_of_max_orth_suborder_of_centroid
 export pseudo_gen
 export pseudo_gens
 export quadratic_discriminant

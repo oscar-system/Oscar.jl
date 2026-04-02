@@ -210,7 +210,7 @@ julia> basis(C)
  [0, 0, 0, 1]
 ```
 """
-basis(C::CliffordAlgebra) = map(i -> basis(C, i), 1:dim(C))
+basis(C::CliffordAlgebra) = [basis(C, i) for i in 1:dim(C)]
 
 @doc raw"""
     gens(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
@@ -232,7 +232,7 @@ julia> gens(C)
  [0, 0, 0, 0, 1, 0, 0, 0]
 ```
 """
-gens(C::CliffordAlgebra) = map(i -> gen(C, i), 1:_dim_qf(C))
+gens(C::CliffordAlgebra) = [gen(C, i) for i in 1:dim(space(C))]
 
 @doc raw"""
     is_commutative(C::CliffordAlgebra) -> Bool
@@ -284,20 +284,8 @@ julia> basis_of_centroid(C)
 ```
 """
 function basis_of_centroid(C::CliffordAlgebra)
-  if isdefined(C, :basis_of_centroid)
-    return C.basis_of_centroid::Vector{elem_type(C)}
-  end
-  n = _dim_qf(C)
-  if n == 0
-    C.basis_of_centroid = [one(C)]
-    return C.basis_of_centroid::Vector{elem_type(C)}
-  end
-  T = orthogonal_basis(space(C))
-  orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
-  orth_elt *= denominator(orth_elt)
-  C.disq = (orth_elt^2)[1]
-  C.basis_of_centroid = [one(C), orth_elt]
-  return C.basis_of_centroid::Vector{elem_type(C)}
+  dim(space(C)) == 0 && return [one(C)]
+  return [one(C), _orth_elt(C)]
 end
 
 @doc raw"""
@@ -306,14 +294,9 @@ end
 Return the quadratic discriminant of `C` as an element of `base_ring(C)`.
 """
 function quadratic_discriminant(C::CliffordAlgebra)
-  if isdefined(C, :disq)
-    return C.disq
-  end
-  if dim(space(C)) == 0
-    C.disq = one(base_ring(C))
-  else
-    C.disq = (basis_of_centroid(C)[2]^2)[1]
-  end
+  isdefined(C, :disq) && return C.disq
+  _orth_elt(C) # This sets C.disq
+  return C.disq
 end
 
 @doc raw"""
@@ -327,18 +310,11 @@ disq(C::CliffordAlgebra) = quadratic_discriminant(C)
     basis_of_center(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
 Return a basis of the center of `C`. It equals `basis_of_centroid(C)`, if and only
-if `dim(space(C))` is odd. Otherwise it contains only the
-multiplicative identity of `C`.
+if `dim(space(C))` is odd. Otherwise it contains only the multiplicative identity of `C`.
 """
 function basis_of_center(C::CliffordAlgebra)
-  if isdefined(C, :basis_of_center)
-    return C.basis_of_center::Vector{elem_type(C)}
-  end
-  if is_odd(dim(space(C)))
-    C.basis_of_center = basis_of_centroid(C)::Vector{elem_type(C)}
-  else
-    C.basis_of_center = [one(C)]::Vector{elem_type(C)}
-  end
+  is_odd(dim(space(C))) && return basis_of_centroid(C)
+  return [one(C)]
 end
 
 @doc raw"""
@@ -481,19 +457,29 @@ ConformanceTests.generate_element(C::CliffordAlgebra) = C([base_ring(C)(rand(-3:
 #
 ################################################################################
 
-function __can_convert_coefficients(coeff::Vector{R}, K::Field) where {R}
-  if length(coeff) == 0
-    return true
+function _orth_elt(C::CliffordAlgebra)
+  isdefined(C, :orth_elt) && isdefined(C, :disq) && return C.orth_elt::elem_type(C)
+    
+  n = dim(space(C))
+  if n == 0
+    C.orth_elt = C(1)
+    C.disq = base_ring(C)(1)
+    return C.orth_elt::elem_type(C)
   end
-  try
-    K.(coeff)  # Try converting the coefficient vector to K
-    true
-  catch
-    false
+    
+  T = orthogonal_basis(space(C))  
+  orth_gens = [sum(gen(C, j) * T[i, j] for j in 1:n) for i in 1:n]
+  orth_elt = prod(orth_gens)
+  scale = denominator(orth_elt)
+  C.orth_elt = orth_elt * scale
+  
+  if !isdefined(C, :disq)
+    sign = n % 4 in (0, 1) ? 1 : -1
+    C.disq = sign * prod(coefficients(x^2)[1] for x in orth_gens) * scale^2
   end
+  
+  return C.orth_elt::elem_type(C)
 end
-
-_dim_qf(C::CliffordAlgebra) = ncols(C.gram)
 
 function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
   if length(y) == 1

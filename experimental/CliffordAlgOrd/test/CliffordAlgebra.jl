@@ -1,7 +1,6 @@
 using Test
 
 @testset "all tests - Clifford algebras" verbose = true begin
-  _dim_qf = Oscar._dim_qf
   mul_with_gen = Oscar._mul_with_gen 
  
   @testset "CliffordAlgebra - conformance tests" begin
@@ -34,7 +33,7 @@ using Test
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
-      @test (base_ring(C), space(C), gram_matrix(C), _dim_qf(C), dim(C)) ==
+      @test (base_ring(C), space(C), gram_matrix(C), dim(space(C)), dim(C)) ==
         (QQ, empty_qs, identity_matrix(QQ, 0), 0, 1)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
@@ -118,7 +117,7 @@ using Test
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 
-      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 2, 4)
+      @test (base_ring(C), gram_matrix(C), dim(space(C)), dim(C)) == (K, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
       @test C(C()) == C()
@@ -249,7 +248,7 @@ using Test
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
-      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, G, 2, 4)
+      @test (base_ring(C), gram_matrix(C), dim(space(C)), dim(C)) == (QQ, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
       @test coefficients(C()) == zer
@@ -352,7 +351,7 @@ using Test
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 
-      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 5, 32)
+      @test (base_ring(C), gram_matrix(C), dim(space(C)), dim(C)) == (K, G, 5, 32)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
       @test coefficients(C()) == zer
