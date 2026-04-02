@@ -39,15 +39,6 @@ automatically when:
 
 In other cases, a warning is issued and the result may be incorrect.
 
-### Inclusions and `extend_inclusion`
-
-For an inclusion $i\colon Z \hookrightarrow X$ where the class $[Z]$ is not already representable
-in $\mathrm{N}^*(X)$, the pushforward $i_*$ cannot be expressed in the existing Chow ring of $X$.
-Setting `inclusion = true` in the `map` constructor calls `extend_inclusion`
-to create a modified variety $X^+$ with extra generators, so that $i_*$ becomes well-defined.
-The structure map $X^+ \to X$ gives access to the enlarged ring while preserving the original
-ring via pullback.
-
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
 
@@ -66,6 +57,15 @@ julia> pushforward(i, P2(1)) # pushforward of the fundamental class
 
 ```
 
+### Inclusions and `extend_inclusion`
+
+For an inclusion $i\colon X \hookrightarrow Y$, where the class $[X]$ is not already representable
+in $\mathrm{N}^*(Y)_{\mathbb Q}$, the pushforward $i_*$ cannot be expressed in the existing Chow
+ring of $Y$. Setting `inclusion = true` in the `map` constructor calls `extend_inclusion` to create a
+modified variety $Y^+$ with extra generators added to the Chow ring so that $i_*$ becomes well-defined.
+The structure map $Y^+ \to Y$ gives access to the enlarged ring while preserving the original
+ring via pullback.
+
 ## Types
 
 The OSCAR type for abstract variety maps is `AbstractVarietyMap`.
@@ -77,11 +77,11 @@ map(X::AbstractVariety, Y::AbstractVariety, f_pullback::Vector, f_pushforward = 
 ```
 
 ```@docs
-identity_map(X::AbstractVariety)
+extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 ```
 
 ```@docs
-extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
+identity_map(X::AbstractVariety)
 ```
 
 ## Underlying data of an abstract variety map
