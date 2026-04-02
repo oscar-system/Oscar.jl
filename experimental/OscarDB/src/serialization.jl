@@ -138,7 +138,8 @@ end
 function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::GroupBasedPhylogeneticModel)
   dom = model_ring(GBM)[1]
   codom = parameter_ring(GBM)[1]
-
+  fmr = full_model_ring(GBM)[1]
+  
   return SmallGroupBasedModel(
     load_object(s, String, :model_encoding),
     load_object(s, String, :model_type),
@@ -151,5 +152,7 @@ function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::Gr
     load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
     load_object(s, Union{Int, Nothing}, :degree_singular_locus),
     load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
-    load_object(s, Dict{Tuple{[Int for _ in 1:n_states(GBM)]...}, Vector{MPolyRingElem}}, Dict(:value_params => ))
+    load_object(s, Dict{Tuple{[Int for _ in 1:n_states(GBM)]...}, Vector{MPolyRingElem}}, Dict(:value_params => fmr), :equivalent_classes)
+    load_object(s, Union{Nothing, Ideal}, dom, :vanishing_ideal)
   )
+end
