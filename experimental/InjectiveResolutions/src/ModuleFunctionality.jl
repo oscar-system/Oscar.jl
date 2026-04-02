@@ -65,16 +65,39 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task=:a
   return coordinates_via_transform(a, std)
 end
 
+#= The function's body is copied from `src/Modules`. 
+# We need to duplicate the method, because it needs te be made available for 
+# the type `MonoidAlgebraElem` which is from experimental. Therefore, we can 
+# not introduce a type union in `src`.
+=#
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   R = base_ring(M)
-  G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
-  mg = ModuleGens(oscar_free_module(M), G)
+  ### TODO: 
+  # We would like a new version of `lift_std` in Singular.jl which natively 
+  # returns a sparse matrix. This does not exist yet. 
+  # However, we already adapted the Oscar.jl code so that only sparse matrices
+  # are used for the modules. Thus the two nested `for`-loops below are a 
+  # temporary workaround which should be adapted, once a new version of 
+  # `lift_std` in Singular.jl becomes available. 
+  # In the meantime, this already provides an improvement in terms of 
+  # runtime and allocations.
+  G, Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
+  A = sparse_matrix(R, 0, nrows(Trans_mat))
+  for i in 1:ncols(Trans_mat)
+    row_list = Vector{Tuple{Int, elem_type(R)}}()
+    for j in 1:nrows(Trans_mat)
+      c = Trans_mat[j, i]
+      is_zero(c) && continue
+      push!(row_list, (j, R(c)))
+    end
+    push!(A, sparse_row(R, row_list))
+  end
+  mg = ModuleGens(M.F, G)
   mg.isGB = true
   mg.S.isGB = true
-  mg.ordering = default_ordering(oscar_free_module(M))
-  mat = map_entries(R, transpose(Trans_mat))
-  set_attribute!(mg, :sparse_transformation_matrix => mat)
-  return mg, mat
+  mg.ordering = default_ordering(M.F)
+  set_attribute!(mg, :sparse_transformation_matrix => A)
+  return mg, A
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
@@ -103,7 +126,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   end
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  return coords_wrt_groebner_basis * A
 end
 
 function sparse_row(
