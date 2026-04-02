@@ -32,8 +32,8 @@ end
 Creates a `SmallGroupBasedModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallGroupBasedModels" of the `OscarDB`
 """
 function small_group_based_model(name::String,
-                          model::GroupBasedPhylogeneticModel,
-                          model_type::String)
+                                 model::GroupBasedPhylogeneticModel,
+                                 model_type::String)
 
   G = graph(model)
   f = parametrization(model)
@@ -212,9 +212,9 @@ end
 Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
 """
 function small_phylogenetic_model(name::String,
-                          model::PhylogeneticModel,
-                          model_type::String,
-                          extended_model_id::String="")
+                                  model::PhylogeneticModel,
+                                  model_type::String,
+                                  extended_model_id::String="")
 
   G = graph(model)
   ec = equivalent_classes(model)

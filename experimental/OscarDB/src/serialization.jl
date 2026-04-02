@@ -1,3 +1,15 @@
+function load_object(s::DeserializerState, ::Type{Union{Nothing, T}}, params::Any, key::Symbol) where T
+  set_key(s, key)
+  isnothing(s.obj) && return nothing
+  return load_object(s, T, params)
+end
+
+function load_object(s::DeserializerState, ::Type{Union{Nothing, T}}, key::Symbol) where T
+  set_key(s, key)
+  isnothing(s.obj) && return nothing
+  return load_object(s, T)
+end
+
 @register_serialization_type LeechPair
 type_params(x::LeechPair) = TypeParams(LeechPair, group(x))
 
@@ -73,6 +85,8 @@ function load_object(s::DeserializerState, ::Type{TransitiveSimplicialComplex},
   end
 end
 
+################################################################################
+# Phylogenetic collection structs
 @register_serialization_type SmallTreeModel
 
 type_params(stm::SmallTreeModel) = TypeParams(
@@ -94,3 +108,48 @@ function load_object(s::DeserializerState, ::Type{SmallTreeModel}, GBM::GroupBas
     load_object(s, String, :model_type)
   )
 end
+
+@register_serialization_type SmallGroupBasedModel
+
+type_params(sgbm::SmallGroupBasedModel) = TypeParams(
+  SmallGroupBasedModel,
+  group_based_phylogenetic_model(sgbm)
+)
+
+function save_object(s::SerializerState, sgbm::SmallGroupBasedModel)
+  save_data_dict(s) do
+    save_object(s, sgbm._id, :model_encoding)
+    save_object(s, sgbm.model_type, :model_type)
+    save_object(s, n_leaves(sgbm), :n_leaves)
+    save_object(s, level(sgbm), :level)
+    save_object(s, n_cycles(sgbm), :n_cycles)
+    save_object(s, dim(sgbm), :dimension)
+    save_object(s, degree(sgbm), :degree)
+    save_object(s, n_coordinates(sgbm), :n_coordinates)
+    save_object(s, dimension_singular_locus(sgbm), :dimension_singular_locus)
+    save_object(s, degree_singular_locus(sgbm), :degree_singular_locus)
+    save_object(s, euclidean_distance_degree(sgbm), :euclidean_distance_degree)
+    save_object(s, parametrization(sgbm), :parametrization)
+    save_object(s, equivalent_classes(sgbm), :equivalent_classes)
+    save_object(s, vanishing_ideal(sgbm), :vanishing_ideal)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::GroupBasedPhylogeneticModel)
+  dom = model_ring(GBM)[1]
+  codom = parameter_ring(GBM)[1]
+
+  return SmallGroupBasedModel(
+    load_object(s, String, :model_encoding),
+    load_object(s, String, :model_type),
+    load_object(s, Int, :n_leaves),
+    load_object(s, Int, :level),
+    load_object(s, Int, :n_cycles),
+    load_object(s, Int, :dimension),
+    load_object(s, Int, :degree),
+    load_object(s, Int, :n_coordinates),
+    load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
+    load_object(s, Union{Int, Nothing}, :degree_singular_locus),
+    load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
+    load_object(s, Dict{Tuple{[Int for _ in 1:n_states(GBM)]...}, Vector{MPolyRingElem}}, Dict(:value_params => ))
+  )
