@@ -293,7 +293,9 @@ function leading_monomials(F::ModuleGens)
     #return ModuleGens(F.F, [lead(g) for g in oscar_generators(F)])
   #end
   singular_gens = singular_generators(F)
-  return ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
+  mg = ModuleGens(oscar_free_module(F), Singular.lead(singular_gens))
+  mg.S.isGB = true # TODO: should be set in lead in Singular
+  return mg
 end
 
 function show(io::IO, b::SubquoModuleElem)
