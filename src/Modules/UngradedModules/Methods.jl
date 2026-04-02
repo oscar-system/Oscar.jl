@@ -950,7 +950,7 @@ end
 
 
 @doc raw"""
-    _has_monomials_on_all_axes(GB::SubquoModule)
+    _has_monomials_on_all_axes(GB::ModuleGens)
 
 Compute whether the monomial diagram of the leading module of the Gröbner 
 basis `GB` has monomials on all its axes.
