@@ -324,7 +324,7 @@ Return the representation matrix of the element `x` with respect to `basis(paren
 the left if `action == :left` and from the right if `action == :right`.
 """
 function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
-  @req (action == :left) || (action == :right) "The action is either `(:left) or `(:right)."
+  @req (action == :left) || (action == :right) "The action must be :left or :right."
   C = parent(x)
   n = dim(C)
   res = zero_matrix(base_ring(C), n, n)
