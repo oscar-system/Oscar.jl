@@ -8,12 +8,7 @@ using Test
     K, b = quadratic_field(5)
     a = 1//2 * (1 + b)
     C = clifford_order(lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)])))
-    ConformanceTests.test_NCRing_interface(C)
-
-    # Matrices over Clifford orders
-    M = matrix_ring(C, 2)
-    ConformanceTests.test_NCRing_interface(M)
-
+    ConformanceTests.test_NCRing_interface_recursive(C)
   end 
 
   @testset "ZZCliffordOrder - conformance tests" begin
