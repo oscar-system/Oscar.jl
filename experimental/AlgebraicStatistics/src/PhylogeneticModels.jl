@@ -90,6 +90,7 @@ end
 
 @doc raw"""
     level(::PhylogeneticNetwork{N, L}) where {N, L}
+    level(::PhylogeneticTree)
 
 Return the level `L` of the phylogenetic network.
 
@@ -106,6 +107,7 @@ level(::PhylogeneticTree) = 0
 
 @doc raw"""
     n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L}
+    n_hybrid(::PhylogeneticTree)
 
 Return the number of hybrid nodes `N` in the phylogenetic network.
 
@@ -138,6 +140,7 @@ graph(N::PhylogeneticNetwork) = N.graph
 
 @doc raw"""
     hybrids(N::PhylogeneticNetwork)
+    hybrids(::PhylogeneticTree)
 
 Return the dictionary mapping hybrid vertex IDs to their incoming hybrid edges.
 
@@ -155,6 +158,7 @@ hybrids(::PhylogeneticTree) = Dict{Int64, Vector{Edge}}()
 
 @doc raw"""
     hybrid_vertices(N::PhylogeneticNetwork)
+    hybrid_vertices(::PhylogeneticTree)
 
 Return a list of the hybrid vertices in the phylogenetic network.
 
@@ -172,6 +176,7 @@ hybrid_vertices(::PhylogeneticTree) = []
 
 @doc raw"""
     hybrid_edges(N::PhylogeneticNetwork)
+    hybrid_edges(::PhylogeneticTree)
 
 Return a list of all hybrid edges in the phylogenetic network.
 
