@@ -63,13 +63,15 @@ function groebner_basis_f4(
     AI   = AlgebraicSolving.Ideal(oscar_generators(I))
     if eliminate == 0
       AR = base_ring(I)
+      embedding = identity
     else
       vars = symbols(base_ring(I))[eliminate+1:end]
       AR,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
+      embedding = hom(base_ring(I), AR, [repeat([zero(AR)], eliminate); gens(AR)])
     end
     ord  = degrevlex(AR)
     if length(AI.gens) == 0
-        GB = IdealGens(base_ring(I), singular_generators(I), complete_reduction)
+        GB = IdealGens(AR, [embedding(p) for p in singular_generators(I)], complete_reduction)
         GB.ord    = ord
         GB..isGB  = true
         GB.S.isGB = true
@@ -84,8 +86,8 @@ function groebner_basis_f4(
                     normalize = normalize,
                     truncate_lifting = truncate_lifting,
                     info_level = info_level)
-
-        GB = IdealGens(AR, AI.gb[eliminate], ord, keep_ordering = false,
+        
+        GB = IdealGens(AR, [embedding(p) for p in AI.gb[eliminate]], ord, keep_ordering = false,
                        isGB = true, isReduced = complete_reduction)
     end
     if eliminate == 0
