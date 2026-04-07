@@ -246,7 +246,7 @@ ambient_algebra(C::Union{CliffordOrder, ZZCliffordOrder}) = C.ambient_algebra
 @doc raw"""
     algebra(C::CliffordOrder) -> CliffordAlgebra
 
-Alias for [`ambient_algebra(C)`](@ref amient_algebra(C::Union{CliffordOrder, ZZCliffordOrder})).
+Alias for [`ambient_algebra(C)`](@ref ambient_algebra(C::Union{CliffordOrder, ZZCliffordOrder})).
 """
 algebra(C::Union{CliffordOrder, ZZCliffordOrder}) = ambient_algebra(C)
 
