@@ -621,9 +621,7 @@ Return the quadratic discriminant of `C` as a tuple `(disq_ideal, alg_disq)` whe
   same $K$-square class as $x^2$ (rather the scalar coordinate $x^2[1]$), where $K$ is the base field.
 """
 function quadratic_discriminant(C::CliffordOrder)
-  if !isdefined(C, :disq)
-    _compute_raw_orth_data!(C)
-  end
+  !isdefined(C, :disq) && _compute_raw_orth_data!(C)
   return C.disq::Tuple{Hecke.fractional_ideal_type(base_ring_type(C)), elem_type(base_ring(ambient_algebra(C)))}
 end
 
@@ -766,8 +764,7 @@ julia> quadratic_discriminant(C)
 ```
 """
 function quadratic_discriminant(C::ZZCliffordOrder) 
-  isdefined(C, :disq) && return C.disq
-  _max_orth_elt(C)
+  !isdefined(C, :disq) && _max_orth_elt(C)
   return C.disq
 end
 

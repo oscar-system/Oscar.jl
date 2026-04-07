@@ -294,8 +294,7 @@ end
 Return the quadratic discriminant of `C` as an element of `base_ring(C)`.
 """
 function quadratic_discriminant(C::CliffordAlgebra)
-  isdefined(C, :disq) && return C.disq
-  _orth_elt(C) # This sets C.disq
+  !isdefined(C, :disq) && _orth_elt(C)
   return C.disq
 end
 
@@ -481,6 +480,7 @@ function _orth_elt(C::CliffordAlgebra)
   return C.orth_elt::elem_type(C)
 end
 
+#=
 function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
   if length(y) == 1
     return x .* y[1]
@@ -529,4 +529,83 @@ function _mul_baseelt_with_gen(char::Int, i::Int, gram::MatElem)
   end
   res[char - 2^(j - 1)] = gram[i, j]
   res -= _shift_entries!(_mul_baseelt_with_gen(char - 2^(j - 1), i, gram), 2^(j - 1))
+end
+=#
+
+# Wrapper: Sets up the pre-allocated buffers exactly ONCE
+function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
+  R = base_ring(gram)
+  out = [zero(R) for _ in 1:length(x)]
+  temp_buffers = [[zero(R) for _ in 1:length(x)] for _ in 1:ncols(gram)]
+  _mul_aux!(out, x, y, gram, i, temp_buffers)
+  return out
+end
+
+# The allocation-free recursive multiplication engine.
+function _mul_aux!(out::AbstractVector{T}, x::AbstractVector{T}, y::AbstractVector{T}, gram::MatElem{T}, i::Int, temp_buffers::Vector{Vector{T}}) where {T<:RingElement}
+  if is_zero(y)
+    return out
+  elseif length(y) == 1
+    y_val = y[1]
+    if !is_zero(y_val)
+      @inbounds for j in eachindex(out, x)
+        out[j] += x[j] * y_val
+      end
+    end
+    return out
+  end
+    
+  # @views prevent memory allocation when slicing the array
+  y_even = @view y[1:2:end]
+  y_odd  = @view y[2:2:end]
+    
+  # Accumulate x * y_even
+  _mul_aux!(out, x, y_even, gram, i + 1, temp_buffers)
+    
+  # Accumulate (x * e_i) * y_odd
+  if !is_zero(y_odd)
+    x_next = temp_buffers[i] # Grab the pre-allocated buffer for this depth
+    _mul_with_gen!(x_next, x, i, gram)
+    _mul_aux!(out, x_next, y_odd, gram, i + 1, temp_buffers)
+  end
+    
+  return out
+end
+
+# Implements right multiplication with the 'i'-th generator.
+function _mul_with_gen!(out::AbstractVector{T}, x::AbstractVector{T}, i::Int, gram::MatElem{T}) where {T<:RingElement}
+  # Reset the buffer. Safe from mutation bugs because `+=` rebinds the index.
+  fill!(out, zero(base_ring(gram))) 
+  @inbounds for char in 1:length(x)
+    if !is_zero(x[char])
+      _add_mul_baseelt_with_gen!(out, x[char], char, i, gram, 0)
+    end
+  end
+  return out
+end
+
+# Resolves basis element multiplication WITHOUT creating any arrays or recursive stack calls.
+function _add_mul_baseelt_with_gen!(out::AbstractVector, c, char::Int, i::Int, gram::MatElem, shift::Int=0)
+  while true
+    if char == 1
+      @inbounds out[1 + (1 << (i - 1)) + shift] += c
+      return
+    end
+        
+    j = 8 * sizeof(Int) - leading_zeros(char - 1)
+    if j < i
+      @inbounds out[char + (1 << (i - 1)) + shift] += c
+      return
+    end
+    if j == i
+      @inbounds out[char - (1 << (i - 1)) + shift] += c * divexact(gram[i, i], 2)
+      return
+    end
+        
+    @inbounds out[char - (1 << (j - 1)) + shift] += c * gram[i, j]        
+    # Setup the variables for the next loop iteration instead of recursing
+    c = -c
+    char = char - (1 << (j - 1))
+    shift = shift + (1 << (j - 1))
+  end
 end

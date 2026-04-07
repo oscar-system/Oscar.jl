@@ -1,5 +1,5 @@
 @testset "all tests - Clifford algebras" verbose = true begin
-  mul_with_gen = Oscar._mul_with_gen 
+  mul_with_gen! = Oscar._mul_with_gen! 
  
   @testset "CliffordAlgebra - conformance tests" begin
     # Over rationals
@@ -213,12 +213,16 @@
       @test_throws BoundsError x[0]
       @test_throws BoundsError x[5]
     end
-    @testset "mul_with_gen" begin
+    @testset "mul_with_gen!" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) ==
-        K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) ==
-        K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
+      coeffs = coefficients(x)
+      out = fill(zero(K), length(coeffs))
+      
+      Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
+      @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
+
+      Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
+      @test out == K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
     @testset "center and centroid" begin
       orth = C([-1, 0, 0, 2])
@@ -314,10 +318,16 @@
       @test_throws BoundsError x[0]
       @test_throws BoundsError x[5]
     end
-    @testset "mul_with_gen" begin
+    @testset "mul_with_gen!" begin
       x = C([1, 2, 3, 4])
-      @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) == QQ.([2 * a, 1, -4 * a, -3])
-      @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) == QQ.([3 * b, 4 * b, 1, 2])
+      coeffs = coefficients(x)
+      out = fill(zero(QQ), length(coeffs))
+      
+      Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
+      @test out == QQ.([2 * a, 1, -4 * a, -3])
+      
+      Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
+      @test out == QQ.([3 * b, 4 * b, 1, 2]) 
     end
     @testset "center and centroid" begin
       @test basis_of_center(C) == [one(C)]
@@ -455,6 +465,7 @@
     end
   end
 
+  #=
   @testset "multiplication helpers on bitvectors" begin
     
     @testset "test shift_entries!" begin
@@ -519,6 +530,72 @@
         G = K[1 a; a 1]
         @test mul_baseelt_with_gen(4, 1, G) == [0, a, (-1//2), 0]
         @test mul_baseelt_with_gen(4, 2, G) == [0, (1//2), 0, 0]
+      end
+    end
+  end
+  =#
+  @testset "multiplication helpers on bitvectors" begin
+
+    @testset "test _add_mul_baseelt_with_gen!" begin
+      add_mul! = Oscar._add_mul_baseelt_with_gen!
+      
+      function eval_add_mul(char, i, gram)
+        out = fill(zero(base_ring(gram)), 1 << ncols(gram))
+        add_mul!(out, one(base_ring(gram)), char, i, gram, 0)
+        return out
+      end
+
+      @testset "orthogonal" begin
+        gram1, gram2 = QQ[4 0; 0 -6], QQ[1 0; 0 1]
+        @test eval_add_mul(1, 1, gram1) == QQ.([0, 1, 0, 0])
+        @test eval_add_mul(1, 2, gram1) == QQ.([0, 0, 1, 0])
+        @test eval_add_mul(2, 1, gram1) == QQ.([2, 0, 0, 0])
+        @test eval_add_mul(2, 2, gram1) == QQ.([0, 0, 0, 1])
+        @test eval_add_mul(3, 1, gram1) == QQ.([0, 0, 0, -1])
+        @test eval_add_mul(3, 2, gram1) == QQ.([-3, 0, 0, 0])
+        @test eval_add_mul(4, 1, gram1) == QQ.([0, 0, -2, 0])
+        @test eval_add_mul(4, 2, gram1) == QQ.([0, -3, 0, 0])
+
+        @test eval_add_mul(4, 1, gram2) == QQ.([0, 0, -1//2, 0])
+        @test eval_add_mul(4, 2, gram2) == QQ.([0, 1//2, 0, 0])
+      end
+
+      @testset "non-orthogonal" begin
+        H2 = QQ[0 1; 1 0]
+        @test eval_add_mul(2, 1, H2) == QQ.([0, 0, 0, 0])
+        @test eval_add_mul(3, 2, H2) == QQ.([0, 0, 0, 0])
+
+        A3 = QQ[2 1 0; 1 2 1; 0 1 2]
+        @test eval_add_mul(6, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 0])
+        @test eval_add_mul(6, 2, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, -1])
+        @test eval_add_mul(6, 3, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, 0])
+        @test eval_add_mul(7, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 1])
+        @test eval_add_mul(7, 2, A3) == QQ.([0, 0, 1, 0, -1, 0, 0, 0])
+        @test eval_add_mul(7, 3, A3) == QQ.([0, 0, 1, 0, 0, 0, 0, 0])
+
+        X = QQ[2 -4 -1 -1; -4 4 -3 1; -1 -3 -2 3; -1 1 3 2]
+        @test eval_add_mul(14, 1, X) ==
+          QQ.([0, 0, 0, 0, 0, X[1, 4], 0, 0, 0, -X[1, 3], 0, 0, X[1, 1] / 2, 0, 0, 0])
+        @test eval_add_mul(14, 2, X) ==
+          QQ.([0, 0, 0, 0, 0, X[2, 4], 0, 0, 0, -X[2, 3], 0, 0, 0, 0, 0, 1])
+        @test eval_add_mul(14, 3, X) ==
+          QQ.([0, 0, 0, 0, 0, X[3, 4], 0, 0, 0, -X[3, 3] / 2, 0, 0, 0, 0, 0, 0])
+        @test eval_add_mul(14, 4, X) ==
+          QQ.([0, 0, 0, 0, 0, X[4, 4] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        @test eval_add_mul(4, 1, X) ==
+          QQ.([0, X[1, 2], -X[1, 1] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        @test eval_add_mul(4, 2, X) ==
+          QQ.([0, X[2, 2] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        @test eval_add_mul(4, 3, X) ==
+          QQ.([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+        @test eval_add_mul(4, 4, X) ==
+          QQ.([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+
+        K, a = quadratic_field(3)
+        G = K[1 a; a 1]
+        @test eval_add_mul(4, 1, G) == [0, a, (-1//2), 0]
+        @test eval_add_mul(4, 2, G) == [0, (1//2), 0, 0]
       end
     end
   end

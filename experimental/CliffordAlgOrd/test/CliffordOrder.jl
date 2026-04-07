@@ -1,5 +1,4 @@
 @testset "all test - Clifford orders" verbose = true begin
-  mul_with_gen = Oscar._mul_with_gen
 
   @testset "CliffordOrder - conformance tests" begin
     # Over an order in a number field
@@ -382,12 +381,17 @@
       end
       @test x == C()
     end
-    @testset "mul_with_gen" begin
+    @testset "mul_with_gen!" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) ==
-        K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) ==
-        K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
+      coeffs = coefficients(x)
+      
+      out = [zero(K) for _ in 1:length(coeffs)]
+      
+      Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
+      @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
+      
+      Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
+      @test out == K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2]) 
     end
     @testset "center and centroid" begin
       @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
