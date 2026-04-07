@@ -11,17 +11,7 @@ Base.:-(x::CliffordOrderElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 Base.:+(x::ZZCliffordOrderElem) = x
 Base.:-(x::ZZCliffordOrderElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 
-function inv(x::CliffordOrderElem)
-  CO = parent(x)
-  CA = ambient_algebra(CO)
-  xinv = inv(CA(x))
-  if !(xinv in CO)
-    error("Element is not invertible")
-  end
-  return CO(xinv)
-end
-
-function inv(x::ZZCliffordOrderElem)
+function inv(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
   CO = parent(x)
   CA = ambient_algebra(CO)
   xinv = inv(CA(x))
