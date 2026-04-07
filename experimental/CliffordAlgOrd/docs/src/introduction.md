@@ -111,7 +111,7 @@ which is to say that the form ``q`` is ``R``-valued.
 !!! note "Clifford algebras of lattices that are not even"
     In general, the quadratic form ``q`` need not be ``R``-valued. In this case, ``L`` is not a
     quadratic ``R``-module as defined [above](@ref definitionsandnotations_cliff).
-    In particular, the Clifford algebra of ``L`` does not exists.
+    In particular, the Clifford algebra of ``L`` does not exist.
 
 ---
 Let ``A`` be a ``K``-algebra. An ``R``-order in ``A`` is a full ``R``-lattice ``\Lambda``
