@@ -471,7 +471,7 @@ function basis(C::ZZCliffordOrder, i::Int)
 end
 
 @doc raw"""
-    gen(C::CliffordOrder, i::Int) -> ZZCliffordOrderElem
+    gen(C::ZZCliffordOrder, i::Int) -> ZZCliffordOrderElem
 
 Return the `i`-th element of the canonical multiplicative generating set
 of the Clifford order `C`.
