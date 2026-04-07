@@ -136,13 +136,15 @@ function save_object(s::SerializerState, sgbm::SmallGroupBasedModel)
 end
 
 function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::GroupBasedPhylogeneticModel)
-  dom = model_ring(GBM)[1]
+  dom = base_ring(model_ring(GBM)[1])
   codom = parameter_ring(GBM)[1]
-
+  fmr = base_ring(full_model_ring(GBM)[1])
+  n_leaves = load_object(s, Int, :n_leaves)
   return SmallGroupBasedModel(
     load_object(s, String, :model_encoding),
+    GBM,
     load_object(s, String, :model_type),
-    load_object(s, Int, :n_leaves),
+    n_leaves,
     load_object(s, Int, :level),
     load_object(s, Int, :n_cycles),
     load_object(s, Int, :dimension),
@@ -150,6 +152,61 @@ function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::Gr
     load_object(s, Int, :n_coordinates),
     load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
     load_object(s, Union{Int, Nothing}, :degree_singular_locus),
+    load_object(s, Union{Int, Nothing}, :euclidean_distance_degree),
     load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
-    load_object(s, Dict{Tuple{[Int for _ in 1:n_states(GBM)]...}, Vector{MPolyRingElem}}, Dict(:value_params => ))
+    load_object(s, Dict{Tuple{[Int for _ in 1:n_leaves]...}, Vector{MPolyRingElem}}, Dict(:key_params => nothing, :value_params => fmr), :equivalent_classes),
+    load_object(s, Union{Nothing, Ideal}, dom, :vanishing_ideal)
   )
+end
+
+@register_serialization_type SmallPhylogeneticModel
+
+type_params(spm::SmallPhylogeneticModel) = TypeParams(
+  SmallPhylogeneticModel,
+  small_phylogenetic_model(spm)
+)
+
+function save_object(s::SerializerState, spm::SmallPhylogeneticModel)
+  save_data_dict(s) do
+    save_object(s, spm._id, :model_encoding)
+    save_object(s, spm.model_type, :model_type)
+    save_object(s, n_leaves(spm), :n_leaves)
+    save_object(s, level(spm), :level)
+    save_object(s, n_cycles(spm), :n_cycles)
+    save_object(s, dim(spm), :dimension)
+    save_object(s, degree(spm), :degree)
+    save_object(s, n_coordinates(spm), :n_coordinates)
+    save_object(s, dimension_singular_locus(spm), :dimension_singular_locus)
+    save_object(s, degree_singular_locus(spm), :degree_singular_locus)
+    save_object(s, maximum_likelihood_degree(spm), :maximum_likelihood_degree)
+    save_object(s, euclidean_distance_degree(spm), :euclidean_distance_degree)
+    save_object(s, parametrization(spm), :parametrization)
+    save_object(s, equivalent_classes(spm), :equivalent_classes)
+    save_object(s, vanishing_ideal(spm), :vanishing_ideal)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{SmallPhylogeneticModel}, SPM::PhylogeneticModel)
+  dom = base_ring(model_ring(SPM)[1])
+  codom = parameter_ring(SPM)[1]
+  fmr = base_ring(full_model_ring(SPM)[1])
+  n_leaves = load_object(s, Int, :n_leaves)
+  return SmallPhylogeneticModel(
+    load_object(s, String, :model_encoding),
+    SPM,
+    load_object(s, String, :model_type),
+    n_leaves,
+    load_object(s, Int, :level),
+    load_object(s, Int, :n_cycles),
+    load_object(s, Int, :dimension),
+    load_object(s, Int, :degree),
+    load_object(s, Int, :n_coordinates),
+    load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
+    load_object(s, Union{Int, Nothing}, :degree_singular_locus),
+    load_object(s, Union{Int, Nothing}, :maximum_likelihood_degree),
+    load_object(s, Union{Int, Nothing}, :euclidean_distance_degree),
+    load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
+    load_object(s, Dict{Tuple{[Int for _ in 1:n_leaves]...}, Vector{MPolyRingElem}}, Dict(:key_params => nothing, :value_params => fmr), :equivalent_classes),
+    load_object(s, Union{Nothing, Ideal}, dom, :vanishing_ideal)
+  )
+end

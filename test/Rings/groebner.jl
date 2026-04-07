@@ -242,8 +242,14 @@ end
   R, (a,b,c,d,x,y,z,w) = polynomial_ring(QQ, ["a", "b", "c", "d", "x", "y", "z", "w"])
   I = ideal(R, [x - a*c, y - a*c*d, z - a*c^2 - b, w - a*c^2*d - b*d])
   H = groebner_basis_f4(I; eliminate=4);
-  G= [-x*w + y*z]
+  H_x, H_y, H_z, H_w = gens(base_ring(H))
+  G = [-H_x * H_w + H_y * H_z]
   @test elements(H) == G
+  @test parent(H_x) == base_ring(H)
+
+  I = ideal(R, [zero(R)])
+  H = groebner_basis_f4(I; eliminate=4);
+  @test parent(first(gens(H))) == base_ring(H)
 end
 
 @testset "fglm" begin

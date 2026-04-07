@@ -38,7 +38,7 @@ function small_group_based_model(name::String,
   G = graph(model)
   f = parametrization(model)
   ec = equivalent_classes(model)
-  I = vanishing_ideal(model)
+  I = vanishing_ideal(model; algorithm=:f4)
 
   return SmallGroupBasedModel(
     name,
@@ -184,13 +184,10 @@ function Base.show(io::IO, sgb::SmallGroupBasedModel)
 end
 
 
-
-
 struct SmallPhylogeneticModel
   _id::String # model encoding id, example 3-0-0-JC
   model::PhylogeneticModel
   model_type::String # ex: jukes_cantor_model
-  extended_model_id::String ## Link to id of GBmodel (and ATRmodel in the future)
   n_leaves::Int
   level::Int
   n_cycles::Int
@@ -213,8 +210,7 @@ Creates a `SmallPhylogeneticModel` which is the struct used to populate the coll
 """
 function small_phylogenetic_model(name::String,
                                   model::PhylogeneticModel,
-                                  model_type::String,
-                                  extended_model_id::String="")
+                                  model_type::String)
 
   G = graph(model)
   ec = equivalent_classes(model)
@@ -224,7 +220,6 @@ function small_phylogenetic_model(name::String,
     name,
     model,
     model_type,
-    extended_model_id,
     n_leaves(G),
     level(G),
     sum((length(h) - 1 for h in Oscar.hybrid_edges(G)), init=0),
