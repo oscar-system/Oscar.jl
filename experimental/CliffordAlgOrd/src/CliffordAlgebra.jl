@@ -411,7 +411,7 @@ odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coefficients(x))
 @doc raw"""
     is_odd(x::CliffordAlgebraElem) -> Bool
 
-Return 'true' if 'x' is odd, i.e. if [`odd_part(x)`](@ref even_part(x::CliffordAlgebraElem))
+Return 'true' if 'x' is odd, i.e. if [`odd_part(x)`](@ref odd_part(x::CliffordAlgebraElem))
 and `x` coincide. Otherwise, return `false`.
 """
 is_odd(x::CliffordAlgebraElem) = (x == odd_part(x))
