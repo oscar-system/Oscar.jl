@@ -11,14 +11,14 @@
 
   @testset "ZZCliffordOrder - conformance tests" begin
     lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
-    ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
+    ConformanceTests.test_NCRing_interface_recursive(clifford_order(lsZZ))
     
     C = clifford_order(root_lattice(:A, 3))
-    ConformanceTests.test_NCRing_interface(C)
+    ConformanceTests.test_NCRing_interface_recursive(C)
     
     # Matrices over ZZClifford orders
     M = matrix_ring(C, 2)
-    ConformanceTests.test_NCRing_interface(M)
+    ConformanceTests.test_NCRing_interface_recursive(M)
   end 
   
   @testset "failing constructions" begin
