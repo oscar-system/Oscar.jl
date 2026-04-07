@@ -660,6 +660,8 @@ julia> pseudo_basis_of_center(C)
 ```
 If the underlying lattice has odd rank, then the center and the centroid of the Clifford algebra coincide.
 ```jldoctest
+julia> K, a = quadratic_field(-5); OK = maximal_order(K);
+
 julia> D = clifford_order(quadratic_lattice(K, pseudo_matrix(identity_matrix(K, 3), [ideal(OK, OK(2)), ideal(OK, OK(3)), ideal(OK, OK(5))]); gram = K[0 0 1; 0 2 0; 1 0 0]))
 Clifford order of even lattice over maximal order of imaginary quadratic field defined by x^2 + 5 with Gram matrix
   [0   0   1]
