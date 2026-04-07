@@ -38,7 +38,7 @@ function small_group_based_model(name::String,
   G = graph(model)
   f = parametrization(model)
   ec = equivalent_classes(model)
-  I = vanishing_ideal(model;)
+  I = vanishing_ideal(model; algorithm=:f4)
 
   return SmallGroupBasedModel(
     name,
