@@ -1,5 +1,3 @@
-using Test
-
 @testset "all tests - Clifford algebras" verbose = true begin
   mul_with_gen = Oscar._mul_with_gen 
  
