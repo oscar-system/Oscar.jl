@@ -39,8 +39,8 @@ represent an element ``a \in C`` as its coefficient vector with respect to the `
     represented by the vector `[2, 0, -2, 0, 0, 0, 3, -5]`.
 
 We provide multiple ways of directly constructing elements of a given Clifford algebra:
-- `(C::ActionPolyRing)()` returns the zero element of the Clifford algebra `C`
-- `(C::ActionPolyRing)(a::T)` returns `a` as an element of `C`, if possible
+- `(C::CliffordAlgebra)()` returns the zero element of the Clifford algebra `C`
+- `(C::CliffordAlgebra)(a::T)` returns `a` as an element of `C`, if possible
 - `(C::CliffordAlgebra)(coeffs::Vector)` returns the element in `C` with coefficient
     vector `coeffs`
 
