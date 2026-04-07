@@ -3,8 +3,8 @@
  
   @testset "CliffordAlgebra - conformance tests" begin
     # Over rationals
-    ConformanceTests.test_NCRing_interface_recursive(clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0])))    
-    ConformanceTests.test_NCRing_interface_recursive(clifford_algebra(rational_span(root_lattice(:A, 3))))
+    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0])))    
+    ConformanceTests.test_NCRing_interface(clifford_algebra(rational_span(root_lattice(:A, 3))))
 
     # Over a number field
     K, a = quadratic_field(-5)
