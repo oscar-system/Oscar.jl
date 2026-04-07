@@ -86,14 +86,14 @@ clifford_order(ls::ZZLat) = ZZCliffordOrder(ls)
 (C::CliffordOrder)() = CliffordOrderElem(C)
 
 function (C::CliffordOrder)(a::S) where {S<:RingElem}
-  res = fill(zero(a), rank(C))
+  res = [zero(a) for _ in 1:rank(C)]
   res[1] = a
   return CliffordOrderElem(C, res)
 end
 
 # for disambiguation
 function (C::CliffordOrder)(a::ZZRingElem)
-  res = fill(zero(a), rank(C))
+  res = [zero(a) for _ in 1:rank(C)]
   res[1] = a
   return CliffordOrderElem(C, res)
 end
@@ -110,14 +110,14 @@ end
 (C::ZZCliffordOrder)() = ZZCliffordOrderElem(C)
 
 function (C::ZZCliffordOrder)(a::S) where {S<:RingElem}
-  res = fill(zero(a), rank(C))
+  res = [zero(a) for _ in 1:rank(C)]
   res[1] = a
   return ZZCliffordOrderElem(C, res)
 end
 
 # for disambiguation
 function (C::ZZCliffordOrder)(a::ZZRingElem)
-  res = fill(zero(a), rank(C))
+  res = [zero(a) for _ in 1:rank(C)]
   res[1] = a
   return ZZCliffordOrderElem(C, res)
 end
@@ -465,7 +465,7 @@ is_commutative(C::Union{CliffordOrder, ZZCliffordOrder}) = rank(C) == 1 || rank(
 Return the `i`-th canonical basis element of `C`.
 """
 function basis(C::ZZCliffordOrder, i::Int)
-  coeffs = fill(QQ(0), rank(C))
+  coeffs = [zero(QQ) for _ in 1:rank(C)]
   coeffs[i] = QQ(1)
   return C(coeffs)
 end
@@ -477,7 +477,7 @@ Return the `i`-th element of the canonical multiplicative generating set
 of the Clifford order `C`.
 """
 function gen(C::ZZCliffordOrder, i::Int)
-  coeffs = fill(QQ(0), rank(C))
+  coeffs = [zero(QQ) for _ in 1:rank(C)]
   i > 0 || throw(BoundsError(coeffs, i)) 
   coeffs[2^(i - 1) + 1] = QQ(1)
   return C(coeffs)

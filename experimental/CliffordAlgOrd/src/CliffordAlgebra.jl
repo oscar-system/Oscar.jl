@@ -35,14 +35,14 @@ clifford_algebra(qs::Hecke.QuadSpace) =
 (C::CliffordAlgebra)() = CliffordAlgebraElem(C)
 
 function (C::CliffordAlgebra)(a::R) where {R<:RingElem}
-  res = fill(zero(a), dim(C))
+  res = [zero(a) for _ in 1:dim(C)]
   res[1] = a
   return CliffordAlgebraElem(C, res)
 end
 
 # for disambiguation
 function (C::CliffordAlgebra)(a::ZZRingElem)
-  res = fill(zero(a), dim(C))
+  res = [zero(a) for _ in 1:dim(C)]
   res[1] = a
   return CliffordAlgebraElem(C, res)
 end
@@ -156,7 +156,7 @@ julia> basis(C, 4)
 """
 function basis(C::CliffordAlgebra, i::Int)
   R = base_ring(C)
-  coeffs = fill(zero(R), dim(C))
+  coeffs = [zero(R) for _ in 1:dim(C)]
   coeffs[i] = one(R)
   return C(coeffs)
 end
@@ -186,7 +186,7 @@ julia> gen(C, 3)
 """
 function gen(C::CliffordAlgebra, i::Int)
   R = base_ring(C)
-  coeffs = fill(zero(R), dim(C))
+  coeffs = [zero(R) for _ in 1:dim(C)]
   i > 0 || throw(BoundsError(coeffs, i))
   coeffs[2^(i - 1) + 1] = one(R)
   return C(coeffs)
@@ -479,58 +479,6 @@ function _orth_elt(C::CliffordAlgebra)
   
   return C.orth_elt::elem_type(C)
 end
-
-#=
-function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
-  if length(y) == 1
-    return x .* y[1]
-  elseif is_zero(y)
-    return fill(y[1], 2^ncols(gram))
-  end
-  return _mul_aux(_mul_with_gen(x, i, gram), y[2:2:end], gram, i + 1) +
-         _mul_aux(x, y[1:2:end], gram, i + 1)
-end
-
-#Implements the right multiplication with 'i'-th generator e_i of the Clifford algebra containing x.
-#The result is returned as a coefficient vector for further computations.
-_mul_with_gen(x::Vector{T}, i::Int, gram::MatElem{T}) where {T<:RingElement} = sum(
-  map(
-    char ->
-      x[char] .*
-      _mul_baseelt_with_gen(char, i, gram),
-      1:2^ncols(gram),
-  ),
-)
-
-#Shift all entries of the vector 'X' to the right by 's' entries without changing the length of X.
-function _shift_entries!(X::Vector, s::Int)
-  X[(s + 1) : end] = X[1 : (end - s)]
-  X[1 : s] = fill(parent(X[1])(), s)
-  return X
-end
-
-#Right multiplication of the basis element represented by 'char' with the
-#'i'-th generator of the Clifford algebra/order containing said basis vector
-function _mul_baseelt_with_gen(char::Int, i::Int, gram::MatElem)
-  R = base_ring(gram)
-  res = fill(R(), 2^ncols(gram))
-  if char == 1
-    res[char + 2^(i - 1)] = R(1)
-    return res
-  end
-  j = 8 * sizeof(Int) - leading_zeros(char - 1)
-  if j < i
-    res[char + 2^(i - 1)] = R(1)
-    return res
-  end
-  if j == i
-    res[char - 2^(i - 1)] = R(divexact(gram[i, i], 2))
-    return res
-  end
-  res[char - 2^(j - 1)] = gram[i, j]
-  res -= _shift_entries!(_mul_baseelt_with_gen(char - 2^(j - 1), i, gram), 2^(j - 1))
-end
-=#
 
 # Wrapper: Sets up the pre-allocated buffers exactly ONCE
 function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
