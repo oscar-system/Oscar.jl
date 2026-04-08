@@ -13,7 +13,6 @@ push!(upgrade_scripts_set, UpgradeScript(
     ])
 
     upgraded_dict = rename_types(dict, renamings)
-
     return upgraded_dict
   end
 ))
