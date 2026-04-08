@@ -9,6 +9,30 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.7.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.2) - 2026-04-08
+
+### Commutative Algebra
+
+#### Other fixed bugs
+
+- [#5918](https://github.com/oscar-system/Oscar.jl/pull/5918) Fix parent of the generators of the ideal returned from `groebner_basis_f4` when used with `eliminate > 0`
+
+#### Miscellaneous changes
+
+- [#5903](https://github.com/oscar-system/Oscar.jl/pull/5903) Fix `fitting_ideal` to always return an ideal, even if it is the ideal generate by `1` (where sometimes the ring was returned instead)
+
+### Polyhedral Geometry
+
+#### Improvements or additions to documentation
+
+- [#5917](https://github.com/oscar-system/Oscar.jl/pull/5917) Fix documentation for `polyhedral_fan` to give the correct argument order
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5906](https://github.com/oscar-system/Oscar.jl/pull/5906) Fix a bug that could prevent loading some serialized data
+
 ## [1.7.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.1) - 2026-03-26
 
 ### Commutative Algebra
