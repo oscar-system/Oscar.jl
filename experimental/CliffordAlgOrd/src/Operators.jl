@@ -267,7 +267,7 @@ function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
     zero!(cs[i])
   end
     
-  Oscar._mul_aux!(cs, as, bs, gram, 1, temp_buffers)
+  _mul_aux!(cs, as, bs, gram, 1, temp_buffers)
     
   return c
 end
