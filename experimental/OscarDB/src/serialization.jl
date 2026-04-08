@@ -163,7 +163,7 @@ end
 
 type_params(spm::SmallPhylogeneticModel) = TypeParams(
   SmallPhylogeneticModel,
-  small_phylogenetic_model(spm)
+  phylogenetic_model(spm)
 )
 
 function save_object(s::SerializerState, spm::SmallPhylogeneticModel)
