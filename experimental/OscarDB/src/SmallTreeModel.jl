@@ -249,7 +249,6 @@ function small_phylogenetic_model(name::String, sbg::SmallGroupBasedModel)
     name,
     model,
     model_type(sbg),
-    sbg._id,
     n_leaves(sbg),
     level(sbg),
     n_cycles(sbg),
