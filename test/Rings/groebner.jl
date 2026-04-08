@@ -238,7 +238,7 @@ end
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
 
-  emb = hom(R, base_ring(H), [zeros(base_ring(H), 2); gens(base_ring(H))])
+  emb = hom(R, base_ring(H), [[zero(base_ring(H) for _ in 1:2)]; gens(base_ring(H))])
 
   @test elements(H) == map(emb, G)
   @test length(I.gb) == 1
@@ -247,7 +247,7 @@ end
   I = ideal(R, [x - a*c, y - a*c*d, z - a*c^2 - b, w - a*c^2*d - b*d])
   H = groebner_basis_f4(I; eliminate=4);
   G = [-x * w + y * z]
-  emb = hom(R, base_ring(H), [zeros(base_ring(H), 4); gens(base_ring(H))])
+  emb = hom(R, base_ring(H), [[zero(base_ring(H)) for _ in 1:4]; gens(base_ring(H))])
   @test elements(H) == map(emb, G)
   @test parent(first(gens(H))) == base_ring(H)
 

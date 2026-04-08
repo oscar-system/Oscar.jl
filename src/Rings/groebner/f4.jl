@@ -67,7 +67,7 @@ function groebner_basis_f4(
     else
       vars = symbols(base_ring(I))[eliminate+1:end]
       AR,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
-      embedding = hom(base_ring(I), AR, [zeros(AR, eliminate); gens(AR)])
+      embedding = hom(base_ring(I), AR, [[zero(AR) for _ in 1:eliminate]; gens(AR)])
     end
     ord  = degrevlex(AR)
     if length(AI.gens) == 0
