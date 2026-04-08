@@ -1,18 +1,19 @@
 [FTM-1511-03209]
-git-tree-sha1 = "2f4789fb56911fa34843c1754042837e07c2d376"
+
+git-tree-sha1 = "253e96bbc764b7446e5458272ef7e31456fb9ec7"
 lazy = true
 
     [[FTM-1511-03209.download]]
-    sha256 = "9c2f4f6fa9cab3df70cbb2511e1caf4d8d5c8ddb27f8c3b4ddba1f1b84dc8848"
-    url = "https://zenodo.org/records/15548043/files/1511-03209.tar.gz"
+    sha256 = "1fe3db9657a9a4928b34ce5e5772fcd393ba6f27e0da7a87f47c5c054e26678d"
+    url = "https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/1511-03209.tar.gz"
 
 [QSMDB]
-git-tree-sha1 = "472148e587b9da2c78a9955d0d258fbbfed649de"
+git-tree-sha1 = "796900a5e5237f02b2593ff3b2317f63dec2a20f"
 lazy = true
 
      [[QSMDB.download]]
-     sha256 = "e77cf0716ec656cc8911f6f520653b309fc84f3735d49d46320c48a820a4af31"
-     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-7.tar.gz"
+     sha256 = "f64fc541a0168b5e50be3dd6cf2e6c54fb07a5fbdd5abc5894c97e92fef4b704"
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/QSMDB-8.tar.gz"
 
 [gap_extraperfect]
 git-tree-sha1 = "084fa12573e5089ceb3299f9d341f244b415da52"
