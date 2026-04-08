@@ -281,14 +281,6 @@ Return the model type of the `spm` as a small phylogenetic model string.
 """
 model_type(spm::SmallPhylogeneticModel) = spm.model_type
 
-#### ????
-@doc raw"""
-  extended_model_id(spm::SmallPhylogeneticModel)
-
-Return the id of the corresponding `GroupBasedModel` from the collection "AlgebraicStatistics.GroupBasedModels" of the `OscarDB`
-"""
-extended_model_id(spm::SmallPhylogeneticModel) = spm.extended_model_id
-
 @doc raw"""
   graph(spm::SmallPhylogeneticModel)
 
