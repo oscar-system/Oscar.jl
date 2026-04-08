@@ -99,9 +99,11 @@ function generic_vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :elimin
       invariants = eliminate(I, elim_gens[1:ngens(R)])
     elseif algorithm == :f4
       invariants = groebner_basis_f4(I, eliminate=ngens(R))
-      emb = hom(base_ring(invariants), S, gens(dom))
+      emb = hom(base_ring(invariants), S, gens(S))
       
-      return ideal(map_coefficients(emb, invariants))
+      return ideal(IdealGens(map(emb, invariants), degrevlex(S);
+                             keep_ordering=invariants.keep_ordering,
+                             isGB=invariants.isGB))
     elseif algorithm == :markov
       o = lex(elim_ring)
       groebner_basis(I; ordering=o, algorithm=:markov)
