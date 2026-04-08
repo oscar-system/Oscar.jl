@@ -243,30 +243,6 @@ function sub!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
   return c
 end
 
-function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
-  cs = coefficients(c)
-  if c === a || c === b
-    tmp = a * b
-    tmps = coefficients(tmp)
-    @inbounds for i in eachindex(cs)
-      cs[i] = tmps[i]
-    end
-    return c
-  end
-
-  gram = gram_matrix(parent(c))
-  R = base_ring(gram)
-  temp_buffers = [[R() for _ in 1:length(cs)] for _ in 1:ncols(gram)]
-    
-  for i in eachindex(cs)
-    zero!(cs[i])
-  end
-    
-  Oscar._mul_aux!(cs, coefficients(a), coefficients(b), gram, 1, temp_buffers)
-    
-  return c
-end
-
 mul!(a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}} = mul!(a, a, b)
 
 function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
