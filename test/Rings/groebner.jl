@@ -227,6 +227,7 @@ end
                 x3*x4^2 + 238609298*x4^3 + 14913081*x2*x4 + 56338306*x3*x4 + 129246702*x4^2 + 263464432*x2 + 260150414*x3 + 258493405*x4
                 x2*x4^2 + 89478486*x4^3 + 29826162*x2*x4 + 263464432*x3*x4 + 238609297*x4^2 + 141674270*x2 + 9942054*x3
                 x4^4 + 35851649*x4^3 + 232885084*x2*x4 + 251179133*x3*x4 + 231479137*x4^2 + 191484965*x2 + 85955250*x3 + 167408122*x4]
+
   @test elements(H) == G
   @test isdefined(I, :gb)
   @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I)))]) == G
@@ -236,16 +237,19 @@ end
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
-  @test elements(H) == G
+
+  emb = hom(R, base_ring(H), [zeros(base_ring(H), 2); gens(base_ring(H))])
+
+  @test elements(H) == map(emb, G)
   @test length(I.gb) == 1
   # issue 5216
   R, (a,b,c,d,x,y,z,w) = polynomial_ring(QQ, ["a", "b", "c", "d", "x", "y", "z", "w"])
   I = ideal(R, [x - a*c, y - a*c*d, z - a*c^2 - b, w - a*c^2*d - b*d])
   H = groebner_basis_f4(I; eliminate=4);
-  H_x, H_y, H_z, H_w = gens(base_ring(H))
-  G = [-H_x * H_w + H_y * H_z]
-  @test elements(H) == G
-  @test parent(H_x) == base_ring(H)
+  G = [-x * w + y * z]
+  emb = hom(R, base_ring(H), [zeros(base_ring(H), 4); gens(base_ring(H))])
+  @test elements(H) == map(emb, G)
+  @test parent(first(gens(H))) == base_ring(H)
 
   I = ideal(R, [zero(R)])
   H = groebner_basis_f4(I; eliminate=4);
