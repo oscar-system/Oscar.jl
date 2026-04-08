@@ -680,7 +680,7 @@
   @testset "ZZCliffordE6" begin
     e6 = root_lattice(:E, 6)
     C = clifford_order(e6)
-    QQzer = fill(zero(QQ), 2^6)
+    QQzer = [zero(QQ) for _ in 1:2^6]
     QQone = copy(QQzer)
     QQone[1] = one(QQ)
     @test !is_commutative(C)
@@ -803,7 +803,7 @@
   @testset "ZZCliffordA5" begin
     a5 = root_lattice(:A, 5)
     C = clifford_order(a5)
-    QQzer = fill(zero(QQ), 2^5)
+    QQzer = [zero(QQ) for _ in 1:2^5]
     QQone = copy(QQzer)
     QQone[1] = one(QQ)
     @test !is_commutative(C)

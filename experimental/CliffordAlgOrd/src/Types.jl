@@ -33,7 +33,7 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
   coeffs::Vector{T}
 
   #Return the 0-element of the Clifford algebra C
-  CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S} = new{T,S}(C, fill(C.base_ring(), C.dim))
+  CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S} = new{T,S}(C, [C.base_ring() for _ in 1:C.dim])
 
   CliffordAlgebraElem(C::CliffordAlgebra) =
     CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C)
@@ -104,7 +104,7 @@ mutable struct CliffordOrderElem{T, C, S} <: Hecke.AbstractAssociativeAlgebraEle
 
   #Return the 0-element of the Clifford order C
   CliffordOrderElem{T, C, S}(CO::CliffordOrder{T, C}) where {T, C, S} =
-    new{T, C, S}(CO, fill(CO.ambient_algebra.base_ring(), CO.rank))
+    new{T, C, S}(CO, [CO.ambient_algebra.base_ring() for _ in 1:CO.rank])
 
   function CliffordOrderElem(CO::CliffordOrder)
     CT = typeof(CO.ambient_algebra)
@@ -137,7 +137,7 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
   coeffs::Vector{QQFieldElem}
 
   #Return the 0-element of the Clifford order CO
-  ZZCliffordOrderElem(CO::ZZCliffordOrder) = new(CO, fill(QQ(), CO.rank))
+  ZZCliffordOrderElem(CO::ZZCliffordOrder) = new(CO, [QQ() for _ in 1:CO.rank])
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
   function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeffs::Vector{QQFieldElem})

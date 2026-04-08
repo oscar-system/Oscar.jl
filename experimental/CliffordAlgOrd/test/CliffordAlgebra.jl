@@ -216,7 +216,7 @@
     @testset "mul_with_gen!" begin
       x = C([-a^2, 2, a + 4, -1])
       coeffs = coefficients(x)
-      out = fill(zero(K), length(coeffs))
+      out = [zero(K) for _ in 1:length(coeffs)]
       
       Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
       @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
@@ -321,7 +321,7 @@
     @testset "mul_with_gen!" begin
       x = C([1, 2, 3, 4])
       coeffs = coefficients(x)
-      out = fill(zero(QQ), length(coeffs))
+      out = [zero(QQ) for _ in 1:length(coeffs)]
       
       Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
       @test out == QQ.([2 * a, 1, -4 * a, -3])
@@ -349,8 +349,8 @@
     C = clifford_algebra(qs)
     @test !is_commutative(C)
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
-    zer = fill(K(), 2^5)
-    ein = fill(K(), 2^5)
+    zer = [K() for _ in 1:2^5]
+    ein = [K() for _ in 1:2^5]
     ein[1] = K(1)
     @testset "construction" begin
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
@@ -540,7 +540,7 @@
       add_mul! = Oscar._add_mul_baseelt_with_gen!
       
       function eval_add_mul(char, i, gram)
-        out = fill(zero(base_ring(gram)), 1 << ncols(gram))
+        out = [zero(base_ring(gram)) for _ in  1:(1 << ncols(gram))]
         add_mul!(out, one(base_ring(gram)), char, i, gram, 0)
         return out
       end
