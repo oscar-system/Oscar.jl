@@ -9,6 +9,65 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.7.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.2) - 2026-04-08
+
+### Commutative Algebra
+
+#### Other fixed bugs
+
+- [#5918](https://github.com/oscar-system/Oscar.jl/pull/5918) Fix parent of the generators of the ideal returned from `groebner_basis_f4` when used with `eliminate > 0`
+
+#### Miscellaneous changes
+
+- [#5903](https://github.com/oscar-system/Oscar.jl/pull/5903) Fix `fitting_ideal` to always return an ideal, even if it is the ideal generate by `1` (where sometimes the ring was returned instead)
+
+### Polyhedral Geometry
+
+#### Improvements or additions to documentation
+
+- [#5917](https://github.com/oscar-system/Oscar.jl/pull/5917) Fix documentation for `polyhedral_fan` to give the correct argument order
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5906](https://github.com/oscar-system/Oscar.jl/pull/5906) Fix a bug that could prevent loading some serialized data
+
+## [1.7.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.1) - 2026-03-26
+
+### Commutative Algebra
+
+#### Fixed bugs that returned incorrect results
+
+- [#5785](https://github.com/oscar-system/Oscar.jl/pull/5785) Fix `issubset` for complements of prime and kpoint ideals
+- [#5875](https://github.com/oscar-system/Oscar.jl/pull/5875) Fix Fitting ideal for free modules
+- [#5876](https://github.com/oscar-system/Oscar.jl/pull/5876) Fix `mres` issue due to presentation
+
+#### Miscellaneous changes
+
+- [#5873](https://github.com/oscar-system/Oscar.jl/pull/5873) Fix length of free resolution of free module
+
+### Polyhedral Geometry
+
+#### Fixed bugs that returned incorrect results
+
+- [#5856](https://github.com/oscar-system/Oscar.jl/pull/5856) Fix `f_vector` for fans with positive lineality dimension
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5850](https://github.com/oscar-system/Oscar.jl/pull/5850) Fix deserialization of `SMat` with trailing zero cols
+- [#5883](https://github.com/oscar-system/Oscar.jl/pull/5883) Fix deserialization of `MatGroup`
+
+#### Only changes experimental parts of OSCAR
+
+- [#5892](https://github.com/oscar-system/Oscar.jl/pull/5892) Fix bug in `diff_action` and provide convenience constructors
+
+#### Fixed bugs that returned incorrect results
+
+- [#5800](https://github.com/oscar-system/Oscar.jl/pull/5800) Remove incorrect `*` method for FreeAssociativeAlgebraIdeal
+
 ## [1.7.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.0) - 2026-02-13
 
 ### Algebraic Geometry
