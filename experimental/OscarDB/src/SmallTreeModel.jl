@@ -80,14 +80,6 @@ Return the model type of the `sgb` as a small group-based model string.
 """
 model_type(sgb::SmallGroupBasedModel) = sgb.model_type
 
-#### ????
-@doc raw"""
-  phylogenetic_model_id(sgb::SmallGroupBasedModel)
-
-Return the id of the corresponding `SmallPhylogeneticModel` from the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
-"""
-phylogenetic_model_id(sgb::SmallGroupBasedModel) = sgb.phylogenetic_model_id
-
 @doc raw"""
   graph(sgb::SmallGroupBasedModel)
 
