@@ -525,7 +525,6 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
                      params::Dict) where {S <: Union{Int, String, Symbol}, U}
-  
   if haskey(params, :value_params)
     pairs = Tuple{S, U}[]
     for k in keys(s.obj)
