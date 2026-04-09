@@ -195,8 +195,8 @@ struct SmallPhylogeneticModel
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
 end
 @doc raw"""
-  small_phylogenetic_model(name::String, model::PhylogeneticModel, 
-                           model_type::String, extended_model_id::Union{String, Nothing})
+  small_phylogenetic_model(name::String, model::PhylogeneticModel, model_type::String)
+  small_phylogenetic_model(sgb::SmallGroupBasedModel)
 
 Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
 """
@@ -228,7 +228,7 @@ function small_phylogenetic_model(name::String,
   )
 end
 
-function small_phylogenetic_model(name::String, sbg::SmallGroupBasedModel)
+function small_phylogenetic_model(sbg::SmallGroupBasedModel)
   gb_model = group_based_phylogenetic_model(sbg)
   f = coordinate_change(gb_model)
   I = vanishing_ideal(sbg)
@@ -238,7 +238,7 @@ function small_phylogenetic_model(name::String, sbg::SmallGroupBasedModel)
   ec = equivalent_classes(model)
 
   return SmallPhylogeneticModel(
-    name,
+    sbg._id,
     model,
     model_type(sbg),
     n_leaves(sbg),
