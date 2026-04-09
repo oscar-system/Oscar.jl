@@ -243,7 +243,6 @@ function sub!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
   return c
 end
 
-mul!(a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}} = mul!(a, a, b)
 
 function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   cs, as, bs = coefficients(c), coefficients(a), coefficients(b)
