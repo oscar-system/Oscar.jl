@@ -94,7 +94,7 @@ function _mul_aux!(out::AbstractVector{T}, x::AbstractVector{T}, y::AbstractVect
     y_val = y[1]
     if !is_zero(y_val)
       @inbounds for j in eachindex(out, x)
-        addmul!(out[j], x[j], y_val)
+        out[j] = addmul!(out[j], x[j], y_val)
       end
     end
     return out
@@ -120,7 +120,7 @@ end
 function _mul_with_gen!(out::AbstractVector{T}, x::AbstractVector{T}, i::Int, gram::MatElem{T}) where {T<:RingElement}
   # Reset the buffer
   @inbounds for j in eachindex(out)
-    zero!(out[j])
+    out[j] = zero!(out[j])
   end
   
   @inbounds for char in 1:length(x)
@@ -137,7 +137,7 @@ function _add_mul_baseelt_with_gen!(out::AbstractVector{T}, c::T, char::Int, i::
   while true
     if char == 1
       idx = 1 + (1 << (i - 1)) + shift
-      is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
+      out[idx] = is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
       return
     end
         
@@ -145,20 +145,20 @@ function _add_mul_baseelt_with_gen!(out::AbstractVector{T}, c::T, char::Int, i::
         
     if j < i
       idx = char + (1 << (i - 1)) + shift
-      is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
+      out[idx] = is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
       return
     end
         
     if j == i
       idx = char - (1 << (i - 1)) + shift
       half_G = divexact(gram[i, i], 2)
-      is_positive ? addmul!(out[idx], c, half_G) : submul!(out[idx], c, half_G)
+      out[idx] = is_positive ? addmul!(out[idx], c, half_G) : submul!(out[idx], c, half_G)
       return
     end
         
     # j > i
     idx = char - (1 << (j - 1)) + shift
-    is_positive ? addmul!(out[idx], c, gram[i, j]) : submul!(out[idx], c, gram[i, j])
+    out[idx] = is_positive ? addmul!(out[idx], c, gram[i, j]) : submul!(out[idx], c, gram[i, j])
     
     # Setup for the next loop iteration
     is_positive = !is_positive
@@ -205,16 +205,16 @@ end
 function zero!(c::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   cs = coefficients(c)
   for i in 1:length(cs)
-    zero!(cs[i])
+    cs[i] = zero!(cs[i])
   end
   return c
 end
 
 function one!(c::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   cs = coefficients(c)
-  one!(cs[1])
+  cs[1] = one!(cs[1])
   for i in 2:length(cs)
-    zero!(cs[i])
+    cs[i] = zero!(cs[i])
   end
   return c
 end
@@ -222,7 +222,7 @@ end
 function neg!(c::T, a::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   cs, as = coefficients(c), coefficients(a)
   for i in 1:length(cs)
-    neg!(cs[i], as[i])
+    cs[i] = neg!(cs[i], as[i])
   end 
   return c
 end
@@ -230,7 +230,7 @@ end
 function add!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   as, bs, cs = coefficients(a), coefficients(b), coefficients(c)
   for i in 1:length(cs)
-    add!(cs[i], as[i], bs[i])
+    cs[i] = add!(cs[i], as[i], bs[i])
   end
   return c
 end
@@ -238,7 +238,7 @@ end
 function sub!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   as, bs, cs = coefficients(a), coefficients(b), coefficients(c)
   for i in 1:length(cs)
-    sub!(cs[i], as[i], bs[i])
+    cs[i] = sub!(cs[i], as[i], bs[i])
   end
   return c
 end
@@ -251,8 +251,8 @@ function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
     tmp = a * b
     tmps = coefficients(tmp)
     @inbounds for i in eachindex(cs)
-      zero!(cs[i])
-      add!(cs[i], cs[i], tmps[i])
+      cs[i] = zero!(cs[i])
+      cs[i] = add!(cs[i], cs[i], tmps[i])
     end
     return c
   end
@@ -263,7 +263,7 @@ function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
   temp_buffers = [[R() for _ in 1:length(cs)] for _ in 1:ncols(gram)]
     
   @inbounds for i in eachindex(cs)
-    zero!(cs[i])
+    cs[i] = zero!(cs[i])
   end
     
   _mul_aux!(cs, as, bs, gram, 1, temp_buffers)
