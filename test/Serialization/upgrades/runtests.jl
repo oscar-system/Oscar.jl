@@ -71,7 +71,7 @@
   @testset "load files serialized with 1.7.0" begin
     test_upgrade_folder("version_1_7_0"; exclude=[
       # upgrading the following is tested in experimental/AlgebraicStatistics/test/serialization-upgrades.jl
-      "GroupbasedPhylogeneticModel",
+      "GroupBasedPhylogeneticModel",
     ])
   end
 end
