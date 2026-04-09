@@ -239,7 +239,7 @@ end
 function small_phylogenetic_model(name::String, sbg::SmallGroupBasedModel)
   gb_model = group_based_phylogenetic_model(sbg)
   f = coordinate_change(gb_model)
-  I = vanishing_ideal(sbg; algorithm=:f4)
+  I = vanishing_ideal(sbg)
   Ip = f(I)
 
   model = phylogenetic_model(sbg)
