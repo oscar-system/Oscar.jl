@@ -1969,7 +1969,7 @@ the degrees of `g` on the diagonal, and the adjacency matrix of `g`. For an
 undirected graph, the Laplacian matrix is symmetric.
 
 # Examples
-```
+```jldoctest
 julia> G = vertex_edge_graph(cube(2))
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(4, 2)(4, 3)
