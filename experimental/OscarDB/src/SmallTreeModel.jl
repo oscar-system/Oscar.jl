@@ -161,41 +161,6 @@ struct SmallPhylogeneticModel
 end
 
 @doc raw"""
-  small_phylogenetic_model(sgb::SmallGroupBasedModel)
-
-Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
-"""
-function small_phylogenetic_model(sbg::SmallGroupBasedModel)
-  gb_model = group_based_phylogenetic_model(sbg)
-  f = coordinate_change(gb_model)
-  I = vanishing_ideal(sbg)
-  Ip = f(I)
-
-  model = phylogenetic_model(sbg)
-  ec = equivalent_classes(model)
-
-  return SmallPhylogeneticModel(
-    sbg._id,
-    model,
-    model_type(sbg),
-    n_leaves(sbg),
-    level(sbg),
-    n_cycles(sbg),
-    dim(sbg),
-    degree(sbg),
-    length(ec),
-    dimension_singular_locus(sbg),
-    degree_singular_locus(sbg),
-    nothing,
-    euclidean_distance_degree(sbg),
-    parametrization(model),
-    ec,
-    Ip
-  )
-
-end
-
-@doc raw"""
   phylogenetic_model(spm::SmallPhylogeneticModel)
 
 Return the `PhylogeneticModel` of the small phylogenetic model `spm`.
