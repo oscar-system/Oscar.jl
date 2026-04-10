@@ -111,10 +111,19 @@ end
 
 @register_serialization_type SmallGroupBasedModel
 
-type_params(sgbm::SmallGroupBasedModel) = TypeParams(
-  SmallGroupBasedModel,
-  group_based_phylogenetic_model(sgbm)
-)
+function type_params(sgbm::SmallGroupBasedModel) 
+  I = vanishing_ideal(sgbm)
+  if isnothing(I)
+    OT = Nothing
+  else
+    OT = typeof(ordering(generating_system(I)))
+  end
+  return TypeParams(
+    SmallGroupBasedModel,
+    :model => group_based_phylogenetic_model(sgbm),
+    :ideal_ordering_type => TypeParams(OT, nothing)
+  )
+end
 
 function save_object(s::SerializerState, sgbm::SmallGroupBasedModel)
   save_data_dict(s) do
@@ -131,15 +140,29 @@ function save_object(s::SerializerState, sgbm::SmallGroupBasedModel)
     save_object(s, euclidean_distance_degree(sgbm), :euclidean_distance_degree)
     save_object(s, parametrization(sgbm), :parametrization)
     save_object(s, equivalent_classes(sgbm), :equivalent_classes)
-    save_object(s, vanishing_ideal(sgbm), :vanishing_ideal)
+    # here we store the vanishing ideal as it's generating systems as it will
+    # store more information about the ideal
+    I = vanishing_ideal(sgbm)
+    if !isnothing(I)
+      save_object(s, generating_system(I), :vanishing_ideal)
+    else
+      save_object(s, nothing, :vanishing_ideal)
+    end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::GroupBasedPhylogeneticModel)
+function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, params::Dict)
+  GBM = params[:model]
   dom = base_ring(model_ring(GBM)[1])
   codom = parameter_ring(GBM)[1]
   fmr = base_ring(full_model_ring(GBM)[1])
   n_leaves = load_object(s, Int, :n_leaves)
+
+  if isnothing(params[:ideal_ordering_type])
+    I = nothing
+  else
+    I = load_object(s, IdealGens, Dict(:base_ring => dom, :ordering_type => params[:ideal_ordering_type]), :vanishing_ideal)
+  end
   return SmallGroupBasedModel(
     load_object(s, String, :model_encoding),
     GBM,
@@ -147,24 +170,33 @@ function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, GBM::Gr
     n_leaves,
     load_object(s, Int, :level),
     load_object(s, Int, :n_cycles),
-    load_object(s, Int, :dimension),
-    load_object(s, Int, :degree),
+    load_object(s, Union{Int, Nothing}, :dimension),
+    load_object(s, Union{Int, Nothing}, :degree),
     load_object(s, Int, :n_coordinates),
     load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
     load_object(s, Union{Int, Nothing}, :degree_singular_locus),
     load_object(s, Union{Int, Nothing}, :euclidean_distance_degree),
     load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
     load_object(s, Dict{Tuple{[Int for _ in 1:n_leaves]...}, Vector{MPolyRingElem}}, Dict(:key_params => nothing, :value_params => fmr), :equivalent_classes),
-    load_object(s, Union{Nothing, Ideal}, dom, :vanishing_ideal)
+    I
   )
 end
 
 @register_serialization_type SmallPhylogeneticModel
 
-type_params(spm::SmallPhylogeneticModel) = TypeParams(
-  SmallPhylogeneticModel,
-  phylogenetic_model(spm)
-)
+function type_params(spm::SmallPhylogeneticModel)
+  I = vanishing_ideal(spm)
+  if isnothing(I)
+    OT = Nothing
+  else
+    OT = typeof(ordering(generating_system(I)))
+  end
+  return TypeParams(
+    SmallPhylogeneticModel,
+    :model => phylogenetic_model(spm),
+    :ideal_ordering_type => TypeParams(OT, nothing)
+  )
+end
 
 function save_object(s::SerializerState, spm::SmallPhylogeneticModel)
   save_data_dict(s) do
@@ -182,7 +214,14 @@ function save_object(s::SerializerState, spm::SmallPhylogeneticModel)
     save_object(s, euclidean_distance_degree(spm), :euclidean_distance_degree)
     save_object(s, parametrization(spm), :parametrization)
     save_object(s, equivalent_classes(spm), :equivalent_classes)
-    save_object(s, vanishing_ideal(spm), :vanishing_ideal)
+    # here we store the vanishing ideal as it's generating systems as it will
+    # store more information about the ideal
+    I = vanishing_ideal(spm)
+    if !isnothing(I)
+      save_object(s, generating_system(I), :vanishing_ideal)
+    else
+      save_object(s, nothing, :vanishing_ideal)
+    end
   end
 end
 
@@ -198,8 +237,8 @@ function load_object(s::DeserializerState, ::Type{SmallPhylogeneticModel}, SPM::
     n_leaves,
     load_object(s, Int, :level),
     load_object(s, Int, :n_cycles),
-    load_object(s, Int, :dimension),
-    load_object(s, Int, :degree),
+    load_object(s, Union{Int, Nothing}, :dimension),
+    load_object(s, Union{Int, Nothing}, :degree),
     load_object(s, Int, :n_coordinates),
     load_object(s, Union{Int, Nothing}, :dimension_singular_locus),
     load_object(s, Union{Int, Nothing}, :degree_singular_locus),
@@ -207,6 +246,7 @@ function load_object(s::DeserializerState, ::Type{SmallPhylogeneticModel}, SPM::
     load_object(s, Union{Int, Nothing}, :euclidean_distance_degree),
     load_object(s, Oscar.MPolyAnyMap, Dict(:domain => dom, :codomain => codom), :parametrization),
     load_object(s, Dict{Tuple{[Int for _ in 1:n_leaves]...}, Vector{MPolyRingElem}}, Dict(:key_params => nothing, :value_params => fmr), :equivalent_classes),
+    
     load_object(s, Union{Nothing, Ideal}, dom, :vanishing_ideal)
   )
 end

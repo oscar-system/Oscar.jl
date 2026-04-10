@@ -88,6 +88,14 @@ function Base.show(io::IO,  m::MIME"text/plain", N::PhylogeneticNetwork)
   $E")  
 end
 
+function Base.show(io::IO, N::PhylogeneticNetwork)
+  l = level(N)
+  E = join("($(src(e)), $(dst(e)))" for e in edges(N))
+  hybN = join(hybrid_vertices(N), ", ")
+  print(io, "Level-$l phylogenetic network with hybrid nodes {$hybN} and edges
+  $E")  
+end
+
 @doc raw"""
     level(::PhylogeneticNetwork{N, L}) where {N, L}
     level(::PhylogeneticTree)
@@ -137,6 +145,7 @@ Directed graph with 6 nodes and the following edges:
 ```
 """
 graph(N::PhylogeneticNetwork) = N.graph
+n_vertices(N::PhylogeneticNetwork) = n_vertices(graph(N))
 
 @doc raw"""
     hybrids(N::PhylogeneticNetwork)
