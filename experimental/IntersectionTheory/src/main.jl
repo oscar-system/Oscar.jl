@@ -3236,7 +3236,7 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
     The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(E)}(1)$.
 
 !!! note
-    Let $X$ be a variety, let $E$ a vector bundle on $X$ of rank $n$, and let $\pi : \mathbb P(E) \rightarrow X$
+    Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $\pi : \mathbb P(E) \rightarrow X$
     be the corresponding projective bundle. Write $\mathcal O_{\mathbb P(E)}(-1)\subset \pi^\ast E$ for the tautological
     line subbundle and $\xi$ for the first Chern class of the dual bundle $\mathcal O_{\mathbb P(E)}(1)$.
     Then the pullbacks of the Chern classes of $E$ via $\pi$ satisfy the relation
@@ -3244,7 +3244,7 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
 
     $\mathrm{N}^\ast(\mathbb P(E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[\xi]/(\xi^n+\pi^\ast c_1(E) \xi^{n-1} + \dots + \pi^\ast c_n(E)),$
 
-    where $\xi$ is in degree 1 (see [Gro58](@cite),  [EH16](@cite)).
+    where $\xi$ is in degree 1 (see [Gro58](@cite), [EH16](@cite)).
 
 !!! note
     For the pushforward of cycle classes from a projective bundle to its base variety
@@ -3753,7 +3753,7 @@ Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspace
     set of generators. These are the Chern classes $c_i(S)$, $i = 1, \dots, k$, where $S$ is
     the universal subbundle on $\mathrm{Gr}(k, n)$, and where the $c_i(S)$ are in degree $i$.
     For the relations, note that the universal quotient bundle $Q$ has rank $n-k$. The relations
-    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots n$ (see,
+    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots, n$ (see,
     for example, [EH16](@cite)).
 
 !!! tip
@@ -3792,7 +3792,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> tangent_bundle(G) == dual(S)*Q
 true
 
-julia> FV = abstract_flag_variety(2,5)
+julia> FV = abstract_flag_variety(2, 5)
 AbstractVariety of dim 6
 
 julia> SQ1, SQ2 = tautological_bundles(FV) # the subquotient bundles
@@ -3879,18 +3879,19 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
 
 !!! note
     A flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ as above comes equipped with a sequence of tautological subbundles
-    $0 = S_0 \subset S_1 \subset \dots \subset S_k\subset S_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
-    ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$, together with the corresponding subquotient bundles $SQ_j = S_j/S_{j-1}$,
-    $j = 1,  \dots, k+1$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
-    write $c_{ij} = c_i(SQ_j)$. Then
+    $0 = \mathcal{S}_0 \subset \mathcal{S}_1 \subset \dots \subset \mathcal{S}_k\subset \mathcal{S}_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
+    ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$, together with the corresponding subquotient bundles
+    $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$, $j = 1, \dots, k+1$.
+    To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
+    write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathbb{Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
-    $\prod_{j = 1}^{k+1} (c(SQ_j)-1) = 0,$
+    $\prod_{j = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_j)) = 1,$
 
-    where $c$ stands for taking the total chern class. See [HK-MW24](@cite).
+    where $\mathrm{c}$ stands for taking the total Chern class. See [HK-MW24](@cite).
 
 !!! note
     A flag variety as above can also be realized as a flag bundle of the trivial rank-$n$ bundle over a point.
@@ -4030,18 +4031,19 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 !!! note
     Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $d_1, \dots, d_k$
     be as above. Then the corresponding flag bundle $\pi : \mathrm{F}(d_1, \dots, d_{k}; E)  \rightarrow X$
-    comes equipped with a sequence of tautological subbundles $0 = S_0, S_1 \subset \dots \subset
-    S_k\subset S_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
-    subquotient bundles $SQ_j = S_j/S_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
-    in terms of generators and relations, write $c_{ij} = c_i(SQ_j)$ and $c_i = \pi^\ast c_i(E)$. Then
+    comes equipped with a sequence of tautological subbundles $0 = \mathcal{S}_0, \mathcal{S}_1 \subset \dots \subset
+    \mathcal{S}_k\subset \mathcal{S}_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
+    subquotient bundles $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
+    in terms of generators and relations, write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$
+    and $c_i = \pi^\ast \mathrm{c}_i(E)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E)_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
 
-    Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
+    Here, the $c_{ij}$ are in degree $i$, and we mod out the homogeneous relations arising from the relation
 
-    $\prod_{j = 1}^{k+1} c(SQ_j) = c(\pi^\ast E),$
+    $\prod_{j = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_j) = \mathrm{c}(\pi^\ast E),$
 
-    where $c$ stands for taking the total chern class. See [Gro58](@cite).
+    where $c$ stands for taking the total Chern class. See [Gro58](@cite).
 
 !!! note
     For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
