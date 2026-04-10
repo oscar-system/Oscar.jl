@@ -46,14 +46,6 @@ Return the model type of the `sgb` as a small group-based model string.
 """
 model_type(sgb::SmallGroupBasedModel) = sgb.model_type
 
-#### ????
-@doc raw"""
-  phylogenetic_model_id(sgb::SmallGroupBasedModel)
-
-Return the id of the corresponding `SmallPhylogeneticModel` from the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
-"""
-phylogenetic_model_id(sgb::SmallGroupBasedModel) = sgb.phylogenetic_model_id
-
 @doc raw"""
   graph(sgb::SmallGroupBasedModel)
 
@@ -166,6 +158,41 @@ struct SmallPhylogeneticModel
   parametrization::Oscar.MPolyAnyMap
   eq_classes::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
+end
+
+@doc raw"""
+  small_phylogenetic_model(sgb::SmallGroupBasedModel)
+
+Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
+"""
+function small_phylogenetic_model(sbg::SmallGroupBasedModel)
+  gb_model = group_based_phylogenetic_model(sbg)
+  f = coordinate_change(gb_model)
+  I = vanishing_ideal(sbg)
+  Ip = f(I)
+
+  model = phylogenetic_model(sbg)
+  ec = equivalent_classes(model)
+
+  return SmallPhylogeneticModel(
+    sbg._id,
+    model,
+    model_type(sbg),
+    n_leaves(sbg),
+    level(sbg),
+    n_cycles(sbg),
+    dim(sbg),
+    degree(sbg),
+    length(ec),
+    dimension_singular_locus(sbg),
+    degree_singular_locus(sbg),
+    nothing,
+    euclidean_distance_degree(sbg),
+    parametrization(model),
+    ec,
+    Ip
+  )
+
 end
 
 @doc raw"""
