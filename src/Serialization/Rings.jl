@@ -37,7 +37,6 @@ type_params(x::T) where T <: SMat = TypeParams(T, parent(x))
 type_params(R::T) where T <: AbstractAlgebra.Set = TypeParams(T, nothing)
 
 # ideals and matrix spaces have their base ring as reference object
-type_params(x::T) where T <: Ideal = TypeParams(T, base_ring(x))
 type_params(x::T) where T <: MatSpace = TypeParams(T, base_ring(x))
 type_params(x::T) where T <: SMatSpace = TypeParams(T, base_ring(x))
 
@@ -256,18 +255,21 @@ end
 @register_serialization_type MPolyQuoIdeal
 @register_serialization_type Hecke.PIDIdeal
 
+type_params(x::T) where T <: Ideal =  TypeParams(T, :base_ring => base_ring(x))
+
 function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb
   # in the future
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: Ideal}, parent_ring::NCRing)
-  gens = elem_type(parent_ring)[]
+function load_object(s::DeserializerState, ::Type{<: Ideal}, params::Dict)
+  base_ring = params[:base_ring]
+  gens = elem_type(base_ring)[]
   load_array_node(s) do _
-    push!(gens, load_object(s, elem_type(parent_ring), parent_ring))
+    push!(gens, load_object(s, elem_type(base_ring), base_ring))
   end
-  return ideal(parent_ring, gens)
+  return ideal(base_ring, gens)
 end
 
 ################################################################################
@@ -612,7 +614,7 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoRing}, params::Dict)
   R = params[:base_ring]
   ordering_type = params[:ordering]
   o = load_object(s, ordering_type, R, :ordering)
-  I = load_object(s, ideal_type(R), R, :modulus)
+  I = load_object(s, ideal_type(R), params, :modulus)
 
   return MPolyQuoRing(R, I, o)
 end
@@ -685,20 +687,26 @@ end
 
 @register_serialization_type MPolyComplementOfPrimeIdeal uses_id
 
-type_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), ring(U))
+type_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), params(type_params(prime_ideal(U))))
 
 function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
   save_object(s, prime_ideal(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, R::MPolyRing)
-  id = load_object(s, ideal_type(R), R)
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, params::Dict)
+  id = load_object(s, ideal_type(R), params)
   return MPolyComplementOfPrimeIdeal(id)
 end
 
 @register_serialization_type MPolyLocRing uses_id
 
-type_params(W::T) where {T <: MPolyLocRing} = TypeParams(T, :base_ring => base_ring(W), :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing)) # TODO: make this neater!
+function type_params(W::T) where {T <: MPolyLocRing}
+  return TypeParams(T,
+                    :base_ring => base_ring(W),
+                    :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing),
+                    :mult_set_params => params(type_params(inverted_set(W)))
+                    ) # TODO: make this neater!
+end
 
 function save_object(s::SerializerState, L::MPolyLocRing)
   save_object(s, inverted_set(L))
@@ -710,7 +718,12 @@ function load_object(
   ) 
   U = params[:mult_set_type]
   R = params[:base_ring]
-  mult_set = load_object(s, U, R)
+  println(params)
+  if isnothing(params[:mult_set_params])
+    mult_set =  load_object(s, U, R)
+  else
+    mult_set = load_object(s, U, params[:mult_set_params])
+  end
   return MPolyLocRing(R, mult_set)
 end
 

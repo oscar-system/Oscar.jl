@@ -97,7 +97,7 @@ cases = [
             end
 
             S = parent(i[1])
-            test_save_load_roundtrip(path, i; params=S) do loaded_i
+            test_save_load_roundtrip(path, i; params=Dict(:base_ring =>S)) do loaded_i
               @test i == loaded_i
             end
 
@@ -161,7 +161,7 @@ cases = [
             end
 
             S = parent(gens(i)[1])
-            test_save_load_roundtrip(path, i; params=S) do loaded_i
+            test_save_load_roundtrip(path, i; params=Dict(:base_ring =>S)) do loaded_i
               @test gens(i) == gens(loaded_i)
             end
           end
@@ -223,7 +223,7 @@ end
       end
       # Test ideals in these rings. 
       J = ideal(Q, z)
-      test_save_load_roundtrip(path, J; params=Q) do loaded
+      test_save_load_roundtrip(path, J; params=Dict(:base_ring => Q)) do loaded
         @test J == loaded
       end
       # Test MPolyLocalizedRingHom
