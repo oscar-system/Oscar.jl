@@ -14,8 +14,8 @@ struct SmallGroupBasedModel
   n_leaves::Int
   level::Int
   n_cycles::Int
-  dimension::Int
-  degree::Int
+  dimension::Union{Int, Nothing}
+  degree::Union{Int, Nothing}
   n_coordinates::Int
   dim_sl::Union{Int, Nothing}
   deg_sl::Union{Int, Nothing}
@@ -23,40 +23,6 @@ struct SmallGroupBasedModel
   parametrization::Oscar.MPolyAnyMap
   eq_classes::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
-end
-
-
-@doc raw"""
-    small_group_based_model(name::String, model::GroupBasedPhylogeneticModel}, model_type::String, phylogenetic_model_id::String)
-
-Creates a `SmallGroupBasedModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallGroupBasedModels" of the `OscarDB`
-"""
-function small_group_based_model(name::String,
-                                 model::GroupBasedPhylogeneticModel,
-                                 model_type::String)
-
-  G = graph(model)
-  f = parametrization(model)
-  ec = equivalent_classes(model)
-  I = vanishing_ideal(model; algorithm=:f4)
-
-  return SmallGroupBasedModel(
-    name,
-    model,
-    model_type,
-    n_leaves(G),
-    level(G),
-    sum((length(h) - 1 for h in Oscar.hybrid_edges(G)), init=0),
-    dim(I),
-    degree(I),
-    length(ec),
-    nothing,
-    nothing,
-    nothing,
-    f,
-    ec,
-    I
-  )
 end
 
 @doc raw"""
@@ -183,7 +149,6 @@ function Base.show(io::IO, sgb::SmallGroupBasedModel)
   print(io, "Small group-based phylogenetic model $(sgb._id)")
 end
 
-
 struct SmallPhylogeneticModel
   _id::String # model encoding id, example 3-0-0-JC
   model::PhylogeneticModel
@@ -191,8 +156,8 @@ struct SmallPhylogeneticModel
   n_leaves::Int
   level::Int
   n_cycles::Int
-  dimension::Int
-  degree::Int
+  dimension::Union{Int, Nothing}
+  degree::Union{Int, Nothing}
   n_coordinates::Int
   dim_sl::Union{Int, Nothing}
   deg_sl::Union{Int, Nothing}
@@ -202,70 +167,6 @@ struct SmallPhylogeneticModel
   eq_classes::Dict{Tuple{Vararg{Int64}}, Vector{MPolyRingElem}}
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
 end
-@doc raw"""
-  small_phylogenetic_model(name::String, model::PhylogeneticModel, 
-                           model_type::String, extended_model_id::Union{String, Nothing})
-
-Creates a `SmallPhylogeneticModel` which is the struct used to populate the collection "AlgebraicStatistics.SmallPhylogeneticModels" of the `OscarDB`
-"""
-function small_phylogenetic_model(name::String,
-                                  model::PhylogeneticModel,
-                                  model_type::String)
-
-  G = graph(model)
-  ec = equivalent_classes(model)
-  # I = vanishing_ideal(model)
-
-  return SmallPhylogeneticModel(
-    name,
-    model,
-    model_type,
-    n_leaves(G),
-    level(G),
-    sum((length(h) - 1 for h in Oscar.hybrid_edges(G)), init=0),
-    0,
-    0,
-    length(ec),
-    nothing,
-    nothing,
-    nothing,
-    nothing,
-    parametrization(model),
-    ec,
-    nothing
-  )
-end
-
-function small_phylogenetic_model(name::String, sbg::SmallGroupBasedModel)
-  gb_model = group_based_phylogenetic_model(sbg)
-  f = coordinate_change(gb_model)
-  I = vanishing_ideal(sbg; algorithm=:f4)
-  Ip = f(I)
-
-  model = phylogenetic_model(sbg)
-  ec = equivalent_classes(model)
-
-  return SmallPhylogeneticModel(
-    name,
-    model,
-    model_type(sbg),
-    n_leaves(sbg),
-    level(sbg),
-    n_cycles(sbg),
-    dim(sbg),
-    degree(sbg),
-    length(ec),
-    dimension_singular_locus(sbg),
-    degree_singular_locus(sbg),
-    nothing,
-    euclidean_distance_degree(sbg),
-    parametrization(model),
-    ec,
-    Ip
-  )
-
-end
-
 
 @doc raw"""
   phylogenetic_model(spm::SmallPhylogeneticModel)

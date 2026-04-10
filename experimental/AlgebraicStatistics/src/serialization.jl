@@ -266,7 +266,7 @@ end
 # Phylogenetic Networks
 @register_serialization_type PhylogeneticNetwork
 
-type_params(::PhylogeneticNetwork) = nothing
+type_params(::PhylogeneticNetwork) = TypeParams(PhylogeneticNetwork, nothing)
 
 function save_object(s::SerializerState, pn::PhylogeneticNetwork)
   save_object(s, graph(pn))
