@@ -319,25 +319,49 @@ end
 @doc raw"""
     representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left) -> MatElem
 
-Return the representation matrix of the element `x` with respect to `basis(parent(x))`. The multiplication is from
-the left if `action == :left` and from the right if `action == :right`.
+Return the representation matrix of the element `x` with respect to `basis(parent(x))`.
+The multiplication is from the left if `action == :left` and from the right if `action == :right`.
 """
 function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
   @req (action == :left) || (action == :right) "The action must be :left or :right."
   C = parent(x)
   n = dim(C)
-  res = zero_matrix(base_ring(C), n, n)
-  if action == :left
-    for i in 1:n
-      res[i, :] = coefficients(x * basis(C, i))
+  R = base_ring(C)
+  res = zero_matrix(R, n, n)
+  
+  x_coeffs = coefficients(x)
+  gram = gram_matrix(C)
+  
+  out_buffer = [zero(R) for _ in 1:n]
+  y_buffer   = [zero(R) for _ in 1:n]
+  temp_buffers = [[zero(R) for _ in 1:n] for _ in 1:ncols(gram)]
+  
+  @inbounds for k in 1:n
+    y_buffer[k] = one!(y_buffer[k])
+    
+    for j in 1:n
+      out_buffer[j] = zero!(out_buffer[j])
     end
-  elseif action == :right
-    for i in 1:n
-      res[i, :] = coefficients(basis(C, i) * x)
+    
+    if action == :left
+      _mul_aux!(out_buffer, x_coeffs, y_buffer, gram, 1, temp_buffers)
+    else #action = right
+      _mul_aux!(out_buffer, y_buffer, x_coeffs, gram, 1, temp_buffers)
     end
+    
+    for j in 1:n
+      res[k, j] = out_buffer[j]
+    end
+    
+    y_buffer[k] = zero!(y_buffer[k])
   end
+  
   return res
 end
+
+trace(x::CliffordAlgebraElem) = trace(representation_matrix(x))
+
+is_unit(x::CliffordAlgebraElem) = is_unit(norm(x))
 
 ################################################################################
 #

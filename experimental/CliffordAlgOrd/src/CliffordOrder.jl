@@ -804,6 +804,10 @@ the left if `action == :left` and from the right if `action == :right`.
 """
 representation_matrix(x::Union{CliffordOrderElem, ZZCliffordOrderElem}, action::Symbol = :left) = representation_matrix(ambient_algebra(parent(x))(x), action)
 
+trace(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = trace(representation_matrix(x))
+
+is_unit(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = is_unit(norm(x))
+
 minimal_polynomial(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = minimal_polynomial(ambient_algebra(parent(x))(x))
 
 characteristic_polynomial(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = characteristic_polynomial(ambient_algebra(parent(x))(x))
