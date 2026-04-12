@@ -477,7 +477,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res
 end
@@ -499,7 +499,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res, [R(1) for _ in 1:ngens(M)]
 end
