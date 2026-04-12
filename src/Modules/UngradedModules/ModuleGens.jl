@@ -109,6 +109,21 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc raw"""
+    singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+
+Return the generators of `M` in a Singular module over a Singular polynomial ring with the given `ordering`.
+"""
+function singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+  @assert M.F === ordering.M
+  SF = singular_module(M.F, ordering)
+  sr = base_ring(SF)
+  if length(M) == 0
+    return Singular.Module(sr, Singular.vector(sr, sr(0)))
+  end
+  return Singular.Module(sr, [SF(x) for x in oscar_generators(M)]...)
+end
+
+@doc raw"""
     singular_ordering(M::ModuleGens)
 
 Return the ordering of `M` from the Singular side.
