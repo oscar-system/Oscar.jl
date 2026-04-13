@@ -338,7 +338,8 @@
         G1_vertex_labeled =  Oscar._edge_label_to_vertex_label(G1, :color)
         G2 = graph_from_labeled_edges(Undirected, test[2]; name=:color)
         G2_vertex_labeled =  Oscar._edge_label_to_vertex_label(G2, :color)
-        @test is_isomorphic(G1_vertex_labeled, G2_vertex_labeled; label=:color) == test[3]
+        @info G2_vertex_labeled
+        @test is_isomorphic(G1_vertex_labeled, G2_vertex_labeled; label=:edge_to_vertex) == test[3]
       end
 
       G1_empty = graph(Undirected, 0);
