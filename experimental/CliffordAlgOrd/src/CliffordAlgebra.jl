@@ -350,7 +350,7 @@ function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
     end
     
     for j in 1:n
-      res[k, j] = out_buffer[j]
+      res[k, j] = deepcopy(out_buffer[j])
     end
     
     y_buffer[k] = zero!(y_buffer[k])
