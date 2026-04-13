@@ -333,12 +333,10 @@
       ]
 
       @testset "Basic tests" for test in test_data
-        @info test
         G1 = graph_from_labeled_edges(Undirected, test[1]; name=:color)
         G1_vertex_labeled =  Oscar._edge_label_to_vertex_label(G1, :color)
         G2 = graph_from_labeled_edges(Undirected, test[2]; name=:color)
         G2_vertex_labeled =  Oscar._edge_label_to_vertex_label(G2, :color)
-        @info G2_vertex_labeled
         @test is_isomorphic(G1_vertex_labeled, G2_vertex_labeled; label=:edge_to_vertex) == test[3]
       end
 
