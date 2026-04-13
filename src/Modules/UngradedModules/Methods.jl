@@ -653,6 +653,67 @@ function _vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   return length(vector_space_basis(kk, M; check))
 end
 
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyRingElem{<:FieldElem}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  GB = groebner_basis(M.quo)
+  vdim = Singular.vdim(singular_generators(GB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  return _vector_space_dim(kk, _as_poly_module(M), check=false)
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"                              
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end  
+  M_shift, _, _ = shifted_module(M)
+  ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  SB = standard_basis(M_shift.quo, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
+                                  <:MPolyRing, <:MPolyRingElem,
+                                  <:MPolyComplementOfKPointIdeal
+                                 }}
+  LQ = base_ring(M)
+  @assert kk === coefficient_ring(LQ) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  M_poly = pre_saturated_module(M)
+  #TODO: refactor when infrastructure for caching GB-basis is available in this setting
+  shift, _ = base_ring_shifts(localized_ring(LQ))
+  Mq, _ = sub(ambient_free_module(M_poly), relations(M_poly))
+  Mq_shift, _ = change_base_ring(shift, Mq)
+
+  ord = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  SB = standard_basis(Mq_shift.sub, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
 @doc raw"""
     _is_finite(kk::Field, M::SubquoModule)
 
