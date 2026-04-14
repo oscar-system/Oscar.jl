@@ -114,6 +114,8 @@ end
 Return the generators of `M` in a Singular module over a Singular polynomial ring with the given `ordering`.
 """
 function singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+  #= TODO: Maybe cache these 'singular_generators' in a Dict with the 'ModuleOrdering' as a key, 
+  like it is the case for 'groebner_basis'? =#
   @assert M.F === ordering.M
   SF = singular_module(M.F, ordering)
   sr = base_ring(SF)
