@@ -1,8 +1,7 @@
-
-
 function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true,compute_overlattices=false)
-  #this version computes a root lattice of the biggest rank possible represented by the genus of R
-@vprintln :Lattice 1 "computing embedding in L_$(n)"
+  #this function computes a root lattice of the biggest rank possible represented by the genus of R
+  @req iszero(mod(pos - neg,8)) "an even unimodular lattice of signature ($pos, $neg) does not exist"
+  @vprintln :Lattice 1 "computing embedding in L_$(n)"
   pS, kS, nS = signature_tuple(S)
   @req kS == 0 "S must be non-degenerate"
   even || throw(NotImplementedError("for now we need the unimodular lattice to be even."))
@@ -14,13 +13,10 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
   GR = genus(DR, (pR, nR)) # genus of R
   roots=biggest_root_sublattice(GR);
   #now compute the actual embedding
-  #first thing: try if it embeds primitively
-  #em=primitive_embeddings(GR, roots; classification=:none) #maybe not necessary to do this as first step
   R=[]
-  #if em[1]==true
-    emb=primitive_embeddings(GR, roots; classification=:first)
-    R = emb[2][1][1]
-if compute_overlattices #compute all overlattices of "roots" at the same time
+  emb=primitive_embeddings(GR, roots; classification=:first)
+  R = emb[2][1][1]
+  if compute_overlattices #compute all overlattices of "roots" at the same time
     M = ZZLat[]
     #println("overlattice timing")
     #@time 
@@ -99,3 +95,4 @@ function biggest_root_sublattice(g::ZZGenus)
     end
   end
 end
+
