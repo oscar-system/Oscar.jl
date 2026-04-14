@@ -814,6 +814,12 @@ end
   @test number_of_rows(r2) == 4
   @test r2[1] == trivial_character(character_table(G))
   @test character_table(r2) === character_table(G)
+
+  # orbit length different from 2
+  G = dihedral_group(22)
+  r = character_table_rational(G)
+  chi = r[3]
+  @test coordinates(chi, r) == [0, 0, 1]
 end
 
 Oscar.@_AuxDocTest "show and print rational character tables", (fix = false),
