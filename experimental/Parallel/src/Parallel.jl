@@ -1,3 +1,5 @@
+import Distributed.rmprocs
+
 @doc raw"""
      OscarWorkerPool
 
@@ -14,7 +16,6 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   wp::WorkerPool # the plain worker pool
   channel::Channel{Int} # required for the `AbstractWorkerPool` interface
   workers::Set{Int}     # same
-  wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
   init_expr::Expr
 
@@ -25,7 +26,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     remotecall_eval(Main, wids, :(using Oscar))
     remotecall_eval(Main, wids, init_expr)
 
-    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}(), init_expr)
+    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
   end
 end
 
@@ -99,8 +100,12 @@ end
 ### end of implementation interface `AbstractWorkerPool`
 
 ### extra functionality
+function rmprocs(wp::OscarWorkerPool, wid::Int)
+  @async rmprocs(wid)
+  wp.workers = delete!(wp.wp.workers, wid)
+end
 
-workers(wp::OscarWorkerPool) = wp.wids
+workers(wp::OscarWorkerPool) = wp.workers
 
 function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
   chnl = get!(wp.oscar_channels, id) do
@@ -113,7 +118,7 @@ close!(wp::OscarWorkerPool) = map(rmprocs, workers(wp))
 # extend functionality so that `pmap` works with Oscar stuff
 
 function put_type_params(wp::OscarWorkerPool, a::Any)
-  for id in wp.wids
+  for id in workers(wp)
     put_type_params(get_channel(wp, id), a)
   end
 end
@@ -295,23 +300,20 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
     put!(wp, wid)  # Return worker to pool on setup failure
     rethrow()
   end
-  
-  try
+
+  try 
     if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
       # Add replacement worker
       new_wid = first(addprocs(1))
       push!(wp, new_wid)
-      # Remove the problematic worker
-      rmprocs(wid)
       throw(TimeoutException())
     end
   catch e
-    if !(e isa TimeoutException) && !(e isa OutOfMemoryError)
-      put!(wp, wid)  # Return worker if it's not a timeout error
-    end
+    # remove problematic worker
+    rmprocs(wp, wid)
     rethrow(e)
   end
-  
+    
   put!(wp, wid)  # Return worker to pool on success
   return fetch(fut) 
 end
