@@ -27,6 +27,15 @@ GAP.@install function GapObj(obj::AbstractAlgebra.Generic.MatSpaceElem{AbsSimple
     return GapObj(mat)
 end
 
+## matrix of elements of a finite field (of prime order)
+GAP.@install function GapObj(obj::fpMatrix)
+    p = Int(characteristic(base_ring(obj)))
+    e = GAP.Globals.(p)
+    return GapObj(lift(obj)) * e
+end
+
+
+
 function has_GapObj_with_GapObj(input; recursive::Bool = false)
   try
     res = GapObj(input, recursive = recursive)
