@@ -7,17 +7,21 @@
 function __direct_sum(
     A::TorQuadModule,
     B::TorQuadModule,
-    same_ambient::Bool = false,
+    same_ambient::Bool = false;
+    as_bilinear_module::Bool=false,
   )
   if !same_ambient
-    return direct_sum(A, B; cached=false)
+    return direct_sum(A, B; cached=false, as_bilinear_module)
   end
 
   # Test that A and B have the same moduli and same ambient quadratic space
   @assert modulus_bilinear_form(A) == modulus_bilinear_form(B)
-  @assert modulus_quadratic_form(A) == modulus_quadratic_form(B)
+  @assert as_bilinear_module || modulus_quadratic_form(A) == modulus_quadratic_form(B)
   @assert ambient_space(cover(A)) === ambient_space(cover(B))
   V = ambient_space(cover(A))
+
+  mbf = modulus_bilinear_form(A)
+  mqf = as_bilinear_module ? mbf : modulus_quadratic_form(A)
 
   # Test that the modules are indeed in orthogonal direct sum
   # It should be used internally so we do not want to test that all the time
@@ -32,7 +36,7 @@ function __direct_sum(
   gensDB = Vector{QQFieldElem}[lift(b) for b in gens(B)]
   # D is A\oplus B, and we fix a set of generators given first the generators
   # of A and then the ones of B
-  D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=modulus_bilinear_form(A), modulus_qf=modulus_quadratic_form(A))
+  D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=mbf, modulus_qf=mqf)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
   AinD = hom(A, D, reduce(hcat, ZZMatrix[IA, zero_matrix(ZZ, ngens(A), ngens(B))]))
@@ -76,13 +80,14 @@ the respective covers of ``A`` and ``B``.
 function _direct_sum_with_embeddings_orthogonal_groups(
     A::TorQuadModule,
     B::TorQuadModule;
-    same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B)))
+    as_bilinear_module::Bool=false,
+    OA::AutomorphismGroup{TorQuadModule}=__orthogonal_group(A; as_bilinear_module),
+    OB::AutomorphismGroup{TorQuadModule}=__orthogonal_group(B; as_bilinear_module),
+    same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B))),
   )
-  D, inj = __direct_sum(A, B, same_ambient)
+  D, inj = __direct_sum(A, B, same_ambient; as_bilinear_module)
   AinD, BinD = inj
   OD = orthogonal_group(D)
-  OA = orthogonal_group(A)
-  OB = orthogonal_group(B)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
 
@@ -118,7 +123,7 @@ function _get_V(
     p::IntegerUnion,
   )
   q = domain(f)
-  V, Vinq = kernel(hom(q, q, p*identity_matrix(ZZ, ngens(q)))) # TODO: remove once Hecke function implemented
+  V, Vinq = torsion_subgroup(q, p)
   fpV = restrict_endomorphism(f, Vinq; check=false)
   fpV = evaluate(mu, fpV)
   V, _ = kernel(fpV)
@@ -202,31 +207,19 @@ end
 # discriminant groups of $A$ and $B$ respectively. The third output of the
 # algorithm is the graph of $\gamma$ in $D$.
 #
-# The fourth and fifth inputs are optional isometries $f_A$ and $f_B$ of $A$
-# and $B$, respectively, to be extended along $\gamma$, assuming it to be an
-# $(f_A, f_B)$-equivariant gluing. The second output of the algorithm is
-# the extension $f_A\oplus f_B \in O(C)$ --- it is the identity by default.
-#
-# !!! note
-#     The isometries `fA` and `fB` are given in terms of their matrix
-#     representation on `A` and `B` respectively, not by their ambient
-#     representation. Similarly for the second output of the algorithm.
-#
 # !!! warning
 #     No sanity checks are performed: in particular, if $D_A$ and $D_B$ are not
-#     in orthogonal direct sum, if $\gamma$ is not a gluing, or if it is not
-#     $(f_A, f_B)$-equivariant, then the outputs might not satisfy the expected
-#     conditions.
+#     in orthogonal direct sum, or if $\gamma$ is not a gluing, then the outputs
+#     might not satisfy the expected conditions.
 #
-# If `same_ambient` is set to `true`, then the two lattices $A$ and $B$ are
-# considered as lying in the same ambient quadratic space.
-function _overlattice(
-    gamma::TorQuadModuleMap,
-    HAinD::TorQuadModuleMap,
-    HBinD::TorQuadModuleMap,
-    fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
-  )
+# If we glue along the trivial subgroups of `D_A` and `D_B`, one can drop the
+# glue map gamma as first input
+
+function _overlattice_with_graph(
+  gamma::TorQuadModuleMap,
+  HAinD::TorQuadModuleMap,
+  HBinD::TorQuadModuleMap,
+)
   HA = domain(HAinD)
   HB = domain(HBinD)
   A = relations(HA)
@@ -241,25 +234,14 @@ function _overlattice(
   _FakeB = hnf(Fakeglue)
   _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
   C = lattice(ambient_space(L), _B[end-rank(A)-rank(B)+1:end, :])
-  fC = block_diagonal_matrix(QQMatrix[fA, fB])
-  _B = coordinates(basis_matrix(C), L)
-  fC = _B*fC*inv(_B)
-  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
   _, graph = sub(D, D.(_glue))
-  return C, fC, graph
+  return C, graph
 end
 
-# Same as above where we glue along the trivial subgroups of `D_A` and `D_B`.
-# In that particular case, `D_A` and `D_B` are the discriminant groups of the
-# lattices considered (so HA = L^{\vee}/L for some lattice integral lattice L,
-# and same for HB), and D is the orthogonal direct sum of HA and HB in an
-# appropriate quadratic space.
-function _overlattice(
-    DAinD::TorQuadModuleMap,
-    DBinD::TorQuadModuleMap,
-    fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
-  )
+function _overlattice_with_graph(
+  DAinD::TorQuadModuleMap,
+  DBinD::TorQuadModuleMap,
+)
   DA = domain(DAinD)
   DB = domain(DBinD)
   zA, zAinDA = sub(DA, TorQuadModuleElem[])
@@ -267,7 +249,54 @@ function _overlattice(
   zAinD = compose(zAinDA, DAinD)
   zBinD = compose(zBinDB, DBinD)
   gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0))
-  return _overlattice(gamma, zAinD, zBinD, fA, fB)
+  return _overlattice_with_graph(gamma, zAinD, zBinD)
+end
+
+# Same as before, with the fourth and fifth inputs being optional isometries
+# $f_A$ and $f_B$ of $A$ and $B$, respectively, to be extended along $\gamma$,
+# assuming it to be an $(f_A, f_B)$-equivariant gluing. The second output of
+# the algorithm is the extension $f_A\oplus f_B \in O(C)$ --- it is the
+# identity by default.
+#
+# !!! note
+#     The isometries `fA` and `fB` are given in terms of their matrix
+#     representation on `A` and `B` respectively, not by their ambient
+#     representation. Similarly for the second output of the algorithm.
+#
+# !!! warning
+#     Again, no input checks are performed so if $\gamma$ is not equivariant
+#     with respect to $fA$ and $fB$, then the outputs might not satisfy the
+#     expected conditions.
+
+function _equivariant_overlattice_with_graph(
+  gamma::TorQuadModuleMap,
+  HAinD::TorQuadModuleMap,
+  HBinD::TorQuadModuleMap,
+  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
+  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
+)
+  C, graph = _overlattice_with_graph(gamma, HAinD, HBinD)
+  L = relations(codomain(HAinD))
+  fC = block_diagonal_matrix(QQMatrix[fA, fB])
+  _B = coordinates(basis_matrix(C), L)
+  fC = _B*fC*inv(_B)
+  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
+  return C, fC, graph
+end
+
+function _equivariant_overlattice_with_graph(
+  DAinD::TorQuadModuleMap,
+  DBinD::TorQuadModuleMap,
+  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
+  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
+)
+  C, graph = _overlattice_with_graph(DAinD, DBinD)
+  L = relations(codomain(HAinD))
+  fC = block_diagonal_matrix(QQMatrix[fA, fB])
+  _B = coordinates(basis_matrix(C), L)
+  fC = _B*fC*inv(_B)
+  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
+  return C, fC, graph
 end
 
 ###############################################################################
@@ -275,46 +304,6 @@ end
 #  Generic primitive extensions method
 #
 ###############################################################################
-
-# Given a torsion quadratic module $q_M$, return the associated torsion
-# bilinear module. Here $G_M$ and $f_{q_M}$ are respectively a group of
-# isometries and an isometry of $q_M$, for the quadratic form. The function
-# also returns the associated group of isometries and isometry for the torsion
-# bilinear module associated to $q_M$.
-function _change_to_bilinear_module(
-    qM::TorQuadModule,
-    GM::AutomorphismGroup{TorQuadModule},
-    fqM::TorQuadModuleMap,
-  )
-  qM = Hecke._as_finite_bilinear_module(qM) # TODO: to be changed
-  OqM = orthogonal_group(qM)
-  GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check=false) for g in gens(GM)])
-  fqM = hom(qM, qM, matrix(fqM))
-  return qM, OqM, GM, fqM
-end
-
-# Given two torsion quadratic/bilinear modules $q_M$ and $q_N$, return the
-# list of possible orders for anti-isometric submodules of $q_M$ and $q_N$
-# respectively.
-#
-# One can choose a default value `glue_order`, useful in functions with keyword
-# arguments.
-#
-# TODO: To be removed once appropriate Hecke functions implemented
-function _possible_glue_orders(
-    qM::TorQuadModule,
-    qN::TorQuadModule,
-  )
-  _gcd = ZZ(1)
-  snM = reverse!(elementary_divisors(qM))
-  snN = reverse!(elementary_divisors(qN))
-  k = min(length(snM), length(snN))
-  for i in 1:k
-    mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
-  end
-  pos_ord = divisors(_gcd)
-  return pos_ord
-end
 
 # Given an abelian group isomorphism $\phi$ between two torsion
 # quadratic/bilinear modules $H_M$ and $H_N$, and given two isometries
@@ -413,6 +402,17 @@ function _fitting_isometries(
     map!(m -> solve(basis_matrix(N), basis_matrix(N)*m; side=:left), reporb, reporb)
   end
   return reporb
+end
+
+function _as_sublattices(
+  L::ZZLat,
+  M::ZZLat,
+  N::ZZLat,
+)
+  V = ambient_space(L)
+  M2 = lattice(V, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L) - degree(M))))
+  N2 = lattice(V, hcat(zero_matrix(QQ, rank(N), degree(L) - degree(N)), basis_matrix(N)))
+  return M2, N2
 end
 
 # We have a primitive extension `M\oplus N \to L`: we want to see M and N now
@@ -807,7 +807,7 @@ function _primitive_extensions_generic(
           end
 
           for b in reporb
-            L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b)
+            L, fL, graph = _equivariant_overlattice_with_graph(phig, HMinD, HNinD, fM, b)
 
             if !isempty(Gs)
               any(isequal(genus(L)), Gs) || continue
@@ -837,20 +837,69 @@ end
 #
 ###############################################################################
 
+function _subgroups_orbit_representatives_and_stabilizers_primary_subtype(
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  p::ZZRingElem,
+  subtype::Vector{Int},
+  f::TorQuadModuleMap = id_hom(codomain(Vinq)),
+)
+  r1 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Vinq, O, p, subtype, f)
+  r = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[(x[1], domain(x[2])) for x in r1]
+  return r
+end
+
+function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  p::ZZRingElem,
+  subtype::Vector{Int},
+  f::TorQuadModuleMap = id_hom(codomain(Vinq)),
+)
+  res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
+
+  V = domain(Vinq)
+  q = codomain(Vinq)
+  A = abelian_group(V)
+  @assert is_snf(A)
+  flag = isone(matrix(f))
+
+  subs_it = Hecke._psubgroups(A, p; subtype=[subtype])
+
+  to_gap = get_attribute(O, :to_gap)
+  to_oscar = get_attribute(O, :to_oscar)
+  qgap = codomain(to_gap)
+  sgap = typeof(qgap)[]
+
+  for (H, i) in subs_it
+    Hgap, _ = sub(qgap, elem_type(qgap)[to_gap(Vinq(V(i(a)))) for a in gens(H)])
+    push!(sgap, Hgap)
+  end
+
+  m = gset(O, on_subgroups, sgap)
+  orbs = orbits(m)
+  for orb in orbs
+    _repgap = representative(orb)
+    _, rep = sub(q, TorQuadModuleElem[to_oscar(qgap(a)) for a in gens(_repgap)])
+    flag || is_invariant(f, rep) || continue
+    stab, jj = stabilizer(O, rep)
+    push!(res, (rep, jj))
+  end
+  return res
+end
+
 # Given the embedding of an `(O, f)`-stable finite quadratic submodule `V` of
 # `q`, compute representatives of `O`-orbits of `f`-stable submodules of `V` of
 # order `ord`. The stabilizers in `O` is also computed.
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
-#
-# TODO: Replace by dedicated function for p-group and subgroup types
 function _subgroups_orbit_representatives_and_stabilizers(
-    Vinq::TorQuadModuleMap,
-    O::AutomorphismGroup{TorQuadModule},
-    ord::IntegerUnion = -1,
-    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
-  )
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  ord::IntegerUnion = -1,
+  f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+)
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
@@ -953,7 +1002,21 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     l::IntegerUnion = -1;
     algorithm::Symbol=:PermGroup,
   )
-  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+  r1 = __subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, G, ord, _p, f, l; algorithm)
+  r = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[(x[1], domain(x[2])) for x in r1]
+  return r
+end
+
+function __subgroups_orbit_representatives_and_stabilizers_elementary(
+    Vinq::TorQuadModuleMap,
+    G::AutomorphismGroup{TorQuadModule},
+    ord::IntegerUnion,
+    _p::IntegerUnion,
+    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+    l::IntegerUnion = -1;
+    algorithm::Symbol=:PermGroup,
+  )
+  res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
   p = ZZ(_p)
 
   V = domain(Vinq)
@@ -976,14 +1039,14 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   # and we return it, or if order(H0) > ord, there are no subgroups as wanted
   if order(H0) >= ord
     order(H0) > ord && return res
-    push!(res, (H0inq, G))
+    push!(res, (H0inq, id_hom(G)))
     return res
   end
   # Now the groups we look for should strictly contain H0.
   # If ord == order(V), then there is only V satisfying the given
   # conditions, and V is stabilized by the all G
   if ord == order(V)
-    push!(res, (Vinq, G))
+    push!(res, (Vinq, id_hom(G)))
     return res
   end
 
@@ -1018,11 +1081,11 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
       # We keep only f-stable subspaces
       is_invariant(f, orbqinq) || continue
       stabq_gen = elem_type(G)[GtoOVmodH0\(inc_stab(s)) for s in gens(stab)]
-      stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+      stabq, jj = sub(G, union!(stabq_gen, gens(satV)))
       # Stabilizers should preserve the actual subspaces, by definition. so if we
       # have lifted everything properly, this should hold..
       @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
-      push!(res, (orbqinq, stabq))
+      push!(res, (orbqinq, jj))
     end
     @vprint :ZZLatWithIsom 5 " done \r                                     \r"
     return res
@@ -1072,144 +1135,13 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     is_invariant(f, orbqinq) || continue
 
     stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
-    stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+    stabq, jj = sub(G, union!(stabq_gen, gens(satV)))
     # Stabilizers should preserve the actual subspaces, by definition. so if we
     # have lifted everything properly, this should hold..
     @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
-    push!(res, (orbqinq, stabq))
+    push!(res, (orbqinq, jj))
   end
   @vprint :ZZLatWithIsom 5 "   done \n"
-  return res
-end
-
-# Compute `O`-orbits of `f`-stable submodules of `ker(mu(f))` which are
-# isometric, as torsion quadratic modules, to `H`. It also computes the
-# stabilizers in `O` of such subgroups. If `H` is not given, then return
-# orbits of stable submodules of order `ordH`.
-#
-# The outputs are given by embeddings of such submodules in `q`.
-#
-# The code splits the computation into primary parts since they are orthogonal
-# to each others.
-#
-# TODO: Remove this old bad code within the new infrastructure
-function _classes_isomorphic_subgroups(
-    q::TorQuadModule,
-    O::AutomorphismGroup{TorQuadModule},
-    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
-    H::Union{Nothing, TorQuadModule}=nothing,
-    ordH::Union{Nothing, IntegerUnion}=nothing,
-    mu::PolyRingElem=zero(Hecke.Globals.Qx),
-  )
-  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
-
-  if isnothing(H)
-    @assert !isnothing(ordH)
-    @assert ordH > 0
-  else
-    ordH = order(H)
-  end
-
-  !is_divisible_by(order(q), ordH) && return res
-
-  if ordH == 1
-    _, j = sub(q, elem_type(q)[])
-    push!(res, (j, O))
-    return res
-  end
-
-  # Trivial case: we look for subgroups in a given primary part of q
-  ok, e, p = is_prime_power_with_data(ordH)
-  if ok
-    if (e == 1) || (!isnothing(H) && is_elementary(H, p))
-      _, Vinq = _get_V(f, mu, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
-    else
-      T, Tinq = kernel(evaluate(mu, f))
-      _, VinT = primary_part(T, p)
-      Vinq = compose(VinT, Tinq)
-      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
-    end
-    if !isnothing(H)
-      filter!(d -> is_isometric_with_isometry(domain(d[1]), H)[1], sors)
-    end
-    return sors
-  end
-
-  # We inspect each primary part of q and look for orbit representatives and
-  # stabilizers of isomorphic subgroups which will be isometric to the given
-  # primary part of H.
-  #
-  # First, we cut q as an orthogonal direct sum of its primary parts
-  pds = sort!(prime_divisors(order(q)))
-  blocks = TorQuadModuleMap[primary_part(q, pds[1])[2]]
-  ni = Int[ngens(domain(blocks[1]))]
-  for i in 2:length(pds)
-    _f = blocks[end]
-    _, j = has_complement(_f)
-    _T = domain(j)
-    __f = primary_part(_T, pds[i])[2]
-    push!(blocks, compose(__f, j))
-    push!(ni, ngens(domain(__f)))
-  end
-  D, inj, proj = Hecke._biproduct(domain.(blocks))
-  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
-  @hassert :ZZLatWithIsom 1 is_isometry(phi)
-
-  list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
-  # We collect the possible subgroups for each primary part, with the stabilizer
-  for i in 1:length(pds)
-    p = pds[i]
-    qpinq = blocks[i]
-    qp = domain(qpinq)
-    ordHp = p^valuation(ordH, p)
-    if !isnothing(H)
-      T, _ = primary_part(H, p)
-    end
-    Oqp, _ = restrict_automorphism_group(O, qpinq; check=false)
-    fqp = restrict_endomorphism(f, qpinq; check=false)
-    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(T, p))
-      _, j = _get_V(fqp, mu, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
-    else
-      _, Tpinqp = kernel(evaluate(mu, fqp))
-      sors = _subgroups_orbit_representatives_and_stabilizers(Tpinqp, Oqp, ordHp, fqp)
-    end
-    if !isnothing(H)
-      filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
-    end
-    is_empty(sors) && return res
-    push!(list_can, sors)
-  end
-
-  # We gather together: we do a big cartesian product, and we remember to
-  # reconstruct the stabilizer. Since primary parts do not talk to each other,
-  # we concatenate generators on an orthogonal direct sum of q into its primary
-  # parts (as we do for computations of orthogonal groups in the non split
-  # degenerate case)
-  for lis in Hecke.cartesian_product_iterator(list_can)
-    embs = TorQuadModuleMap[l[1] for l in lis]
-    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
-    H2, _, _proj = Hecke._biproduct(domain.(embs))
-    _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
-    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
-    genestab = ZZMatrix[]
-
-    for i in 1:length(ni)
-      nb = sum(ni[1:i-1])
-      na = sum(ni[(i+1):end])
-      Inb = identity_matrix(ZZ, nb)
-      Ina = identity_matrix(ZZ, na)
-      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
-    end
-
-    genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
-    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
-    stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check=false))
-    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
-    push!(res, (H2inq, stab))
-  end
-
   return res
 end
 
@@ -2025,7 +1957,7 @@ function admissible_equivariant_primitive_extensions(
     union!(geneA, geneB)
 
     # We compute the overlattice in this context
-    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B))
+    C2, fC2, _ = _equivariant_overlattice_with_graph(qAinD, qBinD, isometry(A), isometry(B))
     C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
     # If not of the good type, we discard it
@@ -2164,7 +2096,7 @@ function admissible_equivariant_primitive_extensions(
 
       # We compute the overlattice in this context, keeping track whether we
       # work in a fixed ambient quadratic space
-      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B))
+      C2, fC2, extinD = _equivariant_overlattice_with_graph(phig, SAinD, SBinD, isometry(A), isometry(B))
       C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
@@ -2436,7 +2368,7 @@ function _glue_stabilizers(
   actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check=false)) for x in gens(stabM)])
   actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check=false)) for x in gens(stabN)])
 
-  _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N))
+  _, _, graph = _equivariant_overlattice_with_graph(phi, HMinD, HNinD, isometry(M), isometry(N))
   disc, _stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
   qL, fqL = discriminant_group(L)
   OqL = orthogonal_group(qL)
@@ -2461,4 +2393,139 @@ function _glue_stabilizers(
   Mg = integer_lattice_with_isometry(M)
   Nh = integer_lattice_with_isometry(N)
   return _glue_stabilizers(Lf, Mg, Nh; kwargs...)
+end
+
+###############################################################################
+#
+#  To be removed at some point
+#
+###############################################################################
+
+# Compute `O`-orbits of `f`-stable submodules of `ker(mu(f))` which are
+# isometric, as torsion quadratic modules, to `H`. It also computes the
+# stabilizers in `O` of such subgroups. If `H` is not given, then return
+# orbits of stable submodules of order `ordH`.
+#
+# The outputs are given by embeddings of such submodules in `q`.
+#
+# The code splits the computation into primary parts since they are orthogonal
+# to each others.
+function _classes_isomorphic_subgroups(
+    q::TorQuadModule,
+    O::AutomorphismGroup{TorQuadModule},
+    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
+    H::Union{Nothing, TorQuadModule}=nothing,
+    ordH::Union{Nothing, IntegerUnion}=nothing,
+    mu::PolyRingElem=zero(Hecke.Globals.Qx),
+  )
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+
+  if isnothing(H)
+    @assert !isnothing(ordH)
+    @assert ordH > 0
+  else
+    ordH = order(H)
+  end
+
+  !is_divisible_by(order(q), ordH) && return res
+
+  if ordH == 1
+    _, j = sub(q, elem_type(q)[])
+    push!(res, (j, O))
+    return res
+  end
+
+  # Trivial case: we look for subgroups in a given primary part of q
+  ok, e, p = is_prime_power_with_data(ordH)
+  if ok
+    if (e == 1) || (!isnothing(H) && is_elementary(H, p))
+      _, Vinq = _get_V(f, mu, p)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
+    else
+      T, Tinq = kernel(evaluate(mu, f))
+      _, VinT = primary_part(T, p)
+      Vinq = compose(VinT, Tinq)
+      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
+    end
+    if !isnothing(H)
+      filter!(d -> is_isometric_with_isometry(domain(d[1]), H)[1], sors)
+    end
+    return sors
+  end
+
+  # We inspect each primary part of q and look for orbit representatives and
+  # stabilizers of isomorphic subgroups which will be isometric to the given
+  # primary part of H.
+  #
+  # First, we cut q as an orthogonal direct sum of its primary parts
+  pds = sort!(prime_divisors(order(q)))
+  blocks = TorQuadModuleMap[primary_part(q, pds[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
+  for i in 2:length(pds)
+    _f = blocks[end]
+    _, j = has_complement(_f)
+    _T = domain(j)
+    __f = primary_part(_T, pds[i])[2]
+    push!(blocks, compose(__f, j))
+    push!(ni, ngens(domain(__f)))
+  end
+  D, inj, proj = Hecke._biproduct(domain.(blocks))
+  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
+  @hassert :ZZLatWithIsom 1 is_isometry(phi)
+
+  list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
+  # We collect the possible subgroups for each primary part, with the stabilizer
+  for i in 1:length(pds)
+    p = pds[i]
+    qpinq = blocks[i]
+    qp = domain(qpinq)
+    ordHp = p^valuation(ordH, p)
+    if !isnothing(H)
+      T, _ = primary_part(H, p)
+    end
+    Oqp, _ = restrict_automorphism_group(O, qpinq; check=false)
+    fqp = restrict_endomorphism(f, qpinq; check=false)
+    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(T, p))
+      _, j = _get_V(fqp, mu, p)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
+    else
+      _, Tpinqp = kernel(evaluate(mu, fqp))
+      sors = _subgroups_orbit_representatives_and_stabilizers(Tpinqp, Oqp, ordHp, fqp)
+    end
+    if !isnothing(H)
+      filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
+    end
+    is_empty(sors) && return res
+    push!(list_can, sors)
+  end
+
+  # We gather together: we do a big cartesian product, and we remember to
+  # reconstruct the stabilizer. Since primary parts do not talk to each other,
+  # we concatenate generators on an orthogonal direct sum of q into its primary
+  # parts (as we do for computations of orthogonal groups in the non split
+  # degenerate case)
+  for lis in Hecke.cartesian_product_iterator(list_can)
+    embs = TorQuadModuleMap[l[1] for l in lis]
+    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
+    H2, _, _proj = Hecke._biproduct(domain.(embs))
+    _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
+    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
+    genestab = ZZMatrix[]
+
+    for i in 1:length(ni)
+      nb = sum(ni[1:i-1])
+      na = sum(ni[(i+1):end])
+      Inb = identity_matrix(ZZ, nb)
+      Ina = identity_matrix(ZZ, na)
+      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
+    end
+
+    genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
+    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
+    stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check=false))
+    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
+    push!(res, (H2inq, stab))
+  end
+
+  return res
 end

@@ -355,8 +355,12 @@ julia> order(OT)
 ```
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
+  return _orthogonal_group(T, _orthogonal_group_gens(T); check=false)
+end
+
+function _orthogonal_group_gens(T::TorQuadModule)
   if is_trivial(abelian_group(T))
-    return _orthogonal_group(T, ZZMatrix[identity_matrix(ZZ, ngens(T))], check = false)
+    return ZZMatrix[identity_matrix(ZZ, ngens(T))]
   elseif is_semi_regular(T)
     # if T is semi-regular, it is isometric to its normal form for which
     # we know how to compute the isometries.
@@ -366,18 +370,18 @@ julia> order(OT)
     gensON = TorQuadModuleMap[hom(N, N, g) for g in gensON_mat]
     gensOT = TorQuadModuleMap[i * g * j for g in gensON]
     length(gensOT) > 1 ? filter!(!isone∘matrix, gensOT) : nothing
-    return _orthogonal_group(T, gensOT; check=false)
+    return gensOT
   elseif iszero(gram_matrix_quadratic(T))
     # in that case, we don't have any conditions regarding the
     # quadratic form, so we have all automorphisms coming
     # from the underlying abelian group
-    return _orthogonal_group(T, hom.(gens(automorphism_group(abelian_group(T)))); check=false)
+    return hom.(gens(automorphism_group(abelian_group(T))))
   else
     # if T is not semi-regular, we distinghuish the cases whether or not
     # it splits its radical quadratic
     i = radical_quadratic(T)[2]
     gensOT_mat = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
-    return _orthogonal_group(T, gensOT_mat; check=false)
+    return gensOT_mat
   end
 end
 
