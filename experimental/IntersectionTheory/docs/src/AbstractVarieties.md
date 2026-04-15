@@ -99,6 +99,7 @@ abstract_cayley_plane(; base::Ring = QQ)
 ```@docs
 abstract_cayley_grassmannian(; base::Ring = QQ)
 ```
+
 !!! note
     Products and blow-ups are described elsewhere.
 

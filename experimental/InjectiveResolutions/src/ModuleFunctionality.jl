@@ -52,7 +52,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res
 end
