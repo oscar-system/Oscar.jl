@@ -427,7 +427,7 @@ function find_good_basis_heuristically(M::Matroid)
   bs = bases(M)
   cs = circuits(M)
   min_num_vars = length(cs) * rank(M)
-  min_bases = bs[1]
+  min_basis = bs[1]
   for b in bs
     current_num_vars = 0
     for c in cs, e in c
@@ -437,7 +437,7 @@ function find_good_basis_heuristically(M::Matroid)
     end
     if current_num_vars < min_num_vars
       min_num_vars = current_num_vars
-      min_bases = [b]
+      min_basis = [b]
     end
   end
   return min_basis
