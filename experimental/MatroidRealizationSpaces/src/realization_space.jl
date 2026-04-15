@@ -337,7 +337,7 @@ function realization_space(
   if !isnothing(B)
     goodB = sort!(Int.([M.gs2num[j] for j in B]))
   else
-    goodB = first(find_good_bases_heuristically(goodM))
+    goodB = find_good_basis_heuristically(goodM)
   end
   polyR, mat = realization_space_matrix(goodM, goodB, ground_ring)
 
@@ -423,11 +423,11 @@ function realization_space(
 end
 
 # A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated
-function find_good_bases_heuristically(M::Matroid)
+function find_good_basis_heuristically(M::Matroid)
   bs = bases(M)
   cs = circuits(M)
   min_num_vars = length(cs) * rank(M)
-  min_bases = [bs[1]]
+  min_bases = bs[1]
   for b in bs
     current_num_vars = 0
     for c in cs, e in c
@@ -438,11 +438,9 @@ function find_good_bases_heuristically(M::Matroid)
     if current_num_vars < min_num_vars
       min_num_vars = current_num_vars
       min_bases = [b]
-    elseif current_num_vars == min_num_vars
-      push!(min_bases, b)
     end
   end
-  return min_bases
+  return min_basis
 end
 
 # Return the prime divisors of f.
