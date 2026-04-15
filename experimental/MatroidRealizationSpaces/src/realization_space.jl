@@ -437,7 +437,7 @@ function find_good_basis_heuristically(M::Matroid)
     end
     if current_num_vars < min_num_vars
       min_num_vars = current_num_vars
-      min_basis = [b]
+      min_basis = b
     end
   end
   return min_basis
