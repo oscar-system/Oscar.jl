@@ -88,6 +88,33 @@ end
   S = stabilizer(G, m, on_echelon_form_mats)
   @test S[1] == G
   @test S[1] == Oscar._stabilizer_generic(G, m, on_echelon_form_mats)[1]
+
+  # An issue with mismatched OSCAR<->GAP isomorphisms fixed in PR 5150
+  E = Oscar.GAPWrap.E
+  G_gap = Oscar.GAPWrap.Group(GapObj([
+            GapObj([GapObj([1, 0]), GapObj([0, -1])]),
+            GapObj(1//2)*GapObj([
+              GapObj([ E(24) - E(24)^16 + E(24)^19, E(3)^2 ]),
+              GapObj([ -E(3)^2, -E(24) - E(24)^16 - E(24)^19 ])
+            ])
+          ]))
+  G_oscar = Oscar._oscar_group(G_gap)
+  K = base_ring(G_oscar)
+  V = free_module(K, 2)
+  S, _ = stabilizer(G_oscar, [V[1]])
+  @test order(S) == 2
+end
+
+@testset "action on nested objects" begin
+  G = symmetric_group(4)
+  data = [(Set([Set([1, 2]), Set([3, 4])]), on_sets_sets, 3),
+          (Set([(1, 2), (3, 4)]), on_sets_tuples, 12),
+          ((Set([1, 2]), Set([3, 4])), on_tuples_sets, 6)]
+  for (omega, fun, n) in data
+    Omega = gset(G, [omega])
+    @test action_function(Omega) === fun
+    @test length(Omega) == n
+  end
 end
 
 @testset "action on multivariate polynomials: permutations" begin

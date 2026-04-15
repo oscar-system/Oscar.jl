@@ -12,7 +12,7 @@ parent(x::LinearLieAlgebraElem) = x.parent
 
 coefficient_ring(L::LinearLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::LinearLieAlgebra) = L.dim
+vector_space_dim(L::LinearLieAlgebra) = L.dim
 
 @doc raw"""
     matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}

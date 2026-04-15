@@ -7,9 +7,9 @@ using JSONSchema, Oscar.JSON
 if !isdefined(Main, :mrdi_schema)
   schemajson = JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json"))
   # replace remote ref to polymake schema with local copy to avoid network access
-  if schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] == "https://polymake.org/schemas/data.json"
+  if schemajson["\$defs"]["data"]["oneOf"][5]["\$ref"] == "https://polymake.org/schemas/data.json"
     # this needs to be an absolute path
-    schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] = "file://$(joinpath(Oscar.oscardir,"data","polymake.json"))"
+    schemajson["\$defs"]["data"]["oneOf"][5]["\$ref"] = "file://$(joinpath(Oscar.oscardir,"data","polymake.json"))"
   else
     error("mardi schema: please update json-path for polymake schema reference")
   end
@@ -24,6 +24,15 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     save(filename, original; kw...)
     loaded = load(filename; params=params, kw...)
     
+    @test loaded isa T
+    func(loaded)
+
+    # save and load from a file without saving references
+    filename = joinpath(path, "original.json")
+    save(filename, original; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+    @test !any(line -> contains(line, "_refs"), eachline(filename))
+    loaded = load(filename; params=params, serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+
     @test loaded isa T
     func(loaded)
 
@@ -49,6 +58,12 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
     loaded = load(filename; params=params, kw...)
+    @test loaded isa T
+
+    # test passing TypeParams
+    save(filename, original; kw...)
+    Oscar.reset_global_serializer_state()
+    loaded = load(filename; params=Oscar.type_params(original), kw...)
     @test loaded isa T
 
     # test schema

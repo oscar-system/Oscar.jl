@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Partitions
+# [Partitions](@id partitions_chapter)
 
 A **partition** of a non-negative integer $n$ is a decreasing sequence $\lambda_1 \geq \lambda_2\geq \dots \geq \lambda_r$ of positive integers $\lambda_i$ such that $n = \lambda_1 + \dots + \lambda_r$.
 The $\lambda_i$ are called the **parts** of the partition and $r$ is called the **length**.
@@ -13,7 +13,6 @@ General references on partitions are [Ful97](@cite) and [Knu11](@cite), Section 
 A partition can be encoded as an array with elements $\lambda_i$.
 In OSCAR, the parametric type `Partition{T}` is provided which is a subtype of `AbstractVector{T}`.
 Here, `T` can be any subtype of `IntegerUnion`.
-There is no performance impact by using an own type for partitions rather than simply using arrays.
 The parametric type allows to increase performance by using smaller integer types.
 
 ```@docs

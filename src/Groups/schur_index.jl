@@ -188,29 +188,6 @@ function _Riese_Schmid_reduction(chi::GAPGroupClassFunction)
   return (type == "") ? 1 : 2
 end
 
-#TODO: to be replaced in Hecke or so
-"""
-    prime_residues(n::T) where T <: IntegerUnion
-
-Return the `Vector{T}` of all `i` in the range `0:(abs(n)-1)`
-that are coprime to `n`.
-
-# Examples
-```jldoctest
-julia> println(Oscar.prime_residues(20))
-[1, 3, 7, 9, 11, 13, 17, 19]
-
-julia> println(Oscar.prime_residues(0))
-Int64[]
-
-julia> println(Oscar.prime_residues(1))
-[0]
-```
-"""
-function prime_residues(n::T) where T <: IntegerUnion
-  return Vector{T}(GAP.Globals.PrimeResidues(GapObj(n)))
-end
-
 
 #############################################################################
 #
@@ -254,7 +231,7 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
 #T `modord(N, 1)` could return 1 (smallest pos. int. i s.t. 1 divides (N^i-1))
     stab = Int[]
     sigma_p = mod(1 + a*(p-1)*ppart, N)
-    res = ppart == 1 ? [1] : prime_residues(ppart)
+    res = ppart == 1 ? [1] : coprime_residues(ppart)
     for u in res
       for i in 0:(r-1)
         sigma = mod(sigma_p^i * (1 + (u-1)*m*b), N)

@@ -30,9 +30,11 @@ function linear_program(
     throw(ArgumentError("convention must be set to :min or :max."))
   end
   ambDim = ambient_dim(P)
+  cf = coefficient_field(P)
+  objective = cf.(objective)
   size(objective, 1) == ambDim || error("objective has wrong dimension.")
   lp = Polymake.polytope.LinearProgram{_scalar_type_to_polymake(T)}(;
-    LINEAR_OBJECTIVE=homogenize(objective, k)
+    LINEAR_OBJECTIVE=homogenize(cf, objective, k)
   )
   if convention == :max
     Polymake.attach(lp, "convention", "max")
@@ -40,7 +42,7 @@ function linear_program(
     Polymake.attach(lp, "convention", "min")
   end
   Polymake.add(pm_object(P), "LP", lp)
-  LinearProgram{T}(P, lp, convention, coefficient_field(P))
+  LinearProgram{T}(P, lp, convention, cf)
 end
 
 linear_program(

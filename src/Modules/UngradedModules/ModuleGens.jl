@@ -109,6 +109,23 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc raw"""
+    singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+
+Return the generators of `M` in a Singular module over a Singular polynomial ring with the given `ordering`.
+"""
+function singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+  #= TODO: Maybe cache these 'singular_generators' in a Dict with the 'ModuleOrdering' as a key, 
+  like it is the case for 'groebner_basis'? =#
+  @assert M.F === ordering.M
+  SF = singular_module(M.F, ordering)
+  sr = base_ring(SF)
+  if length(M) == 0
+    return Singular.Module(sr, Singular.vector(sr, sr(0)))
+  end
+  return Singular.Module(sr, [SF(x) for x in oscar_generators(M)]...)
+end
+
+@doc raw"""
     singular_ordering(M::ModuleGens)
 
 Return the ordering of `M` from the Singular side.
@@ -234,7 +251,7 @@ Create a Singular module from a given free module.
 """
 function singular_module(F::FreeMod)
   Sx = singular_poly_ring(base_ring(F), keep_ordering=false)
-  return Singular.FreeModule(Sx, dim(F))
+  return Singular.FreeModule(Sx, rank(F))
 end
 
 @doc raw"""
@@ -244,7 +261,7 @@ Create a Singular module from a given free module over the given Singular polyno
 """
 function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
   Sx = singular_poly_ring(base_ring(F), singular(ordering))
-  return Singular.FreeModule(Sx, dim(F))
+  return Singular.FreeModule(Sx, rank(F))
 end
 
 @doc raw"""
@@ -362,11 +379,13 @@ Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])
 If no such `r` exists, an exception is thrown.
 """
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
-  A = get_attribute(generators, :transformation_matrix)
-  A === nothing && error("No transformation matrix in the Gröbner basis.")
-  if iszero(a)
-    return sparse_row(base_ring(parent(a)))
+  iszero(a) && return sparse_row(base_ring(parent(a)))
+  SA = get_attribute!(generators, :sparse_transformation_matrix) do
+    A = get_attribute(generators, :transformation_matrix)
+    A === nothing && error("No transformation matrix in the Gröbner basis.")
+    sparse_matrix(A)
   end
+
   @assert generators.isGB
   if base_ring(generators) isa Union{MPolyQuoRing,MPolyRing}
     if !is_global(generators.ordering)
@@ -384,7 +403,11 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
 
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  result = sparse_row(Rx)
+  for (i, c) in coords_wrt_groebner_basis
+    result = Hecke.add_scaled_row!(SA[i], result, c)
+  end
+  return result #coords_wrt_groebner_basis * SA
 end
 
 @doc raw"""
@@ -456,7 +479,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res
 end
@@ -478,7 +501,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res, [R(1) for _ in 1:ngens(M)]
 end

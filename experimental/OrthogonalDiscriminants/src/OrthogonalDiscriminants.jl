@@ -8,7 +8,7 @@ module OrthogonalDiscriminants
 # the necessary Julia packages
 using Oscar
 using GAP
-using JSON
+import JSON
 
 # as long as the code is in `experimental` ...
 import Oscar.IntegerUnion

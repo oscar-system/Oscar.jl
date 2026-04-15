@@ -57,6 +57,38 @@ function face_fan(P::Polyhedron{T}) where {T<:scalar_types}
 end
 
 ###############################################################################
+## Common refinement
+###############################################################################
+
+@doc raw"""
+    common_refinement(PF1::PolyhedralFan{T},PF2::PolyhedralFan{T}) where T<:scalar_types
+
+Return the common refinement of two polyhedral fans.
+
+# Examples
+```jldoctest
+julia> NF1 = normal_fan(cross_polytope(2)); NF2 = normal_fan(cube(2)); 
+
+julia> C = common_refinement(NF1, NF2)
+Polyhedral fan in ambient dimension 2
+
+julia> length(maximal_cones(C))
+8
+```
+"""
+function common_refinement(
+  PF1::PolyhedralFan{T}, PF2::PolyhedralFan{T}
+) where {T<:scalar_types}
+  U, f = _promote_scalar_field(coefficient_field(PF1), coefficient_field(PF2))
+  pm_PF1 = pm_object(PF1)
+  pm_PF2 = pm_object(PF2)
+  result = Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
+    Polymake.fan.common_refinement(pm_PF1, pm_PF2)
+  )
+  return PolyhedralFan{T}(result, f)
+end
+
+###############################################################################
 ## Star subdivision
 ###############################################################################
 
@@ -405,3 +437,35 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality; non_redundant=true
+  )
+end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+_empty_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(1, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+
+function *(c::scalar_types_extended, Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  is_positive(c) && return Sigma
+  return -Sigma
+end
+*(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma

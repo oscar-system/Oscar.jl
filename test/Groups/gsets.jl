@@ -155,7 +155,8 @@
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   orb = orbit(Omega, [0,1,0,1,0,1])
   @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
-  @test orbits(orb) == [orb]
+  orbs = orbits(orb)
+  @test (length(orbs) == 1) && (orbs[1] === orb)
 
   # permutation
   G = alternating_group(6)
@@ -344,14 +345,27 @@ end
 
 end
 
+@testset "subspaces iterator" begin
+
+  @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
+    V = vector_space(F, n)
+    for k in 0:n
+      itr = @inferred Oscar.bases_of_subspaces(V, k)
+      @test length(itr) == length(@inferred collect(itr))
+    end
+    @test_throws ArgumentError Oscar.bases_of_subspaces(V, n+1)
+  end
+
+end
+
 @testset "orbits of matrix groups over finite fields" begin
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
     V = vector_space(F, n)
-    GL = general_linear_group(n, F)
-    S = sylow_subgroup(GL, 2)[1]
-    for G in [GL, S]
+    gl = general_linear_group(n, F)
+    S = sylow_subgroup(gl, 2)[1]
+    for G in [gl, S]
       for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
@@ -396,7 +410,7 @@ end
 
 @testset "G-sets by right transversals" begin
   G = symmetric_group(5)
-  H = sylow_subgroup(G, 2)[1]
+  H, emb = sylow_subgroup(G, 2)
   Omega = right_cosets(G, H)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Right cosets of groups"
   @test isa(Omega, GSet)
@@ -458,6 +472,16 @@ end
   @test rep[1]
   @test x * rep[2] == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
+
+  # restrict to a subgroup (creates G-sets of a different type)
+  rest = induce(Omega, emb)
+  @test sort!(map(length, orbits(rest))) == [1, 2, 4, 8]
+
+  # a "natural" way to restrict to a subgroup (less general than `induce`,
+  # internally represented in a different way than the `induce` result)
+  rest2 = gset(H, Omega)
+  @test sort!(map(length, orbits(rest2))) == [1, 2, 4, 8]
+  @test_throws ArgumentError gset(symmetric_group(6), Omega)
 end
 
 @testset "General G-set action" begin
@@ -607,4 +631,20 @@ end
   stab2 = stabilizer(Omega2)[1]
   @test order(stab2) == 2
   @test cperm([1,3], [2,4]) in stab2
+end
+
+@testset "required methods for a G-set type" begin
+  # declare a new type of G-sets
+  @attributes mutable struct GSetForTests{T,S} <: GSet{T,S}
+    group::T
+    action_function::Function
+    data::S
+  end
+
+  Omega = GSetForTests(symmetric_group(2), on_tuples, [1, 2], Dict{Symbol, Any}());
+  @test_throws NotImplementedError acting_group(Omega)
+  @test_throws NotImplementedError action_function(Omega)
+  @test_throws NotImplementedError action_homomorphism(Omega)
+  @test_throws NotImplementedError orbit(Omega, 1)
+  @test_throws NotImplementedError Omega == Omega
 end

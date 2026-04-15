@@ -16,6 +16,11 @@ Morphisms of schemes shall be derived from the abstract type
 SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
 ```
 
+## Irreducible components
+```@docs
+irreducible_components(X::Scheme)
+```
+
 ## Change of base
 ```@docs
 base_change(phi::Any, X::Scheme)

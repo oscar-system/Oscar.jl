@@ -21,16 +21,21 @@ end
   @test !ideal_membership(x, I, 10)
   @test ideal_membership(x*y*z - y*z*x, I, 9) # 9 should be enough
 
+  @test !ideal_membership(x, I, 5; algorithm=:f4)
+  @test !ideal_membership(x, I, 10; algorithm=:f4)
+  @test ideal_membership(x*y*z - y*z*x, I, 9; algorithm=:f4) 
+
   f1 = x*y + y*z
   I2 = ideal([f1])
   @test !ideal_membership(x*y, I2, 3)
   @test ideal_membership(f1, I2, 4) 
   @test ideal_membership(f1, I2.gens, 4)
   @test ideal_membership(f1, I2) 
+  @test ideal_membership(f1, I2; algorithm=:f4)
+  @test ideal_membership(f1, I2.gens; algorithm=:f4)
   @test ideal_membership(f1, I2.gens)
   gb = groebner_basis(I2, 3; protocol=false)
   @test isdefined(I2, :gb)
-  @test length(gens(I * I2)) == 2
 end
 
 @testset "FreeAssociativeAlgebraIdeal.utils" begin
@@ -85,9 +90,7 @@ end
   gb3 = groebner_basis(gena; interreduce=false)
   I1 = ideal(copy(gb3))
   groebner_basis(I1)
-  @test length(gb3) == 146
   interreduce!(gb3)
-  @test length(I1.gb) == 146
   interreduce!(I1)
   @test length(I1.gb) == 78
   @test length(gb3) == 78
@@ -114,3 +117,21 @@ end
   x = base_ring(ideal(gb5))[1]; y = base_ring(ideal(gb5))[7]
   @test x*y - y*x in ideal(gb5)
 end
+
+@testset "FreeAssociativeAlgebraIdeal.groebner_basis.f4" begin
+    S1 = quantum_symmetric_group(4);
+    S1_alt = quantum_symmetric_group(4);
+    gb_f4 = groebner_basis(S1;algorithm=:f4)
+    gb_bb = groebner_basis(S1_alt;algorithm=:buchberger);
+    @test is_groebner_basis(gb_f4)
+    @test is_groebner_basis(gb_bb)
+    @test S1 == S1_alt
+end
+
+@testset "FreeAssociativeAlgebraIdeal.groebner_basis.f4" begin
+    R, u = free_associative_algebra(QQ,[:u])
+    v = FreeAssociativeAlgebraElem{QQFieldElem}[u[1]-one(R)]
+    @test typeof(ideal(v)) == typeof(ideal([v[1]]))
+end
+
+

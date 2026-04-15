@@ -90,7 +90,20 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    if is_zero(coordinates(v))
+      v.repres = zero(F)
+    elseif is_one(length(coordinates(v)))
+      (i, a) = first(coordinates(v))
+      v.repres = a*M.sub[i]
+    else
+      rep_coord = sparse_row(R)
+      for (i, a) in coordinates(v)
+        rep_coord = Hecke.add_scaled_row!(coordinates(M.sub[i]), rep_coord, a)
+      end
+      v.repres = FreeModElem(rep_coord, F)
+    end
   end
   return v.repres
 end
@@ -300,12 +313,9 @@ parent(b::SubquoModuleElem) = b.parent
 Given an element `f` of the ambient free module of `M` which represents an element of `M`,
 return the represented element.
 """
-function (M::SubquoModule{T})(f::FreeModElem{T}) where T
-  coords = coordinates(f, M)
-  if coords === nothing
-    error("not in the module")
-  end
-  return SubquoModuleElem(coords, M)
+function (M::SubquoModule{T})(f::FreeModElem{T}; check::Bool=true) where T
+  @check !isnothing(coordinates(f, M)) "free module element does not represent an element in the subquotient"
+  return SubquoModuleElem(f, M)
 end
 
 @doc raw"""
@@ -422,10 +432,12 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
+  a === b && return true
+  repres(a) == repres(b) && return true
   return iszero(a-b)
 end
 
-function Base.hash(a::SubquoModuleElem)
+function Base.hash(a::SubquoModuleElem, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)
@@ -912,7 +924,7 @@ Return the generators of `M`.
 function gens(M::SubquoModule{T}) where T
   R = base_ring(M)
   e = R(1)
-  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
+  return [SubquoModuleElem{T}(sparse_row(R, [(i, e)]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -922,7 +934,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v = sparse_row(R, [i], [R(1)])
+  v = sparse_row(R, [(i, R(1))])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -949,40 +961,7 @@ Return the zero element of `M`.
 """
 zero(M::SubquoModule) = SubquoModuleElem(sparse_row(base_ring(M)), M)
 
-@doc raw"""
-    is_zero(M::SubquoModule)
-
-Return `true` if `M` is the zero module, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> A = R[x^2+y^2;]
-[x^2 + y^2]
-
-julia> B = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Subquotient of submodule with 1 generator
-  1: (x^2 + y^2)*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M)
-false
-```
-"""
-function is_zero(M::SubquoModule)
+@attr Bool function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
@@ -997,7 +976,7 @@ Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
-  @assert dim(parent(a)) == length(b)
+  @assert rank(parent(a)) == length(b)
   s = zero(parent(a))
   for (p,v) in coordinates(a)
     s += v*b[p]
@@ -1005,76 +984,6 @@ function *(a::FreeModElem, b::Vector{FreeModElem})
   return s
 end
 
-@doc raw"""
-    is_zero(m::SubquoModuleElem)
-
-Return `true` if `m` is zero, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> A = R[x; y]
-[x]
-[y]
-
-julia> B = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Subquotient of submodule with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M[1])
-false
-
-julia> is_zero(x*M[1])
-true
-```
-
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> F = graded_free_module(Rg, 1)
-Graded free module Rg^1([0]) of rank 1 over Rg
-
-julia> A = Rg[x; y]
-[x]
-[y]
-
-julia> B = Rg[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, A, B)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by graded submodule of F with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_zero(M[1])
-false
-
-julia> is_zero(x*M[1])
-true
-
-```
-"""
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
   m.is_reduced && return false
@@ -1092,5 +1001,3 @@ function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRing
   x = reduce(repres(m), C.quo)
   return iszero(x)
 end
-
-

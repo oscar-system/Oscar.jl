@@ -10,6 +10,12 @@
       @test degree(C) == 6
 
       @test C == plane_curve(2 * F)
+      
+      P2 = projective_space(QQ,2)
+      (s0,s1,s2) = homogeneous_coordinates(P2)
+      @inferred plane_curve(ideal([s0]))
+
+
   end
 
   @testset "reducible functions" begin

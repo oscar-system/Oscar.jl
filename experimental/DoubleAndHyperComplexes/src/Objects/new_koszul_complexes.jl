@@ -81,7 +81,7 @@ end
     map_fac = HomogKoszulComplexMapFactory(R)
 
     # Assuming d is the dimension of the new complex
-    internal_complex = HyperComplex(1, chain_fac, map_fac, [:cochain],
+    internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
                                     upper_bounds=Union{Int, Nothing}[length(seq)],
                                     lower_bounds=Union{Int, Nothing}[0]
                                    )
@@ -92,3 +92,8 @@ end
 
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::HomogKoszulComplex) = c.internal_complex
+
+# additional getters
+ring(c::HomogKoszulComplex) = chain_factory(c).S
+sequence(c::HomogKoszulComplex) = chain_factory(c).seq
+ngens(c::HomogKoszulComplex) = length(sequence(c))

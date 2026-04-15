@@ -1,3 +1,72 @@
+Oscar.@_AuxDocTest "show and print fp group elements", (fix = false),
+raw"""
+common setup
+
+```jldoctest FPGroupElem.show
+julia> using Oscar
+
+julia> F = free_group('a':'z');
+
+julia> long_word = prod(gens(F))*prod(inv.(gens(F)));
+```
+
+default `show` without unicode
+
+```jldoctest FPGroupElem.show
+julia> old = allow_unicode(false; temporary=true);
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^...
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^...
+
+julia> allow_unicode(old; temporary=true);
+```
+
+default `show` with unicode
+
+```jldoctest FPGroupElem.show
+julia> old = allow_unicode(true; temporary=true);
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(stdout, MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1*f^-1*g^-1*h^-1*i^-1*j^-1*k^-1*l^-1*m^-1*n^-1*o^-1*p^-1*q^-1*r^-1*s^-1*t^-1*u^-1*v^-1*w^-1*x^-1*y^-1*z^-1
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1…
+
+julia> withenv("LINES" => 30, "COLUMNS" => 80) do
+         show(IOContext(stdout, :limit => true), MIME("text/plain"), long_word)
+       end
+a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*a^-1*b^-1*c^-1*d^-1*e^-1…
+
+julia> allow_unicode(old; temporary=true);
+```
+"""
+
 @testset "Permutations" begin
   for n = 10:13
     G=symmetric_group(n)
@@ -51,6 +120,12 @@
   @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
 
+  @test x==perm(6, [2,3,4,5,6,1])
+  @test_throws ArgumentError perm(4, [2,3,4,5,6,1])  # invalid: n too small
+  @test_throws ArgumentError perm(6, [2,3,4,5,6,7])  # invalid: entry 7 is too large
+  @test_throws ArgumentError perm(7, [2,3,4,5,6,7])  # invalid: nothing mapped to 1
+  @test_throws ArgumentError perm(4, [2,3,4,5,1,1])  # invalid: duplicate entries / nothing mapped to 6
+
   G=alternating_group(6)
   @test_throws ArgumentError cperm(G, [1,2])
   @test cperm(G, [1,2],[3,4]) == perm(G,[2,1,4,3,5,6])
@@ -99,7 +174,7 @@ end
    @test eltype(PermGroup)==PermGroupElem
    @test eltype(PcGroup)==PcGroupElem
    @test eltype(FPGroup)==FPGroupElem
-   @test eltype(GL(2,3))==MatrixGroupElem{elem_type(typeof(GF(2))),dense_matrix_type(GF(2))}
+   @test eltype(GL(2,3))==MatGroupElem{elem_type(typeof(GF(2))),dense_matrix_type(GF(2))}
    @test eltype(DirectProductGroup)==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}
@@ -170,7 +245,8 @@ end
 
 @testset "compatibility of parents" begin
    G = symmetric_group(4)
-   g = symmetric_group(3); a = automorphism_group(g)
+   g = symmetric_group(3)
+   a = automorphism_group(g)
    L = [G,
         automorphism_group(alternating_group(4)),
         general_linear_group(2, 3),

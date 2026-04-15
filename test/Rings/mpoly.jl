@@ -79,7 +79,7 @@ end
   J = ideal(R, [x*y^2, x^2])
   S = ideal(R, [x^2, y^2, x*y^2])
   P = ideal(R, [x^3*y^2, x^4, x*y^4, x^2*y^2])
-  @test Oscar.check_base_rings(I, J) === nothing
+  @test AbstractAlgebra.check_base_ring(I, J)
   @test I+J == I-J == S
   @test I*J == P
   @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
@@ -109,7 +109,7 @@ end
   I = [f, g]
   S, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
-  @test_throws ErrorException Oscar.check_base_rings(P, J)
+  @test_throws ErrorException AbstractAlgebra.check_base_ring(P, J)
   r1 = c^2-b
   r2 = b^2*c+c^3+2*c^2+2
   L = gens(radical(J))
@@ -347,6 +347,8 @@ end
    R, (x0, x1, x2) = polynomial_ring(QQ, [:x0, :x1, :x2])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
+   h = Oscar.IdealGens([x0*x1,x2])
+   @test h == g
    @test elements(g) == [x0*x1, x2]
    @test g.isGB == false
    @test isdefined(g, :ord) == false
@@ -596,7 +598,7 @@ end
   ambient_dimension = 4
   I = flag_pluecker_ideal(dimension_vector, ambient_dimension)
   R = base_ring(I)
-  @test dim(R) == 6
+  @test krull_dim(R) == 6
   x = gens(R)
   f1 = -x[1]*x[5]+x[2]*x[4]-x[3]*x[6] 
   @test [f1] == gens(I)
@@ -693,5 +695,25 @@ end
   @test Oscar.is_known(is_principal, I3) # result is cached
 end
 
+@testset "issue 5175" begin
+  R,(x,y) = polynomial_ring(ZZ,2)
+  I = ideal(R,[y,2*x-1])
+  @test !is_one(radical(I))
+end
+
+@testset "puiseux expansion" begin
+  R, (x, y) = QQ[:x, :y]
+  f = y^3 + x^2 + x^8
+  h = puiseux_expansion(f, 15)
+  @test all(is_zero(evaluate(f, [gen(parent(h)), h])) for h in h)
+
+  g = f + y^7
+  hg = puiseux_expansion(g, 20)
+  @test_throws ErrorException h + hg # no parent compatibility 
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
   
-  
+  g = y^4 + x^2 + x^8
+  hg = puiseux_expansion(g, 20)
+  @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
+end
+

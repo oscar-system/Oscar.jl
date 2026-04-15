@@ -65,27 +65,25 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   # Set the variable names for printing
   orig_symb = String.(symbols(F))
-  new_symb = Symbol[]
   if iszero(p)
-    new_symb = [Symbol("1")]
+    result.S = [Symbol("1")]
   else
-    for ind in combinations(n, p)
-      symb_str = orig_symb[ind[1]]
-      for i in 2:p
-        symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
+    result.S = function _get_koszul_symbols()
+      new_symb = Symbol[]
+      for ind in combinations(n, p)
+        symb_str = orig_symb[ind[1]]
+        for i in 2:p
+          symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
+        end
+        push!(new_symb, Symbol(symb_str))
       end
-      push!(new_symb, Symbol(symb_str))
+      return new_symb
     end
   end
-  result.S = new_symb
 
   set_attribute!(result, :show => show_exterior_product)
 
   return result, mult_map
-end
-
-function symbols(F::FreeMod)
-  return F.S
 end
 
 
@@ -148,7 +146,7 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
     phi = wedge_multiplication_map(exterior_power(F, n-1)[1], exterior_power(F, n, cached=cached)[1], v)
     K = chain_complex([phi], check=false)
     KM = tensor_product(K, M)
-    return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
+    return first(cokernel(map(K, 1)))
   end
 
   ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]

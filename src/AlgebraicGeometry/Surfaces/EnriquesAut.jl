@@ -74,7 +74,7 @@ mutable struct EnriquesBorcherdsCtx
   imgs_mod2::Set{FqMatrix}
   # w.r.t the basis given by Dplus
   Gplus
-  Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
+  Gplus_mat::MatGroup{FqFieldElem, FqMatrix}
   volume_index::ZZRingElem
   orderGbar::ZZRingElem
 
@@ -595,7 +595,7 @@ Return the ``(\tau,\overline{\tau})``-generic Enriques surface of number ``n`` a
 function generic_enriques_surface(n::Int)
   @req 1<=n<=184 "n must be a number between 1 and 184"
   @req n!=88 && n!=146  "Entries 88 and 146 cannot be constructed. See Remark 1.16 of [BS22](@cite)"
-  SY, SX, L26, w, u = load(joinpath(oscardir, "data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
+  SY, SX, L26, w, u = load(joinpath(oscardir, "data", "TauTaubarGenericEnriquesSurfaces", "TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
   Y = EnriquesBorcherdsCtx(SY, SX, L26, w; check=false)
 end
 
@@ -668,7 +668,7 @@ julia> length(isotropic_rays(D))
 ```
 
 The ``\mathrm{Aut}(Y)``-orbits of the rational curves split as ``2+2+2+2+4``.
-```jldoctest EnriquesAut
+```jldoctest EnriquesAut; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> [length(i) for i in orbits(rational_curvesY)]
 5-element Vector{Int64}:
  2
@@ -707,7 +707,7 @@ true
 function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   S = Y.SY
   # for G-sets
-  F = FreeModule(ZZ,rank(S), cached=false)
+  F = free_module(ZZ, rank(S), cached=false)
   # initialization
   n = rank(S)
   D = EnriquesChamber(Y, identity_matrix(ZZ, n), zero_matrix(ZZ, 1, n))

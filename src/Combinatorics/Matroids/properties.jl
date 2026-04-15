@@ -34,7 +34,7 @@ julia> length(fano_matroid())
 7
 ```
 """
-length(M::Matroid) = length(M.groundset)
+length(M::Matroid) = length(M.groundset)::Int
 
 
 @doc raw"""
@@ -53,9 +53,9 @@ julia> bases(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
-bases(M::Matroid) = _indices_to_gs(bases(Int, M), M.groundset)
+bases(M::Matroid{T}) where T = _indices_to_gs(bases(Int, M), M.groundset)::Vector{Vector{T}}
 
-bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)
+bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)::Vector{Vector{Int}}
 
 @doc raw"""
     nonbases(M::Matroid)
@@ -75,10 +75,9 @@ julia> nonbases(fano_matroid())
  [3, 5, 6]
 ```
 """
-nonbases(M::Matroid) = _indices_to_gs(nonbases(Int, M), M.groundset)
+nonbases(M::Matroid{T}) where T = _indices_to_gs(nonbases(Int, M), M.groundset)::Vector{Vector{T}}
 
-nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)
-
+nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)::Vector{Vector{Int}}
 
 @doc raw"""
     circuits(M::Matroid)
@@ -95,7 +94,9 @@ julia> circuits(uniform_matroid(2, 4))
  [2, 3, 4]
 ```
 """
-circuits(M::Matroid) = _property_to_gs(M, :CIRCUITS)
+circuits(M::Matroid{T}) where T = _property_to_gs(M, :CIRCUITS)::Vector{Vector{T}}
+
+circuits(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).CIRCUITS)::Vector{Vector{Int}}
 
 @doc raw"""
     hyperplanes(M::Matroid)
@@ -115,7 +116,7 @@ julia> hyperplanes(fano_matroid())
  [1, 2, 3]
 ```
 """
-hyperplanes(M::Matroid) = _property_to_gs(M, :MATROID_HYPERPLANES)
+hyperplanes(M::Matroid{T}) where T = _property_to_gs(M, :MATROID_HYPERPLANES)::Vector{Vector{T}}
 
 @doc raw"""
     flats(M::Matroid, [r::Int])
@@ -161,7 +162,7 @@ julia> flats(M, 2)
 """
 flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
 
-function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
+function flats_impl(M::Matroid{T}, r::Union{Int,Nothing}, num_flats::Int, pm_flats) where T
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
     if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
@@ -173,9 +174,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         end
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
-    gs = matroid_groundset(M)
-    elt = eltype(gs)
-    matroid_flats = Vector{Vector{elt}}(matroid_flats)
+    matroid_flats = Vector{Vector{T}}(matroid_flats)
     return matroid_flats
 end
 
@@ -218,7 +217,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid{T}, r::Union{Int,Nothing}=nothing) where T = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
@@ -276,6 +275,11 @@ function rank(M::Matroid, set::GroundsetType)
     else
         return Polymake.matroid.rank(pm_object(M), _gs_to_pmindices(set, M.gs2num; type=Set))::Int
     end
+end
+
+function rank(::Type{Int}, M::Matroid, set::Vector{Int})
+    isempty(set) && return 0
+    return Polymake.matroid.rank(pm_object(M), Polymake.to_zero_based_indexing(Set(set)))::Int
 end
 
 @doc raw"""
@@ -584,6 +588,61 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
+    is_transversal_with_presentation([::Type{Int},] M::Matroid)
+
+If `M` is transversal, return `true` and a transversal presentation.  Otherwise, return `false` and an empty vector.
+If `Int` is passed as a first argument then the return value will contain indices instead of ground set elements.
+
+# Examples
+```jldoctest
+julia> M = uniform_matroid(2,4);
+
+julia> is_transversal_with_presentation(M)
+(true, [[1, 2, 3, 4], [1, 2, 3, 4]])
+
+julia> M = fano_matroid();
+
+julia> is_transversal_with_presentation(M)
+(false, Vector{Int64}[])
+
+```
+"""
+function is_transversal_with_presentation(::Type{Int}, M::Matroid)
+    polymakeReturn = Polymake.matroid.check_transversality(pm_object(M))
+    if polymakeReturn == false
+        return false, Vector{Int}[]
+    else
+        return true, _pmset_to_indices(polymakeReturn)::Vector{Vector{Int}}
+    end
+end
+
+function is_transversal_with_presentation(M::Matroid{T}) where T
+  res, indices = is_transversal_with_presentation(Int, M)
+  return res, _indices_to_gs(indices, M.groundset)::Vector{Vector{T}}
+end
+
+@doc raw"""
+    is_transversal(M::Matroid)
+
+Return `true` if `M` is transversal, return `false` otherwise.
+
+For a transversal presentation, see [`is_transversal_with_presentation(::Type{Int},::Matroid)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_transversal(uniform_matroid(2,4))
+true
+
+julia> is_transversal(fano_matroid())
+false
+```
+"""
+function is_transversal(M::Matroid)
+    return is_transversal_with_presentation(Int, M)[1]
+end
+
+
+@doc raw"""
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
@@ -598,7 +657,7 @@ julia> n_connected_components(uniform_matroid(3, 3))
 3
 ```
 """
-n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
+n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)::Int
 
 @doc raw"""
     connected_components(M::Matroid)
@@ -619,7 +678,7 @@ julia> connected_components(uniform_matroid(3, 3))
  [3]
 ```
 """
-connected_components(M::Matroid) = _property_to_gs(M, :CONNECTED_COMPONENTS)
+connected_components(M::Matroid{T}) where T = _property_to_gs(M, :CONNECTED_COMPONENTS)::Vector{Vector{T}}
 
 @doc raw"""
     is_connected(M::Matroid)
@@ -654,7 +713,7 @@ julia> loops(fano_matroid())
 Int64[]
 ```
 """
-loops(M::Matroid) = _property_to_gs(M, :LOOPS)
+loops(M::Matroid{T}) where T = _property_to_gs(M, :LOOPS)::Vector{T}
 
 @doc raw"""
     coloops(M::Matroid)
@@ -672,7 +731,7 @@ julia> coloops(fano_matroid())
 Int64[]
 ```
 """
-coloops(M::Matroid) = _property_to_gs(M, Symbol("DUAL.LOOPS"))
+coloops(M::Matroid{T}) where T = _property_to_gs(M, Symbol("DUAL.LOOPS"))::Vector{T}
 
 @doc raw"""
     is_loopless(M::Matroid)
@@ -849,7 +908,7 @@ julia> girth(fano_matroid(), [1,2,3,4])
 
 ```
 """
-girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
+girth(M::Matroid, set::GroundsetType=M.groundset) = minimum(issubset(C,set) ? length(C) : inf for C in circuits(M); init=inf)
 
 @doc raw"""
     tutte_connectivity(M::Matroid)
@@ -871,16 +930,16 @@ function tutte_connectivity(M::Matroid)
     r = rank(M)
     n = length(M)
     #if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
-    if pm_object(M).N_BASES==binomial(n,r)
+    if pm_object(M).N_BASES::Int == binomial(n,r)
         if n>=2r+2 
             return r+1 
         elseif n<=2r-2 
-            n-r+1
+            return n-r+1
         else
             return inf
         end
     end
-    return minimum([vertical_connectivity(M),girth(M)])
+    return min(vertical_connectivity(M), girth(M))
 end
 
 @doc raw"""
@@ -902,8 +961,10 @@ function tutte_polynomial(M::Matroid;
            parent::ZZMPolyRing = polynomial_ring(ZZ, [:x, :y]; cached = false)[1])
   @assert ngens(parent) >= 2
   poly = pm_object(M).TUTTE_POLYNOMIAL
+  coeffs = Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly))
   exp = Polymake.monomials_as_matrix(poly)
-  return parent(Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
+  ev = [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]]::Vector{Vector{Int}}
+  return parent(coeffs, ev)
 end
 
 tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
@@ -926,7 +987,7 @@ q^3 - 7*q^2 + 14*q - 8
 """
 function characteristic_polynomial(M::Matroid;
            parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
-  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)
+  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)::ZZPolyRingElem
 end
 
 characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)
@@ -1195,3 +1256,79 @@ end
 function indicator_vector(S::Vector{Int}, n::Int)
     return map(x -> x in S ? 1 : 0 , 1:n)
 end
+
+@doc raw"""
+    bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+
+The Bergman fan of the matroid `M`. The desired fan structure is specified by `fan_structure`, 
+which can be `:fine`, `:coarse` (the two structures discussed in [AK06](@cite)) or `:cyclic` 
+(as defined in [Rin13](@cite)). Convention `min` or `max` can be chosen using the optional argument 
+`convention`, where `min` agrees with the aforecited papers. 
+
+!!! note
+    Via the conventions in the above sources, the output always has a lineality dimension of at least 1.
+
+# Examples
+The Bergman fan of the complete graph on $n$ vertices is the space of phylogenetic trees, its coarse
+fan structure has $(2n-3)!!=(2n-3)\cdot(2n-5)\cdots 3\cdot 1$ maximal cones.
+```jldoctest
+julia> M = cycle_matroid(complete_graph(5))
+Matroid of rank 4 on 10 elements
+
+julia> F = bergman_fan(M)
+Polyhedral fan in ambient dimension 10
+
+julia> n_maximal_cones(F)
+105
+```
+"""
+function bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+    @req fan_structure in [:fine, :cyclic, :coarse] "fan structure '$(fan_structure)' is not supported"
+    
+    if rank(M) == 0
+        pt = cone(zeros(QQFieldElem, length(M)))
+        return polyhedral_fan(pt)
+    end
+    
+    if fan_structure == :fine
+        pmTC = Polymake.tropical.matroid_fan_from_flats{convention}(pm_object(M))
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
+        
+    elseif fan_structure == :cyclic
+        pmTC = Polymake.tropical.matroid_fan{convention}(pm_object(M))
+        
+        i = findfirst(==([1; zeros(length(M))]), eachrow(pmTC.VERTICES))  # index of polymake's extra ray
+        IM = pmTC.MAXIMAL_POLYTOPES[:, [1:i-1; i+1:end]]  
+        R = eachrow(pmTC.VERTICES[[1:i-1; i+1:end], 2:end])  
+        return polyhedral_fan(IM, R, [fill(1, length(M))])
+        
+    elseif fan_structure == :coarse
+        P = matroid_base_polytope(M)
+    
+        FP = face_poset(P) 
+        DF = Polymake.graph.dual_faces(pm_object(FP))  # face-facet incidence
+        elems = elements_of_rank(FP, length(M) - rank(M) + 1)
+        
+        V = vertices(P)
+        FF = normal_vector.(facets(P))
+        
+        IM = Vector{Int64}[]
+        for pe in elems
+            verts = V[data(pe)]
+            # initial matroid from vertices
+            inM = matroid_from_bases([findall(isone, v) for v in verts], length(M); check=false)
+            if is_loopless(inM)
+                push!(IM, Vector(Polymake.to_one_based_indexing(DF[node_id(pe)])))
+            end
+        end
+                        
+        NS = normal_vector.(affine_hull(P))
+        return polyhedral_fan(IncidenceMatrix(IM), -convention(1, -1)*FF, NS)
+    end
+end
+        
+        

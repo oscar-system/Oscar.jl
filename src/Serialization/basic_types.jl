@@ -1,3 +1,17 @@
+################################################################################
+# Nothing
+@register_serialization_type Nothing 
+
+
+function save_object(s::SerializerState, ::Nothing)
+  save_data_json(s, JSON.json(nothing))
+end
+
+function load_object(s::DeserializerState, ::Type{Nothing})
+  return nothing
+end
+################################################################################
+  
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
   save_data_basic(s, x)
 end
@@ -6,17 +20,12 @@ end
 # Bool
 @register_serialization_type Bool 
 
-function load_object(s::DeserializerState, ::Type{Bool}, str::String)
-  if str == "true"
-    return true
+function load_object(s::DeserializerState, ::Type{Bool})
+  load_node(s) do val
+    return val::Bool
   end
-
-  if str == "false"
-    return false
-  end
-
-  error("Error parsing boolean string: $str")
 end
+
 
 ################################################################################
 # ZZRingElem

@@ -40,7 +40,7 @@
     "model_data": {
         "base_dim": 2,
         "defining_classes": ["b"],
-        "model_sections": ["b", "c0", "c1", "c2", "c3"],
+        "tunable_sections": ["b", "c0", "c1", "c2", "c3"],
         "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [
             [0, 4, 3, 2, 1],
             [1, -2, -1, 0, 1]

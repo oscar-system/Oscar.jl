@@ -249,13 +249,11 @@ function prime_ideal(S::MPolyComplementOfKPointIdeal)
     m = ideal(R, [x[i]-a for (i, a) in enumerate(point_coordinates(S))])
     set_attribute!(m, :is_prime=>true)
     kk isa Field && set_attribute!(m, :is_maximal=>true)
-    set_attribute!(m, :dim=>dim(coefficient_ring(ring(S))))
+    set_attribute!(m, :krull_dim=>krull_dim(coefficient_ring(ring(S))))
     S.m = m
   end
   return S.m
 end
-
-dim(kk::Field) = 0
 
 maximal_ideal(S::MPolyComplementOfKPointIdeal{<:Field}) = prime_ideal(S)
 
@@ -286,6 +284,11 @@ complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdea
 
 Given a prime ideal ``P`` of a multivariate polynomial ring ``R``, say,
 return the multiplicatively closed subset ``R\setminus P.``
+
+Note that for other rings such as quotients and/or localizations of multivariate polynomial 
+rings `complement_of_prime_ideal` will return a multiplicative set in the 
+underlying polynomial ring. This is due to our choice to keep localizations "flat" 
+and to always localize from the top-level polynomial ring. 
 
 !!! note
     If  `check` is set to `true` (default), the function checks whether ``P`` is indeed a prime ideal. 
@@ -546,26 +549,26 @@ function issubset(
 end
 
 function issubset(
-    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
-    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  R = ring(T)
-  R == ring(U) || error("multiplicative sets do not belong to the same ring")
-  a = point_coordinates(T)
-  for i in 1:length(a)
-    (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
-  end
-  return true
-end
-
-function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   R = ring(T)
   R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
-  for f in gens(prime_ideal(T))
+  for i in 1:length(a)
+    (gen(R, i) - R(a[i])) in prime_ideal(T) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(T)
+  for f in gens(prime_ideal(U))
     iszero(evaluate(f, a)) || return false
   end
   return true
@@ -904,6 +907,7 @@ inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
+gen(W::MPolyLocRing, i::Int) = W(gen(base_ring(W), i))
 number_of_generators(W::MPolyLocRing) = number_of_generators(base_ring(W))
 
 ### required extension of the localization function
@@ -963,7 +967,7 @@ function localization(
     W::MPolyLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  issubset(S, inverted_set(W)) && return W, identity_map(W)
+  issubset(S, inverted_set(W)) && return W, id_hom(W)
   U = S*inverted_set(W)
   L, _ = localization(U)
   #return L, MapFromFunc(W, L, (x->(L(numerator(x), denominator(x), check=false))))
@@ -1281,6 +1285,8 @@ is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BR
   back_shift = hom(R, R, gens(R)-R.(a), check=false)
   return shift, back_shift
 end
+
+is_noetherian(W::MPolyLocRing) = is_noetherian(base_ring(W)) || throw(NotImplementedError(:is_noetherian, W))
 
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
@@ -1927,24 +1933,6 @@ function ideal(
   return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
-### additional functionality
-function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
-  for g in gens(I)
-    g in J || return false
-  end
-  return true
-end
-
-function ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  I === J && return true
-  (issubset(I, J) && issubset(J, I))
-end
-
-function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
-  return ideal(base_ring(I), vcat(gens(I), gens(J)))
-end
-
 # TODO: The following method can probably be fine tuned for specific localizations.
 function intersect(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return base_ring(I)(intersect(pre_saturated_ideal(I), pre_saturated_ideal(J)))
@@ -2042,6 +2030,7 @@ function coordinates(
   end
 
   if numerator(a) in pre_saturated_ideal(I) 
+    T = pre_saturation_data(I)
     return transpose(T * transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))))
   end
 
@@ -2472,8 +2461,8 @@ defined by
 restricted_map(PHI::MPolyLocalizedRingHom) = PHI.res
 
 ### implementing the Oscar map interface
-function identity_map(W::T) where {T<:MPolyLocRing} 
-  MPolyLocalizedRingHom(W, W, identity_map(base_ring(W)), check=false)
+function id_hom(W::T) where {T<:MPolyLocRing} 
+  MPolyLocalizedRingHom(W, W, id_hom(base_ring(W)), check=false)
 end
 
 function compose(
@@ -2652,21 +2641,22 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
-  return dim(saturated_ideal(I))
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
+  return krull_dim(saturated_ideal(I))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
-  return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+  return krull_dim(saturated_ideal(I)) - krull_dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
-@attr Union{Int, NegInf} function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+@attr Union{Int, NegInf} function krull_dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
-  return dim(leading_ideal(J, ordering=oo))
+  return krull_dim(leading_ideal(J, ordering=oo))
 end
 
+dim(I::MPolyLocalizedIdeal) = krull_dim(I)
 
 ################################################################################
 #
@@ -2725,7 +2715,7 @@ julia> minimal_generating_set(I)
     # use available gb for shifted ideal is available
     G = first(values(I_shift.gb))
     is_local(G.ord) || error("inconsistent data: local ring, but global ordering for I_shift")
-    G.gens.S.isGB = true
+    G.gensBiPolyArray.S.isGB = true
     _, I_shift_min = Singular.mstd(singular_generators(G, G.ord))
   else
 
@@ -2797,7 +2787,32 @@ small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
   filter(!iszero, I_min)
 end
 
-dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyLocRing) = krull_dim(R)
+
+function krull_dim(R::MPolyLocRing)
+  error("Not implemented")
+end
+
+function krull_dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
+  return krull_dim(base_ring(R)) - krull_dim(prime_ideal(inverted_set(R)))
+end
+
+@attr Union{Int, NegInf} function krull_dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
+  # Zariski open subset of A^n
+  return krull_dim(base_ring(R))
+end
+
+@attr Union{Int, NegInf} function krull_dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
+  P = prime_ideal(inverted_set(R))
+  return codim(P)
+end
+
+@attr Union{Int, NegInf} function krull_dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
+  # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
+  # because all maximal ideals have the same dimension in this case. 
+  return krull_dim(base_ring(R))
+end
+
 
 ########################################################################
 # Localizations of graded rings                                        #
@@ -2840,4 +2855,16 @@ function Oscar.localization(R::MPolyRing{S}, m::MPolyIdeal) where S
 end
 
 complement_of_point_ideal(m::MPolyIdeal) = complement_of_point_ideal(base_ring(m), rational_point_coordinates(m))
+
+function is_local(
+    R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
+
+function is_known(::typeof(is_local), 
+    ::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, MST}
+  ) where {MST <: Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}
+  return true
+end
 

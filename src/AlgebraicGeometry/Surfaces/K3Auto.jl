@@ -155,7 +155,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
 
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual,-1), 2, ZZRingElem)
+  sv = short_vectors(Rdual, 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
@@ -164,7 +164,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   gramL = change_base_ring(ZZ,gram_matrix(L))
   gramS = change_base_ring(ZZ,gram_matrix(S))
-  deltaR = [change_base_ring(ZZ, matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(rescale(R,-1),2)]
+  deltaR = [change_base_ring(ZZ, matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(R, 2)]
   dualDeltaR = [gramL*transpose(r) for r in deltaR]
   BCtx = BorcherdsCtx(L, S, weyl, SS, R, deltaR, dualDeltaR, prRdelta, membership_test,
                       gramL, gramS, prS, compute_OR)
@@ -232,7 +232,7 @@ Return the ``L|S``-chamber with the given Weyl vector.
 The lattices ``L`` and ``S`` are stored in `data`.
 Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check=true)
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check::Bool=true)
   if check
     @req _is_weyl_vector(data.gramL, weyl_vector) "not a weyl vector"
   end
@@ -262,7 +262,7 @@ function _is_weyl_vector(gram_matrix::ZZMatrix, weyl_vector::ZZMatrix)
   return true
 end
 
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check=true)
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check::Bool=true)
   if check
     @req _is_weyl_vector(data.gramL, weyl_vector)  "not a weyl vector"
   end
@@ -851,7 +851,7 @@ end
 
 function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatrixElem)
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual, -1), 2, ZZRingElem)
+  sv = short_vectors(Rdual, 2, ZZRingElem)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
@@ -1318,7 +1318,8 @@ The output is represented with respect to  the basis of `S`.
 
 Note that under our genericity assumptions the kernel of $f$ is of order at most $2$
 and it is equal to $2$ if and only if $S$ is $2$-elementary.
-If an ample class is given, then the generators returned preserve it.
+If an ample class is given, then the generators returned preserve the Weyl chamber
+which contains it. 
 
 This kind of computation can be very expensive. To print progress information
 use `set_verbosity_level(:K3Auto, 2)` or higher.
@@ -1334,17 +1335,17 @@ end
 
 function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix, n::Int=26)
   ample_classS = solve(basis_matrix(S), ample_class; side = :left)
-  L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
+  L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_classS)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
 end
 
 K3_surface_automorphism_group(S::ZZLat, ample_class::Vector{QQFieldElem}) = K3_surface_automorphism_group(S, matrix(QQ, 1, degree(S), ample_class))
 
 
-function borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(S::ZZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1, not_virtually_abelian_abort::Bool=false)
   @req n in [10,18,26] "n(=$(n)) must be one of 10,18 or 26"
   L, S, weyl = borcherds_method_preprocessing(S, n)
-  return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
+  return borcherds_method(L, S, weyl; compute_OR=compute_OR, entropy_abort=entropy_abort, max_nchambers=max_nchambers, not_virtually_abelian_abort)
 end
 
 @doc raw"""
@@ -1361,12 +1362,12 @@ Compute the symmetry group of a Weyl chamber up to finite index.
 - `max_nchambers`: break the computation after `max_nchambers` are found;
 - `entropy_abort` abort if an automorphism of positive entropy is found.
 """
-function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
+function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1, not_virtually_abelian_abort=false)
   data,_ = BorcherdsCtx(L, S, w; compute_OR=compute_OR)
-  return borcherds_method(data, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
+  return borcherds_method(data; entropy_abort, max_nchambers, not_virtually_abelian_abort)
 end
 
-function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers=-1)
+function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool=false, max_nchambers=-1, not_virtually_abelian_abort::Bool=false)
   S = data.S
   # for G-sets
   F = free_module(ZZ,rank(S))
@@ -1414,6 +1415,10 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
               return data, automorphisms, chambers, rational_curves, false
             end
           end
+          if not_virtually_abelian_abort && !is_virtually_abelian(S, automorphisms)
+            @vprintln :K3Auto 1 "aborted on request because the automorphism group is not virtually abelian"
+            return data, automorphisms, chambers, rational_curves, false
+          end 
         end
         is_explored = true
         break
@@ -1626,7 +1631,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     E8 = R0
     # normalize the basis
     e8 = rescale(root_lattice(:E,8), -1)
-    _, T = is_isometric_with_isometry(e8, E8, ambient_representation=false)
+    _, T = is_isometric_with_isometry(e8, E8)
     E8 = lattice(V, T * basis_matrix(E8))
     B = vcat(basis_matrix(U), basis_matrix(E8))
     Bdual = inv(gram_matrix(V) * transpose(B))
@@ -1641,7 +1646,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
     while true
       R = Hecke.orthogonal_submodule(L,U)
       @vprint :K3Auto 1 "starting isometry test\n"
-      isiso, T = is_isometric_with_isometry(e8e8, R, ambient_representation=false)
+      isiso, T = is_isometric_with_isometry(e8e8, R)
       @vprint :K3Auto 1 "done\n"
       if isiso
         E8E8 = R
@@ -1689,7 +1694,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
   elseif rank(L)==26
     while true
         R = lll(Hecke.orthogonal_submodule(L,U))
-        m = minimum(rescale(R,-1))
+        m = minimum(R)
         @vprint :K3Auto 1 "found a lattice of minimum $(m) \n"
         if m==4
           # R is isomorphic to the Leech lattice
@@ -1791,8 +1796,9 @@ function borcherds_method_preprocessing(L::ZZLat, S::ZZLat; ample=nothing)
     h = ample*basis_matrix(S)
   end
   # double check
+  @assert inner_product(V, h , h)[1,1] > 0
   Q = orthogonal_submodule(S, lattice(V,h))
-  @assert length(short_vectors(rescale(Q,-1),2))==0
+  @assert length(short_vectors(Q, 2))==0
   if (h*gram_matrix(ambient_space(L))*transpose(weyl))[1,1] < 0
     weyl = -weyl
     u0 = -u0
@@ -1838,7 +1844,7 @@ function ample_class(S::ZZLat)
       @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
       # confirm that h is in the interior of a weyl chamber,
       # i.e. check that Q does not contain any -2 vector and h^2>0
-      Q = rescale(Hecke.orthogonal_submodule(S, lattice(V, h)),-1)
+      Q = orthogonal_submodule(S, lattice(V, h))
       @vprint :K3Auto 3 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
       nt = nt+1
       if nt >10
@@ -1895,7 +1901,7 @@ function ample_class(S::ZZLat)
       @assert (h*gram_matrix(S)*transpose(h))[1,1]>0
     end
     h = h*basis_matrix(S)
-    Q = rescale(orthogonal_submodule(S, lattice(V,h)), -1)
+    Q = orthogonal_submodule(S, lattice(V,h))
     if length(short_vectors(Q, 2)) == 0
       return h
     end
@@ -2039,4 +2045,81 @@ function has_zero_entropy(S::ZZLat; rank_unimod=26)
   d = diagonal(rational_span(C))
 
   return maximum(push!([sign(i) for i in d],-1)), data, K3Autgrp, chambers, rational_curves
+end
+
+  
+function _get_pos_entropy_element(gensAutL)
+  G = [first(gensAutL)^0]
+  f = first(gensAutL)^0
+  n = nrows(f)
+  n<= 4 || error("not implemented")
+  R, x  = polynomial_ring(base_ring(f),:x;cached=false)
+  c = x-1
+  while true
+    Gnew = typeof(f)[]
+    for g in G
+      for h in gensAutL
+        f = g*h
+        push!(Gnew, f)
+        p = charpoly(R, f^12)
+        # either 
+        # p = s(x) of deg 4 
+        # or 
+        # p = s(x)(x-1)^2
+        # or 
+        # p = (x-1)^4
+        if valuation(p, c) <= 2
+          return f # positive entropy
+        end 
+      end
+    end
+    G = Gnew
+  end
+end
+
+function is_virtually_abelian(L::ZZLat, gensAutL)
+  # See https://arxiv.org/abs/2211.09600 
+  # Brandhorst, Mezzedimi - Borcherds lattices and K3 surfaces of zero entropy
+  length(gensAutL)==0 && return true
+  # the following line works because of 
+  # V. V. Nikulin. “Factor groups of groups of automorphisms of hyperbolic forms with respect to subgroups generated by 2-reflections. Algebro-geometric applications”. J. Sov. Math. 22 (1983), pp. 1401–1475.
+  rank(L)>= 5 && return has_zero_entropy(L, gensAutL)  
+  if has_zero_entropy(L, gensAutL)
+    return true
+  end
+  # search an automorphism of positive entropy.
+  f = _get_pos_entropy_element(gensAutL)
+  K = kernel(f^12-1)
+  k = nrows(K)
+  if k == rank(L)-2
+    for g in gensAutL
+      r = rank(vcat(K,K*g))
+      if r > k
+        return false
+      end
+    end
+    return true
+  end 
+  # now k = 0 
+  @assert k == 0
+  return all(g*f == f*g for g in gensAutL)
+end
+
+function has_zero_entropy(L::ZZLat, gensAutL)
+  # See Brandhorst-Mezzedimi https://arxiv.org/abs/2211.09600
+  length(gensAutL)==0 && return true
+  C = lattice(rational_span(L), _common_invariant(gensAutL)[2])
+  d = diagonal(rational_span(C))
+  return !all(i -> sign(i) < 0, d)
+end
+  
+function is_elementary_hyperbolic(L::ZZLat, gensAutL)
+  return is_virtually_abelian(L, gensAutL) && !has_zero_entropy(L, gensAutL)
+end 
+
+function is_finite(L::ZZLat, gensAutL)
+  length(gensAutL)==0 && return true
+  C = lattice(rational_span(L), _common_invariant(gensAutL)[2])
+  d = diagonal(rational_span(C))
+  return 0< maximum(push!([sign(i) for i in d],-1))
 end

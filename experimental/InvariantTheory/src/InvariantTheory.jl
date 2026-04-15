@@ -178,7 +178,7 @@ end
 representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) = RepresentationLinearlyReductiveGroup(G,M)
 group(R::RepresentationLinearlyReductiveGroup) = R.group
 representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
-vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
+vector_space_dim(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
 
 @doc raw"""
     representation_on_forms(G::LinearlyReductiveGroup, d::Int)
@@ -533,7 +533,7 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     end
 
     #map them to the required ring, ringg. 
-    img_genss = vcat(gens(ringg), zeros(ringg, length(xyz)-n))
+    img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, length(xyz)-n))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
     new_gens = Vector{elem_type(ringg)}()
     for elemm in new_gens_wrong_ring

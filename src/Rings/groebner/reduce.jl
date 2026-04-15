@@ -48,7 +48,7 @@ end
 
 @doc raw"""
     reduce(g::T, F::Union{Vector{T}, IdealGens{T}};
-           ordering::MonomialOrdering = default_ordering(g)), complete_reduction::Bool = false) where T <: MPolyRingElem
+           ordering::MonomialOrdering = default_ordering(g), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
@@ -390,7 +390,7 @@ function reduce_with_quotients(F::Vector{T}, G::IdealGens{T}; ordering::Monomial
   return q, r
 end
 
-function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = complete_reduction)
+function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
   R = base_ring(I)
   @assert base_ring(J) == R
   sI = singular_generators(I, ordering)

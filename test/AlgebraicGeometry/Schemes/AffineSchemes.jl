@@ -434,3 +434,16 @@ end
   J = ideal(R, R[1])
   Sat = saturation(modulus(Q),J)
 end
+  
+@testset "irreducible components" begin
+  A = affine_space(QQ,2)
+  (x,y) = coordinates(A)
+  Y1 = subscheme(A, [x*y])
+  @test length(irreducible_components(Y1))==2
+  Y2 = hypersurface_complement(Y1,x)
+  @test length(irreducible_components(Y2))==1
+  P = ideal([x,y])
+  l,_ = localization(OO(Y1), complement_of_prime_ideal(P))
+  Y3 = spec(l)
+  @test length(irreducible_components(Y3))==2
+end 

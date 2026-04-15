@@ -1,6 +1,6 @@
 
 @doc """raw
-  rational_point_set(X::Scheme) -> RationalPointSet
+    rational_point_set(X::Scheme) -> RationalPointSet
 
 For a scheme over ``k`` return its set of ``k``-rational points.
 """

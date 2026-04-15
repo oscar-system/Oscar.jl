@@ -328,7 +328,7 @@ $(0 :_M I) := \{m \in M \mid m\cdot I = 0\}.$
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"];weights = [[1,0],[0,1]])
+julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
@@ -389,7 +389,7 @@ $(0 :_M I^\infty) := \{m \in M \mid m\cdot I^n = 0\text{ for some }n\in \NN_{>0}
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"];weights = [[1,0],[0,1]])
+julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
@@ -507,7 +507,7 @@ end
 @doc raw"""
     coefficients(N::SubquoModule, p_F::FaceQ)
 
-Returns a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
+Return a subset Bp $\subseteq M$ and a $k$-matrix $\Lambda$ that defines an injective map
 
 $(0 :_N p_F) \xrightarrow{\Lambda} \sum_{b\in Bp}k\{\deg(b) + F - Q\}.$
 
@@ -523,7 +523,7 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
   # get socle degrees of indecomposable injectives kQ{a + F - Q}, i.e. compute a k[F]-basis of the localisation (0 :_M P_F)[ZZ F]
   Bp = ZF_basis(N, p_F)
   if is_empty(Bp)
-    return [], zeros(kQ, 1, 1)
+    return Bp, Hecke.zeros_array(kQ, 1, 1)
   end
 
   R = relations(N) #get all relations of N
@@ -713,9 +713,10 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
 end
 
 @doc raw"""
-    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int = 0)
+    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
 
-Return an irreducible resolution of $M$.
+Return an irreducible resolution of $M$. If $i$ is specified then the resolution
+is only computed up to cohomological degree $i$.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal. 
@@ -759,7 +760,7 @@ by graded submodule of kQ^1 with 3 generators
 over monoid algebra over rational field with cone of dimension 2
 ```
 """
-function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
+function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
   kQ = base_ring(M)
   @req is_normal(kQ) "monoid algebra must be normal"
 
@@ -812,7 +813,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
     push!(cochain_maps, hi)
 
     # end at cohomological degree i
-    if i > 0 && j == i
+    if !isnothing(i) && j == i + 1
       break
     end
     j = j + 1
@@ -955,7 +956,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   #compute irreducible resolution of shifted module
   a_shift = compute_shift(M, i+1)
   M_a = twist(M, -G(a_shift))
-  irr_res = irreducible_resolution(M_a)
+  irr_res = irreducible_resolution(M_a,i)
 
   #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
   inj_modules = Vector{InjMod}()
@@ -968,7 +969,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
   #get all needed maps (as k-matrix or k[Q]-matrix?)
   cochain_maps = [
-    matrix(irr_res.cochain_maps[k]) for k in eachindex(irr_res.cochain_maps) if 1 < k <= i+1
+    matrix(irr_res.cochain_maps[k]) for k in eachindex(irr_res.cochain_maps) if 1 <= k <= i+1
   ]
   return InjRes(M, inj_modules, cochain_maps, length(inj_modules)-1, irr_res, a_shift)
 end
@@ -985,36 +986,11 @@ function injective_resolution(I::MonoidAlgebraIdeal, i::Int)
   return injective_resolution(quotient_ring_as_module(I), i)
 end
 
-#= to be enabled, once #861 is merged in Singular.jl
-@attr Int function dim(M::SubquoModule{T}) where {CT<:FieldElem, T<:MPolyRingElem}
-  F = ambient_free_module(M)
-
-  if !all(repres(v) == F[i] for (i, v) in enumerate(gens(M)))
-    MM, _ = present_as_cokernel(M)
-    return dim(MM)
-  end
-
-  gb = groebner_basis(M.quo)
-  return Singular.dimension(singular_generators(gb))
-end
-=#
-
-#get Krull dimension of module
-# TODO: For modules over polynomial rings this should make 
-# use of the `dim` in Singular. But this does not seem 
-# to be available as of yet.
-@attr Union{Int,NegInf} function dim(M::ModuleFP)
-  ann = annihilator(M)
-  return dim(ann)
-end
-
-
 @doc raw"""
     is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
 
 Test if the given monoid algebra is normal by testing first the S2 and then the
 R1 condition.
-
 # Examples
 ```jldoctest
 julia> A = monoid_algebra([[4,0],[3,1],[1,3],[0,4]],QQ)
@@ -1038,7 +1014,7 @@ false
   n = codim(I)
 
   # Check the S2 condition
-  test_range = 0:(dim(R_B) - n - 2)
+  test_range = 0:(krull_dim(R_B) - n - 2)
 
   for j in test_range
     # Check if codimension of Ext^{j+n+1} is at least j+n+3
@@ -1048,18 +1024,18 @@ false
     if is_zero(E)
       d = -1
     else 
-      d = dim(E)
+      d = krull_dim(E)
     end
-    cod = dim(R_B) - d
+    cod = krull_dim(R_B) - d
     if cod < j+n+3
         return false
     end               # S2 condition not satisfied
   end
 
   Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))  # Compute minors of the Jacobian
-  d = dim(Jac)                   # Get dimension of the Jacobian
-  d < 0 && (d = -Inf)            # Handle negative dimensions
-  return (dim(R) - d >= 2)       # Check the condition
+  d = krull_dim(Jac)                   # Get dimension of the Jacobian
+  d < 0 && return true            # Handle negative dimensions
+  return (krull_dim(R) - d >= 2)       # Check the condition
 end
 
 is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true
@@ -1090,4 +1066,3 @@ export zeroth_local_cohomology
 export MonoidAlgebra
 export MonoidAlgebraIdeal
 export MonoidAlgebraElem
-

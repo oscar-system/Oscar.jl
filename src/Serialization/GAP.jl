@@ -10,6 +10,8 @@
 #   of GAP gets loaded) as methods for the GAP operations `SerializeInOscar`
 #   and `DeserializeInOscar`.
 
+import Oscar: GAPWrap
+
 #############################################################################
 #
 # utilities for installing methods depending on GAP filters

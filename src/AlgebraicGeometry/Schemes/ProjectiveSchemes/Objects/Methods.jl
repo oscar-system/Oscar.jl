@@ -350,8 +350,8 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
     qq = evaluate(q, v)
 
     # homogenize numerator and denominator
-    pp = sum([c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(lift(pp)), monomials(lift(pp)))])
-    qq = sum([c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(lift(qq)), monomials(lift(qq)))])
+    pp = sum(c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(lift(pp)), monomials(lift(pp))); init=zero(S))
+    qq = sum(c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(lift(qq)), monomials(lift(qq))); init=zero(S))
 
     if deg_a > 0
       return (pp, qq*ss^deg_a)

@@ -1,3 +1,5 @@
+using Oscar: _vec, set_root_system_type!
+
 ###############################################################################
 #
 #   Root systems
@@ -72,8 +74,6 @@ end
 
 @register_serialization_type WeightLatticeElem
 
-type_params(w::WeightLatticeElem) = TypeParams(WeightLatticeElem, parent(w))
-
 function save_object(s::SerializerState, w::WeightLatticeElem)
   save_object(s, _vec(coefficients(w)))
 end
@@ -104,8 +104,6 @@ function load_object(s::DeserializerState, ::Type{WeylGroup}, R::RootSystem)
 end
 
 @register_serialization_type WeylGroupElem
-
-type_params(w::WeylGroupElem) = TypeParams(WeylGroupElem, parent(w))
 
 function save_object(s::SerializerState, x::WeylGroupElem)
   save_object(s, word(x))

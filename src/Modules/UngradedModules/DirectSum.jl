@@ -34,10 +34,12 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
     push!(ranges, i+1:j)
     i = j
   end
-  G.S = vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
-                                          [string(F[j].S[i])], 
+  G.S = function _direct_sum_symbols()
+          return vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
+                                                   [string(symbol(F[j], i))], 
                                           ["0" for k in j+1:length(F)]), ", ")
                             *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)
+         end
   set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   i = 0
   for f = F

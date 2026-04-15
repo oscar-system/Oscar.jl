@@ -102,6 +102,8 @@ coloops(M::Matroid)
 is_loopless(M::Matroid)
 is_coloopless(M::Matroid)
 is_simple(M::Matroid)
+is_transversal(M::Matroid)
+is_transversal_with_presentation(::Type{Int}, M::Matroid)
 direct_sum_components(M::Matroid)
 connectivity_function(M::Matroid, set::GroundsetType)
 is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType) 
@@ -118,6 +120,13 @@ is_minor(M::Matroid, N::Matroid)
 matroid_hex(M::Matroid)
 automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
+bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+```
+
+### Tutte Group
+```@docs
+tutte_group
+is_tutte_realizable(M::Matroid)
 ```
 
 
@@ -132,3 +141,17 @@ augmented_chow_ring(M::Matroid)
 quantum_symmetric_group(n::Int)
 quantum_automorphism_group(M::Matroid, structure::Symbol)
 ```
+
+## Contact
+
+Please direct questions about this part of OSCAR to the following people:
+* [Dan Corey](https://www.danieljcorey.com/)
+* [Lukas Kühne](https://www.math.uni-bielefeld.de/~lkuehne/)
+* [Dante Luber](https://sites.google.com/view/dantelubermath/home)
+* [Benjamin Schröter](https://people.kth.se/~schrot/)
+* [Marcel Wack](https://page.math.tu-berlin.de/~wack/)
+
+You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
+
+Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
+

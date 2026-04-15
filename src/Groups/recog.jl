@@ -3,7 +3,7 @@
   gap_tree::GapObj
 
   function GroupRecognitionTree{T}(G::GAPGroup, gap_tree::GapObj) where T
-     @req G isa PermGroup || G isa MatrixGroup "only matrix and permutation groups are supported"
+     @req G isa PermGroup || G isa MatGroup "only matrix and permutation groups are supported"
      res = new{T}(G, gap_tree)
      return res
   end
@@ -159,7 +159,7 @@ end
 
 
 """
-    recognize(G::Union{PermGroup, MatrixGroup})
+    recognize(G::Union{PermGroup, MatGroup})
 
 Return a `GroupRecognitionTree` object that describes the structure of `G`
 in a recursive way.
@@ -183,7 +183,7 @@ julia> rand(s) in rec
 true
 ```
 """
-function recognize(G::Union{PermGroup, MatrixGroup})
+function recognize(G::Union{PermGroup, MatGroup})
   res = GAPWrap.RecognizeGroup(GapObj(G))
   T = typeof(G)
   return GroupRecognitionTree{T}(G, res)
@@ -198,13 +198,13 @@ end
 #   to be equal.
 Base.in(g::PermGroupElem, tree::GroupRecognitionTree{PermGroup}) = GapObj(g) in GapObj(tree)
 
-function Base.in(g::MatrixGroupElem{T, S}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
+function Base.in(g::MatGroupElem{T, S}, tree::GroupRecognitionTree{MatGroup{T, S}}) where {T, S}
   base_ring(parent(g)) != base_ring(group(tree)) && return false
   return GapObj(g) in GapObj(tree)
 end
 
 # For convenience, we support also membership tests for matrices.
-function Base.in(g::MatElem{T}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
+function Base.in(g::MatElem{T}, tree::GroupRecognitionTree{MatGroup{T, S}}) where {T, S}
   G = group(tree)
   base_ring(g) != base_ring(G) && return false
   return map_entries(_ring_iso(G), g) in GapObj(tree)

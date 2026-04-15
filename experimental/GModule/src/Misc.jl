@@ -258,19 +258,19 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
   coordinates = function(x::FieldElem)
     @assert parent(x) == K
     c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
-    c = vcat(c, zeros(k, degree(h)-length(c)))
+    c = vcat(c, Hecke.zeros_array(k, degree(h)-length(c)))
     return c
   end
   rep_mat = function(x::FieldElem)
     @assert parent(x) == K
     c = map_coefficients(k, Qt(x), parent = kt) % h
     m = collect(Hecke.coefficients(c))
-    m = vcat(m, zeros(k, degree(h) - length(m)))
+    m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
     r = m
     for i in 2:degree(h)
       c = shift_left(c, 1) % h
       m = collect(Hecke.coefficients(c))
-      m = vcat(m, zeros(k, degree(h) - length(m)))
+      m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
       r = hcat(r, m)
     end
     return transpose(matrix(r))
@@ -278,14 +278,27 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
   return h, coordinates, rep_mat
 end
 
-Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
+Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:RingElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
 
-function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
+#over fields are modules are free (and have a known dimension and basis
+#hence this works)
+function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T <: FieldElem
+  k = Oscar.base_ring(F)
+  @assert Oscar.base_ring(G) ==k
+  H = free_module(k, rank(F)*rank(G); cached = false)
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+end
+
+#over rings, only free modules are easy.. (known free modules)
+#could be make to work over ZZ (see abelian groups in Hecke)
+#and possibly also for euclidean rings
+function Oscar.hom(F::AbstractAlgebra.Generic.FreeModule{T}, G::AbstractAlgebra.Generic.FreeModule{T}) where T <: RingElem
   k = base_ring(F)
   @assert base_ring(G) == k
-  H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+  H = free_module(k, rank(F)*rank(G); cached = false)
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end
+
 
 function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
   A = free_abelian_group(rank(M))
@@ -295,11 +308,11 @@ end
 #TODO: for modern fin. fields as well
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
+  A = abelian_group([characteristic(k) for i = 1:vector_space_dim(M)*degree(k)])
   n = degree(k)
   function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
     a = ZZRingElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       c = m[i]
       for j=0:n-1
         push!(a, coeff(c, j))
@@ -309,7 +322,7 @@ function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   end
   function to_M(a::FinGenAbGroupElem)
     m = fqPolyRepFieldElem[]
-    for i=1:dim(M)
+    for i=1:vector_space_dim(M)
       push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
     end
     return M(m)
@@ -384,6 +397,10 @@ end
 
 function Nemo.charpoly(h::Generic.ModuleHomomorphism{<:FieldElem})
   return charpoly(matrix(h))
+end
+
+function Nemo.matrix(h::Oscar.GModuleHom{<:Any, <:AbstractAlgebra.FPModule{<:Any}})
+  return matrix(h.module_map)
 end
 
 end # module

@@ -21,8 +21,8 @@ julia> Rloc, phi = localization(R, U);
 
 julia> A0, _ = quo(Rloc, phi(MI0));  A1, _ = quo(Rloc, phi(MI1));
 
-julia> vector_space_dimension(A0)
+julia> vector_space_dim(A0)
 10661
 
-julia> vector_space_dimension(A1)
+julia> vector_space_dim(A1)
 10655

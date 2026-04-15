@@ -13,7 +13,7 @@ _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_t
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_cone}, C::Cone; homogenized=false) =
-  homogenized ? homogenize(pm_object(C).RAYS, 0) : pm_object(C).RAYS
+  homogenized ? homogenize(coefficient_field(C), pm_object(C).RAYS, 0) : pm_object(C).RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -339,8 +339,14 @@ julia> f_vector(square)
 """
 function f_vector(C::Cone)
   pmc = pm_object(C)
-  ldim = pmc.LINEALITY_DIM
-  return Vector{ZZRingElem}(vcat(fill(0, ldim), pmc.F_VECTOR))
+  ld = lineality_dim(C)
+  fv = ld == dim(C) ? ZZRingElem[] : pmc.F_VECTOR::Polymake.Vector{Polymake.Integer}
+  v = zeros(ZZRingElem, ld + length(fv))
+  v[(ld + 1):end] = fv
+  if ld > 0
+    v[ld] = 1
+  end
+  return v
 end
 
 @doc raw"""
@@ -527,6 +533,50 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 ## Points properties
 ###############################################################################
 
+@doc raw"""
+    contains(C::Cone, v::AbstractVector)
+
+Check whether the vector `v` is contained in the cone `C`.
+
+See also [`contains_in_interior(::Cone, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains(C,[1, 2])
+true
+
+julia> contains(C,[1, -2])
+false
+```
+"""
+contains(C::Cone, v::AbstractVector) =
+  Polymake.polytope.contains(pm_object(C), coefficient_field(C).(v))::Bool
+
+@doc raw"""
+    contains_in_interior(C::Cone, v::AbstractVector)
+
+Check whether the vector `v` is contained in the relative interior of the cone `C`.
+
+See also [`contains(::Cone, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains vectors with positive entries in its interior:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains_in_interior(C,[1, 2])
+true
+
+julia> contains_in_interior(C,[1, 0])
+false
+```
+"""
+contains_in_interior(C::Cone, v::AbstractVector) =
+  Polymake.polytope.contains_in_interior(pm_object(C), coefficient_field(C).(v))::Bool
+
 # TODO: facets as `Vector`? or `Matrix`?
 @doc raw"""
     facets(as::Type{T} = LinearHalfspace, C::Cone)
@@ -609,7 +659,11 @@ _lineality_cone(
   ray_vector(coefficient_field(C), view(pm_object(C).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_cone}, C::Cone; homogenized=false) =
-  homogenized ? homogenize(pm_object(C).LINEALITY_SPACE, 0) : pm_object(C).LINEALITY_SPACE
+  if homogenized
+    homogenize(coefficient_field(C), pm_object(C).LINEALITY_SPACE, 0)
+  else
+    pm_object(C).LINEALITY_SPACE
+  end
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -719,7 +773,7 @@ julia> [1, -2] in C
 false
 ```
 """
-Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v)::Bool
+Base.in(v::AbstractVector, C::Cone) = contains(C, v)
 
 @doc raw"""
     relative_interior_point(C::Cone)

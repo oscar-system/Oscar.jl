@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 ProjectivePlaneCurve
 ```
 
-Projective plane curves are modeled in Oscar as projective
+Projective plane curves are modeled in OSCAR as projective
 algebraic sets. See `AbsProjectiveAlgebraicSet`(@ref).
 In addition to the methods for algebraic sets and curves
 the following methods special to plane curves are available.

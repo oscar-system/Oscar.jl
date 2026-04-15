@@ -493,45 +493,6 @@ function ideal_membership(
   error("`ideal_membership(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
 
-function issubset(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
-  return all(x->(x in J), gens(I))
-end
-
-function ==(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
-  return issubset(I, J) && issubset(J, I)
-end
-
-### A catchall implementation for the ideal arithmetic
-# Return the product of the ideals `I` and `J`.
-function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
-  W = base_ring(I)
-  W == base_ring(J) || error("the given ideals do not belong to the same ring")
-  new_gens = [ f*g for f in gens(I) for g in gens(J)]
-  return ideal(W, new_gens)
-end
-
-# Return the sum of the ideals `I` and `J`.
-function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
-  W = base_ring(I)
-  W == base_ring(J) || error("the given ideals do not belong to the same ring")
-  return ideal(W, vcat(gens(I), gens(J)))
-end
-
-function Base.:^(I::T, k::IntegerUnion) where {T<:AbsLocalizedIdeal}
-  k >= 0 || error("exponent must be non-negative")
-  R = base_ring(I)
-  if k == 2
-    return ideal(R, [a*b for a in gens(I) for b in gens(I)])
-  elseif k == 1
-    return I
-  elseif k == 0
-    return ideal(R, one(R))
-  else
-    q, r = divrem(k, 2)
-    return ideal(R, [a*b for a in gens(I^q) for b in gens(I^(q+r))])
-  end
-end
-
 ########################################################################
 # Homomorphisms of localized rings                                     #
 ########################################################################

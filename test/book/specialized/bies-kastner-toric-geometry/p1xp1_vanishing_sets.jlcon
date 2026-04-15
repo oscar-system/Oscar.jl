@@ -12,13 +12,13 @@ julia> print_constraints(polyhedra(v0)[1])
 -x_2 <= 0
 
 julia> print_constraints(polyhedra(v1)[1])
--x_2 <= 0
 x_1 <= -2
+-x_2 <= 0
 
 julia> print_constraints(polyhedra(v1)[2])
 -x_1 <= 0
 x_2 <= -2
 
 julia> print_constraints(polyhedra(v2)[1])
-x_2 <= -2
 x_1 <= -2
+x_2 <= -2

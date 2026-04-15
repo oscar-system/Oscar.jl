@@ -576,7 +576,7 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
   if w < 0
     pPw = ideal(R, one(R))
   else
-    pPw = saturated_ideal(PP^w) # the symbolic power
+    pPw = saturated_ideal(PP^BigInt(w)) # the symbolic power
   end
   # reduce the numerators modulo P^(w)
   images = elem_type(R)[]

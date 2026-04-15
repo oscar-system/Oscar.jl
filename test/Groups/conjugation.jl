@@ -70,10 +70,17 @@
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
+  G = symmetric_group(4)
   CC5 = @inferred subgroup_classes(G, order = 5)
   @test length(CC5) == 0
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)
+  @test length(CC5) == 7
   CC = @inferred subgroup_classes(G)
-  @test length(CC)==11
+  @test length(CC) == 11
+  CC4 = @inferred subgroup_classes(G, order = 4)  # uses stored classes
+  @test length(CC4) == 3
+  CC5 = @inferred subgroup_classes(G, order_bound = 5)  # uses stored classes
+  @test length(CC5) == 7
   @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))
@@ -122,6 +129,18 @@
   @test Set([G(y) for y in K]) == Set([G(y^z) for y in H])
 #  @test Set(K) == Set([y^z for y in H])  may not work because the parent of the elements are different
 
+end
+
+@testset "Conjugacy classes of subgroups" begin
+  G = symmetric_group(5)
+  P = sylow_subgroup(G, 2)[1]
+  C = conjugacy_class(G, P)
+  @test is_conjugate(G, rand(C), P)
+
+  G = GL(2, 5)
+  P = sylow_subgroup(G, 2)[1]
+  C = conjugacy_class(G, P)
+  @test is_conjugate(G, rand(C), P)
 end
 
 @testset "Conjugacy classes as G-sets" begin
@@ -268,4 +287,40 @@ end
       @test x*y==y*x
    end
 
+end
+
+@testset "Conjugation with different parents" begin
+   G = symmetric_group(4)
+   x = G[1]
+   H = symmetric_group(3)
+   @test_throws ArgumentError conjugate_group(H, x)
+   @test_throws ArgumentError H^x
+   HH = G(H)
+   C = conjugate_group(HH, x)
+   @test order(C) == order(H)
+   @test HH == stabilizer(G, 4)[1]
+   @test C == stabilizer(G, 1)[1]
+
+   G = small_group(24, 12)
+   x = G[3]
+   H = sylow_subgroup(G, 3)[1]
+   C = conjugate_group(H, x)
+   @test order(C) == order(H)
+
+   G = GL(2, 4)
+   x = G[1]
+   H = GL(2, 2)
+   @test_throws ArgumentError conjugate_group(H, x)
+   @test_throws ArgumentError H^x
+
+   # define the conjugate group using data on the GAP side
+   H = SL(2, 4)
+   @test !(x in H)
+   C = conjugate_group(H, x)
+   @test order(H) == order(C)
+
+   # define the conjugate group using data on the Oscar side
+   H = matrix_group(gens(H))
+   C = conjugate_group(H, x)
+   @test order(H) == order(C)
 end

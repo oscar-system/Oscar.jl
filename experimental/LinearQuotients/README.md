@@ -14,7 +14,7 @@ the additional structure.
 The concrete goals and (minor or major) todos are the following:
 * Make 'everything' one can do with an affine scheme possible for objects of type
 `LinearQuotient`
-* So far, we accept a matrix group in `linear_quotient(::MatrixGroup)` and then work
+* So far, we accept a matrix group in `linear_quotient(::MatGroup)` and then work
 with the spectrum of the invariant ring. Following the (more or less implicit)
 convention in the invariant theory code, this means that we actually construct the
 linear quotient $V^\ast/G$, that is, we work with the dual representation.

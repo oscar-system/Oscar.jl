@@ -7,7 +7,7 @@
   f = x*v-y*u
   I = ideal(R, f)
   Q, p = quo(R, I)
-  S = Oscar.MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
+  S = MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
   L, _ = localization(Q, S)
   a = L(x)
   b = L(y)
@@ -19,14 +19,14 @@
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
+  T = MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
   I = ideal(R, f)
-  V = Oscar.MPolyQuoLocRing(R, I, T)
+  V = MPolyQuoLocRing(R, I, T)
 
   S = R
-  U = Oscar.MPolyPowersOfElement(S, [f-1])
+  U = MPolyPowersOfElement(S, [f-1])
   J = ideal(S, zero(S))
-  W = Oscar.MPolyQuoLocRing(S, J, U)
+  W = MPolyQuoLocRing(S, J, U)
 
   h = Oscar.MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
   J1 = ideal(V, [x*(x-1), y*(y-3)])
@@ -35,32 +35,30 @@
   
   ### second round of tests
   #kk = GF(101)
-  ⊂ = issubset
   kk = QQ
   R, (x,y) = kk[:x, :y]
 
   f = x^2 + y^2-2
-  S = Oscar.MPolyPowersOfElement(x-1)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [1,1])
-  V = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f))
-  ⊂ = issubset
-  @test S ⊂ V
-  @test !(V ⊂ S)
-  @test !(T ⊂ V)
-  @test (V ⊂ T)
-  @test !(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
-  @test S ⊂ Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1))
-  @test !(Oscar.MPolyPowersOfElement(f) ⊂ V)
-  @test Oscar.MPolyPowersOfElement(x-1) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
-  @test Oscar.MPolyPowersOfElement(x-1) * Oscar.MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
-  @test !(Oscar.MPolyPowersOfElement(x) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
+  S = MPolyPowersOfElement(x-1)
+  T = MPolyComplementOfKPointIdeal(R, [1,1])
+  V = MPolyComplementOfPrimeIdeal(ideal(R, f))
+  @test issubset(S, V)
+  @test !issubset(V, S)
+  @test issubset(T, V)
+  @test !issubset(V, T)
+  @test !issubset(MPolyComplementOfPrimeIdeal(ideal(R, f-1)), T)
+  @test issubset(S, MPolyComplementOfPrimeIdeal(ideal(R, f-1)))
+  @test !issubset(MPolyPowersOfElement(f), V)
+  @test issubset(MPolyPowersOfElement(x-1), MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test issubset(MPolyPowersOfElement(x-1) * MPolyComplementOfKPointIdeal(R, [0,0]), MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test !issubset(MPolyPowersOfElement(x), MPolyComplementOfKPointIdeal(R, [0,0]))
   @test T*T == T
 
   U = S*T
-  @test U[1] ⊂ S || U[1] ⊂ T
-  @test U[2] ⊂ S || U[2] ⊂ T
-  @test S ⊂ U 
-  @test T ⊂ U
+  @test issubset(U[1], S) || issubset(U[1], T)
+  @test issubset(U[2], S) || issubset(U[2], T)
+  @test issubset(S, U) 
+  @test issubset(T, U)
   @test S*U == U
   @test T*U == U 
   @test U*U == U
@@ -82,7 +80,7 @@
 
   h = x^4+23*x*y^3-15
   Q, _ = quo(R, f)
-  T = Oscar.MPolyPowersOfElement(h^3)
+  T = MPolyPowersOfElement(h^3)
   W, _ = localization(Q, T)
   @test x//(h+3*f) in W
   @test W(x//(h+3*f)) == W(x//h)
@@ -96,7 +94,7 @@
 
   h = (x+5)*(x^2+10*y)+(y-7)*(y^2-3*x)
   Q, _ = quo(R, h)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [-5, 7])
+  T = MPolyComplementOfKPointIdeal(R, [-5, 7])
   W, _ = localization(Q, T)
   @test x//(y) in W
   @test x//(y+h) in W
@@ -147,9 +145,9 @@ end
   Q2 = ideal(R,[x*y-z*w])
   RQ1,phiQ1 = quo(R,Q1)
   RQ2,phiQ2 = quo(R,Q2)
-  T1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0,0])
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
   f = x+y+z+w-1
-  T2 = Oscar.MPolyPowersOfElement(f)
+  T2 = MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
   RL2,phiL2 = localization(R,T2)
   RQ1L1, phiQ1L1 = localization(RQ1,T1)
@@ -205,9 +203,9 @@ end
   Q2 = ideal(R,[z,x^2-y^2])
   RQ1,phiQ1 = quo(R,Q1)
   RQ2,phiQ2 = quo(R,Q2)
-  T1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   f = x-y
-  T2 = Oscar.MPolyPowersOfElement(f)
+  T2 = MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
   RL2,phiL2 = localization(R,T2)
   RQ1L1, phiQ1L1 = localization(RQ1,T1)
@@ -273,7 +271,7 @@ end
   L, _ = localization(R, powers_of_element(x-8))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
   f = (x*3*y-4)^5
   f = A(f)
@@ -287,7 +285,7 @@ end
   L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
-  @test dim(V) == 6
+  @test vector_space_dim(V) == 6
   f = (x*3*y-4)^5
   f = A(f)
   @test id(preimage(id, f)) == f
@@ -298,12 +296,12 @@ end
 @testset "minimal and small generating sets" begin
   R, (x,y,z) = QQ[:x, :y, :z]
   IQ = ideal(R,[x-z])
-  U1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
-  U2 = Oscar.MPolyComplementOfKPointIdeal(R,[1,1,1])
-  U3 = Oscar.MPolyPowersOfElement(y)
-  Q1 = Oscar.MPolyQuoLocRing(R,IQ,U1)
-  Q2 = Oscar.MPolyQuoLocRing(R,IQ,U2)
-  Q3 = Oscar.MPolyQuoLocRing(R,IQ,U3)
+  U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
+  U3 = MPolyPowersOfElement(y)
+  Q1 = MPolyQuoLocRing(R,IQ,U1)
+  Q2 = MPolyQuoLocRing(R,IQ,U2)
+  Q3 = MPolyQuoLocRing(R,IQ,U3)
   J1 = ideal(Q1,[x^2-y^2,y^2-z^2,x^2-z^2])
   @test length(minimal_generating_set(J1)) == 1
   @test length(small_generating_set(J1)) == 1
@@ -320,7 +318,7 @@ end
   R, (x, y) = QQ[:x, :y]
   I = ideal(R, x^6-y)
   U = complement_of_point_ideal(R, [1, 1])
-  L = Oscar.MPolyQuoLocRing(R, I, U)
+  L = MPolyQuoLocRing(R, I, U)
   J = ideal(L, [x-1, y-1])^2
   minJ = minimal_generating_set(J)
   @test length(minJ) == 1
@@ -362,42 +360,42 @@ end
   @test Oscar._has_coefficient_map(L_to_Sl)
   compose(R_to_L, L_to_Sl)
 
-  id_L = identity_map(L)
+  id_L = id_hom(L)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
   prep = hom(R, L, coefficient_ring(R), gens(L))
   id_L = hom(L, L, prep)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
-  prep = hom(R, L, identity_map(coefficient_ring(R)), gens(L))
+  prep = hom(R, L, id_hom(coefficient_ring(R)), gens(L))
   id_L = hom(L, L, prep)
   phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
-  psi = compose(L_to_Sl, identity_map(Sl))
+  psi = compose(L_to_Sl, id_hom(Sl))
   @test psi == L_to_Sl
 
   R_to_Sl2 = hom(R, Sl, Sl, [u, v])
   L_to_Sl2 = hom(L, Sl, R_to_Sl2)
   @test Oscar._has_coefficient_map(L_to_Sl2)
 
-  phi = compose(identity_map(L), L_to_Sl2)
+  phi = compose(id_hom(L), L_to_Sl2)
   @test phi == L_to_Sl2
-  psi = compose(L_to_Sl2, identity_map(Sl))
+  psi = compose(L_to_Sl2, id_hom(Sl))
   @test psi == L_to_Sl2
 
   R_to_Sl3 = hom(R, Sl, O_KK, [u, v])
   L_to_Sl3 = hom(L, Sl, R_to_Sl3)
   @test Oscar._has_coefficient_map(L_to_Sl3)
 
-  phi = compose(identity_map(L), L_to_Sl3)
+  phi = compose(id_hom(L), L_to_Sl3)
   @test phi == L_to_Sl3
-  psi = compose(L_to_Sl3, identity_map(Sl))
+  psi = compose(L_to_Sl3, id_hom(Sl))
   @test psi == L_to_Sl3
 
 
@@ -414,35 +412,35 @@ end
   S_to_Tl = hom(S, Tl, dirty_reduction, [a, b])
   Sl_to_Tl = hom(Sl, Tl, S_to_Tl)
 
-  id_Sl = identity_map(Sl)
-  phi = compose(identity_map(Sl), Sl_to_Tl)
+  id_Sl = id_hom(Sl)
+  phi = compose(id_hom(Sl), Sl_to_Tl)
   @test phi == Sl_to_Tl
-  psi = compose(Sl_to_Tl, identity_map(Tl))
+  psi = compose(Sl_to_Tl, id_hom(Tl))
   @test psi == Sl_to_Tl
 
 
   L_to_Tl = compose(L_to_Sl, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl)
+  phi = compose(id_hom(L), L_to_Tl)
   @test phi == L_to_Tl
-  psi = compose(L_to_Tl, identity_map(Tl))
+  psi = compose(L_to_Tl, id_hom(Tl))
   @test psi == L_to_Tl
 
   L_to_Tl2 = compose(L_to_Sl2, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl2)
+  phi = compose(id_hom(L), L_to_Tl2)
   @test phi == L_to_Tl2
-  psi = compose(L_to_Tl2, identity_map(Tl))
+  psi = compose(L_to_Tl2, id_hom(Tl))
   @test psi == L_to_Tl2
 
   L_to_Tl3 = compose(L_to_Sl3, Sl_to_Tl)
   @test L_to_Tl(one(L)) == one(Tl)
 
-  phi = compose(identity_map(L), L_to_Tl3)
+  phi = compose(id_hom(L), L_to_Tl3)
   @test phi == L_to_Tl3
-  psi = compose(L_to_Tl3, identity_map(Tl))
+  psi = compose(L_to_Tl3, id_hom(Tl))
   @test psi == L_to_Tl3
 
 
@@ -482,19 +480,19 @@ end
   A, _ = quo(R,I)
   @test modulus(R) == ideal(R,[zero(R)])
   @test modulus(A) == I
-  U= Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U= MPolyComplementOfKPointIdeal(R,[0,0,0])
   Rl,_ = localization(R,U)
   Il = Rl(I)
   Al, _ = quo(Rl, Il)
   @test modulus(Rl) == ideal(Rl,[zero(Rl)])
   @test modulus(Al) == Il
-  U2= Oscar.MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
+  U2= MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
   Rl2,_ = localization(R,U2)
   Il2 = Rl2(I)
   Al2,_ = quo(Rl2,Il2)
   @test modulus(Rl2) == ideal(Rl2,[zero(Rl2)])
   @test modulus(Al2) == Il2
-  U3= Oscar.MPolyPowersOfElement(x+y)
+  U3 = MPolyPowersOfElement(x+y)
   Rl3,_ = localization(R,U3)
   Il3 = Rl3(I)
   Al3,_ = quo(Rl3,Il3)
@@ -516,7 +514,7 @@ end
   Q1, _ = quo(L, ideal(L, L(x+1)))
   @test isempty(monomial_basis(Q1))
   Q2, _ = quo(L, ideal(L, L(x^2)))  
-  @test_throws InfiniteDimensionError() monomial_basis(Q2)
+  @test_throws InfiniteDimensionError monomial_basis(Q2)
   Q3, _ = quo(L, ideal(L, L.([x^2, y^3])))  
   @test monomial_basis(Q3) == L.([x*y^2, y^2, x*y, y, x, 1])
   Q4,_ = quo(L, ideal(L, [x^2-x, y^2-2*y]))   
@@ -543,5 +541,16 @@ end
   WW, _ = quo(W, K)
   @test dim(WW) == -inf
   @test dim(underlying_quotient(WW)) == -inf
+end
+
+@testset "simplification of subquotients" begin
+  R,(x,y) = polynomial_ring(GF(3),2)
+  I = ideal(x)
+  A, _ = quo(R, I)
+  U = complement_of_point_ideal(R, [0, 0])
+  L, _ = localization(A, U)
+  AA, iso, iso_inv = simplify(L)
+  @test all(x==iso(iso_inv(x)) for x in gens(AA))
+  @test all(x==iso_inv(iso(x)) for x in gens(L))
 end
 

@@ -10,3 +10,12 @@ e71dcb305491f26d13225c0339e2e22129bb27f3
 
 # Reformatting after option change
 38d9450f0514b307ed9358999e71e9b1929f532e
+
+# Formatting the toric varieties code
+4545aa1075c482d02bc42c0d11cff248231c5b94
+
+# Formatting the FTheoryTools code
+7fa302c214766e6b41d069a909c01f858f644a77
+
+# Formatting code additions made in https://github.com/oscar-system/Oscar.jl/pull/5512
+cac985ebcf4331242008f8866ad4722e002b1f69

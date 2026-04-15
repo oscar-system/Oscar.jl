@@ -1,6 +1,6 @@
 julia> gset(alternating_group(4))
 G-set of
-  Alt(4)
+  alternating group of degree 4
   with seeds 1:4
 
 julia> G = dihedral_group(6);

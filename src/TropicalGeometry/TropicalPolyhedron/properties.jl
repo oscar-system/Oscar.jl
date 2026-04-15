@@ -1,0 +1,366 @@
+@doc raw"""
+    vertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
+
+Return an iterator over the vertices of `P`, that is, a minimal generating set `V`
+such that `P` equals `tropical_convex_hull(V)`.
+
+# Examples
+The following computes retrieves the vertices of a tropical polytope with redundant generating set:
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> vertices(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+
+julia> T = tropical_semiring();
+
+julia> Q = tropical_convex_hull(T[0 1 2; inf 0 3; inf inf 0; 0 1 0]);
+
+julia> vertices(Q)
+3-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (1), (2)]
+ [infty, (0), (3)]
+ [infty, infty, (0)]
+```
+"""
+function vertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
+  n = n_vertices(P)
+
+  return SubObjectIterator{as}(P, _vertex_of_polyhedron, n)
+end
+vertices(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = vertices(PointVector{TropicalSemiringElem{M}}, P)
+
+@doc raw"""
+    n_vertices(P::TropicalPolyhedron)
+
+Return the number of vertices of `P`.
+"""
+n_vertices(P::TropicalPolyhedron) = nrows(pm_object(P).VERTICES::AbstractMatrix)
+
+function _vertex_of_polyhedron(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPolyhedron, i::Int) where {M<:MinOrMax}
+  T = tropical_semiring(convention(P))
+
+  return point_vector(
+    T,
+    T.(P.pm_tpolytope.VERTICES[i,:])
+  )
+end
+
+@doc raw"""
+    pseudovertices([as::Type{T} = PointVector,] P::TropicalPolyhedron)
+
+Return an iterator over the pseudovertices of `P` in the tropical projective torus, 
+that is the zero-dimensional cells in the covector decomposition of `P`.
+
+# Examples
+The following retrievs the pseudovertices of a bounded tropical polytope:
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> vertices(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+
+julia> pseudovertices(P)
+3-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+ [(0), (-3), (0)]
+```
+
+For an unbounded tropical polytope, this only outputs the points for which all coordinates are finite:
+```jldoctest
+julia> TT = tropical_semiring();
+
+julia> P = tropical_convex_hull(TT[0 1 4; inf 0 2; inf inf 0]);
+
+julia> pseudovertices(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (1), (4)]
+ [(0), (1), (3)]
+```
+"""
+function pseudovertices(as::Type{PointVector{T}}, P::TropicalPolyhedron) where {T<:TropicalSemiringElem}
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
+  n = count(!iszero, eachrow(CT))
+
+  return SubObjectIterator{as}(P, _pseudovertices, n)
+end
+
+function pseudovertices(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {T<:TropicalSemiringElem}
+  n = n_pseudovertices(P)
+
+  return SubObjectIterator{as}(P, _pseudovertices, n)
+end
+pseudovertices(P::Union{TropicalPolyhedron{M},TropicalPointConfiguration{M}}) where {M<:MinOrMax} = pseudovertices(PointVector{TropicalSemiringElem{M}}, P)
+
+n_pseudovertices(P::TropicalPointConfiguration) = pm_object(P).PSEUDOVERTICES |> nrows
+function n_pseudovertices(P::TropicalPolyhedron) 
+  CT = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
+
+  return count(!iszero, eachrow(CT))
+end
+
+function _pseudovertices(::Type{PointVector{TropicalSemiringElem{M}}}, P::Union{TropicalPolyhedron,TropicalPointConfiguration}, i::Int) where {M<:MinOrMax}
+  T = tropical_semiring(convention(P))
+
+  return point_vector(
+    T,
+    T.(pm_object(P).PSEUDOVERTICES[i,:])
+  )
+end
+
+@doc raw"""
+    points([as::Type{T} = PointVector,] P::TropicalPointConfiguration)
+
+Return an iterator over the points of tropical point configuration `P`.
+
+# Examples
+The following retrievs the pseudovertices of a bounded tropical polytope:
+```jldoctest
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
+
+julia> points(P)
+2-element SubObjectIterator{PointVector{TropicalSemiringElem{typeof(min)}}}:
+ [(0), (-1), (0)]
+ [(0), (-4), (-1)]
+
+```
+"""
+points(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = points(PointVector{TropicalSemiringElem{M}}, P)
+function points(as::Type{PointVector{T}}, P::TropicalPointConfiguration) where {T<:TropicalSemiringElem}
+  n = n_points(P)
+
+  return SubObjectIterator{as}(P, _points, n)
+end
+
+@doc raw"""
+    n_points(P::TropicalPointConfiguration)
+
+Return the number of points of `P`.
+
+# Examples
+The 3-cube's number of vertices can be obtained with this input:
+```jldoctest
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
+
+julia> n_points(P)
+2
+```
+"""
+n_points(P::TropicalPointConfiguration) = pm_object(P).POINTS::Polymake.Matrix{<:Polymake.TropicalNumber} |> nrows
+
+function _points(::Type{PointVector{TropicalSemiringElem{M}}}, P::TropicalPointConfiguration, i::Int) where {M<:MinOrMax}
+  T = tropical_semiring(convention(P))
+
+  return point_vector(
+    T,
+    T.(P.pm_tpolytope.POINTS[i,:])
+  )
+end
+
+@doc raw"""
+    dim(P::TropicalPolyhedron)
+
+Return the dimension of `P`.
+
+# Examples
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> dim(P)
+1
+```
+"""
+dim(P::TropicalPolyhedron) = covector_decomposition(P) |> dim
+
+@doc raw"""
+    ambient_dim(P::TropicalPolyhedron)
+    ambient_dim(P::TropicalPointConfiguration)
+
+Return the ambient dimension of `P`.
+
+# Examples
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> ambient_dim(P)
+2
+```
+"""
+ambient_dim(P::Union{TropicalPolyhedron,TropicalPointConfiguration}) = pm_object(P).PROJECTIVE_AMBIENT_DIM::Int
+
+@doc raw"""
+    maximal_covectors([as::Type{T} = PointVector,] P::TropicalPointConfiguration)
+
+Return an iterator over the maximal covectors with respect to `P`.
+
+# Examples
+The following computes retrieves the vertices of a covector decomposition:
+```jldoctest
+julia> P = tropical_point_configuration(QQ[0 -1 0; 0 -4 -1]);
+
+julia> maximal_covectors(P)
+6-element SubObjectIterator{IncidenceMatrix}:
+ 3×2 IncidenceMatrix
+ []
+ [1, 2]
+ []
+ 3×2 IncidenceMatrix
+ [1, 2]
+ []
+ []
+ 3×2 IncidenceMatrix
+ [1]
+ [2]
+ []
+ 3×2 IncidenceMatrix
+ []
+ []
+ [1, 2]
+ 3×2 IncidenceMatrix
+ []
+ [2]
+ [1]
+ 3×2 IncidenceMatrix
+ [1]
+ []
+ [2]
+```
+"""
+function maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPointConfiguration)
+  n = pm_object(P).MAXIMAL_COVECTORS |> length
+
+  return SubObjectIterator{as}(P, _maximal_covectors, n)
+end
+maximal_covectors(P::TropicalPointConfiguration) = maximal_covectors(IncidenceMatrix, P)
+
+function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPointConfiguration, i::Int)
+  return P.pm_tpolytope.MAXIMAL_COVECTORS[i]::IncidenceMatrix
+end
+
+@doc raw"""
+    maximal_covectors([as::Type{T} = PointVector,] P::TropicalPolyhedron)
+
+Return an iterator over the maximal covectors of `P`.
+
+# Examples
+The following computes retrieves the vertices of a tropical polytope:
+```jldoctest
+julia> P = tropical_convex_hull(QQ[0 -1 0; 0 -4 -1]);
+
+julia> maximal_covectors(P)
+2-element SubObjectIterator{IncidenceMatrix}:
+ 3×2 IncidenceMatrix
+ [1]
+ [2]
+ [1]
+ 3×2 IncidenceMatrix
+ [1]
+ [2]
+ [2]
+```
+"""
+function maximal_covectors(as::Type{IncidenceMatrix}, P::TropicalPolyhedron)
+  n = pm_object(P).POLYTOPE_MAXIMAL_COVECTORS |> length
+
+  return SubObjectIterator{as}(P, _maximal_covectors, n)
+end
+maximal_covectors(P::TropicalPolyhedron) = maximal_covectors(IncidenceMatrix, P)
+
+function _maximal_covectors(::Type{IncidenceMatrix}, P::TropicalPolyhedron, i::Int)
+  return P.pm_tpolytope.POLYTOPE_MAXIMAL_COVECTORS[i]::IncidenceMatrix
+end
+
+@doc raw"""
+    covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
+
+Get the covector decomposition of the tropical projective torus induced by `P` as a `PolyhedralComplex`.
+
+# Examples
+The following retrieves the covector decomposition induced by a tropical point configuration:
+```jldoctest
+julia> TT = tropical_semiring();
+
+julia> P = tropical_point_configuration(TT[0 1 4; inf 0 2; inf inf 0]);
+
+julia> CD = covector_decomposition(P)
+Polyhedral complex in ambient dimension 2
+
+julia> CD |> maximal_polyhedra
+5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+```
+"""
+function covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
+  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
+end
+
+@doc raw"""
+    covector_decomposition(P::TropicalPolyhedon; dehomogenize_by=1)
+
+Get the covector decomposition of the tropical polytope `P` inside the tropical projective torus as a `PolyhedralComplex`.
+
+# Examples
+The following retrieves the covector decomposition of a non-convex tropical polytope:
+```jldoctest
+julia> TT = tropical_semiring();
+
+julia> P = tropical_convex_hull(TT[0 1 4; inf 0 2; inf inf 0]);
+
+julia> CD = covector_decomposition(P)
+Polyhedral complex in ambient dimension 2
+
+julia> CD |> maximal_polyhedra
+2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
+ Polytope in ambient dimension 2
+ Polyhedron in ambient dimension 2
+```
+"""
+function covector_decomposition(P::TropicalPolyhedron; dehomogenize_by=1)
+  if !isnothing(dehomogenize_by)
+    return Polymake.tropical.polytope_subdivision_as_complex(pm_object(P), dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
+  else
+   pv = pm_object(P).PSEUDOVERTICES::Polymake.Matrix{Polymake.Rational}
+   cov = pm_object(P).DOME.TROPICAL_SPAN_MAXIMAL_COVECTOR_CELLS::IncidenceMatrix
+   ct = pm_object(P).PSEUDOVERTEX_COARSE_COVECTORS::Polymake.Matrix{<:Integer}
+   ind = findall(1:nrows(ct)) do i
+     all(!iszero, ct[i,:])
+   end
+   return Polymake.fan.PolyhedralComplex(VERTICES=pv[ind,:],MAXIMAL_POLYTOPES=cov[:,ind])::Polymake.BigObject |> polyhedral_complex
+  end
+end
+
+@doc raw"""
+    is_bounded(P::TropicalPolyhedron)
+
+Checks whether `P` is bounded in the tropical projective torus.
+"""
+function is_bounded(P::TropicalPolyhedron)
+  return all(!iszero, pm_object(P).VERTICES::Polymake.Matrix{<:Polymake.TropicalNumber})
+end
+
+function Base.show(io::IO, P::TropicalPolyhedron{M}) where {M<:MinOrMax}
+  d = ambient_dim(P)
+  if M == typeof(min)
+    print(io, "Min tropical polyhedron in tropical projective torus of dimension $d")
+  else
+    print(io, "Max tropical polyhedron in tropical projective torus of dimension $d")
+  end
+end
+
+function Base.show(io::IO, P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
+  d = ambient_dim(P)
+  if M == typeof(min)
+    print(io, "Min tropical point configuration in tropical projective torus of dimension $d")
+  else
+    print(io, "Max tropical point configuration in tropical projective torus of dimension $d")
+  end
+end

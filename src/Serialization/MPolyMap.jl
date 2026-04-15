@@ -1,3 +1,5 @@
+using Oscar: _images, coefficient_map
+
 @register_serialization_type MPolyAnyMap
 
 function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
@@ -28,7 +30,12 @@ function load_object(s::DeserializerState,
   imgs = load_object(s, Vector{T}, c, :images)
 
   if haskey(s, :coeff_map)
-    throw("MPolyAnyMap with coefficient map serialization unimplemented")
+    coeff_map_params = Dict(
+      :domain => base_ring(d),
+      :codomain => base_ring(c)
+    )
+    coeff_map = load_object(s, MPolyAnyMap, coeff_map_params, :coeff_map)
+    return MPolyAnyMap(d, c, coeff_map, imgs)
   end
   return MPolyAnyMap(d, c, nothing, imgs)
 end

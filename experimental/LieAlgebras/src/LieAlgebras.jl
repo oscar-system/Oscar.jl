@@ -58,9 +58,8 @@ import ..Oscar:
   hom_direct_sum,
   hom_tensor,
   ideal,
-  identity_map,
+  id_hom,
   image,
-  induced_map_on_exterior_power,
   inner_direct_product,
   inv,
   is_abelian,
@@ -87,11 +86,11 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  torsion_subgroup,
+  vector_space_dim,
   zero_map,
   ⊕,
   ⊗
-
-Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 

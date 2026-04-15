@@ -258,9 +258,10 @@ function degree(::Type{Vector{Int}}, a::MonoidAlgebraElem; check::Bool=true)
 end
 
 function dim(A::MonoidAlgebra)
-  return dim(A.algebra)
+  return krull_dim(A.algebra)
 end
 
+krull_dim(A::MonoidAlgebra) = krull_dim(A.algebra)
 
 AbstractAlgebra.promote_rule(
                              ::Type{CoeffType}, ::Type{T}
@@ -522,21 +523,8 @@ function radical(I::MonoidAlgebraIdeal)
   return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
 end
 
-dim(I::MonoidAlgebraIdeal) = dim(underlying_ideal(I))
-
-# some generic functionality which should probably be elsewhere
-function is_subset(I::T, J::T) where {T<:Ideal}
-  return all(x in J for x in gens(I))
-end
-
-function Base.:(==)(I::T, J::T) where {T <: Ideal}
-  return is_subset(I, J) && is_subset(J, I)
-end
-
-function Base.:*(I::T, J::T) where {T<:Ideal}
-  @assert base_ring(I) === base_ring(J)
-  return ideal(base_ring(I), [x*y for x in gens(I) for y in gens(J)])
-end
+dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
+krull_dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
 
 # user facing constructor
 ideal(A::MonoidAlgebra, v::Vector) = MonoidAlgebraIdeal(A, elem_type(A)[A(x) for x in v])

@@ -9,7 +9,7 @@ singular_poly_ring(A::MonoidAlgebra; keep_ordering=nothing) = singular_poly_ring
 function singular_module(F::FreeMod{<:MonoidAlgebraElem}, ordering::ModuleOrdering)
   A = base_ring(F)
   Sx = singular_poly_ring(A, induced_ring_ordering(ordering))
-  return Singular.FreeModule(Sx, dim(F))
+  return Singular.FreeModule(Sx, rank(F))
 end
 
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MonoidAlgebraElem}
@@ -52,7 +52,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MonoidAlge
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res
 end

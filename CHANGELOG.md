@@ -3,7 +3,467 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
-tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+tries to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+The following gives an overview of the changes compared to the previous releases. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+## [1.7.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.2) - 2026-04-08
+
+### Commutative Algebra
+
+#### Other fixed bugs
+
+- [#5918](https://github.com/oscar-system/Oscar.jl/pull/5918) Fix parent of the generators of the ideal returned from `groebner_basis_f4` when used with `eliminate > 0`
+
+#### Miscellaneous changes
+
+- [#5903](https://github.com/oscar-system/Oscar.jl/pull/5903) Fix `fitting_ideal` to always return an ideal, even if it is the ideal generate by `1` (where sometimes the ring was returned instead)
+
+### Polyhedral Geometry
+
+#### Improvements or additions to documentation
+
+- [#5917](https://github.com/oscar-system/Oscar.jl/pull/5917) Fix documentation for `polyhedral_fan` to give the correct argument order
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5906](https://github.com/oscar-system/Oscar.jl/pull/5906) Fix a bug that could prevent loading some serialized data
+
+## [1.7.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.1) - 2026-03-26
+
+### Commutative Algebra
+
+#### Fixed bugs that returned incorrect results
+
+- [#5785](https://github.com/oscar-system/Oscar.jl/pull/5785) Fix `issubset` for complements of prime and kpoint ideals
+- [#5875](https://github.com/oscar-system/Oscar.jl/pull/5875) Fix Fitting ideal for free modules
+- [#5876](https://github.com/oscar-system/Oscar.jl/pull/5876) Fix `mres` issue due to presentation
+
+#### Miscellaneous changes
+
+- [#5873](https://github.com/oscar-system/Oscar.jl/pull/5873) Fix length of free resolution of free module
+
+### Polyhedral Geometry
+
+#### Fixed bugs that returned incorrect results
+
+- [#5856](https://github.com/oscar-system/Oscar.jl/pull/5856) Fix `f_vector` for fans with positive lineality dimension
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5850](https://github.com/oscar-system/Oscar.jl/pull/5850) Fix deserialization of `SMat` with trailing zero cols
+- [#5883](https://github.com/oscar-system/Oscar.jl/pull/5883) Fix deserialization of `MatGroup`
+
+#### Only changes experimental parts of OSCAR
+
+- [#5892](https://github.com/oscar-system/Oscar.jl/pull/5892) Fix bug in `diff_action` and provide convenience constructors
+
+#### Fixed bugs that returned incorrect results
+
+- [#5800](https://github.com/oscar-system/Oscar.jl/pull/5800) Remove incorrect `*` method for FreeAssociativeAlgebraIdeal
+
+## [1.7.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.0) - 2026-02-13
+
+### Algebraic Geometry
+
+#### New features or extended functionality
+
+- [#5681](https://github.com/oscar-system/Oscar.jl/pull/5681) Add some minor improvements for finitely presented modules and cache representatives of inverses in quotient rings
+- [#5626](https://github.com/oscar-system/Oscar.jl/pull/5626) Add `ample_class` for `EllipticSurface`
+
+#### Other fixed bugs
+
+- [#5626](https://github.com/oscar-system/Oscar.jl/pull/5626) Fix a bug in `K3_surface_automorphism_group`
+
+### Combinatorics
+
+#### New features or extended functionality
+
+- [#5558](https://github.com/oscar-system/Oscar.jl/pull/5558) Add new collection `SelfProjectingMatroidRealizations` to the OscarDB
+- [#5618](https://github.com/oscar-system/Oscar.jl/pull/5618) Extend `betti_numbers` for `SimplicialComplex` to allow computing Betti numbers over a field instead of the integers
+- [#5696](https://github.com/oscar-system/Oscar.jl/pull/5696) Provide access to phylogenetic tree data available from OscarDB
+- [#5708](https://github.com/oscar-system/Oscar.jl/pull/5708) Add `(has_)disjoint_automorphisms`, `petersen_graph`, and `clebsch_graph`
+
+### Commutative Algebra
+
+#### New features or extended functionality
+
+- [#5588](https://github.com/oscar-system/Oscar.jl/pull/5588) Add `puiseux_expansion`
+- [#5689](https://github.com/oscar-system/Oscar.jl/pull/5689) Improve `is_principal` for ideals in multivariate rings to handle some "easy" cases better
+- [#5729](https://github.com/oscar-system/Oscar.jl/pull/5729) Allow general subquotient modules as input to `vector_space_dimension` and friends.
+
+#### Other fixed bugs
+
+- [#5596](https://github.com/oscar-system/Oscar.jl/pull/5596) Check that all variables are from the same ring when generating an ordering
+- [#5652](https://github.com/oscar-system/Oscar.jl/pull/5652) Fix regression in `components_of_kernel`
+
+### Groups
+
+#### Renamings
+
+- [#5704](https://github.com/oscar-system/Oscar.jl/pull/5704) Rename `MatrixGroup`, `MatrixGroupElem` to `MatGroup`, `MatGroupElem`, to better fit in with `MatElem` and `MatRingElem`
+
+#### New features or extended functionality
+
+- [#5619](https://github.com/oscar-system/Oscar.jl/pull/5619) Add variant of `perm` function which takes a degree
+- [#5640](https://github.com/oscar-system/Oscar.jl/pull/5640) Add `ree_group` and `suzuki_group` constructors
+- [#5755](https://github.com/oscar-system/Oscar.jl/pull/5755) Add characteristc and minimal polynomial for matrix group elements
+
+### Number Theory
+
+#### New features or extended functionality
+
+- [#5583](https://github.com/oscar-system/Oscar.jl/pull/5583) Introduce `TorQuadModuleWithIsom`
+- [#5634](https://github.com/oscar-system/Oscar.jl/pull/5634) Add `isometry_positive` function for `ZZLatWithIsom`
+- [#5761](https://github.com/oscar-system/Oscar.jl/pull/5761) Add unit groups of finite rings
+
+#### Fixed bugs that returned incorrect results
+
+- [#5684](https://github.com/oscar-system/Oscar.jl/pull/5684) Improve the handling of non-nice polynomials in `galois_group`
+
+### Polyhedral Geometry
+
+#### New features or extended functionality
+
+- [#5610](https://github.com/oscar-system/Oscar.jl/pull/5610) Improve `normal_cone` to support multiple vertices as input, and provide an option for calculating outer or inner normal cones.
+- [#5670](https://github.com/oscar-system/Oscar.jl/pull/5670) Allow field coercion and pre-set coefficient fields for polyhedra
+
+#### Fixed bugs that returned incorrect results
+
+- [#5716](https://github.com/oscar-system/Oscar.jl/pull/5716) Fix `f_vector` for cones with lineality (and the point)
+
+#### Other fixed bugs
+
+- [#5647](https://github.com/oscar-system/Oscar.jl/pull/5647) Fix and improve polymake visualization with jupyter
+
+### Changes related to the package AbstractAlgebra
+
+- [#5710](https://github.com/oscar-system/Oscar.jl/pull/5710) Update AbstractAlgebra to v0.48
+
+### Changes related to the package Nemo
+
+- [#5613](https://github.com/oscar-system/Oscar.jl/pull/5613) Update Nemo to v0.53, FLINT to 3.4.0
+- [#5710](https://github.com/oscar-system/Oscar.jl/pull/5710) Update Nemo to v0.54
+
+### Other changes
+
+#### Renamings
+
+- [#5702](https://github.com/oscar-system/Oscar.jl/pull/5702) Replace `induced_map_on_exterior_powers` by `exterior_power(::Map)`
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5672](https://github.com/oscar-system/Oscar.jl/pull/5672) Fix loading of empty tuples
+- [#5717](https://github.com/oscar-system/Oscar.jl/pull/5717) Add kwarg `compression=:gzip` to produce gzip compressed serialization files
+
+#### Only changes experimental parts of OSCAR
+
+- [#5587](https://github.com/oscar-system/Oscar.jl/pull/5587) Las Vegas algorithm for exterior algebraic shifting
+- [#5660](https://github.com/oscar-system/Oscar.jl/pull/5660) Allow `oscar_worker_pool` to accept abstract cluster managers
+
+## [1.6.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.6.0) - 2025-11-29
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Algebraic Geometry
+
+#### New features or extended functionality
+
+- [#5265](https://github.com/oscar-system/Oscar.jl/pull/5265) Add `f4ncgb` algorithm for non-commutative groebner basis computation
+- [#5403](https://github.com/oscar-system/Oscar.jl/pull/5403) Add `factoring_standard_basis` command which uses `facstd` from `Singular.jl`
+- [#5585](https://github.com/oscar-system/Oscar.jl/pull/5585) Precomputed Gröbner basis for quantum symmetric groups
+
+#### Fixed bugs that returned incorrect results
+
+- [#5492](https://github.com/oscar-system/Oscar.jl/pull/5492) Fix computing saturation of modules over quotient rings
+
+### Combinatorics
+
+#### New features or extended functionality
+
+- [#5235](https://github.com/oscar-system/Oscar.jl/pull/5235) Construct `PhylogeneticTree` from graph 
+- [#5477](https://github.com/oscar-system/Oscar.jl/pull/5477) Add `multicombinations` to Oscar
+- [#5530](https://github.com/oscar-system/Oscar.jl/pull/5530) Support optional "inplace" iteration for combinations and multicombinations
+
+#### Improvements or additions to documentation
+
+- [#5431](https://github.com/oscar-system/Oscar.jl/pull/5431) Improve combinatorics documentation
+- [#5446](https://github.com/oscar-system/Oscar.jl/pull/5446) Further improvements to documentation for `combinations`
+
+#### Miscellaneous changes
+
+- [#5228](https://github.com/oscar-system/Oscar.jl/pull/5228) Major changes and updates to AlgebraicStatistics 
+- [#5485](https://github.com/oscar-system/Oscar.jl/pull/5485) Fix spelling of `is_acyclic` for directed graphs. Deprecate `is_acylic`.
+
+### F-Theory Tools
+
+#### Performance improvements or improved testing
+
+- [#5295](https://github.com/oscar-system/Oscar.jl/pull/5295) Reduce yet more randomness in FTheoryTools
+
+### Groups
+
+#### New features or extended functionality
+
+- [#4826](https://github.com/oscar-system/Oscar.jl/pull/4826) Improve the handling of matrix groups over number fields
+- [#5250](https://github.com/oscar-system/Oscar.jl/pull/5250) Add `fixed_points` for `PermGroup` and `PermGroupElem`
+- [#5267](https://github.com/oscar-system/Oscar.jl/pull/5267) Add `order_bound` keyword argument to `subgroup_classes`
+- [#5270](https://github.com/oscar-system/Oscar.jl/pull/5270) Add an iterator of subspaces of finite vector spaces
+- [#5288](https://github.com/oscar-system/Oscar.jl/pull/5288) Add `p_rump` for `GAPGroup` and extend `torsion_subgroup` for `GAPGroup` and `WeylGroup`
+- [#5453](https://github.com/oscar-system/Oscar.jl/pull/5453) Add `character_degrees` for a given group or character table, or for given invariants of a finite abelian group and finite field
+- [#5456](https://github.com/oscar-system/Oscar.jl/pull/5456) Add `encode` and `pc_group` for encoding finite pc groups into integers and back
+- [#5532](https://github.com/oscar-system/Oscar.jl/pull/5532) Add a constructive membership test for double cosets
+
+#### Fixed bugs that resulted in unexpected errors
+
+- [#5594](https://github.com/oscar-system/Oscar.jl/pull/5594) Fix raising matrix group elements to negative powers
+
+### Lie Theory
+
+#### Only changes experimental parts of OSCAR
+
+- [#5290](https://github.com/oscar-system/Oscar.jl/pull/5290) Add `basis_coordinate_ring_kodaira_demazure`
+
+### Number Theory
+
+#### New features or extended functionality
+
+- [#5251](https://github.com/oscar-system/Oscar.jl/pull/5251) Allow `discriminant_annihilator` as input for `enumerate_classes_of_lattices_with_isometry`
+- [#5339](https://github.com/oscar-system/Oscar.jl/pull/5339) Methods for group actions on `ZZLat`
+- [#5457](https://github.com/oscar-system/Oscar.jl/pull/5457) Allow to specify several characteristic polynomials in lattice with isometry enumeration
+
+#### Performance improvements or improved testing
+
+- [#5545](https://github.com/oscar-system/Oscar.jl/pull/5545) Implement the decomposition approach for orthogonal group computation and isometry testing of integer lattices. This results in a vast speedup for lattices which are not generated by their shortest vectors.
+
+### Polyhedral Geometry
+
+#### New features or extended functionality
+
+- [#4444](https://github.com/oscar-system/Oscar.jl/pull/4444) Add transformations for polyhedral fans and complexes
+- [#4709](https://github.com/oscar-system/Oscar.jl/pull/4709) Introduce various variants of `halfspace_matrix_pair(ZZ, ...)` for polyhedral objects to access facets etc as matrices
+- [#5372](https://github.com/oscar-system/Oscar.jl/pull/5372) Add `castelnuovo_excess` and `is_castelnuovo` for lattice polytopes
+- [#5384](https://github.com/oscar-system/Oscar.jl/pull/5384) Enhance documentation and add further functions inherited from polymake 
+
+### Toric Geometry
+
+#### New features or extended functionality
+
+- [#5032](https://github.com/oscar-system/Oscar.jl/pull/5032) Improve vector of minimal exponents method for cohomology computations
+- [#5512](https://github.com/oscar-system/Oscar.jl/pull/5512) Deprecate `all_cohomologies` in favor of `sheaf_cohomology`
+- [#5512](https://github.com/oscar-system/Oscar.jl/pull/5512) Support line bundle cohomology computation via local cohomology, including functorial aspects
+
+### Tropical Geometry
+
+#### New features or extended functionality
+
+- [#4001](https://github.com/oscar-system/Oscar.jl/pull/4001) Tropical polyhedra: Types and basic properties
+
+### Changes related to the package GAP
+
+- [#5374](https://github.com/oscar-system/Oscar.jl/pull/5374) Update GAP.jl to 0.16, i.e. GAP to 4.15.1
+
+### Changes related to the package Hecke
+
+- [#5533](https://github.com/oscar-system/Oscar.jl/pull/5533) Update Hecke to 0.39
+
+### Changes related to the package Singular
+
+- [#5489](https://github.com/oscar-system/Oscar.jl/pull/5489) Update Singular.jl to 0.27
+- [#5578](https://github.com/oscar-system/Oscar.jl/pull/5578) Update Singular.jl to 0.28
+
+### Other changes
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#5137](https://github.com/oscar-system/Oscar.jl/pull/5137) Add OscarDB to experimental
+
+#### Only changes experimental parts of OSCAR
+
+- [#4798](https://github.com/oscar-system/Oscar.jl/pull/4798) Implement multigraded implicitization
+- [#5329](https://github.com/oscar-system/Oscar.jl/pull/5329) Add documentation for action polynomial rings
+
+## [1.5.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.1) - 2025-11-20
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Lie Theory
+
+#### Only changes experimental parts of OSCAR
+
+- [#5304](https://github.com/oscar-system/Oscar.jl/pull/5304) Fix `basis_lie_demazure` which wouldn't finish for some inputs
+
+### Other changes
+
+#### Improvements or additions to documentation
+
+- [#5314](https://github.com/oscar-system/Oscar.jl/pull/5314) Improve documentation of fields
+
+## [1.5.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.5.0) - 2025-09-11
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
+
+### Highlights
+
+- [#4983](https://github.com/oscar-system/Oscar.jl/pull/4983) Don't export internal helpers `singular`, `singular_assure`, `singular_coeff_ring`, `singular_poly_ring` (they were never meant to be exported)
+- [#5046](https://github.com/oscar-system/Oscar.jl/pull/5046) Graduate "Quadratic forms and isometries" from experimental to officially supported
+
+### Renamings
+
+- [#5102](https://github.com/oscar-system/Oscar.jl/pull/5102) Rename some potentially ambiguous usages of `dim` and use `krull_dim`, `rank` or `vector_space_dim` instead
+
+### Algebraic Geometry
+
+- [#4951](https://github.com/oscar-system/Oscar.jl/pull/4951) Add support for spectral sequences in Cech cohomology
+- [#5065](https://github.com/oscar-system/Oscar.jl/pull/5065) Irreducible components for schemes
+- [#5186](https://github.com/oscar-system/Oscar.jl/pull/5186) Improve `is_smooth` for affine schemes.
+
+### Combinatorics
+
+- [#4933](https://github.com/oscar-system/Oscar.jl/pull/4933) Add type parameter to `Matroid`
+- [#4995](https://github.com/oscar-system/Oscar.jl/pull/4995) Add `maximal_cliques(::Graph{Undirected})`
+- [#5091](https://github.com/oscar-system/Oscar.jl/pull/5091) Add documentation for multi-sets and subset iterators to manual
+- [#5179](https://github.com/oscar-system/Oscar.jl/pull/5179) Add mixed graphs (graphs with both directed and undirected edges)
+- [#5182](https://github.com/oscar-system/Oscar.jl/pull/5182) Fix a bug in the computation of matroid realization spaces with saturated defining ideal
+- [#5193](https://github.com/oscar-system/Oscar.jl/pull/5193) Add documentation for graph visualization using Graphviz
+- [#5211](https://github.com/oscar-system/Oscar.jl/pull/5211) Add `is_acyclic` function for directed graphs
+- [#5244](https://github.com/oscar-system/Oscar.jl/pull/5244) Add `induced_subgraph`
+
+### Commutative Algebra
+
+- [#4915](https://github.com/oscar-system/Oscar.jl/pull/4915) Add support for generic modules over the integers and fields
+- [#4967](https://github.com/oscar-system/Oscar.jl/pull/4967) Introduce and use additional `is_noetherian`, `krull_dim` & `vector_space_dim` methods
+- [#5004](https://github.com/oscar-system/Oscar.jl/pull/5004) Print sheaf cohomology tables more compactly
+- [#5030](https://github.com/oscar-system/Oscar.jl/pull/5030) Deprecate `vector_space_dimension`, use `vector_space_dim` instead
+- [#5078](https://github.com/oscar-system/Oscar.jl/pull/5078) Support `kernel` of maps with Laurent polynomials as codomain
+- [#5080](https://github.com/oscar-system/Oscar.jl/pull/5080) Don't allow `grade` on graded polynomial ring
+- [#5185](https://github.com/oscar-system/Oscar.jl/pull/5185) Fix `radical` for ideals in polynomial rings over the integers
+- [#5240](https://github.com/oscar-system/Oscar.jl/pull/5240) Add `change_base_ring` for graded multivariate rings
+- [#5241](https://github.com/oscar-system/Oscar.jl/pull/5241) Add `rational_solutions` over larger field
+
+### F-Theory Tools
+
+- [#5017](https://github.com/oscar-system/Oscar.jl/pull/5017) Chern classes can be serialized
+- [#5019](https://github.com/oscar-system/Oscar.jl/pull/5019) For all QSMs, remember that toric ambient space is complete and smooth
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Compute integral and rational coefficients for **all** `G_4`-fluxes
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Upon construction, automatically express the defining cohomology class of each `G_4`-flux using the internally chosen generating set
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Deprecate `basis_of_h22_hypersurface` in favor of `gens_of_h22_hypersurface`
+- [#5031](https://github.com/oscar-system/Oscar.jl/pull/5031) Deprecate `basis_of_h22_hypersurface_indices` in favor of `gens_of_h22_hypersurface_indices`
+- [#5048](https://github.com/oscar-system/Oscar.jl/pull/5048) **Breaking:** Stop support for `su5_weierstrass_model_over_arbitrary_3d_base`
+- [#5048](https://github.com/oscar-system/Oscar.jl/pull/5048) **Breaking:** Stop support for `su5_tate_model_over_arbitrary_3d_base`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Extended flexibility for `HypersurfaceModel` constructors
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Improved implementation of `set_weierstrass_model(h::HypersurfaceModel)`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) Improved implementation of `set_global_tate_model(h::HypersurfaceModel)`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) **Breaking:** Remove support for `sample_toric_variety()`
+- [#5071](https://github.com/oscar-system/Oscar.jl/pull/5071) **Breaking:** Remove support for `weierstrass_model(w::WeierstrassModel)`
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) **Breaking:** Remove support for `set`-functions of metadata attributes of literature models.
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) **Breaking:** Remove support for (most) `has`-functions, to tell if a (literature) model has a particular attribute.
+- [#5083](https://github.com/oscar-system/Oscar.jl/pull/5083) Introduce `add_torsion_section` method.
+- [#5156](https://github.com/oscar-system/Oscar.jl/pull/5156) Stabilize `singular_loci`'s refined Tate fiber type computation (Monte Carlo) with fixed seed
+- [#5161](https://github.com/oscar-system/Oscar.jl/pull/5161) **Breaking:** Drop support for `add_model_parameter(m::AbstractFTheoryModel, addition::String)`
+- [#5198](https://github.com/oscar-system/Oscar.jl/pull/5198) Serialize mappings of properties of toric varieties and update QSMDB
+- [#5200](https://github.com/oscar-system/Oscar.jl/pull/5200) Drop support for `cox_ring` of `FamilyOfSpaces`
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) **Breaking:** Kwarg `check` renamed according to the role it plays/adjusting its role when needed. In most places, it was renamed to `completeness_check`. For constructors of G4-fluxes, we introduced the kwarg `consistency_check` (is the flux properly quantized? does it pass the transversality constraints?).
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) Support for kwarg `completeness_check` extended. For instance, it is now allowed as input to `is_well_quantized`, `passes_transversality_checks`, `d3_tadpole` for individual G4-fluxes. But it is also used internally in many more places.
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) Kwargs `completeness_check` and `consistency_check` are described in docstrings.
+- [#5214](https://github.com/oscar-system/Oscar.jl/pull/5214) **Breaking:** Stop support for `chosen_g4_flux_basis`, `basis_of_h22_hypersurface` and `basis_of_h22_hypersurface_indices`.
+- [#5269](https://github.com/oscar-system/Oscar.jl/pull/5269) **Breaking:** Stop support for `_blowup_global`, `_blowup_global_sequence`, and `_is_nontrivial`
+- [#5278](https://github.com/oscar-system/Oscar.jl/pull/5278) Make `generic_section` and functions derived thereby less random by providing a seed as kwarg
+
+### Groups
+
+- [#4987](https://github.com/oscar-system/Oscar.jl/pull/4987) Add `natural_gset` method for permutation, matrix & Weyl groups
+- [#4999](https://github.com/oscar-system/Oscar.jl/pull/4999) Add `extraspecial_group` and `is_extraspecial_group`
+- [#5026](https://github.com/oscar-system/Oscar.jl/pull/5026) Add functionality for pc groups and their elements: `hirsch_length`, `depth`, `relative_order`, `exponent_vector`, `leading_exponent`
+- [#5055](https://github.com/oscar-system/Oscar.jl/pull/5055) Add `permutation_character(G::GAPGroup, H::GAPGroup)`
+- [#5140](https://github.com/oscar-system/Oscar.jl/pull/5140) Add `smallest_moved_point` and `largest_moved_point`
+
+### Lie Theory
+
+- [#4570](https://github.com/oscar-system/Oscar.jl/pull/4570) Extend functionality of the experimental `BasisLieHighestWeight` module to Demazure modules
+
+### Number Theory
+
+- [#5082](https://github.com/oscar-system/Oscar.jl/pull/5082) Change `root_of_unity(K::QQAbField, n::Int)` to return always the root corresponding to $\exp(2\pi i/n)$
+- [#5109](https://github.com/oscar-system/Oscar.jl/pull/5109) Fix a bug in `galois_group` that resulted in too small groups being returned
+- [#5126](https://github.com/oscar-system/Oscar.jl/pull/5126) Add `isinteger`, `is_rational` and `is_integral` for `QQAbFieldElem`
+
+### Polyhedral Geometry
+
+- [#5217](https://github.com/oscar-system/Oscar.jl/pull/5217) `n_cones` and `cones` now properly consider all cones
+- [#5220](https://github.com/oscar-system/Oscar.jl/pull/5220) Add `filename` and `backend` keyword arguments to `visualize`
+- [#5246](https://github.com/oscar-system/Oscar.jl/pull/5246) Add support for serializing linear programs over non-rational fields
+
+### Toric Geometry
+
+- [#4928](https://github.com/oscar-system/Oscar.jl/pull/4928) Use symbols instead of strings for variables in toric geometry
+- [#5064](https://github.com/oscar-system/Oscar.jl/pull/5064) Introduce `class_group_with_map` and `picard_group_with_map`
+- [#5073](https://github.com/oscar-system/Oscar.jl/pull/5073) Use Laurent polynomial ring approach to speed up computation of `toric_ideal`
+- [#5234](https://github.com/oscar-system/Oscar.jl/pull/5234) Refine optional checks in toric varieties: introduce kwarg `completeness_check`
+- [#5278](https://github.com/oscar-system/Oscar.jl/pull/5278) Make `generic_section` and functions derived thereby less random by providing a seed as kwarg
+- [#5284](https://github.com/oscar-system/Oscar.jl/pull/5284) Implement chamber counting algorithm for toric line bundles
+- [#5287](https://github.com/oscar-system/Oscar.jl/pull/5287) **Breaking:** Require simplicial, projective toric varieties in the current cohomCalg implementation; update input tests
+
+### Changes related to serializing data in the MRDI file format
+
+- [#4992](https://github.com/oscar-system/Oscar.jl/pull/4992) Fix loading `FreeAssociativeAlgebraElem`s
+- [#4997](https://github.com/oscar-system/Oscar.jl/pull/4997) Allow loading matrices with non-commutative entries
+- [#5024](https://github.com/oscar-system/Oscar.jl/pull/5024) Move serialization code into new submodule `Oscar.Serialization`, replace `@import_all_serialization_functions` by `using Oscar.Serialization`
+- [#5094](https://github.com/oscar-system/Oscar.jl/pull/5094) Add option to `JSONSerializer` to suppress saving refs
+- [#5122](https://github.com/oscar-system/Oscar.jl/pull/5122) Add serialization for Matrix Groups
+- [#5191](https://github.com/oscar-system/Oscar.jl/pull/5191) Add support for multidimensional Array serialization
+- [#5196](https://github.com/oscar-system/Oscar.jl/pull/5196) Add serialization of `FinGenAbGroupHom`
+
+### Only changes experimental parts of OSCAR
+
+- [#5212](https://github.com/oscar-system/Oscar.jl/pull/5212) Add difference polynomial rings and differential polynomial rings
+
+### Changes related to the package AbstractAlgebra
+
+- [#4965](https://github.com/oscar-system/Oscar.jl/pull/4965) No longer export misleading `@perm_str` from AA
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump AbstractAlgebra to v0.46
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump AbstractAlgebra to v0.47
+
+### Changes related to the package GAP
+
+- [#4952](https://github.com/oscar-system/Oscar.jl/pull/4952) Add a `QQBar` interface to GAP
+- [#5049](https://github.com/oscar-system/Oscar.jl/pull/5049) Add support for GAP.jl 0.14
+- [#5226](https://github.com/oscar-system/Oscar.jl/pull/5226) Update to GAP.jl 0.15
+
+### Changes related to the package Hecke
+
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump Hecke to v0.37
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump Hecke to v0.38
+
+### Changes related to the package Nemo
+
+- [#5110](https://github.com/oscar-system/Oscar.jl/pull/5110) Bump Nemo to v0.51
+- [#5282](https://github.com/oscar-system/Oscar.jl/pull/5282) Bump Nemo to v0.52
+
+### Changes related to the package Polymake
+
+- [#5114](https://github.com/oscar-system/Oscar.jl/pull/5114) Update Polymake.jl to v0.13, polymake to v4.14
+
+### Changes related to the package Singular
+
+- [#5281](https://github.com/oscar-system/Oscar.jl/pull/5281) Update Singular.jl to 0.26
+
+### Other changes
+
+- [#4988](https://github.com/oscar-system/Oscar.jl/pull/4988) New implementation of `map_from_func` with changed argument order
+- [#5051](https://github.com/oscar-system/Oscar.jl/pull/5051) Drop support for julia versions older than current LTS (1.10)
 
 ## [1.4.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.4.1) - 2025-06-07
 
@@ -265,7 +725,7 @@ which we think might affect some users directly.
 - [#4378](https://github.com/oscar-system/Oscar.jl/pull/4378) Fix wrong result of `isomorphism(FPGroup, G, on_gens = true)` for trivial `G` with more than 0 generators
 - [#4361](https://github.com/oscar-system/Oscar.jl/pull/4361) Speed up `cperm`
 - [#4359](https://github.com/oscar-system/Oscar.jl/pull/4359) Add `cycle_length` for `PermGroupElem`
-- [#4357](https://github.com/oscar-system/Oscar.jl/pull/4357) Improve `isomorphism` from pc-groups and fp-groups to `FinGenAbGroup`
+- [#4357](https://github.com/oscar-system/Oscar.jl/pull/4357) Improve `isomorphism` from pc groups and fp groups to `FinGenAbGroup`
 - [#4337](https://github.com/oscar-system/Oscar.jl/pull/4337) Speed up `orbit_representatives_and_stabilizers` for not too large examples
 - [#4319](https://github.com/oscar-system/Oscar.jl/pull/4319) Make `isomorphism(PcGroup, A)` for infinite abelian `A` work
 - [#4311](https://github.com/oscar-system/Oscar.jl/pull/4311) Add action on matrices in row reduced echelon form

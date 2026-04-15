@@ -9,6 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 ```@docs
 AbsAffineRationalPoint
 AffineRationalPoint
+rational_point(X::AbsAffineScheme, coordinates; check::Bool=true)
 coordinates(p::AffineRationalPoint)
 ideal(P::AbsAffineRationalPoint)
 scheme(P::AbsAffineRationalPoint)

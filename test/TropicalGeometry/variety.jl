@@ -61,7 +61,7 @@
     end
 
     # running tropical_variety and all its subroutines
-    @testset "testing tropical_variety" begin
+    @testset "testing tropical_variety basics" begin
         # principal ideals
         R,(x,y,z) = QQ["x","y","z"]
         f = x^2+y^2+z^2+1
@@ -81,5 +81,39 @@
         @test f_vector(TropV) == [1,3]
 
         # general ideals, see doctests
+        I = grassmann_pluecker_ideal(2, 5)
+        nu = tropical_semiring_map(QQ, 3)
+        TropI = tropical_variety(I; skip_saturation=true, skip_decomposition=true)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
+        TropI = tropical_variety(I,nu; skip_saturation=true, skip_decomposition=true)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
     end
+
+    @testset "testing tropical_variety respecting conventions" begin
+        I = grassmann_pluecker_ideal(2, 5)
+        R = base_ring(I)
+        RR, y = polynomial_ring(QQ, length(gens(R)), :y)
+        g = hom(R, RR, gens(RR))
+        II = g(I)
+
+        nuMin = tropical_semiring_map(QQ, min) # works properly
+        nuMax = tropical_semiring_map(QQ, max)
+        Tmin = tropical_variety(II, nuMin; skip_decomposition=true)
+        Tmax = tropical_variety(II, nuMax; skip_decomposition=true)
+
+        Cmin = first(maximal_polyhedra(Tmin))
+        Rmin,_ = rays_modulo_lineality(Cmin)
+        wMin = sum(Rmin)
+        wMin = lcm(denominator.(wMin))*wMin
+
+        Cmax = first(maximal_polyhedra(Tmax))
+        Rmax,_ = rays_modulo_lineality(Cmax)
+        wMax = sum(Rmax)
+        wMax = lcm(denominator.(wMax))*wMax
+
+        @test all(h -> (length(h)>1), initial.(gens(I), Ref(nuMin), Ref(wMin)))
+        @test all(h -> (length(h)>1), initial.(gens(I), Ref(nuMax), Ref(wMax)))
+    end
+
+
 end

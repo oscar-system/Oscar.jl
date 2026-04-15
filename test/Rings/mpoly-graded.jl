@@ -1,5 +1,5 @@
 @testset "MPolyQuoRing.graded" begin
-  R, (x,) = graded_polynomial_ring(QQ, [:x], [1])
+  R, (x,) = graded_polynomial_ring(QQ, [:x]; weights = [1])
   Q = quo(R, ideal([x^4]))[1];
   @test_throws ArgumentError ideal(R, [x-x^2])
   R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
@@ -52,7 +52,7 @@ end
 
 @testset "mpoly-graded" begin
 
-    R, (x,) = graded_polynomial_ring(QQ, [:x], [1])
+    R, (x,) = graded_polynomial_ring(QQ, [:x]; weights = [1])
     @test_throws ArgumentError ideal(R, [x-x^2])
     Qx, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
     t = gen(Hecke.Globals.Qx)
@@ -104,7 +104,7 @@ end
       # The dimension should be dims[RR]
 
       for RR in decorated_rings
-        @test (RR in graded_rings) == Oscar.is_graded(RR)
+        @test (RR in graded_rings) == is_graded(RR)
         @test (RR in filtered_rings) == Oscar.is_filtered(RR)
         polys = _random_poly(RR, 4) # create 4 random polynomials
         @test ngens(RR) == length(gens(RR))
@@ -128,7 +128,7 @@ end
 
         for k in 1:length(polys[4])
           @test coeff(polys[4],k) * Oscar.monomial(polys[4], k) ==
-                finish(push_term!(MPolyBuildCtx(RR), collect(Oscar.MPolyCoeffs(polys[4]))[k], collect(Oscar.MPolyExponentVectors(polys[4]))[k]))
+                finish(push_term!(MPolyBuildCtx(RR), collect(AbstractAlgebra.coefficients(polys[4]))[k], collect(AbstractAlgebra.exponent_vectors(polys[4]))[k]))
         end
 
         hom_polys = _homogeneous_polys(polys)
@@ -145,7 +145,7 @@ end
         end
 
         @test Oscar.is_filtered(R_quo) == Oscar.is_filtered(RR)
-        @test Oscar.is_graded(R_quo) == Oscar.is_graded(RR)
+        @test is_graded(R_quo) == is_graded(RR)
 
         @test grading_group(R_quo) == grading_group(RR)
 
@@ -162,7 +162,7 @@ end
                @test degree(H[2](g)) == grp_elem
                @test (H[2].g)(RR(g)) == g
              end
-             @test dim(H[1]) == dim_test #
+             @test vector_space_dim(H[1]) == dim_test #
           end
         end
         #H_quo = homogeneous_component(R_quo, grp_elem)
@@ -181,7 +181,7 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
 
-  S, t = graded_polynomial_ring(QQ, [:t], [1])
+  S, t = graded_polynomial_ring(QQ, [:t]; weights = [1])
   @test_throws ErrorException R(gen(S, 1))
 end
 
@@ -211,7 +211,7 @@ end
 end
 
 @testset "Minimal generating set" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y]; weights = [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
   @test !isempty(I.gb)
@@ -219,7 +219,7 @@ end
 end
 
 @testset "Division" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
   f = x^2 + y
   g = x^2
   @test div(f, g) == one(R)
@@ -258,7 +258,7 @@ end
 
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
-  @test dim(M) == 0
+  @test vector_space_dim(M) == 0
   @test iszero(t)
   @test parent(t) == R
 
@@ -266,7 +266,7 @@ end
   # of the various vector spaces (this used to not work correctly)
   polys = [x, y, (x+y+z)^3, 2*x - 5*y];
   V, VtoPoly = vector_space(QQ, polys)
-  @test dim(V) == 3
+  @test vector_space_dim(V) == 3
   @test all(f -> VtoPoly(preimage(VtoPoly, f)) == f, polys)
   @test_throws ErrorException preimage(VtoPoly, z)
 
@@ -274,7 +274,7 @@ end
   W = vector_space(QQ, length(polys))
   WtoV = hom(W, V, [preimage(VtoPoly, f) for f in polys])
   K, KtoW = kernel(WtoV)
-  @test dim(K) == 1
+  @test vector_space_dim(K) == 1
 end
 
 @testset "Hilbert series" begin
@@ -345,7 +345,7 @@ end
   @test forget_grading(I) == ideal(R, [ x + y ])
   @test ideal(S, forget_decoration(I)) == I
 
-  T, _ = graded_polynomial_ring(QQ, [ :t ], [ 1 ])
+  T, _ = graded_polynomial_ring(QQ, [ :t ]; weights = [ 1 ])
   @test_throws ArgumentError ideal(T, forget_decoration(I))
 end
 
@@ -576,7 +576,7 @@ let
 end
 
 @testset "is_positively_graded" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, -1])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, -1])
   @test is_positively_graded(R) == false
 end
 
@@ -596,3 +596,12 @@ end
     @test issetequal(minimal_generating_set(ideal(gb)), [x, y])
   end
 end
+
+@testset "change_base_ring for graded rings" begin
+  S, (x, y) = graded_polynomial_ring(ZZ, [:x, :y])
+  S101, mod_map = change_base_ring(GF(101), S)
+  @test is_graded(S101)
+  @test grading_group(S) === grading_group(S101)
+  @test degree.(gens(S)) == degree.(gens(S101))
+end
+

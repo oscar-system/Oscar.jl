@@ -3,19 +3,19 @@
 ###################################################################
 
 """
-    atlas_group([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
+    atlas_group([::Type{T}, ]name::String) where T <: Union{PermGroup, MatGroup}
 
 Return a group from the Atlas of Group Representations
 whose isomorphism type is given by `name` and have the type `T`.
 If `T` is not given then `PermGroup` is chosen if a permutation group
-for `name` is available, and `MatrixGroup` otherwise.
+for `name` is available, and `MatGroup` otherwise.
 
 # Examples
 ```jldoctest
 julia> atlas_group("A5")  # alternating group A5
 Permutation group of degree 5 and order 60
 
-julia> atlas_group(MatrixGroup, "A5")
+julia> atlas_group(MatGroup, "A5")
 Matrix group of degree 4
   over prime field of characteristic 2
 
@@ -42,7 +42,7 @@ function atlas_group(name::String)
   return _oscar_group(G)
 end
 
-function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
+function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatGroup}
   GAPname = GapObj(name)::GapObj
   if T === PermGroup
     G = GAP.Globals.AtlasGroup(GAPname, GAP.Globals.IsPermGroup, true)::GapObj
@@ -100,14 +100,9 @@ function atlas_group(info::Dict)
 
   if haskey(info, :base_ring_iso)
     # make sure that the given ring is used
-    deg = GAP.Globals.DimensionOfMatrixGroup(G)::GAP.Obj
-    iso = info[:base_ring_iso]
-    ring = domain(iso)
-    matgrp = matrix_group(ring, deg)
-    matgrp.ring_iso = iso
-    matgrp.X = G
-    return matgrp
+    return matrix_group(info[:base_ring_iso], G)
   else
+    # permutation group or matrix group
     return _oscar_group(G)
   end
 end
@@ -115,7 +110,7 @@ end
 
 """
     atlas_subgroup(G::GAPGroup, nr::Int)
-    atlas_subgroup([::Type{T}, ]name::String, nr::Int) where T <: Union{PermGroup, MatrixGroup}
+    atlas_subgroup([::Type{T}, ]name::String, nr::Int) where T <: Union{PermGroup, MatGroup}
     atlas_subgroup(info::Dict, nr::Int)
 
 Return a pair `(H, emb)` where `H` is a representative of the `nr`-th class
@@ -145,7 +140,7 @@ julia> order(h1)  # largest maximal subgroup of M11
 julia> h2, emb = atlas_subgroup("M11", 1);  h2
 Permutation group of degree 11 and order 720
 
-julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
+julia> h3, emb = atlas_subgroup(MatGroup, "M11", 1 );  h3
 Matrix group of degree 10
   over prime field of characteristic 2
 
@@ -176,7 +171,7 @@ end
 
 atlas_subgroup(name::String, nr::Int) = atlas_subgroup(atlas_group(name), nr)
 
-function atlas_subgroup(::Type{T}, name::String, nr::Int) where T <: Union{PermGroup, MatrixGroup}
+function atlas_subgroup(::Type{T}, name::String, nr::Int) where T <: Union{PermGroup, MatGroup}
   return atlas_subgroup(atlas_group(T, name), nr)
 end
 
@@ -305,7 +300,7 @@ end
 
 
 """
-    number_of_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
+    number_of_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatGroup}
 
 Return the number of groups from the Atlas of Group Representations
 whose isomorphism type is given by `name` and have the type `T`.
@@ -318,7 +313,7 @@ julia> number_of_atlas_groups("A5")
 julia> number_of_atlas_groups(PermGroup, "A5")
 3
 
-julia> number_of_atlas_groups(MatrixGroup, "A5")
+julia> number_of_atlas_groups(MatGroup, "A5")
 15
 
 ```
@@ -327,7 +322,7 @@ function number_of_atlas_groups(name::String)
   return length(GAP.Globals.AllAtlasGeneratingSetInfos(GapObj(name))::GapObj)
 end
 
-function number_of_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
+function number_of_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatGroup}
   if T === PermGroup
     return length(GAP.Globals.AllAtlasGeneratingSetInfos(
                     GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj)

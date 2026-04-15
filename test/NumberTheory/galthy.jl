@@ -57,6 +57,10 @@
   G, C = galois_group((x^3-2)^2*(x^3-5)^2*(x^2-6))
   @test order(G) == 36
   @test degree(G) == 14
+
+  #Fabian Gundlach...
+  G, C = galois_group(x^8 - 2*x^7 - 48*x^6 + 58*x^5 + 846*x^4 - 4614*x^3 + 6609*x^2 + 48742*x + 493474)
+  @test order(G) == 32
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
@@ -119,4 +123,13 @@ end
   H = ss[1000]
   f = fixed_field(s, H)
   @test degree(f) == order(g)//order(H)
+
+  # #5678
+  K5, z = cyclotomic_field(5, "z")
+  E = elliptic_curve(K5, [1,1])
+  psi, _, _ = division_polynomial_univariate(E, 5)
+  F, _ = number_field(psi/5)
+  @test order(galois_group(F)[1]) == 60
+  @test order(galois_group(psi)[1]) == 60
+  @test order(galois_group(psi/5)[1]) == 60
 end
