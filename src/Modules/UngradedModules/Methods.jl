@@ -977,7 +977,14 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
   # Go through each coordinate individually
   mons_on_axes = _monomials_on_axes_data(GB)
   LM = leading_monomials(GB)
-  LM.isGB = true  #hack to be able to use normal_form() below 
+
+  #= Hack to be able to use normal_form() below. 
+  Since 'ModuleGens' constructors can not set 'ordering' and 'isGB' from a Singular 'smodule' (see issue #5944),
+  thus 'leading_monomials' also does not do it, therefore we do it manually here.
+  TODO: remove, when issue #5944 is resolved
+  =#
+  LM.isGB = true  
+  LM.ordering = GB.ordering
 
   B = elem_type(F)[]
   for i in 1:rank(F)
