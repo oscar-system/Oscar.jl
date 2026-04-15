@@ -189,6 +189,7 @@ let exclude_hecke = [
     :leading_coefficient,
     :leading_monomial,
     :leading_term,
+    :map_from_func,
     :monomials,
     :narrow_class_group,
     :normalise,

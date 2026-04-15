@@ -173,63 +173,95 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     return map(cc, first(r))
   end
 
-  kernel_entry          = image(cc.maps[1])[1]
-  br                    = base_ring(kernel_entry)
-  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
-  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
-                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
-  singular_kernel_entry.isGB = true
+  # The current version is a workaround; see #4998. Until we can provide a 
+  # reasonable fix using a continuation of Schreyer's ordering, we 
+  # provide a patch with new initiation of kernel computations.
+  if algorithm == :fres || algorithm == :sres
+    # In case of `:fres` (or `:sres` for quotient rings), 
+    # we start the computation of the resolution 
+    # from scratch. Continuation is not possible at the moment, because 
+    # the information on the Schreyer orderings is lost in Singular internals. 
+    # Continuation via kernel computations is, in most examples, more expensive 
+    # than starting again from the beginning.
+    return _extend_free_resolution_via_fres_or_sres(cc, idx, algorithm)
+  end
 
-  len = len_missing + 1
+  phi = first(cc.maps)
+  K, inc_K = kernel(phi)
+  R = base_ring(K)
+  F = ambient_free_module(K)
+  SF = singular_module(F)
+  SK = singular_generators(algorithm == :fres || algorithm == :sres ? groebner_basis(K) : K.sub.gens) # We need to start with a gb for `fres`.
+  
+  if is_one(len_missing)
+    cod = domain(first(cc.maps))
+    phi = is_graded(cod) ? graded_map(cod, ambient_representatives_generators(K); check=false) : hom(free_module(R, ngens(K)), cod, ambient_representatives_generators(K))
+    pushfirst!(cc.maps, phi)
+    if is_zero(K)
+      cc.complete=true
+    end
+    return first(cc.maps)
+  end
+
   if algorithm == :fres
-    res = Singular.fres(singular_kernel_entry, len, "complete")
+    error("this case should have been caught above")
+    res = Singular.fres(SK, len_missing, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   elseif algorithm == :mres
-    res = Singular.mres(singular_kernel_entry, len)
+    res = Singular.mres(SK, len_missing)
   elseif algorithm == :nres
-    res = Singular.nres(singular_kernel_entry, len)
+    res = Singular.nres(SK, len_missing)
+  elseif algorithm == :sres
+    error("this case should have been caught above")
+    res = Singular.sres(SK, len_missing)
   else
     error("Unsupported algorithm $algorithm")
   end
 
-  dom = domain(cc.maps[1])
-  j   = 2
-
-  #= get correct length of Singular sresolution =#
-  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
-  #= adjust length for extension length in Oscar =#
-  slen = slen > len ? len : slen
-
-  while j <= slen
-    rk = Singular.ngens(res[j])
-    if is_graded(dom)
-      codom = dom
-      SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
-      #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
-      map = graded_map(codom, gens(SM); check=false)
-      dom = domain(map)
-    else
-      codom = dom
-      dom   = free_module(br, Singular.ngens(res[j]))
-      SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
-      map = hom(dom, codom, gens(SM); check=false)
+  for j in 1:Singular.length(res)
+    cod = domain(first(cc.maps))
+    I = SubModuleOfFreeModule(cod, res[j]) # convert to an Oscar module
+    phi = is_graded(cod) ? graded_map(cod, gens(I); check=false) : hom(free_module(R, ngens(I)), cod, gens(I))
+    pushfirst!(cc.maps, phi)
+    if is_zero(I)
+      cc.complete = true
+      return first(cc.maps)
     end
-    pushfirst!(cc, map) 
-    j += 1
   end
-  # Finalize maps.
-  if slen < len
-    Z = FreeMod(br, 0)
-    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
+  if is_zero(res[Singular.length(res)+1])
+    cod = domain(first(cc.maps))
+    pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
     cc.complete = true
+    return cc.maps[len_missing > Singular.length(res) ? 1 : 2]
   end
-  set_attribute!(cc, :show => Hecke.pres_show)
-  maxidx = min(idx, first(Hecke.map_range(cc)))
-  return map(cc, maxidx)
+  return first(cc.maps)
 end
+
+# For an explanation see the call to this method above.
+# We need this dummy method, because the parent objects and 
+# morphisms present in the partial resolution `cc` might have 
+# been given to the user already. So even though we compute a 
+# new resolution from scratch, it needs to be spliced with the 
+# partial one which was already there. 
+function _extend_free_resolution_via_fres_or_sres(cc::Hecke.ComplexOfMorphisms, idx::Int, algorithm::Symbol)
+  M = cc[-1]
+  res = free_resolution(M; algorithm, length=idx)
+  i0 = first(range(cc))
+  phi = map(res, i0+1)
+  @assert ngens(codomain(phi)) == ngens(cc[i0]) "Schreyer resolutions are not compatible"
+  Fi0 = cc[i0]
+  img_gens = elem_type(cc[i0])[sum(c*Fi0[j] for (j, c) in coordinates(v); init=zero(Fi0)) for v in images_of_generators(phi)]
+  pushfirst!(cc.maps, hom(res[i0+1], Fi0, img_gens))
+  for j in first(range(cc))+1:first(range(res.C))
+    pushfirst!(cc.maps, map(res, j))
+  end
+  if is_zero(domain(first(cc.maps)))
+    cc.complete=true
+  end
+  return first(cc.maps)
+end
+
 
 @doc raw"""
     free_resolution(M::SubquoModule{T}; 
@@ -244,22 +276,22 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
-    higher syzygy modules. In the illustrating example below, the free resolution is
-    first computed up to length 1:
-    ```@julia
+    higher syzygy modules. In the first example of the examples section below, the free
+    resolution is initially computed up to length 1:
+    ```julia-repl
     julia> fr = free_resolution(M, length = 1)
     Free resolution of M
     R^2 <---- R^6
     0         1
     ```
     This resolution is not yet complete
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     false
     ```
     Continuing the session as follows, the resolution is extended up to length 4,
     without computing its first part again:
-    ```@julia
+    ```julia-repl
     julia> fr[4]
     Free module of rank 0 over R
 
@@ -269,7 +301,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     0         1         2         3         4
     ``` 
     As we already see from the output, the extended resolution is complete:
-    ```@julia
+    ```julia-repl
     julia> is_complete(fr)
     true
     ```
@@ -288,7 +320,7 @@ polynomial rings and `:sres` for modules over quotients of polynomial rings (see
     If `algorithm == fres`, then the function relies on an enhanced version of Schreyer's algorithm
     [EMSS16](@cite). This is often more efficient than the approaches above, but the resulting resolution
     may be far from being minimal. The extract from an OSCAR session below illustrates the latter statement:
-    ```@julia
+    ```julia-repl
     julia> FM = free_resolution(M)
     Free resolution of M
     Pn^44 <---- Pn^296 <---- Pn^808 <---- Pn^1019 <---- Pn^618 <---- Pn^169 <---- Pn^14 <---- 0
@@ -543,35 +575,38 @@ function free_resolution(M::SubquoModule{T};
   return FreeResolution(cc)
 end
 
-function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
+function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
   # This generic code computes a free resolution in a lazy way.
-  # We start out with a presentation of M and implement 
-  # an iterative fill function to compute every higher term 
+  # We start out with a presentation of M and implement
+  # an iterative fill function to compute every higher term
   # on request.
   R = base_ring(M)
   p = presentation(M)
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
-    # TODO: Use official getter and setter methods instead 
-    # of messing manually with the internals of the complex.
-    for i in first(chain_range(C)):k-1
-      N = domain(map(C, i))
+    min_index = first(chain_range(C))
+    target_index = length == 0 ? k-1 : max(min_index - (length - 1), k-1)
 
-      if iszero(N) # Fill up with zero maps
+    for i in min_index:target_index
+      N = domain(map(C, i))
+      if iszero(N)
         C.complete = true
         phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
       end
-
       K, inc = kernel(map(C, i))
       nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
+      if length != 0 && abs(i - min_index) + 1 >= length
+        C.complete = false
+        break
+      end
     end
     return first(C.maps)
   end
-  return p
+  return FreeResolution(p)
 end
 
 
@@ -757,5 +792,13 @@ julia> length(fr)
 
 ```
 """
-length(F::FreeResolution) = length(F.C.maps)-3
+function length(F::FreeResolution)
+  if !is_complete(F.C)
+    idx = findfirst(is_zero(domain(phi)) for phi in F.C.maps)
+    isnothing(idx) && return first(map_range(F.C))
+    return idx::Int
+  end
+  # complex is complete
+  length(F.C.maps)-3
+end
 

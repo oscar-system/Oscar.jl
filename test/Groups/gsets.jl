@@ -2,7 +2,7 @@
 
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "G-set"
   @test isa(Omega, GSet)
   @test (@inferred length(Omega)) == 6
@@ -60,7 +60,7 @@
 
   # larger examples
   G = symmetric_group(100)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   S1, _ = stabilizer(Omega, [1, 2, 3, 4, 5])
   @test order(S1) == factorial(big(95))
   S2, _ = stabilizer(Omega, (1, 2, 3, 4, 5))
@@ -258,9 +258,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
-  @test transitivity(gset(G8)) == 1
+  @test transitivity(natural_gset(G8)) == 1
   @test transitivity(S4) == 4
-  @test transitivity(gset(S4)) == 4
+  @test transitivity(natural_gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
@@ -273,7 +273,7 @@ end
   G = general_linear_group(2, 3)
   V = free_module(base_ring(G), degree(G))
   v = gen(V, 1)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test isa(Omega, GSet)
   @test length(Omega) == 9
   @test order(stabilizer(Omega, v)[1]) * length(orbit(Omega, v)) == order(G)
@@ -311,31 +311,31 @@ end
   @test is_semiregular(Omega)
 
   # orbit
-  Omega = gset(G)
+  Omega = natural_gset(G)
   v = gen(V, 1)
   @test length(orbit(Omega, v)) == length(Oscar.orbit_via_Julia(Omega, v))
 
   # permutation
-  Omega = gset(G)
+  Omega = natural_gset(G)
   g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
 
   # action homomorphism
-  Omega = gset(G)
+  Omega = natural_gset(G)
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
   @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 48
 
   # is_conjugate
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test is_conjugate(Omega, gen(V, 1), gen(V, 2))
   @test ! is_conjugate(Omega, zero(V), gen(V, 1))
 
   # is_conjugate_with_data
-  Omega = gset(G)
+  Omega = natural_gset(G)
   rep = is_conjugate_with_data(Omega, gens(V)...)
   @test rep[1]
   @test gen(V, 1) * rep[2] == gen(V, 2)

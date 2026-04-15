@@ -6,8 +6,8 @@
     is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
 Executes elementary tests (they are necessary but not sufficient)
-to tell if Family of $G_4$-fluxes is well-quantized. In case
-any of these tests fails, we know that this family of $G_4$-fluxes
+to tell if Family of ``G_4``-fluxes is well-quantized. In case
+any of these tests fails, we know that this family of ``G_4``-fluxes
 is definitely not well-quantized. This method then returns `false`.
 
 In the opposite case that all elementary tests pass, this method
@@ -54,7 +54,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
@@ -91,7 +91,7 @@ end
 @doc raw"""
     passes_transversality_checks(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-Check if the given family of $G_4$-fluxes passes the transversality checks.
+Check if the given family of ``G_4``-fluxes passes the transversality checks.
 If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -131,7 +131,7 @@ true
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
@@ -206,7 +206,7 @@ false
   # TODO: Remove this limitation, i.e. support this functionality for all flux families!
   
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  mb = chosen_g4_flux_gens(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group

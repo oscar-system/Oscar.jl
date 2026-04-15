@@ -44,8 +44,8 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   
   loci_fiber_intersections = Tuple{MPolyIdeal{QQMPolyRingElem}, Vector{Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}}}[]
   for locus in interesting_singular_loci
-    # Currently have to get the ungraded ideal generators by hand using .f
-    ungraded_locus = ideal(map(gen -> base_to_ambient_ring_map(gen).f, gens(locus)))
+    # Currently have to get the ungraded ideal generators by hand using lift
+    ungraded_locus = ideal(map(gen -> lift(base_to_ambient_ring_map(gen)), gens(locus)))
     
     # Potential components of the fiber over this locus
     # For now, we only consider the associated prime ideal,

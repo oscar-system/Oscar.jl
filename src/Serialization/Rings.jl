@@ -337,7 +337,7 @@ function save_object(s::SerializerState, obj::SMatSpace)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::Ring)
+function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::NCRing)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)

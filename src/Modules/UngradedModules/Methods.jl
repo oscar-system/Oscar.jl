@@ -241,6 +241,18 @@ function default_ordering(F::FreeMod)
   return F.default_ordering::ModuleOrdering{typeof(F)}
 end
 
+function default_ordering(F::FreeMod{T}) where {T<:Union{ZZRingElem, FieldElem}}
+    if !isdefined(F, :default_ordering)
+        if iszero(F)
+            F.default_ordering = ModuleOrdering(F, Orderings.ModOrdering(Int[], :lex))
+        else
+            F.default_ordering = lex(gens(F))
+        end
+    end
+    return F.default_ordering::ModuleOrdering{typeof(F)}
+end
+
+
 ##############################
 #TODO: move to Singular.jl ?
 

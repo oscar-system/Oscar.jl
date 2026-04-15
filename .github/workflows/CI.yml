@@ -303,13 +303,13 @@ jobs:
         id: get-branch
         run: echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - name: Determine whether CI status changed
-        uses: gap-actions/should-i-notify-action@v1
+        uses: oscar-system/should-i-notify-action@v1
         id: should_notify
         with:
           branch: ${{ steps.get-branch.outputs.branch }}
           needs_context: ${{ toJson(needs) }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          notify_on_changed_status: true
+          notify_on_changed_status: '' # notify each time on failure, and also once when the status changes to success
           event: ${{ github.event_name }}
       - name: Send slack notification
         uses: act10ns/slack@v2

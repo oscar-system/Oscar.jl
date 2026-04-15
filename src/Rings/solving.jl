@@ -40,7 +40,7 @@ function real_solutions(
         info_level::Int=0,                    # info level for print outs
         precision::Int=32                     # precision of the solution set
         )
-    AI = AlgebraicSolving.Ideal(I.gens.gens.O)
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
     AlgebraicSolving.real_solutions(AI,
              initial_hts = initial_hts,

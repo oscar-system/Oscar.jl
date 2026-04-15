@@ -8,7 +8,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 A subquotient  is a submodule of a quotient of a free module. In this section, the expression
 *subquotient* refers to a subquotient over a ring of type `MPolyRing`, `MPolyQuoRing`,
-`MPolyLocRing`, or `MPolyQuoLocRing`. That is, given a ring $R$ of one of these
+`MPolyLocRing`, `MPolyQuoLocRing`, `ZZRing`, or  `Field`. That is, given a ring $R$ of one of these
 types, a subquotient $M$ over $R$ is a module of type
 
 $M = (\text{im } a + \text{im } b)/\text{im } b,$
@@ -96,7 +96,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -191,7 +191,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -247,7 +247,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubquoModule(F, A, B)
+julia> M = subquotient(F, A, B)
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]

@@ -133,7 +133,7 @@ original_complex(c::SimplifiedComplex) = c.original_complex
   # to be set by the external constructor.
   function SimpleFreeResolution(
       M::T,
-      complex::AbsHyperComplex{ChainType, MorphismType},
+      complex::AbsHyperComplex{ChainType, MorphismType};
     ) where {ChainType, MorphismType, T}
     return new{ChainType, MorphismType, T}(M, complex)
   end

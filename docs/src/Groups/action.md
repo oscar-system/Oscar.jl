@@ -60,6 +60,7 @@ Note that the explicit elements of a G-set `Omega` can be obtained using
 
 ```@docs
 gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
+natural_gset
 permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)

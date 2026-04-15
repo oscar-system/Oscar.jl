@@ -347,7 +347,7 @@ end
     map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map `X` $\rightarrow$ `Y` by specifying the pullbacks of
-the generators of the Chow ring of `Y`. 
+the generators of the Chow ring of `Y`.
 
 !!! note
     The corresponding pushforward will be automatically computed in certain cases.
@@ -588,7 +588,7 @@ pushforward(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.codomai
 Return the identity map on `X`.
 """
 function identity_map(X::AbstractVariety)
-  AbstractVarietyMap(X, X, gens(X.ring), map_from_func(identity, X.ring, X.ring))
+  AbstractVarietyMap(X, X, gens(X.ring), MapFromFunc(X.ring, X.ring, identity))
 end
 
 @doc raw"""
@@ -602,7 +602,7 @@ function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   Z = g.codomain
   gofₓ = nothing
   if isdefined(f, :pushforward) && isdefined(g, :pushforward)
-    gofₓ = map_from_func(g.pushforward ∘ f.pushforward, X.ring, Z.ring)
+    gofₓ = MapFromFunc(X.ring, Z.ring, g.pushforward ∘ f.pushforward)
   end
   gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
   return gof
@@ -1051,7 +1051,7 @@ If `X` has been given a tangent bundle, return the dual bundle.
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
-julia> cotangent_bundle(P2) == dual(tangent_bundle(P2)) 
+julia> cotangent_bundle(P2) == dual(tangent_bundle(P2))
 true
 
 ```
@@ -1071,7 +1071,7 @@ AbstractVariety of dim 2
 julia> canonical_class(P2) == chern_class(cotangent_bundle(P2), 1)
 true
 
-julia> canonical_class(P2) 
+julia> canonical_class(P2)
 -3*h
 
 ```
@@ -1348,7 +1348,7 @@ end
 
 Return the product $X\times Y$. Alternatively, use `*`.
 
-!!! note 
+!!! note
     If both `X` and `Y` have been given a polarization, $X\times Y$ will be endowed with the polarization corresponding to the Segre embedding.
 
 ```jldoctest
@@ -1473,7 +1473,7 @@ end
     +(F::AbstractBundle, G::AbstractBundle)
     -(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
-    
+
 Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
 
 # Examples
@@ -1554,7 +1554,7 @@ end
 @doc raw"""
     symmetric_power(F::AbstractBundle, k::Int)
     symmetric_power(F::AbstractBundle, k::RingElement)
-    
+
 Return the `k`-th symmetric power of `F`. Here, `k` can contain parameters.
 """
 function symmetric_power(F::AbstractBundle, k::Int)
@@ -1665,7 +1665,7 @@ basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 @doc raw"""
     betti_numbers(X::AbstractVariety)
 
-Return the Betti numbers of the Chow ring of `X`. 
+Return the Betti numbers of the Chow ring of `X`.
 
 !!! note
     The Betti number of `X` in a given degree is the number of elements of `basis(X)` in that degree.
@@ -1698,12 +1698,13 @@ betti_numbers(X::AbstractVariety) = length.(basis(X))
 @doc raw"""
     integral(c:::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Given an element `c` of the Chow ring of an abstract variety, return the integral of `c`.
+Given an element `c` of the Chow ring of an abstract variety `X`, say, return the integral of `c`.
 
 !!! note
-    If the abstract variety has been given a point class, the integral will be an element of the coefficient ring of the Chow ring.
-    That is, typically, in the applications we discuss here, it will be a rational (if not integral) number (the degree of the 0-dimensional part
-    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If no point class is given, the 0-dimensional
+    If the abstract variety has been given a point class, and `length(basis(X, dim(X)) == 1`,
+    then the integral will be an element of the coefficient ring of the Chow ring.
+    That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
     part of `c` is returned.
 
 # Examples
@@ -1786,7 +1787,7 @@ end
     intersection_matrix(X::AbstractVariety)
 
 If `b = vcat(basis(X)...)`, return `matrix([integral(bi*bj) for bi in b, bj in b])`.
-    
+
     intersection_matrix(a::Vector, b::Vector)
 
 Return `matrix([integral(ai*bj) for ai in a, bj in b])`.
@@ -2118,7 +2119,7 @@ function zero_locus_section(F::AbstractBundle; class::Bool=false)
     Z.O1 = Z(X.O1.f)
   end
   iₓ = x -> x.f * cZ
-  iₓ = map_from_func(iₓ, Z.ring, X.ring)
+  iₓ = MapFromFunc(Z.ring, X.ring, iₓ)
   @assert R isa MPolyQuoRing
   i = AbstractVarietyMap(Z, X, Z.(gens(base_ring(R))), iₓ)
   i.T = pullback(i, -F)
@@ -2423,9 +2424,9 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
- 
+
   # construct the ring
-  
+
   w = vcat([1], gradings(R))
   R1, (z,), imgs_in_R1 = graded_polynomial_ring(X.base, [symbol], symbols(R); weights = w)
   if R isa MPolyQuoRing
@@ -2435,7 +2436,7 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   end
   pback = hom(PR, R1, imgs_in_R1)
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
-  
+
   # construct the relations
 
   rels = [sum(pback(chern_class(F, i).f) * z^(r-i) for i in 0:r)]
@@ -2444,19 +2445,19 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   end
   APF = quo(R1, ideal(rels))[1]
   z = APF(z)
-  
+
   # construct the abstract variety
-  
+
   PF = AbstractVariety(X.dim+r-1, APF)
   pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
-  pₓ = map_from_func(pₓ, PF.ring, X.ring)
+  pₓ = MapFromFunc(PF.ring, X.ring, pₓ)
   p = AbstractVarietyMap(PF, X, PF.(imgs_in_R1), pₓ)
   if isdefined(X, :point)
     PF.point = p.pullback(X.point) * z^(r-1)
   end
   p.O1 = PF(z)
   PF.O1 = PF(z)
-  S = AbstractBundle(PF, 1, 1-z) 
+  S = AbstractBundle(PF, 1, 1-z)
   Q = pullback(p, F) - S
   p.T = dual(S)*Q
   if isdefined(X, :T)
@@ -2466,6 +2467,9 @@ function projective_bundle(F::AbstractBundle; symbol::String = "z")
   PF.struct_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
   set_attribute!(PF, :grassmannian => :relative)
+  if get_attribute(X, :alg) == true
+    set_attribute!(PF, :alg => true)
+  end
   return PF
 end
 
@@ -2502,7 +2506,7 @@ end
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
-Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an 
+Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an
 `n`-dimensional vector space.
 
 !!! note
@@ -2540,7 +2544,7 @@ true
 ```
 """
 function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
-  @assert k < n 
+  @assert k < n
   d = k*(n-k)
   R, c = graded_polynomial_ring(base, symbol => 1:k; weights = 1:k)
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
@@ -2566,8 +2570,8 @@ end
     abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
     abstract_flag_variety(dims::Vector{Int}; base::Ring = QQ, symbol::String = "c")
 
-Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
-return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of 
+Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
+return the abstract flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of
 dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
 
 !!! note
@@ -2642,8 +2646,8 @@ end
     flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
     flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
-Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers, 
-and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences 
+Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
+and given an abstract bundle $F$ of rank $n$, return the abstract flag bundle of nested sequences
 of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $F$.
 
 !!! note
@@ -2693,9 +2697,9 @@ end
 function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   X, n = F.parent, F.rank
   !(n isa Int) && error("expect rank to be an integer")
-  
+
   # compute the ranks of successive subqotients and the relative dimension
-  
+
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
   end
@@ -2703,9 +2707,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(>(0), ranks) && dims[end] <= n
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
-  
+
   # construct the ring
-  
+
   R = X.ring
   if R isa MPolyQuoRing
     PR = base_ring(R)
@@ -2718,9 +2722,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(X.base, syms, symbols(PR); weights = w)
   pback = hom(PR, R1, imgs_in_R1)
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
-  
+
   # compute the relations
-  
+
   c = [1+sum(gens_for_rels_R1[dims[i]+1:dims[i+1]]) for i in 1:l-1]
   pushfirst!(c, 1+sum(gens_for_rels_R1[1:dims[1]]))
   Rx, x = R1[:x]
@@ -2736,8 +2740,8 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   c = AFl.(c)
 
   # construct the abstract_variety
-  
-  Fl = AbstractVariety(X.dim + d, AFl)  
+
+  Fl = AbstractVariety(X.dim + d, AFl)
   Fl.bundles = [AbstractBundle(Fl, r, ci) for (r,ci) in zip(ranks, c)]
   section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
   if isdefined(X, :point)
@@ -2745,7 +2749,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
   end
   pˣ = Fl.(imgs_in_R1)
   pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
-  pₓ = map_from_func(pₓ, Fl.ring, X.ring)
+  pₓ = MapFromFunc(Fl.ring, X.ring, pₓ)
   p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1

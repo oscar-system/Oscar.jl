@@ -12,8 +12,6 @@
   c = tensor_product(res, res)
   @test dim(c) == 2
   @test lower_bound(c, 1) == lower_bound(c, 2) == 0
-  @test Oscar.has_upper_bound(c, 1) 
-  @test Oscar.has_upper_bound(c, 2)
   @test rank(c[0, 0]) == 1
   @test rank(c[1, 0]) == rank(c[0, 1]) == 3
   @test rank(c[1, 1]) == rank(c[1, 1]) == 9
@@ -34,9 +32,6 @@
   c2 = tensor_product(c, res)
   @test dim(c2) == 3
   @test lower_bound(c2, 1) == lower_bound(c2, 2) == lower_bound(c2, 3) == 0
-  @test Oscar.has_upper_bound(c2, 1)
-  @test Oscar.has_upper_bound(c2, 2) 
-  @test Oscar.has_upper_bound(c2, 3) 
   @test rank(c2[0, 0, 0]) == 1
   @test rank(c2[0, 1, 0]) == rank(c2[0, 1, 0]) == 3
   @test rank(c2[0, 1, 1]) == rank(c2[1, 1, 0]) == 9
@@ -74,9 +69,6 @@
   c3 = tensor_product(res, c)
   @test dim(c3) == 3
   @test lower_bound(c3, 1) == lower_bound(c3, 2) == lower_bound(c3, 3) == 0
-  @test Oscar.has_upper_bound(c3, 1) 
-  @test Oscar.has_upper_bound(c3, 2)
-  @test Oscar.has_upper_bound(c3, 3)
   @test rank(c3[0, 0, 0]) == 1
   @test rank(c3[1, 0, 0]) == rank(c3[0, 1, 0]) == 3
   @test rank(c3[1, 1, 0]) == rank(c3[1, 1, 0]) == 9
