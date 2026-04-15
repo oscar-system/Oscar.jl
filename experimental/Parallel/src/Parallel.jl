@@ -147,7 +147,7 @@ close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
 
 # extend functionality so that `pmap` works with Oscar stuff
 function put_type_params(wp::OscarWorkerPool, a::Any)
-  asyncmap(workers(wp)) do id
+  asyncmap(collect(workers(wp))) do id
     put_type_params(get_channel(wp, id), a)
   end
 end
