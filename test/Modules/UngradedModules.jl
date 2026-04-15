@@ -2171,3 +2171,31 @@ end
   # not a finite module over `QQ`
   @test_throws ErrorException vector_space_basis(S)
 end
+
+@testset "normal form different module orderings" begin
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R, 3)
+  M, _ = sub(F, [F[1]+F[3], F[2]])
+
+  v = (x^2+x)*F[1]
+  w = F[2]
+
+  # default ordering
+  GB = groebner_basis(M)
+  @test normal_form(v, GB) == (x^2+x)*F[1]
+  @test normal_form(w, GB) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB) == ((x^2+x)*F[1], one(R))
+
+  # another global ordering
+  ord = invlex(F)*deglex(R)
+  GB_ord = groebner_basis(M, ordering = ord)
+  @test normal_form(v, GB_ord) == -(x^2+x)*F[3]
+  @test normal_form(w, GB_ord) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB_ord) == (-(x^2+x)*F[3], one(R))
+
+  # local ordering
+  ord_loc = invlex(F)*negdeglex(R)
+  SB = standard_basis(M, ordering = ord_loc)
+  @test normal_form(v, SB) == -x*F[3]
+  @test normal_form(w, SB) == zero(F)
+end

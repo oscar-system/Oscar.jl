@@ -109,6 +109,23 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc raw"""
+    singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+
+Return the generators of `M` in a Singular module over a Singular polynomial ring with the given `ordering`.
+"""
+function singular_generators(M::ModuleGens, ordering::ModuleOrdering)
+  #= TODO: Maybe cache these 'singular_generators' in a Dict with the 'ModuleOrdering' as a key, 
+  like it is the case for 'groebner_basis'? =#
+  @assert M.F === ordering.M
+  SF = singular_module(M.F, ordering)
+  sr = base_ring(SF)
+  if length(M) == 0
+    return Singular.Module(sr, Singular.vector(sr, sr(0)))
+  end
+  return Singular.Module(sr, [SF(x) for x in oscar_generators(M)]...)
+end
+
+@doc raw"""
     singular_ordering(M::ModuleGens)
 
 Return the ordering of `M` from the Singular side.
@@ -462,7 +479,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res
 end
@@ -484,7 +501,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
 
   P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
 
-  red = _reduce(singular_generators(M), singular_generators(P))
+  red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
   return res, [R(1) for _ in 1:ngens(M)]
 end

@@ -1109,13 +1109,15 @@ julia> shortest_path_dijkstra(g, 3, 1; reverse=true)
 ```
 """
 function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    em = Polymake.EdgeMap{T, Int64}(pmg)
-    for e in edges(g)
-        Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
-    end
-    result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
-    return Polymake.to_one_based_indexing(result)
+  @req 1 <= s <= n_vertices(g) "Start vertex out of range"
+  @req 1 <= t <= n_vertices(g) "End vertex out of range"
+  pmg = pm_object(g)
+  em = Polymake.EdgeMap{T, Int64}(pmg)
+  for e in edges(g)
+    Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
+  end
+  result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
+  return Polymake.to_one_based_indexing(result)
 end
 
 @doc raw"""
@@ -1967,7 +1969,7 @@ the degrees of `g` on the diagonal, and the adjacency matrix of `g`. For an
 undirected graph, the Laplacian matrix is symmetric.
 
 # Examples
-```
+```jldoctest
 julia> G = vertex_edge_graph(cube(2))
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(4, 2)(4, 3)
