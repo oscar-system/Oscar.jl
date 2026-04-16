@@ -158,10 +158,10 @@ function load_object(s::DeserializerState, ::Type{SmallGroupBasedModel}, params:
   fmr = base_ring(full_model_ring(GBM)[1])
   n_leaves = load_object(s, Int, :n_leaves)
 
-  if isnothing(params[:ideal_ordering_type])
+  if params[:ideal_ordering_type] == Nothing
     I = nothing
   else
-    I = load_object(s, IdealGens, Dict(:base_ring => dom, :ordering_type => params[:ideal_ordering_type]), :vanishing_ideal)
+    I = ideal(load_object(s, Oscar.IdealGens, Dict(:base_ring => dom, :ordering_type => params[:ideal_ordering_type]), :vanishing_ideal))
   end
   return SmallGroupBasedModel(
     load_object(s, String, :model_encoding),
@@ -189,7 +189,9 @@ function type_params(spm::SmallPhylogeneticModel)
   if isnothing(I)
     OT = Nothing
   else
-    OT = typeof(ordering(generating_system(I)))
+    # fix at some point when we have groebner basis here
+    OT = Nothing
+    #OT = typeof(ordering(generating_system(I)))
   end
   return TypeParams(
     SmallPhylogeneticModel,
@@ -217,15 +219,18 @@ function save_object(s::SerializerState, spm::SmallPhylogeneticModel)
     # here we store the vanishing ideal as it's generating systems as it will
     # store more information about the ideal
     I = vanishing_ideal(spm)
-    if !isnothing(I)
-      save_object(s, generating_system(I), :vanishing_ideal)
-    else
-      save_object(s, nothing, :vanishing_ideal)
-    end
+    # update when we can have GB
+    save_object(s, I, :vanishing_ideal)
+    #if !isnothing(I)
+    #  save_object(s, generating_system(I), :vanishing_ideal)
+    #else
+    #  save_object(s, nothing, :vanishing_ideal)
+    #end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{SmallPhylogeneticModel}, SPM::PhylogeneticModel)
+function load_object(s::DeserializerState, ::Type{SmallPhylogeneticModel}, params::Dict)
+  SPM = params[:model]
   dom = base_ring(model_ring(SPM)[1])
   codom = parameter_ring(SPM)[1]
   fmr = base_ring(full_model_ring(SPM)[1])
