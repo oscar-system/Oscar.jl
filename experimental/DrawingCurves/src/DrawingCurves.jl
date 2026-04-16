@@ -116,13 +116,14 @@ function draw_curve_tikz(
   graph::Bool=false,
   custom_edge_plot=_draw_edge_sequence_bernstein,
   marked_components=nothing,
+  aligned::Bool=true,
 )
   if transform === nothing
     success = false
     for R in get_random_transform_matrices()
       success = _draw_curve_tikz(
         io, f_in, R, 30, solver_precision, ybox_tolerance, graph, custom_edge_plot,
-        marked_components,
+        marked_components, aligned
       )
       if success
         break
@@ -132,7 +133,7 @@ function draw_curve_tikz(
   else
     @req ntries > 0 "Number of tries needs to be positive"
     return _draw_curve_tikz(
-      io, f_in, transform, ntries, solver_precision, ybox_tolerance, graph, custom_edge_plot
+      io, f_in, transform, ntries, solver_precision, ybox_tolerance, graph, custom_edge_plot, marked_components, aligned
     )
   end
 end
@@ -146,6 +147,7 @@ function _draw_curve_tikz(
   graph::Bool,
   custom_edge_plot,
   marked_components,
+  aligned::Bool=true,
 )
   T = matrix(base_ring(f_in), transform)
   IG, scale, success = _compute_isotopy_graph(
@@ -153,7 +155,11 @@ function _draw_curve_tikz(
   )
   if success
     if graph
-      draw_graph_tikz(IG, io, marked_components)
+      if aligned
+        draw_graph_tikz_aligned(IG, io, marked_components)
+      else
+        draw_graph_tikz(IG, io, marked_components)
+      end
     else
       draw_curve_tikz(IG, scale, io; custom_edge_plot=custom_edge_plot(T))
     end
