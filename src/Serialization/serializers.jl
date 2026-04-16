@@ -124,7 +124,7 @@ function save_data_basic(s::SerializerState, x::Any,
   begin_node(s, key)
   if x isa Bool
     data = x
-  elseif x isa Number && (1 - 2^53 <= x <= 2^53 -1 )
+  elseif x isa Integer && (1 - 2^53 <= x <= 2^53 -1 )
     data = x
   else
     data = string(x)
