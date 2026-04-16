@@ -30,7 +30,7 @@ end
 ## matrix of elements of a finite field (of prime order)
 GAP.@install function GapObj(obj::fpMatrix)
     p = Int(characteristic(base_ring(obj)))
-    e = GAP.Globals.(p)
+    e = GAP.Globals.Z(p)
     return GapObj(lift(obj)) * e
 end
 
