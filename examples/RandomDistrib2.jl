@@ -52,16 +52,8 @@ end
 abstract type AbstractRndIter end
 
 
-function Base.iterate(iter::AbstractRndIter)
-  sample = GET_SAMPLE(iter) # updates the random source which iter uses
-  return (sample, nothing)  # 2nd value is correct??
+function RAND(iter::AbstractRndIter)
 end
-
-function Base.iterate(iter::AbstractRndIter, ::Nothing)
-  sample = GET_SAMPLE(iter) # updates the random source which iter uses
-  return (sample, nothing)  # 2nd value is correct??
-end
-
 
 
 
@@ -96,7 +88,7 @@ struct FiniteField_SmallPrimeSubfieldIter  <: AbstractRndIter
 end
 
 
-function GET_SAMPLE(iter::FiniteField_SmallPrimeSubfieldIter)
+function RAND(iter::FiniteField_SmallPrimeSubfieldIter)
   p = iter.distr.p
   return iter.parent(rand(iter.rng, 0:p-1));
 end
@@ -140,7 +132,7 @@ struct FiniteField_LargePrimeSubfieldIter  <: AbstractRndIter
 end
 
 
-function GET_SAMPLE(iter::FiniteField_LargePrimeSubfieldIter)
+function RAND(iter::FiniteField_LargePrimeSubfieldIter)
   p = iter.distr.p;
   return iter.parent(rand(iter.rng, 0:p-1));
 end
@@ -184,7 +176,7 @@ struct FiniteField_UniformIter  <: AbstractRndIter
 end
 
 
-function GET_SAMPLE(iter::FiniteField_UniformIter)
+function RAND(iter::FiniteField_UniformIter)
 #  p = iter.distr.characteristic;
   return rand(iter.rng, iter.parent);
 end
@@ -228,7 +220,7 @@ end
 # end
 
 
-# function GET_SAMPLE(iter::FiniteField_LargeUniformIter)
+# function RAND(iter::FiniteField_LargeUniformIter)
 #   p = iter.distr.characteristic;
 #   return rand(iter.rng, iter.parent);
 # end
@@ -281,7 +273,7 @@ struct IntegerDistr_UniformRangeIter  <: AbstractRndIter
   end
 end
 
-function GET_SAMPLE(iter::IntegerDistr_UniformRangeIter)
+function RAND(iter::IntegerDistr_UniformRangeIter)
   return iter.parent(rand(iter.rng, iter.distr.range));
 end
 
@@ -330,7 +322,7 @@ struct RationalDistr_NumDenRangeIter  <: AbstractRndIter
   end
 end
 
-function GET_SAMPLE(iter::RationalDistr_NumDenRangeIter)
+function RAND(iter::RationalDistr_NumDenRangeIter)
   n = rand(iter.rng, iter.distr.NumRange);
   d = rand(iter.rng, iter.distr.DenRange);
   return iter.parent(n//d);
@@ -378,34 +370,28 @@ struct PolyDistr_DenseIter  <: AbstractRndIter
   end
 end
 
-function GET_SAMPLE(iter::PolyDistr_DenseIter)
-  x = gen(iter.parent);
-  d = iter.distr.deg;
-  f = zero(x);
+function GENERATE_SAMPLE(rng::AbstractRNG, parent::PolyRing, distr::PolyDistr_Dense)
+  P = parent;
+  d = distr.deg;
+  x = gen(P);
+  f = zero(P);
   for i in 0:d
-    f += first(iter.distr.CoeffGenerator)*x^i;
+    f += RAND(distr.CoeffGenerator)*x^i;
   end
   return f;
 end
 
+
+function RAND(iter::PolyDistr_DenseIter)
+  return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
+end
+
 function RAND1(parent::PolyRing, D::PolyDistr_Dense)
-  x = gen(parent);
-  d = D.deg;
-  f = zero(x);
-  for i in 0:d
-    f += first(D.CoeffGenerator)*x^i;
-  end
-  return f;
+  return GENERATE_SAMPLE(Random.default_rng(), parent, D);
 end
   
 function RAND1(RNG::Random.AbstractRNG, parent::PolyRing, D::PolyDistr_Dense)
-  x = gen(parent);
-  d = D.deg;
-  f = zero(x);
-  for i in 0:d
-    f += first(D.CoeffGenerator)*x^i;
-  end
-  return f;
+  return GENERATE_SAMPLE(RNG, parent, D);
 end
 
 
@@ -442,10 +428,6 @@ struct MPolyDistr_SimplexIter  <: AbstractRndIter
   end
 end
 
-function GET_SAMPLE(iter::MPolyDistr_SimplexIter)
-  return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
-end
-
 function GENERATE_SAMPLE(rng::AbstractRNG, parent::MPolyRing, distr::MPolyDistr_Simplex)
   is_zero(distr.NumTerms) && return zero(P);
   P = parent;
@@ -463,17 +445,21 @@ function GENERATE_SAMPLE(rng::AbstractRNG, parent::MPolyRing, distr::MPolyDistr_
       exps[k] = ordered_subset[k]-ordered_subset[k-1]-1;
     end
     t = prod(x.^exps);   # Is there a better way?
-    f += first(distr.CoeffGenerator)*t;
+    f += RAND(distr.CoeffGenerator)*t;
   end
   return f;
 end
 
+function RAND(iter::MPolyDistr_SimplexIter)
+  return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
+end
+
 function RAND1(parent::PolyRing, D::MPolyDistr_Simplex)
-return GENERATE_SAMPLE(Random.default_rng(), parent, distr);
+  return GENERATE_SAMPLE(Random.default_rng(), parent, distr);
 end
   
 function RAND1(RNG::Random.AbstractRNG, parent::PolyRing, D::MPolyDistr_Simplex)
-return GENERATE_SAMPLE(RNG, parent, distr);
+  return GENERATE_SAMPLE(RNG, parent, distr);
 end
 
 
@@ -510,19 +496,19 @@ struct MatrixDistr_DenseUniformIter  <: AbstractRndIter
   end
 end
 
-function GET_SAMPLE(iter::MatrixDistr_DenseUniformIter)
-  return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
-end
-
 function GENERATE_SAMPLE(rng::AbstractRNG, parent::MatSpace, distr::MatrixDistr_DenseUniform)
   (is_zero(distr.nr) || is_zero(distr.nc)) && return zero(parent);
   M = zero(parent);
   for i in 1:distr.nr
     for j in 1:distr.nc
-      M[i,j] = first(distr.EntryGenerator);
+      M[i,j] = RAND(distr.EntryGenerator);
     end;
   end;
   return M;
+end
+
+function RAND(iter::MatrixDistr_DenseUniformIter)
+  return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
 end
 
 function RAND1(parent::PolyRing, D::MatrixDistr_DenseUniform)
