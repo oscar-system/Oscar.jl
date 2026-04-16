@@ -296,7 +296,8 @@ mutable struct ZZLatWithIsomEnumCtX
   _local::Bool
   root_test::Bool
   info_depth::Int
-  genusDB::Dict{ZZGenus, Vector{ZZLat}}
+  genusDB
+  update_genusDB::Bool
   
   function ZZLatWithIsomEnumCtX()
     return new()

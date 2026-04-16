@@ -309,6 +309,7 @@ include("1.6.0.jl")
 include("1.6.0+1.jl")
 include("1.7.0.jl")
 include("1.8.0.jl")
+include("1.8.0+1.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
