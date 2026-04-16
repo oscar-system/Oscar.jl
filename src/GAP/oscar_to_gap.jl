@@ -28,9 +28,8 @@ GAP.@install function GapObj(obj::AbstractAlgebra.Generic.MatSpaceElem{AbsSimple
 end
 
 ## matrix of elements of a finite field (of prime order)
-GAP.@install function GapObj(obj::fpMatrix)
-    p = Int(characteristic(base_ring(obj)))
-    e = GAP.Globals.Z(p)
+GAP.@install function GapObj(obj::Union{fpMatrix, FpMatrix})
+    e = GAP.Globals.Z(GapObj(characteristic(base_ring(obj))))
     return GapObj(lift(obj)) * e
 end
 
