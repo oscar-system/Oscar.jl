@@ -41,6 +41,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     if !isnothing(project)
       asyncmap(wids) do wid
         remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate(); using Oscar))
+        remotecall_eval(Main, wid, init_expr)
       end
     else
       asyncmap(wids) do wid
@@ -48,7 +49,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
         remotecall_eval(Main, wid, init_expr)
       end
     end
-    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
   end
 end
 
@@ -102,9 +103,11 @@ end
 # Add a new worker to the pool
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
-  remotecall_eval(Main, id, :(using Oscar))
-  remotecall_eval(Main, id, wp.init_expr)
+  @async remotecall_eval(Main, id, :(using Oscar))
+  @async remotecall_eval(Main, id, wp.init_expr)
   push!(wp.wp, id) # update the list of associated workers
+  push!(wp.workers, id)
+  return wp
 end
 
 # Take a worker from the pool; this marks it as being busy.
@@ -131,8 +134,9 @@ end
 
 ### extra functionality
 function rmprocs(wp::OscarWorkerPool, wid::Int)
-  @async rmprocs(wid)
+  rmprocs(wid)
   wp.workers = delete!(wp.wp.workers, wid)
+  delete!(wp.oscar_channels, wid)
 end
 
 workers(wp::OscarWorkerPool) = wp.workers
@@ -317,14 +321,15 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
 
   try 
     if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
-      # Add replacement worker
-      new_wid = first(addprocs(1))
-      push!(wp, new_wid)
       throw(TimeoutException())
     end
   catch e
     # remove problematic worker
     rmprocs(wp, wid)
+    # Add replacement worker
+    new_wid = first(addprocs(1))
+    push!(wp, new_wid)
+
     rethrow(e)
   end
     
