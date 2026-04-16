@@ -1,3 +1,5 @@
+include("aligned_graph_tikz.jl")
+
 function _pt_2_string(pt::_Point, scale::QQFieldElem)
   (a, b) = scale * [pt.xcoord, pt.ycoord]
   return "($(round(Float64(a); digits=6)), $(round(Float64(b); digits=6)))"
@@ -31,7 +33,7 @@ function _draw_edge_sequence_tikz(
   end
 end
 
-function _vecint2point(v::Vector{Int})
+function _vec2point(v::AbstractVector)
   @req length(v) == 2 "Not a two dimensional point."
   return _Point(QQ(1, 3) * QQ(v[1]), QQ(v[2]))
 end
@@ -45,28 +47,28 @@ function draw_graph_tikz(IG::_IsotopyGraph, io, marked_components)
         mca = (1 + Float64(mc(a.xcoord, a.ycoord))) - 1
         mcb = (1 + Float64(mc(b.xcoord, b.ycoord))) - 1
         if iszero(mca) && iszero(mcb)
-          pt0 = _vecint2point(IG.node2pair[src(e)])
-          pt1 = _vecint2point(IG.node2pair[dst(e)])
+          pt0 = _vec2point(IG.node2pair[src(e)])
+          pt1 = _vec2point(IG.node2pair[dst(e)])
           _draw_edge_tikz(io, pt0, pt1, scale; color=c, opts="line width=5pt, opacity=.3")
         end
       end
     end
   end
   for e in IG.nosequenceedges
-    pt0 = _vecint2point(IG.node2pair[e[1]])
-    pt1 = _vecint2point(IG.node2pair[e[2]])
+    pt0 = _vec2point(IG.node2pair[e[1]])
+    pt1 = _vec2point(IG.node2pair[e[2]])
     _draw_edge_tikz(io, pt0, pt1, scale; color="black")
   end
   for s in IG.edge4sequences
-    pts = [_vecint2point(IG.node2pair[si]) for si in s]
+    pts = [_vec2point(IG.node2pair[si]) for si in s]
     _draw_edge_sequence_tikz(io, pts, scale; color="black")
   end
   for p in IG.singularNodes
-    pt = _vecint2point(IG.node2pair[p])
+    pt = _vec2point(IG.node2pair[p])
     _draw_pt_tikz(io, pt, scale; color="red", size=4)
   end
   for p in IG.ytangentNodes
-    pt = _vecint2point(IG.node2pair[p])
+    pt = _vec2point(IG.node2pair[p])
     _draw_pt_tikz(io, pt, scale; color="blue", size=4)
   end
 end
