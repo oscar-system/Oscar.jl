@@ -103,8 +103,8 @@ end
 # Add a new worker to the pool
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
-  @async remotecall_eval(Main, id, :(using Oscar))
-  @async remotecall_eval(Main, id, wp.init_expr)
+  remotecall_eval(Main, id, :(using Oscar))
+  remotecall_eval(Main, id, wp.init_expr)
   push!(wp.wp, id) # update the list of associated workers
   push!(wp.workers, id)
   return wp
