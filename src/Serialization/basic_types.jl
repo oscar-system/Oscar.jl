@@ -86,7 +86,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
   load_node(s) do x
-    if x isa Number
+    if x isa Integer
       return T(x)
     else
       parse(T, x)
