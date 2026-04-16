@@ -454,11 +454,11 @@ function RAND(iter::MPolyDistr_SimplexIter)
   return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
 end
 
-function RAND1(parent::PolyRing, D::MPolyDistr_Simplex)
+function RAND1(parent::MPolyRing, D::MPolyDistr_Simplex)
   return GENERATE_SAMPLE(Random.default_rng(), parent, distr);
 end
   
-function RAND1(RNG::Random.AbstractRNG, parent::PolyRing, D::MPolyDistr_Simplex)
+function RAND1(RNG::Random.AbstractRNG, parent::MPolyRing, D::MPolyDistr_Simplex)
   return GENERATE_SAMPLE(RNG, parent, distr);
 end
 
@@ -511,11 +511,11 @@ function RAND(iter::MatrixDistr_DenseUniformIter)
   return GENERATE_SAMPLE(iter.rng, iter.parent, iter.distr);
 end
 
-function RAND1(parent::PolyRing, D::MatrixDistr_DenseUniform)
+function RAND1(parent::MatrixSpace, D::MatrixDistr_DenseUniform)
   return GENERATE_SAMPLE(Random.default_rng(), parent, distr);
 end
   
-function RAND1(RNG::Random.AbstractRNG, parent::PolyRing, D::MatrixDistr_DenseUniform)
+function RAND1(RNG::Random.AbstractRNG, parent::MatrixSpace, D::MatrixDistr_DenseUniform)
   return GENERATE_SAMPLE(RNG, parent, distr);
 end
 
