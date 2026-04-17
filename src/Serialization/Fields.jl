@@ -548,12 +548,8 @@ function save_object(s::SerializerState, P::PadicField)
 end
 
 function load_object(s::DeserializerState, ::Type{PadicField})
-  prime_num = load_node(s, :prime) do node
-    return parse(ZZRingElem, node)
-  end
-  precision = load_node(s, :precision) do node
-    return parse(Int64, node)
-  end
+  prime_num = load_object(s, ZZRingElem, :prime)
+  precision = load_node(s, Int64, :precision)
   return PadicField(prime_num, precision)
 end
 
