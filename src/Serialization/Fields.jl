@@ -549,7 +549,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{PadicField})
   prime_num = load_object(s, ZZRingElem, :prime)
-  precision = load_node(s, Int64, :precision)
+  precision = load_object(s, Int64, :precision)
   return PadicField(prime_num, precision)
 end
 
