@@ -74,6 +74,20 @@ function stabilizer_glue_group(x::ZZLatGluing, i::Int)
   end
 end
 
+### Gluing ambient
+
+function _gluing_ambient(
+    q1::TorQuadModule,
+    q2::TorQuadModule,
+    par::Symbol,
+  )
+  as_bilinear_module = par === :even ? false : true
+  return ZZLatGluingAmbient(_direct_sum_with_embeddings_orthogonal_groups(q1, q2; as_bilinear_module)
+end
+
+
+### More on genera
+
 # Return all genera with given form, signature and parity conditions
 # There are at most 2 of them
 # par is either :even, or :odd, or :both (actually anything :odd or :even
@@ -95,6 +109,10 @@ function _integer_genera(
     ok && push!(GKs, _G)
   end
   return GKs
+end
+
+function __representatives(g::ZZGenus)
+  return get_attribute(g, :representatives, representatives(g))
 end
 
 ### Handle parity
@@ -355,7 +373,7 @@ function init_gluing_conditions!(
   Fac.primes_of_interest = Set(pds)
   Fac.local_gluings_primary = ged
 
-  if !isempty(genus_over) && isdefined(Fac, :signature)
+  if !isempty(genus_over)
     filter!(isequal(Fac.sign)∘signature_pair, genus_over)
   end
   _genus_over = Set(genus_over)
@@ -665,7 +683,7 @@ end
 
 ###############################################################################
 #
-#  Orbits splitting
+#  Operations on gluings
 #
 ###############################################################################
 
@@ -710,6 +728,23 @@ function _split_orbit_right_group(
   O2::AutomorphismGroup{TorQuadModule},
 )
   return inv.(_split_orbit_left_group(inv(x), O2))
+end
+
+function _pullback_left(
+  x::ZZLatGluing,
+  f::TorQuadModuleMap,
+)
+  phi, iphi, i1, s1, i2, s2 = gluing_data(x)
+  @assert codomain(gamma) === codomain(i1)
+  invf = inv(f)
+  q0 = domain(f)
+  Oq0 = _orthogonal_group(q0, TorQuadModuleMap[f * hom(g) * invf for g in gens(codomain(s1))]; check=false)
+  _, s0 = sub(Oq0, elem_type(Oq0)[Oq0(f * hom(s1(g)) * invf; check=false) for g in gens(domain(s1))])
+  H0, i0 = sub(q0, TorQuadModuleElem[f\(i1(a)) for a in gens(domain(i1))])
+  H0toH1 = hom(H0, domain(i1), TorQuadModuleElem[i1\(f(i0(a))) for a in gens(H0)])
+  psi = H0toH1 * phi
+  ipsi = inv(psi)
+  return ZZLatGluing(psi, ipsi, i0, s0, i2, s2)
 end
 
 function _all_glue_maps(
@@ -758,11 +793,56 @@ function _all_glue_maps(
   return res
 end
 
+function _overlattice(
+  x::ZZLatGluing,
+  D::ZZLatGluingAmbient,
+)
+  phi, iphi, i1, s1, i2, s2 = expand(x)
+  H1, H2 = domain(i1), domain(i2)
+  H1inD = i1 * D.j1
+  H2inD = i2 * D.j2
+  O1, O2 = orthogonal_group(H1), orthogonal_group(H2)
+  im1 = elem_type(O1)[O1(restrict_automorphism(g, i1); check=false) for g in gens(domain(s1))]
+  act1 = hom(domain(s1), O1, im1)
+  im2 = elem_type(O2)[O2(restrict_automorphism(g, i2); check=false) for g in gens(domain(s2))
+  act2 = hom(domain(s2), O2, im2)
+  V, extinD = _overlattice_with_graph(phi, i1, i2)
+  _disc, _stab = _glue_stabilizers(phi, act1, act2, D.k1, D.k2, extinD)
+  qV = discriminant_group(V)
+  OqV = orthogonal_group(V)
+  phi2 = hom(qV, _disc, elem_type(_disc)[_disc(lift(x)) for x in gens(qV)])
+  iphi2 = inv(phi2)
+  GV, _ = sub(OqV, elem_type(OqV)[OqV(phi2 * g * iphi2; check=false) for g in _stab])
+  M, T = _as_sublattice(V, relations(q1), relations(q2))
+  return V, M, T, GV
+end
+
 ###############################################################################
 #
 #  Primitive extensions
 #
 ###############################################################################
+
+### Local glue maps
+
+function _local_glue_maps(
+  q1::TorQuadModule,
+  q2::TorQuadModule,
+  sign_over::Tuple{Int, Int},
+  parity::Symbol;
+  Ctx=nothing,
+  vi::Tuple{Int, Int}=(-1, -1),
+  kwargs...,
+)
+  Fac = ZZLatGluingFactory(q1, q2, sign_over, parity)
+  if !isnothing(Ctx)
+    Fac.Ctx = Ctx
+    Fac.vertex_identification = vi
+  end
+  init_gluing_factory!(Fac; kwargs...)
+  res = local_glue_maps(Fac)
+  return res
+end
 
 ### Unimodular case
 
@@ -813,8 +893,8 @@ function _unimodular_primitive_extensions(
   M::ZZLat,
   N::ZZLat,
   parity::Symbol,
-  GM::GAPGroupHomomorphism,
-  GN::GAPGroupHomomorphism;
+  GM::AutomorphismGroup{TorQuadModule},
+  GN::AutomorphismGroup{TorQuadModule};
   first::Bool=false,
   exist_only::Bool=false,
 )
@@ -883,8 +963,8 @@ function _primitive_extensions_coprime_left(
   M::ZZLat,
   N::ZZLat,
   parity::Symbol,
-  GM::GAPGroupHomomorphism,
-  GN::GAPGroupHomomorphism;
+  GM::AutomorphismGroup{TorQuadModule},
+  GN::AutomorphismGroup{TorQuadModule};
   first::Bool=false,
   exist_only::Bool=false,
 )
@@ -963,8 +1043,8 @@ function _primitive_extensions_coprime_right(
   M::ZZLat,
   N::ZZLat,
   parity::Symbol,
-  GM::GAPGroupHomomorphism,
-  GN::GAPGroupHomomorphism;
+  GM::AutomorphismGroup{TorQuadModule},
+  GN::AutomorphismGroup{TorQuadModule};
   kwargs...
 )
   r = _primitive_extensions_coprime_left(N, M, parity, GN, GM; kwargs...)
@@ -978,4 +1058,211 @@ end
 #
 ###############################################################################
 
+### Unimodular top lattice
 
+function _primitive_embeddings_in_unimodular(
+  G1::ZZGenus,
+  G2s::Vector{ZZGenus};
+  check::Bool=true,
+)
+  @assert is_unimodular(G1)
+  results = Vector{ZZLat, ZZLat, ZZLat}[]
+
+  G2s = filter(<(rank(G1))∘rank, G2s)
+  filter!(<(signature_pair(G1))∘signature_pair, G2s)
+  if is_even(G1)
+    filter!(is_even, G2s)
+  end
+
+  for G2 in G2s
+    append!(results, _primitive_embeddings_in_unimodular_safe(G1, G2))
+  end
+  return results
+end
+
+function _primitive_embeddings_in_unimodular(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+  @assert is_unimodular(G1)
+  if is_even(G1) && !is_even(G2)
+    return results
+  elseif rank(G1) <= rank(G2)
+    return results
+  elseif !(signature(G2) < signature(G1))
+    return results
+  end
+  return _primitive_embeddings_in_unimodular_safe(G1, G2)
+end
+
+function _primitive_embeddings_in_unimodular_safe(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+  if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q = rescale(discriminant_group(G2), -1; cached=false)
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && continue
+ 
+  Ns = ZZLat[]
+  for GK in GKs
+    append!(Ns, __representatives(GK))
+  end
+  Ms = __representatives(G2)
+  for M in Ms, N in Ns
+    append!(results, unimodular_primitive_extensions(M, N; parity))
+  end
+  return results
+end
+
+### Coprime det
+
+function _primitive_embeddings_coprime_det_safe(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+ if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q1 = discriminant_group(G1)
+  q2 = discriminant_group(G2)
+  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false)
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && continue
+
+  Ns = ZZLat[]
+  for GK in GKs
+    append!(Ns, __representatives(GK))
+  end
+  Ms = __representatives(G2)
+  for M in Ms
+    GM, _ = image_in_Oq(M)
+    for N in Ns
+      GN, _ = image_in_Oq(N)
+      tmp = _primitive_extensions_coprime_left(M, N, parity, GM, GN)
+      append!(results, tmp)
+    end
+  end
+  return results
+end
+
+### General case
+
+function _primitive_embeddings(
+  G1s::Vector{ZZGenus},
+  G2::ZZGenus,
+)
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+  G1s = filter(>(rank(G2))∘rank, G1s)
+  filter!(>(signature_pair(G2))∘signature_pair, G1s)
+  if !is_even(G2)
+    filter!(!is_even, G1s)
+  end
+  q2 = discriminant_group(G2)
+  Ctx = ZZLatGluingCtx()
+  push!(Ctx.modules, q2)
+
+  for G1 in G1s
+    if is_unimodular(G1)
+      append!(results, _primitive_embeddings_in_unimodular_safe(G1, G2))
+    elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
+      append!(results, _primitive_embeddings_coprime_det_safe(G1, G2))
+    else
+      append!(results, _primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(-1, 1), q2)
+    end
+  end
+  return results
+end
+
+function _primitive_embeddings_generic(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+  if is_even(G1) && !is_even(G2)
+    return results
+  elseif rank(G1) <= rank(G2)
+    return results
+  elseif !(signature(G2) < signature(G1))
+    return results
+  end
+  return _primitive_embeddings_generic_safe(G1, G2)
+end
+
+function _primitive_embeddings_generic_safe(
+  G1::ZZGenus,
+  G2::ZZGenus;
+  Ctx=nothing,
+  vi::Tuple{Int, Int}=(-1, -1),
+  q2::TorQuadModule=discriminant_group(G2),
+)
+  R = rescale(representative(G1), -1; cached=false)
+  U = hyperbolic_plane_lattice()
+  if is_even(G1)
+    parity = :even
+    T, _ = direct_sum(R, U; cached=false)
+  else
+    parity = :both
+    T, _ = direct_sum(R, U, U; cached=false)
+  end
+  q1n = discriminant_group(T)
+  signT = signature_tuple(T)[[1,3]]
+  signV = signT .+ signature_pair(G2)
+  signK = signature_pair(G1) .- signature_pair(G2)
+
+  lgm = _local_glue_maps(q2, q1n, signV, parity; Ctx, vi=reverse(vi))
+  isempty(lgm) && continue
+
+  Ms = __representatives(G2)
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+  for M in Ms
+    qM = discriminant_group(M)
+    D = _gluing_ambient(qM, q1n, parity)
+    GM, _ = image_in_Oq(M)
+    _, phiM = is_isometric_with_isometry(qM, q2)
+    for x in lgm
+      xM = _pullback_left(x, phiM)
+      xMs = _split_orbit_left_group(xM, GM)
+      for _x in xMs, y in _all_glue_maps(_x)
+        V, M2, T2, GV = _overlattice(y, D)
+        resV = Tuple{ZZLat, ZZLat, ZZLat}[]
+        qV = domain(GV)
+        qK = rescale(qV, -1; cached=false)
+        GKs = _integer_genera(qK, signK, parity)
+        isempty(GKs) && continue
+        Ks = reduce(vcat, Vector{ZZLat}[__representatives(GK) for GK in GKs])
+        for K in Ks
+          pe = unimodular_primitive_extensions(V, K; right_discriminant_action=GV, parity)
+          append!(resV, pe)
+        end
+        for (S, V2, W2) in resV
+          T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
+          L = lll(orthogonal_submodule(S, T3))
+          genus(L) == G1 || continue
+          M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
+          @assert is_sublattice(L, M3)
+          @assert is_primitive(L, M3)
+          N = orthogonal_submodule(L, M3)
+          bM = coordinates(basis_matrix(M3), L)
+          bN = coordinates(basis_matrix(N3), L)
+          L = Hecke.integer_lattice(; gram=gram_matrix(L))
+          M3 = lattice_in_same_ambient_space(L, bM)
+          N = lattice_in_same_ambient_space(L, bN)
+          push!(results, (L, M3, N))
+        end
+      end
+    end
+  end
+  return results
+end

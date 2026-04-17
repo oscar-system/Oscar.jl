@@ -362,7 +362,7 @@ mutable struct ZZLatGluingFactory
     module_left::TorQuadModule,
     module_right::TorQuadModule,
     sign::Tuple{Int, Int},
-    par::Int,
+    par::Symbol,
   )
     z = new((module_left, module_right))
     z.signature = sign
@@ -370,7 +370,7 @@ mutable struct ZZLatGluingFactory
   end
 end
 
-mutable struct ZZLatGluing
+struct ZZLatGluing
   glue_map::TorQuadModuleMap
   inv_glue_map::TorQuadModuleMap
   glue_group_left::TorQuadModuleMap
@@ -379,6 +379,19 @@ mutable struct ZZLatGluing
   stabilizer_right::GAPGroupHomomorphism
 
   function ZZLatLocalGluing(x...)
+    return new(x...)
+  end
+end
+
+struct ZZLatGluingAmbient
+  D::TorQuadModule
+  j1::TorQuadModuleMap
+  j2::TorQuadModuleMap
+  OD::AutomorphismGroup{TorQuadModule}
+  k1::GAPGroupHomomorphism
+  k2::GAPGroupHomomorphism
+
+  function ZZLatGluingAmbient(x...
     return new(x...)
   end
 end
