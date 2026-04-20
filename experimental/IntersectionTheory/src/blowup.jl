@@ -2,7 +2,7 @@
 @doc raw"""
     blowup(i::AbstractVarietyMap; symbol::String="e")
 
-Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
+Given an inclusion `i`$ : $ `Z` $\rightarrow$ `X`, say, return the blow-up of `X` along `Z`.
 
 More precisely, return a tuple `(Bl, E, j)`, say, where
 - `Bl`, an abstract variety, is the blow-up,
@@ -10,11 +10,25 @@ More precisely, return a tuple `(Bl, E, j)`, say, where
 - `j`, a map of abstract varieties, is the inclusion of `E` into `Bl`.
 
 !!! note
-    The resulting maps `Bl` $\rightarrow$ `Y` and `E` $\rightarrow$ `X` are obtained by entering `structure_map(Bl)` and `structure_map(E)`, respectively.
+    The resulting maps `Bl` $\rightarrow$ `X` and `E` $\rightarrow$ `Z` are obtained by entering `structure_map(Bl)` and `structure_map(E)`, respectively.
+
+!!! note
+    Let $\widetilde{X}$ be the blow-up of $X$ along $Z$ with exceptional divisor $E$.
+    Then the Chow ring $\mathrm{N}^*(\widetilde{X})_{\mathbb Q}$ is generated as an $\mathrm{N}^*(X)_{\mathbb Q}$-algebra
+    by the class $e = [E]$ of the exceptional divisor, subject to the relation
+
+    $$\sum_{k=0}^{r} (-1)^k c_k(N_{Z/X})\, \zeta^{r-k} = 0$$
+
+    where $r$ is the codimension of $Z$ in $X$, together with the multiplication rule
+    $j_*(x) \cdot j_*(y) = -j_*(x \cdot y \cdot e)$ for classes on $E$
+    (see [EH16](@cite), Proposition 13.12).
 
 # Examples
 
 *Taken from the sage package Chow by Lehn/Sorger:*
+
+We blow up $\mathbb P^8$ along the Segre image of $\mathbb P^2 \times \mathbb P^2$
+and verify the Betti numbers of the resulting variety:
 
 ```jldoctest
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
@@ -45,6 +59,9 @@ julia> betti_numbers(Bl)
  4
  2
  1
+
+julia> euler_number(Bl)
+36
 
 ```
 
@@ -172,7 +189,7 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
     push!(relations, lhs - rhs)
   end
 
-  relations = minimal_generating_set(ideal(RBl, relations))
+  #relations = minimal_generating_set(ideal(RBl, relations))
   ABl, _ = quo(RBl, relations)
   Bl = abstract_variety(dim(X), ABl)
 

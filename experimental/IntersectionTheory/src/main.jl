@@ -353,8 +353,12 @@ pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 Return the Euler characteristic $\chi(F)$ computed via the Hirzebruch-Riemann-Roch formula.
 
 # Examples
+
+We reconfirm the Hirzebruch-Riemann-Roch theorem for surfaces in a special instance
+(see [Har77](@cite), p.433):
+
 ```jldoctest
-julia> P = abstract_projective_space(4, symbol = "H"); # Hartshorne, p. 433
+julia> P = abstract_projective_space(4, symbol = "H");
 
 julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P, 3);
 
@@ -376,6 +380,25 @@ julia> ec = euler_characteristic(OO(Z, H))
 
 julia> ec == integral(1//2*H*(H - K) + 1//12*(K^2 + chern_class(TZ, 2)))
 true
+
+```
+
+We reconfirm instances of the formula $\chi(\mathcal{O}_{\mathbb P^n}(d)) = \binom{n+d}{n}$
+for the Euler characteristics of line bundles on $\mathbb P^n$:
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> [euler_characteristic(OO(P3, d)) for d in -2:5]
+8-element Vector{QQFieldElem}:
+ 0
+ 0
+ 1
+ 4
+ 10
+ 20
+ 35
+ 56
 
 ```
 """
@@ -908,8 +931,9 @@ Return an abstract variety by specifying its dimension `n` and its Chow ring `A`
 
 !!! note
     We allow (graded) polynomial rings here since for the construction of a new abstract variety,
-    the expert user may find it useful to start from the underlying graded polynomial ring of the Chow ring,
-    and add its defining relations step by step.
+    the expert user may find it convenient to start from the underlying graded polynomial ring of the Chow ring,
+    and add its defining relations step by step. In fact, not all applications require that we specify all
+    relations. See section [Some Particular Constructions](@ref) of the documentation for an example.
 
 !!! note
     In addition to the dimension and the Chow ring, further data making up an abstract variety can be set.
@@ -927,7 +951,7 @@ AbstractVariety of dim 2
 ```
 
 !!! note
-    The example above shows one way of setting up a version of the abstract projective plane. A more convenient way is to use the built-in command `abstract_projective_space` which implements additional data such as the tangent bundle:
+    The example above shows one way of setting up a version of the abstract projective plane. A more convenient way is to use the built-in command `abstract_projective_space` which implements additional data such as the point class and the tangent bundle:
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -938,6 +962,9 @@ Quotient
   of multivariate polynomial ring in 1 variable over QQ graded by
     h -> [1]
   by ideal (h^3)
+
+julia> point_class(P2)
+h^2
 
 julia> TP2 = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
@@ -1119,6 +1146,9 @@ AbstractVariety of dim 6
 julia> D = polarization(G)
 -c[1]
 
+julia> degree(Int, D)
+1
+
 julia> degree(G) == integral(D^dim(G)) == 5
 true
 
@@ -1259,7 +1289,8 @@ structure_map(X::AbstractVariety) = X.structure_map
 @doc raw"""
     line_bundle(X::AbstractVariety, n::RingElement)
 
-If `X` has been given a polarization $\mathcal O_X(1)$, return the line bundle $\mathcal O_X(n)$ on `X`.
+If `X` has been given a polarization representing the first Chern class of an ample
+line bundle $\mathcal O_X(1)$ on `X`, return the line bundle $\mathcal O_X(n) := O_X(1)^{\otimes n}$.
 
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
@@ -1798,6 +1829,46 @@ end
     map(X::AbstractVariety, Y::AbstractVariety)
 
 Return a canonically defined map from `X` to `Y`.
+
+!!! note
+    If no such maps exists, an error message will  be thrown.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> P3 = abstract_projective_space(3, symbol = "H");
+
+julia> P2xP3 = P2*P3
+AbstractVariety of dim 5
+
+julia> p = map(P2xP3, P2)
+AbstractVarietyMap from AbstractVariety of dim 5 to AbstractVariety of dim 2
+
+julia> q = map(P2xP3, P3)
+AbstractVarietyMap from AbstractVariety of dim 5 to AbstractVariety of dim 3
+
+```
+
+```jldoctest
+julia> P = abstract_projective_space(4, symbol = "H");
+
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P, 3);
+
+julia> G = OO(P, 1) + 4*OO(P);
+
+julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
+AbstractVariety of dim 2
+
+julia> TZ = tangent_bundle(Z);
+
+julia> PTZ = projective_bundle(TZ)
+AbstractVariety of dim 3
+
+julia> f = map(PTZ, P)
+AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 4
+
+```
 """
 function map(X::AbstractVariety, Y::AbstractVariety)
   !isnothing(get_attribute(Y, :point)) && return map(X, Y, [X(0)]) # Y is a point
@@ -1814,6 +1885,7 @@ Return the product $X\times Y$. Alternatively, use `*`.
 !!! note
     If both `X` and `Y` have been given a polarization, $X\times Y$ will be endowed with the polarization corresponding to the Segre embedding.
 
+# Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
 
@@ -2276,11 +2348,12 @@ betti_numbers(X::AbstractVariety) = length.(basis(X))
 Given an element `c` of the Chow ring of an abstract variety, say, `X`, return the integral of `c`.
 
 !!! note
-    If `X` has been given a (unique) point class,
+    If `X` has been given a point class, and the top Betti number of `X` is 1,
     then the integral will be an element of the coefficient ring of the Chow ring.
-    That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
-    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
-    part of `c` is returned.
+    That is, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$. If one of the conditions on `X`
+    asked for is not fulfilled, the 0-dimensional part of `c` will be returned.
+
 
 # Examples
 
@@ -2787,6 +2860,9 @@ as `top_chern_class(F)`).
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
+julia> zero_locus_section(OO(P2, 3), class = true)
+3*h
+
 julia> C = zero_locus_section(OO(P2, 3)) # a plane cubic curve
 AbstractVariety of dim 1
 
@@ -2926,10 +3002,7 @@ Return the `k`-th degeneracy locus of a general map from `F` to `G` as an abstra
 The `k`-th degeneracy locus $\mathrm{D}_k(\varphi)$ of a map $\varphi\colon F \to G$
 is the locus where $\operatorname{rank}(\varphi) \leq k$.
 
-Use the argument `class = true` to only compute the class of the degeneracy locus in the
-original Chow ring (Porteous' formula). This corresponds to `degeneracyLocus2` in Schubert2
-(Macaulay2). Without `class = true`, the actual variety is constructed, corresponding to
-`degeneracyLocus` in Schubert2.
+With `class = true` only the class of the degeneracy locus is computed (Porteous' formula).
 
 # Examples
 ```jldoctest
@@ -2993,6 +3066,9 @@ z
 
 julia> integral(A^2) # degree of first adjoint surface which is a del Pezzo surface in P5
 5
+
+julia> euler_characteristic(line_bundle(Z, A))
+6
 
 ```
 """
@@ -3094,7 +3170,7 @@ end
 @doc raw"""
     abstract_point(; base::Ring = QQ)
 
-Return an abstract variety consisting of a point.
+Return an abstract variety consisting of a single point.
 
 # Examples
 ```jldoctest
@@ -3148,7 +3224,7 @@ Quotient
 julia> point_class(P3)
 h^3
 
-julia> FV = abstract_flag_variety(1, 4)
+julia> FV = abstract_flag_variety(1, 4) # projective 3-space as a flag variety
 AbstractVariety of dim 3
 
 julia> RFV = chow_ring(FV)
@@ -3230,7 +3306,7 @@ end
 @doc raw"""
     projective_bundle(E::AbstractBundle; symbol::String = "z")
 
-Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
+Return the projective bundle $\mathbb P(E)$ of 1-dimensional subspaces in the fibers of $E$.
 
 !!! note
     The string `symbol` specifies how to print the first Chern class of the line bundle $\mathcal O_{\mathbb P(E)}(1)$.
@@ -3248,8 +3324,10 @@ Return the projective bundle of 1-dimensional subspaces in the fibers of `E`.
 
 !!! note
     For the pushforward of cycle classes from a projective bundle to its base variety
-    see [EH16](@cite) and [DP17](@cite). Note that a projective bundle can also
-    be realized by using the function `flag_bundle` as indicated in the example below.
+    see [EH16](@cite) and [DP17](@cite).
+
+!!! note
+    A projective bundle can also be realized by using the function `flag_bundle` as indicated below.
 
 # Examples
 ```jldoctest
@@ -3307,7 +3385,7 @@ julia> s = total_segre_class(T)
 julia> sum(pushforward(p, (z^(i+rank(T)-1))) for i in 0:dim(P4)) == s
 true
 
-julia> FT1 = flag_bundle(T, 1)
+julia> FT1 = flag_bundle(T, 1) # projective bundle as a flag bundle
 AbstractVariety of dim 7
 
 julia> SQ1, SQ2 = tautological_bundles(FT1) # the subquotient bundles
@@ -3717,8 +3795,8 @@ end
 Return the abstract Cayley Grassmannian $\mathbf{CG}$.
 
 This is an 8-dimensional smooth projective variety, constructed as the
-zero locus of a section of $\bigwedge^3 S^*$ on $\mathrm{Gr}(4, 7)$,
-where $S$ is the tautological subbundle.
+zero locus of a section of $\bigwedge^3 \mathcal S^*$ on $\mathrm{Gr}(4, 7)$,
+where $\mathcal S$ is the tautological subbundle.
 
 # Examples
 ```jldoctest
@@ -3750,10 +3828,10 @@ Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspace
 !!! note
     There are several useful ways of representing the Chow ring of $\mathrm{Gr}(k, n)$ in terms
     of generators and relations. The function `abstract_grassmannian` yields a minimal
-    set of generators. These are the Chern classes $c_i(S)$, $i = 1, \dots, k$, where $S$ is
-    the universal subbundle on $\mathrm{Gr}(k, n)$, and where the $c_i(S)$ are in degree $i$.
-    For the relations, note that the universal quotient bundle $Q$ has rank $n-k$. The relations
-    are given by the vanishing of the Chern classes $c_i(Q)$, $i = n-k+1, \dots, n$ (see,
+    set of generators. These are the Chern classes $c_i(\mathcal S)$, $i = 1, \dots, k$, where $\mathcal S$ is
+    the universal subbundle on $\mathrm{Gr}(k, n)$, and where the $c_i(\mathcal S)$ are in degree $i$.
+    For the relations, note that the universal quotient bundle $\mathcal Q$ has rank $n-k$. The relations
+    are given by the vanishing of the Chern classes $c_i(\mathcal Q)$, $i = n-k+1, \dots, n$ (see,
     for example, [EH16](@cite)).
 
 !!! tip
@@ -3792,7 +3870,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> tangent_bundle(G) == dual(S)*Q
 true
 
-julia> FV = abstract_flag_variety(2, 5)
+julia> FV = abstract_flag_variety(2, 5) # grassmannian as a flag variety
 AbstractVariety of dim 6
 
 julia> SQ1, SQ2 = tautological_bundles(FV) # the subquotient bundles
@@ -3881,15 +3959,15 @@ dimensions $d_1, \dots, d_{k}$ of an $n$-dimensional vector space.
     A flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ as above comes equipped with a sequence of tautological subbundles
     $0 = \mathcal{S}_0 \subset \mathcal{S}_1 \subset \dots \subset \mathcal{S}_k\subset \mathcal{S}_{k+1} = \mathcal O_{\mathrm{F}(d_1, \dots, d_{k}; n)}^n$ of
     ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$, together with the corresponding subquotient bundles
-    $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$, $j = 1, \dots, k+1$.
+    $\mathcal{SQ}_i = \mathcal{S}_i/\mathcal{S}_{i-1}$, $i = 1, \dots, k+1$.
     To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; n)$ in terms of generators and relations,
-    write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$. Then
+    write $c_{ij} = \mathrm{c}_j(\mathcal{SQ}_i)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathbb{Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; n))_{\mathbb Q}\cong \mathbb{Q}[c_{ij} \mid 1\leq i \leq k+1, 1 \leq j \leq d_i-d_{i-1}]/(\mathrm{relations}).$
 
     Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
-    $\prod_{j = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_j)) = 1,$
+    $\prod_{i = 1}^{k+1} (\mathrm{c}(\mathcal{SQ}_i)) = 1,$
 
     where $\mathrm{c}$ stands for taking the total Chern class. See [HK-MW24](@cite).
 
@@ -3923,7 +4001,7 @@ Ideal generated by
   -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2]
   -c[1, 1] - c[2, 1] - c[3, 1]
 
-julia> prod(total_chern_class(SQ[j]) for j =  1:3)
+julia> prod(total_chern_class(SQ[i]) for i =  1:3)
 1
 
 ```
@@ -4033,15 +4111,14 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
     be as above. Then the corresponding flag bundle $\pi : \mathrm{F}(d_1, \dots, d_{k}; E)  \rightarrow X$
     comes equipped with a sequence of tautological subbundles $0 = \mathcal{S}_0, \mathcal{S}_1 \subset \dots \subset
     \mathcal{S}_k\subset \mathcal{S}_{k+1} = \pi^\ast(E)$ of ranks $0 = d_0, d_1, \dots, d_k, d_{k+1} = n$ together with the
-    subquotient bundles $\mathcal{SQ}_j = \mathcal{S}_j/\mathcal{S}_{j-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
-    in terms of generators and relations, write $c_{ij} = \mathrm{c}_i(\mathcal{SQ}_j)$
-    and $c_i = \pi^\ast \mathrm{c}_i(E)$. Then
+    subquotient bundles $\mathcal{SQ}_i = \mathcal{S}_i/\mathcal{S}_{i-1}$. To present the Chow ring of $\mathrm{F}(d_1, \dots, d_{k}; E)$
+    in terms of generators and relations, write $c_{ij} = \mathrm{c}_j(\mathcal{SQ}_i)$. Then
 
-    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq j \leq k+1, 1 \leq i \leq d_j-d_{j-1}]/(\mathrm{relations}).$
+    $\mathrm{N}^\ast(\mathrm{F}(d_1, \dots, d_{k}; E))_{\mathbb Q}\cong \mathrm{N}^\ast(X)_{\mathbb Q}[c_{ij} \mid 1\leq i \leq k+1, 1 \leq j \leq d_i-d_{i-1}]/(\mathrm{relations}).$
 
-    Here, the $c_{ij}$ are in degree $i$, and we mod out the homogeneous relations arising from the relation
+    Here, the $c_{ij}$ are in degree $j$, and we mod out the homogeneous relations arising from the relation
 
-    $\prod_{j = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_j) = \mathrm{c}(\pi^\ast E),$
+    $\prod_{i = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_i) = \mathrm{c}(\pi^\ast E),$
 
     where $c$ stands for taking the total Chern class. See [Gro58](@cite).
 

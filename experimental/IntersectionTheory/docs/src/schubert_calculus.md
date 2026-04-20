@@ -47,20 +47,20 @@ vector bundles on $\mathrm{Gr}(k, W)$. Recall:
 - The *tautological subbundle* on $\mathrm{Gr}(k, W)$ is the vector bundle of rank $k$ whose fiber at $V \in \mathrm{Gr}(k, W)$ is the subspace $V \subset W$.
 - The *tautological quotient bundle* on $\mathrm{Gr}(k, W)$ is the vector bundle of rank $(n-k)$ whose fiber at $V \in \mathrm{Gr}(k, W)$ is the quotient vector space $W/V$.
 
-We denote these vector bundles by $S$ and $Q$, respectively.
+We denote these vector bundles by $\mathcal S$ and $\mathcal Q$, respectively.
 
-The Chern classes of $S$ and $Q$ are
+The Chern classes of $\mathcal S$ and $\mathcal Q$ are
 
-$\operatorname{c}_i(S) = (-1)^i \sigma_{1^i} \; \text{ for } \; i = 1, \ldots, k$
+$\operatorname{c}_i(\mathcal S) = (-1)^i \sigma_{1^i} \; \text{ for } \; i = 1, \ldots, k$
 
 and
 
-$\operatorname{c}_i(Q) = \sigma_i \; \text{ for }\; i = 1, \ldots, n-k,$
+$\operatorname{c}_i(\mathcal Q) = \sigma_i \; \text{ for }\; i = 1, \ldots, n-k,$
 
 respectively.
 
 All Schubert classes form a $\mathbb{Q}$-vector space basis of the Chow ring of $\mathrm{Gr}(k,n)$.
-The Chern classes of $S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
+The Chern classes of $\mathcal S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
 form a minimal set of generators for the Chow ring of $\mathrm{Gr}(k,n)$ as a $\mathbb{Q}$-algebra.
 See [EH16](@cite) for the relations on these generators.
 
@@ -89,10 +89,10 @@ julia> integral(s1^4)
 **How many lines lie on a cubic surface in $\mathbb P^3$?**
 
 To count lines on a cubic surface in $\mathbb P^3$,
-we consider the zero locus of a section of $\operatorname{Sym}^3 S^*$ on $\mathrm{Gr}(2,4)$.
-Here $S$ is the tautological subbundle, and a line lies on the surface
+we consider the zero locus of a section of $\operatorname{Sym}^3 \mathcal S^*$ on $\mathrm{Gr}(2,4)$.
+Here $\mathcal S$ is the tautological subbundle, and a line lies on the surface
 if and only if the section vanishes on it.
-The answer is the top Chern class of $\operatorname{Sym}^3 S^*$:
+The answer is the top Chern class of $\operatorname{Sym}^3 \mathcal S^*$:
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4);
@@ -108,7 +108,7 @@ julia> integral(top_chern_class(symmetric_power(dual(S), 3)))
 
 The Grassmannian of lines in $\mathbb{P}^4$ is $\mathrm{Gr}(2,5)$.
 To count lines on the general quintic threefold,
-we consider the zero locus of a section of $\operatorname{Sym}^5 S^*$:
+we consider the zero locus of a section of $\operatorname{Sym}^5 \mathcal S^*$:
 
 ```jldoctest
 julia> G = abstract_grassmannian(2, 5)
