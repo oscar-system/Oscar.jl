@@ -88,7 +88,6 @@ function oscar_worker_pool(f::Function, args...; kw...)
   try
     results = f(wp)
   catch e
-    close!(wp)
     rethrow(e)
   finally
     close!(wp)
@@ -131,7 +130,7 @@ end
 
 ### extra functionality
 function rmprocs(wp::OscarWorkerPool, wid::Int)
-  @async rmprocs(wid)
+  rmprocs(wid; waitfor=0)
   wp.workers = delete!(wp.wp.workers, wid)
 end
 
@@ -341,4 +340,3 @@ function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
 end
 
 export oscar_worker_pool, remotecall_with_timeout, TimeoutException
-
