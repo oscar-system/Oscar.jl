@@ -368,14 +368,14 @@ function _orthogonal_group_gens(T::TorQuadModule)
     j = inv(i)
     gensON_mat = unique(_compute_gens(N))
     gensON = TorQuadModuleMap[hom(N, N, g) for g in gensON_mat]
-    gensOT = TorQuadModuleMap[i * g * j for g in gensON]
-    length(gensOT) > 1 ? filter!(!isone∘matrix, gensOT) : nothing
-    return gensOT
+    gensOT_mat = ZZMatrix[matrix(i * g * j) for g in gensON]
+    length(gensOT_mat) > 1 ? filter!(!isone, gensOT_mat) : nothing
+    return gensOT_mat
   elseif iszero(gram_matrix_quadratic(T))
     # in that case, we don't have any conditions regarding the
     # quadratic form, so we have all automorphisms coming
     # from the underlying abelian group
-    return hom.(gens(automorphism_group(abelian_group(T))))
+    return matrix.(gens(automorphism_group(abelian_group(T))))
   else
     # if T is not semi-regular, we distinghuish the cases whether or not
     # it splits its radical quadratic

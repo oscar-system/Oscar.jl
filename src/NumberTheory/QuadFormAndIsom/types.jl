@@ -317,14 +317,40 @@ A context object which stores some `TorQuadModule` together with the results of
 some orbits and stabilizers computations for some ``p``-subgroups of a given
 type.
 """
-mutable struct ZZLatGluingCtx
+struct ZZLatGluingCtx
   modules::Vector{TorQuadModule}
-  orb_and_stab::Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}}
+  orb_and_stab::Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
 
   function ZZLatGluingCtx()
     modules = TorQuadModule[]
-    orb_and_stab = Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}}()
+    orb_and_stab = Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
     return new(modules, orb_and_stab)
+  end
+end
+
+@doc raw"""
+    ZZLatGluing
+
+Type for representatives for a double coset of glue maps between two
+discriminant forms ``q_1`` and ``q_2``, under the action some groups
+``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists:
+- a glue map ``\gamma\colon H_1\to H_2``,
+- the inverse glue map of ``H_2\to H_1``,
+- the embedding ``H_1 \to q_1``,
+- the embedding of the ``G_1``-stabilizer of ``H_1`` inside ``G_1``,
+- the embedding ``H_2 \to q_2``,
+- the embedding of the ``G_2``-stabilizer of ``H_2`` inside ``G_2``.
+"""
+struct ZZLatGluing
+  glue_map::TorQuadModuleMap
+  inv_glue_map::TorQuadModuleMap
+  glue_group_left::TorQuadModuleMap
+  stabilizer_left::GAPGroupHomomorphism
+  glue_group_right::TorQuadModuleMap
+  stabilizer_right::GAPGroupHomomorphism
+
+  function ZZLatGluing(x...)
+    return new(x...)
   end
 end
 
@@ -340,7 +366,6 @@ mutable struct ZZLatGluingFactory
   # Necessary input
   ambient_modules::Tuple{TorQuadModule, TorQuadModule} # Discriminant forms of the lattices to glue
   local_classifying_groups::Tuple{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
-  sign::Tuple{Int, Int} # Signature of the top lattice
   par::Symbol # :even, :odd or :both
 
   # Context
@@ -351,6 +376,7 @@ mutable struct ZZLatGluingFactory
   glue_order::Set{ZZRingElem} # Possible orders of a glue group
   glue_elementary_divisors::Set{Vector{ZZRingElem}} # Possible elementary divisors of a glue groups
   genus_over::Set{ZZGenus} # Possible genus of an overlattice
+  form_over::Set{QQMatrix} # Possible Gram matrix normal form of discriminant group overlattice
 
   # Internal preparation
   conditions_modules::Tuple{TorQuadModuleMap, TorQuadModuleMap} # Where the glue groups should be taken
@@ -361,25 +387,11 @@ mutable struct ZZLatGluingFactory
   function ZZLatGluingFactory(
     module_left::TorQuadModule,
     module_right::TorQuadModule,
-    sign::Tuple{Int, Int},
     par::Symbol,
   )
     z = new((module_left, module_right))
-    z.signature = sign
-    z.parity = par
-  end
-end
-
-struct ZZLatGluing
-  glue_map::TorQuadModuleMap
-  inv_glue_map::TorQuadModuleMap
-  glue_group_left::TorQuadModuleMap
-  stabilizer_left::GAPGroupHomomorphism
-  glue_group_right::TorQuadModuleMap
-  stabilizer_right::GAPGroupHomomorphism
-
-  function ZZLatLocalGluing(x...)
-    return new(x...)
+    z.par = par
+    return z
   end
 end
 
@@ -391,7 +403,7 @@ struct ZZLatGluingAmbient
   k1::GAPGroupHomomorphism
   k2::GAPGroupHomomorphism
 
-  function ZZLatGluingAmbient(x...
+  function ZZLatGluingAmbient(x...)
     return new(x...)
   end
 end

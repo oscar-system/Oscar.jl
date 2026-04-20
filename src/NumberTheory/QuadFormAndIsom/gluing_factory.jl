@@ -6,47 +6,107 @@
 
 ### Gluing factory
 
-# Return the two torsion quadratic modules from the initial problem
+@doc raw"""
+    ambient_modules(Fac::ZZLatGluingFactory) -> TorQuadModule, TorQuadModule
+
+Return the two initial torsion quadratic modules from the factory `Fac`.
+"""
 ambient_modules(Fac::ZZLatGluingFactory) = Fac.ambient_modules
 
-# Return the groups used to do the computations of local gluings
-local_classifying_groups(Fac::ZZLatGluingFactor) = Fac.local_classifying_groups
+@doc raw"""
+    local_classifying_groups(
+      Fac::ZZLatGluingFactory,
+    ) -> AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}
 
-# Return the modules computed from the initial conditions, where we have to
-# for anti-isometric glue groups
+Return the groups used to do the computations of local gluings in the factory
+`Fac`.
+"""
+local_classifying_groups(Fac::ZZLatGluingFactory) = Fac.local_classifying_groups
+
+@doc raw"""
+    conditions_modules(
+      Fac::ZZLatGluingFactory,
+    ) -> TorQuadModuleMap, TorQuadModuleMap
+
+Return the embedding of the conditions modules in the ambient modules of
+the factory `Fac`, computed via the conditions initiliazing `Fac.
+"""
 conditions_modules(Fac::ZZLatGluingFactory) = Fac.conditions_modules
 
-# Return the signature of a primitive extension as setup in the inital problem
-overlattice_signature(Fac::ZZLatGluingFactory) = Fac.sign
+@doc raw"""
+    overlattice_parity(Fac::ZZLatGluingFactory) -> Symbol
 
-# Return the parity type of a primitive extension as setup in the initial
-# problem. It can be :even for even overlattices, :odd for odd lattices and
-# :both for any integral overlattices
+Return the parity type of a primitive extension as setup in the construction
+of the factory `Fac`.
+
+It can be :even for even extensions, :odd for odd extensions and :both for
+any integral extensions.
+"""
 overlattice_parity(Fac::ZZLatGluingFactory) = Fac.par
 
-# Return the list of possible order for the glue groups as setup by the
-# conditions of the initial problem
+@doc raw"""
+    possible_glue_order(Fac::ZZLatGluingFactor) -> Set{ZZRingElem}
+
+Return the set of possible order for the glue groups, computed in the
+initialization of the factory `Fac`.
+"""
 possible_glue_order(Fac::ZZLatGluingFactory) = Fac.glue_order
 
-# Test whether a given lattice has wanted genus, as decided by the initial
-# conditions of the problem
+@doc raw"""
+    test_overlattice(Fac::ZZLatGluingFactory, L::ZZLat) -> Bool
+
+Return whether the given lattice satisfies the output conditions of
+the factory `Fac`.
+
+This means that:
+- the parity of `L` is good,
+- the genus of `L` is among the allowed ones (if any),
+- the discriminant group of `L` is among the allowed ones (if any).
+"""
 function test_overlattice(Fac::ZZLatGluingFactory, L::ZZLat)
+  par = overlattice_parity(Fac)
+  if par === :even && !is_even(L)
+    return false
+  elseif par === :odd && is_even(L)
+    return false
+  end
   if isdefined(Fac, :genus_over)
-    genus(L) in Fac.genus_over || return false
+    genus(L) in Fac.genus_over && return true
+  end
+  if isdefined(Fac, :form_over)
+    M = gram_matrix_quadratic(first(normal_form(discriminant_group(L))))
+    return M in Fac.form_over
   end
   return true
 end
 
+@doc raw"""
+    is_trivial(Fac::ZZLatGluingFactory) -> Bool
+
+Return whether the output conditions of the factory `Fac` are possible.
+"""
+function is_trivial(Fac::ZZLatGluingFactory)
+  isempty(possible_glue_order(Fac)) && return true
+  if isdefined(Fac, :genus_over)
+    return isempty(Fac.genus_over)
+  elseif isdefined(Fac, :form_over)
+    return isempty(Fac.form_over)
+  elseif isdefined(Fac, :glue_elementary_divisors)
+    return isempty(Fac.glue_elementary_divisors)
+  end
+  return false
+end
+
 ### Gluing
 
-function gluing_data(x::ZZLatGluing)
+function _data(x::ZZLatGluing)
   return x.glue_map, x.inv_glue_map, x.glue_group_left, x.stabilizer_left, x.glue_group_right, x.stabilizer_right
 end
 
 # The type ZZLatGluing is symmetrical, we just reverse the order of the fields
 # to see it from right to left
 function Oscar.inv(x::ZZLatGluing)
-  phi, iphi, i1, j1, i2, j2 = gluing_data(x)
+  phi, iphi, i1, j1, i2, j2 = _data(x)
   return ZZLatGluing(iphi, phi, i2, j2, i1, j1)
 end
 
@@ -58,6 +118,8 @@ function glue_map(x::ZZLatGluing, i::Int)
   end
 end
 
+glue_maps(x::ZZLatGluing) = (glue_map(x, 1), glue_map(x, 2))
+
 function glue_group(x::ZZLatGluing, i::Int)
   if isone(i)
     return x.glue_group_left
@@ -65,6 +127,8 @@ function glue_group(x::ZZLatGluing, i::Int)
     return x.glue_group_right
   end
 end
+
+glue_groups(x::ZZLatGluing) = (glue_group(x, 1), glue_group(x, 2))
 
 function stabilizer_glue_group(x::ZZLatGluing, i::Int)
   if isone(i)
@@ -82,7 +146,8 @@ function _gluing_ambient(
     par::Symbol,
   )
   as_bilinear_module = par === :even ? false : true
-  return ZZLatGluingAmbient(_direct_sum_with_embeddings_orthogonal_groups(q1, q2; as_bilinear_module)
+  x = _direct_sum_with_embeddings_orthogonal_groups(q1, q2; as_bilinear_module)
+  return ZZLatGluingAmbient(x...)
 end
 
 
@@ -126,7 +191,7 @@ equal to the modulus of its bilinear form, then this is the same as calling
 `orthogonal_group(T)`.
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group_bilinear(T::TorQuadModule)
-  return __orthogonal_group(q; as_bilinear_module=true)
+  return __orthogonal_group(T; as_bilinear_module=true)
 end
 
 function __orthogonal_group(
@@ -136,8 +201,8 @@ function __orthogonal_group(
   if !as_bilinear_module || modulus_bilinear_form(q) == modulus_quadratic_form(q)
     return orthogonal_group(q)
   end
-  qb = _as_finite_bilinear_module(q)
-  return _orthogonal_group(q, orthogonal_group_gens(qb); check=false)
+  qb = Hecke._as_finite_bilinear_module(q)
+  return _orthogonal_group(q, _orthogonal_group_gens(qb); check=false)
 end
 
 ### To be moved to Hecke eventually
@@ -176,7 +241,7 @@ function _psubgroups_types(
   Gtype = Int[valuation(a, p) for a in elG]
   reverse!(Gtype)
   filter!(!=(0), Gtype)
-  types = _subpartitions(Gtype)
+  types = Hecke._subpartitions(Gtype)
   for t in types
     testv(t) || continue
     filter!(!=(0), t)
@@ -216,41 +281,8 @@ function torsion_subgroup(
   n::IntegerUnion,
 )
   Sab, j = torsion_subgroup(abelian_group(T), n)
-  return sub(T, TorQuadModuleElem[T(i(s)) for s in gens(Sab)])
+  return sub(T, TorQuadModuleElem[T(j(s)) for s in gens(Sab)])
 end
-
-
-#function elementary_divisors(s::ZZLocalGenus)
-#  p = prime(s)
-#  els = Array{ZZRingElem}(undef, rank(s))
-#  i = Int(1)
-#  for sym in symbol(s)
-#    for _ in 1:sym[2]
-#      els[i] = p^first(sym)
-#      i += 1
-#    end
-#  end
-#  return els
-#end
-#
-#function elementary_divisors(G::ZZGenus)
-#  lgs = local_symbols(G)
-#  elG = elementary_divisors(first(lgs))
-#  for i in 2:length(lgs)
-#    mul!.(elG, elementary_divisors(lgs[i]))
-#  end
-#  filter!(!=(1), elG)
-#  return elG
-#end
-#
-#function _ptype_from_elementary_divisors(
-#  v::Vector{ZZRingElem},
-#  p::ZZRingElem,
-#)
-#  s = reverse!(Int[valuation(a, p) for a in v])
-#  filter!(!=(0), s)
-#  return s
-#end
 
 ###############################################################################
 #
@@ -268,7 +300,7 @@ function init_gluing_factory!(
   Fac::ZZLatGluingFactory;
   left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
   right_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
-  glue_exponent::Union{nothing, IntegerUnion}=nothing,
+  glue_exponent::Union{Nothing, IntegerUnion}=nothing,
   glue_order::AbstractVector{T}=Int[],
   glue_elementary_divisors::Vector{Vector{ZZRingElem}}=Vector{ZZRingElem}[],
   form_over::Vector{TorQuadModule}=TorQuadModule[],
@@ -284,6 +316,7 @@ function init_gluing_factory!(
     form_over,
   )
   assert_has_local_classifying_groups!(Fac)
+  return nothing
 end
 
 # Using the glue annihilators and glue_exponent, the function sets up the
@@ -299,7 +332,7 @@ end
 #
 # If part of the initial conditions, the function runs through the list
 # form_over and genus_over to compute the possible genera for an overlattice
-# within the context setup by the conditions modules, Fac.par and Fac.sign.
+# within the context setup by the conditions modules and Fac.par.
 # If none works, Fac.genus_over is the empty set and the following functions
 # will abort (because of impossible conditions). Similarly with the list
 # glue_elementary_divisors.
@@ -320,7 +353,7 @@ function init_gluing_conditions!(
   Fac::ZZLatGluingFactory,
   left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
   right_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
-  glue_exponent::Union{nothing, IntegerUnion}=nothing,
+  glue_exponent::Union{Nothing, IntegerUnion}=nothing,
   glue_order::AbstractVector{T}=ZZRingElem[],
   glue_elementary_divisors::Vector{Vector{ZZRingElem}}=Vector{ZZRingElem}[],
   form_over::Vector{TorQuadModule}=TorQuadModule[],
@@ -328,10 +361,11 @@ function init_gluing_conditions!(
 ) where T <: IntegerUnion
 
   # Remember if some conditions were initially set
-  ignore_genus_over = isempty(genus_over) && isempty(form_over)
+  ignore_genus_over = isempty(genus_over)
+  ignore_form_over = isempty(form_over)
   ignore_elem_divs = isempty(glue_elementary_divisors)
-  ignore_glue_order = ignore_genus_over && ignore_elem_divs && isempty(glue_order)
   empty_order_cond = isempty(glue_order)
+  ignore_glue_order = ignore_genus_over && ignore_form_over && ignore_elem_divs && empty_order_cond
 
   qM, qN = ambient_modules(Fac)
 
@@ -366,16 +400,13 @@ function init_gluing_conditions!(
   # This fixes the conditions modules where we do everything
   Fac.conditions_modules = (VMinqM, VNinqN)
 
-  elG = _maximal_common_subgroup_snf(VM, VN)
+  elG = _maximal_common_subgroup_snf(abelian_group(VM), abelian_group(VN))
   pds = isempty(elG) ? ZZRingElem[] : prime_divisors(last(elG))
-  ged = Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}}(p => Dict{Vector{Int}, Vector{ZZLatGluing}}())
+  ged = Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}}(p => Dict{Vector{Int}, Vector{ZZLatGluing}}() for p in pds)
   Fac.glue_group_parent_snf = elG
   Fac.primes_of_interest = Set(pds)
   Fac.local_gluings_primary = ged
 
-  if !isempty(genus_over)
-    filter!(isequal(Fac.sign)∘signature_pair, genus_over)
-  end
   _genus_over = Set(genus_over)
 
   k1 = prod(elG; init=ZZ(1))
@@ -404,32 +435,60 @@ function init_gluing_conditions!(
     end
   end
 
+  _form_over = Set{QQMatrix}()
   for q in form_over
     !isone(modulus_bilinear_form(q)) && continue
-    union!(_genus_over, _integer_genera(q, Fac.sign, Fac.par))
+    if Fac.par === :even
+      modulus_quadratic_form(q) == 2 || continue
+    elseif Fac.par === :odd
+      modulus_quadratic_form(q) == 1 || continue
+    else
+      modulus_quadratic_form(q) in [1, 2] || continue
+    end
+    push!(_form_over, gram_matrix_quadratic(first(normal_form(q))))
   end
 
+
   k2 = order(qM)*order(qN)
-  if !ignore_genus_over
-    _tmp = Set{ZZRingElem}()
-    for G in _genus_over
-      bool, _k = divides(k2, numerator(abs(det(G))))
-      if !bool
-        delete!(_genus_over, G)
-        continue
-      end
-      bool, _k = is_square_with_sqrt(_k)
-      if !bool
-        delete!(_genus_over, G)
-        continue
-      end
-      if empty_order_cond || (_k in _glue_order)
-        push!(_tmp, _k)
-      else
-        delete!(_genus_over, G)
-        continue
-      end
+  _tmp = Set{ZZRingElem}()
+  for G in _genus_over
+    bool, _k = divides(k2, numerator(abs(det(G))))
+    if !bool
+      delete!(_genus_over, G)
+      continue
     end
+    bool, _k = is_square_with_sqrt(_k)
+    if !bool
+      delete!(_genus_over, G)
+      continue
+    end
+    if empty_order_cond || (_k in _glue_order)
+      push!(_tmp, _k)
+    else
+      delete!(_genus_over, G)
+      continue
+    end
+  end
+  for q in _form_over
+    bool, _k = divides(k2, order(q))
+    if !bool
+      delete!(_form_over, q)
+      continue
+    end
+    bool, _k = is_square_with_sqrt(_k)
+    if !bool
+      delete!(_form_over, q)
+      continue
+    end
+    if empty_order_cond || (_k in _glue_order)
+      push!(_tmp, _k)
+    else
+      delete!(_genus_over, G)
+      continue
+    end
+  end
+
+  if !ignore_genus_over || !ignore_form_over
     if empty_order_cond
       union!(_glue_order, _tmp)
     else
@@ -441,14 +500,14 @@ function init_gluing_conditions!(
     _tmp = Set{ZZRingElem}()
     for v in _glue_elem_divs
       _k = prod(v; init=ZZ(1))
-      if (ignore_genus_over && empty_order_cond) || (_k in _glue_order)
+      if (ignore_genus_over && ignore_form_over && empty_order_cond) || (_k in _glue_order)
         push!(_tmp, _k)
       else
         delete!(_glue_elem_divs, v)
         continue
       end
     end
-    if ignore_genus_over && empty_order_cond
+    if ignore_genus_over && ignore_form_over && empty_order_cond
       union!(_glue_order, _tmp)
     else
       intersect!(_glue_order, _tmp)
@@ -465,6 +524,10 @@ function init_gluing_conditions!(
     Fac.genus_over = _genus_over
   end
 
+  if !ignore_form_over
+    Fac.form_over = _form_over
+  end
+
   if !ignore_elem_divs
     Fac.glue_elementary_divisors = _glue_elem_divs
   end
@@ -474,7 +537,7 @@ end
 function assert_has_local_classifying_groups!(Fac::ZZLatGluingFactory)
   isdefined(Fac, :local_classifying_groups) && return nothing
   q1, q2 = ambient_modules(Fac)
-  as_bilinear_module = (Fac.par != :even)
+  as_bilinear_module = (Fac.par !== :even)
   Oq1 = __orthogonal_group(q1; as_bilinear_module)
   Oq2 = __orthogonal_group(q2; as_bilinear_module)
   Fac.local_classifying_groups = (Oq1, Oq2)
@@ -496,19 +559,19 @@ function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
   i::Int = -1,
 )
   W = domain(Winq)
-  flag = isdefined(Fac, :Ctx) && (0 < i <= length(Fac.Ctx.modules) && (Fac.Ctx.modules[i] === codomain(Winq))
+  flag = isdefined(Fac, :Ctx) && (0 < i <= length(Fac.Ctx.modules)) && (Fac.Ctx.modules[i] === codomain(Winq))
   if flag && haskey(Fac.Ctx.orb_and_stab, (i, p, subtype))
     subs = Fac.Ctx.orb_and_stab[(i, p, subtype)]
   elseif first(subtype) == 1
     W = domain(Winq)
-    _, WWinW = elementary_part(W, p)
+    _, WWinW = torsion_subgroup(W, p)
     WWinq = compose(WWinW, Winq)
-    subs = Oscar._subgroups_orbit_representatives_and_stabilizers_elementary(WWinq, O, p^(length(subtype)), p)
+    subs = Oscar.__subgroups_orbit_representatives_and_stabilizers_elementary(WWinq, O, p^(length(subtype)), p)
     if flag
       Fac.Ctx.orb_and_stab[(i, p, subtype)] = subs
     end
   else
-    subs = _subgroups_orbit_representatives_and_stabilizers_primary_subtype(Winq, O, p, subtype)
+    subs = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Winq, O, p, subtype)
     if flag
       Fac.Ctx.orb_and_stab[(i, p, subtype)] = subs
     end
@@ -521,7 +584,7 @@ function _local_gluings_primary!(
   p::ZZRingElem,
   subtype::Vector{Int},
 )
-  as_bilinear_module = (Fac.par != :even)
+  as_bilinear_module = (Fac.par !== :even)
   ged = Fac.local_gluings_primary
   @assert haskey(ged, p)
   if haskey(ged[p], subtype)
@@ -583,7 +646,7 @@ function _trivial_gluing(
 end
 
 function _local_glue_maps_ord(Fac::ZZLatGluingFactory, o::ZZRingElem)
-  isone(o) && return ZZLatGluing[_trivial_gluing(Fac))]
+  isone(o) && return ZZLatGluing[_trivial_gluing(Fac)]
 
   elG = Fac.glue_group_parent_snf
   _loc = Vector{ZZLatGluing}[]
@@ -601,7 +664,7 @@ function _local_glue_maps_ord(Fac::ZZLatGluingFactory, o::ZZRingElem)
 end
 
 function _local_glue_maps_eldiv(Fac::ZZLatGluingFactory, v::Vector{ZZRingElem})
-  isempty(v) && return ZZLatGluing[_trivial_gluing(Fac))]
+  isempty(v) && return ZZLatGluing[_trivial_gluing(Fac)]
 
   pds = Fac.primes_of_interest
   _loc = Vector{ZZLatGluing}[]
@@ -657,7 +720,7 @@ function merge_glue_maps(
     @hassert :ZZLatWithIsom 1 domain(j1) == first(stabilizer(codomain(j1), H1inq1))
     @hassert :ZZLatWithIsom 1 domain(j2) == first(stabilizer(codomain(j2), H2inq2))
     phi = hom(H1, H2, gens(H1), gens(H2))
-    @assert is_anti_isometry(phi; as_bilinear_module=(Fac.par != :even))
+    @assert is_anti_isometry(phi; as_bilinear_module=(Fac.par !== :even))
     push!(res, ZZLatGluing(phi, inv(phi), H1inq1, j1, H2inq2, j2))
   end
   return res
@@ -692,7 +755,7 @@ function _split_orbit_left_group(
   O1::AutomorphismGroup{TorQuadModule},
 )
   res = ZZLatGluing[]
-  phi, _, H1inq1, s1, H2inq2, s2 = gluing_data(x)
+  phi, _, H1inq1, s1, H2inq2, s2 = _data(x)
   @assert domain(O1) === codomain(H1inq1)
 
   H1, H2 = domain(H1inq1), domain(H2inq2)
@@ -708,10 +771,10 @@ function _split_orbit_left_group(
   end
 
   @vprintln :ZZLatWithIsom 1 "Split orbit of left glue group"
-  splits = double_cosets(codomain(iso), first(iso(stab1)), first(iso(O1)))
+  splits = double_cosets(codomain(iso1), first(iso1(stab1)), first(iso1(O1)))
   @vprintln :ZZLatWithIsom 1 "    done: $(length(splits))"
   for _h in splits
-    h = hom(iso\(representative(_h)))
+    h = hom(iso1\(representative(_h)))
     ih = inv(h)
     _H1, _H1inq1 = sub(q1, elem_type(q1)[h(H1inq1(a)) for a in gens(H1)])
     _phi = hom(_H1, H2, elem_type(H2)[phi(H1(lift(ih(_H1inq1(a))))) for a in gens(_H1)])
@@ -734,8 +797,8 @@ function _pullback_left(
   x::ZZLatGluing,
   f::TorQuadModuleMap,
 )
-  phi, iphi, i1, s1, i2, s2 = gluing_data(x)
-  @assert codomain(gamma) === codomain(i1)
+  phi, iphi, i1, s1, i2, s2 = _data(x)
+  @assert codomain(f) === codomain(i1)
   invf = inv(f)
   q0 = domain(f)
   Oq0 = _orthogonal_group(q0, TorQuadModuleMap[f * hom(g) * invf for g in gens(codomain(s1))]; check=false)
@@ -747,11 +810,18 @@ function _pullback_left(
   return ZZLatGluing(psi, ipsi, i0, s0, i2, s2)
 end
 
+function _pullback_right(
+  x::ZZLatGluing,
+  f::TorQuadModuleMap,
+)
+  return inv(_pullback_left(inv(x), f))
+end
+
 function _all_glue_maps(
   x::ZZLatGluing,
 )
   res = ZZLatGluing[]
-  phi, iphi, H1inq1, s1, H2inq2, s2 = gluing_data(x)
+  phi, iphi, H1inq1, s1, H2inq2, s2 = _data(x)
   q1 = codomain(H1inq1)
   q2 = codomain(H2inq2)
   H1 = domain(H1inq1)
@@ -781,11 +851,11 @@ function _all_glue_maps(
   @vprintln :ZZLatWithIsom 1 "    done: $(length(orb2))"
   
   stab1gamma = elem_type(OH2)[OH2(iphi * hom(g) * phi; check=false) for g in gens(im1)]
-  S1, _ = sub(OH2, stab1phi)
+  S1, _ = sub(OH2, stab1gamma)
   S2 = first(iso2(S1))
   omega = gset(S2, (x,g) -> x*OH22(g), orb2)
   for _g in orbits(omega)
-    g = hom(iso1\representative(_g))
+    g = hom(iso2\representative(_g))
     phig = compose(phi, g)
     iphig = compose(inv(g), iphi)
     push!(res, ZZLatGluing(phig, iphig, H1inq1, s1, H2inq2, s2))
@@ -793,27 +863,45 @@ function _all_glue_maps(
   return res
 end
 
+function _form_over(
+  x::ZZLatGluing,
+)
+  phi = glue_map(x, 1)
+  i1, i2 = glue_groups(x)
+  H1, H2 = domain(i1), domain(i2)
+  q1, q2 = codomain(i1), codomain(i2)
+  D, (j1, j2) = direct_sum(q1, q2; cached=false, as_bilinear_module=true)
+  H1inD = i1 * j1
+  H2inD = i2 * j2
+  _glue = Vector{QQFieldElem}[lift(H1inD(a)) + lift(H2inD(phi(a))) for a in gens(H1)]
+  ext, _ = sub(D, D.(_glue))
+  perp, _ = orthogonal_submodule(D, ext)
+  disc = torsion_quadratic_module(cover(perp), cover(ext))
+  return disc
+end
+
 function _overlattice(
   x::ZZLatGluing,
   D::ZZLatGluingAmbient,
 )
-  phi, iphi, i1, s1, i2, s2 = expand(x)
+  phi, iphi, i1, s1, i2, s2 = _data(x)
   H1, H2 = domain(i1), domain(i2)
+  q1, q2 = codomain(i1), codomain(i2)
   H1inD = i1 * D.j1
   H2inD = i2 * D.j2
   O1, O2 = orthogonal_group(H1), orthogonal_group(H2)
   im1 = elem_type(O1)[O1(restrict_automorphism(g, i1); check=false) for g in gens(domain(s1))]
   act1 = hom(domain(s1), O1, im1)
-  im2 = elem_type(O2)[O2(restrict_automorphism(g, i2); check=false) for g in gens(domain(s2))
+  im2 = elem_type(O2)[O2(restrict_automorphism(g, i2); check=false) for g in gens(domain(s2))]
   act2 = hom(domain(s2), O2, im2)
-  V, extinD = _overlattice_with_graph(phi, i1, i2)
+  V, extinD = _overlattice_with_graph(phi, H1inD, H2inD)
   _disc, _stab = _glue_stabilizers(phi, act1, act2, D.k1, D.k2, extinD)
   qV = discriminant_group(V)
-  OqV = orthogonal_group(V)
+  OqV = orthogonal_group(qV)
   phi2 = hom(qV, _disc, elem_type(_disc)[_disc(lift(x)) for x in gens(qV)])
   iphi2 = inv(phi2)
   GV, _ = sub(OqV, elem_type(OqV)[OqV(phi2 * g * iphi2; check=false) for g in _stab])
-  M, T = _as_sublattice(V, relations(q1), relations(q2))
+  M, T = _as_sublattices(V, relations(q1), relations(q2))
   return V, M, T, GV
 end
 
@@ -828,18 +916,18 @@ end
 function _local_glue_maps(
   q1::TorQuadModule,
   q2::TorQuadModule,
-  sign_over::Tuple{Int, Int},
   parity::Symbol;
   Ctx=nothing,
   vi::Tuple{Int, Int}=(-1, -1),
   kwargs...,
 )
-  Fac = ZZLatGluingFactory(q1, q2, sign_over, parity)
+  Fac = ZZLatGluingFactory(q1, q2, parity)
   if !isnothing(Ctx)
     Fac.Ctx = Ctx
     Fac.vertex_identification = vi
   end
   init_gluing_factory!(Fac; kwargs...)
+  is_trivial(Fac) && return ZZLatGluing[]
   res = local_glue_maps(Fac)
   return res
 end
@@ -857,8 +945,7 @@ function unimodular_primitive_extensions(
   exist_only::Bool=false,
   even::Bool=(is_even(M) && is_even(N)), #low priority
   parity::Symbol=(even ? :even : :both),
-) where T <: Hecke.IntegerUnion
-
+)
   @req is_integral(M) && is_integral(N) "Only available for integral lattices"
 
   if !isnothing(right_discriminant_action)
@@ -906,7 +993,7 @@ function _unimodular_primitive_extensions(
 
   parity == :even && (!is_even(M) || !is_even(N)) && return false, results
 
-  as_bilinear_module = (parity != :even)
+  as_bilinear_module = (parity !== :even)
   ok, phi = is_anti_isometric_with_anti_isometry(qM, qN; as_bilinear_module)
   !ok && return false, results
   if exist_only
@@ -941,7 +1028,7 @@ function _unimodular_primitive_extensions(
   else
     iso = id_hom(OqN)
   end
-  reps = double_cosets(codomain(iso), first(iso(GN)), first(iso(GMphi)))
+  reps = double_cosets(codomain(iso), Base.first(iso(GN)), Base.first(iso(GMphi)))
   for _g in reps
     g = iso\(representative(_g))
     phig = compose(phi, hom(g))
@@ -956,7 +1043,7 @@ function _unimodular_primitive_extensions(
     push!(results, (L, M2, N2))
     first && return true, results
   end
-  return length(res) > 0, results
+  return length(results) > 0, results
 end
 
 function _primitive_extensions_coprime_left(
@@ -982,7 +1069,7 @@ function _primitive_extensions_coprime_left(
   end
   HN, HNinqN = sub(qN, gensHN)
 
-  as_bilinear_module = (partiy != :even)
+  as_bilinear_module = (partiy !== :even)
   ok, phi = is_anti_isometric_with_anti_isometry(qM, HN; as_bilinear_module)
   !ok && return false, results
   if exist_only
@@ -1099,6 +1186,7 @@ function _primitive_embeddings_in_unimodular_safe(
   G1::ZZGenus,
   G2::ZZGenus,
 )
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if is_even(G1)
     parity = :even
     par = :even
@@ -1109,7 +1197,7 @@ function _primitive_embeddings_in_unimodular_safe(
   sign = signature_pair(G1) .- signature_pair(G2)
   q = rescale(discriminant_group(G2), -1; cached=false)
   GKs = _integer_genera(q, sign, par)
-  isempty(GKs) && continue
+  isempty(GKs) && return results
  
   Ns = ZZLat[]
   for GK in GKs
@@ -1128,7 +1216,8 @@ function _primitive_embeddings_coprime_det_safe(
   G1::ZZGenus,
   G2::ZZGenus,
 )
- if is_even(G1)
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+  if is_even(G1)
     parity = :even
     par = :even
   else
@@ -1138,9 +1227,9 @@ function _primitive_embeddings_coprime_det_safe(
   sign = signature_pair(G1) .- signature_pair(G2)
   q1 = discriminant_group(G1)
   q2 = discriminant_group(G2)
-  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false)
+  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module=(par !== :even))
   GKs = _integer_genera(q, sign, par)
-  isempty(GKs) && continue
+  isempty(GKs) && return results
 
   Ns = ZZLat[]
   for GK in GKs
@@ -1162,6 +1251,17 @@ end
 
 function _primitive_embeddings(
   G1s::Vector{ZZGenus},
+  G2s::Vector{ZZGenus},
+)
+  res = Tuple{ZZLat, ZZLat, ZZLat}[]
+  for G2 in G2s
+    append!(res, _primitive_embeddings(G1s, G2))
+  end
+  return res
+end
+
+function _primitive_embeddings(
+  G1s::Vector{ZZGenus},
   G2::ZZGenus,
 )
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
@@ -1180,13 +1280,13 @@ function _primitive_embeddings(
     elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
       append!(results, _primitive_embeddings_coprime_det_safe(G1, G2))
     else
-      append!(results, _primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(-1, 1), q2)
+      append!(results, _primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(-1, 1), q2))
     end
   end
   return results
 end
 
-function _primitive_embeddings_generic(
+function _primitive_embeddings(
   G1::ZZGenus,
   G2::ZZGenus,
 )
@@ -1197,7 +1297,13 @@ function _primitive_embeddings_generic(
   elseif !(signature(G2) < signature(G1))
     return results
   end
-  return _primitive_embeddings_generic_safe(G1, G2)
+  if is_unimodular(G1)
+    return _primitive_embeddings_in_unimodular_safe(G1, G2)
+  elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
+    return _primitive_embeddings_coprime_det_safe(G1, G2)
+  else
+    return _primitive_embeddings_generic_safe(G1, G2)
+  end
 end
 
 function _primitive_embeddings_generic_safe(
@@ -1207,6 +1313,7 @@ function _primitive_embeddings_generic_safe(
   vi::Tuple{Int, Int}=(-1, -1),
   q2::TorQuadModule=discriminant_group(G2),
 )
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
   U = hyperbolic_plane_lattice()
   if is_even(G1)
@@ -1217,33 +1324,32 @@ function _primitive_embeddings_generic_safe(
     T, _ = direct_sum(R, U, U; cached=false)
   end
   q1n = discriminant_group(T)
-  signT = signature_tuple(T)[[1,3]]
-  signV = signT .+ signature_pair(G2)
   signK = signature_pair(G1) .- signature_pair(G2)
 
-  lgm = _local_glue_maps(q2, q1n, signV, parity; Ctx, vi=reverse(vi))
-  isempty(lgm) && continue
+  lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
+  isempty(lgm) && return results
 
-  Ms = __representatives(G2)
-  results = Tuple{ZZLat, ZZLat, ZZLat}[]
-  for M in Ms
-    qM = discriminant_group(M)
-    D = _gluing_ambient(qM, q1n, parity)
-    GM, _ = image_in_Oq(M)
-    _, phiM = is_isometric_with_isometry(qM, q2)
-    for x in lgm
+  for x in lgm
+    qx = _form_over(x)
+    qK = rescale(qx, -1; cached=false)
+    GKs = _integer_genera(qK, signK, parity)
+    isempty(GKs) && continue
+    Ks = reduce(vcat, Vector{ZZLat}[__representatives(GK) for GK in GKs])
+    Ms = __representatives(G2)
+    for M in Ms
+      qM = discriminant_group(M)
+      D = _gluing_ambient(qM, q1n, parity)
+      GM, _ = image_in_Oq(M)
+      _ok, phiM = is_isometric_with_isometry(qM, q2)
+      @assert _ok
       xM = _pullback_left(x, phiM)
       xMs = _split_orbit_left_group(xM, GM)
       for _x in xMs, y in _all_glue_maps(_x)
         V, M2, T2, GV = _overlattice(y, D)
         resV = Tuple{ZZLat, ZZLat, ZZLat}[]
         qV = domain(GV)
-        qK = rescale(qV, -1; cached=false)
-        GKs = _integer_genera(qK, signK, parity)
-        isempty(GKs) && continue
-        Ks = reduce(vcat, Vector{ZZLat}[__representatives(GK) for GK in GKs])
         for K in Ks
-          pe = unimodular_primitive_extensions(V, K; right_discriminant_action=GV, parity)
+          _, pe = unimodular_primitive_extensions(V, K; right_discriminant_action=GV, parity)
           append!(resV, pe)
         end
         for (S, V2, W2) in resV
@@ -1255,7 +1361,7 @@ function _primitive_embeddings_generic_safe(
           @assert is_primitive(L, M3)
           N = orthogonal_submodule(L, M3)
           bM = coordinates(basis_matrix(M3), L)
-          bN = coordinates(basis_matrix(N3), L)
+          bN = coordinates(basis_matrix(N), L)
           L = Hecke.integer_lattice(; gram=gram_matrix(L))
           M3 = lattice_in_same_ambient_space(L, bM)
           N = lattice_in_same_ambient_space(L, bN)
