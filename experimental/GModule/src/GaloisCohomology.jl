@@ -906,6 +906,30 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology 1 is_consistent(E)
 
+  #TODO: this computes W..
+  #      need U_S -> W
+  # and enough info for U_S -> U_T (different fields possible!!)
+  #         to cmpute   W_S -> W_T
+  # for real -> real: easy as U_S = W_S
+  # for complex U = (tor, Z) + A + B
+  #             W = (tor, Z) + L + B
+  #   where a in A -> l*s(l) in L (L decomposes into 2-dim C_2 modules
+  #   <l, s(l)> chosen so a = l*s(l))
+  # for A direct sum of 1-dim trivial C_2-modules and
+  #     B direct sum of 2-dim irr.    C_2-modules
+  #     (tor, Z) too is a C_2-module
+  # so U_S -> U_T induces a map on the decomposition above
+  #  -> complex: 
+  # u a generator in U_S = (tor, Z) + A + B
+  #  u in (tor, Z)
+  #  u in A => u = sigma u = l s(l) for l as above
+  #  u = prod v_i^n_i in U_S
+  #  l -> prod l_i^n^i for the A bit
+  #       in B: <v, w> a C_2 sub-block, then u has the same expo in v and W to 
+  #              be invariant
+  #       so l -> w should be fine
+  #  u in B
+  # 
   if is_totally_real(k)
     @vprint :GaloisCohomology 2 " .. real field, easy case ..\n"
     mG_inf = Oscar.decomposition_group(k, real_embeddings(k)[1], mG)
