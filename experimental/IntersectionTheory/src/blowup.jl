@@ -189,7 +189,7 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
     push!(relations, lhs - rhs)
   end
 
-  #relations = minimal_generating_set(ideal(RBl, relations))
+  relations = minimal_generating_set(ideal(RBl, relations))
   ABl, _ = quo(RBl, relations)
   Bl = abstract_variety(dim(X), ABl)
 
