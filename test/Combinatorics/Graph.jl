@@ -128,6 +128,12 @@
         @test length(keys(d)) == 2
         @test d[gc] == 2
 
+        label!(gc,  nothing, Dict(1=>5,2=>7,3=>11))
+        label!(gcc, nothing, Dict(1=>5,2=>7,3=>11))
+        @test gc == gcc
+        gcc.label[1] = 13
+        @test gc != gcc
+
         @test g != gg
 
         is_iso, perm = is_isomorphic_with_permutation(g,gg)
