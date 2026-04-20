@@ -445,7 +445,6 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-#    @assert all(in(iU), u)
     im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
@@ -471,7 +470,6 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-#    @assert all(in(iU), u)
     im_q = T()
     for q = v
       X = zero(indC)
@@ -500,6 +498,10 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   if D === nothing
     return iC, g, pro, inj
   end
+  #TODO: remove and replace by some "induce map"
+  #      we need both U->M->N
+  #           U -> Ind(M)
+  #      Ind(M) -> Ind(N)
   #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
     compute the Z[G]-lin embedding into the induced module.
     a -> sum a g_i^-1 otimes g_i
