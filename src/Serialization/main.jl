@@ -2,6 +2,7 @@ module Serialization
 
 using ..Oscar
 using UUIDs
+using Base64
 import JSON
 import TranscodingStreams # for gzip
 import CodecZlib          # for gzip
@@ -672,7 +673,9 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   s = serializer_open(io, serializer, with_attrs, pretty_print)
   save_data_dict(s) do 
     # write out the namespace first
-    save_header(s, get_oscar_serialization_version(), :_ns)
+    if !(serializer isa IPCSerializer)
+      save_header(s, get_oscar_serialization_version(), :_ns)
+    end
 
     save_typed_object(s, obj)
 
@@ -786,67 +789,89 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
   end
 
-  # handle different namespaces
-  polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
-    load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
-        return load_from_polymake(Dict(d))
-      end
-    end
-  end
-  if !isnothing(polymake_obj)
-    return polymake_obj
-  end
-
-  load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
-  end
-
-  # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
-  end
-  if file_version < VERSION_NUMBER
-    # we need a mutable dictionary
-    jsondict = copy(s.obj)
-    jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON.json(jsondict)
-    s = deserializer_open(IOBuffer(jsondict_str),
-                          serializer,
-                          with_attrs)
-  end
-  
-  try
-    if params isa TypeParams
-      params = _convert_override_params(params)
-    end
-    if type !== nothing
-      # Decode the stored type, and compare it to the type `T` supplied by the caller.
-      # If they are identical, just proceed. If not, then we assume that either
-      # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-      # concrete, and `U <: T` should hold.
-      #
-      # This check should maybe change to a check on the whole type tree?
-      U = load_node(s, type_key) do _
-        decode_type(s)
-      end
-      
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
-
-      Base.issingletontype(type) && return type()
-      if isnothing(params)
-        _, params = load_node(s, type_key) do _
-          load_type_params(s, U)
+  if !(serializer isa IPCSerializer)
+    # handle different namespaces
+    polymake_obj = load_node(s) do d
+      @req :_ns in keys(d) "Namespace is missing"
+      load_node(s, :_ns) do _ns
+        if :polymake in keys(_ns)
+          return load_from_polymake(Dict(d))
         end
       end
-      load_node(s, :data) do _
-        loaded = load_object(s, type, params)
-      end
-    else
-      loaded = load_typed_object(s; override_params=params)
+    end
+    if !isnothing(polymake_obj)
+      return polymake_obj
     end
 
+    load_node(s, :_ns) do _ns
+      @req haskey(_ns, :Oscar) "Not an Oscar object"
+    end
+    # deal with upgrades
+    file_version = load_node(s) do obj
+      serialization_version_info(obj)
+    end
+    if file_version < VERSION_NUMBER
+      # we need a mutable dictionary
+      jsondict = copy(s.obj)
+      jsondict = upgrade(file_version, jsondict)
+      jsondict_str = JSON.json(jsondict)
+      s = deserializer_open(IOBuffer(jsondict_str),
+                            serializer,
+                            with_attrs)
+    end
+    try
+      if params isa TypeParams
+        params = _convert_override_params(params)
+      end
+      if type !== nothing
+        # Decode the stored type, and compare it to the type `T` supplied by the caller.
+        # If they are identical, just proceed. If not, then we assume that either
+        # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+        # concrete, and `U <: T` should hold.
+        #
+        # This check should maybe change to a check on the whole type tree?
+        U = load_node(s, type_key) do _
+          decode_type(s)
+        end
+        
+        U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+
+        Base.issingletontype(type) && return type()
+        if isnothing(params)
+          _, params = load_node(s, type_key) do _
+            load_type_params(s, U)
+          end
+        end
+        load_node(s, :data) do _
+          loaded = load_object(s, type, params)
+        end
+      else
+        loaded = load_typed_object(s; override_params=params)
+      end
+
+      if :id in keys(s.obj)
+        load_node(s, :id) do id
+          global_serializer_state.obj_to_id[loaded] = UUID(id)
+          global_serializer_state.id_to_obj[UUID(id)] = loaded
+        end
+      end
+      return loaded
+    catch e
+      if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
+        @warn """
+      Attempted loading file stored with Oscar version $file_version
+      using Oscar version $VERSION_NUMBER
+      """
+      end
+
+      if contains(string(file_version), "DEV")
+        commit = split(string(file_version), "-")[end]
+        @warn "Attempted loading file stored using a DEV version with commit $commit"
+      end
+      rethrow(e)
+    end
+  else
+    loaded = load_typed_object(s)
     if :id in keys(s.obj)
       load_node(s, :id) do id
         global_serializer_state.obj_to_id[loaded] = UUID(id)
@@ -854,19 +879,6 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       end
     end
     return loaded
-  catch e
-    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
-      @warn """
-      Attempted loading file stored with Oscar version $file_version
-      using Oscar version $VERSION_NUMBER
-      """
-    end
-
-    if contains(string(file_version), "DEV")
-      commit = split(string(file_version), "-")[end]
-      @warn "Attempted loading file stored using a DEV version with commit $commit"
-    end
-    rethrow(e)
   end
 end
 

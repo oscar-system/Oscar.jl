@@ -59,8 +59,7 @@ mutable struct SerializerState{T <: OscarSerializer}
   pretty_print::Bool
 end
 
-function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
-  !isnothing(key) && set_key(s, key)
+function begin_node(s::SerializerState)
   if !s.new_level_entry
     if s.pretty_print
       println(s.io, ",")
@@ -75,6 +74,11 @@ function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
     write(s.io, "\"$key\":")
     s.key = nothing
   end
+end
+
+function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
+  !isnothing(key) && set_key(s, key)
+  begin_node(s)
 end
 
 function set_key(s::SerializerState, key::Symbol)

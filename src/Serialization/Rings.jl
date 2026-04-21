@@ -154,6 +154,13 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
   end
 end
 
+function save_object(s::SerializerState{IPCSerializer}, p::Union{UniversalPolyRingElem, MPolyRingElem})
+  # serialize to binary, embed as base64 in the JSON tree
+  buf = IOBuffer()
+  Serialization.serialize(buf, [(exponent_vector(p, i), string(coeff(p, i))) for i in 1:length(p)])
+  save_data_basic(s, Base64.base64encode(take!(buf)))
+end
+
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
   exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
   index = 0
@@ -242,7 +249,25 @@ function load_object(s::DeserializerState,
   end
 end
 
+function load_object(s::DeserializerState{IPCSerializer}, ::Type{<:MPolyRingElem}, parent_ring::MPolyRing)
+  blob   = load_object(s, String)
+  terms  = Serialization.deserialize(IOBuffer(Base64.base64decode(blob)))
+  exponents = [term[1] for term in terms]
+  polynomial = MPolyBuildCtx(parent_ring)
+  for (i, e) in enumerate(exponents)
+    fraction_parts = String.(split(terms[i][2], "//"))
+    fraction_parts = parse.(ZZRingElem, fraction_parts)
+    push_term!(polynomial, QQFieldElem(fraction_parts...), e)
+  end
+  return finish(polynomial)
+end
+
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
+  return parent_ring(poly)
+end
+
+function load_object(s::DeserializerState{IPCSerializer}, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
   poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
   return parent_ring(poly)
 end

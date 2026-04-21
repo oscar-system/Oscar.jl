@@ -1,11 +1,12 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-authors = ["The OSCAR Team <oscar@oscar-system.org>"]
 version = "1.8.0-DEV"
+authors = ["The OSCAR Team <oscar@oscar-system.org>"]
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 AlgebraicSolving = "66b61cbe-0446-4d5d-9090-1ff510639f9d"
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -35,6 +36,7 @@ lib4ti2_jll = "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
 [compat]
 AbstractAlgebra = "0.48.3"
 AlgebraicSolving = "0.10.4"
+Base64 = "1.11.0"
 CodecZlib = "0.7.8"
 Compat = "4.13.0"
 Distributed = "1.6"
