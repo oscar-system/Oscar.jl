@@ -22,7 +22,7 @@ function load_object(s::DeserializerState, ::Type{fpField})
     if val isa Integer
       return fpField(UInt64(val))
     else
-      fpField(parse(UInt64, val))
+      return fpField(parse(UInt64, val))
     end
   end
 end
@@ -30,9 +30,7 @@ end
 # elements
 @register_serialization_type fpFieldElem 
 
-function save_object(s::SerializerState, elem::fpFieldElem)
-  save_data_basic(s, lift(ZZ, elem))
-end
+save_object(s::SerializerState, elem::fpFieldElem) = save_data_basic(s, lift(ZZ, elem))
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
   load_node(s) do val

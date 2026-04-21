@@ -104,6 +104,7 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
 end
 
 save_object(s::SerializerState{IPCSerializer}, x::Vector{Int}) = save_base64(s, x)
+load_object(s::DeserializerState{IPCSerializer}, T::Type{Vector{Int}}) = load_base64(s)
 
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do v
