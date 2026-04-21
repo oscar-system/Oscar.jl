@@ -1,6 +1,6 @@
 function _overlattice_orbits(L::ZZLat, g::Union{ZZGenus,Nothing}=nothing; even=true)
-  # if given a genus g, this function returns a lattice in the genus g that contains L (not necessarily primitively);
-  # otherwise, it returns all overlattices M of L up to isometries of M preserving L
+  # if given a genus g, this function returns a (list of one) lattice in the genus g that contains L (not necessarily primitively);
+  # otherwise, it returns the list of all overlattices M of L up to isometries of M preserving L
   d = ZZ(det(L))
   D = discriminant_group(L)
   idD = hom(D,D,gens(D))
@@ -24,11 +24,11 @@ function _overlattice_orbits(L::ZZLat, g::Union{ZZGenus,Nothing}=nothing; even=t
       if (g !== nothing)
         em2 = primitive_embeddings(g, M; classification=:first)
         if em2[1] == true
-          result = em2[2][1][1]
-          return result
+          return [em2[2][1][1]]
         end
+      else
+        push!(result,M)
       end
-      push!(result,M)        
     end
   end
   return result

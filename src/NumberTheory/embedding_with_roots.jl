@@ -1,9 +1,12 @@
+@doc raw"""
+  embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true) -> ZZLat, ZZLat, AbstractSpaceMor{Hecke.QuadSpace{QQField, QQMatrix}, QQMatrix}, ZZLat
+  This function is a modified version of embed_in_unimodular.
+  It produces an embedding of a lattice S in an even unimodular lattice L of signature (pos, neg); the genus g of the orthogonal complement to S is unique, its discriminant form being opposite to that of S.
+  The lattice R is chosen in the genus g as to maximize its root sublattice. R is computed using the function _overlattice_orbits(:ZZLat, :ZZGenus) (see the comments there).
+  The output consists of: a lattice L' isometric to L, obtained as primitive extension of S+R; S; a primitive embedding of S in L'; R.
+  
+"""
 function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true)
-  # This fuction embeds S in an even unimodular lattice L of signature (pos, neg),
-  # such that its orthogonal complement R is chosen in its genus g (the opposite to the genus of S, as L is unimodular) to maximize the number of roots it contains.
-  # The lattice R is computed using the function _overlattice_orbits.
-  # The output consists of: a lattice L' isometric to L, obtained as primitive extension of S+R; S; a primitive embedding of S in L'; R.
-  # This function is a modified version of embed_in_unimodular (where R = representative(g))-
   @req iszero(mod(pos - neg,8)) "an even unimodular lattice of signature ($pos, $neg) does not exist"
   @vprintln :Lattice 1 "computing embedding in L_$(n)"
   pS, kS, nS = signature_tuple(S)
@@ -15,7 +18,7 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
   DR = rescale(DS, -1)  # discriminant group of R = S^\perp in L as predicted by Nikulin
   GR = genus(DR, (pR, nR)) # genus of R
   roots = biggest_root_sublattice(GR)
-  R = _overlattice_orbits(roots, GR)
+  R = _overlattice_orbits(roots, GR)[1] #don't trust the name of this function! 
   R = lll(R)  # make R a bit nicer
   R = integer_lattice(; gram=gram_matrix(R), cached=false) # clear the history of R
   SR, inj = direct_sum(S, R)
