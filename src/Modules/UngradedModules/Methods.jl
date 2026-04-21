@@ -730,7 +730,7 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:Fie
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
-  return _has_monomials_on_all_axes(standard_basis(M.quo, ordering = default_ordering(M)))
+  return _has_leading_monomials_on_all_axes(standard_basis(M.quo, ordering = default_ordering(M)))
 end
 
 function _is_finite(kk::Field, M::SubquoModule{<:FieldElem})
@@ -957,46 +957,51 @@ function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Boo
 end
 
 @doc raw"""
-    _vector_space_basis_helper(GB::ModuleGens, d::Int64)
+    _vector_space_basis_helper(GB::ModuleGens, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
 
-Return a vector of all monomials of total degree `d` which are not in the leading module of the Gröbner basis `GB`. 
+Return a vector of all monomials of total degree `d` which are not in the 
+leading module of the Gröbner basis `GB`. 
 """
-function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPolyRingElem}
+function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
   R = base_ring(GB)
   F = oscar_free_module(GB)
 
   min_degs = _min_degrees_to_check(GB)
   max_degs = _max_degrees_to_check(GB)
-  # Case: We know that all monomials of degree 'd' are in the leading module
+  # Case I: We know, that all monomials of degree 'd' are in the leading module.
   d > maximum(max_degs) && return elem_type(F)[]
-  # Case: no monomials of degree 'd' in the leading module
+  # Case II: We know, that no monomials of degree 'd' are in the leading module.
   if d < minimum(min_degs)
     return vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))])
   end
-  # Go through each coordinate individually
-  mons_on_axes = _monomials_on_axes_data(GB)
+  # Case III: We need to check the monomials of degree 'd' in each coordinate individually. 
+  mons_on_axes = _leading_monomials_on_axes(GB)
   LM = leading_monomials(GB)
-
+  B = elem_type(F)[]
+  
   #= Hack to be able to use normal_form() below. 
-  Since 'ModuleGens' constructors can not set 'ordering' and 'isGB' from a Singular 'smodule' (see issue #5944),
+  The 'ModuleGens' constructors does not set 'ordering' and 'isGB' from a Singular 'smodule' (see issue #5944),
   thus 'leading_monomials' also does not do it, therefore we do it manually here.
   TODO: remove, when issue #5944 is resolved
   =#
   LM.isGB = true  
   LM.ordering = GB.ordering
-
-  B = elem_type(F)[]
+  
+  # Go through each coordinate individually
   for i in 1:rank(F)
+    # Subcase i: We know, that all monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
     if d > max_degs[i]
       continue
+    # Subcase ii: We know, that no monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
     elseif d < min_degs[i]
       append!(B, [a*F[i] for a in monomials_of_degree(R, d)])
+    # Subcase iii: We need to check the monomials of degree in the 'i'-th coordinate 'd' individually.
     else
       # check only monomials with variables, that are not in the leading module
       mons = [a*F[i] for a in monomials_of_degree(R, d, findall(mons_on_axes[i,:] .> 1))]
       B_i = [mon for mon in mons if !is_zero(normal_form(mon, LM))]
-      # improve upper bound for i-th coordinate, if all monomials in it are zero
+      # improve upper bound for 'i'-th coordinate, if all monomials in it are in the leading module.
       if length(B_i) == 0
         max_degs[i] = d-1
       else
@@ -1018,28 +1023,27 @@ end
 
 
 @doc raw"""
-    _has_monomials_on_all_axes(GB::ModuleGens)
+    _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
 
-Compute whether the monomial diagram of the leading module of the Gröbner 
+Compute whether the monomial diagram of the leading monomials of the Gröbner 
 basis `GB` has monomials on all its axes.
 """
-@attr Bool function _has_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem}
+@attr Bool function _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
-  return !any(==(PosInf()), _monomials_on_axes_data(GB))
+  return !any(==(PosInf()), _leading_monomials_on_axes(GB))
 end
 
 @doc raw"""
-    _monomials_on_axes_data(GB::ModuleGens)
+    _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
 
-Return a (julia)matrix containing the smallest degrees of univariate monomials
-in the leading module of `GB` for each coordinate of the ambient free module 
-and variable of the underlying polynomial ring.
+Return encoded into a (julia) matrix the leading monomials of the Gröbner basis `GB`, 
+which are univariate, i.e. lay on the axes of a monomial diagram.
 
-The entry in the `i`-th row and `j`-th column contains the smallest degree `k`
+The returned matrix `M` contains in the entry `M[i,j]` the smallest degree `k`,
 such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
 If such a monomial does not exists the entry is `PosInf()`.
 """
-@attr Matrix{IntExt} function _monomials_on_axes_data(GB::ModuleGens{T}) where {T <: MPolyRingElem}
+@attr Matrix{IntExt} function _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
   ambient_rank = ngens(oscar_free_module(GB))
   mons_on_axes = IntExt[PosInf() for _ in 1:ambient_rank, _ in 1:ngens(base_ring(GB))]
@@ -1061,12 +1065,12 @@ If such a monomial does not exists the entry is `PosInf()`.
 end
 
 @doc raw"""
-    _min_degrees_to_check(GB::ModuleGens)
+    _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
 
 Compute for each coordinate of the ambient free module of the Gröbner basis `GB`
-the smallest total degree of monomials in the leading module of `GB`.
+the smallest total degree of a monomial appearing in the leading module of `GB`.
 """
-@attr Vector{IntExt} function _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem}
+@attr Vector{IntExt} function _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
   ambient_rank = ngens(oscar_free_module(GB))
   min_degs = IntExt[PosInf() for _ in 1:ambient_rank]
@@ -1082,15 +1086,17 @@ the smallest total degree of monomials in the leading module of `GB`.
 end
 
 @doc raw"""
-    _max_degrees_to_check(GB::ModuleGens)
+    _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
 
-Compute for each coordinate upper bounds for the total degree of monomials
-not appearing in the leading module of the Gröbner basis `GB`.
-Can be `PosInf()`.
+Compute for each coordinate of the ambient free module of the Gröbner basis `GB` 
+an upper bound for the total degree of the monomials not appearing in the 
+leading module of `GB`.
+
+The bound is `PosInf()` if and only if no finite bound exists.
 """
-@attr Vector{IntExt} function _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem}
+@attr Vector{IntExt} function _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
-  mons_on_axes = _monomials_on_axes_data(GB)
+  mons_on_axes = _leading_monomials_on_axes(GB)
   # nrows(mons_on_axes) is the rank of the ambient free module of 'GB'
   return IntExt[sum(mons_on_axes[i,:]) - ngens(base_ring(GB)) for i in 1:nrows(mons_on_axes)]
 end
@@ -1250,7 +1256,7 @@ function _is_finite(
   !isdefined(M, :quo) && return false
   M_shift,_,_ = shifted_module(M)
   ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  return _has_monomials_on_all_axes(standard_basis(M_shift.quo, ordering = ord))
+  return _has_leading_monomials_on_all_axes(standard_basis(M_shift.quo, ordering = ord))
 end
 
 # This is an internal method which assumes `M` to be presented. 
