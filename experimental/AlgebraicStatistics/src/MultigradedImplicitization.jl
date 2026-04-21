@@ -342,7 +342,6 @@ function components_of_kernel(d::Int,
   ungraded_cod = forget_grading(codomain(phi))
   total_deg_dom = grade(ungraded_dom, [1 for i in 1:ngens(domain(phi))])[1]
   jac = jacobian_at_rand_point(phi)
-
   # create a dictionary to store the generators by their degree
   # this is what will be returned
   gens_dict = Dict{FinGenAbGroupElem, Vector{<:MPolyDecRingElem}}()
@@ -381,15 +380,16 @@ function components_of_kernel(d::Int,
       !(m in l_monomials[deg]) && push!(b, m)
     end
     degrees = collect(keys(mon_bases))
+
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30 * batch_size
       filter_results = @showprogress enabled=show_progress desc="filtering cases" pmap(filter_component,
-                            [deg for deg in degrees],
+                            degrees,
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; distributed=false)
     else
       filter_results = @showprogress enabled=show_progress desc="filtering cases" pmap(filter_component, wp,
-                            [deg for deg in degrees],
+                            degrees,
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; batch_size=batch_size)
     end
