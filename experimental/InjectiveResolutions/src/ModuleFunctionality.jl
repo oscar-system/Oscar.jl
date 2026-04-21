@@ -72,25 +72,10 @@ end
 =#
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   R = base_ring(M)
-  ### TODO: 
-  # We would like a new version of `lift_std` in Singular.jl which natively 
-  # returns a sparse matrix. This does not exist yet. 
-  # However, we already adapted the Oscar.jl code so that only sparse matrices
-  # are used for the modules. Thus the two nested `for`-loops below are a 
-  # temporary workaround which should be adapted, once a new version of 
-  # `lift_std` in Singular.jl becomes available. 
-  # In the meantime, this already provides an improvement in terms of 
-  # runtime and allocations.
-  G, Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
-  A = sparse_matrix(R, 0, nrows(Trans_mat))
-  for i in 1:ncols(Trans_mat)
-    row_list = Vector{Tuple{Int, elem_type(R)}}()
-    for j in 1:nrows(Trans_mat)
-      c = Trans_mat[j, i]
-      is_zero(c) && continue
-      push!(row_list, (j, R(c)))
-    end
-    push!(A, sparse_row(R, row_list))
+  G, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(M))
+  A = sparse_matrix(R, 0, ngens(trans_mod))
+  for v in gens(trans_mod)
+    push!(A, _build_sparse_row(R, v))
   end
   mg = ModuleGens(M.F, G)
   mg.isGB = true
