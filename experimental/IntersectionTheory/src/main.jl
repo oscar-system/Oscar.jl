@@ -1290,7 +1290,7 @@ structure_map(X::AbstractVariety) = X.structure_map
     line_bundle(X::AbstractVariety, n::RingElement)
 
 If `X` has been given a polarization representing the first Chern class of an ample
-line bundle $\mathcal O_X(1)$ on `X`, return the line bundle $\mathcal O_X(n) := O_X(1)^{\otimes n}$.
+line bundle $\mathcal O_X(1)$ on `X`, return the line bundle $\mathcal O_X(n) := \mathcal O_X(1)^{\otimes n}$.
 
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 

@@ -28,12 +28,16 @@ as above and a point class, or via specialized constructors for standard algebra
 objects such as projective spaces, Grassmannians, flag varieties, complete intersections,
 and projective bundles.
 
-!!! note
-    The constructor `abstract_variety` discussed below gives the expert user some freedom when
-    constructing an object of type `AbstractVariety`. It allows one, for example, to start from the
-    underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
-    In fact, not all applications require that we specify all relations. See section [Some Particular Constructions](@ref)
-	for an example where the top-dimensional part of the constructed ring is more than 1-dimensional.
+!!! warning
+    Recall from the introduction to this chapter that in many cases, there is no algorithm for
+    computing all generators of the Chow ring (see  [Example: Cubic surfaces](@ref)). In addition note
+    that the constructor `abstract_variety` discussed below gives the expert user some freedom
+    when constructing an object of type `AbstractVariety`. It allows one, for example, to start from
+    the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    In fact, not all applications require that we specify all relations. Thus, even in some truly meaningful
+    geometric cases, the symmetry condition on the Betti numbers may not be fulfilled for the implemented
+    ring. See section [Some Particular Constructions](@ref) for an example where the top-dimensional part
+    of the constructed ring is more than 1-dimensional.
 
 ## Types
 
@@ -60,7 +64,7 @@ abstract_curve(g::IntegerUnion; base::Ring = QQ)
 The concept of flag bundles provides fundamental classifying spaces in enumerative geometry.
 In Oscar, abstract flag bundles are constructed using the function `flag_bundle` which, in particular,
 allows one to implement abstract projective spaces, Grassmannians, flag varieties, and projective bundles.
-In addition, there are specialized constructors for the latter varieties some of which which rely on
+In addition, there are specialized constructors for the latter varieties some of which rely on
 different recipes for representing Chow rings  in terms of generators and relations.
 
 ```@docs

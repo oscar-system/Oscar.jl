@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract bundles
 
-An *abstract bundle* on an abstract variety $X$ is determined its Chern character (or, equivalently, by its rank and total Chern class).
+An *abstract bundle* on an abstract variety $X$ is determined by its Chern character (or, equivalently, by its rank and total Chern class).
 Abstract bundles support the standard operations on vector bundles in algebraic geometry: direct sum, tensor product, duals,
 determinant bundles, exterior and symmetric powers, as well as pullback and pushforward along abstract variety maps.
 They also carry the usual characteristic classes: Chern classes, Segre classes, Todd class, and Pontryagin classes.
@@ -19,9 +19,10 @@ direct sum of `n` copies.
 
 Abstract bundles live in the Grothendieck ring $\mathrm{K}^0(X)$ of vector bundles on $X$.
 In this ring, every element can be written as a formal difference $[E] - [F]$ of genuine
-bundles. The Chern character $\mathrm{ch}\colon\mathrm{K}^0(X) \to \mathrm{N}^*(X)_{\mathbb Q}$ is
-a ring homomorphism that maps the Grothendieck ring (after tensoring with $\mathbb Q$)
-onto the Chow ring.
+bundles. After tensoring with $\mathbb Q$,  by Grothendieck--Riemann--Roch, the
+Chern character $\mathrm{ch}$ defines a ring isomorphism of the Grothendieck ring onto
+the Chow ring if we use rational equivalence, and hence at least an epimorphism if we use
+numerical equivalence (as we do here).
 
 In OSCAR, an `AbstractBundle` is determined by its Chern character, so virtual bundles
 with zero (and negative) rank are fully supported:

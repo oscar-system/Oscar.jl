@@ -146,7 +146,7 @@ $\operatorname{ch}: \mathrm{K}^0(X)_{\mathbb Q}\overset{\simeq}\longrightarrow\m
 Write $\mathrm{K}_0(X)$ for the *Grothendieck group of coherent sheaves on $X$*.
 Then, since $X$ is supposed to be smooth, the natural map $\mathrm{K}^0(X)\rightarrow\mathrm{K}_0(X)$ is an isomorphism
 (every coherent sheaf on $X$ has a finite resolution by locally free sheaves). We may, thus, speak of coherent sheaves
-given by *virtual vector bundles*, that is, by elements of $\mathrm{K}^0(X)_{\mathbb Q}$. Hence, we can use the concept of abstract
+given by *virtual vector bundles*, that is, by elements of $\mathrm{K}^0(X)$. Hence, we can use the concept of abstract
 vector bundles also to infer information on coherent sheaves, with algebraic operations such as `-` or `*` (tensor product)
 being virtual.
 
@@ -156,7 +156,7 @@ being virtual.
     Some functionalities from [the `sage` library] `Schubert3` are also implemented."
     The authors of `Schubert2` are Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman,
     while `Chow` is due to Manfred Lehn and Christoph Sorger. `Schubert3` as well as the `Singular` library `schubert.lib` is due
-    to Dang Tuan Hiep. All this work, including ours, is inspired by the afore mentioned `Maple` package `Schubert` written
+    to Dang Tuan Hiep. All this work, including ours, is inspired by the aforementioned `Maple` package `Schubert` written
     by Sheldon Katz and Stein A. Strømme.
 
 ## References
