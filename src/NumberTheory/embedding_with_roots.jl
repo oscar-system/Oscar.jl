@@ -1,5 +1,5 @@
 function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true,compute_overlattices=false)
-  #this function computes a root lattice of the biggest rank possible represented by the genus of R
+  # this function computes a root lattice of the biggest rank possible represented by the genus of R
   @req iszero(mod(pos - neg,8)) "an even unimodular lattice of signature ($pos, $neg) does not exist"
   @vprintln :Lattice 1 "computing embedding in L_$(n)"
   pS, kS, nS = signature_tuple(S)
@@ -11,37 +11,36 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
   DS = discriminant_group(S)
   DR = rescale(DS, -1)  # discriminant group of R = S^\perp in L as predicted by Nikulin
   GR = genus(DR, (pR, nR)) # genus of R
-  roots=biggest_root_sublattice(GR);
-  #now compute the actual embedding
-  R=[]
-  emb=primitive_embeddings(GR, roots; classification=:first)
+  roots = biggest_root_sublattice(GR);
+  # now compute the actual embedding
+  R = []
+  emb = primitive_embeddings(GR, roots; classification=:first)
   R = emb[2][1][1]
   if compute_overlattices #compute all overlattices of "roots" at the same time
     M = ZZLat[]
-    #println("overlattice timing")
-    #@time 
-    overs=Oscar._overlattice_orbits(roots)
-    #lov=length(overs)
+    # println("overlattice timing")
+    # time 
+    overs = Oscar._overlattice_orbits(roots)
     for ov in overs
-      em2=primitive_embeddings(GR, ov; classification=:first)
-      if em2[1]==true
-        M=em2[2][1][1]
+      em2 = primitive_embeddings(GR, ov; classification=:first)
+      if em2[1] == true
+        M = em2[2][1][1]
         break
       end
     end
-    R=M
+    R = M
   else #compute overlattices of increasing order of "roots", until one embeds primitively in GR
     d = ZZ(det(roots))
     D = discriminant_group(roots)
-    idD = hom(D,D,gens(D))
+    idD = hom(D, D, gens(D))
     G,iG = image_in_Oq(roots)
-    orders = [i for i in divisors(d) if divides(d,i^2)[1]]
+    orders = [i for i in divisors(d) if divides(d, i^2)[1]]
     M = ZZLat[]
     for ord in orders 
     #@show ord, D
       b, l, p = is_prime_power_with_data(ord)
       if b && is_elementary(D, p)
-        sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord,p);do_stab=false)))
+        sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord, p); do_stab=false)))
       else 
       # slooow
         sg = domain.(first.(Oscar._subgroups_orbit_representatives_and_stabilizers(idD, G, ord)))
@@ -51,14 +50,14 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
         if !is_integral(M) || (even && !is_even(M))
           continue
         end 
-        em2=primitive_embeddings(GR, M; classification=:first)
-        if em2[1]==true
-          M=em2[2][1][1]
+        em2 = primitive_embeddings(GR, M; classification=:first)
+        if em2[1] == true
+          M = em2[2][1][1]
           break
         end
       end
-      if M!=[]
-        R=M
+      if M != []
+        R = M
         break
       end
     end
@@ -81,18 +80,19 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
 end
 
 function biggest_root_sublattice(g::ZZGenus) 
-  #find a (negative definite) root sublattice of maximal rank represented by the genus g
-  n=signature_pair(g)[2]
-  for i=n:-1:1
-    allroots=root_lattices(i)
-    l=length(allroots)
-    for ll=l:-1:1 #starts with the one with smallest discriminant
-      RR=rescale(allroots[ll],-1)
-      gr=genus(RR)
+  # find a (negative definite) root sublattice of maximal rank represented by the genus g
+  n = signature_pair(g)[2]
+  for i = n:-1:1
+    allroots = root_lattices(i)
+    l = length(allroots)
+    for ll = l:-1:1 # starts with the one with smallest discriminant
+      RR = rescale(allroots[ll], -1)
+      gr = genus(RR)
       if represents(g,gr)
         return RR
       end
     end
   end
 end
+
 
