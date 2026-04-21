@@ -134,6 +134,13 @@ in a `p`-modular table.
     end
 end
 
+abstract type GroupClassFunction end
+
+struct GAPGroupClassFunction <: GroupClassFunction
+    table::GAPGroupCharacterTable
+    values::GapObj
+end
+
 # access to field values via functions
 GapObj(tbl::GAPGroupCharacterTable) = tbl.GAPTable
 
@@ -579,6 +586,23 @@ function Base.iterate(wi::WordsIterator, state::Int)
     return (name, state+1)
 end
 
+function _show_headerstring(tbl::GroupCharacterTable; rational::Bool = false)
+    if isdefined(tbl, :group)
+      str_io = IOBuffer()
+      print(pretty(str_io), Lowercase(), group(tbl))
+      str = String(take!(str_io))
+      if characteristic(tbl) != 0
+        str = "$(characteristic(tbl))-modular Brauer table of $(str)"
+      elseif rational
+        str = "Rational character table of $(str)"
+      else
+        str = "Character table of $(str)"
+      end
+    else
+      str = identifier(tbl)
+    end
+    return str
+end
 
 @doc raw"""
     as_sum_of_roots(val::AbsSimpleNumFieldElem, root::String)
@@ -628,8 +652,13 @@ the corresponding `disp` entries are sums of powers of roots of unity
 in terms of `root`.
 """
 function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", root::String = "\\zeta")
-  n = nrows(tbl)
-  m = Array{String}(undef, n, n)
+    return matrix_of_strings(_irr(tbl); alphabet = alphabet, root = root)
+end
+
+function matrix_of_strings(chars::Vector{GAPGroupClassFunction}; alphabet::String = "", root::String = "\\zeta")
+  n = length(chars[1])
+  l = length(chars)
+  m = Array{String}(undef, l, n)
   legend = []
   if alphabet != ""
     iter = WordsIterator(alphabet)
@@ -642,8 +671,8 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
   # except that relative names in the case of complex conjugation and
   # quadratic irrationalities are currently not handled here.
   for j in 1:n
-    for i in 1:n
-      val = tbl[i,j]
+    for i in 1:l
+      val = chars[i][j]
       if iszero(val)
         m[i, j] = "."
       elseif val.c == 1
@@ -860,11 +889,17 @@ $
 ```
 """
 function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
-    n = nrows(tbl)
+    n = ncols(tbl)
     gaptbl = GapObj(tbl)
     size = order(ZZRingElem, tbl)
     primes = [x[1] for x in factor(size)]
     sort!(primes)
+
+    if :chars in keys(io)
+      chars = get(io, :chars, nothing)
+    else
+      chars = _irr(tbl)
+    end
 
     # Decide how to deal with irrationalities.
     alphabet = get(io, :alphabet, "")
@@ -875,8 +910,8 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
       end
     end
 
-    # Create the strings of the values of the irreducibles.
-    mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
+    # Create the strings of the values of `chars`.
+    mat, legend = matrix_of_strings(chars, alphabet = alphabet)
 
     # Compute the factored centralizer orders.
     cents = orders_centralizers(tbl)
@@ -907,7 +942,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     if ind == true
       ind = [2]
     end
-    indicators = [[string(indicator(x, n)) for x in tbl] for n in ind]
+    indicators = [[string(indicator(x, n)) for x in chars] for n in ind]
     for i in 1:length(ind)
       if ind[i] == 2
         indicators[i] = replace( x -> x == "1" ? "+" :
@@ -920,7 +955,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     # Fetch the Orthogonal Discriminants if applicable.
     # (This is possible only if the OD database is available.)
     OD = get(io, :OD, false)::Bool
-    if OD
+    if OD && !(:chars in keys(io))
       ODs = [orthogonal_discriminants(tbl)]
       ODlabel = ["OD"]
       push!(emptycor, "")
@@ -932,7 +967,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     # Compute the degrees of the character fields if applicable.
     field_degrees = get(io, :character_field, false)::Bool
     if field_degrees
-      field_degrees = [[string(degree_of_character_field(x)) for x in tbl]]
+      field_degrees = [[string(degree_of_character_field(x)) for x in chars]]
       field_label = ["d"]
       push!(emptycor, "")
     else
@@ -942,17 +977,10 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 
     emptycol = ["" for i in 1:n]
 
-    if isdefined(tbl, :group)
-      str_io = IOBuffer()
-      print(pretty(str_io), Lowercase(), group(tbl))
-      headerstring = String(take!(str_io))
-      if characteristic(tbl) != 0
-        headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
-      else
-        headerstring = "Character table of $(headerstring)"
-      end
+    if :headerstring in keys(io)
+      headerstring = get(io, :headerstring, "")
     else
-      headerstring = identifier(tbl)
+      headerstring = _show_headerstring(tbl)
     end
 
     # Create the IO context.
@@ -973,7 +1001,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 
       # row labels:
       # character names and perhaps indicators.
-      :labels_row => hcat(["\\chi_{$i}" for i in 1:n], field_degrees..., ODs..., indicators...),
+      :labels_row => hcat(["\\chi_{$i}" for i in 1:nrows(mat)], field_degrees..., ODs..., indicators...),
 
       # corner:
       # primes in the centralizer rows,
@@ -1262,14 +1290,11 @@ function class_positions_of_kernel(fus::Vector{Int})
 end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
-    irr = GAPWrap.Irr(GapObj(tbl))
-    return class_function(tbl, irr[i])
+    return _irr(tbl)[i]
 end
-#TODO: cache the irreducibles in the table
 
 function Base.getindex(tbl::GAPGroupCharacterTable, v::AbstractVector{Int})
-    irr = GAPWrap.Irr(GapObj(tbl))
-    return [class_function(tbl, irr[i]) for i in v]
+    return Base.getindex(_irr(tbl), v)
 end
 
 # in order to make `tbl[end]` work
@@ -1281,9 +1306,13 @@ function Base.keys(tbl::GAPGroupCharacterTable)
 end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
-    irr = GAPWrap.Irr(GapObj(tbl))
-    val = irr[i, j]
-    return QQAbFieldElem(val)
+    if has_attribute(tbl, :_irr)
+      return _irr(tbl)[i][j]
+    else
+      irr = GAPWrap.Irr(GapObj(tbl))
+      val = irr[i, j]
+      return QQAbFieldElem(val)
+    end
 end
 #TODO: cache the values once they are known?
 
@@ -2288,13 +2317,6 @@ true
 ##
 ##  class functions (and characters)
 ##
-abstract type GroupClassFunction end
-
-struct GAPGroupClassFunction <: GroupClassFunction
-    table::GAPGroupCharacterTable
-    values::GapObj
-end
-
 GapObj(chi::GAPGroupClassFunction) = chi.values
 
 # The following is needed for recursive `GapObj` calls with arrays
@@ -2335,6 +2357,11 @@ end
 
 function class_function(G::GAPGroup, values::Vector{<:Union{Integer, ZZRingElem, Rational, QQFieldElem, QQAbFieldElem}})
     return class_function(character_table(G), values)
+end
+
+# helper function:  Cache the irreducibles in the table as soon as they get used.
+@attr Vector{GAPGroupClassFunction} function _irr(tbl::GAPGroupCharacterTable)
+    return [class_function(tbl, chi) for chi in GAPWrap.Irr(GapObj(tbl))]
 end
 
 @doc raw"""
@@ -2606,11 +2633,12 @@ julia> length(linear_characters(tbl))
 ```
 """
 function linear_characters(tbl::GAPGroupCharacterTable)
-    lin = GAPWrap.LinearCharacters(GapObj(tbl))
-    for chi in lin
-      GAPWrap.SetIsIrreducibleCharacter(chi, true)
+    if has_attribute(tbl, :_irr)
+      return filter(chi -> degree(chi) == 1, _irr(tbl))
+    else
+      lin = GAPWrap.LinearCharacters(GapObj(tbl))
+      return [class_function(tbl, chi) for chi in lin]
     end
-    return [class_function(tbl, chi) for chi in lin]
 end
 
 @doc raw"""
@@ -3873,3 +3901,204 @@ function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
 
     return tbl
 end
+
+
+#############################################################################
+##
+##  rational character tables
+##
+"""
+    GAPGroupCharacterTableRational <: GroupCharacterTable
+
+This is the type of ordinary *rational* character tables
+that can delegate tasks to the underlying character table
+(field `character_table`).
+
+As a collection, a rational character table stores the *rational irreducible*
+characters of the underlying character table `t`, that is, the Galois sums of
+the irreducible characters of `t` (field `irr`).
+
+The norms of these characters (the lengths of the Galois orbits)
+are stored in the field `norms`.
+"""
+@attributes mutable struct GAPGroupCharacterTableRational <: GroupCharacterTable
+    character_table::GAPGroupCharacterTable
+    irr::Vector{GAPGroupClassFunction}
+    norms::Vector{Int}
+
+    function GAPGroupCharacterTableRational(tbl::GAPGroupCharacterTable)
+      # irr and norms are left undefined
+      return new(tbl)
+    end
+end
+
+"""
+    character_table_rational(tbl::GAPGroupCharacterTable)
+    character_table_rational(G::Group)
+
+Return the rational character table of `tbl` or of `G`, respectively.
+Its entries are the *rational irreducible* characters of `tbl`
+or of the character table of `G`, respectively.
+
+Rational irreducible characters are defined as the Galois sums of the
+irreducible characters.
+
+`tbl` must be an ordinary character table.
+Note that the concept of a rational table does in general not make sense
+for Brauer character tables because Galois conjugates of Brauer characters
+need not be Brauer characters.
+
+# Examples
+```jldoctest
+julia> character_table_rational(alternating_group(4))
+Rational character table of alternating group of degree 4
+
+  2  2  2  .  .
+  3  1  .  1  1
+               
+    1a 2a 3a 3b
+ 2P 1a 1a 3b 3a
+ 3P 1a 2a 1a 1a
+               
+X_1  1  1  1  1
+X_2  3 -1  .  .
+X_3  2  2 -1 -1
+```
+"""
+character_table_rational(G::Group) = GAPGroupCharacterTableRational(character_table(G))
+
+@attr GAPGroupCharacterTableRational function character_table_rational(tbl::GAPGroupCharacterTable)
+  @req characteristic(tbl) == 0 "only for ordinary character tables"
+  return GAPGroupCharacterTableRational(tbl)
+end
+
+character_table(rattbl::GAPGroupCharacterTableRational) = rattbl.character_table
+
+function _irr(rattbl::GAPGroupCharacterTableRational)
+  isdefined(rattbl, :irr) && return rattbl.irr
+
+  tbl = character_table(rattbl)
+  info = GAP.Globals.GaloisMat(GAP.Globals.Irr(GapObj(tbl))).galoisfams
+  res = GAPGroupClassFunction[]
+  norms = Int[]
+  for i in 1:length(info)
+    if info[i] == 1
+      push!(res, tbl[i])
+      push!(norms, 1)
+    elseif info[i] != 0
+      push!(res, galois_orbit_sum(tbl[i]))
+      push!(norms, length(info[i][1]))
+    end
+  end
+  rattbl.irr = res
+  rattbl.norms = norms
+  return res
+end
+
+@doc raw"""
+    coordinates(::Type{T} = QQFieldElem,
+                chi::GAPGroupClassFunction,
+                rattbl::GAPGroupCharacterTableRational; check = true)
+                where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbFieldElem}
+
+Return the vector $[a_1, a_2, \ldots, a_n]$ of weighted scalar products
+(see [`scalar_product`](@ref)) of `chi` with the rational irreducible characters
+$[t[1], t[2], \ldots, t[n]]$ of `rattbl`,
+such that `chi` is equal to $\sum_{i=1}^n a_i t[i]$.
+The result is an instance of `Vector{T}`.
+
+`chi` must be a rational class function.
+If `check` is set to `false` then the test for this property is omitted.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> r = character_table_rational(t);
+
+julia> println(coordinates(t[2]+t[3], r))
+QQFieldElem[0, 1, 0, 0]
+```
+"""
+coordinates(chi::GAPGroupClassFunction, rattbl::GAPGroupCharacterTableRational; check = true) = coordinates(QQFieldElem, chi, rattbl; check = check)
+
+function coordinates(::Type{T}, chi::GAPGroupClassFunction, rattbl::GAPGroupCharacterTableRational; check = true) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbFieldElem}
+  if check
+    @req conductor(chi) == 1 "chi must be a rational character"
+  end
+  irr = _irr(rattbl)
+  @req parent(chi) === parent(irr[1]) "character tables must be identical"
+  norms = rattbl.norms
+  return [T(scalar_product(chi, irr[i]) // norms[i]) for i in 1:length(irr)]
+end
+
+# function matrix_of_strings(rattbl::GAPGroupCharacterTableRational; alphabet::String = "", root::String = "")
+#   r = nrows(rattbl)
+#   c = ncols(rattbl)
+#   m = Array{String}(undef, r, c)
+#   for j in 1:c, i in 1:r
+#     val = rattbl[i,j]
+#     m[i, j] = iszero(val) ? "." : string(val.data)
+#   end
+#   return (m, [])
+# end
+
+function Base.show(io::IO, rattbl::GAPGroupCharacterTableRational)
+  if is_terse(io)
+    print(io, "rational character table of a group")
+  else
+    tbl = character_table(rattbl)
+    if isdefined(tbl, :group)
+      print(io, "rational character table of ")
+      io = pretty(io)
+      print(terse(io), Lowercase(), group(tbl))
+    else
+      print(io, "rational character table of ", identifier(tbl))
+    end
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", rattbl::GAPGroupCharacterTableRational)
+  tbl = character_table(rattbl)
+  show(IOContext(io, :chars => _irr(rattbl),
+                     :headerstring => _show_headerstring(tbl, rational = true)),
+       MIME("text/plain"), tbl)
+end
+
+function Base.show(io::IO, ::MIME"text/latex", rattbl::GAPGroupCharacterTableRational)
+  tbl = character_table(rattbl)
+  show(IOContext(io, :TeX => true, :chars => _irr(rattbl),
+                     :headerstring => _show_headerstring(tbl, rational = true)),
+       MIME("text/plain"), tbl)
+end
+
+# rational character tables as indexed collections
+length(rattbl::GAPGroupCharacterTableRational) = length(_irr(rattbl))
+
+number_of_rows(rattbl::GAPGroupCharacterTableRational) = length(_irr(rattbl))
+
+number_of_columns(rattbl::GAPGroupCharacterTableRational) = number_of_columns(character_table(rattbl))
+
+number_of_conjugacy_classes(tbl::GAPGroupCharacterTableRational) = number_of_conjugacy_classes(character_table(rattbl))
+
+Base.getindex(tbl::GAPGroupCharacterTableRational, i::Int) = _irr(tbl)[i]
+
+function Base.getindex(rattbl::GAPGroupCharacterTableRational, i::Int, j::Int)
+    return _irr(rattbl)[i][j]
+end
+
+function Base.getindex(tbl::GAPGroupCharacterTableRational, v::AbstractVector{Int})
+    return Base.getindex(_irr(tbl), v)
+end
+
+# in order to make `tbl[end]` work
+Base.lastindex(tbl::GAPGroupCharacterTableRational) = length(tbl)
+
+# in order to make `findfirst` and `findall` work
+function Base.keys(tbl::GAPGroupCharacterTableRational)
+    return keys(1:length(tbl))
+end
+
+Base.iterate(tbl::GAPGroupCharacterTableRational, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
+
+Base.eltype(::Type{GAPGroupCharacterTableRational}) = GAPGroupClassFunction

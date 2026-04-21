@@ -22,16 +22,27 @@ The OSCAR type for abstract varieties is `AbstractVariety`.
 
 ## Constructors
 
+### General varieties
+
 ```@docs
 abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
-### Specialized constructors
-
-
 ```@docs
 abstract_point(; base::Ring=QQ)
 ```
+
+```@docs
+abstract_curve(g::IntegerUnion; base::Ring = QQ)
+```
+
+### Flag bundles
+
+The concept of flag bundles provides fundamental classifying spaces in enumerative geometry.
+In Oscar, abstract flag bundles are constructed using the function `flag_bundle` which, in particular,
+allows one to implement abstract projective spaces, Grassmannians, flag varieties, and projective bundles.
+In addition, there are specialized constructors for the latter varieties which may or may not rely on
+different recipes for representing Chow rings  in terms of generators and relations.
 
 ```@docs
 abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
@@ -45,22 +56,22 @@ abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::
 abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
 ```
 
-### New varieties from given varieties/bundles
+```@docs
+projective_bundle(F::AbstractBundle; symbol::String = "z")
+```
+
+```@docs
+flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+```
+
+### Further standard varieties
 
 ```@docs
 complete_intersection(X::AbstractVariety, degs::Int...)
 ```
 
 ```@docs
-projective_bundle(F::AbstractBundle; symbol::String = "z")
-```
-
-```@docs
-abstract_hirzebruch_surface(n::Int)
-```
-
-```@docs
-flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+abstract_quadric(n::Int; base::Ring = QQ)
 ```
 
 ```@docs
@@ -69,6 +80,24 @@ zero_locus_section(F::AbstractBundle; class::Bool = false)
 
 ```@docs
 degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
+```
+
+### Special varieties
+
+```@docs
+abstract_K3_surface(g::IntegerUnion; base::Ring = QQ)
+```
+
+```@docs
+abstract_hirzebruch_surface(n::Int)
+```
+
+```@docs
+abstract_cayley_plane(; base::Ring = QQ)
+```
+
+```@docs
+abstract_cayley_grassmannian(; base::Ring = QQ)
 ```
 
 !!! note

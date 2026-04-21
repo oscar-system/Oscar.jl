@@ -113,22 +113,26 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
 
     if haskey(d, :name)
       upg_d[:name] = get(renamings, d[:name], d[:name])
-    else
+    elseif haskey(d, :_type)
       upg_d[:_type] = get(renamings, d[:_type], d[:_type])
       return upg_d
     end
-    
-    if d[:params] isa AbstractDict
-      if haskey(d[:params], :_type)
-        upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
-      else
-        for (k, v) in d[:params]
-          upg_d[:params][k] = upgrade_type(d[:params][k])
+
+    if haskey(d, :params)
+      if d[:params] isa AbstractDict
+        if haskey(d[:params], :_type)
+          upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
+          
+        else
+          for (k, v) in d[:params]
+            upg_d[:params][k] = upgrade_type(d[:params][k])
+          end
         end
+      elseif d[:params] isa Vector
+        upg_d[:params] = upgrade_type(d[:params])
       end
-    elseif d[:params] isa Vector
-      upg_d[:params] = upgrade_type(d[:params])
     end
+    
     return upg_d
   end
 
@@ -219,8 +223,7 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
         upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
         push!(upgraded_pairs, (upgraded_k, upgraded_v))
       end
-
-      if key_params in ["Symbol", "Int", "String"]
+      if key_params in ["Symbol", "Base.Int", "String"]
         dict[:data] = Dict{Symbol, Any}()
         for (upgraded_k, upgraded_v) in upgraded_pairs
           dict[:data][upgraded_k[:data]] = upgraded_v[:data]
@@ -304,6 +307,9 @@ include("1.3.0.jl")
 include("1.4.0.jl")
 include("1.6.0.jl")
 include("1.6.0+1.jl")
+include("1.7.0.jl")
+include("1.8.0.jl")
+include("1.8.0+1.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)

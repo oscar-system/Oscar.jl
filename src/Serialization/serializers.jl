@@ -122,13 +122,13 @@ end
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
   begin_node(s, key)
-  str = string(x)
+  data = x isa Bool ? x : string(x)
   if s.pretty_print
     print(s.io, "")
-    JSON.json(s.io, str)
+    JSON.json(s.io, data)
     print(s.io, "")
   else
-    JSON.json(s.io, str)
+    JSON.json(s.io, data)
   end
   nothing
 end

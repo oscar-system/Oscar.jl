@@ -458,6 +458,14 @@
     U = uniform_matroid(2,4) 
     @test !is_tutte_realizable(M)
     @test is_tutte_realizable(U)
+
+    K4 = cycle_matroid(complete_graph(4))
+    T = tutte_group(K4)
+    mat = [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2; 0 -1 0 0 0 0 0 1 -1 0 1 0 0 0 0 0 2; 0 -1 0 0 0 1 0 0 0 0 1 -1 0 0 0 0 2; 1 -1 0 -1 0 0 0 1 0 0 0 0 0 0 0 0 2; 1 -1 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 2; 0 0 -1 1 0 0 0 0 -1 1 0 0 0 0 0 0 2; 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 1 -1 3; 1 0 -1 0 0 0 0 0 0 1 -1 0 0 0 0 0 2; 1 0 -1 0 0 0 0 0 0 0 0 0 0 -1 1 0 3; 0 0 0 0 1 -1 0 0 0 0 0 0 1 -1 0 0 1; 0 0 0 0 1 0 -1 0 0 0 0 0 0 -1 1 0 2; 1 -1 0 0 0 0 0 0 0 0 0 0 1 -1 0 0 1; 1 0 -1 0 0 0 0 0 0 0 0 0 0 -1 1 0 1; 0 0 0 0 0 -1 1 0 0 0 0 1 0 0 0 -1 2; 0 0 0 0 0 0 0 0 0 0 0 1 -1 0 1 -1 1; 0 0 0 0 0 0 1 -1 1 0 0 0 0 0 0 -1 2; 0 0 0 0 0 0 0 0 1 -1 0 0 0 0 1 -1 1 ];
+    @test is_isomorphic(T,abelian_group(mat))
+
+    TG,_ = torsion_subgroup(T)
+    @test is_isomorphic(TG, abelian_group(2))
   end
     
     @testset "bergman_fan" begin

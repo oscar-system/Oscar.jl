@@ -791,6 +791,198 @@ end
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
 end
 
+@testset "rational character tables" begin
+  t = character_table("A5")
+  r = character_table_rational(t)
+  m = 4
+  @test length(r) == m
+  @test number_of_columns(r) == number_of_columns(t)
+  @test number_of_rows(r) == m
+  @test intersect( t, r ) == r[[1, 3, 4]]
+  @test r[1] == trivial_character(t)
+  @test t[end] == r[end]
+  @test character_table(r) === t
+  s = sum(r)
+  @test s == sum(t)
+  @test coordinates(s, r) == [1 for _ in 1:m]
+  @test @inferred coordinates(Int, s, r) == [1 for _ in 1:m]
+  @test_throws ArgumentError coordinates(t[2], r)
+
+  G = alternating_group(5)
+  r2 = character_table_rational(G)
+  @test number_of_columns(r2) == number_of_conjugacy_classes(G)
+  @test number_of_rows(r2) == 4
+  @test r2[1] == trivial_character(character_table(G))
+  @test character_table(r2) === character_table(G)
+
+  # orbit length different from 2
+  G = dihedral_group(22)
+  r = character_table_rational(G)
+  chi = r[3]
+  @test coordinates(chi, r) == [0, 0, 1]
+end
+
+Oscar.@_AuxDocTest "show and print rational character tables", (fix = false),
+raw"""
+```jldoctest character_table_rational.test
+julia> using Oscar
+
+julia> r1 = character_table_rational(character_table("A5"));
+
+julia> r2 = character_table_rational(character_table(alternating_group(5)));
+```
+
+`print` shows an abbrev. form
+
+```jldoctest character_table_rational.test
+julia> print(r1)
+rational character table of A5
+
+julia> print(r2)
+rational character table of Alt(5)
+```
+
+`show` uses the abbrev. form for nested objects
+
+```jldoctest character_table_rational.test
+julia> show([r1])
+Oscar.GAPGroupCharacterTableRational[rational character table of A5]
+julia> show([r2])
+Oscar.GAPGroupCharacterTableRational[rational character table of Alt(5)]
+```
+
+terse printing
+
+```jldoctest character_table_rational.test
+julia> print(AbstractAlgebra.terse(stdout), r1)
+rational character table of a group
+
+julia> print(AbstractAlgebra.terse(stdout), r2)
+rational character table of a group
+```
+
+default `show` with unicode
+
+```jldoctest character_table_rational.test
+julia> Oscar.with_unicode() do
+         show(stdout, MIME("text/plain"), r1)
+       end
+A5
+
+ 2  2  2  .  .  .
+ 3  1  .  1  .  .
+ 5  1  .  .  1  1
+                 
+   1a 2a 3a 5a 5b
+2P 1a 1a 3a 5b 5a
+3P 1a 2a 1a 5b 5a
+5P 1a 2a 3a 1a 1a
+                 
+χ₁  1  1  1  1  1
+χ₂  6 -2  .  1  1
+χ₃  4  .  1 -1 -1
+χ₄  5  1 -1  .  .
+julia> Oscar.with_unicode() do
+         show(stdout, MIME("text/plain"), r2)
+       end
+Rational character table of alternating group of degree 5
+
+ 2  2  2  .  .  .
+ 3  1  .  1  .  .
+ 5  1  .  .  1  1
+                 
+   1a 2a 3a 5a 5b
+2P 1a 1a 3a 5b 5a
+3P 1a 2a 1a 5b 5a
+5P 1a 2a 3a 1a 1a
+                 
+χ₁  1  1  1  1  1
+χ₂  4  .  1 -1 -1
+χ₃  5  1 -1  .  .
+χ₄  6 -2  .  1  1
+```
+
+default `show` without unicode
+
+```jldoctest character_table_rational.test
+julia> show(stdout, MIME("text/plain"), r1)
+A5
+
+  2  2  2  .  .  .
+  3  1  .  1  .  .
+  5  1  .  .  1  1
+                  
+    1a 2a 3a 5a 5b
+ 2P 1a 1a 3a 5b 5a
+ 3P 1a 2a 1a 5b 5a
+ 5P 1a 2a 3a 1a 1a
+                  
+X_1  1  1  1  1  1
+X_2  6 -2  .  1  1
+X_3  4  .  1 -1 -1
+X_4  5  1 -1  .  .
+julia> show(stdout, MIME("text/plain"), r2)
+Rational character table of alternating group of degree 5
+
+  2  2  2  .  .  .
+  3  1  .  1  .  .
+  5  1  .  .  1  1
+                  
+    1a 2a 3a 5a 5b
+ 2P 1a 1a 3a 5b 5a
+ 3P 1a 2a 1a 5b 5a
+ 5P 1a 2a 3a 1a 1a
+                  
+X_1  1  1  1  1  1
+X_2  4  .  1 -1 -1
+X_3  5  1 -1  .  .
+X_4  6 -2  .  1  1
+```
+
+LaTeX format
+
+```jldoctest character_table_rational.test
+julia> show(stdout, MIME("text/latex"), r1)
+A5
+
+$\begin{array}{rrrrrr}
+2 & 2 & 2 & . & . & . \\ 
+3 & 1 & . & 1 & . & . \\ 
+5 & 1 & . & . & 1 & 1 \\ 
+ &  &  &  &  &  \\ 
+ & 1a & 2a & 3a & 5a & 5b \\ 
+2P & 1a & 1a & 3a & 5b & 5a \\ 
+3P & 1a & 2a & 1a & 5b & 5a \\ 
+5P & 1a & 2a & 3a & 1a & 1a \\ 
+ &  &  &  &  &  \\ 
+\chi_{1} & 1 & 1 & 1 & 1 & 1 \\ 
+\chi_{2} & 6 & -2 & . & 1 & 1 \\ 
+\chi_{3} & 4 & . & 1 & -1 & -1 \\ 
+\chi_{4} & 5 & 1 & -1 & . & . \\
+\end{array}
+$
+julia> show(stdout, MIME("text/latex"), r2)
+Rational character table of alternating group of degree 5
+
+$\begin{array}{rrrrrr}
+2 & 2 & 2 & . & . & . \\ 
+3 & 1 & . & 1 & . & . \\ 
+5 & 1 & . & . & 1 & 1 \\ 
+ &  &  &  &  &  \\ 
+ & 1a & 2a & 3a & 5a & 5b \\ 
+2P & 1a & 1a & 3a & 5b & 5a \\ 
+3P & 1a & 2a & 1a & 5b & 5a \\ 
+5P & 1a & 2a & 3a & 1a & 1a \\ 
+ &  &  &  &  &  \\ 
+\chi_{1} & 1 & 1 & 1 & 1 & 1 \\ 
+\chi_{2} & 4 & . & 1 & -1 & -1 \\ 
+\chi_{3} & 5 & 1 & -1 & . & . \\ 
+\chi_{4} & 6 & -2 & . & 1 & 1 \\
+\end{array}
+$
+```
+"""
+
 @testset "attributes of character tables" begin
   ordtbl = character_table("A5")
   modtbl = mod(ordtbl, 2)
@@ -849,7 +1041,7 @@ end
   t = character_table(g)
   @test nrows(t) == 5
   @test ncols(t) == 5
-  @test_throws ErrorException t[6]
+  @test_throws BoundsError t[6]
   tr = trivial_character(t)
   @test parent(tr) === t
   @test tr in t

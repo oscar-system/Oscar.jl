@@ -88,13 +88,6 @@ julia> f = (x^2+y^2-1)*((x-1)^2+y^2-1)
 x^4 - 2*x^3 + 2*x^2*y^2 - x^2 - 2*x*y^2 + 2*x + y^4 - y^2
 
 julia> b = draw_curve_tikz(fn, f)
-
-Restarting with another random linear form
-Restarting with a non-random linear form
-Restarting with another random linear form
-Restarting with a non-random linear formtrue
-
-julia> b
 true
 ```
 """

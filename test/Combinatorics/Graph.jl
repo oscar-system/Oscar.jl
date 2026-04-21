@@ -115,6 +115,32 @@
         H = G[J,J]
         b, I = Oscar._is_equal_up_to_permutation_with_permutation(G, H)
         @assert G[I,I] == H
+
+        gc = complete_graph(3)
+        gcc = complete_graph(3)
+        gc2 = complete_graph(2)
+        @test gc == gcc
+        @test hash(gc) == hash(gcc)
+        @test gc2 != gc
+        d = Dict(gc=>1)
+        d[gcc] = 2
+        d[gc2] = 3
+        @test length(keys(d)) == 2
+        @test d[gc] == 2
+
+        label!(gc,  nothing, Dict(1=>5,2=>7,3=>11))
+        label!(gcc, nothing, Dict(1=>5,2=>7,3=>11))
+        @test gc == gcc
+        gcc.label[1] = 13
+        @test gc != gcc
+
+        @test g != gg
+
+        is_iso, perm = is_isomorphic_with_permutation(g,gg)
+        @test is_iso
+        gp = graph_from_adjacency_matrix(Directed, adjacency_matrix(g)[perm,perm])
+        @test gp == gg
+        @test hash(gp) == hash(gg)
     end
 
     @testset "connectivity" begin
@@ -159,6 +185,10 @@
         @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
+
+        @test shortest_path_dijkstra(g, 1, 5) == [1, 3, 5]
+        @test_throws ArgumentError shortest_path_dijkstra(g, 1, 6)
+        @test_throws ArgumentError shortest_path_dijkstra(g, 7, 1)
     end
 
     @testset "errors" begin
@@ -285,6 +315,10 @@
       @test sg3.color[2] == 9
       @test sg3.vertexlabels[2] == 3
       @test sg3.color[1,2] == G3.color[2,3] == 5
+
+      @test sg3 == induced_subgraph(G3, [3, 2])
+      @test sg3 != induced_subgraph(G3, [3, 1])
+      @test hash(sg3) == hash(induced_subgraph(G3, [3, 2]))
 
       G4 = complete_graph(4)
       label!(G4,nothing,Dict(1=>"first",2=>"second",3=>"third",4=>"fourth"), name=:vertexlabels)
