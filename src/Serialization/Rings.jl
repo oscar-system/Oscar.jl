@@ -212,9 +212,7 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     coeff_type = elem_type(coeff_ring)
     for (i, exponent) in enumerate(exponents)
       load_node(s, i) do _
-        load_node(s, 2) do _
-          loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
-        end
+        loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring, 2)
       end
     end
     return parent_ring(loaded_terms)
@@ -232,9 +230,7 @@ function load_object(s::DeserializerState,
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
         c = load_object(s, coeff_type, coeff_ring, 2)
-        e_int = load_array_node(s, 1) do _
-          load_object(s, Int)
-        end
+        e_int = load_object(s, Vector{Int}, 1)
         push_term!(polynomial, c, e_int)
       end
     end

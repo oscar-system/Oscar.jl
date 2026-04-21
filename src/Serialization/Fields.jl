@@ -18,8 +18,12 @@ function save_object(s::SerializerState, F::fpField)
 end
 
 function load_object(s::DeserializerState, ::Type{fpField})
-  load_node(s) do str
-    return fpField(parse(UInt64, str))
+  load_node(s) do val
+    if val isa Integer
+      return fpField(UInt64(val))
+    else
+      fpField(parse(UInt64, val))
+    end
   end
 end
 
