@@ -165,9 +165,7 @@ function load_object(s::DeserializerState, ::Type{DiscreteGraphicalModel}, param
 end
 
 # needs to use id to have attributes
-@register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
-                                                        :model_ring,
-                                                        :full_model_ring]
+@register_serialization_type PhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
@@ -208,9 +206,7 @@ function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Di
   )
 end
 
-@register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring,
-                                                                  :model_ring,
-                                                                  :full_model_ring]
+@register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
 type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
