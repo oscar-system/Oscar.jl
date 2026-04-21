@@ -14,7 +14,7 @@
 @register_serialization_type fpField "FiniteField"
 
 function save_object(s::SerializerState, F::fpField)
-  save_object(s, string(characteristic(F)))
+  save_object(s, characteristic(F))
 end
 
 function load_object(s::DeserializerState, ::Type{fpField})
@@ -27,12 +27,16 @@ end
 @register_serialization_type fpFieldElem 
 
 function save_object(s::SerializerState, elem::fpFieldElem)
-  save_data_basic(s, string(elem))
+  save_data_basic(s, lift(ZZ, elem))
 end
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
-  load_node(s) do str
-    return F(parse(UInt64, str))
+  load_node(s) do val
+    if val isa Integer
+      return F(UInt64(val))
+    else
+      return F(parse(UInt64, val))
+    end
   end
 end
 
@@ -41,12 +45,12 @@ end
 @register_serialization_type FpField "FiniteField"
 
 function save_object(s::SerializerState, F::FpField)
-  save_object(s, string(characteristic(F)))
+  save_data_basic(s, characteristic(F))
 end
 
 function load_object(s::DeserializerState, ::Type{FpField})
   load_node(s) do str
-    FpField(parse(ZZRingElem, str))
+    FpField(ZZRingElem(str))
   end
 end
 
@@ -54,12 +58,12 @@ end
 @register_serialization_type FpFieldElem
 
 function save_object(s::SerializerState, elem::FpFieldElem)
-  save_data_basic(s, string(elem))
+  save_data_basic(s, lift(ZZ, elem))
 end
 
 function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
-  load_node(s) do str
-    F(parse(ZZRingElem, str))
+  load_node(s) do val
+    F(ZZRingElem(val))
   end
 end
 

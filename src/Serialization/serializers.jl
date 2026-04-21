@@ -150,6 +150,11 @@ function save_data_json(s::SerializerState, jsonstr::Any,
   write(s.io, jsonstr)
 end
 
+function save_base64(s::SerializerState{IPCSerializer}, x::Any)
+  buf = IOBuffer()
+  Serialization.serialize(buf, x)
+  save_data_basic(s, Base64.base64encode(take!(buf)))
+end
 
 function save_as_ref(s::SerializerState, obj::T) where T
   # find ref or create one
@@ -228,6 +233,10 @@ end
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
   s.key = key
+end
+
+function load_base64(s::DeserializerState{IPCSerializer})
+  Serialization.deserialize(IOBuffer(Base64.base64decode(s.obj)))
 end
 
 function load_node(f::Function, s::DeserializerState,

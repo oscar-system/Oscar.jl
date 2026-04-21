@@ -103,6 +103,8 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
   end
 end
 
+save_object(s::SerializerState{IPCSerializer}, x::Vector{Int}) = save_base64(s, x)
+
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
@@ -143,7 +145,7 @@ end
 # Saving and loading matrices
 @register_serialization_type Matrix
 
-function save_object(s::SerializerState, mat::AbstractMatrix{S}) where {S}
+function _save_mat_default(s::SerializerState, mat::AbstractMatrix)
   save_data_array(s) do
     for r in eachrow(mat)
       save_object(s, r)
@@ -151,9 +153,27 @@ function save_object(s::SerializerState, mat::AbstractMatrix{S}) where {S}
   end
 end
 
-# this needs to be Matrix to avoid ambiguities, this is also ok
-# since types on load will be Matrix
-function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
+save_object(s::SerializerState, mat::AbstractMatrix) = _save_mat_default(s, mat)
+save_object(s::SerializerState{IPCSerializer}, mat::Matrix{Int}) = save_base64(s, mat)
+
+function save_object(s::SerializerState{IPCSerializer}, mat::Matrix{T}) where T <: Union{fpFieldElem, FpFieldElem}
+  f = Base.Fix1(lift, ZZ)
+  save_object(s, f.(mat))
+end
+
+function save_object(s::SerializerState{IPCSerializer}, mat::Matrix{ZZRingElem})
+  if maximum(mat) > typemax(Int128) || minimum(mat) < typemin(Int128)
+    _save_mat_default(s, mat)
+  elseif maximum(mat) > typemax(Int64) || minimum(mat) < typemin(Int64)
+    save_base64(s, Int128.(mat))
+  elseif maximum(mat) > typemax(Int32) || minimum(mat) < typemin(Int32)
+    save_base64(s, Int64.(mat))
+  else
+    save_base64(s, Int32.(mat))
+  end
+end
+
+function _default_mat_load(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   load_node(s) do entries
     if isempty(entries)
       return T(undef, 0, 0)
@@ -166,7 +186,20 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   end
 end
 
+function load_object(s::DeserializerState{IPCSerializer}, T::Type{Matrix{ZZRingElem}})
+  s.obj isa String && return ZZRingElem.(load_base64(s))
+  _default_mat_load(s, T)
+end
+
+# this needs to be Matrix to avoid ambiguities, this is also ok
+# since types on load will be Matrix
+load_object(s::DeserializerState, T::Type{<:Matrix}) = _default_mat_load(s, T)
+
 load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where {S} = load_object(s, T)
+
+function load_object(s::DeserializerState{IPCSerializer}, ::Type{Matrix{T}}, params::Field) where T <: Union{FpFieldElem, fpFieldElem}
+  return params.(load_object(s, Matrix{ZZRingElem}))
+end
 
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where {S}
   load_node(s) do entries
