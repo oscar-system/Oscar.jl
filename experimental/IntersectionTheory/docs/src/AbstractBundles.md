@@ -19,7 +19,7 @@ direct sum of `n` copies.
 
 Abstract bundles live in the Grothendieck ring $\mathrm{K}^0(X)$ of vector bundles on $X$.
 In this ring, every element can be written as a formal difference $[E] - [F]$ of genuine
-bundles. After tensoring with $\mathbb Q$,  by Grothendieck--Riemann--Roch, the
+bundles. After tensoring with $\mathbb Q$, by Grothendieck--Riemann--Roch, the
 Chern character $\mathrm{ch}$ defines a ring isomorphism of the Grothendieck ring onto
 the Chow ring if we use rational equivalence, and hence at least an epimorphism if we use
 numerical equivalence (as we do here).

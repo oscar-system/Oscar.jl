@@ -30,7 +30,7 @@ and projective bundles.
 
 !!! warning
     Recall from the introduction to this chapter that in many cases, there is no algorithm for
-    computing all generators of the Chow ring (see  [Example: Cubic surfaces](@ref)). In addition note
+    computing all generators of the Chow ring (see [Example: Cubic surfaces](@ref)). In addition note
     that the constructor `abstract_variety` discussed below gives the expert user some freedom
     when constructing an object of type `AbstractVariety`. It allows one, for example, to start from
     the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
