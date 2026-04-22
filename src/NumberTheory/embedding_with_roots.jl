@@ -19,8 +19,7 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
   GR = genus(DR, (pR, nR)) # genus of R
   roots = biggest_root_sublattice(GR)
   R = _overlattice_orbits(roots, GR)[1] #don't trust the name of this function! 
-  R = lll(R)  # make R a bit nicer
-  R = integer_lattice(; gram=gram_matrix(R), cached=false) # clear the history of R
+  R = lll(R;  same_ambient=false)  # make R a bit nicer
   SR, inj = direct_sum(S, R)
   iS, iR = inj
   V = ambient_space(SR)
@@ -31,7 +30,7 @@ function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primiti
   L = overlattice(glue)
   @assert V === ambient_space(SR)
   @hassert :Lattice 1 abs(det(L)) ==1
-  @hassert :Lattice 1 denominator(gram_matrix(L))==1
+  @hassert :Lattice 1 is_integral(L)==1
   @hassert :Lattice 1 !even || iseven(L)
   return L, S, iS, R
 end
