@@ -274,7 +274,7 @@ include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
-include("Rings/ReesAlgebra.jl") # Needs ModuleFP
+include("Rings/ReesAlgebra.jl") # Needs OFPModule
 
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")

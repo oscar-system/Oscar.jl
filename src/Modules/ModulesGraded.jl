@@ -5,14 +5,14 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+    graded_free_module(R::AdmissibleOFPModuleRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 
 Given a graded ring `R` with grading group `G`, say,
 and given a vector `W` with `p` elements of `G`, create the free module $R^p$ 
 equipped with its basis of standard unit vectors, and assign weights to these 
 vectors according to the entries of `W`. Return the resulting graded free module.
 
-    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{FinGenAbGroupElem}, name::String="e")
+    graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{FinGenAbGroupElem}, name::String="e")
 
 As above, with `p = length(W)`.
 
@@ -37,7 +37,7 @@ Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
 function graded_free_module(
-    R::AdmissibleModuleFPRing, p::Int, 
+    R::AdmissibleOFPModuleRing, p::Int, 
     W::Vector{FinGenAbGroupElem}=[zero(grading_group(R)) for i in 1:p], 
     name::String="e"
   )
@@ -49,7 +49,7 @@ function graded_free_module(
   return M
 end
 
-function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{Any}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, p::Int, W::Vector{Any}, name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
   p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
@@ -57,12 +57,12 @@ function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{Any}, n
   return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{FinGenAbGroupElem}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{FinGenAbGroupElem}, name::String="e")
   p = length(W)
   return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{Any}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{Any}, name::String="e")
   p = length(W)
   @assert is_graded(R)
   p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
@@ -71,7 +71,7 @@ function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{Any}, name::Str
 end
 
 @doc raw"""
-    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+    graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
 
 Given a graded ring `R` with grading group $G = \mathbb Z^m$, 
 and given a vector `W` of integer vectors of the same size `p`, say, create the free 
@@ -79,11 +79,11 @@ module $R^p$ equipped with its basis of standard unit vectors, and assign weight
 vectors according to the entries of `W`, converted to elements of `G`. Return the 
 resulting graded free module.
 
-    graded_free_module(R::AdmissibleModuleFPRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+    graded_free_module(R::AdmissibleOFPModuleRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
 
 As above, converting the columns of `W`.
 
-    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:IntegerUnion}, name::String="e")
+    graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{<:IntegerUnion}, name::String="e")
 
 Given a graded ring `R` with grading group $G = \mathbb Z$, 
 and given a vector `W` of integers, set `p = length(W)`, create the free module $R^p$ 
@@ -117,7 +117,7 @@ julia> FF == FFF
 true
 ```
 """
-function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
   @assert is_zm_graded(R)
   n = length(W[1])
   @assert all(x->length(x) == n, W)
@@ -126,14 +126,14 @@ function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:Vector{<:Inte
   return graded_free_module(R, length(W), d, name)
 end
 
-function graded_free_module(R::AdmissibleModuleFPRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
   @assert is_zm_graded(R)
   A = grading_group(R)
   d = [A(W[:, i]) for i = 1:size(W, 2)]
   return graded_free_module(R, size(W, 2), d, name)
 end
 
-function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:IntegerUnion}, name::String="e")
+function graded_free_module(R::AdmissibleOFPModuleRing, W::Vector{<:IntegerUnion}, name::String="e")
   @assert is_graded(R)
   A = grading_group(R)
   d = [W[i] * A[1] for i in 1:length(W)]
@@ -656,7 +656,7 @@ function graded_map(A::MatElem)
   return graded_map(Fcdm, A)
 end
 
-function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
+function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: AdmissibleOFPModuleRingElem}
   R = base_ring(F)
   G = grading_group(R)
   source_degrees = Vector{eltype(G)}()
@@ -673,7 +673,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T 
   return phi
 end
 
-function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
+function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::Bool=true) where {T <: AdmissibleOFPModuleRingElem}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -701,7 +701,7 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
 end
 
 
-function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
+function graded_map(F::SubquoModule{T}, V::Vector{<:OFPModuleElem{T}}; check::Bool=true) where {T <: AdmissibleOFPModuleRingElem}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -817,7 +817,7 @@ function degree(f::FreeModuleHom; check::Bool=true)
 end
 
 @doc raw"""
-    is_graded(a::ModuleFPHom)
+    is_graded(a::OFPModuleHom)
 
 Return `true` if `a` is graded, `false` otherwise.
 
@@ -850,7 +850,7 @@ julia> is_graded(a)
 true
 ```
 """
-function is_graded(f::ModuleFPHom)
+function is_graded(f::OFPModuleHom)
   isdefined(f, :d) && return true
   (is_graded(domain(f)) && is_graded(codomain(f))) || return false
   T1 = domain(f)
@@ -1675,7 +1675,7 @@ function Base.show(io::IO, table::SheafCohTable)
 end
 
 @doc raw"""
-    sheaf_cohomology(M::ModuleFP{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
+    sheaf_cohomology(M::OFPModule{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
 
 If `M` is a graded module over a standard graded multivariate polynomial ring with coefficients in a field `K`, 
 say, and $\mathcal F = \widetilde{M}$ is the coherent sheaf associated to `M` on the corresponding projective 
@@ -1757,7 +1757,7 @@ twist: -8 -7 -6 -5 -4 -3 -2 -1  0  1  2  3
   chi: 35 15  5  1  -  -  -  -  1  5 15 35
 ```
 """
-function sheaf_cohomology(M::ModuleFP{T},
+function sheaf_cohomology(M::OFPModule{T},
                           l::Int,
                           h::Int;
                           algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
@@ -1771,7 +1771,7 @@ function sheaf_cohomology(M::ModuleFP{T},
 end
 
 @doc raw"""
-    _sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+    _sheaf_cohomology_bgg(M::OFPModule{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M`. The method used is based on the Bernstein-Gelfand-Gelfand correspondence. The range of twists is between `l` and `h`.
@@ -1848,7 +1848,7 @@ julia> tbl[1, 0]
 1
 ```
 """
-function _sheaf_cohomology_bgg(M::ModuleFP{T},
+function _sheaf_cohomology_bgg(M::OFPModule{T},
                                l::Int,
                                h::Int) where {T <: MPolyDecRingElem}
 
@@ -1862,7 +1862,7 @@ function _sheaf_cohomology_bgg(M::ModuleFP{T},
 end
 
 @doc raw"""
-    _sheaf_cohomology_loccoh(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+    _sheaf_cohomology_loccoh(M::OFPModule{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M` The method used is based on local duality. The range of twists is between `l` and `h`.
@@ -1926,7 +1926,7 @@ twist: -7 -6 -5 -4 -3 -2 -1  0  1  2
   chi: 15  5  1  -  -  -  -  1  5 15
 ```
 """
-function _sheaf_cohomology_loccoh(M::ModuleFP{T},
+function _sheaf_cohomology_loccoh(M::OFPModule{T},
                                   l::Int,
                                   h::Int) where {T <: MPolyDecRingElem}
 
@@ -1950,7 +1950,7 @@ function _ndigits(val::Int)
   return ndigits(val)
 end
 
-function _weights_and_sing_mod(M::ModuleFP{T}) where {T <: MPolyDecRingElem}
+function _weights_and_sing_mod(M::OFPModule{T}) where {T <: MPolyDecRingElem}
 
   CR = base_ring(base_ring(M))
   @assert isa(CR, AbstractAlgebra.Field) "Base ring of input module must be defined over a field."
@@ -2435,9 +2435,9 @@ end
 # FreeModuleHom_dec constructors
 ###############################################################################
 
-FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::OFPModule_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
 
-FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::OFPModule_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
 
 function forget_decoration_on_morphism(f::FreeModuleHom_dec)
   return f.f
@@ -2455,8 +2455,8 @@ end
 
 (h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)
 
-hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
-hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
+hom(F::FreeMod_dec{T}, G::OFPModule_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
+hom(F::FreeMod_dec{T}, G::OFPModule_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
 
 
 function hom(F::FreeMod_dec, G::FreeMod_dec)
@@ -2487,7 +2487,7 @@ end
 # TODO: Are the signatures sufficient to assure that the modules are graded?
 
 @doc raw"""
-    minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}
+    minimal_betti_table(M::OFPModule{T}) where {T<:MPolyDecRingElem}
     minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
     minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} 
 
@@ -2513,7 +2513,7 @@ degree: 0  1  2  3
  total: 1  5  5  1
 ```
 """
-function minimal_betti_table(M::ModuleFP{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+function minimal_betti_table(M::OFPModule{T}; check::Bool=true) where {T<:MPolyDecRingElem}
  error("Not implemented for the given type")
 end
 
@@ -2536,7 +2536,7 @@ end
 
 
 @doc raw"""
-    minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
+    minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:OFPModule}
 
 Given a (possibly non-complete) graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2653,7 +2653,7 @@ degree: 0  1
 
 ```
 """
-function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
+function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:OFPModule}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
@@ -2705,7 +2705,7 @@ function generators_of_degree(
     i::Int,
     d::FinGenAbGroupElem;
     check::Bool=true
-  ) where {T<:ModuleFP}
+  ) where {T<:OFPModule}
   F = C[i]
   return [g for g in gens(F) if degree(g) == d]
 end
@@ -2753,14 +2753,14 @@ function complex(F::FreeResolution)
   return F.C
 end
 
-function base_ring(res::FreeResolution{T}) where {T<:ModuleFP}
+function base_ring(res::FreeResolution{T}) where {T<:OFPModule}
   return base_ring(res[-1])
 end
                                                                                                                                     
 #############truncation#############
 
 @doc raw"""
-    truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
+    truncate(I::OFPModule, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 
 Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivariate 
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
@@ -2775,7 +2775,7 @@ Additionally, if `N` denotes this object,
 
 If `task = :only_morphism`, return only the inclusion map.
 
-    truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
+    truncate(M::OFPModule, d::Int, task::Symbol = :with_morphism)
 
 Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
 of the grading group of `base_ring(I)` and proceed as above.
@@ -2814,11 +2814,11 @@ by graded submodule of F with 3 generators
   3: z^5*e[1]
 ```
 """
-function truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
+function truncate(I::OFPModule, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
   return truncate(I, Int(g[1]), task)
 end
 
-function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=true)
+function truncate(I::OFPModule, d::Int, task::Symbol=:with_morphism; check::Bool=true)
   @req I isa FreeMod || I isa SubquoModule "Not implemented for the given type"
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -2871,7 +2871,7 @@ end
 ##################regularity#######################
 
 @doc raw"""
-    cm_regularity(M::ModuleFP; check::Bool=true)
+    cm_regularity(M::OFPModule; check::Bool=true)
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2929,7 +2929,7 @@ degree: 0  1  2
  total: 1  3  2 
 ```
 """
-function cm_regularity(M::ModuleFP; check::Bool=true)
+function cm_regularity(M::OFPModule; check::Bool=true)
  error("Not implemented for the given type")
 end
 
@@ -3074,16 +3074,16 @@ end
 ##########################################################################
 
 @doc raw"""
-    twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
+    twist(M::OFPModule{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
 
 Return the twisted module `M(g)`.
 
-    twist(M::ModuleFP{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
+    twist(M::OFPModule{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
 
 Given a module `M` over a $\mathbb Z^m$-graded polynomial ring and a vector `W` of $m$ integers, 
 convert `W` into an element `g` of the grading group of the ring and proceed as above.
 
-    twist(M::ModuleFP{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
+    twist(M::OFPModule{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
 
 Given a module `M` over a $\mathbb Z$-graded polynomial ring and an integer `d`, 
 convert `d` into an element `g` of the grading group of the ring and proceed as above.
@@ -3114,7 +3114,7 @@ julia> degree(gen(N, 1))
 
 ```
 """
-function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
+function twist(M::OFPModule{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  error("Not implemented for the given type")
 end
 
@@ -3142,13 +3142,13 @@ function twist(F::FreeMod{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRing
  return G
 end
 
-function twist(M::ModuleFP{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
+function twist(M::OFPModule{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
   R = base_ring(M)
   @assert is_zm_graded(R)
   return twist(M, grading_group(R)(W))
 end
 
-function twist(M::ModuleFP{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
+function twist(M::OFPModule{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
   R = base_ring(M)
   @assert is_z_graded(R)
   return twist(M, grading_group(R)([d]))
@@ -3215,7 +3215,7 @@ function rand_homogeneous(R::MPolyRing, degree::Int)
 end
 
 
-function rand_homogeneous(V::ModuleFP, d::Int)
+function rand_homogeneous(V::OFPModule, d::Int)
   R = base_ring(V)
   random_element = zero(V)
   for gen in gens(V)

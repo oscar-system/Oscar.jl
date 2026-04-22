@@ -193,7 +193,7 @@ end
 
 # An old version of the induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
-  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
+  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::OFPModuleHom, ::Int; domain, codomain)` instead", :hom)
 
   success, F, p = _is_exterior_power(M)
   @req success "module is not an exterior power"

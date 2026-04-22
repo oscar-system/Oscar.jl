@@ -2,11 +2,11 @@
 # FreeModElem term orderings
 ###############################################################################
 
-function Orderings.lex(F::ModuleFP)
+function Orderings.lex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
 end
 
-function Orderings.invlex(F::ModuleFP)
+function Orderings.invlex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :invlex))
 end
 
