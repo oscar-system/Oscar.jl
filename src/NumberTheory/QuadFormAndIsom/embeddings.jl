@@ -2529,3 +2529,32 @@ function _classes_isomorphic_subgroups(
 
   return res
 end
+
+
+function _change_to_bilinear_module(
+    qM::TorQuadModule,
+    GM::AutomorphismGroup{TorQuadModule},
+    fqM::TorQuadModuleMap,
+  )
+  qM = Hecke._as_finite_bilinear_module(qM) # TODO: to be changed
+  OqM = orthogonal_group(qM)
+  GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check=false) for g in gens(GM)])
+  fqM = hom(qM, qM, matrix(fqM))
+  return qM, OqM, GM, fqM
+end
+
+
+function _possible_glue_orders(
+    qM::TorQuadModule,
+    qN::TorQuadModule,
+  )
+  _gcd = ZZ(1)
+  snM = reverse!(elementary_divisors(qM))
+  snN = reverse!(elementary_divisors(qN))
+  k = min(length(snM), length(snN))
+  for i in 1:k
+    mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
+  end
+  pos_ord = divisors(_gcd)
+  return pos_ord
+end

@@ -155,8 +155,8 @@ end
 
 # Return all genera with given form, signature and parity conditions
 # There are at most 2 of them
-# par is either :even, or :odd, or :both (actually anything :odd or :even
-# would do here)
+# par is either :even, or :odd, or :both (actually anything other then
+# :odd or :even would do)
 function _integer_genera(
   q::TorQuadModule,
   sign::Tuple{Int, Int},
@@ -194,6 +194,18 @@ equal to the modulus of its bilinear form, then this is the same as calling
   return __orthogonal_group(T; as_bilinear_module=true)
 end
 
+function __as_finite_bilinear_module(
+  q::TorQuadModule,
+)
+  n = modulus_bilinear_form(q)
+  if n == modulus_quadratic_form(q)
+    return q
+  end
+  
+  qb =  torsion_quadratic_module(cover(q), relations(q); modulus=n, modulus_qf=n, gens=lift.(gens(q)))
+  return qb
+end
+
 function __orthogonal_group(
   q::TorQuadModule;
   as_bilinear_module::Bool=false,
@@ -201,14 +213,14 @@ function __orthogonal_group(
   if !as_bilinear_module || modulus_bilinear_form(q) == modulus_quadratic_form(q)
     return orthogonal_group(q)
   end
-  qb = Hecke._as_finite_bilinear_module(q)
+  qb = __as_finite_bilinear_module(q)
   return _orthogonal_group(q, _orthogonal_group_gens(qb); check=false)
 end
 
 ### To be moved to Hecke eventually
 
 # Return the elementary divisors of the largest finite abelian group
-# which embed in both G1 and G2
+# which embeds in both G1 and G2
 function _maximal_common_subgroup_snf(
   G1::FinGenAbGroup,
   G2::FinGenAbGroup,
@@ -290,12 +302,12 @@ end
 #
 ###############################################################################
 
-# Initialize the gluing factory with the conditions from the problem
-# By construction `Fac` should already know about the ambient modules, the
-# signature and the wanted parity for the primitive extensions. If the local
-# classifying groups have not been set, the function initialize them to be the
-# orthogonal groups (maybe as finite bilinear modules, depending on the value
-# of Fac.par) of the ambient modules.
+# Initialize the gluing factory with the conditions from the problem.
+# By construction `Fac` should already know about the ambient modules and the
+# wanted parity for the primitive extensions. If the local classifying groups
+# have not been set, the function initialize them to be the orthogonal groups
+# (maybe as finite bilinear modules, depending on the value of Fac.par) of the
+# ambient modules.
 function init_gluing_factory!(
   Fac::ZZLatGluingFactory;
   left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
@@ -320,22 +332,23 @@ function init_gluing_factory!(
 end
 
 # Using the glue annihilators and glue_exponent, the function sets up the
-# so-called conditions modules where to look for glue groups. From this, the
+# "conditions modules", i.e. where to look for glue groups. From this, the
 # fonction filters through the remaining initial conditions to determine the
-# actual conditions for the gluing computed in the factory. This list of
-# actual conditions will consist of:
-# - a set of genera for the primitive extensions (optional: only if genus_over
-#   or form_over is non empty)
+# actual restrictions for the gluing computed in the factory. This list of
+# actual conditions consists of:
+# - a set of genera for the primitive extensions (optional: only if
+#   genus_over is not empty),
+# - a set of Gram matrix for the normal forms of the discriminant groups
+#   of the primitive extensions (optional: only if form_over is not empty)
 # - a set of elementary divisors for the glue groups (optional: only if
 #   glue_elementary_divisors is not empty)
 # - a set of orders for the glue groups.
 #
-# If part of the initial conditions, the function runs through the list
-# form_over and genus_over to compute the possible genera for an overlattice
-# within the context setup by the conditions modules and Fac.par.
-# If none works, Fac.genus_over is the empty set and the following functions
-# will abort (because of impossible conditions). Similarly with the list
-# glue_elementary_divisors.
+# If genus_over (resp. form_over, glue_elementary_divisors) in input is not
+# empty but it is after filtering (depending on the conditions modules and the
+# input list glue_order), Fac.genus_over (resp. Fac.form_over,
+# Fac.glue_elementary_divisors) is set to be the empty set and the following
+# functions will abort (because of impossible conditions, Fac is "trivial").
 #
 # For Fac.glue_order, several things can happen:
 # - if the initial conditions genus_over, form_over or glue_elementary_divisors
@@ -347,8 +360,8 @@ end
 # - otherwise, Fac.glue_order consists of all the divisors of the order of the
 #   maximal abelian group embedding in both of the conditions modules.
 # In the two first cases, if the final list of orders infered from the initial
-# conditions is empty, Fac.glue_order is the empty and the rest of the
-# algorithm will abort too.
+# conditions is empty, Fac.glue_order is the empty set and the rest of the
+# algorithm will abort as well.
 function init_gluing_conditions!(
   Fac::ZZLatGluingFactory,
   left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
@@ -929,7 +942,7 @@ function _local_glue_maps(
   init_gluing_factory!(Fac; kwargs...)
   is_trivial(Fac) && return ZZLatGluing[]
   res = local_glue_maps(Fac)
-  return res
+  return Fac, res
 end
 
 ### Unimodular case
@@ -1069,7 +1082,7 @@ function _primitive_extensions_coprime_left(
   end
   HN, HNinqN = sub(qN, gensHN)
 
-  as_bilinear_module = (partiy !== :even)
+  as_bilinear_module = (parity !== :even)
   ok, phi = is_anti_isometric_with_anti_isometry(qM, HN; as_bilinear_module)
   !ok && return false, results
   if exist_only
@@ -1098,8 +1111,7 @@ function _primitive_extensions_coprime_left(
     OHN = orthogonal_group_bilinear(HN)
   end
   
-  resHN = restrict_automorphism_group(GN, HNinqN)
-  imHN, _ = image(resHN)
+  imHN, resHN = restrict_automorphism_group(GN, HNinqN)
   genC = elem_type(OHN)[OHN(iphi * hom(g) * phi; check=false) for g in gens(GM)]
   GMphi, _ = sub(OHN, genC)
   elHN = elementary_divisors(HN)
@@ -1108,7 +1120,7 @@ function _primitive_extensions_coprime_left(
   else
     iso = id_hom(OHN)
   end
-  reps = double_cosets(codomain(iso), first(iso(imHN)), first(iso(GMphi)))
+  reps = double_cosets(codomain(iso), Base.first(iso(imHN)), Base.first(iso(GMphi)))
   for _g in reps
     g = iso\(representative(_g))
     phig = compose(phi, hom(g))
@@ -1123,7 +1135,7 @@ function _primitive_extensions_coprime_left(
     push!(results, (L, M2, N2))
     first && return true, results
   end
-  return length(res) > 0, results
+  return length(results) > 0, results
 end
 
 function _primitive_extensions_coprime_right(
@@ -1312,6 +1324,7 @@ function _primitive_embeddings_generic_safe(
   Ctx=nothing,
   vi::Tuple{Int, Int}=(-1, -1),
   q2::TorQuadModule=discriminant_group(G2),
+  Ms::Vector{ZZLat}=ZZLat[],
 )
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
@@ -1326,16 +1339,21 @@ function _primitive_embeddings_generic_safe(
   q1n = discriminant_group(T)
   signK = signature_pair(G1) .- signature_pair(G2)
 
-  lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
+  Fac, lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
   isempty(lgm) && return results
-
+  DKs = Dict{ZZGenus, Vector{ZZLat}}()
+  
   for x in lgm
     qx = _form_over(x)
     qK = rescale(qx, -1; cached=false)
     GKs = _integer_genera(qK, signK, parity)
     isempty(GKs) && continue
-    Ks = reduce(vcat, Vector{ZZLat}[__representatives(GK) for GK in GKs])
-    Ms = __representatives(G2)
+    # At that point, we know that we have an extension
+    for GK in GKs
+      haskey(DKs, GK) && continue
+      DKs[GK] = representatives(GK)
+    end
+    isempty(Ms) && append!(Ms, __representatives(G2))
     for M in Ms
       qM = discriminant_group(M)
       D = _gluing_ambient(qM, q1n, parity)
@@ -1348,7 +1366,7 @@ function _primitive_embeddings_generic_safe(
         V, M2, T2, GV = _overlattice(y, D)
         resV = Tuple{ZZLat, ZZLat, ZZLat}[]
         qV = domain(GV)
-        for K in Ks
+        for GK in GKs, K in DKs[GK]
           _, pe = unimodular_primitive_extensions(V, K; right_discriminant_action=GV, parity)
           append!(resV, pe)
         end
@@ -1362,7 +1380,7 @@ function _primitive_embeddings_generic_safe(
           N = orthogonal_submodule(L, M3)
           bM = coordinates(basis_matrix(M3), L)
           bN = coordinates(basis_matrix(N), L)
-          L = Hecke.integer_lattice(; gram=gram_matrix(L))
+          L = integer_lattice(; gram=gram_matrix(L))
           M3 = lattice_in_same_ambient_space(L, bM)
           N = lattice_in_same_ambient_space(L, bN)
           push!(results, (L, M3, N))
@@ -1372,3 +1390,248 @@ function _primitive_embeddings_generic_safe(
   end
   return results
 end
+
+###############################################################################
+#
+#  Temporary
+#
+###############################################################################
+
+# To connect to the LMFDB database:
+# - fork https://github.com/thofma/LMFDB.jl
+# - run `using LMFDB`
+# - fetch the database: `db = LMFDB.LMFDBLite.LMFDBConnection()`
+# - load some genera: z.B. `l6=LMFDB.genera(db; rank = 6, nplus=6, det = >=(1) & <=(div(300, 8, RoundUp)));`
+
+function _primitive_embeddings_lmfdb(
+  G1s::Vector{ZZGenus},
+  G2s::Vector{ZZGenus},
+)
+  results = Tuple{String, String, ZZMatrix}[]
+  for G2 in G2s
+    append!(results, _primitive_embeddings_lmfdb(G1s, G2))
+  end
+  return results
+end
+
+function _primitive_embeddings_lmfdb(
+  G1s::Vector{ZZGenus},
+  G2::ZZGenus,
+)
+  results = Tuple{String, String, ZZMatrix}[]
+  G1s = filter(>(rank(G2))∘rank, G1s)
+  filter!(>(signature_pair(G2))∘signature_pair, G1s)
+  if !is_even(G2)
+    filter!(!is_even, G1s)
+  end
+  q2 = discriminant_group(G2)
+  Ctx = ZZLatGluingCtx()
+  push!(Ctx.modules, q2)
+
+  for G1 in G1s
+    if is_unimodular(G1)
+      append!(results, _primitive_embeddings_in_unimodular_safe_lmfdb(G1, G2))
+    elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
+      append!(results, _primitive_embeddings_coprime_det_safe_lmfdb(G1, G2))
+    else
+      append!(results, _primitive_embeddings_generic_safe_lmfdb(G1, G2; Ctx, vi=(-1, 1), q2))
+    end
+  end
+  return results
+end
+
+function _primitive_embeddings_in_unimodular_safe_lmfdb(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+  results = Tuple{String, String, ZZMatrix}[]
+  if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q = rescale(discriminant_group(G2), -1; cached=false)
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && return results
+
+  Ns = ZZLat[]
+  for GK in GKs
+    append!(Ns, __representatives(GK))
+  end
+  Ms = __representatives(G2)
+  for M in Ms
+    label_bottom = get_attribute(M, :lmfdb_label)
+    for N in Ns
+      tmp = unimodular_primitive_extensions(M, N; parity)
+      for (T, M2, N2) in tmp
+        @assert gram_matrix(M) == gram_matrix(M2)
+        genus(T) != G1 && continue #Should never happen but still
+        for T2 in get_attribute(G1, :representatives)
+          if is_definite(G1)
+            ok, f_top = is_isometric_with_isometry(T, T2)
+          else
+            ok = is_isometric(T, T2)
+          end
+          !ok && continue
+          label_top = get_attribute(T2, :lmfdb_label)
+          if !is_definite(G1)
+            push!(results, (label_top, label_bottom, zero_matrix(ZZ, 0, 0)))
+          else
+            v = map_entries(ZZ, coordinates(basis_matrix(N2), T)*f_top)
+            push!(results, (label_top, label_bottom, v))
+          end
+        end
+      end
+    end
+  end
+  return results
+end
+
+### Coprime det
+
+function _primitive_embeddings_coprime_det_safe_lmfdb(
+  G1::ZZGenus,
+  G2::ZZGenus,
+)
+  results = Tuple{String, String, ZZMatrix}[]
+  if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q1 = discriminant_group(G1)
+  q2 = discriminant_group(G2)
+  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module=(par !== :even))
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && return results
+
+  Ns = ZZLat[]
+  for GK in GKs
+    append!(Ns, __representatives(GK))
+  end
+  Ms = __representatives(G2)
+  for M in Ms
+    GM, _ = image_in_Oq(M)
+    label_bottom = get_attribute(M, :lmfdb_label)
+    for N in Ns
+      GN, _ = image_in_Oq(N)
+      _, tmp = _primitive_extensions_coprime_left(M, N, parity, GM, GN)
+      for (T, M2, N2) in tmp
+        @assert gram_matrix(M) == gram_matrix(M2)
+        genus(T) != G1 && continue #Should never happen but still
+        for T2 in get_attribute(G1, :representatives)
+          if is_definite(G1)
+            ok, f_top = is_isometric_with_isometry(T, T2)
+          else
+            ok = is_isometric(T, T2)
+          end
+          !ok && continue
+          label_top = get_attribute(T2, :lmfdb_label)
+          if !is_definite(G1)
+            push!(results, (label_top, label_bottom, zero_matrix(ZZ, 0, 0)))
+          else
+            v = map_entries(ZZ, coordinates(basis_matrix(N2), T)*f_top)
+            push!(results, (label_top, label_bottom, v))
+          end
+        end
+      end
+    end
+  end
+  return results
+end
+
+
+function _primitive_embeddings_generic_safe_lmfdb(
+  G1::ZZGenus,
+  G2::ZZGenus;
+  Ctx=nothing,
+  vi::Tuple{Int, Int}=(-1, -1),
+  q2::TorQuadModule=discriminant_group(G2),
+  Ms::Vector{ZZLat}=ZZLat[],
+)
+  results = Tuple{String, String, ZZMatrix}[]
+  R = rescale(representative(G1), -1; cached=false)
+  U = hyperbolic_plane_lattice()
+  if is_even(G1)
+    parity = :even
+    T, _ = direct_sum(R, U; cached=false)
+  else
+    parity = :both
+    T, _ = direct_sum(R, U, U; cached=false)
+  end
+  q1n = discriminant_group(T)
+  signK = signature_pair(G1) .- signature_pair(G2)
+
+  Fac, lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
+  isempty(lgm) && return results
+  DKs = Dict{ZZGenus, Vector{ZZLat}}()
+
+  for x in lgm
+    qx = _form_over(x)
+    qK = rescale(qx, -1; cached=false)
+    GKs = _integer_genera(qK, signK, parity)
+    isempty(GKs) && continue
+    # At that point, we know that we have an extension
+    for GK in GKs
+      haskey(DKs, GK) && continue
+      DKs[GK] = representatives(GK)
+    end
+    isempty(Ms) && append!(Ms, __representatives(G2))
+    for M in Ms
+      label_bottom = get_attribute(M, :lmfdb_label)
+      qM = discriminant_group(M)
+      D = _gluing_ambient(qM, q1n, parity)
+      GM, _ = image_in_Oq(M)
+      _ok, phiM = is_isometric_with_isometry(qM, q2)
+      @assert _ok
+      xM = _pullback_left(x, phiM)
+      xMs = _split_orbit_left_group(xM, GM)
+      for _x in xMs, y in _all_glue_maps(_x)
+        V, M2, T2, GV = _overlattice(y, D)
+        resV = Tuple{ZZLat, ZZLat, ZZLat}[]
+        qV = domain(GV)
+        for GK in GKs, K in DKs[GK]
+          _, pe = unimodular_primitive_extensions(V, K; right_discriminant_action=GV, parity)
+          append!(resV, pe)
+        end
+        for (S, V2, W2) in resV
+          T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
+          L = lll(orthogonal_submodule(S, T3))
+          genus(L) == G1 || continue
+          M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
+          @assert is_sublattice(L, M3)
+          @assert is_primitive(L, M3)
+          N = orthogonal_submodule(L, M3)
+          bM = coordinates(basis_matrix(M3), L)
+          bN = coordinates(basis_matrix(N), L)
+          L = integer_lattice(; gram=gram_matrix(L))
+          M3 = lattice_in_same_ambient_space(L, bM)
+          N = lattice_in_same_ambient_space(L, bN)
+          for L2 in __representatives(G1)
+            if is_definite(G1)
+              ok, f_top = is_isometric_with_isometry(L, L2)
+            else
+              ok = is_isometric(L, L2)
+            end
+            !ok && continue
+            label_top = get_attribute(L2, :lmfdb_label)
+            if is_definite(G1)
+              v = map_entries(ZZ, coordinates(bN*f_top, L2))
+              push!(results, (label_top, label_bottom, v))
+            else
+              push!(results, (label_top, label_bottom, zero_matrix(ZZ, 0, 0)))
+            end
+          end
+        end
+      end
+    end
+  end
+  return results
+end
+
