@@ -377,7 +377,58 @@ function show_induced_gmodule(io::IO, C::GModule)
              Lowercase(), group(C), " over ",
              Lowercase(), base_ring(C))
 end
+#=
+  C U-module U <= G
+  D V-module V <= H
+  m: C->D
+  q: H -> G (here: G = H/X)
+  want ind_U^G C -> ind_V^H D
+  via q, ind_U^G is a H-module
+  c otimes g_i -> sum m(c) otimes h for q(h) = g, the coset reps have to match
 
+  map returned for the underlying modules, not the gmodules. The different 
+  groups are tricky.
+  U\G = {g_i | i}
+  V\H = {h_i | i}
+  q(h_i) = u * g_j   - we need the map i->j (up to right/left)
+  need q(V) = U - the twist
+  so j s.th. q(h_i)*inv(g_j) in U
+
+  ====================
+
+  C G-module
+  D U-module, U <= G
+  m: C->D U-linear
+  want
+  C -> ind_U^G D G-linear
+  c -> sum c g_i^-1 otimes g_i for the coset reps
+
+  currently, the wierd option in induce.  
+
+=#
+
+function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
+  hU, gC = get_attribute(indC.M, :induce)
+  U = domain(hU)
+  iU = image(hU)[1]
+  hV, gD = get_attribute(indD.M, :induce)
+  V = domain(hV)
+
+#  @show issubgroup(image(hV*mHG)[1], image(hU)[1])
+#  if !isnothing(twist)
+#    @show issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])
+#    @show issubgroup(image(hV*inner_automorphism(inv(twist))*mHG)[1], image(hU)[1])
+#  end
+  
+  I = zero_map(indC.M, indD.M)
+  for i=1:length(gC)
+    m = gC[i]
+    j = [x for x = 1:length(gD) if mHG(gD[x])*inv(m) in iU]
+    I += sum(canonical_projection(indC.M, i)*mCD*canonical_injection(indD.M, x) for x = j)  
+  end
+
+  return I
+end
 
 #TODO: write an action function that does not use create the matrix...
 """
@@ -502,6 +553,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   #      we need both U->M->N
   #           U -> Ind(M)
   #      Ind(M) -> Ind(N)
+
   #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
     compute the Z[G]-lin embedding into the induced module.
     a -> sum a g_i^-1 otimes g_i
