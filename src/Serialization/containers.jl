@@ -89,8 +89,7 @@ end
 
 # see Array above for load_type_params for general Arrays which include Matrix
 # and Vector
-
-function save_object(s::SerializerState, x::AbstractVector{S}) where S
+function _save_vec_default(s::SerializerState, x::AbstractVector{S}) where S
   save_data_array(s) do
     for elem in x
       if serialize_with_id(typeof(elem))
@@ -103,10 +102,31 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
   end
 end
 
-save_object(s::SerializerState{IPCSerializer}, x::Vector{Int}) = save_base64(s, x)
-load_object(s::DeserializerState{IPCSerializer}, T::Type{Vector{Int}}) = load_base64(s)
+function save_object(s::SerializerState{IPCSerializer}, vec::Vector{ZZRingElem})
+  if maximum(vec) > typemax(Int128) || minimum(vec) < typemin(Int128)
+    _save_vec_default(s, vec)
+  elseif maximum(vec) > typemax(Int64) || minimum(vec) < typemin(Int64)
+    save_base64(s, Int128.(vec))
+  elseif maximum(vec) > typemax(Int32) || minimum(vec) < typemin(Int32)
+    save_base64(s, Int64.(vec))
+  else
+    save_base64(s, Int32.(vec))
+  end
+end
 
-function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
+save_object(s::SerializerState, x::AbstractVector) = _save_vec_default(s, x)
+save_object(s::SerializerState{IPCSerializer}, x::Vector{Int}) = save_base64(s, x)
+
+function save_object(s::SerializerState{IPCSerializer}, vec::Vector{FqFieldElem})
+  if isempty(vec) || degree(parent(first(vec))) > 2
+    _save_vec_default(s, vec)
+  else
+    f = Base.Fix1(lift, ZZ)
+    save_object(s, f.(vec))
+  end
+end
+
+function _default_vec_load(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
       loaded_v = load_array_node(s) do _
@@ -122,8 +142,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
   end
 end
 
-
-function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
+function _default_vec_load(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
   isempty(s.obj) && return T[]
   v = load_array_node(s) do _
     if serialize_with_id(T)
@@ -134,6 +153,22 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
   end
   return v
 end
+
+load_object(s::DeserializerState{IPCSerializer}, T::Type{Vector{Int}}) = load_base64(s)
+
+function load_object(s::DeserializerState{IPCSerializer}, T::Type{Vector{ZZRingElem}})
+  s.obj isa String && return ZZRingElem.(load_base64(s))
+  return _default_vec_load(s, T)
+end
+
+load_object(s::DeserializerState, T::Type{<: Vector}) = _default_vec_load(s, T)
+
+function load_object(s::DeserializerState{IPCSerializer}, T::Type{Vector{FqFieldElem}}, params::FqField)
+  s.obj isa String && return params.(load_object(s, Vector{ZZRingElem}))
+  return _default_vec_load(s, T, params)
+end
+
+load_object(s::DeserializerState, T::Type{<:Vector}, params)  = _default_vec_load(s, T, params)
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
   isempty(s.obj) && return U[]
@@ -160,6 +195,15 @@ save_object(s::SerializerState{IPCSerializer}, mat::Matrix{Int}) = save_base64(s
 function save_object(s::SerializerState{IPCSerializer}, mat::Matrix{T}) where T <: Union{fpFieldElem, FpFieldElem}
   f = Base.Fix1(lift, ZZ)
   save_object(s, f.(mat))
+end
+
+function save_object(s::SerializerState{IPCSerializer}, mat::Matrix{FqFieldElem})
+  if isempty(mat) || degree(parent(first(mat))) > 2
+    _save_mat_default(s, mat)
+  else
+    f = Base.Fix1(lift, ZZ)
+    save_object(s, f.(mat))
+  end
 end
 
 function save_object(s::SerializerState{IPCSerializer}, mat::Matrix{ZZRingElem})
@@ -189,7 +233,7 @@ end
 
 function load_object(s::DeserializerState{IPCSerializer}, T::Type{Matrix{ZZRingElem}})
   s.obj isa String && return ZZRingElem.(load_base64(s))
-  _default_mat_load(s, T)
+  return _default_mat_load(s, T)
 end
 
 # this needs to be Matrix to avoid ambiguities, this is also ok
