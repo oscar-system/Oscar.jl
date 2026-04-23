@@ -222,7 +222,7 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
          z = identity_matrix(F,n)
          for k in 0:L[i][1]-1
             z[pos-L[i][1]*d+k*d:pos-L[i][1]*d+(k+1)*d-1,
-              pos+L[i+1][1]*d+k*d:pos+L[i+1][1]*d+(k+1)*d-1] = c
+              pos+(L[i+1][1]-L[i][1]+k)*d:pos+(L[i+1][1]-L[i][1]+k+1)*d-1] = c
          end
          push!(listgens,z)
          # block below diagonal
