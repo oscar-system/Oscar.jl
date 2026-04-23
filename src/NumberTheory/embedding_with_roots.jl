@@ -1,10 +1,10 @@
 @doc raw"""
     embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true) -> ZZLat, ZZLat, AbstractSpaceMor, ZZLat
     
-  This function is a modified version of embed_in_unimodular.
-  It produces an embedding of a lattice S in an even unimodular lattice L of signature (pos, neg); the genus g of the orthogonal complement to S is unique, its discriminant form being opposite to that of S.
-  The lattice R is chosen in the genus g as to maximize its root sublattice. R is computed using the function _overlattice_orbits(:ZZLat, :ZZGenus) (see the comments there).
-  The output consists of: a lattice L' isometric to L, obtained as primitive extension of S+R; S; a primitive embedding of S in L'; R.
+
+Compute an embedding $i_S \colon S \to L$ into some even unimodular lattice of the given signature such that the orthogonal complement $R:=i_S(S)^\perp$ has a root sublattice of the largest possible rank. The return value is the quadruple `(L, S', iS, R)`.
+
+See also  [`embed_in_unimodular`](@ref).
   
 """
 function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true)
