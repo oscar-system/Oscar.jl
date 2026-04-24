@@ -6,10 +6,12 @@ using ..Oscar
 using LazyArtifacts
 
 function __init__()
-  GAP.Globals.ExtendPackageDirectories(GapObj([
-    abspath(artifact"GAP_pkg_modulargroup"),
-    abspath(artifact"GAP_pkg_origami")
-  ]; recursive = true))
+  GAP.Globals.ExtendPackageDirectories(
+    GapObj([
+        abspath(artifact"GAP_pkg_modulargroup"),
+        abspath(artifact"GAP_pkg_origami"),
+      ]; recursive=true),
+  )
   # the packages get loaded in Oscar.__init__()
 end
 
@@ -361,7 +363,7 @@ julia> o = origami(cperm([1,2],[3,4]), cperm([1,3,5,6],[2,4]))
 Origami ((1,2)(3,4),(1,3,5,6)(2,4), 6)
 
 julia> cylinder_structure(o)
-2-element Vector{Tuple{Int64, Int64}}}:
+2-element Vector{Tuple{Int64, Int64}}:
  (2, 2)
  (2, 1)
 ```
