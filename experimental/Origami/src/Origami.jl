@@ -2,14 +2,15 @@
 
 module OrigamiHelper
 
-using ..GAP
+using ..Oscar
+using LazyArtifacts
 
 function __init__()
-  mod_p = "https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g"
-  ori_p = "https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g"
-  GAP.Packages.install(mod_p)
-  GAP.Packages.install(ori_p)
-  GAP.Packages.load("Origami")
+  GAP.Globals.ExtendPackageDirectories(GapObj([
+    abspath(artifact"GAP_pkg_modulargroup"),
+    abspath(artifact"GAP_pkg_origami")
+  ]; recursive = true))
+  # the packages get loaded in Oscar.__init__()
 end
 
 end

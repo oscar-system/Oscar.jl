@@ -107,6 +107,7 @@ function __init__()
      "ferret",   # backtrack in permutation groups
      "fga",      # dealing with free groups
      "forms",    # bilinear/sesquilinear/quadratic forms
+     "origami",  # for experimental/Origami
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library

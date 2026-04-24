@@ -6,6 +6,20 @@ lazy = true
     sha256 = "9c2f4f6fa9cab3df70cbb2511e1caf4d8d5c8ddb27f8c3b4ddba1f1b84dc8848"
     url = "https://zenodo.org/records/15548043/files/1511-03209.tar.gz"
 
+[GAP_pkg_modulargroup]
+git-tree-sha1 = "628feb5f3540478607f58909deeb7617797a4ede"
+
+    [[GAP_pkg_modulargroup.download]]
+    sha256 = "66f00a41d32f060784d0d88ec2ba2c245b94c7be18fefdb95438a9309c974645"
+    url = "https://github.com/AG-Weitze-Schmithusen/ModularGroup/releases/download/v2.0.1/ModularGroup-2.0.1.tar.gz"
+
+[GAP_pkg_origami]
+git-tree-sha1 = "923fa2f4d20779ef938afac43c10cb427d9b0232"
+
+    [[GAP_pkg_origami.download]]
+    sha256 = "1494e4a3acd3c8caa9e97252a3a41480d5c1d4d39d5af025de4ee44959c5aa3c"
+    url = "https://github.com/AG-Weitze-Schmithusen/Origami/releases/download/v2.0.2/Origami-2.0.2.tar.gz"
+
 [QSMDB]
 git-tree-sha1 = "472148e587b9da2c78a9955d0d258fbbfed649de"
 lazy = true
