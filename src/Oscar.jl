@@ -279,6 +279,7 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
+include("NumberTheory/embedding_with_roots.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
