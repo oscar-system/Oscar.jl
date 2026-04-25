@@ -119,6 +119,12 @@ function save_data_array(f::Function, s::SerializerState,
   _save_data_container(f, s, key, "[", "]")
 end
 
+function save_data_basic(s::SerializerState{IPCSerializer}, x::T,
+                         key::Union{Symbol, Nothing} = nothing) where T <: Union{Bool, Int64, Int32, Int16, Int8, UInt32, UInt16, UInt8}
+  begin_node(s, key)
+  JSON.json(s.io, x)
+end
+
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
   begin_node(s, key)
