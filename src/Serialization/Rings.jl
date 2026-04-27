@@ -174,19 +174,14 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  coeffs = coefficients(p)
   exponent = 0
   save_data_array(s) do
-    for coeff in coeffs
-      # collect only non trivial terms
+    for coeff in coefficients(p)
       if is_zero(coeff)
         exponent += 1
         continue
       end
-      save_data_array(s) do
-        save_object(s, string(exponent))
-        save_object(s, coeff)
-      end
+      save_object(s, (exponent, coeff))
       exponent += 1
     end
   end
