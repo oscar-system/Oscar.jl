@@ -753,7 +753,7 @@ end
 
 Return the Tjurina module of the complete intersection germ `(X,p)` at the point `p`.
 !!! note
-    When dealing with with a hypersurface singularity use the type [`HypersurfaceGerm`](@ref) and the function [`tjurina_algebra`](@ref) to also receive the algebra structure of the Tjurina module.
+    When dealing with a hypersurface singularity use the type [`HypersurfaceGerm`](@ref) and the function [`tjurina_algebra`](@ref) to also receive the algebra structure of the Tjurina module.
 # Examples
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x,:y,:z];
