@@ -22,6 +22,13 @@
       end
     end
 
+    @testset "Large Integer" begin 
+      original = ZZRingElem(2^62)
+      test_save_load_roundtrip(path, original) do loaded
+        @test loaded == original
+      end
+    end
+    
     @testset "String" begin
       original = "original \n \" "
       test_save_load_roundtrip(path, original) do loaded
