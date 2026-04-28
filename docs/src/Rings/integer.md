@@ -230,6 +230,8 @@ These choices have been made for maximum parsimony with the Julia language.
     This expression is reserved for floating point division. Instead, the
     double slash operator `//` should be used for fractions.
 
+We provide more details on the subtle but important [distinction between `/` and `//`.](@ref subtle_distinction_for_rings).
+
 ### [Exact Division](@id integer_exact_division)
 
 * `divexact(a::ZZRingElem, b::ZZRingElem) -> ZZRingElem`

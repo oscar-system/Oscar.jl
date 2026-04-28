@@ -63,9 +63,8 @@ julia> B = change_base_ring(C, A)
 
 OSCAR in general makes a subtle but important distinction between `/` and
 `//`. However, for field elements, they actually are the same and both
-correspond to `divexact`. For details on the general situation, see
-[here](@ref subtle_distinction_for_rings).
-
+correspond to `divexact`. We provide more details on the 
+[distinction between `/` and `//` for rings.](@ref subtle_distinction_for_rings).
 
 ## Contact
 

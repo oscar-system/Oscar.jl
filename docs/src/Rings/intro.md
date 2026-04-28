@@ -16,9 +16,11 @@ various kinds of rings:
 
 ## [Subtle but important: `/` vs `//`](@id subtle_distinction_for_rings)
 
-OSCAR distinguishes a number of different kinds of division. In particular, the operators `/` and `//` have distinct meanings.
+OSCAR distinguishes a number of different kinds of divisions. In particular, the operators `/` and `//` have distinct meanings.
 
-- If `x` and `y` are ring elements then `x / y` is a shorthand for `divexact(x,y)`  and performs division within their parent ring (raising an error if this is not possible).
+Let `x` and `y` be elements of a ring.
+
+- `x / y` is a shorthand for `divexact(x,y)` and performs division within their parent ring (raising an error if this is not possible).
 - `x // y` constructs a formal quotient, placing the result in a fraction-field parent.
 
 Example:
@@ -41,10 +43,9 @@ Univariate polynomial ring in x over QQ
 !!! note
     The above behavior applies to OSCAR types. For plain Julia numbers, `/`
     denotes floating-point division. Indeed, it is a common error to enter
-    `1/2` for the fraction 'one half' in Julia. See [here](@ref division_of_integers_in_OSCAR)
-    for further details on the division of integers in OSCAR.
+    `1/2` for the fraction 'one half' in Julia. We provide [more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
 
-If the parent is already a field (which means it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
+In case the ring in question is a field (which means that it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
 
 ```julia
 julia> F101 = GF(101)
@@ -60,7 +61,7 @@ julia> parent(j) == parent(j//j)
 true
 ```
 
-If the parent is not an integral domain, a field of fractions does not exist in a strict mathematical sense. Nevertheless, `//` may still construct formal fractions. However, computations with such objects may fail. Use with care!
+If the ring in question is not an integral domain, its field of fractions does not exist in a strict mathematical sense. Nevertheless, `//` may still construct formal fractions. However, computations with such objects may fail. Use with care!
 
 The following example illustrates such failures for ``\mathbb{Z}/100 \mathbb{Z}`` (which is not an integral domain, since ``100 = 2^2 \times 5^2``, hence has zero divisors).
 
