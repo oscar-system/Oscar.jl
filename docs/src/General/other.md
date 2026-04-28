@@ -11,6 +11,8 @@ DocTestSetup = Oscar.doctestsetup()
 - Julia evaluates `2^100` to `0` because `2` is regarded as a 64 bit integer.
   Write `ZZRingElem(2)^100` to get a long.
 
+- OSCAR makes a subtle but important [distinction between `/` and `//`](@ref subtle_distinction_for_rings).
+
 
 ## Notes for GAP users
 

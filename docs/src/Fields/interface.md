@@ -29,7 +29,7 @@ We list the methods that work for any field and its elements.
 | `a + b` | |
 | `a - b` | |
 | `a * b` | |
-| `a / b` | Errors if `b` is zero |
+| `a / b` | Errors if `b` is zero (same as `//`, see [details](@ref subtle_distinction_for_rings)) |
 | `a^n` | |
 | `is_power(a, n)` | |
 | `is_square(a)` | | 

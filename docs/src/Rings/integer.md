@@ -213,9 +213,9 @@ operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
 Julia and OSCAR integers. It also provides division and powering as described
 below.
 
-### Division in OSCAR
+### [Division](@id division_of_integers_in_OSCAR)
 
-OSCAR distinguishes a number of different kinds of division:
+OSCAR distinguishes a number of different kinds of division for integers:
 
 * [Exact division](@ref integer_exact_division) (`divexact`)
 * [Euclidean division](@ref integer_euclidean_division) (`div`, `rem`, `divrem` and `mod`)
@@ -229,6 +229,8 @@ These choices have been made for maximum parsimony with the Julia language.
     It is a common error to enter `1/2` for the fraction 'one half' in Julia.
     This expression is reserved for floating point division. Instead, the
     double slash operator `//` should be used for fractions.
+
+We provide more details on the subtle but important [distinction between `/` and `//`.](@ref subtle_distinction_for_rings).
 
 ### [Exact Division](@id integer_exact_division)
 
