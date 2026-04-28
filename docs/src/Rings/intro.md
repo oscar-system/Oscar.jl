@@ -18,7 +18,7 @@ various kinds of rings:
 
 OSCAR distinguishes a number of different kinds of division. In particular, the operators `/` and `//` have distinct meanings.
 
-- `x / y` performs exact division within the current algebraic structure, if defined (and provides a convenient shorthand for `divexact`).
+- If `x` and `y` are ring elements then `x / y` is a shorthand for `divexact(x,y)`  and performs division within their parent ring (raising an error if this is not possible).
 - `x // y` constructs a formal quotient, placing the result in a fraction-field parent.
 
 Example:
