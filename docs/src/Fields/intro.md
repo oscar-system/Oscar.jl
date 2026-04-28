@@ -58,6 +58,13 @@ julia> B = change_base_ring(C, A)
 [3.0000000000000000000   4.0000000000000000000]
 ```
 
+
+## Division
+
+OSCAR makes a subtle but important distinction between `/` and `//`. For field elements,
+`//` coincides with exact division (`div_exact`). For more details see [here](@ref subtle_distinction_for_rings).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:

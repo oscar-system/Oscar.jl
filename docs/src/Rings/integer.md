@@ -213,9 +213,9 @@ operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
 Julia and OSCAR integers. It also provides division and powering as described
 below.
 
-### Division in OSCAR
+### [Division](@id division_of_integers_in_OSCAR)
 
-OSCAR distinguishes a number of different kinds of division:
+OSCAR distinguishes a number of different kinds of division for integers:
 
 * [Exact division](@ref integer_exact_division) (`divexact`)
 * [Euclidean division](@ref integer_euclidean_division) (`div`, `rem`, `divrem` and `mod`)
