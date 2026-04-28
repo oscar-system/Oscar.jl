@@ -61,9 +61,10 @@ julia> B = change_base_ring(C, A)
 
 ## Division
 
-OSCAR makes a subtle but important distinction between `/` and `//`. For field elements,
-`//` coincides with exact division (`/` or alternatively `divexact`). For more details
-see [here](@ref subtle_distinction_for_rings).
+OSCAR in general makes a subtle but important distinction between `/` and
+`//`. However, for field elements, they actually are the same and both
+correspond to `divexact`. For details on the general situation, see
+[here](@ref subtle_distinction_for_rings).
 
 
 ## Contact
