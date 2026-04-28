@@ -177,11 +177,7 @@ function save_object(s::SerializerState, p::PolyRingElem)
   exponent = 0
   save_data_array(s) do
     for coeff in coefficients(p)
-      if is_zero(coeff)
-        exponent += 1
-        continue
-      end
-      save_object(s, (exponent, coeff))
+      !is_zero(coeff) && save_object(s, (exponent, coeff))
       exponent += 1
     end
   end
