@@ -490,13 +490,13 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
       set_attribute!(
         model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface)
       )
-      set_attribute!(
-        model,
-        :gens_of_h22_hypersurface_indices,
-        get_attribute(model, :basis_of_h22_hypersurface_indices),
-      )
-      delete!(model.__attrs, :basis_of_h22_hypersurface)
-      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
+      #set_attribute!(
+      #  model,
+      #  :gens_of_h22_hypersurface_indices,
+      #  get_attribute(model, :basis_of_h22_hypersurface_indices),
+      #)
+      #delete!(model.__attrs, :gens_of_h22_hypersurface)
+      #delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
       return model
     end
   end
