@@ -256,7 +256,7 @@ a sparse transformation matrix `T` such that `matrix(T)*matrix(M) = matrix(G)`.
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
   R = base_ring(M)
   G, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(M))
-  A = sparse_matrix(R, 0, ngens(trans_mod))
+  A = sparse_matrix(R, 0, ngens(M))
   for v in gens(trans_mod)
     push!(A, _build_sparse_row(R, v))
   end
