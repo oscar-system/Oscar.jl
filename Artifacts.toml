@@ -1,10 +1,10 @@
 [FTM-1511-03209]
-git-tree-sha1 = "2f4789fb56911fa34843c1754042837e07c2d376"
+git-tree-sha1 = "253e96bbc764b7446e5458272ef7e31456fb9ec7"
 lazy = true
 
     [[FTM-1511-03209.download]]
-    sha256 = "9c2f4f6fa9cab3df70cbb2511e1caf4d8d5c8ddb27f8c3b4ddba1f1b84dc8848"
-    url = "https://zenodo.org/records/15548043/files/1511-03209.tar.gz"
+    sha256 = "5c58dc4fc1e8c0262d38bce392f13f17e0e7fd5f5c63d65b1197b278efafcda0"
+    url = "https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/1511-03209.tar.gz"
 
 [QSMDB]
 git-tree-sha1 = "796900a5e5237f02b2593ff3b2317f63dec2a20f"
