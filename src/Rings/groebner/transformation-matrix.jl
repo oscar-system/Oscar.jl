@@ -90,7 +90,7 @@ julia> R,(x,y) = polynomial_ring(QQ,[:x,:y]);
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
 julia> G, T = Oscar.standard_basis_with_sparse_transformation_matrix(I, ordering=neglex(R))
-(Standard basis with 1 element w.r.t. neglex([x, y]), [-1; 0])
+(Standard basis with 1 element w.r.t. neglex([x, y]), Sparse 1 x 2 matrix with 1 non-zero entries)
 
 julia> gens(G) == [sum(c*gen(I, k) for (k, c) in v; init=zero(R)) for v in T]
 true
