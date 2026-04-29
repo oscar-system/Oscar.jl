@@ -66,7 +66,7 @@ true
 """
 function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   G, A = standard_basis_with_sparse_transformation_matrix(I; ordering, complete_reduction)
-  return G, matrix(A)
+  return G, transpose(matrix(A))
 end
 
 # same as above, but returning a sparse matrix
