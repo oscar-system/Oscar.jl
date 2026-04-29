@@ -42,7 +42,7 @@ Univariate polynomial ring in x over QQ
 ```
 
 !!! note
-    The above behavior applies to OSCAR types. For instance, provided `x isa RingElem` you can execute `x/2`, which will be an element in the corresponding parent ring. In contrast, for plain Julia numbers, `/` denotes floating-point division. As such, the result of `1/2` is a floating point number in Julia. We provide [more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
+    The above behavior applies if at least on of `x` and `y` is an OSCAR ring element. The other argument can also be a Julia integer, rational or float. For instance, provided `x isa RingElem` you can execute `x/2`, which will be an element in the corresponding parent ring. In contrast, if both `x` and `y` are plain Julia numbers, `/` denotes floating-point division. As such, the result of `1/2` is the floating point number `0.5` in Julia. [Read up for more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
 
 In case the ring in question is a field (which means that it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
 
