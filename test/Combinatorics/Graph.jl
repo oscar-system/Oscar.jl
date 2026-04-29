@@ -320,4 +320,40 @@
       @test fixed_points(a) == moved_points(b)
       @test fixed_points(b) == moved_points(a)
     end
+
+    @testset "graph isomorphism" begin
+      test_data = [
+        [Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict((4,5)=>3, (5,6)=>5, (6,4)=>7), true],
+        [Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), false],
+        [Dict((1,2)=>1, (2,3)=>2, (3,4)=>3, (4,1)=>4), Dict((5,6)=>1, (6,7)=>2, (7,8)=>3, (8,5)=>4), true],
+        [Dict((1,2)=>1, (2,3)=>2, (3,4)=>3, (4,1)=>4, (1,3)=>5), Dict((5,6)=>1, (6,7)=>2, (7,8)=>3, (8,5)=>4), false],
+        [Dict((1,2)=>10, (2,3)=>20, (3,4)=>30), Dict((7,8)=>20, (8,9)=>30, (9,7)=>10), true],
+        [Dict((1,2)=>1, (2,3)=>1, (3,4)=>1), Dict((5,6)=>1, (5,7)=>1, (5,8)=>1), false],
+        [Dict((1,2)=>1, (2,3)=>2, (3,4)=>3,(4,5)=>4, (5,1)=>5, (2,5)=>6), Dict((6,7)=>3, (7,8)=>4, (8,9)=>5,(9,10)=>1, (10,6)=>2, (7,10)=>6), true]
+      ]
+      #=  tests for labeled graphs, add when the corresponding logic in is_isomorphic function will be added
+      @testset "Basic tests" for test in test_data
+        G1 = graph_from_labeled_edges(Undirected, test[1]; name=:color)
+        G1_vertex_labeled =  Oscar._edge_label_to_vertex_label(G1, :color)
+        G2 = graph_from_labeled_edges(Undirected, test[2]; name=:color)
+        G2_vertex_labeled =  Oscar._edge_label_to_vertex_label(G2, :color)
+        @info G1_vertex_labeled
+        @test is_isomorphic(G1_vertex_labeled, G2_vertex_labeled; label=:edge_to_vertex) == test[3]
+      end
+      =#
+      G1_empty = graph(Undirected, 0);
+      G2_empty = graph(Undirected, 0);
+      @test is_isomorphic(G1_empty, G2_empty) == true
+
+      G1_one = graph(Undirected, 1);
+      G2_one = graph(Undirected, 1);
+      @test is_isomorphic(G1_one, G2_one) == true
+      @test is_isomorphic(G1_empty, G2_one) == false
+
+      G1_two = graph(Undirected, 2);
+      G2_two = graph(Undirected, 2);
+      @test is_isomorphic(G1_two, G2_two) == true
+      @test is_isomorphic(G1_two, G2_one) == false
+
+    end
 end

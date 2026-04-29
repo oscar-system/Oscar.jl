@@ -1034,10 +1034,10 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
   G_map = getproperty(G, label)
-  label_type = typeof(G_map[1])
-  vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
+  label_type = typeof(G_map[first(edges(G))])
+  vertices_by_label = !isnothing(G_map.vertex_map) ? reduce((a, b) -> mergewith(vcat, a, b),
                              (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
-                             init=Dict{label_type, Vector{Int}}())
+                             init=Dict{label_type, Vector{Int}}()) : Dict(:vertices => collect(1:n_vertices(G)))
   edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
                           (Dict(G_map[e] => [e]) for e in edges(G));
                           init=Dict{label_type, Vector{Edge}}())
