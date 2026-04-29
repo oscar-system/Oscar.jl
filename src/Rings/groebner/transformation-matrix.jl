@@ -28,6 +28,17 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
   return IdealGens(R, istd), map_entries(R, m)
 end
 
+function _compute_standard_basis_with_sparse_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
+  istd, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(B, ordering); 
+                                                           complete_reduction)
+  R = base_ring(B)
+  A = sparse_matrix(R, 0, ngens(trans_mod))
+  for v in gens(trans_mod)
+    push!(A, _build_sparse_row(R, v))
+  end
+  return IdealGens(R, istd), A
+end
+
 @doc raw"""
     standard_basis_with_transformation_matrix(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
