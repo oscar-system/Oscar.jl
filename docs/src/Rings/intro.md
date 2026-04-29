@@ -22,6 +22,7 @@ Let `x` and `y` be elements of a ring.
 
 - `x / y` is a shorthand for `divexact(x,y)` and performs division within their parent ring (raising an error if this is not possible).
 - `x // y` constructs a formal quotient, placing the result in a fraction-field parent.
+- For fields, `/` and `//` coincide.
 
 Example:
 
@@ -41,9 +42,7 @@ Univariate polynomial ring in x over QQ
 ```
 
 !!! note
-    The above behavior applies to OSCAR types. For plain Julia numbers, `/`
-    denotes floating-point division. Indeed, it is a common error to enter
-    `1/2` for the fraction 'one half' in Julia. We provide [more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
+    The above behavior applies to OSCAR types. For instance, provided `x isa RingElem` you can execute `x/2`, which will be an element in the corresponding parent ring. In contrast, for plain Julia numbers, `/` denotes floating-point division. As such, the result of `1/2` is a floating point number in Julia. We provide [more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
 
 In case the ring in question is a field (which means that it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
 
