@@ -28,6 +28,7 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
   return IdealGens(R, istd), map_entries(R, m)
 end
 
+# same as above, but using a sparse matrix 
 function _compute_standard_basis_with_sparse_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   istd, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(B, ordering); 
                                                            complete_reduction)
@@ -64,11 +65,17 @@ true
 ```
 """
 function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  G, A = standard_basis_with_sparse_transformation_matrix(I; ordering, complete_reduction)
+  return G, matrix(A)
+end
+
+# same as above, but returning a sparse matrix
+function standard_basis_with_sparse_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   complete_reduction && @assert is_global(ordering)
-  G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+  G, A = _compute_standard_basis_with_sparse_transform(I.gens, ordering, complete_reduction)
   G.isGB = true
-  I.gb[ordering]  = G
-  return G, m
+  I.gb[ordering] = G
+  return G, A
 end
 
 @doc raw"""
