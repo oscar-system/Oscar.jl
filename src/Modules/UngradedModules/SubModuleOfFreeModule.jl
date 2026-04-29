@@ -455,9 +455,10 @@ function lift_std(M::SubModuleOfFreeModule)
     end
   end
   gb, transform = lift_std(M.gens, default_ordering(M))
-  M.groebner_basis[default_ordering(M)] = gb
   if !isdefined(M, :any_gb_with_transition)
     M.any_gb_with_transition = gb
+  else
+    M.groebner_basis[default_ordering(M)] = gb # this line spends a significant amount of time on hashing the ordering!
   end
   return gb, transform
 end
