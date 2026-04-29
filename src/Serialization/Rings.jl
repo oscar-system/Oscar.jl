@@ -174,13 +174,9 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  exponent = 0
-  save_data_array(s) do
-    for coeff in coefficients(p)
-      !is_zero(coeff) && save_object(s, (exponent, coeff))
-      exponent += 1
-    end
-  end
+  save_object(s, [
+    (i - 1, c) for (i, c) in enumerate(coefficients(p)) if !is_zero(c)
+      ])
 end
 
 function save_object(s::SerializerState{IPCSerializer}, p::PolyRingElem)
