@@ -94,7 +94,7 @@ function presentation(SQ::SubquoModule;
   =#
 end
 
-function _presentation_graded(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_graded(SQ::SubquoModule)
   #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
@@ -135,7 +135,7 @@ function _presentation_graded(SQ::SubquoModule)
   return M
 end
 
-function _presentation_simple(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   F = ambient_free_module(SQ)
