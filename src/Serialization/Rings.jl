@@ -196,7 +196,7 @@ function load_object(s::DeserializerState,
   coeff_type = elem_type(coeff_ring)
   exps_coeffs = load_object(s, Vector{Tuple{Vector{Int}, coeff_type}}, (nothing, coeff_ring))
 
-  for (e, c) in exponents
+  for (e, c) in exps_coeffs
     push_term!(polynomial, c, e_int)
   end
   return finish(polynomial)
