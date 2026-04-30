@@ -155,7 +155,7 @@ end
 # since types on load will be Matrix
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   load_node(s) do entries
-    if isempty(entries)
+    if iszero(length(entries))
       return T(undef, 0, 0)
     end
     len = length(entries)
