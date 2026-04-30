@@ -21,24 +21,6 @@ end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
 
-######################################################################
-# pretty printing for iJulia notebooks..
-#
-
-function Base.show(io::IO, mime::IJuliaMime, R::MPolyRing)
-  io = IOContext(io, :compact => true)
-  print(io, "\$")
-  math_html(io, R)
-  print(io, "\$")
-end
-
-function math_html(io::IO, R::MPolyRing)
-  print(io, "\\text{Multivariate Polynomial Ring in $(nvars(R)) variables:} ")
-  math_html(io, gens(R))
-  print(io, "\\text{ over }")
-  math_html(io, base_ring(R))
-end
-
 ###################################################
 
 using .Orderings
