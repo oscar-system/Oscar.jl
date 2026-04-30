@@ -199,11 +199,6 @@ jobs:
         run: echo "OSCAR_TEST_SUBSET=extra_long" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
-      #- name: Upload upgraded mrdi
-      #  uses: actions/upload-artifact@v4
-      #  with:
-     #     name: 1511-03209-upgraded
-     #     path: /tmp/1511-03209-upgraded.mrdi
 
   doctest:
     runs-on: ${{ matrix.os }}
