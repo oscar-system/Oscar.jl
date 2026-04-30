@@ -142,30 +142,30 @@ end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  # we use this line instead of typeof(coeff(p, 1)) to catch the 0 polynomial
-  coeff_type = elem_type(coefficient_ring(p))
-  save_data_array(s) do
-    for i in 1:length(p)
-      save_data_array(s) do 
-        save_object(s, map(string, exponent_vector(p, i)))
-        save_object(s, coeff(p, i))
-      end
-    end
-  end
+  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
-  index = 0
-  save_data_array(s) do
-    for c in coefficients(p)
-      exponent_vector, index = iterate(exponent_vectors_gen, index)
-      save_data_array(s) do
-        save_object(s, map(string, exponent_vector))
-        save_object(s, c)
-      end
-    end
+  save_object(s, [(e, c) for (c, e) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))])
+end
+
+function load_object(s::DeserializerState,
+                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
+                     parent_ring::PolyRingUnionType)
+  coeff_ring = coefficient_ring(parent_ring)
+  polynomial = MPolyBuildCtx(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, Vector{Tuple{Vector{Int}, coeff_type}}, (nothing, coeff_ring))
+
+  for (e, c) in exps_coeffs
+    push_term!(polynomial, c, e)
   end
+  return finish(polynomial)
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
+  return parent_ring(poly)
 end
 
 ################################################################################
@@ -174,78 +174,41 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  coeffs = coefficients(p)
-  exponent = 0
-  save_data_array(s) do
-    for coeff in coeffs
-      # collect only non trivial terms
-      if is_zero(coeff)
-        exponent += 1
-        continue
-      end
-      save_data_array(s) do
-        save_object(s, string(exponent))
-        save_object(s, coeff)
-      end
-      exponent += 1
-    end
-  end
+  save_object(s, [
+    (i - 1, c) for (i, c) in enumerate(coefficients(p))
+      if !is_zero(c) ])
 end
 
-function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
+function save_object(s::SerializerState{IPCSerializer},
+                     p::PolyRingElem)
+  save_object(s, collect(coefficients(p)))
+end
+
+function load_object(s::DeserializerState{IPCSerializer},
+                     ::Type{<:PolyRingElem},
                      parent_ring::PolyRing)
-  load_node(s) do terms
-    if isempty(terms)
-      return parent_ring(0)
-    end
-    # load exponents and account for shift
-    exponents = []
-    for i in 1:length(terms)
-      e = load_node(s, i) do _
-        load_object(s, Int, 1) + 1
-      end
-      push!(exponents, e)
-    end
-    degree = max(exponents...)
-    coeff_ring = coefficient_ring(parent_ring)
-    loaded_terms = Hecke.zeros_array(coeff_ring, degree)
-    coeff_type = elem_type(coeff_ring)
-    for (i, exponent) in enumerate(exponents)
-      load_node(s, i) do _
-        load_node(s, 2) do _
-          loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
-        end
-      end
-    end
-    return parent_ring(loaded_terms)
-  end
+  CR = coefficient_ring(parent_ring)
+  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
-                     parent_ring::PolyRingUnionType)
-  load_node(s) do terms
-    exponents = [term[1] for term in terms]
-    coeff_ring = coefficient_ring(parent_ring)
-    polynomial = MPolyBuildCtx(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    for (i, e) in enumerate(exponents)
-      load_node(s, i) do _
-        c = load_object(s, coeff_type, coeff_ring, 2)
-        e_int = load_array_node(s, 1) do _
-          load_object(s, Int)
-        end
-        push_term!(polynomial, c, e_int)
-      end
-    end
-    return finish(polynomial)
+                     ::Type{<: PolyRingElem},
+                     parent_ring::PolyRing)
+  coeff_ring = coefficient_ring(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, Vector{Tuple{Int, coeff_type}},
+                            (nothing, coeff_ring))
+
+  isempty(exps_coeffs) && return parent_ring(0)
+  
+  degree = max([e for (e, _) in exps_coeffs]...)
+  loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
+  for (e, c) in exps_coeffs
+    loaded_terms[e + 1] = c
   end
+  return parent_ring(loaded_terms)
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
-  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
-end
 
 ################################################################################
 # Polynomial Ideals
