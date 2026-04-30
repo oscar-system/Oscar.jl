@@ -206,10 +206,10 @@ function load_ref(s::DeserializerState)
 end
 
 function Base.haskey(s::DeserializerState, key::Symbol)
-  s.obj[] isa String && return false
-  load_node(s) do obj
-    haskey(obj[], key)
-  end
+  !(s.obj isa JSON.LazyValue) && return false
+  obj = s.obj[]
+  obj isa String && return false
+  haskey(obj, key)
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
@@ -219,18 +219,20 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-    if s.obj[] isa String && !isnothing(tryparse(UUID, s.obj[]))
+  if s.obj isa JSON.LazyValue && s.obj[] isa String && !isnothing(tryparse(UUID, s.obj[]))
     return load_ref(s)
   end
 
   !isnothing(key) && set_key(s, key)
   lazy_obj = s.obj
-  obj = isnothing(s.key) ? s.obj[] : s.obj[][s.key]
+  if !isnothing(s.key)
+    s.obj = s.obj[s.key]
+  end
   s.key = nothing
-  if isnothing(obj)
+  if isnothing(s.obj)
     result = nothing
   else
-    result = f(obj)
+    result = f(s.obj)
   end
   s.obj = lazy_obj
   return result
