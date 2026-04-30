@@ -15,7 +15,7 @@ function modular_det(A::MatrixElem{T};
   # homogeneous parts of the rows of `A` for fixed degrees `dᵢ` 
   # per row. 
   bound = factorial(ZZ(m))*ZZ(maximum([maximum(abs.(coefficients(a)); init=0) for a in A]; init=0))^m
-  # Such determinants add up to the coefficient of tᵈwith as many 
+  # Such determinants add up to the coefficient of tᵈ with as many 
   # summands as there are possibilities for `Σᵢ dᵢ = d`. The following 
   # binomial coefficient is a significant overcount, but reliable 
   # bound of this.
@@ -24,7 +24,8 @@ function modular_det(A::MatrixElem{T};
   # Select primes until the above bound is reached. 
   primes = Int[next_prime(2^60)]
   primes_prod = one(ZZ)
-  while 2*primes_prod < bound
+  bound *= 2 # makes enough space on positive and negative axis
+  while primes_prod < bound
     p = next_prime(last(primes)+1)
     p in primes && continue
     push!(primes, p)
