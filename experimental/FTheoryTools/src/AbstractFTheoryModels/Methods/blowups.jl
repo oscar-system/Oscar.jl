@@ -483,7 +483,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
   if has_attribute(m, :arxiv_id) && arxiv_id(m) == "1511.03209" && resolution_index == 1
-    return load(artifact"FTM-1511-03209/1511-03209-resolved.mrdi")
+    return load(artifact"FTM-1511-03209/1511-03209-resolved.mrdi")::GlobalTateModel
   end
 
   # To be extended to hypersurface models...
