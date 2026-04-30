@@ -129,10 +129,12 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   @assert ngens(F) == length(multi_inds)
   if all(is_graded, G)
     all_degs = [degrees_of_generators(M) for M in G]
-    G = grading_group(R)
-    F.d = [sum(all_degs[k][j] for (k, j) in enumerate(ind); init=zero(G)) for ind in multi_inds]
+    GG = grading_group(R)
+    F.d = [sum(all_degs[k][j] for (k, j) in enumerate(ind); init=zero(GG)) for ind in multi_inds]
   end
   I = [F(v) for v in A]
+
+  result = SubquoModule(F, gens(F), I)
 
   function pure_helper(inds::Vector{Int}, rem::Vector)
     is_one(length(rem)) && return sum(c*F[ind_pos[vcat(inds, [i])]] for (i, c) in coordinates(only(rem)); init=zero(F))
@@ -140,19 +142,18 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return sum(c*pure_helper(vcat(inds, [i]), rem[2:end]) for (i, c) in coordinates(v); init=zero(F))
   end
   function pure(t::ModuleFPElem...)
-    return pure_helper(Int[], collect(t))
+    return result(pure_helper(Int[], collect(t)))
   end
   function pure(t::Tuple)
     return pure(t...)
   end
 
   function decomp(v::SubquoModuleElem)
-    (i, c) == only(coordinates(v))
+    i, c = only(coordinates(v))
     is_one(c) || error("element must be a module generator")
-    return [M[j] for (j, M) in zip(multi_inds[i], G)]
+    return Tuple([M[j] for (j, M) in zip(multi_inds[i], G)])
   end
 
-  result = SubquoModule(F, gens(F), I)
   set_attribute!(result, :tensor_pure_function=>pure, :tensor_generator_decompose_function=>decomp)
   set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
 
