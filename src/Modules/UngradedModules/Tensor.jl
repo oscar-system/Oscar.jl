@@ -121,30 +121,37 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   is_empty(G) && error("list of modules must not be empty")
   R = base_ring(first(G))
   @assert all(base_ring(M) === R for M in G) "modules must be defined over the same ring"
-  presentations = [presentation(M) for M in G]
+  # The presentations need to map generators to generators! 
+  # We can not match elements, unless this is the case.
+  presentations = [presentation(M; minimal=false) for M in G]
   mats = [sparse_matrix(map(c, 1)) for c in presentations] 
+  @assert all(ncols(B) == ngens(M) for (M, B) in zip(G, mats)) "presentations do not implement a 1:1 correspondence for the generators"
   multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in reverse(G)]))
   multi_inds = reverse.(multi_inds)
   ind_pos = Dict(i=>j for (j, i) in enumerate(multi_inds))
   ids = [_sparse_identity_matrix(R, ngens(M)) for M in G]
   A = sparse_matrix(R, 0, prod(ngens(M) for M in G; init=1))
   for i in 1:length(ids)
-    idc = copy(ids)
-    idc[i] = mats[i]
-    B = _kronecker_product(idc)
+    id = ids[i]
+    ids[i] = mats[i]
+    B = _kronecker_product(ids)
     A = vcat(A, B)
+    ids[i] = id
   end
-  F = free_module(R, ncols(A))
+  F = FreeMod(R, ncols(A))
   @assert ngens(F) == length(multi_inds)
+
+  # In the graded case we just swap over the degrees. 
   if all(is_graded, G)
     all_degs = [degrees_of_generators(M) for M in G]
     GG = grading_group(R)
     F.d = [sum(all_degs[k][j] for (k, j) in enumerate(ind); init=zero(GG)) for ind in multi_inds]
   end
-  I = [F(v) for v in A]
 
+  I = [F(v) for v in A]
   result = SubquoModule(F, gens(F), I)
 
+  # Functions for tensor multiplication and decomposition
   function pure_helper(inds::Vector{Int}, rem::Vector)
     is_one(length(rem)) && return sum(c*F[ind_pos[vcat(inds, [i])]] for (i, c) in coordinates(only(rem)); init=zero(F))
     v = first(rem)
@@ -163,6 +170,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return Tuple([M[j] for (j, M) in zip(multi_inds[i], G)])
   end
 
+  # set attributes as needed
   set_attribute!(result, :tensor_pure_function=>pure, :tensor_generator_decompose_function=>decomp)
   set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
 
@@ -179,6 +187,8 @@ function _kronecker_product(mats::Vector)
   return _kronecker_product(_kronecker_product(mats[1:h]), _kronecker_product(mats[h+1:end]))
 end
 
+# Probably the same as in AA. However, we rely on a compatibility with the 
+# other iterations here, so we need to make sure this does the right thing. 
 function _kronecker_product(A::SMat, B::SMat)
   R = base_ring(A)
   m1, n1 = size(A)
@@ -192,6 +202,7 @@ function _kronecker_product(A::SMat, B::SMat)
   return C
 end
 
+# Helper function to create the identity matrix. Does this exist somewhere already? 
 function _sparse_identity_matrix(R::Ring, n::Int)
   A = sparse_matrix(R, 0, n)
   for i in 1:n
