@@ -60,6 +60,23 @@ julia> parent(j) == parent(j//j)
 true
 ```
 
+Mixing `/` and `//` in the same expression can lead to subtle changes in the parent of the result. In the following example we create the same polynomial twice: once as an element of a polynomial ring (via `/`) and once as an element of its field of fractions (via `//`). We can add these ring elements despite residing in different rings, thanks to our[promotion rules](https://nemocas.github.io/AbstractAlgebra.jl/stable/ring_interface/#Promotion-rules), but the result lives in the field of fractions. This may be unexpected at first.
+
+```julia
+julia> R, x = polynomial_ring(QQ, :x)
+(Univariate polynomial ring in x over QQ, x)
+
+julia> f = 1+x
+x + 1
+
+julia> g = f//2 + f/2
+x + 1
+
+julia> parent(g)
+Fraction field
+  of univariate polynomial ring in x over QQ
+```
+
 If the ring in question is not an integral domain, its field of fractions does not exist in a strict mathematical sense. Nevertheless, `//` may still construct formal fractions. However, computations with such objects may fail. Use with care!
 
 The following example illustrates such failures for ``\mathbb{Z}/100 \mathbb{Z}`` (which is not an integral domain, since ``100 = 2^2 \times 5^2``, hence has zero divisors).
