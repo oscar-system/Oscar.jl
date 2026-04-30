@@ -1,7 +1,5 @@
 function modular_det(A::MatrixElem{T};
     wp::Union{OscarWorkerPool, Nothing}=nothing,
-    primes_bound=ZZ(1000)^6 # Experiments suggest that beyond this bound
-                            # modular arithmetic becomes slow again.
   ) where {T<:ZZPolyRingElem}
   m, n = size(A)
   m == n || error("matrix must be square")
@@ -23,26 +21,29 @@ function modular_det(A::MatrixElem{T};
   # bound of this.
   bound *= binomial(m-1+max_deg, max_deg)
 
-  # Select random primes until the above bound is reached. 
-  primes = ZZRingElem[]
+  # Select primes until the above bound is reached. 
+  primes = Int[next_prime(2^60)]
   primes_prod = one(ZZ)
   while 2*primes_prod < bound
-    p = next_prime(rand(ZZ, 0:primes_bound))
+    p = next_prime(last(primes)+1)
     p in primes && continue
     push!(primes, p)
     primes_prod *= p
   end
   
   # Compute determinants of the reduced matrices.
-  Bs = [map_entries(a->map_coefficients(GF(p), a)::FqPolyRingElem, A) for p in primes]
+  GFs = [Native.GF(p; cached=false) for p in primes]
+  Bs = [map_entries(a->map_coefficients(kk, a)::fpPolyRingElem, A) for kk in GFs]
   dets = isnothing(wp) ? [det(B) for B in Bs] : pmap(det, wp, Tuple(Bs))
 
   # Reconstruct the coefficients from chinese remaindering
   max_deg = maximum(degree(b) for b in dets; init=0)
   new_coeffs = sizehint!(ZZRingElem[], max_deg)
+  zz_primes = ZZ.(primes)
+  pp2 = div(primes_prod, 2)
   for i in 0:max_deg
-    c = crt([lift(ZZ, coeff(b, i)) for b in dets], primes; check=false)
-    if 2*c > primes_prod
+    c = crt([lift(ZZ, coeff(b, i)) for b in dets], zz_primes; check=false)
+    if c > pp2
       c -= primes_prod
     end
     push!(new_coeffs, c)
