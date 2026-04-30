@@ -479,7 +479,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{Int, Int}})
   dict = T()
-  for k in keys(s.obj)
+  for k in propertynames(s.obj)
     dict[parse(Int, string(k))] = load_object(s, Int, k)
   end
   return dict
@@ -488,7 +488,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{Int, S}}, params::Nothing) where S
   dict = T()
-  for k in keys(s.obj)
+  for k in propertynames(s.obj)
     dict[parse(Int, string(k))] = load_object(s, S, k)
   end
   return dict
@@ -527,7 +527,7 @@ function load_object(s::DeserializerState,
                      params::Dict) where {S <: Union{Int, String, Symbol}, U}
   if haskey(params, :value_params)
     pairs = Tuple{S, U}[]
-    for k in keys(s.obj)
+    for k in propertynames(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
       push!(pairs, (key, load_object(s, U, params[:value_params], k)))
     end
