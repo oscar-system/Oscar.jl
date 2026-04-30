@@ -50,4 +50,17 @@
   yield()
 end
 
+@testset "modular determinants" begin
+  using Distributed
+  oscar_worker_pool(1) do wp
+    P, t = ZZ[:t]
+    m = 5 # from m = 12 it starts to get interesting in terms of timings
+    A = matrix_space(P, m, m)([rand(P, 1:100, -1000:1000) for _ in 1:m, _ in 1:m]);
+    @test det(A) == Oscar.modular_det(A)
+    @test det(A) == Oscar.modular_det(A; wp)
+  end
+  sleep(2)
+  yield()
+end
+
   
