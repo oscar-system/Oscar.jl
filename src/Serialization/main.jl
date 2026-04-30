@@ -854,7 +854,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_typed_object(s; override_params=params)
     end
 
-    if :id in keys(s.obj)
+    if haskey(s, :id)
       load_node(s, :id) do id
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
