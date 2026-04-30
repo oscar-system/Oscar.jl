@@ -290,4 +290,5 @@ function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
   pmap(f, wp.wp, c; kwargs...)
 end
 
+include("determinants.jl")
 export oscar_worker_pool
