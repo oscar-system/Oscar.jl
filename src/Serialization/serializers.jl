@@ -232,7 +232,7 @@ function load_node(f::Function, s::DeserializerState,
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj)
+    result = f(s.obj[])
   end
   s.obj = lazy_obj
   return result

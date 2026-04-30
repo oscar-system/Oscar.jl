@@ -385,8 +385,7 @@ function load_type_params(s::DeserializerState, T::Type)
     end
   end
   if haskey(s, :params)
-    load_node(s, :params) do lazy_obj
-      obj = lazy_obj[]
+    load_node(s, :params) do obj
       if obj isa AbstractVector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)

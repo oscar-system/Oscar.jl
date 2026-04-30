@@ -97,7 +97,7 @@ end
 @register_serialization_type Symbol
 
 function load_object(s::DeserializerState, ::Type{Symbol})
-  load_node(s) do str[]
+  load_node(s) do str
     Symbol(str)
   end
 end
