@@ -119,12 +119,21 @@ julia> t((M[1], M[2]))
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
   is_empty(G) && error("list of modules must not be empty")
+  R = base_ring(first(G))
+  @assert all(base_ring(M) === R for M in G) "modules must be defined over the same ring"
   presentations = [presentation(M) for M in G]
   mats = [sparse_matrix(map(c, 1)) for c in presentations] 
-  multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in G]))
+  multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in reverse(G)]))
+  multi_inds = reverse.(multi_inds)
   ind_pos = Dict(i=>j for (j, i) in enumerate(multi_inds))
-  A = _kronecker_product(mats)
-  R = base_ring(A)
+  ids = [_sparse_identity_matrix(R, ngens(M)) for M in G]
+  A = sparse_matrix(R, 0, prod(ngens(M) for M in G; init=1))
+  for i in 1:length(ids)
+    idc = copy(ids)
+    idc[i] = mats[i]
+    B = _kronecker_product(idc)
+    A = vcat(A, B)
+  end
   F = free_module(R, ncols(A))
   @assert ngens(F) == length(multi_inds)
   if all(is_graded, G)
@@ -164,9 +173,29 @@ end
 # recursive method with bisection for many matrices
 function _kronecker_product(mats::Vector)
   is_one(length(mats)) && return only(mats)
-  length(mats) == 2 && return kronecker_product(mats[1], mats[2])
+  length(mats) == 2 && return _kronecker_product(mats[1], mats[2])
   n = length(mats)
   h = div(n, 2)
-  return kronecker_product(_kronecker_product(mats[1:h]), _kronecker_product(mats[h+1:end]))
+  return _kronecker_product(_kronecker_product(mats[1:h]), _kronecker_product(mats[h+1:end]))
 end
 
+function _kronecker_product(A::SMat, B::SMat)
+  R = base_ring(A)
+  m1, n1 = size(A)
+  m2, n2 = size(B)
+  C = sparse_matrix(R, 0, n1*n2)
+  for (i1, v1) in enumerate(A)
+    for (i2, v2) in enumerate(B)
+      push!(C, sparse_row(R, [((j1-1)*n2+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]))
+    end
+  end
+  return C
+end
+
+function _sparse_identity_matrix(R::Ring, n::Int)
+  A = sparse_matrix(R, 0, n)
+  for i in 1:n
+    push!(A, sparse_row(R, i, one(R); check=false))
+  end
+  return A
+end
