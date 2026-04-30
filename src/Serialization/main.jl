@@ -59,12 +59,14 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::JSON.LazyValue)
-  ns_dict = obj[]
+function serialization_version_info(ns_dict::JSON.Object{String, Any})
   ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
+
+serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
+
 
 function version_number(v_number::String)
   return VersionNumber(v_number)
@@ -129,31 +131,32 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)
-  if s.obj isa String
-    uuid = tryparse(UUID, s.obj)
+  obj = s.obj[]
+  if obj isa String
+    uuid = tryparse(UUID, obj)
     if !isnothing(uuid)
       if isnothing(s.refs)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
-      id = s.obj
+      id = obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      s.obj = id
+      obj = id
       return T
     end
-    return decode_type(s.obj)
+    return decode_type(obj)
   end
 
-  if type_key in propertynames(s.obj)
+  if haskey(obj, type_key)
     return load_node(s, type_key) do _
       decode_type(s)
     end
   end
-
-  if :name in propertynames(s.obj)
-    if :_instance in propertynames(s.obj)
-      return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
-        unsupported_instance = s.obj[:_instance]
+  
+  if haskey(obj, :name)
+    if haskey(obj, :_instance)
+      return get(reverse_type_map[obj[:name]], obj[:_instance]) do
+        unsupported_instance = obj[:_instance]
         error("unsupported instance '$unsupported_instance' for decoding")
       end
     else
@@ -374,15 +377,16 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_params(s::DeserializerState, T::Type)
-  if s.obj isa String
+  if s.obj isa JSON.LazyValue{AbstractString}
     if !isnothing(tryparse(UUID, s.obj))
       return T, load_ref(s)
     end
     return T, nothing
   end
   if haskey(s, :params)
-    load_node(s, :params) do obj
-      if obj isa isa AbstractVector
+    load_node(s, :params) do lazy_obj
+      obj = lazy_obj[]
+      if obj isa AbstractVector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
@@ -435,7 +439,8 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+    obj = s.obj[]
+    obj isa String && !isnothing(tryparse(UUID, obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
