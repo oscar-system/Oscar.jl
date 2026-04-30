@@ -59,8 +59,9 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::AbstractDict{Symbol, Any})
-  ns = obj[:_ns]
+function serialization_version_info(obj::JSON.LazyValue)
+  ns_dict = obj[]
+  ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
@@ -143,14 +144,14 @@ function decode_type(s::DeserializerState)
     return decode_type(s.obj)
   end
 
-  if type_key in keys(s.obj)
+  if type_key in propertynames(s.obj)
     return load_node(s, type_key) do _
       decode_type(s)
     end
   end
 
-  if :name in keys(s.obj)
-    if :_instance in keys(s.obj)
+  if :name in propertynames(s.obj)
+    if :_instance in propertynames(s.obj)
       return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
         unsupported_instance = s.obj[:_instance]
         error("unsupported instance '$unsupported_instance' for decoding")
@@ -381,7 +382,7 @@ function load_type_params(s::DeserializerState, T::Type)
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+      if obj isa isa AbstractVector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
@@ -395,7 +396,7 @@ function load_type_params(s::DeserializerState, T::Type)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
           params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+            if obj isa isa AbstractVector
               return load_type_array_params(s)
             end
             
@@ -779,7 +780,7 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
-  if haskey(s.obj, :id)
+  if :id in propertynames(s.obj)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
@@ -788,9 +789,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
   # handle different namespaces
   polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
+    @req :_ns in propertynames(d) "Namespace is missing"
     load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
+      if :polymake in propertynames(_ns)
         return load_from_polymake(Dict(d))
       end
     end
@@ -800,7 +801,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
+    @req :Oscar in propertynames(_ns) "Not an Oscar object"
   end
 
   # deal with upgrades
