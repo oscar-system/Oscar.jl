@@ -141,31 +141,10 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
-function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  # we use this line instead of typeof(coeff(p, 1)) to catch the 0 polynomial
-  coeff_type = elem_type(coefficient_ring(p))
-  save_data_array(s) do
-    for i in 1:length(p)
-      save_data_array(s) do 
-        save_object(s, map(string, exponent_vector(p, i)))
-        save_object(s, coeff(p, i))
-      end
-    end
-  end
-end
-
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
-  index = 0
-  save_data_array(s) do
-    for c in coefficients(p)
-      exponent_vector, index = iterate(exponent_vectors_gen, index)
-      save_data_array(s) do
-        save_object(s, map(string, exponent_vector))
-        save_object(s, c)
-      end
-    end
-  end
+function save_object(s::SerializerState, p::Union{UniversalPolyRingElem,
+                                                  MPolyRingElem,
+                                                  AbstractAlgebra.Generic.LaurentMPolyWrap})
+  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
 end
 
 ################################################################################
@@ -212,22 +191,15 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
-  load_node(s) do terms
-    exponents = [term[1] for term in terms]
-    coeff_ring = coefficient_ring(parent_ring)
-    polynomial = MPolyBuildCtx(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    for (i, e) in enumerate(exponents)
-      load_node(s, i) do _
-        c = load_object(s, coeff_type, coeff_ring, 2)
-        e_int = load_array_node(s, 1) do _
-          load_object(s, Int)
-        end
-        push_term!(polynomial, c, e_int)
-      end
-    end
-    return finish(polynomial)
+  coeff_ring = coefficient_ring(parent_ring)
+  polynomial = MPolyBuildCtx(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, Vector{Tuple{Vector{Int}, coeff_type}}, (nothing, coeff_ring))
+
+  for (e, c) in exponents
+    push_term!(polynomial, c, e_int)
   end
+  return finish(polynomial)
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
