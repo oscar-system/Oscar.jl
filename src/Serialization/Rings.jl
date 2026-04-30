@@ -174,51 +174,39 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  coeffs = coefficients(p)
-  exponent = 0
-  save_data_array(s) do
-    for coeff in coeffs
-      # collect only non trivial terms
-      if is_zero(coeff)
-        exponent += 1
-        continue
-      end
-      save_data_array(s) do
-        save_object(s, string(exponent))
-        save_object(s, coeff)
-      end
-      exponent += 1
-    end
-  end
+  save_object(s, [
+    (i - 1, c) for (i, c) in enumerate(coefficients(p))
+      if !is_zero(c) ])
 end
 
-function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
+function save_object(s::SerializerState{IPCSerializer},
+                     p::PolyRingElem)
+  save_object(s, collect(coefficients(p)))
+end
+
+function load_object(s::DeserializerState{IPCSerializer},
+                     ::Type{<:PolyRingElem},
                      parent_ring::PolyRing)
-  load_node(s) do terms
-    if isempty(terms)
-      return parent_ring(0)
-    end
-    # load exponents and account for shift
-    exponents = []
-    for i in 1:length(terms)
-      e = load_node(s, i) do _
-        load_object(s, Int, 1) + 1
-      end
-      push!(exponents, e)
-    end
-    degree = max(exponents...)
-    coeff_ring = coefficient_ring(parent_ring)
-    loaded_terms = Hecke.zeros_array(coeff_ring, degree)
-    coeff_type = elem_type(coeff_ring)
-    for (i, exponent) in enumerate(exponents)
-      load_node(s, i) do _
-        load_node(s, 2) do _
-          loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
-        end
-      end
-    end
-    return parent_ring(loaded_terms)
+  CR = coefficient_ring(parent_ring)
+  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))
+end
+
+function load_object(s::DeserializerState,
+                     ::Type{<: PolyRingElem},
+                     parent_ring::PolyRing)
+  coeff_ring = coefficient_ring(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, Vector{Tuple{Int, coeff_type}},
+                            (nothing, coeff_ring))
+
+  isempty(exps_coeffs) && return parent_ring(0)
+  
+  degree = max([e for (e, _) in exps_coeffs]...)
+  loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
+  for (e, c) in exps_coeffs
+    loaded_terms[e + 1] = c
   end
+  return parent_ring(loaded_terms)
 end
 
 function load_object(s::DeserializerState,
