@@ -482,23 +482,8 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
-  if has_attribute(m, :arxiv_id)
-    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
-      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      model = load(model_data_path)
-      # Modify attributes, see PR #5031 for details
-      set_attribute!(
-        model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface)
-      )
-      #set_attribute!(
-      #  model,
-      #  :gens_of_h22_hypersurface_indices,
-      #  get_attribute(model, :basis_of_h22_hypersurface_indices),
-      #)
-      delete!(model.__attrs, :gens_of_h22_hypersurface)
-      #delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
-      return model
-    end
+  if has_attribute(m, :arxiv_id) && arxiv_id(m) == "1511.03209" && resolution_index == 1
+    return load(artifact"FTM-1511-03209/1511-03209-resolved.mrdi")
   end
 
   # To be extended to hypersurface models...
