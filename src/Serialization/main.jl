@@ -396,10 +396,10 @@ function load_type_params(s::DeserializerState, T::Type)
           params = load_type_params(s, U)[2]
         end
       # handle cases where type_params is a dict of params
-      elseif !haskey(obj, type_key) 
+      elseif !haskey(obj, type_key)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
-          params[k] = load_node(s, k) do obj
+          params[Symbol(k)] = load_node(s, Symbol(k)) do obj
             if obj isa isa AbstractVector
               return load_type_array_params(s)
             end
