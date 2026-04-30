@@ -209,7 +209,7 @@ function Base.haskey(s::DeserializerState, key::Symbol)
   !(s.obj isa JSON.LazyValue) && return false
   obj = s.obj[]
   obj isa String && return false
-  haskey(obj, key)
+  return haskey(obj, key)
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int})

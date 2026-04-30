@@ -377,11 +377,12 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_params(s::DeserializerState, T::Type)
-  if s.obj isa JSON.LazyValue{AbstractString}
-    if !isnothing(tryparse(UUID, s.obj))
-      return T, load_ref(s)
+  if s.obj isa JSON.LazyValue
+    val = s.obj[]
+    if val isa String
+      !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
+      return T, nothing
     end
-    return T, nothing
   end
   if haskey(s, :params)
     load_node(s, :params) do lazy_obj
