@@ -118,50 +118,54 @@ julia> t((M[1], M[2]))
 ```
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  resols = AbsHyperComplex[]
-  augs = ModuleFPHom[]
-  for M in G
-    res, aug = free_resolution(SimpleFreeResolution, M)
-    push!(resols, res)
-    push!(augs, aug[0])
+  is_empty(G) && error("list of modules must not be empty")
+  presentations = [presentation(M) for M in G]
+  mats = [sparse_matrix(map(c, 1)) for c in presentations] 
+  multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in G]))
+  ind_pos = Dict(i=>j for (j, i) in enumerate(multi_inds))
+  A = _kronecker_product(mats)
+  R = base_ring(A)
+  F = free_module(R, ncols(A))
+  @assert ngens(F) == length(multi_inds)
+  if all(is_graded, G)
+    all_degs = [degrees_of_generators(M) for M in G]
+    G = grading_group(R)
+    F.d = [sum(all_degs[k][j] for (k, j) in enumerate(ind); init=zero(G)) for ind in multi_inds]
   end
-  res_prod = tensor_product(resols)
-  tot = total_complex(res_prod)
-  pres = map(tot, 1)
-  I, inc_I = image(pres)
-  result, pr_res = quo(tot[0], I)
-  
-  # assemble the multiplication and decomposition functions
-  z = Tuple([0 for _ in 1:length(G)])
-  @assert _is_tensor_product(res_prod[z])[1]
-  function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
-    w = [preimage(augs[i], x) for (i, x) in enumerate(tuple_elems)]
-    free_pure = tensor_pure_function(res_prod[z])
-    ww = free_pure(w...)
-    return pr_res(canonical_injection(tot[0], 1)(ww))
+  I = [F(v) for v in A]
+
+  function pure_helper(inds::Vector{Int}, rem::Vector)
+    is_one(length(rem)) && return sum(c*F[ind_pos[vcat(inds, [i])]] for (i, c) in coordinates(only(rem)); init=zero(F))
+    v = first(rem)
+    return sum(c*pure_helper(vcat(inds, [i]), rem[2:end]) for (i, c) in coordinates(v); init=zero(F))
   end
-  function pure(T::Tuple)
-    return pure(T...)
+  function pure(t::ModuleFPElem...)
+    return pure_helper(Int[], collect(t))
   end
-  
-  decompose_generator = function(v::SubquoModuleElem)
-    ind = findfirst(==(v), images_of_generators(pr_res))
-    isnothing(ind) && error("the given element is not the image of a generator under the projection map")
-    vv = gen(tot[0], ind::Int)
-    w = canonical_projection(tot[0], 1)(vv)
-    w_dec = tensor_generator_decompose_function(res_prod[z])(w)
-    return Tuple([augs[i](x) for (i, x) in enumerate(w_dec)])
+  function pure(t::Tuple)
+    return pure(t...)
   end
 
-  set_attribute!(result, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
+  function decomp(v::SubquoModuleElem)
+    (i, c) == only(coordinates(v))
+    is_one(c) || error("element must be a module generator")
+    return [M[j] for (j, M) in zip(multi_inds[i], G)]
+  end
+
+  result = SubquoModule(F, gens(F), I)
+  set_attribute!(result, :tensor_pure_function=>pure, :tensor_generator_decompose_function=>decomp)
   set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
-  @assert _is_tensor_product(result)[1]
-  
-  if task == :none
-    return result
-  end
 
-  return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decompose_generator)
+  task == :none && return result
+  return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decomp)
 end
 
+# recursive method with bisection for many matrices
+function _kronecker_product(mats::Vector)
+  is_one(length(mats)) && return only(mats)
+  length(mats) == 2 && return kronecker_product(mats[1], mats[2])
+  n = length(mats)
+  h = div(n, 2)
+  return kronecker_product(_kronecker_product(mats[1:h]), _kronecker_product(mats[h+1:end]))
+end
 
