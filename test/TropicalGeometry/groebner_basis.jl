@@ -35,4 +35,18 @@
         @test issetequal(groebner_basis(I,nu,w),gens(I))
     end
 
+    @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector) - weight adjustments for homogeneous ideals" begin
+        R, (x1,x2,x3) = polynomial_ring(QQ,3)
+        nu = tropical_semiring_map(QQ,max)
+        nu2 = tropical_semiring_map(QQ,2,max)
+        I = ideal(2*x1+x2+x3, 2*x1+3*x2+4*x3)
+        w = [1,1,typemax(Int16)+1]
+        @test begin
+            # entries of w are too large for Singular but can be made to fit Singular for homogeneous ideals by translating w.r.t. all ones vector
+            # this checks whether this is done by testing whether the groebner_basis calls below run without raising an error
+            groebner_basis(I,nu,w)
+            groebner_basis(I,nu2,w)
+        end
+    end
+
 end
