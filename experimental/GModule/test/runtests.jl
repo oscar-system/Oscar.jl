@@ -352,3 +352,53 @@ end
   reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 4))
   @test multiset(map(dim, reps)) == multiset(Dict(1 => 5))
 end
+
+
+@testset "Experimental.gmodule FreeRes" begin
+  k, a= wildanger_field(3, 13)
+  k = normal_closure(k)
+  k = k[1]
+  I = idele_class_gmodule(k)
+  G = group(I.data[1])
+  ZG = group_algebra(ZZ, G)
+  fr = Oscar.GrpCoh.free_res(ZG; side = :right)
+  h = hom(fr, I.data[1])
+  @test is_isomorphic(abelian_group([6]), quo(kernel(map(h, 2))[1], image(map(h, 1))[1])[1])
+  @test is_isomorphic(abelian_group([1]), quo(kernel(map(h, 1))[1], image(map(h, 0))[1])[1])
+
+  lp = prime_decomposition(maximal_order(k), 13)
+  c,  mc = completion(k, lp[1][1])
+  #to increase precision
+  #from M (minimal to compute cohomology) to N (large enough
+  # for Shafarevich and conductor p^3)
+
+  M = gmodule(c, absolute_base_field(c)) #min prec, cheap for H2
+  #M[1] : module, M[2] : map for automorphism group, M[3] : map for units
+  N = gmodule(c, absolute_base_field(c); conductor = 3) # large enough
+  h = FinGenAbGroupHom(N[3]*pseudo_inv(M[3])) # the projection N ->> M
+  #constructed N -> c -> M
+  zg = Oscar.GrpCoh.free_res(group_algebra(ZZ, group(M[1])); side = :right)
+  hN = hom(zg, N[1]) #hom(ZG, N)
+  hM = hom(zg, M[1]) #hom(ZG, M)
+  hNM = Oscar.GrpCoh.change_module(hN, hM, h) #map between the complexes
+
+  k = kernel(hom(N[1], M[1], h)) # the kernel of N ->> M
+  hk = hom(zg, k[1]) # ... and the hom(ZG, k) complex
+
+  hkN = Oscar.GrpCoh.change_module(hk, hN, k[2].module_map) #k->N map
+  hM[3] #to make sure complex is long enough
+  h2 = quo(kernel(map(hM, 2))[1], image(map(hM, 1))[1]) #H^2(G, M)
+
+  g = [preimage(h2[2], x) for x = gens(h2[1])]
+  g = g[findfirst(!iszero, g)] #this is in the kernel
+  #so we coerce it into the full module
+  #then pull it back to N (where it is not a cycle, but only a chain)
+  z1 = preimage(hNM[2], hM[2](g))
+  z2 = map(hN, 2)(z1) #the differential to map into C^3(N)
+  z2 = preimage(hkN[3], z2) #should actually in C^3(k)
+  z2 = preimage(map(hk, 2), z2) #and in the image of C^2(k)
+  z2 = hkN[2](z2) #back into C^2(N)
+  z = z1 - z2    #this is now a cycle!
+  @test iszero(map(hN, 2)(z))
+  @test hNM[2](z) == hM[2](g)
+end

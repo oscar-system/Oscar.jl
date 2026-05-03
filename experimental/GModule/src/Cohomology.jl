@@ -377,7 +377,58 @@ function show_induced_gmodule(io::IO, C::GModule)
              Lowercase(), group(C), " over ",
              Lowercase(), base_ring(C))
 end
+#=
+  C U-module U <= G
+  D V-module V <= H
+  m: C->D
+  q: H -> G (here: G = H/X)
+  want ind_U^G C -> ind_V^H D
+  via q, ind_U^G is a H-module
+  c otimes g_i -> sum m(c) otimes h for q(h) = g, the coset reps have to match
 
+  map returned for the underlying modules, not the gmodules. The different 
+  groups are tricky.
+  U\G = {g_i | i}
+  V\H = {h_i | i}
+  q(h_i) = u * g_j   - we need the map i->j (up to right/left)
+  need q(V) = U - the twist
+  so j s.th. q(h_i)*inv(g_j) in U
+
+  ====================
+
+  C G-module
+  D U-module, U <= G
+  m: C->D U-linear
+  want
+  C -> ind_U^G D G-linear
+  c -> sum c g_i^-1 otimes g_i for the coset reps
+
+  currently, the wierd option in induce.  
+
+=#
+
+function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
+  hU, gC = get_attribute(indC.M, :induce)
+  U = domain(hU)
+  iU = image(hU)[1]
+  hV, gD = get_attribute(indD.M, :induce)
+  V = domain(hV)
+
+#  @show issubgroup(image(hV*mHG)[1], image(hU)[1])
+#  if !isnothing(twist)
+#    @show issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])
+#    @show issubgroup(image(hV*inner_automorphism(inv(twist))*mHG)[1], image(hU)[1])
+#  end
+  
+  I = zero_map(indC.M, indD.M)
+  for i=1:length(gC)
+    m = gC[i]
+    j = [x for x = 1:length(gD) if mHG(gD[x])*inv(m) in iU]
+    I += sum(canonical_projection(indC.M, i)*mCD*canonical_injection(indD.M, x) for x = j)  
+  end
+
+  return I
+end
 
 #TODO: write an action function that does not use create the matrix...
 """
@@ -394,8 +445,10 @@ The induced module is returned as a product of copies of C. it also returns
   If D and mDC are given then mDC: D -> C.M has to be a Z[U] linear
 homomorphism. I this case a Z[G] linear map to the induced module
 is returned.
+
+The transversal for G/U can also passed in as an kw-argument (`transversal`)
 """
-function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
+function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transversal::Union{Nothing, Oscar.SubgroupTransversal} = nothing) where GT <: GAPGroup where MT  
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
@@ -408,7 +461,13 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
 # the transversal, so cannot use.
 # See https://github.com/gap-system/gap/issues/5337
 # for a discussion whether to return both transversal and action on it.
-  g = right_transversal(G, iU)
+  if isnothing(transversal)
+    g = right_transversal(G, iU)
+  else
+    g = transversal
+    @assert group(g) == G
+    @assert subgroup(g) == iU
+  end
   S = symmetric_group(length(g))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, g) for z = g]) for y in gens(G)])
 
@@ -437,7 +496,6 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
     im_q = direct_sum_elem_type(XX.M)[]
     q = zero(indC)
     for _q = 1:ngens(indC)
@@ -463,7 +521,6 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
-    @assert all(in(iU), u)
     im_q = T()
     for q = v
       X = zero(indC)
@@ -474,7 +531,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
     end
     return im_q
@@ -492,13 +549,18 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
   if D === nothing
     return iC, g, pro, inj
   end
+  #TODO: remove and replace by some "induce map"
+  #      we need both U->M->N
+  #           U -> Ind(M)
+  #      Ind(M) -> Ind(N)
+
   #= for a Z[G]-modul D s.th. D has a Z[U]-lin embedding into C,
     compute the Z[G]-lin embedding into the induced module.
     a -> sum a g_i^-1 otimes g_i
     works (direct computation with reps and cosets)
   =#
-  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h
+  _h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), d))) for i=1:length(g)) for d = gens(D.M)])
+  return iC, _h
 end
 
 function is_induced(C::GModule)
@@ -515,7 +577,7 @@ function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.M
 end
 
 function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_lattice::Bool = true)
-  q, mq = Oscar.quo(C.M, image(mDC)[1], add_to_lattice)
+  q, mq = Oscar.quo(C.M, mDC, add_to_lattice)
   S = GModule(C.G, [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.ac])
   if isdefined(C, :iac)
     S.iac = [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.iac]
@@ -763,17 +825,27 @@ Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.parent_type(::Type{CoChain{N,G,M}}) where {N,G,M} = AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
+function differential(G, ac, N::Int, C::Dict, g::Tuple)
+  n = N+1
+  d = []
+  v = C[Tuple(g[i] for i=2:n)] +
+    sum((-1)^i* C[Tuple(vcat([g[j] for j=1:i-1], [g[i]*g[i+1]], [g[j] for j=i+2:n]))] for i=1:n-1; init = 0*(first(values(C)))) +
+      (-1)^n*C[Tuple(g[i] for i=1:n-1)]*ac(g[n])
+  return v
+end
+
 function differential(C::CoChain{N, G, M}) where {N, G, M}
   n = N+1
   d = Pair{NTuple{n, G}, M}[]
   for g = Iterators.ProductIterator(Tuple([C.C.G for i=1:n]))
-    v = action(C.C, g[n], C(Tuple(g[i] for i=1:n-1))) +
+    v = C(Tuple(g[i] for i=2:n)) +
         sum((-1)^i* C(Tuple(vcat(G[g[j] for j=1:i-1], G[g[i]*g[i+1]], G[g[j] for j=i+2:n]))) for i=1:n-1; init = zero(C.C.M)) +
-        (-1)^n*C(Tuple(g[i] for i=2:n))
+          action(C.C, g[n], (-1)^n*C(Tuple(g[i] for i=1:n-1)))
     push!(d, g=>v)
   end
   return CoChain{n, G, M}(C.C, Dict(d))
 end
+
 
 function action(C::CoChain, g::PermGroupElem)
   CC = deepcopy(C)
@@ -888,6 +960,7 @@ function (C::CoChain{2})(g::Oscar.GAPGroupElem, h::Oscar.GAPGroupElem)
   return C.d[(g,h)] = C.D((g, h))
 end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.GAPGroupElem}) = C(g[1], g[2])
+(C::CoChain{3})(g::NTuple{3, <:Oscar.GAPGroupElem}) = C.d[(g[1], g[2], g[3])]
 
 #TODO: re-write to get the maps! To support Q/Z as well
 """
@@ -1261,6 +1334,631 @@ function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
   return get_attribute(C, :H_two_maps)
 end
 
+
+function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
+  G = group(ZG)
+
+  @assert side in [:right, :left]
+  is_left = side == :left
+
+  if !force_rws && (isa(G, PcGroup) || is_solvable(G))
+    @vprint :GroupCohomology 2 "using pc-presentation ...\n"
+    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
+    use_pc = true
+  else
+    @vprint :GroupCohomology 2 "using generic rws ...\n"
+    FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
+    use_pc = false
+  end
+  #TODO add case for GrpExt
+  #     need to make CollectCtx accessible
+  c = CollectCtx(R)
+
+  #rules with length(LHS) == 1 and rules of the form
+  # [a a^-1] -> [], [a^-1 a] -> [] do not get tails
+  pos = Vector{Int}()
+  n = 0
+  for i = 1:length(R)
+    r = R[i]
+    if length(r[1]) == 1
+      push!(pos, 0)
+      continue
+    end
+    if length(r[1]) == 2 && length(r[2]) == 0 && r[1][1] == -r[1][2]
+      push!(pos, 0)
+      continue
+    end
+    n += 1
+    push!(pos, n)
+  end
+
+  @vprint :GroupCohomology 1 "will need $n equations for H^2\n"
+
+  #the free-res should be
+  #     A       B       C
+  #ZG^o -> ZG^r -> ZG^g -> ZG -> Z -> 1
+  #where g = #gens, r = #rels (tails - not all rels count), o = #overlaps
+  #C in ZG^(g x 1) 
+  if is_left
+    C = matrix(ZG, ngens(FF), 1, [ZG(mFF(g)) - one(ZG) for g = gens(FF)])
+  else
+    C = matrix(ZG, 1, ngens(FF), [ZG(mFF(g)) - one(ZG) for g = gens(FF)])
+  end
+
+  F1 = Generic.FreeModule(ZG, 1; is_row = is_left)
+  Fg = Generic.FreeModule(ZG, ngens(FF); is_row = is_left)
+
+
+  if is_left
+    B = zero_matrix(ZG, 0, ngens(FF))
+    A = zero_matrix(ZG, 0, n)
+  else
+    B = zero_matrix(ZG, ngens(FF), 0)
+    A = zero_matrix(ZG, n, 0)
+  end
+ 
+  function fill(::ComplexOfMorphisms, idx::Int)
+    if idx == 2
+      local to_1chain::Function
+      for i=1:length(R)
+        pos[i]== 0 && continue
+        r = R[i] #(lhs, rhs)
+        if is_left
+          function do_left_si(s)
+            local S = [zero(ZG) for j=1:ngens(FF)]
+            for i = reverse(s)
+              if i > 0
+                p = ZG(mFF(FF[i]))
+                S .= p .* S
+                S[i] += one(ZG)
+              else
+                S[-i] -= one(ZG)
+                p = ZG(mFF(inv(FF[-i])))
+                S .= p .* S
+              end
+            end
+            return S
+          end
+          S = do_left_si(r[1])
+          T = do_left_si(r[2])
+          to_1chain = do_left_si
+          B = vcat(B, matrix(ZG, 1, length(S), S .- T))
+        else
+          function do_right_si(s)
+            local S = [zero(ZG) for j=1:ngens(FF)]
+            for i = s
+              if i > 0
+                p = ZG(mFF(FF[i]))
+                S .= S .* p
+                S[i] += one(ZG)
+              else
+                S[-i] -= one(ZG)
+                p = ZG(mFF(inv(FF[-i])))
+                S .= S .* p
+              end
+            end
+            return S
+          end
+          S = do_right_si(r[1])
+          T = do_right_si(r[2])
+          B = hcat(B, matrix(ZG, length(S), 1, S .- T))
+          to_1chain = do_right_si
+        end
+      end
+      @assert B != 0
+      if is_left
+        Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left)
+      else
+        Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
+      end
+      set_attribute!(Fg, :to_chain => x->to_1chain(word(preimage(mFF, x))))
+      #so to get a "proper" 1-cochain from s in C^1(G, M) given
+      # as a "black box" s in M^g from this resolution
+      # then: for the generators we have the values
+      # for all others: to_chain(g) yields v in ZG^g
+      # the value is sum(m_i*v_i)
+      # from chain to black box: evaluate at the generators.
+      pushfirst!(Cpx.maps, hom(Fr, Fg, B; is_left = is_left))
+      return Cpx.maps[1]
+    end
+
+    if idx == 3
+
+      function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
+        @assert w[p:p+length(R[r][1])-1] == R[r][1]
+        # r->s + e_s
+        #ArB -> e_s^A AsB  when is_left
+        #       AsB e_s^B  when not
+
+        if pos[r] == 0
+          return
+        end
+        if is_left
+          #            A
+          g = FF(view(w, 1:p-1))
+        else
+          #                         C
+          g = FF(view(w, p+length(R[r][1]):length(w)))
+        end
+        C.T[pos[r]] += ZG(mFF(g))
+      end
+      c.f = symbolic_collect
+
+      for i = 1:length(R)
+        r = R[i]
+        for j=1:length(R)
+    #      i == j && continue
+          s = R[j]
+          #we want overlaps, all of them:
+          #r[1] = AB, s[1] = BC this is what we need to find...
+          #(then we call collect on r[2]C and As[2] they should agree)
+          #if use_pc, then l can only be 1:
+          #From Holt: those are the r[1] we need
+          # (i i .. i)
+          #   (i .. i i)
+          # (i .. i)
+          #      (i j)
+          # (i j)
+          #  ( j ... j)
+          # (i j)
+          #   (j i)
+          if use_pc
+            l_max = 1
+          else
+            l_max = min(length(s[1]), length(r[1]))
+          end
+
+          for l=1:l_max
+            #                         B                          B
+            if view(r[1], length(r[1])-l+1:length(r[1])) == view(s[1], 1:l)
+              # is_left:
+              #      AB    -> sS  s,t are tails
+              #       BC   -> tT
+              #      (AB)C -> sSC -> e_s + SC 
+              #      A(BC) -> AtT -> e_t^A + AT
+              # else
+              #      AB    -> Ss s,t are tails
+              #       BC   -> Tt
+              #      (AB)C -> SsC -> SC + e_s^C
+              #      A(BC) -> ATt -> AT + e_t
+              #
+              c.T = [zero(ZG) for i=1:n]
+              #
+              #                             A                  T
+              z1 = collect(vcat(view(r[1], 1:length(r[1])-l), s[2]), c)
+              if pos[j] > 0
+                if is_left
+                  c.T[pos[j]] += ZG(mFF(FF(view(r[1], 1:length(r[1])-l))))
+                else
+                  c.T[pos[j]] += one(ZG)
+                end
+              end
+              S = c.T
+              c.T = [zero(ZG) for i=1:n]
+              if pos[i] > 0
+                if is_left
+                  c.T[pos[i]] += one(ZG)
+                else
+                  c.T[pos[i]] += ZG(mFF(FF(view(s[1], l+1:length(s[1])))))
+                end
+              end
+              #                   S              C
+              z2 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
+              @assert z1 == z2
+              S = S .- c.T
+              if is_left
+                A = vcat(A, matrix(ZG, 1, length(S), S))
+              else
+                A = hcat(A, matrix(ZG, length(S), 1, S))
+              end
+            end
+          end
+        end
+      end
+      Fr = Cpx[2]
+      if is_left
+        Ft = Generic.FreeModule(ZG, nrows(A); is_row = is_left)
+      else
+        Ft = Generic.FreeModule(ZG, ncols(A); is_row = is_left)
+      end
+      pushfirst!(Cpx.maps, hom(Ft, Fr, A; is_left = is_left))
+      function to_2chain(x, y)
+        @assert parent(x) == parent(y) == G
+        c.f = symbolic_collect
+        c.T = [zero(ZG) for i=1:n]
+        collect(vcat(word(preimage(mFF, x)), word(preimage(mFF, y))), c)
+        return c.T
+      end
+      set_attribute!(Fr, :to_chain => to_2chain)
+      #as above: a black-box chain c in M^r = hom(ZG^r, M)
+      #is evaluated at (g, h) via
+      # sum(to_chain(g, h)[i] * c[i])
+      #maybe to_chain should do caching, not sure.
+      #to go back: the corresponding relation needs to be evaluated
+      # A -> B+t so inv(B)*A -> t and this is evaluated in the group
+      # (g, a)*(h, b) -> (gh, a^h + sigma(g, h) + b or so
+      # if we need this, it will have to be added here: otherwise the 
+      # relations (and their ordering) are lost.
+      #the to_chain maps actually are the maps to show that "our"
+      #resolution is equivalent to the "bar resolution"...
+      return Cpx.maps[1]
+    end #if idx == 2
+
+    if idx > 3 #the generic case, if the group is small enough...
+      # inspired bu Graham Ellis, Algo 3.2.1 p 228
+      # AN INVITATION TO COMPUTATIONAL HOMOTOPY
+      #TODO: simplification and possible more strategies...
+      # the idea of simplification:
+      #  R^a -> R^b and
+      #  d: R[j] -> R[i]*g + x and x is free of R[i],
+      #  then both R[j] on the left and R[i] on the right can be removed:
+      #  d(d(R[j])) = 0 = d(R[i]))*g + d(x), so the image of R[i] in the next step
+      #  is also given via x. g is a unit...
+      # quo(R^a/R[i]) = R^(a-1) and quo(R^b/R[i]*g+x) dito
+      # should just mean that the image vector needs to have a component (=element 
+      # in ZG) with exactly one 1 (so 1000 * g = 000100)
+      phi = map(Cpx, idx-1)
+      A, mA = abelian_group(domain(phi))
+      B, mB = abelian_group(codomain(phi))
+      h = hom(A, B, [(mA*phi*pseudo_inv(mB))(a) for a = gens(A)])
+      k, mk = kernel(h)
+      q, mq = quo(k, [zero(k)])
+      q, _mq = snf(q)
+      mq = mq*pseudo_inv(_mq)
+      gns = elem_type(domain(phi))[]
+      while !is_trivial(q)
+        #the last generator always has maximal order in "our" snf
+        #so the G-orbit should have a large image
+        push!(gns, mA(mk(preimage(mq, q[ngens(q)]))))
+        if is_left
+          q, _mq = quo(q, [mq(preimage(mk, preimage(mA, domain(phi)((ZG(g)).* gns[end].v)))) for g = G])
+        else
+          q, _mq = quo(q, [mq(preimage(mk, preimage(mA, domain(phi)(gns[end].v .*ZG(g))))) for g = G])
+        end
+        mq = mq*_mq
+        q, _mq = snf(q)
+        mq = mq*pseudo_inv(_mq)
+      end
+      Ft = Generic.FreeModule(ZG, length(gns); is_row = is_left)
+      if is_left
+        psi = hom(Ft, domain(phi), vcat([x.v for x = gns]...); is_left)
+      else
+        psi = hom(Ft, domain(phi), hcat([x.v for x = gns]...); is_left)
+      end
+      pushfirst!(Cpx.maps, psi)
+      return Cpx.maps[1]
+    end
+
+    error("wrong idx")
+  end #fill
+
+  d1 = hom(Fg, F1, C; is_left = is_left)
+
+  Cpx = Hecke.ComplexOfMorphisms(typeof(Fg), [d1]; check = false, typ = :chain)
+  Cpx.fill = fill
+  #XXX: Think. What do we need?
+  #     mFF: definitely (?) only if collect is also there..
+  #     for H^1: decompose g in G into (normal form) + tail(?)
+  #         from this H^1 <-> 1-Chain (in bar-complex)
+  #     mostly : (a,b) -> a*b in normal form + tail (for H^2)
+  #          (allows to do group operations in group extension)
+  #         from this H^2 <-> 2-Chain (in bar-complex)
+  # does this even make sense on the ZG-level?
+  set_attribute!(Cpx, :collect => (mFF, c))
+  return Cpx
+end
+
+function Oscar.action(C::GModule, g::GroupAlgebraElem)
+  ZG = parent(g)
+  G = group(ZG)
+  @assert G == group(C)
+  @assert base_ring(ZG) == base_ring(C)
+  
+  Z = zero_map(C.M, C.M)
+  if Hecke._is_sparse(g)
+    for (i, ci) in g.coeffs_sparse
+      Z += ci*action(C, parent(g).base_to_group[i])
+    end
+  else
+    for i in 1:length(g.coeffs)
+      ci = g.coeffs[i]
+      Z += ci*action(C, parent(g).base_to_group[i])
+    end
+  end
+
+  return Z
+end
+
+function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
+  ZG = parent(g)
+  G = group(ZG)
+  @assert G == group(C)
+  @assert base_ring(ZG) == base_ring(C)
+  
+  Z = zero(parent(v))
+  if Hecke._is_sparse(g)
+    for (i, ci) in g.coeffs_sparse
+      Z += ci*action(C, parent(g).base_to_group[i], v)
+    end
+  else
+    for i in 1:length(g.coeffs)
+      ci = g.coeffs[i]
+      Z += ci*action(C, parent(g).base_to_group[i], v)
+    end
+  end
+
+  return Z
+end
+
+function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, C::GModule)
+  ZG = base_ring(f[0])
+  G = group(ZG)
+  @assert G == group(C)
+  @assert base_ring(ZG) == base_ring(C)
+
+  #TODO: do it lazy!!!
+  #hom(ZG^a, C) = C^a
+  @req f[0].is_row == false "the ZG-resolution needs to be a right resolution (side = :right)"
+  @req Hecke.is_chain_complex(f) "the ZG-resolution needs to be a chain-complex"
+
+  #notionally
+  #       e         d1        d2        d3
+  # ZZ <---- f_0 <---- f_1 <---- f_2 <---- f_3
+  # will turn into h_i = hom(f_i, M)
+  # 
+  #       d2        d1        d0
+  # h_3 <---- h_2 <---- h_1 <---- h_0 <---- M^G = h_-1
+
+  M1 = direct_product(C.M; task = :none)
+  set_attribute!(M1, :hom => (f[0], C), :show => Hecke.show_hom)
+  d1 = map(f, 1)
+  Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
+  set_attribute!(Mg, :hom => (domain(d1), C), :show => Hecke.show_hom)
+
+  D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
+
+  Cpx = Hecke.ComplexOfMorphisms(typeof(M1), [D1]; typ = :cochain, check = false)
+
+  function fill(ff::ComplexOfMorphisms, i::Int)
+    #=  this is just kern d_0
+
+    if i == -1 
+      CC = C.M
+      for g = gens(G)
+        CC = intersect(CC, kernel(action(C, ZG(g)-one(ZG)))[1])
+      end
+      fl, h = is_sub_with_data(CC, C.M)
+      @assert fl
+      D = hom_direct_sum(CC, M1, [h;;]) # ";;" turns it into a 1x1 Matrix
+      pushfirst!(ff.maps, D)
+      ff.seed = -1
+      return D
+    end
+    =#
+
+    d = map(f, i+1)
+    dd = map(ff, i-1)
+    Mg = codomain(dd)
+    Mr = direct_product([C.M for i=1:rank(domain(d))]...; task = :none)
+    function hom_map(a::FinGenAbGroupElem)
+      return map_from_func(domain(d), C, 
+          x->C(sum(action(C, x.v[i, 1])(canonical_projection(Mr, i)(a)) 
+          for i=1:rank(domain(d)))))
+    end
+    function map_hom(y::Map)
+      return sum(canonical_injection(Mr, i)(y(domain(d)[i]).data) for i=1:rank(domain(d)))
+    end
+
+    set_attribute!(Mr, :hom => (domain(d), C), :show => Hecke.show_hom, 
+      :hom_map =>map_from_func(Mr, Hecke.MapParent(domain(d), C, "maps"),
+                hom_map, map_hom))
+    D = hom_direct_sum(Mg, Mr, map(x->action(C, x), matrix(d).entries))
+    push!(ff.maps, D)
+    return D
+  end
+  Cpx.fill = fill
+  set_attribute!(Cpx, :hom => (f, C))
+
+  #TODO: missing elem to hom...
+  #  x in hom(ZG^r, M) = M^r, x = row(m1, ..., mr)
+  # f: ZG^r -> M : col(g1, ..., gr) -> sum mi*gi
+  # other direction: mi = f(ei)
+  # via maps/ info in attributes? Set special(s)?
+
+  return Cpx
+end
+
+function Oscar.parent(m::Map)
+  return Hecke.MapParent(domain(m), codomain(m), "maps")
+end
+
+function element_to_homomorphism(a::FinGenAbGroupElem)
+  h = get_attribute(parent(a), :hom_map)
+  isa(h, Nothing) && error("element does not come from hom")
+  return h(a)
+end
+
+
+#TODO: ZG^r otimes M = M^r and the res otimes M - then we can do homology as well!
+
+#TODO: H->G and G -> G/H induction
+#      M->N induction
+# both as a map between structures and just evaluated on a single elem
+# add interface to get (co)chains and grp ext
+# re-write H_?? and cohomology_group to use the new stuff
+# allow ComplexOfMorphism to have gaps.
+# better maps between complexes: extendible as well
+#TODO: add collect ctx from GrpExt!
+#TODO/ Think: shouldn't this be mUG*fG giving fU (and the maps)?
+
+function change_group(fU::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{<: GroupAlgebraElem}}, fG::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{<: GroupAlgebraElem}}, mUG::Map)
+  ZG = base_ring(fG[0])
+  G = group(ZG)
+
+  ZU = base_ring(fU[0])
+  U = group(ZU)
+
+  emb = hom(ZU, ZG, mUG)
+
+  @assert domain(mUG) == U && codomain(mUG) == G
+  #Maths: we have 2 resolutions one for Z[U] one for Z[G]
+  #       the modules here are ZU^n and ZG^m (for varying n,m)
+  #       ZG and ZG^m are also ZU-modules (via mUG)
+  # fG[0] = ZG^1, fU[0] = ZU^1, here the map is mUG
+
+ # m0 = map_from_func(fU[0], fG[0], x->fG[0]([emb(x.v[1, 1])]))
+  m0 = hom(fU[0], fG[0], matrix(ZG, 1, 1, [ZG(1)]);is_left = fU[0].is_row, map = emb)
+
+  # A -> B
+  #      v  then A->X is given via A->B->Y and then preimages
+  # X -> Y 
+  #
+  # here fU[1]=ZU^g -> fU[0]=ZU^1 is e_i -> u_i - 1
+  #      fU[0]=ZU^1 -> fG[0]=ZG^1 is u_i -1 -> mUG(g_i) = w=(w_1 ... w_n) - 1
+  # (w_i in {g_i, inv(g_1)})
+  # ab - 1 = ab + a - a -1 = a(b-1) + (a-1) as a right module or
+  #        = ab - b + b -1 = (a-1)b + (b-1) as a left one
+  # inv(a) - 1 = -inv(a)(a-1) or -(a-1) inv(a)
+  # abc-1 = (ab)c-1 = (ab)c - c + c -1 = (ab -1) c + (c-1)
+  #                 = (a-1)bc + (b-1)c + (c-1) 
+  #                <- e_a*bc + e_b*c + e_c
+  # this looks suspiciously like the telesoping sums in map(fG, 2) (idx == 2
+  # in fill in free_res)
+  # this needs access to mFF, the map from G <-> free group to get words
+
+  m = [m0]
+  local A, mA
+  for i=reverse(map_range(fU))
+    g = map(fU, i)
+    f = map(fG, i)
+    if i == 1
+      B, mB = abelian_group(codomain(f))
+    else
+      B, mB = A, mA
+    end
+    A, mA = abelian_group(domain(f))
+    h = hom(A, B, [preimage(mB, f(mA(a))) for a = gens(A)])
+    gns = [mA(preimage(h, preimage(mB, m[end](g(x))))) for x=gens(domain(g))]
+    if m0.is_left
+      push!(m, hom(domain(g), domain(f), vcat([x.v for x = gns]...); is_left = m0.is_left, map = emb))
+    else
+      push!(m, hom(domain(g), domain(f), hcat([x.v for x = gns]...); is_left = m0.is_left, map = emb))
+    end
+  end
+
+  return Hecke.ComplexOfMorphismsMap(fU, fG, Dict{Int, typeof(m0)}(i-1 => m[i] for i=1:length(m)))
+  return m
+end
+
+#=
+k, a= wildanger_field(3, 13)
+k = normal_closure(k)
+k = k[1]
+lp = prime_decomposition(maximal_order(k), 13)
+c,  mc = completion(k, lp[1][1])
+M = gmodule(c, absolute_base_field(c))
+N = gmodule(c, absolute_base_field(c); conductor = 3)
+h = FinGenAbGroupHom(N[3]*pseudo_inv(M[3]))
+zg = Oscar.GrpCoh.free_res(group_algebra(ZZ, group(M[1])); side = :right)
+hN = hom(zg, N[1])
+hM = hom(zg, M[1])
+hNM = Oscar.GrpCoh.change_module(hN, hM, h)
+
+hom(N[1], M[1], h)
+k = kernel(ans)
+hk = hom(zg, k[1])
+
+hkN = Oscar.GrpCoh.change_module(hk, hN, k[2].module_map)
+preimage(h2[2], h2[1][2])
+g = ans
+hM[2](g)
+z1 = preimage(hNM[2], ans)
+map(hN, 2)(ans)
+preimage(hkN[3], ans)
+preimage(map(hk, 2), ans)
+hkN[2](ans)
+z = z1 - ans
+
+=#
+
+#this is/ should be a special case for the hom(Complex, Complex, Map) in Hecke
+function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorphisms{FinGenAbGroup}, mNM::Map)
+  mp = Dict{Int, Map}()
+  map = Hecke.ComplexOfMorphismsMap(fN, fM, mp)
+  function fill(A::Hecke.ComplexOfMorphismsMap, i::Int)
+    #TODO: special case of M^n -> N^n via coordinates
+    d = length(get_attribute(fN[i], :direct_product))
+    mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
+    return mp[i]
+  end
+  map.fill = fill
+  return map
+end
+"""
+Forgets the G-structure...
+"""
+function Oscar.abelian_group(ZGn::AbstractAlgebra.Generic.FreeModule{<:GroupAlgebraElem{ZZRingElem}})
+  ZG = base_ring(ZGn)
+  n = rank(ZGn)
+  G = group(ZG)
+  g = Int(order(G))
+
+  A = free_abelian_group(g*n)
+  return A, map_from_func(A, ZGn, 
+            x->ZGn([ZG([x.coeff[1, j] for j = (i-1)*g+1:i*g]) for i=1:n]),
+            y->A(vcat([t.coeffs for t = y.v]...)))
+end
+
+function Oscar.restriction_of_scalars(ZGn::AbstractAlgebra.Generic.FreeModule{<:GroupAlgebraElem{ZZRingElem}}, ::ZZRing)
+  return abelian_group(ZGn)
+end
+
+function Oscar.restriction_of_scalars(ZGn::AbstractAlgebra.Generic.FreeModule{<:GroupAlgebraElem{ZZRingElem}}, ZU::GroupAlgebra)
+  ZG = base_ring(ZGn)
+  n = rank(ZGn)
+  G = group(ZG)
+  U = group(ZU)
+  fl, mUG = is_subgroup(U, G)
+  @assert fl
+  emb = hom(ZU, ZG, mUG)
+  ZUn = Generic.FreeModule(ZU, n*Int(index(G, U)); is_row = false)
+  t = right_transversal(G, U) # needs to be left for left modules, ie. row modules
+  #g in G should be written as g_i*u. The g_i gives the block, the u the coordinate
+  #we need all, so we can cheat
+  allU = collect(U)
+  allG = vcat([g.*allU for g in t]...)
+ 
+  function ZUn2ZGn(x)
+    r = [zero(ZG) for i=1:n]
+    for i=1:n
+      for j=1:length(t)
+        for k = 1:length(allU)
+          p = findfirst(isequal(t[j]*allU[k]), allG)
+          r[i].coeffs[p] = x.v[(i-1)*length(t)+j, 1].coeffs[k]
+        end
+      end
+    end 
+    return ZGn(matrix(ZG, length(r), 1, r))
+  end
+  function ZGn2ZUn(x)
+    r = [zero(ZU) for i=1:n*length(t)]
+    for i=1:n
+      for j=1:length(t)
+        for k=1:length(allU)
+          p = findfirst(isequal(t[j]*allU[k]), allG)
+          r[(i-1)*length(t)+j].coeffs[k] = x.v[i, 1].coeffs[p]
+        end
+      end
+    end
+    return ZUn(matrix(ZU, length(r), 1, r))
+  end
+          
+  return ZUn, map_from_func(ZUn, ZGn, ZUn2ZGn, ZGn2ZUn)
+end
+
+
+
+
 #= Hulpke-Dietrich:
 UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
@@ -1297,7 +1995,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   id = hom(M, M, gens(M), check = false)
-  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: F -> G
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
     @vprint :GroupCohomology 2 "using pc-presentation ...\n"
@@ -1837,6 +2534,7 @@ function Base.iszero(x::AbstractAlgebra.Generic.ModuleHomomorphism)
   return iszero(x.matrix)
 end
 
+#TODO: use differetial instead?
 function istwo_cocycle(c::CoChain{2})
   C = c.C
   G = C.G

@@ -5,7 +5,8 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
-export restriction_of_scalars
+function restriction_of_scalars end
+export  restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
@@ -22,6 +23,7 @@ include("Misc.jl")
 module GModuleFromGap
 using Oscar
 import Hecke: data
+import Oscar: restriction_of_scalars
 
 #XXX: clash of names!
 #   gmodule(k, C) vs gmodule_ver(k, C)
@@ -1230,10 +1232,6 @@ that is induced by the permutation action of `G` on the basis of the  module.
 function natural_gmodule(G::PermGroup, R::Ring)
   M = free_module(R, degree(G); cached = false)
   return GModule(M, G, [hom(M, M, PermMat(R, a)) for a in gens(G)])
-  return GModule(M, G, [hom(M, M, permutation_matrix(R, a)) for a in gens(G)])
-#TODO: We do not really want to write down these matrices.
-#      What is the appropriate way to construct a module homomorphism
-#      without storing a matrix?
 end
 
 ######################################################################
@@ -1278,6 +1276,8 @@ function *(M::PermMat{T}, N::PermMat{T}) where T
   return PermMat(M.R, M.p*N.p)
 end
 
+*(M::ZZRingElem, N::PermMat{T}) where T = M*matrix(N)
+
 function swap_rows!(A::MatElem, pi::PermGroupElem)
   n = nrows(A)
   m = ncols(A)
@@ -1288,7 +1288,7 @@ function swap_rows!(A::MatElem, pi::PermGroupElem)
     length(C) == 1 && continue
     j = C[end] 
     for i=1:m
-      tmp[i] = A[i, j]
+      tmp[i] = A[j, i]
     end
     for j = length(C)-1:-1:1
       Cj = C[j]
@@ -1453,6 +1453,10 @@ for (M, E) in ((QQMatrix, QQFieldElem), (FqMatrix, FqFieldElem))
       return A
     end
   end
+end
+
+function *(A::AbstractAlgebra.Generic.InjProjMat{S}, B::Oscar.GModuleFromGap.PermMat{S}) where S<:NCRingElement 
+  return A*matrix(B)
 end
 
 function *(A::MatElem{S}, M::PermMat{S}) where S
@@ -1667,6 +1671,7 @@ end
 
 # Compute the restriction of the `M.G`-action from `M.M`
 # to the submodule given by the embedding `f`.
+# no spinning, the morphism must define a G-module
 function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   @assert codomain(f) === M.M
   S = domain(f)
@@ -1678,6 +1683,7 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
   return D, hom(D, M, f; check = false)
 end
 
+#no spinning
 function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
   @assert codomain(f) === M.M
   S = domain(f)
@@ -1686,6 +1692,48 @@ function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
   return D, hom(D, M, f)
 end
 
+### TODO: sub(Gmodule, some elem) -> gmodule, map
+#            and the (sub-)gmodule is obtained by spinnig
+#        for FinField, Q, Z, GrpAb?
+#  FreeModule Z spinning
+#             Q spinning is in MeatAxe.jl?
+#              (including saturation and lll)
+#            any field?
+# any module? via sub until stable?
+#            FinField          Gap and already there? (via MatElem)
+
+function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}}, m::ZZMatrix)
+  #works for free ZZ-modules only (currently)
+  #free-ness cannot be tested (currently)
+  # in general, the matrices need to be reduced by the relations
+  if iszero(m)
+    phi = sub(C.M, elem_type(C.M)[])[2]
+    return Oscar.sub(C, phi)
+  end
+  m = hnf(m)
+  still_working = true
+  while still_working
+    still_working = false
+    for g = C.ac
+      while true
+        n = hnf(vcat(m, m*matrix(g)))
+        i = nrows(n)
+        while is_zero_row(n, i)
+          i -= 1
+        end
+        if m == view(n, 1:i, :)
+          break
+        else
+          m = view(n, 1:i, :)
+          still_working = true
+        end
+      end
+    end
+  end
+
+  phi = sub(C.M, elem_type(C.M)[C.M(m[i, :]) for i=1:nrows(m)])[2]
+  return Oscar.sub(C, phi)
+end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   @assert absolute_degree(k) == 1
@@ -3131,7 +3179,6 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
-export restriction_of_scalars
 export trivial_gmodule
 export natural_gmodule
 export regular_gmodule
