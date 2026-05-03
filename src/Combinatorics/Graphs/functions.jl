@@ -135,7 +135,7 @@ julia> G = ZZ[0 0; 1 0]
 julia> graph_from_adjacency_matrix(Directed, G)
 Directed graph with 2 nodes and the following edges:
 (2, 1)
-
+    
 julia> graph_from_adjacency_matrix(Undirected, G)
 Undirected graph with 2 nodes and the following edges:
 (2, 1)
@@ -1061,6 +1061,141 @@ function _graph_maps(G::Graph)
   return Dict(l => getproperty(G, l) for l in labels)
 end
 
+# this currently will ignore all other labels
+# and creates new labelings such that the labelings on the vertices are indistinguishable
+# there is also a flag that can handle indistinguishable edges
+function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
+                                     vertex_distinguishable::Bool=true,
+                                     edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
+  G_map = getproperty(G, label)
+  label_type = typeof(G_map[1])
+  vertices_by_label = reduce((a, b) -> mergewith(vcat, a, b),
+                             (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
+                             init=Dict{label_type, Vector{Int}}())
+  edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
+                          (Dict(G_map[e] => [e]) for e in edges(G));
+                          init=Dict{label_type, Vector{Edge}}())
+
+  # an edge of a given coloring appears in the nth layer if there is a one in
+  # the nth entry of its binary expansion
+  n_layers = length(digits(length(edges_by_label), base = 2))
+
+  # to make vertices indistinguishable we attach an edge between vertices labeled with
+  # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
+  n_v_per_layer = vertex_distinguishable ? n_vertices(G) : n_vertices(G) + length(vertices_by_label)
+  
+  # if edge labels are indistinguishable we add a new vertex v for each edge label l and connect the vertices
+  # of each edge labeled with l to this vertex v
+  n_v = edge_distinguishable ? n_layers * (n_v_per_layer) : n_layers * (n_v_per_layer) + length(edges_by_label)
+  new_G = Graph{T}(n_v)
+  new_vertex_labels = Dict{Int, Int}()
+  for layer in 1:n_layers
+    vertex_offset = (layer - 1) * n_v_per_layer
+    if vertex_distinguishable
+      # each vertex layer gets the same new label
+      for (l, (_, vertices)) in enumerate(vertices_by_label)
+        for v in vertices
+          new_vertex_labels[v + vertex_offset] = l + layer * n_v_per_layer
+        end
+      end
+    else
+      label = 1
+      # adds an edge between labeled vertex groups, making vertex labels indistinguishable
+      for (_, v_with_label) in vertices_by_label
+        for v in v_with_label
+          e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
+          new_vertex_labels[vertex_offset + v] = 1
+        end
+        new_vertex_labels[vertex_offset + n_vertices(G) + label] = 2
+        label += 1
+      end
+    end
+
+    # add edges between the vertex and it's representatives across the layers
+    if layer != n_layers
+      for v in 1:n_vertices(G)
+        add_edge!(new_G, v + vertex_offset, v + vertex_offset + n_v_per_layer)
+        T == Directed && add_edge!(new_G, v + vertex_offset + n_v_per_layer, v + vertex_offset)
+      end
+    end
+
+    # adds each labeled edge to a layer corresponding to the label binary expansion
+    label = 1
+    for (i, (_, e_with_label)) in enumerate(edges_by_label)
+      label_base2 = digits(i, base=2, pad=n_layers)
+      for e in e_with_label
+        if isone(label_base2[layer])
+          add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
+          if !edge_distinguishable
+            # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
+            add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
+            add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
+          end
+        end
+      end
+      if !edge_distinguishable
+        new_vertex_labels[n_layers * n_v_per_layer + label] = 3
+        label += 1
+      end
+    end
+  end
+  label!(new_G, nothing, new_vertex_labels; name=:edge_to_vertex)
+  return new_G
+end
+
+function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
+                         edge_distinguishable::Bool=true,
+                         vertex_distinguishable::Bool=true,
+                         seed::Int=42)
+  isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
+  new_G = _edge_label_to_vertex_label(G, label;
+                                      edge_distinguishable=edge_distinguishable,
+                                      vertex_distinguishable=vertex_distinguishable)
+  return Polymake._canonical_hash(pm_object(new_G),
+                                  Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]),
+                                  seed)::Int
+end
+
+function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
+                         vertex_distinguishable::Bool=true,
+                         edge_distinguishable::Bool=true)
+  isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
+
+  if vertex_distinguishable && edge_distinguishable
+    new_G = _edge_label_to_vertex_label(G, label;
+                                        edge_distinguishable=edge_distinguishable,
+                                        vertex_distinguishable=vertex_distinguishable)
+    
+    perm = Polymake._canonical_perm(pm_object(new_G),
+                                    Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
+    # permutation is defined on vertex classes, see _edge_label_to_vertex_label
+    return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
+  end
+  error("unimplemented for either indistinguishable vertex or edge labels")
+end
+  
+function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where T <: Union{Directed, Undirected}
+  isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
+
+  p = _canonical_perm(G; label=label, kwargs...)
+  new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
+
+  graph_map = _graph_maps(G)[label]
+  new_vertex_labels = nothing
+  new_edge_labels = nothing
+  permute = inv(perm(p))
+  if !isnothing(graph_map.vertex_map)
+    new_vertex_labels = Dict(permute(v) => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+  end
+
+  if !isnothing(graph_map.edge_map)
+    new_edge_labels = Dict((permute(src(e)), permute(dst(e))) => graph_map.edge_map[e] for e in edges(G))
+  end
+  label!(new_G, new_edge_labels, new_vertex_labels)
+  return new_G
+end
+
+
 ################################################################################
 ################################################################################
 ##  Higher order algorithms
@@ -1333,7 +1468,7 @@ function diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
+    is_isomorphic(g1::Graph{T}, g2::Graph{T}; label=nothing) where {T <: Union{Directed, Undirected}}
 
 Check if the graph `g1` is isomorphic to the graph `g2`.
 
@@ -1346,7 +1481,14 @@ julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
-is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+  isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+  
+  if isnothing(Oscar._graph_maps(g1)[label].edge_map)
+    !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
+  end
+  error("Not implemented yet")
+end
 
 @doc raw"""
     is_isomorphic_with_permutation(G1::Graph, G2::Graph) -> Bool, Vector{Int}
