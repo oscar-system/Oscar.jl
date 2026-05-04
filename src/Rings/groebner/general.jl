@@ -80,12 +80,21 @@ with respect to the ordering
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+                        complete_reduction::Bool = false, algorithm::Symbol = :default)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
     return I.gb[ordering]
   end
+  # If DodgyMode & user did not specify an algorithm, use :modular if possible
+  if AbstractAlgebra.get_dodgy_mode() && algorithm == :default && base_ring(I) isa QQMPolyRing
+    AbstractAlgebra.@RegisterDodgyStep(:standard_basis, Any[I]);
+    algorithm = :modular
+  end
+  if algorithm == :default
+    algorithm = :buchberger
+  end
+
   if algorithm == :buchberger
     if !haskey(I.gb, ordering)
       I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
@@ -241,7 +250,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-                        algorithm::Symbol = :buchberger)
+                        algorithm::Symbol = :default)
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
