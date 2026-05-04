@@ -139,9 +139,10 @@ function decode_type(s::DeserializerState)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
       id = obj
+      lazy_obj = s.obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      obj = id
+      s.obj = lazy_obj
       return T
     end
     return decode_type(obj)
@@ -400,7 +401,7 @@ function load_type_params(s::DeserializerState, T::Type)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
           params[Symbol(k)] = load_node(s, Symbol(k)) do obj
-            if obj isa isa AbstractVector
+            if obj isa AbstractVector
               return load_type_array_params(s)
             end
             
@@ -786,7 +787,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
   if :id in propertynames(s.obj)
-    id = s.obj[:id]
+    id = s.obj[:id][]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end

@@ -16,12 +16,12 @@ function save_object(s::SerializerState, p::Polymake.BigObject)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated})
-  dict = Dict{Symbol, Any}(s.obj)
+  dict = JSON.parse(s.obj, Dict{String, Any})
   return load_from_polymake(dict)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
-  dict = Dict{Symbol, Any}(s.obj)
+  dict = JSON.parse(s.obj, Dict{String, Any})
   bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(dict))
   return bigobject
 end
@@ -58,11 +58,11 @@ end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
   p_dict = _polyhedral_object_as_dict(obj)
-  delete!(p_dict, :_coeff)
+  delete!(p_dict, "_coeff")
   save_data_dict(s) do
     for (k, v) in p_dict
       if !Base.issingletontype(typeof(v))
-        save_object(s, v, k)
+        save_object(s, v, Symbol(k))
       end
     end
   end
@@ -70,17 +70,17 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
                      field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T{elem_type(field)}, Dict{Symbol, Any}(s.obj))
+  return load_from_polymake(T{elem_type(field)}, JSON.parse(s.obj, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
     field::U) where {S <: Union{QQFieldElem, Float64}, U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+  return load_from_polymake(T, JSON.parse(s.obj, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, Dict{String, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T{elem_type(field)}(bigobject, field)
@@ -89,7 +89,7 @@ end
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, Dict{String, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T(bigobject, field)
