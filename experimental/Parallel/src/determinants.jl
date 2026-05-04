@@ -23,11 +23,10 @@ function modular_det(A::MatrixElem{T};
 
   # Select primes until the above bound is reached. 
   primes = Int[next_prime(2^60)]
-  primes_prod = one(ZZ)
+  primes_prod = ZZ(only(primes))
   bound *= 2 # makes enough space on positive and negative axis
   while primes_prod < bound
     p = next_prime(last(primes)+1)
-    p in primes && continue
     push!(primes, p)
     primes_prod *= p
   end
@@ -40,10 +39,10 @@ function modular_det(A::MatrixElem{T};
   # Reconstruct the coefficients from chinese remaindering
   max_deg = maximum(degree(b) for b in dets; init=0)
   new_coeffs = sizehint!(ZZRingElem[], max_deg)
-  zz_primes = ZZ.(primes)
+  env = crt_env(ZZ.(primes))
   pp2 = div(primes_prod, 2)
   for i in 0:max_deg
-    c = crt([lift(ZZ, coeff(b, i)) for b in dets], zz_primes; check=false)
+    c = crt([lift(ZZ, coeff(b, i)) for b in dets], env)
     if c > pp2
       c -= primes_prod
     end
