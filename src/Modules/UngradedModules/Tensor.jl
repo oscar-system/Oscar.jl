@@ -205,12 +205,6 @@ function _kronecker_product(A, B)
   m2, n2 = size(B)
   C = sparse_matrix(R, 0, n1 * n2)
   T = elem_type(R)
-  for v1 in A
-    for v2 in B
-      push!(C, sparse_row(R, [((j1-1)*n1+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]))
-    end
-  end
-  return C
 
   for i in 1:m1
     r1 = A[i]
@@ -245,7 +239,7 @@ function _kronecker_product(A, B)
       else
         resize!(pos, k)
         resize!(vals, k)
-        push!(C, sparse_row(R, pos, vals))
+        push!(C, sparse_row(R, pos, vals; sort=false))
       end
     end
   end
