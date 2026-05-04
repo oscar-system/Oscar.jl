@@ -165,16 +165,13 @@ function load_object(s::DeserializerState, ::Type{DiscreteGraphicalModel}, param
 end
 
 # needs to use id to have attributes
-@register_serialization_type PhylogeneticModel uses_id [:parameter_ring,
-                                                        :model_ring,
-                                                        :full_model_ring]
+@register_serialization_type PhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
   # needed until serialization can handle types as parameters
   :graph_type => TypeParams(typeof(graph(pm)), nothing), 
-  :graph_params => type_params(graph(pm)),
   :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
   :transition_matrix_entry_type => TypeParams(eltype(transition_matrix(pm)), nothing),
   :transition_matrix_params => type_params(transition_matrix(pm)),
@@ -195,18 +192,21 @@ end
 function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Dict)
   T1, p1 = params[:transition_matrix_entry_type], params[:transition_matrix_params]
   T2, p2 = params[:root_distribution_entry_type], params[:root_distribution_params]
+  if params[:graph_type] == PhylogeneticTree
+    G = load_object(s, PhylogeneticTree, QQ, :graph)
+  else
+    G = load_object(s, PhylogeneticNetwork, :graph)
+  end
   return PhylogeneticModel(
     params[:base_field],
-    load_object(s, params[:graph_type], params[:graph_params], :graph),
+    G,
     load_object(s, Matrix{T1}, p1, :transition_matrix),
     load_object(s, Vector{T2}, p2, :root_distribution),
     load_object(s, params[:model_parameter_name_type], :model_parameter_name)
   )
 end
 
-@register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring,
-                                                                  :model_ring,
-                                                                  :full_model_ring]
+@register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
 type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
@@ -266,7 +266,7 @@ end
 # Phylogenetic Networks
 @register_serialization_type PhylogeneticNetwork
 
-type_params(::PhylogeneticNetwork) = nothing
+type_params(::PhylogeneticNetwork) = TypeParams(PhylogeneticNetwork, nothing)
 
 function save_object(s::SerializerState, pn::PhylogeneticNetwork)
   save_object(s, graph(pn))
