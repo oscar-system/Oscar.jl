@@ -1,4 +1,4 @@
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers, procs
 import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager, rmprocs
 
 import .Serialization: put_type_params
@@ -131,10 +131,12 @@ end
 ### extra functionality
 function rmprocs(wp::OscarWorkerPool, wid::Int)
   rmprocs(wid; waitfor=0)
-  wp.workers = delete!(wp.wp.workers, wid)
+  # clear dead workers
+  wp.workers = Set{Int}([i for i in workers(wp) if i in procs()])
+  wp.wp = WorkerPool(collect(wp.workers))
 end
 
-workers(wp::OscarWorkerPool) = wp.workers
+workers(wp::OscarWorkerPool) = collect(wp.workers)
 
 function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
   chnl = get!(wp.oscar_channels, id) do
@@ -146,7 +148,7 @@ close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
 
 # extend functionality so that `pmap` works with Oscar stuff
 function put_type_params(wp::OscarWorkerPool, a::Any)
-  asyncmap(collect(workers(wp))) do id
+  asyncmap(workers(wp)) do id
     put_type_params(get_channel(wp, id), a)
   end
 end
