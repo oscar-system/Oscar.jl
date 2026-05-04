@@ -15,12 +15,16 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   if !all(gs) && !all(!x for x in gs)
     error("All factors must either be graded or all must be ungraded.")
   end
-  t = [[x] for x = 1:ngens(G[1])]
-  for H = G[2:end]
-    t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
+  n = length(G)
+  sizes = [ngens(g) for g in G]
+  strides = Vector{Int}(undef, n)
+  strides[n] = 1
+  for k in (n - 1):-1:1
+    strides[k] = strides[k + 1] * sizes[k + 1]
   end
 
-  F = FreeMod(G[1].R, prod([rank(g) for g in G]))
+  rankF = prod(sizes)
+  F = FreeMod(G[1].R, rankF)
   F.S = function _get_tensor_symbols()
     return Symbol.([join(["$(symbol(G[k], i[length(G)-k+1]))" for k in 1:length(G)], " \\otimes ") for i in AbstractAlgebra.ProductIterator([1:ngens(g) for g in reverse(G)])])
   end
@@ -28,24 +32,48 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
 
   function pure(g::FreeModElem...)
-    @assert length(g) == length(G)
-    @assert all(i -> parent(g[i]) === G[i], 1:length(G))
-    z = [[x] for x = coordinates(g[1]).pos]
-    zz = coordinates(g[1]).values
-    for h = g[2:end]
-      zzz = Vector{Int}[]
-      zzzz = elem_type(F.R)[]
-      for i = 1:length(z)
-        for (p, v) in coordinates(h)
-          push!(zzz, push!(deepcopy(z[i]), p))
-          push!(zzzz, zz[i]*v)
+    @assert length(g) == n
+    @assert all(i -> parent(g[i]) === G[i], 1:n)
+    c = coordinates(g[1])
+    if length(c.pos) == 0
+      return zero(F)
+    end
+    indices = Vector{Int}(undef, length(c.pos))
+    coeffs = Vector{elem_type(F.R)}(undef, length(c.pos))
+    for a in 1:length(c.pos)
+      indices[a] = 1 + (c.pos[a] - 1) * strides[1]
+      coeffs[a] = c.values[a]
+    end
+    nz = length(indices)
+    for k in 2:n
+      ck = coordinates(g[k])
+      if length(ck.pos) == 0 || nz == 0
+        return zero(F)
+      end
+      new_indices = Vector{Int}(undef, nz * length(ck.pos))
+      new_coeffs = Vector{elem_type(F.R)}(undef, nz * length(ck.pos))
+      t = 0
+      for a in 1:nz
+        idx_base = indices[a]
+        coeff_base = coeffs[a]
+        for b in 1:length(ck.pos)
+          prod = coeff_base * ck.values[b]
+          iszero(prod) && continue
+          t += 1
+          new_indices[t] = idx_base + (ck.pos[b] - 1) * strides[k]
+          new_coeffs[t] = prod
         end
       end
-      z = zzz
-      zz = zzzz
+      if t == 0
+        return zero(F)
+      end
+      resize!(new_indices, t)
+      resize!(new_coeffs, t)
+      indices = new_indices
+      coeffs = new_coeffs
+      nz = t
     end
-    indices = Vector{Int}([findfirst(==(y), t) for y = z])
-    return FreeModElem(sparse_row(F.R, indices, zz), F)
+    return FreeModElem(sparse_row(F.R, indices, coeffs), F)
   end
   function pure(T::Tuple)
     return pure(T...)
@@ -57,13 +85,22 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     end
     @assert length(c.pos) == 1
     @assert isone(c.values[1])
-    return Tuple(gen(G[i], t[c.pos[1]][i]) for i = 1:length(G))
+    q = c.pos[1] - 1
+    return Tuple(gen(G[i], (q ÷ strides[i]) % sizes[i] + 1) for i = 1:n)
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
   if all(is_graded, G)
-    tensor_degrees = [sum(G[i].d[tplidx[i]] for i in 1:length(G)) for tplidx in t] 
+    GG = grading_group(F.R)
+    tensor_degrees = Vector{elem_type(GG)}(undef, rankF)
+    for q in 0:(rankF - 1)
+      d = zero(GG)
+      for i in 1:n
+        d += G[i].d[(q ÷ strides[i]) % sizes[i] + 1]
+      end
+      tensor_degrees[q + 1] = d
+    end
     F.d = tensor_degrees
   end
 
@@ -126,37 +163,53 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool = fa
   R = base_ring(G[1])
   @assert all(base_ring(M) === R for M in G) "modules must be defined over the same ring"
 
-  pres = [presentation(M; minimal=minimal) for M in G]
-  d1s = [map(p, 1) for p in pres]
-  augs = [map(p, 0) for p in pres]
-  F0s = [domain(a) for a in augs]
-  mats = [sparse_matrix(d) for d in d1s]
+  n = length(G)
+  cache = IdDict{Any, Tuple{Any, Any, Any}}()
+  augs = Vector{Any}(undef, n)
+  F0s = Vector{Any}(undef, n)
+  mats = Vector{Any}(undef, n)
+  for i in 1:n
+    M = G[i]
+    data = get!(cache, M) do
+      p = presentation(M; minimal=minimal)
+      d1 = map(p, 1)
+      aug = map(p, 0)
+      F0 = domain(aug)
+      mat = _sparse_matrix_cached(d1)
+      (aug, F0, mat)
+    end
+    augs[i] = data[1]
+    F0s[i] = data[2]
+    mats[i] = data[3]
+  end
   if !minimal
-    @assert all(ncols(mats[i]) == ngens(G[i]) for i in 1:length(G)) "presentations do not implement a 1:1 correspondence for the generators"
+    @assert all(ncols(mats[i]) == ngens(G[i]) for i in 1:n) "presentations do not implement a 1:1 correspondence for the generators"
   end
 
   F = tensor_product(F0s...; task=:none)
 
-  ids = [_sparse_identity_matrix(R, ngens(F0)) for F0 in F0s]
-  A = sparse_matrix(R, 0, ngens(F))
-  for i in 1:length(G)
-    saved = ids[i]
-    ids[i] = mats[i]
-    block = _kronecker_product(ids)
-    vcat!(A, block)
-    ids[i] = saved
+  sizes = [ngens(F0) for F0 in F0s]
+  strides = Vector{Int}(undef, n)
+  strides[n] = 1
+  for k in (n - 1):-1:1
+    strides[k] = strides[k + 1] * sizes[k + 1]
   end
 
-  I = [F(v) for v in A]
+  I = elem_type(F)[]
+  sizehint!(I, sum(nrows(mats[i]) * div(rank(F), sizes[i]) for i in 1:n))
+  for i in 1:n
+    _append_tensor_relations!(I, F, mats[i], sizes, strides, i)
+  end
+
   result = SubquoModule(F, gens(F), I)
 
   free_pure = tensor_pure_function(F)
   free_decomp = tensor_generator_decompose_function(F)
 
   function pure(tuple_elems::ModuleFPElem...)
-    @assert length(tuple_elems) == length(G)
-    @assert all(i -> parent(tuple_elems[i]) === G[i], 1:length(G))
-    pre = [preimage(augs[i], tuple_elems[i]) for i in 1:length(G)]
+    @assert length(tuple_elems) == n
+    @assert all(i -> parent(tuple_elems[i]) === G[i], 1:n)
+    pre = ntuple(i -> preimage(augs[i], tuple_elems[i]), n)
     ww = free_pure(pre...)
     return result(coordinates(ww))
   end
@@ -171,7 +224,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool = fa
     @assert isone(c.values[1])
     i = c.pos[1]
     dec = free_decomp(gen(F, i))
-    return Tuple(augs[j](dec[j]) for j in 1:length(G))
+    return Tuple(augs[j](dec[j]) for j in 1:n)
   end
 
   set_attribute!(result, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
@@ -185,70 +238,44 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool = fa
   return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decompose_generator)
 end
 
-function _kronecker_product(mats::Vector)
-  @assert !isempty(mats)
-  return _kronecker_product(mats, 1, length(mats))
+@attr Any function _sparse_matrix_cached(d::ModuleFPHom)
+  return sparse_matrix(d)
 end
 
-function _kronecker_product(mats::Vector, l::Int, r::Int)
-  l == r && return mats[l]
-  if l + 1 == r
-    return _kronecker_product(mats[l], mats[r])
-  end
-  m = (l + r) >>> 1
-  return _kronecker_product(_kronecker_product(mats, l, m), _kronecker_product(mats, m + 1, r))
-end
-
-function _kronecker_product(A, B)
-  R = base_ring(A)
-  m1, n1 = size(A)
-  m2, n2 = size(B)
-  C = sparse_matrix(R, 0, n1 * n2)
-  T = elem_type(R)
-  for i in 1:m1
-    r1 = A[i]
-    p1 = r1.pos
-    v1 = r1.values
-    nnz1 = length(p1)
-    for j in 1:m2
-      r2 = B[j]
-      p2 = r2.pos
-      v2 = r2.values
-      nnz2 = length(p2)
-      if nnz1 == 0 || nnz2 == 0
-        push!(C, sparse_row(R))
+function _append_tensor_relations!(rels::Vector, F::FreeMod, mat, sizes::Vector{Int}, strides::Vector{Int}, i::Int)
+  n = length(sizes)
+  nrows(mat) == 0 && return rels
+  stride_i = strides[i]
+  idx = ones(Int, n)
+  base = 1
+  while true
+    for r in mat
+      p = r.pos
+      if length(p) == 0
         continue
       end
-      pos = Vector{Int}(undef, nnz1 * nnz2)
-      vals = Vector{T}(undef, nnz1 * nnz2)
-      k = 0
-      for a in 1:nnz1
-        base = (p1[a] - 1) * n2
-        c1 = v1[a]
-        for b in 1:nnz2
-          prod = c1 * v2[b]
-          iszero(prod) && continue
-          k += 1
-          pos[k] = base + p2[b]
-          vals[k] = prod
-        end
+      pos = Vector{Int}(undef, length(p))
+      for a in 1:length(p)
+        pos[a] = base + (p[a] - 1) * stride_i
       end
-      if k == 0
-        push!(C, sparse_row(R))
-      else
-        resize!(pos, k)
-        resize!(vals, k)
-        push!(C, sparse_row(R, pos, vals))
-      end
+      push!(rels, FreeModElem(sparse_row(base_ring(F), pos, copy(r.values)), F))
     end
+    k = n
+    while k >= 1
+      if k == i
+        k -= 1
+        continue
+      end
+      idx[k] += 1
+      base += strides[k]
+      if idx[k] <= sizes[k]
+        break
+      end
+      idx[k] = 1
+      base -= sizes[k] * strides[k]
+      k -= 1
+    end
+    k == 0 && break
   end
-  return C
-end
-
-function _sparse_identity_matrix(R, n::Int)
-  A = sparse_matrix(R, 0, n)
-  for i in 1:n
-    push!(A, sparse_row(R, [i], [one(R)]))
-  end
-  return A
+  return rels
 end

@@ -12,7 +12,7 @@ Return a (free) presentation of `M`.
 function presentation(SQ::SubquoModule;
                       minimal=false)
   if minimal
-    return _presentation_minimal(SQ)
+    return _presentation_minimal_cached(SQ)
   elseif is_graded(SQ)
     return _presentation_graded(SQ)
   else
@@ -94,7 +94,11 @@ function presentation(SQ::SubquoModule;
   =#
 end
 
-function _presentation_graded(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_minimal_cached(SQ::ModuleFP{T}) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  return _presentation_minimal(SQ)
+end
+
+@attr Hecke.ComplexOfMorphisms function _presentation_graded(SQ::SubquoModule)
   #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
@@ -135,7 +139,7 @@ function _presentation_graded(SQ::SubquoModule)
   return M
 end
 
-function _presentation_simple(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   F = ambient_free_module(SQ)
