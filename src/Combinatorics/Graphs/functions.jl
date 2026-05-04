@@ -5,6 +5,10 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function copy(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return Graph{T}(copy(pm_object(G)))
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)
