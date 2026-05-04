@@ -40,18 +40,8 @@ See also [HM16](@cite), Table 1, and [the supplementary non-published tables](ht
 The OSCAR DB provides access to all models listed in [Algebraic Phylogenetics](https://algebraicphylogenetics.org), 
 see also [Small Phylogenetic Trees](https://www.coloradocollege.edu/aapps/ldg/small-trees/small-trees_0.html) for the list of contributors.
 The list comprises of phylogenetic models on trees with up to 5 leaves. 
-We are currently working on updating our models in the database to contain the exact same information as the [Algebraic Phylogenetics](https://algebraicphylogenetics.org)
-and to eventually have the website pull its data from our database.
 
-Here are some helpful functions for dealing with the data.
-```@docs
-small_tree_model
-group_based_phylogenetic_model(stm::SmallTreeModel)
-phylogenetic_model(stm::SmallTreeModel)
-model_type
-graph(stm::SmallTreeModel)
-n_leaves(stm::SmallTreeModel)
-```
+Detailed documentation and examples of how to query the models and their properties can be found in the [Small trees database documentation](smalltrees.md).
 
 ## Status
 
