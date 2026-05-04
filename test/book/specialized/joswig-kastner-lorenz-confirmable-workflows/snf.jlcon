@@ -10,7 +10,7 @@ julia> methods(snf, Tuple{MatElem{ZZRingElem}})
 # 2 methods for generic function "snf" from AbstractAlgebra:
  [1] snf(x::ZZMatrix)
      @ Nemo ~/.julia/packages/Nemo/xwSoX/src/flint/fmpz_mat.jl:1096
- [2] snf(a::MatElem{T}) where T<:RingElement
+ [2] snf(A::MatElem{T}) where T<:RingElement
      @ ~/.julia/packages/AbstractAlgebra/dsta0/src/Matrix.jl:5431
 
 julia> invoke(snf, Tuple{MatElem{ZZRingElem}}, m) == snf(m)
