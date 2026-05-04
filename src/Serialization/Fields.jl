@@ -14,54 +14,38 @@
 @register_serialization_type fpField "FiniteField"
 
 function save_object(s::SerializerState, F::fpField)
-  save_object(s, string(characteristic(F)))
+  save_object(s, characteristic(F))
 end
 
 function load_object(s::DeserializerState, ::Type{fpField})
-  load_node(s) do str
-    return fpField(parse(UInt64, str))
-  end
+   fpField(load_object(s, UInt64))
 end
 
 # elements
 @register_serialization_type fpFieldElem 
 
 function save_object(s::SerializerState, elem::fpFieldElem)
-  save_data_basic(s, string(elem))
+  save_data_basic(s, lift(ZZ, elem))
 end
 
-function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
-  load_node(s) do str
-    return F(parse(UInt64, str))
-  end
-end
+load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField) = F(load_object(s, UInt64))
 
 ################################################################################
 # ZZRingElem variant
 @register_serialization_type FpField "FiniteField"
 
 function save_object(s::SerializerState, F::FpField)
-  save_object(s, string(characteristic(F)))
+  save_object(s, characteristic(F))
 end
 
-function load_object(s::DeserializerState, ::Type{FpField})
-  load_node(s) do str
-    FpField(parse(ZZRingElem, str))
-  end
-end
+load_object(s::DeserializerState, ::Type{FpField}) = FpField(load_object(s, ZZRingElem))
 
 # elements
 @register_serialization_type FpFieldElem
 
-function save_object(s::SerializerState, elem::FpFieldElem)
-  save_data_basic(s, string(elem))
-end
+save_object(s::SerializerState, elem::FpFieldElem) = save_data_basic(s, lift(ZZ, elem))
 
-function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
-  load_node(s) do str
-    F(parse(ZZRingElem, str))
-  end
-end
+load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField) = F(load_object(s, ZZRingElem))
 
 ################################################################################
 # SimpleNumField
@@ -548,12 +532,8 @@ function save_object(s::SerializerState, P::PadicField)
 end
 
 function load_object(s::DeserializerState, ::Type{PadicField})
-  prime_num = load_node(s, :prime) do node
-    return parse(ZZRingElem, node)
-  end
-  precision = load_node(s, :precision) do node
-    return parse(Int64, node)
-  end
+  prime_num = load_object(s, ZZRingElem, :prime)
+  precision = load_object(s, Int64, :precision)
   return PadicField(prime_num, precision)
 end
 

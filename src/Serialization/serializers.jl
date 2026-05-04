@@ -119,10 +119,23 @@ function save_data_array(f::Function, s::SerializerState,
   _save_data_container(f, s, key, "[", "]")
 end
 
+function save_data_basic(s::SerializerState{IPCSerializer}, x::T,
+                         key::Union{Symbol, Nothing} = nothing) where T <: Union{Bool, Int64, Int32, Int16, Int8, UInt32, UInt16, UInt8}
+  begin_node(s, key)
+  JSON.json(s.io, x)
+end
+
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
   begin_node(s, key)
-  data = x isa Bool ? x : string(x)
+  if x isa Bool
+    data = x
+  elseif x isa Integer && (1 - 2^53 <= x <= 2^53 -1 )
+    data = x
+  else
+    data = string(x)
+  end
+
   if s.pretty_print
     print(s.io, "")
     JSON.json(s.io, data)
