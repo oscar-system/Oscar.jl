@@ -117,13 +117,13 @@ julia> t((M[1], M[2]))
 (e[1] \otimes e[2])
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
+function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool=false)
   is_empty(G) && error("list of modules must not be empty")
   R = base_ring(first(G))
   @assert all(base_ring(M) === R for M in G) "modules must be defined over the same ring"
   # The presentations need to map generators to generators! 
   # We can not match elements, unless this is the case.
-  presentations = [presentation(M; minimal=false) for M in G]
+  presentations = [presentation(M; minimal) for M in G]
   mats = [sparse_matrix(map(c, 1)) for c in presentations] 
   @assert all(ncols(B) == ngens(M) for (M, B) in zip(G, mats)) "presentations do not implement a 1:1 correspondence for the generators"
   multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in reverse(G)]))
@@ -180,6 +180,15 @@ end
 
 # recursive method with bisection for many matrices
 function _kronecker_product(mats::Vector)
+  return _kronecker_product(mats, 1, length(mats))
+end
+
+function _kronecker_product(mats::Vector, a::Int, b::Int)
+  a == b && return mats[a]
+  a + 1 == b && return _kronecker_product(mats[a], mats[b])
+  c = a + div(b - a, 2)
+  return _kronecker_product(_kronecker_product(mats, a, c), 
+                            _kronecker_product(mats, c + 1, b))
   is_one(length(mats)) && return only(mats)
   length(mats) == 2 && return _kronecker_product(mats[1], mats[2])
   n = length(mats)
@@ -194,9 +203,47 @@ function _kronecker_product(A::SMat, B::SMat)
   m1, n1 = size(A)
   m2, n2 = size(B)
   C = sparse_matrix(R, 0, n1*n2)
-  for (i1, v1) in enumerate(A)
-    for (i2, v2) in enumerate(B)
+  #=
+  for v1 in A
+    new_poss = [Vector{Int}(undef, length(v1)*length(v2)) for v2 in B]
+    new_vals = [Vector{elem_type(R)}(undef, length(v1)*length(v2)) for v2 in B]
+    offsets = Int[0 for _ in 1:nrows(B)]
+    for (j1, c1) in v1
+      ind_offset = (j1-1)*n1
+      for (k, v2) in enumerate(B)
+        new_pos = new_poss[k]
+        new_val = new_vals[k]
+        offset = offsets[k]
+        for (l, (j2, c2)) in enumerate(v2)
+          new_pos[offset+l] = ind_offset + j2
+          new_val[offset+l] = c1*c2
+        end
+        offsets[k] += length(v2)
+      end
+    end
+    for (pos, vals) in zip(new_poss, new_vals)
+      push!(C, sparse_row(R, pos, vals; sort=false))
+    end
+  end
+  return C
+end
+=#
+
+  for v1 in A
+    for v2 in B
+      #new_pos = Int[(j1-1)*n2+j2 for j1 in v1.pos for j2 in v2.pos]
+      #new_vals = elem_type(R)[c1*c2 for c1 in v1.values for c2 in v2.values]
+      #inds = findall(is_zero, new_vals)
+      #if !isempty(inds)
+      #  new_pos = deleteat!(new_pos, inds)
+      #  new_vals = deleteat!(new_vals, inds)
+      #end
       push!(C, sparse_row(R, [((j1-1)*n2+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]))
+      #row = sparse_row(R)
+      #row.pos = new_pos
+      #row.values = new_vals
+      #push!(C, row)
+      #push!(C, sparse_row(R, new_pos, new_vals; sort=false))
     end
   end
   return C
