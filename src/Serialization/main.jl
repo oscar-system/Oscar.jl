@@ -140,12 +140,16 @@ function decode_type(s::DeserializerState)
       s.obj = id
       return T
     end
-    return decode_type(s.obj)
+    obj = decode_type(s.obj)
+    obj isa AbstractDict && return obj["default"]
+    return obj
   end
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
-      decode_type(s)
+      obj = decode_type(s)
+      obj isa AbstractDict && return obj["default"]
+      return obj
     end
   end
 
@@ -157,7 +161,9 @@ function decode_type(s::DeserializerState)
       end
     else
       return load_node(s, :name) do _
-        decode_type(s)
+        obj = decode_type(s)
+        obj isa AbstractDict && return obj["default"]
+        return obj
       end
     end
   end
@@ -484,7 +490,7 @@ end
 
 ################################################################################
 # Type Registration
-function register_serialization_type(@nospecialize(T::Type), str::String)
+function register_serialization_type(@nospecialize(T::Type), str::String, default::Bool)
   if haskey(reverse_type_map, str) 
     init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
@@ -492,8 +498,18 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
       init = Dict{String, Type}(convert_type_to_string(init) => init)
     end
     reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
+  elseif default
+    reverse_type_map[str] = Dict{String, Type}(convert_type_to_string(T) => T)
   else
     reverse_type_map[str] = T
+  end
+
+  if default
+    if haskey(reverse_type_map[str], "default")
+      S = reverse_type_map[str]["default"]
+      error("Attempting to overwrite registered default type $S with $T")
+    end
+    reverse_type_map[str]["default"] = T
   end
 end
 
@@ -515,10 +531,10 @@ import Distributed.AbstractSerializer
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
 
-function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any)
+function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any, default::Bool)
   return esc(
     quote
-      Oscar.Serialization.register_serialization_type($ex, $str)
+      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       Oscar.Serialization.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
@@ -554,7 +570,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
 end
 
 """
-    @register_serialization_type NewType "String Representation of type" uses_id uses_params [:attr1, :attr2]
+    @register_serialization_type NewType "String Representation of type" uses_id default [:attr1, :attr2]
 
 `@register_serialization_type` is a macro to ensure that the string we generate
 matches exactly the expression passed as first argument, and does not change
@@ -567,9 +583,7 @@ will be referred to throughout the serialization sessions using a `UUID`.
 This should typically only be used for types that do not have a fixed
 normal form for example `PolyRing` and `MPolyRing`.
 
-Using the `uses_params` flag will serialize the object with a more structured type
-description which will make the serialization more efficient see the discussion on
-`save_type_params` / `load_type_params` below.
+The `default` flag is used to decide a default amongst types that have the same encoding.
 
 Passing a vector of symbols that correspond to attributes of type
 indicates which attributes will be serialized when using save with `with_attrs=true`.
@@ -579,11 +593,14 @@ macro register_serialization_type(ex::Any, args...)
   uses_id = false
   str = nothing
   attrs = nothing
+  default = false
   for el in args
     if el isa String
       str = el
     elseif el == :uses_id
       uses_id = true
+    elseif el == :default
+      default = true
     else
       attrs = el
     end
@@ -595,7 +612,7 @@ macro register_serialization_type(ex::Any, args...)
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, attrs)
+  return register_serialization_type(ex, str, uses_id, attrs, default)
 end
 
 ################################################################################
