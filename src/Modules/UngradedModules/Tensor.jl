@@ -258,7 +258,7 @@ function _append_tensor_relations!(rels::Vector, F::FreeMod, mat, sizes::Vector{
       for a in 1:length(p)
         pos[a] = base + (p[a] - 1) * stride_i
       end
-      push!(rels, FreeModElem(sparse_row(base_ring(F), pos, copy(r.values)), F))
+      push!(rels, FreeModElem(sparse_row(base_ring(F), pos, copy(r.values); sort=false), F))
     end
     k = n
     while k >= 1
