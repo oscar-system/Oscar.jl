@@ -514,6 +514,23 @@ end
     @test degrees_of_generators(M) == [3*Z[1], 3*Z[1]]
 end
 
+@testset "Presentation preserves degrees for zero generators" begin
+    Rg, (x,) = graded_polynomial_ring(QQ, [:x])
+    Z = grading_group(Rg)
+
+    F = graded_free_module(Rg, 1)
+    A = Rg[x; x^2]
+    B = Rg[x^2;]
+    M = SubquoModule(F, A, B)
+
+    @test is_graded(M)
+    @test degrees_of_generators(M) == [1*Z[1], 2*Z[1]]
+
+    pres = presentation(M; minimal=false)
+    F0 = domain(map(pres, 0))
+    @test degrees_of_generators(F0) == degrees_of_generators(M)
+end
+
 @testset "Betti tables 1" begin
     Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
     F = graded_free_module(Rg, 1)
