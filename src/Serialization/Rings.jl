@@ -201,7 +201,7 @@ function load_object(s::DeserializerState,
 
   isempty(exps_coeffs) && return parent_ring(0)::elem_type(parent_ring)
   
-  degree = max([e for (e, _) in exps_coeffs]...)
+  degree = maximum(e for (e, _) in exps_coeffs)
   loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
   for (e, c) in exps_coeffs
     loaded_terms[e + 1] = c
