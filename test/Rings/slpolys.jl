@@ -339,7 +339,8 @@ end
     p = evaluate(x+y, [X, Y])
     # this is bad to hardcode exactly how evaluation of `x+y` happens,
     # we just want to test that this works and looks correct
-    @test p ==  0 + 1*(1*X^1) + 1*(1*Y^1)
+    # and by looking correct we mean that they are printed the same
+    @test string(p) == string(0 + 1*(1*X^1) + 1*(1*Y^1))
 
     @testset "SLPolyRing is a proper Ring" begin
         S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
