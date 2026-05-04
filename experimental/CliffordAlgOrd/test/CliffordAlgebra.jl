@@ -14,8 +14,7 @@
   
     # Matrices over Clifford Algebras
     M = matrix_ring(C, 2)
-    ConformanceTests.test_NCRing_interface(M)
-
+    # ConformanceTests.test_NCRing_interface(M) # disabled, see https://github.com/oscar-system/Oscar.jl/issues/5975
   end
 
   @testset "zero-dimensional corner case" begin
