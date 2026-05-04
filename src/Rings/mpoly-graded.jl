@@ -2342,16 +2342,6 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
   return finish(B)
 end
 
-
-
-################################################################################
-#
-#  Evaluation
-#
-################################################################################
-
-(f::MPolyDecRingElem)(x...) = evaluate(f, collect(x))
-
 ################################################################################
 #
 #  Promote rule
