@@ -150,7 +150,7 @@ function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPoly
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
+                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
   coeff_ring = coefficient_ring(parent_ring)
   polynomial = MPolyBuildCtx(parent_ring)
@@ -160,12 +160,12 @@ function load_object(s::DeserializerState,
   for (e, c) in exps_coeffs
     push_term!(polynomial, c, e)
   end
-  return finish(polynomial)::T{elem_type(coeff_ring)}
+  return finish(polynomial)::elem_type(parent_ring)
 end
 
-function load_object(s::DeserializerState, T::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
   poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)::T{elem_type(coefficient_ring(parent_ring))}
+  return parent_ring(poly)::elem_type(parent_ring)
 end
 
 ################################################################################
@@ -185,28 +185,28 @@ function save_object(s::SerializerState{IPCSerializer},
 end
 
 function load_object(s::DeserializerState{IPCSerializer},
-                     T::Type{<:PolyRingElem},
+                     ::Type{<:PolyRingElem},
                      parent_ring::PolyRing)
   CR = coefficient_ring(parent_ring)
-  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))::T{elem_type(CR)}
+  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))::elem_type(parent_ring)
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<: PolyRingElem},
+                     ::Type{<: PolyRingElem},
                      parent_ring::PolyRing)
   coeff_ring = coefficient_ring(parent_ring)
   coeff_type = elem_type(coeff_ring)
   exps_coeffs = load_object(s, Vector{Tuple{Int, coeff_type}},
                             (nothing, coeff_ring))
 
-  isempty(exps_coeffs) && return parent_ring(0)
+  isempty(exps_coeffs) && return parent_ring(0)::elem_type(parent_ring)
   
   degree = max([e for (e, _) in exps_coeffs]...)
   loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
   for (e, c) in exps_coeffs
     loaded_terms[e + 1] = c
   end
-  return parent_ring(loaded_terms)::T{coeff_type}
+  return parent_ring(loaded_terms)::elem_type(parent_ring)
 end
 
 
