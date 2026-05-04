@@ -1427,6 +1427,22 @@ end
   @test b == b0
 end
 
+@testset "tensor_product with minimal presentations" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  F = free_module(R, 1)
+  M = SubquoModule(F, [x*F[1], x*F[1]], [x^2*F[1]])
+  T0 = tensor_product(M, M)
+  T1 = tensor_product(M, M; minimal=true)
+  @test !is_zero(T0)
+  @test !is_zero(T1)
+  @test ngens(T1) <= ngens(T0)
+  pure1 = Oscar.tensor_pure_function(T1)
+  decomp1 = Oscar.tensor_generator_decompose_function(T1)
+  g = gen(T1, 1)
+  @test pure1(decomp1(g)...) == g
+  @test pure1(M[1] + M[2], M[1]) == pure1(M[1], M[1]) + pure1(M[2], M[1])
+end
+
 @testset "composition of morphisms" begin
   R, (x, y) = QQ[:x, :y]
   P, t = QQ[:t]
