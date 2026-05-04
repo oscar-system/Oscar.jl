@@ -25,7 +25,7 @@ on:
         description: Run extra long test set
       dualdepot:
         type: boolean
-        default: false
+        default: true
         description: Run test suite in dual depot runner
 
 # needed to allow julia-actions/cache to delete old caches that it has created
