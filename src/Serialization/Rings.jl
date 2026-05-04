@@ -150,7 +150,7 @@ function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPoly
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
+                     T::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
   coeff_ring = coefficient_ring(parent_ring)
   polynomial = MPolyBuildCtx(parent_ring)
@@ -160,12 +160,12 @@ function load_object(s::DeserializerState,
   for (e, c) in exps_coeffs
     push_term!(polynomial, c, e)
   end
-  return finish(polynomial)
+  return finish(polynomial)::T{elem_type(coeff_ring)}
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+function load_object(s::DeserializerState, T::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
   poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
+  return parent_ring(poly)::T{elem_type(coefficient_ring(parent_ring))}
 end
 
 ################################################################################
@@ -185,14 +185,14 @@ function save_object(s::SerializerState{IPCSerializer},
 end
 
 function load_object(s::DeserializerState{IPCSerializer},
-                     ::Type{<:PolyRingElem},
+                     T::Type{<:PolyRingElem},
                      parent_ring::PolyRing)
   CR = coefficient_ring(parent_ring)
-  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))
+  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))::T{elem_type(CR)}
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: PolyRingElem},
+                     T::Type{<: PolyRingElem},
                      parent_ring::PolyRing)
   coeff_ring = coefficient_ring(parent_ring)
   coeff_type = elem_type(coeff_ring)
@@ -206,7 +206,7 @@ function load_object(s::DeserializerState,
   for (e, c) in exps_coeffs
     loaded_terms[e + 1] = c
   end
-  return parent_ring(loaded_terms)
+  return parent_ring(loaded_terms)::T{coeff_type}
 end
 
 
