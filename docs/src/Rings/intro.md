@@ -22,6 +22,7 @@ Let `x` and `y` be elements of a ring.
 
 - `x / y` is a shorthand for `divexact(x,y)` and performs division within their parent ring (raising an error if this is not possible).
 - `x // y` constructs a formal quotient, placing the result in a fraction-field parent.
+- For fields, `/` and `//` coincide.
 
 Example:
 
@@ -41,9 +42,7 @@ Univariate polynomial ring in x over QQ
 ```
 
 !!! note
-    The above behavior applies to OSCAR types. For plain Julia numbers, `/`
-    denotes floating-point division. Indeed, it is a common error to enter
-    `1/2` for the fraction 'one half' in Julia. We provide [more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
+    The above behavior applies if at least on of `x` and `y` is an OSCAR ring element. The other argument can also be a Julia integer, rational or float. For instance, provided `x isa RingElem` you can execute `x/2`, which will be an element in the corresponding parent ring. In contrast, if both `x` and `y` are plain Julia numbers, `/` denotes floating-point division. As such, the result of `1/2` is the floating point number `0.5` in Julia. [Read up for more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
 
 In case the ring in question is a field (which means that it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
 
@@ -59,6 +58,23 @@ Finite field of characteristic 101
 
 julia> parent(j) == parent(j//j)
 true
+```
+
+Mixing `/` and `//` in the same expression can lead to subtle changes in the parent of the result. In the following example we create the same polynomial twice: once as an element of a polynomial ring (via `/`) and once as an element of its field of fractions (via `//`). We can add these ring elements despite residing in different rings, thanks to our[promotion rules](https://nemocas.github.io/AbstractAlgebra.jl/stable/ring_interface/#Promotion-rules), but the result lives in the field of fractions. This may be unexpected at first.
+
+```julia
+julia> R, x = polynomial_ring(QQ, :x)
+(Univariate polynomial ring in x over QQ, x)
+
+julia> f = 1+x
+x + 1
+
+julia> g = f//2 + f/2
+x + 1
+
+julia> parent(g)
+Fraction field
+  of univariate polynomial ring in x over QQ
 ```
 
 If the ring in question is not an integral domain, its field of fractions does not exist in a strict mathematical sense. Nevertheless, `//` may still construct formal fractions. However, computations with such objects may fail. Use with care!
