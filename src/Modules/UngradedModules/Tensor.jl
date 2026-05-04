@@ -135,7 +135,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool=fals
     id = ids[i]
     ids[i] = mats[i]
     B = _kronecker_product(ids)
-    A = vcat(A, B)
+    vcat!(A, B)
     ids[i] = id
   end
   F = FreeMod(R, ncols(A))
@@ -180,15 +180,6 @@ end
 
 # recursive method with bisection for many matrices
 function _kronecker_product(mats::Vector)
-  return _kronecker_product(mats, 1, length(mats))
-end
-
-function _kronecker_product(mats::Vector, a::Int, b::Int)
-  a == b && return mats[a]
-  a + 1 == b && return _kronecker_product(mats[a], mats[b])
-  c = a + div(b - a, 2)
-  return _kronecker_product(_kronecker_product(mats, a, c), 
-                            _kronecker_product(mats, c + 1, b))
   is_one(length(mats)) && return only(mats)
   length(mats) == 2 && return _kronecker_product(mats[1], mats[2])
   n = length(mats)
@@ -203,47 +194,14 @@ function _kronecker_product(A::SMat, B::SMat)
   m1, n1 = size(A)
   m2, n2 = size(B)
   C = sparse_matrix(R, 0, n1*n2)
-  #=
-  for v1 in A
-    new_poss = [Vector{Int}(undef, length(v1)*length(v2)) for v2 in B]
-    new_vals = [Vector{elem_type(R)}(undef, length(v1)*length(v2)) for v2 in B]
-    offsets = Int[0 for _ in 1:nrows(B)]
-    for (j1, c1) in v1
-      ind_offset = (j1-1)*n1
-      for (k, v2) in enumerate(B)
-        new_pos = new_poss[k]
-        new_val = new_vals[k]
-        offset = offsets[k]
-        for (l, (j2, c2)) in enumerate(v2)
-          new_pos[offset+l] = ind_offset + j2
-          new_val[offset+l] = c1*c2
-        end
-        offsets[k] += length(v2)
-      end
-    end
-    for (pos, vals) in zip(new_poss, new_vals)
-      push!(C, sparse_row(R, pos, vals; sort=false))
-    end
-  end
-  return C
-end
-=#
-
   for v1 in A
     for v2 in B
-      #new_pos = Int[(j1-1)*n2+j2 for j1 in v1.pos for j2 in v2.pos]
-      #new_vals = elem_type(R)[c1*c2 for c1 in v1.values for c2 in v2.values]
-      #inds = findall(is_zero, new_vals)
-      #if !isempty(inds)
-      #  new_pos = deleteat!(new_pos, inds)
-      #  new_vals = deleteat!(new_vals, inds)
-      #end
-      push!(C, sparse_row(R, [((j1-1)*n2+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]))
-      #row = sparse_row(R)
-      #row.pos = new_pos
-      #row.values = new_vals
-      #push!(C, row)
-      #push!(C, sparse_row(R, new_pos, new_vals; sort=false))
+      # expanded version of 
+      # push!(C, sparse_row(R, [((j1-1)*n2+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]; sort=false))
+      # to avoid allocation of extra vectors
+      new_pos = Int[(j1-1)*n2+j2 for j1 in v1.pos for j2 in v2.pos]
+      new_vals = elem_type(R)[c1*c2 for c1 in v1.values for c2 in v2.values]
+      push!(C, sparse_row(R, new_pos, new_vals; sort=false))
     end
   end
   return C
@@ -257,3 +215,4 @@ function _sparse_identity_matrix(R::Ring, n::Int)
   end
   return A
 end
+
