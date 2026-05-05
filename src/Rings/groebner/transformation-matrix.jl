@@ -65,8 +65,11 @@ true
 ```
 """
 function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-  G, A = standard_basis_with_sparse_transformation_matrix(I; ordering, complete_reduction)
-  return G, transpose(matrix(A))
+  complete_reduction && @assert is_global(ordering)
+  G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+  G.isGB = true
+  I.gb[ordering]  = G
+  return G, m
 end
 
 @doc raw"""
