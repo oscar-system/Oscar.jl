@@ -1,0 +1,201 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
+# Artifacts
+
+This page explains what artifacts are, when to use them, and how to work with them in OSCAR.
+
+
+
+## What Artifacts Are and When to Use Them
+
+Artifacts are content-addressed data bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/).
+They are declared in `Oscar.jl/Artifacts.toml` and are downloaded and unpacked on demand.
+
+Artifacts allow OSCAR to:
+
+- keep the `Oscar.jl` repository small,
+- distribute data reproducibly,
+- avoid duplication of large files across versions.
+
+Artifacts should be used for data that does not belong directly in the `Oscar.jl` repository, in particular:
+
+- generated data,
+- large datasets,
+- data not intended to be edited manually.
+
+As a rule of thumb, data stored directly in the `Oscar.jl` repository should not exceed the size of typical source files (around 100 KB). Small examples, test inputs, and simple hand-written data should remain in the `Oscar.jl` repository.
+
+
+
+
+## Creating, Hosting and Using Artifacts
+
+This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically proceeds as follows:
+
+- [ ] [Serialize data as `.mrdi` files](@ref data_preparation)
+- [ ] [Upload the tarball to a stable hosting location](@ref artifact_hosting)
+- [ ] [Add an entry to `Oscar.jl/Artifacts.toml` and open a pull request](@ref artifact_registration)
+- [ ] [Use the artifact once the pull request has been merged](@ref artifact_usage)
+
+We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifact-example).
+
+
+### [End-to-End Example](@id end-to-end-artifact-example)
+
+The following example illustrates the complete workflow for creating, registering, and using an artifact.
+
+#### Create data
+
+```julia
+using Oscar
+
+obj = ZZ(2)^10
+```
+
+#### Save data
+
+```julia
+save("example.mrdi", obj)
+```
+
+#### Pack into a tarball
+
+Create a compressed tarball, for example `example_data_v1.tar.gz`, containing the file `example.mrdi`.
+
+!!! note
+    Do not introduce an intermediate directory inside the tarball. If multiple files are included, place them directly in the archive.
+
+#### Register the artifact
+
+Register the artifact by adding it to `Oscar.jl/Artifacts.toml`; see also [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/). The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl) can help automate parts of this workflow. The following example shows the manual workflow.
+
+First, compute the `sha256` and the `git-tree-sha1`:
+
+```julia
+using Tar, Inflate, SHA
+
+filename = "/absolute/path/to/example_data_v1.tar.gz"
+
+println("sha256: ", bytes2hex(open(sha256, filename)))
+println("git-tree-sha1: ", Tar.tree_hash(IOBuffer(inflate_gzip(filename))))
+```
+
+Then add a corresponding entry to `Oscar.jl/Artifacts.toml`. We host this very example file at [https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz](https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz); for this particular artifact location, the corresponding entry takes the following form:
+
+HOST THIS FILE SOMEWHERE IN THE OSCAR UNIVERSE! E.g. https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1.
+
+```toml
+[MyExample]
+git-tree-sha1 = "ff2f21e623a130f47116d847ae54fd55232b42c1"
+lazy = true
+
+    [[MyExample.download]]
+    sha256 = "3bd5a20e84b2e579ecde7dc5d7d4606444daf08407eecc9d8e59be1e468ca5a1"
+    url = "https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz"
+```
+
+You may of course replace `MyExample` in the above entry with any other string that you find descriptive.
+
+#### Use the artifact
+
+The artifact string macro is exported by `LazyArtifacts`. In `Oscar.jl` source files this is already available; in a standalone Julia session, load it explicitly.
+
+```julia
+using LazyArtifacts
+
+obj_path = artifact"MyExample/example.mrdi"
+
+obj = load(obj_path)
+```
+
+In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
+
+
+### [Preparing Data (Serialization)](@id data_preparation)
+
+Creating artifacts requires that the corresponding data be serialized locally first. Details are provided in the [Serialization page](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
+
+
+### [Hosting Artifacts](@id artifact_hosting)
+
+Artifacts should be hosted at stable and persistent locations.
+
+Preferred options include:
+
+- archival services such as [Zenodo](https://zenodo.org/communities/oscar/records?q=&l=list&p=1&s=10&sort=newest), in particular for long-term or publication-related data,
+- other stable hosting solutions agreed upon by the maintainers.
+
+For historical reasons, some artifacts are currently hosted via GitHub release assets, for example at
+[Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1). This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry. In particular, ensure that existing files are never removed or renamed, as they may be required by older OSCAR versions.
+
+When debugging or repeatedly updating artifacts, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
+
+Data intended for querying may also be suitable for [OscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/).
+
+
+### [Creating and Registering](@id artifact_registration)
+
+Additional details on Julia artifacts are provided in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
+
+Creating an artifact typically involves the following steps:
+
+- collecting the relevant files in a directory,
+- packing these files into a compressed tarball, such as `.tar.gz`,
+- uploading the tarball to a stable location,
+- adding a corresponding entry to `Oscar.jl/Artifacts.toml`.
+
+The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates these steps.
+
+Once the corresponding changes are merged into the `Oscar.jl` repository, the artifact becomes available to OSCAR and is downloaded automatically when first requested.
+
+
+### [Using Artifacts in Oscar](@id artifact_usage)
+
+Artifacts can be accessed via Julia's artifact system through the `artifact"..."` string macro.
+
+For example:
+
+```julia
+using LazyArtifacts
+
+model_data_path = artifact"FTM-1511-03209/1511-03209.mrdi"
+
+model = load(model_data_path)
+```
+
+The string passed to `artifact"..."` is determined by the corresponding entry in `Oscar.jl/Artifacts.toml`.
+
+In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
+
+
+
+## Updating Artifacts
+
+### General Rules
+
+Artifacts are immutable. Updating an artifact therefore requires:
+
+- creating a new tarball,
+- uploading it to a stable hosting location,
+- recomputing the `sha256` and `git-tree-sha1`,
+- updating the corresponding entry in `Oscar.jl/Artifacts.toml`,
+- opening a pull request with these changes.
+
+Once the pull request is merged, the updated artifact becomes available in OSCAR.
+
+Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Oscar.jl/Artifacts.toml`.
+
+!!! warning
+    Do not modify, rename, or delete files that are already referenced by existing OSCAR releases.
+
+When repeatedly debugging or refining artifacts, contributors are encouraged to use temporary staging areas before publishing long-term versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
+
+### Serialization Upgrades
+
+The `.mrdi` file format is under active development and its standard evolves over time. Older files remain compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
+
+Additional details are provided in the [Serialization documentation](https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/#Upgrades).
