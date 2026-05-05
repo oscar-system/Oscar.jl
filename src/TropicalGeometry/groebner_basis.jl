@@ -75,7 +75,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 
@@ -92,7 +92,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+s*x2,x2+s*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_s,w)
-(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 """
@@ -126,12 +126,17 @@ function simulate_valuation(
 
     # prepend 1 to -w or +w and scale until integral
     sw = conventionType==typeof(min) ? vcat(-one(QQ),-w) : vcat(-one(QQ),w)
-    sw .*= lcm(denominator.(w))
+    sw = Int.(lcm(denominator.(w))*sw)
 
-    # Optimization: if I is homogeneous, translate latter entries of sw by ones vector until strictly negative
-    if all(is_homogeneous(g) for g in gens(I))
-
-        sw[2:end] .-= 1+maximum(w[2:end])
+    # optimizations for I homogeneous,
+    # in which case we are allowed to translate the latter entries of sw by the all ones vector
+    if all(is_homogeneous.(gens(I)))
+        # make sw strictly negative
+        sw[2:end] .-= 1+maximum(sw[2:end])
+        # if latter entries of sw do fit in Int16, minimize their absolute value
+        if any(sw[2:end] .< typemin(Int16)) || any(sw[2:end] .> typemax(Int16))
+            sw[2:end] .-= div(maximum(sw[2:end])-minimum(sw[2:end]),2)
+        end
     end
 
     return ideal(S,sG), sw
@@ -154,11 +159,17 @@ function simulate_valuation(
     if conventionType==typeof(min)
         w = -w
     end
-    w = lcm(denominator.(w))*w
+    w = Int.(lcm(denominator.(w))*w)
 
-    # Optimization: if I is homogeneous, translate w by the ones vector until strictly positive
-    if all(is_homogeneous(g) for g in gens(I))
-        w .+= 1-minimum(w)
+    # optimizations for I homogeneous,
+    # in which case which we are allowed to translate w by the all ones vector
+    if all(is_homogeneous.(gens(I)))
+        # make w strictly positive
+        w .-= 1+minimum(w)
+        # if entries of w do fit in Int16, minimize their absolute value
+        if any(w .< typemin(Int16)) || any(w .> typemax(Int16))
+            w .-= div(maximum(w)-minimum(w),2)
+        end
     end
 
     return I, w
@@ -258,7 +269,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> sI, sw = Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 julia> Oscar.desimulate_valuation(gens(sI),nu_2,Kx)
 2-element Vector{QQMPolyRingElem}:
@@ -330,6 +341,12 @@ function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVecto
 
     Isim, wSim = simulate_valuation(I,nu, QQ.(w))
     oSim = weight_ordering(Int.(wSim),default_ordering(base_ring(Isim)))
+
+    # Optimization: if I is homogeneous, prepend all ones vector weight ordering
+    if all(is_homogeneous.(gens(Isim)))
+        oSim = weight_ordering(ones(Int,ngens(base_ring(Isim))),oSim)
+    end
+
     Gsim = standard_basis(Isim; ordering = oSim)
     G = desimulate_valuation(gens(Gsim),nu,base_ring(I))
 
