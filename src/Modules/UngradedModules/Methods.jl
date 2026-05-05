@@ -653,6 +653,67 @@ function _vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   return length(vector_space_basis(kk, M; check))
 end
 
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyRingElem{<:FieldElem}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  GB = groebner_basis(M.quo)
+  vdim = Singular.vdim(singular_generators(GB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  return _vector_space_dim(kk, _as_poly_module(M), check=false)
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"                              
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end  
+  M_shift, _, _ = shifted_module(M)
+  ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  SB = standard_basis(M_shift.quo, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
+                                  <:MPolyRing, <:MPolyRingElem,
+                                  <:MPolyComplementOfKPointIdeal
+                                 }}
+  LQ = base_ring(M)
+  @assert kk === coefficient_ring(LQ) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  M_poly = pre_saturated_module(M)
+  #TODO: refactor when infrastructure for caching GB-basis is available in this setting
+  shift, _ = base_ring_shifts(localized_ring(LQ))
+  Mq, _ = sub(ambient_free_module(M_poly), relations(M_poly))
+  Mq_shift, _ = change_base_ring(shift, Mq)
+
+  ord = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  SB = standard_basis(Mq_shift.sub, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
 @doc raw"""
     _is_finite(kk::Field, M::SubquoModule)
 
@@ -669,7 +730,7 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:Fie
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
-  return _has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
+  return _has_leading_monomials_on_all_axes(standard_basis(M.quo, ordering = default_ordering(M)))
 end
 
 function _is_finite(kk::Field, M::SubquoModule{<:FieldElem})
@@ -883,21 +944,75 @@ end
 
 # This is an internal method which assumes `M` to be presented.
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
-  R = base_ring(M)
-  F = ambient_free_module(M)
-
-  mons = elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
-
   if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
-    return M.(vec(mons))
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    return M.(vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]))
   end
 
-  o = default_ordering(M)
-  LM = leading_module(M.quo, o)
+  ord = default_ordering(M)
+  SB = standard_basis(M.quo, ordering = ord)
 
-  return elem_type(M)[M(mon) for mon in mons if !(mon in LM)]
+  return M.(_vector_space_basis_helper(SB, d))
 end
+
+@doc raw"""
+    _vector_space_basis_helper(GB::ModuleGens, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
+
+Return a vector of all monomials of total degree `d` which are not in the 
+leading module of the Gröbner basis `GB`. 
+"""
+function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  R = base_ring(GB)
+  F = oscar_free_module(GB)
+
+  min_degs = _min_degrees_to_check(GB)
+  max_degs = _max_degrees_to_check(GB)
+  # Case I: We know, that all monomials of degree 'd' are in the leading module.
+  d > maximum(max_degs) && return elem_type(F)[]
+  # Case II: We know, that no monomials of degree 'd' are in the leading module.
+  if d < minimum(min_degs)
+    return vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))])
+  end
+  # Case III: We need to check the monomials of degree 'd' in each coordinate individually. 
+  mons_on_axes = _leading_monomials_on_axes(GB)
+  LM = leading_monomials(GB)
+  B = elem_type(F)[]
   
+  #= Hack to be able to use normal_form() below. 
+  The 'ModuleGens' constructors does not set 'ordering' and 'isGB' from a Singular 'smodule' (see issue #5944),
+  thus 'leading_monomials' also does not do it, therefore we do it manually here.
+  TODO: remove, when issue #5944 is resolved
+  =#
+  LM.isGB = true  
+  LM.ordering = GB.ordering
+  
+  # Go through each coordinate individually
+  for i in 1:rank(F)
+    # Subcase i: We know, that all monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
+    if d > max_degs[i]
+      continue
+    # Subcase ii: We know, that no monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
+    elseif d < min_degs[i]
+      append!(B, [a*F[i] for a in monomials_of_degree(R, d)])
+    # Subcase iii: We need to check the monomials of degree in the 'i'-th coordinate 'd' individually.
+    else
+      # check only monomials with variables, that are not in the leading module
+      mons = [a*F[i] for a in monomials_of_degree(R, d, findall(mons_on_axes[i,:] .> 1))]
+      B_i = [mon for mon in mons if !is_zero(normal_form(mon, LM))]
+      # improve upper bound for 'i'-th coordinate, if all monomials in it are in the leading module.
+      if length(B_i) == 0
+        max_degs[i] = d-1
+      else
+        append!(B, B_i)
+      end
+    end
+  end
+  return B
+end
+
+
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
   error("not implemented")
 end
@@ -905,35 +1020,88 @@ end
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check::Bool=true)
   error("not implemented")
 end
-  
-@doc raw"""
-    _has_monomials_on_all_axes(M::SubquoModule)
 
-Internal function to test for a submodule `M` of a free module `F` whether the quotient `F/M` is a finite-dimensional vector space. Do not use directly.
+
+@doc raw"""
+    _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute whether the monomial diagram of the leading monomials of the Gröbner 
+basis `GB` has monomials on all its axes.
 """
-function _has_monomials_on_all_axes(M::SubquoModule)
-  length(rels(M)) == 0 || error("not implemented for quotients")
-  return _has_monomials_on_all_axes(M.sub)
+@attr Bool function _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  return !any(==(PosInf()), _leading_monomials_on_axes(GB))
 end
 
-function _has_monomials_on_all_axes(M::SubModuleOfFreeModule)
-  R = base_ring(M)
-  
-  ambient_rank = ngens(ambient_free_module(M))
-  genlist = gens(M)
-  explist = Tuple{Vector{Int64}, Int64, Int}[]
-  for x in genlist
-    tempexp = leading_exponent(x)
-    tempdeg = sum(tempexp[1])
-    push!(explist, (tempexp[1], tempexp[2], tempdeg))
-  end
-  for i in 1:ngens(R), j in 1:ambient_rank
-    if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
-      return false
+@doc raw"""
+    _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Return encoded into a (julia) matrix the leading monomials of the Gröbner basis `GB`, 
+which are univariate, i.e. lay on the axes of a monomial diagram.
+
+The returned matrix `M` contains in the entry `M[i,j]` the smallest degree `k`,
+such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
+If such a monomial does not exists the entry is `PosInf()`.
+"""
+@attr Matrix{IntExt} function _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  ambient_rank = ngens(oscar_free_module(GB))
+  mons_on_axes = IntExt[PosInf() for _ in 1:ambient_rank, _ in 1:ngens(base_ring(GB))]
+  for mon in leading_monomials(GB)
+    tempexp, tempcomp = leading_exponent(mon)
+    tempdeg = sum(tempexp)
+    # constant monomial
+    if tempdeg == 0
+      mons_on_axes[tempcomp, :] .= 0
+      continue
+    end
+    tempvar = findfirst(!=(0), tempexp)
+    # univariate and smaller degree
+    if tempexp[tempvar] == tempdeg && tempdeg < mons_on_axes[tempcomp, tempvar] 
+      mons_on_axes[tempcomp, tempvar] = tempdeg
     end
   end
-  return true
+  return mons_on_axes
 end
+
+@doc raw"""
+    _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute for each coordinate of the ambient free module of the Gröbner basis `GB`
+the smallest total degree of a monomial appearing in the leading module of `GB`.
+"""
+@attr Vector{IntExt} function _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  ambient_rank = ngens(oscar_free_module(GB))
+  min_degs = IntExt[PosInf() for _ in 1:ambient_rank]
+  for mon in leading_monomials(GB)
+    tempexp, tempcomp = leading_exponent(mon)
+    tempdeg = sum(tempexp)
+    
+    if tempdeg < min_degs[tempcomp]
+      min_degs[tempcomp] = tempdeg
+    end
+  end
+  return min_degs
+end
+
+@doc raw"""
+    _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute for each coordinate of the ambient free module of the Gröbner basis `GB` 
+an upper bound for the total degree of the monomials not appearing in the 
+leading module of `GB`.
+
+The bound is `PosInf()` if and only if no finite bound exists.
+"""
+@attr Vector{IntExt} function _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  mons_on_axes = _leading_monomials_on_axes(GB)
+  # nrows(mons_on_axes) is the rank of the ambient free module of 'GB'
+  return IntExt[sum(mons_on_axes[i,:]) - ngens(base_ring(GB)) for i in 1:nrows(mons_on_axes)]
+end
+
+
 
 ### Some missing functionality
 function Base.:*(k::Int, f::ModuleFPHom)
@@ -1087,8 +1255,8 @@ function _is_finite(
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  return _has_monomials_on_all_axes(leading_module(M_shift.quo, o))
+  ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  return _has_leading_monomials_on_all_axes(standard_basis(M_shift.quo, ordering = ord))
 end
 
 # This is an internal method which assumes `M` to be presented. 
@@ -1105,24 +1273,23 @@ function _vector_space_basis(
                                <:MPolyRing, <:MPolyRingElem,
                                <:MPolyComplementOfKPointIdeal
                               }}
-  L = base_ring(M)
-  R = base_ring(L)
-  F = ambient_free_module(M)
-  
+  F = ambient_free_module(M)  
   F_shift, _, back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
   
-  mons = elem_type(F_shift)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F_shift))]
-  
   if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
+    L = base_ring(M)
+    R = base_ring(L)
+    mons = elem_type(F_shift)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F_shift))]
     return M.(iota.(back_shift.(vec(mons))))
   end
   
   M_shift, _, _ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(F_shift)
-  LMq = leading_module(M_shift.quo, o)
 
-  B = elem_type(F_shift)[mon for mon in mons if !(mon in LMq)]
+  ord = negdegrevlex(base_ring(M_shift))*lex(F_shift)
+  SB = standard_basis(M_shift.quo, ordering = ord)
+
+  B = _vector_space_basis_helper(SB, d)
   return M.(iota.(back_shift.(B)))
 end
 
