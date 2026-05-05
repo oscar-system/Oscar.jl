@@ -59,11 +59,14 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::AbstractDict{Symbol, Any})
-  ns = obj[:_ns]
+function serialization_version_info(ns_dict::JSON.Object{String, Any})
+  ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
+
+serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
+
 
 function version_number(v_number::String)
   return VersionNumber(v_number)
@@ -128,31 +131,33 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)
-  if s.obj isa String
-    uuid = tryparse(UUID, s.obj)
+  obj = s.obj[]
+  if obj isa String
+    uuid = tryparse(UUID, obj)
     if !isnothing(uuid)
       if isnothing(s.refs)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
-      id = s.obj
+      id = obj
+      lazy_obj = s.obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      s.obj = id
+      s.obj = lazy_obj
       return T
     end
-    return decode_type(s.obj)
+    return decode_type(obj)
   end
 
-  if type_key in keys(s.obj)
+  if haskey(obj, type_key)
     return load_node(s, type_key) do _
       decode_type(s)
     end
   end
-
-  if :name in keys(s.obj)
-    if :_instance in keys(s.obj)
-      return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
-        unsupported_instance = s.obj[:_instance]
+  
+  if haskey(obj, :name)
+    if haskey(obj, :_instance)
+      return get(reverse_type_map[obj[:name]], obj[:_instance]) do
+        unsupported_instance = obj[:_instance]
         error("unsupported instance '$unsupported_instance' for decoding")
       end
     else
@@ -373,15 +378,16 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_params(s::DeserializerState, T::Type)
-  if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      return T, load_ref(s)
+  if s.obj isa JSON.LazyValue
+    val = s.obj[]
+    if val isa String
+      !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
+      return T, nothing
     end
-    return T, nothing
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+      if obj isa AbstractVector
         params = load_type_array_params(s)
       elseif obj isa String || haskey(s, :params)
         U = decode_type(s)
@@ -391,11 +397,11 @@ function load_type_params(s::DeserializerState, T::Type)
           params = load_type_params(s, U)[2]
         end
       # handle cases where type_params is a dict of params
-      elseif !haskey(obj, type_key) 
+      elseif !haskey(obj, type_key)
         params = Dict{Symbol, Any}()
         for (k, _) in obj
-          params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+          params[Symbol(k)] = load_node(s, Symbol(k)) do obj
+            if obj isa AbstractVector
               return load_type_array_params(s)
             end
             
@@ -434,7 +440,8 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+    obj = s.obj[]
+    obj isa String && !isnothing(tryparse(UUID, obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
@@ -779,8 +786,8 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   s = deserializer_open(io, serializer, with_attrs)
-  if haskey(s.obj, :id)
-    id = s.obj[:id]
+  if :id in propertynames(s.obj)
+    id = s.obj[:id][]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end
@@ -788,9 +795,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
   # handle different namespaces
   polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
+    @req :_ns in propertynames(d) "Namespace is missing"
     load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
+      if :polymake in propertynames(_ns)
         return load_from_polymake(Dict(d))
       end
     end
@@ -800,7 +807,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
+    @req :Oscar in propertynames(_ns) "Not an Oscar object"
   end
 
   # deal with upgrades
@@ -847,7 +854,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_typed_object(s; override_params=params)
     end
 
-    if :id in keys(s.obj)
+    if haskey(s, :id)
       load_node(s, :id) do id
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded

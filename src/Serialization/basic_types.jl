@@ -89,7 +89,7 @@ end
 @register_serialization_type String
 
 function load_object(s::DeserializerState, ::Type{String})
-  return s.obj
+  return s.obj[]
 end
 
 ################################################################################

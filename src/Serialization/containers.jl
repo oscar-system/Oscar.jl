@@ -110,7 +110,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
         load_ref(s)
       end::Vector{params}
     else
-      isempty(s.obj) && return params[]
+      iszero(length(s.obj)) && return params[]
       loaded_v = load_array_node(s) do _
         load_object(s, params)
       end
@@ -121,7 +121,7 @@ end
 
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
-  isempty(s.obj) && return T[]
+  iszero(length(s.obj)) && return T[]
   v = load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
@@ -133,7 +133,7 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
-  isempty(s.obj) && return U[]
+  iszero(length(s.obj)) && return U[]
   return load_array_node(s) do _
     load_object(s, U)
   end
@@ -155,7 +155,7 @@ end
 # since types on load will be Matrix
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
   load_node(s) do entries
-    if isempty(entries)
+    if iszero(length(entries))
       return T(undef, 0, 0)
     end
     len = length(entries)
@@ -411,9 +411,9 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       params_dict = Dict{S, Any}()
       value_types = Type[]
       for (k, _) in obj
-        k == :key_params && continue
+        k == "key_params" && continue
         key = S <: Integer ? parse(Int, string(k)) : S(k)
-        params_dict[key] = load_node(s, k) do _
+        params_dict[key] = load_node(s, Symbol(k)) do _
           return load_type_params(s, decode_type(s))
         end
         push!(value_types, params_dict[key][1])
@@ -461,8 +461,8 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}}) where {S <: Union{Symbol, String}, U}
   dict = T()
-  for k in keys(s.obj)
-    dict[S(k)] = load_object(s, U, Symbol(k))
+  for k in propertynames(s.obj)
+    dict[S(k)] = load_object(s, U, k)
   end
   return dict
 end
@@ -470,8 +470,8 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}}, ::Nothing) where {S <: Union{Symbol, String}, U}
   dict = T()
-  for k in keys(s.obj)
-    dict[S(k)] = load_object(s, U, Symbol(k))
+  for k in propertynames(s.obj)
+    dict[S(k)] = load_object(s, U, k)
   end
   return dict
 end
@@ -479,7 +479,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{Int, Int}})
   dict = T()
-  for k in keys(s.obj)
+  for k in propertynames(s.obj)
     dict[parse(Int, string(k))] = load_object(s, Int, k)
   end
   return dict
@@ -488,7 +488,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{Int, S}}, params::Nothing) where S
   dict = T()
-  for k in keys(s.obj)
+  for k in propertynames(s.obj)
     dict[parse(Int, string(k))] = load_object(s, S, k)
   end
   return dict
@@ -527,7 +527,7 @@ function load_object(s::DeserializerState,
                      params::Dict) where {S <: Union{Int, String, Symbol}, U}
   if haskey(params, :value_params)
     pairs = Tuple{S, U}[]
-    for k in keys(s.obj)
+    for k in propertynames(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
       push!(pairs, (key, load_object(s, U, params[:value_params], k)))
     end
@@ -538,7 +538,7 @@ function load_object(s::DeserializerState,
   else
     dict = Dict{S, Any}()
     value_types = Type[]
-    for k in keys(s.obj)
+    for k in propertynames(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
       value_type, param = params[key]
       v = load_object(s, value_type, param, k)
