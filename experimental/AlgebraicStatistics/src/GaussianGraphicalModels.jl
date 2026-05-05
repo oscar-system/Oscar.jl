@@ -633,11 +633,8 @@ end
 
 ################################################################################
 # Maximum likelihood
-function _trace_and_det(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{QQFieldElem})
-  
-end
 
-function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem;
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{QQFieldElem};
                                kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
@@ -645,12 +642,32 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
 
   K = concentration_matrix(M)
+  trace_product = trace(scv_matrix * K)
+  detK = det(K)
+  diff_vars = gens(base_ring(K))
+    
+  l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  I_sat = saturation(I, ideal(detK))
+  gb = groebner_basis(I_sat; kwargs...)
+
+  return I_sat
+end
+
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:MPolyRingElem};
+                               kwargs...)
+  @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
+  K = concentration_matrix(M)
+  n = nrows(K)
+  @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+
   R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
   K_mapped = map_entries(emb, K)
   phi = Oscar.flatten(R)
   Ko = monomial_ordering(gens(codomain(phi))[1:ngens(base_ring(K))], :degrevlex)
   So = monomial_ordering(gens(codomain(phi))[ngens(base_ring(K)) + 1:end], :degrevlex)
   o = Ko * So
+  
   trace_product = phi(trace(scv_matrix * K_mapped))
   detK = phi(det(K_mapped))
   diff_vars = (phi(g) for g in gens(R))
@@ -676,7 +693,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_m
   adj = adjugate(sigma_mapped)
 
   R, emb = change_base_ring(base_ring(scv_matrix), base_ring(codomain(phi)))
-    phi = flatten(R)  
+  phi = flatten(R)  
   
   sigma_final = map_entries(emb, sigma_mapped)
   adj_final = map_entries(emb, adj)
@@ -716,30 +733,29 @@ julia> maximum_likelihood_degree(M)
 1
 ```
 """
-function maximum_likelihood_degree(M::GaussianGraphicalModel, rank::Int; algorithm=:generic)
+function maximum_likelihood_degree(M::GaussianGraphicalModel; algorithm=:generic)
   @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   n = n_vertices(graph(M))
   
   if algorithm == :generic
-    if rank == n
-      S, s = polynomial_ring(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
-      scv_matrix = upper_triangular_matrix(s)
-      for i in 1:n
-        for j in 1:i - 1
-          scv_matrix[i, j] = scv_matrix[j, i]
-        end
+    S, s = polynomial_ring(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
+    scv_matrix = upper_triangular_matrix(s)
+    for i in 1:n
+      for j in 1:i - 1
+        scv_matrix[i, j] = scv_matrix[j, i]
       end
-    else
-      S, s = rational_function_field(QQ, :s => (1:rank, 1:n); cached=false)
-      scv_matrix = transpose(matrix(S, s)) * matrix(S, s)
     end
+    I = score_equations_ideal(M, scv_matrix)
   elseif algorithm == :monte_carlo
-    scv_matrix = rand(Int, rank, n)
-    scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
+    dim_I = -1
+
+    while !iszero(dim_I)
+      scv_matrix = rand(Int, n, n)
+      scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
+      I = score_equations_ideal(M, scv_matrix)
+      dim_I = dim(I)
+    end
   end
-  I = score_equations_ideal(M, scv_matrix)
 
   return degree(I)
 end
-
-maximum_likelihood_degree(M::GaussianGraphicalModel; kwargs...) = maximum_likelihood_degree(M, n_vertices(graph(M)); kwargs...)

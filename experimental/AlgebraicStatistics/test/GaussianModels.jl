@@ -45,6 +45,11 @@
       test_save_load_roundtrip(path, M3) do loaded
         @test vanishing_ideal(loaded) == V3
       end
+
+      @testset "Maximum Likelihood" begin
+        @test maximum_likelihood_degree(M; algorithm=:monte_carlo) == 2
+        
+      end
     end
 
     @testset "Mixed" begin
