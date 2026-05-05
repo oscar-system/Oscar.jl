@@ -124,7 +124,7 @@ cases = [
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
           test_p = z^2 + case[2] * z * w + case[3] * w^3
-          @test loaded.p == test_p.p
+          @test loaded == test_p
         end
 
         @testset "Load with params" begin

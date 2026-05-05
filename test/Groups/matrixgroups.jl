@@ -149,6 +149,9 @@ end
      x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
+
+     iso = isomorphism(PermGroup, G0)
+     @test order(codomain(iso)) == order(G0)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -249,6 +252,13 @@ end
    @test_throws ErrorException G[1]
    G = SO(3, residue_ring(ZZ, 9)[1])
    @test nrows(G[1]) == 3
+
+   G = GL(2, QQ)
+   @test_throws ErrorException GapObj(G)
+   S = sub(G, [G(QQ[0 -1; 1 0])])
+   @test order(S) == 4
+   S = sub(G, [G(QQ[1 2; 5 6])])
+   @test ! is_finite(S)
 end
 
 @testset "Type operations" begin
@@ -351,6 +361,26 @@ end
    @test !has_gens(G)
    @test_throws ErrorException GapObj(G)
    @test_throws ErrorException gens(G)
+end
+
+@testset "matrix_group(Ring, Vector)" begin
+   # Base case: coerce ZZ matrices into QQ
+   G = matrix_group(QQ, [identity_matrix(ZZ, 3)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 3
+
+   # Coerce ZZ matrices into a finite field
+   G = matrix_group(GF(101), [ZZ[1 2; 3 4]])
+   @test base_ring(G) == GF(101)
+   @test degree(G) == 2
+
+   # Same ring, no coercion needed
+   G = matrix_group(QQ, [identity_matrix(QQ, 2)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 2
+
+   # Empty list should error
+   @test_throws ArgumentError matrix_group(QQ, dense_matrix_type(ZZ)[])
 end
 
 @testset "Construct a matrix group from a GAP group" begin
@@ -626,6 +656,8 @@ end
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
+   @test_throws ErrorException -1 * x
+   @test_throws ErrorException x * -1
 
    # minimal and characteristic polynomial
    @test charpoly(x)(matrix(x)) == 0

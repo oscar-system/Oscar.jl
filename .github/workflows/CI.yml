@@ -88,7 +88,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
         id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
@@ -124,17 +124,9 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Save Julia depot cache on cancel or failure
-        id: julia-cache-save
-        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v5
-        with: 
-          path: |
-            ${{ steps.julia-cache.outputs.cache-paths }}
-          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   book-tests:
     runs-on: 'ubuntu-latest'
@@ -157,7 +149,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
         id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
@@ -180,17 +172,9 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Save Julia depot cache on cancel or failure
-        id: julia-cache-save
-        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v5
-        with: 
-          path: |
-            ${{ steps.julia-cache.outputs.cache-paths }}
-          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   extra-long-test:
     # Extra long tests
@@ -249,7 +233,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
         id: julia-cache
         if: runner.environment != 'self-hosted'
         with:
@@ -287,17 +271,9 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Save Julia depot cache on cancel or failure
-        id: julia-cache-save
-        if: (cancelled() || failure()) && runner.environment != 'self-hosted'
-        uses: actions/cache/save@v5
-        with: 
-          path: |
-            ${{ steps.julia-cache.outputs.cache-paths }}
-          key: ${{ steps.julia-cache.outputs.cache-key }}
 
   test-mongodb:
     runs-on: ${{ matrix.os }}
@@ -327,7 +303,6 @@ jobs:
           # Maps tcp port 27017 on service container to the host
           - 27017:27017
     env:
-      JULIA_PKG_SERVER: ""
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
       OSCAR_TEST_SUBSET: "oscar_db"
     steps:
@@ -336,7 +311,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
@@ -360,7 +335,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 

@@ -1,3 +1,10 @@
+# checks that attributes are loaded properly from empty state
+function check_ring_loading(loaded)
+  model_ring(loaded)
+  parameter_ring(loaded)
+  return true
+end
+
 @testset "PhylogeneticModels" begin # Changed from "Graphical Models tests"
   mktempdir() do path
     tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
@@ -29,7 +36,7 @@
       @test ngens(full_model_ring(model)[1]) ==
         ngens(full_model_ring(phylogenetic_model(model))[1]) ==  n_states(model)^(n_leaves(tree))
 
-      test_save_load_roundtrip(path, model) do loaded
+      test_save_load_roundtrip(path, model; check_func=check_ring_loading) do loaded
         @test ngens(full_model_ring(loaded)[1]) ==
           ngens(full_model_ring(phylogenetic_model(loaded))[1]) ==  n_states(loaded)^(n_leaves(tree))
       end
@@ -252,14 +259,16 @@
     @testset "Transition Matrix Types" begin
       tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
       @testset "M = VarName - T = FieldElem" begin
-        m = jukes_cantor_model(tree)
-        parameter_ring(phylogenetic_model(m))
-        entry_transition_matrix(m, 1, 3, 4, 1)
+        PM = jukes_cantor_model(tree)
+        parameter_ring(phylogenetic_model(PM))
+        entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 5
       end
       @testset  "M = VarName - T = VarName" begin
-        m = general_markov_model(tree)
-        parameter_ring(m)
-        entry_transition_matrix(m, 1, 3, 4, 1)
+        PM = general_markov_model(tree)
+        parameter_ring(PM)
+        entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 64
       end
 
       @testset "M = MPolyRingElem - T = MPolyRingElem" begin
@@ -273,7 +282,7 @@
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
-
+        @test length(equivalent_classes(PM)) == 64
       end
 
       @testset "M = MPolyRingElem - T = FieldElem" begin 
@@ -286,6 +295,7 @@
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 36
       end
 
       @testset "M = MPolyRingElem - T = RationalFunctionFieldElem" begin
@@ -299,6 +309,7 @@
         PM = PhylogeneticModel(tree, M, p)
         parameter_ring(PM)
         entry_transition_matrix(PM, 1, 3, 4, 1)
+        @test length(equivalent_classes(PM)) == 64
       end
     end
 
@@ -401,7 +412,28 @@
         @test fN2(q[1, 1, 2, 2, 1]) == l11*l21*f1(q[1, 1, 2, 2, 1]) + l11*l22*f2(q[1, 1, 2, 2, 1]) + l12*l21*f3(q[1, 1, 2, 2, 1]) + l12*l22*f4(q[1, 1, 2, 2, 1]) 
 
       end
+    end
 
+    
+    @testset "Serialization with String Varnames" begin
+      tree = phylogenetic_tree(graph_from_edges(Directed,[[4,1], [4,2], [4,3]]))
+      M = [:m11 :m12; :m21 :m22]
+      root_dist = [:r1, :r2]
+      fourier_params = [:x, :y]
+      pm = group_based_phylogenetic_model(tree, M, fourier_params, nothing, nothing, "p", "q")
+      phi  = parametrization(pm)
+      
+      function check(loaded)
+        return varnames(loaded) isa String 
+      end
+      
+      test_save_load_roundtrip(path, pm; check_func=check) do loaded
+      end
+
+      pm = phylogenetic_model(pm)
+      phi = parametrization(pm)
+      test_save_load_roundtrip(path, pm; check_func=check) do loaded
+      end
     end
   end
 end

@@ -19,7 +19,7 @@ Construct the difference polynomial ring over the base ring `R` with the given e
 In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each elementary symbol.
 
 This method returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
-vector of initial jet variables.  
+vector of initial jet variables.
 
 This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
 
@@ -65,6 +65,38 @@ function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol},
   dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, n_action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
+end
+
+@doc raw"""
+    difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int) -> Tuple{DifferencePolyRing, DifferencePolyRingElem}
+
+This constructor behaves exactly like [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...))
+but only allows for one elementary symbol `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
+difference polynomial ring.
+
+# Examples
+
+This constructor is preferred when one only wants to have one elementary symbol:
+```jldoctest
+julia> R, x = difference_polynomial_ring(ZZ, :x, 2)
+(Difference polynomial ring in 1 elementary symbols over ZZ, x[0,0])
+
+julia> x
+x[0,0]
+```
+If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+```jldoctest
+julia> R, x = difference_polynomial_ring(ZZ, [:x], 2)
+(Difference polynomial ring in 1 elementary symbols over ZZ, DifferencePolyRingElem{ZZRingElem}[x[0,0]])
+
+julia> x
+1-element Vector{DifferencePolyRingElem{ZZRingElem}}:
+ x[0,0]
+```
+"""
+function difference_polynomial_ring(R::Ring, elementary_symbol::Symbol, n_action_maps::Int; kwargs...)
+  tmp = difference_polynomial_ring(R, [elementary_symbol], n_action_maps; kwargs...)
+  return (tmp[1], tmp[2][1])
 end
 
 ### Differential ###
@@ -128,6 +160,38 @@ function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
 end
 
+@doc raw"""
+    differential_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int) -> Tuple{DifferentialPolyRing, DifferentialPolyRingElem}
+
+This constructor behaves exactly like [`differential_polynomial_ring`](@ref differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...))
+but only allows for one elementary symbol `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
+differential polynomial ring.
+
+# Examples
+
+This constructor is preferred when one only wants to have one elementary symbol:
+```jldoctest
+julia> R, x = differential_polynomial_ring(ZZ, :x, 2)
+(Differential polynomial ring in 1 elementary symbols over ZZ, x[0,0])
+
+julia> x
+x[0,0]
+```
+If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+```jldoctest
+julia> R, x = differential_polynomial_ring(ZZ, [:x], 2)
+(Differential polynomial ring in 1 elementary symbols over ZZ, DifferentialPolyRingElem{ZZRingElem}[x[0,0]])
+
+julia> x
+1-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
+ x[0,0]
+```
+"""
+function differential_polynomial_ring(R::Ring, elementary_symbol::Symbol, n_action_maps::Int; kwargs...)
+  tmp = differential_polynomial_ring(R, [elementary_symbol], n_action_maps; kwargs...)
+  return (tmp[1], tmp[2][1])
+end
+
 ##### Elements #####
 
 ### Union ###
@@ -186,7 +250,7 @@ Return the multiplicitive identity of the action polynomial ring `A`.
 """
 one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
 
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = AbstractAlgebra.Generic.UniversalPolyRing{T}
+base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = universal_poly_ring_type(T)
 
 coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
@@ -773,16 +837,15 @@ function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
     coeff_t = coeff(term, 1)
     vars_t = vars(term)
     ev = append!(exponent_vector(term, 1), fill(0, ngens(upr) - length(exponent_vector(term, 1))))
-    new_exp_vec = copy(ev)
+    new_exp_vec = fill(0, length(ev))
 
     for var in vars_t
       var_pos = findfirst(==(var), gens(upr))
       shifted_var_pos = old_to_new_pos[var_pos]
       
       new_exp_vec[shifted_var_pos] = ev[var_pos]
-      new_exp_vec[var_pos] = 0 
     end
-    
+
     push_term!(C, coeff_t , new_exp_vec)
   end
   return dpr(finish(C))

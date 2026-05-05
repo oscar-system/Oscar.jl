@@ -169,7 +169,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
+    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -185,6 +185,11 @@ end
   FIm = free_resolution(I, algorithm = :mres)
   @test is_graded(FIm)
 
+  # issue 5869
+  R, (x) = polynomial_ring(QQ, [:x])
+  M = free_module(R,1)
+  @test length(free_resolution(M)) == 0
+
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
@@ -194,7 +199,7 @@ end
     SQ = SubquoModule(A,B)
     pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
     F = FreeMod(R,ncols(pres_mat))
-    @test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
+    @test cokernel(F,pres_mat)[1] == cokernel(F,true_pres_mat)[1]
 
     pres_SQ, i = present_as_cokernel(SQ, :both)
     p = i.inverse_isomorphism
@@ -365,7 +370,7 @@ end
         @test H[1] == ker_d
         coker_d, coker_proj = cokernel(d)
         @test dim(coker_d) == 1
-        @test H[2][1] == coker_d
+        @test H[2] == coker_d
         @test all(g -> iszero(coker_proj(d(g))), gens(domain(d)))
     end
 end
@@ -1801,25 +1806,25 @@ end
   @testset "size of modules" begin
     R = ZZ
     F = free_module(FreeMod, R, 2)
-    M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
+    M, _ = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])))
     @test size(M) == 6
 
-    N = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
+    N, _ = cokernel(hom(F, F, matrix(ZZ, [7 0; 0 0])))
     @test size(N) == PosInf()
 
     K, a = finite_field(7, "a")
     G = free_module(FreeMod, K, 3)
     H = free_module(FreeMod, K, 1)
-    L = cokernel(hom(H, G, matrix(K, [1 0 0])))
+    L, _ = cokernel(hom(H, G, matrix(K, [1 0 0])))
     @test size(L) == 49
 
     K, a = finite_field(7, "a")
     G = free_module(FreeMod, K, 3)
-    L = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
+    L, _ = cokernel(hom(G, G, matrix(K, [1 0 0; 0 1 0; 0 0 1])))
     @test size(L) == 1
 
     G = free_module(FreeMod, QQ, 3)
-    L = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
+    L, _ = cokernel(hom(G, G, matrix(QQ, [1 0 0; 0 1 0; 0 0 1])))
     @test size(L) == 1
   end
 end
@@ -1954,4 +1959,243 @@ end
   @test O + O == O
   @test O + M != O
   @test M + O == M
+end
+
+@testset "vector space basis for modules" begin
+  R, (x, y) = GF(101)[:x, :y]
+  F = free_module(R, 1)
+  I = ideal(R, gens(R))
+  IF, _ = I*F
+  I2F, _ = I^2*F
+  M, _ = quo(IF, I2F)
+  B = vector_space_basis(M)
+  @test length(B) == 2
+  @test x*F[1] in repres.(B)
+  @test y*F[1] in repres.(B)
+  
+  V, inc = vector_space(M)
+  @test V isa FreeMod
+  @test vector_space_dim(V) == 2
+  @test inc.(gens(V)) == B
+  @test vector_space(V)[1] === V
+
+
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R, 2)
+
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  # computing basis for infinite dimensional vector space throws error
+  S = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(S)
+  # for pure submodules this is always checked, even with ckeck=false
+  S2 = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(S2; check=false)
+
+  #test ungraded total degree "graded" case
+  @test vector_space_dim(O2, 3) == 0
+  @test vector_space_basis(O2, 3) == elem_type(O2)[]
+  F_subquo,_ = sub(F, gens(F))
+  @test vector_space_dim(F_subquo, 2) == 6 
+  @test vector_space_basis(F_subquo, 2) == F_subquo.([x^2*F[1], x*y*F[1], y^2*F[1], x^2*F[2], x*y*F[2], y^2*F[2]])
+end
+
+@testset "vector space functions for modules over a MPolyQuoRing" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  I = ideal(R, [x^3+y^2+z^2, x*y])
+  Q,_ = quo(R, I)
+  F = free_module(Q, 2)
+
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  # quotient of free_module
+  S = SubquoModule(F, [F[1], F[2]], [3*x^2*F[1]+y*F[2], 2*y*F[1]+x*F[2], 2*z*F[1]])
+  @test vector_space_dim(S) == 6
+  B = vector_space_basis(S)
+  @test length(B) == 6
+  @test all(b -> parent(b) === S, B)
+  #the computed basis depends on the default monomial order of R
+  @test all(b -> b in repres.(B), [F[1], F[2], x*F[1], y*F[1], y*F[2], z*F[2]])
+
+  # quotient of a submodule
+  T = SubquoModule(F, [x*F[1], y*F[2]], [3*x^2*F[1]+y*F[2], 2*y*F[1]+x*F[2], 2*z*F[1]])
+  @test vector_space_dim(T) == 2
+  C = vector_space_basis(T)
+  @test length(C) == 2
+  @test all(c -> parent(c) === T, C)
+  @test all(c -> c in repres.(C), [x*F[1], y*F[2]])
+
+  V, inc = vector_space(T)
+  @test V isa FreeMod
+  @test vector_space_dim(V) == 2
+  @test inc.(gens(V)) == C
+  @test vector_space(V)[1] === V
+
+  # computing basis for infinite dimensional vector space throws error
+  R, (x,y) = QQ[:x,:y]
+  I = ideal(R, x*y)
+  Q,_ = quo(R, I)
+  F = free_module(Q, 2)
+  S = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(S)
+end
+
+@testset "vector space functions for modules over a MPolyLocRing" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  L,_ =  localization(R, complement_of_point_ideal(R, [1,2,3]))
+  F = free_module(L, 2)
+
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  #test ungraded total degree "graded" case
+  @test vector_space_dim(O2, 3) == 0
+  @test vector_space_basis(O2, 3) == elem_type(O2)[]
+  F_subquo,_ = sub(F, gens(F))
+  @test vector_space_dim(F_subquo, 1) == 6 
+  @test vector_space_basis(F_subquo, 1) == F_subquo.([(x-1)*F[1], (y-2)*F[1], (z-3)*F[1], (x-1)*F[2], (y-2)*F[2], (z-3)*F[2]])
+
+  # quotient of free_module (S_6 space_curve with singularity translated to (1,2,3))
+  rels = [
+    ((x-1)^3+(y-2)^2+(z-3)^2)*F[1], ((x-1)*(y-2))*F[1],
+    ((x-1)^3+(y-2)^2+(z-3)^2)*F[2], ((x-1)*(y-2))*F[2],
+    3*(x-1)^2*F[1] + (y-2)*F[2],
+    2*(y-2)*F[1] + (x-1)*F[2],
+    2*(z-3)*F[1]
+  ]
+  S = SubquoModule(F, [F[1], F[2]], rels)
+  @test vector_space_dim(S) == 6
+  B = vector_space_basis(S)
+  @test length(B) == 6
+  @test all(b -> parent(b) === S, B)
+  #the computed basis depends on the default monomial order of R
+  @test all(b -> b in repres.(B), [F[1], F[2], (x-1)*F[1], (x-1)^2*F[1], (y-2)*F[1], (z-3)*F[2]]) 
+
+  # quotient of a submodule 
+  T = SubquoModule(F, [(x-1)*F[1], (y-2)*F[2]], rels)
+  @test vector_space_dim(T) == 2
+  C = vector_space_basis(T)
+  @test length(C) == 2
+  @test all(c -> parent(c) === T, C)
+  @test all(c -> c in repres.(C), [(x-1)*F[1], (x-1)^2*F[1]])
+
+  # computing basis for infinite dimensional vector space throws error
+  T1 = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(T1)
+  # for pure submodules this is always checked, even with ckeck=false
+  T2 = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(T2; check=false)
+
+  #testing if computation is actually local
+  R, (x,y) = QQ[:x, :y]
+  L,_ =  localization(R, complement_of_point_ideal(R, [0,0]))
+  F = free_module(L, 2)
+  # I = [x*y*(y-1)]
+  rels = [x*y*(y-1)*F[1], y*(y-1)*F[1], x*(2*y-1)*F[1], F[2]]
+  M = SubquoModule(F, gens(F), rels)
+  @test vector_space_dim(M) == 1
+  @test vector_space_dim(Oscar.pre_saturated_module(M)) == 2
+end
+
+@testset "vector space functions for modules over a MPolyQuoLocRing" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  I = ideal(R, [(x-1)^3+(y-2)^2+(z-3)^2, (x-1)*(y-2)])
+  Q,_ = quo(R, I)
+  LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
+  F = free_module(LQ, 2)
+
+  # different presentations of the zero module
+  O1 = quo_object(F, gens(F))
+  @test vector_space_dim(O1) == 0
+  @test vector_space_basis(O1) == elem_type(O1)[]
+  @test typeof(vector_space_basis(O1)) == typeof(elem_type(O1)[])
+
+  O2 = SubquoModule(F, elem_type(F)[])
+  @test vector_space_dim(O2) == 0
+  @test vector_space_basis(O2) == elem_type(O2)[]
+  @test typeof(vector_space_basis(O2)) == typeof(elem_type(O2)[])
+
+  # quotient of free_module (S_6 space_curve with singularity translated to (1,2,3))
+  rels = [
+    3*(x-1)^2*F[1] + (y-2)*F[2],
+    2*(y-2)*F[1] + (x-1)*F[2],
+    2*(z-3)*F[1]
+  ]
+  S = SubquoModule(F, [F[1], F[2]], rels)
+  @test vector_space_dim(S) == 6
+  B = vector_space_basis(S)
+  @test length(B) == 6
+  @test all(b -> parent(b) === S, B)
+  #the computed basis depends on the default monomial order of R
+  @test all(b -> b in repres.(B), [F[1], F[2], (x-1)*F[1], (x-1)^2*F[1], (y-2)*F[1], (z-3)*F[2]]) 
+
+  # quotient of a submodule 
+  T = SubquoModule(F, [(x-1)*F[1], (y-2)*F[2]], rels)
+  @test vector_space_dim(T) == 2
+  C = vector_space_basis(T)
+  @test length(C) == 2
+  @test all(c -> parent(c) === T, C)
+  @test all(c -> c in repres.(C), [(x-1)*F[1], (x-1)^2*F[1]])
+
+  # computing basis for infinite dimensional vector space throws error
+  S = SubquoModule(F, gens(F), [F[1]])
+  # not a finite module over `QQ`
+  @test_throws ErrorException vector_space_basis(S)
+end
+
+@testset "normal form different module orderings" begin
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R, 3)
+  M, _ = sub(F, [F[1]+F[3], F[2]])
+
+  v = (x^2+x)*F[1]
+  w = F[2]
+
+  # default ordering
+  GB = groebner_basis(M)
+  @test normal_form(v, GB) == (x^2+x)*F[1]
+  @test normal_form(w, GB) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB) == ((x^2+x)*F[1], one(R))
+
+  # another global ordering
+  ord = invlex(F)*deglex(R)
+  GB_ord = groebner_basis(M, ordering = ord)
+  @test normal_form(v, GB_ord) == -(x^2+x)*F[3]
+  @test normal_form(w, GB_ord) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB_ord) == (-(x^2+x)*F[3], one(R))
+
+  # local ordering
+  ord_loc = invlex(F)*negdeglex(R)
+  SB = standard_basis(M, ordering = ord_loc)
+  @test normal_form(v, SB) == -x*F[3]
+  @test normal_form(w, SB) == zero(F)
 end

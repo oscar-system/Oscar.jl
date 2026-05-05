@@ -4,7 +4,63 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Abstract Bundles
+# Abstract bundles
+
+An *abstract bundle* on an abstract variety $X$ is determined by its rank and its Chern character
+(or, equivalently, its total Chern class). Abstract bundles support the standard operations on vector bundles
+in algebraic geometry: direct sum, tensor product, duals, determinant bundles, exterior and symmetric powers,
+as well as pullback and pushforward along abstract variety maps.
+They also carry the usual characteristic classes: Chern classes, Segre classes, Todd class, and Pontryagin classes.
+
+The arithmetic operations `+`, `-`, `*` on abstract bundles correspond to direct sum, formal difference,
+and tensor product, respectively. In particular, multiplying a bundle by an integer `n` gives the
+direct sum of `n` copies.
+
+### Grothendieck ring and virtual bundles
+
+Abstract bundles live in the Grothendieck ring $\mathrm{K}^0(X)$ of vector bundles on $X$.
+In this ring, every element can be written as a formal difference $[E] - [F]$ of genuine
+bundles. The Chern character $\mathrm{ch}\colon\mathrm{K}^0(X) \to \mathrm{N}^*(X)_{\mathbb Q}$ is
+a ring homomorphism that identifies the Grothendieck ring (after tensoring with $\mathbb Q$)
+with the Chow ring.
+
+In OSCAR, an `AbstractBundle` is stored as a pair (rank, Chern character), so virtual bundles
+with zero (and negative) rank are fully supported:
+
+```jldoctest
+julia> P2 = abstract_projective_space(2);
+
+julia> T = tangent_bundle(P2);
+
+julia> F = T - 2*OO(P2); # a virtual bundle of rank 0
+
+julia> rank(F)
+0
+
+julia> chern_character(F)
+3//2*h^2 + 3*h
+
+```
+
+### Segre classes
+
+The *total Segre class* $s(E) = c(E)^{-1}$ is the formal inverse of the total Chern class
+and arises naturally as the fundamental class of a projective bundle. For a bundle $E$ of
+rank $r$ the individual Segre classes satisfy $s_k(E) = (-1)^k c_k(E^\vee)$ when $k \le r$,
+but the relation $s(E)\cdot c(E) = 1$ also determines the higher Segre classes uniquely.
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> T = tangent_bundle(P3);
+
+julia> total_segre_class(T)
+-20*h^3 + 10*h^2 - 4*h + 1
+
+julia> total_segre_class(T) * total_chern_class(T) # must be 1
+1
+
+```
 
 ## Types
 
@@ -16,7 +72,7 @@ The OSCAR type for abstract vector bundles is `AbstractBundle`.
 abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
-## Underlying Data of an Abstract Bundle
+## Underlying data of an abstract bundle
 
 An abstract bundle is made up from (a selection of) the data discussed here:
 
@@ -36,7 +92,7 @@ rank(F::AbstractBundle)
 total_chern_class(F::AbstractBundle)
 ```
 
-## Further Data Associated to an Abstract Bundle
+## Further data associated to an abstract bundle
 
 ```@docs
 chern_class(F::AbstractBundle, k::Int)
@@ -74,10 +130,39 @@ euler_characteristic(F::AbstractBundle)
 hilbert_polynomial(F::AbstractBundle)
 ```
 
-## Operations on Abstract Bundles
+## Operations on abstract bundles
 
-```@docs
--(F::AbstractBundle)
+The arithmetic operations `+`, `-`, `*` on abstract bundles correspond to direct sum, formal
+difference, and tensor product, respectively. Multiplying a bundle by an integer `n` gives the
+direct sum of `n` copies.
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> 4*OO(P3, 1) - OO(P3) == tangent_bundle(P3) # Euler sequence
+true
+
+```
+
+### Euler characteristics of line bundles on $\mathbb P^n$
+
+The Euler characteristic $\chi(\mathcal{O}_{\mathbb P^n}(d)) = \binom{n+d}{n}$
+can be computed directly:
+
+```jldoctest
+julia> P3 = abstract_projective_space(3);
+
+julia> [euler_characteristic(OO(P3, d)) for d in -2:5]
+8-element Vector{QQFieldElem}:
+ 0
+ 0
+ 1
+ 4
+ 10
+ 20
+ 35
+ 56
+
 ```
 
 ```@docs
@@ -104,7 +189,7 @@ pullback(f::AbstractVarietyMap, F::AbstractBundle)
 pushforward(f::AbstractVarietyMap, F::AbstractBundle)
 ```
 
-## Tests on Abstract Bundles
+## Tests on abstract bundles
 
 ```@docs
 ==(F::AbstractBundle, G::AbstractBundle)

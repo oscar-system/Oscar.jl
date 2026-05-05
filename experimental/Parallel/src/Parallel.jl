@@ -1,5 +1,5 @@
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
-import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers, procs
+import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager, rmprocs
 
 import .Serialization: put_type_params
 
@@ -19,21 +19,22 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   wp::WorkerPool # the plain worker pool
   channel::Channel{Int} # required for the `AbstractWorkerPool` interface
   workers::Set{Int}     # same
-  wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
   oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
+  init_expr::Expr
 
-  function OscarWorkerPool(n::Int; kw...)
+  function OscarWorkerPool(n::Int, init_expr::Expr=:(); kw...)
     wids = addprocs(n; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     asyncmap(wids) do wid
       remotecall_eval(Main, wid, :(using Oscar))
+      remotecall_eval(Main, wid, init_expr)
     end
 
-    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
   end
 
-  function OscarWorkerPool(manager::ClusterManager; project=Base.active_project(), kw...)
+  function OscarWorkerPool(manager::ClusterManager, init_expr::Expr=:(); project=Base.active_project(), kw...)
     wids = addprocs(manager; kw...)
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
@@ -44,6 +45,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     else
       asyncmap(wids) do wid
         remotecall_eval(Main, wid, :(using Oscar))
+        remotecall_eval(Main, wid, init_expr)
       end
     end
     return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
@@ -51,12 +53,15 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
 end
 
 @doc raw"""
-     oscar_worker_pool(n::Int; kw...)
-     oscar_worker_pool(f::Function, n::Int; kw...)
+     oscar_worker_pool(n::Int, init_expr::Expr=:(); kw...)
+     oscar_worker_pool(f::Function, n::Int, init_expr=:(); kw...)
      oscar_worker_pool(manager::ClusterManager; project=Base.active_project(), kw...)
+
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
+The `init_expr` can be used to pass an initial expression that will be evaluated
+on all workers as well as any new workers being pushed to the pool. 
 
 Keyword arguments will get passed to `addprocs` when initializing the workers,
 for example use `exeflags` to specify settings for the worker processes.
@@ -74,8 +79,8 @@ results = oscar_worker_pool(3; exeflags="--heap-size-hint=8G") do wp
 end
 ```
 """
-oscar_worker_pool(n::Int; kw...) = OscarWorkerPool(n; kw...)
-oscar_worker_pool(manager::ClusterManager; kw...) = OscarWorkerPool(manager; kw...)
+oscar_worker_pool(n::Int, init_expr=:(); kw...) = OscarWorkerPool(n, init_expr; kw...)
+oscar_worker_pool(manager::ClusterManager; kw...) = OscarWorkerPool(manager, init_expr; kw...)
 
 function oscar_worker_pool(f::Function, args...; kw...)
   wp = OscarWorkerPool(args...; kw...)
@@ -123,8 +128,14 @@ end
 ### end of implementation interface `AbstractWorkerPool`
 
 ### extra functionality
+function rmprocs(wp::OscarWorkerPool, wid::Int)
+  rmprocs(wid; waitfor=0)
+  # clear dead workers
+  wp.workers = Set{Int}([i for i in workers(wp) if i in procs()])
+  wp.wp = WorkerPool(collect(wp.workers))
+end
 
-workers(wp::OscarWorkerPool) = wp.wids
+workers(wp::OscarWorkerPool) = collect(wp.workers)
 
 function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
   chnl = get!(wp.oscar_channels, id) do
@@ -136,7 +147,7 @@ close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
 
 # extend functionality so that `pmap` works with Oscar stuff
 function put_type_params(wp::OscarWorkerPool, a::Any)
-  asyncmap(wp.wids) do id
+  asyncmap(workers(wp)) do id
     put_type_params(get_channel(wp, id), a)
   end
 end
@@ -281,23 +292,11 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   return result
 end
 
-# this is here so that setting batchsize still works
-type_params(p::Base.Iterators.Zip) = type_params(first(p))
-  
-function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
-  put_type_params(wp, c)
-  pmap(f, wp.wp, c; kwargs...)
-end
-
 struct TimeoutException <: Exception end
 
-@doc raw"""
-     remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...; kwargs...)
-
-Will kill the worker if the timeout is reached. If the one of the workers in the `wp` worker pool
-is killed, it will be replaced.
-"""
-function remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...; kwargs...)
+function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
+                                 timeout,
+                                 args...; kwargs...)
   wid = take!(wp)
   
   # Prepare type parameters
@@ -315,27 +314,30 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout=1, args...
     put!(wp, wid)  # Return worker to pool on setup failure
     rethrow()
   end
-  
-  try
+
+  try 
     if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
       # Add replacement worker
       new_wid = first(addprocs(1))
       push!(wp, new_wid)
-      println("pushed worker to pool")
-      # Remove the problematic worker
-      rmprocs(wid)
-      println("removed worker")
       throw(TimeoutException())
     end
   catch e
-    if !(e isa TimeoutException)
-      put!(wp, wid)  # Return worker if it's not a timeout error
-    end
+    # remove problematic worker
+    rmprocs(wp, wid)
     rethrow(e)
   end
-  
+    
   put!(wp, wid)  # Return worker to pool on success
   return fetch(fut) 
 end
 
-export oscar_worker_pool, remotecall_with_timeout
+# this is here so that setting batchsize still works
+type_params(p::Base.Iterators.Zip) = type_params(first(p))
+  
+function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
+  put_type_params(wp, c)
+  pmap(f, wp.wp, c; kwargs...)
+end
+
+export oscar_worker_pool, remotecall_with_timeout, TimeoutException

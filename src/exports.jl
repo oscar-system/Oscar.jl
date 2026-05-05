@@ -334,6 +334,7 @@ export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
 export basis_of_h4
 export bell
+export bergman_fan
 export betti
 export betti_number
 export betti_numbers
@@ -387,6 +388,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
@@ -478,6 +480,7 @@ export connected_sum
 export connectivity
 export connectivity_function
 export contains
+export contains_in_interior
 export continued_fraction_hirzebruch_jung
 export continued_fraction_hirzebruch_jung_to_rational
 export contraction
@@ -825,6 +828,7 @@ export inclusion_morphism
 export indegree
 export independent_sets
 export index
+export index_of_coset
 export index_of_gen
 export index_of_leading_term
 export indicator
@@ -1075,9 +1079,12 @@ export is_table_of_marks_name
 export is_ternary
 export is_total
 export is_transitive
+export is_transversal
+export is_transversal_with_presentation
 export is_transverse_intersection
 export is_trivial
 export is_tropically_generic
+export is_tutte_realizable
 export is_two_sided
 export is_unipotent
 export is_unit
@@ -1229,6 +1236,7 @@ export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
+export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
@@ -1378,9 +1386,11 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_sets_tuples
 export on_simplicial_complex
 export on_subgroups
 export on_tuples
+export on_tuples_sets
 export one!
 export open_subset_type
 export opposite_algebra
@@ -1828,6 +1838,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_group
 export tutte_lifting
 export tutte_polynomial
 export twist
