@@ -270,13 +270,14 @@ end
 Convert a free module element to the Singular side.
 """
 function (SF::Singular.FreeMod)(m::FreeModElem)
-  g = Singular.gens(SF)
-  e = SF()
+  is_zero(m) && return SF()
   Sx = base_ring(SF)
-  for (p,v) in coordinates(m)
-    e += Sx(v)*g[p]
+  c = coordinates(m)
+  if isone(length(c)) 
+    (p, v) = only(c)
+    return Sx(v)*gen(SF, p) 
   end
-  return e
+  return sum(Sx(v)*gen(SF, p) for (p, v) in c; init=SF())
 end
 
 @doc raw"""
@@ -381,9 +382,7 @@ If no such `r` exists, an exception is thrown.
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
   iszero(a) && return sparse_row(base_ring(parent(a)))
   SA = get_attribute!(generators, :sparse_transformation_matrix) do
-    A = get_attribute(generators, :transformation_matrix)
-    A === nothing && error("No transformation matrix in the Gröbner basis.")
-    sparse_matrix(A)
+    error("No transformation matrix in the Gröbner basis.")
   end
 
   @assert generators.isGB
