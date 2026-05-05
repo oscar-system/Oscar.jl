@@ -23,6 +23,10 @@ on:
         type: boolean
         default: false
         description: Run extra long test set
+      dualdepot:
+        type: boolean
+        default: true
+        description: Run test suite in dual depot runner
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -339,6 +343,34 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  test-dual-depot:
+    # run tests in dual depot runner, where the RO depot has most of the depot, and the RW depot is
+    # only for running the tests
+    # this helps guard against errors like https://github.com/oscar-system/GAP.jl/issues/1371
+    name: Run testsuite in a dual depot runnner
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
+    runs-on: [RPTU,dual-depot]
+    continue-on-error: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      # setup first depot
+      - name: Set RO Depot
+        run: echo "JULIA_DEPOT_PATH=/home/oscarci-tester/ssd-data/ssd-runner-31/juliaro" >> $GITHUB_ENV
+      - name: Set up julia
+        uses: julia-actions/setup-julia@v2
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      # mark RO depot as RO
+      - name: Mark first depot as RO
+        run: chmod -Rv a-w /home/oscarci-tester/ssd-data/ssd-runner-31/juliaro
+      # set second depot
+      - name: Make RW depot
+        # this assumes that the second variable in $GITHUB_ENV wins!
+        # we don't know for tusre!
+        run: echo "JULIA_DEPOT_PATH=/home/oscarci-tester/ssd-data/ssd-runner-31/juliarw:/home/oscarci-tester/ssd-data/ssd-runner-31/juliaro" >> $GITHUB_ENV
+      - name: Run tests
+        uses: julia-actions/julia-runtest@latest
 
 # adapted from gap-system/gap
   slack-notification:
