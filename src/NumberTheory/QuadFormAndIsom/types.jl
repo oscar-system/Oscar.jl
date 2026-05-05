@@ -1,3 +1,9 @@
+###############################################################################
+#
+#  Basic types
+#
+###############################################################################
+
 @doc raw"""
     QuadSpaceWithIsom
 
@@ -265,6 +271,12 @@ Finite quadratic module of order 3
   end
 end
 
+#####################################################################
+#
+#  Enumeration context
+#
+#####################################################################
+
 mutable struct ZZLatWithIsomEnumCtX
   # what we want now
   power::Int
@@ -289,5 +301,109 @@ mutable struct ZZLatWithIsomEnumCtX
   
   function ZZLatWithIsomEnumCtX()
     return new()
+  end
+end
+
+###############################################################################
+#
+#  Gluing factory
+#
+###############################################################################
+
+@doc raw"""
+    ZZLatGluingCtx
+
+A context object which stores some `TorQuadModule` together with the results of
+some orbits and stabilizers computations for some ``p``-subgroups of a given
+type.
+"""
+struct ZZLatGluingCtx
+  modules::Vector{TorQuadModule}
+  orb_and_stab::Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
+
+  function ZZLatGluingCtx()
+    modules = TorQuadModule[]
+    orb_and_stab = Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
+    return new(modules, orb_and_stab)
+  end
+end
+
+@doc raw"""
+    ZZLatGluing
+
+Type for representatives for a double coset of glue maps between two
+discriminant forms ``q_1`` and ``q_2``, under the action some groups
+``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists:
+- a glue map ``\gamma\colon H_1\to H_2``,
+- the inverse glue map of ``H_2\to H_1``,
+- the embedding ``H_1 \to q_1``,
+- the embedding of the ``G_1``-stabilizer of ``H_1`` inside ``G_1``,
+- the embedding ``H_2 \to q_2``,
+- the embedding of the ``G_2``-stabilizer of ``H_2`` inside ``G_2``.
+"""
+struct ZZLatGluing
+  glue_map::TorQuadModuleMap
+  inv_glue_map::TorQuadModuleMap
+  glue_group_left::TorQuadModuleMap
+  stabilizer_left::GAPGroupHomomorphism
+  glue_group_right::TorQuadModuleMap
+  stabilizer_right::GAPGroupHomomorphism
+
+  function ZZLatGluing(x...)
+    return new(x...)
+  end
+end
+
+@doc raw"""
+    ZZLatGluingFactory
+
+A factory object for local gluings computations. It stores two `TorQuadModule`
+and a subgroup of their orthogonal group (as finite bilinear module). A context
+object `ZZLatGluingCtx` can be added to it in the context of gluings where one
+of the two modules is fixed and the second varies, for instance.
+"""
+mutable struct ZZLatGluingFactory
+  # Necessary input
+  ambient_modules::Tuple{TorQuadModule, TorQuadModule} # Discriminant forms of the lattices to glue
+  local_classifying_groups::Tuple{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
+  par::Symbol # :even, :odd or :both
+
+  # Context
+  Ctx::ZZLatGluingCtx
+  vertex_identification::Tuple{Int, Int}
+
+  # Edge conditions
+  glue_order::Set{ZZRingElem} # Possible orders of a glue group
+  glue_elementary_divisors::Set{Vector{ZZRingElem}} # Possible elementary divisors of a glue groups
+  genus_over::Set{ZZGenus} # Possible genus of an overlattice
+  form_over::Set{QQMatrix} # Possible Gram matrix normal form of discriminant group overlattice
+
+  # Internal preparation
+  conditions_modules::Tuple{TorQuadModuleMap, TorQuadModuleMap} # Where the glue groups should be taken
+  glue_group_parent_snf::Vector{ZZRingElem} # Glue groups are isomorphic to a subgroup of an abelian group with such elementary divisors
+  primes_of_interest::Set{ZZRingElem} # Only primes which could divide the order of a glue group
+  local_gluings_primary::Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}} # Intermediate storage for local gluings at some prime, and glue group of certain type
+
+  function ZZLatGluingFactory(
+    module_left::TorQuadModule,
+    module_right::TorQuadModule,
+    par::Symbol,
+  )
+    z = new((module_left, module_right))
+    z.par = par
+    return z
+  end
+end
+
+struct ZZLatGluingAmbient
+  D::TorQuadModule
+  j1::TorQuadModuleMap
+  j2::TorQuadModuleMap
+  OD::AutomorphismGroup{TorQuadModule}
+  k1::GAPGroupHomomorphism
+  k2::GAPGroupHomomorphism
+
+  function ZZLatGluingAmbient(x...)
+    return new(x...)
   end
 end
