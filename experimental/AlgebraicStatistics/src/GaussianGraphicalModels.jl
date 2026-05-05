@@ -752,7 +752,7 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel; algorithm=:generic
     while !iszero(dim_I)
       scv_matrix = rand(Int, n, n)
       scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
-      I = score_equations_ideal(M, scv_matrix)
+      I = score_equations_ideal(M, scv_matrix; algorithm=:f4)
       dim_I = dim(I)
     end
   end
