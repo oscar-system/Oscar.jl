@@ -242,19 +242,19 @@ function literature_model(
     model_dict["literature_identifier"] = "1903_00009"
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
-    qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
+    qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))::HypersurfaceModel
     return qsm_model
   end
 
   # (2b) The F-theory model with the largest number of flux vacua needs special attention
   if model_dict["arxiv_data"]["id"] == "1511.03209"
     model_data_path = artifact"FTM-1511-03209/1511-03209.mrdi"
-    return load(model_data_path)
+    return load(model_data_path)::GlobalTateModel
 
     # Old code to create this model from scratch. I leave this here, so we can go back if needed.
     #=
     directory = joinpath(@__DIR__, "Models/1511_03209/1511-03209-base-space.mrdi")
-    base_space = load(directory)
+    base_space = load(directory)::NormalToricVariety
     set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
     our_rng = Random.Xoshiro(1234)
     model = global_tate_model(base_space, completeness_check = false, rng = our_rng)
