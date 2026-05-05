@@ -195,10 +195,13 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool = fa
     strides[k] = strides[k + 1] * sizes[k + 1]
   end
 
+  rankF = rank(F)
   I = elem_type(F)[]
-  sizehint!(I, sum(nrows(mats[i]) * div(rank(F), sizes[i]) for i in 1:n))
-  for i in 1:n
-    _append_tensor_relations!(I, F, mats[i], sizes, strides, i)
+  if rankF != 0
+    sizehint!(I, sum(nrows(mats[i]) * div(rankF, sizes[i]) for i in 1:n))
+    for i in 1:n
+      _append_tensor_relations!(I, F, mats[i], sizes, strides, i)
+    end
   end
 
   result = SubquoModule(F, gens(F), I)
@@ -209,6 +212,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool = fa
   function pure(tuple_elems::ModuleFPElem...)
     @assert length(tuple_elems) == n
     @assert all(i -> parent(tuple_elems[i]) === G[i], 1:n)
+    rankF == 0 && return zero(result)
     pre = ntuple(i -> preimage(augs[i], tuple_elems[i]), n)
     ww = free_pure(pre...)
     return result(coordinates(ww))

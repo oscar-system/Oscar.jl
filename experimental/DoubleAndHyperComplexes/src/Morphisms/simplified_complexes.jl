@@ -668,7 +668,11 @@ end
 ### Helper functions
 function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
   if is_graded(M)
-    w = _degree_fast.(g)
+    if length(g) == ngens(M) && all(i -> parent(g[i]) === M && g[i] == gen(M, i), 1:ngens(M))
+      w = degrees_of_generators(M)
+    else
+      w = _degree_fast.(g)
+    end
     return graded_free_module(base_ring(M), w)
   else
     return FreeMod(base_ring(M), length(g))
