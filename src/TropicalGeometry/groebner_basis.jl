@@ -75,7 +75,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 
@@ -92,7 +92,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+s*x2,x2+s*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_s,w)
-(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 """
@@ -269,7 +269,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> sI, sw = Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 julia> Oscar.desimulate_valuation(gens(sI),nu_2,Kx)
 2-element Vector{QQMPolyRingElem}:
