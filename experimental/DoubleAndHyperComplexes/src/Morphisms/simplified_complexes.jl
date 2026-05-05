@@ -467,7 +467,7 @@ function simplify(c::FreeResolution{T}) where T
   # `_extend_free_resolution`, then this suggests that we are in a
   # graded polynomial setting and we extend the minimized resolution 
   # via `mres`. Unfortunately, this decision can not be inferred from 
-  # the type parameter of `c`, because it comes out of `ModuleFP`, i.e. 
+  # the type parameter of `c`, because it comes out of `OFPModule`, i.e. 
   # without specifying the `elem_type` of the rings. 
   if c.C.fill == _extend_free_resolution
     result.fill = c.C.fill
@@ -496,7 +496,7 @@ function simplify(c::FreeResolution{T}) where T
         C.complete = true
         return first(C.maps)
       end
-      zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+      zip_map = get_attribute(C, :zip_map)::OFPModuleHom
       @assert domain(zip_map) === c[k-1]
       @assert codomain(zip_map) === C[k-1]
       tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
@@ -666,7 +666,7 @@ function simplify(
 end
 
 ### Helper functions
-function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
+function _make_free_module(M::OFPModule, g::Vector{T}) where {T<:OFPModuleElem}
   if is_graded(M)
     w = _degree_fast.(g)
     return graded_free_module(base_ring(M), w)
@@ -955,7 +955,7 @@ function simplify(M::SubquoModule)
 end
 
 # Some special shortcuts
-function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:OFPModule}
   # try to find the boundary already computed
   und = underlying_complex(c)::HyperComplex
   if !isdefined(und, :boundary_cache) 
@@ -969,7 +969,7 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   return domain(inc), inc
 end
 
-function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:OFPModule}
   c = underlying_complex(simp)::HyperComplex
 
   if !isdefined(c, :kernel_cache) 
@@ -990,7 +990,7 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   return domain(inc), inc
 end
 
-function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: OFPModule}
   c = underlying_complex(simp)::HyperComplex
   
   if !isdefined(c, :homology_cache) 
@@ -1006,7 +1006,7 @@ function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {C
   return H, pr
 end
 
-homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))
+homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: OFPModule} = homology(simp, 1, (i,))
 
 @doc raw"""
     homotopy_map(d::SimplifiedComplex, p::Int)

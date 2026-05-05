@@ -75,10 +75,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
-⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
+⊗(G::OFPModule...) = tensor_product(G..., task = :none)
 
 @doc raw"""
-    tensor_product(M::ModuleFP...; task::Symbol = :none)
+    tensor_product(M::OFPModule...; task::Symbol = :none)
 
 Given a collection of modules, say, $M_1, \dots, M_n$ over a ring $R$, return $M_1\otimes_R \cdots \otimes_R M_n$.
 
@@ -117,9 +117,9 @@ julia> t((M[1], M[2]))
 (e[1] \otimes e[2])
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
+function tensor_product(G::OFPModule...; task::Symbol = :none)
   resols = AbsHyperComplex[]
-  augs = ModuleFPHom[]
+  augs = OFPModuleHom[]
   for M in G
     res, aug = free_resolution(SimpleFreeResolution, M)
     push!(resols, res)

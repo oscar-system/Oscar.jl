@@ -193,7 +193,7 @@ end
 
 # An old version of the induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
-  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::ModuleFPHom, ::Int; domain, codomain)` instead", :hom)
+  Base.depwarn("Computing induced maps on exterior powers via `hom(::FreeMod, ::FreeMod, ::FreeModuleHom)` has been deprecated; use `exterior_power(::OFPModuleHom, ::Int; domain, codomain)` instead", :hom)
 
   success, F, p = _is_exterior_power(M)
   @req success "module is not an exterior power"
@@ -227,6 +227,16 @@ Base.@deprecate_binding ZZMatrixGroup ZZMatGroup
 Base.@deprecate_binding QQMatrixGroup QQMatGroup
 Base.@deprecate_binding MatrixGroup MatGroup
 Base.@deprecate_binding MatrixGroupElem MatGroupElem
+
+# deprecated for 1.8
+Base.@deprecate_binding ModuleFP OFPModule
+Base.@deprecate_binding ModuleFPHom OFPModuleHom
+Base.@deprecate_binding ModuleFPElem OFPModuleElem
+Base.@deprecate_binding AdmissibleModuleFPRing AdmissibleOFPModuleRing
+Base.@deprecate_binding AdmissibleModuleFPRingElem AdmissibleOFPModuleRingElem
+Base.@deprecate_binding ModuleFP_dec OFPModule_dec
+Base.@deprecate_binding ModuleFPElem_dec OFPModuleElem_dec
+Base.@deprecate_binding ModuleFPHomDummy OFPModuleHomDummy
 
 # deprecated for 1.9
 @deprecate all_cohomologies(l::ToricLineBundle; algorithm::String="cohomCalg") sheaf_cohomology(l)

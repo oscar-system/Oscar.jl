@@ -171,7 +171,7 @@ end
 
 # `twist` stuff is only copy-pasted because the original signature was too narrow.
 # This should be streamlined eventually.
-function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
+function twist(M::OFPModule{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
  error("Not implemented for the given type")
 end
 
@@ -246,7 +246,7 @@ function free_resolution(M::SubquoModule{T};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -319,7 +319,7 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
   set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
