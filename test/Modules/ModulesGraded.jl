@@ -734,7 +734,7 @@ end
   E0 = ext(Q, M, 0)
   E1 = ext(Q, M, 1)
   E2 = ext(Q, M, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(E0))[1], simplify(M_coker)[1])
   @test ngens(present_as_cokernel(E1)) == ngens(M_coker)
   @test iszero(E2)
   E0 = ext(M, Q, 0)
