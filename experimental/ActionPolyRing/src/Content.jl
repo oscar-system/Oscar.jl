@@ -226,13 +226,15 @@ function Base.deepcopy_internal(dpre::Union{DifferencePolyRingElem, Differential
 end
 
 ### Difference ###
+is_domain_type(::Type{DifferencePolyRing{T}}) where {T} = is_domain_type(T)
+is_exact_type(::Type{DifferencePolyRing{T}}) where {T} = is_exact_type(T)
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
-
 parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
 
 ### Differential ###
+is_domain_type(::Type{DifferentialPolyRing{T}}) where {T} = is_domain_type(T)
+is_exact_type(::Type{DifferentialPolyRing{T}}) where {T} = is_exact_type(T)
 elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{T}
-
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
