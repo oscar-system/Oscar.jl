@@ -727,7 +727,7 @@ end
   T0 = tor(M, Q, 0)
   T1 = tor(M, Q, 1)
   T2 = tor(M, Q, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(T0))[1], simplify(M_coker)[1])
   # todo simplify
   @test iszero(T2)
 

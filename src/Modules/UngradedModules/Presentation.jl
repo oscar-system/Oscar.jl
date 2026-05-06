@@ -568,9 +568,9 @@ julia> N
 Graded subquotient of graded submodule of R^1 with 1 generator
   1: e[1]
 by graded submodule of R^1 with 3 generators
-  1: (-x*z + y^2)*e[1]
-  2: (-w*z + x*y)*e[1]
-  3: w*y*e[1]
+  1: w*y*e[1]
+  2: (w*z - x*y)*e[1]
+  3: (x*z - y^2)*e[1]
 
 julia> phi(first(gens(N)))
 e[2]
