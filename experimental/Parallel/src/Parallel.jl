@@ -103,7 +103,8 @@ function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
   remotecall_eval(Main, id, wp.init_expr)
-  push!(wp.wp, id) # update the list of associated workers
+  push!(wp.wp, id)
+  push!(wp.workers, id)
 end
 
 # Take a worker from the pool; this marks it as being busy.
@@ -132,8 +133,9 @@ end
 function rmprocs(wp::OscarWorkerPool, wid::Int)
   rmprocs(wid; waitfor=0)
   # clear dead workers
-  wp.workers = Set{Int}([i for i in workers(wp) if i in procs()])
+  wp.workers = Set{Int}([i for i in wp.workers if i in procs()])
   wp.wp = WorkerPool(collect(wp.workers))
+  wp.channel = wp.wp.channel
 end
 
 workers(wp::OscarWorkerPool) = collect(wp.workers)
