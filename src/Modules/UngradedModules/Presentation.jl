@@ -98,6 +98,23 @@ function _presentation_graded(SQ::SubquoModule)
   #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
+  F = ambient_free_module(SQ)
+  if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
+    rels = relations(SQ)
+    W = [degree(r) for r in rels]
+    F1 = graded_free_module(R, length(rels), W)
+    phi = hom(F1, F, rels)
+    aug = hom(F, SQ, gens(SQ))
+    # prepare the end of the presentation
+    Z = graded_free_module(R, 0)
+    SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
+
+    # compile the presentation complex
+    M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[phi, aug, SQ_to_Z], check=false, seed = -2)
+    set_attribute!(M, :show => Hecke.pres_show)
+    return M
+  end
+
   # Create the free module for the presentation
   #
   # We have to take representatives of the simplified 
