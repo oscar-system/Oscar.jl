@@ -699,6 +699,15 @@ function stabilizer_permuted(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg
     GAP.Globals.Permuted))  # Do not use GAPWrap.Permuted!
 end
 
+# compute the stabilizer of a tuple acting by permuting entries
+function stabilizer_permuted(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T
+  pnt2 = map( x -> findfirst(isequal(x), unique(pnt)), pnt)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt2, recursive = true),
+    GAP.Globals.Permuted))  # Do not use GAPWrap.Permuted!
+end
+
+
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerUnion
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
     GapObj(pnt, recursive = true),
@@ -717,9 +726,10 @@ function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actf
   return _stabilizer_generic(G, pnt, actfun)
 end
 
-
-
-
+function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actfun::Function) where T
+  actfun == permuted && return  stabilizer_permuted(G, pnt)
+  return _stabilizer_generic(G, pnt, actfun)
+end
 
 
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}, actfun::Function) where T <: IntegerUnion
