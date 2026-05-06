@@ -648,8 +648,8 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
     
   l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
+  gb = groebner_basis(I; kwargs...)
   I_sat = saturation(I, ideal(detK))
-  gb = groebner_basis(I_sat; kwargs...)
 
   return I_sat
 end
@@ -736,7 +736,6 @@ julia> maximum_likelihood_degree(M)
 function maximum_likelihood_degree(M::GaussianGraphicalModel; algorithm=:generic)
   @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
   n = n_vertices(graph(M))
-  
   if algorithm == :generic
     S, s = polynomial_ring(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
     scv_matrix = upper_triangular_matrix(s)
@@ -745,17 +744,17 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel; algorithm=:generic
         scv_matrix[i, j] = scv_matrix[j, i]
       end
     end
-    I = score_equations_ideal(M, scv_matrix)
+    I = score_equations_ideal(M, scv_matrix; algorithm=:f4)
   elseif algorithm == :monte_carlo
     dim_I = -1
 
     while !iszero(dim_I)
-      scv_matrix = rand(Int, n, n)
+      scv_matrix = rand(-10000:10000, n, n)
       scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
       I = score_equations_ideal(M, scv_matrix; algorithm=:f4)
+
       dim_I = dim(I)
     end
   end
-
   return degree(I)
 end
