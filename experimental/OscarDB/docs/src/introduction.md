@@ -35,13 +35,13 @@ fixed-point sublattice.
 
 See also [HM16](@cite), Table 1, and [the supplementary non-published tables](https://arxiv.org/src/1505.06420v3/anc).
 
-### Small trees database [AlgebraicStatistics.SmallTreeModels]
+### Small trees database [AlgebraicStatistics.SmallPhylogeneticModels & AlgebraicStatistics.SmallGroupBasedPhylogeneticModels]
 
 The OSCAR DB provides access to all models listed in [Algebraic Phylogenetics](https://algebraicphylogenetics.org), 
 see also [Small Phylogenetic Trees](https://www.coloradocollege.edu/aapps/ldg/small-trees/small-trees_0.html) for the list of contributors.
 The list comprises of phylogenetic models on trees with up to 5 leaves. 
 
-Detailed documentation and examples of how to query the models and their properties can be found in the [Small trees database documentation](smalltrees.md).
+Detailed documentation and examples of how to query the models and their properties can be found in the [Small trees database documentation](smalltreemodels.md).
 
 ## Status
 
