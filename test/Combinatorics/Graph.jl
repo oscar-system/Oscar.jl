@@ -355,5 +355,39 @@
       @test is_isomorphic(G1_two, G2_two) == true
       @test is_isomorphic(G1_two, G2_one) == false
 
+      #vertex indistinguishable, edge indistinguishable
+      G1 = Oscar._edge_label_to_vertex_label(graph_from_edges([[1,2], [2,3]]); vertex_distinguishable=false, edge_distinguishable=false)
+      G2 = Oscar._edge_label_to_vertex_label(graph_from_edges([[2,1], [3,2]]); vertex_distinguishable=false, edge_distinguishable=false)
+      G3 = Oscar._edge_label_to_vertex_label(graph_from_edges([[2,1], [3,2], [1,3]]); vertex_distinguishable=false, edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1) == Oscar._canonical_hash(G2)
+      @test Oscar._canonical_hash(G1) != Oscar._canonical_hash(G3)
+
+      #vertex indistinguishable, edge distinguishable
+      G1 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7)); vertex_distinguishable=false)
+      G2 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>7)); vertex_distinguishable=false)
+      G3 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8)); vertex_distinguishable=false)
+      @test Oscar._canonical_hash(G1) == Oscar._canonical_hash(G2)
+      @test Oscar._canonical_hash(G1) != Oscar._canonical_hash(G3)
+
+      #vertex distinguishable, edge indistinguishable
+      G1 = graph(Undirected, 2);
+      G2 = graph(Undirected, 2);
+      G3 = graph(Undirected, 3);
+      label!(G1, nothing, Dict(1=>1, 2=>2))
+      label!(G2, nothing, Dict(1=>2, 2=>1))
+      label!(G3, nothing, Dict(1=>1, 2=>2, 3=>3))
+
+      G1 = Oscar._edge_label_to_vertex_label(G1; edge_distinguishable=false)
+      G2 = Oscar._edge_label_to_vertex_label(G2; edge_distinguishable=false)
+      G3 = Oscar._edge_label_to_vertex_label(G3; edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1) == Oscar._canonical_hash(G2)
+      @test Oscar._canonical_hash(G1) != Oscar._canonical_hash(G3)
+      
+      #vertex distinguishable, edge distinguishable
+      G1 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>3, 3=>3)))
+      G2 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>7), Dict(4=>1, 5=>2, 6=>3)))
+      G3 = Oscar._edge_label_to_vertex_label(graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4)))
+      @test Oscar._canonical_hash(G1) == Oscar._canonical_hash(G2)
+      @test Oscar._canonical_hash(G1) != Oscar._canonical_hash(G3)
     end
 end
