@@ -25,122 +25,6 @@ struct SmallGroupBasedModel
   vanishing_ideal::Union{MPolyIdeal{QQMPolyRingElem}, Nothing}
 end
 
-@doc raw"""
-    group_based_phylogenetic_model(sgb::SmallGroupBasedModel)
-
-Return the `GroupBasedPhylogeneticModel` of the small group-based model `sgb`.
-"""
-group_based_phylogenetic_model(sgb::SmallGroupBasedModel) = sgb.model
-
-@doc raw"""
-    phylogenetic_model(sgb::SmallGroupBasedModel)
-
-Return the `PhylogeneticModel` of the small group-based model `sgb`.
-"""
-phylogenetic_model(sgb::SmallGroupBasedModel) = phylogenetic_model(group_based_phylogenetic_model(sgb))
-
-@doc raw"""
-    model_type(sgb::SmallGroupBasedModel)
-
-Return the model type of the `sgb` as a small group-based model string.
-"""
-model_type(sgb::SmallGroupBasedModel) = sgb.model_type
-
-@doc raw"""
-    graph(sgb::SmallGroupBasedModel)
-
-Return the graph of the small group-based model `sgb`.
-"""
-graph(sgb::SmallGroupBasedModel) = graph(group_based_phylogenetic_model(sgb))
-
-@doc raw"""
-    n_leaves(sgb::SmallGroupBasedModel)
-
-Return the number of leaves of the phylogenetic tree or network in the small group-based model `sgb`.
-"""
-n_leaves(sgb::SmallGroupBasedModel) = sgb.n_leaves
-
-@doc raw"""
-    level(sgb::SmallGroupBasedModel)
-
-Return the level of the phylogenetic network `N` in the small group-based model `sgb`. If `N` is a tree, the ouptput is zero.
-"""
-level(sgb::SmallGroupBasedModel) = sgb.level
-
-@doc raw"""
-    n_cycles(sgb::SmallGroupBasedModel)
-
-Return the number of cycles in the phylogenetic network `N` in the small group-based model `sgb`. If `N` is a tree, the ouptput is zero.
-"""
-n_cycles(sgb::SmallGroupBasedModel) = sgb.n_cycles
-
-@doc raw"""
-    dim(sgb::SmallGroupBasedModel)
-
-Return the dimension of the small group-based model `sgb`.
-"""
-dim(sgb::SmallGroupBasedModel) = sgb.dimension
-
-@doc raw"""
-    degree(sgb::SmallGroupBasedModel)
-
-Return the degree of the small group-based model `sgb`.
-"""
-degree(sgb::SmallGroupBasedModel) = sgb.degree
-
-@doc raw"""
-    n_coordinates(sgb::SmallGroupBasedModel)
-
-Return the dimension of the smallest linear subspace containing the small group-based model `sgb` (in Fourier coordinates).
-"""
-n_coordinates(sgb::SmallGroupBasedModel) = sgb.n_coordinates
-
-@doc raw"""
-    dimension_singular_locus(sgb::SmallGroupBasedModel)
-
-Return the dimension of the singular locus of the small group-based model `sgb`.
-"""
-dimension_singular_locus(sgb::SmallGroupBasedModel) = sgb.dim_sl
-
-@doc raw"""
-    degree_singular_locus(sgb::SmallGroupBasedModel)
-
-Return the degree of the singular locus of the small group-based model `sgb`.
-"""
-degree_singular_locus(sgb::SmallGroupBasedModel) = sgb.deg_sl
-
-@doc raw"""
-    euclidean_distance_degree(sgb::SmallGroupBasedModel)
-
-Return the Euclidean distance degree the small group-based model `sgb`.
-"""
-euclidean_distance_degree(sgb::SmallGroupBasedModel) = sgb.EDdeg
-
-@doc raw"""
-    parametrization(sgb::SmallGroupBasedModel)
-
-Return the parametrization of the small group-based model `sgb` (in Fourier coordinates).
-"""
-parametrization(sgb::SmallGroupBasedModel) = sgb.parametrization
-
-@doc raw"""
-    equivalent_classes(sgb::SmallGroupBasedModel)
-
-Return the equivalent classes of the small group-based model `sgb` (in Fourier coordinates).
-"""
-equivalent_classes(sgb::SmallGroupBasedModel) = sgb.eq_classes
-
-@doc raw"""
-    vanishing_ideal(sgb::SmallGroupBasedModel)
-
-Return the vanishing ideal of the small group-based model `sgb` (in Fourier coordinates).
-"""
-vanishing_ideal(sgb::SmallGroupBasedModel) = sgb.vanishing_ideal
-
-function Base.show(io::IO, sgb::SmallGroupBasedModel)
-  print(io, "Small group-based phylogenetic model $(sgb._id)")
-end
-
 struct SmallPhylogeneticModel
   _id::String # model encoding id, example 3-0-0-JC
   model::PhylogeneticModel
@@ -161,119 +45,136 @@ struct SmallPhylogeneticModel
 end
 
 @doc raw"""
+    group_based_phylogenetic_model(sgb::SmallGroupBasedModel)
+
+Return the `GroupBasedPhylogeneticModel` of the small group-based model `sgb`.
+"""
+group_based_phylogenetic_model(sgb::SmallGroupBasedModel) = sgb.model
+
+@doc raw"""
+    phylogenetic_model(sgb::SmallGroupBasedModel)
     phylogenetic_model(spm::SmallPhylogeneticModel)
 
-Return the `PhylogeneticModel` of the small phylogenetic model `spm`.
+Return the `PhylogeneticModel` of the small group-based model `sgb` or of the small phylogenetic model `spm`.
 """
+phylogenetic_model(sgb::SmallGroupBasedModel) = phylogenetic_model(group_based_phylogenetic_model(sgb))
 phylogenetic_model(spm::SmallPhylogeneticModel) = spm.model
 
 @doc raw"""
-    model_type(spm::SmallPhylogeneticModel)
+    model_type(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the model type of the `spm` as a small phylogenetic model string.
+Return the model type of the small model `sm` as a string.
 """
-model_type(spm::SmallPhylogeneticModel) = spm.model_type
+model_type(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.model_type
 
 @doc raw"""
+    graph(sgb::SmallGroupBasedModel)
     graph(spm::SmallPhylogeneticModel)
 
-Return the graph of the small phylogenetic model `spm`.
+Return the graph of the small model `sm`.
 """
+graph(sgb::SmallGroupBasedModel) = graph(group_based_phylogenetic_model(sgb))
 graph(spm::SmallPhylogeneticModel) = graph(phylogenetic_model(spm))
 
 @doc raw"""
-    n_leaves(spm::SmallPhylogeneticModel)
+    n_leaves(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the number of leaves of the phylogenetic tree or network in the small phylogenetic model `spm`.
+Return the number of leaves of the phylogenetic tree or network in the small model `sm`.
 """
-n_leaves(spm::SmallPhylogeneticModel) = spm.n_leaves
+n_leaves(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.n_leaves
 
 @doc raw"""
-    level(spm::SmallPhylogeneticModel)
+    level(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the level of the phylogenetic network `N` in the small phylogenetic model `spm`. If `N` is a tree, the ouptput is zero.
+Return the level of the phylogenetic network in the small model `sm`. If the graph is a tree, the output is zero.
 """
-level(spm::SmallPhylogeneticModel) = spm.level
+level(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.level
 
 @doc raw"""
-    n_cycles(spm::SmallPhylogeneticModel)
+    n_cycles(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the number of cycles in the phylogenetic network `N` in the small phylogenetic model `spm`. If `N` is a tree, the ouptput is zero.
+Return the number of cycles in the phylogenetic network in the small model `sm`. If the graph is a tree, the output is zero.
 """
-n_cycles(spm::SmallPhylogeneticModel) = spm.n_cycles
+n_cycles(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.n_cycles
 
 @doc raw"""
-    dim(spm::SmallPhylogeneticModel)
+    dim(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the dimension of the small phylogenetic model `spm`.
+Return the dimension of the small model `sm`.
 """
-dim(spm::SmallPhylogeneticModel) = spm.dimension
+dim(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.dimension
 
 @doc raw"""
-    degree(spm::SmallPhylogeneticModel)
+    degree(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the degree of the small phylogenetic model `spm`.
+Return the degree of the small model `sm`.
 """
-degree(spm::SmallPhylogeneticModel) = spm.degree
+degree(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.degree
 
 @doc raw"""
-    n_coordinates(spm::SmallPhylogeneticModel)
+    n_coordinates(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the dimension of the smallest linear subspace containing the small phylogenetic model `spm`.
+Return the number of coordinates of the small model `sm`. 
+For group-based models, this is the number of Fourier coordinates.
 """
-n_coordinates(spm::SmallPhylogeneticModel) = spm.n_coordinates
+n_coordinates(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.n_coordinates
 
 @doc raw"""
-    dimension_singular_locus(spm::SmallPhylogeneticModel)
+    dimension_singular_locus(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the dimension of the singular locus of the small phylogenetic model `spm`.
+Return the dimension of the singular locus of the small model `sm`.
 """
-dimension_singular_locus(spm::SmallPhylogeneticModel) = spm.dim_sl
+dimension_singular_locus(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.dim_sl
 
 @doc raw"""
-    degree_singular_locus(spm::SmallPhylogeneticModel)
+    degree_singular_locus(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the degree of the singular locus of the small phylogenetic model `spm`.
+Return the degree of the singular locus of the small model `sm`.
 """
-degree_singular_locus(spm::SmallPhylogeneticModel) = spm.deg_sl
+degree_singular_locus(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.deg_sl
 
 @doc raw"""
-    euclidean_distance_degree(spm::SmallPhylogeneticModel)
+    euclidean_distance_degree(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the Euclidean distance degree the small phylogenetic model `spm`.
+Return the Euclidean distance degree of the small model `sm`.
 """
-euclidean_distance_degree(spm::SmallPhylogeneticModel) = spm.EDdeg
+euclidean_distance_degree(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.EDdeg
 
 @doc raw"""
     maximum_likelihood_degree(spm::SmallPhylogeneticModel)
 
-Return the maximum likelihood degree the small phylogenetic model `spm`.
+Return the maximum likelihood degree of the small phylogenetic model `spm`.
 """
 maximum_likelihood_degree(spm::SmallPhylogeneticModel) = spm.MLdeg
 
 @doc raw"""
-    parametrization(spm::SmallPhylogeneticModel)
+    parametrization(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the parametrization of the small phylogenetic model `spm`.
+Return the parametrization of the small model `sm`.
+For group-based models, this is the parametrization in Fourier coordinates.
 """
-parametrization(spm::SmallPhylogeneticModel) = spm.parametrization
+parametrization(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.parametrization
 
 @doc raw"""
-    equivalent_classes(spm::SmallPhylogeneticModel)
+    equivalent_classes(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the equivalent classes of the small phylogenetic model `spm`.
+Return the equivalent classes of the small model `sm`.
+For group-based models, these are the classes in Fourier coordinates.
 """
-equivalent_classes(spm::SmallPhylogeneticModel) = spm.eq_classes
+equivalent_classes(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.eq_classes
 
 @doc raw"""
-    vanishing_ideal(spm::SmallPhylogeneticModel)
+    vanishing_ideal(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel})
 
-Return the vanishing ideal of the small phylogenetic model `spm`.
+Return the vanishing ideal of the small model `sm`.
+For group-based models, this is the ideal in Fourier coordinates.
 """
-vanishing_ideal(spm::SmallPhylogeneticModel) = spm.vanishing_ideal
+vanishing_ideal(sm::Union{SmallGroupBasedModel, SmallPhylogeneticModel}) = sm.vanishing_ideal
+
+function Base.show(io::IO, sgb::SmallGroupBasedModel)
+  print(io, "Small group-based phylogenetic model $(sgb._id)")
+end
 
 function Base.show(io::IO, spm::SmallPhylogeneticModel)
   print(io, "Small phylogenetic model $(spm._id)")
 end
-
-
