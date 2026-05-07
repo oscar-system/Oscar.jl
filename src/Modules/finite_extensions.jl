@@ -88,8 +88,8 @@ function pushforward(psi::FiniteExtension, M::SubquoModule;
     ambient_pushforward=pushforward(psi, ambient_free_module(M))
   )
   psiF, interp = ambient_pushforward
-  psi_gens = elem_type(psiF)[interp(v) for v in ambient_representatives_generators(M)]
-  psi_rels = elem_type(psiF)[interp(v) for v in relations(M)]
+  psi_gens = elem_type(psiF)[interp(g*v) for v in ambient_representatives_generators(M) for g in basis(psi)]
+  psi_rels = elem_type(psiF)[interp(g*v) for v in relations(M) for g in basis(psi)]
   I, _ = sub(psiF, psi_gens)
   res, _ = quo(I, psi_rels)
   return res
