@@ -1455,7 +1455,6 @@ function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}
     !isnothing(Oscar._graph_maps(g2)[label].vertex_map) && return false
   end
 
-  
   error("Not implemented yet")
 end
 
