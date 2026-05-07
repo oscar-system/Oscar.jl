@@ -635,7 +635,7 @@ end
 # Maximum likelihood
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{QQFieldElem};
-                               kwargs...)
+                               saturate::Bool=true, kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
   n = nrows(K)
@@ -646,11 +646,13 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   detK = det(K)
   diff_vars = gens(base_ring(K))
     
-  l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
-  I = ideal(reduce(vcat, l_eqs))
-  gb = groebner_basis(I; kwargs...)
-  I_sat = saturation(I, ideal(detK))
+  l_eqs = [derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars]
+  I = ideal(l_eqs)
 
+  !saturate && return I
+
+  I_sat = saturation(I, ideal(detK))
+  groebner_basis(I_sat; kwargs)
   return I_sat
 end
 
