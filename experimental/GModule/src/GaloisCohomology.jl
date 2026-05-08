@@ -510,7 +510,8 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     a = sum(b[i]*rand(-5:5) for i=1:length(b))
     o = [mG(g)(a) for g = G]
     m = matrix(k, n, n, vcat([coordinates(x, k) for x = o]...))
-    dm = det(m)
+    dm = det(m) #TODO: try to find small dm? be more specific? want
+                #      s.th. that has low level 1-units, a small quotient
     cnt += 1
     if cnt > 10
       error("dnw")
@@ -523,9 +524,10 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   end
 
   #o needs to be expanded to be an absolute basis
-  b = absolute_basis(k)
+  #we have a k-basis, but now we construct a Q_p-basis:
+  b = absolute_basis(k) 
+  #and expand
   o = [x*y for x = b for y = o]
-
 
   @vprint :GaloisCohomology 2 " .. quotient ..\n"
   #we need k*val(pi) = val(pi^k) > 1/(p-1)
@@ -665,6 +667,8 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   fl, mX = has_complement(mK)
   @assert fl
   X = domain(mX)
+  @assert order(intersect(mX, mK)[1]) == 1
+  @assert order(quo(M, vcat(map(mK, gens(K)), map(mX, gens(X))))[1]) == 1
   _X, _mX = snf(X)
 
   S, mS = image(sigma -id_hom(M))
@@ -829,8 +833,7 @@ mutable struct IdeleParent
   end
 end
 
-function _sign(x::FacElem{<:NumFieldElem}, ep::InfPlc)
-  e = embeddings(ep)[1]
+function _sign(x::FacElem{<:NumFieldElem}, e::AbsSimpleNumFieldEmbedding)
   p = 32
   while true
     ex = e(x, p)
@@ -885,12 +888,15 @@ function get_W(k, mG, mU, E)
     G_inf = domain(mG_inf)
     Et = gmodule(G_inf, mU, mG)
     @hassert :GaloisCohomology 1 is_consistent(Et)
-    set_attribute!(Et, :get_W => id_hom(U))
-    return Et, id_hom(U)
+    iU = id_hom(U)
+    set_attribute!(Et, :get_W => iU)
+    return Et, iU
   else
     #TODO: failing on x^8 + 70*x^4 + 15625
     @vprint :GaloisCohomology 2 " .. complex field, hard case ..\n"
-    mG_inf = Oscar.decomposition_group(k, complex_embeddings(k)[1], mG)
+    ce = rand(complex_embeddings(k))
+    ce = complex_embeddings(k)[1]
+    mG_inf = Oscar.decomposition_group(k, ce, mG)
     G_inf = domain(mG_inf)
     sigma = action(E, mG_inf(G_inf[1]))
     @assert order(G_inf[1]) == 2 == order(G_inf)
@@ -950,17 +956,21 @@ function get_W(k, mG, mU, E)
     eta_i = map(mU_t, eta_i)
     V = abelian_group(elementary_divisors(U))
     im_psi = [U[1], x[1]+ eta_i[1]]
+    mo = divexact(order(U[1]), 2) * U[1]
+    @assert evaluate(mU(mo)) == -1
     for i=2:length(not_inv)
       push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
-      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
-        im_psi[end] *= -1
+      if _sign(mU(im_psi[end]), ce) < 0
+        im_psi[end] += mo
+        @assert _sign(mU(im_psi[end]), ce) > 0
       end
       @assert sigma(im_psi[end]) == im_psi[end]
     end
     for i=length(not_inv)+1:length(x)
       push!(im_psi, x[i])
-      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
-        im_psi[end] *= -1
+      if _sign(mU(im_psi[end]), ce) < 0
+        im_psi[end] += mo
+        @assert _sign(mU(im_psi[end]), ce) > 0
       end
       @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
@@ -976,7 +986,7 @@ function get_W(k, mG, mU, E)
     psi = hom(V, U, im_psi)
     @hassert :GaloisCohomology 5 all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
     @hassert :GaloisCohomology 5 is_bijective(psi)
-    F = abelian_group([0 for i=2:length(x)])
+    F = free_abelian_group(length(x)-1)
     Hecke.assure_has_hnf(F)
     W, pro, inj = direct_product(V, F, task = :both)
     @assert isdefined(W, :hnf)
@@ -989,15 +999,39 @@ function get_W(k, mG, mU, E)
     #       and sigma(W[i+1]) = W[...+i]  (those are the lambda's)
     # in y are gens for 2-dim module.
 
-    si = psi*sigma*pseudo_inv(psi)
+    si = FinGenAbGroupHom(psi*sigma*pseudo_inv(psi))
+    @assert si(V[2]) == V[1] + V[2]
+    @assert si(V[1]) == -V[1]
 
-    ac = hom(W, W, vcat([inj[1](si(V[1])), inj[1](si(V[2]))], [W[ngens(V)+i-1] for i=2:length(x)], [inj[1](si(V[i])) for i=length(x)+2:ngens(V)], [W[i+1] for i=2:length(x)]))
+    si_im = [inj[1](si(V[1])), inj[1](si(V[2]))]
+    em_im = [inj[1](V[1]), inj[1](V[2])]
+    for i=2:length(x)
+      push!(si_im, inj[2](F[i-1]))
+      push!(em_im, W[i+1] + inj[2](F[i-1]))
+    end
+    @assert length(si_im) == length(x) + 1
+    for i=length(x)+2:2:ngens(V)
+      push!(si_im, W[i+1])
+      push!(si_im, W[i])
+      push!(em_im, W[i])
+      push!(em_im, W[i+1])
+    end
+    @assert length(si_im) == ngens(V)
+    for i=1:ngens(F)  
+      push!(si_im, W[i+2])
+    end
+    ac = hom(W, W, si_im)
+    mq = hom(V, W, em_im)
+    
+    @hassert :GaloisCohomology 2 mq*ac == si*mq
+
 
     Et = gmodule(G_inf, [ac])
     @hassert :GaloisCohomology 1 is_consistent(Et)
-    mq = hom(V, W, vcat([W[1], W[2]], [W[i+1] + W[i + ngens(V)-1] for i=2:length(x)], gens(W)[length(x)+2:ngens(V)]))
 
     mq = FinGenAbGroupHom(pseudo_inv(psi)*mq)
+    #hom(gmodule(Et.G, [action(E, E.G(Et.G[1]))]), Et, mq) #test mq to be G-lin
+
     set_attribute!(Et, :get_W => mq)
     return Et, mq
   end
@@ -1031,18 +1065,34 @@ end
 Should construct a (non-unique) injection map W1 -> W2 compatible
 with everything.
 """
-function induce_hom(W1, W2, mp) #name too generic as W is not a type
+function induce_hom_W(W1, W2, mp)
   #TODO/ think: the infinite places have to be compatible as well!
   #(same prob for the finite ones)
   #or maybe conjugate the groups?
+  #"sorted" in the induce code
   im = elem_type(W2.M)[]
   mU_W1 = get_attribute(W1, :get_W)
   mU_W2 = get_attribute(W2, :get_W)
   @assert domain(mp) == domain(mU_W1)
   @assert codomain(mp) == domain(mU_W2)
 
+#  @show matrix(action(W1, W1.G[1]))
+#  @show matrix(action(W2, W2.G[1]))
+#  @assert is_surjective(mp)
+
   local tr::Union{Nothing, FinGenAbGroupHom} = nothing
+  V = domain(canonical_injection(W2.M, 1))
+  F = domain(canonical_injection(W2.M, 2))
+  #so, by construction (V[1], V[2]) are easy
+  #                     V[3], F[1]
+  #                     V[4], F[2]
+  # ... are the artifical C-2 module
+  #                     V[i], V[i+1] ... the natural
+  i = 0
+  seen = FinGenAbGroupElem[]
+  seen_im = FinGenAbGroupElem[]
   for g = gens(W1.M)
+    i += 1
     #generators of W are either in U OR, the wierd case
     #g+sigma(g) is in W
     #2 cases:
@@ -1052,20 +1102,36 @@ function induce_hom(W1, W2, mp) #name too generic as W is not a type
     #  x should be of the form y + sigma(y)
     # so map gen -> y
     fl, pre = has_preimage(mU_W1, g)
+    @assert is_injective(mU_W1)
+    @assert is_injective(mU_W2)
     if fl
       push!(im, mU_W2(mp(pre)))
     else
+      @assert !(g in seen)
+      h = action(W1, W1.G[1], g)
+      p = findall(isequal(h), seen)
+      @assert length(p) <= 1
+      if length(p) == 1
+        push!(im, action(W2, W2.G[1], seen_im[p[1]]))
+        @assert im[end] != seen_im[p[1]]
+        continue
+      end
+     
       fl, pre = has_preimage(mU_W1, g + action(W1, W1.G[1], g))
       @assert fl
       if isnothing(tr)
         tr = FinGenAbGroupHom(id_hom(W2.M) + action(W2, W2.G[1]))
       end
-      fl, pre = has_preimage(tr, mU_W2(mp(pre)))
+      pre = mU_W2(mp(pre))
+      fl, pre = has_preimage(tr, pre)
       @assert fl
       push!(im, pre)
+      push!(seen, g)
+      push!(seen_im, pre)
     end
   end
-  return hom(W1.M, W2.M, im)
+  h = hom(W1.M, W2.M, im)
+  return h
 end
 
 #= (further) plan: I1, I2 IdeleParents, 
@@ -1110,12 +1176,130 @@ end
       special signatures for adding primes and increasing prec?            
 =#
 
+"""
+In I1 and I2 are S-Units (rep. T-units). This finds
+ - G-complement for the S-units in the T-units
+ - both embeddings and the projection:
+
+ 1 -> V -> U_T -> U_S -> 1
+
+It finds V -> U_T, U_S -> U_T and U_T -> U_S
+
+
+Optionally V is changed to be positive at the 1st complex embedding.
+(Then it is no longer a G-complement, but a C_2 one for the decomposition group
+  of the place)
+"""
+function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
+  zk = order(I1.S[1])
+  k = number_field(zk)
+
+  @assert number_field(order(I2.S[1])) == k
+ 
+  #assume I1.S larger than I2.S, strictly
+
+  p1 = ZZRingElem[]
+  for P = I1.S
+    !(minimum(P) in map(minimum, I2.S)) && push!(p1, minimum(P))
+  end
+  @assert length(p1) > 0
+ 
+  P1 = collect(keys(factor(prod(p1)*zk)))
+  val_S = matrix(ZZ, [[valuation(I1.mU(x), p) for p = P1] for x = gens(domain(I1.mU))])
+  h = hom(domain(I1.mU), free_abelian_group(length(P1)), val_S)
+  E1 = I1.data[6] #S-units as G-module
+
+  mo = domain(I1.mU)[1]
+  mo = divexact(order(mo), 2)*mo #should be -1 now
+  @assert evaluate(I1.mU(mo)) == -1
+
+  q = Dict{typeof(I1.S[1]), FinGenAbGroupElem}()
+  for i=1:length(I1.S)
+    !(minimum(I1.S[i]) in p1) && continue
+
+    D, mD = decomposition_group(k, I1.S[i], I1.mG)
+    #need an S-unit s.th val at I1.S[i] = 1, and 0 at all others outside
+    #I2.S (and the span)
+    u, _ = kernel(action(E1, mD(D[1])) - id_hom(E1.M))
+    for i=2:ngens(D)
+      u = intersect(u, kernel(action(E1, mD(D[i])) - id_hom(E1.M))[1])
+    end
+    fl, mu = is_subgroup(u, domain(I1.mU))
+    @assert fl
+    z = codomain(h)[findfirst(isequal(I1.S[i]), P1)]
+    fl, v = has_preimage(FinGenAbGroupHom(mu*h), z)
+    @assert fl
+    for r = right_transversal(codomain(mD), image(mD)[1])
+      q[I1.mG(r)(I1.S[i])] = action(I1.data[6], r, mo + mu(v))
+    end
+  end
+
+  if positive
+    #
+    #the subgroup generated by values(q) is a G-complement for I2
+    #but we need more: the C2-1-dim subspaces need to be generated
+    #by positive elements.
+    s, ms = sub(domain(I1.mU), collect(values(q)))
+    S, = sub(I1.data[6], ms)
+    si = action(S, S.G(I1.data[7].G[1]))
+    d1, d2 = debeerst(s, si)
+    @assert all(x->x == si(x), d1)
+    ce = complex_embeddings(number_field(order(I1.S[1])))[1]
+    d1 = map(ms, d1)
+    for i = 1:length(d1)
+      if _sign(I1.mU(d1[i]), ce) < 0
+        d1[i] += mo #this turns it away from a G-module complement
+                    #henceforth it is only a C_2 complement.
+        @assert _sign(I1.mU(d1[i]), ce) > 0
+      end
+    end
+    s, ms = sub(domain(I1.mU), vcat(d1, map(ms, vcat(d2, map(si, d2)))))
+    @assert is_injective(ms)
+    @assert length(P1) == ngens(s)
+    for k = keys(q)
+      q[k] = ms(preimage(ms*h, codomain(h)[findfirst(isequal(k), P1)]))
+    end
+  end
+  #
+
+  h21 = hom(domain(I2.mU), domain(I1.mU), [preimage(I1.mU, I2.mU(x)) for x = gens(domain(I2.mU))])
+  @assert is_injective(h21)
+  im = FinGenAbGroupElem[]
+  for u = gens(domain(I1.mU))
+    u -= sum(h(u)[findfirst(isequal(x), P1)] * q[x] for x = keys(q))
+    push!(im, preimage(h21, u))
+  end
+
+  h12 = hom(domain(I1.mU), domain(I2.mU), im) #projection
+
+  @hassert :GaloisCohomology 5 h21*h12 == identity_map(domain(I2.mU)) #h21 is a section
+  c, mc = sub(domain(I1.mU), collect(values(q)))
+  @hassert :GaloisCohomology 5 order(intersect(c, image(h21)[1])) == 1 #c is a complement
+  @hassert :GaloisCohomology 5 order(quo(domain(I1.mU), c + image(h21)[1])[1]) == 1
+
+#  @show sub(I1.data[6], mc) # c is a G-module
+#  @show sub(I1.data[6], image(h21)[2]) # image is a G-module
+#  @show hom(I1.data[6], I2.data[6], h12) # maps are G-linear
+#  @show hom(I2.data[6], I1.data[6], h21)
+  #visual: the decomposition groups are the same.
+#  @show fl, s1 = is_subgroup(I1.data[7].G, domain(I1.mG))
+#  @show map(s1, gens(I1.data[7].G))
+#  @show fl, s2 = is_subgroup(I2.data[7].G, domain(I1.mG))
+#  @show map(s2, gens(I2.data[7].G))
+  return h12, h21, mc
+end
+
+
+
 function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFieldHom} = nothing)
 
   if I1.S === I2.S  && isnothing(mp)
     mUV = hom(domain(I1.mU), domain(M2.mU), gens(domain(I2.mU)))
   else
-    mUV = hom(domain(I1.mU), domain(I2.mU), [preimage(I2.mU, mp(image(I1.mU, g))) for g = gens(domain(I1.mU))])
+    #if V has more primes, this is the injection map - but this
+    # does not give an induced map
+    #mUV = hom(domain(I1.mU), domain(I2.mU), [preimage(I2.mU, mp(image(I1.mU, g))) for g = gens(domain(I1.mU))])
+    # assume I1.S > I2.S
   end
 
   if isnothing(mp)
@@ -1127,7 +1311,9 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
   #need to align the infinite place
   #no?: the decomposition group contains that information, mostly?
   #     or the relevant bit?
+
   #=
+  local twist = nothing
   if isnothing(mp)
     h = induce_hom(I1.data[7], I2.data[7], mUV)
   else
@@ -1139,30 +1325,91 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     for s = domain(I2.mG)
       j = extend(i1, I2.mG(s))
       if contains_zero(i1(gen(k)) - j(a)) 
+        twist = s
       end
     end
-    h = induce_hom(I1.data[7], I2.data[7], mUV)
+    #h = induce_hom(I1.data[7], I2.data[7], mUV)
   end
   =#
-  h = induce_hom(I1.data[7], I2.data[7], mUV) # W -> W'
-  h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, I1.data[8][1], I2.data[8][1])
 
-  all_h = FinGenAbGroupHom[h]
+  unit_pro, unit_inj, comp = split_units(I1, I2)
+  if !is_totally_real(number_field(order(I1.S[1])))
+#    mVU = hom(domain(I2.mU), domain(I1.mU), [preimage(I1.mU, mp(image(I2.mU, g))) for g = gens(domain(I2.mU))])
+    mU_W1 = get_attribute(I1.data[7], :get_W)
+    mU_W2 = get_attribute(I2.data[7], :get_W)
+    @assert is_injective(mU_W1)
+    @assert is_injective(mU_W2)
+
+    #test if W^(1+sigma) in im(U->W)
+#    fl, ms = is_sub_with_data(image(action(I1.data[7], I1.data[7].G[1]) + identity_map(I1.data[7].M))[1], image(mU_W1)[1])
+#    i, mi = image(action(I2.data[7], I2.data[7].G[1]) + identity_map(I2.data[7].M))
+    #test W_S -> W_T
+#    h1 = induce_hom_W(I2.data[7], I1.data[7], unit_inj) # W1 -> W2
+    
+    #tests U_T = U_S + V, if W_V -> W_T is possible
+    #=
+    #construct W_V:
+    Ec = gmodule(I1.data[7].G, [FinGenAbGroupHom(comp*action(I1.data[6], I1.data[6].G(I1.data[7].G[1]))*pseudo_inv(comp))])
+    @assert is_consistent(Ec)
+    x, y = debeerst(domain(comp), action(Ec, Ec.G[1]))
+    c = free_abelian_group(2*length(x) + 2*length(y))
+    si = typeof(x[1])[]
+    em = typeof(x[1])[]
+    en = typeof(x[1])[]
+
+    ce = complex_embeddings(number_field(order(I1.S[1])))[1]
+    for i = 1:length(x)
+      push!(si, c[2*i])
+      push!(si, c[2*i-1])
+      push!(em, c[2*i] + c[2*i-1])
+      push!(en, x[i])
+      @assert x[i] == action(Ec, Ec.G[1], x[i])
+    end
+    n = 2*length(x)
+    for i=1:length(y)
+      push!(si, c[n + 2*i])
+      push!(si, c[n + 2*i-1])
+      push!(em, c[n + 2*i-1])
+      push!(em, c[n + 2*i])
+      push!(en, y[i])
+      push!(en, action(Ec, Ec.G[1], y[i]))
+    end
+
+    Wc = gmodule(Ec.G, [hom(c, c, si)])
+    @assert is_consistent(Wc)
+
+    mUW = FinGenAbGroupHom(pseudo_inv(hom(Ec.M, Ec.M, en))*hom(Ec.M, Wc.M, em))
+    @assert is_injective(mUW)
+    #hom(Ec, Wc, mUW) #test if mUW is C_2-linear
+    set_attribute!(Wc, :get_W => mUW)
+
+    h = induce_hom_W(Wc, I1.data[7], comp)
+    =#
+    h = induce_hom_W(I1.data[7], I2.data[7], unit_pro) # W1 -> W2
+  end
+  h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, I1.data[8][1], I2.data[8][1])
+  X = canonical_projection(I1.M, 1) * h * canonical_injection(I2.M, 1)
+
+  missing = Int[]
   for i = 1:length(I1.S)
     local h, twist
+    local found = false
     for j = 1:length(I2.S)
       minimum(I2.S[j]) == minimum(I1.S[i]) || continue
+      found = true
       if isnothing(mp) && I1.S[i] == I2.S[j] #easy case, just new precision
         h = hom(domain(I1.L[i]), domain(I2.L[j]), [preimage(I2.L[j], I1.L[i](x)) for x = gens(domain(I1.L[i]))])
         twist = nothing
       else
         #need s in Gal(I2) s.th. val(s(I2.S[j]), mp(I1.S[i])) > 0
         I = mp(I1.S[i])
+        @assert domain(I2.mG) === domain(I1.mG) #Gal(k)
         for g = domain(I2.mG)
           valuation(I2.mG(g)(I), I2.S[j]) == 0 && continue
+
           h = hom(domain(I1.L[i]), domain(I2.L[j]), 
             [preimage(I2.L[j], I2.C[j](I2.mG(g)(mp(preimage(I1.C[i], image(I1.L[i], x)))))) for x = gens(domain(I1.L[i]))])
-            twist = g
+            twist = inv(g)
           break
         end
       end
@@ -1171,20 +1418,41 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       if IndI1[i] === IndI2[j]
         h = id_hom(IndI1[i][1], IndI2[j][1])
       else
-        @assert i == j #if not, then pro[i]*h*inj[j] needs to be added
         h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, IndI1[i][1], IndI2[j][1]; twist)
         @assert domain(h) === IndI1[i][1].M
         @assert codomain(h) === IndI2[j][1].M
       end
+      X += canonical_projection(I1.M, i+1) * h * canonical_injection(I2.M, j+1)
       break
     end
-    @show h
-    push!(all_h, h)
+    if !found #drop a place.
+      push!(missing, i)
+    end
+  end
+  for i = missing
+    mp = I1.data[3].module_map * canonical_projection(I1.M, i+1)
+    # T-units -> I_T -> K_P^*
+    pe = [preimage(mp, g) for g = gens(codomain(mp))]
+    # K_P* (well the product of the completions of the conjugate primes)
+    # mod the lattice is just Z - only the valuation is left
+    #so the preimage gives a T-unit with valuation 1 at P, zero at the
+    # conjugate and s.th. in S
+    #TODO use the same unit (and pass them down) as in split_units
+    # we want
+    #      U_T -> U_S
+    #       |      |
+    #      I_T -> I_S
+    # to commute, for proper S-units, this is trivial.
+    # for the T\S units we have to work on the bottom arrow.
+    # I_T = W_T + J_T = W_T + J_S + J_(T\S) where J_T is the product
+    # of the completions, factored by the lattices, in particular 
+    # J_(T\S) = Z^(T\S) only (unramified)
+    # 
+    h = hom(codomain(mp), I2.M, [I2.data[3].module_map(unit_pro(x))-X(I1.data[3].module_map(x)) for x = pe])
+    X += canonical_projection(I1.M, i+1)*h
   end
 
-  h = hom_direct_sum(I1.M, I2.M, all_h)
-  return pseudo_inv(I1.mq)*h*I2.mq
-
+  return pseudo_inv(I1.mq)*X*I2.mq
 end
 
 #=
@@ -1454,6 +1722,7 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; coprime::Union{AbsSi
           u = x
         end
         @assert valuation(u) == 0
+        #TODO: the infinite places/ sign condition
         iu = o_zk*_local_norm(coprime, zk(preimage(nKp, u)), P[1])
         if vx != 0
           ip = o_zk*_local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
