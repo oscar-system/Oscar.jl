@@ -2,7 +2,7 @@ function basis_lie_highest_weight_compute(
   V::ModuleData,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_input::Union{AbsGenOrdering,Symbol};
-  compute_polytope=false,
+  compute_polytope=true,
 )
   # Pseudocode:
 
@@ -105,7 +105,7 @@ function basis_lie_highest_weight_compute(
       :volume_of_polytope => volume(P),
     )
   end
-  return mb, monomials
+  return mb
 end
 
 function basis_coordinate_ring_kodaira_compute(
