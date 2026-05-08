@@ -408,24 +408,46 @@ end
 =#
 
 function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
+  global last_bad = (mCD, mHG, indC, indD, twist)
   hU, gC = get_attribute(indC.M, :induce)
   U = domain(hU)
   iU = image(hU)[1]
+#  @show gens(iU)
   hV, gD = get_attribute(indD.M, :induce)
   V = domain(hV)
+  iV = image(hV)[1]
+#  @show gens(iV)
 
-#  @show issubgroup(image(hV*mHG)[1], image(hU)[1])
-#  if !isnothing(twist)
-#    @show issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])
-#    @show issubgroup(image(hV*inner_automorphism(inv(twist))*mHG)[1], image(hU)[1])
-#  end
+  if isnothing(twist)
+    fl, twist = is_conjugate_with_data(codomain(hU), image(hV*mHG)[1], image(hU)[1])
+    twist = preimage(mHG, twist)
+    @assert fl
+  end
+#  @show [x^twist for x = gens(iV)]
+#  @show indC, indD, mCD, matrix(mCD)
+
+  @assert issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])[1]
+
+  G = domain(mHG)
+  S = symmetric_group(length(gC))
+  ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, gC) for z = gC]) for y in gens(G)])
+
+  rb = hom(G, S, [S([findfirst(x->x*inv(z*y) in iV, gD) for z = gD]) for y in gens(G)])
+#  @show map(ra, gens(G)), map(rb, gens(G)), ra(twist), rb(twist)
+
   
   I = zero_map(indC.M, indD.M)
+#  @show twist
+#  @show [findall(x->y*inv(x)*twist in iU, gC) for y in gD] 
   for i=1:length(gC)
     m = gC[i]
-    j = [x for x = 1:length(gD) if mHG(gD[x])*inv(m) in iU]
+    j = [x^ra(twist) for x = 1:length(gD) if mHG(gD[x])*inv(m) in iU]
+
     I += sum(canonical_projection(indC.M, i)*mCD*canonical_injection(indD.M, x) for x = j)  
   end
+#  for g = gens(indC.G)
+#    @show matrix(action(indC, g) * I - I*action(indD, g))
+#  end
 
   return I
 end
@@ -501,6 +523,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
     for _q = 1:ngens(indC)
       zero!(q)
       _coeffs(q)[_q] = o
+      isa(q, FinGenAbGroupElem) && Hecke.assure_reduced!(parent(q), _coeffs(q))
 
       X = zero(indC)
       for i=1:length(g)
@@ -510,7 +533,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
 #      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -570,14 +593,18 @@ function is_induced(C::GModule)
   return false
 end
 
-function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.ModuleHomomorphism)
+function Oscar.quo(C::GModule{<:Any, <:AbstractAlgebra.FPModule}, mDC::Generic.ModuleHomomorphism; simplify::Bool = false)
   q, mq = Oscar.quo(C.M, image(mDC)[1])
   S = GModule(C.G, [hom(q, q, [mq(x(preimage(mq, t))) for t = gens(q)]) for x = C.ac])
   return S, mq
 end
 
-function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_lattice::Bool = true)
+function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_lattice::Bool = true; simplify::Bool = false)
   q, mq = Oscar.quo(C.M, mDC, add_to_lattice)
+  if simplify
+    q, ms = snf(q)
+    mq = FinGenAbGroupHom(mq*pseudo_inv(ms))
+  end
   S = GModule(C.G, [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.ac])
   if isdefined(C, :iac)
     S.iac = [FinGenAbGroupHom(pseudo_inv(mq)*x*mq) for x = C.iac]
@@ -1334,6 +1361,87 @@ function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
   return get_attribute(C, :H_two_maps)
 end
 
+"""
+  The standard/ bar resolution as right or left
+"""
+function bar_res(ZG::GroupAlgebra; side = :left)
+  G = group(ZG)
+
+  @assert side in [:right, :left]
+  is_left = side == :left
+  oG = Int(order(G))
+  all_G = [g for g in G]
+
+  F_0 = Generic.FreeModule(ZG, 1; is_row = is_left)
+  F_1 = Generic.FreeModule(ZG, oG; is_row = is_left)
+  if is_left
+    C = zero_matrix(ZG, oG, 1)
+    for i=1:oG
+      C[i, 1] = ZG(all_G[i]) - one(ZG)
+    end
+  else
+    C = zero_matrix(ZG, 1, oG)
+    for i=1:oG
+      C[1, i] = ZG(all_G[i]) - one(ZG)
+    end
+  end
+
+
+  Cpx = Hecke.ComplexOfMorphisms(typeof(F_0), [hom(F_1, F_0, C; is_left)]; check = false, typ = :chain)
+  function fill(::ComplexOfMorphisms, idx::Int)
+    i = idx
+    Fi1 = Cpx[i-1]
+    Fi = Generic.FreeModule(ZG, oG^i; is_row = is_left)
+    if is_left
+      C = zero_matrix(ZG, oG^i, oG^(i-1))
+      for h = 1:oG^i
+        #h in base oG = (a, b, c, ...) is a i-tuple
+        #the differential is
+        # depending on right/ left... 
+        # a_1(a_2, .., a_n) + (-1)^i (a_1, ..., a_i-1, a_i*a_i+1, a_i+2...) +
+        #                 (-1)^n (a_1, ..., a_n-1)
+
+        C[h, div(h-1, oG)+1] = ZG(all_G[1+(h-1)%oG])
+        for l=0:i-2
+          d0 = (h-1) % oG^l # a_1 ... a_i-1
+          d1 = div((h-1), oG^l) % oG #a_i
+          d2 = div((h-1), oG^(l+1)) % oG #a_i+1
+          d3 = div((h-1), oG^(l+2)) # a_i+2 ...
+          ix = findfirst(isequal(all_G[d1+1]*all_G[d2+1]), all_G) - 1
+          C[h, 1+d0 + ix*oG^l + d3*oG^(l+1)] += ZG((-1)^(l+1))
+        end
+        C[h, 1 + (h-1) % oG^(i-1)] += ZG((-1)^i)
+      end
+      pushfirst!(Cpx.maps, hom(Fi, Fi1, C; is_left))
+      return first(Cpx.maps)
+    else
+      C = zero_matrix(ZG, oG^(i-1), oG^i)
+      for h = 1:oG^i
+        #h in base oG = (a, b, c, ...) is a i-tuple
+        #the differential is
+        # depending on right/ left... 
+        # (a_2, .., a_n) + (-1)^i (a_1, ..., a_i-1, a_i*a_i+1, a_i+2...) +
+        #                 (-1)^n (a_1, ..., a_n-1)*a_n
+
+        C[div(h-1, oG)+1, h] = one(ZG)
+        for l=0:i-2
+          d0 = (h-1) % oG^l # a_1 ... a_i-1
+          d1 = div((h-1), oG^l) % oG #a_i
+          d2 = div((h-1), oG^(l+1)) % oG #a_i+1
+          d3 = div((h-1), oG^(l+2)) # a_i+2 ...
+          ix = findfirst(isequal(all_G[d1+1]*all_G[d2+1]), all_G) - 1
+          C[1+d0 + ix*oG^l + d3*oG^(l+1), h] += ZG((-1)^(l+1))
+        end
+        C[1 + (h-1) % oG^(i-1), h] += ZG((-1)^i)*ZG(all_G[1+div(h-1, oG^(i-1))])
+      end
+      pushfirst!(Cpx.maps, hom(Fi, Fi1, C; is_left))
+      return first(Cpx.maps)
+    end
+  end
+
+  Cpx.fill = fill
+  return Cpx
+end
 
 function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
   G = group(ZG)
@@ -1584,6 +1692,14 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
       return Cpx.maps[1]
     end #if idx == 2
 
+    #TODO: for 3-chains: think.
+    #     possibly for the overlaps: (AB)   -> X
+    #                                  (BC) -> Y
+    #     then (AB)C -> XC
+    #          A(BC) -> AY  => s(A, B, C) -> XC*inv(AY) ? via normal form?
+    # collect with non-legal(?) input?
+    #(not done at all)(yet)
+
     if idx > 3 #the generic case, if the group is small enough...
       # inspired bu Graham Ellis, Algo 3.2.1 p 228
       # AN INVITATION TO COMPUTATIONAL HOMOTOPY
@@ -1690,7 +1806,7 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
   return Z
 end
 
-function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, C::GModule)
+function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, Group_T, GroupElem_T}}}}, C::GModule{Group_T}) where Group_T where GroupElem_T
   ZG = base_ring(f[0])
   G = group(ZG)
   @assert G == group(C)
