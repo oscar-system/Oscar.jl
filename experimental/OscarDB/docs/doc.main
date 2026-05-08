@@ -1,6 +1,7 @@
 [
    "OscarDB" => [
      "introduction.md",
-     "selfprojecting.md"
+     "selfprojecting.md",
+     "smalltreemodels.md"
    ],
 ]

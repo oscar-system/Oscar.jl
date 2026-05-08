@@ -8,6 +8,7 @@ import Oscar.Serialization: load_object, save_object, type_params
 import Oscar:
   simplicial_complex,
   dim,
+  degree,
   f_vector,
   automorphism_group,
   homology,
@@ -16,7 +17,13 @@ import Oscar:
   graph,
   n_leaves,
   group_based_phylogenetic_model,
-  phylogenetic_model
+  phylogenetic_model,
+  coordinate_change,
+  inverse_coordinate_change,
+  parametrization,
+  equivalent_classes,
+  vanishing_ideal,
+  level
 
 # for ca certificates
 import NetworkOptions

@@ -122,7 +122,14 @@ end
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
   begin_node(s, key)
-  data = x isa Bool ? x : string(x)
+  if x isa Bool
+    data = x
+  elseif x isa Number && (1 - 2^53 <= x <= 2^53 -1 )
+    data = x
+  else
+    data = string(x)
+  end
+
   if s.pretty_print
     print(s.io, "")
     JSON.json(s.io, data)
