@@ -365,7 +365,7 @@
       @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, edge_distinguishable=false)
       
       #vertex distinguishable, edge distinguishable
-      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>3, 3=>3))
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>2, 3=>3))
       G2 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>7), Dict(4=>1, 5=>2, 6=>3))
       G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
