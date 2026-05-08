@@ -646,7 +646,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   detK = det(K)
   diff_vars = gens(base_ring(K))
     
-  l_eqs = [derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars]
+  l_eqs = [derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars]
   I = ideal(l_eqs)
 
   !saturate && return I
@@ -674,7 +674,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   detK = phi(det(K_mapped))
   diff_vars = (phi(g) for g in gens(R))
   
-  l_eqs = matrix([derivative(detK, k) * (detK - trace_product) + detK * derivative(trace_product, k) for k in diff_vars])
+  l_eqs = matrix([derivative(detK, k) + detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
   I_sat = saturation(I, ideal(detK))
   gb = groebner_basis(I_sat; ordering=o, kwargs...)
