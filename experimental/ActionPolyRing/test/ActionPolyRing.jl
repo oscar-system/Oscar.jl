@@ -32,10 +32,14 @@ using Test
     @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
-    
+    @test is_domain_type(DifferencePolyRingElem{QQFieldElem})
+    @test is_exact_type(DifferencePolyRingElem{QQFieldElem})
+
     @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
+    @test is_domain_type(DifferentialPolyRingElem{QQFieldElem})
+    @test is_exact_type(DifferentialPolyRingElem{QQFieldElem})
 
   end
 

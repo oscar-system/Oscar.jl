@@ -227,15 +227,16 @@ end
 
 ### Difference ###
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
-
 parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
 
 ### Differential ###
 elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{T}
-
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
+is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
+is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
+
 @doc raw"""
     zero(A::ActionPolyRing)
 
