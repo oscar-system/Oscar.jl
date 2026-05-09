@@ -31,6 +31,8 @@ function _gather_tests(path::AbstractString; ignore=[])
                      r"MultigradedImplicitization(\.jl)?$",              
                      # ignore book example code (except for main file)
                      r"(^|/)book/.*/.*\.jl$",
+                     # ignore the code which turns summary CSV to dashboard JSON
+                     "testing-csv-to-yml.jl"
                    ]
   for i in ignore
     if i isa Regex
