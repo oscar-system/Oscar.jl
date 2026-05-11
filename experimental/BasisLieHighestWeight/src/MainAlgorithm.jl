@@ -32,6 +32,7 @@ function basis_lie_highest_weight_compute(
   #     go through them one by one in monomial_ordering until basis is full
   #     return set_mon
 
+  @req characteristic(base_lie_algebra(V)) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(base_lie_algebra(V))
 
   birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
@@ -484,6 +485,7 @@ function add_by_hand(
 end
 
 function operators_asc_height(L::LieAlgebra)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   return positive_roots(root_system(L))
 end
 
@@ -491,6 +493,7 @@ function operators_by_index(
   L::LieAlgebra,
   birational_seq::Vector{Int},
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   return operators_asc_height(L)[birational_seq]
 end
 
@@ -498,6 +501,7 @@ function operators_by_simple_roots(
   L::LieAlgebra,
   birational_seq::Vector{Vector{Int}},
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(L)
   operators = map(birational_seq) do whgt_alpha
     root = RootSpaceElem(R, whgt_alpha)
@@ -520,6 +524,7 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   # \beta_2 = \alpha_1 + \alpha_2
   # \beta_3 = \alpha_2
 
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(L)
   W = weyl_group(R)
   operators = map(1:length(reduced_expression)) do k
