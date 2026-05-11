@@ -386,10 +386,10 @@ function load_type_and_params(s::DeserializerState, T::Type)
     return T, nothing
   end
   if haskey(s, :params)
-    load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+    load_node(s, :params) do _
+      if s.obj isa JSON3.Array || s.obj isa Vector
         params = load_type_array_params(s)
-      elseif obj isa String || haskey(s, :params)
+      elseif s.obj isa String || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           params = U()
@@ -397,16 +397,16 @@ function load_type_and_params(s::DeserializerState, T::Type)
           params = load_type_and_params(s, U)[2]
         end
       # handle cases where type_and_params is a dict of params
-      elseif !haskey(obj, type_key) 
+      elseif !haskey(s.obj, type_key) 
         params = Dict{Symbol, Any}()
-        for (k, _) in obj
-          params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+        for (k, _) in s.obj
+          params[k] = load_node(s, k) do _
+            if s.obj isa JSON3.Array || s.obj isa Vector
               return load_type_array_params(s)
             end
             
             U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
+            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
               return U
             end
             return load_type_and_params(s, U)[2]
@@ -939,7 +939,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
 
     if :id in keys(s.obj)
-      load_node(s, :id) do id
+      load_node(s, :id) do _
+        id = s.obj
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
       end
