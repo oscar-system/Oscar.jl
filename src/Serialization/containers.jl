@@ -110,7 +110,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
         load_ref(s)
       end::Vector{params}
     else
-      iszero(length(s.obj)) && return params[]
+      isempty(s) && return params[]
       loaded_v = load_array_node(s) do _
         load_object(s, params)
       end
@@ -121,7 +121,7 @@ end
 
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
-  iszero(length(s.obj)) && return T[]
+  isempty(s) && return T[]
   v = load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
@@ -133,7 +133,7 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
-  iszero(length(s.obj)) && return U[]
+  isempty(s) && return U[]
   return load_array_node(s) do _
     load_object(s, U)
   end

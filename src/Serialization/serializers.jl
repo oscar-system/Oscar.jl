@@ -205,6 +205,10 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
+function Base.isempty(s::DeserializerState)
+  return iszero(length(s.obj))
+end
+
 function Base.haskey(s::DeserializerState, key::Symbol)
   !(s.obj isa JSON.LazyValue) && return false
   obj = s.obj[]
