@@ -124,6 +124,10 @@ function encode_type(::Type{T}) where T
   )
 end
 
+is_string(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.STRING
+is_array(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.ARRAY
+is_object(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.OBJECT
+
 function decode_type(s::String)
   return get(reverse_type_map, s) do
     error("unsupported type '$s' for decoding")
@@ -131,8 +135,8 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)
-  obj = s.obj[]
-  if obj isa String
+  if is_string(s)
+    obj = s.obj[]
     uuid = tryparse(UUID, obj)
     if !isnothing(uuid)
       if isnothing(s.refs)
@@ -148,17 +152,18 @@ function decode_type(s::DeserializerState)
     return decode_type(obj)
   end
 
-  if haskey(obj, type_key)
+  if haskey(s, type_key)
     return load_node(s, type_key) do _
       decode_type(s)
     end
   end
-  
-  if haskey(obj, :name)
-    if haskey(obj, :_instance)
-      return get(reverse_type_map[obj[:name]], obj[:_instance]) do
-        unsupported_instance = obj[:_instance]
-        error("unsupported instance '$unsupported_instance' for decoding")
+
+  if haskey(s, :name)
+    if haskey(s, :_instance)
+      name = load_node(s, :name) do n; n; end
+      instance = load_node(s, :_instance) do i; i; end
+      return get(reverse_type_map[name], instance) do
+        error("unsupported instance '$instance' for decoding")
       end
     else
       return load_node(s, :name) do _
@@ -369,8 +374,8 @@ end
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do obj
     T = decode_type(s)
-    if obj isa String
-      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+    if is_string(s)
+      !isnothing(tryparse(UUID, s.obj[])) && return load_ref(s)
       return T
     end
     return load_type_params(s, T)[2]
@@ -378,18 +383,16 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_params(s::DeserializerState, T::Type)
-  if s.obj isa JSON.LazyValue
+  if is_string(s)
     val = s.obj[]
-    if val isa String
-      !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
-      return T, nothing
-    end
+    !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
+    return T, nothing
   end
   if haskey(s, :params)
     load_node(s, :params) do obj
-      if obj isa AbstractVector
+      if is_array(s)
         params = load_type_array_params(s)
-      elseif obj isa String || haskey(s, :params)
+      elseif is_string(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           params = U()
@@ -397,16 +400,16 @@ function load_type_params(s::DeserializerState, T::Type)
           params = load_type_params(s, U)[2]
         end
       # handle cases where type_params is a dict of params
-      elseif !haskey(obj, type_key)
+      elseif !haskey(s, type_key)
         params = Dict{Symbol, Any}()
-        for (k, _) in obj
-          params[Symbol(k)] = load_node(s, Symbol(k)) do obj
-            if obj isa AbstractVector
+        for k in propertynames(s.obj)
+          params[k] = load_node(s, k) do obj
+            if is_array(s)
               return load_type_array_params(s)
             end
-            
+
             U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
+            if is_string(s) && isnothing(tryparse(UUID, s.obj[]))
               return U
             end
             return load_type_params(s, U)[2]
@@ -440,8 +443,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    obj = s.obj[]
-    obj isa String && !isnothing(tryparse(UUID, obj)) && return load_ref(s)
+    is_string(s) && !isnothing(tryparse(UUID, s.obj[])) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
@@ -483,7 +485,7 @@ function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+    for attr in propertynames(d)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -798,7 +800,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     @req :_ns in propertynames(d) "Namespace is missing"
     load_node(s, :_ns) do _ns
       if :polymake in propertynames(_ns)
-        return load_from_polymake(Dict(d))
+        return load_from_polymake(JSON.parse(d; dicttype=Dict{String, Any}))
       end
     end
   end
@@ -815,9 +817,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     serialization_version_info(obj)
   end
   if file_version < VERSION_NUMBER
-    # we need a mutable dictionary
-    jsondict = copy(s.obj)
-    jsondict = upgrade(file_version, jsondict)
+    jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
     jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,

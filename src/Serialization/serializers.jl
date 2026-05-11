@@ -223,7 +223,7 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if s.obj isa JSON.LazyValue && s.obj[] isa String && !isnothing(tryparse(UUID, s.obj[]))
+  if is_string(s) && !isnothing(tryparse(UUID, s.obj[]))
     return load_ref(s)
   end
 
@@ -236,7 +236,7 @@ function load_node(f::Function, s::DeserializerState,
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj[])
+    result = f(s.obj)
   end
   s.obj = lazy_obj
   return result

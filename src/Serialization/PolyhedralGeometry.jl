@@ -126,7 +126,7 @@ function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFi
 end
 
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
-  if s.obj isa String
+  if is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
   coeff_type = elem_type(field)
@@ -148,7 +148,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
 end
 
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, params::Dict)
-  if s.obj isa String
+  if is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
   field = params[:field]
