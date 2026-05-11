@@ -487,6 +487,7 @@ export contributing_denominators
 export convention
 export convert
 export convex_hull
+export convolution
 export coordinate_names
 export coordinate_names_of_torus
 export coordinate_ring
