@@ -336,8 +336,6 @@ function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
              maxlog=1)
 
       upgrade_state = UpgradeState()
-      # upgrading large files needs a work around since the new load
-      # uses JSON3 which is read only
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)

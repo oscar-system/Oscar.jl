@@ -36,8 +36,8 @@ type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLi
 
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
-  field = p_dict[:_coeff]
-  delete!(p_dict, :_coeff)
+  field = p_dict["_coeff"]
+  delete!(p_dict, "_coeff")
   return TypeParams(
     T,
     :field => field,
@@ -172,7 +172,7 @@ end
 function load_object(s::DeserializerState{LPSerializer},
                      ::Type{<:LinearProgram}, field::QQField)
   load_node(s) do _
-    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj)"
+    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj[])"
     pm_lp = load_lp(lp_filename)
   end
 end
