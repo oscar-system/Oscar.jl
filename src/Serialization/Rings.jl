@@ -146,7 +146,7 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p), )])
+  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))])
 end
 
 function load_object(s::DeserializerState,
