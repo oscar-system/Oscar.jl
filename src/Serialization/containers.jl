@@ -540,9 +540,11 @@ function load_object(s::DeserializerState,
     value_types = Type[]
     for k in propertynames(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
-      value_type, param = params[key]
+      # params may have been built with Symbol keys (from old files) even when S is String
+      param_key = haskey(params, key) ? key : Symbol(k)
+      value_type, param = params[param_key]
       v = load_object(s, value_type, param, k)
-      dict[key] = load_object(s, value_type, param, k)
+      dict[key] = v
       push!(value_types, typeof(v))
     end
     isempty(value_types) && return T()
