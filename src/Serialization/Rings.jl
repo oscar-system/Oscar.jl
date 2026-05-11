@@ -522,11 +522,11 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                      parent_ring::LaurentUnionType)
-  terms = load_node(s, :terms) do terms_data
+  terms = load_node(s, :terms) do _
     # reading all exponents before ...
     # might be more efficient way ...
     exponents = Int[]
-    for i in 1:length(terms_data)
+    for i in 1:length(s.obj)
       load_node(s, i) do _
         push!(exponents, load_object(s, Int, 1))
       end

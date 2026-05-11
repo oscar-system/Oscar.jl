@@ -110,9 +110,9 @@ end
 
 function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
   !with_attrs(s) && return
-  haskey(s, :attrs) && load_node(s, :attrs) do d
+  haskey(s, :attrs) && load_node(s, :attrs) do _
     for attr in attrs_list(T)
-      if haskey(d, attr)
+      if haskey(s, attr)
         func = Symbol(string("set_", attr))
         attr_value = load_typed_object(s, attr)
         @eval $func($G, $attr_value)

@@ -160,8 +160,8 @@ function decode_type(s::DeserializerState)
 
   if haskey(s, :name)
     if haskey(s, :_instance)
-      name = load_node(s, :name) do n; n; end
-      instance = load_node(s, :_instance) do i; i; end
+      name = load_node(s, :name) do _; s.obj[]; end
+      instance = load_node(s, :_instance) do _; s.obj[]; end
       return get(reverse_type_map[name], instance) do
         error("unsupported instance '$instance' for decoding")
       end
@@ -389,7 +389,7 @@ function load_type_params(s::DeserializerState, T::Type)
     return T, nothing
   end
   if haskey(s, :params)
-    load_node(s, :params) do obj
+    load_node(s, :params) do _
       if is_array(s)
         params = load_type_array_params(s)
       elseif is_string(s) || haskey(s, :params)
@@ -403,7 +403,7 @@ function load_type_params(s::DeserializerState, T::Type)
       elseif !haskey(s, type_key)
         params = Dict{Symbol, Any}()
         for k in propertynames(s.obj)
-          params[k] = load_node(s, k) do obj
+          params[k] = load_node(s, k) do _
             if is_array(s)
               return load_type_array_params(s)
             end
@@ -855,7 +855,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
 
     if haskey(s, :id)
-      load_node(s, :id) do id
+      load_node(s, :id) do _
+        id = s.obj[]
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
       end
