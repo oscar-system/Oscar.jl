@@ -652,7 +652,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   !saturate && return I
 
   I_sat = saturation(I, ideal(detK))
-  groebner_basis(I_sat; kwargs)
+  groebner_basis(I_sat; kwargs...)
   return I_sat
 end
 
@@ -754,7 +754,6 @@ function maximum_likelihood_degree(M::GaussianGraphicalModel; algorithm=:generic
       scv_matrix = rand(-10000:10000, n, n)
       scv_matrix = matrix(QQ, transpose(scv_matrix) * scv_matrix)
       I = score_equations_ideal(M, scv_matrix; algorithm=:f4)
-
       dim_I = dim(I)
     end
   end
