@@ -410,7 +410,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       end
       params_dict = Dict{S, Any}()
       value_types = Type[]
-      for (k, _) in obj
+      for k in propertynames(s.obj)
         k == "key_params" && continue
         key = S <: Integer ? parse(Int, string(k)) : S(k)
         params_dict[key] = load_node(s, Symbol(k)) do _
