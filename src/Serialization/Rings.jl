@@ -142,7 +142,7 @@ end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
+  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))])
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
@@ -199,7 +199,7 @@ function load_object(s::DeserializerState,
   exps_coeffs = load_object(s, Vector{Tuple{Int, coeff_type}},
                             (nothing, coeff_ring))
 
-  isempty(exps_coeffs) && return parent_ring(0)::elem_type(parent_ring)
+  isempty(exps_coeffs) && return zero(parent_ring)::elem_type(parent_ring)
   
   degree = maximum(e for (e, _) in exps_coeffs)
   loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
