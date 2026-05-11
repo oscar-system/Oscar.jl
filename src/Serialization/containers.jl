@@ -158,7 +158,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
     if isempty(s)
       return T(undef, 0, 0)
     end
-    len = length(entries)
+    len = length(s.obj)
     m = stack([
       load_object(s, Vector{S}, i) for i in 1:len
         ]; dims=1)
@@ -173,7 +173,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where {
     if isempty(s)
       return T(undef, 0, 0)
     end
-    len = length(entries)
+    len = length(s.obj)
     m = stack([
       load_object(s, Vector{S}, params, i) for i in 1:len
         ]; dims=1)
@@ -200,11 +200,11 @@ function save_object(s::SerializerState, arr::AbstractArray{T, N}) where {T, N}
 end
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
-  load_node(s) do entries
-    if isempty(entries)
+  load_node(s) do _
+    if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
     end
-    len = length(entries)
+    len = length(s.obj)
     m = [load_object(s, Array{S, N - 1}, i) for i in 1:len]
     return stack(m; dims=1)
   end
@@ -213,11 +213,11 @@ end
 load_object(s::DeserializerState, T::Type{Array{S, N}}, ::Nothing) where {S, N} = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}, params::U) where {S, N, U}
-  load_node(s) do entries
-    if isempty(entries)
+  load_node(s) do _
+    if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
     end
-    len = length(entries)
+    len = length(s.obj)
     m = [load_object(s, Array{S, N - 1}, params, i) for i in 1:len]
     return stack(m; dims=1)
   end
