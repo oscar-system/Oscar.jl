@@ -104,7 +104,7 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
 end
 
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
-  load_node(s) do v
+  load_node(s) do _
     if serialize_with_id(params)
       loaded_v = load_array_node(s) do _
         load_ref(s)
@@ -324,7 +324,7 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams{<:NamedTuple
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
-  subtype, params = load_node(s, :params) do obj
+  subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s, :tuple_params) do _
       load_type_and_params(s, decode_type(s))
     end
@@ -392,10 +392,10 @@ function save_type_and_params(
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{Dict})
-  subtype, params = load_node(s, :params) do obj
+  subtype, params = load_node(s, :params) do _
     if haskey(s, :value_params)
-      S, key_params = load_node(s, :key_params) do params
-        params isa String && return decode_type(s), nothing
+      S, key_params = load_node(s, :key_params) do _
+        s.obj isa String && return decode_type(s), nothing
         load_type_and_params(s, decode_type(s))
       end
 
@@ -410,7 +410,7 @@ function load_type_and_params(s::DeserializerState, T::Type{Dict})
       end
       params_dict = Dict{S, Any}()
       value_types = Type[]
-      for (k, _) in obj
+      for (k, _) in s.obj
         k == :key_params && continue
         key = S <: Integer ? parse(Int, string(k)) : S(k)
         params_dict[key] = load_node(s, k) do _
