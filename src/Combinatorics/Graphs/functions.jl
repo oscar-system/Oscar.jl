@@ -1114,6 +1114,8 @@ function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          vertex_distinguishable::Bool=true,
                          seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
+  G_map = getproperty(G, label)
+  isnothing(G_map.edge_map) && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
   new_G = _edge_label_to_vertex_label(G, label;
                                       edge_distinguishable=edge_distinguishable,
                                       vertex_distinguishable=vertex_distinguishable)
