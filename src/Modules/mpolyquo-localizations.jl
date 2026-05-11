@@ -123,7 +123,6 @@ function kernel(
   Kb, incb = kernel(ffb)
   Cb = representing_matrix(incb)
   C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
-  C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
   #C = change_base_ring(S, Cb*D)
   K, inc = sub(domain(f), C)
   return K, inc
