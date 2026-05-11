@@ -141,11 +141,8 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
-function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))])
-end
-
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
+function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap})
+  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))])
   save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))])
 end
 
