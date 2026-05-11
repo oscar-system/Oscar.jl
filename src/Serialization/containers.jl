@@ -154,8 +154,8 @@ end
 # this needs to be Matrix to avoid ambiguities, this is also ok
 # since types on load will be Matrix
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
-  load_node(s) do entries
-    if iszero(length(entries))
+  load_node(s) do _
+    if isempty(s)
       return T(undef, 0, 0)
     end
     len = length(entries)
@@ -169,8 +169,8 @@ end
 load_object(s::DeserializerState, T::Type{<:Matrix{S}}, ::Nothing) where {S} = load_object(s, T)
 
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params) where {S}
-  load_node(s) do entries
-    if isempty(entries)
+  load_node(s) do _
+    if isempty(s)
       return T(undef, 0, 0)
     end
     len = length(entries)
