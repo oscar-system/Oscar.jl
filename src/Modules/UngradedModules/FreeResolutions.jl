@@ -1041,8 +1041,8 @@ julia> I = ideal(AL, minors(M, 3));
 
 julia> FI = free_resolution(I, length = 3)
 Free resolution of I
-AL^4 <---- AL^7 <---- AL^4 <---- 0
-0          1          2          3
+AL^4 <---- AL^3 <---- 0
+0          1          2
 
 ```
 """
