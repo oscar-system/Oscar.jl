@@ -320,4 +320,55 @@
       @test fixed_points(a) == moved_points(b)
       @test fixed_points(b) == moved_points(a)
     end
+
+    @testset "graph isomorphism" begin
+      G1_empty = graph(Undirected, 0)
+      G2_empty = graph(Undirected, 0)
+      @test is_isomorphic(G1_empty, G2_empty) == true
+
+      G1_one = graph(Undirected, 1)
+      G2_one = graph(Undirected, 1)
+      @test is_isomorphic(G1_one, G2_one) == true
+      @test is_isomorphic(G1_empty, G2_one) == false
+
+      G1_two = graph(Undirected, 2)
+      G2_two = graph(Undirected, 2)
+      @test is_isomorphic(G1_two, G2_two) == true
+      @test is_isomorphic(G1_two, G2_one) == false
+      
+      #vertex indistinguishable, edge indistinguishable
+      G1 = graph_from_edges([[1,2], [2,3]])
+      G2 = graph_from_edges([[2,1], [3,2]])
+      G3 = graph_from_edges([[2,1], [3,2], [1,3]])
+      @test Oscar._canonical_hash(G1; vertex_distinguishable=false, edge_distinguishable=false) == Oscar._canonical_hash(G2; vertex_distinguishable=false, edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1; vertex_distinguishable=false, edge_distinguishable=false) != Oscar._canonical_hash(G3; vertex_distinguishable=false, edge_distinguishable=false)
+      
+      #vertex indistinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7))
+      G2 = graph_from_labeled_edges(Dict((3,1)=>3, (1,2)=>5, (2,3)=>7))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8))
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false)
+      
+      #vertex distinguishable, edge indistinguishable
+      G1 = graph(Undirected, 2)
+      add_edge!(G1, 1, 2)
+      G2 = graph(Undirected, 2)
+      add_edge!(G2, 1, 2)
+      G3 = graph(Undirected, 3)
+      add_edge!(G3, 1, 2)
+      label!(G1, nothing, Dict(1=>1, 2=>2))
+      label!(G2, nothing, Dict(1=>2, 2=>1))
+      label!(G3, nothing, Dict(1=>1, 2=>2, 3=>3))
+
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, edge_distinguishable=false)
+      
+      #vertex distinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>3, 3=>3))
+      G2 = graph_from_labeled_edges(Dict((2,3)=>3, (3,1)=>5, (1,2)=>7), Dict(2=>1, 3=>3, 1=>3))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
+      @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
+      @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
+    end
 end
