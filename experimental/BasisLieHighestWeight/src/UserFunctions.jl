@@ -16,9 +16,15 @@ julia> basis_lie_highest_weight_operators(:B, 2)
  (4, [1, 2])
 ```
 """
-function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
-  R = root_system(type, rank)
+function basis_lie_highest_weight_operators(L::LieAlgebra)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
+  R = root_system(L)
   return collect(enumerate(map(r -> Oscar._vec(coefficients(r)), positive_roots(R)))) # TODO: clean up
+end
+
+function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight_operators(L)
 end
 
 @doc raw"""
@@ -86,39 +92,45 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_highest_weight(
-  type::Symbol, rank::Int, highest_weight::Vector{Int};
+  L::LieAlgebra, highest_weight::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
 end
 
 function basis_lie_highest_weight(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
 end
 
 function basis_lie_highest_weight(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Vector{Int}};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_highest_weight(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -147,13 +159,18 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_highest_weight_lusztig(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
+  L::LieAlgebra, highest_weight::Vector{Int}, reduced_expression::Vector{Int}; kwargs...
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :wdegrevlex
-  L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
   operators = operators_lusztig(L, reduced_expression)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_highest_weight_lusztig(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight_lusztig(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -191,13 +208,18 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_highest_weight_string(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
+  L::LieAlgebra, highest_weight::Vector{Int}, reduced_expression::Vector{Int}; kwargs...
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :neglex
-  L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_highest_weight_string(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight_string(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -223,14 +245,19 @@ where the used birational sequence consists of the following roots:
   [a_1 + a_2 + a_3, a_2 + a_3, a_1 + a_2, a_3, a_2, a_1]
 ```
 """
-function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
+function basis_lie_highest_weight_ffl(L::LieAlgebra, highest_weight::Vector{Int}; kwargs...)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight_ffl(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -268,13 +295,18 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_highest_weight_nz(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
+  L::LieAlgebra, highest_weight::Vector{Int}, reduced_expression::Vector{Int}; kwargs...
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, reduced_expression)
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_highest_weight_nz(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_highest_weight_nz(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -330,50 +362,55 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_coordinate_ring_kodaira(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   degree::Int;
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_asc_height(L)
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
 end
 
 function basis_coordinate_ring_kodaira(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_index(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
 end
 
 function basis_coordinate_ring_kodaira(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Vector{Int}};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = SimpleModuleData(L, highest_weight)
   operators = operators_by_simple_roots(L, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
+end
+
+function basis_coordinate_ring_kodaira(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_coordinate_ring_kodaira(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -424,17 +461,22 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_coordinate_ring_kodaira_ffl(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int
+  L::LieAlgebra, highest_weight::Vector{Int}, degree::Int; kwargs...
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = SimpleModuleData(L, highest_weight)
   operators = reverse(operators_asc_height(L))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
+end
+
+function basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_coordinate_ring_kodaira_ffl(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -466,44 +508,49 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_asc_height(L))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
 end
 
 function basis_lie_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   birational_sequence::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_index(L, birational_sequence))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
 end
 
 function basis_lie_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   birational_sequence::Vector{Vector{Int}};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_simple_roots(L, birational_sequence))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_demazure(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_demazure(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -532,14 +579,19 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_demazure_lusztig(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
-  reduced_expression::Vector{Int},
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int}; kwargs...,
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :wdegrevlex
-  L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_lusztig(L, reduced_expression))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_demazure_lusztig(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_demazure_lusztig(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -568,14 +620,19 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_demazure_string(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
-  reduced_expression::Vector{Int},
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int}; kwargs...,
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :neglex
-  L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_index(L, reduced_expression))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_demazure_string(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_demazure_string(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -602,15 +659,20 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_demazure_ffl(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}; kwargs...
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, reverse(operators_asc_height(L)))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_demazure_ffl(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_demazure_ffl(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -639,14 +701,19 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_lie_demazure_nz(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
-  reduced_expression::Vector{Int},
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  reduced_expression::Vector{Int}; kwargs...,
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_index(L, reduced_expression))
-  return basis_lie_highest_weight_compute(V, operators, monomial_ordering)
+  return basis_lie_highest_weight_compute(V, operators, monomial_ordering; kwargs...)
+end
+
+function basis_lie_demazure_nz(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_lie_demazure_nz(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -693,53 +760,58 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_coordinate_ring_kodaira_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   degree::Int;
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_asc_height(L))
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
 end
 
 function basis_coordinate_ring_kodaira_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Int};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_index(L, birational_sequence))
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
 end
 
 function basis_coordinate_ring_kodaira_demazure(
-  type::Symbol,
-  rank::Int,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   weyl_group_elem::Vector{Int},
   degree::Int,
   birational_sequence::Vector{Vector{Int}};
   monomial_ordering::Union{AbsGenOrdering,Symbol}=:degrevlex,
+  kwargs...,
 )
-  L = lie_algebra(QQ, type, rank)
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, operators_by_simple_roots(L, birational_sequence))
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
+end
+
+function basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, args...; kwargs...)
+  L = lie_algebra(QQ, type, rank)
+  return basis_coordinate_ring_kodaira_demazure(L, args...; kwargs...)
 end
 
 @doc raw"""
@@ -781,16 +853,23 @@ where the used birational sequence consists of the following roots:
 ```
 """
 function basis_coordinate_ring_kodaira_demazure_ffl(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
-  degree::Int,
+  L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int},
+  degree::Int; kwargs...,
 )
+  @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   monomial_ordering = :degrevlex
-  L = lie_algebra(QQ, type, rank)
   V = DemazureModuleData(L, highest_weight, weyl_group_elem)
   operators = demazurify_operators(V, reverse(operators_asc_height(L)))
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
-    V, degree, operators, monomial_ordering
+    V, degree, operators, monomial_ordering; kwargs...
   )
+end
+
+function basis_coordinate_ring_kodaira_demazure_ffl(
+  type::Symbol, rank::Int, args...; kwargs...
+)
+  L = lie_algebra(QQ, type, rank)
+  return basis_coordinate_ring_kodaira_demazure_ffl(L, args...; kwargs...)
 end
