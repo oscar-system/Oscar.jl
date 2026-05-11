@@ -142,7 +142,11 @@ end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap})
-  save_object(s, [(e, c) for (e, c) in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))])
+  save_data_array(s) do
+    for ec in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))
+      save_object(s, ec)
+    end
+  end
 end
 
 function load_object(s::DeserializerState,
@@ -170,9 +174,11 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  save_object(s, [
-    (i - 1, c) for (i, c) in enumerate(coefficients(p))
-      if !is_zero(c) ])
+  save_data_array(s) do
+    for (i, c) in enumerate(coefficients(p))
+      !is_zero(c) && save_object(s, (i - 1, c))
+    end
+  end
 end
 
 function save_object(s::SerializerState{IPCSerializer},
