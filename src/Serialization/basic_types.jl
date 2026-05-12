@@ -78,7 +78,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
   load_node(s) do _
-    parse(T, s.obj[])
+    JSON.parse(s.obj, T)
   end
 end
 
@@ -89,7 +89,7 @@ end
 @register_serialization_type String
 
 function load_object(s::DeserializerState, ::Type{String})
-  return s.obj[]
+  return JSON.parse(s.obj, String)
 end
 
 ################################################################################
@@ -98,7 +98,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Symbol})
   load_node(s) do _
-    Symbol(s.obj[])
+    Symbol(JSON.parse(s.obj, String))
   end
 end
 
