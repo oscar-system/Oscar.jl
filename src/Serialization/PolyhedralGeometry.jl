@@ -133,7 +133,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_node(s, :lpcoeffs) do _
-    Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj[]))
+    Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
@@ -216,14 +216,14 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(s.obj[])
+      JSON.json(load_json(s, Dict{String, Any}))
     )
   end
   int_vars = load_node(s, :int_vars) do _
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(s.obj[])
+      JSON.json(load_json(s, Dict{String, Any}))
     )
   end
 

@@ -167,7 +167,7 @@ install_GAP_deserialization(
           GapObj(load_json(s, String))
         end
         init = load_node(s, :names) do _
-          names = s.obj[]
+          names = load_json(s, Vector{String})
           if length(names) == 0
             GapObj([])
           else
@@ -178,7 +178,7 @@ install_GAP_deserialization(
         G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)::GapObj
       else
         init = load_node(s, :names) do _
-          GapObj(s.obj[]; recursive = true)
+          GapObj(load_json(s, Vector{String}); recursive = true)
         end
         G = GAP.Globals.FreeGroup(wfilt, init)::GapObj
       end

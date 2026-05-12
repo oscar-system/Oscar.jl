@@ -200,7 +200,7 @@ function load_object(s::DeserializerState,
                      params::PolyRing)
   def_pols = load_object(s, Vector{PolyRingElem}, params, :def_pols)
   vars = load_node(s, :vars) do _
-    return map(Symbol, s.obj[])
+    return map(Symbol, load_json(s, Vector{String}))
   end
   # fix since numberfield doesn't accept PolyRingElem vectors
   array_pols = Array{typeof(def_pols[1]), 1}(def_pols)
