@@ -190,7 +190,7 @@ Once the pull request is merged, the updated artifact becomes available in OSCAR
 Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Oscar.jl/Artifacts.toml`.
 
 !!! warning
-    Do not modify, rename, or delete files that are already referenced by existing OSCAR releases.
+    Any files referenced by the OSCAR master branch must not be modified, renamed, or deleted.
 
 When repeatedly debugging or refining artifacts, contributors are encouraged to use temporary staging areas before publishing long-term versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
 
