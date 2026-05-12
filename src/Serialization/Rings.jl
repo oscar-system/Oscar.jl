@@ -155,9 +155,9 @@ function load_object(s::DeserializerState,
   coeff_ring = coefficient_ring(parent_ring)
   polynomial = MPolyBuildCtx(parent_ring)
   coeff_type = elem_type(coeff_ring)
-  exps_coeffs = load_object(s, Vector{Tuple{Vector{Int}, coeff_type}}, (nothing, coeff_ring))
 
-  for (e, c) in exps_coeffs
+  load_array_node(s) do _
+    (e, c) = load_object(s, Tuple{Vector{Int}, coeff_type}, (nothing, coeff_ring))
     push_term!(polynomial, c, e)
   end
   return finish(polynomial)::elem_type(parent_ring)
