@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, _convert_override_params, params, load_type_params, decode_type
+  type_params, _convert_override_params, params, load_type_params, decode_type, is_string
 
 function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
   param_dict = Dict()
