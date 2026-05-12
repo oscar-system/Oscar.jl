@@ -95,7 +95,7 @@ lazy = true
 
     [[MyExample.download]]
     sha256 = "3bd5a20e84b2e579ecde7dc5d7d4606444daf08407eecc9d8e59be1e468ca5a1"
-    url = "https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz"
+    url = "https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz"
 ```
 
 You may of course replace `MyExample` in the above entry with any other string that you find descriptive.
