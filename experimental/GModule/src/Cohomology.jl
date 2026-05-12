@@ -408,6 +408,7 @@ end
 =#
 
 function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
+  @show :START_OF_COOL
   global last_bad = (mCD, mHG, indC, indD, twist)
   hU, gC = get_attribute(indC.M, :induce)
   U = domain(hU)
@@ -423,31 +424,68 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
     twist = preimage(mHG, twist)
     @assert fl
   end
+
 #  @show [x^twist for x = gens(iV)]
 #  @show indC, indD, mCD, matrix(mCD)
 
   @assert issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])[1]
 
-  G = domain(mHG)
+  H = domain(mHG)
+  G = codomain(mHG)
+
   S = symmetric_group(length(gC))
   ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, gC) for z = gC]) for y in gens(G)])
 
-  rb = hom(G, S, [S([findfirst(x->x*inv(z*y) in iV, gD) for z = gD]) for y in gens(G)])
+  T = symmetric_group(length(gD))
+  rb = hom(H, T, [T([findfirst(x->x*inv(z*y) in iV, gD) for z = gD]) for y in gens(H)])
 #  @show map(ra, gens(G)), map(rb, gens(G)), ra(twist), rb(twist)
 
+  rmHG = hV *inner_automorphism(twist)*mHG
+  @assert iU == image(rmHG)[1]
   
   I = zero_map(indC.M, indD.M)
-#  @show twist
 #  @show [findall(x->y*inv(x)*twist in iU, gC) for y in gD] 
+
+  function actC(g) #should be the V action on D (since D is lost...)
+    g = (indC.G(g))
+    @assert has_preimage(hU, g)[1]
+    m = canonical_injection(indC.M, 1)*action(indC, g)*canonical_projection(indC.M, 1)
+    @show g, matrix(m)
+    return m
+  end
+
+
+  function act(g) #should be the V action on D (since D is lost...)
+    g = (indD.G(hV(g)))
+    @assert has_preimage(hV, g)[1]
+    m = canonical_injection(indD.M, 1)*action(indD, g)*canonical_projection(indD.M, 1)
+    @show g, matrix(m)
+    return m
+  end
+
+  @show :pretest
+  @show matrix(mCD), domain(mCD), codomain(mCD)
+  for g = V
+    @show map(u->act(g)(mCD(u)) - mCD(actC(rmHG(g))(u)), gens(domain(mCD)))
+    @assert all(u->act(g)(mCD(u)) == mCD(actC(rmHG(g))(u)), gens(domain(mCD)))
+  end
+  @show :ok
+
+  @show twist
+
   for i=1:length(gC)
     m = gC[i]
-    j = [x^ra(twist) for x = 1:length(gD) if mHG(gD[x])*inv(m) in iU]
-
-    I += sum(canonical_projection(indC.M, i)*mCD*canonical_injection(indD.M, x) for x = j)  
+    @show j = [x for x = 1:length(gD) if m*mHG(inv(gD[x])^twist) in iU]
+    @show [x^rb(twist) for x = j]
+    
+    I += canonical_projection(indC.M, i)*mCD*sum(act(preimage(rmHG, m*mHG(inv(gD[x])^twist)))*canonical_injection(indD.M, x^rb(twist)) for x = j)  
   end
-#  for g = gens(indC.G)
-#    @show matrix(action(indC, g) * I - I*action(indD, g))
-#  end
+  for g = gens(indD.G)
+    @show map(u -> (action(indC, mHG(g)) * I)(u) - (I*action(indD, g))(u), gens(indC.M))
+  end
+  for g = gens(indD.G)
+    @hassert :GaloisCohomology -5 all(u -> (action(indC, mHG(g)) * I)(u) == (I*action(indD, g))(u), gens(indC.M))
+  end
 
   return I
 end
@@ -1827,9 +1865,11 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
 
   M1 = direct_product(C.M; task = :none)
   set_attribute!(M1, :hom => (f[0], C), :show => Hecke.show_hom)
+  #TODO: add hom_map!!!
   d1 = map(f, 1)
   Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
   set_attribute!(Mg, :hom => (domain(d1), C), :show => Hecke.show_hom)
+  #TODO: add hom_map!!!
 
   D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
 
@@ -1893,6 +1933,37 @@ function element_to_homomorphism(a::FinGenAbGroupElem)
   isa(h, Nothing) && error("element does not come from hom")
   return h(a)
 end
+
+function Oscar.hom(m::Map{FinGenAbGroup, FinGenAbGroup})
+  return FinGenAbGroupHom(m)
+end
+
+function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int)
+  k, mk = kernel(map(C, i))
+  q, mq = quo(k, image(map(C, i-1))[1])
+  s, ms = snf(q)
+  return s, hom(ms*pseudo_inv(mq)*mk)
+end
+
+#TODO: from a -> A to index in hom-sequence?
+#      then do 1 and 2 chains? 3-chains?
+function two_chain(a::FinGenAbGroupElem)
+  A = parent(a)
+  #need a map GxG -> M
+  (zg, M) = get_attribute(A, :hom)
+  c = get_attribute(zg, :to_chain)
+
+  G = group(base_ring(zg))
+  D = Dict{NTuple{2, elem_type(G)}, elem_type(M.M)}()
+  fill = function(g)
+    ch = c(g[1], g[2])
+    return sum(action(M, ch[i], canonical_projection(A, i)(a)) for i=1:length(ch))
+  end
+
+  return CoChain{2, elem_type(G), elem_type(M.M)}(M, D, fill)
+
+end
+
 
 
 #TODO: ZG^r otimes M = M^r and the res otimes M - then we can do homology as well!
