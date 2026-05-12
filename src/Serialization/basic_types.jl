@@ -22,7 +22,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Bool})
   load_node(s) do _
-    return s.obj[]::Bool
+    return JSON.parse(s.obj, Bool)
   end
 end
 
