@@ -2,7 +2,7 @@
     convolution(a::Vector{T}, b::Vector{T}) where T
 
 Return the convolution of a and b, that is the vector `c`
-such that `c[i]` is the sum of `a[k] * b[i-k+1]`.
+such that `c[i]` is the sum of `a[k] * b[i-k+1]` for all `k`.
 
 This algorithm is optimised for cases where `a` and `b` do not contain
 a particularly large number of entries. For very large `a` and `b`,
