@@ -23,5 +23,5 @@ julia> convolution([1, 2, 3, 4], [5, 6, 7])
 """
 function convolution(a::Vector{T}, b::Vector{T}) where T
   (isempty(a) || isempty(b)) && return T[]
-  return [sum(a[k]*b[i-k+1] for k in max(1, i - length(b) + 1):min(i, length(a))) for i in 1:length(a) + length(b) - 1)]
+  return [sum(a[k]*b[i-k+1] for k in max(1, i - length(b) + 1):min(i, length(a))) for i in 1:length(a) + length(b) - 1]
 end
