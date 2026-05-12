@@ -35,7 +35,7 @@ load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do _
-    return ZZRingElem(s.obj[])
+    return ZZRingElem(JSON.parse(s.obj, String))
   end
 end
 
@@ -49,7 +49,7 @@ function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
   load_node(s) do _
-    fraction_parts = String.(split(s.obj[], "//"))
+    fraction_parts = String.(split(JSON.parse(s.obj, String), "//"))
     fraction_parts = parse.(ZZRingElem, fraction_parts)
 
     return QQFieldElem(fraction_parts...)
