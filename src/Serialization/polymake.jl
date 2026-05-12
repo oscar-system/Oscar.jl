@@ -155,16 +155,16 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
     end
   end
   for (k, v) in delay_loading
-    Polymake.take(obj, k, v)
+    Polymake.take(obj, Symbol(k), v)
   end
-  if haskey(dict, "_description")
-    Polymake.setdescription!(obj, dict["_description"])
+  if haskey(dict, :_description)
+    Polymake.setdescription!(obj, dict[:_description])
   end
   return obj
 end
 
-function _dict_to_bigobject(dict::Dict{String, Any})
-  obj = Polymake.BigObject(Polymake.BigObjectType(dict["_polymake_type"]))
+function _dict_to_bigobject(dict::Dict{Symbol, Any})
+  obj = Polymake.BigObject(Polymake.BigObjectType(dict[:_polymake_type]))
   _load_bigobject_from_dict!(obj, dict)
   return obj
 end

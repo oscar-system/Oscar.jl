@@ -80,7 +80,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{String, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T{elem_type(field)}(bigobject, field)
@@ -89,7 +89,7 @@ end
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{String, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T(bigobject, field)
