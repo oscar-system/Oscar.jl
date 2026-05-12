@@ -22,7 +22,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Bool})
   load_node(s) do _
-    return JSON.parse(s.obj, Bool)
+    return load_json(s, Bool)
   end
 end
 
@@ -35,7 +35,7 @@ load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do _
-    return ZZRingElem(JSON.parse(s.obj, String))
+    return ZZRingElem(load_json(s, String))
   end
 end
 
@@ -49,7 +49,7 @@ function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
   load_node(s) do _
-    fraction_parts = String.(split(JSON.parse(s.obj, String), "//"))
+    fraction_parts = String.(split(load_json(s, String), "//"))
     fraction_parts = parse.(ZZRingElem, fraction_parts)
 
     return QQFieldElem(fraction_parts...)
@@ -78,7 +78,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
   load_node(s) do _
-    JSON.parse(s.obj, T)
+    load_json(s, T)
   end
 end
 
@@ -89,7 +89,7 @@ end
 @register_serialization_type String
 
 function load_object(s::DeserializerState, ::Type{String})
-  return JSON.parse(s.obj, String)
+  return load_json(s, String)
 end
 
 ################################################################################
@@ -98,7 +98,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Symbol})
   load_node(s) do _
-    Symbol(JSON.parse(s.obj, String))
+    Symbol(load_json(s, String))
   end
 end
 

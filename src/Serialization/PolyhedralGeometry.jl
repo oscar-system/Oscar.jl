@@ -16,12 +16,12 @@ function save_object(s::SerializerState, p::Polymake.BigObject)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated})
-  dict = JSON.parse(s.obj, Dict{String, Any})
+  dict = load_json(s, Dict{String, Any})
   return load_from_polymake(dict)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
-  dict = JSON.parse(s.obj, Dict{String, Any})
+  dict = load_json(s, Dict{String, Any})
   bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(dict))
   return bigobject
 end
@@ -70,12 +70,12 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
                      field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T{elem_type(field)}, JSON.parse(s.obj, Dict{String, Any}))
+  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
     field::U) where {S <: Union{QQFieldElem, Float64}, U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T, JSON.parse(s.obj, Dict{String, Any}))
+  return load_from_polymake(T, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)

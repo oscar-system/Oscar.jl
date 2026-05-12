@@ -190,10 +190,14 @@ mutable struct DeserializerState{T <: OscarSerializer}
   with_attrs::Bool
 end
 
+function load_json(s::DeserializerState, ::Type{T}) where T
+  return JSON.parse(s.obj, T)
+end
+
 # general loading of a reference
 
 function load_ref(s::DeserializerState)
-  id = s.obj[]
+  id = load_json(s, String)
   if haskey(global_serializer_state.id_to_obj, UUID(id))
     loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
   else
@@ -223,7 +227,7 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if is_string(s) && !isnothing(tryparse(UUID, s.obj[]))
+  if is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
     return load_ref(s)
   end
 

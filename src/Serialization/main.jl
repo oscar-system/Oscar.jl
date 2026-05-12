@@ -136,7 +136,7 @@ end
 
 function decode_type(s::DeserializerState)
   if is_string(s)
-    obj = s.obj[]
+    obj = load_json(s, String)
     uuid = tryparse(UUID, obj)
     if !isnothing(uuid)
       if isnothing(s.refs)
@@ -160,8 +160,8 @@ function decode_type(s::DeserializerState)
 
   if haskey(s, :name)
     if haskey(s, :_instance)
-      name = load_node(s, :name) do _; s.obj[]; end
-      instance = load_node(s, :_instance) do _; s.obj[]; end
+      name = load_node(s, :name) do _; load_json(s, String); end
+      instance = load_node(s, :_instance) do _; load_json(s, String); end
       return get(reverse_type_map[name], instance) do
         error("unsupported instance '$instance' for decoding")
       end
@@ -375,7 +375,7 @@ function load_type_array_params(s::DeserializerState)
   load_array_node(s) do obj
     T = decode_type(s)
     if is_string(s)
-      !isnothing(tryparse(UUID, s.obj[])) && return load_ref(s)
+      !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
       return T
     end
     return load_type_params(s, T)[2]
@@ -384,7 +384,7 @@ end
 
 function load_type_params(s::DeserializerState, T::Type)
   if is_string(s)
-    val = s.obj[]
+    val = load_json(s, String)
     !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
     return T, nothing
   end
@@ -409,7 +409,7 @@ function load_type_params(s::DeserializerState, T::Type)
             end
 
             U = decode_type(s)
-            if is_string(s) && isnothing(tryparse(UUID, s.obj[]))
+            if is_string(s) && isnothing(tryparse(UUID, load_json(s, String)))
               return U
             end
             return load_type_params(s, U)[2]
@@ -443,7 +443,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, _ = load_type_params(s, T, type_key)
     params = override_params
   else
-    is_string(s) && !isnothing(tryparse(UUID, s.obj[])) && return load_ref(s)
+    is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
@@ -856,7 +856,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
     if haskey(s, :id)
       load_node(s, :id) do _
-        id = s.obj[]
+        id = load_json(s, String)
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
       end
