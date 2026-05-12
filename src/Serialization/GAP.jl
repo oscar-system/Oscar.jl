@@ -55,7 +55,7 @@ function load_object(s::DeserializerState, T::Type{GapObj})
   load_node(s) do _
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
     GAP_T = load_node(s, :GapType) do _
-      return GapObj(s.obj[])
+      return GapObj(load_json(s, String))
     end
     return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T)
   end
@@ -65,7 +65,7 @@ function load_object(s::DeserializerState, T::Type{GapObj}, F::GapObj)
   load_node(s) do _
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
     GAP_T = load_node(s, :GapType) do _
-      return GapObj(s.obj[])
+      return GapObj(load_json(s, String))
     end
     return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T, F)
   end
@@ -164,7 +164,7 @@ install_GAP_deserialization(
       if haskey(s, :nameprefix)
         # infinite rank
         prefix = load_node(s, :nameprefix) do _
-          GapObj(s.obj[])
+          GapObj(load_json(s, String))
         end
         init = load_node(s, :names) do _
           names = s.obj[]
