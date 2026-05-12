@@ -172,7 +172,7 @@ end
 function load_object(s::DeserializerState{LPSerializer},
                      ::Type{<:LinearProgram}, field::QQField)
   load_node(s) do _
-    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj[])"
+    lp_filename = dirname(basepath(s.serializer)) * "/$(load_json(s, String))"
     pm_lp = load_lp(lp_filename)
   end
 end

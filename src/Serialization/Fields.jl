@@ -19,7 +19,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{fpField})
   load_node(s) do _
-    return fpField(parse(UInt64, s.obj[]))
+    return fpField(parse(UInt64, load_json(s, String)))
   end
 end
 
@@ -32,7 +32,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
   load_node(s) do _
-    return F(parse(UInt64, s.obj[]))
+    return F(parse(UInt64, load_json(s, String)))
   end
 end
 
@@ -46,7 +46,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{FpField})
   load_node(s) do _
-    FpField(parse(ZZRingElem, s.obj[]))
+    FpField(parse(ZZRingElem, load_json(s, String)))
   end
 end
 
@@ -59,7 +59,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
   load_node(s) do _
-    F(parse(ZZRingElem, s.obj[]))
+    F(parse(ZZRingElem, load_json(s, String)))
   end
 end
 
@@ -355,7 +355,7 @@ end
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
   r = ArbFieldElem()
   load_node(s) do _
-    str = s.obj[]
+    str = load_json(s, String)
     @ccall Nemo.libflint.arb_load_str(r::Ref{ArbFieldElem}, str::Ptr{UInt8})::Cint
   end
   r.parent = parent
@@ -550,10 +550,10 @@ end
 
 function load_object(s::DeserializerState, ::Type{PadicField})
   prime_num = load_node(s, :prime) do _
-    return parse(ZZRingElem, s.obj[])
+    return parse(ZZRingElem, load_json(s, String))
   end
   precision = load_node(s, :precision) do _
-    return parse(Int64, s.obj[])
+    return load_json(s, Int64)
   end
   return PadicField(prime_num, precision)
 end

@@ -15,7 +15,7 @@ end
 function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem},
                      R::TropicalSemiring)
   load_node(s) do _
-    str = s.obj[]
+    str = load_json(s, String)
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
       return inf(R)
     else
