@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, _convert_override_params, params, load_type_params, decode_type, is_string
+  type_params, _convert_override_params, params, load_type_params, decode_type, is_string, is_array
 
 function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
   param_dict = Dict()
@@ -72,7 +72,7 @@ end
 function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
-    if k isa Oscar.Serialization.JSON3.Array
+    if is_array(k)
       key = load_object(s, Edge, 1)
     else
       key = load_object(s, Int, 1)
