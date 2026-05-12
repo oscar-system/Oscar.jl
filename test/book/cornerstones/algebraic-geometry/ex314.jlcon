@@ -43,7 +43,7 @@ by graded submodule of S^1 with 3 generators
 
 julia> mJ = ideal_as_module(J);
 
-julia> M, _  = quo(ambient_free_module(mJ),mJ);M, _  = quo(ambient_free_module(mJ),mJ);
+julia> M, _  = quo(ambient_free_module(mJ),mJ);
 
 julia> homM1M, psi = hom(M1, M);
 
