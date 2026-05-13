@@ -129,12 +129,12 @@ function save_object(s::SerializerState, K::FqField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRing)
-  finite_field(load_object(s, PolyRingElem, params), cached=false)[1]
+function load_object(s::DeserializerState, ::Type{FqField}, params::PolyRing)
+  return finite_field(load_object(s, PolyRingElem, params), cached=false)[1]::FqField
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqField})
-  finite_field(load_object(s, ZZRingElem, ZZRing()))[1]
+function load_object(s::DeserializerState, ::Type{FqField})
+  return finite_field(load_object(s, ZZRingElem, ZZRing()))[1]::FqField
 end
 
 # elements
@@ -153,13 +153,13 @@ function save_object(s::SerializerState, k::FqFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, K::FqField)
+function load_object(s::DeserializerState, ::Type{FqFieldElem}, K::FqField)
   load_node(s) do _
     if absolute_degree(K) != 1
       return K(load_object(s, PolyRingElem, parent(defining_polynomial(K))))
     end
     K(load_object(s, ZZRingElem, ZZRing()))
-  end
+  end::FqFieldElem
 end
 
 ################################################################################
