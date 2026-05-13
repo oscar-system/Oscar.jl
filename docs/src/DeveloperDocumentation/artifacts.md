@@ -12,8 +12,9 @@ This page explains what artifacts are, when to use them, and how to work with th
 
 ## What Artifacts Are and When to Use Them
 
-Artifacts are content-addressed data bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/).
-They are declared in `Oscar.jl/Artifacts.toml` and are downloaded and unpacked on demand.
+Artifacts are content-addressed bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in `Oscar.jl/Artifacts.toml`. Artifacts are automatically downloaded, or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
+
+Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand. In the following, we ignore lazy artifacts.
 
 Artifacts allow OSCAR to:
 
@@ -28,7 +29,6 @@ Artifacts should be used for data that does not belong directly in the `Oscar.jl
 - data not intended to be edited manually.
 
 As a rule of thumb, data stored directly in the `Oscar.jl` repository should not exceed the size of typical source files (around 100 KB). Small examples, test inputs, and simple hand-written data should remain in the `Oscar.jl` repository.
-
 
 
 
