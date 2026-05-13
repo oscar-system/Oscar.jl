@@ -1712,6 +1712,7 @@ end
 # (Note that that `x` need not have type `GAPGroupElem{T}`.)
 (f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem) where T <: GAPGroup = apply_automorphism(f, x, true)
 Base.:^(x::GAPGroupElem, f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
+Base.:^(x::GAPGroupElem{AutomorphismGroup{T}}, y::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = conj(x, y)
 
 # apply a group automorphism to a group
 function (f::GAPGroupElem{AutomorphismGroup{T}})(H::GAPGroup) where T <: GAPGroup
