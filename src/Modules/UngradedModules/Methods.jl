@@ -971,7 +971,7 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
   max_degs = _max_degrees_to_check(GB)
   # Case I: We know, that all monomials of degree 'd' are in the leading module.
   d > maximum(max_degs) && return elem_type(F)[]
-  # Case II: We know, that no monomials of degree 'd' are in the leading module.
+  # Case II: We know, that no monomial of degree 'd' is in the leading module.
   if d < minimum(min_degs)
     return vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))])
   end
@@ -993,7 +993,7 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
     # Subcase i: We know, that all monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
     if d > max_degs[i]
       continue
-    # Subcase ii: We know, that no monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
+    # Subcase ii: We know, that no monomial of degree 'd' in the 'i'-th coordinate is in the leading module.
     elseif d < min_degs[i]
       append!(B, [a*F[i] for a in monomials_of_degree(R, d)])
     # Subcase iii: We need to check the monomials of degree in the 'i'-th coordinate 'd' individually.
@@ -1036,12 +1036,12 @@ end
 @doc raw"""
     _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
 
-Return encoded into a (julia) matrix the leading monomials of the Gröbner basis `GB`, 
+Return, encoded into a (julia) matrix, the leading monomials of the Gröbner basis `GB`, 
 which are univariate, i.e. lay on the axes of a monomial diagram.
 
 The returned matrix `M` contains in the entry `M[i,j]` the smallest degree `k`,
 such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
-If such a monomial does not exists the entry is `PosInf()`.
+If such a monomial does not exist the entry is `PosInf()`.
 """
 @attr Matrix{IntExt} function _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
   @assert GB.isGB
