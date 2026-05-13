@@ -124,9 +124,9 @@ function encode_type(::Type{T}) where T
   )
 end
 
-is_string(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.STRING
-is_array(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.ARRAY
-is_object(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.OBJECT
+is_string(s::DeserializerState) = s.obj isa JSON.LazyValue && JSON.gettype(s.obj) == JSON.JSONTypes.STRING
+is_array(s::DeserializerState) = s.obj isa JSON.LazyValue && JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
+is_object(s::DeserializerState) = s.obj isa JSON.LazyValue && JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT
 
 function decode_type(s::String)
   return get(reverse_type_map, s) do
