@@ -100,7 +100,7 @@ function _presentation_graded(SQ::SubquoModule)
 
   F = ambient_free_module(SQ)
   if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
-    rels = relations(SQ)
+    rels = filter(!is_zero, relations(SQ))
     W = [degree(r) for r in rels]
     F1 = graded_free_module(R, length(rels), W)
     phi = hom(F1, F, rels)
