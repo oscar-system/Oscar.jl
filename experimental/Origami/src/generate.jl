@@ -55,7 +55,7 @@ function compute_rays(equations, separatrix_count::Int)::Vector{Vector{Int}}
   neg_identity = -identity_matrix(ZZ, separatrix_count)
   cone = cone_from_inequalities(neg_identity, equations)
   ray_list = rays(cone)
-  return map(inner -> map(Int, inner), ray_list)
+  return [[Int(x) for x in ray] for ray in rays(cone)]
 end
 
 # generate all possible linear combinations
