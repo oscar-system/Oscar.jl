@@ -369,6 +369,8 @@ jobs:
         # this assumes that the second variable in $GITHUB_ENV wins!
         # we don't know for sure!
         run: echo "JULIA_DEPOT_PATH=$PWD/juliarw:$PWD/juliaro" >> $GITHUB_ENV
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=short" >> $GITHUB_ENV
       - name: Run tests
         uses: julia-actions/julia-runtest@latest
 
