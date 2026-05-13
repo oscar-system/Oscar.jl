@@ -356,19 +356,19 @@ jobs:
         uses: actions/checkout@v6
       # setup first depot
       - name: Set RO Depot
-        run: echo "JULIA_DEPOT_PATH=/home/oscarci-tester/ssd-data/ssd-runner-31/juliaro" >> $GITHUB_ENV
+        run: echo "JULIA_DEPOT_PATH=$PWD/juliaro" >> $GITHUB_ENV
       - name: Set up julia
         uses: julia-actions/setup-julia@v2
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       # mark RO depot as RO
       - name: Mark first depot as RO
-        run: chmod -Rv a-w /home/oscarci-tester/ssd-data/ssd-runner-31/juliaro
+        run: chmod -Rv a-w $JULIA_DEPOT_PATH
       # set second depot
       - name: Make RW depot
         # this assumes that the second variable in $GITHUB_ENV wins!
-        # we don't know for tusre!
-        run: echo "JULIA_DEPOT_PATH=/home/oscarci-tester/ssd-data/ssd-runner-31/juliarw:/home/oscarci-tester/ssd-data/ssd-runner-31/juliaro" >> $GITHUB_ENV
+        # we don't know for sure!
+        run: echo "JULIA_DEPOT_PATH=$PWD/juliarw:$PWD/juliaro" >> $GITHUB_ENV
       - name: Run tests
         uses: julia-actions/julia-runtest@latest
 
