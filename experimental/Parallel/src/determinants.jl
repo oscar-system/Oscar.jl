@@ -1,26 +1,25 @@
+@doc raw"""
+    function modular_det(A::MatrixElem{T};
+        wp::Union{OscarWorkerPool, Nothing}=nothing,
+        bound::Symbol=:GoldsteinGraham
+      ) where {T<:ZZPolyRingElem}
+
+Compute the determinant of `A` by reducing `A` modulo primes and using the Chinese remainder theorem on the coefficients. 
+
+When `wp` is an `OscarWorkerPool`, the computation of determinants modulo primes is done in parallel on the workers
+The symbol `bound` can be set either to `:GoldsteinGraham`, or `:Naive` to select a way to compute a certified bound 
+for the selection of primes for reduction.
+"""
 function modular_det(A::MatrixElem{T};
     wp::Union{OscarWorkerPool, Nothing}=nothing,
+    bound::Symbol=:GoldsteinGraham
   ) where {T<:ZZPolyRingElem}
   m, n = size(A)
   m == n || error("matrix must be square")
   is_zero(m) && return one(ZZ)
   is_one(m) && return A[1, 1]
 
-  # Determine a bound for the size of coefficients of the result.
-  row_degs = [maximum([degree(a) for a in A[i, :]]; init=0) for i in 1:m]
-  max_deg = ZZ(sum(row_degs; init=0))
-
-  # This first bound is for the size of the determinant over ZZ
-  # which arises for a single matrix `B` whose rows are the 
-  # homogeneous parts of the rows of `A` for fixed degrees `dᵢ` 
-  # per row. 
-  bound = factorial(ZZ(m))*ZZ(maximum([maximum(abs.(coefficients(a)); init=0) for a in A]; init=0))^m
-  # Such determinants add up to the coefficient of tᵈ with as many 
-  # summands as there are possibilities for `Σᵢ dᵢ = d`. The following 
-  # binomial coefficient is a significant overcount, but reliable 
-  # bound of this.
-  bound *= binomial(m-1+max_deg, max_deg)
-
+  bound = _det_height_bound(Val{bound}, A)
   # Select primes until the above bound is reached. 
   primes = Int[next_prime(2^60)]
   primes_prod = ZZ(only(primes))
@@ -52,4 +51,39 @@ function modular_det(A::MatrixElem{T};
   return P(new_coeffs)
 end
 
+# Functionality for implementing the bound given in
+# https://doi.org/10.1137/1016065
+#
+# This could be more general but hadamard_bound2 is restricted to ZZPolyRingElem
+# To apply to a matrix containing QQPolyRingElem, one must clear denoms & convert to ZZPolyRingElem.
+function _det_height_bound(::Type{Val{:GoldsteinGraham}}, M::MatrixElem{ZZPolyRingElem})
+  is_square(M) || error("Matrix must be square");
+  is_empty(M)  &&  return one(base_ring(M));
+  M2 = map(_norm_1, M);
+  B2 = min(hadamard_bound2(M2), hadamard_bound2(transpose(M2)));
+  return 1+isqrt(B2);
+end
+
+function _norm_1(f::PolyRingElem)
+  return sum(abs(c) for c in coefficients(f); init=abs(zero(coefficient_ring(parent(f)))))
+end
+
+
+# A naive bound for the absolute value of the coefficients of `det(A)` for a matrix
+# over the ring of univariate polynomials
+function _det_height_bound(::Type{Val{:Naive}}, A::MatrixElem{ZZPolyRingElem})
+  row_degs = [maximum([degree(a) for a in A[i, :]]; init=0) for i in 1:m]
+  max_deg = ZZ(sum(row_degs; init=0))
+  # This first bound is for the size of the determinant over ZZ
+  # which arises for a single matrix `B` whose rows are the 
+  # homogeneous parts of the rows of `A` for fixed degrees `dᵢ` 
+  # per row. 
+  bound = factorial(ZZ(m))*ZZ(maximum([maximum(abs.(coefficients(a)); init=0) for a in A]; init=0))^m
+  # Such determinants add up to the coefficient of tᵈ with as many 
+  # summands as there are possibilities for `Σᵢ dᵢ = d`. The following 
+  # binomial coefficient is a significant overcount, but reliable 
+  # bound of this.
+  bound *= binomial(m-1+max_deg, max_deg)
+  return bound
+end
 
