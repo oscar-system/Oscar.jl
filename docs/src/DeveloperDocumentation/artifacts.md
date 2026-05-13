@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Artifacts
 
-This page explains what artifacts are, when to use them, and how to work with them in OSCAR.
+This page explains what artifacts are, when to use them, and how to work with them in `Oscar.jl`.
 
 
 
@@ -16,7 +16,7 @@ Artifacts are content-addressed bundles managed by [Julia's artifact system](htt
 
 Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand. In the following, we ignore lazy artifacts.
 
-Artifacts allow OSCAR to:
+Artifacts allow to:
 
 - keep the `Oscar.jl` repository small,
 - distribute data reproducibly,
@@ -36,7 +36,7 @@ As a rule of thumb, data stored directly in the `Oscar.jl` repository should not
 
 This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically proceeds as follows:
 
-- [ ] [Serialize data as `.mrdi` files](@ref data_preparation)
+- [ ] [Serialize data](@ref data_preparation)
 - [ ] [Upload the tarball to a stable hosting location](@ref artifact_hosting)
 - [ ] [Add an entry to `Oscar.jl/Artifacts.toml` and open a pull request](@ref artifact_registration)
 - [ ] [Use the artifact once the pull request has been merged](@ref artifact_usage)
@@ -46,7 +46,7 @@ We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifac
 
 ### [End-to-End Example](@id end-to-end-artifact-example)
 
-The following example illustrates the complete workflow for creating, registering, and using an artifact.
+The following example illustrates the complete workflow for creating, registering, and using an artifact in `Oscar.jl`.
 
 #### Create data
 
@@ -71,7 +71,7 @@ Create a compressed tarball, for example `example_data_v1.tar.gz`, containing th
 
 #### Register the artifact
 
-Register the artifact by adding it to `Oscar.jl/Artifacts.toml`; see also [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/). The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl) can help automate parts of this workflow. The following example shows the manual workflow.
+Register the artifact by adding an entry to `Oscar.jl/Artifacts.toml`; see also [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/). The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl) can help automate parts of this workflow. The following text demonstrates the manual workflow.
 
 First, compute the `sha256` and the `git-tree-sha1`:
 
@@ -84,9 +84,7 @@ println("sha256: ", bytes2hex(open(sha256, filename)))
 println("git-tree-sha1: ", Tar.tree_hash(IOBuffer(inflate_gzip(filename))))
 ```
 
-Then add a corresponding entry to `Oscar.jl/Artifacts.toml`. We host this very example file at [https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz](https://github.com/homalg-project/ToricVarieties_project/releases/download/2022-07-13/example_data_v1.tar.gz); for this particular artifact location, the corresponding entry takes the following form:
-
-HOST THIS FILE SOMEWHERE IN THE OSCAR UNIVERSE! E.g. https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1.
+Then add this information, together with the host location, to `Oscar.jl/Artifacts.toml`. This very example, we host at [https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). Then, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
 
 ```toml
 [MyExample]
@@ -102,7 +100,7 @@ You may of course replace `MyExample` in the above entry with any other string t
 
 #### Use the artifact
 
-The artifact string macro is exported by `LazyArtifacts`. In `Oscar.jl` source files this is already available; in a standalone Julia session, load it explicitly.
+The artifact string macro is exported by `LazyArtifacts`. In a standalone Julia session, load it explicitly.
 
 ```julia
 using LazyArtifacts
@@ -130,34 +128,34 @@ Preferred options include:
 - other stable hosting solutions agreed upon by the maintainers.
 
 For historical reasons, some artifacts are currently hosted via GitHub release assets, for example at
-[Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1). This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry. In particular, ensure that existing files are never removed or renamed, as they may be required by older OSCAR versions.
+[Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1). This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry.
 
-When debugging or repeatedly updating artifacts, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
+!!! warning
+    Ensure that existing files are never removed or renamed, as they may be required by older `Oscar.jl` releases.
+
+When debugging, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
 
 Data intended for querying may also be suitable for [OscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/).
 
 
 ### [Creating and Registering](@id artifact_registration)
 
-Additional details on Julia artifacts are provided in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
-
 Creating an artifact typically involves the following steps:
 
-- collecting the relevant files in a directory,
-- packing these files into a compressed tarball, such as `.tar.gz`,
-- uploading the tarball to a stable location,
-- adding a corresponding entry to `Oscar.jl/Artifacts.toml`.
+- collecting the relevant data files,
+- packing these files into a compressed tarball (`.tar.gz`),
+- uploading the tarball to a stable hosting location,
+- adding a corresponding entry to `Oscar.jl/Artifacts.toml`,
+- opening a pull request with the change to `Oscar.jl/Artifacts.toml`.
 
-The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates these steps.
+Once the change to `Oscar.jl/Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes available.
 
-Once the corresponding changes are merged into the `Oscar.jl` repository, the artifact becomes available to OSCAR and is downloaded automatically when first requested.
+The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates these steps. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
 
 
 ### [Using Artifacts in Oscar](@id artifact_usage)
 
-Artifacts can be accessed via Julia's artifact system through the `artifact"..."` string macro.
-
-For example:
+Artifacts can be accessed via Julia's artifact system through the `artifact"..."` string macro. For example:
 
 ```julia
 using LazyArtifacts
@@ -179,18 +177,18 @@ In `Oscar.jl` source files, the artifact string macro is already available and `
 
 Artifacts are immutable. Updating an artifact therefore requires:
 
-- creating a new tarball,
-- uploading it to a stable hosting location,
+- creating a new tarball with the updated data,
+- uploading the tarball to a stable hosting location,
 - recomputing the `sha256` and `git-tree-sha1`,
 - updating the corresponding entry in `Oscar.jl/Artifacts.toml`,
-- opening a pull request with these changes.
+- opening a pull request with the changes to `Oscar.jl/Artifacts.toml`.
 
-Once the pull request is merged, the updated artifact becomes available in OSCAR.
+Once the pull request is merged, the updated artifact becomes available.
 
 Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Oscar.jl/Artifacts.toml`.
 
 !!! warning
-    Any files referenced by the OSCAR master branch must not be modified, renamed, or deleted.
+    Any files referenced by the `Oscar.jl` master branch must not be modified, renamed, or deleted, as they may be required by earlier `Oscar.jl` releases.
 
 When repeatedly debugging or refining artifacts, contributors are encouraged to use temporary staging areas before publishing long-term versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
 
@@ -199,3 +197,11 @@ When repeatedly debugging or refining artifacts, contributors are encouraged to 
 The `.mrdi` file format is under active development and its standard evolves over time. Older files remain compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
 
 Additional details are provided in the [Serialization documentation](https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/#Upgrades).
+
+
+
+## Artifacts in Upstream Dependencies
+
+### GAP.jl
+
+`GAP.jl` uses artifacts to install [GAP](https://www.gap-system.org/) and GAP packages. Detailed maintainer information is provided in [`GAP.jl/README.maintainer.md`](https://github.com/oscar-system/GAP.jl/blob/master/README.maintainer.md).
