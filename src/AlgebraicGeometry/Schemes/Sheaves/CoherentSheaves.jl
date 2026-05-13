@@ -174,7 +174,7 @@ identifications given by the gluings in the `default_covering`.
                                                                SpaceType, OpenType,
                                                                OutputType, RestrictionType
                                                               }
-  ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
+  ID::IdDict{<:AbsAffineScheme, <:ModuleFP} # the modules on the basic patches of the default covering
   MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
   # `affine_charts` of `X` such that
   # A = MG[(U, V)] has entries aᵢⱼ with
@@ -189,9 +189,10 @@ identifications given by the gluings in the `default_covering`.
               # `default_covering` of this sheaf ℱ.
 
   ### Sheaves of modules on covered schemes
-  function SheafOfModules(X::AbsCoveredScheme,
-      MD::IdDict{AbsAffineScheme, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
-      MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}; # A dictionary for pairs `(U, V)` of
+  function SheafOfModules(
+      X::AbsCoveredScheme,
+      MD::IdDict{<:AbsAffineScheme, <:ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
+      MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
                                                        # `affine_charts` of `X` such that
                                                        # A = MG[(U, V)] has entries aᵢⱼ with
                                                        # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
@@ -960,8 +961,9 @@ PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
   pullback_of_sections::IdDict{AbsAffineScheme, Union{Map, Nothing}} # a dictionary caching the natural
                                                                    # pullback maps along the maps in the `covering_morphism` of f
   F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
+  check::Bool
 
-  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf)
+  function PullbackSheaf(f::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf; check::Bool=true)
     X = domain(f)
     Y = codomain(f)
     Y === scheme(M) || error("sheaf must be defined over the domain of the embedding")
@@ -979,7 +981,7 @@ PullbackSheaf{CoveredScheme{QQField}, AbsAffineScheme, ModuleFP, Map}
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber)
+    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber, check)
     return MY
   end
 end
@@ -1397,4 +1399,136 @@ end
 function Base.hash(X::AbsCoherentSheaf, u::UInt)
   return u
 end
+
+@attributes mutable struct StrictTransformSheaf{SpaceType, OpenType, OutputType,
+                                                RestrictionType
+                                           } <: AbsCoherentSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  bl::AbsCoveredSchemeMorphism # actually AbsSimpleBlowupMorphism, but that is only defined later
+  orig_sheaf::AbsCoherentSheaf
+  pullback_sheaf::AbsCoherentSheaf
+  underlying_sheaf::PreSheafOnScheme
+  check::Bool
+
+  function StrictTransformSheaf(bl::AbsCoveredSchemeMorphism, M::AbsCoherentSheaf; check::Bool=true)
+    X = domain(bl)
+    Y = codomain(bl)
+    @req scheme(M) === Y "sheaf of modules needs to be given on the codomain of the blowup"
+
+    und = PreSheafOnScheme(X, 
+                           OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                           RestrictionType=Map,
+                           is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                          )
+    pb = pullback(bl, M)
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(bl, M, pb, und, check)
+  end
+end
+
+### forwarding and implementing the required getters
+underlying_presheaf(M::StrictTransformSheaf) = M.underlying_sheaf
+morphism(M::StrictTransformSheaf) = M.bl
+original_sheaf(M::StrictTransformSheaf) = M.orig_sheaf
+pullback_sheaf(M::StrictTransformSheaf) = M.pullback_sheaf
+
+function Base.show(io::IO, M::StrictTransformSheaf)
+  print(io, "strict transform of $(original_sheaf(M)) along $(morphism(M))")
+end
+function Base.show(io::IO, ::MIME"text/plain", M::StrictTransformSheaf)
+  print(io, "strict transform of $(original_sheaf(M)) along $(morphism(M))")
+end
+
+@attributes mutable struct SimplifiedSheaf{SpaceType, OpenType, OutputType,
+                                                RestrictionType
+                                           } <: AbsCoherentSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  orig_sheaf::AbsCoherentSheaf
+  identifying_maps::IdDict{<:AbsAffineScheme, <:ModuleFPHom}
+  underlying_sheaf::PreSheafOnScheme
+  check::Bool
+
+  function SimplifiedSheaf(orig::AbsCoherentSheaf; check::Bool=true)
+    X = scheme(orig)
+    und = PreSheafOnScheme(X, 
+                           OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                           RestrictionType=Map,
+                           is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                          )
+    cache = IdDict{AbsAffineScheme, ModuleFPHom}()
+    res = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(orig, cache, und, check)
+  end
+end
+
+### forwarding and implementing the required getters
+underlying_presheaf(M::SimplifiedSheaf) = M.underlying_sheaf
+original_sheaf(M::SimplifiedSheaf) = M.orig_sheaf
+identifying_maps(M::SimplifiedSheaf) = M.identifying_maps
+
+function Base.show(io::IO, M::SimplifiedSheaf)
+  print(io, "simplification of $(original_sheaf(M))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", M::SimplifiedSheaf)
+  print(io, "simplification of $(original_sheaf(M))")
+end
+
+@attributes mutable struct FittingIdealSheaf{SpaceType, OpenType, OutputType,
+                                                    RestrictionType
+                                                   } <: AbsIdealSheaf{
+                                                                      SpaceType, OpenType,
+                                                                      OutputType, RestrictionType
+                                                                     }
+  X::AbsCoveredScheme
+  M::AbsCoherentSheaf
+  k::Int
+  F::PreSheafOnScheme
+  default_covering::Covering
+
+  function FittingIdealSheaf(
+      M::AbsCoherentSheaf,
+      k::Int;
+      covering::Covering=default_covering(M)
+    )
+    Ipre = PreSheafOnScheme(scheme(M),
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(scheme(M))
+                     )
+    X = scheme(M)
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, M, k, Ipre, covering)
+    return I
+  end
+end
+
+
+@attributes mutable struct ExteriorPowerSheaf{SpaceType, OpenType, OutputType,
+                                    RestrictionType
+                                   } <: AbsCoherentSheaf{
+                                                         SpaceType, OpenType,
+                                                         OutputType, RestrictionType
+                                                        }
+  M::AbsCoherentSheaf
+  p::Int
+  und::PreSheafOnScheme
+
+  function ExteriorPowerSheaf(M::AbsCoherentSheaf, p::Int)
+    X = scheme(M)
+
+    und = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    return new{typeof(X), AbsAffineScheme, ModuleFP, Map}(M, p, und)
+  end
+end
+
+original_sheaf(M::ExteriorPowerSheaf) = M.M
+scheme(M::ExteriorPowerSheaf) = scheme(original_sheaf(M))
+exponent(M::ExteriorPowerSheaf) = M.p
+underlying_presheaf(M::ExteriorPowerSheaf) = M.und
 
