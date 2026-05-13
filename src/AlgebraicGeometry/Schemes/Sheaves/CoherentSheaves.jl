@@ -1267,7 +1267,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
   return return_patches
 end
 
-@attr MatrixElem function _presentation_matrix(M::ModuleFP)
+@attr MatElem function _presentation_matrix(M::ModuleFP)
   return matrix(map(presentation(M), 1))
 end
 
