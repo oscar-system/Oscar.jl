@@ -32,6 +32,10 @@ export HypersurfaceGerm
 export MorphismFromRationalFunctions
 export SpaceGerm
 
+export DeterminantalGerm
+export SymmetricDeterminantalGerm
+export SkewSymmetricDeterminantalGerm
+
 export ambient_germ
 export basis_representation
 export blow_up_along_minimal_supercone_coordinates

@@ -108,16 +108,123 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   end
 end
 
+
+####################################################################
+## another short hand definition for internal use only
+####################################################################
+
+const LocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, MST} where {
+              MST <: Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}
+            }
+
+################################################################################
+## type declaration derterminantal germs
+################################################################################
+
+@attributes mutable struct DeterminantalGerm{
+                  BaseRingType<:Ring,
+                  RingType<:Ring,
+                  AffineSchemeType<:AffineScheme
+                } <: AbsSpaceGerm{BaseRingType, RingType}
+  A::MatElem{<:RingElem}
+  t::Int
+  X::AffineSchemeType
+
+  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
+    1 <= t <= minimum(size(A)) || error("t must be in the range of 1:min(size(A))")
+    R = base_ring(A)
+    I = ideal(R, minors(A, t))
+    (n, m) = size(A)
+    @check begin
+      # TODO: better error for (skew) symmetric matrices
+      ngens(R) - krull_dim(I) == (n-t+1)*(m-t+1)|| error("Not a determinantal singularity.")
+    end
+    K = coefficient_ring(R)
+    Q, _ = quo(R, I)
+    X = spec(Q)
+    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
+  end
+end
+
+@attributes mutable struct SymmetricDeterminantalGerm{
+                  BaseRingType<:Ring,
+                  RingType<:Ring,
+                  AffineSchemeType<:AffineScheme
+                } <: AbsSpaceGerm{BaseRingType, RingType}
+  A::MatElem{<:RingElem}
+  t::Int
+  X::AffineSchemeType
+
+  function SymmetricDeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
+    n, m = size(A)
+    @req n == m "A must be a quadratic matrix."
+    1 <= t <= n || error("t must be in the range of 1:nrows(A)")
+    @req is_symmetric(A) "A must be a symmetric matrix."
+    R = base_ring(A)
+    I = ideal(R, minors(A, t))
+    (n, m) = size(A)
+    @check begin
+      ngens(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Not a symmetric determinantal singularity.")
+    end
+    K = coefficient_ring(R)
+    Q, _ = quo(R, I)
+    X = spec(Q)
+    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
+  end
+end
+
+@attributes mutable struct SkewSymmetricDeterminantalGerm{
+                  BaseRingType<:Ring,
+                  RingType<:Ring,
+                  AffineSchemeType<:AffineScheme
+                } <: AbsSpaceGerm{BaseRingType, RingType}
+  A::MatElem{<:RingElem}
+  t::Int
+  X::AffineSchemeType
+
+  function SkewSymmetricDeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
+    n, m = size(A)
+    @req n == m "A must be a quadratic matrix."
+    1 <= t <= n || error("t must be in the range of 1:nrows(A)")
+    @req is_skew_symmetric(A) "A must be a skew symmetric matrix."
+    R = base_ring(A)
+    I = ideal(R, pfaffians(A, 2*t))
+    @check begin
+      ngens(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Not a skew symmetric determinantal singularity.")
+    end
+    K = coefficient_ring(R)
+    Q, _ = quo(R, I)
+    X = spec(Q)
+    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
+  end
+end
+
 ##############################################################################
 ## Some more shorthand notation
 ##############################################################################
-const AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
-const AnySpaceGermClosedPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
-                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
-                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtClosedPoint}}
-const AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
-                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
-                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtGeometricPoint}}
+const AnyDeterminantalGerm = Union{DeterminantalGerm, 
+                                   SymmetricDeterminantalGerm, 
+                                   SkewSymmetricDeterminantalGerm}
+const AnySpaceGerm = Union{SpaceGerm, 
+                           HypersurfaceGerm, 
+                           CompleteIntersectionGerm, 
+                           AnyDeterminantalGerm}
+const AnySpaceGermClosedPoint = Union{SpaceGerm{BRT, RT, AST},
+                                      HypersurfaceGerm{BRT, RT, AST},
+                                      CompleteIntersectionGerm{BRT, RT, AST},
+                                      DeterminantalGerm{BRT, RT, AST},
+                                      SymmetricDeterminantalGerm{BRT, RT, AST},
+                                      SkewSymmetricDeterminantalGerm{BRT, RT, AST}
+                                    } where {BRT <: Ring, RT <: Ring, AST <: GermAtClosedPoint}
+const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
+                                      HypersurfaceGerm{BRT, RT, AST},
+                                      CompleteIntersectionGerm{BRT, RT, AST},
+                                      DeterminantalGerm{BRT, RT, AST},
+                                      SymmetricDeterminantalGerm{BRT, RT, AST},
+                                      SkewSymmetricDeterminantalGerm{BRT, RT, AST}
+                                    } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
+
+
 
 ##############################################################################
 ### Getter functions
