@@ -3,6 +3,7 @@ include("CoveredScheme.jl")
 include("ProjectiveModules.jl")
 include("SpaceGerms.jl")
 include("Tjurina.jl")
+include("DeterminantalGerm.jl")
 
 include("Auxiliary.jl")
 include("critical_locus.jl")
@@ -71,6 +72,13 @@ export sharper_determinacy_bound
 export is_contact_equivalent
 export tjurina_module
 
+export defining_matrix
+export determinantal_type
+export T1_GL_module
+export tjurina_GL_number
+export is_determinantal_rigid
+export is_EIDS
+export basis_versal_det_unfolding
 
 # Deprecated after 0.15
 Base.@deprecate_binding base_glueing base_gluing
