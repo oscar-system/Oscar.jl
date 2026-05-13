@@ -347,6 +347,7 @@ jobs:
     # run tests in dual depot runner, where the RO depot has most of the depot, and the RW depot is
     # only for running the tests
     # this helps guard against errors like https://github.com/oscar-system/GAP.jl/issues/1371
+    # JULIA_DEPOT_RO and JULIA_DEPOT_RW are env vars defiened in the systemd unit
     name: Run testsuite in a dual depot runnner
     if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
     runs-on: [RPTU,dual-depot]
@@ -356,7 +357,7 @@ jobs:
         uses: actions/checkout@v6
       # setup first depot
       - name: Set RO Depot
-        run: echo "JULIA_DEPOT_PATH=$PWD/juliaro" >> $GITHUB_ENV
+        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
       - name: Set up julia
         uses: julia-actions/setup-julia@v2
       - name: "Build package"
@@ -368,7 +369,7 @@ jobs:
       - name: Make RW depot
         # this assumes that the second variable in $GITHUB_ENV wins!
         # we don't know for sure!
-        run: echo "JULIA_DEPOT_PATH=$PWD/juliarw:$PWD/juliaro" >> $GITHUB_ENV
+        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RW:$JULIA_DEPOT_RO" >> $GITHUB_ENV
       - name: "set test subgroup"
         run: echo "OSCAR_TEST_SUBSET=short" >> $GITHUB_ENV
       - name: Run tests
