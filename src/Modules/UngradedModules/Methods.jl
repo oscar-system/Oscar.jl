@@ -661,6 +661,9 @@ function _vector_space_dim(
   if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
     return 0
   end
+  if !isdefined(M, :quo) # exists to prevent a undefined field access
+    return PosInf()
+  end
   GB = groebner_basis(M.quo)
   vdim = Singular.vdim(singular_generators(GB))
   return vdim >= 0 ? vdim : PosInf()
@@ -686,6 +689,7 @@ function _vector_space_dim(
   end  
   M_shift, _, _ = shifted_module(M)
   ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  # M_shift.quo is always defined
   SB = standard_basis(M_shift.quo, ordering = ord)
   vdim = Singular.vdim(singular_generators(SB))
   return vdim >= 0 ? vdim : PosInf()
