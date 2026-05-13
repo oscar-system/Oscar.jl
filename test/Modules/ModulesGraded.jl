@@ -1331,3 +1331,21 @@ end
   ideal_as_module(J)
   quotient_ring_as_module(J)
 end
+
+@testset "graded presentation shortcut" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  G = grading_group(S)
+  g = G[1]
+  F = graded_free_module(S, [g for _ in 1:2])
+  I, _ = sub(F, gens(F))
+  J, _ = sub(F, [F[1]])
+  M1, _ = quo(I, I)
+  M2, _ = quo(I, J)
+  p1 = presentation(M1)
+  p2 = presentation(M2)
+  @test is_graded(map(p1, 1))
+  @test is_graded(map(p2, 1))
+
+  @test all(!is_zero, degree.(gens(p1[0])))
+  @test all(!is_zero, degree.(gens(p2[0])))
+end
