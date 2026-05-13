@@ -207,10 +207,24 @@ end
   G = dihedral_group(20)
   A = automorphism_group(G)
   H, _ = sylow_subgroup(G, 2)
+
+  a = gen(A, 1)
+  g = gen(G, 1)
+  @test g^a == a(g)
+  @test H^a == a(H)
+
+  Omega = gset(A, collect(H))
+  @test action_function(Omega) === ^
+  @test sort(map(length, orbits(Omega))) == [1, 1, 10]
+
+  Omega = gset(A, [H])
+  @test action_function(Omega) === ^
+  @test map(length, orbits(Omega)) == [5]
+
+  # `on_subgroups` works only for the action of automorphisms
   Omega = gset(A, on_subgroups, [H])
   @test map(length, orbits(Omega)) == [5]
   @test any(a -> on_subgroups(H, a) != H, gens(A))
-
 
   G = dihedral_group(PermGroup, 20)
   H = sylow_subgroup(G, 2)[1]
