@@ -1306,12 +1306,12 @@ end
 # Matrix to morphism
 ######################################
 @doc raw"""
-    map(F::FreeMod{T}, A::MatrixElem{T}) where T
+    map(F::FreeMod{T}, A::MatElem{T}) where T
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$,
 with `rank(F) == m`.
 """
-function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+function map(F::FreeMod{T}, A::MatElem{T}) where {T <: RingElement}
   if is_graded(F)
     return graded_map(F,A)
   end

@@ -292,16 +292,16 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   g2 = matrix_kernel(g1)
   n = s1*t0
   m = s0*t0 + s1*t1
-  delta::MatrixElem{T} = zero_matrix(R, m,n)
+  delta::MatElem{T} = zero_matrix(R, m,n)
   for j=1:s0*t0
-    b_vector::MatrixElem{T} = zero_matrix(R, 1,s0*t0)
+    b_vector::MatElem{T} = zero_matrix(R, 1,s0*t0)
     b_vector[1,j] = R(1)
     A = copy_and_reshape(b_vector, s0, t0)
     res = f1*A
     delta[j,:] = copy_and_reshape(res, 1, n)
   end
   for j=s0*t0+1:m
-    b_vector::MatrixElem{T} = zero_matrix(R, 1,m-s0*t0)
+    b_vector::MatElem{T} = zero_matrix(R, 1,m-s0*t0)
     b_vector[1,j-s0*t0] = R(1)
     B = copy_and_reshape(b_vector, s1, t1)
     res = -B*g1
@@ -311,7 +311,7 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   gamma = matrix_kernel(delta)
   gamma = gamma[:,1:s0*t0]
 
-  rho::MatrixElem{T} = zero_matrix(R, s0*t1, s0*t0)
+  rho::MatElem{T} = zero_matrix(R, s0*t1, s0*t0)
 
   for j=1:s0*t1
     b_vector = zero_matrix(R, 1,s0*t1)
