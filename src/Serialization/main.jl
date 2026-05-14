@@ -584,6 +584,7 @@ normal form for example `PolyRing` and `MPolyRing`.
 
 When registering a type with a "String representation" that is shared amonst more than one type, use the `default` flag to declare which type should be loaded by default, i.e. when the `_instance` is not used in the file to distinguish on load which type should be loaded.
 
+```
 {
   "_ns": {
     "Oscar": [
@@ -595,11 +596,11 @@ When registering a type with a "String representation" that is shared amonst mor
   "data": "2",
   "id": "7dc83bd8-4f11-4d30-9e4d-d96629c9a8f4"
 }
-
+```
 is loaded as a `FqField`
 
 where as 
-
+```
 {
   "_ns": {
     "Oscar": [
@@ -613,7 +614,8 @@ where as
   },
   "data": "2"
 }
-
+```
+is loaded as a `fpField`.
 Passing a vector of symbols that correspond to attributes of type
 indicates which attributes will be serialized when using save with `with_attrs=true`.
 
