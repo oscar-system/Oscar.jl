@@ -582,7 +582,37 @@ will be referred to throughout the serialization sessions using a `UUID`.
 This should typically only be used for types that do not have a fixed
 normal form for example `PolyRing` and `MPolyRing`.
 
-The `default` flag is used to decide a default amongst types that have the same encoding.
+When registering a type with a "String representation" that is shared amonst more than one type, use the `default` flag to declare which type should be loaded by default, i.e. when the `_instance` is not used in the file to distinguish on load which type should be loaded.
+
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.8.0"
+    ]
+  },
+  "_type": "FiniteField",
+  "data": "2",
+  "id": "7dc83bd8-4f11-4d30-9e4d-d96629c9a8f4"
+}
+
+is loaded as a `FqField`
+
+where as 
+
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.8.0"
+    ]
+  },
+  "_type": {
+    "_instance": "fpField",
+    "name": "FiniteField"
+  },
+  "data": "2"
+}
 
 Passing a vector of symbols that correspond to attributes of type
 indicates which attributes will be serialized when using save with `with_attrs=true`.
