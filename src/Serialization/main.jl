@@ -420,9 +420,9 @@ function load_type_params(s::DeserializerState, T::Type)
 
             U = decode_type(s)
             if is_string(s) && isnothing(tryparse(UUID, load_json(s, String)))
-              return U
+              return TypeParams(U, nothing)
             end
-            return params(load_type_params(s, U))
+            return load_type_params(s, U)
           end
           push!(pairs_vec, k => v)
         end
