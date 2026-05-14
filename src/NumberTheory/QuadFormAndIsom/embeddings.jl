@@ -291,7 +291,7 @@ function _equivariant_overlattice_with_graph(
   fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
 )
   C, graph = _overlattice_with_graph(DAinD, DBinD)
-  L = relations(codomain(HAinD))
+  L = relations(codomain(DAinD))
   fC = block_diagonal_matrix(QQMatrix[fA, fB])
   _B = coordinates(basis_matrix(C), L)
   fC = _B*fC*inv(_B)

@@ -319,11 +319,11 @@ type.
 """
 struct ZZLatGluingCtx
   modules::Vector{TorQuadModule}
-  orb_and_stab::Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
+  orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
 
   function ZZLatGluingCtx()
     modules = TorQuadModule[]
-    orb_and_stab = Dict{Tuple{Int, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
+    orb_and_stab = Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
     return new(modules, orb_and_stab)
   end
 end
@@ -364,13 +364,13 @@ of the two modules is fixed and the second varies, for instance.
 """
 mutable struct ZZLatGluingFactory
   # Necessary input
-  ambient_modules::Tuple{TorQuadModule, TorQuadModule} # Discriminant forms of the lattices to glue
-  local_classifying_groups::Tuple{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
+  ambient_modules::NTuple{2, TorQuadModule} # Discriminant forms of the lattices to glue
+  local_classifying_groups::NTuple{2, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
   par::Symbol # :even, :odd or :both
 
   # Context
   Ctx::ZZLatGluingCtx
-  vertex_identification::Tuple{Int, Int}
+  vertex_identification::NTuple{2, Int}
 
   # Edge conditions
   glue_order::Set{ZZRingElem} # Possible orders of a glue group
@@ -379,7 +379,7 @@ mutable struct ZZLatGluingFactory
   form_over::Set{QQMatrix} # Possible Gram matrix normal form of discriminant group overlattice
 
   # Internal preparation
-  conditions_modules::Tuple{TorQuadModuleMap, TorQuadModuleMap} # Where the glue groups should be taken
+  conditions_modules::NTuple{2, TorQuadModuleMap} # Where the glue groups should be taken
   glue_group_parent_snf::Vector{ZZRingElem} # Glue groups are isomorphic to a subgroup of an abelian group with such elementary divisors
   primes_of_interest::Set{ZZRingElem} # Only primes which could divide the order of a glue group
   local_gluings_primary::Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}} # Intermediate storage for local gluings at some prime, and glue group of certain type
