@@ -175,7 +175,7 @@ identifications given by the gluings in the `default_covering`.
                                                                OutputType, RestrictionType
                                                               }
   ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
-  MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatrixElem}; # A dictionary for pairs `(U, V)` of
+  MG::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:MatElem}; # A dictionary for pairs `(U, V)` of
   # `affine_charts` of `X` such that
   # A = MG[(U, V)] has entries aᵢⱼ with
   # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
@@ -191,7 +191,7 @@ identifications given by the gluings in the `default_covering`.
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme,
       MD::IdDict{AbsAffineScheme, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
-      MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}; # A dictionary for pairs `(U, V)` of
+      MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatElem}; # A dictionary for pairs `(U, V)` of
                                                        # `affine_charts` of `X` such that
                                                        # A = MG[(U, V)] has entries aᵢⱼ with
                                                        # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
@@ -287,7 +287,7 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
     MD[U] = FreeMod(OO(U), ["$(symbols(S)[i])^$d"])
   end
 
-  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
@@ -378,7 +378,7 @@ julia> Omega(U, VU)(dx)
   for U in affine_charts(X)
     MD[U] = cotangent_module(U)
   end
-  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
@@ -660,7 +660,7 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
     MD[U] = FreeMod(OO(U), gen_names)
   end
 
-  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
