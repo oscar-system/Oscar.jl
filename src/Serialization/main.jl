@@ -582,7 +582,8 @@ will be referred to throughout the serialization sessions using a `UUID`.
 This should typically only be used for types that do not have a fixed
 normal form for example `PolyRing` and `MPolyRing`.
 
-When registering a type with a "String representation" that is shared amonst more than one type, use the `default` flag to declare which type should be loaded by default, i.e. when the `_instance` is not used in the file to distinguish on load which type should be loaded.
+When registering a type with a "String representation of type" that is shared amongst more than one type, use the `default` flag to declare which type should be loaded by default.
+All other types with the same "String  representation of type" are stored with an additional `_instance` key describing their type. 
 
 ```
 {
