@@ -193,6 +193,16 @@ TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 params(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
 
+function Base.getindex(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
+  for (k, v) in tp.params
+    k === key && return v
+  end
+  error("key $key not found in TypeParams")
+end
+
+Base.haskey(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
+  any(k === key for (k, _) in tp.params)
+
 type_params(obj::T) where T = TypeParams(T, nothing)
 
 function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
@@ -401,9 +411,9 @@ function load_type_params(s::DeserializerState, T::Type)
         end
       # handle cases where type_params is a dict of params
       elseif !haskey(s, type_key)
-        p = Dict{Symbol, Any}()
+        pairs_vec = Pair{Symbol, Any}[]
         for k in propertynames(s.obj)
-          p[k] = load_node(s, k) do _
+          v = load_node(s, k) do _
             if is_array(s)
               return load_type_array_params(s)
             end
@@ -414,7 +424,9 @@ function load_type_params(s::DeserializerState, T::Type)
             end
             return params(load_type_params(s, U))
           end
+          push!(pairs_vec, k => v)
         end
+        return TypeParams(T, pairs_vec...)
       else
         p = load_typed_object(s)
       end
@@ -896,7 +908,7 @@ function load(filename::String; kwargs...)
 end
 
 _convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
+_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
@@ -915,23 +927,6 @@ _convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_p
 
 function _convert_override_params(t::Tuple{Vararg{Pair}})
   map(x -> x.first => _convert_override_params(x.second), t)
-end
-
-# handle special polyhedral case
-function _convert_override_params(tp::TypeParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
-  # special treatement for the polymake parameters
-  poly_params = Dict()
-  for (k, v) in params(tp)
-    if k == :pm_params
-      poly_params[k] = Dict()
-      for (pm_k, pm_v) in params(v)
-        poly_params[k][pm_k] = (type(pm_v), _convert_override_params(params(pm_v)))
-      end
-    else
-      poly_params[k] = v
-    end
-  end
-  return poly_params
 end
 
 # handle monomial ordering

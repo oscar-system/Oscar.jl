@@ -463,15 +463,14 @@ function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes,
   return complex_embedding(K, data)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes, <:Dict})
-  p = Oscar.params(tp)
-  K = p[:num_field]
+function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes, <:Tuple{Vararg{Pair}}})
+  K = tp[:num_field]
   if !is_simple(K)
     data = load_object(s, TypeParams(Vector{AcbFieldElem}, AcbField()))
   else
     data = load_object(s, TypeParams(AcbFieldElem, AcbField()))
   end
-  return complex_embedding(K, p[:base_field_emb], data)
+  return complex_embedding(K, tp[:base_field_emb], data)
 end
 
 @register_serialization_type EmbeddedNumField uses_id

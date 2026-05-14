@@ -34,13 +34,12 @@ function save_object(s::SerializerState, L::AbstractLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:AbstractLieAlgebra, <:Dict})
-  d = Oscar.params(tp)
-  R = d[:base_ring]
+function load_object(s::DeserializerState, tp::TypeParams{<:AbstractLieAlgebra, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]
   struct_consts = load_object(s, TypeParams(Matrix{sparse_row_type(R)}, R), :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L, tp)
   return L
 end
 
@@ -61,16 +60,15 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:LinearLieAlgebra, <:Dict})
-  d = Oscar.params(tp)
-  R = d[:base_ring]
+function load_object(s::DeserializerState, tp::TypeParams{<:LinearLieAlgebra, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]
   n = load_object(s, Int, :n)
   basis = Vector{dense_matrix_type(R)}(
     load_object(s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, n, n)), :basis)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L, tp)
   return L
 end
 
@@ -90,13 +88,12 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:DirectSumLieAlgebra, <:Dict})
-  d = Oscar.params(tp)
-  R = d[:base_ring]
-  summands = d[:summands]
+function load_object(s::DeserializerState, tp::TypeParams{<:DirectSumLieAlgebra, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]
+  summands = tp[:summands]
 
   L = direct_sum(R, collect(LieAlgebra{elem_type(R)}, summands))
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L, tp)
   return L
 end
 
@@ -114,9 +111,9 @@ function type_params_for_root_system(L::LieAlgebra)
   end
 end
 
-function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
-  if haskey(d, :root_system)
-    rs = d[:root_system]
+function load_root_system_data(s::DeserializerState, L::LieAlgebra, tp::TypeParams)
+  if haskey(tp, :root_system)
+    rs = tp[:root_system]
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
         s, TypeParams(NTuple{3,Vector{elem_type(L)}}, (L, L, L)), :chevalley_basis
@@ -162,17 +159,16 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModule, <:Dict})
+function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModule, <:Tuple{Vararg{Pair}}})
   T = tp.type
-  d = Oscar.params(tp)
-  L = d[:lie_algebra]
+  L = tp[:lie_algebra]
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
     s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim)), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = load_construction_data(L, T, d)
+  V = load_construction_data(L, T, tp)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
@@ -198,27 +194,27 @@ function type_params_for_construction_data(V::LieAlgebraModule)
   return ()
 end
 
-function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::Dict)
+function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, tp::TypeParams)
   V = nothing
-  if haskey(d, :_is_standard_module) && d[:_is_standard_module]
+  if haskey(tp, :_is_standard_module) && tp[:_is_standard_module]
     V = standard_module(L)
-  elseif haskey(d, :_is_dual)
-    W = d[:_is_dual]
+  elseif haskey(tp, :_is_dual)
+    W = tp[:_is_dual]
     V = dual(W)
-  elseif haskey(d, :_is_direct_sum)
-    Vs = d[:_is_direct_sum]
+  elseif haskey(tp, :_is_direct_sum)
+    Vs = tp[:_is_direct_sum]
     V = direct_sum(Vs...)
-  elseif haskey(d, :_is_tensor_product)
-    Vs = d[:_is_tensor_product]
+  elseif haskey(tp, :_is_tensor_product)
+    Vs = tp[:_is_tensor_product]
     V = tensor_product(Vs...)
-  elseif haskey(d, :_is_exterior_power)
-    W, k = d[:_is_exterior_power]
+  elseif haskey(tp, :_is_exterior_power)
+    W, k = tp[:_is_exterior_power]
     V = exterior_power(W, k)[1]
-  elseif haskey(d, :_is_symmetric_power)
-    W, k = d[:_is_symmetric_power]
+  elseif haskey(tp, :_is_symmetric_power)
+    W, k = tp[:_is_symmetric_power]
     V = symmetric_power(W, k)[1]
-  elseif haskey(d, :_is_tensor_power)
-    W, k = d[:_is_tensor_power]
+  elseif haskey(tp, :_is_tensor_power)
+    W, k = tp[:_is_tensor_power]
     V = tensor_power(W, k)[1]
   end
   return V::Union{T,Nothing}

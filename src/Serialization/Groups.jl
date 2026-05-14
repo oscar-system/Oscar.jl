@@ -290,10 +290,9 @@ function save_object(s::SerializerState, h::FinGenAbGroupHom)
   save_object(s, matrix(h))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{FinGenAbGroupHom, <:Dict})
-  p = Oscar.params(tp)
+function load_object(s::DeserializerState, tp::TypeParams{FinGenAbGroupHom, <:Tuple{Vararg{Pair}}})
   map_matrix = load_object(s, Matrix{ZZRingElem})
-  return hom(p[:domain], p[:codomain], matrix(ZZ, map_matrix))
+  return hom(tp[:domain], tp[:codomain], matrix(ZZ, map_matrix))
 end
 
 ##############################################################################
@@ -315,10 +314,9 @@ function save_object(s::SerializerState, G::MatGroup)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MatGroup, <:Dict})
-  p = Oscar.params(tp)
-  R = p[:base_ring]
-  d = p[:degree]
+function load_object(s::DeserializerState, tp::TypeParams{<:MatGroup, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]
+  d = tp[:degree]
   generators = load_object(s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, d, d)), :gens)
   G = matrix_group(R, d, generators; check=false)
 

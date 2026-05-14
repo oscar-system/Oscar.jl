@@ -131,10 +131,10 @@ function save_object(s::SerializerState, R::MPolyDecRing)
   save_object(s, _grading(R))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MPolyDecRing, <:Dict})
-  d = Oscar.params(tp)
-  ring = d[:ring]
-  grading = load_object(s, TypeParams(Vector{elem_type(d[:grading_group])}, d[:grading_group]))
+function load_object(s::DeserializerState, tp::TypeParams{<:MPolyDecRing, <:Tuple{Vararg{Pair}}})
+  ring = tp[:ring]
+  grading_group = tp[:grading_group]
+  grading = load_object(s, TypeParams(Vector{elem_type(grading_group)}, grading_group))
   return grade(ring, grading)[1]
 end
 
@@ -262,10 +262,9 @@ function save_object(s::SerializerState, obj::IdealGens)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:Dict})
-  params = Oscar.params(tp)
-  base_ring = params[:base_ring]
-  ordering_type = params[:ordering_type]
+function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:Tuple{Vararg{Pair}}})
+  base_ring = tp[:base_ring]
+  ordering_type = tp[:ordering_type]
 
   if ordering_type <: MonomialOrdering
     ord = load_object(s, TypeParams(ordering_type, base_ring), :ordering)
@@ -581,10 +580,9 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoRing, <:Dict})
-  params = Oscar.params(tp)
-  R = params[:base_ring]
-  ordering_type = params[:ordering]
+function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]
+  ordering_type = tp[:ordering]
   o = load_object(s, TypeParams(ordering_type, R), :ordering)
   I = load_object(s, TypeParams(ideal_type(R), R), :modulus)
 
@@ -681,10 +679,9 @@ function save_object(s::SerializerState, L::MPolyLocRing)
   save_object(s, inverted_set(L))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MPolyLocRing, <:Dict})
-  params = Oscar.params(tp)
-  U = params[:mult_set_type]
-  R = params[:base_ring]
+function load_object(s::DeserializerState, tp::TypeParams{<:MPolyLocRing, <:Tuple{Vararg{Pair}}})
+  U = tp[:mult_set_type]
+  R = tp[:base_ring]
   mult_set = load_object(s, TypeParams(U, R))
   return MPolyLocRing(R, mult_set)
 end
@@ -721,11 +718,10 @@ function save_object(s::SerializerState, L::MPolyQuoLocRing)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoLocRing, <:Dict})
-  params = Oscar.params(tp)
-  R = params[:base_ring]::MPolyRing
-  L = params[:loc_ring]::MPolyLocRing
-  Q = params[:quo_ring]::MPolyQuoRing
+function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoLocRing, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]::MPolyRing
+  L = tp[:loc_ring]::MPolyLocRing
+  Q = tp[:quo_ring]::MPolyQuoRing
   return MPolyQuoLocRing(R, modulus(Q), inverted_set(L), Q, L)
 end
 
@@ -770,11 +766,10 @@ function save_object(s::SerializerState, phi::MPolyLocalizedRingHom)
   save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{T, <:Dict}) where {T<:MPolyLocalizedRingHom}
-  params = Oscar.params(tp)
-  dom = params[:domain]
-  cod = params[:codomain]
-  rm_tp = params[:restricted_map_params]
+function load_object(s::DeserializerState, tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where {T<:MPolyLocalizedRingHom}
+  dom = tp[:domain]
+  cod = tp[:codomain]
+  rm_tp = tp[:restricted_map_params]
   res = load_object(s, TypeParams(MPolyAnyMap, rm_tp))
   return MPolyLocalizedRingHom(dom, cod, res; check=false)
 end
@@ -787,11 +782,10 @@ function save_object(s::SerializerState, phi::MPolyQuoLocalizedRingHom)
   save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{T, <:Dict}) where {T<:MPolyQuoLocalizedRingHom}
-  params = Oscar.params(tp)
-  dom = params[:domain]
-  cod = params[:codomain]
-  rm_tp = params[:restricted_map_params]
+function load_object(s::DeserializerState, tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where {T<:MPolyQuoLocalizedRingHom}
+  dom = tp[:domain]
+  cod = tp[:codomain]
+  rm_tp = tp[:restricted_map_params]
   res = load_object(s, TypeParams(MPolyAnyMap, rm_tp))
   return MPolyQuoLocalizedRingHom(dom, cod, res; check=false)
 end

@@ -29,11 +29,10 @@ function save_object(s::SerializerState, L::ZZLat)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ZZLat, <:Dict})
-  p = Oscar.params(tp)
-  mat_space = p[:basis]
+function load_object(s::DeserializerState, tp::TypeParams{ZZLat, <:Tuple{Vararg{Pair}}})
+  mat_space = tp[:basis]
   B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
-  return lattice(p[:ambient_space], B; check=false)
+  return lattice(tp[:ambient_space], B; check=false)
 end
 
 ############################################################
@@ -55,19 +54,17 @@ function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{QuadSpaceWithIsom, <:Dict})
-  p = Oscar.params(tp)
-  quad_space = p[:quad_space]
-  mat_space = p[:isom]
+function load_object(s::DeserializerState, tp::TypeParams{QuadSpaceWithIsom, <:Tuple{Vararg{Pair}}})
+  mat_space = tp[:isom]
   isom = load_object(s, TypeParams(elem_type(mat_space), mat_space), :isom)
-  order_type = p[:order]
+  order_type = tp[:order]
 
   if Base.issingletontype(order_type)
     n = order_type()
   else
     n = load_object(s, Int, :order)
   end
-  return QuadSpaceWithIsom(quad_space, isom, n)
+  return QuadSpaceWithIsom(tp[:quad_space], isom, n)
 end
 
 ############################################################
@@ -84,10 +81,8 @@ function save_object(s::SerializerState, L::ZZLatWithIsom)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ZZLatWithIsom, <:Dict})
-  p = Oscar.params(tp)
-  quad_space = p[:ambient_space]
-  mat_space = p[:basis]
+function load_object(s::DeserializerState, tp::TypeParams{ZZLatWithIsom, <:Tuple{Vararg{Pair}}})
+  mat_space = tp[:basis]
   B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
-  return lattice(quad_space, B; check=false)
+  return lattice(tp[:ambient_space], B; check=false)
 end
