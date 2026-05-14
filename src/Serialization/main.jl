@@ -378,32 +378,32 @@ function load_type_array_params(s::DeserializerState)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
       return T
     end
-    return load_type_params(s, T)[2]
+    return params(load_type_params(s, T))
   end
 end
 
 function load_type_params(s::DeserializerState, T::Type)
   if is_string(s)
     val = load_json(s, String)
-    !isnothing(tryparse(UUID, val)) && return T, load_ref(s)
-    return T, nothing
+    !isnothing(tryparse(UUID, val)) && return TypeParams(T, load_ref(s))
+    return TypeParams(T, nothing)
   end
   if haskey(s, :params)
     load_node(s, :params) do _
       if is_array(s)
-        params = load_type_array_params(s)
+        p = load_type_array_params(s)
       elseif is_string(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
-          params = U()
+          p = U()
         else
-          params = load_type_params(s, U)[2]
+          p = params(load_type_params(s, U))
         end
       # handle cases where type_params is a dict of params
       elseif !haskey(s, type_key)
-        params = Dict{Symbol, Any}()
+        p = Dict{Symbol, Any}()
         for k in propertynames(s.obj)
-          params[k] = load_node(s, k) do _
+          p[k] = load_node(s, k) do _
             if is_array(s)
               return load_type_array_params(s)
             end
@@ -412,20 +412,20 @@ function load_type_params(s::DeserializerState, T::Type)
             if is_string(s) && isnothing(tryparse(UUID, load_json(s, String)))
               return U
             end
-            return load_type_params(s, U)[2]
+            return params(load_type_params(s, U))
           end
         end
       else
-        params = load_typed_object(s)
+        p = load_typed_object(s)
       end
       # all types where the type T should be updated with a subtype i.e. T -> T{U}
       # need to implement their own method, see for example containers
-      return T, params
+      return TypeParams(T, p)
     end
   elseif haskey(s, :_instance)
-    T, nothing
+    TypeParams(T, nothing)
   else
-    return T, load_typed_object(s)
+    return TypeParams(T, load_typed_object(s))
   end
 end
 
@@ -440,15 +440,15 @@ end
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   if !isnothing(override_params)
-    T, _ = load_type_params(s, T, type_key)
-    params = override_params
+    tp = load_type_params(s, T, type_key)
+    tp = TypeParams(type(tp), override_params)
   else
     is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
-    T, params = load_type_params(s, T, type_key)
+    tp = load_type_params(s, T, type_key)
   end
-  Base.issingletontype(T) && return T()
+  Base.issingletontype(type(tp)) && return type(tp)()
   obj = load_node(s, :data) do _
-    return load_object(s, T, params)
+    return load_object(s, tp)
   end
   load_attrs(s, obj)
   return obj
@@ -460,14 +460,18 @@ function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
   end
 end
 
-function load_object(s::DeserializerState, T::Type, params::S,
-                     key::Union{Symbol, Int}) where S
+function load_object(s::DeserializerState, tp::TypeParams,
+                     key::Union{Symbol, Int})
   load_node(s, key) do _
-    load_object(s, T, params)
+    load_object(s, tp)
   end
 end
 
-load_object(s::DeserializerState, T::Type, ::Nothing) = load_object(s, T)
+load_object(s::DeserializerState, tp::TypeParams{T, Nothing}) where T = load_object(s, T)
+load_object(s::DeserializerState, tp::TypeParams{Vector{T}, Nothing}) where T = load_object(s, Vector{T})
+load_object(s::DeserializerState, tp::TypeParams{Matrix{T}, Nothing}) where T = load_object(s, Matrix{T})
+load_object(s::DeserializerState, tp::TypeParams{Array{T, N}, Nothing}) where {T, N} = load_object(s, Array{T, N})
+load_object(s::DeserializerState, tp::TypeParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
 
 ################################################################################
 # serializing attributes
@@ -843,12 +847,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
-        _, params = load_node(s, type_key) do _
+        tp_inner = load_node(s, type_key) do _
           load_type_params(s, U)
         end
+        params = Oscar.params(tp_inner)
       end
       load_node(s, :data) do _
-        loaded = load_object(s, type, params)
+        loaded = load_object(s, TypeParams(type, params))
       end
     else
       loaded = load_typed_object(s; override_params=params)
@@ -898,7 +903,7 @@ _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_ov
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
 
 function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
-  return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
+  return Dict(k => TypeParams(type(v), _convert_override_params(v)) for (k, v) in params(tp))
 end
 
 _convert_override_params(obj::Any) = obj

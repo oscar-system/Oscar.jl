@@ -8,8 +8,9 @@ function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))
 end
 
-function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace}, params::MatSpace)
-  gram = load_object(s, MatElem, params)
+function load_object(s::DeserializerState, tp::TypeParams{<:Hecke.QuadSpace, <:MatSpace})
+  params = Oscar.params(tp)
+  gram = load_object(s, TypeParams(MatElem, params))
   F = base_ring(params)
   return quadratic_space(F, gram; cached=false)
 end
@@ -28,10 +29,11 @@ function save_object(s::SerializerState, L::ZZLat)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, ::Type{ZZLat}, params::Dict)
-  mat_space = params[:basis]
-  B = load_object(s, elem_type(mat_space), mat_space)
-  return lattice(params[:ambient_space], B; check=false)
+function load_object(s::DeserializerState, tp::TypeParams{ZZLat, <:Dict})
+  p = Oscar.params(tp)
+  mat_space = p[:basis]
+  B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
+  return lattice(p[:ambient_space], B; check=false)
 end
 
 ############################################################
@@ -53,11 +55,12 @@ function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{QuadSpaceWithIsom}, params::Dict)
-  quad_space = params[:quad_space]
-  mat_space = params[:isom]
-  isom = load_object(s, elem_type(mat_space), mat_space, :isom)
-  order_type = params[:order]
+function load_object(s::DeserializerState, tp::TypeParams{QuadSpaceWithIsom, <:Dict})
+  p = Oscar.params(tp)
+  quad_space = p[:quad_space]
+  mat_space = p[:isom]
+  isom = load_object(s, TypeParams(elem_type(mat_space), mat_space), :isom)
+  order_type = p[:order]
 
   if Base.issingletontype(order_type)
     n = order_type()
@@ -81,9 +84,10 @@ function save_object(s::SerializerState, L::ZZLatWithIsom)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, ::Type{ZZLatWithIsom}, params::Dict)
-  quad_space = params[:ambient_space]
-  mat_space = params[:basis]
-  B = load_object(s, elem_type(mat_space), mat_space)
+function load_object(s::DeserializerState, tp::TypeParams{ZZLatWithIsom, <:Dict})
+  p = Oscar.params(tp)
+  quad_space = p[:ambient_space]
+  mat_space = p[:basis]
+  B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
   return lattice(quad_space, B; check=false)
 end

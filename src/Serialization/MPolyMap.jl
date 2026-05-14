@@ -22,19 +22,19 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<:MPolyAnyMap},
-                     params::Dict) 
-  d = params[:domain]
-  c = params[:codomain]
+                     tp::TypeParams{<:MPolyAnyMap, <:Dict})
+  p = Oscar.params(tp)
+  d = p[:domain]
+  c = p[:codomain]
   T = elem_type(c)
-  imgs = load_object(s, Vector{T}, c, :images)
+  imgs = load_object(s, TypeParams(Vector{T}, c), :images)
 
   if haskey(s, :coeff_map)
     coeff_map_params = Dict(
       :domain => base_ring(d),
       :codomain => base_ring(c)
     )
-    coeff_map = load_object(s, MPolyAnyMap, coeff_map_params, :coeff_map)
+    coeff_map = load_object(s, TypeParams(MPolyAnyMap, coeff_map_params), :coeff_map)
     return MPolyAnyMap(d, c, coeff_map, imgs)
   end
   return MPolyAnyMap(d, c, nothing, imgs)

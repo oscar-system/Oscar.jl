@@ -69,18 +69,20 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, Graph
   end
 end
 
-function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
+function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Ring})
+  R = Oscar.params(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
     key = load_node(_ -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
-    graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
+    graph_gen_dict[key] = load_object(s, TypeParams(MPolyRingElem, R), 2)
   end
   return GraphDict{elem_type(R)}(graph_gen_dict)
 end
 
 # might need to have more type specification in the future here
 # for now we know that the params are a dict with domain and codomain
-function load_object(s::DeserializerState, ::Type{GraphDict}, d::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Dict})
+  d = Oscar.params(tp)
   cdom = d[:codomain]
   dom = d[:domain]
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
@@ -91,38 +93,43 @@ function load_object(s::DeserializerState, ::Type{GraphDict}, d::Dict)
     else
       key = load_object(s, Int, 1)
     end
-    graph_gen_dict[key] = load_object(s, Oscar.MPolyAnyMap, d, 2)
+    graph_gen_dict[key] = load_object(s, TypeParams(Oscar.MPolyAnyMap, d), 2)
   end
   return GraphDict{map_type}(graph_gen_dict)
 end
 
-function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
+function load_object(s::DeserializerState, tp::TypeParams{GraphTransDict, <:Ring})
+  R = Oscar.params(tp)
   graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
     key = load_object(s, Tuple{Symbol, Edge}, 1)
-    graph_trans_dict[key] = load_object(s, MPolyRingElem, R, 2)
+    graph_trans_dict[key] = load_object(s, TypeParams(MPolyRingElem, R), 2)
   end
   return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
 function load_type_params(s::DeserializerState, T::Type{GenDict})
-  subtype, params = load_node(s, :params) do _
-    S, key_params = load_node(s, :key_params) do _
-      is_string(s) && return decode_type(s), nothing
+  tp = load_node(s, :params) do _
+    key_tp = load_node(s, :key_params) do _
+      if is_string(s)
+        S = decode_type(s)
+        return TypeParams(S, nothing)
+      end
       load_type_params(s, decode_type(s))
     end
 
-    _, value_params = load_node(s, :value_params) do _
+    value_tp = load_node(s, :value_params) do _
       load_type_params(s, decode_type(s))
     end
 
-    return S, Dict(:key_params => key_params, :value_params => value_params)
+    S = key_tp.type
+    return TypeParams(GenDict{S}, Dict(:key_params => Oscar.params(key_tp), :value_params => Oscar.params(value_tp)))
   end
-  return GenDict{subtype}, params
+  return tp
 end
 
-function load_object(s::DeserializerState, T::Type{GenDict{S}}, params::Dict) where S
-  return GenDict(load_object(s, Dict{S, MPolyRingElem}, params))
+function load_object(s::DeserializerState, tp::TypeParams{GenDict{S}, <:Dict}) where S
+  return GenDict(load_object(s, TypeParams(Dict{S, MPolyRingElem}, Oscar.params(tp))))
 end
 
 ################################################################################
@@ -141,7 +148,8 @@ function save_object(s::SerializerState, M::GraphicalModel)
   save_object(s, graph(M))
 end
 
-function load_object(s::DeserializerState, ::Type{GaussianGraphicalModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{GaussianGraphicalModel, <:Dict})
+  params = Oscar.params(tp)
   g = load_object(s, params[:graph_type])
   gaussian_graphical_model(g)
 end
@@ -153,7 +161,8 @@ function save_object(s::SerializerState, M::DiscreteGraphicalModel)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{DiscreteGraphicalModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{DiscreteGraphicalModel, <:Dict})
+  params = Oscar.params(tp)
   discrete_graphical_model(
     load_object(s, params[:graph_type], :graph),
     load_object(s, Vector{Int}, :states)
@@ -188,14 +197,15 @@ function save_object(s::SerializerState, pm::PhylogeneticModel)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{PhylogeneticModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{PhylogeneticModel, <:Dict})
+  params = Oscar.params(tp)
   T1, p1 = params[:transition_matrix_entry_type], params[:transition_matrix_params]
   T2, p2 = params[:root_distribution_entry_type], params[:root_distribution_params]
   return PhylogeneticModel(
     params[:base_field],
-    load_object(s, params[:graph_type], params[:graph_params], :graph),
-    load_object(s, Matrix{T1}, p1, :transition_matrix),
-    load_object(s, Vector{T2}, p2, :root_distribution),
+    load_object(s, TypeParams(params[:graph_type], params[:graph_params]), :graph),
+    load_object(s, TypeParams(Matrix{T1}, p1), :transition_matrix),
+    load_object(s, TypeParams(Vector{T2}, p2), :root_distribution),
     load_object(s, params[:model_parameter_name_type], :model_parameter_name)
   )
 end
@@ -220,10 +230,11 @@ function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{GroupBasedPhylogeneticModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{GroupBasedPhylogeneticModel, <:Dict})
+  params = Oscar.params(tp)
   GroupBasedPhylogeneticModel(params[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
-                              load_object(s, Vector{FinGenAbGroupElem}, params[:group], :group_elems),
+                              load_object(s, TypeParams(Vector{FinGenAbGroupElem}, params[:group]), :group_elems),
                               load_object(s, params[:model_parameter_name_type], :varnames_group_based))
 end
 
@@ -245,13 +256,14 @@ end
 
 save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
 
-function load_object(s::DeserializerState, ::Type{<:IndexedRing}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:IndexedRing, <:Dict})
+  params = Oscar.params(tp)
   R = params[:ring]
   if params[:index_type] isa Tuple
-    gen_to_index = load_object(s, Dict{elem_type(R), Tuple{[Int for _ in 1:fieldcount(typeof(params[:index_type]))]...}},
-                                                           Dict(:key_params => R, :value_params => nothing))
+    gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), Tuple{[Int for _ in 1:fieldcount(typeof(params[:index_type]))]...}},
+                                             Dict(:key_params => R, :value_params => nothing)))
   else
-    gen_to_index = load_object(s, Dict{elem_type(R), params[:index_type]}, Dict(:key_params => R))
+    gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), params[:index_type]}, Dict(:key_params => R)))
   end
   return IndexedRing(
     R, gen_to_index

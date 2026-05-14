@@ -154,7 +154,8 @@ function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
 
-function load_object(s::DeserializerState, T::Type{PermGroupElem}, parent_group::PermGroup)
+function load_object(s::DeserializerState, tp::TypeParams{PermGroupElem, PermGroup})
+  parent_group = Oscar.params(tp)
   imgs = load_object(s, Vector{Int})
   return perm(parent_group, imgs)
 end
@@ -181,9 +182,8 @@ function save_object(s::SerializerState,
   save_data_array(() -> (),  s)
 end
 
-function load_object(s::DeserializerState, ::Type{T},
-                     G::GapObj) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  return T(G)
+function load_object(s::DeserializerState, tp::TypeParams{T, GapObj}) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  return T(Oscar.params(tp))
 end
 
 ##############################################################################
@@ -203,7 +203,8 @@ typecombinations = (
 )
 
 for (eltype, type) in typecombinations
-  @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
+  @eval function load_object(s::DeserializerState, tp::TypeParams{$eltype, $type})
+    parent_group = Oscar.params(tp)
     lo = load_object(s, Vector{Int})
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     if GAPWrap.IsElementOfFpGroupFamily(fam)
@@ -240,7 +241,8 @@ typecombinations = (
 )
 
 for (eltype, type) in typecombinations
-  @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
+  @eval function load_object(s::DeserializerState, tp::TypeParams{$eltype, $type})
+    parent_group = Oscar.params(tp)
     lo = load_object(s, Vector{Int})
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
@@ -270,7 +272,8 @@ function save_object(s::SerializerState, g::FinGenAbGroupElem)
   save_object(s, _coeff(g))
 end
 
-function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
+function load_object(s::DeserializerState, tp::TypeParams{FinGenAbGroupElem, FinGenAbGroup})
+  G = Oscar.params(tp)
   return G(vec(load_object(s, Matrix{ZZRingElem})))
 end
 
@@ -287,9 +290,10 @@ function save_object(s::SerializerState, h::FinGenAbGroupHom)
   save_object(s, matrix(h))
 end
 
-function load_object(s::DeserializerState, ::Type{FinGenAbGroupHom}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{FinGenAbGroupHom, <:Dict})
+  p = Oscar.params(tp)
   map_matrix = load_object(s, Matrix{ZZRingElem})
-  return hom(params[:domain], params[:codomain], matrix(ZZ, map_matrix))
+  return hom(p[:domain], p[:codomain], matrix(ZZ, map_matrix))
 end
 
 ##############################################################################
@@ -311,10 +315,11 @@ function save_object(s::SerializerState, G::MatGroup)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatGroup}, params::Dict)
-  R = params[:base_ring]
-  d = params[:degree]
-  generators = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, d, d), :gens)
+function load_object(s::DeserializerState, tp::TypeParams{<:MatGroup, <:Dict})
+  p = Oscar.params(tp)
+  R = p[:base_ring]
+  d = p[:degree]
+  generators = load_object(s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, d, d)), :gens)
   G = matrix_group(R, d, generators; check=false)
 
   if haskey(s, :descr)
@@ -327,8 +332,9 @@ end
 
 save_object(s::SerializerState, g::MatGroupElem) = save_object(s, matrix(g))
 
-function load_object(s::DeserializerState, ::Type{<:MatGroupElem}, G::MatGroup)
+function load_object(s::DeserializerState, tp::TypeParams{<:MatGroupElem, <:MatGroup})
+  G = Oscar.params(tp)
   R = base_ring(G)
   d = degree(G)
-  return G(matrix(R, load_object(s, dense_matrix_type(R), matrix_space(R, d, d))); check = false)
+  return G(matrix(R, load_object(s, TypeParams(dense_matrix_type(R), matrix_space(R, d, d)))); check = false)
 end

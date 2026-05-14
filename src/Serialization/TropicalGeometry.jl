@@ -12,8 +12,8 @@ function save_object(s::SerializerState, x::TropicalSemiringElem)
   save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem},
-                     R::TropicalSemiring)
+function load_object(s::DeserializerState, tp::TypeParams{<:TropicalSemiringElem, <:TropicalSemiring})
+  R = Oscar.params(tp)
   load_node(s) do _
     str = load_json(s, String)
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
@@ -33,9 +33,9 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
   save_object(s, tropical_polynomial(t))
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface},
-                     params::MPolyRing)
-  polynomial = load_object(s, MPolyRingElem, params)
+function load_object(s::DeserializerState, tp::TypeParams{<:TropicalHypersurface, <:MPolyRing})
+  params = Oscar.params(tp)
+  polynomial = load_object(s, TypeParams(MPolyRingElem, params))
   return tropical_hypersurface(polynomial)
 end
 
@@ -57,13 +57,14 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, params::Field)
+function load_object(s::DeserializerState, tp::TypeParams{<:TropicalCurve, <:Field})
+  params = Oscar.params(tp)
   return tropical_curve(
-    load_object(s, PolyhedralComplex, params, :polyhedral_complex)
+    load_object(s, TypeParams(PolyhedralComplex, params), :polyhedral_complex)
   )
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, ::String)
+function load_object(s::DeserializerState, tp::TypeParams{<:TropicalCurve, String})
   return tropical_curve(
     load_object(s, Graph{Undirected}, :graph)
   )

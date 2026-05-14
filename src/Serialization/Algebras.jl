@@ -12,9 +12,9 @@ function save_object(s::SerializerState, A::FreeAssociativeAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra}, R::Ring)
+function load_object(s::DeserializerState, tp::TypeParams{<:FreeAssociativeAlgebra, <:Ring})
   gens = load_object(s, Vector{Symbol}, :symbols)
-  return free_associative_algebra(R, gens)[1]
+  return free_associative_algebra(Oscar.params(tp), gens)[1]
 end
 
 # Free associative algebra element serialization
@@ -33,13 +33,13 @@ function save_object(s::SerializerState, f::FreeAssociativeAlgebraElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem},
-                     parent_algebra::FreeAssociativeAlgebra)
+function load_object(s::DeserializerState, tp::TypeParams{<:FreeAssociativeAlgebraElem, <:FreeAssociativeAlgebra})
+  parent_algebra = Oscar.params(tp)
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = MPolyBuildCtx(parent_algebra)
 
   load_array_node(s) do _
-    loaded_coeff = load_object(s, coeff_type, base_ring(parent_algebra), 2)
+    loaded_coeff = load_object(s, TypeParams(coeff_type, base_ring(parent_algebra)), 2)
     loaded_term = parent_algebra(loaded_coeff)
     e = load_array_node(s, 1) do _
       load_object(s, Int)

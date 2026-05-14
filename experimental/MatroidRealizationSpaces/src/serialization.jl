@@ -24,13 +24,14 @@ function save_object(s::SerializerState, M::MatroidRealizationSpace)
 end
 
 
-function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpace}, dict::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:MatroidRealizationSpace, <:Dict})
+  dict = Oscar.params(tp)
   MS = dict[:matrix_space] #this might be nothing
   R = dict[:ideal_ring]
   GR = dict[:ground_ring]
-  I = load_object(s, MPolyIdeal, R, :defining_ideal)
-  Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
-  RMat = isnothing(MS) ? nothing : load_object(s, MatElem, MS, :realization_matrix)
+  I = load_object(s, TypeParams(MPolyIdeal, R), :defining_ideal)
+  Ineqs = load_object(s, TypeParams(Vector{MPolyRingElem}, R), :inequations)
+  RMat = isnothing(MS) ? nothing : load_object(s, TypeParams(MatElem, MS), :realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case the realization space is zero dimensional
@@ -67,13 +68,14 @@ function save_object(s::SerializerState, M::MatroidRealizationSpaceSelfProjectin
 end
 
 
-function load_object(s::DeserializerState, ::Type{<:MatroidRealizationSpaceSelfProjecting}, dict::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:MatroidRealizationSpaceSelfProjecting, <:Dict})
+  dict = Oscar.params(tp)
   MS = dict[:matrix_space] #this could be nothing
   R = dict[:ideal_ring]
   GR = dict[:ground_ring]
-  I = load_object(s, MPolyIdeal, R, :defining_ideal)
-  Ineqs = load_object(s, Vector{MPolyRingElem}, R, :inequations)
-  RMat = isnothing(MS) ? nothing : load_object(s, MatElem, MS, :selfprojecting_realization_matrix)
+  I = load_object(s, TypeParams(MPolyIdeal, R), :defining_ideal)
+  Ineqs = load_object(s, TypeParams(Vector{MPolyRingElem}, R), :inequations)
+  RMat = isnothing(MS) ? nothing : load_object(s, TypeParams(MatElem, MS), :selfprojecting_realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case R = QQ
@@ -115,7 +117,8 @@ function save_object(s::SerializerState, M::SelfProjectingMatroidRealizations)
 end
 
 
-function load_object(s::DeserializerState, ::Type{<:SelfProjectingMatroidRealizations}, dict::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:SelfProjectingMatroidRealizations, <:Dict})
+  dict = Oscar.params(tp)
   dictionary_r = Dict(:ground_ring => dict[:ground_ring], :matrix_space => dict[:matrix_space_mrs], :ideal_ring => dict[:ideal_ring_rs])
   dictionary_s = Dict(:ground_ring => dict[:ground_ring_s], :matrix_space => dict[:matrix_space_sp_mrs], :ideal_ring => dict[:ideal_ring_sprs])
   str = load_object(s, String, :name)
@@ -125,7 +128,7 @@ function load_object(s::DeserializerState, ::Type{<:SelfProjectingMatroidRealiza
   dimR = load_object(s, Int, :dim_r)
   dimS = load_object(s, Int, :dim_s)
   boo = load_object(s, Bool, :equality_of_realizationspaces)
-  RS = load_object(s, MatroidRealizationSpace, dictionary_r, :realization_space)
-  RSSP = load_object(s, MatroidRealizationSpaceSelfProjecting, dictionary_s, :selfprojecting_realization_space)
+  RS = load_object(s, TypeParams(MatroidRealizationSpace, dictionary_r), :realization_space)
+  RSSP = load_object(s, TypeParams(MatroidRealizationSpaceSelfProjecting, dictionary_s), :selfprojecting_realization_space)
   return SelfProjectingMatroidRealizations(str, m, rk, n, RS, dimR, RSSP, dimS, boo)
 end

@@ -68,28 +68,28 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
-                     field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{String, Any}))
+function load_object(s::DeserializerState, tp::TypeParams{<:PolyhedralObject, <:Union{QQField, AbstractAlgebra.Floats}})
+  field = Oscar.params(tp)
+  return load_from_polymake(tp.type{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-    field::U) where {S <: Union{QQFieldElem, Float64}, U <: Union{QQField, AbstractAlgebra.Floats}}
-  return load_from_polymake(T, load_json(s, Dict{String, Any}))
+function load_object(s::DeserializerState, tp::TypeParams{<:PolyhedralObject{S}, <:Union{QQField, AbstractAlgebra.Floats}}) where S <: Union{QQFieldElem, Float64}
+  return load_from_polymake(tp.type, load_json(s, Dict{String, Any}))
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{T, <:Dict}) where T <: PolyhedralObject
+  dict = Oscar.params(tp)
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, TypeParams(Dict{Symbol, Any}, dict[:pm_params]))
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T{elem_type(field)}(bigobject, field)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     dict::Dict) where S <: FieldElem
+function load_object(s::DeserializerState, tp::TypeParams{T, <:Dict}) where {S <: FieldElem, T <: PolyhedralObject{S}}
+  dict = Oscar.params(tp)
   field = dict[:field]
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict[:pm_params])
+  polymake_dict = load_object(s, TypeParams(Dict{Symbol, Any}, dict[:pm_params]))
   bigobject = _dict_to_bigobject(polymake_dict)
 
   return T(bigobject, field)
@@ -125,12 +125,13 @@ function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFi
   save_object(s, basename(lp_filename))
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
+function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, QQField})
   if is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
+  field = Oscar.params(tp)
   coeff_type = elem_type(field)
-  fr = load_object(s, Polyhedron, field, :feasible_region)
+  fr = load_object(s, TypeParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_node(s, :lpcoeffs) do _
     Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
@@ -147,15 +148,16 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearProgram}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, <:Dict})
   if is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
+  params = Oscar.params(tp)
   field = params[:field]
   coeff_type = elem_type(field)
-  fr = load_object(s, Polyhedron, params, :feasible_region)
+  fr = load_object(s, TypeParams(Polyhedron, params), :feasible_region)
   conv = load_object(s, String, :convention)
-  lpcoeffs = load_object(s, Vector{coeff_type}, field, :lpcoeffs)
+  lpcoeffs = load_object(s, TypeParams(Vector{coeff_type}, field), :lpcoeffs)
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   lp = nothing
   for i in 1:length(all)
@@ -170,7 +172,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, params::Dict
 end
 
 function load_object(s::DeserializerState{LPSerializer},
-                     ::Type{<:LinearProgram}, field::QQField)
+                     tp::TypeParams{<:LinearProgram, QQField})
   load_node(s) do _
     lp_filename = dirname(basepath(s.serializer)) * "/$(load_json(s, String))"
     pm_lp = load_lp(lp_filename)
@@ -209,8 +211,9 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{<:Field
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField)
-  fr = load_object(s, Polyhedron, field, :feasible_region)
+function load_object(s::DeserializerState, tp::TypeParams{<:MixedIntegerLinearProgram, QQField})
+  field = Oscar.params(tp)
+  fr = load_object(s, TypeParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do _
     Polymake.call_function(
@@ -240,14 +243,15 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv), field)
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:MixedIntegerLinearProgram, <:Dict})
+  params = Oscar.params(tp)
   conv = load_object(s, String, :convention)
   field = params[:field]
   coeff_type = elem_type(field)
-  fr = load_object(s, Polyhedron, params, :feasible_region)
-  milp_coeffs = load_object(s, Vector{coeff_type}, field, :milp_coeffs)
+  fr = load_object(s, TypeParams(Polyhedron, params), :feasible_region)
+  milp_coeffs = load_object(s, TypeParams(Vector{coeff_type}, field), :milp_coeffs)
   int_vars = load_object(s, Vector{Int}, :int_vars)
-  
+
   all = Polymake._lookup_multi(pm_object(fr), "MILP")
   index = 0
   for i in 1:length(all)

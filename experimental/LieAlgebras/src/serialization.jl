@@ -34,9 +34,10 @@ function save_object(s::SerializerState, L::AbstractLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:AbstractLieAlgebra, <:Dict})
+  d = Oscar.params(tp)
   R = d[:base_ring]
-  struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
+  struct_consts = load_object(s, TypeParams(Matrix{sparse_row_type(R)}, R), :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
   load_root_system_data(s, L, d)
@@ -60,11 +61,12 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:LinearLieAlgebra, <:Dict})
+  d = Oscar.params(tp)
   R = d[:base_ring]
   n = load_object(s, Int, :n)
   basis = Vector{dense_matrix_type(R)}(
-    load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
+    load_object(s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, n, n)), :basis)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
@@ -88,7 +90,8 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:DirectSumLieAlgebra, <:Dict})
+  d = Oscar.params(tp)
   R = d[:base_ring]
   summands = d[:summands]
 
@@ -116,7 +119,7 @@ function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
     rs = d[:root_system]
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
-        s, NTuple{3,Vector{elem_type(L)}}, (L, L, L), :chevalley_basis
+        s, TypeParams(NTuple{3,Vector{elem_type(L)}}, (L, L, L)), :chevalley_basis
       ),
     ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
     set_root_system_and_chevalley_basis!(L, rs, chev)
@@ -131,9 +134,10 @@ function save_object(s::SerializerState, x::LieAlgebraElem)
   save_object(s, coefficients(x))
 end
 
-function load_object(s::DeserializerState, ::Type{<:LieAlgebraElem}, L::LieAlgebra)
+function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraElem, <:LieAlgebra})
+  L = Oscar.params(tp)
   R = coefficient_ring(L)
-  return L(load_object(s, Vector{elem_type(R)}, R))
+  return L(load_object(s, TypeParams(Vector{elem_type(R)}, R)))
 end
 
 ###############################################################################
@@ -158,12 +162,14 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModule, <:Dict})
+  T = tp.type
+  d = Oscar.params(tp)
   L = d[:lie_algebra]
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
-    s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
+    s, TypeParams(Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim)), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
   V = load_construction_data(L, T, d)
@@ -224,9 +230,8 @@ function save_object(s::SerializerState, x::LieAlgebraModuleElem)
   save_object(s, coefficients(x))
 end
 
-function load_object(
-  s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
-)
+function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModuleElem, <:LieAlgebraModule})
+  V = Oscar.params(tp)
   R = coefficient_ring(V)
-  return V(load_object(s, Vector{elem_type(R)}, R))
+  return V(load_object(s, TypeParams(Vector{elem_type(R)}, R)))
 end

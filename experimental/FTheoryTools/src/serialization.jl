@@ -186,7 +186,7 @@ function _maybe_load(
     else
       dict_params = Dict(:key_params => nothing, :value_params => params[key])
     end
-    return load_object(s, T, dict_params, key)
+    return load_object(s, TypeParams(T, dict_params), key)
   end
   return T()
 end
@@ -202,7 +202,7 @@ function _load_common_parts(s::DeserializerState, params::Dict)
       (:tate_polynomial_ring, :tate_polynomial),
     ) if haskey(params, rk)
   ))
-  def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
+  def_poly = load_object(s, TypeParams(MPolyDecRingElem, params[ring_key]), poly_key)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
 
   explicit_model_sections = _maybe_load(
@@ -220,7 +220,8 @@ function _load_common_parts(s::DeserializerState, params::Dict)
   return def_poly, explicit_model_sections, model_section_parametrization, defining_classes
 end
 
-function load_object(s::DeserializerState, ::Type{<:WeierstrassModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:WeierstrassModel, <:Dict})
+  params = Oscar.params(tp)
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
     s, params
   )
@@ -235,7 +236,8 @@ function load_object(s::DeserializerState, ::Type{<:WeierstrassModel}, params::D
   return model
 end
 
-function load_object(s::DeserializerState, ::Type{<:GlobalTateModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:GlobalTateModel, <:Dict})
+  params = Oscar.params(tp)
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
     s, params
   )
@@ -250,14 +252,14 @@ function load_object(s::DeserializerState, ::Type{<:GlobalTateModel}, params::Di
   return model
 end
 
-function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Dict)
+function load_object(s::DeserializerState, tp::TypeParams{<:HypersurfaceModel, <:Dict})
+  params = Oscar.params(tp)
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
     s, params
   )
   defining_equation_parametrization = load_object(
     s,
-    MPolyRingElem,
-    params[:hypersurface_equation_parametrization_ring],
+    TypeParams(MPolyRingElem, params[:hypersurface_equation_parametrization_ring]),
     :hypersurface_equation_parametrization,
   )
   model = HypersurfaceModel(
