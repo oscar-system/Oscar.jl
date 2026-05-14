@@ -487,10 +487,10 @@ degree: 0  1  2  3
  total: 2  4  4  2
 
 julia> matrix(map(FM2, 1))
-[1            0]
-[0   -x*z + y^2]
-[0   -w*z + x*y]
-[0          w*y]
+[0         w*y]
+[0   w*z - x*y]
+[0   x*z - y^2]
+[1           0]
 
 julia> FM3 = free_resolution(M, algorithm = :mres)
 Free resolution of M
