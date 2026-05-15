@@ -129,7 +129,7 @@ end
 ################################################################################
 # FqField
 
-@register_serialization_type FqField "FiniteField" uses_id
+@register_serialization_type FqField "FiniteField" uses_id default
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
