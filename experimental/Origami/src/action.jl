@@ -30,8 +30,8 @@ For a given origami o this methods computes the origami T.o where T = [1 1; 0 1]
 julia> o = origami(cperm([1,6,4,7,5,3], [2,8]), cperm([1,4,5,3,8,2,6]))
 Origami ((1,6,4,7,5,3)(2,8),(1,4,5,3,8,2,6), 8)
 
-julia> action_s_inv(o)
-Origami ((1,4,5,3,8,2,6),(1,3,5,7,4,6)(2,8), 8)
+julia> action_t(o)
+Origami ((1,6,4,7,5,3)(2,8),(1,8,6,4)(5,7), 8)
 ```
 """
 function action_t(o::Origami)
@@ -59,7 +59,6 @@ function action_t_inv(o::Origami)
   return origami_disconnected(h, h * v, degree(o))
 end
 
-
 @doc raw"""
     action_s_inv(o::Origami)
 
@@ -79,7 +78,6 @@ function action_s_inv(o::Origami)
   v = vertical_perm(o)
   return origami_disconnected(v, h^-1, degree(o))
 end
-
 
 @doc raw"""
     action_sl2(A::ZZMatrix,o::Origami)
