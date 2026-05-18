@@ -163,8 +163,8 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
   return obj
 end
 
-function _dict_to_bigobject(dict::Dict{Symbol, Any})
-  obj = Polymake.BigObject(Polymake.BigObjectType(dict[:_polymake_type]))
+function _dict_to_bigobject(dict::Dict{String, Any})
+  obj = Polymake.BigObject(Polymake.BigObjectType(dict["_polymake_type"]))
   _load_bigobject_from_dict!(obj, dict)
   return obj
 end

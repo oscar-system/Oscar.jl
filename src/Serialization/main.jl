@@ -417,9 +417,13 @@ function load_type_params(s::DeserializerState, T::Type)
             if is_array(s)
               return load_type_array_params(s)
             end
-
+            if haskey(s, type_key)
+              return load_typed_object(s)
+            end
             U = decode_type(s)
-            if is_string(s) && isnothing(tryparse(UUID, load_json(s, String)))
+            if is_string(s)
+              uuid_str = load_json(s, String)
+              !isnothing(tryparse(UUID, uuid_str)) && return load_ref(s)
               return TypeParams(U, nothing)
             end
             return load_type_params(s, U)
@@ -907,27 +911,38 @@ function load(filename::String; kwargs...)
   end
 end
 
+# normalize a single pair value for use as override param:
+#   - TypeParams kept as-is (new style or type-param entries)
+#   - bare Type wrapped in TypeParams (backwards compat)
+#   - actual objects (rings, fields, etc.) kept as-is (matches internal loading)
+_normalize_pair_value(v::TypeParams) = v
+_normalize_pair_value(T::Type) = TypeParams(T, nothing)
+_normalize_pair_value(v) = v
+
+function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
+  map(params(tp)) do (k, v)
+    k => _normalize_pair_value(v)
+  end
+end
+
+# backwards compat: raw pair tuples (not wrapped in TypeParams)
+function _convert_override_params(t::Tuple{Vararg{Pair}})
+  map(x -> x.first => _normalize_pair_value(x.second), t)
+end
+
 _convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
+_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = tp[:subtype_params]
 
 function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
   return Dict(k => TypeParams(type(v), _convert_override_params(v)) for (k, v) in params(tp))
 end
 
 _convert_override_params(obj::Any) = obj
-
-#handles empty tuple ambiguity
 _convert_override_params(obj::Tuple{}) = ()
-
 _convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
-
-function _convert_override_params(t::Tuple{Vararg{Pair}})
-  map(x -> x.first => _convert_override_params(x.second), t)
-end
 
 # handle monomial ordering
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T

@@ -120,12 +120,13 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{Vector{T}}) where T
   p = Oscar.params(tp)
+  elem_tp = p isa TypeParams ? p : TypeParams(T, p)
   isempty(s) && return T[]
   v = load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
     else
-      load_object(s, TypeParams(T, p))
+      load_object(s, elem_tp)
     end
   end
   return v
@@ -161,13 +162,14 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{<:Matrix{S}}) where S
   T = type(tp)
   p = Oscar.params(tp)
+  elem_tp = p isa TypeParams ? p : TypeParams(S, p)
   load_node(s) do _
     if isempty(s)
       return T(undef, 0, 0)
     end
     len = length(s.obj)
     m = stack([
-      load_object(s, TypeParams(Vector{S}, p), i) for i in 1:len
+      load_object(s, TypeParams(Vector{S}, elem_tp), i) for i in 1:len
         ]; dims=1)
     return T(m)
   end
@@ -205,12 +207,13 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{Array{S, N}}) where {S, N}
   T = type(tp)
   p = Oscar.params(tp)
+  sub_tp = p isa TypeParams ? p : TypeParams(S, p)
   load_node(s) do _
     if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
     end
     len = length(s.obj)
-    m = [load_object(s, TypeParams(Array{S, N - 1}, p), i) for i in 1:len]
+    m = [load_object(s, TypeParams(Array{S, N - 1}, sub_tp), i) for i in 1:len]
     return stack(m; dims=1)
   end
 end
@@ -273,7 +276,8 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Tuple, <:Tuple})
     if serialize_with_id(S)
       return load_ref(s)
     else
-      return load_object(s, TypeParams(S, p[i]))
+      elem_tp = p[i] isa TypeParams ? p[i] : TypeParams(S, p[i])
+      return load_object(s, elem_tp)
     end
   end
   return Tuple(entries)
@@ -400,8 +404,8 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
         load_type_params(s, decode_type(s))
       end
       return TypeParams(Dict{S, type(value_tp)},
-                        :key_params => Oscar.params(key_tp),
-                        :value_params => Oscar.params(value_tp))
+                        :key_params => key_tp,
+                        :value_params => value_tp)
     else
       # Heterogeneous Dict{S, Any} — per-key type params stored as Dict
       params_dict = Dict{S, Any}()
@@ -482,11 +486,10 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:Dict{S, U}, <:Tuple{Vararg{Pair}}}) where {S <: Union{Int, String, Symbol}, U}
   T = type(tp)
-  value_p = tp[:value_params]
   pairs = Tuple{S, U}[]
   for k in propertynames(s.obj)
     key = S <: Integer ? parse(S, string(k)) : S(k)
-    push!(pairs, (key, load_object(s, TypeParams(U, value_p), k)))
+    push!(pairs, (key, load_object(s, tp[:value_params], k)))
   end
   isempty(pairs) && return T()
   _, v = first(pairs)
@@ -557,8 +560,9 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{<:Set{T}}) where T
   S = type(tp)
   p = Oscar.params(tp)
+  elem_tp = p isa TypeParams ? p : TypeParams(T, p)
   elems = load_array_node(s) do _
-    load_object(s, TypeParams(T, p))
+    load_object(s, elem_tp)
   end
   return S(elems)
 end

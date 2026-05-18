@@ -264,7 +264,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:Tuple{Vararg{Pair}}})
   base_ring = tp[:base_ring]
-  ordering_type = tp[:ordering_type]
+  ordering_type = type(tp[:ordering_type])
 
   if ordering_type <: MonomialOrdering
     ord = load_object(s, TypeParams(ordering_type, base_ring), :ordering)
@@ -582,7 +582,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
   R = tp[:base_ring]
-  ordering_type = tp[:ordering]
+  ordering_type = type(tp[:ordering])
   o = load_object(s, TypeParams(ordering_type, R), :ordering)
   I = load_object(s, TypeParams(ideal_type(R), R), :modulus)
 
@@ -680,7 +680,7 @@ function save_object(s::SerializerState, L::MPolyLocRing)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:MPolyLocRing, <:Tuple{Vararg{Pair}}})
-  U = tp[:mult_set_type]
+  U = type(tp[:mult_set_type])
   R = tp[:base_ring]
   mult_set = load_object(s, TypeParams(U, R))
   return MPolyLocRing(R, mult_set)
@@ -770,7 +770,7 @@ function load_object(s::DeserializerState, tp::TypeParams{T, <:Tuple{Vararg{Pair
   dom = tp[:domain]
   cod = tp[:codomain]
   rm_tp = tp[:restricted_map_params]
-  res = load_object(s, TypeParams(MPolyAnyMap, rm_tp))
+  res = load_object(s, rm_tp)
   return MPolyLocalizedRingHom(dom, cod, res; check=false)
 end
 
@@ -786,7 +786,7 @@ function load_object(s::DeserializerState, tp::TypeParams{T, <:Tuple{Vararg{Pair
   dom = tp[:domain]
   cod = tp[:codomain]
   rm_tp = tp[:restricted_map_params]
-  res = load_object(s, TypeParams(MPolyAnyMap, rm_tp))
+  res = load_object(s, rm_tp)
   return MPolyQuoLocalizedRingHom(dom, cod, res; check=false)
 end
 
