@@ -65,16 +65,24 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task=:a
   return coordinates_via_transform(a, std)
 end
 
+#= The function's body is copied from `src/Modules`. 
+# We need to duplicate the method, because it needs te be made available for 
+# the type `MonoidAlgebraElem` which is from experimental. Therefore, we can 
+# not introduce a type union in `src`.
+=#
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   R = base_ring(M)
-  G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
-  mg = ModuleGens(oscar_free_module(M), G)
+  G, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(M))
+  A = sparse_matrix(R, 0, ngens(trans_mod))
+  for v in gens(trans_mod)
+    push!(A, _build_sparse_row(R, v))
+  end
+  mg = ModuleGens(M.F, G)
   mg.isGB = true
   mg.S.isGB = true
-  mg.ordering = default_ordering(oscar_free_module(M))
-  mat = map_entries(R, transpose(Trans_mat))
-  set_attribute!(mg, :transformation_matrix => mat)
-  return mg, mat
+  mg.ordering = default_ordering(M.F)
+  set_attribute!(mg, :sparse_transformation_matrix => A)
+  return mg, A
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
@@ -85,7 +93,7 @@ function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: Monoid
 end
 
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  A = get_attribute(generators, :transformation_matrix)
+  A = get_attribute(generators, :sparse_transformation_matrix)
   A === nothing && error("No transformation matrix in the Gröbner basis.")
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
@@ -103,7 +111,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   end
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  return coords_wrt_groebner_basis * A
 end
 
 function sparse_row(
