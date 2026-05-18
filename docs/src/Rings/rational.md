@@ -11,6 +11,8 @@ fraction is created from Julia integers, a Julia fraction results, and if either
 the numerator or denominator is an OSCAR integer of type `ZZRingElem`, an OSCAR
 fraction of type `QQFieldElem` results.
 
+OSCAR makes a subtle but important [distinction between `/` and `//`.](@ref subtle_distinction_for_rings).
+
 Julia has its own parameterised type `Rational{T}` for its own fractions, where
 `T` is the integer type of the numerator and denominator, e.g.
 `Rational{Int}` and `Rational{BigInt}`. Unlike with `Int`, all of the basic

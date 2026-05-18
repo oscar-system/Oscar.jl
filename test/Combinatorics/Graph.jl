@@ -159,6 +159,10 @@
         @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
+
+        @test shortest_path_dijkstra(g, 1, 5) == [1, 3, 5]
+        @test_throws ArgumentError shortest_path_dijkstra(g, 1, 6)
+        @test_throws ArgumentError shortest_path_dijkstra(g, 7, 1)
     end
 
     @testset "errors" begin

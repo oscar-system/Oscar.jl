@@ -188,6 +188,8 @@ Relative Gröbner / standard bases are also supported.
     r = new{T}()
     r.O = O
     r.F = F
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 
@@ -198,6 +200,8 @@ Relative Gröbner / standard bases are also supported.
     r.O = O
     r.SF = SF
     r.F = F
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 
@@ -211,6 +215,8 @@ Relative Gröbner / standard bases are also supported.
       r.SF = parent(s[1])
     end
     r.S = s
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 end
