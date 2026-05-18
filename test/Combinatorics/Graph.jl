@@ -341,9 +341,10 @@
       G1_hash = Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
       G2 = graph_from_labeled_edges(Dict((1,2) => 4, (2,3) => 3, (3, 4) => 1, (4, 1) => 2), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
       G2_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
-      G3 = graph_from_edges([[2,1], [3,2], [1,3]])
-      @test  == Oscar._canonical_hash(G2; vertex_distinguishable=false, edge_distinguishable=false)
-      @test Oscar._canonical_hash(G1; vertex_distinguishable=false, edge_distinguishable=false) != Oscar._canonical_hash(G3; vertex_distinguishable=false, edge_distinguishable=false)
+      @test G1_hash == G2_hash
+      G3 = graph_from_labeled_edges(Dict((1,2) => 3, (2,3) => 3, (3, 4) => 1, (4, 1) => 2), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
+      G3_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      @test G3_hash != G1_hash
       
       #vertex indistinguishable, edge distinguishable
       G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7))
