@@ -1044,7 +1044,8 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
 
   # an edge of a given coloring appears in the nth layer if there is a one in
   # the nth entry of its binary expansion
-  n_layers = length(digits(length(edges_by_label), base = 2))
+  # when edges are distinguishable, otherwise, see below
+  n_layers = edge_distinguishable ? length(digits(length(edges_by_label), base = 2)) : 1
 
   # to make vertices indistinguishable we attach an edge between vertices labeled with
   # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
@@ -1090,7 +1091,7 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
     for (i, (_, e_with_label)) in enumerate(edges_by_label)
       label_base2 = digits(i, base=2, pad=n_layers)
       for e in e_with_label
-        if isone(label_base2[layer])
+        if !edge_distinguishable || isone(label_base2[layer])
           add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
           if !edge_distinguishable
             # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
