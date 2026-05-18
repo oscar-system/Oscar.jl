@@ -34,8 +34,6 @@ export MorphismFromRationalFunctions
 export SpaceGerm
 
 export DeterminantalGerm
-export SymmetricDeterminantalGerm
-export SkewSymmetricDeterminantalGerm
 
 export ambient_germ
 export basis_representation
@@ -76,7 +74,7 @@ export defining_matrix
 export determinantal_type
 export T1_GL_module
 export tjurina_GL_number
-export is_determinantal_rigid
+export is_determinantally_rigid
 export is_EIDS
 export basis_versal_det_unfolding
 
