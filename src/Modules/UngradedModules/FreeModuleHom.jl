@@ -530,7 +530,8 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   # This code is also used by graded modules and we need to care for that.
   if graded_M && is_graded(h)
     image_degrees = [degree(F[i]; check=false) + degree(h; check=false) for i in 1:ngens(F)]
-    set_grading!(H, vcat(image_degrees, [degree(r; check=false) for r in rels]))
+    relation_degrees = FinGenAbGroupElem[degree(r; check=false) for r in rels]
+    set_grading!(H, vcat(image_degrees, relation_degrees))
   end
   phi = hom(H, G, g; check=false)
   K, _ = kernel(phi)
