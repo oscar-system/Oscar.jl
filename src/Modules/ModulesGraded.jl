@@ -645,6 +645,30 @@ function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{FinG
   return element_degree
 end
 
+_is_zero_representative_for_grading(v::OFPModuleElem) = is_zero(v)
+
+function _is_zero_representative_for_grading(v::SubquoModuleElem)
+  isdefined(v, :coeffs) && is_zero(v.coeffs) && return true
+  return is_zero(repres(v))
+end
+
+_degree_for_grading(v::OFPModuleElem; check::Bool=true) = degree(v; check)
+
+function _degree_for_grading(v::SubquoModuleElem; check::Bool=true)
+  @check is_graded(parent(v)) "the parent module is not graded"
+  _is_zero_representative_for_grading(v) && return zero(grading_group(base_ring(parent(v))))::FinGenAbGroupElem
+
+  if isdefined(v, :coeffs)
+    degree_from_coords = determine_degree_from_SR(coordinates(v), degrees_of_generators(parent(v); check))
+    degree_from_coords !== nothing && return degree_from_coords::FinGenAbGroupElem
+  end
+
+  r = repres(v)
+  !check && return degree(r; check=false)
+  is_homogeneous(r) && return degree(r; check)
+  return degree(repres(simplify(v)); check)
+end
+
 ###############################################################################
 # Graded Free Module homomorphisms constructors
 ###############################################################################
@@ -682,16 +706,11 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
   
   source_degrees = Vector{eltype(G)}()
   for (i, v) in enumerate(V)
-    if is_zero(v)
+    if _is_zero_representative_for_grading(v)
       push!(source_degrees, zero(G))
       continue
     end
-    for (j, c) in coordinates(v)
-      if !iszero(c)
-        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
-        break
-      end
-    end
+    push!(source_degrees, _degree_for_grading(v; check))
   end
   @assert length(source_degrees) == nrows
   Fcdm = graded_free_module(R, source_degrees)
@@ -707,20 +726,28 @@ function graded_map(F::SubquoModule{T}, V::Vector{<:OFPModuleElem{T}}; check::Bo
   nrows = length(V)
   source_degrees = Vector{eltype(G)}()
   for (i, v) in enumerate(V)
-    if is_zero(v)
+    if _is_zero_representative_for_grading(v)
       push!(source_degrees, zero(G))
       continue
     end
-    for (j, c) in coordinates(v)
-      if !iszero(c)
-        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
-        break
-      end
-    end
+    push!(source_degrees, _degree_for_grading(v; check))
   end
   Fcdm = graded_free_module(R, source_degrees)
   phi = hom(Fcdm, F, V; check)
   return phi
+end
+
+function graded_map(
+    Fdom::FreeMod{T},
+    Fcod::OFPModule{T},
+    V::Vector{<:OFPModuleElem{T}};
+    check::Bool=true,
+    hom_degree::Union{Nothing, FinGenAbGroupElem}=nothing,
+    generators_map_to_generators::Union{Bool, Nothing}=nothing
+  ) where {T <: AdmissibleOFPModuleRingElem}
+  @check is_graded(Fdom) "the domain module is not graded"
+  @check is_graded(Fcod) "the codomain module is not graded"
+  return hom(Fdom, Fcod, V; check, hom_degree, generators_map_to_generators)
 end
 
 ###############################################################################
@@ -782,10 +809,10 @@ function degree(f::FreeModuleHom; check::Bool=true)
   @check (is_graded(domain(f)) && is_graded(codomain(f))) "both domain and codomain must be graded"
   @check is_graded(f) "map is not graded"
   for i in 1:ngens(domain(f))
-    if iszero(domain(f)[i]) || iszero(image_of_generator(f, i))
+    if iszero(domain(f)[i]) || _is_zero_representative_for_grading(image_of_generator(f, i))
       continue
     end
-    f.d = degree(image_of_generator(f, i); check) - degree(domain(f)[i]; check)
+    f.d = _degree_for_grading(image_of_generator(f, i); check) - degree(domain(f)[i]; check)
     return f.d::FinGenAbGroupElem
   end
 
@@ -798,10 +825,10 @@ function degree(f::FreeModuleHom; check::Bool=true)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector)) || is_zero(image_vector)
+    if _is_zero_representative_for_grading(image_vector)
       continue
     end
-    current_df = degree(image_vector) - domain_degrees[i]
+    current_df = _degree_for_grading(image_vector) - domain_degrees[i]
     if df === nothing
       df = current_df
     elseif df != current_df
@@ -970,9 +997,13 @@ function is_graded(M::SubModuleOfFreeModule)
   is_graded(M.F) && all(is_homogeneous, M.gens)
 end
 
+@attr Vector{FinGenAbGroupElem} function _degrees_of_generators_cached(M::SubModuleOfFreeModule{T}) where T
+  return map(gen -> degree(gen; check=false), gens(M))
+end
 
 function degrees_of_generators(M::SubModuleOfFreeModule{T}; check::Bool=true) where T
-  return map(gen -> degree(gen; check), gens(M))
+  @check is_graded(M) "module must be graded"
+  return _degrees_of_generators_cached(M)
 end
 
 ###############################################################################
@@ -1074,8 +1105,15 @@ julia> gens(M)
  z*e[2]
 ```
 """
+@attr Vector{FinGenAbGroupElem} function _degrees_of_generators_cached(M::SubquoModule{T}) where T
+  G = gens(M)
+  isempty(G) && return FinGenAbGroupElem[]
+  return map(gen -> degree(repres(gen); check=false), G)
+end
+
 function degrees_of_generators(M::SubquoModule{T}; check::Bool=true) where T
-  isempty(gens(M)) ? FinGenAbGroupElem[] : map(gen -> degree(repres(gen); check), gens(M))
+  @check is_graded(M) "module must be graded"
+  return _degrees_of_generators_cached(M)
 end
 
 ###############################################################################
@@ -1133,7 +1171,13 @@ x*e[1] + (y - z)*e[2]
 ```
 """
 function is_homogeneous(el::SubquoModuleElem)
-  el.is_reduced && return is_homogeneous(repres(el))
+  _is_zero_representative_for_grading(el) && return true
+  if isdefined(el, :coeffs)
+    degree_from_coords = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
+    degree_from_coords !== nothing && return true
+  end
+  r = repres(el)
+  is_homogeneous(r) && return true
   return is_homogeneous(repres(simplify(el)))
 
   # The following call checks for homogeneity on the way and stores the degree thus determined.
@@ -1204,13 +1248,7 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem; check::Bool=true)
-  # In general we can not assume that we have a groebner basis reduction available 
-  # as a backend to bring the element to normal form. 
-  # In particular, this may entail that `coordinates` produces non-homogeneous 
-  # vectors via differently implemented liftings. 
-  # Thus, the only thing we can do is to assume that the representative is 
-  # homogeneous.
-  return degree(repres(simplify!(el)); check)
+  return _degree_for_grading(el; check)
 end
 
 # When there is a Groebner basis backend, we can reduce to normal form.
@@ -1218,8 +1256,7 @@ function degree(
     el::SubquoModuleElem{T};
     check::Bool=true
   ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
-  !el.is_reduced && return degree(simplify!(el); check)
-  return degree(repres(el); check)
+  return _degree_for_grading(el; check)
 end
 
 _degree_fast(el::SubquoModuleElem) = degree(el, check=false)
@@ -1290,15 +1327,16 @@ function degree(f::SubQuoHom; check::Bool=true)
   if !is_graded(T1) || !is_graded(T2)
     error("Both domain and codomain must be graded.")
   end
-  if iszero(T1)
+  if ngens(T1) == 0
     R = base_ring(T1)
     G = grading_group(R)
     return G[0]
   end
   @check is_graded(f) "homomorphism is not graded"
+  domain_degrees = degrees_of_generators(T1; check)
   for (i, v) in enumerate(gens(T1))
-    (is_zero(v) || is_zero(image_of_generator(f, i))) && continue
-    f.d = degree(image_of_generator(f, i); check) - degree(v; check)
+    (_is_zero_representative_for_grading(v) || _is_zero_representative_for_grading(image_of_generator(f, i))) && continue
+    f.d = _degree_for_grading(image_of_generator(f, i); check) - domain_degrees[i]
     return f.d::FinGenAbGroupElem
   end
 
