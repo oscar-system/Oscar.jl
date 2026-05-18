@@ -200,9 +200,18 @@ julia> a2 == b
 true
 ```
 """
-function hom(F::FreeMod, M::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}; check::Bool=true) where T
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M); check)
-  return FreeModuleHom(F, M, V; check)
+function hom(
+    F::FreeMod,
+    M::OFPModule{T},
+    V::Vector{<:OFPModuleElem{T}};
+    check::Bool=true,
+    hom_degree::Union{Nothing, FinGenAbGroupElem}=nothing,
+    generators_map_to_generators::Union{Bool, Nothing}=nothing
+  ) where T
+  if base_ring(F) !== base_ring(M)
+    return FreeModuleHom(F, M, V, base_ring(M); check, hom_degree, generators_map_to_generators)
+  end
+  return FreeModuleHom(F, M, V; check, hom_degree, generators_map_to_generators)
 end
 function hom(F::FreeMod, M::OFPModule{T}, A::MatElem{T}; check::Bool=true) where T 
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M); check)
@@ -498,19 +507,32 @@ function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
 end
 
 function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
-  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  all(_is_zero_representative_for_grading, images_of_generators(h)) && return sub(domain(h), gens(domain(h)))
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
-  # We have to take the representatives of the reduced elements!
-  # Otherwise we might get wrong degrees.
-  g = [repres(simplify(v)) for v in images_of_generators(h)]
-  g = vcat(g, relations(M))
+  # Prefer the given representative: reducing modulo the relations can be much
+  # more expensive than carrying the known grading data. Fall back to a reduced
+  # representative only when the current representative is not homogeneous.
+  graded_M = is_graded(M)
+  g = elem_type(G)[]
+  for v in images_of_generators(h)
+    r = repres(v)
+    if graded_M && !is_zero(r) && !is_homogeneous(r)
+      r = repres(simplify(v))
+    end
+    push!(g, r)
+  end
+  rels = relations(M)
+  g = vcat(g, rels)
   R = base_ring(G)
   H = FreeMod(R, length(g))
   # This code is also used by graded modules and we need to care for that.
-  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
-  phi = hom(H, G, g)
+  if graded_M && is_graded(h)
+    image_degrees = [degree(F[i]; check=false) + degree(h; check=false) for i in 1:ngens(F)]
+    set_grading!(H, vcat(image_degrees, [degree(r; check=false) for r in rels]))
+  end
+  phi = hom(H, G, g; check=false)
   K, _ = kernel(phi)
   r = ngens(F)
   v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]

@@ -525,6 +525,11 @@ end
 
     @test is_graded(M)
     @test degrees_of_generators(M) == [1*Z[1], 2*Z[1]]
+    @test is_zero(M[2])
+    @test degree(M[2]) == 2*Z[1]
+
+    h = graded_map(M, gens(M); check=false)
+    @test degrees_of_generators(domain(h)) == degrees_of_generators(M)
 
     pres = presentation(M; minimal=false)
     F0 = domain(map(pres, 0))
