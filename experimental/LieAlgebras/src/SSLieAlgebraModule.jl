@@ -520,7 +520,7 @@ end
 
 ###############################################################################
 #
-#   Demazure modules (via highest weight) of semisimple Lie algebras
+#   Demazure modules of semisimple Lie algebras
 #
 ###############################################################################
 
@@ -598,6 +598,25 @@ end
 
 function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   return demazure_operator(r, Dict(w => 1))
+end
+
+# If the reduced expression is w_1,w_2,...,w_k, then this applies the Demazure operator for w_1, then for w_2, and so on to `char`.
+function _iterated_demazure_operator(
+  R::RootSystem,
+  reduced_expression::Vector{<:IntegerUnion},
+  char::Dict{WeightLatticeElem,<:IntegerUnion},
+)
+  for i in reduced_expression
+    char = demazure_operator(simple_root(R, Int(i)), char)
+  end
+  return char
+end
+
+function _iterated_demazure_operator(
+  R::RootSystem, x::WeylGroupElem, char::Dict{WeightLatticeElem,<:IntegerUnion}
+)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return _iterated_demazure_operator(R, word(x), char)
 end
 
 @doc raw"""
@@ -681,35 +700,20 @@ function demazure_character(
   return demazure_character(T, R, WeightLatticeElem(R, w), x)
 end
 
-function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
-  @req root_system(parent(x)) === R "parent root system mismatch"
-  return demazure_character(R, w, word(x))
-end
-
 function demazure_character(
-  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
+  R::RootSystem, w::WeightLatticeElem, x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req root_system(parent(x)) === R "parent root system mismatch"
-  return demazure_character(T, R, w, word(x))
-end
-
-function demazure_character(
-  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
-)
-  return demazure_character(Int, R, w, reduced_expression)
+  return demazure_character(Int, R, w, x)
 end
 
 function demazure_character(
   T::DataType,
   R::RootSystem,
   w::WeightLatticeElem,
-  reduced_expression::Vector{<:IntegerUnion},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
   @req root_system(w) === R "parent root system mismatch"
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
-  for i in reduced_expression
-    char = demazure_operator(simple_root(root_system(w), Int(i)), char)
-  end
-  return char
+  return _iterated_demazure_operator(R, x, char)
 end
