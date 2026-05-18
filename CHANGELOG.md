@@ -13,7 +13,7 @@ which we think might affect some users directly.
 
 ### Combinatorics
 
-- [#5931](https://github.com/oscar-system/Oscar.jl/pull/5931) shortest_path_dijkstra: add checks for input vertices
+- [#5931](https://github.com/oscar-system/Oscar.jl/pull/5931) `shortest_path_dijkstra`: add checks for input vertices
 
 ### Other changes
 
