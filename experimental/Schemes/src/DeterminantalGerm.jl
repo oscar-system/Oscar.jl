@@ -2,11 +2,11 @@
 ## Some more getter functions
 ################################################################################
 
-function defining_matrix(X::AnyDeterminantalGerm)
+function defining_matrix(X::DeterminantalGerm)
   return X.A
 end
 
-function determinantal_type(X::AnyDeterminantalGerm)
+function determinantal_type(X::DeterminantalGerm)
   n, m = size(X.A)
   return n, m, X.t
 end
@@ -18,7 +18,7 @@ end
 #TODO: To be added
 
 ################################################################################
-## T1_GL
+## T1_GL module
 ################################################################################
 
 function _R_ij(A::MatElem, i::Integer, j::Integer)
@@ -33,7 +33,7 @@ function _C_ij(A::MatElem, i::Integer, j::Integer)
   return C_ij
 end
 
-@attr SubquoModule function T1_GL_module(X::DeterminantalGerm)
+@attr SubquoModule function T1_GL_module(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}})
   # Use the transpose for _vec() below to match the entries correctly
   A = transpose(defining_matrix(X))
   m, n = size(A)
@@ -48,11 +48,11 @@ end
   return quo(F, F.(_vec.(modulus)))[1]
 end
 
-tjurina_GL_number(X::DeterminantalGerm) = vector_space_dim(T1_GL_module(X))
+tjurina_GL_number(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}}) = vector_space_dim(T1_GL_module(X))
 
-is_determinantal_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X))
+is_determinantally_rigid(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}}) = is_zero(T1_GL_module(X))
 
-@attr Bool is_EIDS(X::DeterminantalGerm) = krull_dim(T1_GL_module(X)) <= 0
+@attr Bool is_EIDS(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}}) = krull_dim(T1_GL_module(X)) <= 0
 
-basis_versal_det_unfolding(X::DeterminantalGerm) = vector_space_basis(T1_GL_module(X))
+basis_versal_det_unfolding(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}}) = vector_space_basis(T1_GL_module(X))
 

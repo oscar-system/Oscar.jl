@@ -121,107 +121,69 @@ const LocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, MST} where {
 ## type declaration derterminantal germs
 ################################################################################
 
+const DeterminantalGermType = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
+
 @attributes mutable struct DeterminantalGerm{
-                  BaseRingType<:Ring,
-                  RingType<:Ring,
-                  AffineSchemeType<:AffineScheme
+                  BaseRingType <: Ring,
+                  RingType <: Ring,
+                  AffineSchemeType <: AffineScheme, 
+                  DeterminantalType <: DeterminantalGermType
                 } <: AbsSpaceGerm{BaseRingType, RingType}
   A::MatElem{<:RingElem}
   t::Int
   X::AffineSchemeType
+  type::DeterminantalType
 
-  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
-    1 <= t <= minimum(size(A)) || error("t must be in the range of 1:min(size(A))")
-    R = base_ring(A)
-    I = ideal(R, minors(A, t))
+  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; type::Symbol = :generic, check::Bool=true)
+    @req type in (:generic, :symmetric, :skew_symmetric) "Type must be either ':generic', ':symmetric' or 'skew_symmetric'."
     (n, m) = size(A)
-    @check begin
-      # TODO: better error for (skew) symmetric matrices
-      ngens(R) - krull_dim(I) == (n-t+1)*(m-t+1)|| error("Not a determinantal singularity.")
-    end
-    K = coefficient_ring(R)
-    Q, _ = quo(R, I)
-    X = spec(Q)
-    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
-  end
-end
-
-@attributes mutable struct SymmetricDeterminantalGerm{
-                  BaseRingType<:Ring,
-                  RingType<:Ring,
-                  AffineSchemeType<:AffineScheme
-                } <: AbsSpaceGerm{BaseRingType, RingType}
-  A::MatElem{<:RingElem}
-  t::Int
-  X::AffineSchemeType
-
-  function SymmetricDeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
-    n, m = size(A)
-    @req n == m "A must be a quadratic matrix."
-    1 <= t <= n || error("t must be in the range of 1:nrows(A)")
-    @req is_symmetric(A) "A must be a symmetric matrix."
+    1 <= t <= min(n, m) || error("t must be in the range of 1:min(size(A))")
     R = base_ring(A)
-    I = ideal(R, minors(A, t))
-    (n, m) = size(A)
-    @check begin
-      ngens(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Not a symmetric determinantal singularity.")
+
+    if type == :generic
+      I = ideal(R, minors(A, t))
+      @check begin
+        ngens(R) - krull_dim(I) == (n-t+1)*(m-t+1)|| error("Matrix does not describe a singularity of expected codimension.")
+      end
+    elseif type == :symmetric
+      @req is_symmetric(A) "A must be a symmetric matrix."
+      I = ideal(R, minors(A, t))
+      @check begin
+        ngens(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Symmetric matrix does not describe a singularity of expected codimension.")
+      end
+    else # type == :skew_symmetric
+      @req is_skew_symmetric(A) "A must be a skew symmetric matrix."
+      I = ideal(R, pfaffians(A, 2*t))
+      @check begin
+        ngens(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Skew-symmetric matrix does not describe a singularity of expected codimension.")
+      end
     end
+
     K = coefficient_ring(R)
     Q, _ = quo(R, I)
     X = spec(Q)
-    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
+    val = Val(type)
+    return new{typeof(K), typeof(Q), typeof(X), typeof(val)}(A, t, X, val)
   end
 end
 
-@attributes mutable struct SkewSymmetricDeterminantalGerm{
-                  BaseRingType<:Ring,
-                  RingType<:Ring,
-                  AffineSchemeType<:AffineScheme
-                } <: AbsSpaceGerm{BaseRingType, RingType}
-  A::MatElem{<:RingElem}
-  t::Int
-  X::AffineSchemeType
-
-  function SkewSymmetricDeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; check::Bool=true)
-    n, m = size(A)
-    @req n == m "A must be a quadratic matrix."
-    1 <= t <= n || error("t must be in the range of 1:nrows(A)")
-    @req is_skew_symmetric(A) "A must be a skew symmetric matrix."
-    R = base_ring(A)
-    I = ideal(R, pfaffians(A, 2*t))
-    @check begin
-      ngens(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Not a skew symmetric determinantal singularity.")
-    end
-    K = coefficient_ring(R)
-    Q, _ = quo(R, I)
-    X = spec(Q)
-    return new{typeof(K), typeof(Q), typeof(X)}(A, t, X)
-  end
-end
 
 ##############################################################################
 ## Some more shorthand notation
 ##############################################################################
-const AnyDeterminantalGerm = Union{DeterminantalGerm, 
-                                   SymmetricDeterminantalGerm, 
-                                   SkewSymmetricDeterminantalGerm}
 const AnySpaceGerm = Union{SpaceGerm, 
                            HypersurfaceGerm, 
                            CompleteIntersectionGerm, 
-                           AnyDeterminantalGerm}
+                           DeterminantalGerm}
 const AnySpaceGermClosedPoint = Union{SpaceGerm{BRT, RT, AST},
                                       HypersurfaceGerm{BRT, RT, AST},
                                       CompleteIntersectionGerm{BRT, RT, AST},
-                                      DeterminantalGerm{BRT, RT, AST},
-                                      SymmetricDeterminantalGerm{BRT, RT, AST},
-                                      SkewSymmetricDeterminantalGerm{BRT, RT, AST}
+                                      DeterminantalGerm{BRT, RT, AST, <: DeterminantalGermType}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtClosedPoint}
 const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
                                       HypersurfaceGerm{BRT, RT, AST},
                                       CompleteIntersectionGerm{BRT, RT, AST},
-                                      DeterminantalGerm{BRT, RT, AST},
-                                      SymmetricDeterminantalGerm{BRT, RT, AST},
-                                      SkewSymmetricDeterminantalGerm{BRT, RT, AST}
+                                      DeterminantalGerm{BRT, RT, AST, <: DeterminantalGermType}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
 
 
