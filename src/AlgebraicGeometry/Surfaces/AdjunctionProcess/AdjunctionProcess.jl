@@ -131,24 +131,8 @@ function _adjoint_matrix(D::AbstractAlgebra.Generic.MatSpaceElem)
      return transpose(map(projRPP, MM))
 end
 
-function _zero_matrix_for_adjunction(R, ncols::Int)
-   return matrix(R, 0, ncols, elem_type(R)[])
-end
-
 function _matrix_has_no_quadratic_or_higher_entries(D::AbstractAlgebra.Generic.MatSpaceElem)
    return !any(x -> !is_zero(x) && total_degree(x) > 1, Oscar._vec(D))
-end
-
-function _matrix_has_only_linear_or_zero_entries(D::AbstractAlgebra.Generic.MatSpaceElem)
-   return !any(x -> !is_zero(x) && total_degree(x) != 1, Oscar._vec(D))
-end
-
-function _canonical_resolution_data(X::AbsProjectiveVariety)
-   Pn = ambient_coordinate_ring(X)
-   A = homogeneous_coordinate_ring(X)
-   FA, _ = free_resolution(SimpleFreeResolution, A)
-   C_simp = simplify(FA)
-   return Pn, C_simp, ngens(Pn) - 1, Int(codim(X))
 end
 
 function _is_zero_free_module_for_adjunction(M)
@@ -171,7 +155,15 @@ function _is_zero_free_module_for_adjunction(M)
    return false
 end
 
-function _resolution_stops_after_codimension(C, c::Int)
+function _resolution_cached_zero_after_codimension(C, c::Int)
+   try
+      cf = chain_factory(C)
+      if hasfield(typeof(cf), :map_cache) && length(cf.map_cache) >= c + 1
+         return _is_zero_free_module_for_adjunction(domain(cf.map_cache[c + 1]))
+      end
+   catch
+   end
+
    try
       cf = chain_factory(original_complex(C))
       if hasfield(typeof(cf), :map_cache) && length(cf.map_cache) >= c + 1
@@ -182,98 +174,223 @@ function _resolution_stops_after_codimension(C, c::Int)
    return false
 end
 
-function _canonical_homology_subquotient_from_resolution(Pn, C_simp, n::Int, c::Int)
-   C_shift = shift(C_simp, c)
-   OmegaPn = graded_free_module(Pn, [n + 1])
-   D = hom(C_shift, OmegaPn)
-   D_simp = simplify(D)
-   Z, _ = kernel(D_simp, 0)
-   B, _ = boundary(D_simp, 0)
-   return SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B))
-end
-
-function _canonical_homology_subquotient(X::AbsProjectiveVariety)
-   Pn, C_simp, n, c = _canonical_resolution_data(X)
-   return _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
-end
-
-function _free_cover_map_for_adjunction(F0, SQ)
-   if is_graded(F0) && is_graded(SQ)
-      return graded_map(
-         F0, SQ, gens(SQ);
-         check = false,
-         hom_degree = zero(grading_group(base_ring(F0))),
-         generators_map_to_generators = true
-      )
-   end
-   phi = hom(F0, SQ, gens(SQ); check = false)
-   phi.generators_map_to_generators = true
-   return phi
-end
-
-function _matrix_from_subquotient_generators_for_adjunction(K, F0)
-   R = base_ring(F0)
-   V_all = ambient_representatives_generators(K)
-   W_all = degrees_of_generators(K; check = false)
-   keep = findall(!is_zero, V_all)
-   isempty(keep) && return _zero_matrix_for_adjunction(R, ngens(F0))
-   V = V_all[keep]
-   W = W_all[keep]
-   F1 = is_graded(F0) ? graded_free_module(R, W) : free_module(R, length(V))
-   return matrix(hom(F1, F0, V; check = false, hom_degree = is_graded(F0) ? zero(grading_group(R)) : nothing))
-end
-
-function _canonical_presentation_matrix_from_subquotient_cover(SQ::SubquoModule)
-   R = base_ring(SQ)
-   F0 = graded_free_module(R, degrees_of_generators(SQ; check = false))
-   eps = _free_cover_map_for_adjunction(F0, SQ)
-   K, _ = kernel(eps)
-   return _matrix_from_subquotient_generators_for_adjunction(K, F0)
-end
-
-function _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n::Int, c::Int; repair::Bool = true)
-   SQ = _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
-   D = _canonical_presentation_matrix_from_subquotient_cover(SQ)
-   if repair && !_matrix_has_only_linear_or_zero_entries(D)
-      P = presentation(SQ; minimal = true)
-      return matrix(map(P, 1))
-   end
-   return D
-end
-
-function _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c::Int; require_linear::Bool = true)
-   c == 0 && return _zero_matrix_for_adjunction(Pn, 1)
-   D = transpose(matrix(map(C_simp, c)))
-   _resolution_stops_after_codimension(C_simp, c) || return nothing
-   require_linear && !_matrix_has_only_linear_or_zero_entries(D) && return nothing
-   return D
-end
-
 function _canonical_presentation_matrix_via_module(X::AbsProjectiveVariety)
    Omega = canonical_bundle(X)
    FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
    return matrix(map(FOmega, 1))
 end
 
-function _canonical_presentation_matrix_for_adjunction(X::AbsProjectiveVariety; algorithm::Symbol = :fast)
-   algorithm == :module && return _canonical_presentation_matrix_via_module(X)
-   Pn, C_simp, n, c = _canonical_resolution_data(X)
-   if algorithm == :direct
-      D = _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c; require_linear = true)
-      D !== nothing && return D
-      error("The direct canonical presentation is not certified as a linear adjunction matrix for this embedding.")
-   elseif algorithm == :homology
-      return _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n, c; repair = false)
-   elseif algorithm == :minimal_homology
-      SQ = _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
-      P = presentation(SQ; minimal = true)
-      return matrix(map(P, 1))
-   elseif algorithm == :fast
-      D = _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c; require_linear = true)
-      D !== nothing && return D
-      return _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n, c; repair = true)
+function _zero_presentation_matrix_for_adjunction(Pn::MPolyDecRing, ncols::Int = 1)
+   return matrix(Pn, 0, ncols, elem_type(Pn)[])
+end
+
+function _minimal_resolution_for_adjunction(F)
+   hasmethod(minimize, Tuple{typeof(F)}) && return minimize(F)
+   return simplify(F)
+end
+
+function _canonical_presentation_matrix_direct(X::AbsProjectiveVariety)
+   Pn = ambient_coordinate_ring(X)
+   c = Int(codim(X))
+   c == 0 && return _zero_presentation_matrix_for_adjunction(Pn)
+
+   A = homogeneous_coordinate_ring(X)
+   FA, _ = free_resolution(SimpleFreeResolution, A)
+   C_min = _minimal_resolution_for_adjunction(FA)
+   D = transpose(matrix(map(C_min, c)))
+   _resolution_cached_zero_after_codimension(C_min, c) || return nothing
+   return D
+end
+
+function _matrix_from_column_vectors_for_adjunction(K, cols::Vector)
+   isempty(cols) && return matrix(K, 0, 0, elem_type(K)[])
+   m = length(cols[1])
+   return matrix(K, m, length(cols), [cols[j][i] for i in 1:m for j in 1:length(cols)])
+end
+
+function _coefficient_of_monomial_for_adjunction(f, m)
+   e = exponent_vector(m, 1)
+   for (c, ee) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+      ee == e && return c
    end
-   error("Unsupported canonical presentation algorithm $(algorithm). Use :fast, :direct, :homology, :minimal_homology, or :module.")
+   return zero(coefficient_ring(parent(f)))
+end
+
+function _coordinates_in_quotient_degree_for_adjunction(f, projection_to_quotient, quotient_monomials::Vector)
+   nf = lift(simplify(projection_to_quotient(f)))
+   return [_coefficient_of_monomial_for_adjunction(nf, m) for m in quotient_monomials]
+end
+
+function _homogeneous_generators_for_adjunction(I::MPolyIdeal)
+   result = elem_type(base_ring(I))[]
+   for f in gens(I)
+      is_zero(f) && continue
+      if is_homogeneous(f)
+         push!(result, f)
+      else
+         try
+            append!(result, collect(values(homogeneous_components(f))))
+         catch
+            push!(result, f)
+         end
+      end
+   end
+   return result
+end
+
+function _degree_piece_candidates_of_ideal_for_adjunction(I::MPolyIdeal, d::Int)
+   R = base_ring(I)
+   d < 0 && return elem_type(R)[]
+
+   result = elem_type(R)[]
+   for f in _homogeneous_generators_for_adjunction(I)
+      df = total_degree(f)
+      df <= d || continue
+      for m in monomial_basis(R, d - df)
+         push!(result, m*f)
+      end
+   end
+   return result
+end
+
+function _basis_of_ideal_quotient_degree_piece_for_adjunction(L::MPolyIdeal, J::MPolyIdeal, d::Int)
+   R = base_ring(L)
+   K = coefficient_ring(R)
+   A, pi = quo(R, J)
+   quotient_monomials = monomial_basis(A, d)
+
+   basis_polys = elem_type(R)[]
+   basis_vectors = Vector{Vector{elem_type(K)}}()
+   current_rank = 0
+
+   for f in _degree_piece_candidates_of_ideal_for_adjunction(L, d)
+      nf = lift(simplify(pi(f)))
+      v = [_coefficient_of_monomial_for_adjunction(nf, m) for m in quotient_monomials]
+      any(x -> !is_zero(x), v) || continue
+
+      test_vectors = copy(basis_vectors)
+      push!(test_vectors, v)
+      new_rank = rank(_matrix_from_column_vectors_for_adjunction(K, test_vectors))
+      if new_rank > current_rank
+         push!(basis_polys, nf)
+         push!(basis_vectors, v)
+         current_rank = new_rank
+      end
+   end
+
+   return basis_polys
+end
+
+function _linear_relation_matrix_from_linkage_degree_piece_for_adjunction(R::MPolyDecRing, J::MPolyIdeal, basis_polys::Vector, d::Int)
+   r = length(basis_polys)
+   r == 0 && return _zero_presentation_matrix_for_adjunction(R, 0)
+
+   K = coefficient_ring(R)
+   A, pi = quo(R, J)
+   target_monomials = monomial_basis(A, d + 1)
+   vars = gens(R)
+   nvars = length(vars)
+
+   columns = Vector{Vector{elem_type(K)}}()
+   for j in 1:r
+      for i in 1:nvars
+         push!(columns, _coordinates_in_quotient_degree_for_adjunction(vars[i]*basis_polys[j], pi, target_monomials))
+      end
+   end
+
+   ker = kernel(_matrix_from_column_vectors_for_adjunction(K, columns), side = :right)
+   nrels = ncols(ker)
+   nrels == 0 && return _zero_presentation_matrix_for_adjunction(R, r)
+
+   entries = elem_type(R)[]
+   for a in 1:nrels
+      for j in 1:r
+         lin = zero(R)
+         for i in 1:nvars
+            lin += R(ker[(j - 1)*nvars + i, a])*vars[i]
+         end
+         push!(entries, lin)
+      end
+   end
+
+   return matrix(R, nrels, r, entries)
+end
+
+function _try_complete_intersection_pair_for_adjunction(I::MPolyIdeal; random_trials::Int = 20)
+   R = base_ring(I)
+   G = sort(_homogeneous_generators_for_adjunction(I), by = total_degree)
+   length(G) >= 2 || return nothing
+
+   for i in 1:(length(G)-1)
+      for j in (i+1):length(G)
+         f = G[i]
+         g = G[j]
+         is_zero(f) && continue
+         is_zero(g) && continue
+         codim(ideal(R, [f, g])) == 2 && return (f, g)
+      end
+   end
+
+   degrees = sort(unique(total_degree.(G)))
+   for d in degrees
+      Gd = [f for f in G if total_degree(f) == d]
+      length(Gd) >= 2 || continue
+
+      for _ in 1:random_trials
+         C = _random_matrix(R, 2, length(Gd), 0)
+         f = sum(C[1, j]*Gd[j] for j in 1:length(Gd); init = zero(R))
+         g = sum(C[2, j]*Gd[j] for j in 1:length(Gd); init = zero(R))
+         is_zero(f) && continue
+         is_zero(g) && continue
+         codim(ideal(R, [f, g])) == 2 && return (f, g)
+      end
+   end
+
+   return nothing
+end
+
+function _canonical_presentation_matrix_via_ci_linkage_linear_strand(
+    X::AbsProjectiveVariety;
+    random_trials::Int = 20
+  )
+   R = ambient_coordinate_ring(X)
+   is_standard_graded(R) || return nothing
+   ngens(R) == 5 || return nothing
+   Int(codim(X)) == 2 || return nothing
+
+   I = defining_ideal(X)
+   fg = _try_complete_intersection_pair_for_adjunction(I; random_trials)
+   fg === nothing && return nothing
+
+   f, g = fg
+   J = ideal(R, [f, g])
+   L = quotient(J, I)
+   d = total_degree(f) + total_degree(g) - 4
+   d < 0 && return _zero_presentation_matrix_for_adjunction(R, 0)
+
+   basis_polys = _basis_of_ideal_quotient_degree_piece_for_adjunction(L, J, d)
+   return _linear_relation_matrix_from_linkage_degree_piece_for_adjunction(R, J, basis_polys, d)
+end
+
+function _canonical_presentation_matrix_for_adjunction(X::AbsProjectiveVariety; algorithm::Symbol = :fast)
+   if algorithm == :direct
+      D = _canonical_presentation_matrix_direct(X)
+      D !== nothing && return D
+      error("The direct canonical presentation is not available for this embedding; use canonical_algorithm = :fast, :linkage_linear_strand, or :module.")
+   elseif algorithm == :linkage_linear_strand
+      D = _canonical_presentation_matrix_via_ci_linkage_linear_strand(X)
+      D !== nothing && return D
+      error("The complete-intersection linkage linear-strand presentation is only available for suitable codimension-two surfaces in projective 4-space.")
+   elseif algorithm == :fast
+      D = _canonical_presentation_matrix_direct(X)
+      D !== nothing && return D
+      D = _canonical_presentation_matrix_via_ci_linkage_linear_strand(X)
+      D !== nothing && return D
+      return _canonical_presentation_matrix_via_module(X)
+   elseif algorithm == :module
+      return _canonical_presentation_matrix_via_module(X)
+   end
+   error("Unsupported canonical presentation algorithm $(algorithm). Use :fast, :direct, :linkage_linear_strand, or :module.")
 end
 
 @doc raw"""
@@ -340,14 +457,28 @@ SubquoModule{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}
 ```
 """
 function canonical_bundle(X::AbsProjectiveVariety)
-  return prune_with_map(_canonical_homology_subquotient(X))[1]
+  Pn = ambient_coordinate_ring(X)
+  A = homogeneous_coordinate_ring(X)
+  n = ngens(Pn)-1
+  c = codim(X)
+  FA, _ = free_resolution(SimpleFreeResolution, A)
+  C_simp = simplify(FA)
+  C_shift = shift(C_simp, c)
+  OmegaPn = graded_free_module(Pn, [n+1])
+  D = hom(C_shift, OmegaPn)
+  D_simp = simplify(D)
+  Z, inc = kernel(D_simp, 0)
+  B, inc_B = boundary(D_simp, 0)
+  return prune_with_map(SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B)))[1]
 end
 
 @doc raw"""
-    adjunction_process(X::AbsProjectiveVariety, steps::Int=0)
+    adjunction_process(X::AbsProjectiveVariety, steps::Int=0; canonical_algorithm::Symbol=:fast)
 
 Given a smooth surface `X` and a non-negative integer `steps`, return data which describes the adjunction process for `X`: 
 If `steps == 0`, carry out the complete process. Otherwise, carry out the indicated number of steps only.
+
+The keyword argument `canonical_algorithm` controls how the presentation matrix of the canonical module is computed in each adjunction step. With the default `:fast`, OSCAR first tries to read this matrix directly from the codimension step of a minimal free resolution of the homogeneous coordinate ring. If this is certified, the matrix is returned even when it has quadratic or higher-degree entries; in that case the adjunction process stops, since the implemented adjoint matrix construction requires a linear presentation. If the direct extraction is not certified and the surface has codimension two in projective 4-space, OSCAR next tries a complete-intersection linkage computation of the linear strand of the canonical module. Only if both fast methods fail does `:fast` fall back to the generic route through `canonical_bundle`. The value `:module` yields the generic construction through `canonical_bundle` and a length-one free resolution of that module. The value `:direct` uses only the direct extraction and throws an error if the resolution does not certify that this extraction is valid. The value `:linkage_linear_strand` uses only the complete-intersection linkage linear-strand computation and throws an error if it is not applicable.
 
 More precisely, if $X^{(0)} = X \rightarrow X^{(1)}\rightarrow \dots \rightarrow X^{(r)}$ is the sequence of successive adjunction maps and 
 adjoint surfaces in the completed adjunction process, return a quadruple `L`, say, where: 
