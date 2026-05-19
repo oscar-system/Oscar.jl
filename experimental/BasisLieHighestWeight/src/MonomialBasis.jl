@@ -38,7 +38,7 @@ birational_sequence(basis::MonomialBasis) = basis.birational_seq
 @doc raw"""
     polytope(basis::MonomialBasis)
 
-Compute the polytope corresponding to the monomial basis.
+Return the polytope corresponding to the monomial basis. This is only possible if the basis was computed with `compute_polytope = true`.
 
 # Examples
 ```jldoctest
