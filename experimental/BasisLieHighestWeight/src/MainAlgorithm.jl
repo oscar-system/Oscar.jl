@@ -269,7 +269,7 @@ function compute_monomials(
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
     if !isnothing(polytopes)
-     polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
+      polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
     end
     return monomials
   else
