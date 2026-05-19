@@ -207,7 +207,13 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{Array{S, N}}) where {S, N}
   T = type(tp)
   p = Oscar.params(tp)
-  sub_tp = p isa TypeParams ? p : TypeParams(S, p)
+  sub_tp = if p isa Tuple{Vararg{Pair}}
+    tp[:subtype_params]
+  elseif p isa TypeParams
+    p
+  else
+    TypeParams(S, p)
+  end
   load_node(s) do _
     if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
@@ -299,34 +305,18 @@ function type_params(obj::T) where T <: NamedTuple
   return TypeParams(T, (x.first => type_params(x.second) for x in pairs(obj))...)
 end
 
-# Named Tuples need to preserve order so they are handled separate from Dict
-function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
-  T = type(tp)
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_dict(s, :params) do
-      save_data_array(s, :names) do
-        for (name, _) in params(tp)
-          save_object(s, name)
-        end
-      end
-      save_data_array(s, :tuple_params) do
-        for (_, param_tp) in params(tp)
-          save_type_params(s, param_tp)
-        end
-      end
-    end
-  end
-end
-
 function load_type_params(s::DeserializerState, T::Type{NamedTuple})
   return load_node(s, :params) do _
-    tuple_params = load_array_node(s, :tuple_params) do _
-      load_type_params(s, decode_type(s))
+    pairs_list = Pair{Symbol, Any}[]
+    for k in propertynames(s.obj)
+      tp = load_node(s, k) do _
+        is_string(s) ? TypeParams(decode_type(s), nothing) : load_type_params(s, decode_type(s))
+      end
+      push!(pairs_list, k => tp)
     end
-    tuple_types = Tuple([type(x) for x in tuple_params])
-    names = load_object(s, Vector{Symbol}, :names)
-    return TypeParams(T{tuple(names...), Tuple{tuple_types...}}, (names[i] => tuple_params[i] for i in 1:length(names))...)
+    names = Tuple(Symbol(k) for (k, _) in pairs_list)
+    types = Tuple([type(v) for (_, v) in pairs_list])
+    return TypeParams(T{names, Tuple{types...}}, pairs_list...)
   end
 end
 

@@ -805,8 +805,7 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
   s = deserializer_open(io, serializer, with_attrs)
   if :id in propertynames(s.obj)
     id = s.obj[:id][]
@@ -839,39 +838,11 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   if file_version < VERSION_NUMBER
     jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
     jsondict_str = JSON.json(jsondict)
-    s = deserializer_open(IOBuffer(jsondict_str),
-                          serializer,
-                          with_attrs)
+    s = deserializer_open(IOBuffer(jsondict_str), serializer, with_attrs)
   end
-  
+
   try
-    if params isa TypeParams
-      loaded = load_object(s, params, :data)
-    elseif type !== nothing
-      # Decode the stored type, and compare it to the type `T` supplied by the caller.
-      # If they are identical, just proceed. If not, then we assume that either
-      # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-      # concrete, and `U <: T` should hold.
-      #
-      # This check should maybe change to a check on the whole type tree?
-      U = load_node(s, type_key) do _
-        decode_type(s)
-      end
-      
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
-
-      Base.issingletontype(type) && return type()
-      if isnothing(params)
-        tp_inner = load_node(s, type_key) do _
-          load_type_params(s, U)
-        end
-        params = Oscar.params(tp_inner)
-      end
-      loaded = load_object(s, TypeParams(type, params), :data)
-    else
-      loaded = load_typed_object(s; override_params=params)
-    end
-
+    loaded = do_load(s)
     if haskey(s, :id)
       load_node(s, :id) do _
         id = load_json(s, String)
@@ -887,12 +858,53 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       using Oscar version $VERSION_NUMBER
       """
     end
-
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
       @warn "Attempted loading file stored using a DEV version with commit $commit"
     end
     rethrow(e)
+  end
+end
+
+function load(io::IO, tp::TypeParams;
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+  _load_with_state(io, serializer, with_attrs) do s
+    Base.issingletontype(type(tp)) && return type(tp)()
+    load_object(s, tp, :data)
+  end
+end
+
+function load(io::IO; params::Any=nothing, type::Any=nothing,
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+  _load_with_state(io, serializer, with_attrs) do s
+    if type !== nothing
+      U = load_node(s, type_key) do _
+        decode_type(s)
+      end
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+      Base.issingletontype(type) && return type()
+      if isnothing(params)
+        tp_inner = load_node(s, type_key) do _
+          load_type_params(s, U)
+        end
+        params = Oscar.params(tp_inner)
+      end
+      load_object(s, TypeParams(type, params), :data)
+    else
+      load_typed_object(s; override_params=params)
+    end
+  end
+end
+
+function load(filename::String, tp::TypeParams; kwargs...)
+  if endswith(filename, ".gz")
+    open(CodecZlib.GzipDecompressorStream, filename) do file
+      return load(file, tp; kwargs...)
+    end
+  else
+    open(filename) do file
+      return load(file, tp; kwargs...)
+    end
   end
 end
 
