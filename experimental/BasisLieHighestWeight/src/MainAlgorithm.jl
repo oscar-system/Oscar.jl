@@ -266,7 +266,7 @@ function compute_monomials(
   # the recursion.
   if is_zero(highest_weight(V)) || is_fundamental_weight(highest_weight(V))
     push!(no_minkowski, highest_weight(V))
-    monomials, new_monomials = add_by_hand(
+    monomials, _ = add_by_hand(
       V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
