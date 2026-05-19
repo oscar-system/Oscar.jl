@@ -528,10 +528,6 @@ function add_by_hand(
   return basis, new_monomials
 end
 
-function reduce_to_vertices(possible_vertices::Vector{PointVector{QQFieldElem}})
-  return collect(vertices(convex_hull(possible_vertices)))
-end
-
 function convert_to_point(monomial::ZZMPolyRingElem)
   return point_vector(QQ, exponent_vector(monomial, 1))
 end
