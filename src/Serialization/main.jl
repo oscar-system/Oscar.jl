@@ -808,7 +808,7 @@ true
 function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
   s = deserializer_open(io, serializer, with_attrs)
   if :id in propertynames(s.obj)
-    id = s.obj[:id][]
+    id = JSON.parse(s.obj[:id])
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end
