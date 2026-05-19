@@ -26,7 +26,7 @@ function _primitive_embeddings_lmfdb(
 )
   results = Tuple{String, String, ZZMatrix}[]
   G1s = filter(>(rank(G2))∘rank, G1s)
-  filter!(>(signature_pair(G2))∘signature_pair, G1s)
+  filter!(G1 -> reduce(&, signature_pair(G1).>=signature_pair(G2)), G1s)
   if !is_even(G2)
     filter!(!is_even, G1s)
   end
@@ -50,7 +50,7 @@ function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, String, ZZMatrix},
 )
-  str = x[1]*"-"*x[2]*"-["
+  str = x[1]*"_"*x[2]*"_["
   v = x[3]
   for j in 1:ncols(v)
     k = v[1,j]
@@ -68,7 +68,7 @@ function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, String, Hecke.IntegerUnion, Vector{QQFieldElem}},
 )
-  str = x[1]*"-"*x[2]*"-$(x[3])-["
+  str = x[1]*"_"*x[2]*"_$(x[3])_["
   v = x[4]
   for j in 1:length(v)
     k = v[j]
@@ -87,7 +87,7 @@ function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, Int},
 )
-  str = x[1]*"-$(x[2])\n"
+  str = x[1]*"_$(x[2])\n"
   f = open(_save_path, "a")
   write(f, str)
   close(f)
@@ -98,6 +98,7 @@ function _primitive_embeddings_in_unimodular_safe_lmfdb(
   G2::ZZGenus;
   _save_path::Union{Nothing, String}=nothing,
 )
+  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   if is_even(G1)
     parity = :even
@@ -157,6 +158,7 @@ function _primitive_embeddings_coprime_det_safe_lmfdb(
   G2::ZZGenus;
   _save_path::Union{Nothing, String}=nothing,
 )
+  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   if is_even(G1)
     parity = :even
@@ -222,6 +224,7 @@ function _primitive_embeddings_generic_safe_lmfdb(
   q2::TorQuadModule=discriminant_group(G2),
   Ms::Vector{ZZLat}=ZZLat[],
 )
+  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   R = rescale(representative(G1), -1; cached=false)
   U = hyperbolic_plane_lattice()
@@ -236,31 +239,35 @@ function _primitive_embeddings_generic_safe_lmfdb(
   signK = signature_pair(G1) .- signature_pair(G2)
 
   Fac, lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
+  @show length(lgm)
   isempty(lgm) && return results
   DKs = Dict{ZZGenus, Vector{ZZLat}}()
 
   for x in lgm
-    qx = _form_over(x)
+    qx = _form_over(x, parity)
     qK = rescale(qx, -1; cached=false)
     GKs = _integer_genera(qK, signK, parity)
     isempty(GKs) && continue
     # At that point, we know that we have an extension
     for GK in GKs
+      @show GK
       haskey(DKs, GK) && continue
       DKs[GK] = representatives(GK)
     end
     isempty(Ms) && append!(Ms, get_attribute(G2, :representatives))
     for M in Ms
       label_bottom = get_attribute(M, :lmfdb_label)
+      @show label_bottom
       qM = discriminant_group(M)
       D = _gluing_ambient(qM, q1n, parity)
       GM, _ = image_in_Oq(M)
       _ok, phiM = is_isometric_with_isometry(qM, q2)
       @assert _ok
-      xM = _pullback_left(x, phiM)
-      xMs = _split_orbit_left_group(xM, GM)
+      xM = _pullback_left(x, phiM, parity)
+      xMs = _split_orbit_left_group(xM, GM, parity)
+      @show length(xMs)
       for _x in xMs, y in _all_glue_maps(_x)
-        V, M2, T2, GV = _overlattice_with_glue_stabilizer(y, D)
+        V, M2, T2, GV = _overlattice_with_glue_stabilizer(y, D, parity)
         resV = NTuple{3, ZZLat}[]
         qV = domain(GV)
         for GK in GKs, K in DKs[GK]
@@ -290,6 +297,7 @@ function _primitive_embeddings_generic_safe_lmfdb(
             end
             !ok && continue
             label_top = get_attribute(L2, :lmfdb_label)
+            @show label_top
             if is_definite(G1)
               v = map_entries(ZZ, coordinates(bN*f_top, L2))
             else
@@ -412,7 +420,29 @@ function _embeddings_in_K3_lattice(
   return res
 end
 
-function _treat_case(
+# - `G1s` consists of all genera of lattices of rank n+1, with given
+#   signatures and determinant in absolute value bounded by d/(n+1)
+#   for some d.
+# - `G2s` consists of all genera of lattice of rank n, with same
+#   possible signatures and determinant in absolute value bounded by d/n.
+# - `__save_path` is the absolute path to a folder where to save data. If
+#   given, the function will create three files there:
+#   * in `prim_emb.txt` each primitive embedding of a lattice $M$ of a
+#     genus in G2s in a lattice $L$ in a genus in G1s is stored in one
+#     line consisting in order of the LMFDB label of $L$, of the LMFDB
+#     label of $M$ and if $L$ is definite, the coordinates of the complement
+#     of $M$ in $L$ (for the Gram matrix of $L$ provided by the LMFDB data).
+#   * in `overlat.txt` each prime index overlattice $L$ of a lattice $S$
+#     in a genus in `G2s` is stored in one line consisting in order of
+#     the LMFDB label of $S$, the LMFDB label of $L$, the (prime) index
+#     $p=[L:S]$ and the coordinates of a generator of $L/S$, rescaled by
+#     $p$ (for the Gram matrix of $S$ provided by the LMFDB data).
+#   * in `k3_embed.txt` each lattice $L$ in a genus in G2s which
+#     is is even, of signature $(p, n)$ with $n = 1$ or $2$ and which
+#     embeds into the K3 lattice is stored in one line consisting in
+#     order of the LMFDB label of $L$ and the number of primitive
+#     embeddings of $L$ inside the K3 lattice.
+function _computations_lmfdb(
   G1s::Vector{ZZGenus},
   G2s::Vector{ZZGenus};
   __save_path::Union{String, Nothing}=nothing,

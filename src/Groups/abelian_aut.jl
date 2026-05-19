@@ -365,14 +365,13 @@ function _orthogonal_group_gens(T::TorQuadModule)
     # in that case, we don't have any conditions regarding the
     # quadratic form, so we have all automorphisms coming
     # from the underlying abelian group
-    return unique!(matrix.(gens(automorphism_group(abelian_group(T)))))
+    return matrix.(gens(automorphism_group(abelian_group(T))))
   elseif is_semi_regular(T)
     # if T is semi-regular, it is isometric to its normal form for which
     # we know how to compute the isometries.
     N, i = normal_form(T)
     j = inv(i)
-    gensON_mat = unique(_compute_gens(N))
-    unique!(gensON_mat)
+    gensON_mat = unique!(_compute_gens(N))
     filter!(!iszero, gensON_mat)
     gensON = TorQuadModuleMap[hom(N, N, g) for g in gensON_mat]
     gensOT_mat = ZZMatrix[matrix(i * g * j) for g in gensON]
