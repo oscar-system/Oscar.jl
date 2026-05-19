@@ -845,7 +845,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
   
   try
-    if params isa TypeParams
+    if !(params isa TypeParams)
       params = _convert_override_params(params)
     end
     if type !== nothing
@@ -935,10 +935,6 @@ _convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _con
 _convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = tp[:subtype_params]
-
-function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
-  return Dict(k => TypeParams(type(v), _convert_override_params(v)) for (k, v) in params(tp))
-end
 
 _convert_override_params(obj::Any) = obj
 _convert_override_params(obj::Tuple{}) = ()

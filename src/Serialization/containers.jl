@@ -353,7 +353,7 @@ function type_params(obj::T) where {S <: Union{Symbol, Int, String},
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
-    (x.first => type_params(x.second) for x in pairs(obj))...
+    :value_params => (x.first => type_params(x.second) for x in pairs(obj))
   )
 end
 
@@ -470,11 +470,6 @@ function load_object(s::DeserializerState,
   return dict
 end
 
-function load_object(s::DeserializerState,
-                     T::Type{<:Dict{S, U}}) where {S <: Union{Symbol, String, Int}, U}
-  load_object(s, TypeParams(T, nothing))
-end
-
 function load_object(s::DeserializerState, tp::TypeParams{<:Dict{S, U}, Nothing}) where {S, U}
   T = type(tp)
   pairs = load_array_node(s) do _
@@ -484,7 +479,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Dict{S, U}, Nothing}
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:Dict{S, U}, <:Tuple{Vararg{Pair}}}) where {S <: Union{Int, String, Symbol}, U}
+                     tp::TypeParams{<:Dict{S, U}, Tuple{Pair, Pair}}) where {S <: Union{Int, String, Symbol}, U}
   T = type(tp)
   pairs = Tuple{S, U}[]
   for k in propertynames(s.obj)
@@ -498,7 +493,7 @@ end
 
 # Heterogeneous Dict{S, Union{...}} with per-key Dict params (from load_type_params)
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:Dict{S, U}, <:Dict}) where {S <: Union{Int, String, Symbol}, U}
+                     tp::TypeParams{<:Dict{S, U}, Tuple{Pair, Pair{Symbol, Tuple}}}) where {S <: Union{Int, String, Symbol}, U}
   T = type(tp)
   p = Oscar.params(tp)
   dict = Dict{S, Any}()
