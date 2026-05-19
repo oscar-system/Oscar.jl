@@ -353,7 +353,8 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 `monomial_ordering` describes the monomial ordering used for the basis.
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
-For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
+Further keyword arguments:
+- none at the moment (but this will probably change in the future)
 
 # Examples
 ```jldoctest
@@ -455,7 +456,7 @@ The the birational sequence used consists of all operators in descening height o
 
 The monomial ordering is fixed to `degrevlex`. 
 
-For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
+For supported keyword arguments, see [`basis_coordinate_ring_kodaira`](@ref).
 
 # Examples
 ```jldoctest
@@ -785,7 +786,7 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 `monomial_ordering` describes the monomial ordering used for the basis.
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
-For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
+For supported keyword arguments, see [`basis_coordinate_ring_kodaira`](@ref).
 
 # Examples
 ```jldoctest
@@ -881,7 +882,7 @@ The the birational sequence used consists of all operators in descening height o
 
 The monomial ordering is fixed to `degrevlex`. 
 
-For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
+For supported keyword arguments, see [`basis_coordinate_ring_kodaira`](@ref).
 
 # Examples
 ```jldoctest
