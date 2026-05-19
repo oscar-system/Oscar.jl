@@ -48,7 +48,7 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
 Further keyword arguments:
-- none at the moment (but this will probably change in the future)
+- compute_polytope default is false, if set to true computes the polytope of the basis, which is the convex hull of the exponent vectors of the monomials in the basis.
 
 # Examples
 ```jldoctest
