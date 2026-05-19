@@ -226,7 +226,7 @@
       save(io, Dict((1, 2) => 3))
       d = Oscar.Serialization.JSON3.read(String(take!(io)))
       s = Oscar.Serialization.DeserializerState(Oscar.Serialization.JSONSerializer(), d[:data], nothing, nothing, false)
-      @test Oscar.Serialization.load_object(s, Dict{Tuple{Int, Int}, Int}, nothing) == Dict((1, 2) => 3)
+      @test Oscar.Serialization.load_object(s, Oscar.Serialization.TypeAndParams(Dict{Tuple{Int, Int}, Int}, nothing)) == Dict((1, 2) => 3)
     end
 
     @testset "load_array_node skips null entries" begin

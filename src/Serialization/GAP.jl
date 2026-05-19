@@ -61,13 +61,14 @@ function load_object(s::DeserializerState, T::Type{GapObj})
   end
 end
 
-function load_object(s::DeserializerState, T::Type{GapObj}, F::GapObj)
+function load_object(s::DeserializerState, tp::TypeAndParams{GapObj, GapObj})
+  F = params(tp)
   load_node(s) do
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
     GAP_T = load_node(s, :GapType) do
       return GapObj(s.obj)
     end
-    return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T, F)
+    return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, GapObj, F)
   end
 end
 
