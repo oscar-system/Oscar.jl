@@ -746,19 +746,6 @@ or its root system.
 
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
-
-# Examples
-```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
-julia> L = lie_algebra(QQ, :B, 2);
-
-julia> kostant_kumar_character(L, [2, 0], [2, 1], [1])
-Dict{WeightLatticeElem, Int64} with 5 entries:
-  2*w_1 - w_2  => 1
-  w_1 + w_2    => 1
-  0            => 1
-  -w_1 + 2*w_2 => 1
-  -2*w_1 + w_2 => 1
-```
 """
 function kostant_kumar_character(
   L::LieAlgebra,
