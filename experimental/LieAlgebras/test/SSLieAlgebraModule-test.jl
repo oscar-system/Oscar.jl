@@ -483,8 +483,6 @@
       @test char isa Dict{WeightLatticeElem,Int}
     end
     # The "correct" solution in the below tests has been computed using Magma V2.28-7.
-    # Note that Magma considers right actions of Weyl groups on weights,
-    # so to reproduce one needs to reverse all Weyl words when copying a test case to Magma.
 
     @testset "Type A" begin
       for n in 2:4
