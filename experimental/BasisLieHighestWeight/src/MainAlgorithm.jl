@@ -2,7 +2,7 @@ function basis_lie_highest_weight_compute(
   V::ModuleData,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_input::Union{AbsGenOrdering,Symbol};
-  compute_polytope=true,
+  compute_polytope=false,
 )
   # Pseudocode:
 
@@ -176,12 +176,14 @@ function basis_coordinate_ring_kodaira_compute(
       monomials_new = empty(monomials_minkowski_sum)
     else
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we have $(length(monomials_minkowski_sum)) and need $(dim_i) monomials"
+      polytope = nothing
       monomials = compute_monomials(
         V_i,
         birational_seq,
         ZZx,
         monomial_ordering,
         calc_highest_weight,
+        polytope,
         no_minkowski,
       )
       monomials_new = setdiff(monomials, monomials_minkowski_sum)
@@ -326,7 +328,7 @@ function compute_monomials(
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
       if !isnothing(polytope)
         push!(polytopes, polytope[lambda_1] + polytope[lambda_2])
-      end 
+      end
     end
     if !isnothing(polytope)
       polytope[highest_weight(V)] = convex_hull(polytopes)
@@ -339,7 +341,9 @@ function compute_monomials(
         V, birational_seq, ZZx, monomial_ordering, monomials
       )
       if !isnothing(polytope)
-        polytope[highest_weight(V)] = convex_hull(polytope[highest_weight(V)], convex_hull(convert_to_point.(new_monomials)))
+        polytope[highest_weight(V)] = convex_hull(
+          polytope[highest_weight(V)], convex_hull(convert_to_point.(new_monomials))
+        )
       end
     end
 
