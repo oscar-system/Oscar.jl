@@ -296,25 +296,22 @@ end
 @register_serialization_type NamedTuple
 
 function type_params(obj::T) where T <: NamedTuple
-  return TypeParams(
-    T, 
-    NamedTuple(x.first => type_params(x.second) for x in pairs(obj))
-  )
+  return TypeParams(T, (x.first => type_params(x.second) for x in pairs(obj))...)
 end
 
 # Named Tuples need to preserve order so they are handled separate from Dict
-function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
+function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
   T = type(tp)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       save_data_array(s, :names) do
-        for name in keys(params(tp))
+        for (name, _) in params(tp)
           save_object(s, name)
         end
       end
       save_data_array(s, :tuple_params) do
-        for (i, param_tp) in enumerate(values(params(tp)))
+        for (_, param_tp) in params(tp)
           save_type_params(s, param_tp)
         end
       end
@@ -328,9 +325,8 @@ function load_type_params(s::DeserializerState, T::Type{NamedTuple})
       load_type_params(s, decode_type(s))
     end
     tuple_types = Tuple([type(x) for x in tuple_params])
-    raw_params = Tuple(Oscar.params(x) for x in tuple_params)
     names = load_object(s, Vector{Symbol}, :names)
-    return TypeParams(T{tuple(names...), Tuple{tuple_types...}}, raw_params)
+    return TypeParams(T{tuple(names...), Tuple{tuple_types...}}, (names[i] => tuple_params[i] for i in 1:length(names))...)
   end
 end
 
@@ -338,10 +334,10 @@ function save_object(s::SerializerState, obj::NamedTuple)
   save_object(s, values(obj))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:NamedTuple, <:Tuple})
+function load_object(s::DeserializerState, tp::TypeParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
   T = type(tp)
-  p = Oscar.params(tp)
-  return T(load_object(s, TypeParams(Tuple{Base.fieldtypes(T)...}, p)))
+  tp_values = Tuple(v for (_, v) in params(tp))
+  return T(load_object(s, TypeParams(Tuple{Base.fieldtypes(T)...}, tp_values)))
 end
 
 ################################################################################
@@ -394,7 +390,7 @@ function save_type_params(
           end
         end
       else
-        save_type_params(s, params(tp)[:value_params], :value_params)
+        save_type_params(s, tp[:value_params], :value_params)
       end
     end
   end
