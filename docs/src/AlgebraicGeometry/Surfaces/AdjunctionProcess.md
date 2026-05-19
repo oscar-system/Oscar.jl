@@ -44,6 +44,12 @@ exceptional cases. In particular, if  $X$ has non-negative Kodaira dimension, th
 
 ## Adjunction Process
 
+In each adjunction step, the implementation needs only a presentation matrix of the canonical module. By default, `adjunction_process` uses `canonical_algorithm = :fast`: it first tries to extract this matrix directly from the codimension step of a minimal free resolution of the homogeneous coordinate ring. If this direct presentation is certified, OSCAR uses it even when it has quadratic or higher-degree entries; then the adjunction process stops, because the implemented adjoint matrix construction requires a linear presentation.
+
+If the direct presentation is not certified and the surface has codimension two in projective 4-space, the default `:fast` strategy next tries a complete-intersection linkage computation. Given a complete intersection `J = (f, g)` contained in the surface ideal and the residual ideal `L = J : I_X`, the method uses the liaison description of the canonical module through `L/J`. It computes only the finite-dimensional multiplication map `S_1 \otimes (L/J)_{deg(f)+deg(g)-4} -> (L/J)_{deg(f)+deg(g)-3}` and converts its kernel into the linear presentation matrix needed by the adjoint-matrix construction.
+
+Using `canonical_algorithm = :module` yields the generic construction. Use `canonical_algorithm = :direct` when testing or benchmarking the direct extraction; in this mode an error is raised instead of falling back. Use `canonical_algorithm = :linkage_linear_strand` to force the complete-intersection linkage linear-strand computation.
+
 What we describe here goes back to joint work of Wolfram Decker and Frank-Olaf Schreyer. See [DES93](@cite),  [DS00](@cite).
 
 ```@docs
@@ -58,4 +64,3 @@ Please direct questions about this part of OSCAR to the following people:
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
 Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
-
