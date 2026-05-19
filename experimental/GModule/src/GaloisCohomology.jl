@@ -742,7 +742,7 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   end
   =#
 
-  return vcat(b[r+1:end], y[r+1:end]), [-y[i] - b[i] for i=1:r]
+  return vcat(b[r+1:end], y[r+1:end]), FinGenAbGroupElem[-y[i] - b[i] for i=1:r]
 end
 
 """
@@ -860,7 +860,7 @@ function get_W(k, mG, mU, E)
   #TODO: this computes W.
   #      need U_S -> W
   # and enough info for U_S -> U_T (different fields possible!!)
-  #         to cmpute   W_S -> W_T
+  #         to compute  W_S -> W_T
   # for real -> real: easy as U_S = W_S
   # for complex U = (tor, Z) + A + B
   #             W = (tor, Z) + L + B
@@ -1070,7 +1070,6 @@ function induce_hom_W(W1, W2, mp)
   #(same prob for the finite ones)
   #or maybe conjugate the groups?
   #"sorted" in the induce code
-  im = elem_type(W2.M)[]
   mU_W1 = get_attribute(W1, :get_W)
   mU_W2 = get_attribute(W2, :get_W)
   @assert domain(mp) == domain(mU_W1)
@@ -1081,17 +1080,19 @@ function induce_hom_W(W1, W2, mp)
 #  @assert is_surjective(mp)
 
   local tr::Union{Nothing, FinGenAbGroupHom} = nothing
-  V = domain(canonical_injection(W2.M, 1))
-  F = domain(canonical_injection(W2.M, 2))
-  #so, by construction (V[1], V[2]) are easy
-  #                     V[3], F[1]
-  #                     V[4], F[2]
-  # ... are the artifical C-2 module
-  #                     V[i], V[i+1] ... the natural
+  local ke::Union{Nothing, Tuple{FinGenAbGroup, FinGenAbGroupHom}} = nothing
+
   i = 0
   seen = FinGenAbGroupElem[]
   seen_im = FinGenAbGroupElem[]
-  for g = gens(W1.M)
+  n_inv = ngens(codomain(mU_W1)) - ngens(domain(mU_W1))
+  gns = vcat([1,2], collect(3+n_inv:ngens(domain(mU_W1))), collect(3:2+n_inv), collect(ngens(domain(mU_W1))+1:ngens(codomain(mU_W1))))
+  @assert length(gns) == ngens(W1.M)
+  im = elem_type(W2.M)[zero(W2.M) for i=1:ngens(W1.M)]
+  sigma1 = action(W1, W1.G[1])
+  sigma2 = action(W2, W2.G[1])
+  for _g = gns
+    g = W1.M[_g]
     i += 1
     #generators of W are either in U OR, the wierd case
     #g+sigma(g) is in W
@@ -1105,22 +1106,23 @@ function induce_hom_W(W1, W2, mp)
     @assert is_injective(mU_W1)
     @assert is_injective(mU_W2)
     if fl
-      push!(im, mU_W2(mp(pre)))
+      im[_g] = mU_W2(mp(pre))
     else
+      error("too bad")
       @assert !(g in seen)
-      h = action(W1, W1.G[1], g)
+      h = sigma1(g)
       p = findall(isequal(h), seen)
       @assert length(p) <= 1
       if length(p) == 1
-        push!(im, action(W2, W2.G[1], seen_im[p[1]]))
-        @assert im[end] != seen_im[p[1]]
+        im[_g] = sigma2(seen_im[p[1]])
         continue
       end
      
-      fl, pre = has_preimage(mU_W1, g + action(W1, W1.G[1], g))
+      fl, pre = has_preimage(mU_W1, g + sigma1(g))
       @assert fl
       if isnothing(tr)
-        tr = FinGenAbGroupHom(id_hom(W2.M) + action(W2, W2.G[1]))
+        tr = FinGenAbGroupHom(id_hom(W2.M) + sigma2)
+        ke = kernel(tr)
       end
       pre2 = mU_W2(mp(pre))
       fl, pre3 = has_preimage(tr, pre2)
@@ -1131,19 +1133,32 @@ function induce_hom_W(W1, W2, mp)
       # we do this computation for the lambda - and virtually we could
       # choose lambda with Im lambda > 0 always. Then the preimage should
       # be unique(ish)?
-      if !fl
-        mo = parent(pre)[1]
-        mo *= divexact(order(mo), 2)
-        pre2 = mU_W2(mp(mo + pre))
-        @show fl, pre3 = has_preimage(tr, pre2)
-        mo = parent(pre3)[1]
-        mo *= divexact(order(mo), 2)
-        pre3 += mo
-      end
       @assert fl
-      push!(im, pre3)
+      #
+      nU = ngens(domain(mU_W2))
+      #in W: (tor, Z^-) Z^+... C2 s(l)
+      for i=1:ngens(codomain(mU_W2))-nU
+        #<l, s(l)> -> l + s(l) has kernel <1, -1>
+        #<1, -1>^(1+s) = <1, -1> + <-1, 1> = 0
+        # s(<a,b>) = <b, a>, <a, b>^(1+s) = <a+b, a+b> 
+        #<a,b> -> c => <a+b, 0> -> c
+        #<a,b> -> (a-(b-a)/2, b+(b-a)/2)
+        a = pre3.coeff[2+i]
+        b = pre3.coeff[nU+i]
+        k = div(b-1, 2)
+        pre3.coeff[2+i] += k
+        pre3.coeff[nU+i] -= k
+      end
+      for i=ngens(codomain(mU_W2))-nU+3:2:nU
+        k = div(pre3.coeff[i+1] - pre3.coeff[i], 2)
+        pre3.coeff[i] += k
+        pre3.coeff[i+1] -= k
+      end
+      #
+
+      im[_g] =  pre3
       push!(seen, g)
-      push!(seen_im, pre3)
+      push!(seen_im, im[_g])
     end
   end
   h = hom(W1.M, W2.M, im)
@@ -1257,11 +1272,11 @@ function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
     #by positive elements.
     s, ms = sub(domain(I1.mU), collect(values(q)))
     S, = sub(I1.data[6], ms)
-    si = action(S, S.G(I1.data[7].G[1]))
+    si = action(S, S.G(I2.data[7].G[1]))
     d1, d2 = debeerst(s, si)
     @assert all(x->x == si(x), d1)
     ce = complex_embeddings(number_field(order(I1.S[1])))[1]
-    d1 = map(ms, d1)
+    d1 = FinGenAbGroupElem[ms(x) for x = d1]
     for i = 1:length(d1)
       if _sign(I1.mU(d1[i]), ce) < 0
         d1[i] += mo #this turns it away from a G-module complement
@@ -1269,7 +1284,7 @@ function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
         @assert _sign(I1.mU(d1[i]), ce) > 0
       end
     end
-    s, ms = sub(domain(I1.mU), vcat(d1, map(ms, vcat(d2, map(si, d2)))))
+    s, ms = sub(domain(I1.mU), vcat(d1, FinGenAbGroupElem[ms(x) for x = vcat(d2, map(si, d2))]))
     @assert is_injective(ms)
     @assert length(P1) == ngens(s)
     for k = keys(q)
@@ -1293,15 +1308,6 @@ function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
   @hassert :GaloisCohomology 5 order(intersect(c, image(h21)[1])) == 1 #c is a complement
   @hassert :GaloisCohomology 5 order(quo(domain(I1.mU), c + image(h21)[1])[1]) == 1
 
-#  @show sub(I1.data[6], mc) # c is a G-module
-#  @show sub(I1.data[6], image(h21)[2]) # image is a G-module
-#  @show hom(I1.data[6], I2.data[6], h12) # maps are G-linear
-#  @show hom(I2.data[6], I1.data[6], h21)
-  #visual: the decomposition groups are the same.
-#  @show fl, s1 = is_subgroup(I1.data[7].G, domain(I1.mG))
-#  @show map(s1, gens(I1.data[7].G))
-#  @show fl, s2 = is_subgroup(I2.data[7].G, domain(I1.mG))
-#  @show map(s2, gens(I2.data[7].G))
   return h12, h21, mc
 end
 
@@ -1335,6 +1341,8 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
 
   if isnothing(mp)
     GrpHom = id_hom(domain(I1.mG))
+    k = I1.k
+    mp = hom(k, k, k[1])
   else
     _, GrpHom = fixed_group(I2.mG, I1.mG, mp)
   end
@@ -1362,9 +1370,12 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
   end
   =#
 
-  if domain(mp) == codomain(mp)
+  change_field = domain(GrpHom) != codomain(GrpHom)
+  local h
+
+  if !change_field && I1.S != I2.S
     unit_pro, unit_inj, comp = split_units(I1, I2)
-    if !is_totally_real(number_field(order(I1.S[1])))
+    if true || !is_totally_real(number_field(order(I1.S[1])))
   #    mVU = hom(domain(I2.mU), domain(I1.mU), [preimage(I1.mU, mp(image(I2.mU, g))) for g = gens(domain(I2.mU))])
       mU_W1 = get_attribute(I1.data[7], :get_W)
       mU_W2 = get_attribute(I2.data[7], :get_W)
@@ -1417,6 +1428,8 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       h = induce_hom_W(Wc, I1.data[7], comp)
       =#
       h = induce_hom_W(I1.data[7], I2.data[7], unit_pro) # W1 -> W2
+      @assert issurjective(unit_pro)
+      @assert issurjective(h)
     end
   else
     h = hom(domain(I1.mU), domain(I2.mU), [preimage(I2.mU, mp(image(I1.mU, g))) for g = gens(domain(I1.mU))])
@@ -1425,6 +1438,7 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     @assert is_injective(h)
   end
   h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, I1.data[8][1], I2.data[8][1])
+
   if get_assert_level(:GaloisCohomology) > 4
     hom(inflate(I1.data[8][1], GrpHom), I2.data[8][1], h)
   end
@@ -1459,7 +1473,7 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       IndI1 = I1.data[5]
       IndI2 = I2.data[5]
       if IndI1[i] === IndI2[j]
-        h = id_hom(IndI1[i][1], IndI2[j][1])
+        h = id_hom(IndI1[i][1].M)
       else
         h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, IndI1[i][1], IndI2[j][1]; twist)
         @assert domain(h) === IndI1[i][1].M
@@ -1568,6 +1582,217 @@ function magic_inf(I_k, x, h, a, H)
   return X
 end
 
+"""
+Enlarges the support of I. All the new primes are neccessarily
+unramified and the local G-module will be Z only.
+  (all local units will be factored out)
+"""
+function add_prime(I::IdeleParent, lp::Vector{Int})
+  mp = map(minimum, I.S)
+  @req all(p -> !(p in mp), lp) "primes must be new"
+  J = IdeleParent()
+  J.C = copy(I.C)
+  J.L = copy(I.L)
+  J.D = copy(I.D)
+  k = J.k = I.k
+  mG = J.mG = I.mG
+  J.S = copy(I.S)
+  zk = maximal_order(I.k)
+  S_old = vcat([prime_ideals_over(zk, p) for p = mp]...)
+  S_new = vcat([prime_ideals_over(zk, p) for p = lp]...)
+  mU = J.mU = sunit_group_fac_elem(vcat(S_old, S_new))[2]
+
+  G = domain(mG)
+
+  E = gmodule(G, mU, mG)
+  Hecke.assure_has_hnf(E.M)
+  @hassert :GaloisCohomology 1 is_consistent(E)
+  J.data = (nothing, nothing, nothing, nothing, nothing, E, nothing, nothing)
+
+  D = copy(I.data[5])
+  #D[1] = (Ind K_p, U -> Ind K_p)
+  for i=1:length(D)
+    D[i] = (D[i][1], Oscar.GrpCoh.induce_map(E, mU*Hecke.extend_easy(J.C[i], J.L[i], codomain(mU)), D[i][1]))
+  end
+
+  for p = lp
+    P = prime_decomposition(zk, p)[1][1]
+    push!(J.S, P)
+
+    L = completion(k, P)
+    push!(J.C, L[2])
+    C = gmodule(L[1], absolute_base_field(L[1]))
+    push!(J.D, C[2])
+    push!(J.L, C[3])
+    push!(D, Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, L[2], mG, C[2]), E, (mU*Hecke.extend_easy(L[2], C[3], codomain(mU)))))
+  end
+
+  unit_pro, unit_inj, comp = split_units(J, I)
+  if is_totally_real(k) #easy case...
+    mU_W = identity_map(domain(mU))
+    Et = gmodule(I.data[7].G, [mU_W])
+  else
+    U_W2 = get_attribute(I.data[7], :get_W) #W2 as a G-module
+    W2 = codomain(U_W2)
+    @assert W2 == I.data[7].M
+
+    acC = hom(comp*action(E, G(I.data[7].G[1]))*pseudo_inv(comp))
+    d1, d2 = debeerst(domain(comp), acC)
+
+    #d1 is C2-invariant and positive, d2 are the C2-module generators
+    _, pro, inj = direct_product(domain(unit_inj), domain(comp); task = :both)
+    #                                    = U_S            = V
+    hprodU = hom(pro[1]*unit_inj+pro[2]*comp)
+    @assert is_bijective(hprodU)
+    comp_pro = pseudo_inv(hprodU)*pro[2]
+    # so U_T -> V, unit_pro is U_T -> U_S, the projection matching the
+    # complement.
+    # U_T        = U_S x V, U_S -> U_T is unit_inj, V -> U_T is comp
+    # U_S -> W_S = V_S x F_S
+    # and V_S = (tor, Z) + 1-dim + 2-dim
+    # V  =  V1 x V2 where V1 are 1-dim and V2 2-dim
+    # U_T -> ((tor, Z) x 1-dim x V1 x 2-dim x V2) x (F_S x V1-bar)
+    #
+    # in W: W[1] = tor, W[2] = Z^-, W[3]... the 1-dim part, then 
+    # pairs giving 2-dim
+    # ngens(W) - ngens(U) = # 1-dim part
+    
+    V = abelian_group(elementary_divisors(domain(mU)))
+   
+    W2_1_dim = ngens(W2) - ngens(domain(U_W2))
+    F = free_abelian_group(W2_1_dim + length(d1))
+    W, pro, inj = direct_product(V, F; task = :both)
+    #need U_T -> W and W -> W2, and W2 -> W and comp -> W
+    # W2 -> W: (tor, Z^-) x 1dim x 2dim x conj  ->
+    #          (tor, Z^-) x 1dim x 0 V1 x 2dim x 0 V2 x conj
+    #                              
+    # comp -> W: V1 x V2 -> 
+    #               0     x 0    x V1   x 0    x  V2  x 0    x conj(V1)
+    # W -> W2: (tor, Z^-) x 1dim x V1 x 2dim x V2 x conj x conj(V1)
+    #   ->     (tor, Z^-) x 1dim    x   2dim    x   conj                     
+    # action on W: action on W2 and action on comp-ish
+    dim1 = ngens(W2) - ngens(domain(U_W2))
+    dim2 = ngens(domain(U_W2)) - 2 - dim1
+    v1 = length(d1)
+    v2 = 2*length(d2)
+    W2_W = hom(W2, W, vcat([W[i] for i=1:2+dim1],
+                           [W[i+v1] for i=2+dim1+1:2+dim1+dim2],
+                           [W[i+v1+v2] for i=ngens(domain(mU))+1:ngens(W2)]))
+    W_W2 = hom(W, W2, vcat([W2[i] for i=1:2+dim1], 
+                           [zero(W2) for i=2+dim1+1:2+dim1+v1],
+                           [W2[i-v1] for i=2+dim1+v1+1:2+dim1+v1+dim2],
+                           [W2[i-v1-v2] for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
+                           [zero(W2) for i=1:v1]))
+
+    C_W = hom(domain(comp), W, vcat([W[2+dim1+i] + W[2+dim1+v1+dim2+v2+dim1+i] for i=1:v1],
+                                    [W[i+2+dim1+v1+dim2+i] for i=1:v2]))
+
+    U_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*C_W))
+    acW = hom(W, W, vcat([zero(W) for i=1:2+dim1],
+               [W[i+v1+dim2+dim1] for i=2+dim1+1:2+dim1+v1],
+               [zero(W) for i=2+dim1+v1+1:2+dim1+v1+dim2],
+               [W[(isodd(i) ? i+1 : i-1)+2+dim1+v1+dim2] for i=1:v2],
+               [zero(W) for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
+               [W[2+dim1+i] for i=1:v1]))
+               
+    mU_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*C_W))           
+    acW = hom(W_W2*action(I.data[7], I.data[7].G[1])*W2_W + acW)
+    Et = gmodule(I.data[7].G, [acW])
+  end
+  set_attribute!(Et, :get_W => mU_W)
+  fl, mG_inf = is_subgroup(group(Et), G)
+  @assert fl
+  iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mU_W)
+
+    #maybe all downstream in seperate function? the block is there 3 times
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
+  J.M = F[1].M
+
+  @hassert :GaloisCohomology 1 is_consistent(F[1])
+
+    #h: U -> F
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
+  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  J.mq = mq
+  #TODO: think how much of the data should be returned - in what format?
+  J.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E, Et, iEt)
+  return J
+end
+
+"""
+Ensure that for all pairs (p, v) passed in at most
+  1+p^v+1 is factored out in the 1-units at p
+allowing for local conductor up to v
+"""
+function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
+  J = IdeleParent()
+  J.C = I.C #same completion
+  J.L = copy(I.L)
+  J.D = copy(I.D) #same automorphisms (careful with precision!)
+  k = J.k = I.k
+  mG = J.mG = I.mG
+  mU = J.mU = I.mU
+  J.S = I.S #identical primes!
+  zk = order(I.S[1])
+
+  E = I.data[6]
+
+  D = copy(I.data[5])
+  for i = 1:length(J.C)
+    f = findfirst(isequal(minimum(I.S[i])), [x[1] for x = p])
+    if !isnothing(f)
+      kp = codomain(I.C[i])
+      C = gmodule(kp, absolute_base_field(kp); conductor = 1+p[f][2])
+      J.D[i] = C[2]
+      J.L[i] = C[3]
+      D[i] = Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, J.C[i], mG, C[2]), E, (mU*Hecke.extend_easy(J.C[i], C[3], codomain(mU))))
+    end
+  end
+
+  iEt = I.data[8]
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
+  J.M = F[1].M
+
+  @hassert :GaloisCohomology 1 is_consistent(F[1])
+
+    #h: U -> F
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(D));
+  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  J.mq = mq
+  #TODO: think how much of the data should be returned - in what format?
+  Et = I.data[7]
+  J.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E, Et, iEt)
+  return J
+end
+
+"""
+A dictionary containing information about the finite places, i.e.
+how much has been factored out.
+"""
+function Oscar.conductor(I::IdeleParent)
+  c = Dict{Int, Int}()
+  for P = I.S
+    kp, mkp, mGp, D = completion(I, P)
+    if ngens(domain(D)) > 1 #so not only Z (i.e the valuation)
+      i = 1
+      while !iszero(preimage(D, kp(1+uniformizer(kp)^i)))
+        i += 1
+      end
+    else
+      i = 0
+    end
+    c[Int(minimum(P))] = i
+  end
+  return c
+end
 
 """
     idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[])
@@ -1745,7 +1970,9 @@ end
 #maybe we need Idele's as independent objects?
 #realizes C -> Cl (or the coprime version into a ray class group:
 #for the idele `a` in `I` find an "equivalent" ideal.
-function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
+function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; 
+   coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing} = nothing,
+   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
   if parent(_a) == codomain(I.mq)
     a = preimage(I.mq, _a)
   else
@@ -1775,10 +2002,17 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; coprime::Union{AbsSi
           u = x
         end
         @assert valuation(u) == 0
-        #TODO: the infinite places/ sign condition
-        iu = o_zk*_local_norm(coprime, zk(preimage(nKp, u)), P[1])
+        iv = _local_norm(coprime, zk(preimage(nKp, u)), P[1])
+        if !isnothing(sign) && length(sign) > 0
+          iv = approximate(iv, coprime, sign)
+        end
+        iu = o_zk*iv
         if vx != 0
-          ip = o_zk*_local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
+          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
+          if !isnothing(sign) && length(sign) > 0
+            iv = approximate(iv, coprime, sign)
+          end
+          ip = o_zk*iv
           id *= FacElem(Dict(iu => 1, ip => vx))
         else
           id *= iu
@@ -1837,7 +2071,7 @@ function induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true)
     px = parent(x)
     x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
     #the sign!!!
-    J = ideal(I, x; coprime = m0)
+    J = ideal(I, x; coprime = (m0, inf))
     return (preimage(mR, J))
   end
 
@@ -1879,11 +2113,12 @@ julia> [describe(x[1]) for x = b]
 """    
 function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleParent,Nothing} = nothing) 
 
-  m0, m_inf = defining_modulus(A)
-  @assert length(m_inf) == 0
+
   if !is_normal(A)
     A = normal_closure(A)
   end
+  m0, m_inf = defining_modulus(A)
+
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
@@ -1909,7 +2144,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   function idl(x)
     px = parent(x)
     x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
-    J = ideal(idele_parent, x; coprime = m0)
+    J = ideal(idele_parent, x; coprime = m0, sign = m_inf)
     return mQ(preimage(mR, J))
   end
 
