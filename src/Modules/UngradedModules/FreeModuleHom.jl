@@ -506,6 +506,24 @@ function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   return I, inc
 end
 
+function _kernel_subquo_generators_via_modulo(F::FreeMod, G::FreeMod, g, rels)
+  return nothing
+end
+
+function _kernel_subquo_generators_via_modulo(
+    F::FreeMod{T},
+    G::FreeMod{T},
+    g::Vector{FreeModElem{T}},
+    rels::Vector{FreeModElem{T}}
+  ) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  ordering = default_ordering(G)
+  SF = singular_module(G, ordering)
+  A = singular_generators(ModuleGens(g, G, SF))
+  B = singular_generators(ModuleGens(rels, G, SF))
+  K = Singular.modulo(A, B)
+  return elem_type(F)[v for v in oscar_generators(ModuleGens(F, K))]
+end
+
 function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   all(_is_zero_representative_for_grading, images_of_generators(h)) && return sub(domain(h), gens(domain(h)))
   F = domain(h)
@@ -524,6 +542,9 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
     push!(g, r)
   end
   rels = relations(M)
+  v = _kernel_subquo_generators_via_modulo(F, G, g, rels)
+  v !== nothing && return sub(F, filter!(!iszero, v))
+
   g = vcat(g, rels)
   R = base_ring(G)
   H = FreeMod(R, length(g))
