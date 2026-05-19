@@ -101,7 +101,6 @@ function basis_lie_highest_weight_compute(
     set_attribute!(
       mb,
       :polytope => polytopes[highest_weight(V)],
-      :volume_of_polytope => volume(polytopes[highest_weight(V)]),
     )
   end
   return mb
