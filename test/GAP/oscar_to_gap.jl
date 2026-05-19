@@ -9,3 +9,16 @@
 
   @test_throws ArgumentError GAP.Obj(matrix(F, 1, 1, [z]))
 end
+
+
+@testset "GapGroup and GapGroupElem" begin
+  # `GapGroup` to GAP group, Perm
+  G = symmetric_group(5)
+  val = GAP.Globals.SymmetricGroup(5)
+  @test GAP.Obj(G) == val
+
+  # `GapGroupElem` to GAP group element, Perm
+  g = perm(G, [2,3,1,5,4])
+  val = GAP.evalstr("(1,2,3)(4,5)")
+  @test GAP.Obj(g) == val
+end
