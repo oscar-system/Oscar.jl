@@ -1822,6 +1822,7 @@ function equivariant_primitive_extensions(
                                        first_fitting_isometry,
                                        fM=isometry(M),
                                        fqM=hom(fqM),
+                                       chiM=zero(Hecke.Globals.Qx),
                                        chiN=zero(Hecke.Globals.Qx),
                                        glue_order,
                                        form_over,
