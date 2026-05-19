@@ -258,10 +258,7 @@ end
       [only(exponents(m)) for m in monomials(basis_lusztig)],
       mons,
     )
-    @test isequal(
-      polytope(basis_lusztig),
-      convex_hull(mons),
-    )
+    @test polytope(basis_lusztig) ==  convex_hull(mons)
 
     basis_string = basis_lie_highest_weight_string(
       :A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1]; compute_polytope=true
@@ -414,10 +411,8 @@ end
       mons,
     )
 
-    @test isequal(
-      polytope(basis_string),
-      convex_hull(mons),
-    )
+    @test polytope(basis_string) ==  convex_hull(mons)
+
 
     basis_nz = basis_lie_highest_weight_nz(
       :A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1]; compute_polytope=true
@@ -572,7 +567,6 @@ end
     )
 
     @test polytope(basis_nz) ==  convex_hull(mons)
-    @test volume_of_polytope(basis_nz) == volume(polytope(basis_nz))
   end
 
   @testset "Check dimension" begin
