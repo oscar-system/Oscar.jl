@@ -353,7 +353,7 @@ function type_params(obj::T) where {S <: Union{Symbol, Int, String},
   return TypeParams(
     T,
     :key_params => TypeParams(S, nothing),
-    :value_params => (x.first => type_params(x.second) for x in pairs(obj))
+    :value_params => Tuple((x.first => type_params(x.second) for x in pairs(obj)))
   )
 end
 
@@ -380,13 +380,21 @@ end
 
 function save_type_params(
   s::SerializerState,
-  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
+  tp::TypeParams{Dict{S, T}, <:Tuple{Pair, Pair}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
       isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
-      for (k, param_tp) in params(tp)
-        save_type_params(s, param_tp, Symbol(k))
+      save_type_params(s, tp[:key_params], :key_params)
+
+      if tp[:value_params] isa Tuple
+        save_data_dict(s, :value_params) do
+          for (k, param_tp) in tp[:value_params]
+            save_type_params(s, param_tp, Symbol(k))
+          end
+        end
+      else
+        save_type_params(s, params(tp)[:value_params], :value_params)
       end
     end
   end
@@ -399,28 +407,41 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
     end
     S = type(key_tp)
 
-    if haskey(s, :value_params)
-      value_tp = load_node(s, :value_params) do _
-        load_type_params(s, decode_type(s))
-      end
-      return TypeParams(Dict{S, type(value_tp)},
-                        :key_params => key_tp,
-                        :value_params => value_tp)
-    else
-      # Heterogeneous Dict{S, Any} — per-key type params stored as Dict
-      params_dict = Dict{S, Any}()
-      value_types = Type[]
-      for k in propertynames(s.obj)
-        k == :key_params && continue
-        key = S <: Integer ? parse(Int, string(k)) : S(k)
-        params_dict[key] = load_node(s, Symbol(k)) do _
-          load_type_params(s, decode_type(s))
+
+    value_tp = load_node(s, :value_params) do _
+      if is_object(s)
+        for k in propertynames(s.obj)
+          k == :key_params && continue
+          key = S <: Integer ? parse(Int, string(k)) : S(k)
+          params_dict[key] = load_node(s, Symbol(k)) do _
+            load_type_params(s, decode_type(s))
+          end
+          push!(value_types, type(params_dict[key]))
         end
-        push!(value_types, type(params_dict[key]))
+        params_val = isempty(params_dict) ? nothing : params_dict
+
+      else
+        return load_type_params(s, decode_type(s))
       end
-      params_val = isempty(params_dict) ? nothing : params_dict
-      return TypeParams(Dict{S, Union{value_types...}}, params_val)
     end
+    return TypeParams(Dict{S, type(value_tp)},
+                      :key_params => key_tp,
+                      :value_params => value_tp)
+  #else
+  #    # Heterogeneous Dict{S, Any} — per-key type params stored as Dict
+  #    params_dict = Dict{S, Any}()
+  #    value_types = Type[]
+  #    for k in propertynames(s.obj)
+  #      k == :key_params && continue
+  #      key = S <: Integer ? parse(Int, string(k)) : S(k)
+  #      params_dict[key] = load_node(s, Symbol(k)) do _
+  #        load_type_params(s, decode_type(s))
+  #      end
+  #      push!(value_types, type(params_dict[key]))
+  #    end
+  #    params_val = isempty(params_dict) ? nothing : params_dict
+  #    return TypeParams(Dict{S, Union{value_types...}}, params_val)
+  #  end
   end
 end
 
@@ -440,6 +461,11 @@ function save_object(s::SerializerState, obj::Dict{S, T}) where {S, T}
       save_object(s, (k, v))
     end
   end
+end
+
+function load_object(s::DeserializerState,
+                     T::Type{<:Dict{S, U}}) where {S <: Union{Symbol, String, Int}, U}
+  load_object(s, TypeParams(T, nothing))
 end
 
 function load_object(s::DeserializerState,

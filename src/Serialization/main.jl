@@ -845,10 +845,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
   
   try
-    if !(params isa TypeParams)
-      params = _convert_override_params(params)
-    end
-    if type !== nothing
+    if params isa TypeParams
+      loaded = load_object(s, params, :data)
+    elseif type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
       # If they are identical, just proceed. If not, then we assume that either
       # `T` is concrete, in which case `T <: U` should hold; or else `U` is
@@ -868,9 +867,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         end
         params = Oscar.params(tp_inner)
       end
-      load_node(s, :data) do _
-        loaded = load_object(s, TypeParams(type, params))
-      end
+      loaded = load_object(s, TypeParams(type, params), :data)
     else
       loaded = load_typed_object(s; override_params=params)
     end
