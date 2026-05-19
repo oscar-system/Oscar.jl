@@ -407,41 +407,23 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
     end
     S = type(key_tp)
 
-
-    value_tp = load_node(s, :value_params) do _
-      if is_object(s)
+    load_node(s, :value_params) do _
+      if is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
+        # Heterogeneous Dict{S, Any} — per-key type params stored as dict
+        pairs_list = Pair[]
         for k in propertynames(s.obj)
-          k == :key_params && continue
           key = S <: Integer ? parse(Int, string(k)) : S(k)
-          params_dict[key] = load_node(s, Symbol(k)) do _
+          tp = load_node(s, Symbol(k)) do _
             load_type_params(s, decode_type(s))
           end
-          push!(value_types, type(params_dict[key]))
+          push!(pairs_list, key => tp)
         end
-        params_val = isempty(params_dict) ? nothing : params_dict
-
+        TypeParams(Dict{S, Any}, :key_params => key_tp, :value_params => Tuple(pairs_list))
       else
-        return load_type_params(s, decode_type(s))
+        value_tp = load_type_params(s, decode_type(s))
+        TypeParams(Dict{S, type(value_tp)}, :key_params => key_tp, :value_params => value_tp)
       end
     end
-    return TypeParams(Dict{S, type(value_tp)},
-                      :key_params => key_tp,
-                      :value_params => value_tp)
-  #else
-  #    # Heterogeneous Dict{S, Any} — per-key type params stored as Dict
-  #    params_dict = Dict{S, Any}()
-  #    value_types = Type[]
-  #    for k in propertynames(s.obj)
-  #      k == :key_params && continue
-  #      key = S <: Integer ? parse(Int, string(k)) : S(k)
-  #      params_dict[key] = load_node(s, Symbol(k)) do _
-  #        load_type_params(s, decode_type(s))
-  #      end
-  #      push!(value_types, type(params_dict[key]))
-  #    end
-  #    params_val = isempty(params_dict) ? nothing : params_dict
-  #    return TypeParams(Dict{S, Union{value_types...}}, params_val)
-  #  end
   end
 end
 
@@ -505,36 +487,28 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Dict{S, U}, Nothing}
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:Dict{S, U}, Tuple{Pair, Pair}}) where {S <: Union{Int, String, Symbol}, U}
+                     tp::TypeParams{<:Dict{S, U}, <:Tuple{Pair, Pair}}) where {S <: Union{Int, String, Symbol}, U}
   T = type(tp)
-  pairs = Tuple{S, U}[]
-  for k in propertynames(s.obj)
-    key = S <: Integer ? parse(S, string(k)) : S(k)
-    push!(pairs, (key, load_object(s, tp[:value_params], k)))
+  if tp[:value_params] isa Tuple
+    # Heterogeneous Dict{S, Any} — per-key type params
+    per_key_params = Dict(k => v for (k, v) in tp[:value_params])
+    dict = Dict{S, Any}()
+    for k in propertynames(s.obj)
+      key = S <: Integer ? parse(S, string(k)) : S(k)
+      dict[key] = load_object(s, per_key_params[key], k)
+    end
+    return Dict{S, Any}(dict)
+  else
+    # Homogeneous Dict{S, U} — single value type
+    pairs = Tuple{S, U}[]
+    for k in propertynames(s.obj)
+      key = S <: Integer ? parse(S, string(k)) : S(k)
+      push!(pairs, (key, load_object(s, tp[:value_params], k)))
+    end
+    isempty(pairs) && return T()
+    _, v = first(pairs)
+    return Dict{S, typeof(v)}(k => v for (k, v) in pairs)
   end
-  isempty(pairs) && return T()
-  _, v = first(pairs)
-  return Dict{S, typeof(v)}(k => v for (k, v) in pairs)
-end
-
-# Heterogeneous Dict{S, Union{...}} with per-key Dict params (from load_type_params)
-function load_object(s::DeserializerState,
-                     tp::TypeParams{<:Dict{S, U}, Tuple{Pair, Pair{Symbol, Tuple}}}) where {S <: Union{Int, String, Symbol}, U}
-  T = type(tp)
-  p = Oscar.params(tp)
-  dict = Dict{S, Any}()
-  value_types = Type[]
-  for k in propertynames(s.obj)
-    key = S <: Integer ? parse(S, string(k)) : S(k)
-    param_key = haskey(p, key) ? key : string(k)
-    v = load_object(s, p[param_key], k)
-    dict[key] = v
-    push!(value_types, typeof(v))
-  end
-  isempty(value_types) && return T()
-  value_params_list = type_params.(collect(values(dict)))
-  value_type = allequal(value_params_list) ? typejoin(unique(value_types)...) : Any
-  return Dict{S, value_type}(dict)
 end
 
 function load_object(s::DeserializerState,
