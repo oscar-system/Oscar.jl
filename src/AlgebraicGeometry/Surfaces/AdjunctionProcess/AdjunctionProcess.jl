@@ -131,6 +131,151 @@ function _adjoint_matrix(D::AbstractAlgebra.Generic.MatSpaceElem)
      return transpose(map(projRPP, MM))
 end
 
+function _zero_matrix_for_adjunction(R, ncols::Int)
+   return matrix(R, 0, ncols, elem_type(R)[])
+end
+
+function _matrix_has_no_quadratic_or_higher_entries(D::AbstractAlgebra.Generic.MatSpaceElem)
+   return !any(x -> !is_zero(x) && total_degree(x) > 1, Oscar._vec(D))
+end
+
+function _matrix_has_only_linear_or_zero_entries(D::AbstractAlgebra.Generic.MatSpaceElem)
+   return !any(x -> !is_zero(x) && total_degree(x) != 1, Oscar._vec(D))
+end
+
+function _canonical_resolution_data(X::AbsProjectiveVariety)
+   Pn = ambient_coordinate_ring(X)
+   A = homogeneous_coordinate_ring(X)
+   FA, _ = free_resolution(SimpleFreeResolution, A)
+   C_simp = simplify(FA)
+   return Pn, C_simp, ngens(Pn) - 1, Int(codim(X))
+end
+
+function _is_zero_free_module_for_adjunction(M)
+   try
+      return rank(M) == 0
+   catch
+   end
+   try
+      return ngens(M) == 0
+   catch
+   end
+   try
+      return is_zero(M)
+   catch
+   end
+   try
+      return iszero(M)
+   catch
+   end
+   return false
+end
+
+function _resolution_stops_after_codimension(C, c::Int)
+   try
+      cf = chain_factory(original_complex(C))
+      if hasfield(typeof(cf), :map_cache) && length(cf.map_cache) >= c + 1
+         return _is_zero_free_module_for_adjunction(domain(cf.map_cache[c + 1]))
+      end
+   catch
+   end
+   return false
+end
+
+function _canonical_homology_subquotient_from_resolution(Pn, C_simp, n::Int, c::Int)
+   C_shift = shift(C_simp, c)
+   OmegaPn = graded_free_module(Pn, [n + 1])
+   D = hom(C_shift, OmegaPn)
+   D_simp = simplify(D)
+   Z, _ = kernel(D_simp, 0)
+   B, _ = boundary(D_simp, 0)
+   return SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B))
+end
+
+function _canonical_homology_subquotient(X::AbsProjectiveVariety)
+   Pn, C_simp, n, c = _canonical_resolution_data(X)
+   return _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
+end
+
+function _free_cover_map_for_adjunction(F0, SQ)
+   if is_graded(F0) && is_graded(SQ)
+      return graded_map(
+         F0, SQ, gens(SQ);
+         check = false,
+         hom_degree = zero(grading_group(base_ring(F0))),
+         generators_map_to_generators = true
+      )
+   end
+   phi = hom(F0, SQ, gens(SQ); check = false)
+   phi.generators_map_to_generators = true
+   return phi
+end
+
+function _matrix_from_subquotient_generators_for_adjunction(K, F0)
+   R = base_ring(F0)
+   V_all = ambient_representatives_generators(K)
+   W_all = degrees_of_generators(K; check = false)
+   keep = findall(!is_zero, V_all)
+   isempty(keep) && return _zero_matrix_for_adjunction(R, ngens(F0))
+   V = V_all[keep]
+   W = W_all[keep]
+   F1 = is_graded(F0) ? graded_free_module(R, W) : free_module(R, length(V))
+   return matrix(hom(F1, F0, V; check = false, hom_degree = is_graded(F0) ? zero(grading_group(R)) : nothing))
+end
+
+function _canonical_presentation_matrix_from_subquotient_cover(SQ::SubquoModule)
+   R = base_ring(SQ)
+   F0 = graded_free_module(R, degrees_of_generators(SQ; check = false))
+   eps = _free_cover_map_for_adjunction(F0, SQ)
+   K, _ = kernel(eps)
+   return _matrix_from_subquotient_generators_for_adjunction(K, F0)
+end
+
+function _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n::Int, c::Int; repair::Bool = true)
+   SQ = _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
+   D = _canonical_presentation_matrix_from_subquotient_cover(SQ)
+   if repair && !_matrix_has_only_linear_or_zero_entries(D)
+      P = presentation(SQ; minimal = true)
+      return matrix(map(P, 1))
+   end
+   return D
+end
+
+function _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c::Int; require_linear::Bool = true)
+   c == 0 && return _zero_matrix_for_adjunction(Pn, 1)
+   D = transpose(matrix(map(C_simp, c)))
+   _resolution_stops_after_codimension(C_simp, c) || return nothing
+   require_linear && !_matrix_has_only_linear_or_zero_entries(D) && return nothing
+   return D
+end
+
+function _canonical_presentation_matrix_via_module(X::AbsProjectiveVariety)
+   Omega = canonical_bundle(X)
+   FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
+   return matrix(map(FOmega, 1))
+end
+
+function _canonical_presentation_matrix_for_adjunction(X::AbsProjectiveVariety; algorithm::Symbol = :fast)
+   algorithm == :module && return _canonical_presentation_matrix_via_module(X)
+   Pn, C_simp, n, c = _canonical_resolution_data(X)
+   if algorithm == :direct
+      D = _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c; require_linear = true)
+      D !== nothing && return D
+      error("The direct canonical presentation is not certified as a linear adjunction matrix for this embedding.")
+   elseif algorithm == :homology
+      return _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n, c; repair = false)
+   elseif algorithm == :minimal_homology
+      SQ = _canonical_homology_subquotient_from_resolution(Pn, C_simp, n, c)
+      P = presentation(SQ; minimal = true)
+      return matrix(map(P, 1))
+   elseif algorithm == :fast
+      D = _canonical_presentation_matrix_direct_from_resolution(Pn, C_simp, c; require_linear = true)
+      D !== nothing && return D
+      return _canonical_presentation_matrix_homology_from_resolution(Pn, C_simp, n, c; repair = true)
+   end
+   error("Unsupported canonical presentation algorithm $(algorithm). Use :fast, :direct, :homology, :minimal_homology, or :module.")
+end
+
 @doc raw"""
     canonical_bundle(X::AbsProjectiveVariety)
 
@@ -195,19 +340,7 @@ SubquoModule{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}
 ```
 """
 function canonical_bundle(X::AbsProjectiveVariety)
-  Pn = ambient_coordinate_ring(X)
-  A = homogeneous_coordinate_ring(X)
-  n = ngens(Pn)-1
-  c = codim(X)
-  FA, _ = free_resolution(SimpleFreeResolution, A)
-  C_simp = simplify(FA)
-  C_shift = shift(C_simp, c)
-  OmegaPn = graded_free_module(Pn, [n+1])
-  D = hom(C_shift, OmegaPn)
-  D_simp = simplify(D)
-  Z, inc = kernel(D_simp, 0)
-  B, inc_B = boundary(D_simp, 0)
-  return prune_with_map(SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B)))[1] 
+  return prune_with_map(_canonical_homology_subquotient(X))[1]
 end
 
 @doc raw"""
@@ -292,7 +425,7 @@ julia> L[1]
 !!! note
     Inspecting the  returned numerical data in the first example above, we see that the Bordiga surface is the blow-up of the projective plane in 10 points, embedded into projective 4-space by the linear system $H = 4L -\sum_{i=1}^{10} E_i$. Here, $L$ is the preimage of a line and the $E_i$ are the exceptional divisors. In the second example, we see from the output that the terminal object of the adjunction process is a Del Pezzo surface in projective 3-space, that is, the blow-up of the projective plane in 6 points. In sum, we see that `X` is the blow-up of the projective plane in 15 points, embedded into projective 4-space by the linear system $H = 9L - \sum_{i=1}^{6} 3E_i - \sum_{i=7}^{9} 2E_i - \sum_{i=10}^{15} E_i$. 
 """
-function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
+function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0; canonical_algorithm::Symbol = :fast)
    @assert steps >= 0
    Pn = ambient_coordinate_ring(X)
    I = defining_ideal(X)
@@ -303,12 +436,10 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
    numlist = [(ZZ(ngens(Pn)-1), degree(X), sectional_genus(X), zero(ZZ))]
    ptslist = ProjectiveAlgebraicSet[]
    adjlist = AbstractAlgebra.Generic.MatSpaceElem[] 
-   Omega = canonical_bundle(X)
-   FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
-   D = matrix(map(FOmega,1))
+   D = _canonical_presentation_matrix_for_adjunction(X; algorithm = canonical_algorithm)
    count = 1
    while nrows(D) > 2 && (steps == 0 || count <= steps)
-      if !any(x -> total_degree(x) > 1, Oscar._vec(D)) 
+      if _matrix_has_no_quadratic_or_higher_entries(D)
          adj = _adjoint_matrix(D)
       else
         return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = true))
@@ -347,14 +478,9 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
         push!(numlist, (ZZ(ngens(Pn)-1), dY, piY, l))
         push!(adjlist, adj)
         push!(ptslist, pts)
-        Omega = canonical_bundle(Y)
-        FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
-        D = matrix(map(FOmega,1))
+        D = _canonical_presentation_matrix_for_adjunction(Y; algorithm = canonical_algorithm)
       end
       count = count+1
    end
    return (numlist, adjlist, ptslist, Y)
 end
-
-
-
