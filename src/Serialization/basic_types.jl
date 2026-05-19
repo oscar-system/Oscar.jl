@@ -91,7 +91,7 @@ function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
     else
       parse(T, x)
     end
-  end
+  end::T
 end
 
 @register_serialization_type PosInf
