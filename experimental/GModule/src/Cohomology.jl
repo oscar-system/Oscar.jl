@@ -377,38 +377,35 @@ function show_induced_gmodule(io::IO, C::GModule)
              Lowercase(), group(C), " over ",
              Lowercase(), base_ring(C))
 end
+
 #=
-  C U-module U <= G
-  D V-module V <= H
-  m: C->D
-  q: H -> G (here: G = H/X)
-  want ind_U^G C -> ind_V^H D
-  via q, ind_U^G is a H-module
-  c otimes g_i -> sum m(c) otimes h for q(h) = g, the coset reps have to match
-
-  map returned for the underlying modules, not the gmodules. The different 
-  groups are tricky.
-  U\G = {g_i | i}
-  V\H = {h_i | i}
-  q(h_i) = u * g_j   - we need the map i->j (up to right/left)
-  need q(V) = U - the twist
-  so j s.th. q(h_i)*inv(g_j) in U
-
-  ====================
-
-  C G-module
-  D U-module, U <= G
-  m: C->D U-linear
-  want
-  C -> ind_U^G D G-linear
-  c -> sum c g_i^-1 otimes g_i for the coset reps
-
-  currently, the wierd option in induce.  
-
+  Ind C = C otimes_U Z[G]
+  Ind D = D otimes_V Z[H]
+ 
+  U\\G = {g_i}, V\\H = {h_i}
+  Then c otimes g_i -> sum c otimes v_j h_j = sum c v_j otimes h_j
+  where the sum runs over all j s.th.
+  mHG(v_j h_j) = g_i
 =#
+"""
+  C V-module, U <= G
+  D U-module, V <= H
+  mHG: H -> G (think of projection of Galois group(s)
+  mCD: C->D U,V-linear
+  want
 
+  Ind C -> Ind D extending/ induced by mCD and mHG
+
+  We should have mHG(V) subset U, if not we demand
+  mHG(V^twist) subset U.
+
+Application: K/k fields and C and D completions at compatible places. Then
+Ind C, Ind D are products over all conjugate completions and mCD induces
+the "embedding" induced by k->K.
+"""
 function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
 #  global last_bad = (mCD, mHG, indC, indD, twist)
+
   hU, gC = get_attribute(indC.M, :induce)
   U = domain(hU)
   iU = image(hU)[1]
@@ -419,8 +416,8 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
 
   if isnothing(twist)
     fl, twist = is_conjugate_with_data(codomain(hU), image(hV*mHG)[1], image(hU)[1])
-    twist = preimage(mHG, twist)
     @assert fl
+    twist = preimage(mHG, twist)
   end
 
 #  @show [x^twist for x = gens(iV)]
@@ -466,7 +463,7 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
   for i=1:length(gC)
     m = gC[i]
     j = [x for x = 1:length(gD) if m*mHG(inv(gD[x])^twist) in iU]
-    
+   
     I += canonical_projection(indC.M, i)*mCD*sum(act(preimage(rmHG, m*mHG(inv(gD[x])^twist)))*canonical_injection(indD.M, x^rb(twist)) for x = j)  
   end
   if get_assert_level(:GaloisCohomology) > 4
@@ -478,7 +475,25 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
   return I
 end
 
-#TODO: write an action function that does not use create the matrix...
+"""
+ D a G-module
+ C a U-module, U<G  
+ mDC: D -> C U linear
+
+ return D -> Ind_U^G C a G-linear map.
+
+ Application: D S-units, C the multiplcative group at a single prime,
+ then Ind C is the product over all completions over conjugate primes
+ and D will embed G-linearly into this.
+""" 
+function induce_map(D::GModule, mDC::Map, C::GModule)
+  inj = canonical_injections(C.M)
+  g = get_attribute(C.M, :induce)[2]
+
+  _h = hom(D.M, C.M, [sum(inj[i](mDC(action(D, inv(g[i]), d))) for i=1:length(g)) for d = gens(D.M)])
+  return _h
+end
+
 """
     induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT <: GAPGroup where MT  
 
@@ -2001,28 +2016,24 @@ function change_group(fU::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModul
   # in fill in free_res)
   # this needs access to mFF, the map from G <-> free group to get words
 
-  m = [m0]
-  local A, mA
-  for i=reverse(map_range(fU))
+  C = Hecke.ComplexOfMorphismsMap(fU, fG, Dict{Int, typeof(m0)}(0 => m0))
+  function fill(C::Hecke.ComplexOfMorphismsMap, i::Int)
     g = map(fU, i)
     f = map(fG, i)
-    if i == 1
-      B, mB = abelian_group(codomain(f))
-    else
-      B, mB = A, mA
-    end
     A, mA = abelian_group(domain(f))
+    B, mB = abelian_group(codomain(f))
     h = hom(A, B, [preimage(mB, f(mA(a))) for a = gens(A)])
-    gns = [mA(preimage(h, preimage(mB, m[end](g(x))))) for x=gens(domain(g))]
+    gns = [mA(preimage(h, preimage(mB, C[i-1](g(x))))) for x=gens(domain(g))]
     if m0.is_left
-      push!(m, hom(domain(g), domain(f), vcat([x.v for x = gns]...); is_left = m0.is_left, map = emb))
+      C.maps[i] = hom(domain(g), domain(f), vcat([x.v for x = gns]...); is_left = m0.is_left, map = emb)
     else
-      push!(m, hom(domain(g), domain(f), hcat([x.v for x = gns]...); is_left = m0.is_left, map = emb))
+      C.maps[i] = hom(domain(g), domain(f), hcat([x.v for x = gns]...); is_left = m0.is_left, map = emb)
     end
+    return C[i]
   end
-
-  return Hecke.ComplexOfMorphismsMap(fU, fG, Dict{Int, typeof(m0)}(i-1 => m[i] for i=1:length(m)))
-  return m
+  C.fill = fill
+  
+  return C
 end
 
 #=
@@ -2062,6 +2073,7 @@ function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorph
   map = Hecke.ComplexOfMorphismsMap(fN, fM, mp)
   function fill(A::Hecke.ComplexOfMorphismsMap, i::Int)
     #TODO: special case of M^n -> N^n via coordinates
+    #      more important: the preimage!!!
     d = length(get_attribute(fN[i], :direct_product))
     mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
     return mp[i]
