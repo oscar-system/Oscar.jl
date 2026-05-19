@@ -58,9 +58,8 @@ julia> volume_of_polytope(basis)
 function volume_of_polytope(basis::MonomialBasis)
   if has_attribute(basis, :volume_of_polytope)
     return get_attribute(basis, :volume_of_polytope)
-  else
-    error("no volume computed")::QQFieldElem
   end
+  error("no volume computed")
 end
 
 @doc raw"""
