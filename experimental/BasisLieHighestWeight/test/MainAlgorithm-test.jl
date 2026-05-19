@@ -571,10 +571,8 @@ end
       mons,
     )
 
-    @test isequal(
-      polytope(basis_nz),
-      convex_hull(mons),
-    )
+    @test polytope(basis_nz) ==  convex_hull(mons)
+    @test volume_of_polytope(basis_nz) == volume(polytope(basis_nz))
   end
 
   @testset "Check dimension" begin
