@@ -204,7 +204,7 @@ else
   print_stats(stdout, stats; max=10)
 end
 if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
-  timestamp = now()
+  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H:%M:%S"`)
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
   commitHash = readchomp(`git rev-parse --verify --short HEAD`)
