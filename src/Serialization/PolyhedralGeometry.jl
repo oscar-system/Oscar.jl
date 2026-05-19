@@ -37,7 +37,7 @@ function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
   delete!(p_dict, "_coeff")
   params = Pair[]
   for (k, v) in p_dict
-    push!(params, k => type_params(v))
+    push!(params, Symbol(k) => type_params(v))
   end
   return TypeParams(T, :field => field, params...)
 end
