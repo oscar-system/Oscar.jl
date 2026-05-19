@@ -35,6 +35,26 @@ monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 
 birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
+@doc raw"""
+    volume_of_polytope(basis::MonomialBasis)
+
+Compute the volume of the polytope corresponding to the monomial basis.
+
+# Examples
+```jldoctest
+julia> basis = basis_lie_highest_weight(:A, 3, [1,1,1]; monomial_ordering = :deglex, compute_polytope = true)
+Monomial basis of a highest weight module
+  of highest weight w_1 + w_2 + w_3
+  of dimension 64
+  with monomial ordering deglex([x1, x2, x3, x4, x5, x6])
+over abstract Lie algebra of type A3 over QQ
+where the used birational sequence consists of the following roots:
+  [a_1, a_2, a_3, a_1 + a_2, a_2 + a_3, a_1 + a_2 + a_3]
+
+julia> volume_of_polytope(basis)
+1
+```
+"""
 function volume_of_polytope(basis::MonomialBasis)
   if has_attribute(basis, :volume_of_polytope)
     return get_attribute(basis, :volume_of_polytope)
@@ -43,6 +63,26 @@ function volume_of_polytope(basis::MonomialBasis)
   end
 end
 
+@doc raw"""
+    polytope(basis::MonomialBasis)
+
+Compute the polytope corresponding to the monomial basis.
+
+# Examples
+```jldoctest
+julia> basis = basis_lie_highest_weight(:A, 3, [1,1,1]; monomial_ordering = :deglex,  compute_polytope = true)
+Monomial basis of a highest weight module
+  of highest weight w_1 + w_2 + w_3
+  of dimension 64
+  with monomial ordering deglex([x1, x2, x3, x4, x5, x6])
+over abstract Lie algebra of type A3 over QQ
+where the used birational sequence consists of the following roots:
+  [a_1, a_2, a_3, a_1 + a_2, a_2 + a_3, a_1 + a_2 + a_3]
+
+julia> polytope(basis)
+Polytope in ambient dimension 6
+```
+"""
 function polytope(basis::MonomialBasis)
   if has_attribute(basis, :polytope)
     return get_attribute(basis, :polytope)::Polyhedron{QQFieldElem}
