@@ -85,9 +85,8 @@ Polytope in ambient dimension 6
 function polytope(basis::MonomialBasis)
   if has_attribute(basis, :polytope)
     return get_attribute(basis, :polytope)::Polyhedron{QQFieldElem}
-  else
-    error("no polytope computed")
   end
+  error("no polytope computed")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis{<:SimpleModuleData})
