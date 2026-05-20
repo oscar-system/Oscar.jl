@@ -192,7 +192,7 @@ end
 
 function as_sub_pc_group(G::PcGroup)
   if !isdefined(G, :as_sub_pc_group)
-    G.as_sub_pc_group = sub_pc_group(G)
+    G.as_sub_pc_group = sub_pc_group(GapObj(G), G, check = false)
   end
   return G.as_sub_pc_group::SubPcGroup
 end
@@ -245,6 +245,7 @@ return groups of type `SubPcGroup`.
 #T better create an embedding!
 
   function SubPcGroup(G::GapObj)
+    # Create the `PcGroup` on the Oscar side anew.
     @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
     if GAPWrap.IsPcGroup(G)
       full = GAPWrap.GroupOfPcgs(GAPWrap.FamilyPcgs(G))
@@ -254,9 +255,20 @@ return groups of type `SubPcGroup`.
     z = new(G, PcGroup(full))
     return z
   end
+
+  function SubPcGroup(G::GapObj, F::PcGroup; check::Bool=true)
+    # Keep object identity of the available `PcGroup` on the Oscar side.
+    if check
+      @assert (GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)) &&
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+    end
+    z = new(G, F)
+    return z
+  end
 end
 
 sub_pc_group(G::GapObj) = SubPcGroup(G)
+sub_pc_group(G::GapObj, F::PcGroup; check::Bool=true) = SubPcGroup(G, F; check=check)
 
 
 """
@@ -321,7 +333,7 @@ _is_full_fp_group(G::GapObj) = GAPWrap.IsFpGroup(G)
 
 function as_sub_fp_group(G::FPGroup)
   if !isdefined(G, :as_sub_fp_group)
-    G.as_sub_fp_group = sub_fp_group(G)
+    G.as_sub_fp_group = sub_fp_group(GapObj(G), G, check = false)
   end
   return G.as_sub_fp_group::SubFPGroup
 end
@@ -358,14 +370,26 @@ subgroups of a finitely presented group.
 #T better create an embedding!
 
   function SubFPGroup(G::GapObj)
+    # Create the `FPGroup` on the Oscar side anew.
     @assert GAPWrap.IsSubgroupFpGroup(G)
     full = GAP.getbangproperty(GAPWrap.FamilyObj(G), :wholeGroup)::GapObj
     z = new(G, FPGroup(full))
     return z
   end
+
+  function SubFPGroup(G::GapObj, F::FPGroup; check::Bool=true)
+    # Keep object identity of the available `FPGroup` on the Oscar side.
+    if check
+      @assert GAPWrap.IsSubgroupFpGroup(G) &&
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+    end
+    z = new(G, F)
+    return z
+  end
 end
 
 sub_fp_group(G::GapObj) = SubFPGroup(G)
+sub_fp_group(G::GapObj, F::FPGroup; check::Bool=true) = SubFPGroup(G, F; check=check)
 
 
 """
@@ -473,7 +497,7 @@ sub_type(G::GAPGroup) = sub_type(typeof(G))
 # default: ignore `G` and `check`
 function _oscar_subgroup(obj::GapObj, G::GAPGroup; check::Bool = true)
   S = sub_type(G)(obj)
-  @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
+  @assert GAPWrap.FamilyObj(GapObj(S)) === GAPWrap.FamilyObj(GapObj(G))
   return S
 end
 
@@ -490,6 +514,16 @@ function _oscar_subgroup(obj::GapObj, G::MatGroup; check::Bool = true)
   d = GAPWrap.DimensionOfMatrixGroup(obj)
   @req G.deg == d "requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)"
   return matrix_group(_ring_iso(G), obj; check = check)
+end
+
+# `FPGroup`: keep the object identity of `G`
+function _oscar_subgroup(obj::GapObj, G::FPGroup; check::Bool = true)
+  return SubFPGroup(obj, G; check = check)
+end
+
+# `PcGroup`: keep the object identity of `G`
+function _oscar_subgroup(obj::GapObj, G::PcGroup; check::Bool = true)
+  return SubPcGroup(obj, G; check = check)
 end
 
 

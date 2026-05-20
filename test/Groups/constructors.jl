@@ -55,6 +55,24 @@
   @test !is_isomorphic_to_symmetric_group(alternating_group(4))
 end
 
+@testset "Object identity for stored full group of subgroups" begin
+  G = free_group(2)
+  U, _ = sub(G, [gen(G, 2)])
+  @test full_group(U)[1] === G
+  Ux = GapObj(U)
+  @test full_group(SubFPGroup(Ux))[1] !== G
+  @test full_group(SubFPGroup(Ux, G))[1] === G
+  @test_throws AssertionError SubFPGroup(Ux, free_group(2))
+
+  G = small_group(24, 12)
+  U, _ = sub(G, [gen(G, 2)])
+  @test full_group(U)[1] === G
+  Ux = GapObj(U)
+  @test full_group(SubPcGroup(Ux))[1] !== G
+  @test full_group(SubPcGroup(Ux, G))[1] === G
+  @test_throws AssertionError SubPcGroup(Ux, small_group(24, 12))
+end
+
 @testset "Special Constructors" begin
 
   @test isa(symmetric_group(5), PermGroup)

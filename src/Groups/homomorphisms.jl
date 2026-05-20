@@ -925,7 +925,7 @@ function isomorphism(T::Type{PcGroup}, G::GAPGroup; on_gens::Bool=false)
        # Create a group in `IsPcGroup` if `G` is finite,
        # and a group in `IsPcpGroup` otherwise.
        if is_finite(G)
-         fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(GapObj(G)))::GapObj
+         fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
          Ggens = GapObj(gens(G); recursive = true)::GapObj
          Cpcgs = GAP.Globals.PcgsByPcSequence(fam, Ggens)::GapObj
          CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
