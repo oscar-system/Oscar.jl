@@ -110,13 +110,13 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{GenDict})
-  subtype, params = load_node(s, :params) do _
-    S, key_params = load_node(s, :key_params) do _
+  subtype, params = load_node(s, :params) do
+    S, key_params = load_node(s, :key_params) do
       s.obj isa String && return decode_type(s), nothing
       load_type_and_params(s, decode_type(s))
     end
 
-    _, value_params = load_node(s, :value_params) do _
+    _, value_params = load_node(s, :value_params) do
       load_type_and_params(s, decode_type(s))
     end
 

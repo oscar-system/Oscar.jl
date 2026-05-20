@@ -21,7 +21,7 @@ end
 @register_serialization_type Bool 
 
 function load_object(s::DeserializerState, ::Type{Bool})
-  load_node(s) do _
+  load_node(s) do
     return s.obj
   end::Bool
 end
@@ -34,7 +34,7 @@ end
 load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s, T)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
-  load_node(s) do _
+  load_node(s) do
     return ZZRingElem(s.obj)
   end::ZZRingElem
 end
@@ -48,7 +48,7 @@ load_object(s::DeserializerState, T::Type{QQFieldElem}, ::QQField) = load_object
 function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
-  load_node(s) do _
+  load_node(s) do
     fraction_parts = String.(split(s.obj, "//"))
     fraction_parts = parse.(ZZRingElem, fraction_parts)
     
@@ -77,7 +77,7 @@ end
 @register_serialization_type Float64
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
-  load_node(s) do _
+  load_node(s) do
     parse(T, s.obj)
   end
 end
@@ -97,7 +97,7 @@ end
 @register_serialization_type Symbol
 
 function load_object(s::DeserializerState, ::Type{Symbol})
-  load_node(s) do _
+  load_node(s) do
     Symbol(s.obj)
   end
 end

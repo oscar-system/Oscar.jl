@@ -92,7 +92,7 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
-  inner_object = load_node(s, :pm_tree) do _
+  inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, Dict(s.obj))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
@@ -100,7 +100,7 @@ function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::
 end
 
 function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
-  inner_object = load_node(s, :pm_tree) do _
+  inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, Dict(s.obj))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)

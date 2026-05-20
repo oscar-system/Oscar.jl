@@ -52,9 +52,9 @@ function save_object(s::SerializerState, X::GapObj)
 end
 
 function load_object(s::DeserializerState, T::Type{GapObj})
-  load_node(s) do _
+  load_node(s) do
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
-    GAP_T = load_node(s, :GapType) do _
+    GAP_T = load_node(s, :GapType) do
       return GapObj(s.obj)
     end
     return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T)
@@ -62,9 +62,9 @@ function load_object(s::DeserializerState, T::Type{GapObj})
 end
 
 function load_object(s::DeserializerState, T::Type{GapObj}, F::GapObj)
-  load_node(s) do _
+  load_node(s) do
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
-    GAP_T = load_node(s, :GapType) do _
+    GAP_T = load_node(s, :GapType) do
       return GapObj(s.obj)
     end
     return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T, F)
@@ -158,15 +158,15 @@ install_GAP_serialization(:IsFreeGroup,
 install_GAP_deserialization(
   :IsFreeGroup, false,
   function(filt::GapObj, s::DeserializerState, T)
-    load_node(s) do _
+    load_node(s) do
       # Create a new full free group.
       wfilt = getproperty(GAP.Globals, load_object(s, Symbol, :wfilt))::GapObj
       if haskey(s, :nameprefix)
         # infinite rank
-        prefix = load_node(s, :nameprefix) do _
+        prefix = load_node(s, :nameprefix) do
           GapObj(s.obj)
         end
-        init = load_node(s, :names) do _
+        init = load_node(s, :names) do
           names = s.obj
           if length(names) == 0
             GapObj([])
@@ -177,7 +177,7 @@ install_GAP_deserialization(
         end
         G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)::GapObj
       else
-        init = load_node(s, :names) do _
+        init = load_node(s, :names) do
           GapObj(s.obj; recursive = true)
         end
         G = GAP.Globals.FreeGroup(wfilt, init)::GapObj
@@ -190,7 +190,7 @@ install_GAP_deserialization(
 install_GAP_deserialization(
   :IsFreeGroup, true,
   function(filt::GapObj, s::DeserializerState, T, F)
-    load_node(s) do _
+    load_node(s) do
       # Deserialize the generators.
       generators = load_object(s, Vector{Vector{Int}}, :gens)
       fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
@@ -245,7 +245,7 @@ install_GAP_serialization(:IsSubgroupFpGroup,
 install_GAP_deserialization(
   :IsSubgroupFpGroup, true,
   function(filt::GapObj, s::DeserializerState, T, F)
-    load_node(s) do _
+    load_node(s) do
       if haskey(s, :gens)
         # Deserialize the full f.p. group.
         Ffam = GAPWrap.FamilyObj(F)

@@ -266,7 +266,7 @@ end
 
 function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
-  load_node(s) do _
+  load_node(s) do
     key in keys(s.obj)
   end
 end
@@ -297,9 +297,9 @@ end
 
 function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
-  load_node(s, key) do _
+  load_node(s, key) do
     n = length(s.obj)
-    [load_node(s, i) do _; f((i, s.obj)) end for i in 1:n]
+    [load_node(s, i) do; f((i, s.obj)) end for i in 1:n]
   end
 end
 
