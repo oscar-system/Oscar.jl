@@ -386,7 +386,7 @@ function load_type_params(s::DeserializerState, T::Type, key::Symbol)
 end
 
 function load_type_array_params(s::DeserializerState)
-  load_array_node(s) do
+  load_array_node(s) do 
     T = decode_type(s)
     if is_string(s)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
