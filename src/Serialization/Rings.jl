@@ -194,13 +194,13 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
                      parent_ring::PolyRing)
-  load_node(s) do terms
-    if isempty(terms)
+  load_node(s) do _
+    if isempty(s.obj)
       return parent_ring(0)
     end
     # load exponents and account for shift
     exponents = []
-    for i in 1:length(terms)
+    for i in 1:length(s.obj)
       e = load_node(s, i) do _
         load_object(s, Int, 1) + 1
       end
@@ -224,8 +224,8 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
-  load_node(s) do terms
-    exponents = [term[1] for term in terms]
+  load_node(s) do _
+    exponents = [term[1] for term in s.obj]
     coeff_ring = coefficient_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(coeff_ring)
