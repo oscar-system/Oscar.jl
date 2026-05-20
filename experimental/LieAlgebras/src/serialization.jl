@@ -132,7 +132,7 @@ function save_object(s::SerializerState, x::LieAlgebraElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraElem, <:LieAlgebra})
-  L = Oscar.params(tp)
+  L = parameters(tp)
   R = coefficient_ring(L)
   return L(load_object(s, TypeParams(Vector{elem_type(R)}, R)))
 end
@@ -227,7 +227,7 @@ function save_object(s::SerializerState, x::LieAlgebraModuleElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModuleElem, <:LieAlgebraModule})
-  V = Oscar.params(tp)
+  V = parameters(tp)
   R = coefficient_ring(V)
   return V(load_object(s, TypeParams(Vector{elem_type(R)}, R)))
 end

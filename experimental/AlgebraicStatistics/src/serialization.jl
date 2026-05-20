@@ -66,7 +66,7 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, Graph
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Ring})
-  R = Oscar.params(tp)
+  R = parameters(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
     key = load_node(_ -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
@@ -78,7 +78,7 @@ end
 # might need to have more type specification in the future here
 # for now we know that the params are a dict with domain and codomain
 function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Dict})
-  d = Oscar.params(tp)
+  d = parameters(tp)
   cdom = d[:codomain]
   dom = d[:domain]
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
@@ -95,7 +95,7 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Dict})
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{GraphTransDict, <:Ring})
-  R = Oscar.params(tp)
+  R = parameters(tp)
   graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
   load_array_node(s) do (_, (k, v))
     key = load_object(s, Tuple{Symbol, Edge}, 1)
@@ -119,13 +119,13 @@ function load_type_params(s::DeserializerState, T::Type{GenDict})
     end
 
     S = key_tp.type
-    return TypeParams(GenDict{S}, Dict(:key_params => Oscar.params(key_tp), :value_params => Oscar.params(value_tp)))
+    return TypeParams(GenDict{S}, Dict(:key_params => parameters(key_tp), :value_params => parameters(value_tp)))
   end
   return tp
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{GenDict{S}, <:Dict}) where S
-  return GenDict(load_object(s, TypeParams(Dict{S, MPolyRingElem}, Oscar.params(tp))))
+  return GenDict(load_object(s, TypeParams(Dict{S, MPolyRingElem}, parameters(tp))))
 end
 
 ################################################################################
