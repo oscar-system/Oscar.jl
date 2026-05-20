@@ -355,6 +355,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
+      - name: Load env vars from runner
+        run: env
       # setup first depot
       - name: Set RO Depot
         run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
