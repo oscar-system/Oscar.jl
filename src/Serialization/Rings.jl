@@ -246,11 +246,7 @@ end
 
 @register_serialization_type IdealGens
 
-type_params(ig::IdealGens) = TypeParams(
-  IdealGens,
-  :base_ring => base_ring(ig),
-  :ordering_type => TypeParams(typeof(ordering(ig)), nothing)
-)
+type_params(ig::IdealGens) = TypeParams(IdealGens, base_ring(ig))
 
 function save_object(s::SerializerState, obj::IdealGens)
   save_data_dict(s) do
@@ -262,17 +258,11 @@ function save_object(s::SerializerState, obj::IdealGens)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:Tuple{Vararg{Pair}}})
-  base_ring = tp[:base_ring]
-  ordering_type = type(tp[:ordering_type])
-
-  if ordering_type <: MonomialOrdering
-    ord = load_object(s, TypeParams(ordering_type, base_ring), :ordering)
-  else
-    ord = load_node(s, :ordering) do _
-      MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
-    end
-  end
+function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:MPolyRing})
+  # params is either the ring directly, or a TypeParams wrapping the ring
+  # (the latter occurs when type_params(gb) is passed as override_params)
+  base_ring = params(tp)
+  ord = load_object(s, TypeParams(MonomialOrdering, base_ring), :ordering)
   generators = load_object(s, TypeParams(Vector{elem_type(base_ring)}, base_ring), :gens)
   is_gb = load_object(s, Bool, :is_gb)
   is_reduced = load_object(s, Bool, :is_reduced)

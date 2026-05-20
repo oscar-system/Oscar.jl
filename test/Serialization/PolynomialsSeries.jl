@@ -107,7 +107,7 @@ cases = [
               @test ordering(gb) == ordering(loaded_gb)
             end
 
-            test_save_load_roundtrip(path, gb; params=Oscar.type_params(gb)) do loaded_gb
+            test_save_load_roundtrip(path, gb; params=base_ring(gb)) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
               @test ordering(gb) == ordering(loaded_gb)
             end
