@@ -86,5 +86,5 @@ demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)
 ### Functions concerning Kostant-Kumar modules
 
 ```@docs
-kostant_kumar_character(::LieAlgebras, ::WeightLatticeElem, ::WeightLatticeElem, ::WeylGroupElem)
+kostant_kumar_character(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeElem, ::WeylGroupElem)
 ```
