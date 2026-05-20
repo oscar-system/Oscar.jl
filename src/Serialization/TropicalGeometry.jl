@@ -13,7 +13,7 @@ function save_object(s::SerializerState, x::TropicalSemiringElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:TropicalSemiringElem, <:TropicalSemiring})
-  R = Oscar.params(tp)
+  R = parameters(tp)
   load_node(s) do _
     str = load_json(s, String)
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
@@ -34,7 +34,7 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:TropicalHypersurface, <:MPolyRing})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   polynomial = load_object(s, TypeParams(MPolyRingElem, params))
   return tropical_hypersurface(polynomial)
 end
@@ -58,7 +58,7 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:TropicalCurve, <:Field})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   return tropical_curve(
     load_object(s, TypeParams(PolyhedralComplex, params), :polyhedral_complex)
   )

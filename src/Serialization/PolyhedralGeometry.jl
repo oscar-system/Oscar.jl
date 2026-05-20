@@ -66,7 +66,7 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:PolyhedralObject, <:Union{QQField, AbstractAlgebra.Floats}})
-  field = Oscar.params(tp)
+  field = parameters(tp)
   return load_from_polymake(tp.type{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
@@ -77,7 +77,7 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T <: PolyhedralObject
   field = tp[:field]
   polymake_dict = Dict{String, Any}()
-  for (k, v) in params(tp)
+  for (k, v) in parameters(tp)
     k === :field && continue
     polymake_dict[string(k)] = load_object(s, v, k)
   end
@@ -120,7 +120,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, QQFie
   if is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
-  field = Oscar.params(tp)
+  field = parameters(tp)
   coeff_type = elem_type(field)
   fr = load_object(s, TypeParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
@@ -145,7 +145,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, <:Tup
   end
   field = tp[:field]
   coeff_type = elem_type(field)
-  fr = load_object(s, TypeParams(Polyhedron, Oscar.params(tp)...), :feasible_region)
+  fr = load_object(s, TypeParams(Polyhedron, parameters(tp)...), :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_object(s, TypeParams(Vector{coeff_type}, field), :lpcoeffs)
   all = Polymake._lookup_multi(pm_object(fr), "LP")
@@ -202,7 +202,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{<:Field
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:MixedIntegerLinearProgram, QQField})
-  field = Oscar.params(tp)
+  field = parameters(tp)
   fr = load_object(s, TypeParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do _
@@ -237,7 +237,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:MixedIntegerLinearPr
   field = tp[:field]
   coeff_type = elem_type(field)
   conv = load_object(s, String, :convention)
-  fr = load_object(s, TypeParams(Polyhedron, Oscar.params(tp)...), :feasible_region)
+  fr = load_object(s, TypeParams(Polyhedron, parameters(tp)...), :feasible_region)
   milp_coeffs = load_object(s, TypeParams(Vector{coeff_type}, field), :milp_coeffs)
   int_vars = load_object(s, Vector{Int}, :int_vars)
 

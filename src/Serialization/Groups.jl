@@ -155,7 +155,7 @@ function save_object(s::SerializerState, p::PermGroupElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{PermGroupElem, PermGroup})
-  parent_group = Oscar.params(tp)
+  parent_group = parameters(tp)
   imgs = load_object(s, Vector{Int})
   return perm(parent_group, imgs)
 end
@@ -183,7 +183,7 @@ function save_object(s::SerializerState,
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{T, GapObj}) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  return T(Oscar.params(tp))
+  return T(parameters(tp))
 end
 
 ##############################################################################
@@ -204,7 +204,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, tp::TypeParams{$eltype, $type})
-    parent_group = Oscar.params(tp)
+    parent_group = parameters(tp)
     lo = load_object(s, Vector{Int})
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     if GAPWrap.IsElementOfFpGroupFamily(fam)
@@ -242,7 +242,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, tp::TypeParams{$eltype, $type})
-    parent_group = Oscar.params(tp)
+    parent_group = parameters(tp)
     lo = load_object(s, Vector{Int})
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
@@ -273,7 +273,7 @@ function save_object(s::SerializerState, g::FinGenAbGroupElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{FinGenAbGroupElem, FinGenAbGroup})
-  G = Oscar.params(tp)
+  G = parameters(tp)
   return G(vec(load_object(s, Matrix{ZZRingElem})))
 end
 
@@ -331,7 +331,7 @@ end
 save_object(s::SerializerState, g::MatGroupElem) = save_object(s, matrix(g))
 
 function load_object(s::DeserializerState, tp::TypeParams{<:MatGroupElem, <:MatGroup})
-  G = Oscar.params(tp)
+  G = parameters(tp)
   R = base_ring(G)
   d = degree(G)
   return G(matrix(R, load_object(s, TypeParams(dense_matrix_type(R), matrix_space(R, d, d)))); check = false)

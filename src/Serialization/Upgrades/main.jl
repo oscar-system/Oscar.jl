@@ -205,11 +205,22 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
   elseif type_name == "NamedTuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
-    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
-      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
-      push!(upgraded_entries, upgraded_entry)
+    if haskey(dict[:_type][:params], :tuple_params)
+      # old format: {names: [...], tuple_params: [...]}
+      for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
+        push!(upgraded_entries, upgraded_entry)
+      end
+      dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+    else
+      # new format: field names as keys
+      for (k, entry) in zip(keys(dict[:_type][:params]), dict[:data])
+        type = dict[:_type][:params][k]
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
+        push!(upgraded_entries, upgraded_entry)
+        dict[:_type][:params][k] = upgraded_entry[:_type]
+      end
     end
-    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
@@ -310,6 +321,7 @@ include("1.6.0+1.jl")
 include("1.7.0.jl")
 include("1.8.0.jl")
 include("1.8.0+1.jl")
+include("1.8.0+2.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)

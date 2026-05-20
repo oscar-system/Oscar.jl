@@ -240,7 +240,7 @@ function load_node(f::Function, s::DeserializerState,
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj)
+    result = f()
   end
   s.obj = lazy_obj
   return result
@@ -250,7 +250,7 @@ function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do _
     n = length(s.obj)
-    [load_node(x -> f((i, x)), s, i) for i in 1:n]
+    [load_node(s, i) do; f((i, s.obj)) end for i in 1:n]
   end
 end
 

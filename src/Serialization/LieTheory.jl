@@ -47,7 +47,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:Union{RootSpaceElem,DualRootSpaceElem}, RootSystem})
   T = tp.type
-  R = Oscar.params(tp)
+  R = parameters(tp)
   return T(R, load_object(s, Vector{QQFieldElem}))
 end
 
@@ -69,7 +69,7 @@ function save_object(s::SerializerState, P::WeightLattice)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{WeightLattice, RootSystem})
-  return weight_lattice(Oscar.params(tp))
+  return weight_lattice(parameters(tp))
 end
 
 @register_serialization_type WeightLatticeElem
@@ -79,7 +79,7 @@ function save_object(s::SerializerState, w::WeightLatticeElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{WeightLatticeElem, WeightLattice})
-  P = Oscar.params(tp)
+  P = parameters(tp)
   return WeightLatticeElem(P, load_object(s, Vector{ZZRingElem}))
 end
 
@@ -101,7 +101,7 @@ function save_object(s::SerializerState, W::WeylGroup)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{WeylGroup, RootSystem})
-  return weyl_group(Oscar.params(tp))
+  return weyl_group(parameters(tp))
 end
 
 @register_serialization_type WeylGroupElem
@@ -111,6 +111,6 @@ function save_object(s::SerializerState, x::WeylGroupElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{WeylGroupElem, WeylGroup})
-  W = Oscar.params(tp)
+  W = parameters(tp)
   return W(load_object(s, Vector{UInt8}); normalize=false)
 end

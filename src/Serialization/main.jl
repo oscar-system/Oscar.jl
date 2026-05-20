@@ -194,7 +194,7 @@ end
 
 TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
 
-params(tp::TypeParams) = tp.params
+parameters(tp::TypeParams) = tp.params
 type(tp::TypeParams) = tp.type
 
 function Base.getindex(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
@@ -215,7 +215,7 @@ function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
   else
     io = pretty(io)
     print(io, "Type parameters for $T")
-    for param in params(tp)
+    for param in parameters(tp)
       println(io, "")
       print(terse(io), Lowercase(), param)
     end
@@ -228,7 +228,7 @@ function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
   else
     io = pretty(io)
     print(io, "Type parameters for $T ")
-    print(terse(io), Lowercase(), params(tp))
+    print(terse(io), Lowercase(), parameters(tp))
   end
 end
 
@@ -310,10 +310,10 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     save_object(s, type_encoding, :name)
 
     # params(tp) isa TypeParams if the type isa container type
-    if params(tp) isa TypeParams
-      save_type_params(s, params(tp), :params)
+    if parameters(tp) isa TypeParams
+      save_type_params(s, parameters(tp), :params)
     else
-      save_typed_object(s, params(tp), :params)
+      save_typed_object(s, parameters(tp), :params)
     end
   end
 end
@@ -333,7 +333,7 @@ end
 
 function save_type_params(s::SerializerState,
                           tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
-  for param in params(tp)
+  for param in parameters(tp)
     save_type_params(s, param.second, Symbol(param.first))
   end
 end
@@ -341,7 +341,7 @@ end
 function save_type_params(s::SerializerState,
                           tp::TypeParams{<:TypeParams, <:Tuple})
   save_data_array(s) do 
-    for param in params(tp)
+    for param in parameters(tp)
       save_type_params(s, param)
     end
   end
@@ -352,7 +352,7 @@ function save_type_params(s::SerializerState,
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in params(tp)
+      for param in parameters(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeParams)
@@ -508,8 +508,8 @@ end
 function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
-  haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in propertynames(d)
+  haskey(s, :attrs) && load_node(s, :attrs) do
+    for attr in propertynames(s.obj)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -863,11 +863,12 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 
   # handle different namespaces
-  polymake_obj = load_node(s) do d
-    @req :_ns in propertynames(d) "Namespace is missing"
-    load_node(s, :_ns) do _ns
-      if :polymake in propertynames(_ns)
-        return load_from_polymake(JSON.parse(d; dicttype=Dict{String, Any}))
+  polymake_obj = load_node(s) do
+    @req :_ns in propertynames(s.obj) "Namespace is missing"
+    outer_obj = s.obj
+    load_node(s, :_ns) do
+      if :polymake in propertynames(s.obj)
+        return load_from_polymake(JSON.parse(outer_obj; dicttype=Dict{String, Any}))
       end
     end
   end
@@ -880,8 +881,8 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 
   # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
+  file_version = load_node(s) do
+    serialization_version_info(s.obj)
   end
   if file_version < VERSION_NUMBER
     jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
@@ -935,7 +936,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
         tp_inner = load_node(s, type_key) do _
           load_type_params(s, U)
         end
-        params = Oscar.params(tp_inner)
+        params = parameters(tp_inner)
       end
       load_object(s, TypeParams(type, params), :data)
     else
@@ -977,7 +978,7 @@ _normalize_pair_value(T::Type) = TypeParams(T, nothing)
 _normalize_pair_value(v) = v
 
 function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
-  map(params(tp)) do (k, v)
+  map(parameters(tp)) do (k, v)
     k => _normalize_pair_value(v)
   end
 end
@@ -987,10 +988,10 @@ function _convert_override_params(t::Tuple{Vararg{Pair}})
   map(x -> x.first => _normalize_pair_value(x.second), t)
 end
 
-_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
+_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(parameters(tp))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(parameters(tp))
+_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(parameters(tp))
+_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(parameters(tp)))
 _convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = tp[:subtype_params]
 
 _convert_override_params(obj::Any) = obj

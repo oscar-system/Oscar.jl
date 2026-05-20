@@ -21,8 +21,8 @@ end
 @register_serialization_type Bool 
 
 function load_object(s::DeserializerState, ::Type{Bool})
-  load_node(s) do val
-    return val
+  load_node(s) do
+    return s.obj
   end::Bool
 end
 

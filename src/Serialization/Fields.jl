@@ -31,7 +31,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{fpFieldElem, fpField})
-  F = Oscar.params(tp)
+  F = parameters(tp)
   load_node(s) do _
     return F(parse(UInt64, load_json(s, String)))
   end::fpFieldElem
@@ -59,7 +59,7 @@ function save_object(s::SerializerState, elem::FpFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{FpFieldElem, FpField})
-  F = Oscar.params(tp)
+  F = parameters(tp)
   load_node(s) do _
     F(parse(ZZRingElem, load_json(s, String)))
   end::FpFieldElem
@@ -82,7 +82,7 @@ function save_object(s::SerializerState, K::SimpleNumField)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:SimpleNumField, <:PolyRing})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   var = load_object(s, Symbol, :var)
   def_pol = load_object(s, TypeParams(PolyRingElem, params), :def_pol)
   K, _ = number_field(def_pol, var, cached=false)
@@ -100,7 +100,7 @@ function save_object(s::SerializerState, K::fqPolyRepField)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:fqPolyRepField, <:PolyRing})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   def_pol = load_object(s, TypeParams(PolyRingElem, params))
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
@@ -125,7 +125,7 @@ function save_object(s::SerializerState, k::Hecke.RelSimpleNumFieldElem{AbsNonSi
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:SimNumFieldElemTypeUnion, <:Union{SimNumFieldTypeUnion, fqPolyRepField}})
-  K = Oscar.params(tp)
+  K = parameters(tp)
   polynomial = load_object(s, TypeParams(PolyRingElem, parent(defining_polynomial(K))))
   loaded_terms = evaluate(polynomial, gen(K))
   return K(loaded_terms)
@@ -151,7 +151,7 @@ function save_object(s::SerializerState, K::FqField)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FqField, <:PolyRing})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   return finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]::FqField
 end
 
@@ -176,7 +176,7 @@ function save_object(s::SerializerState, k::FqFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FqFieldElem, FqField})
-  K = Oscar.params(tp)
+  K = parameters(tp)
   load_node(s) do _
     if absolute_degree(K) != 1
       return K(load_object(s, TypeParams(PolyRingElem, parent(defining_polynomial(K)))))
@@ -204,7 +204,7 @@ end
 
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:NonSimpleNumField, <:PolyRing})
-  params = Oscar.params(tp)
+  params = parameters(tp)
   def_pols = load_object(s, TypeParams(Vector{PolyRingElem}, params), :def_pols)
   vars = load_node(s, :vars) do _
     return map(Symbol, load_json(s, Vector{String}))
@@ -227,7 +227,7 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem},
                                     <:Union{AbsNonSimpleNumField, RelNonSimpleNumField}})
-  K = Oscar.params(tp)
+  K = parameters(tp)
   n = ngens(K)
   # forces parent of MPolyRingElem
   poly_ring, _ = polynomial_ring(base_field(K), n; cached=false)
@@ -256,7 +256,7 @@ function save_object(s::SerializerState, K::FracField{T}) where T <: FracUnionTy
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FracField, <:Ring})
-  fraction_field(Oscar.params(tp), cached=false)
+  fraction_field(parameters(tp), cached=false)
 end
 
 # elements
@@ -271,7 +271,7 @@ function save_object(s::SerializerState, f::FracElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FracElem, <:Ring})
-  parent_ring = Oscar.params(tp)
+  parent_ring = parameters(tp)
   load_node(s) do _
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
@@ -306,7 +306,7 @@ end
 
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:AbstractAlgebra.Generic.RationalFunctionField, <:Ring})
-  R = Oscar.params(tp)
+  R = parameters(tp)
   haskey(s, :symbol) && return rational_function_field(R, load_object(s, Symbol, :symbol), cached=false)[1]
 
   return rational_function_field(R, load_object(s, Vector{Symbol}, :symbols), cached=false)[1]
@@ -325,7 +325,7 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:AbstractAlgebra.Generic.RationalFunctionFieldElem,
                                     <:AbstractAlgebra.Generic.RationalFunctionField})
-  parent_ring = Oscar.params(tp)
+  parent_ring = parameters(tp)
   base = base_ring(parent_ring.fraction_field)
   coeff_type = elem_type(base)
 
@@ -365,7 +365,7 @@ function save_object(s::SerializerState, r::ArbFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{ArbFieldElem, ArbField})
-  parent = Oscar.params(tp)
+  parent = parameters(tp)
   r = ArbFieldElem()
   load_node(s) do _
     str = load_json(s, String)
@@ -398,7 +398,7 @@ function save_object(s::SerializerState, c::AcbFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{AcbFieldElem, AcbField})
-  parent = Oscar.params(tp)
+  parent = parameters(tp)
   (real_part, imag_part) = load_array_node(s) do _
     load_object(s, TypeParams(ArbFieldElem, ArbField(precision(parent))))
   end
@@ -454,7 +454,7 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes, <:Field})
-  K = Oscar.params(tp)
+  K = parameters(tp)
   if !is_simple(K)
     data = load_object(s, TypeParams(Vector{AcbFieldElem}, AcbField()))
   else
@@ -485,7 +485,7 @@ function save_object(s::SerializerState, E::EmbeddedNumField)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:EmbeddedNumField, <:FieldEmbeddingTypes})
-  E = Oscar.params(tp)
+  E = parameters(tp)
   K = number_field(E)
   return Hecke.embedded_field(K, E)[1]
 end
@@ -497,7 +497,7 @@ function save_object(s::SerializerState, f::EmbeddedNumFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:EmbeddedNumFieldElem, <:EmbeddedNumField})
-  E = Oscar.params(tp)
+  E = parameters(tp)
   K = number_field(E)
   coeff_type = elem_type(K)
   loaded_alg_elem = load_object(s, TypeParams(coeff_type, K))
@@ -583,7 +583,7 @@ function save_object(s::SerializerState, obj::PadicFieldElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{PadicFieldElem, PadicField})
-  parent_field = Oscar.params(tp)
+  parent_field = parameters(tp)
   rational_rep = load_object(s, QQFieldElem)
   return parent_field(rational_rep)
 end
