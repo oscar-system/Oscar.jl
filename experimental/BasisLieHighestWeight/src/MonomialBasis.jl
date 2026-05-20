@@ -36,9 +36,9 @@ monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
 @doc raw"""
-    polytope(basis::MonomialBasis)
+  polytope_of_essential_exponents(basis::MonomialBasis)
 
-Return the polytope corresponding to the monomial basis. This is only possible if the basis was computed with `compute_polytope = true`.
+Return the polytope of essential exponents corresponding to the monomial basis, i.e. the convex hull of exponent vectors of all occurring monomials. This is only possible if the basis was computed with `compute_polytope = true`.
 
 # Examples
 ```jldoctest
@@ -51,11 +51,11 @@ over abstract Lie algebra of type A3 over QQ
 where the used birational sequence consists of the following roots:
   [a_1, a_2, a_3, a_1 + a_2, a_2 + a_3, a_1 + a_2 + a_3]
 
-julia> polytope(basis)
+julia> polytope_of_essential_exponents(basis)
 Polytope in ambient dimension 6
 ```
 """
-function polytope(basis::MonomialBasis)
+function polytope_of_essential_exponents(basis::MonomialBasis)
   if has_attribute(basis, :polytope)
     return get_attribute(basis, :polytope)::Polyhedron{QQFieldElem}
   end

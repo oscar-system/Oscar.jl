@@ -48,7 +48,7 @@ A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in 
 If this is a weighted ordering, the height of the corresponding root is used as weight.
 
 Further keyword arguments:
-- compute_polytope default is false, if set to true computes the polytope of the basis, which is the convex hull of the exponent vectors of the monomials in the basis.
+- `compute_polytope::Bool=false`:  If set to `true`, computes the polytope of essential exponents, i.e. the convex hull of exponent vectors of all occurring monomials. This can then be obtained by calling [`polytope_of_essential_exponents(::MonomialBasis)`](@ref).
 
 # Examples
 ```jldoctest

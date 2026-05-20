@@ -62,8 +62,7 @@ export basis_lie_demazure_nz
 export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl
-export polytope
-export volume_of_polytope
+export polytope_of_essential_exponents
 
 end
 
@@ -89,5 +88,4 @@ export basis_lie_demazure_nz
 export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl
-export polytope
-export volume_of_polytope
+export polytope_of_essential_exponents
