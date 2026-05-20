@@ -153,7 +153,7 @@ function decode_type(s::DeserializerState)
   end
 
   if haskey(s, type_key)
-    return load_node(s, type_key) do _
+    return load_node(s, type_key) do
       obj = decode_type(s)
       obj isa AbstractDict && return obj["default"]
       return obj
@@ -162,13 +162,13 @@ function decode_type(s::DeserializerState)
 
   if haskey(s, :name)
     if haskey(s, :_instance)
-      name = load_node(s, :name) do _; load_json(s, String); end
-      instance = load_node(s, :_instance) do _; load_json(s, String); end
+      name = load_node(s, :name) do; load_json(s, String); end
+      instance = load_node(s, :_instance) do; load_json(s, String); end
       return get(reverse_type_map[name], instance) do
         error("unsupported instance '$instance' for decoding")
       end
     else
-      return load_node(s, :name) do _
+      return load_node(s, :name) do
         obj = decode_type(s)
         obj isa AbstractDict && return obj["default"]
         return obj
@@ -380,13 +380,13 @@ function save_type_params(s::SerializerState,
 end
 
 function load_type_params(s::DeserializerState, T::Type, key::Symbol)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_type_params(s, T)
   end
 end
 
 function load_type_array_params(s::DeserializerState)
-  load_array_node(s) do _
+  load_array_node(s) do
     T = decode_type(s)
     if is_string(s)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
@@ -403,7 +403,7 @@ function load_type_params(s::DeserializerState, T::Type)
     return TypeParams(T, nothing)
   end
   if haskey(s, :params)
-    load_node(s, :params) do _
+    load_node(s, :params) do
       if is_array(s)
         p = load_type_array_params(s)
       elseif is_string(s) || haskey(s, :params)
@@ -417,7 +417,7 @@ function load_type_params(s::DeserializerState, T::Type)
       elseif !haskey(s, type_key)
         pairs_vec = Pair{Symbol, Any}[]
         for k in propertynames(s.obj)
-          v = load_node(s, k) do _
+          v = load_node(s, k) do
             if is_array(s)
               return load_type_array_params(s)
             end
@@ -450,7 +450,7 @@ function load_type_params(s::DeserializerState, T::Type)
 end
 
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_typed_object(s; override_params=override_params)
   end
 end
@@ -467,7 +467,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     tp = load_type_params(s, T, type_key)
   end
   Base.issingletontype(type(tp)) && return type(tp)()
-  obj = load_node(s, :data) do _
+  obj = load_node(s, :data) do
     return load_object(s, tp)
   end
   load_attrs(s, obj)
@@ -475,14 +475,14 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
 end
 
 function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, T)
   end
 end
 
 function load_object(s::DeserializerState, tp::TypeParams,
                      key::Union{Symbol, Int})
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, tp)
   end
 end
@@ -876,8 +876,8 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
     return polymake_obj
   end
 
-  load_node(s, :_ns) do _ns
-    @req :Oscar in propertynames(_ns) "Not an Oscar object"
+  load_node(s, :_ns) do
+    @req :Oscar in propertynames(s.obj) "Not an Oscar object"
   end
 
   # deal with upgrades
@@ -893,7 +893,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   try
     loaded = do_load(s)
     if haskey(s, :id)
-      load_node(s, :id) do _
+      load_node(s, :id) do
         id = load_json(s, String)
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
@@ -927,13 +927,13 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s
     if type !== nothing
-      U = load_node(s, type_key) do _
+      U = load_node(s, type_key) do
         decode_type(s)
       end
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
       Base.issingletontype(type) && return type()
       if isnothing(params)
-        tp_inner = load_node(s, type_key) do _
+        tp_inner = load_node(s, type_key) do
           load_type_params(s, U)
         end
         params = parameters(tp_inner)

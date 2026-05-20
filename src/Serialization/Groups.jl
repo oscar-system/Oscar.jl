@@ -110,7 +110,7 @@ end
 
 function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
   !with_attrs(s) && return
-  haskey(s, :attrs) && load_node(s, :attrs) do _
+  haskey(s, :attrs) && load_node(s, :attrs) do
     for attr in attrs_list(T)
       if haskey(s, attr)
         func = Symbol(string("set_", attr))

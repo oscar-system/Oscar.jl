@@ -233,7 +233,7 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{<:Ideal, <:NCRing})
   parent_ring = parameters(tp)
   gens = elem_type(parent_ring)[]
-  load_array_node(s) do _
+  load_array_node(s) do
     push!(gens, load_object(s, TypeParams(elem_type(parent_ring), parent_ring)))
   end
   return ideal(parent_ring, gens)
@@ -334,9 +334,9 @@ function load_object(s::DeserializerState, tp::TypeParams{<:SMat, <:SMatSpace{T}
   base = base_ring(parent)
   M = sparse_matrix(base)
 
-  load_array_node(s) do _
+  load_array_node(s) do
     row_entries = Tuple{Int, T}[]
-    load_array_node(s) do _
+    load_array_node(s) do
       push!(row_entries, load_object(s, TypeParams(Tuple{Int, T}, (nothing, base))))
     end
     push!(M, sparse_row(base, row_entries))
@@ -439,8 +439,8 @@ function load_object(s::DeserializerState, tp::TypeParams{<:RelPowerSeriesRingEl
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do _
-    load_array_node(s) do _
+  load_node(s, :terms) do
+    load_array_node(s) do
       e = load_object(s, Int, 1)
       loaded_terms[e] = load_object(s, TypeParams(coeff_type, base), 2)
     end
@@ -456,8 +456,8 @@ function load_object(s::DeserializerState, tp::TypeParams{<:AbsPowerSeriesRingEl
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do _
-    load_array_node(s) do _
+  load_node(s, :terms) do
+    load_array_node(s) do
       e = load_object(s, Int, 1)
       loaded_terms[e + 1] = load_object(s, TypeParams(coeff_type, base), 2)
     end
@@ -522,10 +522,10 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}, <:LaurentUnionType})
   parent_ring = parameters(tp)
-  terms = load_node(s, :terms) do _
+  terms = load_node(s, :terms) do
     exponents = Int[]
     for i in 1:length(s.obj)
-      load_node(s, i) do _
+      load_node(s, i) do
         push!(exponents, load_object(s, Int, 1))
       end
     end
@@ -537,7 +537,7 @@ function load_object(s::DeserializerState,
     loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
-      load_node(s, i) do _
+      load_node(s, i) do
         loaded_terms[e] = load_object(s, TypeParams(coeff_type, base), 2)
       end
     end

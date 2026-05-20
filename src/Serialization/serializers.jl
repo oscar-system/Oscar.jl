@@ -248,7 +248,7 @@ end
 
 function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
-  load_node(s, key) do _
+  load_node(s, key) do
     n = length(s.obj)
     [load_node(s, i) do; f((i, s.obj)) end for i in 1:n]
   end

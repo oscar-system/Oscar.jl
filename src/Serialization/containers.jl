@@ -57,10 +57,10 @@ end
 # this function is forced to deal with all array types
 function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecType}})
   !haskey(s, :params) && return TypeParams(T, nothing)
-  return load_node(s, :params) do _
+  return load_node(s, :params) do
     if haskey(s, :dims)
       dims = load_object(s, Int, :dims)
-      sub_tp = load_node(s, :subtype_params) do _
+      sub_tp = load_node(s, :subtype_params) do
         load_type_params(s, decode_type(s))
       end
       return TypeParams(T{type(sub_tp), dims}, parameters(sub_tp))
@@ -76,7 +76,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{Vector{S}},
                      key::Union{Symbol, Int}) where S
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, T)
   end
 end
@@ -102,14 +102,14 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
 end
 
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
-  load_node(s) do _
+  load_node(s) do
     if serialize_with_id(params)
-      loaded_v = load_array_node(s) do _
+      loaded_v = load_array_node(s) do
         load_ref(s)
       end::Vector{params}
     else
       isempty(s) && return params[]
-      loaded_v = load_array_node(s) do _
+      loaded_v = load_array_node(s) do
         load_object(s, params)
       end
     end
@@ -122,7 +122,7 @@ function load_object(s::DeserializerState, tp::TypeParams{Vector{T}}) where T
   p = parameters(tp)
   elem_tp = p isa TypeParams ? p : TypeParams(T, p)
   isempty(s) && return T[]
-  v = load_array_node(s) do _
+  v = load_array_node(s) do
     if serialize_with_id(T)
       load_ref(s)
     else
@@ -147,7 +147,7 @@ end
 # this needs to be Matrix to avoid ambiguities, this is also ok
 # since types on load will be Matrix
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
-  load_node(s) do _
+  load_node(s) do
     if isempty(s)
       return T(undef, 0, 0)
     end
@@ -163,7 +163,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Matrix{S}}) where S
   T = type(tp)
   p = parameters(tp)
   elem_tp = p isa TypeParams ? p : TypeParams(S, p)
-  load_node(s) do _
+  load_node(s) do
     if isempty(s)
       return T(undef, 0, 0)
     end
@@ -176,7 +176,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Matrix{S}}) where S
 end
 
 function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, key::Union{Int, Symbol}) where {S}
-  return load_node(s, key) do _
+  return load_node(s, key) do
     load_object(s, T)
   end
 end
@@ -194,7 +194,7 @@ function save_object(s::SerializerState, arr::AbstractArray{T, N}) where {T, N}
 end
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}) where {S, N}
-  load_node(s) do _
+  load_node(s) do
     if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
     end
@@ -214,7 +214,7 @@ function load_object(s::DeserializerState, tp::TypeParams{Array{S, N}}) where {S
   else
     TypeParams(S, p)
   end
-  load_node(s) do _
+  load_node(s) do
     if isempty(s)
       return T(undef, [0 for _ in 1:N]...)
     end
@@ -225,7 +225,7 @@ function load_object(s::DeserializerState, tp::TypeParams{Array{S, N}}) where {S
 end
 
 function load_object(s::DeserializerState, T::Type{Array{S, N}}, key::Union{Int, Symbol}) where {S, N}
-  return load_node(s, key) do _
+  return load_node(s, key) do
     load_object(s, T)
   end
 end
@@ -251,8 +251,8 @@ end
 
 function load_type_params(s::DeserializerState, T::Type{Tuple})
   !haskey(s, :params) && return TypeParams(T{}, nothing)
-  return load_node(s, :params) do _
-    tuple_params = load_array_node(s) do _
+  return load_node(s, :params) do
+    tuple_params = load_array_node(s) do
       load_type_params(s, decode_type(s))
     end
     tuple_types = Tuple([type(x) for x in tuple_params])
@@ -306,10 +306,10 @@ function type_params(obj::T) where T <: NamedTuple
 end
 
 function load_type_params(s::DeserializerState, T::Type{NamedTuple})
-  return load_node(s, :params) do _
+  return load_node(s, :params) do
     pairs_list = Pair{Symbol, Any}[]
     for k in propertynames(s.obj)
-      tp = load_node(s, k) do _
+      tp = load_node(s, k) do
         is_string(s) ? TypeParams(decode_type(s), nothing) : load_type_params(s, decode_type(s))
       end
       push!(pairs_list, k => tp)
@@ -387,19 +387,19 @@ function save_type_params(
 end
 
 function load_type_params(s::DeserializerState, T::Type{Dict})
-  return load_node(s, :params) do _
-    key_tp = load_node(s, :key_params) do _
+  return load_node(s, :params) do
+    key_tp = load_node(s, :key_params) do
       is_string(s) ? TypeParams(decode_type(s), nothing) : load_type_params(s, decode_type(s))
     end
     S = type(key_tp)
 
-    load_node(s, :value_params) do _
+    load_node(s, :value_params) do
       if is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
         # Heterogeneous Dict{S, Any} — per-key type params stored as dict
         pairs_list = Pair[]
         for k in propertynames(s.obj)
           key = S <: Integer ? parse(Int, string(k)) : S(k)
-          tp = load_node(s, Symbol(k)) do _
+          tp = load_node(s, Symbol(k)) do
             load_type_params(s, decode_type(s))
           end
           push!(pairs_list, key => tp)
@@ -466,7 +466,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:Dict{S, U}, Nothing}) where {S, U}
   T = type(tp)
-  pairs = load_array_node(s) do _
+  pairs = load_array_node(s) do
     load_object(s, TypeParams(Tuple{S, U}, (nothing, nothing)))
   end::Vector{Tuple{S, U}}
   return T(k => v for (k, v) in pairs)
@@ -500,7 +500,7 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:Dict{S, U}, <:Tuple{Vararg{Pair}}}) where {S, U}
   T = type(tp)
-  pairs = load_array_node(s) do _
+  pairs = load_array_node(s) do
     load_object(s, TypeParams(Tuple{S, U}, (tp[:key_params], tp[:value_params])))
   end
   isempty(pairs) && return T()
@@ -519,7 +519,7 @@ end
 
 function load_type_params(s::DeserializerState, T::Type{<: Set})
   !haskey(s, :params) && return TypeParams(T, nothing)
-  return load_node(s, :params) do _
+  return load_node(s, :params) do
     sub_tp = load_type_params(s, decode_type(s))
     return TypeParams(T{type(sub_tp)}, parameters(sub_tp))
   end
@@ -542,14 +542,14 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Set{T}}) where T
   S = type(tp)
   p = parameters(tp)
   elem_tp = p isa TypeParams ? p : TypeParams(T, p)
-  elems = load_array_node(s) do _
+  elems = load_array_node(s) do
     load_object(s, elem_tp)
   end
   return S(elems)
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T
-  elems = load_array_node(s) do _
+  elems = load_array_node(s) do
     load_object(s, T)
   end
   return S(elems)
@@ -573,7 +573,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:SRow, <:NCRing})
   pos = Int[]
   entry_type = elem_type(ring)
   values = entry_type[]
-  load_array_node(s) do _
+  load_array_node(s) do
     push!(pos, load_object(s, Int, 1))
     push!(values, load_object(s, TypeParams(entry_type, ring), 2))
   end

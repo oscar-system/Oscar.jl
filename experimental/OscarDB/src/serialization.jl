@@ -60,7 +60,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{TransitiveSimplicialComplex, PermGroup})
   params = parameters(tp)
-  load_node(s) do _
+  load_node(s) do
     TransitiveSimplicialComplex(
       load_object(s, String, :name),
       load_object(s, SimplicialComplex, :complex),
