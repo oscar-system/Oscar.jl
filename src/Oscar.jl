@@ -214,8 +214,6 @@ const PROJECT_UUID = Base.PkgId(@__MODULE__).uuid
 
 const is_dev = occursin("-dev", lowercase(string(VERSION_NUMBER)))
 
-const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
-
 const oscardir = Base.pkgdir(Oscar)
 
 function example(s::String)

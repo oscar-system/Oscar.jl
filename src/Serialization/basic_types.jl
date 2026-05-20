@@ -21,9 +21,9 @@ end
 @register_serialization_type Bool 
 
 function load_object(s::DeserializerState, ::Type{Bool})
-  load_node(s) do _
-    return load_json(s, Bool)
-  end
+  load_node(s) do val
+    return val
+  end::Bool
 end
 
 
@@ -36,7 +36,7 @@ load_object(s::DeserializerState, ::TypeParams{ZZRingElem, ZZRing}) = load_objec
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do _
     return ZZRingElem(load_json(s, String))
-  end
+  end::ZZRingElem
 end
 
 ################################################################################
@@ -53,7 +53,7 @@ function load_object(s::DeserializerState, ::Type{QQFieldElem})
     fraction_parts = parse.(ZZRingElem, fraction_parts)
 
     return QQFieldElem(fraction_parts...)
-  end
+  end::QQFieldElem
 end
 
 ################################################################################

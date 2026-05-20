@@ -20,7 +20,7 @@ end
 function load_object(s::DeserializerState, ::Type{fpField})
   load_node(s) do _
     return fpField(parse(UInt64, load_json(s, String)))
-  end
+  end::fpField
 end
 
 # elements
@@ -34,7 +34,7 @@ function load_object(s::DeserializerState, tp::TypeParams{fpFieldElem, fpField})
   F = Oscar.params(tp)
   load_node(s) do _
     return F(parse(UInt64, load_json(s, String)))
-  end
+  end::fpFieldElem
 end
 
 ################################################################################
@@ -48,7 +48,7 @@ end
 function load_object(s::DeserializerState, ::Type{FpField})
   load_node(s) do _
     FpField(parse(ZZRingElem, load_json(s, String)))
-  end
+  end::FpField
 end
 
 # elements
@@ -62,7 +62,7 @@ function load_object(s::DeserializerState, tp::TypeParams{FpFieldElem, FpField})
   F = Oscar.params(tp)
   load_node(s) do _
     F(parse(ZZRingElem, load_json(s, String)))
-  end
+  end::FpFieldElem
 end
 
 ################################################################################
@@ -134,7 +134,7 @@ end
 ################################################################################
 # FqField
 
-@register_serialization_type FqField "FiniteField" uses_id
+@register_serialization_type FqField "FiniteField" uses_id default
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
@@ -152,11 +152,11 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FqField, <:PolyRing})
   params = Oscar.params(tp)
-  finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]
+  rerun finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]::FqField
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
-  finite_field(load_object(s, ZZRingElem))[1]
+  return finite_field(load_object(s, ZZRingElem))[1]::FqField
 end
 
 # elements
@@ -182,7 +182,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:FqFieldElem, FqField
       return K(load_object(s, TypeParams(PolyRingElem, parent(defining_polynomial(K)))))
     end
     K(load_object(s, ZZRingElem))
-  end
+  end::FqFieldElem
 end
 
 ################################################################################
