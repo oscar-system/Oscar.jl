@@ -233,7 +233,7 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{<:Ideal, <:NCRing})
   parent_ring = parameters(tp)
   gens = elem_type(parent_ring)[]
-  load_array_node(s) do
+  load_array_node(s) do _
     push!(gens, load_object(s, TypeParams(elem_type(parent_ring), parent_ring)))
   end
   return ideal(parent_ring, gens)
@@ -334,9 +334,9 @@ function load_object(s::DeserializerState, tp::TypeParams{<:SMat, <:SMatSpace{T}
   base = base_ring(parent)
   M = sparse_matrix(base)
 
-  load_array_node(s) do
+  load_array_node(s) do _
     row_entries = Tuple{Int, T}[]
-    load_array_node(s) do
+    load_array_node(s) do _
       push!(row_entries, load_object(s, TypeParams(Tuple{Int, T}, (nothing, base))))
     end
     push!(M, sparse_row(base, row_entries))
@@ -440,7 +440,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:RelPowerSeriesRingEl
   coeff_type = elem_type(base)
 
   load_node(s, :terms) do
-    load_array_node(s) do
+    load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e] = load_object(s, TypeParams(coeff_type, base), 2)
     end
@@ -457,7 +457,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:AbsPowerSeriesRingEl
   coeff_type = elem_type(base)
 
   load_node(s, :terms) do
-    load_array_node(s) do
+    load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e + 1] = load_object(s, TypeParams(coeff_type, base), 2)
     end

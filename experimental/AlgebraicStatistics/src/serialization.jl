@@ -68,8 +68,8 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Ring})
   R = parameters(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
-  load_array_node(s) do
-    key = load_node(_ -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
+  load_array_node(s) do _
+    key = load_node(() -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
     graph_gen_dict[key] = load_object(s, TypeParams(MPolyRingElem, R), 2)
   end
   return GraphDict{elem_type(R)}(graph_gen_dict)

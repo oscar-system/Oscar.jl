@@ -38,10 +38,10 @@ function load_object(s::DeserializerState, tp::TypeParams{<:FreeAssociativeAlgeb
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = MPolyBuildCtx(parent_algebra)
 
-  load_array_node(s) do
+  load_array_node(s) do _
     loaded_coeff = load_object(s, TypeParams(coeff_type, base_ring(parent_algebra)), 2)
     loaded_term = parent_algebra(loaded_coeff)
-    e = load_array_node(s, 1) do
+    e = load_array_node(s, 1) do _
       load_object(s, Int)
     end
     # guarantees e is a Int[]

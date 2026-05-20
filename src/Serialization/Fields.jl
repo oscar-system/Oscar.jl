@@ -399,7 +399,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{AcbFieldElem, AcbField})
   parent = parameters(tp)
-  (real_part, imag_part) = load_array_node(s) do
+  (real_part, imag_part) = load_array_node(s) do _
     load_object(s, TypeParams(ArbFieldElem, ArbField(precision(parent))))
   end
   return parent(real_part, imag_part)
