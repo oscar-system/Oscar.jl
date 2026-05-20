@@ -411,7 +411,7 @@ function load_type_params(s::DeserializerState, T::Type)
         if Base.issingletontype(U)
           p = U()
         else
-          p = params(load_type_params(s, U))
+          p = parameters(load_type_params(s, U))
         end
       # handle cases where type_params is a dict of params
       elseif !haskey(s, type_key)
