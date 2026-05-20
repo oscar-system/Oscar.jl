@@ -1,27 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, _convert_override_params, params, load_type_params, decode_type, is_string, is_array
-
-function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
-  Tuple(map(Oscar.Serialization.params(tp)) do p
-    if p.first == :graph_type
-      p.first => Oscar.Serialization.type(p.second)
-    else
-      p.first => p.second
-    end
-  end)
-end
-
-function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T <: Union{GroupBasedPhylogeneticModel, PhylogeneticModel}
-  type_keys = [:transition_matrix_entry_type, :graph_type,
-               :model_parameter_name_type, :root_distribution_entry_type]
-  Tuple(map(Oscar.Serialization.params(tp)) do p
-    if p.first in type_keys
-      p.first => Oscar.Serialization.type(p.second)
-    else
-      p.first => _convert_override_params(p.second)
-    end
-  end)
-end
+  type_params, params, load_type_params, decode_type, is_string, is_array
 
 ################################################################################
 # Special Dict Types

@@ -969,38 +969,6 @@ function load(filename::String; kwargs...)
   end
 end
 
-# normalize a single pair value for use as override param:
-#   - TypeParams kept as-is (new style or type-param entries)
-#   - bare Type wrapped in TypeParams (backwards compat)
-#   - actual objects (rings, fields, etc.) kept as-is (matches internal loading)
-_normalize_pair_value(v::TypeParams) = v
-_normalize_pair_value(T::Type) = TypeParams(T, nothing)
-_normalize_pair_value(v) = v
-
-function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
-  map(parameters(tp)) do (k, v)
-    k => _normalize_pair_value(v)
-  end
-end
-
-# backwards compat: raw pair tuples (not wrapped in TypeParams)
-function _convert_override_params(t::Tuple{Vararg{Pair}})
-  map(x -> x.first => _normalize_pair_value(x.second), t)
-end
-
-_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(parameters(tp))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(parameters(tp))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(parameters(tp))
-_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(parameters(tp)))
-_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = tp[:subtype_params]
-
-_convert_override_params(obj::Any) = obj
-_convert_override_params(obj::Tuple{}) = ()
-_convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
-
-# handle monomial ordering
-_convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
-
 
 export @register_serialization_type
 export DeserializerState
