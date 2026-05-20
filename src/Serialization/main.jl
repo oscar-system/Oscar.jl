@@ -368,9 +368,9 @@ function load_type_and_params(s::DeserializerState, T::Type, key::Symbol)
 end
 
 function load_type_array_params(s::DeserializerState)
-  load_array_node(s) do obj
+  load_array_node(s) do _
     T = decode_type(s)
-    if obj isa String
+    if s.obj isa String
       !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
       return T
     end
@@ -481,8 +481,8 @@ end
 function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
-  haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+  haskey(s, :attrs) && load_node(s, :attrs) do _
+    for attr in keys(s.obj)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -873,11 +873,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   # handle different namespaces
-  polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
-    load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
-        return load_from_polymake(Dict(d))
+  polymake_obj = load_node(s) do _
+    @req :_ns in keys(s.obj) "Namespace is missing"
+    outer_obj = s.obj
+    load_node(s, :_ns) do _
+      if :polymake in keys(s.obj)
+        return load_from_polymake(Dict(outer_obj))
       end
     end
   end
@@ -885,13 +886,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     return polymake_obj
   end
 
-  load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
+  load_node(s, :_ns) do _
+    @req haskey(s.obj, :Oscar) "Not an Oscar object"
   end
 
   # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
+  file_version = load_node(s) do _
+    serialization_version_info(s.obj)
   end
   # A file needs upgrading iff some upgrade script targets a version newer than the
   # file's effective version. Gate on the newest upgrade script rather than on
