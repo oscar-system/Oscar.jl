@@ -1030,6 +1030,7 @@ end
 # this currently will ignore all other labels
 # and creates new labelings such that the labelings on the vertices are indistinguishable
 # there is also a flag that can handle indistinguishable edges
+# uses ideas from https://users.cecs.anu.edu.au/~bdm/nauty/nug26.pdf section 14
 function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
