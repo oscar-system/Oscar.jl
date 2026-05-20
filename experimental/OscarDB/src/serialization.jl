@@ -59,7 +59,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{TransitiveSimplicialComplex},
                      params::PermGroup)
-  load_node(s) do _
+  load_node(s) do
     TransitiveSimplicialComplex(
       load_object(s, String, :name),
       load_object(s, SimplicialComplex, :complex),

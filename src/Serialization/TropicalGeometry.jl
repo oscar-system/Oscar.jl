@@ -14,7 +14,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem},
                      R::TropicalSemiring)
-  load_node(s) do _
+  load_node(s) do
     str = s.obj
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
       return inf(R)

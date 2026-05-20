@@ -194,14 +194,14 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
                      parent_ring::PolyRing)
-  load_node(s) do _
+  load_node(s) do
     if isempty(s.obj)
       return parent_ring(0)
     end
     # load exponents and account for shift
     exponents = []
     for i in 1:length(s.obj)
-      e = load_node(s, i) do _
+      e = load_node(s, i) do
         load_object(s, Int, 1) + 1
       end
       push!(exponents, e)
@@ -211,8 +211,8 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     loaded_terms = Hecke.zeros_array(coeff_ring, degree)
     coeff_type = elem_type(coeff_ring)
     for (i, exponent) in enumerate(exponents)
-      load_node(s, i) do _
-        load_node(s, 2) do _
+      load_node(s, i) do
+        load_node(s, 2) do
           loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
         end
       end
@@ -224,13 +224,13 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                      parent_ring::PolyRingUnionType)
-  load_node(s) do _
+  load_node(s) do
     exponents = [term[1] for term in s.obj]
     coeff_ring = coefficient_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(coeff_ring)
     for (i, e) in enumerate(exponents)
-      load_node(s, i) do _
+      load_node(s, i) do
         c = load_object(s, coeff_type, coeff_ring, 2)
         e_int = load_array_node(s, 1) do _
           load_object(s, Int)
@@ -317,7 +317,7 @@ function load_object(s::DeserializerState, ::Type{<:IdealGens}, params::Dict)
   if ordering_type <: MonomialOrdering
     ord = load_object(s, ordering_type, base_ring, :ordering)
   else
-    ord = load_node(s, :ordering) do _
+    ord = load_node(s, :ordering) do
       MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
     end
   end
@@ -494,7 +494,7 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
   
-  load_node(s, :terms) do _
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e] = load_object(s, coeff_type, base, 2)
@@ -511,7 +511,7 @@ function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do _
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e + 1] = load_object(s, coeff_type, base, 2)
@@ -576,12 +576,12 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                      parent_ring::LaurentUnionType)
-  terms = load_node(s, :terms) do _
+  terms = load_node(s, :terms) do
     # reading all exponents before ...
     # might be more efficient way ...
     exponents = Int[]
     for i in 1:length(s.obj)
-      load_node(s, i) do _
+      load_node(s, i) do
         push!(exponents, load_object(s, Int, 1))
       end
     end
@@ -594,7 +594,7 @@ function load_object(s::DeserializerState,
     loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
-      load_node(s, i) do _
+      load_node(s, i) do
         loaded_terms[e] = load_object(s, coeff_type, base, 2)
       end
     end
