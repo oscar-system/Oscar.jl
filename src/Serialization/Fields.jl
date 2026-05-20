@@ -152,7 +152,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:FqField, <:PolyRing})
   params = Oscar.params(tp)
-  rerun finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]::FqField
+  return finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]::FqField
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
