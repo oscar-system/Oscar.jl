@@ -259,8 +259,6 @@ function save_object(s::SerializerState, obj::IdealGens)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:IdealGens, <:MPolyRing})
-  # params is either the ring directly, or a TypeParams wrapping the ring
-  # (the latter occurs when type_params(gb) is passed as override_params)
   base_ring = params(tp)
   ord = load_object(s, TypeParams(MonomialOrdering, base_ring), :ordering)
   generators = load_object(s, TypeParams(Vector{elem_type(base_ring)}, base_ring), :gens)
