@@ -1,8 +1,13 @@
-# To connect to the LMFDB database:
-# - fork https://github.com/thofma/LMFDB.jl
-# - run `using LMFDB`
+# There is a compatibility issue with the LMFDB connection, so one has to dev
+# it for what follows:
+# - dev https://github.com/thofma/LMFDB.jl
+# - in line 10 of `src/NumberField.jl`, add the signature
+#   `db::LMFDB.LMFDBLite.LMFDBConnection` to the first input of the function
+#   `Hecke.number_field(db, label::String).
+# - open julia, and run `using Oscar, LMFDB`
 # - fetch the database: `db = LMFDB.LMFDBLite.LMFDBConnection()`
 # - load some genera: z.B. `l6=LMFDB.genera(db; rank = 6, nplus=6, det = >=(1) & <=(div(300, 8, RoundUp)));`
+# - call the functions needed below
 
 # To use this file: include it in the branch of the PR
 
@@ -50,7 +55,10 @@ function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, String, ZZMatrix},
 )
-  str = x[1]*"_"*x[2]*"_["
+  m = parse(Int, first(x[1]))
+  _path = joinpath(_save_path, x[2], "prim_emb_$(m).txt")
+  isfile(_path) || touch(_path)
+  str = x[1]*"_["
   v = x[3]
   for j in 1:ncols(v)
     k = v[1,j]
@@ -60,15 +68,18 @@ function save_data_lmfdb(
     end
   end
   str *= "]\n"
-  f = open(_save_path, "a")
+  f = open(_path, "a")
   write(f, str)
   close(f)
 end
+
 function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, String, Hecke.IntegerUnion, Vector{QQFieldElem}},
 )
-  str = x[1]*"_"*x[2]*"_$(x[3])_["
+  _path = joinpath(_save_path, x[1], "overlat.txt")
+  isfile(_path) || touch(_path)
+  str = x[2]*"_$(x[3])_["
   v = x[4]
   for j in 1:length(v)
     k = v[j]
@@ -78,7 +89,7 @@ function save_data_lmfdb(
     end
   end
   str *= "]\n"
-  f = open(_save_path, "a")
+  f = open(_path, "a")
   write(f, str)
   close(f)
 end
@@ -87,9 +98,10 @@ function save_data_lmfdb(
   _save_path::String,
   x::Tuple{String, Int},
 )
-  str = x[1]*"_$(x[2])\n"
-  f = open(_save_path, "a")
-  write(f, str)
+  _path = joinpath(_save_path, x[1], "k3_embed.txt")
+  isfile(_path) || touch(_path)
+  f = open(_path, "w")
+  write(f, "$(x[2])")
   close(f)
 end
 
@@ -98,7 +110,6 @@ function _primitive_embeddings_in_unimodular_safe_lmfdb(
   G2::ZZGenus;
   _save_path::Union{Nothing, String}=nothing,
 )
-  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   if is_even(G1)
     parity = :even
@@ -140,6 +151,7 @@ function _primitive_embeddings_in_unimodular_safe_lmfdb(
             v = map_entries(ZZ, coordinates(basis_matrix(N2), T)*f_top)
           end
           __x = (label_top, label_bottom, v)
+          @show __x
           push!(results, __x)
           if !isnothing(_save_path)
             save_data_lmfdb(_save_path, __x)
@@ -158,7 +170,6 @@ function _primitive_embeddings_coprime_det_safe_lmfdb(
   G2::ZZGenus;
   _save_path::Union{Nothing, String}=nothing,
 )
-  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   if is_even(G1)
     parity = :even
@@ -204,6 +215,7 @@ function _primitive_embeddings_coprime_det_safe_lmfdb(
             v = map_entries(ZZ, coordinates(basis_matrix(N2), T)*f_top)
           end
           __x = (label_top, label_bottom, v)
+          @show __x
           push!(results, __x)
           if !isnothing(_save_path)
             save_data_lmfdb(_save_path, __x)
@@ -224,7 +236,6 @@ function _primitive_embeddings_generic_safe_lmfdb(
   q2::TorQuadModule=discriminant_group(G2),
   Ms::Vector{ZZLat}=ZZLat[],
 )
-  @show G1, G2
   results = Tuple{String, String, ZZMatrix}[]
   R = rescale(representative(G1), -1; cached=false)
   U = hyperbolic_plane_lattice()
@@ -239,7 +250,6 @@ function _primitive_embeddings_generic_safe_lmfdb(
   signK = signature_pair(G1) .- signature_pair(G2)
 
   Fac, lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
-  @show length(lgm)
   isempty(lgm) && return results
   DKs = Dict{ZZGenus, Vector{ZZLat}}()
 
@@ -250,14 +260,12 @@ function _primitive_embeddings_generic_safe_lmfdb(
     isempty(GKs) && continue
     # At that point, we know that we have an extension
     for GK in GKs
-      @show GK
       haskey(DKs, GK) && continue
       DKs[GK] = representatives(GK)
     end
     isempty(Ms) && append!(Ms, get_attribute(G2, :representatives))
     for M in Ms
       label_bottom = get_attribute(M, :lmfdb_label)
-      @show label_bottom
       qM = discriminant_group(M)
       D = _gluing_ambient(qM, q1n, parity)
       GM, _ = image_in_Oq(M)
@@ -265,7 +273,6 @@ function _primitive_embeddings_generic_safe_lmfdb(
       @assert _ok
       xM = _pullback_left(x, phiM, parity)
       xMs = _split_orbit_left_group(xM, GM, parity)
-      @show length(xMs)
       for _x in xMs, y in _all_glue_maps(_x)
         V, M2, T2, GV = _overlattice_with_glue_stabilizer(y, D, parity)
         resV = NTuple{3, ZZLat}[]
@@ -297,13 +304,13 @@ function _primitive_embeddings_generic_safe_lmfdb(
             end
             !ok && continue
             label_top = get_attribute(L2, :lmfdb_label)
-            @show label_top
             if is_definite(G1)
               v = map_entries(ZZ, coordinates(bN*f_top, L2))
             else
               v = zero_matrix(ZZ, 0, 0)
             end
             __x = (label_top, label_bottom, v)
+            @show __x
             push!(results, __x)
             if !isnothing(_save_path)
               save_data_lmfdb(_save_path, __x)
@@ -368,24 +375,21 @@ function _prime_index_overlattices_lmfdb(
             _v = p*lift(first(gens(_Hh)))
             G2 = genus(L)
             k = findfirst(isequal(G2), Gs)
-            @assert !isnothing(k)
-            flag=false
+            isnothing(k) && continue
             if length(get_attribute(Gs[k], :representatives)) == 1
-              flag=true
               label_top = get_attribute(only(get_attribute(Gs[k], :representatives)), :lmfdb_label)
             else
               for L2 in get_attribute(Gs[k], :representatives)
                 !is_isometric(L, L2) && continue
-                flag=true
                 label_top = get_attribute(L2, :lmfdb_label)
               end
             end
             __x = (label_bottom, label_top, p, _v)
+            @show __x
             push!(res, __x)
             if !isnothing(_save_path)
               save_data_lmfdb(_save_path, __x)
             end
-            @assert flag
           end
         end
       end
@@ -412,6 +416,7 @@ function _embeddings_in_K3_lattice(
     for s in u
       i = count(rr -> rr[2] == s, r)
       push!(res, (s, i))
+      @show (s, i)
       if !isnothing(_save_path)
         save_data_lmfdb(_save_path, (s, i))
       end
@@ -425,43 +430,29 @@ end
 #   for some d.
 # - `G2s` consists of all genera of lattice of rank n, with same
 #   possible signatures and determinant in absolute value bounded by d/n.
-# - `__save_path` is the absolute path to a folder where to save data. If
-#   given, the function will create three files there:
-#   * in `prim_emb.txt` each primitive embedding of a lattice $M$ of a
-#     genus in G2s in a lattice $L$ in a genus in G1s is stored in one
-#     line consisting in order of the LMFDB label of $L$, of the LMFDB
-#     label of $M$ and if $L$ is definite, the coordinates of the complement
-#     of $M$ in $L$ (for the Gram matrix of $L$ provided by the LMFDB data).
-#   * in `overlat.txt` each prime index overlattice $L$ of a lattice $S$
-#     in a genus in `G2s` is stored in one line consisting in order of
-#     the LMFDB label of $S$, the LMFDB label of $L$, the (prime) index
-#     $p=[L:S]$ and the coordinates of a generator of $L/S$, rescaled by
-#     $p$ (for the Gram matrix of $S$ provided by the LMFDB data).
-#   * in `k3_embed.txt` each lattice $L$ in a genus in G2s which
-#     is is even, of signature $(p, n)$ with $n = 1$ or $2$ and which
-#     embeds into the K3 lattice is stored in one line consisting in
-#     order of the LMFDB label of $L$ and the number of primitive
-#     embeddings of $L$ inside the K3 lattice.
+# - `__save_path` is the absolute path to a folder where to save data (then
+#   the dispatch is made automatically; see the code below).
 function _computations_lmfdb(
   G1s::Vector{ZZGenus},
   G2s::Vector{ZZGenus};
   __save_path::Union{String, Nothing}=nothing,
 )
+  n = rank(first(G2s))
   if !isnothing(__save_path)
-    _save_path = joinpath(__save_path, "prim_emb.txt")
-    touch(_save_path)
-    prim_emb = _primitive_embeddings_lmfdb(G1s, G2s; save_path)
-    _save_path = joinpath(__save_path, "overlat.txt")
-    touch(_save_path)
-    overlat = _prime_index_overlattices_lmfdb(G2s; save_path)
-    _save_path = joinpath(__save_path, "k3_embed.txt")
-    touch(_save_path)
-    k3_emb = _embeddings_in_K3_lattice(G2s; _save_path)
+    _save_path = joinpath(__save_path, "rank$n")
+    isdir(_save_path) || mkdir(_save_path)
+    for G2 in G2s, L in get_attribute(G2, :representatives)
+      label = get_attribute(L, :lmfdb_label)
+      path_label = joinpath(_save_path, label)
+      isdir(path_label) || mkdir(path_label)
+    end
   else
-    prim_emb = _primitive_embeddings_lmfdb(G1s, G2s)
-    overlat = _prime_index_overlattices_lmfdb(G2s)
-    k3_emb = _embeddings_in_K3_lattice(G2s)
+    _save_path = nothing
   end
-  return prim_emb, overlat, k3_emb
+
+  overlat = _prime_index_overlattices_lmfdb(G2s; _save_path)
+  k3_embed = _embeddings_in_K3_lattice(G2s; _save_path)
+  prim_emb = _primitive_embeddings_lmfdb(G1s, G2s; _save_path)
+  return prim_emb, overlat, k3_embed
 end
 
