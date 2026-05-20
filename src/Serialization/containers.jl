@@ -277,7 +277,7 @@ end
 function load_object(s::DeserializerState, tp::TypeParams{<:Tuple, <:Tuple})
   T = type(tp)
   p = parameters(tp)
-  entries = load_array_node(s) do (i, entry)
+  entries = load_array_node(s) do i
     S = fieldtype(T, i)
     if serialize_with_id(S)
       return load_ref(s)
@@ -290,7 +290,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Tuple, <:Tuple})
 end
 
 function load_object(s::DeserializerState, T::Type{<:Tuple})
-  entries = load_array_node(s) do (i, entry)
+  entries = load_array_node(s) do i
     S = fieldtype(T, i)
     load_object(s, S)
   end
