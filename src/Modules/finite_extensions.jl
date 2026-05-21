@@ -81,7 +81,7 @@ where `interp` is a map for the identification ``M → F``.
 """
 function pushforward(psi::FiniteExtension, F::FreeMod)
   M = codomain_as_module(psi)
-  summands = [twist(M, Int(g[1])) for g in degrees_of_generators(F)]
+  summands = [twist(M, -Int(g[1])) for g in degrees_of_generators(F)]
   result, _ = direct_sum(summands...)
   interp = function(v::FreeModElem)
     res = zero(result)
@@ -126,8 +126,11 @@ function pushforward(psi::FiniteExtension, M::SubquoModule;
     ambient_pushforward=pushforward(psi, ambient_free_module(M))
   )
   psiF, interp = ambient_pushforward
+  @assert is_graded(psiF)
   psi_gens = elem_type(psiF)[interp(g*v) for v in ambient_representatives_generators(M) for g in generating_system(psi)]
+  @assert all(is_homogeneous, psi_gens)
   psi_rels = elem_type(psiF)[interp(g*v) for v in relations(M) for g in generating_system(psi)]
+  @assert all(is_homogeneous, psi_rels)
   I, _ = sub(psiF, psi_gens)
   result, _ = quo(I, psi_rels)
   interp_sq = function(v::SubquoModuleElem)
@@ -167,6 +170,83 @@ function vector_space_basis(kk::Field, Q::MPolyQuoRing)
 end
 
 function _global_section_module(psi::FiniteExtension, M::SubquoModule)
+  @assert base_ring(M) === codomain(psi) "wrong base ring"
   pf_M, interp = pushforward(psi, M)
+  @assert is_graded(pf_M)
+  pf_M_simp, to_pf_M = simplify(pf_M)
+  @assert is_graded(pf_M_simp)
+  @assert codomain(to_pf_M) === pf_M
+  P = domain(psi)
+  A = codomain(psi)
+  P1 = graded_free_module(P, [0])
+  M1, _ = hom(pf_M_simp, P1)
+  @assert is_graded(M1)
+  M1_simp, to_M1 = simplify(M1)
+  @assert is_graded(M1_simp)
+  M2, _ = hom(M1_simp, P1)
+  @assert is_graded(M2)
+  M2_simp, to_M2 = simplify(M2)
+
+  @assert is_graded(M2_simp)
+  @assert base_ring(M2_simp) === P
+  # recover the A-module structure on M2_simp
+  N, to_N = change_base_ring(psi, M2_simp)
+
+
+  # We first construct the endomorphisms of `M1` given by multiplication
+  # with the elements of the `generating_system` of `A` over `P`.
+  mult_maps = []
+  for x in generating_system(psi)
+    img_gens = gens(pf_M_simp)
+    img_gens = [preimage(interp, to_pf_M(v)) for v in img_gens]
+    img_gens = [x*v for v in img_gens]
+    img_gens = [interp(v) for v in img_gens]
+    img_gens = [preimage(to_pf_M, v) for v in img_gens]
+    f = hom(pf_M_simp, pf_M_simp, img_gens)
+    push!(mult_maps, f)
+  end
+
+  dual_mult_maps = []
+  for f in mult_maps
+    img_gens = elem_type(M1_simp)[]
+    for g in gens(M1_simp)
+      gg = to_M1(g)
+      phi = element_to_homomorphism(gg)
+      c = compose(f, phi)
+      w = homomorphism_to_element(M1, c)
+      push!(img_gens, preimage(to_M1, w))
+    end
+    push!(dual_mult_maps, hom(M1_simp, M1_simp, img_gens))
+  end
+
+  mult_tables = Vector{elem_type(M2_simp)}[]
+  for a in gens(M2_simp)
+    aa = to_M2(a)
+    aa_map = element_to_homomorphism(aa)
+    row = elem_type(M2_simp)[]
+    for h in dual_mult_maps
+      g = compose(h, aa_map)
+      w = homomorphism_to_element(M2, g)
+      push!(row, preimage(to_M2, w))
+    end
+    push!(mult_tables, row)
+  end
+
+  new_relns = elem_type(N)[]
+  for (g, row) in zip(gens(M2_simp), mult_tables)
+    new_relns = vcat(new_relns, [to_N(xg) - x*to_N(g) for (x, xg) in zip(generating_system(psi), row)])
+  end
+
+  NN, to_NN = quo(N, new_relns)
+  result, to_result = simplify(NN)
+
+  # TODO: construct the canonical map of `M` to the result
+  #=
+  img_gens = gens(M)
+  img_gens = [interp(v) for v in img_gens]
+  ...
+  =#
+
+  return result
 end
 
