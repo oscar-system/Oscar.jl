@@ -391,10 +391,13 @@ Oscar.Serialization.upgrade_data
 
 All upgrade scripts should be contained in a file named after the version
 they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
-should be named `0.13.0.jl`. 
-There is also the possibility to have multiple upgrade scripts per version, this is to accommodate file serialized with DEV versions.
-In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
-To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
+should be named `0.13.0.jl`.
+There is also the possibility to have multiple upgrade scripts per version, to accommodate
+files serialized with DEV versions.
+In this case the upgrades should be named `1.6.0+n.jl` where `n` is the `n`th upgrade
+in the sequence for version `1.6.0`.
+To guarantee that upgrades occur in the correct order it is important that they are
+included in the correct order in `src/Serialization/Upgrades/main.jl`.
 
 Test examples for each upgrade script should be added to the repository
 <https://github.com/oscar-system/serialization-upgrade-tests>.
@@ -406,6 +409,90 @@ has to modify the contents in order to load the object.
 In order to achieve that the new test examples get included in the CI tests,
 update the variable `commit_hash` in the file
 `test/Serialization/upgrades/setup_tests.jl` of the OSCAR repository.
+
+##### Writing an Upgrade Script
+
+An upgrade script is a function pushed into `upgrade_scripts_set`. It receives
+an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}` representing a single
+serialized object node, and returns the (possibly modified) dict.
+
+The dict has the structure:
+```
+:_type => ...   # type info (name string or dict with :name/:params)
+:data  => ...   # the serialized data
+```
+
+The typical structure of an upgrade function is:
+
+```julia
+push!(upgrade_scripts_set, UpgradeScript(
+  v"X.Y.Z",
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+    # 1. Recurse into containers and nested objects first
+    upgrade_recursive(upgrade_X_Y_Z, s, dict)
+
+    # 2. Determine the type name of the current node
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+      type_name = dict[:_type][:name]
+    else
+      type_name = dict[:_type]
+    end
+
+    # 3. Apply type-specific transformations
+    if type_name == "MyType"
+      # rename a field in the data
+      dict[:data][:new_field] = pop!(dict[:data], :old_field)
+    elseif type_name == "AnotherType"
+      # change type parameter structure
+      old_params = dict[:_type][:params]
+      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
+    end
+
+    return dict
+  end
+))
+```
+
+`upgrade_recursive` handles traversal into containers (`Vector`, `Matrix`,
+`Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
+body of the upgrade function only needs to handle the specific type changes
+introduced in that version.
+
+###### Common patterns
+
+**Renaming a type** — use the `rename_types` helper:
+```julia
+renamings = Dict{String,String}("OldName" => "NewName")
+return rename_types(dict, renamings)
+```
+
+**Renaming a data field**:
+```julia
+if type_name == "MyType" && haskey(dict[:data], :old_name)
+  dict[:data][:new_name] = pop!(dict[:data], :old_name)
+end
+```
+
+**Flattening a nested type-params wrapper** — if a type previously stored
+all its contextual data under a single params key and now stores them flat:
+```julia
+if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
+  wrapper = dict[:_type][:params][:wrapper]
+  # promote each inner key to the top level
+  for (k, v) in wrapper[:params]
+    k === :key_params && continue   # skip Dict metadata if applicable
+    dict[:_type][:params][k] = v
+  end
+  delete!(dict[:_type][:params], :wrapper)
+end
+```
+
+**Parsing a data value that was previously stored as a string**:
+```julia
+if type_name == "MyType"
+  dict[:data][:flag] = parse(Bool, dict[:data][:flag])
+end
+```
 
 ```@docs
 Oscar.Serialization.UpgradeScript
