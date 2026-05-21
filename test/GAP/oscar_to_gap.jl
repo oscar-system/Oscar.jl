@@ -1,6 +1,7 @@
 @testset "single cyclotomics" begin
   # from `QQAbFieldElem`
   F, z = abelian_closure(QQ)
+  e5 = GAP.Globals.E(5)
   @test GAP.Obj(z(5) + z(5)^4) == e5 + e5^4
 
   # not supported conversions
