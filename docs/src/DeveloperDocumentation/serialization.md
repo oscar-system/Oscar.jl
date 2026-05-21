@@ -231,7 +231,6 @@ match the type of the parameters:
 
 ```@docs
 TypeParams
-type_params
 ```
 
 #### `save_object` / `load_object`
