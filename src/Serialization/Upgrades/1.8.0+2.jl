@@ -26,6 +26,21 @@ push!(upgrade_scripts_set, UpgradeScript(
       if old_params isa AbstractDict && haskey(old_params, :base_ring)
         dict[:_type][:params] = old_params[:base_ring]
       end
+    elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
+                         "SubdivisionOfPoints", "LinearProgram", "MixedIntegerLinearProgram")
+      if dict[:_type] isa AbstractDict &&
+         haskey(dict[:_type], :params) &&
+         dict[:_type][:params] isa AbstractDict &&
+         haskey(dict[:_type][:params], :pm_params)
+        pm_params = dict[:_type][:params][:pm_params]
+        if pm_params isa AbstractDict && haskey(pm_params, :params)
+          for (k, v) in pm_params[:params]
+            k === :key_params && continue
+            dict[:_type][:params][k] = v
+          end
+        end
+        delete!(dict[:_type][:params], :pm_params)
+      end
     end
     return dict
   end
