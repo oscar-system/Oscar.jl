@@ -287,48 +287,36 @@ function load_object(s::DeserializerState, tp::TypeParams{<:NewType})
 end
 ```
 
-##### Example 2
+##### `save_typed_object` inside `save_object`
+
+Do not call `save_typed_object` from within a `save_object` implementation.
+The serialization format is structured as two separate subtrees: a type tree
+and a data tree. All type information — including the types of nested objects —
+must be fully described in the type tree (via `type_params`) so that the
+deserializer can resolve all types before touching the data tree. Embedding
+a `save_typed_object` call inside `save_object` breaks this invariant by
+writing type information into the data subtree, making the format harder to
+validate, upgrade, and parse generically.
+
+If a field of your type has a statically unknown type at load time, the
+correct approach is to expose that type through `type_params` rather than
+inlining it into the data:
+
 ```julia
+# Wrong: type information buried in data
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
-    save_object(s, obj.1, :key1)
-    save_data_array(s, :key2) do
-      save_object(s, obj.3)
-      save_typed_object(s, obj.4) # This is ok
-    end
+    save_typed_object(s, obj.field, :field)  # do not do this
   end
 end
-```
-This will result in a data format that looks like this.
 
-```json
-{
-  "key1": obj.1,
-  "key2":[
-    obj.3,
-    {
-      "type": "Type of obj.4",
-      "data": obj.4
-    }
-  ]
-}
-```
+# Correct: type information goes through type_params
+type_params(obj::NewType) = TypeParams(typeof(obj), :field => type_params(obj.field))
 
-The corresponding loading function would look something like this.
-```julia
-function load_object(s::DeserializerState,
-                     tp::TypeParams{<:NewType, <:ParamsType})
-  params = parameters(tp)
-  obj1 = load_object(s, Obj1Type, TypeParams(Obj1Type, params.field1), :key1)
-
-  (obj3, obj4) = load_array_node(s, :key2) do i
-    if i == 1
-      load_object(s, Obj3Type, TypeParams(Obj3Type, params.field2))
-    else
-      load_typed_object(s)
-    end
+function save_object(s::SerializerState, obj::NewType)
+  save_data_dict(s) do
+    save_object(s, obj.field, :field)
   end
-  return NewType(obj1, OtherType(obj3, obj4))
 end
 ```
 
@@ -346,7 +334,7 @@ function save_object(s::SerializerState, obj::NewType)
 end
 ```
 
-If you insist on having a key you should use a `save_data_dict`.
+If you need a key, wrap in `save_data_dict`:
 ```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
@@ -365,9 +353,6 @@ function load_object(s::DeserializerState, tp::TypeParams{<:NewType})
   end
 end
 ```
-
-Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
-`save_data_dict`. Otherwise you will get a key override error.
 
 ### Serializers
 
