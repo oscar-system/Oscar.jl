@@ -111,7 +111,7 @@ end
 function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
   # this should only be the graph type not the whole graph
   # need to make adjustments to TypeParams functionality
-  TypeParams(S, :graph_type => TypeParams(typeof(graph(GM)), nothing))
+  TypeParams(S, :graph_type => type_params(graph(GM))
 end
 
 function save_object(s::SerializerState, M::GraphicalModel)
