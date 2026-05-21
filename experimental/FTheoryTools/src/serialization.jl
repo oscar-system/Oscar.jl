@@ -182,6 +182,9 @@ function _maybe_load(
 ) where {S,T<:Dict{String,S}}
   if haskey(s, key)
     val = tp[key]
+    if val isa TypeParams
+      return load_object(s, val, key)
+    end
     dict_params = val isa Dict ? val : Dict(:key_params => nothing, :value_params => val)
     return load_object(s, TypeParams(T, dict_params), key)
   end

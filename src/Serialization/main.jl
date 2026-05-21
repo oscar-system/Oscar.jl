@@ -884,7 +884,8 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   file_version = load_node(s) do
     serialization_version_info(s.obj)
   end
-  if file_version < VERSION_NUMBER
+  current_version = version_number(string(get_oscar_serialization_version()[:Oscar][2]))
+  if file_version < current_version
     jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
     jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str), serializer, with_attrs)
