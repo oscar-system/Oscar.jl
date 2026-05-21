@@ -28,9 +28,13 @@
   #   g ⊗ x == x⋅g ⊗ 1
   #
   # for any element `g` in F**. Note that the multiplication 
-  # on the right hand side is to be carried out as 
+  # on the right hand side is to be carried out as: 
   #
-  #   F** ∋ λ : (φ : F → P) ↦ ( v ↦ φ(x⋅v) )
+  #   F** ∋ λ : (φ : F → P) ↦ λ(φ) 
+  #
+  # goes to 
+  # 
+  #   x⋅λ : (φ : F → P) ↦ λ(φ∘(v↦ x⋅v))
   #
   # Here `F` is the original module seen as both, an `A` and a `P`-module.
 
