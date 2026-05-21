@@ -255,26 +255,38 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
 
     if haskey(dict[:_type][:params], :value_params)
       value_params = dict[:_type][:params][:value_params]
-      upgraded_entry = nothing
-      upgraded_pairs = Tuple[]
-      for (k, v) in dict[:data]
-        upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
-        upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
-        push!(upgraded_pairs, (upgraded_k, upgraded_v))
-      end
-      if key_params in ["Symbol", "Base.Int", "String"]
-        dict[:data] = Dict{Symbol, Any}()
-        for (upgraded_k, upgraded_v) in upgraded_pairs
-          dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+      # Heterogeneous Dict (new format): value_params is a dict of per-key types
+      # detected by absence of :name/:_type keys (those indicate a type encoding)
+      if value_params isa AbstractDict && !haskey(value_params, :name) && !haskey(value_params, :_type)
+        for k in keys(value_params)
+          haskey(dict[:data], k) || continue
+          upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => value_params[k],
+                                                        :data => dict[:data][k]))
+          dict[:data][k] = upgraded_entry[:data]
+          value_params[k] = upgraded_entry[:_type]
         end
       else
-        dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
-      end
+        upgraded_entry = nothing
+        upgraded_pairs = Tuple[]
+        for (k, v) in dict[:data]
+          upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
+          upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
+          push!(upgraded_pairs, (upgraded_k, upgraded_v))
+        end
+        if key_params in ["Symbol", "Base.Int", "String"]
+          dict[:data] = Dict{Symbol, Any}()
+          for (upgraded_k, upgraded_v) in upgraded_pairs
+            dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+          end
+        else
+          dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
+        end
 
-      if !isempty(upgraded_pairs)
-        first_pair = first(upgraded_pairs)
-        dict[:_type][:params][:key_params] = first_pair[1][:_type]
-        dict[:_type][:params][:value_params] = first_pair[2][:_type]
+        if !isempty(upgraded_pairs)
+          first_pair = first(upgraded_pairs)
+          dict[:_type][:params][:key_params] = first_pair[1][:_type]
+          dict[:_type][:params][:value_params] = first_pair[2][:_type]
+        end
       end
     else
       for k in keys(dict[:_type][:params])
