@@ -62,8 +62,15 @@ push!(upgrade_scripts_set, UpgradeScript(
          haskey(dict[:_type][:params], :pm_params)
         pm_params = dict[:_type][:params][:pm_params]
         if pm_params isa AbstractDict && haskey(pm_params, :params)
-          for (k, v) in pm_params[:params]
-            k === :key_params && continue
+          inner = pm_params[:params]
+          # The Dict upgrade (above) runs on pm_params first (it's a heterogeneous dict),
+          # so property types may already be wrapped in value_params.
+          prop_types = if haskey(inner, :value_params) && inner[:value_params] isa AbstractDict
+            inner[:value_params]
+          else
+            filter(kv -> kv.first !== :key_params, inner)
+          end
+          for (k, v) in prop_types
             dict[:_type][:params][k] = v
           end
         end
