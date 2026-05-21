@@ -1,6 +1,8 @@
-# Upgrades for NamedTuple and IdealGens encoding changes:
+# Upgrades for NamedTuple, IdealGens, FracField, and polyhedral object encoding changes:
 # - NamedTuple params changed from {names:[...], tuple_params:[...]} to flat field-name dict
 # - IdealGens params changed from {base_ring:<typed_obj>, ordering_type:"MonomialOrdering"} to <typed_obj> directly
+# - FracField data no longer stores base_ring (redundant with type params)
+# - Polyhedral objects with complex fields: pm_params wrapper flattened to top-level params
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.8.0+2",
   function upgrade_1_8_0_2(s::UpgradeState, dict::AbstractDict{Symbol, Any})
@@ -25,6 +27,10 @@ push!(upgrade_scripts_set, UpgradeScript(
       old_params = dict[:_type][:params]
       if old_params isa AbstractDict && haskey(old_params, :base_ring)
         dict[:_type][:params] = old_params[:base_ring]
+      end
+    elseif type_name == "FracField"
+      if dict[:data] isa AbstractDict && haskey(dict[:data], :base_ring)
+        delete!(dict[:data], :base_ring)
       end
     elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
                          "SubdivisionOfPoints", "LinearProgram", "MixedIntegerLinearProgram")
