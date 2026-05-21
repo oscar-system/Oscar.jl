@@ -83,7 +83,6 @@ function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
 end
 
 @register_serialization_type PosInf
-load_object(s::DeserializerState, ::Type{PosInf}) = PosInf()
 
 ################################################################################
 # Strings
