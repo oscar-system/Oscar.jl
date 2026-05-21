@@ -52,7 +52,7 @@ where the used birational sequence consists of the following roots:
   [a_1, a_2, a_3, a_1 + a_2, a_2 + a_3, a_1 + a_2 + a_3]
 
 julia> polytope_of_essential_exponents(basis)
-Polytope in ambient dimension 6
+Polyhedron in ambient dimension 6
 ```
 """
 function polytope_of_essential_exponents(basis::MonomialBasis)
