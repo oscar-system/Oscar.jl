@@ -553,27 +553,19 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_params(A::MPolyQuoRing) = TypeParams(
-  MPolyQuoRing,
-  :base_ring => base_ring(A),
-  :ordering => typeof(ordering(A))
-)
+type_params(A::MPolyQuoRing) = TypeParams(MPolyQuoRing, base_ring(A))
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
-  save_data_dict(s) do # Saves stuff in a JSON dictionary. This opens a `{`, puts stuff 
-                       # inside there for the various keys and then closes it with `}`.
-                       # It's not using Julia Dicts.
+  save_data_dict(s) do
     save_object(s, modulus(A), :modulus)
     save_object(s, ordering(A), :ordering)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
-  R = tp[:base_ring]
-  ordering_type = type(tp[:ordering])
-  o = load_object(s, TypeParams(ordering_type, R), :ordering)
+function load_object(s::DeserializerState, tp::TypeParams{<:MPolyQuoRing, <:MPolyRing})
+  R = parameters(tp)
+  o = load_object(s, TypeParams(MonomialOrdering, R), :ordering)
   I = load_object(s, TypeParams(ideal_type(R), R), :modulus)
-
   return MPolyQuoRing(R, I, o)
 end
 
