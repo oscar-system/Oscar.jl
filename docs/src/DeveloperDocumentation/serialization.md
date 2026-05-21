@@ -229,6 +229,11 @@ match the type of the parameters:
 | `TypeParams(T, parent_obj)` | `load_object(s, tp::TypeParams{T, ParentType})` |
 | `TypeParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeParams{T, <:Tuple{Vararg{Pair}}})` |
 
+```@docs
+TypeParams
+type_params
+```
+
 #### `save_object` / `load_object`
 
 These functions should be the first functions to be overloaded when

@@ -179,6 +179,23 @@ end
 
 ################################################################################
 # TypeParams Struct
+@doc raw"""
+    TypeParams{T, S}
+    TypeParams(T::Type, params)
+    TypeParams(T::Type, pairs::Pair...)
+
+A container pairing a Julia type `T` with its contextual parameters `params`.
+
+`TypeParams` values are created by [`type_params`](@ref) and consumed by
+`load_object`. The `params` field holds whatever context is needed to
+reconstruct an object of type `T`: a parent ring, a base field, a
+domain/codomain pair, etc.
+
+Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
+Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
+
+See [`type_params`](@ref) for usage examples.
+"""
 struct TypeParams{T, S}
   type::Type{T}
   params::S
@@ -207,6 +224,41 @@ end
 Base.haskey(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
   any(k === key for (k, _) in tp.params)
 
+@doc raw"""
+    type_params(obj)
+
+Return a [`TypeParams`](@ref) value capturing the type and parent parameters of `obj`.
+
+This is useful when loading a file into the same context as a currently loaded object —
+pass the result directly to [`load`](@ref) so the deserialized object shares the same
+parent, ring, or domain/codomain as `obj`.
+
+# Examples
+
+Loading a ring homomorphism back into the same rings it was defined over:
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, (x, y) = QQ[:x, :y];
+
+julia> S, (a, b) = QQ[:a, :b];
+
+julia> phi = hom(R, S, [a + b, a - b])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+
+julia> save("phi.mrdi", phi)
+
+julia> tp = type_params(phi)
+
+julia> phi_loaded = load("phi.mrdi", tp)
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+
+julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
+true
+```
+"""
 type_params(obj::T) where T = TypeParams(T, nothing)
 
 function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
@@ -793,66 +845,6 @@ function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
   return nothing
 end
 
-"""
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-
-Load the object stored in the given io stream
-respectively in the file `filename`.
-
-If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of rings this
-results in setting its parent, or in the case of a container of ring types such as
-`Vector` or `Tuple`, then the parent of the entries will be set using their
- `params`.
-
-If a type `T` is given then attempt to load the root object of the data
-being loaded with this type; if this fails, an error is thrown.
-
-If `with_attrs=true` the object will be loaded with attributes available from
-the file (or serialized data).
-
-If the file was created with setting the `compression` argument, and the filename
-has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
-
-See [`save`](@ref).
-
-# Examples
-
-```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
-julia> save("fourtitwo.mrdi", 42);
-
-julia> load("fourtitwo.mrdi")
-42
-
-julia> load("fourtitwo.mrdi"; type=Int64)
-42
-
-julia> R, x = QQ[:x]
-(Univariate polynomial ring in x over QQ, x)
-
-julia> p = x^2 - x + 1
-x^2 - x + 1
-
-julia> save("p.mrdi", p)
-
-julia> p_loaded = load("p.mrdi", params=R)
-x^2 - x + 1
-
-julia> parent(p_loaded) === R
-true
-
-julia> save("p_v.mrdi", [p, p])
-
-julia> loaded_p_v = load("p_v.mrdi", params=R)
-2-element Vector{QQPolyRingElem}:
- x^2 - x + 1
- x^2 - x + 1
-
-julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
-true
-```
-"""
 function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
   s = deserializer_open(io, serializer, with_attrs)
   if :id in propertynames(s.obj)
@@ -916,6 +908,90 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 end
 
+"""
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(io::IO, tp::TypeParams; with_attrs::Bool=true)
+    load(filename::String, tp::TypeParams; with_attrs::Bool=true)
+
+Load the object stored in the given io stream
+respectively in the file `filename`.
+
+If `params` is specified, then the root object of the loaded data
+either will attempt a load using these parameters. In the case of rings this
+results in setting its parent, or in the case of a container of ring types such as
+`Vector` or `Tuple`, then the parent of the entries will be set using their
+ `params`.
+
+If a type `T` is given then attempt to load the root object of the data
+being loaded with this type; if this fails, an error is thrown.
+
+If `with_attrs=true` the object will be loaded with attributes available from
+the file (or serialized data).
+
+If the file was created with setting the `compression` argument, and the filename
+has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+
+See [`save`](@ref).
+
+## Using `TypeParams` directly
+
+Use [`type_params`](@ref) on an already-loaded object to capture its type and parent context,
+then pass the result to `load` — the deserialized object will share the same parent ring,
+domain/codomain, or other context as the original.
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("p.mrdi", p)
+
+julia> p_loaded = load("p.mrdi", type_params(p))
+x^2 - x + 1
+
+julia> parent(p_loaded) === R
+true
+```
+
+# Examples
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> save("fourtitwo.mrdi", 42);
+
+julia> load("fourtitwo.mrdi")
+42
+
+julia> load("fourtitwo.mrdi"; type=Int64)
+42
+
+julia> R, x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("p.mrdi", p)
+
+julia> p_loaded = load("p.mrdi", params=R)
+x^2 - x + 1
+
+julia> parent(p_loaded) === R
+true
+
+julia> save("p_v.mrdi", [p, p])
+
+julia> loaded_p_v = load("p_v.mrdi", params=R)
+2-element Vector{QQPolyRingElem}:
+ x^2 - x + 1
+ x^2 - x + 1
+
+julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
+true
+```
+"""
 function load(io::IO, tp::TypeParams;
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s

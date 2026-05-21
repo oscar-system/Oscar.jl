@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, parameters, type, load_type_params, decode_type, is_string, is_array
+  type_params, parameters, load_type_params, decode_type, is_string, is_array
 
 
 ################################################################################
@@ -217,7 +217,7 @@ save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
 function load_object(s::DeserializerState, tp::TypeParams{<:IndexedRing, <:Tuple{Vararg{Pair}}})
   R = tp[:ring]
   index_tp = tp[:index_type]
-  index_type = index_tp isa TypeParams ? type(index_tp) : index_tp
+  index_type = index_tp isa TypeParams ? Oscar.Serialization.type(index_tp) : index_tp
   gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), index_type},
                                            :key_params => R,
                                            :value_params => nothing))

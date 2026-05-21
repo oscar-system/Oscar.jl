@@ -76,6 +76,40 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
         delete!(dict[:_type][:params], :pm_params)
       end
+    elseif type_name == "PhylogeneticModel"
+      p = dict[:_type][:params]
+      if p isa AbstractDict && haskey(p, :graph_type)
+        p[:graph]             = p[:graph_params]
+        p[:transition_matrix] = p[:transition_matrix_params]
+        p[:root_distribution] = p[:root_distribution_params]
+        p[:model_parameter]   = p[:model_parameter_name_type]
+        for k in (:graph_type, :graph_params,
+                  :transition_matrix_entry_type, :transition_matrix_params,
+                  :root_distribution_entry_type, :root_distribution_params,
+                  :model_parameter_name_type)
+          delete!(p, k)
+        end
+      elseif p isa AbstractDict && haskey(p, :model_parameter_name)
+        p[:model_parameter] = p[:model_parameter_name]
+        delete!(p, :model_parameter_name)
+      end
+      if dict[:data] isa AbstractDict && haskey(dict[:data], :model_parameter_name)
+        dict[:data][:model_parameter] = dict[:data][:model_parameter_name]
+        delete!(dict[:data], :model_parameter_name)
+      end
+    elseif type_name == "GroupBasedPhylogeneticModel"
+      p = dict[:_type][:params]
+      if p isa AbstractDict && haskey(p, :model_parameter_name_type)
+        p[:model_parameter] = p[:model_parameter_name_type]
+        delete!(p, :model_parameter_name_type)
+      elseif p isa AbstractDict && haskey(p, :model_parameter_name)
+        p[:model_parameter] = p[:model_parameter_name]
+        delete!(p, :model_parameter_name)
+      end
+      if dict[:data] isa AbstractDict && haskey(dict[:data], :varnames_group_based)
+        dict[:data][:model_parameter] = dict[:data][:varnames_group_based]
+        delete!(dict[:data], :varnames_group_based)
+      end
     end
     return dict
   end
