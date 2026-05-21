@@ -25,7 +25,7 @@ function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   )
 end
 
-type_params(D::GenDict) = TypeParams(GenDict, params(type_params(D.d)))
+type_params(D::GenDict) = TypeParams(GenDict, paramaterss(type_params(D.d)))
 
 function save_object(s::SerializerState, e::Edge)
   save_data_array(s) do
