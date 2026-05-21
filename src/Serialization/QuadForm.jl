@@ -42,7 +42,7 @@ type_params(QS::QuadSpaceWithIsom) = TypeParams(
   QuadSpaceWithIsom,
   :quad_space => space(QS),
   :isom => parent(isometry(QS)),
-  :order => typeof(order_of_isometry(QS))
+  :order => type_params(order_of_isometry(QS))
 )
 
 function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
