@@ -144,28 +144,91 @@ should contain at least `parent(obj)`.
 
 #### `type_params` / `TypeParams`
 
-Every serializable type may implement a `type_params` method that returns a
+Many mathematical objects can only be interpreted in context. A polynomial
+without its ring, a group element without its group, a module element without
+its module — none of these can be reconstructed from their data alone. The
+`type_params` mechanism is how that context is captured and stored.
+
+`type_params` is a function you implement for your type. It returns a
 `TypeParams` object describing the contextual parameters needed to reconstruct
-the object. These parameters are stored in the `_type` branch of the serialized
+an object. These parameters are stored in the `_type` branch of the serialized
 file (not in `data`).
 
-For a type that has no parameters (e.g., `ZZRing`) the default implementation
-returning `nothing` is sufficient. For a type that lives over a parent ring or
-field, `type_params` should return that parent as the single parameter:
+The distinction between `data` and `type_params` is:
+- **`data`** — what is unique to this particular instance (coefficients,
+  generators, matrices, etc.).
+- **`type_params`** — the context in which the instance lives (parent ring,
+  base field, ambient space, etc.). These are stored as `_refs` entries and
+  shared across all objects that reference the same context, so the context
+  is only written once per file.
 
+A useful heuristic: anything you would need to pass as an extra argument to
+the constructor *beyond* the raw data belongs in `type_params`. If calling
+`MyType(data_field_1, data_field_2)` is not enough and you also need
+`MyType(context, data_field_1, data_field_2)`, then `context` belongs in
+`type_params`.
+
+**When the default is enough:** For a singleton type like `ZZRing` that
+needs no context, the default implementation returning `nothing` is sufficient.
+
+**Single-parameter case:** For a type that lives over a single parent object,
+return a `TypeParams` with that parent as the sole parameter. For example
+`FracField` lives over its `base_ring`:
 ```julia
-type_params(obj::MyRingElem) = TypeParams(typeof(obj), parent(obj))
+type_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
 ```
 
-For types with multiple parameters, pass them as keyword pairs:
-
+The corresponding `load_object` receives the deserialized base ring through
+the `TypeParams` argument:
 ```julia
-type_params(obj::MyType) = TypeParams(typeof(obj), :base_ring => base_ring(obj),
-                                                    :other => other_param(obj))
+function load_object(s::DeserializerState, tp::TypeParams{<:FracField, <:Ring})
+  fraction_field(parameters(tp), cached=false)
+end
+```
+Here `parameters(tp)` returns the deserialized base ring. Note that `data`
+is empty for `FracField` — everything needed for reconstruction is in
+`type_params`.
+
+**Named-pair case:** For types that need multiple contextual objects, pass
+them as keyword pairs. For example `MPolyQuoRing` (a quotient of a polynomial
+ring by an ideal with a fixed monomial ordering) needs both the base ring and
+the ordering type:
+```julia
+type_params(A::MPolyQuoRing) = TypeParams(
+  MPolyQuoRing,
+  :base_ring => base_ring(A),
+  :ordering  => typeof(ordering(A))
+)
 ```
 
-The `TypeParams` value is then serialized into the `params` subfield of `_type`
-and is passed to `load_object` for reconstruction.
+`load_object` then dispatches on `Tuple{Vararg{Pair}}` and accesses
+named parameters via `tp[:key]`:
+```julia
+function load_object(s::DeserializerState,
+                     tp::TypeParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
+  R            = tp[:base_ring]
+  ordering_type = type(tp[:ordering])
+  o = load_object(s, TypeParams(ordering_type, R), :ordering)
+  I = load_object(s, TypeParams(ideal_type(R), R), :modulus)
+  return MPolyQuoRing(R, I, o)
+end
+```
+
+The `data` for this type contains only what is unique to the instance
+(`:modulus`, `:ordering`) — the base ring is never written to `data` because
+it is already fully described by `type_params`.
+
+**Summary:** implement `type_params` whenever your type needs context to be
+reconstructed. The parameters you return will be serialized into the `_type`
+branch of the JSON, stored as shared `_refs` entries, and passed into
+`load_object` as the second argument. The `load_object` signature should
+match the type of the parameters:
+
+| `type_params` return | `load_object` signature |
+|---|---|
+| `TypeParams(T, nothing)` | `load_object(s, tp::TypeParams{T})` |
+| `TypeParams(T, parent_obj)` | `load_object(s, tp::TypeParams{T, ParentType})` |
+| `TypeParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeParams{T, <:Tuple{Vararg{Pair}}})` |
 
 #### `save_object` / `load_object`
 
@@ -174,31 +237,7 @@ implementing the serialization of a new type.
 The functions `save_data_dict` and `save_data_array` are helper functions
 that structure the serialization.
 
-`load_object` receives a `TypeParams{T, P}` argument where `T` is the type
-being loaded and `P` is the type of the parameter(s) returned by `type_params`.
-Use `parameters(tp)` to extract the parameter value, or `tp[:key]` to index
-into a named-pair parameter:
-
-```julia
-function load_object(s::DeserializerState, tp::TypeParams{<:MyRingElem, <:Ring})
-  R = parameters(tp)     # the parent ring
-  coeffs = load_object(s, Vector{elem_type(R)}, TypeParams(Vector{elem_type(R)}, R))
-  return MyRingElem(R, coeffs)
-end
-```
-
-For types with named parameters:
-
-```julia
-function load_object(s::DeserializerState,
-                     tp::TypeParams{<:MyType, <:Tuple{Vararg{Pair}}})
-  R = tp[:base_ring]
-  other = tp[:other]
-  # load data fields from s ...
-end
-```
-
-The examples below show how they can be used to save data using the structure
+The examples below show they can be used to save data using the structure
 of an array or dict. Each nested call to `save_data_dict` or `save_data_array`
 should be called with a key that can be passed as the second parameter.
 
