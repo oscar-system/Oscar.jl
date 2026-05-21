@@ -131,10 +131,12 @@ function pushforward(psi::FiniteExtension, M::SubquoModule;
   I, _ = sub(psiF, psi_gens)
   result, _ = quo(I, psi_rels)
   interp_sq = function(v::SubquoModuleElem)
-    return res(interp(repres(v)))
+    w = repres(interp(repres(v)))
+    return result(w)
   end
   interp_sq_inv = function(w::SubquoModuleElem)
-    return M(preimage(interp, repres(w)))
+    v = preimage(interp, psiF(repres(w)))
+    return M(v)
   end
   return result, MapFromFunc(M, result, interp_sq, interp_sq_inv)
 end
@@ -162,5 +164,9 @@ function vector_space_basis(kk::Field, Q::MPolyQuoRing)
   SI = singular_generators(groebner_basis(I))
   sb = Singular.kbase(SI)
   return [P(x) for x in gens(sb)]::Vector{elem_type(P)}
+end
+
+function _global_section_module(psi::FiniteExtension, M::SubquoModule)
+  pf_M, interp = pushforward(psi, M)
 end
 
