@@ -14,6 +14,7 @@ include("PhylogeneticModels-functions.jl")
 include("MultigradedImplicitization.jl")
 
 include("serialization.jl")
+include("serialization_upgrades.jl")
 
 export indexed_ring
 

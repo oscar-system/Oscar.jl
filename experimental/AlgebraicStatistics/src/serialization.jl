@@ -1,5 +1,6 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, params, load_type_params, decode_type, is_string, is_array
+  type_params, parameters, type, load_type_params, decode_type, is_string, is_array
+
 
 ################################################################################
 # Special Dict Types
@@ -109,9 +110,7 @@ end
 @register_serialization_type DiscreteGraphicalModel uses_id [:parameter_ring, :model_ring]
 
 function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
-  # this should only be the graph type not the whole graph
-  # need to make adjustments to TypeParams functionality
-  TypeParams(S, :graph_type => type_params(graph(GM))
+  TypeParams(S, :graph_type => type_params(graph(GM)))
 end
 
 function save_object(s::SerializerState, M::GraphicalModel)
@@ -145,35 +144,29 @@ end
 type_params(pm::PhylogeneticModel) = TypeParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
-  # needed until serialization can handle types as parameters
-  :graph_type => TypeParams(typeof(graph(pm)), nothing), 
-  :graph_params => type_params(graph(pm)),
-  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
-  :transition_matrix_entry_type => TypeParams(eltype(transition_matrix(pm)), nothing),
-  :transition_matrix_params => type_params(transition_matrix(pm)),
-  :root_distribution_entry_type => TypeParams(eltype(root_distribution(pm)), nothing),
-  :root_distribution_params => type_params(root_distribution(pm))
+  :graph => type_params(graph(pm)),
+  :transition_matrix => type_params(transition_matrix(pm)),
+  :root_distribution => type_params(root_distribution(pm)),
+  :model_parameter => type_params(varnames(pm)),
 )
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
   save_data_dict(s) do
     save_object(s, graph(pm), :graph)
     save_object(s, transition_matrix(pm), :transition_matrix)
-    save_object(s, varnames(pm), :model_parameter_name)
+    save_object(s, varnames(pm), :model_parameter)
     save_object(s, n_states(pm), :n_states)
     save_object(s, root_distribution(pm), :root_distribution)
   end
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{PhylogeneticModel, <:Tuple{Vararg{Pair}}})
-  T1, p1 = tp[:transition_matrix_entry_type], tp[:transition_matrix_params]
-  T2, p2 = tp[:root_distribution_entry_type], tp[:root_distribution_params]
   return PhylogeneticModel(
     tp[:base_field],
-    load_object(s, TypeParams(tp[:graph_type], tp[:graph_params]), :graph),
-    load_object(s, TypeParams(Matrix{T1}, p1), :transition_matrix),
-    load_object(s, TypeParams(Vector{T2}, p2), :root_distribution),
-    load_object(s, tp[:model_parameter_name_type], :model_parameter_name)
+    load_object(s, tp[:graph], :graph),
+    load_object(s, tp[:transition_matrix], :transition_matrix),
+    load_object(s, tp[:root_distribution], :root_distribution),
+    load_object(s, tp[:model_parameter], :model_parameter)
   )
 end
 
@@ -184,16 +177,15 @@ end
 type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
   GroupBasedPhylogeneticModel,
   :phylo_model => phylogenetic_model(pm),
-  # see comment in GroupBasedPhylogeneticModel constructor about group
   :group => parent(first(group(pm))),
-  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
+  :model_parameter => type_params(varnames(pm)),
 )
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
   save_data_dict(s) do
     save_object(s, fourier_parameters(pm), :fourier_parameters)
     save_object(s, group(pm), :group_elems)
-    save_object(s, varnames(pm), :varnames_group_based)
+    save_object(s, varnames(pm), :model_parameter)
   end
 end
 
@@ -201,7 +193,7 @@ function load_object(s::DeserializerState, tp::TypeParams{GroupBasedPhylogenetic
   GroupBasedPhylogeneticModel(tp[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, TypeParams(Vector{FinGenAbGroupElem}, tp[:group]), :group_elems),
-                              load_object(s, tp[:model_parameter_name_type], :varnames_group_based))
+                              load_object(s, tp[:model_parameter], :model_parameter))
 end
 
 
@@ -224,13 +216,11 @@ save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
 
 function load_object(s::DeserializerState, tp::TypeParams{<:IndexedRing, <:Tuple{Vararg{Pair}}})
   R = tp[:ring]
-  index_type = tp[:index_type]
-  if index_type isa Tuple
-    gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), Tuple{[Int for _ in 1:fieldcount(typeof(index_type))]...}},
-                                             Dict(:key_params => R, :value_params => nothing)))
-  else
-    gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), index_type}, Dict(:key_params => R)))
-  end
+  index_tp = tp[:index_type]
+  index_type = index_tp isa TypeParams ? type(index_tp) : index_tp
+  gen_to_index = load_object(s, TypeParams(Dict{elem_type(R), index_type},
+                                           :key_params => R,
+                                           :value_params => nothing))
   return IndexedRing(R, gen_to_index)
 end
 
