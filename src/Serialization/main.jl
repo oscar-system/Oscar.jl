@@ -996,7 +996,9 @@ function load(io::IO, tp::TypeParams;
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s
     Base.issingletontype(type(tp)) && return type(tp)()
-    load_object(s, tp, :data)
+    obj = load_object(s, tp, :data)
+    load_attrs(s, obj)
+    return obj
   end
 end
 
