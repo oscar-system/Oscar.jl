@@ -189,15 +189,15 @@ Here `parameters(tp)` returns the deserialized base ring. Note that `data`
 is empty for `FracField` — everything needed for reconstruction is in
 `type_params`.
 
-**Named-pair case:** For types that need multiple contextual objects, pass
-them as keyword pairs. For example `MPolyQuoRing` (a quotient of a polynomial
-ring by an ideal with a fixed monomial ordering) needs both the base ring and
-the ordering type:
+**Named-pair case:** For types that need multiple distinct contextual objects
+use keyword pairs. For example `MPolyLocalizedRingHom` (a ring homomorphism
+between localized rings) needs both domain and codomain:
 ```julia
-type_params(A::MPolyQuoRing) = TypeParams(
-  MPolyQuoRing,
-  :base_ring => base_ring(A),
-  :ordering  => typeof(ordering(A))
+type_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeParams(
+  T,
+  :domain   => domain(phi),
+  :codomain => codomain(phi),
+  :restricted_map_params => type_params(restricted_map(phi))
 )
 ```
 
@@ -205,18 +205,17 @@ type_params(A::MPolyQuoRing) = TypeParams(
 named parameters via `tp[:key]`:
 ```julia
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
-  R            = tp[:base_ring]
-  ordering_type = type(tp[:ordering])
-  o = load_object(s, TypeParams(ordering_type, R), :ordering)
-  I = load_object(s, TypeParams(ideal_type(R), R), :modulus)
-  return MPolyQuoRing(R, I, o)
+                     tp::TypeParams{<:MPolyLocalizedRingHom, <:Tuple{Vararg{Pair}}})
+  D = tp[:domain]
+  C = tp[:codomain]
+  restricted_map = load_object(s, tp[:restricted_map_params])
+  return hom(D, C, restricted_map)
 end
 ```
 
-The `data` for this type contains only what is unique to the instance
-(`:modulus`, `:ordering`) — the base ring is never written to `data` because
-it is already fully described by `type_params`.
+The rule: only include parameters in `type_params` that `load_object` actually
+needs for dispatch or reconstruction. If a type can be determined from a fixed
+concrete type at load time, it does not need to be in `type_params`.
 
 **Summary:** implement `type_params` whenever your type needs context to be
 reconstructed. The parameters you return will be serialized into the `_type`
