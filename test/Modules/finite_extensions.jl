@@ -97,3 +97,23 @@
   @test length(relations(NN)) == 0
 end
 
+@testset "canonical modules" begin
+  # These tests should probably be disabled, because they take long (~2min)!
+  X = abelian_d10_pi6() # 2. Potenz vom kanonischen Modul hat Tiefe 0
+  #X = cubic_scroll()
+  #X = bordiga()
+  S = homogeneous_coordinate_ring(X)
+  P = base_ring(S);
+  kk = coefficient_ring(P);
+  B, (xx, yy, zz) = graded_polynomial_ring(kk, [:xx, :yy, :zz])
+  phi = hom(B, S, gens(S)[1:3])
+  psi = Oscar.FiniteExtension(phi);
+  M = canonical_bundle(X)
+  M, _ = simplify(M);
+  # M = tensor_product(M, M); # can be added for higher powers
+  # M, _ = simplify(M);
+  MM, _ = change_base_ring(S, M);
+  @time N, m = Oscar._global_section_module(psi, MM);
+  @test is_isomorphism(m)
+end
+
