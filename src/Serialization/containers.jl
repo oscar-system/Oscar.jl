@@ -242,7 +242,7 @@ function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tupl
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
-      for (i, param_tp) in enumerate(parameters(tp))
+      for param_tp in parameters(tp)
         save_type_params(s, param_tp)
       end
     end
