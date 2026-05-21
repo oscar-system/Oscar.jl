@@ -240,13 +240,20 @@ function _global_section_module(psi::FiniteExtension, M::SubquoModule)
   NN, to_NN = quo(N, new_relns)
   result, to_result = simplify(NN)
 
-  # TODO: construct the canonical map of `M` to the result
-  #=
+  # construct the canonical map of `M` to the result
   img_gens = gens(M)
   img_gens = [interp(v) for v in img_gens]
-  ...
-  =#
-
-  return result
+  img_gens = [preimage(to_pf_M, v) for v in img_gens]
+  img_gens2 = elem_type(N)[]
+  for v in img_gens
+    vv = [element_to_homomorphism(to_M1(g))(v) for g in gens(M1_simp)]
+    h = hom(M1_simp, P1, vv)
+    ww = homomorphism_to_element(M2, h)
+    www = preimage(to_M2, ww)
+    w4 = to_N(www)
+    push!(img_gens2, to_NN(w4))
+  end
+  img_gens3 = elem_type(result)[preimage(to_result, x) for x in img_gens2]
+  return result, hom(M, result, img_gens3)
 end
 
