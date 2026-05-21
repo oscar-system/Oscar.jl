@@ -1,7 +1,7 @@
 [
    "Bases for highest weight modules" => [
       "introduction.md",
-      "monomial_basis.md"
+      "monomial_basis.md",
       "user_functions.md"
    ]
 ]
