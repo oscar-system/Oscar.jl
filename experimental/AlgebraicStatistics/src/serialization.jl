@@ -100,7 +100,10 @@ function load_type_params(s::DeserializerState, T::Type{GenDict})
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{GenDict{S}, <:Dict}) where S
-  return GenDict(load_object(s, TypeParams(Dict{S, MPolyRingElem}, parameters(tp))))
+  p = parameters(tp)
+  return GenDict(load_object(s, TypeParams(Dict{S, MPolyRingElem},
+                                           :key_params => p[:key_params],
+                                           :value_params => p[:value_params])))
 end
 
 ################################################################################
@@ -117,7 +120,7 @@ function save_object(s::SerializerState, M::GraphicalModel)
   save_object(s, graph(M))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{GaussianGraphicalModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeParams{<:GaussianGraphicalModel, <:Tuple{Vararg{Pair}}})
   g = load_object(s, tp[:graph_type])
   gaussian_graphical_model(g)
 end
@@ -129,7 +132,7 @@ function save_object(s::SerializerState, M::DiscreteGraphicalModel)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{DiscreteGraphicalModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeParams{<:DiscreteGraphicalModel, <:Tuple{Vararg{Pair}}})
   discrete_graphical_model(
     load_object(s, tp[:graph_type], :graph),
     load_object(s, Vector{Int}, :states)
