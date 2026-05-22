@@ -347,7 +347,7 @@ jobs:
     # run tests in dual depot runner, where the RO depot has most of the depot, and the RW depot is
     # only for running the tests
     # this helps guard against errors like https://github.com/oscar-system/GAP.jl/issues/1371
-    # JULIA_DEPOT_RO and JULIA_DEPOT_RW are env vars defiened in the systemd unit
+    # JULIA_DEPOT_RO and JULIA_DEPOT_RW are env vars defined in the systemd unit
     name: Run testsuite in a dual depot runnner
     if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
     runs-on: [RPTU,dual-depot]
