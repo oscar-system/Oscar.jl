@@ -103,7 +103,7 @@
         return new{Oscar.base_ring_type(C)}(C)
       end
     end
-    underlying_scheme(D::DummyCoveredScheme) = D.C
+    Oscar.underlying_scheme(D::DummyCoveredScheme) = D.C
 
     D = DummyCoveredScheme(Ccov)
     @test coverings(D) == coverings(Ccov)
