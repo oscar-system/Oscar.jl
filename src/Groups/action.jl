@@ -732,23 +732,6 @@ function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actf
 end
 
 
-"""
-    automorphism_group(v::Union{Vector,Tuple})
-
-Returns `S, emb` where `S` is the subgroup of `symmetric_group(length(v))`
-leaving `v` invariant under the permutation of the entries, and `emb` is
-the embedding of `S` into this symmetric group.
-This is shorthand for `stabilizer(symmetric_group(length(v)), v, permuted)`.
-
-# Examples
-```jldoctest
-julia> S = automorphism_group([1, 1, 2, 2, 3]);  order(S[1])
-4
-```
-"""
-automorphism_group(v::Union{Vector{T},Tuple{T,Vararg{T}}}) where T = stabilizer(symmetric_group(length(v)), v, permuted)
-
-
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}, actfun::Function) where T <: IntegerUnion
   return actfun == on_sets ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
