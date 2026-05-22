@@ -5,7 +5,6 @@ using ..Oscar.Serialization
 
 import Oscar.Serialization: load_object, save_object, type_params
 
-# Transitivesimplicialcomplex imports
 import Oscar:
   simplicial_complex,
   dim,
@@ -13,7 +12,11 @@ import Oscar:
   automorphism_group,
   homology,
   betti_numbers,
-  n_vertices
+  n_vertices,
+  graph,
+  n_leaves,
+  group_based_phylogenetic_model,
+  phylogenetic_model
 
 # for ca certificates
 import NetworkOptions
@@ -58,7 +61,7 @@ end
 Connect to the `OscarDB` and return `Database` instance.
 
 The uri of the server can be set in advance by writing its `String` representation
-into ENV["OSCARDB_TEST_URI"].
+into `ENV["OSCARDB_TEST_URI"]`.
 (used to connect to the github services container for testing)
 # Examples
 ```julia-repl
@@ -106,14 +109,10 @@ Count documents in a collection `c` matching the criteria given by `d`.
 
 # Examples
 
-Same as above, but faster.
-
 ```julia-repl
 julia> db = Oscar.OscarDB.get_db();
 
-julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
-
-julia> length(tscit)
+julia> length(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
 63
 ```
 """
@@ -213,15 +212,22 @@ end
 Base.IteratorSize(::Type{<:Cursor}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{<:Collection}) = Base.SizeUnknown()
 
-# functions for `BSON` iteration
-Base.iterate(cursor::Cursor, state::Nothing=nothing) =
-  iterate(cursor.mcursor, state)
+
+function Base.iterate(cursor::Cursor, state::Nothing=nothing)
+    next = iterate(cursor.mcursor, state)
+    isnothing(next) && return nothing
+    return parse_document(first(next)), nothing
+end
 
 Base.iterate(coll::Collection) =
   iterate(coll.mcol)
 
-Base.iterate(coll::Collection, state::Mongoc.Cursor) =
-  iterate(coll.mcol, state)
+function Base.iterate(coll::Collection, state::Cursor)
+    next = iterate(state, nothing)
+    isnothing(next) && return nothing
+    doc, _ = next
+    return doc, state
+end
 
 # shows information about a specific Collection
 function Base.show(io::IO, coll::Collection)
@@ -233,6 +239,7 @@ include("exports.jl")
 
 include("LeechPairs.jl")
 include("TransitiveSimplicialComplex.jl")
+include("SmallTreeModel.jl")
 include("serialization.jl")
 
 

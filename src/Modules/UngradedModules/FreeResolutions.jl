@@ -435,7 +435,9 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 
 julia> A = transpose(matrix(B));
 
-julia> M = graded_cokernel(A)
+julia> M = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -485,10 +487,10 @@ degree: 0  1  2  3
  total: 2  4  4  2
 
 julia> matrix(map(FM2, 1))
-[1            0]
-[0   -x*z + y^2]
-[0   -w*z + x*y]
-[0          w*y]
+[0         w*y]
+[0   w*z - x*y]
+[0   x*z - y^2]
+[1           0]
 
 julia> FM3 = free_resolution(M, algorithm = :mres)
 Free resolution of M
@@ -1238,8 +1240,8 @@ julia> length(fr)
 ```
 """
 function length(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
+  ub = findfirst(i -> is_zero(F.C[i]), 1:first(map_range(F.C)))
   isnothing(ub) && return first(map_range(F.C))
-  return ub::Int
+  return ub-1::Int
 end
 

@@ -29,7 +29,7 @@ false
   pi = matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(amb))
   coeffs = coefficients(toric_divisor(tdc))
   P = polyhedron(
-    (-identity_matrix(QQ, nrows(pi)), zeros(QQ, nrows(pi))),
+    (-identity_matrix(QQ, nrows(pi)), zeros(QQFieldElem, nrows(pi))),
     (transpose(pi), transpose(pi) * coeffs),
   )
   # If the polyhedron is empty, there cannot be a effective representative.

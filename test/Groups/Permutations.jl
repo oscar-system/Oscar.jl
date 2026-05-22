@@ -300,6 +300,14 @@ end
 
   @test_throws ArgumentError @permutation_group(1, (1,2))
   @test_throws ArgumentError @permutation_group(1, (1,0))
+
+  n = 5
+  g = @permutation_group(6, (1,n))
+  @test degree(g) == 6
+  @test order(g) == 2
+  g = @permutation_group(n, (1,2,3,4))
+  @test degree(g) == n
+  @test order(g) == 4
 end
 
 @testset "parent coercion for permutation groups" begin
@@ -462,4 +470,23 @@ end
 
   z = g([2, 3, 1, 4])                            # permutation (1 2 3)(4)
   @test number_of_fixed_points(z) == 1 # only point 4 is fixed
+end
+
+@testset "hashing permutations" begin
+  g = symmetric_group(4)
+  a = perm(g, [2, 3, 4, 1])
+  b = perm(g, [2, 3, 4, 1])
+  c = perm(g, [1, 2, 3, 4])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) == hash(b)
+
+  h = sylow_subgroup(g, 3)[1]
+  a = perm(h, [3, 1, 2])
+  a_bar = @perm (1, 3, 2)
+  b = perm(h, [3, 1, 2])
+  c = perm(g, [1, 2, 3])
+
+  @test hash(c) == hash(one(g))
+  @test hash(a) == hash(b) # same degree
 end

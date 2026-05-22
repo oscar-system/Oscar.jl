@@ -188,6 +188,8 @@ Relative Gröbner / standard bases are also supported.
     r = new{T}()
     r.O = O
     r.F = F
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 
@@ -198,6 +200,8 @@ Relative Gröbner / standard bases are also supported.
     r.O = O
     r.SF = SF
     r.F = F
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 
@@ -211,6 +215,8 @@ Relative Gröbner / standard bases are also supported.
       r.SF = parent(s[1])
     end
     r.S = s
+    r.isGB = false
+    r.is_reduced = false
     return r
   end
 end
@@ -227,7 +233,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   F::FreeMod{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   gens::ModuleGens{T}
-  default_ordering::ModuleOrdering
+  default_ordering::ModuleOrdering{FreeMod{T}}
   any_gb::ModuleGens{T} # A field to store the first groebner basis ever computed.
                         # Lookups in the above dictionary is tentatively expensive. 
                         # So this field stores any gb for cases where the actual 
@@ -674,7 +680,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       for (i, b) in coordinates(x)
         pre_res = Hecke.add_scaled_row!(coordinates(a[i]), pre_res, h(b))
       end
-      return FreeModElem(pre_res, G)
+      return G(pre_res)
     end
     function pr_func(x)
       @assert parent(x) === G

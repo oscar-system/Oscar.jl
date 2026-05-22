@@ -105,13 +105,13 @@ end
 
 mutable struct f4ncgb_polys_helper
   gens::Vector{AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}}
-  current_poly::AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}
+  current_poly::Oscar.MPolyBuildCtx{AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}}
   parent::FreeAssociativeAlgebra{QQFieldElem}
   function f4ncgb_polys_helper(ring::FreeAssociativeAlgebra{QQFieldElem})
     r = new()
     r.gens = AbstractAlgebra.Generic.FreeAssociativeAlgebraElem{QQFieldElem}[]
     r.parent = ring
-    r.current_poly = zero(r.parent)
+    r.current_poly = MPolyBuildCtx(ring)
     return r
   end
 end 
@@ -128,22 +128,21 @@ function add_cb(pa::Ptr{Nothing},
 
   a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
   P = parent(a)
+  n = nvars(P)
   vars = unsafe_wrap(Array, pvars, varcount)
   numerator = unsafe_load(pnumerator)
   denominator = unsafe_load(pdenominator)
-  monomial = P(QQ(numerator,denominator))
-  for i in vars
-    monomial *= P[nvars(P)-Int(i)+1]
-  end
-  a.current_poly += monomial
+  monomial = QQ(numerator,denominator)
+  new_vars = [n - Int(i)+1 for i in vars]
+  push_term!(a.current_poly,monomial,new_vars)
   return nothing
 
 end
 
 function end_poly_cb(pa::Ptr{Nothing})
   a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
-  push!(a.gens, a.current_poly)
-  a.current_poly = zero(parent(a))
+  push!(a.gens, finish(a.current_poly) )
+  a.current_poly = MPolyBuildCtx(a.parent)
   return nothing
 end
 
@@ -156,6 +155,17 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
   end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
 
   return @ccall libf4ncgb.f4ncgb_solve(
+    handle::Ptr{Cvoid},
+    pointer_from_objref(ideal)::Ptr{Cvoid},
+    add_cb_c::Ptr{Cvoid},
+    end_poly_cb_c::Ptr{Cvoid})::Cint
+end
+
+function f4ncgb_reduce(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
+  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{BigInt}, Ptr{BigInt}, Csize_t, Ptr{UInt32}))
+  end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
+
+  return @ccall libf4ncgb.f4ncgb_reduce(
     handle::Ptr{Cvoid},
     pointer_from_objref(ideal)::Ptr{Cvoid},
     add_cb_c::Ptr{Cvoid},

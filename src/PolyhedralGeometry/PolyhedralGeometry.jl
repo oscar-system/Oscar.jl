@@ -1,4 +1,4 @@
-const AnyVecOrMat = Union{MatElem,AbstractVecOrMat}
+const AnyVecOrMat = Union{MatElem,SMat,AbstractVecOrMat}
 
 include("helpers.jl")
 include("iterators.jl")

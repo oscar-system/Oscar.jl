@@ -258,19 +258,19 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
   coordinates = function(x::FieldElem)
     @assert parent(x) == K
     c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
-    c = vcat(c, zeros(k, degree(h)-length(c)))
+    c = vcat(c, Hecke.zeros_array(k, degree(h)-length(c)))
     return c
   end
   rep_mat = function(x::FieldElem)
     @assert parent(x) == K
     c = map_coefficients(k, Qt(x), parent = kt) % h
     m = collect(Hecke.coefficients(c))
-    m = vcat(m, zeros(k, degree(h) - length(m)))
+    m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
     r = m
     for i in 2:degree(h)
       c = shift_left(c, 1) % h
       m = collect(Hecke.coefficients(c))
-      m = vcat(m, zeros(k, degree(h) - length(m)))
+      m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
       r = hcat(r, m)
     end
     return transpose(matrix(r))
@@ -283,8 +283,8 @@ Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:RingElem}) = Hecke.
 #over fields are modules are free (and have a known dimension and basis
 #hence this works)
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T <: FieldElem
-  k = base_ring(F)
-  @assert base_ring(G) =k
+  k = Oscar.base_ring(F)
+  @assert Oscar.base_ring(G) ==k
   H = free_module(k, rank(F)*rank(G); cached = false)
   return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, rank(F), rank(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
 end

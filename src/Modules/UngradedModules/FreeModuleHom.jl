@@ -528,6 +528,22 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   F0 = pres[0]
   N = codomain(H)
   # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)], ring_map(H); check=false)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
   phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))

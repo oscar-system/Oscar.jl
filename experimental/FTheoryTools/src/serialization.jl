@@ -177,8 +177,18 @@ end
 # (4) Loading
 ###########################################################################
 
-function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict) where {T}
-  return haskey(s, key) ? load_object(s, T, params[key], key) : T()
+function _maybe_load(
+  s::DeserializerState, ::Type{T}, key::Symbol, params::Dict
+) where {S,T<:Dict{String,S}}
+  if haskey(s, key)
+    if params[key] isa Dict
+      dict_params = params[key]
+    else
+      dict_params = Dict(:key_params => nothing, :value_params => params[key])
+    end
+    return load_object(s, T, dict_params, key)
+  end
+  return T()
 end
 
 function _load_common_parts(s::DeserializerState, params::Dict)
@@ -194,6 +204,7 @@ function _load_common_parts(s::DeserializerState, params::Dict)
   ))
   def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
+
   explicit_model_sections = _maybe_load(
     s,
     Dict{String,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},

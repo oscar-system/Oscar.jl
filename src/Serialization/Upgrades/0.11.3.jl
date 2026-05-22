@@ -7,7 +7,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.11.3", # version this script upgrades to
-  function upgrade_0_11_3(s::UpgradeState, dict::Dict)
+  function upgrade_0_11_3(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
@@ -63,11 +63,11 @@ push!(upgrade_scripts_set, UpgradeScript(
       # here by dicts, and we do nothing else; if the objects are basic,
       # they are represented by strings, and we'll add the `entry_type`
       # to the vector data below...
-      if upgraded_vector[1] isa Dict
-        upgraded_dict = Dict(
+      if upgraded_vector[1] isa AbstractDict
+        upgraded_dict = Dict{Symbol, Any}(
           :type => "Vector",
           :id => dict[:id],
-          :data => Dict(
+          :data => Dict{Symbol, Any}(
             :vector => upgraded_vector
           )
         )
@@ -76,10 +76,10 @@ push!(upgrade_scripts_set, UpgradeScript(
         return upgraded_dict
       end
 
-      upgraded_dict = Dict(
+      upgraded_dict = Dict{Symbol, Any}(
         :type => "Vector",
         :id => dict[:id],
-        :data => Dict(
+        :data => Dict{Symbol, Any}(
           :vector => upgraded_vector,
           :entry_type => entry_type
         )
@@ -125,7 +125,7 @@ push!(upgrade_scripts_set, UpgradeScript(
 
 
     upgraded_data = upgrade_0_11_3(s, dict[:data])
-    upgraded_dict = Dict(
+    upgraded_dict = Dict{Symbol, Any}(
       :type => dict_type,
       :data => upgraded_data,
       :id => dict[:id]

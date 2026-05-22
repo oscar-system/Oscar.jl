@@ -17,7 +17,7 @@ function save_object(s::SerializerState, LG::LeechPair)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatrixGroup)
+function load_object(s::DeserializerState, ::Type{LeechPair}, G::MatGroup)
   db = Oscar.OscarDB.get_db()
   leech = Oscar.OscarDB.find_one(db["zzlattices"], Dict("_id" => "leech"))
 
@@ -71,4 +71,26 @@ function load_object(s::DeserializerState, ::Type{TransitiveSimplicialComplex},
       load_object(s, String, :topological_type)
     )
   end
+end
+
+@register_serialization_type SmallTreeModel
+
+type_params(stm::SmallTreeModel) = TypeParams(
+  SmallTreeModel,
+  group_based_phylogenetic_model(stm)
+)
+
+function save_object(s::SerializerState, stm::SmallTreeModel)
+  save_data_dict(s) do
+    save_object(s, stm._id, :model_encoding)
+    save_object(s, stm.model_type, :model_type)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{SmallTreeModel}, GBM::GroupBasedPhylogeneticModel)
+  return SmallTreeModel(
+    load_object(s, String, :model_encoding),
+    GBM,
+    load_object(s, String, :model_type)
+  )
 end

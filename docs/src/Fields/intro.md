@@ -15,17 +15,17 @@ For functionality available only for specific fields, consult the corresponding 
 Here is a list of the fields available in OSCAR:
 
 | Field        | How to create | Remark | Reference |
-| ------------ | ----------- | --------- |------|
+|:------------ |:----------- |:--------- |:------|
 | $\mathbb{Q}$ | `rational_field()` | Also available as `QQ` | [Rationals](@ref rationals_section) |
-| $\mathbb{F}_q$ | `GF(q)` | See also `finite_field` | [Finite fields](@ref) |
-| $\mathbb{F}_q[X]/(f)$ | `finite_field(f)` |  | [Finite fields](@ref)|
-| $\overline{\mathbb{Q}}$ | `algebraic_closure(QQ)` | | [Algebraic closure of the rational numbers](@ref) |
+| $\mathbb{F}_q$ | `GF(q)` | See also `finite_field` | [Finite fields](@ref finite_fields_section) |
+| $\mathbb{F}_q[X]/(f)$ | `finite_field(f)` |  | [Finite fields](@ref finite_fields_section)|
+| $\overline{\mathbb{Q}}$ | `algebraic_closure(QQ)` | | [Algebraic closure of the rational numbers](@ref qqbar_section) |
 | $\overline{\mathbb{F}}_q$ | `algebraic_closure(F)` | | [Algebraic closure of finite prime fields](@ref)
 | $\mathbb{Q}^{\mathrm{ab}}$ | `abelian_closure(QQ)` | | [Abelian closure of the rationals](@ref)
 | $\mathbb{Q}[X]/(f)$ | `number_field(f)` |
 | $\mathbb{Q}(\alpha) \subseteq \R$ | `embedded_number_field` | Ordered field
-| $\mathbb{R}$ | `real_field()` | Ball arithmetic | [Arbitrary precision real balls](@ref)
-| $\mathbb{C}$ | `complex_field()` | Ball arithmetic | [Arbitrary precision complex balls](@ref)
+| $\mathbb{R}$ | `real_field()` | Ball arithmetic | [Arbitrary precision real balls](@ref real_field_section)
+| $\mathbb{C}$ | `complex_field()` | Ball arithmetic | [Arbitrary precision complex balls](@ref complex_field_section)
 | $\mathbb{Q}_p$ | `padic_field(p)` |  | [Padics](@ref)
 | $\mathbb{Q}_{p^n}$ | `qadic_field(p, n)` | Unramified extensions of $\mathbb{Q}_p$ | [Qadics](@ref)
 | $R/(f)$ | `residue_field(R, f)` | $R$ must be a principal ideal domain
@@ -57,6 +57,14 @@ julia> B = change_base_ring(C, A)
 [1.0000000000000000000   2.0000000000000000000]
 [3.0000000000000000000   4.0000000000000000000]
 ```
+
+
+## Division
+
+OSCAR in general makes a subtle but important distinction between `/` and
+`//`. However, for field elements, they actually are the same and both
+correspond to `divexact`. We provide more details on the 
+[distinction between `/` and `//` for rings.](@ref subtle_distinction_for_rings).
 
 ## Contact
 

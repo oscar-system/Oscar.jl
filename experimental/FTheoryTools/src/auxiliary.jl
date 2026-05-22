@@ -341,7 +341,7 @@ function _construct_generic_sample(
   )
   ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars; cached=false)[1]
-  ambient_space_grading = zero_matrix(Int, nrows(base_grading) + 1, ncols(base_grading) + 3)
+  ambient_space_grading = zeros(Int, nrows(base_grading) + 1, ncols(base_grading) + 3)
   ambient_space_grading[1:nrows(base_grading), 1:ncols(base_grading)] = base_grading
   ambient_space_grading[1, (ncols(base_grading) + 1):(ncols(base_grading) + 2)] = [2; 3]
   ambient_space_grading[nrows(base_grading) + 1, (ncols(base_grading) + 1):(ncols(base_grading) + 3)] = [

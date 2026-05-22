@@ -1,0 +1,36 @@
+reponame = "oscar-system/Oscar.jl"
+enabletwolevel = true
+requiretwolevel = true
+extra = """f'-label:"backport {major}.{minor}.x done"'"""
+
+[topics]
+"release notes: highlight"=     "Highlights"
+"topic: algebraic geometry"=    "Algebraic Geometry"
+"topic: combinatorics"=         "Combinatorics"
+"topic: commutative algebra"=   "Commutative Algebra"
+"topic: FTheoryTools"=          "F-Theory Tools"
+"topic: groups"=                "Groups"
+"topic: lie theory"=            "Lie Theory"
+"topic: number theory"=         "Number Theory"
+"topic: polyhedral geometry"=   "Polyhedral Geometry"
+"topic: toric geometry"=        "Toric Geometry"
+"topic: tropical geometry"=     "Tropical Geometry"
+"package: AbstractAlgebra"=     "Changes related to the package AbstractAlgebra"
+"package: AlgebraicSolving"=    "Changes related to the package AlgebraicSolving"
+"package: GAP"=                 "Changes related to the package GAP"
+"package: Hecke"=               "Changes related to the package Hecke"
+"package: Nemo"=                "Changes related to the package Nemo"
+"package: Polymake"=            "Changes related to the package Polymake"
+"package: Singular"=            "Changes related to the package Singular"
+
+[prtypes]
+"renaming"=                     "Renamings"
+"serialization"=                "Changes related to serializing data in the MRDI file format"
+"enhancement"=                  "New features or extended functionality"
+"experimental"=                 "Only changes experimental parts of OSCAR"
+"optimization"=                 "Performance improvements or improved testing"
+"bug: wrong result"=            "Fixed bugs that returned incorrect results"
+"bug: crash"=                   "Fixed bugs that could lead to crashes"
+"bug: unexpected error"=        "Fixed bugs that resulted in unexpected errors"
+"bug"=                          "Other fixed bugs"
+"documentation"=                "Improvements or additions to documentation"

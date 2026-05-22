@@ -13,10 +13,10 @@ this very cohomology class ``h``, otherwise it raises an error.
     consuming. To skip this check, pass the optional keyword argument 
     `completeness_check=false`.
 
-!!!warning
+!!! warning
     This method works ONLY for F-theory models which are hypersurfaces in a toric ambient space.
   
-!!!warning
+!!! warning
     This method represents the Chern classes of said hypersurface by cohomology classes on the toric ambient space.
     These classes counterparts must be restricted to the hypersurface to truly represent the Chern class in question.
     Internally, we integrate those ambient space classes against the class of the hypersurface, which automatically

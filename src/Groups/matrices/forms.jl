@@ -82,7 +82,7 @@ Return whether `f` has been created as an alternating form.
 
 The Gram matrix `M` of an alternating form satisfies `M = -transpose(M)`
 and `M` has zeros on the diagonal,
-see [`is_alternating(M::MatrixElem)`](@ref).
+see [`is_alternating(M::MatElem)`](@ref).
 
 # Examples
 ```jldoctest
@@ -146,7 +146,7 @@ is_quadratic(f::QuadraticForm) = true
 
 Return whether `f` has been created as a symmetric form.
 The Gram matrix `M` of a symmetric form satisfies `M = transpose(M)`,
-see [`is_symmetric(M::MatrixElem)`](@ref).
+see [`is_symmetric(M::MatElem)`](@ref).
 
 # Examples
 ```jldoctest
@@ -555,7 +555,7 @@ function Base.:^(f::QuadraticForm{T}, x::MatElem{T}; check=false) where T <: Rin
    return QuadraticForm(m)
 end
 
-Base.:^(f::Union{SesquilinearForm{T}, QuadraticForm{T}}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
+Base.:^(f::Union{SesquilinearForm{T}, QuadraticForm{T}}, x::MatGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    if f.descr==:hermitian

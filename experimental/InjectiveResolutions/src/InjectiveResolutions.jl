@@ -523,7 +523,7 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
   # get socle degrees of indecomposable injectives kQ{a + F - Q}, i.e. compute a k[F]-basis of the localisation (0 :_M P_F)[ZZ F]
   Bp = ZF_basis(N, p_F)
   if is_empty(Bp)
-    return [], zeros(kQ, 1, 1)
+    return Bp, Hecke.zeros_array(kQ, 1, 1)
   end
 
   R = relations(N) #get all relations of N
@@ -713,9 +713,10 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
 end
 
 @doc raw"""
-    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int = 0)
+    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
 
-Return an irreducible resolution of $M$.
+Return an irreducible resolution of $M$. If $i$ is specified then the resolution
+is only computed up to cohomological degree $i$.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal. 
@@ -759,7 +760,7 @@ by graded submodule of kQ^1 with 3 generators
 over monoid algebra over rational field with cone of dimension 2
 ```
 """
-function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
+function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
   kQ = base_ring(M)
   @req is_normal(kQ) "monoid algebra must be normal"
 
@@ -812,7 +813,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
     push!(cochain_maps, hi)
 
     # end at cohomological degree i
-    if i > 0 && j == i
+    if !isnothing(i) && j == i + 1
       break
     end
     j = j + 1
@@ -955,7 +956,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   #compute irreducible resolution of shifted module
   a_shift = compute_shift(M, i+1)
   M_a = twist(M, -G(a_shift))
-  irr_res = irreducible_resolution(M_a)
+  irr_res = irreducible_resolution(M_a,i)
 
   #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
   inj_modules = Vector{InjMod}()
@@ -968,7 +969,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
   #get all needed maps (as k-matrix or k[Q]-matrix?)
   cochain_maps = [
-    matrix(irr_res.cochain_maps[k]) for k in eachindex(irr_res.cochain_maps) if 1 < k <= i+1
+    matrix(irr_res.cochain_maps[k]) for k in eachindex(irr_res.cochain_maps) if 1 <= k <= i+1
   ]
   return InjRes(M, inj_modules, cochain_maps, length(inj_modules)-1, irr_res, a_shift)
 end
@@ -1065,4 +1066,3 @@ export zeroth_local_cohomology
 export MonoidAlgebra
 export MonoidAlgebraIdeal
 export MonoidAlgebraElem
-

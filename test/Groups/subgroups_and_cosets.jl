@@ -292,6 +292,37 @@ end
    @test Set(intersect(lc,H))==Set(H)
    lc = left_coset(H,x)
    @test intersect(lc,H)==[]
+
+   @testset "index_of_coset" begin
+      G, _ = stabilizer(symmetric_group(6), 6)  # smaller than the natural parent
+      H = sylow_subgroup(G, 2)[1]
+      Tr = right_transversal(G, H)
+      @test all(i -> i == index_of_coset(Tr, G(H[1])*Tr[i]), 1:length(Tr))
+      Tl = left_transversal(G, H)
+      @test all(i -> i == index_of_coset(Tl, Tl[i]*G(H[1])), 1:length(Tl))
+      x = rand(G)
+      @test Tr[index_of_coset(Tr, x)] * inv(x) in H
+      @test inv(x) * Tl[index_of_coset(Tl, x)] in H
+
+      # special case that H is trivial
+      # (where we have a different type of transversal object on the GAP side)
+      G = symmetric_group(4)
+      H = trivial_subgroup(G)[1]
+      Tr = right_transversal(G, H)
+      @test all(i -> i == index_of_coset(Tr, Tr[i]), 1:length(Tr))
+
+      # a very long transversal
+      G = symmetric_group(21)
+      H = sub(G, [G[2]])[1]
+      T = right_transversal(G, H)
+      @test_throws InexactError length(T)
+      @test length(ZZRingElem, T) == divexact(factorial(ZZRingElem(21)), 2)
+      @test index_of_coset(T, T[1]) == 1
+      l = length(ZZRingElem, T)
+      @test index_of_coset(T, T[l]) == l
+
+      @test_throws ArgumentError index_of_coset(T, H[1])
+   end
 end
 
 @testset "Double cosets" begin
@@ -305,11 +336,20 @@ end
    dc = double_coset(H, x, K)
    @test !isassigned(dc.X)
    @test !isassigned(dc.size)
+   @test !isassigned(dc.right_coset_reps)
    GapObj(dc)
    @test isassigned(dc.X)
    order(dc)
    @test isassigned(dc.size)
+   @test x in dc
+   @test isassigned(dc.right_coset_reps)
    @test GapObj([dc]; recursive = true) isa GapObj
+
+   @test !(y in dc)
+   @test !Oscar._decompose(dc, y)[1]
+   r = rand(dc)
+   flag, u, v = Oscar._decompose(dc, r)
+   @test flag && (r == u*x*v)
 end
 
 @testset "Predicates for groups" begin

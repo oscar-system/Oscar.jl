@@ -7,9 +7,9 @@ using JSONSchema, Oscar.JSON
 if !isdefined(Main, :mrdi_schema)
   schemajson = JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json"))
   # replace remote ref to polymake schema with local copy to avoid network access
-  if schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] == "https://polymake.org/schemas/data.json"
+  if schemajson["\$defs"]["data"]["oneOf"][5]["\$ref"] == "https://polymake.org/schemas/data.json"
     # this needs to be an absolute path
-    schemajson["\$defs"]["data"]["oneOf"][4]["\$ref"] = "file://$(joinpath(Oscar.oscardir,"data","polymake.json"))"
+    schemajson["\$defs"]["data"]["oneOf"][5]["\$ref"] = "file://$(joinpath(Oscar.oscardir,"data","polymake.json"))"
   else
     error("mardi schema: please update json-path for polymake schema reference")
   end

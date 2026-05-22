@@ -11,7 +11,7 @@
   P3 = projective_space(NormalToricVariety, 3)
   sv3 = closed_subvariety_of_toric_variety(P3, [gens(cox_ring(P3))[1]^2])
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (closed subvarieties of toric varieties)" begin
     @test_throws ArgumentError closed_subvariety_of_toric_variety(ntv, [x1 - y1])
     @test_throws ArgumentError closed_subvariety_of_toric_variety(
       antv, [gens(cox_ring(antv))[1]]

@@ -150,3 +150,56 @@ end
     @test is_bijective(f)
   end
 end
+
+@testset "hashing polycyclic group elements" begin
+  # finite polycyclic groups
+  G = small_group(6, 1)
+  a = G[1]^5 * G[2]^-4
+  a_bar = G[1]^-5 * G[2]^-7
+  b = G[1]^2 * G[2]^3
+
+  @test hash(b) == hash(one(G))
+  @test hash(a) == hash(a_bar)
+
+  # finite polycyclic subgroups
+  G = pc_group(symmetric_group(4))
+  H = derived_subgroup(G)[1]
+  a = H[1]^2 * H[2]^3 * H[3]^3
+  a_bar = H[1]^5 * H[2]^5 * H[3]^5
+  b = H[1]^3 * H[2]^4 * H[3]^2
+
+  @test hash(b) == hash(one(G))
+  @test hash(a) == hash(a_bar)
+
+  # infinite polycyclic groups
+  G = abelian_group(PcGroup, [5, 0])
+  a = G[1]^3
+  a_bar = G[1]^8
+
+  @test hash(G[1]^0) == hash(one(G))
+  @test hash(a) == hash(a_bar)
+
+  # case for finite and infinite pcgroups
+  G = abelian_group(PcGroup, [2, 0])
+  H = pc_group(symmetric_group(4))
+  a = G[1]^3
+  b = H[1]^3
+  @test syllables(a) == syllables(b)
+end
+
+@testset "pcgroup code and reconstruction" begin
+  groups = [
+      cyclic_group(6),
+      cyclic_group(12),
+      dihedral_group(10),
+      small_group(PcGroup, 12, 2)
+  ]
+
+  for G in groups
+      code = encode(G)
+      H = pc_group(order(G), code)
+      @test hom(G, H, gens(H)) isa Map
+      @test order(G) == order(H)
+      @test encode(H) == code
+  end
+end

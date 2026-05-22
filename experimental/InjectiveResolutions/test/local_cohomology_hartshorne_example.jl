@@ -16,13 +16,13 @@
 
     # cohomological degree 1
     H1 = Oscar.local_cohomology(I_M, I, 1)
-    H1_sectors = [h for h in H1.sectors if dim(h.H)>0] #sectors with non-zero local cohomomology
+    H1_sectors = [h for h in H1.sectors if !is_zero(h)] #sectors with non-zero local cohomomology
     @test !Oscar.is_zero(H1)
     @test length(H1_sectors) == 1 
 
     # cohomological degree 2 
     H2 = Oscar.local_cohomology(I_M, I, 2)
-    H2_sectors = [h for h in H2.sectors if dim(h.H)>0] #sectors with non-zero local cohomology
+    H2_sectors = [h for h in H2.sectors if !is_zero(h)] #sectors with non-zero local cohomology
     @test !Oscar.is_zero(H2)
     @test length(H2_sectors) == 1
 

@@ -115,6 +115,32 @@
         H = G[J,J]
         b, I = Oscar._is_equal_up_to_permutation_with_permutation(G, H)
         @assert G[I,I] == H
+
+        gc = complete_graph(3)
+        gcc = complete_graph(3)
+        gc2 = complete_graph(2)
+        @test gc == gcc
+        @test hash(gc) == hash(gcc)
+        @test gc2 != gc
+        d = Dict(gc=>1)
+        d[gcc] = 2
+        d[gc2] = 3
+        @test length(keys(d)) == 2
+        @test d[gc] == 2
+
+        label!(gc,  nothing, Dict(1=>5,2=>7,3=>11))
+        label!(gcc, nothing, Dict(1=>5,2=>7,3=>11))
+        @test gc == gcc
+        gcc.label[1] = 13
+        @test gc != gcc
+
+        @test g != gg
+
+        is_iso, perm = is_isomorphic_with_permutation(g,gg)
+        @test is_iso
+        gp = graph_from_adjacency_matrix(Directed, adjacency_matrix(g)[perm,perm])
+        @test gp == gg
+        @test hash(gp) == hash(gg)
     end
 
     @testset "connectivity" begin
@@ -159,6 +185,10 @@
         @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
+
+        @test shortest_path_dijkstra(g, 1, 5) == [1, 3, 5]
+        @test_throws ArgumentError shortest_path_dijkstra(g, 1, 6)
+        @test_throws ArgumentError shortest_path_dijkstra(g, 7, 1)
     end
 
     @testset "errors" begin
@@ -260,11 +290,11 @@
       @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
     end
 
-    @testset "is_acylic" begin
+    @testset "is_acyclic" begin
       G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
-      @test !is_acylic(G)
+      @test !is_acyclic(G)
       rem_edge!(G, 3, 1)
-      @test is_acylic(G)
+      @test is_acyclic(G)
     end
 
     @testset "subgraph" begin
@@ -286,10 +316,42 @@
       @test sg3.vertexlabels[2] == 3
       @test sg3.color[1,2] == G3.color[2,3] == 5
 
+      @test sg3 == induced_subgraph(G3, [3, 2])
+      @test sg3 != induced_subgraph(G3, [3, 1])
+      @test hash(sg3) == hash(induced_subgraph(G3, [3, 2]))
+
       G4 = complete_graph(4)
       label!(G4,nothing,Dict(1=>"first",2=>"second",3=>"third",4=>"fourth"), name=:vertexlabels)
       sg4 = induced_subgraph(G4, [2,4])
       @test sg4.vertexlabels[1] == "second"
       @test sg4.vertexlabels[2] == "fourth"
+    end
+
+    @testset "petersen_graph" begin
+      P = petersen_graph()
+      @test n_vertices(P) == 10
+      @test n_edges(P) == 15
+      @test degree(P) == fill(3,10)
+    end
+    
+    @testset "clebsch_graph" begin
+      C = clebsch_graph()
+      @test n_vertices(C) == 16
+      @test n_edges(C) == 40
+      @test degree(C) == fill(5,16)
+    end
+
+    @testset "disjoint automorphism" begin
+      P = petersen_graph()
+      @test !has_disjoint_automorphisms(P)
+      @test_throws ArgumentError disjoint_automorphisms(P)
+
+      C = clebsch_graph()
+      @test has_disjoint_automorphisms(C)
+      a,b = disjoint_automorphisms(C)
+      @test !is_one(a)
+      @test !is_one(b)
+      @test fixed_points(a) == moved_points(b)
+      @test fixed_points(b) == moved_points(a)
     end
 end

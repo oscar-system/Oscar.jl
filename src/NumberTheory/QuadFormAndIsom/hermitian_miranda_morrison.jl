@@ -544,7 +544,7 @@ function _transfer_discriminant_isometry(
     Bp::T,
     Bp2::T,
     pr::T
-  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+  ) where T <: MatElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   q = domain(g)
   @hassert :ZZLatWithIsom 1 ambient_space(cover(q)) === domain(res)
 
@@ -567,7 +567,7 @@ end
 function _scale_valuation(
     M::T,
     P::Hecke.RelNumFieldOrderIdeal
-  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+  ) where T <: MatElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   OE = order(P)
   E = number_field(OE)
   @hassert :ZZLatWithIsom 1 base_ring(M) === E
@@ -586,7 +586,7 @@ end
 function _norm_valuation(
     M::T,
     P::Hecke.RelNumFieldOrderIdeal
-  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+  ) where T <: MatElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   E = number_field(order(P))
   @hassert :ZZLatWithIsom 1 base_ring(M) === E
   iszero(M) && return inf
@@ -613,7 +613,7 @@ function _local_hermitian_lifting(
     e::Int,
     a::Int;
     check = true
-  ) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
+  ) where T <: MatElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   @hassert :ZZLatWithIsom 1 trace(rho) == 1
   E = base_ring(G)
   s = involution(E)

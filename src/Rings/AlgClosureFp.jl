@@ -250,7 +250,7 @@ function minimize(::Type{FinField}, a::AbstractArray{<:AlgClosureElem})
       embed(parent(data(a[i])), k)
       push!(b, k(data(a[i])))
     elseif da[i] == l
-      push!(b, data(a[i]))
+      push!(b, k(data(a[i])))
     else
       embed(k, parent(data(a[i])))
       push!(b, k(data(a[i])))

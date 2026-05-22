@@ -34,7 +34,7 @@ as a `K`-vector space, `false` otherwise.
 
 !!! note 
     `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
-    less or equal zero. This condition is checked by the function.
+    less or equal to zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -63,7 +63,7 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -108,7 +108,7 @@ such that the residue classes of these monomials form a basis of `A` as a `K`-ve
 space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -147,10 +147,10 @@ end
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
-Given an affine algebra `A` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
+Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`, 
+and which is defined over a field `K`, say, and given an element `g` of the free group,
 return a vector of monomials of `R` such that the residue classes of
-these monomials form a `K`-basis of the graded part of `A` of degree `g`.
+these monomials form a `K`-basis of the graded component of `A` of degree `g`.
 
     monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
 
@@ -165,7 +165,11 @@ an integer `d`, convert `d` into an element `g` of the grading
 group of `A` and proceed as above.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    The function first computes a monomial basis of the `g`-graded component of `base_ring(A)`.
+    If this component is infinite dimensional, an error message will be thrown. This does not
+    neccessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
+    In the case where `A` has Krull dimension zero, you may alternatively enter `monomial_basis(A)`
+    to obtain a monomial basis for all of `A`.
 
 # Examples
 ```jldoctest
@@ -188,7 +192,15 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  L = monomial_basis(R, g)
+  L = try
+    monomial_basis(R, g)
+  catch e
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
   LI = leading_ideal(A.I)
   ### TODO: Decide whether we should check whether a GB with respect
     ### to whatever <ordering is already available
@@ -1088,7 +1100,7 @@ function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingEl
   GJ = _groebner_basis(J, d, ordering = o)
 
   S, _ = polynomial_ring(base_ring(R), "t#" => 1:length(v); cached=false)
-  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+  TtoS = hom(T, S, append!(Hecke.zeros_array(S, ngens(R)), gens(S)))
 
   return RtoT, TtoS, GJ
 end
@@ -1799,32 +1811,22 @@ julia> sect(one(B))
 function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   A, B = F.domain, F.codomain
   a, b = ngens(A), ngens(B)
-  
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
-  end
-
+  AR = A isa MPolyQuoRing ? base_ring(A) : A
+  BR = B isa MPolyQuoRing ? base_ring(B) : B
   @assert base_ring(AR) == base_ring(BR)
 
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
+  M = B isa MPolyQuoRing ? [F(gens(A)[i]).f for i = 1:a] : [F(gens(A)[i]) for i = 1:a]
+  I = ideal(BR, B isa MPolyQuoRing ? vcat(gens(B.I), M) : M)
   C, _ = quo(BR, I)
   gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
+                         # monomial_basis checks finiteness
   @assert gs[end] == 1 # the last one should always be 1
   g = length(gs)
 
   R, _ = tensor_product(BR, AR, use_product_ordering = true)
   ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
+  ARtoR = hom(AR, R, ba[b+1:end])
+  BRtoR = hom(BR, R, ba[1:b])
   RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
   

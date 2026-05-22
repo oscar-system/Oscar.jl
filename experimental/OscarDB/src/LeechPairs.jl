@@ -20,7 +20,7 @@ L^G := \{v \in L | g(v) = v, \forall g \in G\}.
 """
 struct LeechPair
   leech::ZZLat
-  G::MatrixGroup{QQFieldElem, QQMatrix}
+  G::MatGroup{QQFieldElem, QQMatrix}
   _id::Int
   rank::Int 
   order::ZZRingElem
@@ -49,7 +49,7 @@ Return the underlying Leech lattice ``L``.
 Oscar.lattice(LG::LeechPair) = LG.leech
 
 @doc raw"""
-    group(LG::LeechPair) -> MatrixGroup{QQFieldElem, QQMatrix}
+    group(LG::LeechPair) -> MatGroup{QQFieldElem, QQMatrix}
 
 Return the underlying matrix group ``G``.
 """

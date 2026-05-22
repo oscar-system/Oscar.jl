@@ -50,6 +50,40 @@ Undirected graph with 5 nodes and the following edges:
 """
 undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 
+
+function Base.:(==)(a::Graph{T}, b::Graph{T}) where {T <: Union{Directed, Undirected}}
+  return pm_object(a) == pm_object(b) && _graph_maps(a) == _graph_maps(b)
+end
+
+function Base.:(==)(a::MixedGraph, b::MixedGraph)
+  return _directed_component(a) == _directed_component(b) &&
+         _undirected_component(a) == _undirected_component(b)
+end
+
+function Base.hash(g::Graph, h::UInt)
+  h = hash(pm_object(g), h)
+  h = hash(_graph_maps(g), h)
+  return h
+end
+
+function Base.hash(g::MixedGraph, h::UInt)
+  h = hash(_directed_component(g), h)
+  h = hash(_undirected_component(g), h)
+  return h
+end
+
+function Base.:(==)(a::GraphMap, b::GraphMap)
+  return a.vertex_map == b.vertex_map &&
+         a.edge_map == b.edge_map
+end
+
+function Base.hash(g::GraphMap, h::UInt)
+  h = hash(g.vertex_map, h)
+  h = hash(g.edge_map, h)
+  return h
+end
+
+
 ################################################################################
 ################################################################################
 ##  Constructing and modifying
@@ -108,9 +142,9 @@ Undirected graph with 2 nodes and the following edges:
 
 ```
 """
-graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
+graph_from_adjacency_matrix(::Type, G::Union{MatElem, AbstractMatrix})
 
-function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
+function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, AbstractMatrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
   g = graph(T, n)
@@ -468,6 +502,7 @@ end
 
 mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
+    pmg::Polymake.Graph{T} where {T <: Union{Directed, Undirected}}
     l::Int64
 end
 Base.length(eitr::EdgeIterator) = eitr.l
@@ -602,7 +637,7 @@ julia> collect(edges(mg, Directed))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
+  return EdgeIterator(Polymake.edgeiterator(pm_object(g)), pm_object(g), n_edges(g))
 end
 
 edges(g::MixedGraph, ::Type{Directed}) = edges(_directed_component(g))
@@ -1108,13 +1143,15 @@ julia> shortest_path_dijkstra(g, 3, 1; reverse=true)
 ```
 """
 function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    em = Polymake.EdgeMap{T, Int64}(pmg)
-    for e in edges(g)
-        Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
-    end
-    result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
-    return Polymake.to_one_based_indexing(result)
+  @req 1 <= s <= n_vertices(g) "Start vertex out of range"
+  @req 1 <= t <= n_vertices(g) "End vertex out of range"
+  pmg = pm_object(g)
+  em = Polymake.EdgeMap{T, Int64}(pmg)
+  for e in edges(g)
+    Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
+  end
+  result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
+  return Polymake.to_one_based_indexing(result)
 end
 
 @doc raw"""
@@ -1501,12 +1538,13 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
+    visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
 
 Visualize graph `G`.
 
 The `backend` keyword argument allows the user to pick between
 - `:threejs`: a Three.js visualization (default),
+- `:svg`: a SVG visualization (default in jupyter),
 - `:tikz`: a TikZ visualization, or
 - `:graphviz`: a [Graphviz](https://graphviz.org/) visualization.
 The Graphviz visualization requires a postscript reader and loading the julia
@@ -1525,7 +1563,7 @@ colors as strings: `polymakeorange`, `polymakegreen`, `white`, `purple`, `cyan`,
 
 """
 function visualize(G::Graph{T};
-                   backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing,
+                   backend::Symbol=:default, filename::Union{Nothing, String}=nothing,
                    kwargs...) where {T <: Union{Directed, Undirected}}
   BG = Polymake.graph.Graph{T}(ADJACENCY=pm_object(G))
 
@@ -1538,11 +1576,21 @@ function visualize(G::Graph{T};
   end
   
   vBG = Polymake.visual(Polymake.Visual, BG; merge(defaults, kwargs)...)
-  if !isnothing(filename)
-    Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+  if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
+    return Polymake.display_svg(vBG)
+  elseif isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :threejs && isnothing(filename)
+    return vBG
   else
-    Polymake.call_function(Nothing, :graph, backend, vBG;)
+    if backend === :default
+      backend = :threejs
+    end
+    if !isnothing(filename)
+      Polymake.call_function(Nothing, :graph, backend, vBG; File=filename)
+    else
+      Polymake.call_function(Nothing, :graph, backend, vBG;)
+    end
   end
+  return nothing
 end
 
 
@@ -1955,7 +2003,7 @@ the degrees of `g` on the diagonal, and the adjacency matrix of `g`. For an
 undirected graph, the Laplacian matrix is symmetric.
 
 # Examples
-```
+```jldoctest
 julia> G = vertex_edge_graph(cube(2))
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(4, 2)(4, 3)
@@ -2028,11 +2076,11 @@ julia> g = graph_from_edges(Directed, [[1, 2], [2, 3], [1, 3], [2, 4], [3, 4]])
 Directed graph with 4 nodes and the following edges:
 (1, 2)(1, 3)(2, 3)(2, 4)(3, 4)
 
-julia> is_acylic(g)
+julia> is_acyclic(g)
 true
 ```
 """
-function is_acylic(G::Graph{Directed})
+function is_acyclic(G::Graph{Directed})
   a = adjacency_matrix(G)
 
   S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))
@@ -2100,3 +2148,157 @@ function induced_subgraph(g::Graph{T}, v::AbstractVector{<:IntegerUnion}; copy_l
   end
   return og
 end
+
+
+@doc raw"""
+    leaves(G::Graph{Directed})
+
+Return the indices of the leaves of the a `Directed{Graph}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]]);
+
+julia> leaves(G)
+3-element Vector{Int64}:
+ 2
+ 3
+ 4
+```
+"""
+leaves(graph::Graph{Directed}) = findall(iszero, outdegree(graph))
+
+@doc raw"""
+    n_leaves(G::Graph{Directed})
+
+Return the indices of the number of leaves of the a `Directed{Graph}`.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 2], [1, 3], [1, 4]]);
+
+julia> n_leaves(G)
+3
+```
+"""
+n_leaves(graph::Graph{Directed}) = length(leaves(graph))
+
+# these have not been exported yet
+
+function roots(graph::Graph{Directed})
+  n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
+  return findall(iszero, n_parents)
+end
+
+root(graph::Graph{Directed}) = only(roots(graph))
+
+interior_nodes(graph::Graph{Directed}) = findall(>=(1), outdegree(graph))
+function biconnected_components(g::Graph{Undirected})
+  im = Polymake.call_function(:graph, :biconnected_components, pm_object(g))::IncidenceMatrix
+  return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+_is_tree(g::Graph{Directed}) = is_weakly_connected(g) && isone(n_vertices(g) - n_edges(g))
+
+
+@doc raw"""
+    petersen_graph()
+
+Construct and return the Petersen graph as a simple undirected graph.
+
+"""
+function petersen_graph()
+  e = Vector{Int}[[1,3],[1,4],[2,4],[2,5],[3,5],[1,6],[6,7],[2,7],[7,8],[3,8],[8,9],[4,9],[9,10],[5,10],[10,6]]
+  return graph_from_edges(e)
+end
+
+@doc raw"""
+    clebsch_graph()
+
+Construct and return the 5-regular Clebsch graph.
+
+The Clebsch graph is a strongly regular graph with 16 vertices and 40 edges. It is triangle-free and has degree 5.
+"""
+function clebsch_graph()
+  e = Vector{Int}[[1, 2], [1, 3], [1, 5], [1, 9], [1, 16], [2, 4], [2, 6],
+                  [2, 10], [2, 15], [3, 4], [3, 7], [3, 11], [3, 14], [4, 8],
+                  [4, 12], [4, 13], [5, 6], [5, 7], [5, 13], [5, 12], [6, 8],
+                  [6, 14], [6, 11], [7, 8], [7, 15], [7, 10], [8, 16], [8, 9],
+                  [9, 10], [9, 11], [9, 13], [10, 12], [10, 14], [11, 12],
+                  [11, 15], [12, 16], [13, 14], [13, 15], [14, 16], [15, 16]]
+  return graph_from_edges(e)
+end
+
+@doc raw"""
+    disjoint_automorphisms(G::Graph)
+
+Find and return a pair of automorphisms of the graph `G` which are disjoint and
+neither is the identity (thus neither fixes all vertices; and hence, since they
+are disjoint, neither moves all vertices). Returns a tuple `(g1, g2)` of such
+automorphisms if found, otherwise throws an error.
+
+Two autormorphisms $\sigma$ and $\tau$ are said to be disjoint if
+$\sigma(i) \neq i$ only holds if $\tau(i) = i$ for all vertices $i$ of the graph, and vice-versa
+(see [Sch20](@cite)).
+
+# Examples
+```jldoctest
+julia> C = clebsch_graph();
+
+julia> disjoint_automorphisms(C)
+((2,3)(6,7)(10,11)(14,15), (1,4)(5,8)(9,12)(13,16))
+```
+
+For a quick boolean check, see [`has_disjoint_automorphisms`](@ref).
+"""
+function disjoint_automorphisms(G::Graph)
+  ret, a, b = _compute_disjoint_automorphism(G::Graph)
+  @req ret "The graph has no disjoint automorphisms"
+  return a, b
+end
+
+@doc raw"""
+    has_disjoint_automorphisms(G::Graph)
+
+Return `true` if the graph `G` has a pair of non-trivial, disjoint automorphisms,
+and `false` otherwise.
+
+If such a pair exists, it will be cached and made available via [`disjoint_automorphisms`](@ref).
+
+# Examples
+```jldoctest
+julia> C = petersen_graph();
+
+julia> has_disjoint_automorphisms(C)
+false
+```
+"""
+function has_disjoint_automorphisms(G::Graph)
+  ret, _, _ = _compute_disjoint_automorphism(G::Graph)
+  return ret
+end
+
+@attr Tuple{Bool, PermGroupElem, PermGroupElem} function _compute_disjoint_automorphism(G::Graph)
+  A = automorphism_group(G)
+
+  for cc in conjugacy_classes(A)
+    rcc = representative(cc)
+    is_one(rcc) && continue
+    stab = stabilizer(A, moved_points(rcc))[1]
+    for g2 in gens(stab)
+      !is_one(g2) && return (true, rcc, g2)
+    end
+  end
+  return (false, one(A), one(A))
+end
+
+"""
+    canonical_hash(g::Graph{T})
+    
+The canonical hash is an isomorphism invariant of a graph. 
+
+!! Warning 
+   The canonical hash depends on the version of Oscar.
+"""
+canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
+

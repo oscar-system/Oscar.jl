@@ -194,7 +194,7 @@ More generally, for a finitely generated subgroup $G$ of $O(L)$, we have
 implemented a function which computes the representation of $G$ on $D_L$:
 
 ```@docs
-discriminant_representation(::ZZLat, ::MatrixGroup)
+discriminant_representation(::ZZLat, ::MatGroup)
 ```
 
 We will see later in the section about enumeration of lattices with isometry

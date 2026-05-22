@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"5936e97220f44ccdbb2ce34ff5476641","collectionName":"AlgebraicStatistics.SmallTreeModels","type":"collection"}

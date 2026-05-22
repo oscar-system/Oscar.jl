@@ -17,8 +17,8 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
  #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
  #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
- #   base_ring(R::MyActionPolyRing) -> AbstractAlgebra.Generic.UniversalPolyRing{T}
- #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.Generic.UnivPoly{T}
+ #   base_ring(R::MyActionPolyRing) -> AbstractAlgebra.UniversalPolyRing{T}
+ #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.UniversalPolyRingElem{T}
  #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
  #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
  #   n_action_maps(R::MyActionPolyRing) -> Int
@@ -63,7 +63,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
 
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
-  upoly_ring::AbstractAlgebra.Generic.UniversalPolyRing{T}
+  upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
   elementary_symbols::Vector{Symbol}
   n_action_maps::Int
   are_perms_up_to_date::Bool
@@ -94,29 +94,23 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
 end
 
 mutable struct DifferencePolyRingElem{T} <: ActionPolyRingElem{T}
-  p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
+  p::AbstractAlgebra.UniversalPolyRingElem{T}
   parent::DifferencePolyRing{T}
   is_perm_up_to_date::Bool
   permutation::Vector{Int}
 
   DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr, true, Int[])
 
-  function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, upre::AbstractAlgebra.Generic.UniversalPolyRingElem{T}) where {T}
+  function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, upre::AbstractAlgebra.UniversalPolyRingElem{T}) where {T}
     @req dpr.upoly_ring === parent(upre) "The parent does not match"
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
-  end
-
-  function DifferencePolyRingElem{T}(dpr::DifferencePolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
   end
 
 end
 
 ### Differential ###
 mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
-  upoly_ring::AbstractAlgebra.Generic.UniversalPolyRing{T}
+  upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
   elementary_symbols::Vector{Symbol}
   n_action_maps::Int
   are_perms_up_to_date::Bool
@@ -147,22 +141,16 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
 end
 
 mutable struct DifferentialPolyRingElem{T} <: ActionPolyRingElem{T}
-  p::AbstractAlgebra.Generic.UniversalPolyRingElem{T}
+  p::AbstractAlgebra.UniversalPolyRingElem{T}
   parent::DifferentialPolyRing{T}
   is_perm_up_to_date::Bool
   permutation::Vector{Int}
 
   DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}) where {T} = new{T}(zero(dpr.upoly_ring), dpr, true, Int[])
 
-  function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, upre::AbstractAlgebra.Generic.UniversalPolyRingElem{T}) where {T}
+  function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, upre::AbstractAlgebra.UniversalPolyRingElem{T}) where {T}
     @req dpr.upoly_ring === parent(upre) "The parent does not match"
     new{T}(upre, dpr, false, zeros(Int, length(upre)))
-  end
-
-  function DifferentialPolyRingElem{T}(dpr::DifferentialPolyRing{T}, mpre::MPolyRingElem{T}) where {T}
-    upr = dpr.upoly_ring
-    @req upr.mpoly_ring === parent(mpre) "The parent does not match"
-    new{T}(upr(collect(coefficients(mpre)), collect(exponents(mpre))), dpr, false, zeros(Int, length(mpre)))
   end
 
 end

@@ -49,6 +49,8 @@ complex_projective_plane()
 ```@docs
 n_vertices(K::SimplicialComplex)
 n_facets(K::SimplicialComplex)
+facets(K::SimplicialComplex)
+faces(K::SimplicialComplex, dim::Int)
 dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)

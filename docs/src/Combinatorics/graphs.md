@@ -24,8 +24,8 @@ The interface is modeled alongside the
 allow for easier integration elsewhere.
 
 !!! warning
-    The mechanism for removing a vertex is slightly different in out
-    implementation to the `Graphs.jl` implementation: In `Graphs.jl` first
+    The mechanism for removing a vertex is slightly different in our
+    implementation compared to `Graphs.jl`: In `Graphs.jl` first
     the vertex to be removed is swapped with the last vertex, then the last
     vertex is removed. In our implementation, the vertex is removed and all
     subsequent vertices have their labels changed. Hence edges can be different
@@ -61,6 +61,7 @@ label!
 degree(g::Graph, v::Int)
 indegree(g::Graph{Directed}, v::Int)
 outdegree(g::Graph{Directed}, v::Int)
+leaves(g::Graph{Directed})
 ```
 
 ### Connectivity
@@ -74,19 +75,26 @@ weakly_connected_components(g::Graph{Directed})
 diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```
 
+### Common Graph Constructions
+```@docs
+complete_graph(n::Int64)
+complete_bipartite_graph(n::Int64, m::Int64)
+petersen_graph()
+clebsch_graph()
+```            
+
 ### Others
 ```@docs
 adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-complete_graph(n::Int64)
-complete_bipartite_graph(n::Int64, m::Int64)
 vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+n_leaves(graph::Graph{Directed})
 n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -96,8 +104,11 @@ signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 is_bipartite(g::Graph{Undirected})
+is_acyclic(G::Graph{Directed})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
+has_disjoint_automorphisms(G::Graph)
+disjoint_automorphisms(G::Graph)
 ```
 
 ### Edges
@@ -109,7 +120,7 @@ src(e::Edge)
 
 ### Visualization
 ```@docs
-visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:threejs, filename::Union{Nothing, String}=nothing, kwargs...)
+visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
 ```
 
 ## Saving and loading

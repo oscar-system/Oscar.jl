@@ -308,8 +308,36 @@ zero(M::SubquoModule)
 
 Whether a given element of a subquotient is zero can be tested as follows:
 
-```@docs
-is_zero(m::SubquoModuleElem)
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_zero(M[1])
+false
+
+julia> is_zero(x*M[1])
+true
 ```
 
 In the graded case, we additionally have:
@@ -328,16 +356,98 @@ The functions [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`]
 and [`is_zm_graded`](@ref) carry over analogously to subquotients. They return `true` if the
 respective property is satisfied, and `false` otherwise. In addition, we have:
 
-```@docs
-==(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> AM = R[x;]
+[x]
+
+julia> BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> AN = R[x; y]
+[x]
+[y]
+
+julia> BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: (x^2 + y^4)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_subset(M, N)
+true
+
+julia> M == N
+false
 ```
 
-```@docs
-is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = graded_free_module(Rg, 2);
+
+julia> O1 = [x*F[1]+y*F[2], y*F[2]];
+
+julia> O1a = [x*F[1], y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2], y^2*F[2]];
+
+julia> M1 = subquotient(F, O1, O2);
+
+julia> M2 = subquotient(F, O1a, O2);
+
+julia> M1 == M2
+true
 ```
 
-```@docs
-is_zero(M::SubquoModule)
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> A = R[x^2+y^2;]
+[x^2 + y^2]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 1 generator
+  1: (x^2 + y^2)*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_zero(M)
+false
 ```
 
 ## Basic Operations on Subquotients
@@ -423,6 +533,3 @@ degree(a:: SubQuoHom)
 ```@docs
 grading_group(a:: SubQuoHom)
 ```
-
-
-

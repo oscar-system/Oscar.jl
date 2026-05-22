@@ -8,6 +8,7 @@ const expdir = joinpath(@__DIR__, "..", "experimental")
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
+  "ModStd", # is needed for AlgebraicShifting
   "AlgebraicShifting",       # Needs code from Lie Algebras (`isomorphism(PermGroup, ::WeylGroup)` specifically)
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
@@ -15,7 +16,8 @@ const orderedpkgs = [
   "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
   "Parallel",
-  "AlgebraicStatistics" # must be loaded after Parallel
+  "AlgebraicStatistics", # must be loaded after Parallel
+  "OscarDB", # needs GroupBasedPhylogenticModel Serialization
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)

@@ -250,7 +250,7 @@ Return a smooth ruled surface in $\mathbb P^4$ with degree `5` and sectional gen
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
- quintic_elliptic_scroll() = surface(" quintic_elliptic_scroll")
+quintic_elliptic_scroll() = surface("quintic_elliptic_scroll")
 
 
 
