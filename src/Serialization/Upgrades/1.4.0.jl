@@ -164,7 +164,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :ring => dict[:data][:ring],
-            :grading_group => dict[:data][:grading][:_type][:params]
+            :grading_group => dict[:data][:grading][:_type][:params][:params]
           )
         )
         dict[:data] = dict[:data][:grading][:data]
