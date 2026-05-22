@@ -2119,7 +2119,7 @@ function torsion_forms_GF2(
   _type::Symbol=:both,
 )
   res = TorQuadModule[]
-  for dim_range
+  for dim in dim_range
     append!(res, torsion_forms_GF2(dim; _type))
   end
   return res
