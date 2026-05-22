@@ -1187,10 +1187,24 @@ julia> automorphism_group_generators(g)
  (1,2)
 ```
 """
-function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+  if isnothing(label)
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
     return _pm_arr_arr_to_group_generators(result, n_vertices(g))
+  else
+    new_g = _edge_label_to_vertex_label(g, label;
+                                        edge_distinguishable=true,
+                                        vertex_distinguishable=true)
+    pm_gens = Polymake._automorphisms(
+      pm_object(new_g),
+      Polymake.Array{Int}([_graph_maps(new_g)[:edge_to_vertex][v] for v in 1:n_vertices(new_g)]))
+
+    return _pm_arr_arr_to_group_generators(
+      [gen[1:n_vertices(g)] for gen in pm_gens],
+      n_vertices(g)
+    )
+  end
 end
 
 
@@ -1207,8 +1221,8 @@ julia> automorphism_group(g)
 Permutation group of degree 4
 ```
 """
-function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return _gens_to_group(automorphism_group_generators(g))
+function automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+    return _gens_to_group(automorphism_group_generators(g); label=label)
 end
 
 
