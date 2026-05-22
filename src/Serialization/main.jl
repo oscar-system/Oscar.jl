@@ -444,6 +444,7 @@ function load_type_array_params(s::DeserializerState)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
       return TypeParams(T, nothing)
     end
+    haskey(s, type_key) && return load_typed_object(s)
     return load_type_params(s, T)
   end
 end
