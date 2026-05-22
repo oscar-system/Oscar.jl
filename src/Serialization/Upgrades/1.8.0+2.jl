@@ -39,6 +39,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       if old_params isa AbstractDict && haskey(old_params, :base_ring)
         dict[:_type][:params] = old_params[:base_ring]
       end
+    elseif type_name == "MPolyDecRing"
+      dict[:_type][:params][:grading_group] = dict[:_type][:params][:grading_group][:params]
     elseif type_name == "Dict"
       old_params = dict[:_type][:params]
       if old_params isa AbstractDict && haskey(old_params, :key_params) && !haskey(old_params, :value_params)

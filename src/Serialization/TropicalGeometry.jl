@@ -43,7 +43,7 @@ end
 @register_serialization_type TropicalCurve uses_id
 
 type_params(t::TropicalCurve{M, true}) where M = TypeParams(TropicalCurve,
-                                                            params(type_params(polyhedral_complex(t))))
+                                                            parameters(type_params(polyhedral_complex(t))))
 # here to handle weird edge case
 type_params(t::TropicalCurve{M, false}) where M = TypeParams(TropicalCurve, "graph")
 
