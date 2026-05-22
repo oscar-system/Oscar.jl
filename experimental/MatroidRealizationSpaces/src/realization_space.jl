@@ -332,26 +332,31 @@ function realization_space(
 
   goodM = isomorphic_matroid(M, [i for i in 1:n])
 
-  Bs = bases(goodM)
+  # Reduce to simple matroid: zero columns for loops, shared columns for parallel elements
+  workM, workn, rep_of, rep_col, expand_matrix = _simplify_for_realization_space(goodM)
+
+  Bs = bases(workM)
 
   if !isnothing(B)
-    goodB = sort!(Int.([M.gs2num[j] for j in B]))
+    goodB_full = sort!(Int.([M.gs2num[j] for j in B]))
+    goodB = sort!([rep_col[rep_of[e]] for e in goodB_full])
   else
-    goodB = find_good_basis_heuristically(goodM)
+    goodB = find_good_basis_heuristically(workM)
   end
-  polyR, mat = realization_space_matrix(goodM, goodB, ground_ring)
+  polyR, mat = realization_space_matrix(workM, goodB, ground_ring)
 
   eqs = Vector{RingElem}()
   ineqs = Vector{RingElem}()
 
   #need to catch the corner-case if there are no variables at all
   if !(polyR isa MPolyRing)
-    RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, mat, char, q, ground_ring)
+    full_mat = expand_matrix(mat, polyR)
+    RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, full_mat, char, q, ground_ring)
     set_attribute!(RS, :is_realizable, :true)
     return RS
   end
 
-  for col in subsets(Vector(1:n), rk)
+  for col in subsets(Vector(1:workn), rk)
     col_det = det(mat[:, col])
 
     if total_degree(col_det) <= 0
@@ -436,7 +441,79 @@ function realization_space(
     end
   end
 
+  # Expand the simple realization matrix back to the full n-column matrix
+  if RS.realization_matrix !== nothing
+    RS.realization_matrix = expand_matrix(RS.realization_matrix, RS.ambient_ring)
+  end
+
   return RS
+end
+
+# For a non-simple matroid, compute the simple matroid on one representative per
+# parallel class and return a function to expand the smaller matrix back to n columns.
+# Returns (workM, workn, rep_of, rep_col, expand_fn) where:
+#   workM   - simple matroid with integer groundset 1..workn
+#   workn   - number of elements in workM
+#   rep_of  - maps each non-loop element of goodM to its parallel-class representative
+#   rep_col - maps each representative to its column index in workM (1..workn)
+#   expand_fn(mat, R) - expands an rk×workn matrix to an rk×n matrix
+function _simplify_for_realization_space(goodM::Matroid)
+  n = length(goodM)
+  gs = matroid_groundset(goodM)  # already [1,...,n] after isomorphic_matroid
+
+  loop_elems = loops(goodM)
+  loop_set = Set(loop_elems)
+  non_loops = [e for e in gs if !(e in loop_set)]
+
+  # Build parallel classes: e and f are parallel iff rank({e,f}) == 1
+  parallel_classes = Vector{Vector{Int}}()
+  assigned = Set{Int}()
+  for e in non_loops
+    e in assigned && continue
+    cls = [e]
+    push!(assigned, e)
+    for f in non_loops
+      f in assigned && continue
+      if rank(goodM, [e, f]) == 1
+        push!(cls, f)
+        push!(assigned, f)
+      end
+    end
+    push!(parallel_classes, cls)
+  end
+
+  representatives = [cls[1] for cls in parallel_classes]
+  m = length(representatives)
+
+  rep_of = Dict{Int,Int}()
+  for cls in parallel_classes
+    for e in cls
+      rep_of[e] = cls[1]
+    end
+  end
+  rep_col = Dict(representatives[i] => i for i in 1:m)
+
+  # If already simple, return identity expansion
+  if isempty(loop_set) && m == n
+    return (goodM, n, rep_of, rep_col, (mat, R) -> mat)
+  end
+
+  simpleM = isomorphic_matroid(restriction(goodM, representatives), collect(1:m))
+
+  function expand_to_full(simple_mat, R)
+    rk = size(simple_mat, 1)
+    full_mat = zero_matrix(R, rk, n)
+    for j in gs
+      j in loop_set && continue
+      col = rep_col[rep_of[j]]
+      for i in 1:rk
+        full_mat[i, j] = simple_mat[i, col]
+      end
+    end
+    return full_mat
+  end
+
+  return (simpleM, m, rep_of, rep_col, expand_to_full)
 end
 
 # A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated

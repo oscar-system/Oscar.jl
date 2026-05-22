@@ -149,6 +149,13 @@ end
     @test is_reduced(RS) == false
 end
 
+@testset "non simple matroid" begin
+    M_nonsimple = matroid_from_bases([[3,5],[3,4],[2,5],[2,4]],5)
+    RS = realization_space(M_nonsimple, char=0)
+    @test RS.realization_matrix == [0 1 1 0 0; 0 0 0 1 1]
+    @test is_realizable(M_nonsimple, char = 0) == true
+end
+
 @testset "selfprojecting realization spaces" begin
     M1 = fano_matroid() #not realizable over char 0
     M2 = uniform_matroid(3,6)
