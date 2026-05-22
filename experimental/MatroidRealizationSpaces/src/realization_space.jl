@@ -411,11 +411,28 @@ function realization_space(
     end
   end
 
-  if saturate
+  if saturate && typeof(RS.defining_ideal) != Hecke.ZZIdl
     RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
     if isone(RS.defining_ideal)
       set_attribute!(RS, :is_realizable, :false)
       return RS
+    end
+  end
+
+  if simplify && saturate
+    RS = reduce_realization_space(RS)
+  end
+
+  # we filter out the inequalities that don't actually meet the realization space:
+  if simplify
+    redundant_inequations = Vector{RingElem}()
+    for ineq in RS.inequations
+      if isone(RS.defining_ideal + ideal(RS.ambient_ring,[ineq]))
+        push!(redundant_inequations,ineq)
+      end
+    end
+    for ineq in redundant_inequations
+      deleteat!(RS.inequations, findfirst(x->x==ineq,RS.inequations))
     end
   end
 
