@@ -248,7 +248,7 @@ Ring homomorphism
 
 julia> save("phi.mrdi", phi)
 
-julia> tp = type_params(phi)
+julia> tp = type_params(phi);
 
 julia> phi_loaded = load("phi.mrdi", tp)
 Ring homomorphism
