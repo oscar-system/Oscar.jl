@@ -311,6 +311,20 @@
       @test degree(C) == fill(5,16)
     end
 
+    @testset "automorphism group" begin
+      # edge-labeled: triangle with two equal edges, one different
+      # edges (1,2)=1, (2,3)=1, (1,3)=2 → only (1,2) swap preserves labels
+      g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2))
+      gens = automorphism_group_generators(g; label=:label)
+      @test length(gens) == 1
+      ag = automorphism_group(g; label=:label)
+      @test order(ag) == 2
+
+      # fully symmetric edge labels → full automorphism group
+      g_sym = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>1))
+      @test order(automorphism_group(g_sym; label=:label)) == order(automorphism_group(g_sym))
+    end
+
     @testset "disjoint automorphism" begin
       P = petersen_graph()
       @test !has_disjoint_automorphisms(P)
@@ -347,7 +361,7 @@
       G2_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
       @test G1_hash == G2_hash
       G3 = graph_from_labeled_edges(Dict((1,2) => 3, (2,3) => 3, (3, 4) => 1, (4, 1) => 2), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
-      G3_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      G3_hash = Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
       @test G3_hash != G1_hash
       
       #vertex indistinguishable, edge distinguishable
