@@ -81,7 +81,7 @@ function print_stats(io::IO, stats_dict::Dict; backend=:text, max=50)
 end
 
 
-testlist = Oscar._gather_tests("test"; ignore=["test/testing-csv-to-json.jl"])
+testlist = Oscar._gather_tests("test")
 
 for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
