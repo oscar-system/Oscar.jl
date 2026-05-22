@@ -194,6 +194,10 @@ function load_json(s::DeserializerState, ::Type{T}) where T
   return JSON.parse(s.obj, T)
 end
 
+# JSON.parse(obj, String) calls length(obj) internally via StructUtils, which fails for
+# JSON.lazy STRING-type LazyValues. Parsing to Any avoids that code path.
+load_json(s::DeserializerState, ::Type{String}) = string(JSON.parse(s.obj))
+
 # general loading of a reference
 
 function load_ref(s::DeserializerState)

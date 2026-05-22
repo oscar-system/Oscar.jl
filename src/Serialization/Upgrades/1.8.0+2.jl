@@ -19,11 +19,9 @@ push!(upgrade_scripts_set, UpgradeScript(
     if type_name == "NamedTuple"
       old_params = dict[:_type][:params]
       if old_params isa AbstractDict && haskey(old_params, :names)
-        new_params = Dict{Symbol, Any}()
-        for (name, tp) in zip(old_params[:names], old_params[:tuple_params])
-          new_params[Symbol(name)] = tp
-        end
-        dict[:_type][:params] = new_params
+        # Use NamedTuple instead of Dict so JSON.json preserves the original field order.
+        names = Tuple(Symbol(n) for n in old_params[:names])
+        dict[:_type][:params] = NamedTuple{names}(Tuple(old_params[:tuple_params]))
       end
     elseif type_name == "IdealGens"
       old_params = dict[:_type][:params]
@@ -111,6 +109,18 @@ push!(upgrade_scripts_set, UpgradeScript(
       if dict[:data] isa AbstractDict && haskey(dict[:data], :varnames_group_based)
         dict[:data][:model_parameter] = dict[:data][:varnames_group_based]
         delete!(dict[:data], :varnames_group_based)
+      end
+    elseif type_name in ("ZZLat", "ZZLatWithIsom")
+      p = get(get(dict, :_type, Dict()), :params, nothing)
+      if p isa AbstractDict && haskey(p, :basis) &&
+         p[:basis] isa AbstractDict && get(p[:basis], :name, nothing) == "MatElem"
+        p[:basis] = p[:basis][:params]
+      end
+    elseif type_name == "QuadSpaceWithIsom"
+      p = get(get(dict, :_type, Dict()), :params, nothing)
+      if p isa AbstractDict && haskey(p, :isom) &&
+         p[:isom] isa AbstractDict && get(p[:isom], :name, nothing) == "MatElem"
+        p[:isom] = p[:isom][:params]
       end
     end
     return dict
