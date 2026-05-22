@@ -1172,9 +1172,13 @@ end
 ################################################################################
 ################################################################################
 @doc raw"""
-    automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
 
 Return generators of the automorphism group of the graph `g`.
+
+If `label` is specified, automorphisms are computed with respect to the graph
+labeling stored under that key (see [`label!`](@ref)). Only permutations that
+preserve the edge labels are returned.
 
 # Examples
 ```jldoctest
@@ -1184,6 +1188,14 @@ julia> automorphism_group_generators(g)
 3-element Vector{PermGroupElem}:
  (3,4)
  (2,3)
+ (1,2)
+```
+
+```jldoctest
+julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2));
+
+julia> automorphism_group_generators(g; label=:label)
+1-element Vector{PermGroupElem}:
  (1,2)
 ```
 """
@@ -1209,9 +1221,13 @@ end
 
 
 @doc raw"""
-    automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
 
 Return the automorphism group of the graph `g`.
+
+If `label` is specified, automorphisms are computed with respect to the graph
+labeling stored under that key (see [`label!`](@ref)). Only permutations that
+preserve the edge labels are included.
 
 # Examples
 ```jldoctest
@@ -1220,9 +1236,16 @@ julia> g = complete_graph(4);
 julia> automorphism_group(g)
 Permutation group of degree 4
 ```
+
+```jldoctest
+julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2));
+
+julia> automorphism_group(g; label=:label)
+Permutation group of degree 3
+```
 """
 function automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
-    return _gens_to_group(automorphism_group_generators(g); label=label)
+    return _gens_to_group(automorphism_group_generators(g; label=label))
 end
 
 

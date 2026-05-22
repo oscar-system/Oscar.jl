@@ -307,6 +307,20 @@
       @test degree(C) == fill(5,16)
     end
 
+    @testset "automorphism group" begin
+      # edge-labeled: triangle with two equal edges, one different
+      # edges (1,2)=1, (2,3)=1, (1,3)=2 → only (1,2) swap preserves labels
+      g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2))
+      gens = automorphism_group_generators(g; label=:label)
+      @test length(gens) == 1
+      ag = automorphism_group(g; label=:label)
+      @test order(ag) == 2
+
+      # fully symmetric edge labels → full automorphism group
+      g_sym = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>1))
+      @test order(automorphism_group(g_sym; label=:label)) == order(automorphism_group(g_sym))
+    end
+
     @testset "disjoint automorphism" begin
       P = petersen_graph()
       @test !has_disjoint_automorphisms(P)
