@@ -1208,10 +1208,15 @@ function automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol
     new_g = _edge_label_to_vertex_label(g, label;
                                         edge_distinguishable=true,
                                         vertex_distinguishable=true)
+
     pm_gens = Polymake._automorphisms(
       pm_object(new_g),
       Polymake.Array{Int}([_graph_maps(new_g)[:edge_to_vertex][v] for v in 1:n_vertices(new_g)]))
 
+    # the automorphism group is the automorphism group of the first layer
+    # see how _edge_label_to_vertex_label works, reasoning is discussed in section 14
+    # of https://users.cecs.anu.edu.au/~bdm/nauty/nug26.pdf
+    # this is why we restrict back to the n_vertices of the original g
     return _pm_arr_arr_to_group_generators(
       [gen[1:n_vertices(g)] for gen in pm_gens],
       n_vertices(g)
