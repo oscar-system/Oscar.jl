@@ -245,6 +245,9 @@ julia> phi = hom(R, S, [a + b, a - b])
 Ring homomorphism
   from multivariate polynomial ring in 2 variables over QQ
   to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
 
 julia> save("phi.mrdi", phi)
 
@@ -254,6 +257,9 @@ julia> phi_loaded = load("phi.mrdi", tp)
 Ring homomorphism
   from multivariate polynomial ring in 2 variables over QQ
   to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
 
 julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
 true
