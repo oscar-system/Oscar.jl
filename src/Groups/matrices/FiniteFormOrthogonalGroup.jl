@@ -988,6 +988,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
   return gensOT
 end
+
 function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=:stabilizer)
   if is_semi_regular(T)
     N, i = normal_form(T)
@@ -1074,7 +1075,6 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=
   unique!(gene)
   return gene
 end
-
 
 ######################################################################################
 #
@@ -1926,6 +1926,549 @@ function _stabilizer_elementary_regular_odd(
   GtoH = inv(HtoG)
   return HtoG[1:rk,:],[GtoH * i * HtoG for i in gens_stab]
 end 
+
+###############################################################################
+#
+#  Torsion forms over GF(2)
+#
+###############################################################################
+
+@doc raw"""
+    torsion_quadratic_forms_GF2(dim::Int, dim_rad::Int) -> Vector{TorQuadModule}
+
+Return a complete list of representatives for the isometry classes of finite
+quadratic modules over an $\mathbb{F}_2$-vector space of dimension `dim` and
+whose radical has dimension `dim_rad`.
+"""
+function torsion_quadratic_forms_GF2(dim::Int, dim_rad::Int)
+  dim_r = dim - dim_rad
+  @req dim >= dim_rad "dimension must be >= than dimension of the radical"
+  if iszero(dim_r)
+    L = integer_lattice(; gram=identity_matrix(QQ, dim))
+    q = torsion_quadratic_module(2*L, 4*L; modulus=1, modulus_qf=2)
+    return TorQuadModule[q]
+  end
+
+  forms = TorQuadModule[]
+  U = QQ[0 1//2; 1//2 0]
+  V = QQ[1 1//2; 1//2 1]
+  W1 = QQ[1//2;]
+  W3 = QQ[3//2;]
+  tmp = torsion_quadratic_module(QQ[1//4;])
+  W2, _ = sub(tmp, [2*tmp[1]])
+
+  if dim_rad > 0
+    tmp = torsion_quadratic_module(QQ[1//8;])
+    Z, _ = sub(tmp, [4*tmp[1]])
+    K, _ = direct_sum([Z for _ in 1:dim_rad]; cached=false)
+  end
+  m = div(max(0, dim_r - 4), 2, RoundUp)
+  if iszero(m)
+    bU = QQ[;]
+  else
+    bU = block_diagonal_matrix(QQMatrix[U for _ in 1:m])
+  end
+
+  if dim_r == 1
+    for S in QQMatrix[W1, W3]
+      q = torsion_quadratic_module(S)
+      push!(forms, q)
+    end
+    push!(forms, W2)
+  elseif dim_r == 2
+    for S in QQMatrix[U, V]
+      q = torsion_quadratic_module(S)
+      push!(forms, q)
+    end
+    for S in QQMatrix[QQ[;], W1, W3]
+      Q = block_diagonal_matrix(QQMatrix[W1, S])
+      q = torsion_quadratic_module(Q)
+      if iszero(rank(S))
+        q, _ = direct_sum(W2, q; cached=false)
+      end
+      push!(forms, q)
+    end
+    Q = QQ[3//2 0; 0 3//2]
+    q = torsion_quadratic_module(Q)
+    push!(forms, q)
+  elseif !is_even(dim_r)
+    for S in QQMatrix[U, V], T in QQMatrix[W1, W3]
+      Q = block_diagonal_matrix(QQMatrix[bU, S, T])
+      q = torsion_quadratic_module(Q)
+      push!(forms, q)
+    end
+    W11 = QQ[1//2 0; 0 1//2]
+    for S in QQMatrix[U, W11]
+      Q = block_diagonal_matrix(QQMatrix[bU, S])
+      q = torsion_quadratic_module(Q)
+      q, _ = direct_sum(W2, q; cached=false)
+      push!(forms, q)
+    end
+  else
+    for S in QQMatrix[W1, W3]
+      Q = block_diagonal_matrix(QQMatrix[bU, V, W1, S])
+      q = torsion_quadratic_module(Q)
+      push!(forms, q)
+    end
+    bU = block_diagonal_matrix(QQMatrix[bU, U])
+    for S in QQMatrix[U, V]
+      Q = block_diagonal_matrix(QQMatrix[bU, S])
+      q = torsion_quadratic_module(Q)
+      push!(forms, q)
+    end
+    bU = block_diagonal_matrix(QQMatrix[bU, W1])
+    for S in QQMatrix[QQ[;], W1, W3]
+      Q = block_diagonal_matrix(QQMatrix[bU, S])
+      q = torsion_quadratic_module(Q)
+      if iszero(rank(S))
+        q, _ = direct_sum(W2, q; cached=false)
+      end
+      push!(forms, q)
+    end
+  end
+  if dim_rad > 0
+   for i in 1:length(forms)
+      q, _ = direct_sum(forms[i], K; cached=false)
+      forms[i] = q
+    end
+  end
+  return forms
+end
+
+@doc raw"""
+    torsion_bilinear_forms_GF2(dim::Int, dim_rad::Int) -> Vector{TorQuadModule}
+
+Return a complete list of representatives for the isometry classes of finite
+bilinear modules over an $\mathbb{F}_2$-vector space of dimension `dim` and
+whose radical has dimension `dim_rad`.
+"""
+function torsion_bilinear_forms_GF2(dim::Int, dim_rad::Int)
+  @req dim >= dim_rad "dimension must be >= than dimension of the radical"
+  dim_r = dim - dim_rad
+  if iszero(dim_r)
+    L = integer_lattice(; gram=identity_matrix(QQ,dim))
+    q = torsion_quadratic_module(L, 2*L; modulus=1, modulus_qf=1)
+    return TorQuadModule[q]
+  end
+  forms = TorQuadModule[]
+  U = QQ[0 1//2; 1//2 0]
+  V = QQ[1//2 0; 0 1//2]
+  W1 = QQ[1//2;]
+  tmp = torsion_quadratic_module(QQ[1//4 0; 0 1]) #adding the 1 makes the value module Q/Z
+  Z, _ = sub(tmp, [2*tmp[1]])
+  if dim_rad > 0
+    K, _ = direct_sum([Z for _ in 1:dim_rad]; cached=false)
+  end
+
+  d, r = divrem(dim_r-2, 2, RoundUp)
+  Q = block_diagonal_matrix(push!(QQMatrix[U for _ in 1:d], QQ[1;])) #adding the 1 makes the value module Q/Z
+  if !is_zero(r)
+    Q = block_diagonal_matrix(QQMatrix[Q, QQ[1//2 0; 0 1]])
+    q = torsion_quadratic_module(Q)
+    push!(forms, q)
+  else
+    for T in QQMatrix[U, V]
+      q = torsion_quadratic_module(block_diagonal_matrix(QQMatrix[Q, T]))
+      push!(forms, q)
+    end
+  end
+  if dim_rad > 0
+    for i in 1:length(forms)
+      q, _ = direct_sum(forms[i], K; cached=false)
+      forms[i] = q
+     end
+  end
+  return forms
+end
+
+@doc raw"""
+    torsion_forms_GF2(
+      dim::Int,
+      dim_rad::AbstractVector{Int} = 0:dim;
+      _type::Symbol=:both,
+    ) -> Vector{TorQuadModule}
+
+Return a complete list of representatives for the isometry classes of finite
+bilinear and quadratic modules over an $\mathbb{F}_2$-vector space of
+dimension `dim` and whose radical has dimension `dim_rad`.
+
+The keyword `_type` can be either `:bilinear`, `:quadratic` or `:both`
+(default). In the case `_type === :bilinear`, return only finite bilinear
+modules, and only finite quadratic modules when `_type === :quadratic`. Both
+types are returned if `_type === :both`.
+"""
+function torsion_forms_GF2(
+  dim::Int,
+  dim_rad_range::AbstractVector{Int} = 0:dim;
+  _type::Symbol=:both,
+)
+  res = TorQuadModule[]
+  for dim_rad in dim_rad_range
+    if _type !== :bilinear
+      append!(res, torsion_quadratic_forms_GF2(dim, dim_rad))
+    end
+    if _type !== :quadratic
+      append!(res, torsion_bilinear_forms_GF2(dim, dim_rad))
+    end
+  end
+  return res
+end
+
+function torsion_forms_GF2(
+  dim_range::AbstractVector{Int},
+  _type::Symbol=:both,
+)
+  res = TorQuadModule[]
+  for dim_range
+    append!(res, torsion_forms_GF2(dim; _type))
+  end
+  return res
+end
+
+@doc raw"""
+    canonical_form_GF2(T::TorQuadModule) -> TorQuadModule, TorQuadModuleMap
+
+Given a torsion bilinear of quadratic module ``T`` over $\mathbb{F}_2$,
+determine a basis $\{t_1,\ldots, t_n, t_{n+1},\ldots t_{n+r}\} where ``r`` is
+the dimension of the quadratic radical of ``T``, such that the vectors
+``t_1, \ldots, t_n`` define a basis of the largest semi-regular submodule of
+``T`` for which the associated Gram matrix is in normal form.
+
+The output consists of an object ``T'``, isometric to ``T``, with this new
+basis as set of generators and of the associated map of change of basis.
+
+The output ``T'`` is canonical: two torsion modules over $\mathbb{F}_2$ are
+isometric if and only if the associated output have the same gram matrix
+quadratic and quadratic modulus.
+"""
+function canonical_form_GF2(T::TorQuadModule)
+  if isone(order(T))
+    return T, id_hom(T)
+  end
+
+  elT = elementary_divisors(T)
+  @req first(elT) == last(elT) == 2 "Not a form over FF_2"
+  if iszero(gram_matrix_quadratic(T))
+    return snf(T)
+  end
+
+  rad, i = radical_quadratic(T)
+  Srad, ii = snf(rad)
+  i = ii*i
+  ok, j = has_complement(i)
+  @assert ok # Radical splits over a prime field
+  N, p = normal_form(domain(j))
+  j = inv(p)*j
+  n = ngens(N)
+  s = ngens(Srad)
+  new_genT = Array{TorQuadModuleElem}(undef, n+s)
+  n = ngens(N)
+  for i in 1:n
+    new_genT[i] = j(N[i])
+  end
+  for j in 1:s
+    new_genT[n+j] = i(Srad[j])
+  end
+  return sub(T, new_genT)
+end
+
+function form_GF2_to_string(T::TorQuadModule)
+  g = map_entries(ZZ∘Base.Fix2(*, 2), gram_matrix_quadratic(T))
+  blocks = Hecke.collect_small_blocks(g)
+  m = modulus_quadratic_form(T)
+  s = "$(m)-"
+  while !isempty(blocks)
+    b = popfirst!(blocks)
+    s*=""
+    for i in 1:nrows(b), j in i:ncols(b)
+      k = b[i,j]
+      s*="$k"
+    end
+    if !isempty(blocks)
+      s*="_"
+    end
+  end
+  return s
+end
+
+hash_form_GF2(T::TorQuadModule) = form_GF2_to_string(first(canonical_form_GF2(T)))
+
+###############################################################################
+#
+#  Subspace elementary even from database
+#
+###############################################################################
+
+### Read the database
+
+function _parse(::Type{ZZMatrix}, l::String)
+  row_sep = findall(in([';', '[', ']']), l)
+  _nrows = length(row_sep) - 1
+  _ncols = length(findall(isequal(' '), l[1:row_sep[2]])) + 1
+  res = zero_matrix(ZZ, _nrows, _ncols)
+  for i in 1:_nrows
+    vals = split(l[row_sep[i]+1:row_sep[i+1]-1], ' ')
+    filter!(!isequal(""), vals)
+    @assert length(vals) == _ncols
+    for j in 1:_ncols
+      res[i, j] = parse(ZZRingElem, vals[j])
+    end
+  end
+  return res
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  maps::NTuple{2, TorQuadModuleMap},
+  labels::NTuple{2, String},
+  iG::GAPGroupHomomorphism,
+  _path_to_db::String = joinpath(@__DIR__, "data"), #temporary
+)
+  flag = is_bijective(iG)
+  p, ip = maps
+  S = domain(p)
+  T = codomain(p)
+  labelT, labelH = labels
+  G = domain(iG)
+  OT = codomain(iG)
+  path_T = joinpath(_path_to_db, labelT)
+  @assert isdir(path_T)
+  path_H = joinpath(path_T, labelH)*".txt"
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+  if !isfile(path_H)
+    return res
+  end
+  iso = isomorphism(PermGroup, OT)
+  isoOT = codomain(iso)
+  isoG, _ = iso(G)
+  l = readlines(path_H)
+  ind = findall(isequal("{"), l)
+  for i in ind
+    k = i+1
+    mH = _parse(ZZMatrix, l[k])
+    genH = S.([abelian_group(S)(mH[j, :]) for j in 1:nrows(mH)])
+    _, jj = sub(S, genH)
+    j = jj * p
+    k += 1
+    genstab = TorQuadModuleMap[]
+    while l[k] != "}"
+      m = _parse(ZZMatrix, l[k])
+      push!(genstab, ip * hom(S, S, m) * p)
+      k += 1
+    end
+    GH, _ = sub(OT, [OT(g; check=false) for g in genstab])
+    isoGH, _ = iso(GH)
+    if flag # In that situation we have no orbit splitting
+      _, jg = sub(T, [j(a) for a in gens(domain(j))])
+      push!(res, (jg, GH))
+    else
+      isoGH, _ = iso(GH)
+      for _g in double_cosets(isoOT, isoGH, isoG)
+        g = iso\(representative(_g))
+        _, jg = sub(T, [g(j(a)) for a in gens(domain(j))])
+        st, _ = Oscar._as_subgroup(OT, Oscar.GAPWrap.ConjugateSubgroup(GapObj(GH), GapObj(g)))
+        st, _ = intersect(st, G)
+        push!(res, (jg, st))
+      end
+    end
+  end
+  return res
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  label::String,
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  p, ip, labelT = _canonical_form
+  return _subspaces_representatives_and_stabilizers_elementary_even_from_database((p, ip), (labelT, label), iG, _path_to_db)
+  return reps
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  labels::AbstractVector{String},
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  reps = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+  for label in labels
+    append!(reps, _subspaces_representatives_and_stabilizers_elementary_even_from_database(T, iG, label, _path_to_db; _canonical_form))
+  end
+  return reps
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  subforms::AbstractVector{TorQuadModule},
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  labels = hash_form_GF2.(subforms)
+  return _subspaces_representatives_and_stabilizers_elementary_even_from_database(T, iG, labels, _path_to_db; _canonical_form)
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  subform::TorQuadModule,
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  labels = hash_form_GF2(subform)
+  return _subspaces_representatives_and_stabilizers_elementary_even_from_database(T, iG, label, _path_to_db; _canonical_form)
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  ranks::AbstractVector{Int},
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  m = modulus_quadratic_form(T)
+  _type = isone(m) ? :bilinear : :quadratic
+  subforms = torsion_forms_GF2(ranks; _type)
+  return _subspaces_representatives_and_stabilizers_elementary_even_from_database(T, iG, subforms, _path_to_db; _canonical_form)
+end
+
+function _subspaces_representatives_and_stabilizers_elementary_even_from_database(
+  T::TorQuadModule,
+  iG::HH,
+  rank::Int,
+  _path_to_db::String = joinpath(@__DIR__, "data");
+  _canonical_form=nothing,
+) where {HH<:Map}
+  if isnothing(_canonical_form)
+    S, p = canonical_form_GF2(T)
+    ip = inv(p)
+    labelT = form_GF2_to_string(S)
+    testdir = joinpath(_path_to_db, labelT)
+    @req isdir(testdir) "Data not available"
+    _canonical_form = (p, ip, labelT)
+  end
+  return _subspaces_representatives_and_stabilizers_elementary_even_from_database(T, iG, Int[rank], _path_to_db; _canonical_form)
+end
+
+#= Code to generate the data
+
+function orb_and_stab_to_string(
+  x::Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}},
+)
+  i, st = x
+  S, ii = canonical_form_GF2(domain(i))
+  m = matrix(ii*i)
+  s = string(m)
+  sms = small_generating_set(st)
+  if isempty(sms)
+    s *= "\n"*string(identity_matrix(ZZ, ngens(domain(st))))
+  else
+    for g in sms
+      s *= "\n"*string(matrix(g))
+    end
+  end
+  return form_GF2_to_string(S), s
+end
+
+function sub_orb_and_stab(
+  S::TorQuadModule,
+  k::Int,
+  path::String = joinpath(@__DIR__, "data"),
+)
+  path_S = joinpath(path, form_GF2_to_string(S))
+  if !isdir(path_S)
+    mkdir(path_S)
+  end
+  OS = orthogonal_group(S)
+  sors = Oscar._subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(S), OS, ZZ(2)^k, ZZ(2))
+  for x in sors
+    label, s = orb_and_stab_to_string(x)
+    path_H = joinpath(path_S, label)
+    path_H *= ".txt"
+    isfile(path_H) || touch(path_H)
+    f = open(path_H, "a")
+    write(f, "{\n")
+    write(f, s)
+    write(f, "\n}\n")
+    close(f)
+  end
+  return nothing
+end
+
+function sub_orb_and_stab(
+  T::TorQuadModule,
+  path::String = joinpath(@__DIR__, "data"),
+)
+  k_range = valuation(order(T), ZZ(2))
+  for k in 1:k_range-1
+    sub_orb_and_stab(T, k, path)
+  end
+  return nothing
+end
+
+function sub_orb_and_stab(
+  Ts::Vector{TorQuadModule},
+  path::String = joinpath(@__DIR__, "data"),
+)
+  for T in Ts
+    S, _ = canonical_form_GF2(T)
+    #@show gram_matrix_quadratic(S)
+    sub_orb_and_stab(S, path)
+  end
+  return nothing
+end
+
+function sub_orb_and_stab(
+  dim::Int,
+  path::String = joinpath(@__DIR__, "data"),
+)
+  Ts = torsion_forms_GF2(dim)
+  return sub_orb_and_stab(Ts, path)
+end
+=#
 
 ##################################################################################################
 #
