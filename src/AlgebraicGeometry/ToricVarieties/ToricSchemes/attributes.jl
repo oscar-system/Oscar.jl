@@ -106,7 +106,7 @@ Polyhedral cone in ambient dimension 2
 julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
-julia> Oscar.underlying_scheme(antv)
+julia> underlying_scheme(antv)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x1, x2
@@ -229,7 +229,7 @@ its toric origin.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> Oscar.underlying_scheme(P2)
+julia> underlying_scheme(P2)
 Scheme
   over rational field
 with default covering
