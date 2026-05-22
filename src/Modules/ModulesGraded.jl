@@ -1067,6 +1067,12 @@ function grading_group(M::SubquoModule)
   return grading_group(base_ring(M))
 end
 
+@attr Vector{FinGenAbGroupElem} function _degrees_of_generators_cached(M::SubquoModule{T}) where T
+  G = gens(M)
+  isempty(G) && return FinGenAbGroupElem[]
+  return map(gen -> degree(repres(gen); check=false), G)
+end
+
 @doc raw"""
     degrees_of_generators(M::SubquoModule; check::Bool=true)
 
@@ -1105,12 +1111,6 @@ julia> gens(M)
  z*e[2]
 ```
 """
-@attr Vector{FinGenAbGroupElem} function _degrees_of_generators_cached(M::SubquoModule{T}) where T
-  G = gens(M)
-  isempty(G) && return FinGenAbGroupElem[]
-  return map(gen -> degree(repres(gen); check=false), G)
-end
-
 function degrees_of_generators(M::SubquoModule{T}; check::Bool=true) where T
   @check is_graded(M) "module must be graded"
   return _degrees_of_generators_cached(M)
