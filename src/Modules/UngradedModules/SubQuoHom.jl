@@ -842,9 +842,9 @@ julia> K, incl = kernel(a);
 
 julia> K
 Subquotient of submodule with 3 generators
-  1: (-x + y^2)*e[1]
-  2: x*y*e[1]
-  3: -x*y*e[1]
+  1: x*y*e[1]
+  2: (-x + y^2)*e[1]
+  3: x*y*e[1]
 by submodule with 3 generators
   1: x^2*e[1]
   2: y^3*e[1]
@@ -889,13 +889,13 @@ defined by
 julia> kernel(a)
 (Graded subquotient of graded submodule of F with 2 generators
   1: y*e[1]
-  2: -x*y*e[1]
+  2: x*y*e[1]
 by graded submodule of F with 3 generators
   1: x^2*e[1]
   2: y^3*e[1]
   3: z^4*e[1], Hom: graded subquotient of graded submodule of F with 2 generators
   1: y*e[1]
-  2: -x*y*e[1]
+  2: x*y*e[1]
 by graded submodule of F with 3 generators
   1: x^2*e[1]
   2: y^3*e[1]
@@ -1369,4 +1369,3 @@ Test if `f` is bijective.
 function is_bijective(f::OFPModuleHom)
   return is_injective(f) && is_surjective(f)
 end
-
