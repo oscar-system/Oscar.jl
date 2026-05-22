@@ -1848,6 +1848,7 @@ export underlying_gluing
 export underlying_module
 export underlying_presheaf
 export underlying_quotient
+export underlying_scheme
 export underlying_word
 export undirected_component
 export uniform_matroid
