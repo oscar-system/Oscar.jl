@@ -117,51 +117,102 @@ julia> t((M[1], M[2]))
 (e[1] \otimes e[2])
 ```
 """
-function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  resols = AbsHyperComplex[]
-  augs = ModuleFPHom[]
-  for M in G
-    res, aug = free_resolution(SimpleFreeResolution, M)
-    push!(resols, res)
-    push!(augs, aug[0])
+function tensor_product(G::ModuleFP...; task::Symbol = :none, minimal::Bool=false)
+  is_empty(G) && error("list of modules must not be empty")
+  R = base_ring(first(G))
+  @assert all(base_ring(M) === R for M in G) "modules must be defined over the same ring"
+  # The presentations need to map generators to generators! 
+  # We can not match elements, unless this is the case.
+  presentations = [presentation(M; minimal) for M in G]
+  mats = [sparse_matrix(map(c, 1)) for c in presentations] 
+  @assert all(ncols(B) == ngens(M) for (M, B) in zip(G, mats)) "presentations do not implement a 1:1 correspondence for the generators"
+  multi_inds = collect(AbstractAlgebra.ProductIterator([1:ngens(M) for M in reverse(G)]))
+  multi_inds = reverse.(multi_inds)
+  ind_pos = Dict(i=>j for (j, i) in enumerate(multi_inds))
+  ids = [_sparse_identity_matrix(R, ngens(M)) for M in G]
+  A = sparse_matrix(R, 0, prod(ngens(M) for M in G; init=1))
+  for i in 1:length(ids)
+    id = ids[i]
+    ids[i] = mats[i]
+    B = _kronecker_product(ids)
+    vcat!(A, B)
+    ids[i] = id
   end
-  res_prod = tensor_product(resols)
-  tot = total_complex(res_prod)
-  pres = map(tot, 1)
-  I, inc_I = image(pres)
-  result, pr_res = quo(tot[0], I)
-  
-  # assemble the multiplication and decomposition functions
-  z = Tuple([0 for _ in 1:length(G)])
-  @assert _is_tensor_product(res_prod[z])[1]
-  function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
-    w = [preimage(augs[i], x) for (i, x) in enumerate(tuple_elems)]
-    free_pure = tensor_pure_function(res_prod[z])
-    ww = free_pure(w...)
-    return pr_res(canonical_injection(tot[0], 1)(ww))
-  end
-  function pure(T::Tuple)
-    return pure(T...)
-  end
-  
-  decompose_generator = function(v::SubquoModuleElem)
-    ind = findfirst(==(v), images_of_generators(pr_res))
-    isnothing(ind) && error("the given element is not the image of a generator under the projection map")
-    vv = gen(tot[0], ind::Int)
-    w = canonical_projection(tot[0], 1)(vv)
-    w_dec = tensor_generator_decompose_function(res_prod[z])(w)
-    return Tuple([augs[i](x) for (i, x) in enumerate(w_dec)])
+  F = FreeMod(R, ncols(A))
+  @assert ngens(F) == length(multi_inds)
+
+  # In the graded case we just swap over the degrees. 
+  if all(is_graded, G)
+    all_degs = [degrees_of_generators(M) for M in G]
+    GG = grading_group(R)
+    F.d = [sum(all_degs[k][j] for (k, j) in enumerate(ind); init=zero(GG)) for ind in multi_inds]
   end
 
-  set_attribute!(result, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
+  I = [F(v) for v in A]
+  result = SubquoModule(F, gens(F), I)
+
+  # Functions for tensor multiplication and decomposition
+  function pure_helper(inds::Vector{Int}, rem::Vector)
+    is_one(length(rem)) && return sum(c*F[ind_pos[vcat(inds, [i])]] for (i, c) in coordinates(only(rem)); init=zero(F))
+    v = first(rem)
+    return sum(c*pure_helper(vcat(inds, [i]), rem[2:end]) for (i, c) in coordinates(v); init=zero(F))
+  end
+  function pure(t::ModuleFPElem...)
+    return result(pure_helper(Int[], collect(t)))
+  end
+  function pure(t::Tuple)
+    return pure(t...)
+  end
+
+  function decomp(v::SubquoModuleElem)
+    i, c = only(coordinates(v))
+    is_one(c) || error("element must be a module generator")
+    return Tuple([M[j] for (j, M) in zip(multi_inds[i], G)])
+  end
+
+  # set attributes as needed
+  set_attribute!(result, :tensor_pure_function=>pure, :tensor_generator_decompose_function=>decomp)
   set_attribute!(result, :show => Hecke.show_tensor_product, :tensor_product => G)
-  @assert _is_tensor_product(result)[1]
-  
-  if task == :none
-    return result
-  end
 
-  return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decompose_generator)
+  task == :none && return result
+  return result, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), result, pure, decomp)
 end
 
+# recursive method with bisection for many matrices
+function _kronecker_product(mats::Vector)
+  is_one(length(mats)) && return only(mats)
+  length(mats) == 2 && return _kronecker_product(mats[1], mats[2])
+  n = length(mats)
+  h = div(n, 2)
+  return _kronecker_product(_kronecker_product(mats[1:h]), _kronecker_product(mats[h+1:end]))
+end
+
+# Probably the same as in AA. However, we rely on a compatibility with the 
+# other iterations here, so we need to make sure this does the right thing. 
+function _kronecker_product(A::SMat, B::SMat)
+  R = base_ring(A)
+  m1, n1 = size(A)
+  m2, n2 = size(B)
+  C = sparse_matrix(R, 0, n1*n2)
+  for v1 in A
+    for v2 in B
+      # expanded version of 
+      # push!(C, sparse_row(R, [((j1-1)*n2+j2, c1*c2) for (j1, c1) in v1 for (j2, c2) in v2]; sort=false))
+      # to avoid allocation of extra vectors
+      new_pos = Int[(j1-1)*n2+j2 for j1 in v1.pos for j2 in v2.pos]
+      new_vals = elem_type(R)[c1*c2 for c1 in v1.values for c2 in v2.values]
+      push!(C, sparse_row(R, new_pos, new_vals; sort=false))
+    end
+  end
+  return C
+end
+
+# Helper function to create the identity matrix. Does this exist somewhere already? 
+function _sparse_identity_matrix(R::Ring, n::Int)
+  A = sparse_matrix(R, 0, n)
+  for i in 1:n
+    push!(A, sparse_row(R, i, one(R); check=false))
+  end
+  return A
+end
 
