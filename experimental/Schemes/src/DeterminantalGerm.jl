@@ -15,7 +15,54 @@ end
 ## More constructors
 ################################################################################
 
-#TODO: To be added
+#TODO: To add more
+@doc raw"""
+    DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T}; mat_type::Symbol = :generic, check::Bool=true)
+
+Return the DeterminantalGerm $(X_A^t, p)$. 
+
+# Examples:
+```jldoctest
+julia> R, (v,w,x,y,z) = QQ[:v,:w,:x,:y,:z];
+
+julia> A = R[v w x y;  w x y z]
+[v   w   x   y]
+[w   x   y   z]
+
+julia> B = R[v w x;  w x y;  x y z]
+[v   w   x]
+[w   x   y]
+[x   y   z]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0,0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 5 variables v, w, x, y, z
+        over rational field
+      by ideal (v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
+    at complement of maximal ideal of point (0, 0, 0, 0, 0)
+
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type=:symmetric)
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 5 variables v, w, x, y, z
+        over rational field
+      by ideal (v*x - w^2, v*y - w*x, w*y - x^2, v*y - w*x, v*z - x^2, w*z - x*y, w*y - x^2, w*z - x*y, x*z - y^2)
+    at complement of maximal ideal of point (0, 0, 0, 0, 0)
+```
+"""
+function DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T};
+                           mat_type::Symbol = :generic, check::Bool=true
+                          ) where T<:Union{Integer, FieldElem}
+  R = base_ring(A)
+  kk = coefficient_ring(R)
+  point = [kk.(v) for v in p]  ## throws an error, if vector entries are not compatible
+  L, _ = localization(R, complement_of_point_ideal(R, point))
+  return DeterminantalGerm(L.(A), t, mat_type=mat_type, check=check)
+end
+
 
 ################################################################################
 ## T1_GL module
