@@ -145,7 +145,7 @@ end
 # TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _sym_mat_gens(A::MatElem)
   n, m = size(A)
-  @req n == m "Matrix 'A' must be a quadratic."
+  @req n == m "matrix 'A' must be a quadratic."
   R = base_ring(A)
   gens = typeof(A)[]
   sizehint!(gens, n*(n+1)/2)
@@ -163,7 +163,7 @@ end
 # TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _skew_sym_mat_gens(A::MatElem)
   n, m = size(A)
-  @req n == m "Matrix 'A' must be a quadratic."
+  @req n == m "matrix 'A' must be a quadratic."
   R = base_ring(A)
   characteristic(R) == 2 && return _sym_mat_gens(A)
   gens = typeof(A)[]

@@ -140,27 +140,27 @@ A determinantal germ $(X_A^t, O_{(X_A^t,x)})$, i.e. a ringed space with underlyi
   X::AffineSchemeType
 
   function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
-    @req mat_type in (:generic, :symmetric, :skew_symmetric) "Matrix type must be either ':generic', ':symmetric' or 'skew_symmetric'."
+    @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'."
     (n, m) = size(A)
-    @req (1 <= t <= min(n, m)) "t must be in the range of 1:minimum(size(A))"
+    @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
     R = base_ring(A)
 
     if mat_type == :generic
       I = ideal(R, minors(A, t))
       @check begin
-        krull_dim(R) - krull_dim(I) == (n-t+1)*(m-t+1) || error("Matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-t+1)*(m-t+1) || error("matrix does not describe a singularity of expected codimension.")
       end
     elseif mat_type == :symmetric
-      @req is_symmetric(A) "A is not a symmetric matrix."
+      @req is_symmetric(A) "'A' is not a symmetric matrix."
       I = ideal(R, minors(A, t))
       @check begin
-        krull_dim(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Symmetric matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("symmetric matrix does not describe a singularity of expected codimension.")
       end
     else # mat_type == :skew_symmetric
-      @req is_skew_symmetric(A) "A is not a skew-symmetric matrix."
+      @req is_skew_symmetric(A) "`A` is not a skew-symmetric matrix."
       I = ideal(R, pfaffians(A, 2*t))
       @check begin
-        krull_dim(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Skew-symmetric matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("skew-symmetric matrix does not describe a singularity of expected codimension.")
       end
     end
 
