@@ -186,6 +186,21 @@ const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
                                       DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
 
+##############################################################################
+## conversion constructors (forgetful functors)
+##############################################################################
+
+function SpaceGerm(X::AnySpaceGerm)
+  return X isa SpaceGerm ? X : SpaceGerm(underlying_scheme(X))
+end
+
+underlying_space_germ(X::AnySpaceGerm) = SpaceGerm(X)
+
+#= TODO: add conversion: 
+  HypersurfaceGerm -> ComleteIntersectionGerm
+  HypersurfaceGerm -> DeterminantalGerm
+  CompleteIntersectionGerm -> DeterminantalGerm
+=#
 
 
 ##############################################################################
