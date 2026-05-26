@@ -132,7 +132,6 @@ const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
   A::MatElem{<:RingElem}
   t::Int
   X::AffineSchemeType
-  type::MatType
 
   function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
     @req mat_type in (:generic, :symmetric, :skew_symmetric) "Matrix type must be either ':generic', ':symmetric' or 'skew_symmetric'."
@@ -162,8 +161,7 @@ const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
     K = coefficient_ring(R)
     Q, _ = quo(R, I)
     X = spec(Q)
-    val = Val(mat_type)
-    return new{typeof(K), typeof(Q), typeof(X), typeof(val)}(A, t, X, val)
+    return new{typeof(K), typeof(Q), typeof(X), Val{mat_type}}(A, t, X)
   end
 end
 
