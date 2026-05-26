@@ -60,6 +60,7 @@ export strict_transform
 export strict_transform_with_index
 export total_transform
 export two_neighbor_step
+export underlying_space_germ
 
 export tjurina_algebra
 export tjurina_number
