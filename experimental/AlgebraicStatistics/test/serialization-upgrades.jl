@@ -11,7 +11,6 @@
   # @testset "load PhylogeneticModel and GroupBasedPhylogeneticModel serialized with 1.8.0+1" begin
   #   test_upgrade_folder("version_1_8_0+1";
   #     only=[
-  #       "GroupBasedPhylogeneticModel",
   #       "PhylogeneticModel",
   #     ],
   #   )

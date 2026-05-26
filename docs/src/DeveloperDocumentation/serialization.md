@@ -240,8 +240,8 @@ implementing the serialization of a new type.
 The functions `save_data_dict` and `save_data_array` are helper functions
 that structure the serialization.
 
-The examples below show they can be used to save data using the structure
-of an array or dict. Each nested call to `save_data_dict` or `save_data_array`
+The examples below show how to use them to structure data
+as an array or dict. Each nested call to `save_data_dict` or `save_data_array`
 should be called with a key that can be passed as the second parameter.
 
 ##### Examples
@@ -491,12 +491,6 @@ if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
 end
 ```
 
-**Parsing a data value that was previously stored as a string**:
-```julia
-if type_name == "MyType"
-  dict[:data][:flag] = parse(Bool, dict[:data][:flag])
-end
-```
 
 ```@docs
 Oscar.Serialization.UpgradeScript
