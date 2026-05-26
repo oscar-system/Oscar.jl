@@ -27,7 +27,7 @@ const GermAtGeometricPoint = AffineScheme{<:Field,
 
 @doc raw"""
     SpaceGerm{BaseRingType, RingType, AffineSchemeType}
-A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A space germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct SpaceGerm{
                 BaseRingType<:Ring,
@@ -48,7 +48,7 @@ end
 @doc raw"""
     HypersurfaceGerm{BaseRingType, RingType, AffineSchemeType}
 
-A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A hypersurface germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct HypersurfaceGerm{
                  BaseRingType<:Ring,
@@ -79,7 +79,7 @@ end
 @doc raw"""
     CompleteIntersectionGerm{BaseRingType, RingType, AffineSchemeType}
 
-A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A complete intersection germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
@@ -204,7 +204,7 @@ Return a representative `Y` of a space germ `(X,p)` at a point `p`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
-to `p. Then the representative `Y = Spec R/I` is returned.
+to `p`. Then the representative `Y = Spec R/I` is returned.
 
 # Examples
 ```jldoctest
@@ -309,7 +309,7 @@ Return the ambient germ of a given germ `(X,p)`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
-to `p. Then the ambient germ `Spec U^{-1}R` is returned.
+to `p`. Then the ambient germ `Spec U^{-1}R` is returned.
 
 # Examples
 ```jldoctest
@@ -385,8 +385,8 @@ Return the space germ `(X,p)` arising from the given representative `X` or the g
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the coordinate ring of `X` or
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -457,7 +457,7 @@ end
     SpaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     SpaceGerm(p::AbsAffineRationalPoint)
 
-Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `Y`.
+Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `X`.
 """
 SpaceGerm(p::AbsAffineRationalPoint) = SpaceGerm(codomain(p), coordinates(p))
 
@@ -476,7 +476,7 @@ point `p` and returns the hypersurface germ `(X,p)` from `X` in the affirmative 
 may be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I` in the coordinate ring of `X`  or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
     HypersurfaceGerm(X::AffineScheme(LocalRing),f::MPolyLocRingElem)
@@ -559,7 +559,7 @@ the complete intersection germ `(X,p)` from `X` in the affirmative case, where `
 be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal in the coordinate ring of `X` or
-- by a maximal ideal in the ambient_coordinate_ring of `X`
+- by a maximal ideal in the ambient\_coordinate_ring of `X`
 
 # Examples
 ```jldoctest
@@ -616,7 +616,7 @@ end
     CompleteIntersectionGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
 
-Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
+Return a complete intersection germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
 """
 CompleteIntersectionGerm(p::AbsAffineRationalPoint) = CompleteIntersectionGerm(codomain(p), coordinates(p))
 
@@ -637,8 +637,8 @@ arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the coordinate ring of `X` or
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -690,7 +690,7 @@ germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
     germ_at_point(p::AbsAffineRationalPoint)
 
 Return a space germ `(X,p)` and the corresponding inclusion morphism of spectra arising
-from the representative `X` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place..
+from the representative `X` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
 """
 germ_at_point(p::AbsAffineRationalPoint) = germ_at_point(codomain(p), coordinates(p))
@@ -713,7 +713,7 @@ arising from the given representative `X` or the given
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -790,7 +790,7 @@ Return a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphi
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
