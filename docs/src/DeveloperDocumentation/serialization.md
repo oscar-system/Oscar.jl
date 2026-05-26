@@ -487,13 +487,6 @@ if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
 end
 ```
 
-**Parsing a data value that was previously stored as a string**:
-```julia
-if type_name == "MyType"
-  dict[:data][:flag] = parse(Bool, dict[:data][:flag])
-end
-```
-
 ```@docs
 Oscar.Serialization.UpgradeScript
 ```
