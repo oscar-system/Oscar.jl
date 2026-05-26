@@ -113,9 +113,10 @@ end
 ## another short hand definition for internal use only
 ####################################################################
 
-const LocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, MST} where {
-              MST <: Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}
-            }
+const LocalRingElem = Union{
+            MPolyLocRingElem{<:Ring, <:RingElem, <:Ring, <:RingElem, MST},
+            MPolyQuoLocRingElem{<:Ring, <:RingElem, <:Ring, <:RingElem, MST}
+          } where {MST <: Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}}
 
 ################################################################################
 ## type declaration derterminantal germs
