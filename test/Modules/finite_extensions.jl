@@ -10,7 +10,7 @@
   # As a test case we recreate the codomain as a free module over itself
   # and push it forward to the domain.
   F = graded_free_module(A, [zero(grading_group(A))])
-  pf_F, interp = pushforward(psi, F)
+  pf_F, interp = Oscar.restriction_of_scalars(psi, F)
   @test base_ring(pf_F) === P
 
   # Now we create the bidual F** as a `P`-module.
