@@ -69,17 +69,14 @@ function codomain_as_module(psi::FiniteExtension)
 end
 
 @doc raw"""
-    pushforward(psi::FiniteExtension, F::FreeMod)
+    restriction_of_scalars(psi::FiniteExtension, F::FreeMod)
 
 Given a finite extension ``ψ : A → B`` of ℤ-graded rings and a free 
 module `F` over ``B``, construct a module ``M`` over ``A`` which is 
 isomorphic to ``F`` as an ``A``-module. This returns a pair `(M, interp)` 
 where `interp` is a map for the identification ``M → F``.
-
-!!! note
-    The name `pushforward` refers to the geometric map ``Spec B → Spec A`` induced by `psi` in the scheme theoretic sense on the spectra of the rings. 
 """
-function pushforward(psi::FiniteExtension, F::FreeMod)
+function restriction_of_scalars(psi::FiniteExtension, F::FreeMod)
   M = codomain_as_module(psi)
   summands = [twist(M, -Int(g[1])) for g in degrees_of_generators(F)]
   result, _ = direct_sum(summands...)
@@ -110,22 +107,19 @@ function pushforward(psi::FiniteExtension, F::FreeMod)
 end
 
 @doc raw"""
-    pushforward(psi::FiniteExtension, M::SubquoModule;
-        ambient_pushforward=pushforward(psi, ambient_free_module(M))
+    restriction_of_scalars(psi::FiniteExtension, M::SubquoModule;
+        ambient_restriction_of_scalars=restriction_of_scalars(psi, ambient_free_module(M))
       )
 
 Given a finite extension ``ψ : A → B`` of ℤ-graded rings and a subquotient 
 module `M` over ``B``, construct a module ``N`` over ``A`` which is 
 isomorphic to ``M`` as an ``A``-module. This returns a pair `(N, interp)` 
 where `interp` is a map for the identification ``N → M``.
-
-!!! note
-    The name `pushforward` refers to the geometric map ``Spec B → Spec A`` induced by `psi` in the scheme theoretic sense on the spectra of the rings. 
 """
-function pushforward(psi::FiniteExtension, M::SubquoModule;
-    ambient_pushforward=pushforward(psi, ambient_free_module(M))
+function restriction_of_scalars(psi::FiniteExtension, M::SubquoModule;
+    ambient_restriction_of_scalars=restriction_of_scalars(psi, ambient_free_module(M))
   )
-  psiF, interp = ambient_pushforward
+  psiF, interp = ambient_restriction_of_scalars
   @assert is_graded(psiF)
   psi_gens = elem_type(psiF)[interp(g*v) for v in ambient_representatives_generators(M) for g in generating_system(psi)]
   @assert all(is_homogeneous, psi_gens)
@@ -171,7 +165,7 @@ end
 
 function _global_section_module(psi::FiniteExtension, M::SubquoModule)
   @assert base_ring(M) === codomain(psi) "wrong base ring"
-  pf_M, interp = pushforward(psi, M)
+  pf_M, interp = restriction_of_scalars(psi, M)
   @assert is_graded(pf_M)
   pf_M_simp, to_pf_M = simplify(pf_M)
   @assert is_graded(pf_M_simp)
@@ -255,5 +249,30 @@ function _global_section_module(psi::FiniteExtension, M::SubquoModule)
   end
   img_gens3 = elem_type(result)[preimage(to_result, x) for x in img_gens2]
   return result, hom(M, result, img_gens3)
+end
+
+@doc raw"""
+    co_extension_of_scalars(psi::FiniteExtension, N::ModuleFP)
+
+Given a finite map `φ : A → B` and a `B`-module `N`, compute `M = Hom_B(A, N)` and return a pair `(M, m)` where `m` is a "multiplication map" which turns an element `x` of `B` into the endomorphism of `M` induced by multiplication with `x`. 
+"""
+function co_extension_of_scalars(psi::FiniteExtension, N::ModuleFP)
+  B = domain(psi)
+  @assert B === base_ring(N) "wrong rings"
+  A = codomain(psi)
+  F = graded_free_module(A, [0])
+  FF, interp = restriction_of_scalars(psi, F)
+  result, interp_res = hom(FF, N)
+  function elem_to_end(x)
+    parent(x) === A || error("wrong parent")
+    return function(v)
+      parent(v) === result || error("wrong parent")
+      phi = element_to_homomorphism(v)
+      psi = hom(FF, FF, elem_type(FF)[interp(x*preimage(interp, w)) for w in gens(FF)])
+      c = compose(psi, phi)
+      return homomorphism_to_element(result, c)
+    end
+  end
+  return result, elem_to_end
 end
 
