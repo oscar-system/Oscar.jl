@@ -252,16 +252,21 @@ function _global_section_module(psi::FiniteExtension, M::SubquoModule)
 end
 
 @doc raw"""
-    co_extension_of_scalars(psi::FiniteExtension, N::ModuleFP)
+    co_extension_of_scalars(
+        psi::FiniteExtension, N::ModuleFP; 
+        domain_as_module=restriction_of_scalars(psi, graded_free_module(domain(psi), [0]))
+      )
 
 Given a finite map `φ : A → B` and a `B`-module `N`, compute `M = Hom_B(A, N)` and return a pair `(M, m)` where `m` is a "multiplication map" which turns an element `x` of `B` into the endomorphism of `M` induced by multiplication with `x`. 
 """
-function co_extension_of_scalars(psi::FiniteExtension, N::ModuleFP)
+function co_extension_of_scalars(
+    psi::FiniteExtension, N::ModuleFP;
+    domain_as_module=restriction_of_scalars(psi, graded_free_module(domain(psi), [0]))
+  )
   B = domain(psi)
   @assert B === base_ring(N) "wrong rings"
   A = codomain(psi)
-  F = graded_free_module(A, [0])
-  FF, interp = restriction_of_scalars(psi, F)
+  FF, interp = domain_as_module
   result, interp_res = hom(FF, N)
   function elem_to_end(x)
     parent(x) === A || error("wrong parent")
