@@ -113,6 +113,18 @@ function DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T};
   return DeterminantalGerm(L.(A), t, mat_type=mat_type, check=check)
 end
 
+################################################################################
+## basic functionality for determinantal germs, which needs to be overwriten
+################################################################################
+
+function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
+  X === Y && return true
+  _matrix_type(X) == _matrix_type(Y) || return false
+  determinantal_type(X) == determinantal_type(Y) || return false
+  ambient_coordinate_ring(X) === ambient_coordinate_ring(Y) || return false
+  defining_matrix(X) == defining_matrix(Y) && return true
+  return underlying_scheme(X) == underlying_scheme(Y)
+end
 
 ################################################################################
 ## T1_GL module
