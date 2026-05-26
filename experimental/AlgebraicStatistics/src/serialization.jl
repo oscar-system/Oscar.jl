@@ -48,7 +48,13 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Ring})
   R = parameters(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
-    key = load_node(() -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
+    key = load_node(s, 1) do
+      if is_array(s)
+        return load_object(s, Edge)
+      else
+        return load_object(s, Int)
+      end
+    end
     graph_gen_dict[key] = load_object(s, TypeParams(MPolyRingElem, R), 2)
   end
   return GraphDict{elem_type(R)}(graph_gen_dict)
@@ -63,7 +69,13 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Dict})
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
   graph_gen_dict = Dict{Union{Int, Edge}, map_type}()
   load_array_node(s) do _
-    key = load_node(() -> is_array(s), s, 1) ? load_object(s, Edge, 1) : load_object(s, Int, 1)
+    key = load_node(s, 1) do
+      if is_array(s)
+        return load_object(s, Edge)
+      else
+        return load_object(s, Int, 1)
+      end
+    end
     graph_gen_dict[key] = load_object(s, TypeParams(Oscar.MPolyAnyMap, d), 2)
   end
   return GraphDict{map_type}(graph_gen_dict)
