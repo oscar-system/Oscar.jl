@@ -124,6 +124,11 @@ const LocalRingElem = Union{
 
 const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 
+@doc raw"""
+    DeterminantalGerm{BaseRingType, RingType, AffineSchemeType, Oscar.MatTypeVal}
+
+A determinantal germ $(X_A^t, O_{(X_A^t,x)})$, i.e. a ringed space with underlying scheme $X_A^t$ of type `AffineSchemeType` and local ring $O_{(X_A^t,x)}$ of type `RingType` over some base ring $k$ of type `BaseRingType` given by the $t$-minors respectively $2t$-pfaffians of a matrix $A$ with symmetry structure `Oscar.MatTypeVal`.
+"""
 @attributes mutable struct DeterminantalGerm{
                   BaseRingType <: Ring,
                   RingType <: Ring,
