@@ -42,3 +42,4 @@ end
   @test point(X_A) == QQ.([0,0])
   @test modulus(OO(X_A)) == ideal(L, [x^2 - y^5])
 end
+

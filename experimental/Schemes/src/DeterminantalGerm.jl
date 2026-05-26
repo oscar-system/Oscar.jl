@@ -148,7 +148,7 @@ function _sym_mat_gens(A::MatElem)
   @req n == m "matrix 'A' must be a quadratic."
   R = base_ring(A)
   gens = typeof(A)[]
-  sizehint!(gens, n*(n+1)/2)
+  sizehint!(gens, div(n*(n+1), 2))
   for i in 1:n
     for j in i:n
       tmp = zero(A)
@@ -167,7 +167,7 @@ function _skew_sym_mat_gens(A::MatElem)
   R = base_ring(A)
   characteristic(R) == 2 && return _sym_mat_gens(A)
   gens = typeof(A)[]
-  sizehint!(gens, n*(n-1)/2)
+  sizehint!(gens, div(n*(n-1), 2))
   for i in 1:n
     for j in i+1:n
       tmp = zero(A)
@@ -204,7 +204,7 @@ false
 julia> underlying_space_germ(X_A) == underlying_space_germ(X_A_sym)
 true
 
-julia> T1_GL_module(X_A)
+julia> T1_A = T1_GL_module(X_A)
 Subquotient of submodule with 4 generators
   1: E[1,1]
   2: E[1,2]
@@ -222,10 +222,10 @@ by submodule with 10 generators
   9: x*E[1,2]
   10: (x^2 + y^2)*E[2,2]
 
-julia> vector_space_dim(ans)
+julia> vector_space_dim(T1_A)
 6
 
-julia> T1_GL_module(X_A_sym)
+julia> T1_A_sym = T1_GL_module(X_A_sym)
 Subquotient of submodule with 3 generators
   1: E[1,1]
   2: E[1,2] + E[2,1]
@@ -238,7 +238,7 @@ by submodule with 6 generators
   5: x*E[1,2] + x*E[2,1]
   6: (2*x^2 + 2*y^2)*E[2,2]
 
-julia> vector_space_dim(ans)
+julia> vector_space_dim(T1_A_sym)
 4
 ```
 """
