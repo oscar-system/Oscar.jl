@@ -121,48 +121,48 @@ const LocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, MST} where {
 ## type declaration derterminantal germs
 ################################################################################
 
-const DeterminantalGermType = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
+const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 
 @attributes mutable struct DeterminantalGerm{
                   BaseRingType <: Ring,
                   RingType <: Ring,
                   AffineSchemeType <: AffineScheme, 
-                  DeterminantalType <: DeterminantalGermType
+                  MatType <: MatTypeVal
                 } <: AbsSpaceGerm{BaseRingType, RingType}
   A::MatElem{<:RingElem}
   t::Int
   X::AffineSchemeType
-  type::DeterminantalType
+  type::MatType
 
-  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; type::Symbol = :generic, check::Bool=true)
-    @req type in (:generic, :symmetric, :skew_symmetric) "Type must be either ':generic', ':symmetric' or 'skew_symmetric'."
+  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
+    @req mat_type in (:generic, :symmetric, :skew_symmetric) "Matrix type must be either ':generic', ':symmetric' or 'skew_symmetric'."
     (n, m) = size(A)
-    1 <= t <= min(n, m) || error("t must be in the range of 1:min(size(A))")
+    @req (1 <= t <= min(n, m)) "t must be in the range of 1:minimum(size(A))"
     R = base_ring(A)
 
-    if type == :generic
+    if mat_type == :generic
       I = ideal(R, minors(A, t))
       @check begin
-        ngens(R) - krull_dim(I) == (n-t+1)*(m-t+1)|| error("Matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-t+1)*(m-t+1) || error("Matrix does not describe a singularity of expected codimension.")
       end
-    elseif type == :symmetric
-      @req is_symmetric(A) "A must be a symmetric matrix."
+    elseif mat_type == :symmetric
+      @req is_symmetric(A) "A is not a symmetric matrix."
       I = ideal(R, minors(A, t))
       @check begin
-        ngens(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Symmetric matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("Symmetric matrix does not describe a singularity of expected codimension.")
       end
-    else # type == :skew_symmetric
-      @req is_skew_symmetric(A) "A must be a skew symmetric matrix."
+    else # mat_type == :skew_symmetric
+      @req is_skew_symmetric(A) "A is not a skew-symmetric matrix."
       I = ideal(R, pfaffians(A, 2*t))
       @check begin
-        ngens(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Skew-symmetric matrix does not describe a singularity of expected codimension.")
+        krull_dim(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("Skew-symmetric matrix does not describe a singularity of expected codimension.")
       end
     end
 
     K = coefficient_ring(R)
     Q, _ = quo(R, I)
     X = spec(Q)
-    val = Val(type)
+    val = Val(mat_type)
     return new{typeof(K), typeof(Q), typeof(X), typeof(val)}(A, t, X, val)
   end
 end
@@ -178,12 +178,12 @@ const AnySpaceGerm = Union{SpaceGerm,
 const AnySpaceGermClosedPoint = Union{SpaceGerm{BRT, RT, AST},
                                       HypersurfaceGerm{BRT, RT, AST},
                                       CompleteIntersectionGerm{BRT, RT, AST},
-                                      DeterminantalGerm{BRT, RT, AST, <: DeterminantalGermType}
+                                      DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtClosedPoint}
 const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
                                       HypersurfaceGerm{BRT, RT, AST},
                                       CompleteIntersectionGerm{BRT, RT, AST},
-                                      DeterminantalGerm{BRT, RT, AST, <: DeterminantalGermType}
+                                      DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
 
 
