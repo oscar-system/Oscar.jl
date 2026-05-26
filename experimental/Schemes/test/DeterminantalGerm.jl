@@ -18,7 +18,7 @@ end
   A = L[v w x; 
         w x y; 
         x y z]
-  X_A = DeterminantalGerm(A, 2, type=:symmetric)
+  X_A = DeterminantalGerm(A, 2, mat_type=:symmetric)
   @test determinantal_type(X_A) == (3,3,2)
   @test defining_matrix(X_A) === A
   @test dim(X_A) == 2
@@ -30,11 +30,11 @@ end
 @testset "Skew-symmetric DeterminantalGerm" begin
   R, (x,y) = QQ[:x,:y]
   L, _ = localization(complement_of_point_ideal(R, [0,0]))
-  A = L[0  0 x y^3; 
-        0  0 y^2 x; 
-       -x -y^2 0 0; 
-       -y^3 -x 0 0]
-  X_A = DeterminantalGerm(A, 2, type=:skew_symmetric)
+  A = L[0  0 x y^2; 
+        0  0 y^3 x; 
+       -x -y^3 0 0; 
+       -y^2 -x 0 0]
+  X_A = DeterminantalGerm(A, 2, mat_type=:skew_symmetric)
   @test determinantal_type(X_A) == (4,4,2)
   @test defining_matrix(X_A) === A
   @test dim(X_A) == 1
