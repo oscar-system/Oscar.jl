@@ -74,7 +74,7 @@ end
 Given a finite extension ``ψ : A → B`` of ℤ-graded rings and a free 
 module `F` over ``B``, construct a module ``M`` over ``A`` which is 
 isomorphic to ``F`` as an ``A``-module. This returns a pair `(M, interp)` 
-where `interp` is a map for the identification ``M → F``.
+where `interp` is a map for the identification ``F → M``.
 """
 function restriction_of_scalars(psi::FiniteExtension, F::FreeMod)
   M = codomain_as_module(psi)
@@ -114,7 +114,7 @@ end
 Given a finite extension ``ψ : A → B`` of ℤ-graded rings and a subquotient 
 module `M` over ``B``, construct a module ``N`` over ``A`` which is 
 isomorphic to ``M`` as an ``A``-module. This returns a pair `(N, interp)` 
-where `interp` is a map for the identification ``N → M``.
+where `interp` is a map for the identification ``M → N``.
 """
 function restriction_of_scalars(psi::FiniteExtension, M::SubquoModule;
     ambient_restriction_of_scalars=restriction_of_scalars(psi, ambient_free_module(M))
