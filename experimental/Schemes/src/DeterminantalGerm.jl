@@ -11,6 +11,8 @@ function determinantal_type(X::DeterminantalGerm)
   return n, m, X.t
 end
 
+_matrix_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T} = T
+
 ################################################################################
 ## More constructors
 ################################################################################
@@ -127,7 +129,7 @@ end
   # defining_matrix has size n x m
   F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:n for j in 1:m])
 
-  if X.type === Val{:generic}()
+  if _matrix_type(X) === Val{:generic}
     rels = vcat([derivative.(A, i) for i in 1:N],
                 [_C_ij(A, i, j) for i in 1:n for j in 1:n],
                 [_R_ij(A, i, j) for i in 1:m for j in 1:m]
@@ -135,8 +137,8 @@ end
     return SubquoModule(F, gens(F), F.(_vec.(rels)))
   end
 
-  # Case: X.type === Val{:symmetric} or # X.type === Val{:skew_symmetric}
-  erz = X.type === Val{:symmetric}() ? _sym_mat_gens(A) : _skew_sym_mat_gens(A)
+  # Case: _matrix_type(X) === Val{:symmetric} or # _matrix_type(X) === Val{:skew_symmetric}
+  erz = _matrix_type(X) === Val{:symmetric} ? _sym_mat_gens(A) : _skew_sym_mat_gens(A)
   rels = vcat([derivative.(A, i) for i in 1:N],
               [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:n for j in 1:n],
              )
