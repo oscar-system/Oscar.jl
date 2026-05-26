@@ -115,5 +115,17 @@ end
   MM, _ = change_base_ring(S, M);
   @time N, m = Oscar._global_section_module(psi, MM);
   @test is_isomorphism(m)
+  
+  F = graded_free_module(S, [0])
+  FF, interp = Oscar.restriction_of_scalars(psi, F);
+  L, m = Oscar.co_extension_of_scalars(psi, graded_free_module(B, [0]); domain_as_module=(FF, interp));
+  for x in gens(S)
+    mm = m(x)
+    for g in gens(L)
+      a = element_to_homomorphism(g)
+      b = element_to_homomorphism(mm(g))
+      @test all(a(interp(x*v)) == b(interp(v)) for v in gens(F))
+    end
+  end
 end
 
