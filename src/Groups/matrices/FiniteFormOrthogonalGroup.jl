@@ -2416,14 +2416,19 @@ end
 function sub_orb_and_stab(
   S::TorQuadModule,
   k::Int,
-  path::String = joinpath(@__DIR__, "data"),
+  path::String = joinpath(@__DIR__, "data_via_magma"),
 )
   path_S = joinpath(path, form_GF2_to_string(S))
   if !isdir(path_S)
     mkdir(path_S)
   end
   OS = orthogonal_group(S)
-  sors = Oscar._subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(S), OS, ZZ(2)^k, ZZ(2))
+  sors = try
+           Oscar._subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(S), OS, ZZ(2)^k, ZZ(2))
+         catch
+           @show form_GF2_to_string(S), k
+           return nothing
+         end
   for x in sors
     label, s = orb_and_stab_to_string(x)
     path_H = joinpath(path_S, label)
@@ -2440,7 +2445,7 @@ end
 
 function sub_orb_and_stab(
   T::TorQuadModule,
-  path::String = joinpath(@__DIR__, "data"),
+  path::String = joinpath(@__DIR__, "data_via_magma"),
 )
   k_range = valuation(order(T), ZZ(2))
   for k in 1:k_range-1
@@ -2451,7 +2456,7 @@ end
 
 function sub_orb_and_stab(
   Ts::Vector{TorQuadModule},
-  path::String = joinpath(@__DIR__, "data"),
+  path::String = joinpath(@__DIR__, "data_via_magma"),
 )
   for T in Ts
     S, _ = canonical_form_GF2(T)
@@ -2463,8 +2468,9 @@ end
 
 function sub_orb_and_stab(
   dim::Int,
-  path::String = joinpath(@__DIR__, "data"),
+  path::String = joinpath(@__DIR__, "data_via_magma"),
 )
+  !isdir(path) && mkdir(path)
   Ts = torsion_forms_GF2(dim)
   return sub_orb_and_stab(Ts, path)
 end
