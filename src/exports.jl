@@ -136,9 +136,9 @@ export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export ModuleFP
-export ModuleFPElem
-export ModuleFPHom
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
