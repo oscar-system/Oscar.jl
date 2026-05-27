@@ -612,6 +612,19 @@ import Serialization.deserialize
 import Serialization.serialize_type
 import Distributed.AbstractSerializer
 
+### These two methods are here to help with debugging interprocess errors ###
+# JSON.JSONTypes.T is a custom 8-bit primitive type with no write() method; Julia's
+# serializer errors on it. This surfaces when a DeserializerState (held in a worker
+# exception) is serialized back to the main process via Distributed.
+function serialize(s::AbstractSerializer, x::JSON.JSONTypes.T)
+  serialize_type(s, JSON.JSONTypes.T)
+  write(s.io, reinterpret(UInt8, x))
+end
+
+function deserialize(s::AbstractSerializer, ::Type{JSON.JSONTypes.T})
+  return JSON.JSONTypes.T(read(s.io, UInt8))
+end
+
 # add these here so that the proper errors are thrown
 # when the type hasn't been registered
 serialize_with_id(::Type) = false
