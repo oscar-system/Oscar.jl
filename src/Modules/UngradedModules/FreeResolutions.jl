@@ -534,7 +534,7 @@ function free_resolution(M::SubquoModule{T};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
@@ -616,7 +616,7 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
   if cc_complete == true
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
   end
@@ -880,7 +880,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
+  C = Hecke.ComplexOfMorphisms(OFPModule, mp, check = false, seed = -2)
   C.fill = _extend_free_resolution_via_kernels
   C.complete = false
   if is_zero(domain(C.maps[begin]))
