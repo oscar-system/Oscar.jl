@@ -58,7 +58,7 @@ obj = ZZ(2)^10
 
 #### Save data
 
-Let us employ the `.mrdi` file format to serialize our data. (You may of course use the file format you prefer.)
+Let us employ the  [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/). (You may of course use the file format you prefer.)
 
 ```julia
 save("example.mrdi", obj)
