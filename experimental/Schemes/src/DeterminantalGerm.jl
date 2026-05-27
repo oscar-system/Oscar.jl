@@ -3,9 +3,9 @@
 ################################################################################
 
 @doc raw"""
-    defining_matrix(X::DeterminantalGerm)
+    defining_matrix(X::DeterminantalGerm) -> MatElem
 
-Return the defining matrix `A` over the ring of the ambient germ of `X`. 
+Return the defining matrix `A` of the derterminantal germ `X` over the ring of the ambient germ of `X`. 
 !!! note
     The returned matrix `A` is not a matrix over a polynomial ring, but a matrix over a localization of a polynomial ring at the complement of a maximal ideal. (Hence each entry of `A` has a numerator and a denominator.)
 
@@ -46,8 +46,33 @@ Localization
 """
 defining_matrix(X::DeterminantalGerm) = X.A
 
+@doc raw"""
+    determinantal_type(X::DeterminantalGerm) -> Int, Int, Int
+
+Return the determinantal type `(n,m,t)` of the derterminantal germ `X`, where `n x m` is the size of the defining matrix and `t` the size of the minors. 
 
 
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ[:x, :y, :z];
+
+julia> A = R[x 0 z;  0 y  z]
+[x   0   z]
+[0   y   z]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal (x*y, x*z, -y*z)
+    at complement of maximal ideal of point (0, 0, 0)
+
+julia> determinantal_type(X_A)
+(2, 3, 2)
+```
+"""
 function determinantal_type(X::DeterminantalGerm)
   n, m = size(X.A)
   return n, m, X.t
