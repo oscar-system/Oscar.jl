@@ -119,6 +119,8 @@ In `Oscar.jl` source files, the artifact string macro is already available and `
 
 Creating artifacts requires that the corresponding data be serialized locally first. Details are provided in the [Serialization page](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
 
+We recommend the use of the `.mrdi` file format for serialization. However, this is not a strict requirement and you may use any file format that you see fit.
+
 
 ### [Hosting Artifacts](@id artifact_hosting)
 
