@@ -186,7 +186,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   serializer::T
   obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{JSON.LazyValue, Nothing}
+  refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
 end
 
@@ -201,14 +201,14 @@ load_json(s::DeserializerState, ::Type{String}) = string(JSON.parse(s.obj))
 # general loading of a reference
 
 function load_ref(s::DeserializerState)
-  id = load_json(s, String)
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  id = load_json(s, UUID)
+  if haskey(global_serializer_state.id_to_obj, id)
+    loaded_ref = global_serializer_state.id_to_obj[id]
   else
-    s.obj = s.refs[Symbol(id)]
+    s.obj = s.refs[id]
     loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
+    global_serializer_state.id_to_obj[id] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = id
   end
   return loaded_ref
 end
@@ -270,7 +270,11 @@ end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON.lazy(io)
-  refs = get(obj, :_refs, nothing)
+  refs_from_file = get(obj, :_refs, nothing)
+  refs = Dict{UUID,JSON.LazyValues}()
+  for k in propertynames(refs_from_file)
+    refs[UUID(String(k))] = refs_from_file[k]
+  end
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
