@@ -142,7 +142,7 @@ When debugging, contributors are encouraged to use temporary staging areas befor
 Data intended for querying may also be suitable for [OscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/).
 
 
-### [Creating and Registering](@id artifact_registration)
+### [Registering](@id artifact_registration)
 
 Creating an artifact typically involves the following steps:
 
