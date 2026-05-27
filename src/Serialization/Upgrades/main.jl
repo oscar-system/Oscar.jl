@@ -163,11 +163,9 @@ function effective_upgrade_version(format_version::VersionNumber)
   n_upgrades = tryparse(Int, string(parts[2]))
   (isnothing(n_upgrades) || iszero(n_upgrades)) && return format_version
 
-  base = "$(format_version.major).$(format_version.minor).$(format_version.patch)"
-  relevant = sort([version(s) for s in upgrade_scripts
-                   if "$(version(s).major).$(version(s).minor).$(version(s).patch)" == base])
-  isempty(relevant) && return format_version
-  return relevant[min(n_upgrades, length(relevant))]
+  base = Base.thispatch(format_version)
+  base_num = findfirst(s -> version(s) == base, upgrade_scripts)
+  return version(upgrade_scripts[base_num+n_upgrades-1])
 end
 
 function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)

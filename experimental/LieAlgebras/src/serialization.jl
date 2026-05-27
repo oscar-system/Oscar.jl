@@ -160,7 +160,7 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:LieAlgebraModule, <:Tuple{Vararg{Pair}}})
-  T = tp.type
+  T = Serialization.type(tp)
   L = tp[:lie_algebra]
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)

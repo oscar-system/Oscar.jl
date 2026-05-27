@@ -491,7 +491,6 @@ if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
 end
 ```
 
-
 ```@docs
 Oscar.Serialization.UpgradeScript
 ```
