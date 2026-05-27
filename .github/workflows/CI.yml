@@ -180,7 +180,7 @@ jobs:
         uses: actions/upload-artifact@v6
         continue-on-error: true
         with:
-          name: stats-book-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          name: stats-book-${{ runner.os }}-${{ matrix.julia-version }}
           path: |
             test-stats_*.csv
       - name: "Process code coverage"
