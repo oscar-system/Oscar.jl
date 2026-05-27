@@ -1521,6 +1521,7 @@ export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
 export projectivization
+export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
