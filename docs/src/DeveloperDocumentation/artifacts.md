@@ -198,7 +198,7 @@ When repeatedly debugging or refining artifacts, contributors are encouraged to 
 
 ### Serialization Upgrades
 
-The `.mrdi` file format is under active development and its standard evolves over time. Older files remain compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
+Note that the chosen file format for serialization may be subject to development. In particular, the `.mrdi` file format, which we recommend for serialization, is under active development. Consequently, its standard evolves over time. Older files remain compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
 
 Additional details are provided in the [Serialization documentation](https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/#Upgrades).
 
