@@ -8,7 +8,7 @@
 # can favourably be applied can be found on PR #5971. 
 ########################################################################
 @doc raw"""
-    function det_modular_coeff_rec(A::MatElem{T};
+    det_modular_coeff_rec(A::MatElem{T};
         wp::Union{OscarWorkerPool, Nothing}=nothing,
         bound::Symbol=:GoldsteinGraham
       ) where {T<:ZZPolyRingElem}
@@ -25,8 +25,8 @@ function det_modular_coeff_rec(A::MatElem{T};
     bound::Symbol=:GoldsteinGraham
   ) where {T<:ZZPolyRingElem}
   m, n = size(A)
-  m == n || error("matrix must be square")
-  is_zero(m) && return one(ZZ)
+  @req is_square(A) "matrix must be square"
+  is_zero(m) && return one(base_ring(A))
   is_one(m) && return A[1, 1]
 
   bound = _det_height_bound(Val{bound}, A)
@@ -47,11 +47,16 @@ function det_modular_coeff_rec(A::MatElem{T};
 
   # Reconstruct the coefficients from chinese remaindering
   max_deg = maximum(degree(b) for b in dets; init=0)
-  new_coeffs = sizehint!(ZZRingElem[], max_deg)
+  max_deg < 0 && return zero(base_ring(A))
+  new_coeffs = sizehint!(ZZRingElem[], max_deg+1)
   env = crt_env(ZZ.(primes))
   pp2 = div(primes_prod, 2)
   for i in 0:max_deg
     c = crt([lift(ZZ, coeff(b, i)) for b in dets], env)
+    # TODO: We might want to use the `signed` option for `crt` here. 
+    # But that is not yet available in Hecke for this signature with 
+    # an `crt_env`, so we will postpone this until we have a new 
+    # version of Hecke to support this. 
     if c > pp2
       c -= primes_prod
     end
@@ -67,17 +72,13 @@ end
 # This could be more general but hadamard_bound2 is restricted to ZZPolyRingElem
 # To apply to a matrix containing QQPolyRingElem, one must clear denoms & convert to ZZPolyRingElem.
 function _det_height_bound(::Type{Val{:GoldsteinGraham}}, M::MatElem{ZZPolyRingElem})
-  is_square(M) || error("Matrix must be square");
-  is_empty(M)  &&  return one(base_ring(M));
-  M2 = map(_norm_1, M);
-  B2 = min(hadamard_bound2(M2), hadamard_bound2(transpose(M2)));
-  return 1+isqrt(B2);
+  is_square(M) || error("Matrix must be square")
+  is_empty(M)  &&  return one(base_ring(M))
+  # compute the matrix of 1-norms of the entries
+  M2 = map(f->sum(abs(c) for c in coefficients(f); init=zero(ZZ))::ZZRingElem, M)
+  B2 = min(hadamard_bound2(M2), hadamard_bound2(transpose(M2)))
+  return 1+isqrt(B2)
 end
-
-function _norm_1(f::PolyRingElem)
-  return sum(abs(c) for c in coefficients(f); init=abs(zero(coefficient_ring(parent(f)))))
-end
-
 
 # A naive bound for the absolute value of the coefficients of `det(A)` for a matrix
 # over the ring of univariate polynomials
