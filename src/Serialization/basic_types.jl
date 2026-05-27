@@ -46,10 +46,8 @@ end
 load_object(s::DeserializerState, ::TypeParams{QQFieldElem, QQField}) = load_object(s, QQFieldElem)
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem})
-  # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
-  # is merged and in a Nemo release
   load_node(s) do
-    fraction_parts = String.(split(load_json(s, String), "//"))
+    fraction_parts = split(load_json(s, String), "//")
     fraction_parts = parse.(ZZRingElem, fraction_parts)
 
     return QQFieldElem(fraction_parts...)
