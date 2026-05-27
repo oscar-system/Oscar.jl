@@ -26,6 +26,11 @@
   S = stabilizer(G, l, permuted)
   @test order(S[1]) == 4
 
+  # stabilizer under permutation action on vectors
+  l = ["a", "a", "b", "b", "c"]
+  S = stabilizer(G, l, permuted)
+  @test order(S[1]) == 4
+
   # a more complex example
   G = symmetric_group(14)
   gens = [ cperm([1,10], [2,12,13,7,8,14], [3,4,9,6,5,11]),

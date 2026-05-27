@@ -449,7 +449,7 @@ cohomology ring which generates that degree as a free module of rank one over th
 
 In case no element `v` is provided, a heuristic is applied to determine a random 
 suitable element. This heuristic may fail depending on existence of implementations 
-for `ModuleFP`s for the chosen `coefficient_ring`. 
+for `OFPModule`s for the chosen `coefficient_ring`. 
 """
 function set_volume_form!(A::DGAlgCohRing, v::DGAlgCohRingElem)
   isdefined(A, :volume_form) && error("volume form is already defined; changes are not possible")

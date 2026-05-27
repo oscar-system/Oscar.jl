@@ -12,7 +12,7 @@
 ########################################################################
 
 ### Production of the chains
-struct StrandChainFactory{ChainType<:ModuleFP} <: HyperComplexChainFactory{ChainType}
+struct StrandChainFactory{ChainType<:OFPModule} <: HyperComplexChainFactory{ChainType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
   mapping_dicts::Dict{Tuple, Dict}
@@ -20,13 +20,13 @@ struct StrandChainFactory{ChainType<:ModuleFP} <: HyperComplexChainFactory{Chain
 
   function StrandChainFactory(
       orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}, check::Bool
-    ) where {ChainType<:ModuleFP}
+    ) where {ChainType<:OFPModule}
     return new{FreeMod}(orig, d, Dict{Tuple, Dict}(), check) # TODO: Specify the chain type better
   end
 end
 
 ### Production of the morphisms 
-struct StrandMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMapFactory{MorphismType}
+struct StrandMorphismFactory{MorphismType<:OFPModuleHom} <: HyperComplexMapFactory{MorphismType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
   check::Bool
@@ -47,7 +47,7 @@ end
   function StrandComplex(
       orig::AbsHyperComplex{ChainType, MorphismType}, d::Union{Int, FinGenAbGroupElem}; 
       check::Bool=true
-    ) where {ChainType <: ModuleFP, MorphismType <: ModuleFPHom}
+    ) where {ChainType <: OFPModule, MorphismType <: OFPModuleHom}
     chain_fac = StrandChainFactory(orig, d, check)
     map_fac = StrandMorphismFactory(orig, d, check)
 
@@ -70,7 +70,7 @@ inclusion_map(c::StrandComplex) = c.inclusion_map
 projection_map(c::StrandComplex) = c.projection_map
 
 ### The morphism for the strand's inclusion
-struct StrandInclusionMorphismFactory{MorphismType<:ModuleFPHom} <: HyperComplexMorphismFactory{MorphismType}
+struct StrandInclusionMorphismFactory{MorphismType<:OFPModuleHom} <: HyperComplexMorphismFactory{MorphismType}
   strand::AbsHyperComplex
 
   function StrandInclusionMorphismFactory(strand::AbsHyperComplex)
