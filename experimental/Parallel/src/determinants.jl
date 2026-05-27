@@ -1,16 +1,26 @@
+########################################################################
+# Code for computing determinants of matrices over ZZ[x].
+#
+# At the moment this is in experimental because of the option to use 
+# parallel methods. For the future we might want to port an 
+# implementation of this with the parallel methods stripped off to 
+# AbstractAlgebra. Comparison of timings and discussions where this 
+# can favourably be applied can be found on PR #5971. 
+########################################################################
 @doc raw"""
-    function modular_det(A::MatrixElem{T};
+    function det_modular_coeff_rec(A::MatrixElem{T};
         wp::Union{OscarWorkerPool, Nothing}=nothing,
         bound::Symbol=:GoldsteinGraham
       ) where {T<:ZZPolyRingElem}
 
-Compute the determinant of `A` by reducing `A` modulo primes and using the Chinese remainder theorem on the coefficients. 
+Compute the determinant of `A` via modular coefficient reconstruction, i.e. 
+by reducing `A` modulo primes and using the Chinese remainder theorem on the coefficients. 
 
 When `wp` is an `OscarWorkerPool`, the computation of determinants modulo primes is done in parallel on the workers
 The symbol `bound` can be set either to `:GoldsteinGraham`, or `:Naive` to select a way to compute a certified bound 
 for the selection of primes for reduction.
 """
-function modular_det(A::MatrixElem{T};
+function det_modular_coeff_rec(A::MatrixElem{T};
     wp::Union{OscarWorkerPool, Nothing}=nothing,
     bound::Symbol=:GoldsteinGraham
   ) where {T<:ZZPolyRingElem}
