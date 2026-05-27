@@ -8,7 +8,7 @@
 # can favourably be applied can be found on PR #5971. 
 ########################################################################
 @doc raw"""
-    function det_modular_coeff_rec(A::MatrixElem{T};
+    function det_modular_coeff_rec(A::MatElem{T};
         wp::Union{OscarWorkerPool, Nothing}=nothing,
         bound::Symbol=:GoldsteinGraham
       ) where {T<:ZZPolyRingElem}
@@ -20,7 +20,7 @@ When `wp` is an `OscarWorkerPool`, the computation of determinants modulo primes
 The symbol `bound` can be set either to `:GoldsteinGraham`, or `:Naive` to select a way to compute a certified bound 
 for the selection of primes for reduction.
 """
-function det_modular_coeff_rec(A::MatrixElem{T};
+function det_modular_coeff_rec(A::MatElem{T};
     wp::Union{OscarWorkerPool, Nothing}=nothing,
     bound::Symbol=:GoldsteinGraham
   ) where {T<:ZZPolyRingElem}
@@ -66,7 +66,7 @@ end
 #
 # This could be more general but hadamard_bound2 is restricted to ZZPolyRingElem
 # To apply to a matrix containing QQPolyRingElem, one must clear denoms & convert to ZZPolyRingElem.
-function _det_height_bound(::Type{Val{:GoldsteinGraham}}, M::MatrixElem{ZZPolyRingElem})
+function _det_height_bound(::Type{Val{:GoldsteinGraham}}, M::MatElem{ZZPolyRingElem})
   is_square(M) || error("Matrix must be square");
   is_empty(M)  &&  return one(base_ring(M));
   M2 = map(_norm_1, M);
@@ -81,7 +81,7 @@ end
 
 # A naive bound for the absolute value of the coefficients of `det(A)` for a matrix
 # over the ring of univariate polynomials
-function _det_height_bound(::Type{Val{:Naive}}, A::MatrixElem{ZZPolyRingElem})
+function _det_height_bound(::Type{Val{:Naive}}, A::MatElem{ZZPolyRingElem})
   row_degs = [maximum([degree(a) for a in A[i, :]]; init=0) for i in 1:m]
   max_deg = ZZ(sum(row_degs; init=0))
   # This first bound is for the size of the determinant over ZZ
