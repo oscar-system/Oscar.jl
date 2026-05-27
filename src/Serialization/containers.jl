@@ -255,7 +255,7 @@ function load_type_params(s::DeserializerState, T::Type{Tuple})
     tuple_params = load_array_node(s) do _
       load_type_params(s, decode_type(s))
     end
-    tuple_types = Tuple([type(x) for x in tuple_params])
+    tuple_types = Tuple(type(x) for x in tuple_params)
     raw_params = Tuple(parameters(x) for x in tuple_params)
     return TypeParams(T{tuple_types...}, raw_params)
   end
