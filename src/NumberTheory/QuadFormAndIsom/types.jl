@@ -366,11 +366,11 @@ mutable struct ZZLatGluingFactory
   # Necessary input
   ambient_modules::NTuple{2, TorQuadModule} # Discriminant forms of the lattices to glue
   local_classifying_groups::NTuple{2, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
-  par::Symbol # :even, :odd or :both
 
   # Context
   Ctx::ZZLatGluingCtx
   vertex_identification::NTuple{2, Int}
+  par::Symbol # :even, :odd or :both
 
   # Edge conditions
   glue_order::Set{ZZRingElem} # Possible orders of a glue group
@@ -387,10 +387,8 @@ mutable struct ZZLatGluingFactory
   function ZZLatGluingFactory(
     module_left::TorQuadModule,
     module_right::TorQuadModule,
-    par::Symbol,
   )
     z = new((module_left, module_right))
-    z.par = par
     return z
   end
 end

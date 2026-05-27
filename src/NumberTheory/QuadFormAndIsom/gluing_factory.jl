@@ -180,6 +180,7 @@ function _integer_genera(
   return GKs
 end
 
+# TO EXPORT
 @doc raw"""
     orthogonal_group_bilinear(T::TorQuadModule) -> AutomorphismGroup{TorQuadModule}
 
@@ -229,8 +230,8 @@ end
 # ambient modules.
 function init_gluing_factory!(
   Fac::ZZLatGluingFactory;
-  left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
-  right_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
+  glue_annihilator_left::Union{Nothing, TorQuadModuleMap}=nothing,
+  glue_annihilator_right::Union{Nothing, TorQuadModuleMap}=nothing,
   glue_exponent::Union{Nothing, IntegerUnion}=nothing,
   glue_order::AbstractVector{T}=Int[],
   glue_elementary_divisors::Vector{Vector{ZZRingElem}}=Vector{ZZRingElem}[],
@@ -240,8 +241,8 @@ function init_gluing_factory!(
   @vprintln :ZZLatWithIsom 3 "Initialize gluing conditions"
   init_gluing_conditions!(
     Fac,
-    left_glue_annihilator,
-    right_glue_annihilator,
+    glue_annihilator_left,
+    glue_annihilator_right,
     glue_exponent,
     glue_order,
     glue_elementary_divisors,
@@ -284,8 +285,8 @@ end
 # algorithm will abort as well.
 function init_gluing_conditions!(
   Fac::ZZLatGluingFactory,
-  left_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
-  right_glue_annihilator::Union{Nothing, TorQuadModuleMap}=nothing,
+  glue_annihilator_left::Union{Nothing, TorQuadModuleMap}=nothing,
+  glue_annihilator_right::Union{Nothing, TorQuadModuleMap}=nothing,
   glue_exponent::Union{Nothing, IntegerUnion}=nothing,
   glue_order::AbstractVector{T}=ZZRingElem[],
   glue_elementary_divisors::Vector{Vector{ZZRingElem}}=Vector{ZZRingElem}[],
@@ -302,19 +303,19 @@ function init_gluing_conditions!(
 
   qM, qN = ambient_modules(Fac)
 
-  # Left glue group annihilated by the endomorphism left_glue_annihilator
-  if !isnothing(left_glue_annihilator)
-    @assert domain(left_glue_annihilator) === codomain(left_glue_annihilator) === qM
-    VM, VMinqM = kernel(left_glue_annihilator)
+  # Left glue group annihilated by the endomorphism glue_annihilator_left
+  if !isnothing(glue_annihilator_left)
+    @assert domain(glue_annihilator_left) === codomain(glue_annihilator_left) === qM
+    VM, VMinqM = kernel(glue_annihilator_left)
   else
     VMinqM = id_hom(qM)
     VM = qM
   end
 
-  # Right glue group annihilated by the endomorphism right_glue_annihilator
-  if !isnothing(right_glue_annihilator)
-    @assert domain(right_glue_annihilator) === codomain(right_glue_annihilator) === qN
-    VN, VNinqN = kernel(right_glue_annihilator)
+  # Right glue group annihilated by the endomorphism glue_annihilator_right
+  if !isnothing(glue_annihilator_right)
+    @assert domain(glue_annihilator_right) === codomain(glue_annihilator_right) === qN
+    VN, VNinqN = kernel(glue_annihilator_right)
   else
     VNinqN = id_hom(qN)
     VN = qN
@@ -487,6 +488,13 @@ function init_gluing_conditions!(
       union!(_glue_order, _tmp) # = _tmp since _glue_order is empty here
     else
       intersect!(_glue_order, _tmp) # = _tmp since _tmp is contained in _glue_order
+    end
+  end
+
+  if Fac.par === :both
+    _t = unique!(modulus_quadratic_form.(_form_over))
+    if length(_t) == 1
+      Fac.par = isone(unique(_t)) ? :odd : even
     end
   end
 
@@ -774,11 +782,12 @@ function local_glue_maps(
   return res
 end
 
+# TO EXPORT
 @doc raw"""
-    _local_glue_maps(
+    local_glue_maps(
       q1::TorQuadModule,
-      q2::TorQuadModule,
-      parity::Symbol;
+      q2::TorQuadModule;
+      parity::Symbol=:default,
       Ctx::Union{Nothing, ZZLatGluingCtx}=nothing,
       vi::NTuple{2, Int}=(-1, -1),
       kwargs...,
@@ -787,8 +796,9 @@ end
 Return the local glue maps between `q1` and `q2`, up to the action of their
 respective orthogonal groups.
 
-The argument `parity` can be `:even`, `:odd` or `:both` depending on the kind
-of glue maps one wants to compute.
+The keyword argument `parity` can be `:default`, `:even`, `:odd` or `:both`
+depending on the kind of glue maps one wants to compute. If set to `:default`,
+then the algorithm decides depending on the quadratic moduli of `q1` and `q2`
 
 In large scale computations, one can input a gluing context `Ctx` remembering
 some orbit and stabilizers computations for certain `TorQuadModule` and for the
@@ -796,10 +806,10 @@ given parity. The other keyword `vi` is to refer to which nodes of `Ctx` the
 groups `q1` and `q2` are attached (ignores if not in the range of `Ctx`).
 
 The extra keyword arguments include conditions on the gluing. Currently:
-  - `left_glue_annihilator::TorQuadModuleMap`: an endomorphism of `q1`;
+  - `glue_annihilator_left::TorQuadModuleMap`: an endomorphism of `q1`;
     all glue groups inside `q1` are in its kernel. Set to be `nothing` by
     default.
-  - `right_glue_annihilator::TorQuadModuleMap`: an endomorphism of `q2`;
+  - `glue_annihilator_right::TorQuadModuleMap`: an endomorphism of `q2`;
     all glue groups inside `q2` are in its kernel. Set to be `nothing` by
     default.
   - `glue_exponent::IntegerUnion`: an integer; the exponent of the glue groups
@@ -824,17 +834,29 @@ conditions and the list of associated local glue maps.
 """
 function _local_glue_maps(
   q1::TorQuadModule,
-  q2::TorQuadModule,
-  parity::Symbol;
+  q2::TorQuadModule;
+  parity::Symbol=:default,
   Ctx=nothing,
   vi::NTuple{2, Int}=(-1, -1),
   kwargs...,
 )
-  Fac = ZZLatGluingFactory(q1, q2, parity)
+  Fac = ZZLatGluingFactory(q1, q2)
+  if parity === :default
+    if modulus_quadratic_form(q1) == modulus_quadratic_form(q2) == 2
+      Fac.par = :even
+    else
+      Fac.par = :odd
+    end
+  else
+    @req :parity in [:even, :odd, :both] "Wrong parity input"
+    Fac.par = parity
+  end
+
   if !isnothing(Ctx)
     Fac.Ctx = Ctx
     Fac.vertex_identification = vi
   end
+
   init_gluing_factory!(Fac; kwargs...)
   # If the initial conditions give rise to no possible gluings, then
   # we return the empty list
@@ -866,7 +888,9 @@ function _split_orbit_left_group(
   q1 = codomain(H1inq1)
   stab1 = domain(s1)
   Oq1 = codomain(s1)
-
+  if !is_subgroup(O1, Oq1)
+    O1, _ = sub(Oq1, elem_type(Oq1)[Oq1(matrix(g); check=false) for g in gens(O1)])
+  end
   elq1 = elementary_divisors(q1)
   # Check if q1 is a free module over some finite ring, in which case we
   # transform Oq1 into a permutation group
@@ -1018,6 +1042,23 @@ function _overlattice_with_glue_stabilizer(
   D::ZZLatGluingAmbient,
   parity::Symbol,
 )
+  return __overlattice(x, D, parity; glue_stab=true)
+end
+
+function _overlattice(
+  x::ZZLatGluing,
+  D::ZZLatGluingAmbient,
+  parity::Symbol,
+)
+  return __overlattice(x, D, parity; glue_stab=false)[1:3]
+end
+
+function __overlattice(
+  x::ZZLatGluingm
+  D::ZZLatGluingAmbient,
+  parity::Symbol;
+  glue_stab::Bool=false,
+)
   as_bilinear_module = parity === :even ? false : true
   phi, iphi, i1, s1, i2, s2 = _data(x)
   H1, H2 = domain(i1), domain(i2)
@@ -1030,18 +1071,22 @@ function _overlattice_with_glue_stabilizer(
   im2 = elem_type(O2)[O2(restrict_automorphism(g, i2); check=false) for g in gens(domain(s2))]
   act2 = hom(domain(s2), O2, im2)
   V, extinD = _overlattice_with_graph(phi, H1inD, H2inD)
-  @vprintln :ZZLatWithIsom 1 "Glue stabilizers"
-  _disc, _stab = _glue_stabilizers(phi, act1, act2, D.k1, D.k2, extinD)
-  qV = discriminant_group(V)
-  OqV = __orthogonal_group(qV; as_bilinear_module)
-  # qV and _disc are equal, but defined in julia with different base abelian group
-  # so we cannot treat them as the same object. However we can identity them
-  # with a canonical "identity map" phi2
-  phi2 = hom(qV, _disc, elem_type(_disc)[_disc(lift(x)) for x in gens(qV)])
-  @hassert :ZZLatWithIsom 1 is_isometry(phi2; as_bilinear_module=!is_even(V))
-  iphi2 = inv(phi2)
-  # Pullback the glue of the stabilizers along the canonical map phi2
-  GV, _ = sub(OqV, elem_type(OqV)[OqV(phi2 * g * iphi2; check=false) for g in _stab])
+  if glue_stab
+    @vprintln :ZZLatWithIsom 1 "Glue stabilizers"
+    _disc, _stab = _glue_stabilizers(phi, act1, act2, D.k1, D.k2, extinD)
+    qV = discriminant_group(V)
+    OqV = __orthogonal_group(qV; as_bilinear_module)
+    # qV and _disc are equal, but defined in julia with different base abelian group
+    # so we cannot treat them as the same object. However we can identity them
+    # with a canonical "identity map" phi2
+    phi2 = hom(qV, _disc, elem_type(_disc)[_disc(lift(x)) for x in gens(qV)])
+    @hassert :ZZLatWithIsom 1 is_isometry(phi2; as_bilinear_module=!is_even(V))
+    iphi2 = inv(phi2)
+    # Pullback the glue of the stabilizers along the canonical map phi2
+    GV, _ = sub(OqV, elem_type(OqV)[OqV(phi2 * g * iphi2; check=false) for g in _stab])
+  else
+    GV = O1
+  end
   # This is where we require that q1, q2 are discriminant groups of some
   # lattices and phi indeed defines a primitive extension between the
   # respective relations
@@ -1051,186 +1096,9 @@ end
 
 ###############################################################################
 #
-#  Primitive extensions
+#  Primitive extensions where we glue one of the discriminant groups
 #
 ###############################################################################
-
-### Unimodular case
-
-@doc raw"""
-    unimodular_primitive_extensions(
-      M::ZZLat,
-      N::ZZLat;
-      kwargs...,
-    ) -> Vector{NTuple{3, ZZLat}}
-
-Given two integral $\mathbb Z$-lattices $M$ and $N$, return a boolean `T` and a
-list $V$ of representatives of double cosets of unimodular primitive extensions
-$M \oplus N \subseteq L$, for the right and left actions of $O(M)$ and $O(N)$
-respectively.
-
-Note that if the discriminant groups of $M$ and $N$ are not anti-isometric as
-finite bilinear modules, then such unimodular primitive extensions do not
-exist.
-
-Here is a complete list of currently supported keyword arguments:
-- `right_action::MatGroup{QQFieldElem, QQMatrix}` -> replace the right
-  action of $O(M)$ by a right action of the group generated by `right_action`
-  and the kernel of $O(M) \to O(D_M)$.
-- `left_action::MatGroup{QQFieldElem, QQMatrix}` -> replace the left
-  action of $O(N)$ by a left action of the group generated by `left_action`
-  and the kernel of $O(N) \to O(D_N)$.
-- `right_discriminant_action::AutomorphismGroup{TorQuadModule}` -> replace
-  the right action of $O(M)$ by a right action of the largest subgroup whose
-  discriminant representation surjects onto `right_discriminant_action`.
-- `left_discriminant_action::AutomorphismGroup{TorQuadModule}` -> replace
-  the left action of $O(N)$ by a left action of the largest subgroup whose
-  discriminant representation surjects onto `left_discriminant_action`.
-- `first::Bool` -> if set to `true`, return the first unimodular primitive
-  extension computed.
-- `exist_only::Bool` -> if set to `true`, return only whether a unimodular
-  primitive extension exists together with an empty list.
-- `even::Bool` -> if set to `true`, return only even unimodular primitive
-  extensions.
-- `parity::Symbol` -> determine the parity of the unimodular primitive
-  extensions in output. Can be set to be `:odd` for odd extensions, `:even`
-  for even ones or `:both` for both. The value of `parity` takes priority
-  on the value of `even`.
-
-!!! note
-    If `right_action` is provided by the user, then the algorithm assumes that
-    the isometries are given by their matrix representation on the ambient
-    quadratic space of $M$. Similarly for `left_action`.
-
-!!! warning
-    If `right_discriminant_action` is provided by the user, then the algorithm
-    assumes without checking it, that the given group lies in the image of
-    $O(M) \to O(D_M)$. Similarly for `left_discriminant_action`.
-
-"""
-function unimodular_primitive_extensions(
-  M::ZZLat,
-  N::ZZLat;
-  right_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
-  right_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
-  left_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
-  left_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
-  first::Bool=false,
-  exist_only::Bool=false,
-  even::Bool=(is_even(M) && is_even(N)), #low priority
-  parity::Symbol=(even ? :even : :both),
-)
-  @req is_integral(M) && is_integral(N) "Only available for integral lattices"
-
-  # Handle global classifying groups
-  if !isnothing(right_discriminant_action)
-    GMbar = right_discriminant_action
-  elseif !isnothing(right_action)
-    GMbar, _ = image(discriminant_representation(M, right_action; full=false))
-  elseif first || exist_only
-    qM = discriminant_group(M)
-    GMbar = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
-  else
-    GMbar, _ = image_in_Oq(M)
-  end
-
-  if !isnothing(left_discriminant_action)
-    GNbar = left_discriminant_action
-  elseif !isnothing(left_action)
-    GNbar, _ = image(discriminant_representation(N, left_action; full=false))
-  elseif first || exist_only
-    qN = discriminant_group(N)
-    GNbar = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
-  else
-    GNbar, _ = image_in_Oq(N)
-  end
-
-  # Test parity compatibility
-  if !is_even(M) || !is_even(N)
-    (parity === :even) && NTuple{3, ZZLat}[]
-  end
-  return _unimodular_primitive_extensions(M, N, parity, GMbar, GNbar; first, exist_only)
-end
-
-# Return a complete list of representatives for the unimodular primitive
-# extensions of M and N, whose parity is given by parity (:odd, :even or :both)
-# up to the actions of GM and GN. If `first`, return the first known output,
-# and if `exist_only` return true or false, with the empty, as soon as one
-# can conclude on the existence of such a unimodular primitive extension.
-function _unimodular_primitive_extensions(
-  M::ZZLat,
-  N::ZZLat,
-  parity::Symbol,
-  GM::AutomorphismGroup{TorQuadModule},
-  GN::AutomorphismGroup{TorQuadModule};
-  first::Bool=false,
-  exist_only::Bool=false,
-)
-  results = NTuple{3, ZZLat}[]
-  qM = discriminant_group(M)
-  @assert qM === domain(GM)
-  qN = discriminant_group(N)
-  @assert qN === domain(GN)
-
-  parity === :even && (!is_even(M) || !is_even(N)) && return false, results
-
-  as_bilinear_module = (parity !== :even)
-  ok, phi = is_anti_isometric_with_anti_isometry(qM, qN; as_bilinear_module)
-  !ok && return false, results
-  if exist_only
-    # We can already conclude except if parity === :odd, both M and N are even
-    # and phi is an isometry of quadratic module (because the primitive extension
-    # is even, but nothing says that no other is odd)
-    if parity !== :odd || !is_even(M) || !is_even(N) || !is_anti_isometry(phi; as_bilinear_module=false)
-      return true, results
-    end
-  end
-
-  D, inj = direct_sum(qM, qN; cached=false, as_bilinear_module)
-  qMinD, qNinD = inj
-  if first
-    # Same as before, if we already know the primitive extension as the good
-    # parity, we construct it
-    if parity !== :odd || !is_even(M) || !is_even(N) || !is_anti_isometry(phi; as_bilinear_module=false)
-      L, _ = _overlattice_with_graph(phi, qMinD, qNinD)
-      M2, N2 = _as_sublattices(L, M, N)
-      push!(results, (L, M2, N2))
-      return true, results
-    end
-  end
-
-  iphi = inv(phi)
-  if parity === :even
-    OqN = orthogonal_group(qN)
-  else
-    OqN = orthogonal_group_bilinear(qN)
-  end
-
-  genC = elem_type(OqN)[OqN(iphi * hom(g) * phi; check=false) for g in gens(GM)]
-  GMphi, _ = sub(OqN, genC)
-  elqN = elementary_divisors(qN)
-  if isone(order(qN)) || elqN[1] == elqN[end]
-    iso = isomorphism(PermGroup, OqN)
-  else
-    iso = id_hom(OqN)
-  end
-  reps = double_cosets(codomain(iso), Base.first(iso(GN)), Base.first(iso(GMphi)))
-  for _g in reps
-    g = iso\(representative(_g))
-    phig = compose(phi, hom(g))
-    L, _ = _overlattice_with_graph(phig, qMinD, qNinD)
-    if parity === :even
-      is_even(L) || continue
-    elseif parity === :odd
-      !is_even(L) || continue
-    end
-    exist_only && return true, results
-    M2, N2 = _as_sublattices(L, M, N)
-    push!(results, (L, M2, N2))
-    first && return true, results
-  end
-  return length(results) > 0, results
-end
 
 # Similar to the previous: this time the primitive extension is not unimodular
 # but its determinant is coprime to the determinant of M. In particular, the
@@ -1529,7 +1397,7 @@ function _primitive_embeddings_generic_safe(
   q1n = discriminant_group(T)
   signK = signature_pair(G1) .- signature_pair(G2)
 
-  Fac, lgm = _local_glue_maps(q2, q1n, parity; Ctx, vi=reverse(vi))
+  Fac, lgm = _local_glue_maps(q2, q1n; parity, Ctx, vi=reverse(vi))
   isempty(lgm) && return results
   DKs = Dict{ZZGenus, Vector{ZZLat}}()
   
