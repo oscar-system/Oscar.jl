@@ -144,7 +144,7 @@ Data intended for querying may also be suitable for [OscarDB](https://docs.oscar
 
 ### [Registering](@id artifact_registration)
 
-Creating an artifact typically involves the following steps:
+Recall that creating an artifact typically involves the following steps:
 
 - collecting the relevant data files,
 - packing these files into a compressed tarball (`.tar.gz`),
