@@ -854,6 +854,7 @@ end
 
 function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
   s = deserializer_open(io, serializer, with_attrs)
+  println(propertynames(s.obj))
   if :id in propertynames(s.obj)
     id = load_json(s.obj[:id], UUID)
     if haskey(global_serializer_state.id_to_obj, id)
@@ -894,9 +895,9 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
     loaded = do_load(s)
     if haskey(s, :id)
       load_node(s, :id) do
-        id = load_json(s, String)
-        global_serializer_state.obj_to_id[loaded] = UUID(id)
-        global_serializer_state.id_to_obj[UUID(id)] = loaded
+        id = load_json(s, UUID)
+        global_serializer_state.obj_to_id[loaded] = id
+        global_serializer_state.id_to_obj[id] = loaded
       end
     end
     return loaded
