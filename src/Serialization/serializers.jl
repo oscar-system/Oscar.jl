@@ -198,7 +198,7 @@ end
 # general loading of a reference
 
 function load_ref(s::DeserializerState)
-  id = load_json(s.obj, UUID)
+  id = load_json(s, UUID)
   if haskey(global_serializer_state.id_to_obj, id)
     loaded_ref = global_serializer_state.id_to_obj[id]
   else
