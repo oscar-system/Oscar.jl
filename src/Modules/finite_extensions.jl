@@ -108,7 +108,7 @@ end
 
 @doc raw"""
     restriction_of_scalars(psi::FiniteGradedMPolyAnyMap, M::SubquoModule;
-        ambient_restriction_of_scalars=restriction_of_scalars(psi, ambient_free_module(M))
+        ambient_restriction=restriction_of_scalars(psi, ambient_free_module(M))
       )
 
 Given a finite extension ``ψ : A → B`` of ℤ-graded rings and a subquotient 
@@ -117,9 +117,9 @@ isomorphic to ``M`` as an ``A``-module. This returns a pair `(N, interp)`
 where `interp` is a map for the identification ``M → N``.
 """
 function restriction_of_scalars(psi::FiniteGradedMPolyAnyMap, M::SubquoModule;
-    ambient_restriction_of_scalars=restriction_of_scalars(psi, ambient_free_module(M))
+    ambient_restriction=restriction_of_scalars(psi, ambient_free_module(M))
   )
-  psiF, interp = ambient_restriction_of_scalars
+  psiF, interp = ambient_restriction
   @assert is_graded(psiF)
   psi_gens = elem_type(psiF)[interp(g*v) for v in ambient_representatives_generators(M) for g in generating_system(psi)]
   @assert all(is_homogeneous, psi_gens)
@@ -291,12 +291,42 @@ Given a finite map ``φ : A → B`` and a morphism of ``B``-modules ``f : M → 
 return ``φ_* f : φ_* M → φ_* N``, i.e. the induced map on the `restriction_of_scalars` 
 along ``φ`` of the domain and the codomain of ``f``.
 """
-function restriction_of_scalars(psi::FiniteGradedMPolyAnyMap, f::ModuleFPHom;
+function restriction_of_scalars(psi::MapType, f::ModuleFPHom;
     domain_restriction=restriction_of_scalars(psi, domain(f)),
     codomain_restriction=restriction_of_scalars(psi, codomain(f))
-  )
+  ) where {MapType <: Union{FiniteGradedMPolyAnyMap, MPolyAnyMap}}
   M, interp_M = domain_restriction
   N, interp_N = codomain_restriction
   return hom(M, N, elem_type(N)[interp_N(f(preimage(interp_M, x))) for x in gens(M)])
+end
+
+function restriction_of_scalars(
+    phi::MPolyAnyMap{DomainType, CodomainType, Nothing}, 
+    F::FreeMod
+  ) where {DomainType <: MPolyRing, CodomainType <: MPolyQuoRing}
+  S = domain(phi)
+  A = codomain(phi)
+  # Should it ever become necessary to widen the functionality to other maps, 
+  # a distinction needs to be made here and everything must be handed to internal 
+  # methods accordingly. For the moment, this is the case that interests us. 
+  @assert base_ring(A) === S && all(phi(x) == y for (x, y) in zip(gens(S), gens(A))) "restriction of scalars is only implemented for projection maps to quotients"
+  #pf_F = graded_free_module(S, degrees_of_generators(F))
+  pf_F = is_graded(F) ? graded_free_module(S, degrees_of_generators(F)) : free_module(S, ngens(F))
+  I = sub_object(pf_F, reduce(vcat, [elem_type(pf_F)[x*g for x in gens(modulus(A))] for g in gens(pf_F)]))
+  result = quo_object(pf_F, I)
+  return result, MapFromFunc(F, result, x->result(map_entries(lift, coordinates(x))), y->F(map_entries(A, coordinates(y))))
+end
+
+function restriction_of_scalars(
+    phi::MPolyAnyMap{DomainType, CodomainType, Nothing}, 
+    M::SubquoModule;
+    ambient_restriction=restriction_of_scalars(phi, ambient_free_module(M))
+  ) where {DomainType <: MPolyRing, CodomainType <: MPolyQuoRing}
+  pf_F, interp_F = ambient_restriction
+  new_gens = elem_type(pf_F)[interp_F(v) for v in ambient_representatives_generators(M)]
+  new_rels = elem_type(pf_F)[interp_F(v) for v in relations(M)]
+  I = sub_object(pf_F, new_gens)
+  result = quo_object(I, new_rels)
+  return result, MapFromFunc(M, result, x->result(map_entries(lift, coordinates(x))), y->M(map_entries(codomain(phi), coordinates(y))))
 end
 
