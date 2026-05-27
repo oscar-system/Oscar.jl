@@ -1,11 +1,11 @@
 @testset "finite extensions" begin
-  # Create a `FiniteExtension`
+  # Create a `FiniteGradedMPolyAnyMap`
   S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
   P, (u, v) = graded_polynomial_ring(QQ, [:u, :v])
   f = x^2 + y^2 + z^2
   I = ideal(S, f)
   A, _ = quo(S, I)
-  psi = Oscar.FiniteExtension(hom(P, A, A.([x, y])));
+  psi = Oscar.FiniteGradedMPolyAnyMap(hom(P, A, A.([x, y])));
 
   # As a test case we recreate the codomain as a free module over itself
   # and push it forward to the domain.
@@ -107,7 +107,7 @@ end
   kk = coefficient_ring(P);
   B, (xx, yy, zz) = graded_polynomial_ring(kk, [:xx, :yy, :zz])
   phi = hom(B, S, gens(S)[1:3])
-  psi = Oscar.FiniteExtension(phi);
+  psi = Oscar.FiniteGradedMPolyAnyMap(phi);
   M = canonical_bundle(X)
   M, _ = simplify(M);
   # M = tensor_product(M, M); # can be added for higher powers
@@ -115,6 +115,11 @@ end
   MM, _ = change_base_ring(S, M);
   @time N, m = Oscar._global_section_module(psi, MM);
   @test is_isomorphism(m)
+
+  # push everything forward to IP^4
+  p = hom(P, S, gens(S))
+  mm = restriction_of_scalars(p, m);
+  @test is_isomorphism(mm)
   
   F = graded_free_module(S, [0])
   FF, interp = Oscar.restriction_of_scalars(psi, F);
