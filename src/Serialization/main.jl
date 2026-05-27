@@ -144,7 +144,7 @@ function decode_type(s::DeserializerState)
       end
       id = obj
       lazy_obj = s.obj
-      s.obj = s.refs[UUID(id)]
+      s.obj = s.refs[uuid]
       T = decode_type(s)
       s.obj = lazy_obj
       return T
