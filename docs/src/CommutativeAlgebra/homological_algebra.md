@@ -15,6 +15,10 @@ supporting computations in homological algebra.
 ## Pruning Modules
 
 ```@docs
+prune(M::ModuleFP)
+```
+
+```@docs
 prune_with_map(M::ModuleFP)
 ```
 ## Finiteness and cardinality as a set
