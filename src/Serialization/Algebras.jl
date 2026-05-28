@@ -41,11 +41,9 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem},
   load_array_node(s) do _
     loaded_coeff = load_object(s, coeff_type, base_ring(parent_algebra), 2)
     loaded_term = parent_algebra(loaded_coeff)
-    e = load_array_node(s, 1) do _
+    e = load_array_node(s, 1; entry_type=Int) do _
       load_object(s, Int)
     end
-    # guarantees e is a Int[]
-    e = convert(Vector{Int}, e)
     push_term!(elem, loaded_coeff, e)
   end
 
