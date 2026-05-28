@@ -1707,6 +1707,8 @@ export simplify_light
 export simplify_with_same_ambient_free_module
 export singular_locus
 export singular_locus_reduced
+export slack_ideal
+export slack_ideal_non_saturated
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
