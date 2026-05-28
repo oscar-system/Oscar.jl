@@ -64,8 +64,40 @@ function gens(a::FreeAssociativeAlgebraIdeal{T}) where T
   return T[gen(a,i) for i in 1:ngens(a)]
 end
 
-AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal) = normal_form(f, gens(I))
-AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}) = normal_form(f, collect(I))
+@doc raw"""
+    normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal; algorithm::Symbol=:default)
+    normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
+
+Return the normal form of `f` with respect to the generators of `I`.
+
+The `algorithm` keyword controls the reduction method: `:default` uses the standard
+Aho-Corasick-based reduction, `:f4` uses the F4-based reduction (requires `QQ`
+coefficients and `:deglex` ordering). If a Groebner basis of `I` is already stored,
+the `:f4` path will use it automatically.
+```jldoctest
+julia> R, (x, y, z) = free_associative_algebra(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x*y + y*z, x^2 + y^2]);
+
+julia> iszero(normal_form(x*y + y*z, I))
+true
+
+julia> iszero(normal_form(x*y + y*z, I; algorithm=:f4))
+true
+```
+"""
+function AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal; algorithm::Symbol=:default)
+  @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported"
+  algorithm == :f4 || return normal_form(f, gens(I))
+  g = isdefined(I, :gb) ? I.gb : gens(I)
+  return _f4ncgb_normal_form(f, g)
+end
+
+function AbstractAlgebra.normal_form(f::FreeAssociativeAlgebraElem, I::IdealGens{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
+  @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported"
+  algorithm == :f4 || return normal_form(f, collect(I))
+  return _f4ncgb_normal_form(f, collect(I))
+end
 
 function set_gb!(I::FreeAssociativeAlgebraIdeal, gb::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int; force::Bool=false)
   return set_gb!(I, IdealGens(gb), deg_bound; force=force)
@@ -113,9 +145,7 @@ true
 """
 function ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; algorithm::Symbol=:default)
   @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported for ideal membership testing"
-  algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
-
-  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(reducer(a, I.gb, I.deg_bound))
+  isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return iszero(normal_form(a, I.gb; algorithm=algorithm))
   groebner_basis(I, deg_bound; algorithm=algorithm)
   return ideal_membership(a, I, deg_bound; algorithm=algorithm)
 end
@@ -128,20 +158,18 @@ function ideal_membership(a::FreeAssociativeAlgebraElem, I::Vector{<:FreeAssocia
   @req all(x -> parent(x) == R, I) "parent mismatch"
 
   gb = groebner_basis(I, deg_bound; algorithm=algorithm)
-
-  algorithm == :f4 ? reducer = _f4ncgb_ideal_membership : reducer = (a, gb, _) -> normal_form(a, gb)
-  return iszero(reducer(a, gb, deg_bound))
+  return iszero(algorithm == :f4 ? _f4ncgb_normal_form(a, gb) : normal_form(a, gb))
 end
 
-_f4ncgb_ideal_membership(
+_f4ncgb_normal_form(
   a::FreeAssociativeAlgebraElem,
   g::IdealGens{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   probabilistic::Bool = false
-) = _f4ncgb_ideal_membership(a, collect(g), deg_bound; probabilistic=probabilistic)
+) = _f4ncgb_normal_form(a, collect(g), deg_bound; probabilistic=probabilistic)
 
 
-function _f4ncgb_ideal_membership(
+function _f4ncgb_normal_form(
   a::FreeAssociativeAlgebraElem,
   g::Vector{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
@@ -314,7 +342,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
       f4ncgb_free(handle)
     end
     gb = userdata.gens
-    interreduce && return interreduce!(gb)
+    interreduce && return interreduce!(gb; algorithm=:f4)
 
     return userdata.gens
 
@@ -354,10 +382,65 @@ function is_groebner_basis(gb::Vector{<:FreeAssociativeAlgebraElem})
   return true
 end
 
-function interreduce!(I::FreeAssociativeAlgebraIdeal)
-  set_gb!(I, interreduce!(I.gb), I.deg_bound; force=true)
+@doc raw"""
+    interreduce!(g::Vector{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
+    interreduce!(I::FreeAssociativeAlgebraIdeal; algorithm::Symbol=:default)
+    interreduce!(gb::IdealGens{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
+
+Interreduce a Groebner basis with itself: compute the normal form of each element with
+respect to the remaining elements, discard elements with normal form $0$, and replace
+elements by their reduced normal forms.
+
+The `algorithm` keyword controls the reduction method: `:default` uses the standard
+Aho-Corasick-based reduction, `:f4` uses the F4-based reduction (requires `QQ`
+coefficients and `:deglex` ordering, but is significantly faster for large bases).
+```jldoctest
+julia> R, (x, y, z) = free_associative_algebra(QQ, [:x, :y, :z]);
+
+julia> g = groebner_basis([x*y + y*z, x^2 + y^2], 3);
+
+julia> length(interreduce!(collect(g); algorithm=:f4)) <= length(g)
+true
+```
+"""
+function interreduce!(g::Vector{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default, verbose::Bool=false)
+  @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported"
+  algorithm == :default && return AbstractAlgebra.Generic.interreduce!(g)
+  i = 1
+  old_length = length(g)
+  if verbose
+    print("Interreducing... $(length(g) - i + 1) remaining")
+  end
+  while length(g) > 1 && length(g) >= i
+    r = _f4ncgb_normal_form(g[i], g[1:end .!= i])
+    if iszero(r)
+      deleteat!(g, i)
+    elseif g[i] != r
+      g[i] = r
+      i = 1
+    else
+      i += 1
+    end
+    if length(g) < old_length
+      old_length = length(g)
+      if verbose
+        print("\033[2K\rInterreducing... $(length(g) - i + 1) remaining")
+        flush(stdout)
+      end
+    end
+
+  end
+  if verbose
+    print("\033[2K\r")
+    flush(stdout)
+  end
+  return g
+end
+
+function interreduce!(I::FreeAssociativeAlgebraIdeal; algorithm::Symbol=:default)
+  set_gb!(I, interreduce!(I.gb; algorithm=algorithm), I.deg_bound; force=true)
   return I
 end
-function interreduce!(gb::IdealGens{<:FreeAssociativeAlgebraElem})
-  return IdealGens(interreduce!(collect(gb)))
+function interreduce!(gb::IdealGens{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
+  return IdealGens(interreduce!(collect(gb); algorithm=algorithm))
 end
