@@ -385,7 +385,7 @@ function save_object(s::SerializerState, c::AcbFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{AcbFieldElem}, parent::AcbField)
-  (real_part, imag_part) = load_array_node(s) do _
+  (real_part, imag_part) = load_array_node(s; entry_type=ArbFieldElem) do _
     load_object(s, ArbFieldElem, ArbField(precision(parent)))
   end
   return parent(real_part, imag_part)

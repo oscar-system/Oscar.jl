@@ -106,12 +106,12 @@ end
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do
     if serialize_with_id(params)
-      loaded_v = load_array_node(s) do _
+      loaded_v = load_array_node(s; entry_type=params) do _
         load_ref(s)
-      end::Vector{params}
+      end
     else
       isempty(s.obj) && return params[]
-      loaded_v = load_array_node(s) do _
+      loaded_v = load_array_node(s; entry_type=params) do _
         load_object(s, params)
       end
     end
@@ -122,7 +122,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
   isempty(s.obj) && return T[]
-  v = load_array_node(s) do _
+  v = load_array_node(s; entry_type=T) do _
     if serialize_with_id(T)
       load_ref(s)
     else
@@ -595,21 +595,21 @@ function save_object(s::SerializerState, x::Set)
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Any) where T
-  elems = load_array_node(s) do _
+  elems = load_array_node(s; entry_type=T) do _
     load_object(s, T, params)
   end
   return S(elems)
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
-  elems = load_array_node(s) do _
+  elems = load_array_node(s; entry_type=T) do _
     load_object(s, T, nothing)
   end
   return S(elems)
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T
-  elems = load_array_node(s) do _
+  elems = load_array_node(s; entry_type=T) do _
     load_object(s, T)
   end
   return S(elems)
