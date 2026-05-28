@@ -515,9 +515,22 @@ function _kernel_subquo_generators_via_modulo(
     G::FreeMod{T},
     g::Vector{FreeModElem{T}},
     rels::Vector{FreeModElem{T}}
-  ) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  ) where {T <: MPolyRingElem}
   ordering = default_ordering(G)
   SF = singular_module(G, ordering)
+  A = singular_generators(ModuleGens(g, G, SF))
+  B = singular_generators(ModuleGens(rels, G, SF))
+  K = Singular.modulo(A, B)
+  return elem_type(F)[v for v in oscar_generators(ModuleGens(F, K))]
+end
+
+function _kernel_subquo_generators_via_modulo(
+    F::FreeMod{T},
+    G::FreeMod{T},
+    g::Vector{FreeModElem{T}},
+    rels::Vector{FreeModElem{T}}
+  ) where {T <: MPolyQuoRingElem}
+  SF = singular_module(G)
   A = singular_generators(ModuleGens(g, G, SF))
   B = singular_generators(ModuleGens(rels, G, SF))
   K = Singular.modulo(A, B)

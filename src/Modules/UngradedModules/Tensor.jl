@@ -142,16 +142,16 @@ julia> T, t = tensor_product(M, M; task = :map);
 
 julia> gens(T)
 4-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
- (e[1] \otimes e[1])
- (e[1] \otimes e[2])
- (e[2] \otimes e[1])
- (e[2] \otimes e[2])
+ e[1] \otimes e[1]
+ e[1] \otimes e[2]
+ e[2] \otimes e[1]
+ e[2] \otimes e[2]
 
 julia> domain(t)
 parent of tuples of type Tuple{SubquoModuleElem{QQMPolyRingElem}, SubquoModuleElem{QQMPolyRingElem}}
 
 julia> t((M[1], M[2]))
-(e[1] \otimes e[2])
+e[1] \otimes e[2]
 ```
 """
 function tensor_product(G::OFPModule...; task::Symbol = :none, minimal::Bool = false)
