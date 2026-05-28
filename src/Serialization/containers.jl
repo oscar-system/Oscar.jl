@@ -294,7 +294,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:Tuple, <:Tuple})
       return load_object(s, elem_tp)
     end
   end
-  return T(entries)
+  return Tuple(entries)
 end
 
 function load_object(s::DeserializerState, T::Type{<:Tuple})
@@ -302,7 +302,7 @@ function load_object(s::DeserializerState, T::Type{<:Tuple})
     S = fieldtype(T, i)
     load_object(s, S)
   end
-  return T(entries)
+  return Tuple(entries)
 end
 
 ################################################################################
@@ -474,10 +474,12 @@ end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:Dict{S, U}, Nothing}) where {S, U}
   T = type(tp)
-  pairs = load_array_node(s; entry_type=Tuple{S, U}) do _
+  pairs = load_array_node(s) do _
     load_object(s, TypeParams(Tuple{S, U}, (nothing, nothing)))
   end
-  return T(k => v for (k, v) in pairs)
+  isempty(pairs) && return T()
+  k1, v1 = first(pairs)
+  return Dict{typeof(k1), typeof(v1)}(k => v for (k, v) in pairs)
 end
 
 function load_object(s::DeserializerState,
