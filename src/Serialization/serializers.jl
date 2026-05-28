@@ -249,7 +249,7 @@ end
 
 function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing,
-                         entry_type = Any)
+                         entry_type::DataType = Any)
   load_node(s, key) do
     i = 1
     result = entry_type[]
