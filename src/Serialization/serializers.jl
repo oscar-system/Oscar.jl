@@ -296,10 +296,18 @@ function load_node(f::Function, s::DeserializerState,
 end
 
 function load_array_node(f::Function, s::DeserializerState,
-                         key::Union{Symbol, Int, Nothing} = nothing)
+                         key::Union{Symbol, Int, Nothing} = nothing;
+                         entry_type::Type = Any)
   load_node(s, key) do
-    n = length(s.obj)
-    [load_node(s, i) do; f((i, s.obj)) end for i in 1:n]
+    i = 1
+    result = entry_type[]
+    sizehint!(result, length(s.obj))
+    foreach(s.obj) do v
+      s.obj = v
+      push!(result, f(i))
+      i += 1
+    end
+    return result
   end
 end
 
