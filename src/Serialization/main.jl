@@ -139,7 +139,7 @@ function decode_type(s::DeserializerState)
     obj = load_json(s, String)
     uuid = tryparse(UUID, obj)
     if !isnothing(uuid)
-      if isnothing(s.refs)
+      if isempty(s.refs)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
       id = obj
