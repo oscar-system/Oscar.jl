@@ -1983,6 +1983,11 @@ end
   R, (x,y) = QQ[:x,:y]
   F = free_module(R, 2)
 
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2015,6 +2020,11 @@ end
   I = ideal(R, [x^3+y^2+z^2, x*y])
   Q,_ = quo(R, I)
   F = free_module(Q, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2064,6 +2074,11 @@ end
   R, (x,y,z) = QQ[:x,:y,:z]
   L,_ =  localization(R, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(L, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2132,6 +2147,11 @@ end
   Q,_ = quo(R, I)
   LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(LQ, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
