@@ -35,8 +35,13 @@ end
 
 function syz(A::MatElem{<:MPolyQuoLocRingElem})
   B, D = clear_denominators(A)
-  L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
-  return map_entries(base_ring(A), transpose(transpose(D) * transpose(L[:,1:nrows(D)])))
+  L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))[:,1:nrows(D)]
+  # remove zero rows in L
+  rows_L = [i for i in 1:nrows(L) if !iszero(L[i,:])]
+  S = map_entries(base_ring(A), transpose(transpose(D) * transpose(L[rows_L, :])))
+  # remove zero rows in S
+  rows_S = [i for i in 1:nrows(S) if !iszero(S[i,:])]
+  return S[rows_S, :]
 end
 
 function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatElem{T}}
@@ -117,7 +122,6 @@ function kernel(
   ffb = compose(fb, p)
   Kb, incb = kernel(ffb)
   Cb = representing_matrix(incb)
-  C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
   C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
   #C = change_base_ring(S, Cb*D)
   K, inc = sub(domain(f), C)
