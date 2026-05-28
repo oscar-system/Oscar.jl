@@ -13,7 +13,7 @@ Return the defining matrix `A` of the derterminantal germ `X` over the ring of t
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x, :y, :z];
 
-julia> A = R[x 0 z;  0 y  z]
+julia> A = R[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
@@ -56,7 +56,7 @@ Return the determinantal type `(n,m,t)` of the derterminantal germ `X`, where `n
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x, :y, :z];
 
-julia> A = R[x 0 z;  0 y  z]
+julia> A = R[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
@@ -215,7 +215,7 @@ Return the $T^1_{GL}$-module of the defining matrix `A` of the determinantal ger
 ```jldoctest
 julia> R, (x,y) = QQ[:x, :y];
 
-julia> A = R[x 0; 0 y^2+x^2]
+julia> A = R[x 0;  0 y^2+x^2]
 [x           0]
 [0   x^2 + y^2]
 
