@@ -124,6 +124,25 @@ const LocalRingElem = Union{
 
 const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 
+determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(minors(A, t))
+
+function determinantal_ideal(A::MatElem, t::Int, ::Val{:symmetric})
+  @req is_symmetric(A) "'A' is not a symmetric matrix."
+  return ideal(minors(A, t))
+end
+
+#pfaffians check skew-symmetric
+determinantal_ideal(A::MatElem, t::Int, ::Val{:skew_symmetric}) = ideal(pfaffians(A, 2*t)) 
+
+
+_expected_codim(n::Int, m::Int, t::Int, ::Val{:generic}) = (n-t+1)*(m-t+1)
+_expected_codim(n::Int, m::Int, t::Int, ::Val{:symmetric}) = div((n-t+2)*(n-t+1), 2)
+_expected_codim(n::Int, m::Int, t::Int, ::Val{:skew_symmetric}) = div((n-2*t+2)*(n-2*t+1), 2)
+
+_codim_error(::Val{:generic}) = "matrix does not describe a singularity of expected codimension."
+_codim_error(::Val{:symmetric}) = "symmetric matrix does not describe a singularity of expected codimension."
+_codim_error(::Val{:skew_symmetric}) = "skew-symmetric matrix does not describe a singularity of expected codimension."
+
 @doc raw"""
     DeterminantalGerm{BaseRingType, RingType, AffineSchemeType, Oscar.MatTypeVal}
 
@@ -144,30 +163,14 @@ A determinantal germ $(X_A^t, O_{(X_A^t,x)})$, i.e. a ringed space with underlyi
     (n, m) = size(A)
     @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
     R = base_ring(A)
+    
+    val = Val(mat_type)
+    I = determinantal_ideal(A, t, val)
+    @check (krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val)) _codim_error(val)
 
-    if mat_type == :generic
-      I = ideal(R, minors(A, t))
-      @check begin
-        krull_dim(R) - krull_dim(I) == (n-t+1)*(m-t+1) || error("matrix does not describe a singularity of expected codimension.")
-      end
-    elseif mat_type == :symmetric
-      @req is_symmetric(A) "'A' is not a symmetric matrix."
-      I = ideal(R, minors(A, t))
-      @check begin
-        krull_dim(R) - krull_dim(I) == (n-t+2)*(n-t+1)//2 || error("symmetric matrix does not describe a singularity of expected codimension.")
-      end
-    else # mat_type == :skew_symmetric
-      @req is_skew_symmetric(A) "`A` is not a skew-symmetric matrix."
-      I = ideal(R, pfaffians(A, 2*t))
-      @check begin
-        krull_dim(R) - krull_dim(I) == (n-2*t+2)*(n-2*t+1)//2 || error("skew-symmetric matrix does not describe a singularity of expected codimension.")
-      end
-    end
-
-    K = coefficient_ring(R)
     Q, _ = quo(R, I)
     X = spec(Q)
-    return new{typeof(K), typeof(Q), typeof(X), Val{mat_type}}(A, t, X)
+    return new{typeof(coefficient_ring(R)), typeof(Q), typeof(X), typeof(val)}(A, t, X)
   end
 end
 
