@@ -248,7 +248,7 @@ function load_node(f::Function, s::DeserializerState,
 end
 
 function load_array_node(f::Function, s::DeserializerState,
-                         key::Union{Symbol, Int, Nothing} = nothing,
+                         key::Union{Symbol, Int, Nothing} = nothing;
                          entry_type = Any)
   load_node(s, key) do
     i = 1
