@@ -251,11 +251,14 @@ function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do
     i = 1
+    result = Any[]
+    sizehint(result, length(s.obj))
     foreach(s.obj) do v
       s.obj = v
-      f(i)
+      push!(result, f(i))
       i += 1
     end
+    return result
   end
 end
 
