@@ -250,8 +250,10 @@ end
 function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do
-    n = length(s.obj)
-    [load_node(s, i) do; f(i) end for i in 1:n]
+    for (i, v) in enumerate(s.obj)
+      s.obj = v
+      f(i)
+    end
   end
 end
 
