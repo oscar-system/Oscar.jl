@@ -136,9 +136,9 @@ export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export ModuleFP
-export ModuleFPElem
-export ModuleFPHom
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
@@ -1521,6 +1521,7 @@ export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
 export projectivization
+export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices

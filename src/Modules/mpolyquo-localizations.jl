@@ -1,4 +1,4 @@
-clear_denominators(A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}} = clear_denominators(map_entries(lift, A))
+clear_denominators(A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatElem{T}} = clear_denominators(map_entries(lift, A))
 
 # use the lifts to do computations effectively over the base ring
 # rather than the quotient ring.
@@ -33,13 +33,13 @@ function modulus_matrix(L::MPolyQuoLocRing, n::Int)
   return B
 end
 
-function syz(A::MatrixElem{<:MPolyQuoLocRingElem})
+function syz(A::MatElem{<:MPolyQuoLocRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
   return map_entries(base_ring(A), transpose(transpose(D) * transpose(L[:,1:nrows(D)])))
 end
 
-function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}}
+function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatElem{T}}
   R = base_ring(A)
   R === base_ring(b) || error("matrices must be defined over the same ring")
   nrows(b) == 1 || error("only matrices with one row are allowed!")
@@ -51,7 +51,7 @@ function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, Matrix
   return ideal(R, vec(L[:, 1]))
 end
 
-function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}}
+function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatElem{T}}
   S = base_ring(A)
   R = base_ring(S)
   S === base_ring(b) || error("matrices must be defined over the same ring")
