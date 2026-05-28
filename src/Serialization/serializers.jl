@@ -253,7 +253,7 @@ function load_array_node(f::Function, s::DeserializerState,
   load_node(s, key) do
     i = 1
     result = entry_type[]
-    sizehint(result, length(s.obj))
+    sizehint!(result, length(s.obj))
     foreach(s.obj) do v
       s.obj = v
       push!(result, f(i))
