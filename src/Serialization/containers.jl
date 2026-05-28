@@ -106,14 +106,18 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
     if serialize_with_id(params)
       loaded_v = load_array_node(s; entry_type=params) do _
         load_ref(s)
-      end::Vector{params}
+      end
     else
       isempty(s) && return params[]
       loaded_v = load_array_node(s; entry_type=params) do _
         load_object(s, params)
       end
     end
-    return loaded_v
+    if !isempty(loaded_v) && !Base.isconcretetype(params)
+      elem_T = typeof(first(loaded_v))
+      return Vector{elem_T}(loaded_v)
+    end
+    return loaded_v::Vector{params}
   end
 end
 
@@ -128,6 +132,10 @@ function load_object(s::DeserializerState, tp::TypeParams{Vector{T}}) where T
     else
       load_object(s, elem_tp)
     end
+  end
+  if !isempty(v) && !Base.isconcretetype(T)
+    elem_T = typeof(first(v))
+    return Vector{elem_T}(v)
   end
   return v
 end
