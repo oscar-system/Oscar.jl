@@ -113,7 +113,7 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
         load_object(s, params)
       end
     end
-    if !isempty(loaded_v) && !Base.isconcretetype(params)
+    if !isempty(loaded_v)
       elem_T = typeof(first(loaded_v))
       return Vector{elem_T}(loaded_v)
     end
@@ -133,7 +133,7 @@ function load_object(s::DeserializerState, tp::TypeParams{Vector{T}}) where T
       load_object(s, elem_tp)
     end
   end
-  if !isempty(v) && !Base.isconcretetype(T)
+  if !isempty(v)
     elem_T = typeof(first(v))
     return Vector{elem_T}(v)
   end
