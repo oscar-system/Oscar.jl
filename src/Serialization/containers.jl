@@ -510,7 +510,7 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeParams{<:Dict{S, U}, <:Tuple{Vararg{Pair}}}) where {S, U}
   T = type(tp)
-  pairs = load_array_node(s; entry_type=Tuple{S, U}) do _
+  pairs = load_array_node(s) do _
     load_object(s, TypeParams(Tuple{S, U}, (tp[:key_params], tp[:value_params])))
   end
   isempty(pairs) && return T()
