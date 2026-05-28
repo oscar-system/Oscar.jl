@@ -253,14 +253,14 @@ end
 
 @doc raw"""
     co_extension_of_scalars(
-        psi::FiniteGradedMPolyAnyMap, N::ModuleFP; 
+        psi::FiniteGradedMPolyAnyMap, N::OFPModule; 
         domain_as_module=restriction_of_scalars(psi, graded_free_module(domain(psi), [0]))
       )
 
 Given a finite map `φ : A → B` and a `B`-module `N`, compute `M = Hom_B(A, N)` and return a pair `(M, m)` where `m` is a "multiplication map" which turns an element `x` of `B` into the endomorphism of `M` induced by multiplication with `x`. 
 """
 function co_extension_of_scalars(
-    psi::FiniteGradedMPolyAnyMap, N::ModuleFP;
+    psi::FiniteGradedMPolyAnyMap, N::OFPModule;
     domain_as_module=restriction_of_scalars(psi, graded_free_module(domain(psi), [0]))
   )
   B = domain(psi)
@@ -282,7 +282,7 @@ function co_extension_of_scalars(
 end
 
 @doc raw"""
-     restriction_of_scalars(psi::FiniteGradedMPolyAnyMap, f::ModuleFPHom;
+     restriction_of_scalars(psi::FiniteGradedMPolyAnyMap, f::OFPModuleHom;
         domain_restriction=restriction_of_scalars(psi, domain(f)),
         codomain_restriction=restriction_of_scalars(psi, codomain(f))
       )
@@ -291,7 +291,7 @@ Given a finite map ``φ : A → B`` and a morphism of ``B``-modules ``f : M → 
 return ``φ_* f : φ_* M → φ_* N``, i.e. the induced map on the `restriction_of_scalars` 
 along ``φ`` of the domain and the codomain of ``f``.
 """
-function restriction_of_scalars(psi::MapType, f::ModuleFPHom;
+function restriction_of_scalars(psi::MapType, f::OFPModuleHom;
     domain_restriction=restriction_of_scalars(psi, domain(f)),
     codomain_restriction=restriction_of_scalars(psi, codomain(f))
   ) where {MapType <: Union{FiniteGradedMPolyAnyMap, MPolyAnyMap}}
