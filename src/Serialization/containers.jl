@@ -104,12 +104,12 @@ end
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do
     if serialize_with_id(params)
-      loaded_v = load_array_node(s; entry_type=T) do _
+      loaded_v = load_array_node(s; entry_type=params) do _
         load_ref(s)
       end::Vector{params}
     else
       isempty(s) && return params[]
-      loaded_v = load_array_node(s; entry_type=T) do _
+      loaded_v = load_array_node(s; entry_type=params) do _
         load_object(s, params)
       end
     end
