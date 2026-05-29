@@ -124,7 +124,7 @@ We recommend the use of the `.mrdi` file format for serialization. However, this
 
 ### [Hosting Artifacts](@id artifact_hosting)
 
-Artifacts should be hosted at stable and persistent locations.
+If you want create an artifact, the first decision is where it is to be safely stored: to ensure future accessibility, artifacts should be hosted at stable and persistent locations.
 
 Preferred options include:
 
