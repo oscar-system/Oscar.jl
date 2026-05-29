@@ -98,7 +98,7 @@ lazy = true
     url = "https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz"
 ```
 
-You may of course replace `MyExample` in the above entry with any other string that you find descriptive.
+You may, of course, replace `MyExample` in the above entry with any other string that you find descriptive.
 
 #### Use the artifact
 
