@@ -86,7 +86,7 @@ println("sha256: ", bytes2hex(open(sha256, filename)))
 println("git-tree-sha1: ", Tar.tree_hash(IOBuffer(inflate_gzip(filename))))
 ```
 
-Then add this information, together with the host location, to `Oscar.jl/Artifacts.toml`. This very example, we host at [https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). Then, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
+Then add this information, together with the host location, to `Oscar.jl/Artifacts.toml`. This very example, we host at [https://martinbies.github.io/Materials/Data/example\_data\_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). Then, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
 
 ```toml
 [MyExample]
