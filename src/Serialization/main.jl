@@ -746,6 +746,16 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
 end
 
 function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
+  if get(kwargs, :serializer, nothing) isa DirSerializer
+    mkpath(filename)
+    filtered = Iterators.filter(p -> first(p) != :serializer, pairs(kwargs))
+    temp_file = tempname(filename)
+    open(temp_file, "w") do file
+      save(file, obj; serializer=DirSerializer(filename), filtered...)
+    end
+    Base.Filesystem.rename(temp_file, joinpath(filename, "main.mrdi"))
+    return nothing
+  end
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
@@ -921,7 +931,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; kwargs...)
-  if endswith(filename, ".gz")
+  if get(kwargs, :serializer, nothing) isa DirSerializer
+    filtered = Iterators.filter(p -> first(p) != :serializer, pairs(kwargs))
+    open(joinpath(filename, "main.mrdi")) do file
+      return load(file; serializer=DirSerializer(filename), filtered...)
+    end
+  elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
       return load(file; kwargs...)
     end

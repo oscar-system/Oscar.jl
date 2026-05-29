@@ -23,6 +23,11 @@ struct LPSerializer <: MultiFileSerializer
   basepath::String
 end
 
+struct DirSerializer <: MultiFileSerializer
+  basepath::String
+end
+DirSerializer() = DirSerializer("")
+
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
 ################################################################################
@@ -156,23 +161,38 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function handle_refs(s::SerializerState)
-  should_handle_refs(s.serializer) || return nothing
-  if !isempty(s.refs) 
-    save_data_dict(s, :_refs) do
-      for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        s.key = Symbol(id)
-        save_data_dict(s) do
-          save_typed_object(s, ref_obj)
-        end
+  isempty(s.refs) && return nothing
+  save_data_dict(s, :_refs) do
+    for id in s.refs
+      ref_obj = global_serializer_state.id_to_obj[id]
+      s.key = Symbol(id)
+      save_data_dict(s) do
+        save_typed_object(s, ref_obj)
       end
     end
   end
 end
 
-should_handle_refs(::OscarSerializer) = true
-should_handle_refs(s::JSONSerializer) = s.serialize_refs
-should_handle_refs(::IPCSerializer) = false
+function handle_refs(s::SerializerState{JSONSerializer})
+  s.serializer.serialize_refs && invoke(handle_refs, Tuple{SerializerState}, s)
+end
+
+handle_refs(::SerializerState{IPCSerializer}) = nothing
+
+function handle_refs(s::SerializerState{DirSerializer})
+  isempty(s.refs) && return nothing
+  dir = basepath(s.serializer)
+  for id in s.refs
+    ref_obj = global_serializer_state.id_to_obj[id]
+    ref_path = joinpath(dir, string(id) * ".mrdi")
+    save(ref_path, ref_obj)
+  end
+  save_data_array(s, :_ref_files) do
+    for id in s.refs
+      save_data_basic(s, string(id) * ".mrdi")
+    end
+  end
+end
 
 function serializer_close(s::SerializerState)
   finish_writing(s)
@@ -260,6 +280,18 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
+end
+
+function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
+  obj = JSON3.read(io)
+  ref_files = get(obj, :_ref_files, nothing)
+  if !isnothing(ref_files)
+    dir = basepath(serializer)
+    for fname in ref_files
+      load(joinpath(dir, string(fname)))
+    end
+  end
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
