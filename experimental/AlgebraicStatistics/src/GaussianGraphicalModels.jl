@@ -80,14 +80,14 @@ end
 
 #TODO do the gens returned here need to be a dict? we'll need to be consisted across all models
 @attr Tuple{
-  QQMPolyRing,
-  Vector{QQMPolyRingElem}
+  MPolyDecRing{QQFieldElem, QQMPolyRing},
+  Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 } function model_ring(GM::GaussianGraphicalModel; cached=false)
   n = n_vertices(graph(GM))
   varindices = [(i, j) for i in 1:n for j in i:n]
   gen_names = ["$(GM.varnames[:s])[$(i), $(j)]" for (i, j) in varindices]
   # we'll need to align on the return value of the gens, it might need to be Dict
-  return polynomial_ring(QQ, gen_names; cached=false)
+  return graded_polynomial_ring(QQ, gen_names; cached=false)
 end
 
 @doc raw"""
