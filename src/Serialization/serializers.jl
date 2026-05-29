@@ -277,8 +277,8 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   obj = JSON.lazy(io)
   refs_from_file = get(obj, :_refs, nothing)
   refs = Dict{UUID,JSON.LazyValues}()
-  for k in propertynames(refs_from_file)
-    refs[UUID(String(k))] = refs_from_file[k]
+  foreach(refs_from_file) do (k,v)
+    refs[UUID(k)] = v
   end
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
