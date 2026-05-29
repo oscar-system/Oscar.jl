@@ -81,13 +81,24 @@ function tutte_group(M::Matroid; char::Int=0)
     v[end] = 2 #this is for the epsilon
   end
   relations = [v]
+  # Precompute circuits of M and its dual once: circuits(M|S) are exactly the
+  # circuits of M contained in S, so we can replace per-X Polymake calls with
+  # cheap subset checks. Same for cocircuits via the dual.
+  all_circuits = circuits(M)
+  all_cocircuits = circuits(dual_matroid(M))
+  rkM = rank(M)
   for X in nonbases(M)
-    if rank(M,X) == rank(M)-1
-      C = _circuit(M,X)
-      D = _cocircuit(M,setdiff(gs,X))
+    if rank(M,X) == rkM-1
+      Xset = Set(X)
+      Yset = Set(setdiff(gs, X))
+      ci = findfirst(c -> issubset(c, Xset), all_circuits)
+      ci === nothing && continue
+      C = copy(all_circuits[ci])
+      di = findfirst(c -> issubset(c, Yset), all_cocircuits)
+      di === nothing && continue
+      D = copy(all_cocircuits[di])
       e = popfirst!(C)
       f = popfirst!(D)
-      #push!(ret,D)
       for g in C
         for h in D
           v = zeros(Int, length(B)+1)
