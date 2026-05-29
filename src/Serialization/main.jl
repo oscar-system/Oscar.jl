@@ -124,9 +124,23 @@ function encode_type(::Type{T}) where T
   )
 end
 
-is_string(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.STRING
-is_array(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.ARRAY
-is_object(s::DeserializerState) = s.obj isa JSON.LazyValue && getfield(s.obj, :type) == JSON.JSONTypes.OBJECT
+function is_string(s::DeserializerState)::Bool
+  lazy = s.obj
+  lazy isa JSON.LazyValue || return false
+  return getfield(lazy, :type) == JSON.JSONTypes.STRING
+end
+
+function is_array(s::DeserializerState)::Bool
+  lazy = s.obj
+  lazy isa JSON.LazyValue || return false
+  return getfield(lazy, :type) == JSON.JSONTypes.ARRAY
+end
+
+function is_object(s::DeserializerState)::Bool
+  lazy = s.obj
+  lazy isa JSON.LazyValue || return false
+  return getfield(lazy, :type) == JSON.JSONTypes.OBJECT
+end
 
 function decode_type(s::String)
   return get(reverse_type_map, s) do
@@ -134,29 +148,28 @@ function decode_type(s::String)
   end
 end
 
-function decode_type(s::DeserializerState)
+function decode_type(s::DeserializerState)::Type
   if is_string(s)
-    obj = load_json(s, String)
-    uuid = tryparse(UUID, obj)
+    str = load_json(s, String)
+    uuid = tryparse(UUID, str)
     if !isnothing(uuid)
       if isempty(s.refs)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
-      id = obj
       lazy_obj = s.obj
       s.obj = s.refs[uuid]
       T = decode_type(s)
       s.obj = lazy_obj
       return T
     end
-    return decode_type(obj)
+    return decode_type(str)
   end
 
   if haskey(s, type_key)
     return load_node(s, type_key) do
-      obj = decode_type(s)
-      obj isa AbstractDict && return obj["default"]
-      return obj
+      result = decode_type(s)
+      result isa AbstractDict && return result["default"]
+      return result
     end
   end
 
