@@ -298,7 +298,7 @@ const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
     FPGroup
 
 Finitely presented group.
-Such groups can be constructed a factors of free groups,
+Such groups can be constructed as factors of free groups,
 see [`free_group`](@ref).
 
 For a group `G` of type `FPGroup`, the elements in `gens(G)` satisfy the
@@ -309,6 +309,7 @@ Functions that compute subgroups of `G` return groups of type `SubFPGroup`.
 @attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
   as_sub_fp_group::GAPGroup  # we cannot prescribe `SubFPGroup`
+  free_group::GAPGroup  # we cannot prescribe `FPGroup`
 
   function FPGroup(G::GapObj)
     # Accept only full f.p. groups.
@@ -325,6 +326,21 @@ function fp_group(G::GapObj)
 
   f = GAP.Globals.IsomorphismFpGroup(G)::GapObj
   return FPGroup(GAPWrap.Range(f))
+end
+
+function fp_group(G::GapObj, F::FPGroup)
+  # We want to store `F` as the `free_group` value of the result.
+  # For that, `G` must be a full f.p. group on the GAP side
+  # (otherwise prescribing a known free group on the Oscar side
+  # does not make sense)
+  # and `GapObj(F)` must be identical with the free group on the GAP side
+  # that is stored in `G`
+  gapF = GapObj(F)
+  @assert GAPWrap.IsFpGroup(G)
+  @assert gapF === GAPWrap.FreeGroupOfFpGroup(G)
+  FG = FPGroup(G)
+  FG.free_group = F
+  return FG
 end
 
 # Return `true` if the generators of `G` fit

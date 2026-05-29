@@ -73,6 +73,14 @@ end
   @test_throws AssertionError SubPcGroup(Ux, small_group(24, 12))
 end
 
+@testset "Object identity for stored free group of f.p. groups" begin
+  G = free_group(2)
+  x, y = gens(G)
+  rels = [x^2, y^2]
+  Q, epi = quo(G, rels)
+  @test free_group(Q) === G
+end
+
 @testset "Special Constructors" begin
 
   @test isa(symmetric_group(5), PermGroup)
