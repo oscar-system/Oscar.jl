@@ -36,10 +36,10 @@ As a rule of thumb, data stored directly in the `Oscar.jl` repository should not
 
 This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically proceeds as follows:
 
-- [ ] [Serialize data](@ref data_preparation)
-- [ ] [Upload the tarball to a stable hosting location](@ref artifact_hosting)
-- [ ] [Add an entry to `Oscar.jl/Artifacts.toml` and open a pull request](@ref artifact_registration)
-- [ ] [Use the artifact once the pull request has been merged](@ref artifact_usage)
+- [ ] [Serializing the Data](@ref data_preparation)
+- [ ] [Hosting the Data (zip the data as tarball and upload it to a stable location)](@ref artifact_hosting)
+- [ ] [Registering the Artifact (add an entry to `Oscar.jl/Artifacts.toml` and open a pull request)](@ref artifact_registration)
+- [ ] [Using the Artifact (once the pull request has been merged)](@ref artifact_usage)
 
 We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifact-example).
 
@@ -48,30 +48,28 @@ We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifac
 
 The following example illustrates the complete workflow for creating, registering, and using an artifact in `Oscar.jl`.
 
-#### Create data
+#### Serializing the Data
+
+Let us employ the [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/) to serlialize the number $2^10$. (You may of course use the file format of your choice.)
 
 ```julia
 using Oscar
 
 obj = ZZ(2)^10
-```
 
-#### Save data
-
-Let us employ the  [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/). (You may of course use the file format you prefer.)
-
-```julia
 save("example.mrdi", obj)
 ```
 
-#### Pack into a tarball
+#### Hosting the Data
 
 Create a compressed tarball, for example `example_data_v1.tar.gz`, containing the file `example.mrdi`.
 
 !!! note
     Do not introduce an intermediate directory inside the tarball. If multiple files are included, place them directly in the archive.
 
-#### Register the artifact
+We host this very example tarball at [https://martinbies.github.io/Materials/Data/example\_data\_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). 
+
+#### Registering the Artifact
 
 Register the artifact by adding an entry to `Oscar.jl/Artifacts.toml`; see also [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/). The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl) can help automate parts of this workflow. The following text demonstrates the manual workflow.
 
@@ -86,7 +84,9 @@ println("sha256: ", bytes2hex(open(sha256, filename)))
 println("git-tree-sha1: ", Tar.tree_hash(IOBuffer(inflate_gzip(filename))))
 ```
 
-Then add this information, together with the host location, to `Oscar.jl/Artifacts.toml`. This very example, we host at [https://martinbies.github.io/Materials/Data/example\_data\_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). Then, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
+Then add this information, together with the host location, to `Oscar.jl/Artifacts.toml`.
+
+In the case at hand, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
 
 ```toml
 [MyExample]
@@ -100,7 +100,7 @@ lazy = true
 
 You may, of course, replace `MyExample` in the above entry with any other string that you find descriptive.
 
-#### Use the artifact
+#### Using the Artifact
 
 The artifact string macro is exported by `LazyArtifacts`. In a standalone Julia session, load it explicitly.
 
@@ -115,14 +115,14 @@ obj = load(obj_path)
 In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
 
 
-### [Preparing Data (Serialization)](@id data_preparation)
+### [Serializing the Data](@id data_preparation)
 
 Creating artifacts requires that the corresponding data be serialized locally first. Details are provided in the [Serialization page](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
 
 We recommend the use of the `.mrdi` file format for serialization. However, this is not a strict requirement and you may use any file format that you see fit.
 
 
-### [Hosting Artifacts](@id artifact_hosting)
+### [Hosting the Data](@id artifact_hosting)
 
 If you want create an artifact, the first decision is where it is to be safely stored: to ensure future accessibility, artifacts should be hosted at stable and persistent locations.
 
@@ -142,7 +142,7 @@ When debugging, contributors are encouraged to use temporary staging areas befor
 Data intended for querying may also be suitable for [OscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/).
 
 
-### [Registering](@id artifact_registration)
+### [Registering the Artifact](@id artifact_registration)
 
 Recall that creating an artifact typically involves the following steps:
 
@@ -157,7 +157,7 @@ Registering refers to the final two steps. Once the change to `Oscar.jl/Artifact
 The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Oscar.jl/Artifacts.toml`. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
 
 
-### [Using Artifacts in Oscar](@id artifact_usage)
+### [Using the Artifact](@id artifact_usage)
 
 Artifacts can be accessed via Julia's artifact system through the `artifact"..."` string macro. For example:
 
