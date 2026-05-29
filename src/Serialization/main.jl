@@ -127,19 +127,19 @@ end
 function is_string(s::DeserializerState)::Bool
   lazy = s.obj
   lazy isa JSON.LazyValue || return false
-  return getfield(lazy, :type) == JSON.JSONTypes.STRING
+  return JSON.gettype(lazy) == JSON.JSONTypes.STRING
 end
 
 function is_array(s::DeserializerState)::Bool
   lazy = s.obj
   lazy isa JSON.LazyValue || return false
-  return getfield(lazy, :type) == JSON.JSONTypes.ARRAY
+  return JSON.gettype(lazy) == JSON.JSONTypes.ARRAY
 end
 
 function is_object(s::DeserializerState)::Bool
   lazy = s.obj
   lazy isa JSON.LazyValue || return false
-  return getfield(lazy, :type) == JSON.JSONTypes.OBJECT
+  return JSON.gettype(lazy) == JSON.JSONTypes.OBJECT
 end
 
 function decode_type(s::String)
