@@ -71,50 +71,103 @@ julia> ngens(T)
 ```
 """
 function tutte_group(M::Matroid; char::Int=0)
+  n = length(matroid_groundset(M))
+  n > 128 && return _tutte_group_set(M, char)
+  T = n<=8 ? UInt8 : n<=16 ? UInt16 : n<=32 ? UInt32 : n<=64 ? UInt64 : UInt128
+  return _tutte_group(M, T, char)
+end
+
+function _tutte_group(M::Matroid, ::Type{T}, char::Int) where T <: Unsigned
+  gs2num  = M.gs2num
+  ebit(e) = T(1) << (gs2num[e] - 1)
+  to_bits(s) = foldl((b, e) -> b | ebit(e), s; init=zero(T))
+
+  B_sorted = sort([to_bits(b) for b in bases(M)])
+  lookup(key) = searchsortedfirst(B_sorted, key)
+
+  n       = length(matroid_groundset(M))
+  gs_full = ~zero(T) >> (8*sizeof(T) - n)
+
+  all_circ_vec    = circuits(M)
+  all_cocirc_vec  = circuits(dual_matroid(M))
+  all_circ_bits   = [to_bits(c) for c in all_circ_vec]
+  all_cocirc_bits = [to_bits(c) for c in all_cocirc_vec]
+
+  nb = length(B_sorted)
+  v0 = zeros(Int, nb + 1); v0[end] = char == 2 ? 1 : 2
+  relations = [v0]
+  v_buf = zeros(Int, nb + 1)
+
+  for X in nonbases(M)
+    Xb = to_bits(X)
+    ci = findfirst(c -> (c & Xb) == c, all_circ_bits)
+    ci === nothing && continue
+    findnext(c -> (c & Xb) == c, all_circ_bits, ci+1) !== nothing && continue
+    di = findfirst(c -> (c & ~Xb & gs_full) == c, all_cocirc_bits)
+    di === nothing && continue
+
+    C  = all_circ_vec[ci];   Cb = [ebit(x) for x in C]
+    D  = all_cocirc_vec[di]; Db = [ebit(x) for x in D]
+    e = C[1]; eb = Cb[1]
+    f = D[1]; fb = Db[1]
+
+    for gi in 2:length(C)
+      g = C[gi]; gb = Cb[gi]
+      Ib   = Xb & ~(eb | gb)
+      i_ef = lookup(Ib | eb | fb)
+      i_gf = lookup(Ib | gb | fb)
+      for hi in 2:length(D)
+        h = D[hi]; hb = Db[hi]
+        fill!(v_buf, 0)
+        v_buf[i_ef]             =  1
+        v_buf[lookup(Ib|gb|hb)] =  1
+        v_buf[lookup(Ib|eb|hb)] = -1
+        v_buf[i_gf]             = -1
+        v_buf[end] = (e<f)+(f<g)+(g<h)+(h<e)
+        push!(relations, copy(v_buf))
+      end
+    end
+  end
+
+  return abelian_group(matrix(ZZ, relations))
+end
+
+function _tutte_group_set(M::Matroid, char::Int)
   B = bases(M)
   gs = matroid_groundset(M)
   idx = Dict{Set{eltype(gs)}, Int}(Set(k) => i for (i,k) in enumerate(B))
-  v = zeros(Int, length(B)+1)
-  if char == 2
-    v[end] = 1 #this is for the epsilon
-  else
-    v[end] = 2 #this is for the epsilon
-  end
-  relations = [v]
-  # Precompute circuits of M and its dual once: circuits(M|S) are exactly the
-  # circuits of M contained in S, so we can replace per-X Polymake calls with
-  # cheap subset checks. Same for cocircuits via the dual.
-  all_circuits = circuits(M)
-  all_cocircuits = circuits(dual_matroid(M))
+  v0 = zeros(Int, length(B)+1); v0[end] = char == 2 ? 1 : 2
+  relations = [v0]
+  all_circ_vec   = circuits(M)
+  all_cocirc_vec = circuits(dual_matroid(M))
   rkM = rank(M)
+  v_buf = zeros(Int, length(B)+1)
   for X in nonbases(M)
-    if rank(M,X) == rkM-1
-      Xset = Set(X)
-      Yset = Set(setdiff(gs, X))
-      ci = findfirst(c -> issubset(c, Xset), all_circuits)
-      ci === nothing && continue
-      C = copy(all_circuits[ci])
-      di = findfirst(c -> issubset(c, Yset), all_cocircuits)
-      di === nothing && continue
-      D = copy(all_cocircuits[di])
-      e = popfirst!(C)
-      f = popfirst!(D)
-      for g in C
-        for h in D
-          v = zeros(Int, length(B)+1)
-          I = setdiff(Set(X), [e,g])
-          v[idx[union(I, [e,f])]] = 1
-          v[idx[union(I, [g,h])]] = 1
-          v[idx[union(I, [e,h])]] = -1
-          v[idx[union(I, [g,f])]] = -1
-          v[end] = count([e<f, f<g, g<h, h<e]) #this is the index for the epsilon
-          push!(relations, v)
-       end
-     end
+    rank(M,X) == rkM-1 || continue
+    Xset = Set(X)
+    Yset = Set(setdiff(gs, X))
+    ci = findfirst(c -> issubset(c, Xset), all_circ_vec)
+    ci === nothing && continue
+    di = findfirst(c -> issubset(c, Yset), all_cocirc_vec)
+    di === nothing && continue
+    C = copy(all_circ_vec[ci]); D = copy(all_cocirc_vec[di])
+    e = popfirst!(C); f = popfirst!(D)
+    for g in C
+      I    = setdiff(Xset, (e, g))
+      i_ef = idx[union(I, (e, f))]
+      i_gf = idx[union(I, (g, f))]
+      for h in D
+        fill!(v_buf, 0)
+        v_buf[i_ef]                =  1
+        v_buf[idx[union(I,(g,h))]] =  1
+        v_buf[idx[union(I,(e,h))]] = -1
+        v_buf[i_gf]                = -1
+        v_buf[end] = (e<f)+(f<g)+(g<h)+(h<e)
+        push!(relations, copy(v_buf))
+      end
     end
   end
-  relations_matrix = matrix(ZZ, relations)
-  return abelian_group(relations_matrix)
+  return abelian_group(matrix(ZZ, relations))
 end
 
 @doc raw"""
