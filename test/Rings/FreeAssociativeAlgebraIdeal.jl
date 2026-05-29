@@ -66,17 +66,17 @@ end
 
     gb = groebner_basis(I, 3; protocol=false)
     @test !is_groebner_basis(gb)
-    #@test maximum(total_degree.(gb))==3
+    @test maximum(total_degree.(gb))==3
     @test isdefined(I, :gb)
     gb2 = groebner_basis([f1, f2], 5; protocol=false)
-    #@test maximum(total_degree.(gb2))==5
+    @test maximum(total_degree.(gb2))==5
     @test !is_groebner_basis(gb2)
 end
 
 @testset "FreeAssociativeAlgebraIdeal.groebner_basis.quantum_automorphism_group" begin
   M = uniform_matroid(3,4)
   qAut1 = gens(quantum_automorphism_group(M))
-  gb1 = groebner_basis(qAut1; interreduce=false)
+  gb1 = groebner_basis(qAut1; interreduce=true)
   gb2 = groebner_basis(qAut1, 4,ordering=:deglex,interreduce=true)
   @test sort(leading_monomial.(gb2)) == sort(leading_monomial.(gb1))
   @test is_groebner_basis(gb1)
@@ -96,7 +96,6 @@ end
   @test length(I1.gb) == 78
   @test length(gb3) == 78
 
-  println("hello tere")
   gb4 = groebner_basis(gena, 4,ordering=:deglex,interreduce=true)
   @test is_groebner_basis(gb3)
   @test is_groebner_basis(gb4)
@@ -166,7 +165,7 @@ end
   interreduce!(g2; algorithm=:f4)
   @test sort(leading_monomial.(g1)) == sort(leading_monomial.(g2))
   # IdealGens dispatch
-  gb_ig = groebner_basis(IdealGens([f1, f2]), 3)
+  gb_ig = groebner_basis(Oscar.IdealGens([f1, f2]), 3)
   interreduce!(gb_ig; algorithm=:f4)
   @test length(gb_ig) > 0
 end
