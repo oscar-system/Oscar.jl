@@ -148,7 +148,7 @@ function decode_type(s::String)
   end
 end
 
-function decode_type(s::DeserializerState)
+function decode_type(s::DeserializerState)::Type
   if is_string(s)
     str = load_json(s, String)
     uuid = tryparse(UUID, str)
@@ -160,17 +160,18 @@ function decode_type(s::DeserializerState)
       s.obj = s.refs[uuid]
       T = decode_type(s)
       s.obj = lazy_obj
-      return T
+      result = T
+    else
+      result = decode_type(str)
     end
-    return decode_type(str)
+    result isa AbstractDict && return result["default"]
+    return result
   end
 
   if haskey(s, type_key)
     return load_node(s, type_key) do
-      result = decode_type(s)
-      result isa AbstractDict && return result["default"]
-      return result
-    end::Type
+      decode_type(s)
+    end
   end
 
   if haskey(s, :name)
@@ -182,10 +183,8 @@ function decode_type(s::DeserializerState)
       end
     else
       return load_node(s, :name) do
-        obj = decode_type(s)
-        obj isa AbstractDict && return obj["default"]
-        return obj
-      end::Type
+        decode_type(s)
+      end
     end
   end
 end
