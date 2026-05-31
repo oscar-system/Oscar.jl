@@ -182,16 +182,15 @@ handle_refs(::SerializerState{IPCSerializer}) = nothing
 function handle_refs(s::SerializerState{DirSerializer})
   isempty(s.refs) && return nothing
   dir = basepath(s.serializer)
-  for id in s.refs
+  ref_files = String[]
+  while !isempty(s.refs)
+    id = pop!(s.refs)
+    push!(ref_files, string(id))
     ref_obj = global_serializer_state.id_to_obj[id]
     ref_path = joinpath(dir, string(id) * ".mrdi")
-    save(ref_path, ref_obj)
+    save(ref_path, ref_obj; serializer=JSONSerializer(;serialize_refs=false))
   end
-  save_data_array(s, :_ref_files) do
-    for id in s.refs
-      save_data_basic(s, string(id) * ".mrdi")
-    end
-  end
+  save_object(s, ref_files, :_ref_files)
 end
 
 function serializer_close(s::SerializerState)

@@ -65,4 +65,14 @@ end
 
     @test str == cmp_str
   end
+
+  @testset "DirSerializer" begin
+    mktempdir() do path    
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      R, (y, z) = F[:y, :z]
+      @test_throws ArgumentError save(path, a * y - z)
+      save(path, a * y - z; serializer=Oscar.Serialization.DirSerializer())
+    end    
+  end
 end

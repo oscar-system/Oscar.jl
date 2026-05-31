@@ -747,9 +747,9 @@ end
 
 function save(filename::String, obj::Any;
               compression::Symbol=:none,
-              serializer::S,
-              kwargs...) where S <: OscarSerializer
-  if S isa DirSerializer
+              serializer::OscarSerializer=JSONSerializer(),
+              kwargs...)
+  if serializer isa DirSerializer
     mkpath(filename)
     temp_file = tempname(filename)
     open(temp_file, "w") do file
@@ -758,18 +758,20 @@ function save(filename::String, obj::Any;
     Base.Filesystem.rename(temp_file, joinpath(filename, "main.mrdi"))
     return nothing
   end
+  @req !isdir(filename) "filename is a directory, if this was intended set the appropriate serializer "
+
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   
   if compression == :none
     open(temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
     open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   else
     error("Unsupported compression method: $compression")
@@ -932,8 +934,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; serializer::S, kwargs...) where S <: OscarSerializer
-  if S isa DirSerializer
+function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
+  if serializer isa DirSerializer
     open(joinpath(filename, "main.mrdi")) do file
       return load(file; serializer=DirSerializer(filename), kwargs...)
     end
