@@ -325,19 +325,17 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
 end
 
 function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
-  # not sure about adding this to the file
-  # or rather if it should be put into the metadata section?
+  obj = JSON.lazy(io)
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
     dir = basepath(serializer)
-    for fname in ref_files
-      open(joinpath(dir, string(fname) * ".mrdi")) do file
+    foreach(ref_files) do fname
+      open(joinpath(dir, JSON.parse(fname, String) * ".mrdi")) do file
         load(file)
       end
     end
   end
-  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
