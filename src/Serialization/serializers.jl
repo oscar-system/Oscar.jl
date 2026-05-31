@@ -284,6 +284,8 @@ end
 
 function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
+  # not sure about adding this to the file
+  # or rather if it should be put into the metadata section?
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
     dir = basepath(serializer)
