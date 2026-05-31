@@ -15,7 +15,7 @@ end
 
 
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return g(smallobj)
 end
 
@@ -58,7 +58,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return IM
 end
 
@@ -73,7 +73,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return K(bigobject)
 end
 
@@ -91,17 +91,17 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQField})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, JSON.parse(s.obj; dicttype=Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
   return PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, load_json(s, Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
   return PhylogeneticTree{Float64}(inner_object, vertex_perm)
