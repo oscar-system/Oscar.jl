@@ -745,13 +745,15 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
-  if get(kwargs, :serializer, nothing) isa DirSerializer
+function save(filename::String, obj::Any;
+              compression::Symbol=:none,
+              serializer::S,
+              kwargs...) where S <: OscarSerializer
+  if S isa DirSerializer
     mkpath(filename)
-    filtered = Iterators.filter(p -> first(p) != :serializer, pairs(kwargs))
     temp_file = tempname(filename)
     open(temp_file, "w") do file
-      save(file, obj; serializer=DirSerializer(filename), filtered...)
+      save(file, obj; serializer=DirSerializer(filename), kwargs...)
     end
     Base.Filesystem.rename(temp_file, joinpath(filename, "main.mrdi"))
     return nothing
@@ -930,11 +932,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; kwargs...)
-  if get(kwargs, :serializer, nothing) isa DirSerializer
-    filtered = Iterators.filter(p -> first(p) != :serializer, pairs(kwargs))
+function load(filename::String; serializer::S, kwargs...) where S <: OscarSerializer
+  if S isa DirSerializer
     open(joinpath(filename, "main.mrdi")) do file
-      return load(file; serializer=DirSerializer(filename), filtered...)
+      return load(file; serializer=DirSerializer(filename), kwargs...)
     end
   elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
