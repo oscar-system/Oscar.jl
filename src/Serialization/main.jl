@@ -750,12 +750,14 @@ function save(filename::String, obj::Any;
               serializer::OscarSerializer=JSONSerializer(),
               kwargs...)
   if serializer isa DirSerializer
-    mkpath(filename)
-    temp_file = tempname(filename)
+    temp_dir = mktempdir(dirname(abspath(filename)))
+    temp_file = tempname(temp_dir)
     open(temp_file, "w") do file
-      save(file, obj; serializer=DirSerializer(filename), kwargs...)
+      save(file, obj; serializer=DirSerializer(temp_dir), kwargs...)
     end
-    Base.Filesystem.rename(temp_file, joinpath(filename, "main.mrdi"))
+    Base.Filesystem.rename(temp_file, joinpath(temp_dir, "main.mrdi"))
+    isdir(filename) && rm(filename; recursive=true)
+    Base.Filesystem.rename(temp_dir, filename)
     return nothing
   end
   @req !isdir(filename) "filename is a directory, if this was intended set the appropriate serializer "

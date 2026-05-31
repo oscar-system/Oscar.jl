@@ -67,12 +67,23 @@ end
   end
 
   @testset "DirSerializer" begin
-    mktempdir() do path    
+    mktempdir() do path
       Qx, x = QQ[:x]
       F, a = number_field(x^2 + 1)
       R, (y, z) = F[:y, :z]
       @test_throws ArgumentError save(path, a * y - z)
-      save(path, a * y - z; serializer=Oscar.Serialization.DirSerializer())
-    end    
+      p = a * y - z
+      save(path, p; serializer=Oscar.Serialization.DirSerializer())
+      files = readdir(path)
+      @test length(files) == 4
+      @test "main.mrdi" in files
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(path; serializer=Oscar.Serialization.DirSerializer(), params=R)
+      @test loaded == p
+
+      # Overwrite with simpler object — stale ref files must be removed
+      save(path, 42; serializer=Oscar.Serialization.DirSerializer())
+      @test readdir(path) == ["main.mrdi"]
+    end
   end
 end

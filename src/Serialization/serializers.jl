@@ -188,9 +188,30 @@ function handle_refs(s::SerializerState{DirSerializer})
     push!(ref_files, string(id))
     ref_obj = global_serializer_state.id_to_obj[id]
     ref_path = joinpath(dir, string(id) * ".mrdi")
-    save(ref_path, ref_obj; serializer=JSONSerializer(;serialize_refs=false))
+    temp_file = tempname(dir)
+    open(temp_file, "w") do file
+      # Share s.refs so transitive refs accumulate in the outer while loop
+      inner_s = SerializerState(
+        JSONSerializer(; serialize_refs=false),
+        true, s.refs, file, nothing, s.with_attrs, false
+      )
+      save_data_dict(inner_s) do
+        save_header(inner_s, get_oscar_serialization_version(), :_ns)
+        save_typed_object(inner_s, ref_obj)
+        if serialize_with_id(typeof(ref_obj))
+          ref_id = get(global_serializer_state.obj_to_id, ref_obj, nothing)
+          if isnothing(ref_id)
+            ref_id = global_serializer_state.obj_to_id[ref_obj] = uuid4()
+            global_serializer_state.id_to_obj[ref_id] = ref_obj
+          end
+          save_object(inner_s, string(ref_id), :id)
+        end
+      end
+    end
+    Base.Filesystem.rename(temp_file, ref_path)
   end
-  save_object(s, ref_files, :_ref_files)
+  # reverse: DFS pop! gives root-first order; reverse gives leaves-first for loading
+  save_object(s, reverse(ref_files), :_ref_files)
 end
 
 function serializer_close(s::SerializerState)
@@ -289,7 +310,9 @@ function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
   if !isnothing(ref_files)
     dir = basepath(serializer)
     for fname in ref_files
-      load(joinpath(dir, string(fname)))
+      open(joinpath(dir, string(fname) * ".mrdi")) do file
+        load(file)
+      end
     end
   end
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
