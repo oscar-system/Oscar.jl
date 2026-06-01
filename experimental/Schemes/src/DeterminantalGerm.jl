@@ -275,7 +275,14 @@ function _T1_GL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
   return vcat(_J(A), [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:nrows(A) for j in 1:ncols(A)])
 end
 
-
+function _T1_GL_module(A::MatElem, val::Val)
+  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
+  A = transpose(A)
+  L = base_ring(A)
+  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
+  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
+  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_GL_rels(A, val))))
+end
 
 @doc raw"""
     T1_GL_module(X::DeterminantalGerm) -> SubquoModule
@@ -340,15 +347,7 @@ julia> vector_space_dim(T1_A_sym)
 4
 ```
 """
-@attr SubquoModule function T1_GL_module(X::DeterminantalGerm)
-  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
-  A = transpose(defining_matrix(X))
-  L = base_ring(A)
-  val = _mat_type(X)()
-  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
-  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
-  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_GL_rels(A, val))))
-end
+@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), _mat_type(X)())
 
 
 
@@ -391,6 +390,7 @@ julia> tjurina_GL_number(X_B)
 ```
 """
 tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_GL_module(X))
+
 
 
 @doc raw"""
