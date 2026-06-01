@@ -98,7 +98,7 @@ julia> A = R[x 0;  0 y^2+x^2]
 
 julia> X_A = DeterminantalGerm(A, 2, [0,0]);
 
-julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type=:symmetric);
+julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
 
 
 """
@@ -138,7 +138,7 @@ Spectrum
       by ideal (v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
     at complement of maximal ideal of point (0, 0, 0, 0, 0)
 
-julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type=:symmetric)
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric)
 Spectrum
   of localization
     of quotient
@@ -290,7 +290,7 @@ julia> A = R[x 0;  0 y^2+x^2]
 
 julia> X_A = DeterminantalGerm(A, 2, [0,0]);
 
-julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type=:symmetric);
+julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
 
 julia> X_A == X_A_sym
 false
@@ -371,7 +371,7 @@ julia> B = R[v w x;  w x y;  x y z]
 [w   x   y]
 [x   y   z]
 
-julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type=:symmetric);
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 
 julia> X_A == X_B
 false
@@ -481,7 +481,7 @@ julia> B = R[v w x;  w x y;  x y z]
 [w   x   y]
 [x   y   z]
 
-julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type=:symmetric);
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 
 julia> X_A == X_B
 false
