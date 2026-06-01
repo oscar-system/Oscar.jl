@@ -85,13 +85,12 @@ end
   @test I1 == I2
 
   qAut2 = quantum_symmetric_group(4)
-  gena = gens(qAut2);
+  gena = gens(qAut2)
 
-  gb3 = groebner_basis(gena; interreduce=false, algorithm=:f4);
+  gb3 = groebner_basis(gena; interreduce=false, algorithm=:f4)
   I1 = ideal(copy(gb3))
   groebner_basis(I1)
   interreduce!(gb3)
-
   interreduce!(I1)
   @test length(I1.gb) == 78
   @test length(gb3) == 78
