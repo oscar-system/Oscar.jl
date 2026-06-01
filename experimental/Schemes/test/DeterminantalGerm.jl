@@ -90,5 +90,40 @@ end
   @test determinantal_type(X_B_skew) == (4,4,2)
 end
 
+@testset "T1_GL module" begin
+  R, (x, y) = QQ[:x,:y]
+  A = R[x  y^2;
+       y^2 x^2]
+  X_A = DeterminantalGerm(A, 2, [0,0])
+  X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric)
+  @test tjurina_GL_number(X_A) == 8
+  @test tjurina_GL_number(X_A_sym) == 6
+  B = R[x 0  0;
+        0 y  x;
+        0 x y^2]
+  X_B = DeterminantalGerm(B, 3, [0,0])
+  X_B_sym = DeterminantalGerm(B, 3, [0,0], mat_type = :symmetric)
+  @test tjurina_GL_number(X_B) == 11
+  @test tjurina_GL_number(X_B_sym) == 7
+  C = R[0     0    x    0;
+        0     0    0 x^2+y^3;
+       -x     0    0    0;
+        0 -x^2-y^3 0    0]
+  X_C = DeterminantalGerm(C, 4, [0,0])
+  X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric)
+  @test tjurina_GL_number(X_C) == PosInf()
+  @test tjurina_GL_number(X_C_skew) == 16
 
+
+  R, (v,w,x,y,z) = QQ[:v,:w,:x,:y,:z]
+  A = R[x y z;
+        v w 0]
+  X_A = DeterminantalGerm(A, 2, [0,0,0,0,0])
+  @test krull_dim(T1_GL_module(X_A)) == 2
+  @test tjurina_GL_number(X_A) == PosInf()
+  B = R[x y z;
+        v w x]
+  X_B = DeterminantalGerm(B, 2, [0,0,0,0,0])
+  @test tjurina_GL_number(X_B) == 1
+end
 
