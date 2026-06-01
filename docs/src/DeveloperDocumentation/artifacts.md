@@ -50,7 +50,7 @@ The following example illustrates the complete workflow for creating, registerin
 
 #### Serializing the Data
 
-Let us employ the [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/) to serlialize the number $2^10$. (You may of course use the file format of your choice.)
+Let us employ the [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/) to serlialize the number $2^{10}$. (You may of course use the file format of your choice.)
 
 ```julia
 using Oscar
