@@ -184,7 +184,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing}
+  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing, Dict{Symbol, <:JSON.LazyValues}}
   key::Union{Symbol, Int, Nothing}
   refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
@@ -221,9 +221,20 @@ function Base.haskey(s::DeserializerState, key::Symbol)::Bool
   return haskey(obj, key)::Bool
 end
 
-function set_key(s::DeserializerState, key::Union{Symbol, Int})
+function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothing)
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
   s.key = key
+end
+
+function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
+  if s.obj isa JSON.LazyValue
+    d = Dict{Symbol, JSON.LazyValues}()
+    foreach(s.obj) do (k,v)
+      d[Symbol(k)] = v
+    end
+    s.obj = d
+  end
+  s.obj = s.obj[key]
 end
 
 function load_node(f::Function, s::DeserializerState,
@@ -235,7 +246,7 @@ function load_node(f::Function, s::DeserializerState,
   !isnothing(key) && set_key(s, key)
   lazy_obj = s.obj
   if !isnothing(s.key)
-    s.obj = s.obj[s.key]
+    set_state_level(s, s.key)
   end
   s.key = nothing
   if isnothing(s.obj)

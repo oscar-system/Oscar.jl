@@ -125,21 +125,21 @@ function encode_type(::Type{T}) where T
 end
 
 function is_string(s::DeserializerState)::Bool
-  lazy = s.obj
-  lazy isa JSON.LazyValue || return false
-  return JSON.gettype(lazy) == JSON.JSONTypes.STRING
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+  return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
 end
 
 function is_array(s::DeserializerState)::Bool
-  lazy = s.obj
-  lazy isa JSON.LazyValue || return false
-  return JSON.gettype(lazy) == JSON.JSONTypes.ARRAY
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+    return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
 end
 
 function is_object(s::DeserializerState)::Bool
-  lazy = s.obj
-  lazy isa JSON.LazyValue || return false
-  return JSON.gettype(lazy) == JSON.JSONTypes.OBJECT
+  s.obj isa JSON.LazyValue || return false
+  s.obj isa AbstractDict && return true
+
+  # I don't think we can get here now?
+  return JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT
 end
 
 function decode_type(s::String)
@@ -243,7 +243,7 @@ Return a [`TypeParams`](@ref) value capturing the type and parent parameters of 
 
 This is useful when loading a file into the same context as a currently loaded object —
 pass the result directly to [`load`](@ref) so the deserialized object shares the same
-parent, ring, or domain/codomain as `obj`.
+     parent, ring, or domain/codomain as `obj`.
 
 # Examples
 
