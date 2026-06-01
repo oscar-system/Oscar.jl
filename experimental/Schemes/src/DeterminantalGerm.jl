@@ -49,8 +49,7 @@ defining_matrix(X::DeterminantalGerm) = X.A
 @doc raw"""
     determinantal_type(X::DeterminantalGerm) -> Int, Int, Int
 
-Return the determinantal type `(n,m,t)` of the derterminantal germ `X`, where `n x m` is the size of the defining matrix and `t` the size of the minors. 
-
+Return the determinantal type `(n, m, t)` of the derterminantal germ `X`, where `n x m` is the size of the defining matrix and `t` is the size of the minors. 
 
 # Examples:
 ```jldoctest
@@ -78,13 +77,39 @@ function determinantal_type(X::DeterminantalGerm)
   return n, m, X.t
 end
 
-_matrix_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T} = T
+
+
+
+@doc raw"""
+    _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val} -> T
+
+Return the type of the `Val` `T` representing the matrix symmetry type of the determinantal germ `X`, i.e. this returns either `Val{:generic}`, `Val{:symmetric}` or `Val{:skew_symmetric}`.
+
+!!! note
+    This command is not exported and is only provided for convenience in programming.
+
+# Examples:
+julia> R, (x,y) = QQ[:x, :y];
+
+julia> A = R[x 0;  0 y^2+x^2]
+[x           0]
+[0   x^2 + y^2]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0]);
+
+julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type=:symmetric);
+
+
+"""
+_mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val} = T
+
+
 
 ################################################################################
 ## More constructors
 ################################################################################
 
-#TODO: To add more
+#TODO: To add more constructors
 @doc raw"""
     DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T}; mat_type::Symbol = :generic, check::Bool=true)
 
@@ -144,7 +169,7 @@ end
 
 function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   X === Y && return true
-  _matrix_type(X) == _matrix_type(Y) || return false
+  _mat_type(X) == _mat_type(Y) || return false
   determinantal_type(X) == determinantal_type(Y) || return false
   ambient_coordinate_ring(X) === ambient_coordinate_ring(Y) || return false
   defining_matrix(X) == defining_matrix(Y) && return true
@@ -168,15 +193,28 @@ function _C_ij(A::MatElem, i::Integer, j::Integer)
 end
 
 # TODO: move to a more fitting place (maybe AbstractAlgebra)
-function _sym_mat_gens(A::MatElem)
-  n, m = size(A)
-  @req n == m "matrix 'A' must be a quadratic."
-  R = base_ring(A)
-  gens = typeof(A)[]
-  sizehint!(gens, div(n*(n+1), 2))
+function _mat_space_gens(M::MatSpace)
+  R = base_ring(M)
+  gens = sizehint!(elem_type(M)[], nrows(M)*ncols(M))
+  for j in 1:ncols(M) 
+    for i in 1:nrows(M)
+      tmp = zero(M)
+      tmp[i,j] = one(R)
+      push!(gens, tmp)
+    end
+  end
+  return gens
+end
+
+# TODO: move to a more fitting place (maybe AbstractAlgebra)
+function _sym_mat_gens(M::MatSpace)
+  AbstractAlgebra.check_square(M)
+  n = nrows(M)
+  R = base_ring(M)
+  gens = sizehint!(elem_type(M)[], div(n*(n+1), 2))
   for i in 1:n
     for j in i:n
-      tmp = zero(A)
+      tmp = zero(M)
       tmp[i,j] = one(R)
       tmp[j,i] = one(R)
       push!(gens, tmp)
@@ -186,16 +224,15 @@ function _sym_mat_gens(A::MatElem)
 end
 
 # TODO: move to a more fitting place (maybe AbstractAlgebra)
-function _skew_sym_mat_gens(A::MatElem)
-  n, m = size(A)
-  @req n == m "matrix 'A' must be a quadratic."
-  R = base_ring(A)
-  characteristic(R) == 2 && return _sym_mat_gens(A)
-  gens = typeof(A)[]
-  sizehint!(gens, div(n*(n-1), 2))
+function _skew_sym_mat_gens(M::MatSpace)
+  AbstractAlgebra.check_square(M)
+  n = nrows(M)
+  R = base_ring(M)
+  characteristic(R) == 2 && return _sym_mat_gens(M)
+  gens = sizehint!(elem_type(M)[], div(n*(n-1), 2))
   for i in 1:n
     for j in i+1:n
-      tmp = zero(A)
+      tmp = zero(M)
       tmp[i,j] = -one(R)
       tmp[j,i] = one(R)
       push!(gens, tmp)
@@ -203,6 +240,27 @@ function _skew_sym_mat_gens(A::MatElem)
   end
   return gens
 end
+
+
+
+# T1-module helper functions
+
+_T1_gens(A::MatElem, ::Val{:generic}) = _mat_space_gens(parent(A))
+_T1_gens(A::MatElem, ::Val{:symmetric}) = _sym_mat_gens(parent(A))
+_T1_gens(A::MatElem, ::Val{:skew_symmetric}) = _skew_sym_mat_gens(parent(A))
+
+_J(A::MatElem) = [derivative.(A, i) for i in 1:ngens(base_ring(A))]
+
+function _T1_GL_rels(A::MatElem, ::Val{:generic}) 
+  return vcat(_J(A), [_C_ij(A, i, j) for i in 1:ncols(A) for j in 1:ncols(A)], 
+                     [_R_ij(A, i, j) for i in 1:nrows(A) for j in 1:nrows(A)])
+end
+
+function _T1_GL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
+  return vcat(_J(A), [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:nrows(A) for j in 1:ncols(A)])
+end
+
+
 
 @doc raw"""
     T1_GL_module(X::DeterminantalGerm) -> SubquoModule
@@ -270,27 +328,14 @@ julia> vector_space_dim(T1_A_sym)
 @attr SubquoModule function T1_GL_module(X::DeterminantalGerm)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(defining_matrix(X))
-  m, n = size(A)
-  L = base_ring(parent(A))
-  N = ngens(L)
-  # defining_matrix has size n x m
-  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:n for j in 1:m])
-
-  if _matrix_type(X) === Val{:generic}
-    rels = vcat([derivative.(A, i) for i in 1:N],
-                [_C_ij(A, i, j) for i in 1:n for j in 1:n],
-                [_R_ij(A, i, j) for i in 1:m for j in 1:m]
-               )
-    return SubquoModule(F, gens(F), F.(_vec.(rels)))
-  end
-
-  # Case: _matrix_type(X) === Val{:symmetric} or # _matrix_type(X) === Val{:skew_symmetric}
-  erz = _matrix_type(X) === Val{:symmetric} ? _sym_mat_gens(A) : _skew_sym_mat_gens(A)
-  rels = vcat([derivative.(A, i) for i in 1:N],
-              [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:n for j in 1:n],
-             )
-  return SubquoModule(F, F.(_vec.(erz)), F.(_vec.(rels)))
+  L = base_ring(A)
+  val = _mat_type(X)()
+  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
+  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
+  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_GL_rels(A, val))))
 end
+
+
 
 @doc raw"""
     tjurina_GL_number(X::DeterminantalGerm)
