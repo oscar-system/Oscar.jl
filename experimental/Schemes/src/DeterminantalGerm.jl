@@ -5,7 +5,7 @@
 @doc raw"""
     defining_matrix(X::DeterminantalGerm) -> MatElem
 
-Return the defining matrix `A` of the derterminantal germ `X` over the ring of the ambient germ of `X`. 
+Return the defining matrix `A` of the derterminantal germ `X` over the ring of the ambient germ of `X`.
 !!! note
     The returned matrix `A` is not a matrix over a polynomial ring, but a matrix over a localization of a polynomial ring at the complement of a maximal ideal. (Hence each entry of `A` has a numerator and a denominator.)
 
@@ -46,6 +46,8 @@ Localization
 """
 defining_matrix(X::DeterminantalGerm) = X.A
 
+
+
 @doc raw"""
     determinantal_type(X::DeterminantalGerm) -> Int, Int, Int
 
@@ -79,11 +81,10 @@ end
 
 
 
-
 @doc raw"""
     _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val} -> T
 
-Return the type of the `Val` `T` representing the matrix symmetry type of the determinantal germ `X`, i.e. this returns either `Val{:generic}`, `Val{:symmetric}` or `Val{:skew_symmetric}`.
+Return the type of the `Val` `T` representing the matrix symmetry type of the determinantal germ `X`, i.e. this function either returns `Val{:generic}`, `Val{:symmetric}` or `Val{:skew_symmetric}`.
 
 !!! note
     This command is not exported and is only provided for convenience in programming.
@@ -163,6 +164,8 @@ function DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T};
   return DeterminantalGerm(L.(A), t, mat_type=mat_type, check=check)
 end
 
+
+
 ################################################################################
 ## basic functionality for determinantal germs, which needs to be overwriten
 ################################################################################
@@ -175,6 +178,8 @@ function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   defining_matrix(X) == defining_matrix(Y) && return true
   return underlying_scheme(X) == underlying_scheme(Y)
 end
+
+
 
 ################################################################################
 ## T1_GL module
@@ -338,9 +343,9 @@ end
 
 
 @doc raw"""
-    tjurina_GL_number(X::DeterminantalGerm)
+    tjurina_GL_number(X::DeterminantalGerm) -> Union{Integer, PosInf}
 
-Return the tjurina_GL_number of the determinantal germ $(X_A^t, p)$. 
+Return the `tjurina_GL_number` of the determinantal germ `X`. 
 
 !!! note
     Different determinantal structures for the same underlying space germ may yield different `tjurina_GL_number`s.
@@ -375,11 +380,77 @@ julia> tjurina_GL_number(X_B)
 1
 ```
 """
-tjurina_GL_number(X::DeterminantalGerm) = vector_space_dim(T1_GL_module(X))
+tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_GL_module(X))
 
+
+@doc raw"""
+    is_determinantally_rigid(X::DeterminantalGerm)
+
+Return whether the determinantal germ `X` is determinantally rigid. 
+
+!!! note
+    Different determinantal structures for the same underlying space germ may yield different results.
+
+# Examples:
+```jldoctest
+julia> R, (w,x,y,z) = QQ[:w,:x,:y,:z];
+
+julia> A = R[x z;  w y]
+[x   z]
+[w   y]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0,0,0]);
+
+julia> B = matrix([x*y-w*z])
+[-w*z + x*y]
+
+julia> X_B = DeterminantalGerm(B, 1, [0,0,0,0]);
+
+julia> SpaceGerm(X_A) == SpaceGerm(X_B)
+true
+
+julia> is_determinantally_rigid(X_A)
+true
+
+julia> is_determinantally_rigid(X_B)
+false
+```
+"""
 is_determinantally_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X))
 
-@attr Bool is_EIDS(X::DeterminantalGerm{<:Any, <:Any, <:Any, Val{:generic}}) = krull_dim(T1_GL_module(X)) <= 0
+
+
+@doc raw"""
+    is_EIDS(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, Val{:generic}}) -> Bool
+
+Return whether the determinantal germ `X` is an essentially isolated determinantal singularity (EIDS). 
+
+# Examples:
+```jldoctest
+julia> R, (w,x,y,z) = QQ[:w,:x,:y,:z];
+
+julia> A = R[x y z;  w x y]
+[x   y   z]
+[w   x   y]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0,0,0]);
+
+julia> is_EIDS(X_A)
+true
+
+julia> B = R[x y z;  w x 0]
+[x   y   z]
+[w   x   0]
+
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0]);
+
+julia> is_EIDS(X_B)
+false
+```
+"""
+@attr Bool is_EIDS(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, Val{:generic}}) = krull_dim(T1_GL_module(X)) <= 0
+
+
 
 @doc raw"""
     basis_versal_det_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
@@ -423,5 +494,5 @@ julia> basis_versal_det_unfolding(X_B)
  E[1,3] + E[3,1]
 ```
 """
-basis_versal_det_unfolding(X::DeterminantalGerm) = vector_space_basis(T1_GL_module(X))
+basis_versal_det_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
 
