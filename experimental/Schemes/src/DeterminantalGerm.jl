@@ -100,7 +100,11 @@ julia> X_A = DeterminantalGerm(A, 2, [0,0]);
 
 julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
 
+julia> Oscar._mat_type(X_A)
+Val{:generic}
 
+julia> Oscar._mat_type(X_A_sym)
+Val{:symmetric}
 """
 _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val} = T
 
