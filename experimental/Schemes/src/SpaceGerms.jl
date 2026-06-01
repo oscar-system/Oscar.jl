@@ -127,7 +127,7 @@ const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(minors(A, t))
 
 function determinantal_ideal(A::MatElem, t::Int, ::Val{:symmetric})
-  @req is_symmetric(A) "'A' is not a symmetric matrix."
+  @req is_symmetric(A) "'A' is not a symmetric matrix"
   return ideal(minors(A, t))
 end
 
@@ -139,9 +139,9 @@ _expected_codim(n::Int, m::Int, t::Int, ::Val{:generic}) = (n-t+1)*(m-t+1)
 _expected_codim(n::Int, m::Int, t::Int, ::Val{:symmetric}) = div((n-t+2)*(n-t+1), 2)
 _expected_codim(n::Int, m::Int, t::Int, ::Val{:skew_symmetric}) = div((n-2*t+2)*(n-2*t+1), 2)
 
-_codim_error(::Val{:generic}) = "matrix does not describe a singularity of expected codimension."
-_codim_error(::Val{:symmetric}) = "symmetric matrix does not describe a singularity of expected codimension."
-_codim_error(::Val{:skew_symmetric}) = "skew-symmetric matrix does not describe a singularity of expected codimension."
+_codim_error(::Val{:generic}) = "matrix does not describe a singularity of expected codimension"
+_codim_error(::Val{:symmetric}) = "symmetric matrix does not describe a singularity of expected codimension"
+_codim_error(::Val{:skew_symmetric}) = "skew-symmetric matrix does not describe a singularity of expected codimension"
 
 @doc raw"""
     DeterminantalGerm{BaseRingType, RingType, AffineSchemeType, Oscar.MatTypeVal}
@@ -159,7 +159,7 @@ A determinantal germ $(X_A^t, O_{(X_A^t,x)})$, i.e. a ringed space with underlyi
   X::AffineSchemeType
 
   function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
-    @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'."
+    @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
     (n, m) = size(A)
     @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
     R = base_ring(A)
