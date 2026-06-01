@@ -124,15 +124,15 @@ const LocalRingElem = Union{
 
 const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 
-determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(minors(A, t))
+determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(base_ring(A), minors(A, t))
 
 function determinantal_ideal(A::MatElem, t::Int, ::Val{:symmetric})
   @req is_symmetric(A) "'A' is not a symmetric matrix"
-  return ideal(minors(A, t))
+  return ideal(base_ring(A), minors(A, t))
 end
 
 #pfaffians check skew-symmetric
-determinantal_ideal(A::MatElem, t::Int, ::Val{:skew_symmetric}) = ideal(pfaffians(A, 2*t)) 
+determinantal_ideal(A::MatElem, t::Int, ::Val{:skew_symmetric}) = ideal(base_ring(A), pfaffians(A, 2*t)) 
 
 
 _expected_codim(n::Int, m::Int, t::Int, ::Val{:generic}) = (n-t+1)*(m-t+1)
