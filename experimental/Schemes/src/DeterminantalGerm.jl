@@ -170,6 +170,12 @@ end
 ## basic functionality for determinantal germs, which needs to be overwriten
 ################################################################################
 
+
+@doc raw"""
+    DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T}; mat_type::Symbol = :generic, check::Bool=true)
+
+Return whether the determinantal germs `X` and `Y` are equal, i.e. they have the same determinantal structure on the same underlying scheme.
+"""
 function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   X === Y && return true
   _mat_type(X) == _mat_type(Y) || return false
