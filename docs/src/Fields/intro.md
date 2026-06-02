@@ -58,6 +58,14 @@ julia> B = change_base_ring(C, A)
 [3.0000000000000000000   4.0000000000000000000]
 ```
 
+
+## Division
+
+OSCAR in general makes a subtle but important distinction between `/` and
+`//`. However, for field elements, they actually are the same and both
+correspond to `divexact`. We provide more details on the 
+[distinction between `/` and `//` for rings.](@ref subtle_distinction_for_rings).
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:

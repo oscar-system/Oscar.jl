@@ -56,28 +56,27 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
   end
 end
 
-function load_object(s::DeserializerState, G::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
-  return G(smallobj)
+
+function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
+  return g(smallobj)
 end
 
-function load_object(s::DeserializerState, G::Type{Graph{T}}, params::Dict) where T <: Union{Directed, Undirected}
-  g = load_node(s, :graph) do _
+function load_object(s::DeserializerState, G::TypeParams{Graph{T}, Vararg{Pair}}) where T <: Union{Directed, Undirected}
+  g = load_node(s, :graph) do 
     G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj)))
   end
-  load_node(s, :labelings) do _
-    for label in keys(params)
-      load_node(s, label) do _
-        edge_labels = nothing
-        if haskey(s, :edge_map)
-          edge_labels = load_object(s, Dict{Tuple{Int, Int}, params[label][:edge_map]}, nothing, :edge_map)
+  load_node(s, :labelings) do
+    foreach(s.obj) do (label, _)
+      edge_labels = nothing
+      if haskey(s, :edge_map)
+        edge_labels = load_object(s, Dict{Tuple{Int, Int}, params[label][:edge_map]}, nothing, :edge_map)
         end
-        vertex_labels = nothing
-        if haskey(s, :vertex_map)
-          vertex_labels = load_object(s, Dict{Int, params[label][:vertex_map]}, nothing, :vertex_map)
-        end
-        label!(g, edge_labels, vertex_labels; name=label)
+      vertex_labels = nothing
+      if haskey(s, :vertex_map)
+        vertex_labels = load_object(s, Dict{Int, params[label][:vertex_map]}, nothing, :vertex_map)
       end
+      label!(g, edge_labels, vertex_labels; name=label)
     end
   end
   return g
@@ -122,7 +121,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return IM
 end
 
@@ -137,7 +136,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return K(bigobject)
 end
 
@@ -155,18 +154,18 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQField})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, JSON.parse(s.obj; dicttype=Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
-  PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
+  return PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, load_json(s, Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
-  PhylogeneticTree{Float64}(inner_object, vertex_perm)
+  return PhylogeneticTree{Float64}(inner_object, vertex_perm)
 end

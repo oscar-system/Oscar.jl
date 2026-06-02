@@ -98,6 +98,23 @@ function _presentation_graded(SQ::SubquoModule)
   #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
+  F = ambient_free_module(SQ)
+  if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
+    rels = filter(!is_zero, relations(SQ))
+    W = [degree(r) for r in rels]
+    F1 = graded_free_module(R, length(rels), W)
+    phi = hom(F1, F, rels)
+    aug = hom(F, SQ, gens(SQ))
+    # prepare the end of the presentation
+    Z = graded_free_module(R, 0)
+    SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
+
+    # compile the presentation complex
+    M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[phi, aug, SQ_to_Z], check=false, seed = -2)
+    set_attribute!(M, :show => Hecke.pres_show)
+    return M
+  end
+
   # Create the free module for the presentation
   #
   # We have to take representatives of the simplified 
@@ -225,6 +242,16 @@ julia> A = transpose(matrix(B))
 [1           0]
 
 julia> M = graded_cokernel(A)
+Graded subquotient of graded submodule of R^2 with 2 generators
+  1: e[1]
+  2: e[2]
+by graded submodule of R^2 with 4 generators
+  1: w*y*e[2]
+  2: (w*z - x*y)*e[2]
+  3: (x*z - y^2)*e[2]
+  4: e[1]
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -523,7 +550,9 @@ julia> A = transpose(matrix(B))
 [0   x*z - y^2]
 [1           0]
 
-julia> M = graded_cokernel(A)
+julia> M = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -539,9 +568,9 @@ julia> N
 Graded subquotient of graded submodule of R^1 with 1 generator
   1: e[1]
 by graded submodule of R^1 with 3 generators
-  1: (-x*z + y^2)*e[1]
-  2: (-w*z + x*y)*e[1]
-  3: w*y*e[1]
+  1: w*y*e[1]
+  2: (w*z - x*y)*e[1]
+  3: (x*z - y^2)*e[1]
 
 julia> phi(first(gens(N)))
 e[2]
@@ -570,6 +599,12 @@ function prune_with_map_atomic(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MP
   # work around if we're passing the zero module to singular, see
   # https://github.com/oscar-system/Singular.jl/issues/796
   if iszero(krnel)
+    if is_graded(M)
+      F0 = pm[0]
+      M_new = SubquoModule(F0, gens(F0))
+      phi = hom(M_new, M, gens(M); check=false)
+      return M_new, phi
+    end
     return M, id_hom(M)
   end
   
@@ -734,21 +769,21 @@ julia> F = free_module(FreeMod, R, 2);
 
 julia> A = matrix(ZZ, [2 0; 0 3]);
 
-julia> M = cokernel(hom(F, F, A));
+julia> M, _ = cokernel(hom(F, F, A));
 
 julia> is_finite(M)
 true
 
 julia> B = matrix(ZZ, [0 0; 0 0]);
 
-julia> N = cokernel(hom(F, F, B));
+julia> N, _ = cokernel(hom(F, F, B));
 
 julia> is_finite(N)
 false
 
 julia> B = matrix(ZZ, [0 0; 0 0]);
 
-julia> N = cokernel(hom(F, F, B));
+julia> N, _ = cokernel(hom(F, F, B));
 
 julia> is_finite(N)
 false
@@ -759,19 +794,19 @@ julia> G = free_module(FreeMod, K, 3);
 
 julia> C = matrix(K, [1 0 0; 0 1 0; 0 0 1]);
 
-julia> L = cokernel(hom(G, G, C));
+julia> L, _ = cokernel(hom(G, G, C));
 
 julia> is_finite(L)
 true
 
 julia> H = free_module(FreeMod, QQ, 1);
 
-julia> P = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
+julia> P, _ = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(0)])));
 
 julia> is_finite(P)
 false
 
-julia> Z = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
+julia> Z, _ = cokernel(hom(H, H, matrix(QQ, 1, 1, [QQ(1)])));
 
 julia> is_finite(Z)
 true
@@ -813,12 +848,12 @@ julia> R = ZZ;
 
 julia> F = free_module(FreeMod, R, 2);
 
-julia> M = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
+julia> M, _ = cokernel(hom(F, F, matrix(ZZ, [2 0; 0 3])));
 
 julia> size(M)
 6
 
-julia> N = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
+julia> N, _ = cokernel(hom(F, F, matrix(ZZ, [1 0; 0 0])));
 
 julia> size(N)
 infinity
@@ -829,7 +864,7 @@ julia> G = free_module(FreeMod, K, 3);
 
 julia> H = free_module(FreeMod, K, 1);
 
-julia> L = cokernel(hom(H, G, matrix(K, [1 0 0])));
+julia> L, _ = cokernel(hom(H, G, matrix(K, [1 0 0])));
 
 julia> size(L)
 49

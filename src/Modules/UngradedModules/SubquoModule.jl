@@ -467,7 +467,10 @@ end
 @doc raw"""
     cokernel(a::ModuleFPHom)
 
-Return the cokernel of `a` as an object of type `SubquoModule`.
+Return the cokernel of `a` as an object of type `SubquoModule`, 
+together with the projection morphism form the codomain.
+
+Use `cokernel_object` to obtain only the module, but not the projection.
 
 # Examples
 ```jldoctest
@@ -484,7 +487,9 @@ julia> W = R[y 0; x y; 0 z]
 
 julia> a = hom(F, G, W);
 
-julia> cokernel(a)
+julia> M, pr = cokernel(a);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -492,6 +497,11 @@ by submodule with 3 generators
   1: y*e[1]
   2: x*e[1] + y*e[2]
   3: z*e[2]
+
+julia> pr
+Module homomorphism
+  from G
+  to M
 ```
 
 ```jldoctest
@@ -526,7 +536,9 @@ julia> V = [y^2*N[1], x*N[2]]
 
 julia> a = hom(M, N, V);
 
-julia> cokernel(a)
+julia> CK, _ = cokernel(a);
+
+julia> CK
 Subquotient of submodule with 2 generators
   1: x*e[1]
   2: y*e[1]
@@ -559,7 +571,9 @@ defined by
   e[2] -> x*e[1] + y*e[2]
   e[3] -> z*e[2]
 
-julia> M = cokernel(a)
+julia> M, _ = cokernel(a);
+
+julia> M
 Graded subquotient of graded submodule of G with 2 generators
   1: e[1]
   2: e[2]
@@ -571,13 +585,20 @@ by graded submodule of G with 3 generators
 ```
 """
 function cokernel(f::ModuleFPHom{T1, T2}) where {T1, T2}
+  return quo(codomain(f), image(f)[1])::Tuple{SubquoModule{elem_type(base_ring_type(T2))}, ModuleFPHom}
+end
+
+function cokernel_object(f::ModuleFPHom{T1, T2}) where {T1, T2}
   return quo_object(codomain(f), image(f)[1])::SubquoModule{elem_type(base_ring_type(T2))}
 end
 
 @doc raw"""
     cokernel(F::FreeMod{R}, A::MatElem{R}) where R
 
-Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`, 
+together with the canonical projection from `F`.
+
+Use `cokernel_object` to obtain only the module, but not the projection.
 
 # Examples
 ```jldoctest
@@ -590,7 +611,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -601,6 +624,10 @@ by submodule with 2 generators
 julia> ambient_free_module(M) === F
 true
 
+julia> pr
+Module homomorphism
+  from F
+  to M
 ```
 
 ```jldoctest
@@ -613,7 +640,9 @@ julia> A = Rg[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(F, A)
+julia> M, pr = cokernel(F, A);
+
+julia> M
 Graded subquotient of graded submodule of F with 2 generators
   1: e[1]
   2: e[2]
@@ -628,6 +657,14 @@ julia> degrees_of_generators(M)
 2-element Vector{FinGenAbGroupElem}:
  [8]
  [8]
+
+julia> pr
+Homogeneous module homomorphism
+  from F
+  to M
+defined by
+  e[1] -> e[1]
+  e[2] -> e[2]
 ```
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -637,7 +674,9 @@ end
 @doc raw"""
     cokernel(A::MatElem)
 
-Return the cokernel of `A` as an object of type `SubquoModule`.
+Return the cokernel of `A` as an object of type `SubquoModule`, 
+together with the projection from the free module for the codomain 
+of `A` interpreted as a morphism.
 
 # Examples
 ```jldoctest
@@ -647,7 +686,9 @@ julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
 [2*x^2   3*y^2]
  
-julia> M = cokernel(A)
+julia> M = cokernel(A);
+
+julia> M
 Subquotient of submodule with 2 generators
   1: e[1]
   2: e[2]
@@ -658,7 +699,7 @@ by submodule with 2 generators
 ```
 """
 function cokernel(A::MatElem)
-  return cokernel(map(A))
+  return cokernel(map(A))[1]
 end
 
 @doc raw"""
@@ -840,97 +881,6 @@ function leading_module(M::SubquoModule, ord::ModuleOrdering = default_ordering(
   return SubquoModule(leading_module(M.sub, ord))
 end
 
-@doc raw"""
-    is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
-
-Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
-return `true` if `M` is contained in `N`, where `M` and `N` are regarded as submodules 
-of the common ambient module.
-
-# Examples
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> AM = R[x;]
-[x]
-
-julia> BM = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, AM, BM)
-Subquotient of submodule with 1 generator
-  1: x*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> AN = R[x; y]
-[x]
-[y]
-
-julia> BN = R[x^2+y^4; y^3; z^4]
-[x^2 + y^4]
-[      y^3]
-[      z^4]
-
-julia> N = subquotient(F, AN, BN)
-Subquotient of submodule with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by submodule with 3 generators
-  1: (x^2 + y^4)*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> is_subset(M, N)
-true
-```
-
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> F = graded_free_module(Rg, 2);
-
-julia> O1 = [x*F[1]+y*F[2],y*F[2]];
-
-julia> O1a = [x*F[1],y*F[2]];
-
-julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
-
-julia> M1 = subquotient(F, O1, O2)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1] + y*e[2]
-  2: y*e[2]
-by graded submodule of F with 2 generators
-  1: x^2*e[1] + y^2*e[2]
-  2: y^2*e[2]
-
-julia> M2 = subquotient(F, O1a, O2)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1]
-  2: y*e[2]
-by graded submodule of F with 2 generators
-  1: x^2*e[1] + y^2*e[2]
-  2: y^2*e[2]
-
-julia> is_subset(M1,M2)
-true
-
-julia> is_subset(M2,M1)
-true
-
-julia> M1 == M2
-true
-```
-"""
 function is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
@@ -963,96 +913,6 @@ function compare_helper(M::SubquoModule{T}, N::SubquoModule{T}, comparer::Functi
   end
 end
 
-@doc raw"""
-    ==(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
-
-Given subquotients `M` and `N` such that `ambient_module(M) == ambient_module(N)`,
-return `true` if `M` equals `N`, where `M` and `N` are regarded as submodules 
-of the common ambient module.
-
-Here, `ambient_module(M) == ambient_module(N)` if
-
-- `ambient_free_module(M) === ambient_free_module(N)`, and
-- the submodules of the common ambient free module generated by the relations of `M` and `N`, respectively, are equal.
-
-# Examples
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> F = free_module(R, 1)
-Free module of rank 1 over R
-
-julia> AM = R[x;]
-[x]
-
-julia> BM = R[x^2; y^3; z^4]
-[x^2]
-[y^3]
-[z^4]
-
-julia> M = subquotient(F, AM, BM)
-Subquotient of submodule with 1 generator
-  1: x*e[1]
-by submodule with 3 generators
-  1: x^2*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> AN = R[x; y]
-[x]
-[y]
-
-julia> BN = R[x^2+y^4; y^3; z^4]
-[x^2 + y^4]
-[      y^3]
-[      z^4]
-
-julia> N = subquotient(F, AN, BN)
-Subquotient of submodule with 2 generators
-  1: x*e[1]
-  2: y*e[1]
-by submodule with 3 generators
-  1: (x^2 + y^4)*e[1]
-  2: y^3*e[1]
-  3: z^4*e[1]
-
-julia> M == N
-false
-```
-
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> F = graded_free_module(Rg, 2);
-
-julia> O1 = [x*F[1]+y*F[2],y*F[2]];
-
-julia> O1a = [x*F[1],y*F[2]];
-
-julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
-
-julia> M1 = subquotient(F, O1, O2)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1] + y*e[2]
-  2: y*e[2]
-by graded submodule of F with 2 generators
-  1: x^2*e[1] + y^2*e[2]
-  2: y^2*e[2]
-
-julia> M2 = subquotient(F, O1a, O2)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x*e[1]
-  2: y*e[2]
-by graded submodule of F with 2 generators
-  1: x^2*e[1] + y^2*e[2]
-  2: y^2*e[2]
-
-julia> M1 == M2
-true
-```
-"""
 function (==)(M::SubquoModule{T}, N::SubquoModule{T}) where {T} # TODO replace implementation by two inclusion checks?
   return compare_helper(M, N, (==))
 end
@@ -1854,7 +1714,7 @@ function _quotient(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by gener
   error("not implemented for the given types of modules.")
 end
 
-function _quotient(U::SubModuleOfFreeModule, J::Ideal{T}) where T <: MPolyRingElem
+function _quotient(U::SubModuleOfFreeModule, J::Ideal{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   F = ambient_free_module(U)
   SgU = singular_generators(U.gens)
   SgJ = singular_generators(J.gens)
@@ -1862,20 +1722,6 @@ function _quotient(U::SubModuleOfFreeModule, J::Ideal{T}) where T <: MPolyRingEl
   MG = ModuleGens(F, SQ)
   return SubModuleOfFreeModule(F, MG)
 end
-
-function _quotient(U::SubModuleOfFreeModule, J::Ideal{T}) where T <: MPolyQuoRingElem
-  A = base_ring(U)
-  @req base_ring(J) === A "wrong base rings"
-  P = base_ring(A)::MPolyRing
-  F = ambient_free_module(U)
-  FP = free_module(P, ngens(F))
-  UP = SubModuleOfFreeModule(FP, elem_type(FP)[sum(lift(c)*FP[i] for (i, c) in coordinates(v); init=zero(FP)) for v in gens(U)])
-  UP = UP + SubModuleOfFreeModule(FP, elem_type(FP)[g*v for g in gens(modulus(A)) for v in gens(FP)])
-  IP = ideal(P, elem_type(P)[lift(g) for g in gens(J)])
-  res_P = _quotient(UP, IP)
-  return SubModuleOfFreeModule(F, filter!(!is_zero, elem_type(F)[F(map_entries(A, coordinates(v))) for v in gens(res_P)]))
-end
-
 
 ########################################
 ### saturation for modules
@@ -1951,26 +1797,13 @@ function _saturation(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by gen
   error("not implemented for the given types of modules.")
 end
 
-function _saturation(U::SubModuleOfFreeModule{T}, J::Ideal; iteration::Bool = false) where T <: MPolyRingElem
+function _saturation(U::SubModuleOfFreeModule{T}, J::Ideal; iteration::Bool = false) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   F = ambient_free_module(U)
   SgU = singular_generators(U.gens)
   SgJ = singular_generators(J.gens)
   SQ, _ = Singular.saturation(SgU, SgJ)
   MG = ModuleGens(F, SQ)
   return SubModuleOfFreeModule(F, MG)
-end
-
-function _saturation(U::SubModuleOfFreeModule{T}, J::Ideal; iteration::Bool = false) where T <: MPolyQuoRingElem
-  A = base_ring(U)
-  @req base_ring(J) === A "wrong base rings"
-  P = base_ring(A)::MPolyRing
-  F = ambient_free_module(U)
-  FP = free_module(P, ngens(F))
-  UP = SubModuleOfFreeModule(FP, elem_type(FP)[sum(lift(c)*FP[i] for (i, c) in coordinates(v); init=zero(FP)) for v in gens(U)])
-  UP = UP + SubModuleOfFreeModule(FP, elem_type(FP)[g*v for g in gens(modulus(A)) for v in gens(FP)])
-  IP = ideal(P, elem_type(P)[lift(g) for g in gens(J)])
-  res_P = _saturation(UP, IP)
-  return SubModuleOfFreeModule(F, filter!(!is_zero, elem_type(F)[F(map_entries(A, coordinates(v))) for v in gens(res_P)]))
 end
 
 @doc raw"""
@@ -2092,26 +1925,13 @@ function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal) ### TODO Rep
   error("not implemented for the given types of modules.")
 end
 
-function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: MPolyRingElem
+function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
   F = ambient_free_module(U)
   SgU = singular_generators(U.gens)
   SgJ = singular_generators(J.gens)
   SQ, k = Singular.saturation(SgU, SgJ)
   MG = ModuleGens(F, SQ)
   return SubModuleOfFreeModule(F, MG), k
-end
-
-function _saturation_with_index(U::SubModuleOfFreeModule, J::Ideal{T}; iteration::Bool = false) where T <: MPolyQuoRingElem
-  A = base_ring(U)
-  @req base_ring(J) === A "wrong base rings"
-  P = base_ring(A)::MPolyRing
-  F = ambient_free_module(U)
-  FP = free_module(P, ngens(F))
-  UP = SubModuleOfFreeModule(FP, elem_type(FP)[sum(lift(c)*FP[i] for (i, c) in coordinates(v); init=zero(FP)) for v in gens(U)])
-  UP = UP + SubModuleOfFreeModule(FP, elem_type(FP)[g*v for g in gens(modulus(A)) for v in gens(FP)])
-  IP = ideal(P, elem_type(P)[lift(g) for g in gens(J)])
-  res_P, ind = _saturation_with_index(UP, IP)
-  return SubModuleOfFreeModule(F, filter!(!is_zero, elem_type(F)[F(map_entries(A, coordinates(v))) for v in gens(res_P)])), ind
 end
 
 ########################################
@@ -2296,4 +2116,3 @@ end
   end
   return krull_dim(base_ring(F))
 end
-

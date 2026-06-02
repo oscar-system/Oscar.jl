@@ -81,6 +81,23 @@ using Oscar: _integer_variables
         @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
 
+      let
+        Qx2, x2 = QQ[:x]
+        K2, r2 = number_field(x2^3 - 3x2^2 - 4x2 + 8, "r")
+        K2y, y2 = K2[:y]
+        L2, lq2 = number_field(y2^2 - (2 - r2^2)//2, "q")
+        emb2 = only(filter(Base.Fix1(is_positive, lq2), real_embeddings(L2)))
+        E2, eq2 = Hecke.embedded_field(L2, emb2)
+        verts = matrix(E2, [0 1 0; 1 0 0; 0 0 1; 1 1 0])
+        sd_small = convex_hull(E2, verts)
+        vertices(sd_small)
+        test_save_load_roundtrip(path, sd_small) do loaded
+          @test n_vertices(sd_small) == n_vertices(loaded)
+          @test dim(sd_small) == dim(loaded)
+          @test sd_small == loaded
+        end
+      end
+
       d_hedron = dodecahedron()
       facets(d_hedron)
       vertices(d_hedron)

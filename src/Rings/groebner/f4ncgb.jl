@@ -160,3 +160,14 @@ function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
     add_cb_c::Ptr{Cvoid},
     end_poly_cb_c::Ptr{Cvoid})::Cint
 end
+
+function f4ncgb_reduce(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
+  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{BigInt}, Ptr{BigInt}, Csize_t, Ptr{UInt32}))
+  end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
+
+  return @ccall libf4ncgb.f4ncgb_reduce(
+    handle::Ptr{Cvoid},
+    pointer_from_objref(ideal)::Ptr{Cvoid},
+    add_cb_c::Ptr{Cvoid},
+    end_poly_cb_c::Ptr{Cvoid})::Cint
+end

@@ -95,12 +95,15 @@ push!(upgrade_scripts_set, UpgradeScript(
         elseif !isempty(const_data)
           error("missed construction data")
         end
+        delete!(dict[:data], :lie_algebra)
+        delete!(dict[:data], :construction_data)
       elseif type_name == "LinearLieAlgebra"
         dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :base_ring => dict[:data][:base_ring]
           ))
+        delete!(dict[:data], :base_ring)
       elseif type_name == "DirectSumLieAlgebra"
         dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
@@ -108,6 +111,8 @@ push!(upgrade_scripts_set, UpgradeScript(
             :base_ring => dict[:data][:base_ring],
             :summands => dict[:data][:summands]
           ))
+        delete!(dict[:data], :base_ring)
+        delete!(dict[:data], :summands)
       elseif type_name == "AbstractLieAlgebra"
         if haskey(dict[:data], :root_system)
           dict[:_type] = Dict{Symbol, Any}(
@@ -117,6 +122,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             :root_system => dict[:data][:root_system]
 
           ))
+          delete!(dict[:data], :root_system)
         else
           dict[:_type] = Dict{Symbol, Any}(
             :name => dict[:_type],
@@ -125,15 +131,19 @@ push!(upgrade_scripts_set, UpgradeScript(
             ))
         end
         dict[:attrs] = dict[:data][:attrs]
-      elseif type_name in [
-        "FracField", "LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"
-        ]
+        delete!(dict[:data], :base_ring)
+        delete!(dict[:data], :attrs)
+      elseif type_name == "FracField"
         dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
           :params => dict[:data][:base_ring]
         )
-        delete!(dict, :base_ring)
-        dict[:data] = dict[:data]
+      elseif type_name in ["LaurentSeriesField", "SeriesRing", "LaurentSeriesRing"]
+        dict[:_type] = Dict{Symbol, Any}(
+          :name => dict[:_type],
+          :params => dict[:data][:base_ring]
+        )
+        delete!(dict[:data], :base_ring)
       elseif type_name in ["MatSpace", "SMatSpace"]
         dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
@@ -154,7 +164,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :ring => dict[:data][:ring],
-            :grading_group => dict[:data][:grading][:_type][:params]
+            :grading_group => dict[:data][:grading][:_type][:params][:params]
           )
         )
         dict[:data] = dict[:data][:grading][:data]
@@ -340,14 +350,6 @@ push!(upgrade_scripts_set, UpgradeScript(
           )
         )
         dict[:data] = dict[:data][:basis][:data]
-      elseif type_name == "LinearProgram"
-        if !(dict[:_type][:params] == "QQField")
-          
-        end
-      elseif type_name == "MixedIntegerLinearProgram"
-        if !(dict[:_type][:params] == "QQField")
-          
-        end
       elseif type_name in [
         "Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
         "SubdivisionOfPoints"
@@ -415,7 +417,6 @@ push!(upgrade_scripts_set, UpgradeScript(
             :name => type_name,
             :params => dict[:data][:X][:wholeGroup]
           )
-
         else
           dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
@@ -424,8 +425,8 @@ push!(upgrade_scripts_set, UpgradeScript(
               :data => dict[:data][:X]
             )
           )
-          dict[:data] = dict[:data][:X]
         end
+        dict[:data] = []
       elseif type_name in ["PcGroup", "SubPcGroup"]
         if dict[:data][:X] isa String
           dict[:_type] = Dict{Symbol, Any}(
@@ -445,8 +446,8 @@ push!(upgrade_scripts_set, UpgradeScript(
               :data => dict[:data][:X]
             )
           )
-          dict[:data] = dict[:data][:X]
         end
+        dict[:data] = []
         
       elseif type_name == "GAP.GapObj" || type_name == "GapObj"
         dict[:_type] = "GapObj"
@@ -473,7 +474,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         if haskey(dict[:data], :graph)
           dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => Dict{Symbol, Any}(:_type => String, :data => "graph")
+            :params => Dict{Symbol, Any}(:_type => "String", :data => "graph")
           )
           dict[:data][:graph] = dict[:data][:graph][:data]
         else
@@ -520,6 +521,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => type_name,
           :params => dict[:data][:root_system]
         )
+        dict[:data] = Dict{Symbol, Any}()
       elseif type_name == "MPolyQuoRing"
         ord_data = dict[:data][:ordering]
         dict[:_type] = Dict{Symbol, Any}(

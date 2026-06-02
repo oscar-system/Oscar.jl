@@ -1,5 +1,3 @@
-using JSON3
-
 ################################################################################
 # Type Serializers (converting types to strings)
 convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
@@ -56,11 +54,17 @@ mutable struct SerializerState{T <: OscarSerializer}
   io::IO
   key::Union{Symbol, Nothing}
   with_attrs::Bool
+  pretty_print::Bool
 end
 
-function begin_node(s::SerializerState)
+function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
+  !isnothing(key) && set_key(s, key)
   if !s.new_level_entry
-    write(s.io, ",")
+    if s.pretty_print
+      println(s.io, ",")
+    else
+      write(s.io, ",")
+    end
   else
     s.new_level_entry = false
   end
@@ -71,46 +75,6 @@ function begin_node(s::SerializerState)
   end
 end
 
-function begin_dict_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "{")
-end
-
-function end_dict_node(s::SerializerState)
-  write(s.io, "}")
-
-  if s.new_level_entry
-    # makes sure that entries after empty dicts add comma
-    s.new_level_entry = false
-  end
-end
-
-function begin_array_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "[")
-end
-
-function end_array_node(s::SerializerState)
-  write(s.io, "]")
-
-  if s.new_level_entry
-    # makes sure that entries after empty arrays add comma
-    s.new_level_entry = false
-  end
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
-end
-
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
   s.key = key
@@ -119,37 +83,57 @@ end
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
+function _save_data_container(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing}, start::String, stop::String)
+  begin_node(s, key)
+  if s.pretty_print
+    println(s.io, start)
+    print(s.io, Indent())
+  else
+    write(s.io, start)
+  end
+  s.new_level_entry = true
+  f()
+  if s.pretty_print
+    println(s.io, "")
+    print(s.io, Dedent(), stop)
+  else
+    write(s.io, stop)
+  end
+
+  if s.new_level_entry
+    # makes sure that entries after empty arrays or dicts add comma
+    s.new_level_entry = false
+  end
+end
+
 function save_data_dict(f::Function, s::SerializerState,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_dict(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "{", "}")
 end
 
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_array(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "[", "]")
 end
 
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
-  str = string(x)
-  JSON.json(s.io, str)
+  begin_node(s, key)
+  data = x isa Bool ? x : string(x)
+  if s.pretty_print
+    print(s.io, "")
+    JSON.json(s.io, data)
+    print(s.io, "")
+  else
+    JSON.json(s.io, data)
+  end
   nothing
 end
 
 function save_data_json(s::SerializerState, jsonstr::Any,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   write(s.io, jsonstr)
 end
 
@@ -200,90 +184,131 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
+  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing, Dict{Symbol, <:JSON.LazyValues}, Vector{JSON.LazyValues}}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{AbstractDict{Symbol, Any}, Nothing}
+  refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
 end
+
+function load_json(s::DeserializerState, ::Type{T}) where T
+  return JSON.parse(s.obj, T)
+end
+
 
 # general loading of a reference
 
 function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  id = load_json(s, UUID)
+  if haskey(global_serializer_state.id_to_obj, id)
+    loaded_ref = global_serializer_state.id_to_obj[id]
   else
-    s.obj = s.refs[Symbol(id)]
+    s.obj = s.refs[id]
     loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
+    global_serializer_state.id_to_obj[id] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = id
   end
   return loaded_ref
 end
 
-function Base.haskey(s::DeserializerState, key::Symbol)
-  s.obj isa String && return false
-  load_node(s) do obj
-    key in keys(obj)
-  end
+function Base.isempty(s::DeserializerState)
+  return iszero(length(s.obj))
 end
 
-function set_key(s::DeserializerState, key::Union{Symbol, Int})
+function Base.haskey(s::DeserializerState, key::Symbol)::Bool
+  !(s.obj isa JSON.LazyValue) && return false
+  obj = s.obj[]
+  obj isa String && return false
+  return haskey(obj, key)::Bool
+end
+
+function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothing)
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
   s.key = key
 end
 
+function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
+  if is_object(s) && s.obj isa JSON.LazyValue
+    d = Dict{Symbol, JSON.LazyValues}()
+    foreach(s.obj) do (k,v)
+      d[Symbol(k)] = v
+    end
+    s.obj = d
+  elseif is_array(s) && s.obj isa JSON.LazyValue
+    a = JSON.LazyValues[]
+    foreach(s.obj) do v
+      push!(a, v)
+    end
+    s.obj = a
+  end
+  s.obj = s.obj[key]
+end
+
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+  if is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
     return load_ref(s)
   end
 
   !isnothing(key) && set_key(s, key)
-  obj = s.obj
-  s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
+  lazy_obj = s.obj
+  if !isnothing(s.key)
+    set_state_level(s, s.key)
+  end
   s.key = nothing
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj)
+    result = f()
   end
-  s.obj = obj
+  s.obj = lazy_obj
   return result
 end
 
 function load_array_node(f::Function, s::DeserializerState,
-                         key::Union{Symbol, Int, Nothing} = nothing)
-  load_node(s, key) do array
-    [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]
+                         key::Union{Symbol, Int, Nothing} = nothing;
+                         entry_type::Type = Any)
+  load_node(s, key) do
+    i = 1
+    result = entry_type[]
+    sizehint!(result, length(s.obj))
+    foreach(s.obj) do v
+      s.obj = v
+      push!(result, f(i))
+      i += 1
+    end
+    return result
   end
 end
 
 function serializer_open(
   io::IO,
   serializer::OscarSerializer,
-  with_attrs::Bool)
+  with_attrs::Bool,
+  pretty_print::Bool)
   
   # some level of handling should be done here at a later date
-  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
+  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs, pretty_print)
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
-  refs = get(obj, :_refs, nothing)
+  obj = JSON.lazy(io)
+  refs_from_file = get(obj, :_refs, nothing)
+  refs = Dict{UUID,JSON.LazyValues}()
+  if !isnothing(refs_from_file)
+    foreach(refs_from_file) do (k,v)
+      refs[UUID(k)] = v
+    end
+  end
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
-  # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_type_params to hang
-  #obj = JSON3.read(io)
+function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
   str = readuntil(io, '}'; keep=true)
   while !JSON.isvalidjson(str)
     str *= readuntil(io, '}'; keep=true)
   end
-  obj = JSON.parse(str; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
+  obj = JSON.lazy(str)
 
-  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end

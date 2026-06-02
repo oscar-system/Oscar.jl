@@ -113,22 +113,26 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
 
     if haskey(d, :name)
       upg_d[:name] = get(renamings, d[:name], d[:name])
-    else
+    elseif haskey(d, :_type)
       upg_d[:_type] = get(renamings, d[:_type], d[:_type])
       return upg_d
     end
-    
-    if d[:params] isa AbstractDict
-      if haskey(d[:params], :_type)
-        upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
-      else
-        for (k, v) in d[:params]
-          upg_d[:params][k] = upgrade_type(d[:params][k])
+
+    if haskey(d, :params)
+      if d[:params] isa AbstractDict
+        if haskey(d[:params], :_type)
+          upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
+          
+        else
+          for (k, v) in d[:params]
+            upg_d[:params][k] = upgrade_type(d[:params][k])
+          end
         end
+      elseif d[:params] isa Vector
+        upg_d[:params] = upgrade_type(d[:params])
       end
-    elseif d[:params] isa Vector
-      upg_d[:params] = upgrade_type(d[:params])
     end
+    
     return upg_d
   end
 
@@ -138,18 +142,58 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
   return dict
 end
 
-function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDict)
+# For DEV versions like "1.8.0-DEV-1-hash", the n_upgrades count tells us how many
+# upgrade scripts for that base version existed when the file was saved — meaning those
+# scripts were already applied. Map to the version of the n-th script so upgrade()
+# correctly skips already-applied scripts.
+#
+# Julia parses "1.8.0-DEV-1-hash" with prerelease = ("DEV-1-hash",) as a single
+# identifier, so we split on "-" to extract n_upgrades.
+function effective_upgrade_version(format_version::VersionNumber)
+  pre = format_version.prerelease
+  isempty(pre) && return format_version
+
+  # pre[1] has format "DEV-<n_upgrades>-<hash>" or "DEV-<hash>" (n_upgrades=0)
+  pre_str = string(pre[1])
+  startswith(pre_str, "DEV-") || return format_version
+
+  parts = split(pre_str, "-")
+  length(parts) < 3 && return format_version  # no n_upgrades encoded
+
+  n_upgrades = tryparse(Int, string(parts[2]))
+  (isnothing(n_upgrades) || iszero(n_upgrades)) && return format_version
+
+  base = Base.thispatch(format_version)
+  base_num = findfirst(s -> version(s) == base, upgrade_scripts)
+  return version(upgrade_scripts[base_num+n_upgrades-1])
+end
+
+function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   # all containers have a Dict for their type description
   # with a name and a params key
-  dict[:_type] isa String && return dict
-  if !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
+  if haskey(dict, :data) && dict[:data] isa AbstractDict && !isempty(dict[:data]) && all(e -> e isa String, dict[:data])
     ref_entry = get(s.id_to_dict, Symbol(dict[:data][1]), nothing)
     if !isnothing(ref_entry)
       ref_entry = upgrade(s, ref_entry)
       dict[:_type][:params] = ref_entry[:_type]
     end
   end
-  if dict[:_type][:name] in ["Vector", "Set", "Matrix"] 
+
+  if haskey(dict, :attrs)
+    for (k, v) in dict[:attrs]
+      if v isa AbstractDict
+        dict[:attrs][k] = upgrade(s, v)
+      end
+    end
+  end
+
+  if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+    type_name = dict[:_type][:name]
+  else
+    type_name = dict[:_type]
+  end
+
+  if type_name in ["Vector", "Set", "Matrix"]
     subtype = dict[:_type][:params]
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
@@ -161,7 +205,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
       dict[:_type][:params] = upgraded_entry[:_type]
     end
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
-  elseif dict[:_type][:name] == "MultiDimArray"
+  elseif type_name == "MultiDimArray"
     subtype = dict[:_type][:params][:subtype_params]
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
@@ -174,7 +218,7 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
     end
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
-  elseif dict[:_type][:name] == "Tuple"
+  elseif type_name == "Tuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
     for (type, entry) in zip(dict[:_type][:params], dict[:data])
@@ -184,48 +228,117 @@ function upgrade_containers(upgrade::Function, s::UpgradeState, dict::AbstractDi
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
 
-  elseif dict[:_type][:name] == "NamedTuple"
+  elseif type_name == "NamedTuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
-    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
-      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
-      push!(upgraded_entries, upgraded_entry)
+    if haskey(dict[:_type][:params], :tuple_params)
+      # old format: {names: [...], tuple_params: [...]}
+      for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
+        push!(upgraded_entries, upgraded_entry)
+      end
+      dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+    else
+      # new format: field names as keys
+      for (k, entry) in zip(keys(dict[:_type][:params]), dict[:data])
+        type = dict[:_type][:params][k]
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
+        push!(upgraded_entries, upgraded_entry)
+        dict[:_type][:params][k] = upgraded_entry[:_type]
+      end
     end
-    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
-  elseif dict[:_type][:name] == "Dict"
+  elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
     if haskey(dict[:_type][:params], :value_params)
       value_params = dict[:_type][:params][:value_params]
-      upgraded_entry = nothing
-      upgraded_pairs = Tuple[]
-      for (k, v) in dict[:data]
-        upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
-        upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
-        push!(upgraded_pairs, (upgraded_k, upgraded_v))
-      end
-
-      if key_params in ["Symbol", "Int", "String"]
-        dict[:data] = Dict{Symbol, Any}()
-        for (upgraded_k, upgraded_v) in upgraded_pairs
-          dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+      # Heterogeneous Dict (new format): value_params is a dict of per-key types
+      # detected by absence of :name/:_type keys (those indicate a type encoding)
+      if value_params isa AbstractDict && !haskey(value_params, :name) && !haskey(value_params, :_type)
+        for k in keys(value_params)
+          haskey(dict[:data], k) || continue
+          upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => value_params[k],
+                                                        :data => dict[:data][k]))
+          dict[:data][k] = upgraded_entry[:data]
+          value_params[k] = upgraded_entry[:_type]
         end
       else
-        dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
-      end
+        upgraded_entry = nothing
+        upgraded_pairs = Tuple[]
+        for (k, v) in dict[:data]
+          upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
+          upgraded_k = upgrade(s, Dict{Symbol, Any}(:_type => key_params, :data => k))
+          push!(upgraded_pairs, (upgraded_k, upgraded_v))
+        end
+        if key_params in ["Symbol", "Base.Int", "String"]
+          dict[:data] = Dict{Symbol, Any}()
+          for (upgraded_k, upgraded_v) in upgraded_pairs
+            dict[:data][upgraded_k[:data]] = upgraded_v[:data]
+          end
+        else
+          dict[:data] = map(x -> [x[1][:data], x[2][:data]], upgraded_pairs)
+        end
 
-      if !isempty(upgraded_pairs)
-        first_pair = first(upgraded_pairs)
-        dict[:_type][:params][:key_params] = first_pair[1][:_type]
-        dict[:_type][:params][:value_params] = first_pair[2][:_type]
+        if !isempty(upgraded_pairs)
+          first_pair = first(upgraded_pairs)
+          dict[:_type][:params][:key_params] = first_pair[1][:_type]
+          dict[:_type][:params][:value_params] = first_pair[2][:_type]
+        end
       end
     else
-      for entry in dict[:data]
-        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][entry.first],
-                                         :data => entry.second))
-        dict[:data][entry.first] = upgraded_entry[:data]
-        dict[:_type][:params][entry.first] = upgraded_entry[:_type]
+      for k in keys(dict[:_type][:params])
+        k === :key_params && continue
+        upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][k],
+                                         :data => dict[:data][k]))
+        dict[:data][k] = upgraded_entry[:data]
+        dict[:_type][:params][k] = upgraded_entry[:_type]
+      end
+    end
+  elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan", "SubdivisionOfPoints")
+    if haskey(dict[:_type][:params], :pm_params)
+      pm_dict = Dict{Symbol, Any}(
+        :_type => dict[:_type][:params][:pm_params],
+        :data => dict[:data]
+      )
+      upgraded_pm_dict = upgrade(s, pm_dict)
+      dict[:_type][:params][:pm_params] = upgraded_pm_dict[:_type]
+      dict[:data] = upgraded_pm_dict[:data]
+    end
+  elseif type_name in ("LinearProgram", "MixedIntegerLinearProgram")
+    if haskey(dict[:_type][:params], :pm_params)
+      pm_dict = Dict{Symbol, Any}(
+        :_type => dict[:_type][:params][:pm_params],
+        :data => dict[:data][:feasible_region]
+      )
+      upgraded_pm_dict = upgrade(s, pm_dict)
+      dict[:_type][:params][:pm_params] = upgraded_pm_dict[:_type]
+      dict[:data][:feasible_region] = upgraded_pm_dict[:data]
+    end
+  else
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :params) && dict[:_type][:params] isa AbstractDict
+      if haskey(dict[:_type][:params], :_type)
+        d = Dict{Symbol, Any}(
+          :_type => dict[:_type][:params][:_type],
+          :data => dict[:data]
+        )
+        upgraded_d = upgrade(s, d)
+        dict[:_type][:params][:_type] = upgraded_d[:_type]
+        dict[:data] = upgraded_d[:data]
+      else
+        for (k, v) in dict[:_type][:params]
+          if dict[:data] isa AbstractDict && haskey(dict[:data], k)
+            d = Dict{Symbol, Any}(
+              :_type => dict[:_type][:params][k],
+              :data => dict[:data][k]
+            )
+            upgraded_d = upgrade(s, d)
+            dict[:_type][:params][k] = upgraded_d[:_type]
+            dict[:data][k] = upgraded_d[:data]
+          elseif dict[:_type][:params][k] isa AbstractDict && haskey(dict[:_type][:params][k], :_type)
+            dict[:_type][:params][k] = upgrade(s, dict[:_type][:params][k])
+          end
+        end
       end
     end
   end
@@ -242,7 +355,11 @@ include("1.2.0.jl")
 include("1.3.0.jl")
 include("1.4.0.jl")
 include("1.6.0.jl")
-include("1.6.0-1.jl")
+include("1.6.0+1.jl")
+include("1.7.0.jl")
+include("1.8.0.jl")
+include("1.8.0+1.jl")
+include("1.8.0+2.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -260,17 +377,16 @@ has been achieved.
 """
 function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
   upgraded_dict = dict
+  eff_version = effective_upgrade_version(format_version)
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
-    if format_version < script_version
+    if eff_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
       @debug("upgrading serialized data....",
              maxlog=1)
 
       upgrade_state = UpgradeState()
-      # upgrading large files needs a work around since the new load
-      # uses JSON3 which is read only
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)

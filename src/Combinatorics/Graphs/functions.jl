@@ -50,6 +50,40 @@ Undirected graph with 5 nodes and the following edges:
 """
 undirected_component(G::MixedGraph) = deepcopy(_undirected_component(G))
 
+
+function Base.:(==)(a::Graph{T}, b::Graph{T}) where {T <: Union{Directed, Undirected}}
+  return pm_object(a) == pm_object(b) && _graph_maps(a) == _graph_maps(b)
+end
+
+function Base.:(==)(a::MixedGraph, b::MixedGraph)
+  return _directed_component(a) == _directed_component(b) &&
+         _undirected_component(a) == _undirected_component(b)
+end
+
+function Base.hash(g::Graph, h::UInt)
+  h = hash(pm_object(g), h)
+  h = hash(_graph_maps(g), h)
+  return h
+end
+
+function Base.hash(g::MixedGraph, h::UInt)
+  h = hash(_directed_component(g), h)
+  h = hash(_undirected_component(g), h)
+  return h
+end
+
+function Base.:(==)(a::GraphMap, b::GraphMap)
+  return a.vertex_map == b.vertex_map &&
+         a.edge_map == b.edge_map
+end
+
+function Base.hash(g::GraphMap, h::UInt)
+  h = hash(g.vertex_map, h)
+  h = hash(g.edge_map, h)
+  return h
+end
+
+
 ################################################################################
 ################################################################################
 ##  Constructing and modifying
@@ -108,9 +142,9 @@ Undirected graph with 2 nodes and the following edges:
 
 ```
 """
-graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
+graph_from_adjacency_matrix(::Type, G::Union{MatElem, AbstractMatrix})
 
-function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
+function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, AbstractMatrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
   g = graph(T, n)
@@ -1109,13 +1143,15 @@ julia> shortest_path_dijkstra(g, 3, 1; reverse=true)
 ```
 """
 function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    em = Polymake.EdgeMap{T, Int64}(pmg)
-    for e in edges(g)
-        Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
-    end
-    result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
-    return Polymake.to_one_based_indexing(result)
+  @req 1 <= s <= n_vertices(g) "Start vertex out of range"
+  @req 1 <= t <= n_vertices(g) "End vertex out of range"
+  pmg = pm_object(g)
+  em = Polymake.EdgeMap{T, Int64}(pmg)
+  for e in edges(g)
+    Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
+  end
+  result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
+  return Polymake.to_one_based_indexing(result)
 end
 
 @doc raw"""
@@ -1967,7 +2003,7 @@ the degrees of `g` on the diagonal, and the adjacency matrix of `g`. For an
 undirected graph, the Laplacian matrix is symmetric.
 
 # Examples
-```
+```jldoctest
 julia> G = vertex_edge_graph(cube(2))
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(4, 2)(4, 3)
@@ -2255,4 +2291,14 @@ end
   end
   return (false, one(A), one(A))
 end
+
+"""
+    canonical_hash(g::Graph{T})
+    
+The canonical hash is an isomorphism invariant of a graph. 
+
+!! Warning 
+   The canonical hash depends on the version of Oscar.
+"""
+canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
 

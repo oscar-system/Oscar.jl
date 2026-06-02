@@ -182,8 +182,8 @@ end
 # deprecated for 1.6
 @deprecate is_acylic is_acyclic
 
-@deprecate all_cohomologies sheaf_cohomology
-@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
+#@deprecate all_cohomologies sheaf_cohomology
+#@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i; algorithm)
 
 # deprecated for 1.7
 
@@ -227,3 +227,7 @@ Base.@deprecate_binding ZZMatrixGroup ZZMatGroup
 Base.@deprecate_binding QQMatrixGroup QQMatGroup
 Base.@deprecate_binding MatrixGroup MatGroup
 Base.@deprecate_binding MatrixGroupElem MatGroupElem
+
+# deprecated for 1.9
+@deprecate all_cohomologies(l::ToricLineBundle; algorithm::String="cohomCalg") sheaf_cohomology(l)
+@deprecate cohomology(l::ToricLineBundle, i::Int; algorithm::String="cohomCalg") sheaf_cohomology(l, i)

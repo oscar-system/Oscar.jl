@@ -20,45 +20,38 @@ end
 # Bool
 @register_serialization_type Bool 
 
-function load_object(s::DeserializerState, ::Type{Bool}, str::String)
-  if str == "true"
-    return true
-  end
-
-  if str == "false"
-    return false
-  end
-
-  error("Error parsing boolean string: $str")
+function load_object(s::DeserializerState, ::Type{Bool})
+  load_node(s) do
+    return load_json(s, Bool)
+  end::Bool
 end
+
 
 ################################################################################
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
-load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s, T)
+load_object(s::DeserializerState, ::TypeParams{ZZRingElem, ZZRing}) = load_object(s, ZZRingElem)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
-  load_node(s) do str
-    return ZZRingElem(str)
-  end
+  load_node(s) do
+    return ZZRingElem(load_json(s, String))
+  end::ZZRingElem
 end
 
 ################################################################################
 # QQFieldElem
 @register_serialization_type QQFieldElem
 
-load_object(s::DeserializerState, T::Type{QQFieldElem}, ::QQField) = load_object(s, T)
+load_object(s::DeserializerState, ::TypeParams{QQFieldElem, QQField}) = load_object(s, QQFieldElem)
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem})
-  # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
-  # is merged and in a Nemo release
-  load_node(s) do q
-    fraction_parts = String.(split(q, "//"))
+  load_node(s) do
+    fraction_parts = split(load_json(s, String), "//")
     fraction_parts = parse.(ZZRingElem, fraction_parts)
-    
+
     return QQFieldElem(fraction_parts...)
-  end
+  end::QQFieldElem
 end
 
 ################################################################################
@@ -82,8 +75,8 @@ end
 @register_serialization_type Float64
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
-  load_node(s) do str
-    parse(T, str)
+  load_node(s) do
+    parse(T, load_json(s, String))
   end
 end
 
@@ -94,7 +87,7 @@ end
 @register_serialization_type String
 
 function load_object(s::DeserializerState, ::Type{String})
-  return s.obj
+  return load_json(s, String)
 end
 
 ################################################################################
@@ -102,8 +95,8 @@ end
 @register_serialization_type Symbol
 
 function load_object(s::DeserializerState, ::Type{Symbol})
-  load_node(s) do str
-    Symbol(str)
+  load_node(s) do
+    Symbol(load_json(s, String))
   end
 end
 

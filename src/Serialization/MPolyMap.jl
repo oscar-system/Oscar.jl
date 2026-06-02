@@ -22,15 +22,15 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<:MPolyAnyMap},
-                     params::Dict) 
-  d = params[:domain]
-  c = params[:codomain]
+                     tp::TypeParams{<:MPolyAnyMap, <:Tuple{Vararg{Pair}}})
+  d = tp[:domain]
+  c = tp[:codomain]
   T = elem_type(c)
-  imgs = load_object(s, Vector{T}, c, :images)
+  imgs = load_object(s, TypeParams(Vector{T}, c), :images)
 
   if haskey(s, :coeff_map)
-    throw("MPolyAnyMap with coefficient map serialization unimplemented")
+    coeff_map = load_object(s, TypeParams(MPolyAnyMap, :domain => base_ring(d), :codomain => base_ring(c)), :coeff_map)
+    return MPolyAnyMap(d, c, coeff_map, imgs)
   end
   return MPolyAnyMap(d, c, nothing, imgs)
 end

@@ -3,6 +3,9 @@
     "data": {
       "oneOf": [
         {
+          "type": "boolean"
+        },
+        {
           "type": "string"
         },
         {
