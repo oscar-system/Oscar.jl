@@ -245,12 +245,12 @@ By default (`algorithm=:default`), the algorithm is chosen as follows:
 - `g::Vector{<:FreeAssociativeAlgebraElem}`: Generators of the ideal.
 - `deg_bound::Int`: Degree bound for the computation (default: -1).
 - `ordering::Symbol`: Monomial ordering (default: :deglex).
+- `protocol::Bool`: Deprecated. Use `set_verbosity_level(:f4ncgb, 1)` instead to enable f4ncgb output.
 - `interreduce::Bool`: Whether to interreduce the result (default: false).
 - `algorithm::Symbol`: Algorithm to use (:f4, :buchberger, :letterplace, or :default). If set to `:default`, the algorithm is chosen automatically based on the input.
 - `probabilistic::Bool`: Enable probabilistic behavior (default: false).
 
 To enable progress output from the f4ncgb backend, use `set_verbosity_level(:f4ncgb, 1)`.
-The `protocol` keyword argument is deprecated and will be removed in a future version.
 
 # Returns
 - The Groebner basis as a vector of free associative algebra elements.
