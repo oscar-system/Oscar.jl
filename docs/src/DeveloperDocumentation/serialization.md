@@ -360,19 +360,6 @@ separate topological sort.
 On load, `deserializer_open` opens each ref file before deserializing `main.mrdi`.
 Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
 
-**Implementing `save_object` / `load_object` for a new type that uses DirSerializer:**
-
-Dispatch on `SerializerState{<:DirSerializer}` or `SerializerState{<:MultiFileSerializer}`
-if the on-disk layout should differ from the JSONSerializer path:
-
-```julia
-function save_object(s::SerializerState{<:DirSerializer}, obj::MyType)
-  # custom multi-file logic, e.g. writing a sidecar binary file
-  sidecar = joinpath(basepath(s.serializer), "mydata.bin")
-  write(sidecar, ...)
-  save_object(s, basename(sidecar))   # store reference path in JSON
-end
-```
 
 ### Upgrades
 

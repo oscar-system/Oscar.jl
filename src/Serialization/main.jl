@@ -675,25 +675,25 @@ include("parallel.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
 
-Save an object `obj` to the given io stream
-respectively to the file `filename`. When used with `with_attrs=true` then the object will
-save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration, see
+Save an object `obj` to the given io stream respectively to the file `filename`.
+When used with `with_attrs=true` the object will save its attributes along with
+all the attributes of the types used in the object's struct. The attributes that
+will be saved are defined during type registration, see
 [`@register_serialization_type`](@ref).
 
-Setting the optional argument `compression` will compress the file using the given
-compression method. The `filename` must have the appropriate file extension for the
-chosen compression method.
-Currently, only `:none` (default) and `:gzip` are supported.
+The optional `serializer` argument controls the output format and layout.
+The default `JSONSerializer` writes a single `.mrdi` file. Other serializers
+such as `DirSerializer` (multi-file directory) and `LPSerializer` (external LP
+file for linear programs) are available. See the
+[serialization documentation](@ref serialization) for details and examples.
 
-When using the `DirSerializer`, `filename` is treated as a directory path. The root
-object is written to `main.mrdi` inside that directory, and each referenced object is
-serialized to its own `<UUID>.mrdi` file (or `<UUID>.mrdi.gz` when `compression=:gzip`).
-The `_ref_files` key in `main.mrdi` lists the ref filenames in leaf-first order so they
-can be loaded in the correct dependency order.
+Setting the optional argument `compression` will compress the file using the
+given compression method. The `filename` must have the appropriate file
+extension for the chosen compression method.
+Currently, only `:none` (default) and `:gzip` are supported.
 
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
@@ -789,26 +789,29 @@ function save(filename::String, obj::Any;
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
-Load the object stored in the given io stream
-respectively in the file `filename`.
+Load the object stored in the given io stream respectively in the file `filename`.
 
-If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of rings this
-results in setting its parent, or in the case of a container of ring types such as
-`Vector` or `Tuple`, then the parent of the entries will be set using their
- `params`.
+If `params` is specified, then the root object of the loaded data will attempt a
+load using these parameters. In the case of rings this results in setting its
+parent, or in the case of a container of ring types such as `Vector` or `Tuple`,
+the parent of the entries will be set using their `params`.
 
-If a type `T` is given then attempt to load the root object of the data
-being loaded with this type; if this fails, an error is thrown.
+If a type `T` is given then attempt to load the root object of the data being
+loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
-If the file was created with setting the `compression` argument, and the filename
-has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+The optional `serializer` argument must match the one used when saving. Pass the
+same serializer instance (e.g. `DirSerializer()` or `LPSerializer(basepath)`)
+that was used with `save`. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+If the file was created with `compression=:gzip` and the filename ends in `.gz`,
+the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
