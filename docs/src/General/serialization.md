@@ -24,6 +24,79 @@ save
 load
 ```
 
+## Serializers
+
+OSCAR provides several serializers for different use cases. The serializer is
+passed via the `serializer` keyword argument to `save` and `load`.
+
+### JSONSerializer (default)
+
+The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
+(e.g. the parent ring of a polynomial) are stored inline under the `_refs` key.
+
+```julia
+R, x = QQ[:x]
+p = x^2 + 1
+
+# default: serializer=JSONSerializer() is implicit
+save("poly.mrdi", p)
+load("poly.mrdi"; params=R)
+
+# disable inline refs (useful when the parent ring is already serialized elsewhere)
+save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false))
+```
+
+### DirSerializer
+
+Splits refs into separate files inside a directory. Each referenced object is
+written to its own `<UUID>.mrdi` file alongside `main.mrdi`. Use this when
+objects share large sub-objects and you want those stored once on disk rather
+than duplicated across files.
+
+The `filename` argument is treated as a directory path (created if absent;
+overwritten atomically if present).
+
+```julia
+Qx, x = QQ[:x]
+F, a = number_field(x^2 + 2)
+R, (y, z) = F[:y, :z]
+p = a * y - z
+
+save("polydir", p; serializer=Oscar.Serialization.DirSerializer())
+# creates: polydir/main.mrdi  polydir/<UUID>.mrdi  ...
+
+Oscar.reset_global_serializer_state()
+load("polydir"; serializer=Oscar.Serialization.DirSerializer(), params=R)
+```
+
+Gzip compression applies per ref file:
+
+```julia
+save("polydir", p; serializer=Oscar.Serialization.DirSerializer(), compression=:gzip)
+# creates: polydir/main.mrdi  polydir/<UUID>.mrdi.gz  ...
+
+Oscar.reset_global_serializer_state()
+load("polydir"; serializer=Oscar.Serialization.DirSerializer(), params=R)
+```
+
+### LPSerializer
+
+Specialized for `LinearProgram{QQFieldElem}`. Writes the LP data to an external
+`.lp` file (the standard LP file format) and stores only a reference to it in
+the `.mrdi` file. The `basepath` argument is used as the filename prefix for the
+`.lp` file.
+
+```julia
+P = cube(3)
+LP = linear_program(P, [3, -2, 4]; k=2, convention=:min)
+
+serializer = Oscar.Serialization.LPSerializer("/tmp/mydata/lp")
+save("/tmp/mydata/lp.mrdi", LP; serializer=serializer)
+
+Oscar.reset_global_serializer_state()
+load("/tmp/mydata/lp.mrdi"; serializer=serializer)
+```
+
 ## Objects that can be serialized
 
 In this section we will list a selection of objects that may be (de-)serialized. 
