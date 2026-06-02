@@ -6,25 +6,41 @@ using Oscar: create_gs2num
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
-_edge_map_elem_type(::Polymake.EdgeMap{S,T}) where {S,T} = Polymake.to_jl_type(T)
-_node_map_elem_type(::Polymake.NodeMap{S,T}) where {S,T} = Polymake.to_jl_type(T)
+function _graph_maps_to_dict(G::Graph{T}, label::Symbol) where T <: Union{Directed, Undirected}
+  gm = get_attribute(G, label)
+  dicts = Dict{Symbol, Any}()
+
+  if !isnothing(gm.edge_map)
+    em_dict = Dict()
+    for e in edges(G)
+      em_dict[src(e), dst(e)] = gm.edge_map[e]
+    end
+    dicts[:edge_map] = Dict{Tuple{Int, Int}, typeof(first(values(em_dict)))}(em_dict)
+  end
+
+  if !isnothing(gm.vertex_map)
+    vm_dict = Dict{Int, Any}()
+    for v in 1:n_vertices(G)
+      vm_dict[v] = gm.vertex_map[v]
+    end
+    dicts[:vertex_map] = vm = _pmdata_for_oscar(gm.vertex_map, QQ)
+  end
+
+  return dicts
+end
+
+function _node_map_to_dict(nm::Polymake.NodeMap{S,T}) where {S,T}
+  Dict{Int, Polymake.to_jl_type(T)}(k => v for (k, v) in enumerate(nm))
+end
 
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
-  labeling_types = Dict{Symbol, Dict{Symbol, TypeParams}}()
+  labelings_tp = Pair{Symbol, TypeParams}[]
   for l in labelings(g)
-    gm = get_attribute(g, l)
-    labeling_types[l] = Dict{Symbol, TypeParams}()
-    if !isnothing(gm.edge_map)
-      # currently we can only label using basic types so params are nothing
-      labeling_types[l][:edge_map] = TypeParams(_edge_map_elem_type(gm.edge_map), nothing)
-    end
-    if !isnothing(gm.vertex_map)
-      labeling_types[l][:vertex_map] = TypeParams(_node_map_elem_type(gm.vertex_map), nothing)
-    end
+    push!(labelings_tp, l => type_params(_graph_maps_to_dict(g, l)))
   end
   
-  return TypeParams(Graph{T}, labeling_types)
+  return TypeParams(Graph{T}, labelings_tp...)
 end
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
@@ -62,21 +78,22 @@ function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{D
   return g(smallobj)
 end
 
-function load_object(s::DeserializerState, G::TypeParams{Graph{T}, Vararg{Pair}}) where T <: Union{Directed, Undirected}
+function load_object(s::DeserializerState, tp::TypeParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
+  G = type(tp)
   g = load_node(s, :graph) do 
-    G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj)))
+    G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any}))))
   end
   load_node(s, :labelings) do
     foreach(s.obj) do (label, _)
-      edge_labels = nothing
-      if haskey(s, :edge_map)
-        edge_labels = load_object(s, Dict{Tuple{Int, Int}, params[label][:edge_map]}, nothing, :edge_map)
-        end
-      vertex_labels = nothing
-      if haskey(s, :vertex_map)
-        vertex_labels = load_object(s, Dict{Int, params[label][:vertex_map]}, nothing, :vertex_map)
+      labelings_dict = load_object(s, tp[Symbol(label)], Symbol(label))
+      # getkey doesn't worj here?
+      em = haskey(labelings_dict, :edge_map) ? labelings_dict[:edge_map] : nothing
+
+      vm = nothing
+      if haskey(labelings_dict, :vertex_map)
+        vm = Dict(i => v for (i, v) in enumerate(labelings_dict[:vertex_map]))
       end
-      label!(g, edge_labels, vertex_labels; name=label)
+      label!(g, em, vm; name=Symbol(label))
     end
   end
   return g
