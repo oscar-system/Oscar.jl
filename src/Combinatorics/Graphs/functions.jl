@@ -1196,7 +1196,7 @@ julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2));
 
 julia> automorphism_group_generators(g; label=:label)
 1-element Vector{PermGroupElem}:
- (1,2)
+ (1,3)
 ```
 """
 function automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
