@@ -90,6 +90,32 @@ end
   @test determinantal_type(X_B_skew) == (4,4,2)
 end
 
+@testset "== for DeterminantalGerm" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  A = R[x y; 
+        y z]
+  X = DeterminantalGerm(A, 2, [0,0,0])
+  # is identical
+  X2 = X
+  @test X == X2
+  # different determinantal structure
+  X_sym = DeterminantalGerm(A, 2, [0,0,0], mat_type = :symmetric)
+  @test X != X_sym
+  # different ambient_coordinate_ring
+  P, (a,b,c) = QQ[:a,:b,:c]
+  B = P[a b;
+        b c]
+  Y = DeterminantalGerm(B, 2, [0,0,0])
+  @test X != Y
+  # same defining_matrix
+  X3 = DeterminantalGerm(A, 2, [0,0,0])
+  @test X == X3
+  # same underlying_scheme
+  L, = localization(R, complement_of_point_ideal(R, [0,0,0]))
+  X4 = DeterminantalGerm(L.(A), 2)
+  @test X == X4
+end
+
 @testset "T1_GL module" begin
   R, (x, y) = QQ[:x,:y]
   A = R[x  y^2;
