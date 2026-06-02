@@ -18,56 +18,59 @@ end
 
 if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
   function test_save_load_roundtrip(func, path, original::T;
-                                    params=nothing, check_func=nothing, kw...) where {T}
-    is_multi_file = haskey(kw, :serializer) && kw.serializer isa Oscar.Serialization.MultiFileSerializer
-    is_dir_serializer = haskey(kw, :serializer) && kw.serializer isa Oscar.Serialization.DirSerializer
+                                    params=nothing, check_func=nothing,
+                                    serializer::Oscar.Serialization.OscarSerializer=Oscar.Serialization.JSONSerializer(),
+                                    kw...) where {T}
+    is_multi_file = serializer isa Oscar.Serialization.MultiFileSerializer
+    is_dir_serializer = serializer isa Oscar.Serialization.DirSerializer
 
     # save and load from a file
     filename = joinpath(path, "original.json")
-    save(filename, original; kw...)
-    loaded = load(filename; params=params, kw...)
+    save(filename, original; serializer=serializer, kw...)
+    loaded = load(filename; params=params, serializer=serializer, kw...)
 
     @test loaded isa T
     func(loaded)
 
     if !is_multi_file
       # save and load from a file without saving references
-      save(filename, original; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+      no_refs = Oscar.Serialization.JSONSerializer(serialize_refs=false)
+      save(filename, original; serializer=no_refs, kw...)
       @test !any(line -> contains(line, "_refs"), eachline(filename))
-      loaded = load(filename; params=params, serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+      loaded = load(filename; params=params, serializer=no_refs, kw...)
 
       @test loaded isa T
       func(loaded)
 
       # save and load from an IO buffer
       io = IOBuffer()
-      save(io, original; kw...)
+      save(io, original; serializer=serializer, kw...)
       seekstart(io)
-      loaded = load(io; params=params, kw...)
+      loaded = load(io; params=params, serializer=serializer, kw...)
 
       @test loaded isa T
       func(loaded)
 
       # save and load from an IO buffer, with prescribed type
       io = IOBuffer()
-      save(io, original; kw...)
+      save(io, original; serializer=serializer, kw...)
       seekstart(io)
-      loaded = load(io; type=T, params=params, kw...)
+      loaded = load(io; type=T, params=params, serializer=serializer, kw...)
 
       @test loaded isa T
       func(loaded)
     end
 
     # test loading on a empty state
-    save(filename, original; kw...)
+    save(filename, original; serializer=serializer, kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params, kw...)
+    loaded = load(filename; params=params, serializer=serializer, kw...)
     @test loaded isa T
 
     # test passing TypeParams
-    save(filename, original; kw...)
+    save(filename, original; serializer=serializer, kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=Oscar.type_params(original), kw...)
+    loaded = load(filename; params=Oscar.type_params(original), serializer=serializer, kw...)
     @test loaded isa T
 
     # test schema
