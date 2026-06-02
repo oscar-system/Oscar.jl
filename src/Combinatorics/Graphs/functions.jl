@@ -101,7 +101,7 @@ julia> G = ZZ[0 0; 1 0]
 julia> graph_from_adjacency_matrix(Directed, G)
 Directed graph with 2 nodes and the following edges:
 (2, 1)
-    
+
 julia> graph_from_adjacency_matrix(Undirected, G)
 Undirected graph with 2 nodes and the following edges:
 (2, 1)
