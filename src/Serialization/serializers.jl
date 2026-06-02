@@ -25,8 +25,10 @@ end
 
 struct DirSerializer <: MultiFileSerializer
   basepath::String
+  compression::Symbol
 end
-DirSerializer() = DirSerializer("")
+DirSerializer() = DirSerializer("", :none)
+DirSerializer(basepath::String) = DirSerializer(basepath, :none)
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
@@ -182,14 +184,17 @@ handle_refs(::SerializerState{IPCSerializer}) = nothing
 function handle_refs(s::SerializerState{DirSerializer})
   isempty(s.refs) && return nothing
   dir = basepath(s.serializer)
+  compression = s.serializer.compression
   ref_files = String[]
   while !isempty(s.refs)
     id = pop!(s.refs)
-    push!(ref_files, string(id))
+    ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    fname = string(id) * ext
+    push!(ref_files, fname)
     ref_obj = global_serializer_state.id_to_obj[id]
-    ref_path = joinpath(dir, string(id) * ".mrdi")
+    ref_path = joinpath(dir, fname)
     temp_file = tempname(dir)
-    open(temp_file, "w") do file
+    write_ref_file = function(file)
       # Share s.refs so transitive refs accumulate in the outer while loop
       inner_s = SerializerState(
         JSONSerializer(; serialize_refs=false),
@@ -206,6 +211,15 @@ function handle_refs(s::SerializerState{DirSerializer})
           end
           save_object(inner_s, string(ref_id), :id)
         end
+      end
+    end
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        write_ref_file(file)
+      end
+    else
+      open(temp_file, "w") do file
+        write_ref_file(file)
       end
     end
     Base.Filesystem.rename(temp_file, ref_path)
@@ -304,14 +318,19 @@ end
 
 function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
-  # not sure about adding this to the file
-  # or rather if it should be put into the metadata section?
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
     dir = basepath(serializer)
     for fname in ref_files
-      open(joinpath(dir, string(fname) * ".mrdi")) do file
-        load(file)
+      filepath = joinpath(dir, string(fname))
+      if endswith(filepath, ".gz")
+        open(CodecZlib.GzipDecompressorStream, filepath) do file
+          load(file)
+        end
+      else
+        open(filepath) do file
+          load(file)
+        end
       end
     end
   end

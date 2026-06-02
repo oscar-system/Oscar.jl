@@ -73,17 +73,28 @@ end
       R, (y, z) = F[:y, :z]
       @test_throws ArgumentError save(path, a * y - z)
       p = a * y - z
-      save(path, p; serializer=Oscar.Serialization.DirSerializer())
-      files = readdir(path)
+
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.DirSerializer(), params=R) do loaded
+        @test loaded == p
+      end
+
+      dir_path = joinpath(path, "original.json")
+      files = readdir(dir_path)
       @test length(files) == 4
       @test "main.mrdi" in files
-      Oscar.Serialization.reset_global_serializer_state()
-      loaded = load(path; serializer=Oscar.Serialization.DirSerializer(), params=R)
-      @test loaded == p
 
       # Overwrite with simpler object — stale ref files must be removed
-      save(path, 42; serializer=Oscar.Serialization.DirSerializer())
-      @test readdir(path) == ["main.mrdi"]
+      save(dir_path, 42; serializer=Oscar.Serialization.DirSerializer())
+      @test readdir(dir_path) == ["main.mrdi"]
+
+      # compression: ref files should be gzip compressed
+      save(dir_path, p; serializer=Oscar.Serialization.DirSerializer(), compression=:gzip)
+      gz_files = readdir(dir_path)
+      @test "main.mrdi" in gz_files
+      @test any(f -> endswith(f, ".gz"), gz_files)
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(dir_path; serializer=Oscar.Serialization.DirSerializer(), params=R)
+      @test loaded == p
     end
   end
 end

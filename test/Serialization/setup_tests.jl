@@ -19,40 +19,44 @@ end
 if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
   function test_save_load_roundtrip(func, path, original::T;
                                     params=nothing, check_func=nothing, kw...) where {T}
+    is_multi_file = haskey(kw, :serializer) && kw.serializer isa Oscar.Serialization.MultiFileSerializer
+    is_dir_serializer = haskey(kw, :serializer) && kw.serializer isa Oscar.Serialization.DirSerializer
+
     # save and load from a file
     filename = joinpath(path, "original.json")
     save(filename, original; kw...)
     loaded = load(filename; params=params, kw...)
-    
-    @test loaded isa T
-    func(loaded)
-
-    # save and load from a file without saving references
-    filename = joinpath(path, "original.json")
-    save(filename, original; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
-    @test !any(line -> contains(line, "_refs"), eachline(filename))
-    loaded = load(filename; params=params, serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
 
     @test loaded isa T
     func(loaded)
 
-    # save and load from an IO buffer
-    io = IOBuffer()
-    save(io, original; kw...)
-    seekstart(io)
-    loaded = load(io; params=params, kw...)
+    if !is_multi_file
+      # save and load from a file without saving references
+      save(filename, original; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
+      @test !any(line -> contains(line, "_refs"), eachline(filename))
+      loaded = load(filename; params=params, serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false), kw...)
 
-    @test loaded isa T
-    func(loaded)
+      @test loaded isa T
+      func(loaded)
 
-    # save and load from an IO buffer, with prescribed type
-    io = IOBuffer()
-    save(io, original; kw...)
-    seekstart(io)
-    loaded = load(io; type=T, params=params, kw...)
+      # save and load from an IO buffer
+      io = IOBuffer()
+      save(io, original; kw...)
+      seekstart(io)
+      loaded = load(io; params=params, kw...)
 
-    @test loaded isa T
-    func(loaded)
+      @test loaded isa T
+      func(loaded)
+
+      # save and load from an IO buffer, with prescribed type
+      io = IOBuffer()
+      save(io, original; kw...)
+      seekstart(io)
+      loaded = load(io; type=T, params=params, kw...)
+
+      @test loaded isa T
+      func(loaded)
+    end
 
     # test loading on a empty state
     save(filename, original; kw...)
@@ -67,7 +71,8 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     @test loaded isa T
 
     # test schema
-    jsondict = JSON.parsefile(filename)
+    schema_file = is_dir_serializer ? joinpath(filename, "main.mrdi") : filename
+    jsondict = JSON.parsefile(schema_file)
     @test validate(mrdi_schema, jsondict) == nothing
 
     isnothing(check_func) || @test check_func(loaded)

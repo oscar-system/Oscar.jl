@@ -689,6 +689,12 @@ compression method. The `filename` must have the appropriate file extension for 
 chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
+When using the `DirSerializer`, `filename` is treated as a directory path. The root
+object is written to `main.mrdi` inside that directory, and each referenced object is
+serialized to its own `<UUID>.mrdi` file (or `<UUID>.mrdi.gz` when `compression=:gzip`).
+The `_ref_files` key in `main.mrdi` lists the ref filenames in leaf-first order so they
+can be loaded in the correct dependency order.
+
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
@@ -753,7 +759,7 @@ function save(filename::String, obj::Any;
     temp_dir = mktempdir(dirname(abspath(filename)))
     temp_file = tempname(temp_dir)
     open(temp_file, "w") do file
-      save(file, obj; serializer=DirSerializer(temp_dir), kwargs...)
+      save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
     end
     Base.Filesystem.rename(temp_file, joinpath(temp_dir, "main.mrdi"))
     isdir(filename) && rm(filename; recursive=true)
