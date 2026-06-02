@@ -230,8 +230,8 @@ end
 _to_lpring(a::FreeAssociativeAlgebra, deg_bound::Int; ordering::Symbol=:deglex) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound; ordering=ordering)
 
 @doc raw"""
-    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
-    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
+    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
+    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
 
 Compute the Groebner basis for a vector of generators `g` in a free associative algebra.
 Supports several algorithms and options for degree bounds, ordering, and interreduction.
@@ -250,6 +250,7 @@ By default (`algorithm=:default`), the algorithm is chosen as follows:
 - `probabilistic::Bool`: Enable probabilistic behavior (default: false).
 
 To enable progress output from the f4ncgb backend, use `set_verbosity_level(:f4ncgb, 1)`.
+The `protocol` keyword argument is deprecated and will be removed in a future version.
 
 # Returns
 - The Groebner basis as a vector of free associative algebra elements.
@@ -273,29 +274,32 @@ Ideal generating system with elements
 """
 function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   deg_bound::Int=-1;
+  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
-  gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
+  gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   set_gb!(I, gb, deg_bound; force=true)
   return I.gb
 end
 function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
+  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
   )
-  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
+  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   return IdealGens(gb)
 end
 
 function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
+  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
@@ -335,7 +339,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
 
       f4ncgb_add.(Ref(handle), g)
       userdata = f4ncgb_polys_helper(R)
-      f4ncgb_set_msg_printing(get_verbosity_level(:f4ncgb) >= 1)
+      f4ncgb_set_msg_printing(protocol || get_verbosity_level(:f4ncgb) >= 1)
       f4ncgb_solve(handle, userdata)
     finally
       f4ncgb_free(handle)
