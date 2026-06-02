@@ -51,27 +51,59 @@ defining_matrix(X::DeterminantalGerm) = X.A
 @doc raw"""
     determinantal_type(X::DeterminantalGerm) -> Int, Int, Int
 
-Return the determinantal type `(n, m, t)` of the derterminantal germ `X`, where `n x m` is the size of the defining matrix and `t` is the size of the minors. 
+Return the determinantal type `(n, m, t)` of the derterminantal germ `X`.
+!!! note
+    `X` is defined by the $t$-`minors` respectively the $2t$-`pfaffians` (in the `skew-symmetric` case) of the defining matrix of size `n x m`.
 
 # Examples:
 ```jldoctest
-julia> R, (x,y,z) = QQ[:x, :y, :z];
+julia> R, (x,y) = QQ[:x, :y];
 
-julia> A = R[x 0 z;  0 y z]
-[x   0   z]
-[0   y   z]
+julia> A = R[x y 0;  0 x^3 y]
+[x     y   0]
+[0   x^3   y]
 
-julia> X_A = DeterminantalGerm(A, 2, [0,0,0])
+julia> X_A = DeterminantalGerm(A, 2, [0,0])
 Spectrum
   of localization
     of quotient
-      of multivariate polynomial ring in 3 variables x, y, z
+      of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal (x*y, x*z, -y*z)
-    at complement of maximal ideal of point (0, 0, 0)
+      by ideal (x^4, x*y, y^2)
+    at complement of maximal ideal of point (0, 0)
 
-julia> determinantal_type(X_A)
+julia> n, m, t = determinantal_type(X_A)
 (2, 3, 2)
+
+julia> minors(A, t)
+3-element Vector{QQMPolyRingElem}:
+ x^4
+ x*y
+ y^2
+
+
+
+julia> B = R[0 0 x 0;  0 0 0 x*y+y^3;  -x 0 0 0; 0 -x*y-y^3 0 0] 
+[ 0            0   x           0]
+[ 0            0   0   x*y + y^3]
+[-x            0   0           0]
+[ 0   -x*y - y^3   0           0]
+
+julia> X_B_skew = DeterminantalGerm(B, 2, [0,0], mat_type = :skew_symmetric)
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 2 variables x, y
+        over rational field
+      by ideal (-x^2*y - x*y^3)
+    at complement of maximal ideal of point (0, 0)
+
+julia> n, m, t = determinantal_type(X_B_skew)
+(4, 4, 2)
+
+julia> pfaffians(B, 2t)
+1-element Vector{QQMPolyRingElem}:
+ -x^2*y - x*y^3
 ```
 """
 function determinantal_type(X::DeterminantalGerm)
@@ -345,6 +377,34 @@ by submodule with 6 generators
 
 julia> vector_space_dim(T1_A_sym)
 4
+
+
+
+julia> P, (t,) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> B = P[0 t^3;  -t^3 0]
+[   0   t^3]
+[-t^3     0]
+
+julia> X_B_skew = DeterminantalGerm(B, 1, [0], mat_type = :skew_symmetric)
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 1 variable t
+        over rational field
+      by ideal (t^3)
+    at complement of maximal ideal of point (0)
+
+julia> T1_B_skew = T1_GL_module(X_B_skew)
+Subquotient of submodule with 1 generator
+  1: E[1,2] - E[2,1]
+by submodule with 5 generators
+  1: 3*t^2*E[1,2] - 3*t^2*E[2,1]
+  2: t^3*E[1,2] - t^3*E[2,1]
+  3: 0
+  4: 0
+  5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
 @attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), _mat_type(X)())
@@ -387,6 +447,21 @@ julia> tjurina_GL_number(X_A)
 
 julia> tjurina_GL_number(X_B)
 1
+
+
+
+julia> P, (a, b) = QQ[:a,:b];
+
+julia> C = P[0 0 a b^2;  0 0 b^2 a^2;  -a -b^2 0 0;  -b^2 -a^2 0 0]
+[   0      0     a   b^2]
+[   0      0   b^2   a^2]
+[  -a   -b^2     0     0]
+[-b^2   -a^2     0     0]
+
+julia> X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric);
+
+julia> tjurina_GL_number(X_C_skew)
+12
 ```
 """
 tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_GL_module(X))
@@ -485,12 +560,12 @@ julia> B = R[v w x;  w x y;  x y z]
 [w   x   y]
 [x   y   z]
 
-julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
+julia> X_B_sym = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 
-julia> X_A == X_B
+julia> X_A == X_B_sym
 false
 
-julia> underlying_space_germ(X_A) == underlying_space_germ(X_B)
+julia> underlying_space_germ(X_A) == underlying_space_germ(X_B_sym)
 true
 
 julia> basis_versal_det_unfolding(X_A)
@@ -499,9 +574,28 @@ julia> basis_versal_det_unfolding(X_A)
  E[1,3]
  E[1,4]
 
-julia> basis_versal_det_unfolding(X_B)
+julia> basis_versal_det_unfolding(X_B_sym)
 1-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,3] + E[3,1]
+
+
+
+julia> P, (a, b) = QQ[:a,:b];
+
+julia> C = P[0 0 a b;  0 0 b a;  -a -b 0 0; -b -a 0 0]
+[ 0    0   a   b]
+[ 0    0   b   a]
+[-a   -b   0   0]
+[-b   -a   0   0]
+
+julia> X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric);
+
+julia> basis_versal_det_unfolding(X_C_skew)
+4-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
+ E[1,2] - E[2,1]
+ E[1,3] - E[3,1]
+ E[1,4] - E[4,1]
+ E[3,4] - E[4,3]
 ```
 """
 basis_versal_det_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
