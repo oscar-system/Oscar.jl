@@ -191,6 +191,7 @@ function _f4ncgb_normal_form(
     f4ncgb_add.(Ref(handle), g)
     f4ncgb_add(handle, a)
     userdata = f4ncgb_polys_helper(R)
+    f4ncgb_set_msg_printing(get_verbosity_level(:f4ncgb) >= 1)
     f4ncgb_reduce(handle, userdata)
   finally
     f4ncgb_free(handle)
@@ -229,11 +230,11 @@ end
 _to_lpring(a::FreeAssociativeAlgebra, deg_bound::Int; ordering::Symbol=:deglex) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound; ordering=ordering)
 
 @doc raw"""
-    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
-    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, protocol::Bool=false, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
+    groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; ordering::Symbol=:deglex, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
+    groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem}, deg_bound::Int=-1; ordering::Symbol=:deglex, interreduce::Bool=false, algorithm::Symbol=:f4, probabilistic::Bool=false)
 
 Compute the Groebner basis for a vector of generators `g` in a free associative algebra.
-Supports several algorithms and options for degree bounds, ordering, protocol, and interreduction.
+Supports several algorithms and options for degree bounds, ordering, and interreduction.
 
 By default (`algorithm=:default`), the algorithm is chosen as follows:
 - If `ordering == :deglex` and the base ring is `QQ`, use `:f4`.
@@ -244,10 +245,11 @@ By default (`algorithm=:default`), the algorithm is chosen as follows:
 - `g::Vector{<:FreeAssociativeAlgebraElem}`: Generators of the ideal.
 - `deg_bound::Int`: Degree bound for the computation (default: -1).
 - `ordering::Symbol`: Monomial ordering (default: :deglex).
-- `protocol::Bool`: Whether to return the computation protocol (default: false).
 - `interreduce::Bool`: Whether to interreduce the result (default: false).
 - `algorithm::Symbol`: Algorithm to use (:f4, :buchberger, :letterplace, or :default). If set to `:default`, the algorithm is chosen automatically based on the input.
 - `probabilistic::Bool`: Enable probabilistic behavior (default: false).
+
+To enable progress output from the f4ncgb backend, use `set_verbosity_level(:f4ncgb, 1)`.
 
 # Returns
 - The Groebner basis as a vector of free associative algebra elements.
@@ -261,7 +263,7 @@ julia> f2 = x^2 + y^2;
 
 julia> I = ideal([f1, f2]);
 
-julia> gb = groebner_basis(I, 3; protocol=false)
+julia> gb = groebner_basis(I, 3)
 Ideal generating system with elements
   1: x*y + y*z
   2: x^2 + y^2
@@ -271,32 +273,29 @@ Ideal generating system with elements
 """
 function groebner_basis(I::FreeAssociativeAlgebraIdeal,
   deg_bound::Int=-1;
-  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
   )
   isdefined(I, :gb) && (I.deg_bound == -1 || I.deg_bound >= deg_bound) && return I.gb
-  gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
+  gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=:deglex, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   set_gb!(I, gb, deg_bound; force=true)
   return I.gb
 end
 function groebner_basis(g::IdealGens{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
-  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
   )
-  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
+  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, interreduce=interreduce, algorithm=algorithm, probabilistic=probabilistic)
   return IdealGens(gb)
 end
 
 function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   deg_bound::Int=-1;
   ordering::Symbol=:deglex,
-  protocol::Bool=false,
   interreduce::Bool=false,
   algorithm::Symbol=:default,
   probabilistic::Bool = false
@@ -322,7 +321,6 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   if algorithm == :f4
     @req ordering == :deglex "f4 only supports :deglex ordering"
     @req base_ring(R) == QQ "only rational coefficients are supported"
-    f4ncgb_set_msg_printing(protocol)
 
     handle = f4ncgb_init()
     userdata = nothing
@@ -337,6 +335,7 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
 
       f4ncgb_add.(Ref(handle), g)
       userdata = f4ncgb_polys_helper(R)
+      f4ncgb_set_msg_printing(get_verbosity_level(:f4ncgb) >= 1)
       f4ncgb_solve(handle, userdata)
     finally
       f4ncgb_free(handle)
@@ -403,14 +402,12 @@ julia> length(interreduce!(collect(g); algorithm=:f4)) <= length(g)
 true
 ```
 """
-function interreduce!(g::Vector{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default, verbose::Bool=false)
+function interreduce!(g::Vector{<:FreeAssociativeAlgebraElem}; algorithm::Symbol=:default)
   @req algorithm in (:f4, :default) "Only :f4 and :default algorithms are supported"
   algorithm == :default && return AbstractAlgebra.Generic.interreduce!(g)
   i = 1
   old_length = length(g)
-  if verbose
-    print("Interreducing... $(length(g) - i + 1) remaining")
-  end
+  @vprint :f4ncgb 1 "Interreducing: $(length(g)) elements"
   while length(g) > 1 && length(g) >= i
     r = _f4ncgb_normal_form(g[i], g[1:end .!= i])
     if iszero(r)
@@ -423,17 +420,10 @@ function interreduce!(g::Vector{<:FreeAssociativeAlgebraElem}; algorithm::Symbol
     end
     if length(g) < old_length
       old_length = length(g)
-      if verbose
-        print("\033[2K\rInterreducing... $(length(g) - i + 1) remaining")
-        flush(stdout)
-      end
+      @vprint :f4ncgb 1 "\033[2K\rInterreducing: $(length(g) - i + 1) elements remaining"
     end
-
   end
-  if verbose
-    print("\033[2K\r")
-    flush(stdout)
-  end
+  @vprint :f4ncgb 1 "\033[2K\r"
   return g
 end
 
