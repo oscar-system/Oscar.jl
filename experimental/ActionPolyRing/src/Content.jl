@@ -196,7 +196,7 @@ end
 
 ### Union ###
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
-(apr::ActionPolyRing)(upre::AbstractAlgebra.Generic.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
+(apr::ActionPolyRing)(upre::AbstractAlgebra.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
 (apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
 (apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
@@ -227,15 +227,16 @@ end
 
 ### Difference ###
 elem_type(::Type{DifferencePolyRing{T}}) where {T} = DifferencePolyRingElem{T}
-
 parent_type(::Type{DifferencePolyRingElem{T}}) where {T} = DifferencePolyRing{T}
 
 ### Differential ###
 elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{T}
-
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
+is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
+is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
+
 @doc raw"""
     zero(A::ActionPolyRing)
 

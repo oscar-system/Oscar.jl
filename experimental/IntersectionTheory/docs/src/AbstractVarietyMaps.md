@@ -84,6 +84,10 @@ extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 identity_map(X::AbstractVariety)
 ```
 
+```@docs
+map(X::AbstractVariety, Y::AbstractVariety)
+```
+
 ## Underlying data of an abstract variety map
 
 An abstract variety map is made up from (a selection of) the data discussed here:

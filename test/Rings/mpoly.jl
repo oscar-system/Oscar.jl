@@ -717,3 +717,17 @@ end
   @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
 end
 
+@testset "issue #5968" begin
+  R, (a,b,c) = QQ[:a,:b,:c]
+  Q, (d,e,f) = QQ[:d,:e,:f]
+  P, (u,v) = QQ[:u,:v]
+
+  I = ideal(R, [a,b,c])
+  J = ideal(P, [u,v])
+
+  @test_throws ArgumentError ideal_membership(d, I)
+  @test_throws ArgumentError ideal_membership(d, J)
+  @test_throws ArgumentError radical_membership(d, I)
+  @test_throws ArgumentError radical_membership(d, J)
+end
+

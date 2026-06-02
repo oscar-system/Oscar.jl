@@ -656,7 +656,7 @@ function graded_map(A::MatElem)
   return graded_map(Fcdm, A)
 end
 
-function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
+function graded_map(F::FreeMod{T}, A::MatElem{T}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
   R = base_ring(F)
   G = grading_group(R)
   source_degrees = Vector{eltype(G)}()

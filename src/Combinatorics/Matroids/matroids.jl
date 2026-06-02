@@ -278,7 +278,7 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
+    matroid_from_matrix_columns(A::MatElem; check::Bool=true)
 
 A matroid represented by the column vectors of a matrix `A`. The value of `check` is currently ignored.
 
@@ -293,7 +293,7 @@ julia> M = matroid_from_matrix_columns(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
+function matroid_from_matrix_columns(A::MatElem; check::Bool=true)
     rk = rank(A)
     nr = nrows(A)
     bases = Vector{Vector{Int64}}()
@@ -314,7 +314,7 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 end
 
 @doc raw"""
-    matroid_from_matrix_rows(A::MatrixElem, check::Bool=true)
+    matroid_from_matrix_rows(A::MatElem, check::Bool=true)
 
 A matroid represented by the row vectors of a matrix. The value of `check` is currently ignored.
 
@@ -329,7 +329,7 @@ julia> M = matroid_from_matrix_rows(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
+matroid_from_matrix_rows(A::MatElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc raw"""
     cycle_matroid(g::Graph{Undirected})

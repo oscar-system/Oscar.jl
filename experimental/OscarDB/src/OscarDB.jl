@@ -3,7 +3,7 @@ module OscarDB
 using ..Oscar
 using ..Oscar.Serialization
 
-import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: load_object, save_object, type_params, parameters
 
 import Oscar:
   simplicial_complex,
@@ -61,7 +61,7 @@ end
 Connect to the `OscarDB` and return `Database` instance.
 
 The uri of the server can be set in advance by writing its `String` representation
-into ENV["OSCARDB_TEST_URI"].
+into `ENV["OSCARDB_TEST_URI"]`.
 (used to connect to the github services container for testing)
 # Examples
 ```julia-repl
@@ -109,14 +109,10 @@ Count documents in a collection `c` matching the criteria given by `d`.
 
 # Examples
 
-Same as above, but faster.
-
 ```julia-repl
 julia> db = Oscar.OscarDB.get_db();
 
-julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
-
-julia> length(tscit)
+julia> length(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
 63
 ```
 """

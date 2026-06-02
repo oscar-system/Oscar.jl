@@ -128,9 +128,14 @@ end
 
   Fs2 = integer_lattice_with_isometry(integer_lattice(;gram = QQ[3;]); neg=false)
   ok, reps = equivariant_primitive_extensions(A2, Fs2; even=false)
-
   @test ok
   @test length(reps) == 9
+
+  # Fix (:equivariant, :plain) case for isometries acting nontrivially
+  # on discriminant group
+  L = integer_lattice_with_isometry(A2, matrix(QQ, [0 -1; 1 1]))
+  L2 = rescale(A2, -1)
+  @test first(equivariant_primitive_extensions(L, L2; glue_order=[3],  first_fitting_isometry=true))
 end 
 
 
@@ -156,5 +161,4 @@ end
   Cf = integer_lattice_with_isometry(L, f);
   p=q=3
   admissible_equivariant_primitive_extensions(Af,Bf,Cf,p,q)
-
 end

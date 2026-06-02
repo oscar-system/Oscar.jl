@@ -1,5 +1,3 @@
-using JSON3
-
 ################################################################################
 # Type Serializers (converting types to strings)
 convert_type_to_string(T::DataType) = sprint(show, T; context=:module=>Oscar)
@@ -186,62 +184,99 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
+  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing, Dict{Symbol, <:JSON.LazyValues}, Vector{JSON.LazyValues}}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{AbstractDict{Symbol, Any}, Nothing}
+  refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
 end
+
+function load_json(s::DeserializerState, ::Type{T}) where T
+  return JSON.parse(s.obj, T)
+end
+
 
 # general loading of a reference
 
 function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  id = load_json(s, UUID)
+  if haskey(global_serializer_state.id_to_obj, id)
+    loaded_ref = global_serializer_state.id_to_obj[id]
   else
-    s.obj = s.refs[Symbol(id)]
+    s.obj = s.refs[id]
     loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
+    global_serializer_state.id_to_obj[id] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = id
   end
   return loaded_ref
 end
 
-function Base.haskey(s::DeserializerState, key::Symbol)
-  s.obj isa String && return false
-  load_node(s) do obj
-    key in keys(obj)
-  end
+function Base.isempty(s::DeserializerState)
+  return iszero(length(s.obj))
 end
 
-function set_key(s::DeserializerState, key::Union{Symbol, Int})
+function Base.haskey(s::DeserializerState, key::Symbol)::Bool
+  !(s.obj isa JSON.LazyValue) && return false
+  obj = s.obj[]
+  obj isa String && return false
+  return haskey(obj, key)::Bool
+end
+
+function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothing)
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
   s.key = key
 end
 
+function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
+  if is_object(s) && s.obj isa JSON.LazyValue
+    d = Dict{Symbol, JSON.LazyValues}()
+    foreach(s.obj) do (k,v)
+      d[Symbol(k)] = v
+    end
+    s.obj = d
+  elseif is_array(s) && s.obj isa JSON.LazyValue
+    a = JSON.LazyValues[]
+    foreach(s.obj) do v
+      push!(a, v)
+    end
+    s.obj = a
+  end
+  s.obj = s.obj[key]
+end
+
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+  if is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
     return load_ref(s)
   end
 
   !isnothing(key) && set_key(s, key)
-  obj = s.obj
-  s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
+  lazy_obj = s.obj
+  if !isnothing(s.key)
+    set_state_level(s, s.key)
+  end
   s.key = nothing
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj)
+    result = f()
   end
-  s.obj = obj
+  s.obj = lazy_obj
   return result
 end
 
 function load_array_node(f::Function, s::DeserializerState,
-                         key::Union{Symbol, Int, Nothing} = nothing)
-  load_node(s, key) do array
-    [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]
+                         key::Union{Symbol, Int, Nothing} = nothing;
+                         entry_type::Type = Any)
+  load_node(s, key) do
+    i = 1
+    result = entry_type[]
+    sizehint!(result, length(s.obj))
+    foreach(s.obj) do v
+      s.obj = v
+      push!(result, f(i))
+      i += 1
+    end
+    return result
   end
 end
 
@@ -256,21 +291,24 @@ function serializer_open(
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
-  refs = get(obj, :_refs, nothing)
+  obj = JSON.lazy(io)
+  refs_from_file = get(obj, :_refs, nothing)
+  refs = Dict{UUID,JSON.LazyValues}()
+  if !isnothing(refs_from_file)
+    foreach(refs_from_file) do (k,v)
+      refs[UUID(k)] = v
+    end
+  end
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
-  # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_type_params to hang
-  #obj = JSON3.read(io)
+function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
   str = readuntil(io, '}'; keep=true)
   while !JSON.isvalidjson(str)
     str *= readuntil(io, '}'; keep=true)
   end
-  obj = JSON.parse(str; dicttype=Dict{Symbol, Any}) # TODO: investigate if JSON.Object is fine here
+  obj = JSON.lazy(str)
 
-  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end
