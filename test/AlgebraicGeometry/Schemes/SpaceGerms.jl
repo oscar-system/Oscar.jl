@@ -194,3 +194,35 @@ end
   @test V0 == SpaceGerm(V,[0,0,0])
   @test SY0 == singular_locus(Y0)[1]
 end
+
+@testset "Germ type conversion" begin
+  R, (x,y,z) = QQ[:x, :y, :z]
+  f = x^5 + y^3 + (z-1)^2
+  A = R[x 0 z;  
+        0 y z]
+  IX = ideal(R, f) 
+  IY = ideal(R, [x^7 + y^2 + z^2, x*y])
+  IZ = ideal(R, [x*y, x*z, y*z])
+  X = spec(R, IX)
+  Y = spec(R, IY)
+  Z = spec(R, IZ)
+  X0 = HypersurfaceGerm(X, [0,0,1])
+  Y0 = CompleteIntersectionGerm(Y, [0,0,0])
+  Z0 = SpaceGerm(Z, [0,0,0])
+
+  @test SpaceGerm(X0) == SpaceGerm(X, [0,0,1])
+  @test SpaceGerm(Y0) == SpaceGerm(Y, [0,0,0])
+  @test SpaceGerm(Z0) === Z0
+
+  @test CompleteIntersectionGerm(X0) == CompleteIntersectionGerm(X, [0,0,1])
+
+  @test DeterminantalGerm(X0) == DeterminantalGerm(R[f;], 1, [0,0,1])
+  @test determinantal_type(DeterminantalGerm(X0)) == (1,1,1)
+
+  @test DeterminantalGerm(Y0) == DeterminantalGerm(R[x^7 + y^2 + z^2 x*y;], 1, [0,0,0])
+  @test determinantal_type(DeterminantalGerm(Y0)) == (1,2,1)
+
+  @test SpaceGerm(Y0) == SpaceGerm(DeterminantalGerm(Y0))
+  @test SpaceGerm(X0) == SpaceGerm(CompleteIntersectionGerm(X0))
+  @test DeterminantalGerm(X0) == DeterminantalGerm(CompleteIntersectionGerm(X0))  
+end
