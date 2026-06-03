@@ -382,7 +382,7 @@ jobs:
       - name: Set RO Depot
         run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
       - name: Set up julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       # mark RO depot as RO
