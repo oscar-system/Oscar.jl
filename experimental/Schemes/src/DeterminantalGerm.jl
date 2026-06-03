@@ -602,3 +602,86 @@ julia> basis_versal_det_unfolding(X_C_skew)
 """
 basis_versal_det_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
 
+
+
+################################################################################
+## T1_SL module
+################################################################################
+
+function _T1_SL_rels(A::MatElem, ::Val{:generic})
+  rels = _J(A)
+  n, m = size(A)
+  for i in 1:m
+    for j in 1:m
+      if i == j 
+        i == m && continue
+        push!(rels, _C_ij(A, i, i) - _C_ij(A, m, m))
+      else
+        push!(rels, _C_ij(A, i, j))
+      end
+    end
+  end
+  for j in 1:n
+    for i in 1:n
+      if i == j 
+        i == n && continue
+        push!(rels, _R_ij(A, i, i) - _R_ij(A, n, n))
+      else
+        push!(rels, _R_ij(A, i, j))
+      end
+    end
+  end
+  return rels
+end
+
+function _T1_SL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
+  rels = _J(A)
+  n = nrows(A)
+  for i in 1:n
+    for j in 1:n
+      if i == j 
+        i == n && continue
+        push!(rels, _R_ij(A, i, i) + _C_ij(A, i, i) - _R_ij(A, n, n) - _C_ij(A, n, n))
+      else
+        push!(rels, _R_ij(A, i, j) + _C_ij(A, i, j))
+      end
+    end
+  end
+  return rels
+end
+
+
+
+function _T1_SL_module(A::MatElem; val::Val = Val(:generic))
+  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
+  A = transpose(A)
+  L = base_ring(A)
+  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
+  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
+  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_SL_rels(A, val))))
+end
+
+
+
+@doc raw"""
+    T1_SL_module(X::DeterminantalGerm) -> SubquoModule
+
+Return the $T^1_{SL}$-module of the defining matrix `A` of the determinantal germ of `X`. 
+!!! note
+    Different determinantal structures for the same underlying space germ may yield different $T^1_{SL}$-modules.
+
+"""
+@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val = _mat_type(X)())
+
+
+
+@doc raw"""
+    tjurina_SL_number(X::DeterminantalGerm) -> Union{Integer, PosInf}
+
+Return the `tjurina_SL_number` of the determinantal germ `X`. 
+
+!!! note
+    Different determinantal structures for the same underlying space germ may yield different `tjurina_SL_number`s.
+
+"""
+tjurina_SL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_SL_module(X))
