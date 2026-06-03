@@ -343,4 +343,5 @@ function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
   pmap(f, wp.wp, c; kwargs...)
 end
 
-export oscar_worker_pool, remotecall_with_timeout, TimeoutException
+include("determinants.jl")
+export oscar_worker_pool

@@ -23,6 +23,10 @@ on:
         type: boolean
         default: false
         description: Run extra long test set
+      dualdepot:
+        type: boolean
+        default: false
+        description: Run test suite in dual depot runner
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -108,7 +112,7 @@ jobs:
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
       - name: "set test subgroup"
-        if: ${{ matrix.group }} != ''
+        if: matrix.group != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
@@ -116,6 +120,14 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-${{ matrix.group }}-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -164,6 +176,13 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: Archive stats
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-book-${{ runner.os }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10'
         uses: julia-actions/julia-processcoverage@v1
@@ -263,6 +282,14 @@ jobs:
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
               doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-doctest-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -384,6 +411,38 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  test-dual-depot:
+    # run tests in dual depot runner, where the RO depot has most of the depot, and the RW depot is
+    # only for running the tests
+    # this helps guard against errors like https://github.com/oscar-system/GAP.jl/issues/1371
+    # JULIA_DEPOT_RO and JULIA_DEPOT_RW are env vars defined in the systemd unit
+    name: Run testsuite in a dual depot runnner
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
+    runs-on: [RPTU,dual-depot]
+    continue-on-error: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      # setup first depot
+      - name: Set RO Depot
+        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
+      - name: Set up julia
+        uses: julia-actions/setup-julia@v3
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      # mark RO depot as RO
+      - name: Mark first depot as RO
+        run: chmod -Rv a-w $JULIA_DEPOT_PATH
+      # set second depot
+      - name: Make RW depot
+        # this assumes that the second variable in $GITHUB_ENV wins!
+        # we don't know for sure!
+        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RW:$JULIA_DEPOT_RO" >> $GITHUB_ENV
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=short" >> $GITHUB_ENV
+      - name: Run tests
+        uses: julia-actions/julia-runtest@latest
 
 # adapted from gap-system/gap
   slack-notification:
