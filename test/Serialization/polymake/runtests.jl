@@ -6,6 +6,11 @@
     @test n_vertices(s) == 4
     @test n_facets(s) == 4
 
+    s = load(joinpath(@__DIR__, "floatcube.poly"))
+    @test s isa Polyhedron{Float64}
+    @test n_vertices(s) == 8
+    @test n_facets(s) == 6
+
     nf = load(joinpath(@__DIR__, "nf_square.fan"))
     @test nf isa PolyhedralFan{QQFieldElem}
     @test n_rays(nf) == 4

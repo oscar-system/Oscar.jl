@@ -451,6 +451,8 @@ function is_isomorphic_with_map(
   return true, phi
 end
 
+is_isomorphic(x::TorQuadModuleWithIsom, y::TorQuadModuleWithIsom) = is_isomorphic_with_map(x,y)[1]
+
 @doc raw"""
     is_anti_isomorphic_with_map(
       Tf::TorQuadModuleWithIsom,
@@ -539,4 +541,8 @@ end
 function Base.hash(T::TorQuadModuleWithIsom, u::UInt)
   u = Base.hash(underlying_module(T), u)
   return Base.hash(matrix(isometry(T)), u)
+end
+
+function Base.:(^)(T::TorQuadModuleWithIsom, n::IntegerUnion)
+  return torsion_quadratic_module_with_isometry(torsion_quadratic_module(T), isometry(T)^n)
 end

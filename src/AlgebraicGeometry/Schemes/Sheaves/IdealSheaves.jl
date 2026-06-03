@@ -1245,18 +1245,6 @@ function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuoRing, C<:R
   return ideal(S, phi.(gens(I)))
 end
 
-function complement_of_prime_ideal(P::MPolyQuoIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
-function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
-function complement_of_prime_ideal(P::MPolyLocalizedIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
 radical(I::PrimeIdealSheafFromChart) = I
 
 # TODO: This function should be removed for ideal sheaves! 

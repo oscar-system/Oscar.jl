@@ -64,8 +64,11 @@
      "Multivariate Polynomials" => [
         "AbstractAlgebra/mpolynomial.md",
      ],
-     "Modular Methods" => [
+     "Euclidean Rings" => [
          "AbstractAlgebra/euclidean_interface.md",
+     ],
+     "Modular Methods" => [
+         "Rings/modular.md",
      ],
      "Series Rings" => [
         "AbstractAlgebra/series.md",
@@ -145,10 +148,17 @@
       "NumberTheory/QuadFormAndIsom/introduction.md",
       "NumberTheory/QuadFormAndIsom/spacewithisom.md",
       "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/torquadmodwithisom.md",
       "NumberTheory/QuadFormAndIsom/enumeration.md",
       "NumberTheory/QuadFormAndIsom/primembed.md",
       "NumberTheory/QuadFormAndIsom/fingrpact.md",
-    ],
+     ],
+     "Finite rings" => [
+      "Hecke/manual/finiterings/intro.md",
+      "Hecke/manual/finiterings/basics.md",
+      "Hecke/manual/finiterings/ideal.md",
+      "NumberTheory/finiteringunits.md",
+     ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
   ],

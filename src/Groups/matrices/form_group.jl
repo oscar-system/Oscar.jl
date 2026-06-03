@@ -19,7 +19,7 @@
     invariant_bilinear_forms(G::MatGroup)
 
 Return a generating set for the vector space of bilinear forms preserved by `G`.
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -58,7 +58,7 @@ preserved by the group `G`.
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -95,7 +95,7 @@ end
 
 Return a generating set for the vector space of quadratic forms
 preserved by the group `G`.
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -145,9 +145,9 @@ end
 Return a generating set for the vector space of symmetric forms
 preserved by the group `G`.
 
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
-!!! warning "Note:"
+!!! note
     Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
 
 # Examples
@@ -167,7 +167,7 @@ invariant_symmetric_forms(G::MatGroup{S,T}) where {S,T} = T[x + transpose(x) for
 
 Return a generating set for the vector space of alternating forms
 preserved by the group `G`.
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -229,7 +229,7 @@ preserved by the group `G`.
 An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
-!!! warning "Note:"
+!!! note
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -466,7 +466,7 @@ Return the Gram matrix of an invariant bilinear form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
-!!! warning "Note:"
+!!! note
     At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -493,7 +493,7 @@ An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible or if `G` is defined over a finite field
 of odd degree over the prime field.
 
-!!! warning "Note:"
+!!! note
     At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples
@@ -519,7 +519,7 @@ Return the Gram matrix of an invariant quadratic form for `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
-!!! warning "Note:"
+!!! note
     At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples

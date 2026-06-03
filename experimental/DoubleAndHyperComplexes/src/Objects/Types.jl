@@ -374,9 +374,10 @@ Example of a pattern of a double complex with `is_complete = true`.
     `*` : non-zero entry which has been computed
     `?` : entry can be computed, but that has not yet been done
 
-!!! note If the double complex has several of the above "islands", then `is_complete` might 
-return `true` even though one or more of the "islands" have not yet been uncovered. 
-Use this carefully if your full double complex might be separated by zero entries!
+!!! note
+    If the double complex has several of the above "islands", then `is_complete` might
+    return `true` even though one or more of the "islands" have not yet been uncovered.
+    Use this carefully if your full double complex might be separated by zero entries!
 """
 function is_complete(D::AbsDoubleComplexOfMorphisms)
   return is_complete(underlying_complex(D))

@@ -26,10 +26,6 @@ function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   return bigobject
 end
 
-function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, str::String)
-  return load_ref(s, str)
-end
-
 ##############################################################################
 # Abstract Polyhedral Object
 

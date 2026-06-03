@@ -406,7 +406,6 @@ end
 
 function augment(field, vec::AbstractVector, val)
   s = size(vec)
-  @req s[1] > 0 "cannot homogenize empty vector"
   h = field(val)
   targettype = elem_type(field)
   fvec = field.(vec)
@@ -445,8 +444,12 @@ homogenized_matrix(
   val::Union{Number,scalar_types_extended},
 ) =
   homogenize(field, x, val)
-homogenized_matrix(field, x::AbstractVector, val::Union{Number,scalar_types_extended}) =
+function homogenized_matrix(
+  field, x::AbstractVector, val::Union{Number,scalar_types_extended}
+)
+  isempty(x) && return Matrix{elem_type(field)}(undef, 0, 0)
   permutedims(homogenize(field, x, val))
+end
 homogenized_matrix(
   field, x::AbstractVector{<:AbstractVector}, val::Union{Number,scalar_types_extended}
 ) =
@@ -496,7 +499,14 @@ julia> stack([1 2], [])
 """
 stack(::scalar_type_or_field, A::AbstractMatrix, ::Nothing) = A
 stack(::scalar_type_or_field, ::Nothing, B::AbstractMatrix) = B
-stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractMatrix) = T[A; B]
+stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractMatrix) =
+  if isempty(B)
+    T[A;]
+  elseif isempty(A)
+    T[B;]
+  else
+    T[A; B]
+  end
 stack(A::AbstractArray, B::AbstractArray) =
   stack(eltype(A) !== Any ? eltype(A) : eltype(B), A, B)
 stack(T::scalar_type_or_field, A::AbstractMatrix, B::AbstractVector) =
@@ -510,11 +520,11 @@ stack(::scalar_type_or_field, ::Nothing, B::AbstractVector) = permutedims(B)
 stack(VM::AbstractVector{<:AbstractMatrix}) = reduce(vcat, VM)
 stack(::scalar_type_or_field, VM::AbstractVector{<:AbstractMatrix}) = reduce(vcat, VM)
 function stack(::scalar_type_or_field, VV::AbstractVector{<:AbstractVector})
-  @req length(VV) > 0 "at least one vector required"
+  length(VV) > 0 || return Matrix{eltype(eltype(VV))}(undef, 0, 0)
   permutedims(Base.stack(VV))
 end
 function stack(VV::AbstractVector{<:AbstractVector})
-  @req length(VV) > 0 "at least one vector required"
+  length(VV) > 0 || return Matrix{eltype(eltype(VV))}(undef, 0, 0)
   permutedims(Base.stack(VV))
 end
 #stack(x, y, z...) = reduce(stack, z; init=stack(x, y))

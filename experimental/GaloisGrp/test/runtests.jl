@@ -44,3 +44,9 @@ end
   s[3] * s[4]
 end
 
+@testset "valuation stuff" begin
+  Qx, x = QQ["x"]
+  @test Oscar.GaloisGrp.valuation_of_roots(x - 2, 2) == [(1, 1)]
+  @test Oscar.GaloisGrp.valuation_of_roots(x^2 - 1//2, 2) == [(-1//2, 2)]
+  @test sort!(Oscar.GaloisGrp.valuation_of_roots((x - 2)*(x - 12)^2, 2); by = first) == [(1, 1), (2, 2)]
+end

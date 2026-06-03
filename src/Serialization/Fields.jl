@@ -20,7 +20,7 @@ end
 function load_object(s::DeserializerState, ::Type{fpField})
   load_node(s) do str
     return fpField(parse(UInt64, str))
-  end
+  end::fpField
 end
 
 # elements
@@ -33,7 +33,7 @@ end
 function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
   load_node(s) do str
     return F(parse(UInt64, str))
-  end
+  end::fpFieldElem
 end
 
 ################################################################################
@@ -47,7 +47,7 @@ end
 function load_object(s::DeserializerState, ::Type{FpField})
   load_node(s) do str
     FpField(parse(ZZRingElem, str))
-  end
+  end::FpField
 end
 
 # elements
@@ -60,7 +60,7 @@ end
 function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
   load_node(s) do str
     F(parse(ZZRingElem, str))
-  end
+  end::FpFieldElem
 end
 
 ################################################################################
@@ -129,7 +129,7 @@ end
 ################################################################################
 # FqField
 
-@register_serialization_type FqField "FiniteField" uses_id
+@register_serialization_type FqField "FiniteField" uses_id default
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
@@ -145,12 +145,12 @@ function save_object(s::SerializerState, K::FqField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRing)
-  finite_field(load_object(s, PolyRingElem, params), cached=false)[1]
+function load_object(s::DeserializerState, ::Type{FqField}, params::PolyRing)
+  return finite_field(load_object(s, PolyRingElem, params), cached=false)[1]::FqField
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqField})
-  finite_field(load_object(s, ZZRingElem, ZZRing()))[1]
+function load_object(s::DeserializerState, ::Type{FqField})
+  return finite_field(load_object(s, ZZRingElem, ZZRing()))[1]::FqField
 end
 
 # elements
@@ -169,13 +169,13 @@ function save_object(s::SerializerState, k::FqFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, K::FqField)
+function load_object(s::DeserializerState, ::Type{FqFieldElem}, K::FqField)
   load_node(s) do _
     if absolute_degree(K) != 1
       return K(load_object(s, PolyRingElem, parent(defining_polynomial(K))))
     end
     K(load_object(s, ZZRingElem, ZZRing()))
-  end
+  end::FqFieldElem
 end
 
 ################################################################################
@@ -185,7 +185,7 @@ end
 @register_serialization_type AbsNonSimpleNumField uses_id
 
 function type_params(K::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField}
-  TypeParams(T, parent(defining_polynomials(K)[1]))
+  return TypeParams(T, parent(defining_polynomials(K)[1]))
 end
 
 function save_object(s::SerializerState, K::NonSimpleNumField)
@@ -408,17 +408,14 @@ const FieldEmbeddingTypes = Union{
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  tp = TypeParams(T, K)
+  base_field(K) isa QQField && return TypeParams(T, K)
 
-  if !(base_field(K) isa QQField)
-    base_field_emb = restrict(E, base_K)
-    tp = TypeParams(
-      T, 
-      :num_field => K,
-      :base_field_emb => base_field_emb
-    )
-  end
-  return tp
+  base_field_emb = restrict(E, base_K)
+  return TypeParams(
+    T,
+    :num_field => K,
+    :base_field_emb => base_field_emb,
+  )
 end
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)

@@ -78,6 +78,5 @@ function _exterior_power(phi::FreeModuleHom, p::Int)
   img_gens = [wedge(e, f) for e in gens(Fq) for f in phi.(gens(rel))]
   G = FreeMod(R, length(img_gens))
   psi = hom(G, Fp, img_gens)
-  # TODO: the `cokernel` command does not have consistent output over all types of rings.
-  return (base_ring(codomain(phi)) isa Union{MPolyLocRing, MPolyQuoLocRing} ? cokernel(psi)[1] : cokernel(psi)), mult_map
+  return first(cokernel(psi)), mult_map
 end

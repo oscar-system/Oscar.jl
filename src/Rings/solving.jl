@@ -2,7 +2,7 @@
     real_solutions(I::MPolyIdeal, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return a pair `r,p` where `p` is the rational parametrization of the solution set and `r` represents the real roots of `Ì`  with a given precision (default 32 bits).
-See [BES21](@cite) for more information.
+See [BES-E-D21](@cite) for more information.
 
 **Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
 is greater than zero an empty array is returned.
@@ -30,7 +30,7 @@ julia> real_solutions(I)
 (Vector{QQFieldElem}[[-1, -1], [-1, 1]], AlgebraicSolving.RationalParametrization([:x, :y], ZZRingElem[], x^2 - 1, 2*x, QQPolyRingElem[-2*x]))
 ```
 """
-function real_solutions(
+function real_solutions(::Type{Vector{QQFieldElem}},
         I::MPolyIdeal;                        # input generators
         initial_hts::Int=17,                  # hash table size, default 2^17
         nr_thrds::Int=1,                      # number of threads
@@ -38,7 +38,7 @@ function real_solutions(
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        precision::Int=32                     # precision of the solution set
+        precision::Int=32,                     # precision of the solution set
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
@@ -48,9 +48,34 @@ function real_solutions(
              max_nr_pairs = max_nr_pairs,
              la_option = la_option,
              info_level = info_level,
-             precision = precision)
+             precision = precision,
+             interval = false)
 
     return AI.real_sols, AI.rat_param
+end
+real_solutions(I::MPolyIdeal; kwargs...) = real_solutions(Vector{QQFieldElem}, I; kwargs...)
+function real_solutions(::Type{Vector{Vector{QQFieldElem}}},
+        I::MPolyIdeal;                        # input generators
+        initial_hts::Int=17,                  # hash table size, default 2^17
+        nr_thrds::Int=1,                      # number of threads
+        max_nr_pairs::Int=0,                  # number of pairs maximally chosen
+                                              # in symbolic preprocessing
+        la_option::Int=2,                     # linear algebra option
+        info_level::Int=0,                    # info level for print outs
+        precision::Int=32,                     # precision of the solution set
+        )
+    AI = AlgebraicSolving.Ideal(oscar_generators(I))
+
+    AlgebraicSolving.real_solutions(AI,
+             initial_hts = initial_hts,
+             nr_thrds = nr_thrds,
+             max_nr_pairs = max_nr_pairs,
+             la_option = la_option,
+             info_level = info_level,
+             precision = precision,
+             interval = true)
+
+    return AI.inter_sols, AI.rat_param
 end
 
 ################################################################################

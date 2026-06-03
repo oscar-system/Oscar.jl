@@ -23,19 +23,19 @@ function polyhedral_fan(p::Polymake.BigObject)
 end
 
 @doc raw"""
-    polyhedral_fan(T, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix) where T<:scalar_types
+    polyhedral_fan([T,]  Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing})
 
 Assemble a polyhedral fan from ray generators, lineality generators, and an
 `IncidenceMatrix` indicating which rays form a cone.
 
 # Arguments
 - `T`: `Type` or parent `Field` of scalar to use, defaults to `QQFieldElem`.
+- `Incidence::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j)
+  if cone i has ray j as extremal ray, and 0 otherwise.
 - `Rays::AbstractCollection[RayVector]`: Rays generating the cones of the fan;
   encoded row-wise as representative vectors.
 - `LS::AbstractCollection[RayVector]`: Contains row-wise generators of the
-  lineality space of the fan. (optional argument)
-- `Cones::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j)
-  if cone i has ray j as extremal ray, and 0 otherwise.
+  lineality space of the fan (optional argument).
 
 
 # Examples

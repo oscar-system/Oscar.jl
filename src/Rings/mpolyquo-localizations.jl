@@ -136,6 +136,8 @@ base_ring(L::MPolyQuoLocRing) = L.R
 inverted_set(L::MPolyQuoLocRing) = L.S
 
 ### additional getter functions
+coefficient_ring(L::MPolyQuoLocRing) = coefficient_ring(base_ring(L))
+
 @doc raw"""
     modulus(L::MPolyQuoLocRing)
 
@@ -1929,7 +1931,7 @@ julia> intersection_multiplicity(C, D, C(P))
 ```
 
 ```jldoctest
-julia> R, (x,y) = QQ["x","y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> f = (x^2-y^3)*(y-1);   # 3 singularities, a cusp and two nodes
 
@@ -2998,4 +3000,21 @@ function is_known(::typeof(is_one),
   return false
 end
 
+
+# Some additional methods for `complement_of_prime_ideal`
+#
+# Note that these give an object in the `base_ring`, rather than 
+# the ring of the ideal itself, due to the general philosophy to 
+# always flatten the localizations. 
+function complement_of_prime_ideal(P::MPolyQuoIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
+
+function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
+
+function complement_of_prime_ideal(P::MPolyLocalizedIdeal; check::Bool=true)
+  return complement_of_prime_ideal(saturated_ideal(P); check)
+end
 

@@ -170,6 +170,7 @@ function doit(
   nemorev = get_rev(Base.PkgId(Oscar.Nemo).uuid)
   heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
   singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
+  oscarrev = get_rev(Base.PkgId(Oscar).uuid)
 
   cd(joinpath(oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true, warn=false)
@@ -203,6 +204,7 @@ function doit(
         Base.pkgdir(Oscar.Nemo) => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
         Base.pkgdir(Oscar.Hecke) => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
         Base.pkgdir(Oscar.Singular) => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+        Base.pkgdir(Oscar) => (Remotes.GitHub("oscar-system", "Oscar.jl"), oscarrev),
       ),
       plugins=[bib],
     )
