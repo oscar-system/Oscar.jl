@@ -307,7 +307,9 @@ function _T1_GL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
   return vcat(_J(A), [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:nrows(A) for j in 1:ncols(A)])
 end
 
-function _T1_GL_module(A::MatElem, val::Val)
+
+
+function _T1_GL_module(A::MatElem; val::Val = Val(:generic))
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
@@ -407,7 +409,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), _mat_type(X)())
+@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val = _mat_type(X)())
 
 
 
