@@ -965,8 +965,16 @@ end
   pts = collect(orb)
   len = sqrt(dot(pts[1] - pts[2], pts[1] - pts[2])) / 2
   ngon = convex_hull(pts)
-  prism = prism(ngon, -len, len)
-  @test Oscar._is_prismic_or_antiprismic(prism)
-  @test !is_archimedean_solid(prism)
-  @test !is_johnson_solid(prism)
+  ngprism = prism(ngon, -len, len)
+  @test Oscar._is_prismic_or_antiprismic(ngprism)
+  @test !is_archimedean_solid(ngprism)
+  @test !is_johnson_solid(ngprism)
+end
+
+@testset "Slack ideal" begin
+  PS = prism(simplex(2))
+  SI = slack_ideal(PS)
+  R = base_ring(SI)
+  desired = load(joinpath(@__DIR__, "data", "prism_slack_ideal.mrdi"); params=R)
+  @test SI == desired
 end
