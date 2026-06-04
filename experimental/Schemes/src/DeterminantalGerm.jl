@@ -293,24 +293,24 @@ end
 
 # T1-module helper functions
 
-_T1_gens(A::MatElem, ::Val{:generic}) = _mat_space_gens(parent(A))
-_T1_gens(A::MatElem, ::Val{:symmetric}) = _sym_mat_gens(parent(A))
-_T1_gens(A::MatElem, ::Val{:skew_symmetric}) = _skew_sym_mat_gens(parent(A))
+_T1_gens(A::MatElem, ::Type{Val{:generic}}) = _mat_space_gens(parent(A))
+_T1_gens(A::MatElem, ::Type{Val{:symmetric}}) = _sym_mat_gens(parent(A))
+_T1_gens(A::MatElem, ::Type{Val{:skew_symmetric}}) = _skew_sym_mat_gens(parent(A))
 
 _J(A::MatElem) = [derivative.(A, i) for i in 1:ngens(base_ring(A))]
 
-function _T1_GL_rels(A::MatElem, ::Val{:generic}) 
+function _T1_GL_rels(A::MatElem, ::Type{Val{:generic}}) 
   return vcat(_J(A), [_C_ij(A, i, j) for i in 1:ncols(A) for j in 1:ncols(A)], 
                      [_R_ij(A, i, j) for i in 1:nrows(A) for j in 1:nrows(A)])
 end
 
-function _T1_GL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
+function _T1_GL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
   return vcat(_J(A), [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:nrows(A) for j in 1:ncols(A)])
 end
 
 
 
-function _T1_GL_module(A::MatElem; val::Val = Val(:generic))
+function _T1_GL_module(A::MatElem; val::Val = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
@@ -410,7 +410,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val = _mat_type(X)())
+@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val = _mat_type(X))
 
 
 
@@ -609,7 +609,7 @@ basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:Aff
 ## T1_SL module
 ################################################################################
 
-function _T1_SL_rels(A::MatElem, ::Val{:generic})
+function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
   rels = _J(A)
   n, m = size(A)
   for i in 1:m
@@ -635,7 +635,7 @@ function _T1_SL_rels(A::MatElem, ::Val{:generic})
   return rels
 end
 
-function _T1_SL_rels(A::MatElem, ::Union{Val{:symmetric}, Val{:skew_symmetric}})
+function _T1_SL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
   rels = _J(A)
   n = nrows(A)
   for i in 1:n
@@ -653,7 +653,7 @@ end
 
 
 
-function _T1_SL_module(A::MatElem; val::Val = Val(:generic))
+function _T1_SL_module(A::MatElem; val::Val = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
@@ -672,7 +672,7 @@ Return the $T^1_{SL}$-module of the defining matrix `A` of the determinantal ger
     Different determinantal structures for the same underlying space germ may yield different $T^1_{SL}$-modules.
 
 """
-@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val = _mat_type(X)())
+@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val = _mat_type(X))
 
 
 
