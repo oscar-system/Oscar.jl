@@ -541,7 +541,7 @@ false
 
 
 @doc raw"""
-    basis_versal_det_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
+    basis_versal_determinantal_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
 
 Return a basis of a versal determinantal unfolding of the determinantal germ `X`. 
 
@@ -571,13 +571,13 @@ false
 julia> underlying_space_germ(X_A) == underlying_space_germ(X_B_sym)
 true
 
-julia> basis_versal_det_unfolding(X_A)
+julia> basis_versal_determinantal_unfolding(X_A)
 3-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,2]
  E[1,3]
  E[1,4]
 
-julia> basis_versal_det_unfolding(X_B_sym)
+julia> basis_versal_determinantal_unfolding(X_B_sym)
 1-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,3] + E[3,1]
 
@@ -593,7 +593,7 @@ julia> C = P[0 0 a b;  0 0 b a;  -a -b 0 0; -b -a 0 0]
 
 julia> X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric);
 
-julia> basis_versal_det_unfolding(X_C_skew)
+julia> basis_versal_determinantal_unfolding(X_C_skew)
 4-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,2] - E[2,1]
  E[1,3] - E[3,1]
