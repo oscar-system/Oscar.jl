@@ -77,7 +77,7 @@ export T1_GL_module
 export tjurina_GL_number
 export is_determinantally_rigid
 export is_EIDS
-export basis_versal_det_unfolding
+export basis_versal_determinantal_unfolding
 export T1_SL_module
 
 # Deprecated after 0.15
