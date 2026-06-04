@@ -1028,8 +1028,9 @@ function _graph_maps(G::Graph)
 end
 
 # this currently will ignore all other labels
-# and creates new labelings such that the labelings on the vertices are indistinguishable
-# there is also a flag that can handle indistinguishable edges
+# it will create a new graph with new vertices and the labelings solely on the vertices
+# allow us to run isomorphism type functions from nauty on this new graph
+# allowing us to deduce isomorphism type results on the original graph 
 # uses ideas from https://users.cecs.anu.edu.au/~bdm/nauty/nug26.pdf section 14
 function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
@@ -1199,15 +1200,18 @@ julia> automorphism_group_generators(g; label=:label)
  (1,3)
 ```
 """
-function automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+function automorphism_group_generators(g::Graph{T};
+                                       label::Union{Nothing, Symbol}=nothing,
+                                       edge_distinguishable::Bool=true,
+                                       vertex_distinguishable::Bool=true) where {T <: Union{Directed, Undirected}}
   if isnothing(label)
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
     return _pm_arr_arr_to_group_generators(result, n_vertices(g))
   else
     new_g = _edge_label_to_vertex_label(g, label;
-                                        edge_distinguishable=true,
-                                        vertex_distinguishable=true)
+                                        edge_distinguishable=edge_distinguishable,
+                                        vertex_distinguishable=edge_distinguishable)
 
     pm_gens = Polymake._automorphisms(
       pm_object(new_g),
@@ -1226,7 +1230,7 @@ end
 
 
 @doc raw"""
-    automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+    automorphism_group(g::Graph{T}; label=nothing, vertex_distinguishable=true, edge_distinguishable=true) where {T <: Union{Directed, Undirected}}
 
 Return the automorphism group of the graph `g`.
 
@@ -1249,8 +1253,8 @@ julia> automorphism_group(g; label=:label)
 Permutation group of degree 3
 ```
 """
-function automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
-    return _gens_to_group(automorphism_group_generators(g; label=label))
+function automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where {T <: Union{Directed, Undirected}}
+    return _gens_to_group(automorphism_group_generators(g; label=label, kwargs...))
 end
 
 
