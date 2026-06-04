@@ -310,7 +310,7 @@ end
 
 
 
-function _T1_GL_module(A::MatElem; val::Val = Val{:generic})
+function _T1_GL_module(A::MatElem; val::Type = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
@@ -653,7 +653,7 @@ end
 
 
 
-function _T1_SL_module(A::MatElem; val::Val = Val{:generic})
+function _T1_SL_module(A::MatElem; val::Type = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
