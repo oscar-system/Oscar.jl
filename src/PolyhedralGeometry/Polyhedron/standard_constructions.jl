@@ -2623,3 +2623,46 @@ julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
 function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
   return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
 end
+
+
+@doc raw"""
+    prism(P::Polyhedron)
+
+Build the prism over the polyhedron `P`, i.e. the product with $[-1,1]$.
+Optionally you may provide `z1` and `z2` to instead get the product with the
+interval $[z_1, z_2]$: `prism(P, z1, z2)`.
+
+# Examples
+```jldoctest
+julia> S = simplex(2)
+Polytope in ambient dimension 2
+
+julia> PS = prism(S)
+Polytope in ambient dimension 3
+
+julia> vertices(PS)
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -1]
+ [1, 0, -1]
+ [0, 1, -1]
+ [0, 0, 1]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> vertices(prism(S, -3, 2))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -3]
+ [1, 0, -3]
+ [0, 1, -3]
+ [0, 0, 2]
+ [1, 0, 2]
+ [0, 1, 2]
+```
+"""
+function prism(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P)), coefficient_field(P))
+end
+function prism(P::Polyhedron{T}, z1, z2) where {T<:scalar_types}
+  F = coefficient_field(P)
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P), F(z1), F(z2)), F)
+end

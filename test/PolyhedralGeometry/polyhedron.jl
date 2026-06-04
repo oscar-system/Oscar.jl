@@ -898,6 +898,12 @@
     SC = secondary_cone(SOP)
     @test polyhedron(SC) isa Polyhedron
   end
+
+  @testset "Prism" begin
+    PQ0 = prism(Q0)
+    @test n_vertices(PQ0) == 6
+    @test n_facets(PQ0) == 5
+  end
 end
 
 @testset "Regular solids" begin
@@ -959,7 +965,7 @@ end
   pts = collect(orb)
   len = sqrt(dot(pts[1] - pts[2], pts[1] - pts[2])) / 2
   ngon = convex_hull(pts)
-  prism = polyhedron(Polymake.polytope.prism(Oscar.pm_object(ngon), len))
+  prism = prism(ngon, -len, len)
   @test Oscar._is_prismic_or_antiprismic(prism)
   @test !is_archimedean_solid(prism)
   @test !is_johnson_solid(prism)

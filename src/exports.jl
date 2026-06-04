@@ -1501,6 +1501,7 @@ export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
+export prism
 export product
 export proj
 export project_full
