@@ -600,7 +600,7 @@ julia> basis_versal_det_unfolding(X_C_skew)
  E[3,4] - E[4,3]
 ```
 """
-basis_versal_det_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
+basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
 
 
 
