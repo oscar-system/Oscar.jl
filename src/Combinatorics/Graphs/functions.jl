@@ -1204,13 +1204,17 @@ end
 ################################################################################
 ################################################################################
 @doc raw"""
-    automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+    automorphism_group_generators(g::Graph{T}; label::Union{Nothing, Symbol}=nothing, vertex_distinguishable::Bool=true, edge_distinguishable::Bool=true) where {T <: Union{Directed, Undirected}}
 
 Return generators of the automorphism group of the graph `g`.
 
 If `label` is specified, automorphisms are computed with respect to the graph
 labeling stored under that key (see [`label!`](@ref)). Only permutations that
 preserve the edge labels are returned.
+
+If `vertex_distinguishable` is `false`, vertex labels are interchangeable.
+Analogously for edges when `edge_distinguishable` is `false`,
+so automorphisms may permute label names.
 
 # Examples
 ```jldoctest
@@ -1224,11 +1228,16 @@ julia> automorphism_group_generators(g)
 ```
 
 ```jldoctest
-julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2));
+julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>2, (4,1)=>2));
 
 julia> automorphism_group_generators(g; label=:label)
 1-element Vector{PermGroupElem}:
  (1,3)
+
+julia> automorphism_group_generators(g; label=:label, edge_distinguishable=false)
+2-element Vector{PermGroupElem}:
+ (1,3)
+ (2,4)
 ```
 """
 function automorphism_group_generators(g::Graph{T};
@@ -1269,6 +1278,10 @@ If `label` is specified, automorphisms are computed with respect to the graph
 labeling stored under that key (see [`label!`](@ref)). Only permutations that
 preserve the edge labels are included.
 
+If `vertex_distinguishable` is `false`, vertex labels are interchangeable.
+Analogously for edges when `edge_distinguishable` is `false`,
+so automorphisms may permute label names.
+
 # Examples
 ```jldoctest
 julia> g = complete_graph(4);
@@ -1278,10 +1291,14 @@ Permutation group of degree 4
 ```
 
 ```jldoctest
-julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2));
+julia> g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>1, (4,5)=>1, (5,1)=>1,
+                                         (1,3)=>2, (3,5)=>2, (5,2)=>2, (2,4)=>2, (4,1)=>2));
 
-julia> automorphism_group(g; label=:label)
-Permutation group of degree 3
+julia> order(automorphism_group(g; label=:label))
+10
+
+julia> order(automorphism_group(g; label=:label, edge_distinguishable=false))
+20
 ```
 """
 function automorphism_group(g::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where {T <: Union{Directed, Undirected}}
