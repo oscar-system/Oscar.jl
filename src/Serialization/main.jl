@@ -758,10 +758,17 @@ function save(filename::String, obj::Any;
   if serializer isa DirSerializer
     temp_dir = mktempdir(dirname(abspath(filename)))
     temp_file = tempname(temp_dir)
-    open(temp_file, "w") do file
-      save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
+    main_filename = compression == :gzip ? "main.mrdi.gz" : "main.mrdi"
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
+      end
+    else
+      open(temp_file, "w") do file
+        save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
+      end
     end
-    Base.Filesystem.rename(temp_file, joinpath(temp_dir, "main.mrdi"))
+    Base.Filesystem.rename(temp_file, joinpath(temp_dir, main_filename))
     isdir(filename) && rm(filename; recursive=true)
     Base.Filesystem.rename(temp_dir, filename)
     return nothing
@@ -947,8 +954,16 @@ end
 
 function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
   if serializer isa DirSerializer
-    open(joinpath(filename, "main.mrdi")) do file
-      return load(file; serializer=DirSerializer(filename), kwargs...)
+    main_gz = joinpath(filename, "main.mrdi.gz")
+    main_file = isfile(main_gz) ? main_gz : joinpath(filename, "main.mrdi")
+    if endswith(main_file, ".gz")
+      open(CodecZlib.GzipDecompressorStream, main_file) do file
+        return load(file; serializer=DirSerializer(filename), kwargs...)
+      end
+    else
+      open(main_file) do file
+        return load(file; serializer=DirSerializer(filename), kwargs...)
+      end
     end
   elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file

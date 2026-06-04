@@ -87,11 +87,11 @@ end
       save(dir_path, 42; serializer=Oscar.Serialization.DirSerializer())
       @test readdir(dir_path) == ["main.mrdi"]
 
-      # compression: ref files should be gzip compressed
+      # compression: main and ref files should be gzip compressed
       save(dir_path, p; serializer=Oscar.Serialization.DirSerializer(), compression=:gzip)
       gz_files = readdir(dir_path)
-      @test "main.mrdi" in gz_files
-      @test any(f -> endswith(f, ".gz"), gz_files)
+      @test "main.mrdi.gz" in gz_files
+      @test all(f -> endswith(f, ".gz"), gz_files)
       Oscar.Serialization.reset_global_serializer_state()
       loaded = load(dir_path; serializer=Oscar.Serialization.DirSerializer(), params=R)
       @test loaded == p
