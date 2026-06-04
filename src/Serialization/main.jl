@@ -952,11 +952,11 @@ function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kw
     end
   elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   else
     open(filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   end
 end
