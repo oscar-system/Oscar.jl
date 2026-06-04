@@ -209,7 +209,7 @@ end
 
 
 @doc raw"""
-    DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T}; mat_type::Symbol = :generic, check::Bool=true)
+    ==(X::DeterminantalGerm, Y::DeterminantalGerm)
 
 Return whether the determinantal germs `X` and `Y` are equal, i.e. they have the same determinantal structure on the same underlying scheme.
 """
