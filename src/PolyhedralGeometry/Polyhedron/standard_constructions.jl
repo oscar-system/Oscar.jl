@@ -2624,7 +2624,6 @@ function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
   return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
 end
 
-
 @doc raw"""
     prism(P::Polyhedron)
 

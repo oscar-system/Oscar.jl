@@ -977,4 +977,5 @@ end
   R = base_ring(SI)
   desired = load(joinpath(@__DIR__, "data", "prism_slack_ideal.mrdi"); params=R)
   @test SI == desired
+  @test_throws AssertionError slack_ideal(QQ[:x, :y][1], PS)
 end
