@@ -351,12 +351,15 @@
       @test is_isomorphic(G1_two, G2_one) == false
       
       #vertex indistinguishable, edge indistinguishable
-      G1 = graph_from_labeled_edges(Dict((1,2) => 1, (2,3) => 2, (3, 4) => 3, (4, 1) => 4), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>1, (4,5)=>1, (5,1)=>1,
+                                         (1,3)=>2, (3,5)=>2, (5,2)=>2, (2,4)=>2, (4,1)=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (2,3)=>2, (3,4)=>2, (4,5)=>2, (5,1)=>2,
+                                         (1,3)=>1, (3,5)=>1, (5,2)=>1, (2,4)=>1, (4,1)=>1))
+      G3 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,1)=>1, (4, 5)=>1,
+                                         (1,4)=>2, (1,5)=>2, (2,4)=>2, (2,5)=>2, (3,4)=>2, (3,5)=>2))
       G1_hash = Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
-      G2 = graph_from_labeled_edges(Dict((1,2) => 4, (2,3) => 3, (3, 4) => 1, (4, 1) => 2), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
       G2_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
       @test G1_hash == G2_hash
-      G3 = graph_from_labeled_edges(Dict((1,2) => 3, (2,3) => 3, (3, 4) => 1, (4, 1) => 2), Dict(1 => 1, 2 => 1, 3 => 1, 4 => 5))
       G3_hash = Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
       @test G3_hash != G1_hash
       
