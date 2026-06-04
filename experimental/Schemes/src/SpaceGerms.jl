@@ -121,15 +121,15 @@ const MPolyAnyLocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, <:Union{M
 
 const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
 
-determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(base_ring(A), minors(A, t))
+_determinantal_ideal(A::MatElem, t::Int, ::Val{:generic}) = ideal(base_ring(A), minors(A, t))
 
-function determinantal_ideal(A::MatElem, t::Int, ::Val{:symmetric})
+function _determinantal_ideal(A::MatElem, t::Int, ::Val{:symmetric})
   @req is_symmetric(A) "'A' is not a symmetric matrix"
   return ideal(base_ring(A), minors(A, t))
 end
 
 #pfaffians check skew-symmetric
-determinantal_ideal(A::MatElem, t::Int, ::Val{:skew_symmetric}) = ideal(base_ring(A), pfaffians(A, 2*t)) 
+_determinantal_ideal(A::MatElem, t::Int, ::Val{:skew_symmetric}) = ideal(base_ring(A), pfaffians(A, 2*t)) 
 
 
 _expected_codim(n::Int, m::Int, t::Int, ::Val{:generic}) = (n-t+1)*(m-t+1)
@@ -155,14 +155,14 @@ A determinantal germ $(X_A^t, O_{(X_A^t, x)})$, i.e. a ringed space with underly
   t::Int
   X::AffineSchemeType
 
-  function DeterminantalGerm(A::MatElem{<:LocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
+  function DeterminantalGerm(A::MatElem{<:MPolyAnyLocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
     @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
     (n, m) = size(A)
     @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
     R = base_ring(A)
     
     val = Val(mat_type)
-    I = determinantal_ideal(A, t, val)
+    I = _determinantal_ideal(A, t, val)
     @check (krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val)) _codim_error(val)
 
     Q, _ = quo(R, I)
@@ -901,16 +901,7 @@ end
 ## for convenience of users thinking in terms of local rings
 #########################################################################################
 
-const LocalRing = Union{
-                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                                        <:MPolyComplementOfKPointIdeal},
-                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-                                     <:MPolyComplementOfKPointIdeal},
-                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                                        <:MPolyComplementOfPrimeIdeal},
-                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-                                     <:MPolyComplementOfPrimeIdeal}
-                 }
+const LocalRing = AbsLocalizedRing{<:Ring, <:RingElem, <:Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}}
 
 
 function SpaceGerm(A::LocalRing)

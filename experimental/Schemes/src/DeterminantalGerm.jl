@@ -1,6 +1,7 @@
 ################################################################################
 ## Some more getter functions
 ################################################################################
+#TODO add getter 'determinantal_ideal(X::DeterminantalGerm)'
 
 @doc raw"""
     defining_matrix(X::DeterminantalGerm) -> MatElem
