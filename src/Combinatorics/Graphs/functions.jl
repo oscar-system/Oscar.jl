@@ -1043,28 +1043,70 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
   edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
                           (Dict(G_map[e] => [e]) for e in edges(G));
                           init=Dict{label_type, Vector{Edge}}())
-
-  # an edge of a given coloring appears in the nth layer if there is a one in
-  # the nth entry of its binary expansion
-  # when edges are distinguishable, otherwise, see below
-  n_layers = edge_distinguishable ? length(digits(length(edges_by_label), base = 2)) : 1
-
-  # to make vertices indistinguishable we attach an edge between vertices labeled with
-  # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
-  n_v_per_layer = vertex_distinguishable ? n_vertices(G) : n_vertices(G) + length(vertices_by_label)
-  
-  # if edge labels are indistinguishable we add a new vertex v for each edge label l and connect the vertices
-  # of each edge labeled with l to this vertex v
-  n_v = edge_distinguishable ? n_layers * (n_v_per_layer) : n_layers * (n_v_per_layer) + length(edges_by_label)
-  new_G = Graph{T}(n_v)
   new_vertex_labels = Dict{Int, Int}()
-  for layer in 1:n_layers
-    vertex_offset = (layer - 1) * n_v_per_layer
+  if edge_distinguishable
+    # an edge of a given coloring appears in the nth layer if there is a one in
+    # the nth entry of its binary expansion
+    n_layers = length(digits(length(edges_by_label), base = 2)) 
+
+    # to make vertices indistinguishable we attach an edge between vertices labeled with
+    # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
+    n_v = vertex_distinguishable ? n_vertices(G) * n_layers : n_vertices(G) * n_layers + length(vertices_by_label)
+
+    new_G = Graph{T}(n_v)
+    for layer in 1:n_layers
+      vertex_offset = (layer - 1) * n_vertices(G)
+      if vertex_distinguishable
+        # each vertex layer gets the same new label
+        for (l, (_, vertices)) in enumerate(vertices_by_label)
+          for v in vertices
+            new_vertex_labels[v + vertex_offset] = l + layer * n_vertices(G)
+          end
+        end
+      else
+        label = 1
+        # adds an edge between labeled vertex groups, making vertex labels indistinguishable
+        for (_, v_with_label) in vertices_by_label
+          for v in v_with_label
+            e = add_edge!(new_G, vertex_offset + v, n_layers * n_vertices(G) + label)
+            new_vertex_labels[vertex_offset + v] = 1
+          end
+          new_vertex_labels[n_layers * n_vertices(G) + label] = 2
+          label += 1
+        end
+      end
+
+      # add edges between the vertex and it's representatives across the layers
+      if layer != n_layers
+        for v in 1:n_vertices(G)
+          add_edge!(new_G, v + vertex_offset, v + vertex_offset + n_vertices(G))
+          T == Directed && add_edge!(new_G, v + vertex_offset + n_vertices(G), v + vertex_offset)
+        end
+      end
+
+      # adds each labeled edge to a layer corresponding to the label binary expansion
+      label = 1
+      for (i, (_, e_with_label)) in enumerate(edges_by_label)
+        label_base2 = digits(i, base=2, pad=n_layers)
+        for e in e_with_label
+          isone(label_base2[layer]) && add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
+        end
+      end
+    end
+  else # edges indistinguishable
+    # corresponds to vertices needed to encode vertices and their labels
+    n_v_per_layer = vertex_distinguishable ? n_vertices(G) : n_vertices(G) + length(vertices_by_label)
+
+    # ordering of vertices is
+    # | original vertices | vertex-color connector vertices | mid point vertices for edges | vertices for edge colors |
+    n_v = n_v_per_layer + n_edges(G) + length(edges_by_label)
+    new_G = Graph{T}(n_v)
+
     if vertex_distinguishable
-      # each vertex layer gets the same new label
+      # each vertex gets a label encoding its group
       for (l, (_, vertices)) in enumerate(vertices_by_label)
         for v in vertices
-          new_vertex_labels[v + vertex_offset] = l + layer * n_v_per_layer
+          new_vertex_labels[v] = l + n_vertices(G)
         end
       end
     else
@@ -1072,39 +1114,28 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
       # adds an edge between labeled vertex groups, making vertex labels indistinguishable
       for (_, v_with_label) in vertices_by_label
         for v in v_with_label
-          e = add_edge!(new_G, vertex_offset + v, vertex_offset + n_vertices(G) + label)
-          new_vertex_labels[vertex_offset + v] = 1
+          add_edge!(new_G, v, n_vertices(G) + label)
+          new_vertex_labels[v] = 1
         end
-        new_vertex_labels[vertex_offset + n_vertices(G) + label] = 2
+        new_vertex_labels[n_vertices(G) + label] = 2
         label += 1
       end
     end
 
-    # add edges between the vertex and it's representatives across the layers
-    if layer != n_layers
-      for v in 1:n_vertices(G)
-        add_edge!(new_G, v + vertex_offset, v + vertex_offset + n_v_per_layer)
-        T == Directed && add_edge!(new_G, v + vertex_offset + n_v_per_layer, v + vertex_offset)
-      end
-    end
-
-    # adds each labeled edge to a layer corresponding to the label binary expansion
-    label = 1
+    # add midpoint vertices for each edge (edge labels indistinguishable)
+    label_offset = vertex_distinguishable ? n_vertices(G) + length(vertices_by_label) : 2
+    mid_point_vertex_num = 1
     for (i, (_, e_with_label)) in enumerate(edges_by_label)
-      label_base2 = digits(i, base=2, pad=n_layers)
       for e in e_with_label
-        if !edge_distinguishable || isone(label_base2[layer])
-          add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
-          if !edge_distinguishable
-            # adds an edge between vertices that are connected by an edge with a given label, making edge labels indistinguishable
-            add_edge!(new_G, src(e) + vertex_offset, n_layers * n_v_per_layer + label)
-            add_edge!(new_G, dst(e) + vertex_offset, n_layers * n_v_per_layer + label)
-          end
-        end
-      end
-      if !edge_distinguishable
-        new_vertex_labels[n_layers * n_v_per_layer + label] = 3
-        label += 1
+        mid_pos = n_v_per_layer + mid_point_vertex_num
+        add_edge!(new_G, src(e), mid_pos)
+        add_edge!(new_G, mid_pos, dst(e))
+        add_edge!(new_G, mid_pos, n_v_per_layer + n_edges(G) + i)
+        # all midpoint vertices get the same label
+        new_vertex_labels[mid_pos] = label_offset + 1
+        # all edge-color vertices get the same label
+        new_vertex_labels[n_v_per_layer + n_edges(G) + i] = label_offset + 2
+        mid_point_vertex_num += 1
       end
     end
   end
