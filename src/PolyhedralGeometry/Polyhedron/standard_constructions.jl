@@ -2626,10 +2626,11 @@ end
 
 @doc raw"""
     prism(P::Polyhedron)
+    prism(P::Polyhedron, z1, z2)
 
 Build the prism over the polyhedron `P`, i.e. the product with $[-1,1]$.
-Optionally you may provide `z1` and `z2` to instead get the product with the
-interval $[z_1, z_2]$: `prism(P, z1, z2)`.
+If `z1` and `z2` are provided, build the product with the
+interval $[z_1, z_2]$ instead.
 
 # Examples
 ```jldoctest
@@ -2658,10 +2659,15 @@ julia> vertices(prism(S, -3, 2))
  [0, 1, 2]
 ```
 """
-function prism(P::Polyhedron{T}) where {T<:scalar_types}
-  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P)), coefficient_field(P))
-end
-function prism(P::Polyhedron{T}, z1, z2) where {T<:scalar_types}
+function prism(
+  P::Polyhedron{T},
+  z1::Union{Number,IntegerUnion,scalar_types},
+  z2::Union{Number,IntegerUnion,scalar_types},
+) where {T<:scalar_types}
   F = coefficient_field(P)
   return Polyhedron{T}(Polymake.polytope.prism(pm_object(P), F(z1), F(z2)), F)
+end
+
+function prism(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P)), coefficient_field(P))
 end
