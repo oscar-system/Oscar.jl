@@ -889,7 +889,7 @@ true
 ```
 """
 function regular_action_homomorphism(G::GAPGroup)
-  @assert is_finite(G) "G must be finite group"
+  @req is_finite(G) "G must finite"
   hom = GAPWrap.RegularActionHomomorphism(GapObj(G))
   H = PermGroup(GAPWrap.Image(hom))
   return GAPGroupHomomorphism(G, H, hom)
