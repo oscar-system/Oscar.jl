@@ -680,7 +680,7 @@ function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirecte
 end
 
 #each component has same vertices so it is enough to check one
-has_vertex(g::MixedGraph, v::Int) = has_vertex(_directed_component(g), v) 
+has_vertex(g::MixedGraph, v::Int) = has_vertex(_directed_component(g), v)
 
 @doc raw"""
     neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
@@ -960,7 +960,7 @@ function Base.getindex(GM::GraphMap, i::Int, j::Int)
   @req _has_edge_map(GM) "Graph map not defined on edges"
   # currently you cannot create an edge map with an oscar number
   # in this way we can use _pmdata_for_oscar safely by always passing the field as QQ
-  
+
   return _pmdata_for_oscar(GM.edge_map[i, j], QQ)
 end
 
@@ -1030,7 +1030,7 @@ end
 # this currently will ignore all other labels
 # it will create a new graph with new vertices and the labelings solely on the vertices
 # allow us to run isomorphism type functions from nauty on this new graph
-# allowing us to deduce isomorphism type results on the original graph 
+# allowing us to deduce isomorphism type results on the original graph
 # uses ideas from https://users.cecs.anu.edu.au/~bdm/nauty/nug26.pdf section 14
 function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
@@ -1047,7 +1047,7 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
   if edge_distinguishable
     # an edge of a given coloring appears in the nth layer if there is a one in
     # the nth entry of its binary expansion
-    n_layers = length(digits(length(edges_by_label), base = 2)) 
+    n_layers = length(digits(length(edges_by_label), base = 2))
 
     # to make vertices indistinguishable we attach an edge between vertices labeled with
     # the same labeling to a new vertex ( this is why we add a new vertex for each label of the vertices)
@@ -1094,54 +1094,58 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
       end
     end
   else # edges indistinguishable
-    # corresponds to vertices needed to encode vertices and their labels
-    n_v_per_layer = vertex_distinguishable ? n_vertices(G) : n_vertices(G) + length(vertices_by_label)
-
     # ordering of vertices is
-    # | original vertices | vertex-color connector vertices | mid point vertices for edges | vertices for edge colors |
-    n_v = n_v_per_layer + n_edges(G) + length(edges_by_label)
+    # | original vertices | layer vertices for each edge color | layer marker vertices | color marker vertices for original vertex colors (if vertex_distinguishable)
+    n_layers = length(edges_by_label) + 1
+    n_v = n_vertices(G) * n_layers + length(edges_by_label) + vertex_distinguishable ? 0 : length(vertices_by_label)
     new_G = Graph{T}(n_v)
 
+    # number of colors needed to handle original vertex coloring
+    n_v_colors = vertex_distinguishable ? length(vertices_by_label) : 2
     if vertex_distinguishable
-      # each vertex gets a label encoding its group
-      for (l, (_, vertices)) in enumerate(vertices_by_label)
-        for v in vertices
-          new_vertex_labels[v] = l + n_vertices(G)
-        end
-      end
+     # each vertex gets a label encoding its group
+     for (l, (_, vertices)) in enumerate(vertices_by_label)
+       for v in vertices
+         new_vertex_labels[v] = l
+       end
+     end
     else
-      label = 1
-      # adds an edge between labeled vertex groups, making vertex labels indistinguishable
-      for (_, v_with_label) in vertices_by_label
-        for v in v_with_label
-          add_edge!(new_G, v, n_vertices(G) + label)
-          new_vertex_labels[v] = 1
-        end
-        new_vertex_labels[n_vertices(G) + label] = 2
-        label += 1
-      end
+     label = 0
+     # adds an edge between labeled vertex groups, making vertex labels indistinguishable
+     for (_, v_with_label) in vertices_by_label
+       for v in v_with_label
+         add_edge!(new_G, v, n_v - label)
+         new_vertex_labels[v] = 1
+       end
+       new_vertex_labels[n_vertices(G) + label] = 2
+       label -= 1
+     end
     end
 
-    # add midpoint vertices for each edge (edge labels indistinguishable)
-    label_offset = vertex_distinguishable ? n_vertices(G) + length(vertices_by_label) : 2
-    mid_point_vertex_num = 1
+    # add a layer of vertices and edges for each edge color
+    label_offset = vertex_distinguishable ? length(vertices_by_label) : 2
+    layer_marker = n_vertices(G) * n_layers + 1
+    vertex_offset = n_vertices(G)
+
+    for layer in 2:n_layers
     for (i, (_, e_with_label)) in enumerate(edges_by_label)
       for e in e_with_label
-        mid_pos = n_v_per_layer + mid_point_vertex_num
-        add_edge!(new_G, src(e), mid_pos)
-        add_edge!(new_G, mid_pos, dst(e))
-        add_edge!(new_G, mid_pos, n_v_per_layer + n_edges(G) + i)
-        # all midpoint vertices get the same label
-        new_vertex_labels[mid_pos] = label_offset + 1
-        # all edge-color vertices get the same label
-        new_vertex_labels[n_v_per_layer + n_edges(G) + i] = label_offset + 2
-        mid_point_vertex_num += 1
+        add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
       end
+      new_vertex_labels[layer_marker] = label_offset + 2
+      v in 1:n_vertices(G)
+        new_vertex_labels[vertex_offset + v] = label_offset + 1
+        e = add_edge!(new_G, v, vertex_offset + v)
+        e = add_edge!(new_G, layer_marker, vertex_offset + v)
+      end
+      layer_marker += 1
+      vertex_offset += n_vertices(G)
     end
   end
   label!(new_G, nothing, new_vertex_labels; name=:edge_to_vertex)
   return new_G
 end
+
 
 function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          edge_distinguishable::Bool=true,
@@ -1167,7 +1171,7 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
     new_G = _edge_label_to_vertex_label(G, label;
                                         edge_distinguishable=edge_distinguishable,
                                         vertex_distinguishable=vertex_distinguishable)
-    
+
     perm = Polymake._canonical_perm(pm_object(new_G),
                                     Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
     # permutation is defined on vertex classes, see _edge_label_to_vertex_label
@@ -1175,7 +1179,7 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   end
   error("unimplemented for either indistinguishable vertex or edge labels")
 end
-  
+
 function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where T <: Union{Directed, Undirected}
   isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
 
@@ -1545,7 +1549,7 @@ false
 """
 function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
   isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
-  
+
   if isnothing(Oscar._graph_maps(g1)[label].edge_map)
     !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
   end
@@ -1782,7 +1786,7 @@ function visualize(G::Graph{T};
                      NamedTuple(k => v for (k, v) in
                                   [(:EdgeColor, G.color.edge_map), (:VertexColor, G.color.vertex_map)] if !isnothing(v)))
   end
-  
+
   vBG = Polymake.visual(Polymake.Visual, BG; merge(defaults, kwargs)...)
   if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default && isnothing(filename)
     return Polymake.display_svg(vBG)
@@ -1985,7 +1989,7 @@ function graph_from_edges(::Type{Mixed},
   n_needed = maximum(vcat(reduce(append!,[[src(e),dst(e)] for e in directed_edges]; init=[0]),
                           reduce(append!,[[src(e),dst(e)] for e in undirected_edges]; init=[0])))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
-  
+
   g = graph(Mixed, max(n_needed, n_vertices))
   for e in directed_edges
     add_edge!(g, Directed, src(e), dst(e))
@@ -2011,7 +2015,7 @@ end
 function graph_from_edges(::Type{Mixed},
                           directed_edges::EdgeIterator,
                           undirected_edges::EdgeIterator,
-                          n_vertices::Int=-1) 
+                          n_vertices::Int=-1)
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
 end
 
@@ -2054,7 +2058,7 @@ function label!(G::Graph{T},
                 edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
                 vertex_labels::Dict{Int, <: GraphMapValueTypes};
                 name::Symbol=:label) where {T <: Union{Directed, Undirected}}
-  
+
   @req all(Base.Fix1(has_edge, G), Edge.(keys(edge_labels))) "Edge does not exist for a given label"
   EM = EdgeMap(pm_object(G), edge_labels)
 
@@ -2135,7 +2139,7 @@ julia> K.color[1]
 function graph_from_labeled_edges(::Type{T},
                                   edge_labels::Dict{NTuple{2, Int}, <: GraphMapValueTypes},
                                   vertex_labels::Union{Dict{Int, <: GraphMapValueTypes}, Nothing}=nothing;
-                                  name::Symbol=:label, 
+                                  name::Symbol=:label,
                                   n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
   edges = collect(keys(edge_labels))
   G = graph_from_edges(T, edges, n_vertices)
@@ -2292,7 +2296,7 @@ function is_acyclic(G::Graph{Directed})
   a = adjacency_matrix(G)
 
   S = findall(isempty, Polymake.col.(Ref(a), 1:ncols(a)))
-  
+
   while !is_empty(S)
     i = pop!(S)
     for j in findall(a[i, :])
@@ -2499,4 +2503,3 @@ end
   end
   return (false, one(A), one(A))
 end
-
