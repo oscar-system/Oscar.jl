@@ -1167,7 +1167,7 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
         add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
       end
       new_vertex_labels[layer_marker] = label_offset + 2
-      v in 1:n_vertices(G)
+      for v in 1:n_vertices(G)
         new_vertex_labels[vertex_offset + v] = label_offset + 1
         e = add_edge!(new_G, v, vertex_offset + v)
         e = add_edge!(new_G, layer_marker, vertex_offset + v)
