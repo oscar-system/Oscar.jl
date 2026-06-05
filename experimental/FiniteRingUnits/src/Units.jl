@@ -132,6 +132,21 @@ function unit_group(::Type{DirectProductGroup}, R::Union{FiniteRing, AbstractAss
                     )
 end
 
+@doc raw"""
+    unit_group(R::Union{FiniteRing, Oscar.Hecke.AbstractAssociativeAlgebra}) -> FPGroup, Map
+
+Return a finitely presented group $G$ and a map $f \colon G \to R$, which induces an isomorphism
+$G \to R^\times$ is an isomorphism.
+
+# Examples
+
+```jldoctest
+julia> R, = finite_ring(GF(2)[symmetric_group(4)]); # this the modular group ring F_2[S_4]
+
+julia> U, mU = unit_group(R)
+(Finitely presented group of order 3145728, Map: U -> finite ring)
+```
+"""
 @attr Tuple function unit_group(R::Union{FiniteRing, AbstractAssociativeAlgebra})
   rngs, rprojs = decompose_into_indecomposable_rings(R)
   grps = [unit_group_nonrecursive(S) for S in rngs]

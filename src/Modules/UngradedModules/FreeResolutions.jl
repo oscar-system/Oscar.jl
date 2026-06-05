@@ -435,7 +435,9 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 
 julia> A = transpose(matrix(B));
 
-julia> M = graded_cokernel(A)
+julia> M = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -485,10 +487,10 @@ degree: 0  1  2  3
  total: 2  4  4  2
 
 julia> matrix(map(FM2, 1))
-[1            0]
-[0   -x*z + y^2]
-[0   -w*z + x*y]
-[0          w*y]
+[0         w*y]
+[0   w*z - x*y]
+[0   x*z - y^2]
+[1           0]
 
 julia> FM3 = free_resolution(M, algorithm = :mres)
 Free resolution of M
@@ -532,7 +534,7 @@ function free_resolution(M::SubquoModule{T};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
@@ -614,7 +616,7 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
   if cc_complete == true
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
   end
@@ -878,7 +880,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
+  C = Hecke.ComplexOfMorphisms(OFPModule, mp, check = false, seed = -2)
   C.fill = _extend_free_resolution_via_kernels
   C.complete = false
   if is_zero(domain(C.maps[begin]))
@@ -1039,8 +1041,8 @@ julia> I = ideal(AL, minors(M, 3));
 
 julia> FI = free_resolution(I, length = 3)
 Free resolution of I
-AL^4 <---- AL^7 <---- AL^4 <---- 0
-0          1          2          3
+AL^4 <---- AL^3 <---- 0
+0          1          2
 
 ```
 """
@@ -1238,8 +1240,8 @@ julia> length(fr)
 ```
 """
 function length(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
+  ub = findfirst(i -> is_zero(F.C[i]), 1:first(map_range(F.C)))
   isnothing(ub) && return first(map_range(F.C))
-  return ub::Int
+  return ub-1::Int
 end
 

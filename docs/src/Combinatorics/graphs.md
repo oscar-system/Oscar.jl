@@ -24,8 +24,8 @@ The interface is modeled alongside the
 allow for easier integration elsewhere.
 
 !!! warning
-    The mechanism for removing a vertex is slightly different in out
-    implementation to the `Graphs.jl` implementation: In `Graphs.jl` first
+    The mechanism for removing a vertex is slightly different in our
+    implementation compared to `Graphs.jl`: In `Graphs.jl` first
     the vertex to be removed is swapped with the last vertex, then the last
     vertex is removed. In our implementation, the vertex is removed and all
     subsequent vertices have their labels changed. Hence edges can be different
@@ -81,6 +81,7 @@ complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 petersen_graph()
 clebsch_graph()
+```            
 
 ### Others
 ```@docs

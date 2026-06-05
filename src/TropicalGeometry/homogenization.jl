@@ -7,14 +7,12 @@
 ################################################################################
 
 function homogenize_pre_tropicalization(I::MPolyIdeal)
-    # Compute reduced Groebner basis
-    G = groebner_basis(I,complete_reduction=true)
-
-    # Construct polynomial ring for homogenization
+    # Compute reduced Groebner basis w.r.t. degrevlex
     Kx = base_ring(I)
-    Kxhx,_ = polynomial_ring(coefficient_ring(Kx),vcat([:xh],symbols(Kx)); cached=false)
+    G = groebner_basis(I, ordering=degrevlex(Kx), complete_reduction=true)
 
     # Construct homogenization
+    Kxhx,_ = polynomial_ring(coefficient_ring(Kx),vcat([:xh],symbols(Kx)); cached=false)
     Gh = Vector{elem_type(Kxhx)}(undef,length(G))
     for (i,g) in enumerate(G)
         gh = MPolyBuildCtx(Kxhx)

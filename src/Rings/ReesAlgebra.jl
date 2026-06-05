@@ -6,22 +6,23 @@
 ########################################################################
 
 @doc raw"""
-    rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod}; check::Bool=true)
+    rees_algebra(f::OFPModuleHom{<:OFPModule, <:FreeMod}; check::Bool=true)
 
 For a *versal* [^1] morphism ``f : M → F`` of a module ``M`` into a free
 module ``F`` this computes the Rees algebra of ``M`` according to
 [EHU03](@cite)[^2].
 
-!!! note If `check` is set to `true`, the method will check the sufficient
-         criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
-         Since no general criterion is known, this will abort with an error message
-         in the non-affirmative case.
+!!! note
+    If `check` is set to `true`, the method will check the sufficient
+    criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
+    Since no general criterion is known, this will abort with an error message
+    in the non-affirmative case.
 
 [^1]: A morphism of ``M`` into a free module ``F`` as above is called versal if any other morphism ``g : M → F'`` from ``M`` to another free module ``F'`` factors through ``f``.
 
 [^2]: See arXiv:math/0209187v1 for a free version.
 """
-function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
+function rees_algebra(f::OFPModuleHom{<:OFPModule, <:FreeMod, Nothing};
     check::Bool=true,
     var_names::Vector{<:VarName}=[Symbol(:s, i) for i in 0:ngens(domain(f))-1]
   )
@@ -114,7 +115,7 @@ function _versal_morphism_to_free_module(M::SubquoModule)
   return compose(psi, g_dual)
 end
 
-function is_isomorphism(f::ModuleFPHom)
+function is_isomorphism(f::OFPModuleHom)
   return is_injective(f) && is_surjective(f)
 end
 

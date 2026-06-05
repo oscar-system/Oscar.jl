@@ -1,7 +1,25 @@
+@testset "all test - Clifford orders" verbose = true begin
 
-@testset "all test - Clifford orders" begin
-  _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
-  mul_with_gen = Oscar._mul_with_gen
+  @testset "CliffordOrder - conformance tests" begin
+    # Over an order in a number field
+    K, b = quadratic_field(5)
+    a = 1//2 * (1 + b)
+    C = clifford_order(lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)])))
+    ConformanceTests.test_NCRing_interface(C)
+  end 
+
+  @testset "ZZCliffordOrder - conformance tests" begin
+    lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
+    ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
+    
+    C = clifford_order(root_lattice(:A, 3))
+    ConformanceTests.test_NCRing_interface(C)
+    
+    # Matrices over ZZClifford orders
+    M = matrix_ring(C, 2)
+    ConformanceTests.test_NCRing_interface(M)
+  end 
+  
   @testset "failing constructions" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
@@ -20,6 +38,7 @@
       @test_throws ArgumentError clifford_order(lattice(qs10))
     end
   end
+
   @testset "rank zero corner cases" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
@@ -31,8 +50,8 @@
       C = clifford_order(ls)
       @test is_commutative(C)
       @testset "Construction" begin
-        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
-        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
+        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C)), elem_type(K)}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(OK)
         @test base_ring_type(C) == typeof(base_ring(C))
@@ -69,12 +88,8 @@
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = Kzer, [K(1)]
-        @test xeven != x.even_coeffs
-        @test xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([17]))
+        @test is_odd(C([0])) && is_even(C([0]))
 
         @test +x == x
         @test -x == C([-17])
@@ -86,7 +101,7 @@
         @test_throws ArgumentError divexact(x, OK(2))
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C(a)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -95,7 +110,7 @@
       end
       @testset "defining relations" begin
         @test length(pseudo_basis(C)) == 1
-        @test pseudo_basis(C, 1) == (one(C), fractional_ideal(OK, one(OK)))
+        @test pseudo_basis(C, 1) == (one(ambient_algebra(C)), fractional_ideal(OK, one(OK)))
         @test is_empty(pseudo_gens(C))
         @test_throws BoundsError pseudo_gen(C, 1)
         a, b = rand(ZZ, -100:100), rand(ZZ, -100:100)
@@ -166,12 +181,8 @@
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = QQzer, [QQ(1)]
-        @test xeven != even_coefficients(x)
-        @test xodd != odd_coefficients(x)
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([17]))
+        @test is_odd(C([0])) && is_even(C([0]))
 
         @test +x == x
         @test -x == C([-17])
@@ -183,7 +194,7 @@
         @test_throws ArgumentError divexact(x, 2//1)
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C(17)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -237,14 +248,14 @@
     lsK = lattice(qsK)
     C = clifford_order(lsK)
     Kzer = K.([0, 0, 0, 0])
-    e(i::Int) = pseudo_gen(C, i)[1]
+    e(i::Int) = C(pseudo_gen(C, i)[1])
     
     @test !is_commutative(C)
     
     @testset "construction" begin
-      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
       @test elem_type(C) ==
-      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C)), elem_type(K)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -291,11 +302,8 @@
 
       @test even_part(x) == C([-1, 0, 0, a + 1])
       @test odd_part(x) == C([0, 1, a, 0])
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = Kzer, Kzer
-      @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+      @test is_even(C([-1, 0, 0, a + 1]))
+      @test is_odd(C([0, 1, a, 0]))
 
       @test +x == x
       @test -x == C([1, -1, -a, -(a + 1)])
@@ -304,7 +312,7 @@
       @test divexact(2 * x, K(2)) == x
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C([1, a, 1+a, 0])
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -313,8 +321,8 @@
     end
     @testset "defining relations" begin
       @test length(pseudo_gens(C)) == 2
-      @test e(1) == pseudo_gens(C)[1][1]
-      @test e(2) == pseudo_gens(C)[2][1]
+      @test e(1) == C(pseudo_gens(C)[1][1])
+      @test e(2) == C(pseudo_gens(C)[2][1])
       @test_throws BoundsError pseudo_gen(C, 0)
       @test_throws BoundsError pseudo_gen(C, 3)
 
@@ -325,7 +333,7 @@
       @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
       @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
       @test is_zero(C(1)^2 - C(1))
-      @test e(1) * e(2) == pseudo_basis(C, 4)[1]
+      @test e(1) * e(2) == C(pseudo_basis(C, 4)[1])
       @test e(1) * e(2) == C([0, 0, 0, 1])
       @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
     end
@@ -371,18 +379,23 @@
       for i in 1:4
         x[i] = K()
       end
-      x == C()
+      @test x == C()
     end
-    @testset "mul_with_gen" begin
+    @testset "mul_with_gen!" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) ==
-        K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) ==
-        K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
+      coeffs = coefficients(x)
+      
+      out = [zero(K) for _ in 1:length(coeffs)]
+      
+      Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
+      @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
+      
+      Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
+      @test out == K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2]) 
     end
     @testset "center and centroid" begin
       @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
-      @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
+      @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (ambient_algebra(C)([1,0,0,-1]), ide)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
     end
@@ -398,14 +411,14 @@
       lsK = lattice(qsK)
       C = clifford_order(lsK)
       Kzer = K.([0, 0, 0, 0])
-      e(i::Int) = pseudo_gen(C, i)[1]
+      e(i::Int) = C(pseudo_gen(C, i)[1])
     
       @test !is_commutative(C)
     
       @testset "construction" begin
-        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
         @test elem_type(C) ==
-        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C)), elem_type(K)}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -449,11 +462,8 @@
 
         @test even_part(x) == C([-1, 0, 0, a + 1])
         @test odd_part(x) == C([0, 1, a, 0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = Kzer, Kzer
-        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(C([-1, 0, 0, a + 1]))
+        @test is_odd(C([0, 1, a, 0]))
 
         @test +x == x
         @test -x == C([1, -1, -a, -(a + 1)])
@@ -462,7 +472,7 @@
         @test divexact(2 * x, K(2)) == x
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C([1, a, 1+a, 0])
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -471,8 +481,8 @@
       end
       @testset "defining relations" begin
         @test length(pseudo_gens(C)) == 2
-        @test e(1) == pseudo_gens(C)[1][1]
-        @test e(2) == pseudo_gens(C)[2][1]
+        @test e(1) == C(pseudo_gens(C)[1][1])
+        @test e(2) == C(pseudo_gens(C)[2][1])
         @test_throws BoundsError pseudo_gen(C, 0)
         @test_throws BoundsError pseudo_gen(C, 3)
 
@@ -483,7 +493,7 @@
         @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
         @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
         @test is_zero(C(1)^2 - C(1))
-        @test e(1) * e(2) == pseudo_basis(C, 4)[1]
+        @test e(1) * e(2) == C(pseudo_basis(C, 4)[1])
         @test e(1) * e(2) == C([0, 0, 0, 1])
         @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
       end
@@ -522,13 +532,13 @@
       @testset "setindex!" begin
         x = C([a, 2 * a, 3 * a, 4 * a])
         for i in 1:4
-          x[i] = K()
+          x[i] = zero(K)
         end
-        x == C()
+        @test is_zero(x)
       end
       @testset "center and centroid" begin
         @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
-        @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
+        @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (ambient_algebra(C)([1,0,0,-1]), ide)]
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == (ide, K(1))
       end
@@ -584,11 +594,8 @@
 
         @test even_part(x) == C([-1, 0, 0, 8])
         @test odd_part(x) == C([0, 1, 0, 0])
-        xeven, xodd = even_coefficients(x), odd_coefficients(x)
-        x.even_coeffs, x.odd_coeffs = QQzer, QQzer
-        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
-        _set_even_odd_coefficients!(x)
-        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+        @test is_even(even_part(x))
+        @test is_odd(odd_part(x))
 
         @test +x == x
         @test -x == C([1, -1, 0, -8])
@@ -597,7 +604,7 @@
         @test divexact(2 * x, ZZ(2)) == x
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = algebra(C)
+        CA = ambient_algebra(C)
         x = C([1, 8, 9, 0])
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -659,7 +666,7 @@
         for i in 1:4
           x[i] = QQ()
         end
-        x == C()
+        @test x == C()
       end
       @testset "center and centroid" begin
         @test basis_of_center(C) == [basis(C, 1)]
@@ -673,7 +680,7 @@
   @testset "ZZCliffordE6" begin
     e6 = root_lattice(:E, 6)
     C = clifford_order(e6)
-    QQzer = fill(zero(QQ), 2^6)
+    QQzer = [zero(QQ) for _ in 1:2^6]
     QQone = copy(QQzer)
     QQone[1] = one(QQ)
     @test !is_commutative(C)
@@ -714,12 +721,6 @@
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coefficients(x)
-      @test xodd != odd_coefficients(x)
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1
@@ -733,7 +734,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C(QQ.(1:64))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -792,6 +793,8 @@
       @test basis_of_centroid(C) == [one(C), z_elt]
       @test is_zero(z_elt^2 - z_elt + one(C))
       orth = 2 * z_elt - one(C)
+      @test Oscar._max_orth_elt(C) == orth
+      @test basis_of_max_orth_suborder_of_centroid(C) == [one(C), orth]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == ZZ(coefficients(orth^2)[1])
       @test disq(C) == ZZ(-3)
@@ -800,7 +803,7 @@
   @testset "ZZCliffordA5" begin
     a5 = root_lattice(:A, 5)
     C = clifford_order(a5)
-    QQzer = fill(zero(QQ), 2^5)
+    QQzer = [zero(QQ) for _ in 1:2^5]
     QQone = copy(QQzer)
     QQone[1] = one(QQ)
     @test !is_commutative(C)
@@ -841,12 +844,6 @@
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coefficients(x), odd_coefficients(x)
-      x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coefficients(x)
-      @test xodd != odd_coefficients(x)
-      _set_even_odd_coefficients!(x)
-      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1
@@ -860,7 +857,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = algebra(C)
+      CA = ambient_algebra(C)
       x = C(QQ.(1:32))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -903,6 +900,7 @@
     end     
     @testset "center and centroid" begin
       @test basis_of_center(C) == basis_of_centroid(C)
+      @test basis_of_max_orth_suborder_of_centroid(C) == basis_of_centroid(C)
       z_elt = copy(QQzer)
       for i in [2, 5, 17]
         z_elt[i] = QQ(1)
@@ -917,6 +915,58 @@
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == ZZ(coefficients(z_elt^2)[1])
       @test disq(C) == ZZ(3)
+    end
+  end
+  @testset "non-trivial coefficient_ideals" begin
+    K, a = quadratic_field(-5)
+    OK = maximal_order(K)
+    ql = quadratic_lattice(K, pseudo_matrix(K[1 0; 0 1], [ideal(OK, OK(2)), ideal(OK, OK(3))]); gram = K[0 1; 1 0]);
+    C = clifford_order(ql)
+    D = clifford_order(quadratic_lattice(K, pseudo_matrix(identity_matrix(K, 3), [ideal(OK, OK(2)), ideal(OK, OK(3)), ideal(OK, OK(5))]); gram = K[0 0 1; 0 2 0; 1 0 0]))
+    CA = ambient_algebra(C)
+    DA = ambient_algebra(D)
+    @testset "basis and generators" begin
+      @test pseudo_gen(C, 1) == (CA([0, 1, 0, 0]), ideal(OK, OK(2)))
+      @test pseudo_gen(C, 2) == (CA([0, 0, 1, 0]), ideal(OK, OK(3)))
+      @test pseudo_gens(C) == [(CA([0, 1, 0, 0]), ideal(OK, OK(2))), (CA([0, 0, 1, 0]), ideal(OK, OK(3)))]
+
+      @test pseudo_basis(C, 1) == (CA([1, 0, 0, 0]), ideal(OK, OK(1)))
+      @test pseudo_basis(C, 2) == (CA([0, 1, 0, 0]), ideal(OK, OK(2)))
+      @test pseudo_basis(C, 3) == (CA([0, 0, 1, 0]), ideal(OK, OK(3)))
+      @test pseudo_basis(C, 4) == (CA([0, 0, 0, 1]), ideal(OK, OK(6)))
+      @test pseudo_basis(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([0, 1, 0, 0]), ideal(OK, OK(2))), (CA([0, 0, 1, 0]), ideal(OK, OK(3))), (CA([0, 0, 0, 1]), ideal(OK, OK(6)))]
+    end
+    @testset "containment and failing conversions" begin
+      @test pseudo_basis(C, 1)[1] in C
+      @test !(pseudo_basis(C, 2)[1] in C)
+      @test !(pseudo_basis(C, 3)[1] in C)
+      @test !(pseudo_basis(C, 4)[1] in C)
+      @test_throws ArgumentError C(pseudo_basis(C, 2)[1])
+      @test_throws ArgumentError C(pseudo_basis(C, 3)[1])
+      @test_throws ArgumentError C(pseudo_basis(C, 4)[1])
+    end
+    @testset "coefficient assignments" begin
+      x = C(2 * pseudo_basis(C, 2)[1])
+      y = C(3 * pseudo_basis(C, 3)[1])
+      @test_throws ArgumentError x[1] = 1//2
+      @test_throws ArgumentError x[2] = 3
+      @test_throws ArgumentError x[3] = 2
+      x[2] = 0
+      @test is_zero(x)
+      x[1] = 1
+      @test is_one(x)
+
+      @test_throws ArgumentError y[1] = 1//2
+      @test_throws ArgumentError y[2] = 3
+      @test_throws ArgumentError y[3] = 2
+      y[2] = 4
+      y[4] = 36
+      @test y == C([0, 4, 3, 36])
+    end
+    @testset "center and centroid" begin
+      @test pseudo_basis_of_center(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1)))] 
+      @test pseudo_basis_of_centroid(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([1, 0, 0, -1]), ideal(OK, OK(6)))] 
+      @test pseudo_basis_of_center(D) == pseudo_basis_of_centroid(D)
     end
   end
 

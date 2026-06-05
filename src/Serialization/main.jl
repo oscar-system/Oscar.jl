@@ -22,7 +22,7 @@ using ..Oscar: _grading,
   VERSION_NUMBER,
   _pmdata_for_oscar
 
-using ..Oscar: is_terse, Lowercase, pretty, terse
+using ..Oscar: is_terse, Lowercase, pretty, terse, Indent, Dedent
 
 using Distributed: RemoteChannel
 
@@ -51,8 +51,8 @@ end
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
-    obj = JSON3.read(io)
-    println(JSON.json(obj[:meta], 2))
+    obj = JSON.lazy(io)
+    println(JSON.json(JSON.parse(obj[:meta]), 2))
   end
 end
 
@@ -129,23 +129,27 @@ end
 
 function decode_type(s::DeserializerState)
   if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      id = s.obj
-      obj = s.obj
+    uuid = tryparse(UUID, s.obj)
+    if !isnothing(uuid)
       if isnothing(s.refs)
-        return typeof(global_serializer_state.id_to_obj[UUID(id)])
+        return typeof(global_serializer_state.id_to_obj[uuid])
       end
+      id = s.obj
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
-      s.obj = obj
+      s.obj = id
       return T
     end
-    return decode_type(s.obj)
+    obj = decode_type(s.obj)
+    obj isa AbstractDict && return obj["default"]
+    return obj
   end
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
-      decode_type(s)
+      obj = decode_type(s)
+      obj isa AbstractDict && return obj["default"]
+      return obj
     end
   end
 
@@ -157,7 +161,9 @@ function decode_type(s::DeserializerState)
       end
     else
       return load_node(s, :name) do _
-        decode_type(s)
+        obj = decode_type(s)
+        obj isa AbstractDict && return obj["default"]
+        return obj
       end
     end
   end
@@ -284,6 +290,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     end
     
     save_object(s, type_encoding, :name)
+
     # params(tp) isa TypeParams if the type isa container type
     if params(tp) isa TypeParams
       save_type_params(s, params(tp), :params)
@@ -483,7 +490,7 @@ end
 
 ################################################################################
 # Type Registration
-function register_serialization_type(@nospecialize(T::Type), str::String)
+function register_serialization_type(@nospecialize(T::Type), str::String, default::Bool)
   if haskey(reverse_type_map, str) 
     init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
@@ -491,8 +498,18 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
       init = Dict{String, Type}(convert_type_to_string(init) => init)
     end
     reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
+  elseif default
+    reverse_type_map[str] = Dict{String, Type}(convert_type_to_string(T) => T)
   else
     reverse_type_map[str] = T
+  end
+
+  if default
+    if haskey(reverse_type_map[str], "default")
+      S = reverse_type_map[str]["default"]
+      error("Attempting to overwrite registered default type $S with $T")
+    end
+    reverse_type_map[str]["default"] = T
   end
 end
 
@@ -514,10 +531,10 @@ import Distributed.AbstractSerializer
 serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
 
-function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any)
+function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any, default::Bool)
   return esc(
     quote
-      Oscar.Serialization.register_serialization_type($ex, $str)
+      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       Oscar.Serialization.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
@@ -553,7 +570,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs:
 end
 
 """
-    @register_serialization_type NewType "String Representation of type" uses_id uses_params [:attr1, :attr2]
+    @register_serialization_type NewType "String Representation of type" uses_id default [:attr1, :attr2]
 
 `@register_serialization_type` is a macro to ensure that the string we generate
 matches exactly the expression passed as first argument, and does not change
@@ -566,10 +583,41 @@ will be referred to throughout the serialization sessions using a `UUID`.
 This should typically only be used for types that do not have a fixed
 normal form for example `PolyRing` and `MPolyRing`.
 
-Using the `uses_params` flag will serialize the object with a more structured type
-description which will make the serialization more efficient see the discussion on
-`save_type_params` / `load_type_params` below.
+When registering a type with a "String representation of type" that is shared amongst more than one type, use the `default` flag to declare which type should be loaded by default.
+All other types with the same "String  representation of type" are stored with an additional `_instance` key describing their type. 
 
+```
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.8.0"
+    ]
+  },
+  "_type": "FiniteField",
+  "data": "2",
+  "id": "7dc83bd8-4f11-4d30-9e4d-d96629c9a8f4"
+}
+```
+is loaded as a `FqField`
+
+where as 
+```
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.8.0"
+    ]
+  },
+  "_type": {
+    "_instance": "fpField",
+    "name": "FiniteField"
+  },
+  "data": "2"
+}
+```
+is loaded as a `fpField`.
 Passing a vector of symbols that correspond to attributes of type
 indicates which attributes will be serialized when using save with `with_attrs=true`.
 
@@ -578,11 +626,14 @@ macro register_serialization_type(ex::Any, args...)
   uses_id = false
   str = nothing
   attrs = nothing
+  default = false
   for el in args
     if el isa String
       str = el
     elseif el == :uses_id
       uses_id = true
+    elseif el == :default
+      default = true
     else
       attrs = el
     end
@@ -594,7 +645,7 @@ macro register_serialization_type(ex::Any, args...)
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, attrs)
+  return register_serialization_type(ex, str, uses_id, attrs, default)
 end
 
 ################################################################################
@@ -625,7 +676,7 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none)
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
@@ -637,6 +688,8 @@ Setting the optional argument `compression` will compress the file using the giv
 compression method. The `filename` must have the appropriate file extension for the
 chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
+
+The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
 See [`load`](@ref).
 
@@ -661,8 +714,12 @@ julia> load("fourtitwo.mrdi")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
+              pretty_print::Bool=false,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer, with_attrs)
+  if pretty_print
+    io = pretty(io)
+  end
+  s = serializer_open(io, serializer, with_attrs, pretty_print)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)

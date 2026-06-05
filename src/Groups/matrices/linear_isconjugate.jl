@@ -18,7 +18,8 @@
 
 Return `S` and `U` in the group `parent(M)` such that `S` is semisimple,
 `U` is unipotent and  `M = SU = US`.
-!!! warning "WARNING:" 
+
+!!! warning
     `multiplicative_jordan_decomposition` can be called also with a matrix,
     but the decomposition `S, U` is in general *not* compatible with
     `A, B = multiplicative_jordan_decomposition(matrix(M))`,

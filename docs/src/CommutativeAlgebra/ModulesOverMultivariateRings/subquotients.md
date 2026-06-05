@@ -49,8 +49,8 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 ## Types
 
 All OSCAR types for the finitely presented modules considered here belong to the
-abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+abstract type `OFPModule{T}`, where `T` is the element type of the underlying ring.
+Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: OFPModule{T}`,
 they are modeled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
@@ -157,7 +157,7 @@ degrees_of_generators(M::SubquoModule)
 
 All OSCAR types for elements of finitely presented modules considered here belong to the
 abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
-For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
+For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: OFPModuleElem{T}`
 and its concrete descendant `SubquoModuleElem{T}` which implements an element $m$ of a subquotient
 $M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
 This object specifies the coefficients of an $R$-linear combination of the generators of $M$
@@ -308,8 +308,36 @@ zero(M::SubquoModule)
 
 Whether a given element of a subquotient is zero can be tested as follows:
 
-```@docs
-is_zero(m::SubquoModuleElem)
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_zero(M[1])
+false
+
+julia> is_zero(x*M[1])
+true
 ```
 
 In the graded case, we additionally have:
@@ -328,16 +356,98 @@ The functions [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`]
 and [`is_zm_graded`](@ref) carry over analogously to subquotients. They return `true` if the
 respective property is satisfied, and `false` otherwise. In addition, we have:
 
-```@docs
-==(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> AM = R[x;]
+[x]
+
+julia> BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, AM, BM)
+Subquotient of submodule with 1 generator
+  1: x*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> AN = R[x; y]
+[x]
+[y]
+
+julia> BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia> N = subquotient(F, AN, BN)
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: (x^2 + y^4)*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_subset(M, N)
+true
+
+julia> M == N
+false
 ```
 
-```@docs
-is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> F = graded_free_module(Rg, 2);
+
+julia> O1 = [x*F[1]+y*F[2], y*F[2]];
+
+julia> O1a = [x*F[1], y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2], y^2*F[2]];
+
+julia> M1 = subquotient(F, O1, O2);
+
+julia> M2 = subquotient(F, O1a, O2);
+
+julia> M1 == M2
+true
 ```
 
-```@docs
-is_zero(M::SubquoModule)
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
+
+julia> A = R[x^2+y^2;]
+[x^2 + y^2]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = subquotient(F, A, B)
+Subquotient of submodule with 1 generator
+  1: (x^2 + y^2)*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
+
+julia> is_zero(M)
+false
 ```
 
 ## Basic Operations on Subquotients
@@ -375,22 +485,22 @@ saturation_with_index(M:: SubquoModule, J::Ideal)
 ## Submodules and Quotients
 
 ```@docs
-sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+sub(M::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}) where T
 ```
 
 ```@docs
-quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
+quo(M::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}; cache_morphism::Bool=false) where T
 ```
 
 ## Homomorphisms From Subqotients
 
 All OSCAR types for homomorphisms of finitely presented modules considered here belong
-to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
-For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: ModuleFPHom{T1, T2}`
+to the abstract type `OFPModuleHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
+For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: OFPModuleHom{T1, T2}`
 as well as the following constructors:
 
 ```@docs
-hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+hom(M::SubquoModule{T}, N::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}) where T
 ```
 
 Given a homomorphism of type `SubQuoHom`, a matrix `A` representing it
@@ -423,6 +533,3 @@ degree(a:: SubQuoHom)
 ```@docs
 grading_group(a:: SubQuoHom)
 ```
-
-
-

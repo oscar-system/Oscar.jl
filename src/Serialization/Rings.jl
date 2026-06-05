@@ -380,6 +380,8 @@ function load_object(s::DeserializerState, ::Type{<:SMat}, parent::SMatSpace{T})
     end
     push!(M, sparse_row(base, row_entries))
   end
+  M.c = parent.cols
+  @assert nrows(M) == parent.rows
   return M
 end
 

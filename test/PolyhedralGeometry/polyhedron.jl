@@ -39,6 +39,13 @@
     @test issetequal(matrix(f, vertices(Q1)) * v, T[f(1), f(0), f(1)])
     @test issubset(Q0, Q1)
     @test !issubset(Q1, Q0)
+    @test contains(Q0, [1, 0])
+    @test !contains_in_interior(Q0, [1, 0])
+    @test contains(Q1, [3, 3])
+    @test contains(Q1, ray_vector(f, [3, 3]))
+    @test contains_in_interior(Q1, ray_vector(f, [1, 1]))
+    @test contains_in_interior(Pos, ray_vector(f, [1, 1, 1]))
+    @test !contains_in_interior(Pos, ray_vector(f, [1, 0, 1]))
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
@@ -891,6 +898,12 @@
     SC = secondary_cone(SOP)
     @test polyhedron(SC) isa Polyhedron
   end
+
+  @testset "Prism" begin
+    PQ0 = prism(Q0)
+    @test n_vertices(PQ0) == 6
+    @test n_facets(PQ0) == 5
+  end
 end
 
 @testset "Regular solids" begin
@@ -952,8 +965,17 @@ end
   pts = collect(orb)
   len = sqrt(dot(pts[1] - pts[2], pts[1] - pts[2])) / 2
   ngon = convex_hull(pts)
-  prism = polyhedron(Polymake.polytope.prism(Oscar.pm_object(ngon), len))
-  @test Oscar._is_prismic_or_antiprismic(prism)
-  @test !is_archimedean_solid(prism)
-  @test !is_johnson_solid(prism)
+  ngprism = prism(ngon, -len, len)
+  @test Oscar._is_prismic_or_antiprismic(ngprism)
+  @test !is_archimedean_solid(ngprism)
+  @test !is_johnson_solid(ngprism)
+end
+
+@testset "Slack ideal" begin
+  PS = prism(simplex(2))
+  SI = slack_ideal(PS)
+  R = base_ring(SI)
+  desired = load(joinpath(@__DIR__, "data", "prism_slack_ideal.mrdi"); params=R)
+  @test SI == desired
+  @test_throws AssertionError slack_ideal(QQ[:x, :y][1], PS)
 end

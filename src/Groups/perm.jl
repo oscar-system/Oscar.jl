@@ -618,8 +618,8 @@ Base.eltype(C::CycleType) = Pair{Int, Int}
 Base.getindex(C::CycleType, i::Int) = C.s[i]
 Base.size(C::CycleType) = size(C.s)
 
-function Base.hash(c::CycleType, u::UInt = UInt(121324))
-  return hash(c.s, u)
+function Base.hash(c::CycleType, h::UInt)
+  return hash(c.s, h)
 end
 
 function Base.show(io::IO, C::CycleType)
