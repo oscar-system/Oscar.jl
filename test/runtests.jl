@@ -92,7 +92,11 @@ end
 
 # make sure we have the same list everywhere
 sort!(testlist)
-Random.shuffle!(Oscar.get_seeded_rng(), testlist)
+
+# allow disabling shuffle for speed tests
+if get(ENV, "OSCAR_TEST_SORTED", nothing) !== "true"
+  Random.shuffle!(Oscar.get_seeded_rng(), testlist)
+end
 
 # tests with the highest number of allocations / total time / compilation time
 # more or less sorted by allocations are in `long`
