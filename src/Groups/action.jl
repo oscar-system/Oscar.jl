@@ -872,7 +872,7 @@ end
 @doc raw"""
     regular_action_homomorphism(G::GAPGroup)
 
-Return an isomorphism frome the finite group $G$ onto the regular permutation representation of $G$.
+Return an isomorphism from the finite group $G$ onto the regular permutation representation of $G$.
 
 # Examples
 ```jldoctest
