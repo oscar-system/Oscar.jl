@@ -868,3 +868,61 @@ function right_coset_action(G::GAPGroup, U::GAPGroup)
   H = PermGroup(GAPWrap.Range(mp))
   return GAPGroupHomomorphism(G, H, mp)
 end
+
+@doc raw"""
+    regular_action_homomorphism(G::GAPGroup)
+
+Return an isomorphism frome $G$ onto the regular permutation representation of $G$.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5)
+Symmetric group of degree 5
+
+julia> hom = regular_action_homomorphism(g)
+Group homomorphism
+  from symmetric group of degree 5
+  to permutation group of degree 120 and order 120
+
+julia> number_of_moved_points(image(hom)[1]) == order(g)
+true
+
+julia> g = dihedral_group(10)
+Pc group of order 10
+
+julia> hom = regular_action_homomorphism(g)
+Group homomorphism
+  from pc group of order 10
+  to permutation group of degree 10 and order 10
+
+julia> number_of_moved_points(image(hom)[1]) == order(g)
+true
+
+julia> g = fp_group(dihedral_group(10))
+Finitely presented group of order 10
+
+julia> hom = regular_action_homomorphism(g)
+Group homomorphism
+  from finitely presented group of order 10
+  to permutation group of degree 10 and order 10
+
+julia> number_of_moved_points(image(hom)[1]) == order(g)
+true
+
+julia> g = general_linear_group(3,2)
+GL(3,2)
+
+julia> hom = regular_action_homomorphism(g)
+Group homomorphism
+  from GL(3,2)
+  to permutation group of degree 168 and order 168
+
+julia> number_of_moved_points(image(hom)[1]) == order(g)
+true
+```
+"""
+function regular_action_homomorphism(G::GAPGroup)
+  hom = GAPWrap.RegularActionHomomorphism(GapObj(G))
+  H = PermGroup(GAPWrap.Image(hom))
+  return GAPGroupHomomorphism(G, H, hom)
+end
