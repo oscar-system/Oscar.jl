@@ -1131,7 +1131,7 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
     # ordering of vertices is
     # | original vertices | layer vertices for each edge color | layer marker vertices | color marker vertices for original vertex colors (if vertex_distinguishable)
     n_layers = length(edges_by_label) + 1
-    n_v = n_vertices(G) * n_layers + length(edges_by_label) + vertex_distinguishable ? 0 : length(vertices_by_label)
+    n_v = n_vertices(G) * n_layers + length(edges_by_label) + (vertex_distinguishable ? 0 : length(vertices_by_label))
     new_G = Graph{T}(n_v)
 
     # number of colors needed to handle original vertex coloring
@@ -2542,11 +2542,10 @@ end
 
 """
     canonical_hash(g::Graph{T})
-    
-The canonical hash is an isomorphism invariant of a graph. 
 
-!! Warning 
+The canonical hash is an isomorphism invariant of a graph.
+
+!! Warning
    The canonical hash depends on the version of Oscar.
 """
 canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
-
