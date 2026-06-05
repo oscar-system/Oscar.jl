@@ -37,6 +37,7 @@ hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
 id_hom(G::GAPGroup)
 trivial_morphism(G::GAPGroup, H::GAPGroup = G)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
+regular_action_homomorphism(G::GAPGroup)
 ```
 
 ## Applying group homomorphisms

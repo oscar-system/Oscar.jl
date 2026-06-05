@@ -934,3 +934,21 @@ end
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)
 end
+
+@testset "Regular action homomorphism" begin
+   g = g = symmetric_group(5)
+   hom = regular_action_homomorphism(g)
+   @test number_of_moved_points(image(hom)[1]) == order(g)
+
+   g = dihedral_group(10)
+   hom = regular_action_homomorphism(g)
+   @test number_of_moved_points(image(hom)[1]) == order(g)
+
+   g = fp_group(dihedral_group(10))
+   hom = regular_action_homomorphism(g)
+   @test number_of_moved_points(image(hom)[1]) == order(g)
+
+   g = general_linear_group(3,2)
+   hom = regular_action_homomorphism(g)
+   @test number_of_moved_points(image(hom)[1]) == order(g)
+end
