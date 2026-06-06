@@ -1288,7 +1288,7 @@ function automorphism_group_generators(g::Graph{T};
   else
     new_g = _edge_label_to_vertex_label(g, label;
                                         edge_distinguishable=edge_distinguishable,
-                                        vertex_distinguishable=edge_distinguishable)
+                                        vertex_distinguishable=vertex_distinguishable)
 
     pm_gens = Polymake._automorphisms(
       pm_object(new_g),
