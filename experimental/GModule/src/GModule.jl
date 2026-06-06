@@ -31,7 +31,6 @@ import Hecke: data
 import Oscar: _vec, gmodule, GAPWrap
 import Oscar: MultGrp, MultGrpElem, CoChain, GrpCoh, GModuleElem
 import Oscar: local_schur_indices
-import Oscar: restriction_of_scalars
 
 import AbstractAlgebra: Group, Module, pretty
 import Base: parent
