@@ -1151,8 +1151,8 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
          add_edge!(new_G, v, n_v - label)
          new_vertex_labels[v] = 1
        end
-       new_vertex_labels[n_vertices(G) + label] = 2
-       label -= 1
+       new_vertex_labels[n_v - label] = 2
+       label += 1
      end
     end
 
