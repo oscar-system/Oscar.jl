@@ -275,7 +275,7 @@ function vanishing_ideal(M::GaussianGraphicalModel{Graph{Directed}, Nothing}; al
   T = topological_sort(G)
   J = ideal(S, [ci_polynomial(A, ci_stmt(T[i], T[j], parents(G, T[j])))
                 for i in 1:length(T) for j in (i+1):length(T)
-                if !has_edge(G, T[i], T[j])])
+                  if !has_edge(G, T[i], T[j])])
   loc, iota = localization(S, U)
   saturated_ideal(iota(J))
 end
@@ -341,7 +341,7 @@ end
 } function parameter_ring(GM::GaussianGraphicalModel{Graph{Undirected}, T}; cached=false) where T
   G = graph(GM)
   gen_names = (["$(varnames(GM)[:k])[$(src(e)), $(dst(e))]" for e in edges(G)],
-              ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
+               ["$(varnames(GM)[:k])[$(v), $(v)]" for v in vertices(G)])
   R, e_gens, v_gens = polynomial_ring(QQ, gen_names; cached=cached)
   gens_dict = merge(Dict(e => e_gens[i] for (i, e) in enumerate(edges(G))),
                     Dict(v => v_gens[v] for v in 1:n_vertices(G)))
@@ -630,3 +630,106 @@ function ci_structure(R::GaussianRing; strategy::Symbol)
   end
   error("no method available to compute the CI structure")
 end
+
+################################################################################
+# Maximum likelihood
+
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:RingElem})
+  @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
+  K = concentration_matrix(M)
+  n = nrows(K)
+  @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+  R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
+  K_mapped = map_entries(emb, K)
+  detK = det(K_mapped)
+  trace_product = trace(scv_matrix * K_mapped)
+  diff_vars = gens(R)
+
+  l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  println("gb")
+
+  groebner_basis(I; algorithm)
+  println("dim")
+  @req iszero(dim(I)) "Dimension of score equation ideal was positive for input $scv_matrix"
+
+  return saturation(I, ideal(det_sigma))
+end
+
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:RingElem})
+  @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
+  sigma = covariance_matrix(M)
+  n = nrows(sigma)
+  @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+
+  phi = parametrization(M)
+  sigma_mapped = map_entries(phi, sigma)
+  adj = adjugate(sigma_mapped)
+
+  R, emb = change_base_ring(base_ring(scv_matrix), base_ring(codomain(phi)))
+  sigma_final = map_entries(emb, sigma_mapped)
+  adj_final = map_entries(emb, adj)
+  det_sigma = det(sigma_final)
+  trace_product = trace(scv_matrix * adj_final)
+  diff_vars = gens(R)
+  println("taking derivatives")
+  l_eqs = matrix([derivative(det_sigma, g) * (det_sigma - trace_product) + det_sigma * derivative(trace_product, g) for g in diff_vars])
+  I = ideal(reduce(vcat, l_eqs))
+  groebner_basis(I)
+  @req iszero(dim(I)) "Dimension of score equation ideal was positive for input $scv_matrix"
+  println("before gb")
+
+  println("before sat")
+  return saturation(I, ideal(det_sigma))
+end
+
+@doc raw"""
+    maximum_likelihood_degree(M::GaussianGraphicalModel [, rank::Int]; algorithm=:generic)
+
+Return the maximum likelihood degree of `M` the given `GaussianGraphicalModel`.
+The possible algorithms can be chosen via the `algorithm` keyword argument set to either `:generic` or `:monte_carlo`.
+The default is to compute with `:generic` which will use a sample covariance matrix whose entries lie in a rational function field.
+Setting algorithm to `:monte_carlo` will randomly generate a sample covariance matrix.
+
+## Examples
+
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1, 3], [1, 5], [2, 3], [2, 4], [3, 4], [4, 5]])
+Directed graph with 5 nodes and the following edges:
+(1, 3)(1, 5)(2, 3)(2, 4)(3, 4)(4, 5)
+
+julia> M = gaussian_graphical_model(G)
+Gaussian Graphical Model on a Directed graph with 5 nodes and 6 edges
+
+julia> maximum_likelihood_degree(M)
+1
+```
+"""
+function maximum_likelihood_degree(M::GaussianGraphicalModel, rank::Int; algorithm=:generic)
+  @req algorithm in [:generic, :monte_carlo] "Invalid algorithm input $algorithm"
+  n = n_vertices(graph(M))
+  
+  if algorithm == :generic
+
+    if rank == n
+      S, s = polynomial_ring(QQ, :s => 1:divexact((n + 1) * n, 2); cached=false)
+      scv_matrix = upper_triangular_matrix(s)
+      for i in 1:n
+        for j in 1:i - 1
+          scv_matrix[i, j] = scv_matrix[j, i]
+        end
+      end
+    else
+      S, s = rational_function_field(QQ, :s => (1:rank, 1:n); cached=false)
+      scv_matrix = transpose(matrix(S, s)) * matrix(S, s)
+    end
+  elseif algorithm == :monte_carlo
+    scv_matrix = rand(Int, rank, n)
+    scv_matrix = matrix(ZZ, transpose(scv_matrix) * scv_matrix)
+  end
+  I = score_equations_ideal(M, scv_matrix)
+
+  return degree(I)
+end
+
+maximum_likelihood_degree(M::GaussianGraphicalModel; kwargs...) = maximum_likelihood_degree(M, n_vertices(graph(M)); kwargs...)
