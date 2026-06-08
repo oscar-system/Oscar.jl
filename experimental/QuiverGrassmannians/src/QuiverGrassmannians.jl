@@ -23,7 +23,6 @@ end
 
 Returns quiver representaion corresponding to a directed graph, ambient dimension vector, and list of linear maps.
 """
-
 function quiver_representation(quiver, ambient_dims,maps)
     return QuiverRepresentation(quiver, ambient_dims,maps)
 end
