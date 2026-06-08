@@ -68,8 +68,6 @@ end
 
 Returns coordinate ring of moduli space of representations of the given quiver.
 """
-
-#main function
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
