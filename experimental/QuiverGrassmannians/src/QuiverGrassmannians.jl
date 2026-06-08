@@ -66,7 +66,7 @@ end
 @doc raw"""
     quiver_grassmannian(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
 
-Returns coordinate ring of moduli space of representations of the given quiver.
+Return the coordinate ring of the moduli space of representations of the given quiver.
 """
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #quiver rep data
