@@ -1313,7 +1313,7 @@ Return the automorphism group of the graph `g`.
 
 If `label` is specified, automorphisms are computed with respect to the graph
 labeling stored under that key (see [`label!`](@ref)). Only permutations that
-preserve the edge labels are included.
+preserve the edge and vertex labels are included.
 
 If `vertex_distinguishable` is `false`, vertex labels are interchangeable.
 Analogously for edges when `edge_distinguishable` is `false`,
