@@ -1,8 +1,5 @@
 #exports
 export QuiverRepresentation
-export sign_j
-export P_gen
-export edge_gens
 export QuiverGrassmannian
 export quiver_grassmannian
 #Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
