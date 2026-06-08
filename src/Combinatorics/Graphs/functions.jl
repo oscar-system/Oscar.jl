@@ -1158,10 +1158,10 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
 
     # add a layer of vertices and edges for each edge color
     label_offset = vertex_distinguishable ? 2 * length(vertices_by_label) : 2
-    layer_marker = n_vertices(G) * n_layers + 1
     vertex_offset = n_vertices(G)
 
-    for (_, (_, e_with_label)) in enumerate(edges_by_label)
+    for (l, (_, e_with_label)) in enumerate(edges_by_label)
+      layer_marker = n_vertices(G) * n_layers + l
       for e in e_with_label
         add_edge!(new_G, src(e) + vertex_offset, dst(e) + vertex_offset)
       end
@@ -1171,7 +1171,6 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
         e = add_edge!(new_G, v, vertex_offset + v)
         e = add_edge!(new_G, layer_marker, vertex_offset + v)
       end
-      layer_marker += 1
       vertex_offset += n_vertices(G)
     end
   end
