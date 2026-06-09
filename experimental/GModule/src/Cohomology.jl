@@ -390,8 +390,10 @@ end
 """
   C V-module, U <= G
   D U-module, V <= H
+  twist in H
   mHG: H -> G (think of projection of Galois group(s)
-  mCD: C->D U,V-linear
+  mCD: C->D*twist U,V-linear
+
   want
 
   Ind C -> Ind D extending/ induced by mCD and mHG
@@ -402,6 +404,7 @@ end
 Application: K/k fields and C and D completions at compatible places. Then
 Ind C, Ind D are products over all conjugate completions and mCD induces
 the "embedding" induced by k->K.
+
 """
 function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
 #  global last_bad = (mCD, mHG, indC, indD, twist)
@@ -420,9 +423,6 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
     twist = preimage(mHG, twist)
   end
 
-#  @show [x^twist for x = gens(iV)]
-#  @show indC, indD, mCD, matrix(mCD)
-
   @assert issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])[1]
 
   H = domain(mHG)
@@ -437,10 +437,9 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
   rmHG = hV *inner_automorphism(twist)*mHG
 #  @assert iU == image(rmHG)[1]
   
-  I = zero_map(indC.M, indD.M)
 #  @show [findall(x->y*inv(x)*twist in iU, gC) for y in gD] 
 
-  function actC(g) #should be the V action on D (since D is lost...)
+  function actC(g) #should be the U action on C (since D is lost...)
     g = (indC.G(g))
     @hassert :GaloisCohomology 5 has_preimage(hU, g)[1]
     m = canonical_injection(indC.M, 1)*action(indC, g)*canonical_projection(indC.M, 1)
@@ -454,21 +453,81 @@ function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, A
     return m
   end
 
+  #check that mCD is H_Q linear...(same as below)
+  hom(gmodule(V, [actC(rmHG(g)) for g = gens(V)]), gmodule(V, [act(g) for g = gens(V)]), mCD)
+
   if get_assert_level(:GaloisCohomology) > 4
     for g = V #test V-linear on input...
       @assert all(u->act(g)(mCD(u)) == mCD(actC(rmHG(g))(u)), gens(domain(mCD)))
     end
   end
 
+  I = zero_map(indC.M, indD.M)
+  pos_twist = findfirst(isequal(twist), gD)
+
+  for i=1:length(gC)
+    for j=1:length(gD)
+      if mHG(gD[j])*inv(gC[i]) in iU
+        @show i, j
+        @assert !is_zero(canonical_injection(indC.M, i)*action(indC, inv(gC[i]))*canonical_projection(indC.M, 1))
+        @assert !is_zero(canonical_injection(indD.M, pos_twist)*action(indD, inv(twist)*gD[j])*canonical_projection(indD.M, j))
+        I += action(indC, inv(gC[i]))*canonical_projection(indC.M, 1)*mCD*canonical_injection(indD.M, pos_twist)*action(indD, inv(twist)*gD[j])
+      end
+    end
+  end
+
+
+  # IndC = sum C otimes g_i for g_i = U\\G
+  # IndD = sum D otimes h_i for h_i = V\\H
+  #
+  # mCD : C -> D*twist which is isomorphic to D
+  # so need h_i s.th.
+  # IndC -> sum D otimes twist*h_i works
+  #  let J be s.th.  mHG(h_j^twist) = g_i*u
+  # Then C otimes g_i -> sum D otimes twist*u*h_j
+  # if twist*u*h_j = v*h_k then
+  # D otimes twist*u*h_j = Du otimes h_k..A
+
+
+  #=
+  II = [x for x = 1:length(gD) if mHG(inv(gD[x])) in iU]
+  @assert isone(gD[1]) && isone(gC[1])
+  v = [hV(preimage(rmHG, mHG(inv(gD[x])))) for x = II]
+
   for i=1:length(gC)
     m = gC[i]
-    j = [x for x = 1:length(gD) if m*mHG(inv(gD[x])^twist) in iU]
+    
+    @show j = [x for x = 1:length(gD) if m*mHG(inv(gD[x]^twist)) in iU]
    
-    I += canonical_projection(indC.M, i)*mCD*sum(act(preimage(rmHG, m*mHG(inv(gD[x])^twist)))*canonical_injection(indD.M, x^rb(twist)) for x = j)  
+#    I += canonical_projection(indC.M, i)*mCD*sum(act(preimage(rmHG, m*mHG(inv(gD[x])^twist)))*canonical_injection(indD.M, x^rb(twist)) for x = j)
+
+    #  
+    pr = zero_map(codomain(mCD), indD.M)
+    for _x = 1:length(II)
+      x = II[_x]
+      @show v, v[_x]
+
+
+      h = preimage(mHG, m)
+   
+      @show k = findfirst(l->gD[x]*h*inv(gD[l]) in iV, 1:length(gD))
+      @show x^rb(gD[x]*h)
+      @show w = hV(preimage(rmHG, gD[x]*h*inv(gD[k])))
+      pr += act(v[_x]*w)*canonical_injection(indD.M, k)
+    end
+    I += canonical_projection(indC.M, i)*mCD*pr
+    #
   end
+
+  =#
+
   if get_assert_level(:GaloisCohomology) > 4
     for g = gens(indD.G)
-      @assert all(u -> (action(indC, mHG(g)) * I)(u) == (I*action(indD, g))(u), gens(indC.M))
+      x = [(action(indC, mHG(g)) * I)(u) - (I*action(indD, g))(u) for u= gens(indC.M)]
+      if !all(iszero, x)
+        @show x
+        @assert all(iszero, x)
+      end
     end
   end
     
@@ -582,7 +641,8 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   end
 
   function ind_action(::GModule, s, v::T) where T <: Array
-    sigma = ra(s)
+    @show s
+    @show sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
     im_q = T()
