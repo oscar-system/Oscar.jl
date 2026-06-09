@@ -1330,7 +1330,7 @@ Covers 3 cases
 """
 function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFieldHom} = nothing)
 
-  if I1.S === I2.S  && isnothing(mp)
+  if I1.S === I2.S && isnothing(mp)
     mUV = hom(domain(I1.mU), domain(I2.mU), gens(domain(I2.mU)))
   else
     #if V has more primes, this is the injection map - but this
@@ -1347,28 +1347,29 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     _, GrpHom = fixed_group(I2.mG, I1.mG, mp)
   end
 
-  #need to align the infinite place
-  #no?: the decomposition group contains that information, mostly?
-  #     or the relevant bit?
-
-  #=
+  #need to align the infinite place...
+  #
   local twist = nothing
-  if isnothing(mp)
-    h = induce_hom(I1.data[7], I2.data[7], mUV)
+
+  k = domain(mp)
+  K = codomain(mp)
+  if istotally_real(k)
+    i1 = real_embeddings(k)[1]
   else
-    k = domain(mp)
-    K = codomain(mp)
     i1 = complex_embeddings(k)[1]
-    i2 = complex_embeddings(K)[1]
-    a = mp(gen(k))
-    for s = domain(I2.mG)
-      if contains_zero(i1(gen(k)) - i1(I2.mG(s)(a))) 
-        twist = s
-      end
-    end
-    #h = induce_hom(I1.data[7], I2.data[7], mUV)
   end
-  =#
+  if istotally_real(K)
+    i2 = real_embeddings(K)[1]
+  else
+    i2 = complex_embeddings(K)[1]
+  end
+  a = mp(gen(k))
+  for s = domain(I2.mG)
+    if contains_zero(i1(gen(k)) - i1(I2.mG(s)(a))) 
+      twist = s
+    end
+  end
+  #
 
   change_field = domain(GrpHom) != codomain(GrpHom)
   local h
@@ -1437,13 +1438,15 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     h = induce_hom_W(I1.data[7], I2.data[7], h) # W1 -> W2
     @assert is_injective(h)
   end
-  h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, I1.data[8][1], I2.data[8][1])
+  h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, I1.data[8][1], I2.data[8][1]; twist = (twist))
 
   if get_assert_level(:GaloisCohomology) > 4
+    @show :test_W, twist
     hom(inflate(I1.data[8][1], GrpHom), I2.data[8][1], h)
   end
+
   X = canonical_projection(I1.M, 1) * h * canonical_injection(I2.M, 1)
-  if get_assert_level(:GaloisCohomology) > 5
+  if get_assert_level(:GaloisCohomology) > 4
     hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
   end
 
@@ -1461,12 +1464,17 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
         #need s in Gal(I2) s.th. val(s(I2.S[j]), mp(I1.S[i])) > 0
         I = mp(I1.S[i])
 #        @assert domain(I2.mG) === domain(I1.mG) #Gal(k)
-        for g = domain(I2.mG)
-          valuation(I2.mG(g)(I), I2.S[j]) == 0 && continue
+      
+        for g = get_attribute(I2.data[5][j][1].M, :induce)[2]#domain(I2.mG)
+
+          valuation(I, I2.mG(g)(I2.S[j])) == 0 && continue
+          #valuation(I2.mG(g)(I), I2.S[j]) == 0 && continue
 
           h = hom(domain(I1.L[i]), domain(I2.L[j]), 
-            [preimage(I2.L[j], I2.C[j](I2.mG(g)(mp(preimage(I1.C[i], image(I1.L[i], x)))))) for x = gens(domain(I1.L[i]))])
-            twist = inv(g)
+          [preimage(I2.L[j], I2.C[j](I2.mG(inv(g))(mp(preimage(I1.C[i], image(I1.L[i], x)))))) for x = gens(domain(I1.L[i]))])
+            twist = (g)
+            @show matrix(h)
+          @show twist
           break
         end
       end
@@ -1475,16 +1483,18 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       if IndI1[i] === IndI2[j]
         h = id_hom(IndI1[i][1].M)
       else
+        @show I1.S[i], I2.S[j]
         h = Oscar.GrpCoh.induce_hom_to_induced_mod(h, GrpHom, IndI1[i][1], IndI2[j][1]; twist)
         @assert domain(h) === IndI1[i][1].M
         @assert codomain(h) === IndI2[j][1].M
       end
       
       if get_assert_level(:GaloisCohomology) > 4
+        @show :test_S
         hom(inflate(IndI1[i][1], GrpHom), IndI2[j][1], h)
       end
       X += canonical_projection(I1.M, i+1) * h * canonical_injection(I2.M, j+1)
-      if get_assert_level(:GaloisCohomology) > 5
+      if get_assert_level(:GaloisCohomology) > 4
         hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
       end
       break
@@ -1494,6 +1504,7 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     end
   end
   for i = missing
+    error("too bad")
     #U_T -> I_T               -> Ind I_p
     mp = I1.data[3].module_map * canonical_projection(I1.M, i+1)
     # T-units -> I_T -> K_P^*
@@ -1518,6 +1529,7 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     h = hom(codomain(mp), I2.M, [I2.data[3].module_map(unit_pro(x))-X(I1.data[3].module_map(x)) for x = pe])
     X += canonical_projection(I1.M, i+1)*h
   end
+  return hom(X)
 
   return hom(pseudo_inv(I1.mq)*X*I2.mq)
 end
@@ -1712,6 +1724,8 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
 
     #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
+    @show :test4
+    hom(E, F[1], h)
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
   @vtime :GaloisCohomology 2 q, _mq = simplify(q)
@@ -2182,6 +2196,7 @@ function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
   mG = I.mG
 
   z = findall(pr -> mG(pr)(mKp.P) == P, prm)
+  @assert length(z) == 1
   pr = inv(prm[z[1]])
   
   nKp = MapFromFunc(I.k, Kp, x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)))
@@ -3134,9 +3149,11 @@ function global_fundamental_class(A::IdeleParent)
   #put together..
   #want x s.th. (n/d[2]) * x = d[1] mod d[2]
   #cannot use CRT as the d[2] are not necc. coprime
+  @show scale
   a = abelian_group([x[2] for x = scale])
-  b = abelian_group([n])
+  @show b = abelian_group([n])
   h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
+  @show matrix(h)
   p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
