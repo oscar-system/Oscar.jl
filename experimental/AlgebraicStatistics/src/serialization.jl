@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_and_params, _convert_override_params, params, load_type_params, decode_type
+  type_and_params, _convert_override_params, params, load_type_and_params, decode_type
 
 function _convert_override_params(tp::TypeAndParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
   param_dict = Dict()
@@ -109,15 +109,15 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
   return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
-function load_type_params(s::DeserializerState, T::Type{GenDict})
+function load_type_and_params(s::DeserializerState, T::Type{GenDict})
   subtype, params = load_node(s, :params) do obj
     S, key_params = load_node(s, :key_params) do params
       params isa String && return decode_type(s), nothing
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
     _, value_params = load_node(s, :value_params) do _
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
     return S, Dict(:key_params => key_params, :value_params => value_params)

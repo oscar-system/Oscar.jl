@@ -115,7 +115,7 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_type_params`, `load_type_params`
+2. `save_type_and_params`, `load_type_and_params`
 3. `save_object`, `load_object`
 
 
@@ -127,7 +127,7 @@ type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
 
 
-#### `save_type_params` / `load_type_params`
+#### `save_type_and_params` / `load_type_and_params`
 
 The serialization mechanism stores data in the format of a tree, with the
 exception that some nodes may point to a shared reference. The "data branch"
