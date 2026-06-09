@@ -30,16 +30,16 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 # type_and_params functions
 
 # element types by default use their parent as reference object
-type_and_params(x::T) where T <: SetElem = TypeParams(T, parent(x))
-type_and_params(x::T) where T <: SMat = TypeParams(T, parent(x))
+type_and_params(x::T) where T <: SetElem = TypeAndParams(T, parent(x))
+type_and_params(x::T) where T <: SMat = TypeAndParams(T, parent(x))
 
 # rings, groups etc. default have no reference object
-type_and_params(R::T) where T <: AbstractAlgebra.Set = TypeParams(T, nothing)
+type_and_params(R::T) where T <: AbstractAlgebra.Set = TypeAndParams(T, nothing)
 
 # ideals and matrix spaces have their base ring as reference object
-type_and_params(x::T) where T <: Ideal = TypeParams(T, base_ring(x))
-type_and_params(x::T) where T <: MatSpace = TypeParams(T, base_ring(x))
-type_and_params(x::T) where T <: SMatSpace = TypeParams(T, base_ring(x))
+type_and_params(x::T) where T <: Ideal = TypeAndParams(T, base_ring(x))
+type_and_params(x::T) where T <: MatSpace = TypeAndParams(T, base_ring(x))
+type_and_params(x::T) where T <: SMatSpace = TypeAndParams(T, base_ring(x))
 
 
 ################################################################################
@@ -88,7 +88,7 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 # polynomial-like rings use their coefficient ring as reference object
-type_and_params(R::T) where T <: PolyRingUnionType = TypeParams(T, coefficient_ring(R))
+type_and_params(R::T) where T <: PolyRingUnionType = TypeAndParams(T, coefficient_ring(R))
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
   save_data_dict(s) do
@@ -117,7 +117,7 @@ function load_object(s::DeserializerState, ::Type{<:AbstractAlgebra.Generic.Laur
 end
 
 # with grading
-type_and_params(R::MPolyDecRing) = TypeParams(
+type_and_params(R::MPolyDecRing) = TypeAndParams(
   MPolyDecRing,
   :grading_group => grading_group(R),
   :ring => forget_grading(R),
@@ -277,10 +277,10 @@ end
 
 @register_serialization_type IdealGens
 
-type_and_params(ig::IdealGens) = TypeParams(
+type_and_params(ig::IdealGens) = TypeAndParams(
   IdealGens,
   :base_ring => base_ring(ig),
-  :ordering_type => TypeParams(typeof(ordering(ig)), nothing)
+  :ordering_type => TypeAndParams(typeof(ordering(ig)), nothing)
 )
 
 function save_object(s::SerializerState, obj::IdealGens)
@@ -389,7 +389,7 @@ end
 # Power Series
 @register_serialization_type SeriesRing uses_id
 
-type_and_params(R::T) where T <: SeriesRing = TypeParams(T, base_ring(R))
+type_and_params(R::T) where T <: SeriesRing = TypeAndParams(T, base_ring(R))
 
 function save_object(s::SerializerState, R::RelPowerSeriesUnionType)
   save_data_dict(s) do
@@ -509,7 +509,7 @@ end
 @register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
 @register_serialization_type ZZLaurentSeriesRing uses_id
 
-type_and_params(R::T) where T <: LaurentUnionType = TypeParams(T, base_ring(R))
+type_and_params(R::T) where T <: LaurentUnionType = TypeAndParams(T, base_ring(R))
 
 function save_object(s::SerializerState, R::LaurentUnionType)
   save_data_dict(s) do
@@ -593,7 +593,7 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_and_params(A::MPolyQuoRing) = TypeParams(
+type_and_params(A::MPolyQuoRing) = TypeAndParams(
   MPolyQuoRing,
   :base_ring => base_ring(A),
   :ordering => typeof(ordering(A))
@@ -671,7 +671,7 @@ end
 # localizations of polynomial rings
 @register_serialization_type MPolyPowersOfElement uses_id
 
-type_and_params(U::T) where T <: MPolyPowersOfElement = TypeParams(T, ring(U))
+type_and_params(U::T) where T <: MPolyPowersOfElement = TypeAndParams(T, ring(U))
 
 function save_object(s::SerializerState, U::MPolyPowersOfElement)
   save_object(s, denominators(U))
@@ -685,7 +685,7 @@ end
 
 @register_serialization_type MPolyComplementOfPrimeIdeal uses_id
 
-type_and_params(U::MPolyComplementOfPrimeIdeal) = TypeParams(typeof(U), ring(U))
+type_and_params(U::MPolyComplementOfPrimeIdeal) = TypeAndParams(typeof(U), ring(U))
 
 function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
   save_object(s, prime_ideal(U))
@@ -698,7 +698,7 @@ end
 
 @register_serialization_type MPolyLocRing uses_id
 
-type_and_params(W::T) where {T <: MPolyLocRing} = TypeParams(T, :base_ring => base_ring(W), :mult_set_type => TypeParams(typeof(inverted_set(W)), nothing)) # TODO: make this neater!
+type_and_params(W::T) where {T <: MPolyLocRing} = TypeAndParams(T, :base_ring => base_ring(W), :mult_set_type => TypeAndParams(typeof(inverted_set(W)), nothing)) # TODO: make this neater!
 
 function save_object(s::SerializerState, L::MPolyLocRing)
   save_object(s, inverted_set(L))
@@ -735,7 +735,7 @@ end
 
 @register_serialization_type MPolyQuoLocRing uses_id
 
-type_and_params(L::T) where {T <: MPolyQuoLocRing} = TypeParams(T, :base_ring=>base_ring(L), :loc_ring=>localized_ring(L), :quo_ring=>underlying_quotient(L))
+type_and_params(L::T) where {T <: MPolyQuoLocRing} = TypeAndParams(T, :base_ring=>base_ring(L), :loc_ring=>localized_ring(L), :quo_ring=>underlying_quotient(L))
 
 function save_object(s::SerializerState, L::MPolyQuoLocRing)
   save_data_dict(s) do
@@ -768,7 +768,7 @@ end
 
 @register_serialization_type MPolyComplementOfKPointIdeal uses_id
 
-type_and_params(U::T) where {T<:MPolyComplementOfKPointIdeal} = TypeParams(T, ring(U))
+type_and_params(U::T) where {T<:MPolyComplementOfKPointIdeal} = TypeAndParams(T, ring(U))
 
 function save_object(s::SerializerState, U::MPolyComplementOfKPointIdeal)
   save_object(s, point_coordinates(U))
@@ -785,7 +785,7 @@ end
 
 @register_serialization_type MPolyLocalizedRingHom uses_id
 
-type_and_params(phi::T) where {T<:MPolyLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_and_params(restricted_map(phi)))
+type_and_params(phi::T) where {T<:MPolyLocalizedRingHom} = TypeAndParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_and_params(restricted_map(phi)))
 
 function save_object(s::SerializerState, phi::MPolyLocalizedRingHom)
   save_object(s, restricted_map(phi))
@@ -801,7 +801,7 @@ end
 
 @register_serialization_type MPolyQuoLocalizedRingHom uses_id
 
-type_and_params(phi::T) where {T<:MPolyQuoLocalizedRingHom} = TypeParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_and_params(restricted_map(phi)))
+type_and_params(phi::T) where {T<:MPolyQuoLocalizedRingHom} = TypeAndParams(T, :domain=>domain(phi), :codomain=>codomain(phi), :restricted_map_params=>type_and_params(restricted_map(phi)))
 
 function save_object(s::SerializerState, phi::MPolyQuoLocalizedRingHom)
   save_object(s, restricted_map(phi))

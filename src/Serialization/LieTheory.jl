@@ -39,7 +39,7 @@ end
 @register_serialization_type RootSpaceElem
 @register_serialization_type DualRootSpaceElem
 
-type_and_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = TypeParams(T, root_system(e))
+type_and_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = TypeAndParams(T, root_system(e))
 
 function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
   save_object(s, _vec(coefficients(r)))
@@ -59,7 +59,7 @@ end
 
 @register_serialization_type WeightLattice uses_id
 
-type_and_params(P::WeightLattice) = TypeParams(WeightLattice, root_system(P))
+type_and_params(P::WeightLattice) = TypeAndParams(WeightLattice, root_system(P))
 
 function save_object(s::SerializerState, P::WeightLattice)
   save_data_dict(s) do

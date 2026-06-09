@@ -19,7 +19,7 @@ const lie_algebra_serialization_attributes = [
 @register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
 
 function type_and_params(L::T) where {T<:AbstractLieAlgebra}
-  TypeParams(
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
     type_and_params_for_root_system(L)...,
@@ -44,7 +44,7 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
 end
 
 function type_and_params(L::T) where {T<:LinearLieAlgebra}
-  TypeParams(
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
     type_and_params_for_root_system(L)...,
@@ -73,7 +73,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
 end
 
 function type_and_params(L::T) where {T<:DirectSumLieAlgebra}
-  TypeParams(
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
     :summands => Tuple(L.summands),
@@ -144,7 +144,7 @@ end
 
 @register_serialization_type LieAlgebraModule uses_id
 
-type_and_params(V::LieAlgebraModule) = TypeParams(
+type_and_params(V::LieAlgebraModule) = TypeAndParams(
   LieAlgebraModule,
   :lie_algebra => base_lie_algebra(V),
   type_and_params_for_construction_data(V)...,

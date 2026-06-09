@@ -3,20 +3,20 @@ const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
 # handle Vector and Matrix instances, i.e. Array instances with 1 or 2 dimensions
 function type_and_params(obj::S) where {T, S <: MatVecType{T}}
-  isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
+  isempty(obj) && return TypeAndParams(S, TypeAndParams(T, nothing))
   
   params = type_and_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeParams(S, params[1])
+  return TypeAndParams(S, params[1])
 end
 
 # handle Array instances with >= 3 dimensions
 function type_and_params(obj::S) where {N, T, S <: Array{T, N}}
-  isempty(obj) && return TypeParams(S, :subtype_and_params => TypeParams(T, nothing), :dims => N)
+  isempty(obj) && return TypeAndParams(S, :subtype_and_params => TypeAndParams(T, nothing), :dims => N)
   
   params = type_and_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeParams(S, :subtype_and_params => params[1], :dims => N)
+  return TypeAndParams(S, :subtype_and_params => params[1], :dims => N)
 end
 
 has_empty_entries(obj) = false
@@ -25,7 +25,7 @@ has_empty_entries(obj::ContainerTypes) = isempty(obj) || any(has_empty_entries, 
 
 # handle Vector and Matrix instances containing other containers
 function type_and_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
-  isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
+  isempty(obj) && return TypeAndParams(S, TypeAndParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
   non_empty_entries = filter(!has_empty_entries, obj)
@@ -34,12 +34,12 @@ function type_and_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
 
   # need to check if any of the inner containers are non empty, and if there is at least one
   # then we can use that one to get the type for the entire nested container
-  isempty(params) && return TypeParams(S, type_and_params(first(obj)))
-  return TypeParams(S, params[1])
+  isempty(params) && return TypeAndParams(S, type_and_params(first(obj)))
+  return TypeAndParams(S, params[1])
 end
 
 function save_type_and_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where {S, N,  T <: Array{S, N}}
+                          tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where {S, N,  T <: Array{S, N}}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
@@ -234,10 +234,10 @@ end
 @register_serialization_type Tuple
 
 function type_and_params(obj::T) where T <: Tuple
-  return TypeParams(T, type_and_params.(obj))
+  return TypeAndParams(T, type_and_params.(obj))
 end
 
-function save_type_and_params(s::SerializerState, tp::TypeParams{T}) where T <: Tuple
+function save_type_and_params(s::SerializerState, tp::TypeAndParams{T}) where T <: Tuple
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
@@ -297,14 +297,14 @@ end
 @register_serialization_type NamedTuple
 
 function type_and_params(obj::T) where T <: NamedTuple
-  return TypeParams(
+  return TypeAndParams(
     T, 
     NamedTuple(x.first => type_and_params(x.second) for x in pairs(obj))
   )
 end
 
 # Named Tuples need to preserve order so they are handled separate from Dict
-function save_type_and_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
+function save_type_and_params(s::SerializerState, tp::TypeAndParams{<:NamedTuple})
   T = type(tp)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -349,19 +349,19 @@ end
 
 function type_and_params(obj::T) where {S <: Union{Symbol, Int, String},
                                     T <: Dict{S, Any}}
-  return TypeParams(
+  return TypeAndParams(
     T,
-    :key_params => TypeParams(S, nothing),
+    :key_params => TypeAndParams(S, nothing),
     (x.first => type_and_params(x.second) for x in pairs(obj))...
   )
 end
 
 function type_and_params(obj::T) where {U, S, T <: Dict{S, U}}
   if isempty(obj)
-    return TypeParams(
+    return TypeAndParams(
       T,
-      :key_params => TypeParams(S, nothing),
-      :value_params => TypeParams(U, nothing)
+      :key_params => TypeAndParams(S, nothing),
+      :value_params => TypeAndParams(U, nothing)
     )
   end
   key_params = Oscar.type_and_params.(collect(keys(obj)))
@@ -370,7 +370,7 @@ function type_and_params(obj::T) where {U, S, T <: Dict{S, U}}
   value_params = type_and_params.(collect(values(obj)))
   @req allequal(value_params) "Not all type parameters of values in $obj are the same"
 
-  return TypeParams(
+  return TypeAndParams(
     T, 
     :key_params => first(key_params),
     :value_params => first(value_params),
@@ -379,7 +379,7 @@ end
 
 function save_type_and_params(
   s::SerializerState,
-  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
+  tp::TypeAndParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
@@ -569,8 +569,8 @@ end
 @register_serialization_type Set
 
 function type_and_params(obj::T) where {S, T <: Set{S}}
-  isempty(obj) && return TypeParams(T, TypeParams(S, nothing))
-  return TypeParams(T, type_and_params(first(obj)))
+  isempty(obj) && return TypeAndParams(T, TypeAndParams(S, nothing))
+  return TypeAndParams(T, type_and_params(first(obj)))
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{<: Set})

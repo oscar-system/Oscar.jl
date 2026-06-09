@@ -172,7 +172,7 @@ end
 @register_serialization_type SubPcGroup uses_id
 
 function type_and_params(G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  TypeParams(T, GapObj(G))
+  TypeAndParams(T, GapObj(G))
 end
 
 function save_object(s::SerializerState,
@@ -277,7 +277,7 @@ end
 # homomorphisms
 @register_serialization_type FinGenAbGroupHom uses_id
 
-type_and_params(X::FinGenAbGroupHom) = TypeParams(
+type_and_params(X::FinGenAbGroupHom) = TypeAndParams(
   FinGenAbGroupHom,
   :domain => domain(X),
   :codomain => codomain(X)

@@ -1,17 +1,17 @@
 # Method for end of recursion.
 # TODO: there is probably a way to stop the code from getting here that will speed up the code
-function put_type_and_params(channel::RemoteChannel, ::TypeParams{T, Nothing}) where T
+function put_type_and_params(channel::RemoteChannel, ::TypeAndParams{T, Nothing}) where T
   return
 end
 
 function put_type_and_params(channel::RemoteChannel,
-                         ::TypeParams{T, Tuple{Vararg{Pair{Symbol, Nothing}}}}) where T
+                         ::TypeAndParams{T, Tuple{Vararg{Pair{Symbol, Nothing}}}}) where T
   return
 end
 
 # Recursive call. Send all subsequent parents on which this object is 
 # based and finally the object itself, if applicable. 
-function put_type_and_params(channel::RemoteChannel, tp::TypeParams)
+function put_type_and_params(channel::RemoteChannel, tp::TypeAndParams)
   # only  types that use ids need to be sent to the other processes
   put_type_and_params(channel, params(tp))
 end
@@ -22,7 +22,7 @@ function put_type_and_params(channel::RemoteChannel, tps::Tuple{Vararg{Pair}})
   end
 end
 
-function put_type_and_params(channel::RemoteChannel, tps::Tuple{Vararg{TypeParams}})
+function put_type_and_params(channel::RemoteChannel, tps::Tuple{Vararg{TypeAndParams}})
   for tp in tps
     put_type_and_params(channel, params(tp))
   end

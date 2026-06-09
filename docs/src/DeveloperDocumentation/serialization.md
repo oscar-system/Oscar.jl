@@ -135,11 +135,11 @@ is anything that is a child node of a data node, whereas the "type branch" is
 any information that is stored in a node that is a child of a type node.
 
 These functions should also not be touched, however they expect an implementation
-of `type_params` whenever saving a type `T`. By default `type_params` will return
-`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+of `type_and_params` whenever saving a type `T`. By default `type_and_params` will return
+`nothing`. The `type_and_params` function does a shallow pass through an `obj` of type
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
-For example if `obj` is of type `RingElem` than it is expected that `type_params`
+For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
 #### `save_object` / `load_object`

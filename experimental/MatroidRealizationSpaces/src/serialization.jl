@@ -4,7 +4,7 @@ import Oscar.Serialization: save_object, load_object, type_and_params
 function type_and_params(M::MatroidRealizationSpace)
   mat = realization_matrix(M)
   p =  isnothing(mat) ? nothing : parent(mat)
-  return TypeParams(MatroidRealizationSpace,
+  return TypeAndParams(MatroidRealizationSpace,
                                       :matrix_space => p,
                                       :ideal_ring => base_ring(defining_ideal(M)),
                                       :ground_ring=>M.ground_ring)
@@ -48,7 +48,7 @@ end
 function type_and_params(M::MatroidRealizationSpaceSelfProjecting)
   mat = selfprojecting_realization_matrix(M)
   p =  isnothing(mat) ? nothing : parent(mat)
-  return TypeParams(MatroidRealizationSpaceSelfProjecting,
+  return TypeAndParams(MatroidRealizationSpaceSelfProjecting,
                                       :matrix_space => p,
                                       :ideal_ring => base_ring(defining_ideal(M)),
                                       :ground_ring=>M.ground_ring)

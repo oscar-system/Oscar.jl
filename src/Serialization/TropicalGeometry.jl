@@ -5,7 +5,7 @@
 ## elements
 @register_serialization_type TropicalSemiringElem
 
-type_and_params(obj::TropicalSemiringElem) = TypeParams(TropicalSemiringElem, parent(obj))
+type_and_params(obj::TropicalSemiringElem) = TypeAndParams(TropicalSemiringElem, parent(obj))
 
 function save_object(s::SerializerState, x::TropicalSemiringElem)
   str = string(x)
@@ -26,7 +26,7 @@ end
 # Tropical Hypersurfaces
 @register_serialization_type TropicalHypersurface
 
-type_and_params(t::T) where T <: TropicalHypersurface = TypeParams(T, parent(tropical_polynomial(t)))
+type_and_params(t::T) where T <: TropicalHypersurface = TypeAndParams(T, parent(tropical_polynomial(t)))
 
 function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
   save_object(s, tropical_polynomial(t))
@@ -41,7 +41,7 @@ end
 # Tropical Curves
 @register_serialization_type TropicalCurve uses_id
 
-type_and_params(t::TropicalCurve{M, true}) where M = TypeParams(TropicalCurve,
+type_and_params(t::TropicalCurve{M, true}) where M = TypeAndParams(TropicalCurve,
                                                             params(type_and_params(polyhedral_complex(t))))
 # here to handle weird edge case
 type_and_params(t::TropicalCurve{M, false}) where M = TypeAndParams(TropicalCurve, "graph")

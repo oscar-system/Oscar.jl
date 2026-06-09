@@ -29,16 +29,16 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeAndParams(T, coefficient_field(obj))
 
-type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeParams(T, coefficient_field(obj))
-type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeAndParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeAndParams(T, coefficient_field(obj))
 
 function type_and_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
   field = p_dict[:_coeff]
   delete!(p_dict, :_coeff)
-  return TypeParams(
+  return TypeAndParams(
     T,
     :field => field,
     :pm_params => type_and_params(p_dict))

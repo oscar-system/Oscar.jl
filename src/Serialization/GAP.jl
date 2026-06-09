@@ -42,9 +42,9 @@ end
 @register_serialization_type GapObj uses_id
 
 function type_and_params(X::GapObj)
-  params = GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing, TypeParams, GapObj}
-  params isa TypeParams && return params
-  return TypeParams(GapObj, params)
+  params = GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing, TypeAndParams, GapObj}
+  params isa TypeAndParams && return params
+  return TypeAndParams(GapObj, params)
 end
 
 function save_object(s::SerializerState, X::GapObj)
@@ -213,7 +213,7 @@ install_GAP_type_and_params(:IsSubgroupFpGroup,
     else
       F = GAP.getbangproperty(Xfam, :wholeGroup)::GapObj
     end
-    return TypeParams(GapObj, F)
+    return TypeAndParams(GapObj, F)
   end)
 
 install_GAP_serialization(:IsSubgroupFpGroup,
