@@ -242,6 +242,6 @@ Base.@deprecate_binding ModuleFPElem_dec OFPModuleElem_dec
 Base.@deprecate_binding ModuleFPHomDummy OFPModuleHomDummy
 
 @eval Serialization begin
-  @deprecate Serialization.type_params Serialization.type_and_params
-  Base.@deprecate_binding Serialization.TypeParams Serialization.TypeAndParams
+  @deprecate type_params type_and_params
+  Base.@deprecate_binding TypeParams TypeAndParams
 end
