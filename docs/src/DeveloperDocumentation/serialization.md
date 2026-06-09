@@ -294,7 +294,7 @@ OscarSerializer
 ├── IPCSerializer         # inter-process communication; no refs written
 └── MultiFileSerializer
     ├── LPSerializer      # LinearProgram + external .lp file
-    └── DirSerializer     # one file per ref object, written to a directory
+    └── MultiFileRefSerializer  # one file per ref object, prefix-based naming
 ```
 
 #### JSONSerializer
@@ -340,24 +340,25 @@ load("/data/project/lp.mrdi"; serializer=ser)
 # also creates: /data/project/lp-<objectid>.lp
 ```
 
-#### DirSerializer
+#### MultiFileRefSerializer
 
-Writes `main.mrdi` for the root object and one `<UUID>.mrdi` (or `<UUID>.mrdi.gz`
-with `compression=:gzip`) file per referenced object, all inside a single
-directory. The directory is created atomically: a temp directory is built first,
-then renamed to the target path, removing any previous version.
+Writes `<prefix>.mrdi` for the root object and one `<prefix>_<UUID>.mrdi` (or
+`<prefix>_<UUID>.mrdi.gz` with `compression=:gzip`) file per referenced object,
+all flat in the same directory. The path argument is used as a prefix verbatim
+(no extension stripping): `save("my_data", obj; serializer=MultiFileRefSerializer())`
+creates `my_data.mrdi` and `my_data_<UUID>.mrdi`.
 
 ```julia
-DirSerializer()                    # basepath resolved at save time
-DirSerializer(basepath::String)    # explicit directory path
-DirSerializer(basepath, compression)  # with compression (internal use)
+MultiFileRefSerializer()                    # basepath resolved at save time
+MultiFileRefSerializer(basepath::String)    # explicit stem path
+MultiFileRefSerializer(basepath, compression)  # with compression (internal use)
 ```
 
-`_ref_files` in `main.mrdi` lists ref filenames in leaf-first (dependency) order
+`_ref_files` in the main file lists ref basenames in leaf-first (dependency) order
 so `deserializer_open` can load them in the correct sequence without requiring a
 separate topological sort.
 
-On load, `deserializer_open` opens each ref file before deserializing `main.mrdi`.
+On load, `deserializer_open` opens each ref file before deserializing the main file.
 Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
 
 

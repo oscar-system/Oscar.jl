@@ -46,15 +46,16 @@ load("poly.mrdi"; params=R)
 save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false))
 ```
 
-### DirSerializer
+### MultiFileRefSerializer
 
-Splits refs into separate files inside a directory. Each referenced object is
-written to its own `<UUID>.mrdi` file alongside `main.mrdi`. Use this when
-objects share large sub-objects and you want those stored once on disk rather
-than duplicated across files.
+Splits refs into separate files alongside the main file, using the path as a
+prefix. Each referenced object is written to its own `<prefix>_<UUID>.mrdi`
+file. The main file is `<prefix>.mrdi`. Use this when objects share large
+sub-objects.
 
-The `filename` argument is treated as a directory path (created if absent;
-overwritten atomically if present).
+The `filename` argument is used as a prefix directly — no extension is added or
+stripped. On overwrite, stale ref files from the previous save are removed
+automatically.
 
 ```julia
 Qx, x = QQ[:x]
@@ -62,21 +63,21 @@ F, a = number_field(x^2 + 2)
 R, (y, z) = F[:y, :z]
 p = a * y - z
 
-save("polydir", p; serializer=Oscar.Serialization.DirSerializer())
-# creates: polydir/main.mrdi  polydir/<UUID>.mrdi  ...
+save("polydata", p; serializer=Oscar.Serialization.MultiFileRefSerializer())
+# creates: polydata.mrdi  polydata_<UUID>.mrdi  ...
 
 Oscar.reset_global_serializer_state()
-load("polydir"; serializer=Oscar.Serialization.DirSerializer(), params=R)
+load("polydata"; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
 ```
 
-Gzip compression applies per ref file:
+Gzip compression applies to main and all ref files:
 
 ```julia
-save("polydir", p; serializer=Oscar.Serialization.DirSerializer(), compression=:gzip)
-# creates: polydir/main.mrdi  polydir/<UUID>.mrdi.gz  ...
+save("polydata", p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+# creates: polydata.mrdi.gz  polydata_<UUID>.mrdi.gz  ...
 
 Oscar.reset_global_serializer_state()
-load("polydir"; serializer=Oscar.Serialization.DirSerializer(), params=R)
+load("polydata"; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
 ```
 
 ### LPSerializer

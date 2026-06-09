@@ -686,7 +686,7 @@ will be saved are defined during type registration, see
 
 The optional `serializer` argument controls the output format and layout.
 The default `JSONSerializer` writes a single `.mrdi` file. Other serializers
-such as `DirSerializer` (multi-file directory) and `LPSerializer` (external LP
+such as `MultiFileRefSerializer` (multi-file prefix-based) and `LPSerializer` (external LP
 file for linear programs) are available. See the
 [serialization documentation](@ref serialization) for details and examples.
 
@@ -755,22 +755,70 @@ function save(filename::String, obj::Any;
               compression::Symbol=:none,
               serializer::OscarSerializer=JSONSerializer(),
               kwargs...)
-  if serializer isa DirSerializer
-    temp_dir = mktempdir(dirname(abspath(filename)))
-    temp_file = tempname(temp_dir)
-    main_filename = compression == :gzip ? "main.mrdi.gz" : "main.mrdi"
+  if serializer isa MultiFileRefSerializer
+    prefix = abspath(filename)
+    main_ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    main_file = prefix * main_ext
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+
+    old_ref_basenames = String[]
+    alt_ext = compression == :gzip ? ".mrdi" : ".mrdi.gz"
+    alt_main_file = prefix * alt_ext
+    existing_main = isfile(main_file) ? main_file : isfile(alt_main_file) ? alt_main_file : nothing
+    if !isnothing(existing_main)
+      try
+        if endswith(existing_main, ".gz")
+          open(CodecZlib.GzipDecompressorStream, existing_main) do f
+            parsed = JSON3.read(f)
+            append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
+          end
+        else
+          open(existing_main) do f
+            parsed = JSON3.read(f)
+            append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
+          end
+        end
+      catch
+      end
+    end
+
+    temp_file = tempname(prefix_dir)
     if compression == :gzip
       open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-        save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
+        save(file, obj; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
       end
     else
       open(temp_file, "w") do file
-        save(file, obj; serializer=DirSerializer(temp_dir, compression), kwargs...)
+        save(file, obj; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
       end
     end
-    Base.Filesystem.rename(temp_file, joinpath(temp_dir, main_filename))
-    isdir(filename) && rm(filename; recursive=true)
-    Base.Filesystem.rename(temp_dir, filename)
+
+    new_ref_basenames = Set{String}()
+    try
+      if compression == :gzip
+        open(CodecZlib.GzipDecompressorStream, temp_file) do f
+          parsed = JSON3.read(f)
+          union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
+        end
+      else
+        open(temp_file) do f
+          parsed = JSON3.read(f)
+          union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
+        end
+      end
+    catch
+    end
+
+    Base.Filesystem.rename(temp_file, main_file)
+
+    isfile(alt_main_file) && rm(alt_main_file)
+
+    for rf in old_ref_basenames
+      rf in new_ref_basenames && continue
+      rf_path = joinpath(prefix_dir, rf)
+      isfile(rf_path) && rm(rf_path)
+    end
+
     return nothing
   end
   @req !isdir(filename) "filename is a directory, if this was intended set the appropriate serializer "
@@ -813,7 +861,7 @@ If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
 The optional `serializer` argument must match the one used when saving. Pass the
-same serializer instance (e.g. `DirSerializer()` or `LPSerializer(basepath)`)
+same serializer instance (e.g. `MultiFileRefSerializer()` or `LPSerializer(basepath)`)
 that was used with `save`. See the
 [serialization documentation](@ref serialization) for details and examples.
 
@@ -953,16 +1001,18 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
-  if serializer isa DirSerializer
-    main_gz = joinpath(filename, "main.mrdi.gz")
-    main_file = isfile(main_gz) ? main_gz : joinpath(filename, "main.mrdi")
-    if endswith(main_file, ".gz")
+  if serializer isa MultiFileRefSerializer
+    prefix = abspath(filename)
+    main_gz = prefix * ".mrdi.gz"
+    main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    compression = endswith(main_file, ".gz") ? :gzip : :none
+    if compression == :gzip
       open(CodecZlib.GzipDecompressorStream, main_file) do file
-        return load(file; serializer=DirSerializer(filename), kwargs...)
+        return load(file; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
       end
     else
       open(main_file) do file
-        return load(file; serializer=DirSerializer(filename), kwargs...)
+        return load(file; serializer=MultiFileRefSerializer(prefix), kwargs...)
       end
     end
   elseif endswith(filename, ".gz")

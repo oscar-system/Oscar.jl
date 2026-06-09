@@ -23,12 +23,12 @@ struct LPSerializer <: MultiFileSerializer
   basepath::String
 end
 
-struct DirSerializer <: MultiFileSerializer
+struct MultiFileRefSerializer <: MultiFileSerializer
   basepath::String
   compression::Symbol
 end
-DirSerializer() = DirSerializer("", :none)
-DirSerializer(basepath::String) = DirSerializer(basepath, :none)
+MultiFileRefSerializer() = MultiFileRefSerializer("", :none)
+MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none)
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
@@ -181,19 +181,20 @@ end
 
 handle_refs(::SerializerState{IPCSerializer}) = nothing
 
-function handle_refs(s::SerializerState{DirSerializer})
+function handle_refs(s::SerializerState{MultiFileRefSerializer})
   isempty(s.refs) && return nothing
-  dir = basepath(s.serializer)
+  prefix = basepath(s.serializer)
   compression = s.serializer.compression
   ref_files = String[]
+  prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
   while !isempty(s.refs)
     id = pop!(s.refs)
     ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
-    fname = string(id) * ext
+    fname = basename(prefix) * "_" * string(id) * ext
     push!(ref_files, fname)
     ref_obj = global_serializer_state.id_to_obj[id]
-    ref_path = joinpath(dir, fname)
-    temp_file = tempname(dir)
+    ref_path = joinpath(prefix_dir, fname)
+    temp_file = tempname(prefix_dir)
     write_ref_file = function(file)
       # Share s.refs so transitive refs accumulate in the outer while loop
       inner_s = SerializerState(
@@ -316,13 +317,14 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
+function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
-    dir = basepath(serializer)
+    prefix = basepath(serializer)
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
     for fname in ref_files
-      filepath = joinpath(dir, string(fname))
+      filepath = joinpath(prefix_dir, string(fname))
       if endswith(filepath, ".gz")
         open(CodecZlib.GzipDecompressorStream, filepath) do file
           load(file)

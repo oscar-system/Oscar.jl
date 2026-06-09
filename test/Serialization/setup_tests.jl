@@ -22,10 +22,10 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
                                     serializer::Oscar.Serialization.OscarSerializer=Oscar.Serialization.JSONSerializer(),
                                     kw...) where {T}
     is_multi_file = serializer isa Oscar.Serialization.MultiFileSerializer
-    is_dir_serializer = serializer isa Oscar.Serialization.DirSerializer
+    is_multi_file_ref_serializer = serializer isa Oscar.Serialization.MultiFileRefSerializer
 
     # save and load from a file
-    filename = joinpath(path, "original.json")
+    filename = is_multi_file_ref_serializer ? joinpath(path, "original") : joinpath(path, "original.json")
     save(filename, original; serializer=serializer, kw...)
     loaded = load(filename; params=params, serializer=serializer, kw...)
 
@@ -74,7 +74,7 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     @test loaded isa T
 
     # test schema
-    schema_file = is_dir_serializer ? joinpath(filename, "main.mrdi") : filename
+    schema_file = is_multi_file_ref_serializer ? filename * ".mrdi" : filename
     jsondict = JSON.parsefile(schema_file)
     @test validate(mrdi_schema, jsondict) == nothing
 

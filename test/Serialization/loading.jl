@@ -66,34 +66,35 @@ end
     @test str == cmp_str
   end
 
-  @testset "DirSerializer" begin
+  @testset "MultiFileRefSerializer" begin
     mktempdir() do path
       Qx, x = QQ[:x]
       F, a = number_field(x^2 + 1)
       R, (y, z) = F[:y, :z]
-      @test_throws ArgumentError save(path, a * y - z)
       p = a * y - z
 
-      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.DirSerializer(), params=R) do loaded
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) do loaded
         @test loaded == p
       end
 
-      dir_path = joinpath(path, "original.json")
-      files = readdir(dir_path)
-      @test length(files) == 4
-      @test "main.mrdi" in files
+      prefix_path = joinpath(path, "original")
+      files = readdir(path)
+      @test "original.mrdi" in files
+      @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
 
       # Overwrite with simpler object — stale ref files must be removed
-      save(dir_path, 42; serializer=Oscar.Serialization.DirSerializer())
-      @test readdir(dir_path) == ["main.mrdi"]
+      save(prefix_path, 42; serializer=Oscar.Serialization.MultiFileRefSerializer())
+      files_after = readdir(path)
+      @test "original.mrdi" in files_after
+      @test !any(f -> startswith(f, "original_"), files_after)
 
       # compression: main and ref files should be gzip compressed
-      save(dir_path, p; serializer=Oscar.Serialization.DirSerializer(), compression=:gzip)
-      gz_files = readdir(dir_path)
-      @test "main.mrdi.gz" in gz_files
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+      gz_files = filter(f -> startswith(f, "original"), readdir(path))
+      @test "original.mrdi.gz" in gz_files
       @test all(f -> endswith(f, ".gz"), gz_files)
       Oscar.Serialization.reset_global_serializer_state()
-      loaded = load(dir_path; serializer=Oscar.Serialization.DirSerializer(), params=R)
+      loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
       @test loaded == p
     end
   end
