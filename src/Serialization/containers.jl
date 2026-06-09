@@ -12,11 +12,11 @@ end
 
 # handle Array instances with >= 3 dimensions
 function type_and_params(obj::S) where {N, T, S <: Array{T, N}}
-  isempty(obj) && return TypeAndParams(S, :subtype_and_params => TypeAndParams(T, nothing), :dims => N)
+  isempty(obj) && return TypeAndParams(S, :subtype_params => TypeAndParams(T, nothing), :dims => N)
   
   params = type_and_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeAndParams(S, :subtype_and_params => params[1], :dims => N)
+  return TypeAndParams(S, :subtype_params => params[1], :dims => N)
 end
 
 has_empty_entries(obj) = false
@@ -59,12 +59,12 @@ function load_type_and_params(s::DeserializerState, T::Type{<: Union{Array, MatV
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
     if haskey(s, :dims)
-      U = load_node(s, :subtype_and_params) do _
+      U = load_node(s, :subtype_params) do _
         return decode_type(s)
       end
        
       dims = load_object(s, Int, :dims)
-      subtype, params = load_type_and_params(s, U, :subtype_and_params)
+      subtype, params = load_type_and_params(s, U, :subtype_params)
       return T{subtype, dims}, params
     else
       subtype, params = load_type_and_params(s, decode_type(s))

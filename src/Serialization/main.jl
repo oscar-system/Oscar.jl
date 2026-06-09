@@ -937,7 +937,7 @@ _convert_override_params(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T = 
 _convert_override_params(tp::TypeAndParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeAndParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
 _convert_override_params(tp::TypeAndParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-_convert_override_params(tp::TypeAndParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_and_params]
+_convert_override_params(tp::TypeAndParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
 
 function _convert_override_params(tp::TypeAndParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
   return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
