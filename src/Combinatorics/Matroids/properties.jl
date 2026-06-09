@@ -454,7 +454,9 @@ julia> cocircuits(uniform_matroid(2, 5))
  [2, 3, 4, 5]
 ```
 """
-cocircuits(M::Matroid) = circuits(dual_matroid(M))
+cocircuits(M::Matroid{T}) where T = _property_to_gs(M, Symbol("DUAL.CIRCUITS"))::Vector{Vector{T}}
+
+cocircuits(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).DUAL.CIRCUITS)::Vector{Vector{Int}}
 
 @doc raw"""
     cohyperplanes(M::Matroid)

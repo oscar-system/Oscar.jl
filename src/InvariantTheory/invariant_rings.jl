@@ -207,7 +207,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
-    return nothing
+    return IR.reynolds_operator
   end
 
   actions = [right_action(polynomial_ring(IR), g) for g in group(IR)]
@@ -314,10 +314,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
-  if !isdefined(IR, :reynolds_operator)
-    reynolds_operator(IR)
-  end
-  return IR.reynolds_operator(f)
+  return reynolds_operator(IR)(f)
 end
 
 function reynolds_operator(IR::FinGroupInvarRing, f::MPolyRingElem)
