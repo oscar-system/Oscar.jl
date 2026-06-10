@@ -1094,7 +1094,7 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
         # each vertex layer gets the same new label
         for (l, (_, vertices)) in enumerate(vertices_by_label)
           for v in vertices
-            new_vertex_labels[v + vertex_offset] = l + layer * n_vertices(G)
+            new_vertex_labels[v + vertex_offset] = l + (layer - 1) * length(vertices_by_label)
           end
         end
       else
