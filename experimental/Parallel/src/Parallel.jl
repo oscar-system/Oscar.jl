@@ -41,6 +41,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     if !isnothing(project)
       asyncmap(wids) do wid
         remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate(); using Oscar))
+        remotecall_eval(Main, wid, init_expr)
       end
     else
       asyncmap(wids) do wid
