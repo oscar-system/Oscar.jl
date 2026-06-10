@@ -1,0 +1,126 @@
+include("exports.jl")
+include("types.jl")
+
+@doc raw"""
+    modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+
+This function constructs a ModularGroup object corresponding to the finite-index subgroup
+of SL2(Z) described by the permutations s and t. This constructor tests if the given
+permutations actually describe the coset action of the matrices S = [0 -1; 1 0], T = [1 1; 0 1]
+by checking that they act transitively and satisfy the relations
+s^4 = (s^3 * t)^3 = s^2 * t * s^-2 * t^-1 = 1.
+
+# Examples
+```jldoctest
+julia> s = cperm([1,2], [3,4], [5,6], [7,8], [9,10])
+(1,2)(3,4)(5,6)(7,8)(9,10)
+
+julia> t = cperm([1,4], [2,5,9,10,8], [3,7,6])
+(1,4)(2,5,9,10,8)(3,7,6)
+
+julia> G = modular_subgroup(s, t)
+Modular subgroup of index 10
+```
+"""
+function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+  if !defines_coset_action_s_t(s, t)
+    throw(ArgumentError("s and t do not describe the action of the generators S and T on the cosets of a finite-index subgroup of SL(2,Z)"))
+  end
+  return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
+end
+
+function Base.:(==)(G::ModularGroup, H::ModularGroup)
+  # TODO do a proper group equality check by checking if G is a subset of H
+  # and if they have the same index
+  return (G.s == H.s) && (G.t == H.t)
+end
+
+function Base.hash(G::ModularGroup, h::UInt)
+  return hash(G.s, hash(G.t, h))
+end
+
+function Base.show(io::IO, G::ModularGroup)
+  idx = index(G)
+  print(io, "Modular subgroup of index $(idx)")
+end
+
+@doc raw"""
+    s_right_action(G::ModularGroup)
+
+Returns the permutation describing the action of the matrix S on the right cosets of G.
+"""
+function s_right_action(G::ModularGroup)
+  return G.s
+end
+
+@doc raw"""
+    t_right_action(G::ModularGroup)
+
+Returns the permutation describing the action of the matrix T on the right cosets of G.
+"""
+function t_right_action(G::ModularGroup)
+  return G.t
+end
+
+@doc raw"""
+    r_right_action(G::ModularGroup)
+
+Returns the permutation describing the action of the matrix T on the right cosets of G.
+"""
+function r_right_action(G::ModularGroup)
+  return G.r
+end
+
+@doc raw"""
+    j_right_action(G::ModularGroup)
+
+Returns the permutation describing the action of the matrix T on the right cosets of G.
+"""
+function j_right_action(G::ModularGroup)
+  return G.j
+end
+
+function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
+  if !(isone(s^4) && isone((s^3*t)^3) && isone(s^2*t*s^-2*t^-1))
+    return false
+  end
+  idx = maximum([maximum(moved_points(s); init=1), maximum(moved_points(t); init=1)])
+  return is_transitive(permutation_group(idx, [s, t]))
+end
+
+function index(G::ModularGroup)
+  return maximum([maximum(moved_points(G.s); init=1), maximum(moved_points(G.t); init=1)])::Int
+end
+
+function word_gens(G::ModularGroup)
+
+  F = free_group(["S", "T"])
+  S, T = gens(F)
+  SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
+
+  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
+
+  phi = hom(SL2Z, P, [G.s, G.t])
+
+  Hperm, _ = stabilizer(P, 1)
+
+  H, inc = preimage(phi, Hperm)
+
+  return [inc(h) for h in gens(H)]
+end
+
+function gens(G::ModularGroup)
+  w_gens = word_gens(G)
+
+  MatS = matrix(ZZ, [0 -1; 1 0])
+  MatT = matrix(ZZ, [1  1; 0 1])
+
+  M = matrix_group([MatS, MatT])
+  MS, MT = gens(M)
+
+  SL2Z = parent(w_gens[1])
+
+  phi = hom(SL2Z, M, [MS, MT])
+
+  return [matrix(phi(w)) for w in w_gens]
+end
