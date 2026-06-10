@@ -55,7 +55,8 @@ end
 @doc raw"""
      oscar_worker_pool(n::Int, init_expr::Expr=:(); kw...)
      oscar_worker_pool(f::Function, n::Int, init_expr=:(); kw...)
-     oscar_worker_pool(manager::ClusterManager; project=Base.active_project(), kw...)
+     oscar_worker_pool(manager::ClusterManager, init_expr=:(); project=Base.active_project(), kw...)
+     oscar_worker_pool(f::Function, manager::ClusterManager, init_expr=:(); project=Base.active_project(), kw...)
 
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
@@ -80,7 +81,7 @@ end
 ```
 """
 oscar_worker_pool(n::Int, init_expr=:(); kw...) = OscarWorkerPool(n, init_expr; kw...)
-oscar_worker_pool(manager::ClusterManager; kw...) = OscarWorkerPool(manager, init_expr; kw...)
+oscar_worker_pool(manager::ClusterManager, init_expr=:(); kw...) = OscarWorkerPool(manager, init_expr; kw...)
 
 function oscar_worker_pool(f::Function, args...; kw...)
   wp = OscarWorkerPool(args...; kw...)
