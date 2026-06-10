@@ -30,9 +30,7 @@ function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
 end
 
 function Base.:(==)(G::ModularGroup, H::ModularGroup)
-  # TODO do a proper group equality check by checking if G is a subset of H
-  # and if they have the same index
-  return (G.s == H.s) && (G.t == H.t)
+  return index(G) == index(H) && issubset(G, H)
 end
 
 function Base.hash(G::ModularGroup, h::UInt)
@@ -118,6 +116,7 @@ function word_gens(G::ModularGroup)
 
   phi = hom(SL2Z, P, [G.s, G.t])
 
+  # TODO: might need to check whether this is efficient enough for large index
   Hperm, _ = stabilizer(P, 1)
 
   H, inc = preimage(phi, Hperm)
@@ -134,8 +133,7 @@ function gens(G::ModularGroup)
   M = matrix_group([MatS, MatT])
   MS, MT = gens(M)
 
-  SL2Z = parent(w_gens[1])
-
+  SL2Z, _, _ = _SL2Z_fp()
   phi = hom(SL2Z, M, [MS, MT])
 
   return [matrix(phi(w)) for w in w_gens]
@@ -167,4 +165,35 @@ function s_t_decomposition(M::ZZMatrix)
   end
 
   return decomp
+end
+
+function coset_action_of(A::ZZMatrix, G::ModularGroup)
+  if det(A) != 1
+     throw(ArgumentError("Matrix needs to be in SL(2, Z)"))
+  end
+  w = s_t_decomposition(A)
+  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
+  phi = hom(parent(w), P, [G.s, G.t])
+  return phi(w)
+end
+
+function coset_right_action_of(A::ZZMatrix, G::ModularGroup)
+  return coset_action_of(A, G)
+end
+
+function Base.in(A::ZZMatrix, G::ModularGroup)
+    if det(A) != 1
+      return false
+    end
+    return coset_action_of(A, G)(1) == 1
+end
+
+function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
+  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
+  phi = hom(parent(w), P, [G.s, G.t])
+  return phi(w)(1) == 1
+end
+
+function Base.issubset(H::ModularGroup, G::ModularGroup)
+  return all(A -> A in G, gens(H))
 end

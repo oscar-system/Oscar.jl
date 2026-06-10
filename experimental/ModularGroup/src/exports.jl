@@ -1,3 +1,5 @@
+export coset_right_action_of
+export is_word_elm_of
 export j_right_action
 export modular_subgroup
 export r_right_action
