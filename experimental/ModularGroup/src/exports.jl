@@ -1,6 +1,7 @@
-export modular_subgroup
-export s_right_action
-export t_right_action
-export r_right_action
 export j_right_action
+export modular_subgroup
+export r_right_action
+export s_right_action
+export s_t_decomposition
+export t_right_action
 export word_gens

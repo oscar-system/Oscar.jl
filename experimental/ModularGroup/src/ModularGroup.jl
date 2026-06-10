@@ -92,12 +92,28 @@ function index(G::ModularGroup)
   return maximum([maximum(moved_points(G.s); init=1), maximum(moved_points(G.t); init=1)])::Int
 end
 
+const _SL2Z_FP_CACHE = Ref{Any}(nothing)
+
+# cache the SL2Z presentation so that it can be reused consistently
+# (especially in testing)
+function _SL2Z_fp()
+  if _SL2Z_FP_CACHE[] === nothing
+    F = free_group(["S", "T"])
+    S, T = gens(F)
+
+    SL2Z, q = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
+
+    S, T = gens(SL2Z)
+
+    _SL2Z_FP_CACHE[] = (SL2Z, S, T)
+  end
+
+  return _SL2Z_FP_CACHE[]::Tuple{FPGroup, FPGroupElem, FPGroupElem}
+end
+
 function word_gens(G::ModularGroup)
 
-  F = free_group(["S", "T"])
-  S, T = gens(F)
-  SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
-
+  SL2Z, _, _ = _SL2Z_fp()
   P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
 
   phi = hom(SL2Z, P, [G.s, G.t])
@@ -123,4 +139,32 @@ function gens(G::ModularGroup)
   phi = hom(SL2Z, M, [MS, MT])
 
   return [matrix(phi(w)) for w in w_gens]
+end
+
+function s_t_decomposition(M::ZZMatrix)
+  if det(M) != 1
+    throw(ArgumentError("Matrix needs to be in SL(2, Z)"))
+  end
+
+  MatS = matrix(ZZ, [0 -1; 1 0])
+  MatT = matrix(ZZ, [1  1; 0 1])
+
+  SL2Z, S, T = _SL2Z_fp()
+  
+  decomp = one(SL2Z)
+
+  while M[2, 1] != 0
+    k = div(M[2, 2], M[2, 1])
+    decomp = S^-1 * T^k * decomp
+    M = M * MatT^-k * MatS
+  end
+
+  # now M[2, 1] = 0 and since det(M) == 1, we have M == +-T^r where r = M[1, 2]
+  if M[1, 1] == 1
+    decomp = T^M[1, 2] * decomp
+  else
+    decomp = S^2 * T^-M[1, 2] * decomp
+  end
+
+  return decomp
 end
