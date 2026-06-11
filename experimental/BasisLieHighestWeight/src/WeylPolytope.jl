@@ -95,7 +95,7 @@ function compute_new_inequalities(
   n = length(bir_sequence)
   inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
   sizehint!(inequalities, n)
-  for i in 1:n
+  for i in n:-1:1
     lhs = zeros(QQ, n)
     for k in 1:i-1 #k<i
       lhs[k] = 0
