@@ -451,7 +451,7 @@ function realization_space(
     end
   end
 
-  if saturate && typeof(RS.defining_ideal) != Hecke.ZZIdl
+  if saturate && RS.defining_ideal isa MPolyIdeal
     RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
     if isone(RS.defining_ideal)
       set_attribute!(RS, :is_realizable, :false)
@@ -810,10 +810,11 @@ function n_new_Sgens(
   x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}
 )
   den = denominator(t)
-  if iszero(total_degree(den))
-    # Constant denominator: polynomial ring hom avoids fraction-field JIT overhead.
+  if is_unit(den)
+    # Unit denominator: polynomial ring hom avoids fraction-field JIT overhead.
     # Prime divisors of f(x=num/den) equal those of f(x=num) since den is a unit.
-    m = hom(R, R, map(v -> v == x ? numerator(t) : v, xs))
+    # Note: a constant denominator is not enough, e.g. 2 is not a unit over ZZ.
+    m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
     preSgens = unique!(elem_type(R)[m(f) for f in Sgens])
   else
     m = sub_map(x, t, R, xs)
@@ -834,8 +835,8 @@ function n_new_Igens(
   xs::Vector{<:RingElem},
 )
   den = denominator(t)
-  if iszero(total_degree(den))
-    m = hom(R, R, map(v -> v == x ? numerator(t) : v, xs))
+  if is_unit(den)
+    m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
     preIgens = unique!([clean(m(f), R, Sgens) for f in Igens])
   else
     m = sub_map(x, t, R, xs)
