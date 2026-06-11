@@ -673,9 +673,9 @@ Polyhedral fan in ambient dimension 3
 
 julia> f_vector(nfc)
 3-element Vector{ZZRingElem}:
- 6
+  6
  12
- 8
+  8
 ```
 """
 function f_vector(PF::_FanLikeType)
