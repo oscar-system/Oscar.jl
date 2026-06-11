@@ -99,7 +99,7 @@ function _SL2Z_fp()
     F = free_group(["S", "T"])
     S, T = gens(F)
 
-    SL2Z, q = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
+    SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
 
     S, T = gens(SL2Z)
 
