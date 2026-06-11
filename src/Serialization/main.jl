@@ -974,7 +974,6 @@ end
 # handle monomial ordering
 _convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
 
-
 export @register_serialization_type
 export DeserializerState
 export encode_type

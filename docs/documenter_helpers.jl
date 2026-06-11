@@ -2,8 +2,14 @@ import DelimitedFiles
 
 const docstats = Dict{String,NamedTuple}()
 if haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS")
+  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
+  platform = Sys.islinux() ? "linux" : "macos"
+  juliaVersion = join(split("$VERSION", ".")[1:2], ".")
+  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
+  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_doctests_$(commitHash).csv"
+
   Base.atexit() do
-    open("test-stats-doctests.csv", "a") do io
+    open(statsFileName, "a") do io
       @static if VERSION > v"1.11.0"
         println(io, "path,time,ctime,rctime,gctime,alloc")
         DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in docstats), ",")
