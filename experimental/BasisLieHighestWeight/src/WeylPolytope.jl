@@ -16,7 +16,7 @@ All weights are given as coefficients to the simple roots $\alpha_i$.
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},
   weight::RootSpaceElem,
-  max_of_coordinates::Vector{Int},
+  new_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
 )
   # calculate all integer solutions to the following linear program:
   # [       |                 |       ]       [   |   ]      [    |    ]
@@ -42,8 +42,11 @@ function get_lattice_points_of_weightspace(
   A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
 
   # TODO kommentar
-  A_ineq[n+1:2n, 1:n] = identity_matrix(QQ, n)
-  b_ineq[n+1:2n] = max_of_coordinates
+  for i in 1:n
+    A_ineq[n+i, :] = new_inequalities[i][1]
+    b_ineq[n+i] = new_inequalities[i][2]
+  end
+ 
 
   sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
@@ -80,8 +83,29 @@ end
 function compute_max_of_coordinates(
   bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
 )
-n = length(bir_sequence)
+  n = length(bir_sequence)
 
-zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
-return [i in zero_coordinates ? 0 : typemax(Int) for i in 1:n]
+  zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
+  return [i in zero_coordinates ? 0 : typemax(Int) for i in 1:n]
+end
+
+function compute_new_inequalities(
+  bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
+)
+  n = length(bir_sequence)
+  inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
+  sizehint!(inequalities, n)
+  for i in 1:n
+    lhs = zeros(QQ, n)
+    for k in 1:i-1 #k<i
+      lhs[k] = 0
+    end
+    lhs[i] = 1 #k=i
+    for k in i+1:n #k>i
+      lhs[k] = dot(operator_as_weight(bir_sequence, k), operator_as_root(bir_sequence, i))
+    end
+    rhs = dot(highest_weight, operator_as_root(bir_sequence, i))
+    push!(inequalities, (lhs, rhs))
+  end
+  return inequalities
 end
