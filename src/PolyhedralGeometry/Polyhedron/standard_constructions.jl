@@ -1063,9 +1063,9 @@ Polyhedron in ambient dimension 4
 
 julia> f_vector(BL)
 3-element Vector{ZZRingElem}:
- 6
+  6
  12
- 8
+  8
 
 ```
 """
@@ -1360,9 +1360,9 @@ Polytope in ambient dimension 3
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{QQFieldElem}:
  4306545//4194304
- 15849//16384
- 4165//4096
- 8281//8192
+   15849//16384
+    4165//4096
+    8281//8192
 
 julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
 Polytope in ambient dimension 3
@@ -2110,7 +2110,7 @@ Polytope in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{ZZRingElem}:
- 9
+  9
  32
  46
  23
@@ -2293,9 +2293,9 @@ true
 julia> sort(map(x->dot(x,x), vertices(rnp)))
 4-element Vector{QQFieldElem}:
  1417//4096
- 481//1024
- 225//256
- 101//32
+  481//1024
+  225//256
+  101//32
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)

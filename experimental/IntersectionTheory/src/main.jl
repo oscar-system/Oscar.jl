@@ -391,10 +391,10 @@ julia> P3 = abstract_projective_space(3);
 
 julia> [euler_characteristic(OO(P3, d)) for d in -2:5]
 8-element Vector{QQFieldElem}:
- 0
- 0
- 1
- 4
+  0
+  0
+  1
+  4
  10
  20
  35

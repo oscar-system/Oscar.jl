@@ -301,12 +301,12 @@ Polyhedral fan in ambient dimension 2
 
 julia> r = rays(PF)[1]
 2-element RayVector{QQFieldElem}:
- 1
+  1
  -1//2
 
 julia> primitive_generator(r)
 2-element Vector{ZZRingElem}:
- 2
+  2
  -1
 ```
 """
@@ -326,7 +326,7 @@ Polyhedral fan in ambient dimension 2
 
 julia> r = rays(PF)[1]
 2-element RayVector{QQFieldElem}:
- 1
+  1
  -1//2
 
 julia> primitive_generator_with_scaling_factor(r)
@@ -538,8 +538,8 @@ Polyhedral fan in ambient dimension 3
 
 julia> standard_coordinates(PF, [1, 1, 0, 1])
 3-element Vector{QQFieldElem}:
- 0
- 0
+  0
+  0
  -1
 ```
 """
@@ -663,9 +663,9 @@ Polytope in ambient dimension 3
 
 julia> f_vector(c)
 3-element Vector{ZZRingElem}:
- 8
+  8
  12
- 6
+  6
 
 
 julia> nfc = normal_fan(c)
