@@ -100,8 +100,10 @@ function align_nodes_vertically(IG::_IsotopyGraph)
 
   for n in vcat(IG.singularNodes, IG.ytangentNodes)
     nbs = neighbors(IG.G, n)
-    yvals = [aligned[nb][2] for nb in nbs]
-    aligned[n][2] = QQ(1,2)*(maximum(yvals) + minimum(yvals))
+    if length(nbs) > 0
+      yvals = [aligned[nb][2] for nb in nbs]
+      aligned[n][2] = QQ(1,2)*(maximum(yvals) + minimum(yvals))
+    end
   end
   return aligned
 end
