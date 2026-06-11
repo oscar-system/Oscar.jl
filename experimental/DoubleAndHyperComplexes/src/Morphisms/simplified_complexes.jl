@@ -930,23 +930,27 @@ end
     simplify(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the identification map $N \to M$.
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are
+isomorphisms.
 The simplification is heuristical and includes steps like for example removing
 zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
-  pres = presentation(M)
-  aug = map(pres, 0)
-  c = pres[0:1]
-  s = simplify(SimpleComplexWrapper(c))
-  result, to_result = cokernel(map(s, 1))
-  simp_to_orig = map_to_original_complex(s)
-  orig_to_simp = map_from_original_complex(s)
-  result_to_M = hom(result, M, elem_type(M)[aug(simp_to_orig[0](preimage(to_result, x))) for x in gens(result)]; check=false)
-  M_to_result = hom(M, result, elem_type(M)[to_result(orig_to_simp[0](preimage(aug, x))) for x in gens(M)]; check=false)
+  res, aug = free_resolution(SimpleFreeResolution, M)
+  simp = simplify(res)
+  simp_to_orig = map_to_original_complex(simp)
+  orig_to_simp = map_from_original_complex(simp)
+  result, Z0_to_result = homology(simp, 0)
+  Z0, inc_Z0 = kernel(simp, 0)
+
+  result_to_M = hom(result, M, 
+                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
+  M_to_result = hom(M, result,
+                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
   set_attribute!(M_to_result, :inverse=>result_to_M)
   set_attribute!(result_to_M, :inverse=>M_to_result)
+  #return result, M_to_result, result_to_M
   return result, result_to_M
 end
 
