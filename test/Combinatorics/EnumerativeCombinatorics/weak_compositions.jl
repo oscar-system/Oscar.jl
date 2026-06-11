@@ -1,12 +1,18 @@
 @testset "weak compositions for integer type $T" for T in [Int, Int8, ZZRingElem]
   @test length(weak_compositions(T(3), T(2))) == 4
-  @test @inferred collect(weak_compositions(T(3), T(2))) == map(weak_composition, [T[3, 0], T[2, 1], T[1, 2], T[0, 3]])
+  @test (@inferred collect(weak_compositions(T(3), T(2)))) == map(weak_composition, [T[3, 0], T[2, 1], T[1, 2], T[0, 3]])
   @test isempty(weak_compositions(T(1), T(0)))
-  @test @inferred collect(weak_compositions(T(1), T(0))) == Oscar.WeakComposition{T}[]
+  @test (@inferred collect(weak_compositions(T(1), T(0)))) == Oscar.WeakComposition{T}[]
   @test length(weak_compositions(T(0), T(0))) == 1
-  @test @inferred collect(weak_compositions(T(0), T(0))) == [weak_composition(T[])]
+  @test (@inferred collect(weak_compositions(T(0), T(0)))) == [weak_composition(T[])]
   @test length(weak_compositions(T(0), T(3))) == 1
-  @test @inferred collect(weak_compositions(T(0), T(3))) == [weak_composition(T[0, 0, 0])]
+  @test (@inferred collect(weak_compositions(T(0), T(3)))) == [weak_composition(T[0, 0, 0])]
+
+  @testset "inplace iteration" begin
+    Ci = weak_compositions(T(5),T(3), inplace=true)
+    Cf = weak_compositions(T(5),T(3))
+    @test all(splat(==), zip(Ci, Cf))
+  end
 
   l = @inferred collect(weak_compositions(T(5), T(3)))
   @test length(l) == 21

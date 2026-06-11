@@ -8,7 +8,7 @@ struct BaseChangeChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
 
   function BaseChangeChainFactory(phi::Any, orig::AbsHyperComplex)
     # TODO: Can we be more specific about the type?
-    return new{ModuleFP}(phi, orig, Dict{Tuple, Any}())
+    return new{OFPModule}(phi, orig, Dict{Tuple, Any}())
   end
 end
 
@@ -28,7 +28,7 @@ struct BaseChangeMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType
   orig::AbsHyperComplex
 
   function BaseChangeMapFactory(phi::Any, orig::AbsHyperComplex)
-    return new{ModuleFPHom}(phi, orig)
+    return new{OFPModuleHom}(phi, orig)
   end
 end
 
@@ -40,7 +40,8 @@ function (fac::BaseChangeMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   self[next]
   dom_bc = chain_factory(self).red_map_cache[i]
   cod_bc = chain_factory(self).red_map_cache[next]
-  res = change_base_ring(fac.phi, f; domain_base_change=dom_bc, codomain_base_change=cod_bc)
+  res, _, _ = change_base_ring(fac.phi, f; domain=self[i], codomain=self[next])
+  return res
 end
 
 function can_compute(fac::BaseChangeMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
@@ -53,7 +54,7 @@ end
   internal_complex::HyperComplex{ChainType, MorphismType}
   red_map::AbsHyperComplexMorphism
 
-  function BaseChangeComplex(phi::Any, orig::AbsHyperComplex{CT, MT}) where {CT<:ModuleFP, MT<:ModuleFPHom}
+  function BaseChangeComplex(phi::Any, orig::AbsHyperComplex{CT, MT}) where {CT<:OFPModule, MT<:OFPModuleHom}
     chain_fac = BaseChangeChainFactory(phi, orig)
     map_fac = BaseChangeMapFactory(phi, orig)
 
@@ -65,7 +66,7 @@ end
                                     lower_bounds = lower_bounds,
                                     upper_bounds = upper_bounds
                                    )
-    return new{ModuleFP, ModuleFPHom}(orig, internal_complex)
+    return new{OFPModule, OFPModuleHom}(orig, internal_complex)
   end
 end
 
@@ -80,7 +81,7 @@ struct BaseChangeMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{Mo
 
   function BaseChangeMorphismFactory(comp::BaseChangeComplex{CT, MT}) where {CT, MT}
     # TODO: Can we do more about the type?
-    return new{ModuleFPHom}(comp)
+    return new{OFPModuleHom}(comp)
   end
 end
 
@@ -104,7 +105,7 @@ end
     dom = cod.orig
 
     internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
-    return new{typeof(cod.orig), typeof(cod), ModuleFPHom}(internal_morphism)
+    return new{typeof(cod.orig), typeof(cod), OFPModuleHom}(internal_morphism)
   end
 end
 

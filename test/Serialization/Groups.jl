@@ -110,6 +110,19 @@
        @test parent(loadedw[1]) === parent(loadedv[1])
     end
 
+    @testset "Finitely generated abelian groups and their homomorphisms" begin
+      dom = free_abelian_group(2)
+      codom = free_abelian_group(3)
+      test_save_load_roundtrip(path, dom) do loaded
+        @test dom == loaded
+      end
+      map = matrix(ZZ, [[1,2,3], [2,3,4]])
+      h = hom(dom, codom, map)
+      test_save_load_roundtrip(path, h) do loaded
+        @test h == loaded
+      end
+    end
+
     @testset "Finitely presented groups and their subgroups" begin
       F = free_group(2)
       x1 = gen(F, 1)

@@ -15,8 +15,11 @@
 
   @testset "alternative inputs" begin
     @test issetequal(maximal_cells(square_by_incidence),
-                     maximal_cells(square_by_weights))
-    @test issetequal(square_max_cells, maximal_cells(subdivision_of_points(C,min_weights(square_by_cells))))
+      maximal_cells(square_by_weights))
+    @test issetequal(
+      square_max_cells,
+      maximal_cells(subdivision_of_points(C, min_weights(square_by_cells))),
+    )
   end
 
   moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
@@ -50,7 +53,11 @@
     @test length(points(MOAE)) == 6
     @test [0, 0, 4] in points(MOAE)
     @test gkz_vector(fulldim_MOAE) == [9, 9, 9, 7, 7, 7]
-    @test_throws ArgumentError subdivision_of_points(matrix(QQ,[[0, 0], [1, 0], [1, 0], [1, 1]]), [1, 2, 2, 4])
-    @test_throws ArgumentError subdivision_of_points([[0, 0], [1, 0], [1, 0], [1, 1]], square_weights)
+    @test_throws ArgumentError subdivision_of_points(
+      matrix(QQ, [[0, 0], [1, 0], [1, 0], [1, 1]]), [1, 2, 2, 4]
+    )
+    @test_throws ArgumentError subdivision_of_points(
+      [[0, 0], [1, 0], [1, 0], [1, 1]], square_weights
+    )
   end
 end

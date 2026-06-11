@@ -22,8 +22,8 @@ julia> forget_toric_structure(antv)
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
   Y = underlying_scheme(X)
-  iso = morphism(Y, X, identity_map(OO(X)), check=true)
-  iso_inv = morphism(X, Y, identity_map(OO(X)), check=true)
+  iso = morphism(Y, X, identity_map(OO(X)); check=true)
+  iso_inv = morphism(X, Y, identity_map(OO(X)); check=true)
   set_attribute!(iso, :inverse => iso_inv)
   set_attribute!(iso_inv, :inverse => iso)
   return Y, iso
@@ -46,14 +46,14 @@ julia> forget_toric_structure(P2)
 """
 function forget_toric_structure(X::NormalToricVariety)
   # Collect all the isomorphisms forgetting the toric structure
-  iso_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  iso_dict = IdDict{AbsAffineScheme,AbsAffineSchemeMor}()
   for U in affine_charts(X)
     iso_dict[U] = forget_toric_structure(U)[2] # store only the isomorphism
   end
   cov = Covering([domain(phi) for (U, phi) in iso_dict])
 
   # Prepare a dictionary that can be used in the constructor of the covering morphism
-  iso_dict_covariant = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  iso_dict_covariant = IdDict{AbsAffineScheme,AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     iso_dict_covariant[domain(phi)] = phi
   end
@@ -61,13 +61,13 @@ function forget_toric_structure(X::NormalToricVariety)
   # Recreate all the gluings with the new patches
   for U in affine_charts(X), V in affine_charts(X)
     glue = default_covering(X)[U, V]
-    new_glue = restrict(glue, inverse(iso_dict[U]), inverse(iso_dict[V]), check=true)
+    new_glue = restrict(glue, inverse(iso_dict[U]), inverse(iso_dict[V]); check=true)
     add_gluing!(cov, new_glue)
   end
 
   # Prepare the underlying covering morphisms for the identifying isomorphisms
   iso_cov = CoveringMorphism(cov, default_covering(X), iso_dict_covariant)
-  inv_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  inv_dict = IdDict{AbsAffineScheme,AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     inv_dict[U] = inverse(phi)
   end
@@ -85,7 +85,6 @@ function forget_toric_structure(X::NormalToricVariety)
 
   return Y, iso
 end
-
 
 #######################################
 ### Underlying scheme
@@ -115,7 +114,11 @@ Spectrum
     by ideal (0)
 ```
 """
-@attr AffineScheme{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = spec(base_ring(toric_ideal(X)), toric_ideal(X))
+@attr AffineScheme{QQField,MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(
+  X::AffineNormalToricVariety
+) = spec(
+  base_ring(toric_ideal(X)), toric_ideal(X)
+)
 
 ###
 # Some additional structure to make computation of toric gluings lazy
@@ -123,18 +126,18 @@ struct ToricGluingData
   X::NormalToricVariety
   U::AffineNormalToricVariety
   V::AffineNormalToricVariety
-# i::Int # The indices of the charts to be glued
-# j::Int
+  # i::Int # The indices of the charts to be glued
+  # j::Int
 end
 
 function _compute_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
-# i = gd.i
-# j = gd.j
-# U = affine_charts(X)[i]
-# V = affine_charts(X)[j]
+  # i = gd.i
+  # j = gd.j
+  # U = affine_charts(X)[i]
+  # V = affine_charts(X)[j]
   sigma_1 = cone(U)
   sigma_2 = cone(V)
   tau = intersect(sigma_1, sigma_2)
@@ -158,9 +161,9 @@ function _compute_gluing(gd::ToricGluingData)
   #   then τ* is a face of σ ̌."
 
   degs1 = hilbert_basis(U)
-  non_local_indices_1 = filter(i->!(vec(-degs1[i,:]) in tau_dual), 1:nrows(degs1))
+  non_local_indices_1 = filter(i -> !(vec(-degs1[i, :]) in tau_dual), 1:nrows(degs1))
   degs2 = hilbert_basis(V)
-  non_local_indices_2 = filter(i->!(vec(-degs2[i,:]) in tau_dual), 1:nrows(degs2))
+  non_local_indices_2 = filter(i -> !(vec(-degs2[i, :]) in tau_dual), 1:nrows(degs2))
 
   x = gens(OO(U))
   UV = PrincipalOpenSubset(U, [x[i] for i in 1:length(x) if !(i in non_local_indices_1)])
@@ -172,27 +175,46 @@ function _compute_gluing(gd::ToricGluingData)
 
   xx = gens(OO(UV))
   yy = gens(OO(VU))
-  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=false)
-  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=false)
+  f = morphism(
+    UV,
+    VU,
+    [
+      prod(
+        (e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))
+      ) for e in y_to_x
+    ];
+    check=false,
+  )
+  g = morphism(
+    VU,
+    UV,
+    [
+      prod(
+        (e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))
+      ) for e in x_to_y
+    ];
+    check=false,
+  )
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
-  result = Gluing(U, V, f, g, check=false)
+  result = Gluing(U, V, f, g; check=false)
   return result
 end
 
 # Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative
 # coefficients for the vectors vᵢ of `degs1` with index i ∈ `non_local_indices`.
-function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int})
+function _convert_degree_system(
+  degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int}
+)
   result = Vector{ZZMatrix}()
   for i in 1:nrows(degs2)
-    C = identity_matrix(ZZ, nrows(degs1))[non_local_indices_1,:]
-    S = solve_mixed(transpose(degs1), transpose(degs2[i:i,:]), C; permit_unbounded=true)
+    C = identity_matrix(ZZ, nrows(degs1))[non_local_indices_1, :]
+    S = solve_mixed(transpose(degs1), transpose(degs2[i:i, :]), C; permit_unbounded=true)
     push!(result, S[1:1, :])
   end
   return result
 end
-
 
 @doc raw"""
     underlying_scheme(X::NormalToricVariety)
@@ -227,13 +249,13 @@ with default covering
   for (k, A) in enumerate(patch_list)
     C = cone(pm_object(A).WEIGHT_CONE)
     n = length(hilbert_basis(C))
-    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n]; cached=false);
+    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n]; cached=false)
     set_attribute!(A, :toric_ideal, toric_ideal(R, A))
   end
   cov = Covering(patch_list)
 
-  for i in 1:(length(patch_list)-1)
-    for j in i+1:length(patch_list)
+  for i in 1:(length(patch_list) - 1)
+    for j in (i + 1):length(patch_list)
       X = patch_list[i]
       Y = patch_list[j]
       gd = ToricGluingData(Z, X, Y)
@@ -243,7 +265,7 @@ with default covering
       (dim(facet) == dim(cone(X)) - 1) || continue
       vmat = _find_localization_element(cone(X), cone(Y), facet)
       U = _localize_affine_toric_variety(X, vmat)
-      V = _localize_affine_toric_variety(Y, (-1)*vmat)
+      V = _localize_affine_toric_variety(Y, (-1) * vmat)
       add_gluing!(cov, _compute_gluings(X, Y, vmat, U, V))
     end
   end
@@ -254,21 +276,27 @@ with default covering
   return CoveredScheme(cov)
 end
 
-
-function _find_localization_element(X::Cone{QQFieldElem}, Y::Cone{QQFieldElem}, facet::Cone{QQFieldElem})
+function _find_localization_element(
+  X::Cone{QQFieldElem}, Y::Cone{QQFieldElem}, facet::Cone{QQFieldElem}
+)
   CXdual = polarize(X)
   CYdual = polarize(Y)
   candidates = polarize(facet).pm_cone.HILBERT_BASIS_GENERATORS[2]
-  pos = findfirst(j -> ((candidates[j,:] in CXdual) && ((-candidates[j,:]) in CYdual)), 1:nrows(candidates))
+  pos = findfirst(
+    j -> ((candidates[j, :] in CXdual) && ((-candidates[j, :]) in CYdual)),
+    1:nrows(candidates),
+  )
   sign = 1
   if pos === nothing
-    pos = findfirst(j -> (((-candidates[j,:]) in CXdual) && (candidates[j,:] in CYdual)), 1:nrows(candidates))
+    pos = findfirst(
+      j -> (((-candidates[j, :]) in CXdual) && (candidates[j, :] in CYdual)),
+      1:nrows(candidates),
+    )
     sign = -1
   end
   @req pos !== nothing "no element found for localization"
-  return sign * matrix(ZZ.(collect(candidates[pos,:])))
+  return sign * matrix(ZZ.(collect(candidates[pos, :])))
 end
-
 
 function _localize_affine_toric_variety(X::AffineNormalToricVariety, vmat::ZZMatrix)
   AX = transpose(hilbert_basis(X))
@@ -278,14 +306,33 @@ function _localize_affine_toric_variety(X::AffineNormalToricVariety, vmat::ZZMat
   return PrincipalOpenSubset(X, OO(X)(fX))
 end
 
-
-function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVariety, vmat::ZZMatrix, U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+function _compute_gluings(
+  X::AffineNormalToricVariety,
+  Y::AffineNormalToricVariety,
+  vmat::ZZMatrix,
+  U::PrincipalOpenSubset,
+  V::PrincipalOpenSubset,
+)
   AX = transpose(hilbert_basis(X))
   AY = transpose(hilbert_basis(Y))
   img_gens = _compute_image_generators(AX, AY, vmat)
-  fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
-  img_gens = _compute_image_generators(AY, AX, (-1)*vmat)
-  gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
+  fres = hom(
+    OO(V),
+    OO(U),
+    [
+      prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for
+      w in img_gens
+    ],
+  )
+  img_gens = _compute_image_generators(AY, AX, (-1) * vmat)
+  gres = hom(
+    OO(U),
+    OO(V),
+    [
+      prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for
+      w in img_gens
+    ],
+  )
   set_attribute!(gres, :inverse, fres)
   set_attribute!(fres, :inverse, gres)
   f = morphism(U, V, fres)
@@ -295,12 +342,14 @@ function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVarie
   return SimpleGluing(X, Y, f, g)
 end
 
-
 function _compute_image_generators(AX::ZZMatrix, AY::ZZMatrix, vmat::ZZMatrix)
-  l = findfirst(j -> (vmat == AX[:,j]), 1:ncols(AX))
+  l = findfirst(j -> (vmat == AX[:, j]), 1:ncols(AX))
   Idext = identity_matrix(ZZ, ncols(AX))
-  Idext[l,l] = 0
-  img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
+  Idext[l, l] = 0
+  img_gens = [
+    solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for
+    k in 1:ncols(AY)
+  ]
 end
 
 is_irreducible(X::NormalToricVariety) = true

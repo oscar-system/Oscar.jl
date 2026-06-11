@@ -3,14 +3,14 @@ export has_terminal_singularities
 export linear_quotient
 
 @doc raw"""
-    linear_quotient(G::MatrixGroup)
+    linear_quotient(G::MatGroup)
 
 Return the linear quotient by `G`, that is, the orbit space of the action of `G`
 on the vector space of dimension `degree(G)`.
 
 If the given group is not finite, an error is raised.
 """
-function linear_quotient(G::MatrixGroup)
+function linear_quotient(G::MatGroup)
   @req is_finite(G) "The group must be finite"
   return LinearQuotient(G)
 end
@@ -22,7 +22,7 @@ end
 
 group(L::LinearQuotient) = L.group
 base_ring(L::LinearQuotient) = base_ring(group(L))
-base_ring_type(::Type{LinearQuotient{S,T}}) where {S,T} = base_ring_type(MatrixGroup{S,T})
+base_ring_type(::Type{LinearQuotient{S,T}}) where {S,T} = base_ring_type(MatGroup{S,T})
 
 function fixed_root_of_unity(L::LinearQuotient)
   if isdefined(L, :root_of_unity)
@@ -105,7 +105,7 @@ end
 ################################################################################
 
 @doc raw"""
-    age(g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+    age(g::MatGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the age of `g` with respect to the chosen root of unity `zeta[1]` of order
 `zeta[2]`.
@@ -113,7 +113,7 @@ If `zeta[2]` is not divisible by `order(g)` an error is raised.
 
 Note that `age(g)` depends on the choice of the root of unity, see [IR96](@cite).
 """
-function age(g::MatrixGroupElem{T}, zeta::Tuple{T,Int}) where {T}
+function age(g::MatGroupElem{T}, zeta::Tuple{T,Int}) where {T}
   fl, q = divides(zeta[2], order(Int, g))
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
 
@@ -123,12 +123,12 @@ function age(g::MatrixGroupElem{T}, zeta::Tuple{T,Int}) where {T}
 end
 
 @doc raw"""
-    representatives_of_junior_elements(G::MatrixGroup, zeta::Tuple{FieldElem, Int})
+    representatives_of_junior_elements(G::MatGroup, zeta::Tuple{FieldElem, Int})
 
 Return representatives of the conjugacy classes of `G` which consist of junior
 elements, that is, elements `g` in `G` with `age(g, zeta) == 1`.
 """
-function representatives_of_junior_elements(G::MatrixGroup{T}, zeta::Tuple{T,Int}) where {T}
+function representatives_of_junior_elements(G::MatGroup{T}, zeta::Tuple{T,Int}) where {T}
   @req is_subgroup_of_sl(G) "Group is not a subgroup of SL"
   return filter!(g -> is_one(age(g, zeta)), map(representative, conjugacy_classes(G)))
 end
@@ -139,7 +139,7 @@ end
 # Additionally, the codomain of this automorphism is graded by the weights of the
 # action.
 function weights_of_action(
-  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+  R::MPolyRing{T}, g::MatGroupElem{T}, zeta::Tuple{T,Int}
 ) where {T}
   @req ngens(R) == degree(parent(g)) "Number of variables must match degree of the matrix"
   fl, q = divides(zeta[2], order(Int, g))
@@ -161,7 +161,7 @@ function weights_of_action(
   end
 
   to_eig = right_action(R, inv(V))
-  S, t = graded_polynomial_ring(K, "t#" => 1:ngens(R), weights)
+  S, t = graded_polynomial_ring(K, "t#" => 1:ngens(R); weights=weights)
   # The images of the generators of R are in general not homogeneous in S, so
   # we have to turn of the check, if we want to build this map...
   RtoS = hom(R, S, [to_eig(x)(t...) for x in gens(R)]; check=false)
@@ -170,7 +170,7 @@ function weights_of_action(
 end
 
 @doc raw"""
-    monomial_valuation(R::MPolyRing, g::MatrixGroupElem, zeta::Tuple{FieldElem, Int})
+    monomial_valuation(R::MPolyRing, g::MatGroupElem, zeta::Tuple{FieldElem, Int})
 
 Return the monomial valuation on `R` defined by `g` with respect to the chosen
 root of unity `zeta[1]` of order `zeta[2]`.
@@ -181,7 +181,7 @@ Note that monomial valuation depends on the choice of the root of unity, see
 [IR96](@cite).
 """
 function monomial_valuation(
-  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+  R::MPolyRing{T}, g::MatGroupElem{T}, zeta::Tuple{T,Int}
 ) where {T}
   S, RtoS = weights_of_action(R, g, zeta)
 

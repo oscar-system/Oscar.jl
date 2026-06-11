@@ -28,6 +28,6 @@ true
 ```
 """
 @attr Bool function is_empty(c::ClosedSubvarietyOfToricVariety)
-    B = irrelevant_ideal(toric_variety(c))
-    return (is_one(defining_ideal(c)) || is_one(saturation(defining_ideal(c), B)))
+  B = irrelevant_ideal(toric_variety(c))
+  return (is_one(defining_ideal(c)) || is_one(saturation(defining_ideal(c), B)))
 end

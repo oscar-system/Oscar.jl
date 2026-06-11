@@ -47,8 +47,8 @@ recovering the true roots from this information.
 
 The main information is included in the number field chapter, see for example
 
-  - [`automorphism_list(::Hecke.NumFieldHom)`](@ref)
-  - [`automorphism_group(::NumField)`](@ref)
+  - [`automorphism_list(::NumField)`](@ref)
+  - [`automorphism_group(::AbsSimpleNumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
 
 ## Subfields
@@ -93,9 +93,9 @@ julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 julia> subfields(F)
 4-element Vector{Any}:
  (Function Field over QQ with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over QQ with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
  (Function Field over QQ with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
  (Function Field over QQ with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
- (Function Field over QQ with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
 (Permutation group of degree 6 and order 6, Galois context for s^6 + 108*t^2 + 540*t + 675)

@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Gröbner/Standard Bases Over $\mathbb Z$
+# [Gröbner/Standard Bases Over $\mathbb Z$](@id gb_integers)
 
 In this section, we consider a polynomial ring
 $\mathbb Z[x] = \mathbb Z[x_1, \dots, x_n]$ over the integers. As in the previous section
@@ -12,6 +12,10 @@ on Gröbner/standard bases over fields, let $>$ be a monomial ordering on $\text
 With respect to this ordering, the localization $\mathbb Z[x]_>$ and, given a nonzero element
 $f \in \mathbb Z[x]_>$, the notions *leading term*, *leading monomial*, *leading exponent*,
 *leading coefficient*, and *tail*  of $f$ are defined as before.
+
+!!! note
+    See the previous section on [Monomial Orderings](@ref monomial_orderings) for details on how to
+    implement monomial orderings in OSCAR, with particular emphasis on default orderings in OSCAR.
 
 !!! note
     Over $\mathbb Z$, the basic idea of multivariate polynomial division with remainder in OSCAR is as follows:

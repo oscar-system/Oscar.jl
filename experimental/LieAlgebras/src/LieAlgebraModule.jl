@@ -615,9 +615,9 @@ Construct the the Lie algebra module over `L` of dimension `dimV` given by
 `transformation_matrices` and with basis element names `s`.
 
 * `transformation_matrices`: The action of the $i$-th basis element of `L`
-  on some element $v$ of the constructed module is given by right multiplication 
+  on some element $v$ of the constructed module is given by right multiplication
   of the matrix `transformation_matrices[i]` to the coefficient vector of $v$.
-* `s`: A vector of basis element names. This is 
+* `s`: A vector of basis element names. This is
   `[Symbol("v_$i") for i in 1:dimV]` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
@@ -644,7 +644,7 @@ of `L`, and $v_i$ the $i$-th standard basis vector of `V`.
 Then the entry `struct_consts[i,j][k]` is a scalar $a_{i,j,k}$
 such that $x_i * v_j = \sum_k a_{i,j,k} v_k$.
 
-* `s`: A vector of basis element names. This is 
+* `s`: A vector of basis element names. This is
   `[Symbol("v_$i") for i in 1:dimV]` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
@@ -1151,7 +1151,7 @@ function symmetric_power(
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
   dim_S = binomial(dim(V) + k - 1, k)
-  ind_map = collect(multicombinations(1:dim(V), k))
+  ind_map = collect(multicombinations(dim(V), k))
 
   T, _ = tensor_power(V, k; cached)
   S_to_T_mat = zero_matrix(R, dim_S, dim(T))

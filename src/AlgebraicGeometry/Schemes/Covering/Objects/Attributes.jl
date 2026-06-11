@@ -64,7 +64,9 @@ application is counting points of zero-dimensional subschemes: To avoid overcoun
 we need to only consider points in ``Uᵢ`` which are located within ``Zᵢ`` and
 then sum these up to all points in ``X``.
 
-!!! note This attribute might not be defined! Use `has_decomposition_info(C)` to check whether this information is available for the given covering.
+!!! note
+    This attribute might not be defined! Use `has_decomposition_info(C)` to check
+    whether this information is available for the given covering.
 """
 function decomposition_info(C::Covering)
   return C.decomp_info

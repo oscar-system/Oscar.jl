@@ -838,7 +838,7 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   @check is_equidimensional(W) "scheme must be equidimensional"
   mod_gens = lifted_numerator.(gens(modulus(OO(W))))::Vector{<:MPolyRingElem}
   # We run into difficulties for the zero ideal as a modulus.
-  # To get the matrix of minors of jac(I) we use `induced_map_on_exterior_power` below.
+  # To get the matrix of minors of jac(I) we use `exterior_power` below.
   # It is mathematical convention that ⋀⁰R⁰ = R¹. But that's unfortunately not 
   # coherent with the generic indexing we use in the implementation below. 
   # Should this assertion lead to problems, one can still replace throwing an error 
@@ -854,7 +854,7 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   Rr = FreeMod(R, r)
   phi = hom(Rn, Rr, M)
   codim = n - dim(W)
-  phi_cod = induced_map_on_exterior_power(phi, codim)
+  phi_cod = exterior_power(phi, codim)
   M_ext = matrix(phi_cod)
   n_cod = nrows(M_ext)
   r_cod = ncols(M_ext)
@@ -888,7 +888,7 @@ function find_refinement_with_local_system_of_params_rec(
     mod_gens::Vector{PolyType} = lifted_numerator.(gens(modulus(OO(W)))),
     row_ind::Vector{Int} = Int[],
     col_ind::Vector{Int} = Int[],
-    trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
+    trans_mat::MatElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
     check::Bool=true
   ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
 

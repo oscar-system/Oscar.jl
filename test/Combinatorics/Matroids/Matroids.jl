@@ -402,7 +402,24 @@
       n = nv(G)
       qAut2 = quantum_automorphism_group(G)
       @test length(gens(qAut2)) == 235
+      
+      function g0_count(n::Int)
+        return 2n^3 -5n^2 +4n - 1
+      end
+      function gb_count(n::Int)
+        return 2*(n-2)*(n-3)*(n-1) + 2*(n-4)*(n-2)+2*(n-3)+1 + g0_count(n)
+      end
+      S5 = quantum_symmetric_group(5, reduced_gb=true)
+      @test length(groebner_basis(S5)) == gb_count(5)
+      S5_alt = ideal(gens(S5))
+      @test all(x -> x in S5_alt, groebner_basis(S5))
+      @test all(x -> x in S5, groebner_basis(S5_alt))
 
+      S6 = quantum_symmetric_group(6, reduced_gb=true)
+      @test length(groebner_basis(S6)) == gb_count(6)
+      S6_alt = ideal(gens(S6))
+      @test all(x -> x in S6_alt, groebner_basis(S6))
+      @test all(x -> x in S6, groebner_basis(S6_alt))
 
     end
     @testset "matroid quotient" begin
@@ -435,4 +452,44 @@
     @test is_isomorphic(NN, NN1)
 
   end
+
+  @testset "tutte_group" begin
+    M = fano_matroid() 
+    U = uniform_matroid(2,4) 
+    @test !is_tutte_realizable(M)
+    @test is_tutte_realizable(U)
+
+    K4 = cycle_matroid(complete_graph(4))
+    T = tutte_group(K4)
+    mat = [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2; 0 -1 0 0 0 0 0 1 -1 0 1 0 0 0 0 0 2; 0 -1 0 0 0 1 0 0 0 0 1 -1 0 0 0 0 2; 1 -1 0 -1 0 0 0 1 0 0 0 0 0 0 0 0 2; 1 -1 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 2; 0 0 -1 1 0 0 0 0 -1 1 0 0 0 0 0 0 2; 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 1 -1 3; 1 0 -1 0 0 0 0 0 0 1 -1 0 0 0 0 0 2; 1 0 -1 0 0 0 0 0 0 0 0 0 0 -1 1 0 3; 0 0 0 0 1 -1 0 0 0 0 0 0 1 -1 0 0 1; 0 0 0 0 1 0 -1 0 0 0 0 0 0 -1 1 0 2; 1 -1 0 0 0 0 0 0 0 0 0 0 1 -1 0 0 1; 1 0 -1 0 0 0 0 0 0 0 0 0 0 -1 1 0 1; 0 0 0 0 0 -1 1 0 0 0 0 1 0 0 0 -1 2; 0 0 0 0 0 0 0 0 0 0 0 1 -1 0 1 -1 1; 0 0 0 0 0 0 1 -1 1 0 0 0 0 0 0 -1 2; 0 0 0 0 0 0 0 0 1 -1 0 0 0 0 1 -1 1 ];
+    @test is_isomorphic(T,abelian_group(mat))
+
+    TG,_ = torsion_subgroup(T)
+    @test is_isomorphic(TG, abelian_group(2))
+  end
+    
+    @testset "bergman_fan" begin
+        M = cycle_matroid(complete_graph(4))
+        BF1 = bergman_fan(M, fan_structure = :fine)
+        BF2 = bergman_fan(M, fan_structure = :cyclic)
+        BF3 = bergman_fan(M, fan_structure = :coarse)
+    
+        @test n_maximal_cones(BF3) == 15
+        @test all(c in maximal_cones(BF2) for c in maximal_cones(BF3))  # BF2 and BF3 coincide
+        @test all(any(is_subset.(Ref(c), maximal_cones(BF3))) for c in maximal_cones(BF1))  # BF1 refines BF3
+            
+        M = direct_sum(uniform_matroid(2, 4), uniform_matroid(2, 4))
+        BF1 = bergman_fan(M, fan_structure = :fine)
+        BF2 = bergman_fan(M)
+        BF3 = bergman_fan(M, max, fan_structure = :fine)   
+        BF4 = bergman_fan(M, max)
+            
+        @test f_vector(BF1) == [1, 34, 120, 96]
+        @test f_vector(BF2) == [0, 1, 8, 16]
+        @test maximal_cones(BF1) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF3)]
+        @test maximal_cones(BF2) == [cone(-rays_modulo_lineality(c)[1], lineality_space(c)) for c in maximal_cones(BF4)]
+        
+        M = matroid_from_bases([[]], 4)
+        @test f_vector(bergman_fan(M)) == ZZRingElem[]
+    end
 end

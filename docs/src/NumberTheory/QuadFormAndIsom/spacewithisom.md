@@ -14,7 +14,7 @@ new users.
 Note that currently, we support only rational quadratic forms, i.e.
 quadratic spaces defined over $\mathbb{Q}$.
 
-In Oscar, such a pair is encoded by the type called `QuadSpaceWithIsom`:
+In OSCAR, such a pair is encoded by the type called `QuadSpaceWithIsom`:
 
 ```@docs
 QuadSpaceWithIsom

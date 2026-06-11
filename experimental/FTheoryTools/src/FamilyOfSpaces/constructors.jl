@@ -44,7 +44,6 @@ function family_of_spaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, di
   return FamilyOfSpaces(graded_coordinate_ring, grading, dim)
 end
 
-
 @doc raw"""
     family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, dim::Int) 
 
@@ -65,12 +64,11 @@ julia> family_of_spaces(graded_coord_ring, 3)
 Family of spaces of dimension d = 3
 ```
 """
-function family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem, QQMPolyRing}, dim::Int) 
+function family_of_spaces(coordinate_ring::MPolyDecRing{QQFieldElem,QQMPolyRing}, dim::Int)
   ws = weights(coordinate_ring)
-  m = hcat([Int.(a.coeff[1,:]) for a in ws]...)
+  m = hcat([Int.(a.coeff[1, :]) for a in ws]...)
   return FamilyOfSpaces(coordinate_ring, m, dim)
 end
-
 
 #####################################################################
 # 2: Display

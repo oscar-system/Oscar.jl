@@ -312,6 +312,6 @@ function _groebner_data(F::AffAlgHom)
   end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
-  TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
+  TtoR = hom(T, R, append!(Hecke.zeros_array(R, n), gens(R)))
   return T, S2toT, TtoR, J
 end

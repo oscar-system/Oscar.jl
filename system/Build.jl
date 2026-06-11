@@ -2,6 +2,10 @@ oscarpath = dirname(@__DIR__)
 
 using Pkg
 Pkg.activate(temp=true)
+target = Pkg.project().path
+source = joinpath(oscarpath, "test", "Project.toml")
+run(`cp -v $(source) $(target)`, wait=true)
+run(`chmod -v +w $(target)`, wait=true)
 Pkg.develop(path="$(oscarpath)")
 using Oscar
 Pkg.add("PackageCompiler")
@@ -14,8 +18,6 @@ CO = joinpath(tmp, "CompileOscar.jl")
 
 
 write(CO, """
-using Pkg
-Pkg.develop(path="$(oscarpath)")
 using Oscar
 using Test
 Oscar.system("precompile.jl")

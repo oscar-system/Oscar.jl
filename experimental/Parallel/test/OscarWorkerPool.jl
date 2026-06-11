@@ -34,7 +34,33 @@
       R, (x, y, z) = GF(101)[:x, :y, :z]
       @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
     end
+
+    @testset "resuse pool" begin
+      Qx, x = QQ[:x];
+      pmap(f -> order(class_group(maximal_order(number_field(f; cached = false)[1]))[1]),
+           wp,
+           [x^2 + d for d in PrimesSet(10000, 11000)])
+
+      pmap(f -> order(class_group(maximal_order(number_field(f; cached = false)[1]))[1]),
+           wp,
+           [x^2 + d for d in PrimesSet(10000, 11000)])
+    end
   end
+  sleep(2)
+  yield()
+end
+
+@testset "modular determinants" begin
+  using Distributed
+  oscar_worker_pool(1) do wp
+    P, t = ZZ[:t]
+    m = 5 # from m = 12 it starts to get interesting in terms of timings
+    A = matrix_space(P, m, m)([rand(P, 1:100, -1000:1000) for _ in 1:m, _ in 1:m]);
+    @test det(A) == Oscar.det_modular_coeff_rec(A)
+    @test det(A) == Oscar.det_modular_coeff_rec(A; wp)
+  end
+  sleep(2)
+  yield()
 end
 
   

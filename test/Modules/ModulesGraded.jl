@@ -133,9 +133,9 @@ end
     F2 = graded_free_module(Rg,[8,8])
     A1 = Rg[x y;
         2*x^2 3*y^2]
-    MM = graded_cokernel(F2, A1)
+    MM, _ = graded_cokernel(F2, A1)
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
-    MM = cokernel(F2, A1)
+    MM, _ = cokernel(F2, A1)
     @test degrees_of_generators(MM) == [8*Z[1], 8*Z[1]]
     MM = graded_cokernel(A1)
     @test degrees_of_generators(MM) == [Z[0], Z[0]]
@@ -345,6 +345,17 @@ end
   mp = presentation(M, minimal = true)
   @test rank(mp[0]) == 1
   @test rank(mp[1]) == 2
+
+  R1, (u,) = graded_polynomial_ring(QQ, [:u])
+  Z1 = grading_group(R1)
+  N = graded_image(matrix([u]))
+  mp = presentation(N, minimal = true)
+  @test degrees(mp[0]) == [Z1[1]]
+
+  fr = free_resolution(N)
+  frmin = free_resolution(N, algorithm = :mres)
+  @test degrees(fr[0]) == [Z1[1]]
+  @test degrees(frmin[0]) == degrees(fr[0])
 end
 
 
@@ -716,14 +727,14 @@ end
   T0 = tor(M, Q, 0)
   T1 = tor(M, Q, 1)
   T2 = tor(M, Q, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(T0))[1], simplify(M_coker)[1])
   # todo simplify
   @test iszero(T2)
 
   E0 = ext(Q, M, 0)
   E1 = ext(Q, M, 1)
   E2 = ext(Q, M, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(E0))[1], simplify(M_coker)[1])
   @test ngens(present_as_cokernel(E1)) == ngens(M_coker)
   @test iszero(E2)
   E0 = ext(M, Q, 0)
@@ -789,7 +800,7 @@ end
     M2 = SubquoModule(F3,A2,B2)
     M, pure_M = tensor_product(M1,M2, task=:map)
     @test is_graded(M)
-    phi = hom_tensor(M, M, [identity_map(M1), identity_map(M2)])
+    phi = hom_tensor(M, M, [id_hom(M1), id_hom(M2)])
     @test is_homogeneous(phi)
     v = M[1]
     @test phi(v) == v
@@ -943,10 +954,10 @@ end
     F = graded_free_module(Rg, 1)
     B = Rg[x^2; y^3; z^4]
     M, inc = sub(F,B)
-    M = cokernel(inc)
+    M, _ = cokernel(inc)
     fr = free_resolution(M)
     phi = map(fr,4)
-    N = cokernel(phi)
+    N, _ = cokernel(phi)
     f = present_as_cokernel(N)
     @test ngens(f) == 1
 end
@@ -1063,7 +1074,7 @@ julia> F = graded_free_module(R, 1);
 
 julia> sub_F, inc = sub(F, [g*F[1] for g in gens(I)]);
 
-julia> M = cokernel(inc);
+julia> M, _ = cokernel(inc);
 
 julia> A, _ = quo(R, I);
 
@@ -1138,7 +1149,7 @@ degree: 0  1  2  3
   S, _ = graded_polynomial_ring(QQ, :x => 1:4)
   I = ideal(S, gens(S))
   FI = free_resolution(I)
-  M = cokernel(map(FI, 2))
+  M, _ = cokernel(map(FI, 2))
   tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
   @test tbl.values == lbt.values
@@ -1162,7 +1173,7 @@ degree: 0  1  2  3
 end
 
 @testset "twist" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1 0; 0 1]);
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1 0; 0 1]);
   I = ideal(R, [x, y])
   M = quotient_ring_as_module(I)
   N = twist(M, [1, 2])
@@ -1223,7 +1234,7 @@ end
   S1 = graded_free_module(S, [0])
   I = ideal(S, [u^2 for u in gens(S)])
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   a = Oscar.AllSubquoMonomials(M, 3)
   b = Oscar.all_exponents(M, 3)
@@ -1235,7 +1246,7 @@ end
 
   I = ideal(S, [u^3 for u in gens(S)])
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   a = Oscar.AllSubquoMonomials(M, 3)
   b = Oscar.all_exponents(M, 3)
@@ -1319,4 +1330,22 @@ end
   J = ideal(Q, gens(Q))
   ideal_as_module(J)
   quotient_ring_as_module(J)
+end
+
+@testset "graded presentation shortcut" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  G = grading_group(S)
+  g = G[1]
+  F = graded_free_module(S, [g for _ in 1:2])
+  I, _ = sub(F, gens(F))
+  J, _ = sub(F, [F[1]])
+  M1, _ = quo(I, I)
+  M2, _ = quo(I, J)
+  p1 = presentation(M1)
+  p2 = presentation(M2)
+  @test is_graded(map(p1, 1))
+  @test is_graded(map(p2, 1))
+
+  @test all(!is_zero, degree.(gens(p1[0])))
+  @test all(!is_zero, degree.(gens(p2[0])))
 end

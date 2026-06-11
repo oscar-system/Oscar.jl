@@ -706,6 +706,48 @@ normalized_volume(P::Polyhedron) =
   coefficient_field(P)(factorial(dim(P)) * (pm_object(P)).VOLUME)
 
 @doc raw"""
+    castelnuovo_excess(P::Polyhedron)
+
+For an arbitrary lattice polytope, Hibi [Hib94](@cite) proved that the normalized volume is always at least as large as a certain lattice point count.
+This function returns the difference between those two numbers.
+
+# Examples
+```jldoctest
+julia> castelnuovo_excess(cube(4))
+154
+```
+"""
+function castelnuovo_excess(P::Polyhedron)
+  _assert_lattice(P)
+  d = dim(P)
+  l = ZZ(pm_object(P).N_LATTICE_POINTS)::ZZRingElem
+  c = ZZ(pm_object(P).N_INTERIOR_LATTICE_POINTS)::ZZRingElem
+  b = l - c
+  e = (d * c + (d - 1) * b - d^2 + 2)
+  # the normalized volume is an integer as P is lattice
+  return numerator(normalized_volume(P)) - e
+end
+
+@doc raw"""
+    is_castelnuovo(P::Polyhedron)
+
+For an arbitrary lattice polytope, Hibi [Hib94](@cite) proved that the normalized volume is always at least as large as a certain lattice point count.
+This function returns true if both numbers agree.
+
+# Examples
+```jldoctest
+julia> is_castelnuovo(cube(2))
+true
+
+julia> is_castelnuovo(cube(4))
+false
+```
+"""
+function is_castelnuovo(P::Polyhedron)
+  return castelnuovo_excess(P) == 0
+end
+
+@doc raw"""
     dim(P::Polyhedron)
 
 Return the dimension of `P`.
@@ -749,8 +791,8 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+function lattice_points(P::Polyhedron; check::Bool=true)
+  @check is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
   )
@@ -785,7 +827,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 ```
 """
 function interior_lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  @req is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
   )
@@ -834,7 +876,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 ```
 """
 function boundary_lattice_points(P::Polyhedron)
-  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  @req is_bounded(P) "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
   )
@@ -1123,6 +1165,62 @@ end
 ## Boolean properties
 ###############################################################################
 @doc raw"""
+    contains(P::Polyhedron, v::AbstractVector)
+    contains(P::Polyhedron, v::RayVector)
+
+Check whether the point given by `v` is contained in the polyhedron `P`. If `v` is a
+ray vector, then check whether this ray is contained in the recession cone of `P`.
+
+See also [`contains_in_interior(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains points with non-negative entries:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains(PO,[1, 2])
+true
+
+julia> contains(PO,[1, -2])
+false
+```
+"""
+contains(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+contains(P::Polyhedron, v::RayVector) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([0; v]))::Bool
+
+@doc raw"""
+    contains_in_interior(P::Polyhedron, v::AbstractVector)
+    contains_in_interior(P::Polyhedron, v::RayVector)
+
+Check whether the point `v` is contained in the relative interior of the polyhedron `P`. If `v` is a
+ray vector, then check whether this ray is contained in the relative interior of the recession cone of `P`.
+
+See also [`contains(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains points with positive entries in its interior:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains_in_interior(PO,[1, 2])
+true
+
+julia> contains_in_interior(PO,[1, 0])
+false
+```
+"""
+contains_in_interior(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains_in_interior(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+# this cannot use Polymake.polytope.contains_in_interior directly because rays are always
+# on the x0>=0 homogenization facet (of the cone representing the polytope)
+contains_in_interior(P::Polyhedron, v::RayVector) =
+  contains_in_interior(recession_cone(P), v)
+
+@doc raw"""
     is_lattice_polytope(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is a lattice polytope, i.e. it is bounded and has integral vertices.
@@ -1228,7 +1326,7 @@ false
 ```
 """
 Base.in(v::AbstractVector, P::Polyhedron) =
-  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+  contains(P, v)
 
 @doc raw"""
     is_smooth(P::Polyhedron{QQFieldElem})
@@ -1288,7 +1386,7 @@ is_bounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 @doc raw"""
     is_simple(P::Polyhedron)
 
-Check whether `P` is simple.
+Check whether `P` is simple, i.e., each vertex figure is a simplex.
 
 # Examples
 ```jldoctest
@@ -1304,9 +1402,45 @@ is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 @doc raw"""
     is_simplicial(P::Polyhedron)
 
-Check whether `P` is simplicial.
+Check whether `P` is simplicial, i.e., each proper face is a simplex.
 """
 is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
+
+@doc raw"""
+    is_neighborly(P::Polyhedron)
+
+Check whether `P` is neighborly, i.e., if the dimension is $d$, each $\lfloor d/2 \rfloor$-subset of the vertices forms a face.
+Neighborly polytopes in even dimension are necessarily simplicial.
+
+# Examples
+
+A 4-polytope is neighborly if and only if the vertex-edge graph is complete.
+
+```jldoctest
+julia> is_neighborly(cyclic_polytope(4,8))
+true
+```
+"""
+is_neighborly(P::Polyhedron) = pm_object(P).NEIGHBORLY::Bool
+
+@doc raw"""
+    is_cubical(P::Polyhedron)
+
+Check whether `P` is cubical, i.e., each proper face is combinatorially equivalent to a cube.
+
+# Examples
+
+For details concerning the following construction see [JZ00](@cite).
+
+```jldoctest
+julia> Q = cube(2,-1,1); Q2 = cube(2,-2,2); P = convex_hull(product(Q,Q2), product(Q2,Q))
+Polyhedron in ambient dimension 4
+
+julia> is_cubical(P)
+true
+```
+"""
+is_cubical(P::Polyhedron) = pm_object(P).CUBICAL::Bool
 
 @doc raw"""
     is_fulldimensional(P::Polyhedron)

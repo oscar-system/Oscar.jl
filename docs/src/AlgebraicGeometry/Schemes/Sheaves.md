@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Sheaves on covered schemes
 
-Oscar supports modeling sheaves by means of a covering by affine charts.
+OSCAR supports modeling sheaves by means of a covering by affine charts.
 
 ## Presheaves
 ```@docs

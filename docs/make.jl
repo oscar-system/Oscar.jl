@@ -1,8 +1,8 @@
 using Documenter, Oscar
 
-include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
+include("make_work.jl")
 
-Base.invokelatest(BuildDoc.doit, Oscar; warnonly=false, local_build=false, doctest=false)
+@invokelatest BuildDoc.doit(Oscar; warnonly=false, local_build=false, doctest=false)
 
 should_push_preview = true
 if get(ENV, "GITHUB_ACTOR", "") == "dependabot[bot]"

@@ -10,11 +10,15 @@
   Cone6 = positive_hull(f, [1//3 1//2; 4//5 2])
   Cone7 = positive_hull(f, [0 1])
   Cone8 = positive_hull(f, [1 1; 1 -1])
+  Cone9 = positive_hull(f, [], L)
+  Cone10 = positive_hull(f, [], [])
 
   @testset "core functionality" begin
     @test is_pointed(Cone1)
     @test issubset(Cone7, Cone1)
     @test !issubset(Cone1, Cone7)
+    @test contains(Cone1, [1, 0])
+    @test !contains_in_interior(Cone1, [1, 0])
     @test [1, 0] in Cone1
     @test !([-1, -1] in Cone1)
     if T == QQFieldElem
@@ -29,7 +33,8 @@
       @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test length(hilbert_basis(Cone1)) == 2
       @test issetequal(hilbert_basis(Cone1), point_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
-      @test generator_matrix(hilbert_basis(Cone1)) == _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
+      @test generator_matrix(hilbert_basis(Cone1)) ==
+        _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
     end
     @test n_rays(Cone1) == 2
     @test rays(RayVector{T}, Cone1) isa SubObjectIterator{RayVector{T}}
@@ -45,8 +50,7 @@
       end
     end
     @test length(rays(Cone1)) == 2
-    for S in [LinearHalfspace{T},
-                     Cone{T}]
+    for S in [LinearHalfspace{T}, Cone{T}]
       @test facets(S, Cone1) isa SubObjectIterator{S}
       @test length(facets(S, Cone1)) == 2
       if S == LinearHalfspace{T}
@@ -54,8 +58,10 @@
       else
         @test issetequal(facets(S, Cone1), positive_hull.(Ref(f), [[1 0], [0 1]]))
       end
-      @test linear_inequality_matrix(facets(S, Cone1)) == _oscar_matrix_from_property(f, facets(S, Cone1))
-      @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == _polymake_matrix_from_property(facets(S, Cone1))
+      @test linear_inequality_matrix(facets(S, Cone1)) ==
+        _oscar_matrix_from_property(f, facets(S, Cone1))
+      @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) ==
+        _polymake_matrix_from_property(facets(S, Cone1))
       @test _check_im_perm_rows(ray_indices(facets(S, Cone1)), [[1], [2]])
       @test _check_im_perm_rows(incidence_matrix(facets(S, Cone1)), [[1], [2]])
     end
@@ -78,7 +84,10 @@
 
     @test dim(Cone4) == 2
     @test dim(Cone2) == 3
+    @test dim(Cone9) == 1
+    @test dim(Cone10) == 0
     @test ambient_dim(Cone2) == 3
+    @test ambient_dim(Cone10) == 0
     @test lineality_space(Cone2) isa SubObjectIterator{RayVector{T}}
     @test generator_matrix(lineality_space(Cone2)) == matrix(f, L)
     if T == QQFieldElem
@@ -106,9 +115,12 @@
     @test isnothing(faces(Cone2, 1))
 
     @test f_vector(Cone5) == [4, 4]
-    @test f_vector(Cone2) == [0, 2]
+    @test f_vector(Cone2) == [1, 2]
+    @test f_vector(positive_hull([0, 0, 0])) == ZZRingElem[]
     @test lineality_dim(Cone5) == 0
     @test lineality_dim(Cone2) == 1
+    @test lineality_dim(Cone9) == 1
+    @test lineality_dim(Cone10) == 0
     @test facet_degrees(Cone5) == fill(2, 4)
     @test facet_degrees(Cone6) == fill(1, 2)
     @test ray_degrees(Cone5) == fill(2, 4)
@@ -116,8 +128,8 @@
 
     @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
-    @test length(findall(f->[1,0,0] in f, facets(Hyperplane, Cone5))) == 2
-    @test length(findall(f->[1,0,0] in f, facets(Halfspace, Cone5))) == 4
+    @test length(findall(f -> [1, 0, 0] in f, facets(Hyperplane, Cone5))) == 2
+    @test length(findall(f -> [1, 0, 0] in f, facets(Halfspace, Cone5))) == 4
   end
 
   @testset "constructors" begin

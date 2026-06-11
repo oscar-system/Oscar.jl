@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $G$ will be a *finite* group.
 
 !!! note
-     The ssumption that $G$ is finite implies:
+     The assumption that $G$ is finite implies:
      - By a result of Emmy Noether, $K[V]$ is integral over $K[V]^G$. In particular,
 
           $\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$
@@ -59,7 +59,7 @@ Here, $G$ will be given as a permutation group, acting on $K[x_1, \dots, x_n]\co
 ### Constructors for Invariant Rings
 
 ```@docs
-invariant_ring(G::MatrixGroup)
+invariant_ring(G::MatGroup)
 ```
 
 ## Basic Data Associated to Invariant Rings

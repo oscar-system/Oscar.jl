@@ -95,7 +95,7 @@
     @test isone(a^4) && !isone(a) && !isone(a^2)
 
     # reset variable for any subsequent (doc-)tests
-    @test set_variable!(K, orig) == "ω"
+    @test set_variable!(K, nothing) == "ω"
   end
 
   @testset "Coercion" begin

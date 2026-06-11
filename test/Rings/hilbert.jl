@@ -1,5 +1,5 @@
 @testset "Hilbert series" begin
-  P, x = graded_polynomial_ring(QQ, 5, :x, [1 1 1 1 1; 1 -2 3 -4 5]);
+  P, x = graded_polynomial_ring(QQ, 5, :x; weights = [1 1 1 1 1; 1 -2 3 -4 5]);
   G =
   [
    x[1]^30*x[2]^16*x[3]^7*x[4]^72*x[5]^31,
@@ -61,7 +61,7 @@
   (num2,_), (_,_) = multi_hilbert_series(PmodI; parent=S, backend=:Zach);
   @test num2 == num1
 
-  P2, x = graded_polynomial_ring(QQ, 5, :x, [1 1 1 1 1])
+  P2, x = graded_polynomial_ring(QQ, 5, :x; weights = [1 1 1 1 1])
   G = P2.(G);
 
   I = ideal(P2,G);
@@ -88,7 +88,7 @@ end
   @test numer2 == evaluate(numer1, t)
 
   # Negative grading
-  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y], [-1, -1])
+  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y]; weights = [-1, -1])
   JJ = ideal(RR, X^2 - Y^2);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), _ = multi_hilbert_series(A);
@@ -100,7 +100,7 @@ end
   # Graded by commutative group
   G = free_abelian_group(2);
   G, _ = quo(G, [G[1]-3*G[2]]);
-  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y], [G[1], G[2]]);
+  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y]; weights = [G[1], G[2]]);
   JJ = ideal(RR, X^2 - Y^6);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), (H, iso) = multi_hilbert_series(A);
@@ -116,7 +116,7 @@ end
 end
 
 @testset "Hilbert series part 3" begin
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, -1]);
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [1, -1]);
   I = ideal(R, [x]);
   RmodI, _ = quo(R, I);
   @test_throws ArgumentError  hilbert_series(RmodI);  # weights must be non-neg
@@ -133,4 +133,14 @@ end
   @test coefficients(h)[1] == 6
   @test coefficients(h)[2] == 0
   @test degree(Q) == 6
+end
+
+@testset "Hilbert series part 5"  begin
+  # Test a trivial case -- just to check that the 1 power product prints correctly
+  P,(x,y) = graded_polynomial_ring(QQ, ["x","y"]);
+  @test  repr(Oscar.PP(degrees(one(P)))) == "1"
+  I = ideal(one(P));
+  PmodI,_ = quo(P,I); # Q is the zero ring
+  HSRing1,_ = polynomial_ring(ZZ, "t");
+  @test is_zero(Oscar.HSNum_abbott(PmodI, HSRing1))
 end

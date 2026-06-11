@@ -11,9 +11,8 @@ const PrimeFieldMatrix = Union{FpMatrix,fpMatrix}
 
 # NOTE: These give missing features to OSCAR/Nemo that will likely be added in the near future.
 
-function pop_largest_factor!(f::Fac{ZZRingElem})
-  D = f.fac
-  m = maximum(f)
+function pop_largest_factor!(D::Dict{ZZRingElem, Int})
+  m = maximum(D)
   if isone(m[2])
     Base.delete!(D, m[1])
   else
@@ -180,7 +179,7 @@ function standard_irreducible_coefficient_list(
   a::FinFieldElem,
 )
   q = order(F)
-  l = zeros(F, Int(r) + 1)
+  l = Hecke.zeros_array(F, Int(r) + 1)
   l[Int(r)+1] = one(F)
   l[1] = a
   l[2] = one(F)
@@ -377,9 +376,9 @@ function _extension_with_tower_basis(
   # The idea is to collect (bX)^i mod f for 1 in 0..d*dK-1
   # and use this to compute the minimal polynomial of bX over F.
   # Should we just form the polynomial and compute "mod"???
-  vec = zeros(F, d)
+  vec = Hecke.zeros_array(F, d)
   vec[1] = one(F)
-  v = zeros(K, Int(deg))
+  v = Hecke.zeros_array(K, Int(deg))
   v[1] = one(K)
 
   vecs = Vector{Vector{eltype(F)}}(undef, d)
@@ -393,7 +392,7 @@ function _extension_with_tower_basis(
       pmat[i, :] = vec
     end
 
-    poly = zeros(F, i)
+    poly = Hecke.zeros_array(F, i)
     poly[end] = one(F)
 
     w = copy(vec)
@@ -463,11 +462,11 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
   F = Native.GF(p)
   set_standard_prime_field!(F)
 
-  function _sff(N::Fac{ZZRingElem})
+  function _sff(N::Dict{ZZRingElem, Int})
     # local m::ZZRingElem, k::IntegerUnion, nK::ZZRingElem, K::FinField, stn::ZZRingElem,
     #         n1::ZZRingElem, q1::ZZRingElem, l::Vector{ZZRingElem}, c::Vector{ZZRingElem}, b::FinFieldElem
     m, k = pop_largest_factor!(N)
-    nK = evaluate(N)
+    nK = prod(p^e for (p, e) in N; init = one(ZZ))
 
     K = get_standard_extension!(F, nK) do
       _sff(N)
@@ -490,7 +489,7 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
 
   return get_standard_extension!(F, n) do
     N = factor(ZZ(n))
-    return _sff(N)
+    return _sff(Dict(p => e for (p, e) in N))
   end
 end
 

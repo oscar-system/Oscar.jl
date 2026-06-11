@@ -66,7 +66,7 @@ closure(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 ### Ambient affine space
 
-Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
+Most affine schemes in OSCAR ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
 affine space ``\mathbb{A}_B``.
 More precisely, `ambient_space(X)` is defined for `X = spec(R)` if `R`

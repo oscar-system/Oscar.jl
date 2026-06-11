@@ -21,8 +21,8 @@
 
     @test nvars(base_ring(chow_ring(uniform_matroid(3,3), extended=true))) == 13
     M = matroid_from_nonbases([[1,2]],4)
-    R, _ = graded_polynomial_ring(QQ,[:x12,:x3,:x4,:h12,:h3,:h4,:h1234]);
-    A = chow_ring(M, ring=R, extended=true);
+    R, _ = graded_polynomial_ring(QQ,[:x12,:x3,:x4,:h12,:h3,:h4,:h1234])
+    A = chow_ring(M, ring=R, extended=true)
     @test A[7] == A[1]+A[4]
     @test A[4]*A[4] == A[7]*A[7]
     @test A[4]*A[5] == 0

@@ -507,7 +507,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
   @vtime :SolveRadical 1 G, C = galois_group(f)
-  lp = [p for p = keys(factor(order(G)).fac) if p > 2]
+  lp = [p for (p, _) in factor(order(G)) if p > 2]
   if length(lp) > 0
     @vprint :SolveRadical 1 "need to add roots-of-one: $lp\n"
     @vtime :SolveRadical 1 G, C = galois_group(f*prod(cyclotomic(Int(p), gen(parent(f))) for p = lp))
@@ -599,7 +599,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         p = parent(s)
         if p == QQ
           lf = factor(s, ZZ)
-          t = prod([p for (p, k) = lf.fac if isodd(k)], init = ZZ(1)) * lf.unit
+          t = prod([p for (p, k) = lf if isodd(k)], init = ZZ(1)) * lf.unit
           r = root(s//t, 2)    
         else
           _, ma = absolute_simple_field(p)

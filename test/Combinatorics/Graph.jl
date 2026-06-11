@@ -1,5 +1,4 @@
 @testset "Graphs" begin
-
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test n_vertices(g) == 5
@@ -116,6 +115,32 @@
         H = G[J,J]
         b, I = Oscar._is_equal_up_to_permutation_with_permutation(G, H)
         @assert G[I,I] == H
+
+        gc = complete_graph(3)
+        gcc = complete_graph(3)
+        gc2 = complete_graph(2)
+        @test gc == gcc
+        @test hash(gc) == hash(gcc)
+        @test gc2 != gc
+        d = Dict(gc=>1)
+        d[gcc] = 2
+        d[gc2] = 3
+        @test length(keys(d)) == 2
+        @test d[gc] == 2
+
+        label!(gc,  nothing, Dict(1=>5,2=>7,3=>11))
+        label!(gcc, nothing, Dict(1=>5,2=>7,3=>11))
+        @test gc == gcc
+        gcc.label[1] = 13
+        @test gc != gcc
+
+        @test g != gg
+
+        is_iso, perm = is_isomorphic_with_permutation(g,gg)
+        @test is_iso
+        gp = graph_from_adjacency_matrix(Directed, adjacency_matrix(g)[perm,perm])
+        @test gp == gg
+        @test hash(gp) == hash(gg)
     end
 
     @testset "connectivity" begin
@@ -160,6 +185,10 @@
         @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
+
+        @test shortest_path_dijkstra(g, 1, 5) == [1, 3, 5]
+        @test_throws ArgumentError shortest_path_dijkstra(g, 1, 6)
+        @test_throws ArgumentError shortest_path_dijkstra(g, 7, 1)
     end
 
     @testset "errors" begin
@@ -197,16 +226,26 @@
         label!(G1, nothing, vertex_labels; name=:color)
         @test_throws ArgumentError G1.color[1, 2]
         @test G1.color[1] == 2
+
+        edge_labels = Dict((1, 2) => 1, (3, 4) => 2)
+        label!(G1, edge_labels, nothing; name=:color)
+        @test G1.color[1, 2] == 1
+        @test G1.color[1] == 2
         
         edge_labels = Dict((5, 6) => 4, (7, 8) => 3)
         G2 = graph_from_labeled_edges(edge_labels)
         @test G2.label[6, 5] == G2.label[5, 6] == 4
         @test_throws ArgumentError G2.label[6, 7]
         @test_throws ArgumentError G2.label[6]
+        label!(G2, nothing, Dict(1 => 1))
+        @test G2.label[1] ==  1
+        @test G2.label[6, 5] == G2.label[5, 6] == 4
 
         vertex_labels = Dict(9 => 10)
         @test_throws ArgumentError graph_from_labeled_edges(Directed, edge_labels, vertex_labels)
 
+        edge_labels = Dict{NTuple{2, Int}, QQFieldElem}((5, 6) => 3//4, (7, 8) => 3)
+        vertex_labels = Dict{Int, QQFieldElem}(3 => 1//4, 9 => 10)
         G3 = graph_from_labeled_edges(Directed, edge_labels, vertex_labels; n_vertices=9)
         @test_throws ArgumentError G3.label[10]
         @test_throws ArgumentError G3.label[6, 5]
@@ -214,6 +253,14 @@
         @test G3.label[9] == 10
         @test G3.label[1] == 0
         @test labelings(G3) == [:label]
+        @test G3.label[5, 6] isa QQFieldElem
+        @test G3.label[3] isa QQFieldElem
+        
+        vertex_labels[5] = 3
+        edge_labels[2, 3] = 4
+        @test_throws ArgumentError label!(G1, nothing, vertex_labels)
+        @test_throws ArgumentError label!(G1, edge_labels, vertex_labels)
+        @test_throws ArgumentError label!(G1, edge_labels, nothing)
     end
   
     @testset "adjacency_matrix laplacian_matrix" begin
@@ -241,5 +288,141 @@
     @testset "maximal_cliques" begin
       G = complete_bipartite_graph(2, 2)
       @test maximal_cliques(G) == Set{Set{Int}}(Set.([[1, 3], [1, 4], [2, 3], [2, 4]]))
+    end
+
+    @testset "is_acyclic" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
+      @test !is_acyclic(G)
+      rem_edge!(G, 3, 1)
+      @test is_acyclic(G)
+    end
+
+    @testset "subgraph" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3], [3, 1]])
+      sg = induced_subgraph(G, [1, 2])
+      @test ne(sg) == 1
+      @test nv(sg) == 2
+      @test sg isa Graph{Directed}
+      G2 = complete_bipartite_graph(3, 3)
+      sg2 = induced_subgraph(G2, [1, 2, 3])
+      @test ne(sg2) == 0
+      @test nv(sg2) == 3
+
+      G3 = graph_from_labeled_edges(Undirected, Dict((1, 2) => 4, (2, 3) => 5, (1, 3) => 6), Dict(3 => 9); name=:color)
+      sg3 = induced_subgraph(G3, [3, 2])
+      @test ne(sg3) == 1
+      @test nv(sg3) == 2
+      @test sg3.color[2] == 9
+      @test sg3.vertexlabels[2] == 3
+      @test sg3.color[1,2] == G3.color[2,3] == 5
+
+      @test sg3 == induced_subgraph(G3, [3, 2])
+      @test sg3 != induced_subgraph(G3, [3, 1])
+      @test hash(sg3) == hash(induced_subgraph(G3, [3, 2]))
+
+      G4 = complete_graph(4)
+      label!(G4,nothing,Dict(1=>"first",2=>"second",3=>"third",4=>"fourth"), name=:vertexlabels)
+      sg4 = induced_subgraph(G4, [2,4])
+      @test sg4.vertexlabels[1] == "second"
+      @test sg4.vertexlabels[2] == "fourth"
+    end
+
+    @testset "petersen_graph" begin
+      P = petersen_graph()
+      @test n_vertices(P) == 10
+      @test n_edges(P) == 15
+      @test degree(P) == fill(3,10)
+    end
+    
+    @testset "clebsch_graph" begin
+      C = clebsch_graph()
+      @test n_vertices(C) == 16
+      @test n_edges(C) == 40
+      @test degree(C) == fill(5,16)
+    end
+
+    @testset "automorphism group" begin
+      # edge-labeled: triangle with two equal edges, one different
+      # edges (1,2)=1, (2,3)=1, (1,3)=2 → only (1,2) swap preserves labels
+      g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2))
+      gens = automorphism_group_generators(g; label=:label)
+      @test length(gens) == 1
+      ag = automorphism_group(g; label=:label)
+      @test order(ag) == 2
+
+      # fully symmetric edge labels → full automorphism group
+      g_sym = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>1))
+      @test order(automorphism_group(g_sym; label=:label)) == order(automorphism_group(g_sym))
+    end
+
+    @testset "disjoint automorphism" begin
+      P = petersen_graph()
+      @test !has_disjoint_automorphisms(P)
+      @test_throws ArgumentError disjoint_automorphisms(P)
+
+      C = clebsch_graph()
+      @test has_disjoint_automorphisms(C)
+      a,b = disjoint_automorphisms(C)
+      @test !is_one(a)
+      @test !is_one(b)
+      @test fixed_points(a) == moved_points(b)
+      @test fixed_points(b) == moved_points(a)
+    end
+
+    @testset "graph isomorphism" begin
+      G1_empty = graph(Undirected, 0)
+      G2_empty = graph(Undirected, 0)
+      @test is_isomorphic(G1_empty, G2_empty) == true
+
+      G1_one = graph(Undirected, 1)
+      G2_one = graph(Undirected, 1)
+      @test is_isomorphic(G1_one, G2_one) == true
+      @test is_isomorphic(G1_empty, G2_one) == false
+
+      G1_two = graph(Undirected, 2)
+      G2_two = graph(Undirected, 2)
+      @test is_isomorphic(G1_two, G2_two) == true
+      @test is_isomorphic(G1_two, G2_one) == false
+      
+      #vertex indistinguishable, edge indistinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>1, (4,5)=>1, (5,1)=>1,
+                                         (1,3)=>2, (3,5)=>2, (5,2)=>2, (2,4)=>2, (4,1)=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (2,3)=>2, (3,4)=>2, (4,5)=>2, (5,1)=>2,
+                                         (1,3)=>1, (3,5)=>1, (5,2)=>1, (2,4)=>1, (4,1)=>1))
+      G3 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,1)=>1, (4, 5)=>1,
+                                         (1,4)=>2, (1,5)=>2, (2,4)=>2, (2,5)=>2, (3,4)=>2, (3,5)=>2))
+      G1_hash = Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      G2_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      @test G1_hash == G2_hash
+      G3_hash = Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      @test G3_hash != G1_hash
+      
+      #vertex indistinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7))
+      G2 = graph_from_labeled_edges(Dict((3,1)=>3, (1,2)=>5, (2,3)=>7))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8))
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false)
+      
+      #vertex distinguishable, edge indistinguishable
+      G1 = graph(Undirected, 2)
+      add_edge!(G1, 1, 2)
+      G2 = graph(Undirected, 2)
+      add_edge!(G2, 1, 2)
+      G3 = graph(Undirected, 3)
+      add_edge!(G3, 1, 2)
+      label!(G1, nothing, Dict(1=>1, 2=>2))
+      label!(G2, nothing, Dict(1=>2, 2=>1))
+      label!(G3, nothing, Dict(1=>1, 2=>2, 3=>3))
+
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, edge_distinguishable=false)
+      
+      #vertex distinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>3, 3=>3))
+      G2 = graph_from_labeled_edges(Dict((2,3)=>3, (3,1)=>5, (1,2)=>7), Dict(2=>1, 3=>3, 1=>3))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
+      @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
+      @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
     end
 end

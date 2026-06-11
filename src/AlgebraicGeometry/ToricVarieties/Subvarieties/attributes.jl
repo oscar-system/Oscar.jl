@@ -25,8 +25,8 @@ julia> toric_variety(c) == f2
 true
 ```
 """
-@attr NormalToricVarietyType toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
-
+@attr NormalToricVarietyType toric_variety(c::ClosedSubvarietyOfToricVariety) =
+  c.toric_variety
 
 @doc raw"""
     defining_ideal(c::ClosedSubvarietyOfToricVariety)
@@ -50,7 +50,6 @@ true
 """
 @attr MPolyIdeal defining_ideal(c::ClosedSubvarietyOfToricVariety) = c.defining_ideal
 
-
 @doc raw"""
     radical(c::ClosedSubvarietyOfToricVariety)
 
@@ -73,5 +72,5 @@ true
 ```
 """
 @attr MPolyIdeal function radical(c::ClosedSubvarietyOfToricVariety)
-    return radical(defining_ideal(c))
+  return radical(defining_ideal(c))
 end

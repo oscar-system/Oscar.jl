@@ -165,7 +165,7 @@ BindGlobal( "_DisplayStringQQBarMatrixElement", function( x )
   str:= String( x );
   if ValueOption( "short" ) = true then
     pos:= Position( str, ' ' );
-    str:= str{ [ pos + 1 .. Position( str, ' ', pos ) - 1 ] };
+    str:= str{ [ pos + 1 .. Position( str, '}', pos ) - 1 ] };
   fi;
   return str;
   end );

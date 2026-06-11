@@ -1,0 +1,10 @@
+julia> q_cone = positive_hull(Q)
+Polyhedral cone in ambient dimension 5
+
+julia> (hash_list, edges) = GITFans.fan_traversal(orbit_list, q_cone, perm_actions);
+
+julia> length(hash_list)
+6
+
+julia> println(edges)
+Set([[3, 4], [2, 3], [1, 2], [3, 5], [4, 6]])

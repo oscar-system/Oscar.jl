@@ -24,6 +24,10 @@ function _isbinomial(v::Vector{<: MPolyRingElem})
   return all(is_binomial, v)
 end
 
+function _islattice(I::MPolyIdeal)
+  return all(i -> length(i) == 2, gens(I)) && all(iszero, sum.(coefficients.(gens(I)))) && all(x -> all(is_unit.(x)), coefficients.(gens(I)))
+end
+
 @doc raw"""
     is_cellular(I::MPolyIdeal)
 

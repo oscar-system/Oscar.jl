@@ -8,15 +8,15 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Purpose
 The folder `experimental` is for code that is candidate for being added to
-Oscar. In particular, this includes the following cases:
-- Code from an external package that should be moved to Oscar
+OSCAR. In particular, this includes the following cases:
+- Code from an external package that should be moved to OSCAR
 - Implementing a new feature from scratch
 - In general: code whose API has not stabilized yet
 
 The code in `experimental` is supposed to be mathematically correct,
 `experimental` is a staging area for new features whose interface is still to
 be stabilized. Also code is allowed to reside in `experimental` while it is
-brought up to Oscar standard.
+brought up to OSCAR standard.
 
 !!! danger "Dependencies"
     - Code from `src` must never use code from `experimental`
@@ -48,7 +48,7 @@ testing, otherwise all `.jl` files will be run automatically (in a random
 order).
 
 The file `docs/doc.main` is used for integrating your documentation in the
-Oscar manual under the `Experimental` section. Optionally please provide a
+OSCAR manual under the `Experimental` section. Optionally please provide a
 `README.md` describing your project and its goals, especially if you are
 starting from scratch and don't have any documentation yet.
 

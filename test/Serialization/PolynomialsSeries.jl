@@ -7,6 +7,7 @@ Ky, y = K[:y]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
+Qu2, (u2,) = rational_function_field(QQ, ["u"])
 Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], :t)
 Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
@@ -34,6 +35,7 @@ cases = [
   (FF, FF(1), r, "Default Finite Field"),
   (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
+  (Qu2, u2, 1 // u2, "Multivariate RationalFunctionField"),
 ]
 
 @testset "Serialization.Polynomials.and.Series" begin
@@ -122,7 +124,7 @@ cases = [
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
           test_p = z^2 + case[2] * z * w + case[3] * w^3
-          @test loaded.p == test_p.p
+          @test loaded == test_p
         end
 
         @testset "Load with params" begin

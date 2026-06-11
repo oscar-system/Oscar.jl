@@ -125,7 +125,7 @@ end
   fl, t = subalgebra_membership(g, v)
   @test !fl
 
-  R, (x, y, z) = graded_polynomial_ring(QQ, [ :x, :y, :z ], [ 3, 1, 3 ])
+  R, (x, y, z) = graded_polynomial_ring(QQ, [ :x, :y, :z ]; weights = [ 3, 1, 3 ])
   f = x^2 - y^6 + z^2
   v = [ x, y^3, z - y^3 ]
   fl, t = subalgebra_membership_homogeneous(f, v)
@@ -146,7 +146,7 @@ end
   fl, t = subalgebra_membership_homogeneous(g, v)
   @test !fl
 
-  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [ 1, 2 ])
   Q, _ = quo(R, ideal(R, [x^10 - y^5]))
   for S in [R, Q]
     u = gen(S, 1)

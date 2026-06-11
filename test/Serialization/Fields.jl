@@ -39,5 +39,12 @@
         @test loaded isa QQBarField
       end
     end
+
+    @testset "Cyclotomic fields" begin
+      K, _ = cyclotomic_field(3)
+      test_save_load_roundtrip(path, K; check_func = x -> Hecke.is_cyclotomic_type(x)[1]) do loaded
+        @test loaded == K
+      end
+    end
   end
 end

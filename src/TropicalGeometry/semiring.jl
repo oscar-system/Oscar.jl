@@ -90,10 +90,24 @@ convention(f::Generic.MPoly{TropicalSemiringElem{typeof(max)}}) = max
 
 Return the min-plus (default) or max-plus semiring.
 
+The operations `+`, `*`, `/`, and `^` are used for tropical addition, tropical
+multipliciation, tropical division, and tropical exponentiation, respectively.
+Zeroes of tropical semirings are printed as `infty` or `-infty` instead of their
+proper unicode characters.  To enable unicode in the current and future
+sessions, run `allow_unicode(true)`.
+
 !!! warning
-    - `+`, `*`, `/`, and `^` are used for tropical addition, tropical multipliciation, tropical division, and tropical exponentiation, respectively.
-    - There is no additive inverse or subtraction in the tropical semiring. Negating a tropical number or subtracting two tropical numbers will raise an error.
-    - Zeroes of tropical semirings are printed as `infty` or `-infty` instead of their proper unicode characters.  To enabled unicode in the current and future sessions, run `allow_unicode(true)`.
+    - There is no additive inverse or subtraction in the tropical semiring.
+      Negating a tropical number or subtracting two tropical numbers will raise
+      an error.
+    - Mixing normal and tropical numbers in larger arithmetic expressions can
+      lead to unexpected results: Suppose `T` is the min-plus semiring. OSCAR
+      will interpret `1*T(1)` as `T(1)*T(1)` and return `T(2)`. Due to how julia
+      handles arithmetic expressions however, we have
+      `1*1*T(1)=(1*1)*T(1)=1*T(1)= T(2)` which is not `T(1)*T(1)*T(1)`.
+      The `1*1` is performed using integer multiplication, as the single
+      multiplication does not know that a tropical number is involved in
+      the overall arithmetic expression.
 
 # Examples (basic arithmetic)
 ```jldoctest
@@ -207,6 +221,14 @@ function (R::TropicalSemiring)(x::RingElem; preserve_ordering::Bool=false)
   x = QQ(x)
   @req parent(x)==QQ "cannot convert object of type $(repr(typeof(x)))"
   return R(x, preserve_ordering=preserve_ordering)
+end
+
+function (R::TropicalSemiring{typeof(min)})(::PosInf)
+  return TropicalSemiringElem(R,true)
+end
+
+function (R::TropicalSemiring{typeof(max)})(::NegInf)
+  return TropicalSemiringElem(R,true)
 end
 
 function (::QQField)(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)

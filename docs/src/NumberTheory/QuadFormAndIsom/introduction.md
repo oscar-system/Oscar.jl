@@ -9,26 +9,31 @@ DocTestSetup = Oscar.doctestsetup()
 This project is a complement to the code about *hermitian lattices* available
 in Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
 methods regarding quadratic forms with their isometries. In particular,
-the integration of this code within Oscar is necessary to benefit from all the
+the integration of this code within OSCAR is necessary to benefit from all the
 performance of GAP with respect to computations with groups and automorphisms
 in general.
 
 For now, the project covers methods regarding rational and integral quadratic
-forms.
+forms, as well as finite quadratic modules and their isometries.
 
 ## Content
 
-We introduce two new structures
+We introduce three new structures
 * [`QuadSpaceWithIsom`](@ref)
 * [`ZZLatWithIsom`](@ref)
+* [`TorQuadModuleWithIsom`](@ref)
 
-The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
-and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
-$L$ is an integer quadratic form, also known as $\mathbb Z$-lattice and $f$
-is an isometry of $L$. One of the main features of this project is the
-enumeration of isomorphism classes of pairs $(L, f)$, where $f$ is an isometry
-of finite order. The methods we resort to for this purpose are developed
-in the paper [BH23](@cite).
+The first one parametrizes pairs $(V, f)$ where $V$ is a rational quadratic
+form and $f$ is an isometry of $V$.
+The second one parametrizes pairs $(L, f)$ where $L$ is an integer quadratic
+form, also known as $\mathbb Z$-lattice and $f$ is an isometry of $L$.
+The third one parametrizes pairs $(T, f)$ where $T$ is a torsion quadratic
+module, of type `TorQuadModule` and $f$ is an isometry of $T$, of type
+`TorQuadModuleMap`.
+
+One of the main features of this project is the enumeration of isomorphism
+classes of pairs $(L, f)$, where $f$ is an isometry of finite order. The
+methods we resort to for this purpose are developed in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of integral lattices following Nikulin's theory. More precisely, the
@@ -48,8 +53,8 @@ Currently, the project features the following:
   order);
 * primitive embeddings/extensions for integral lattices;
 * equivariant primitive extensions for integral lattices;
-* miscellaneous operations on integral/rational quadratic form endowed with
-  an isometry.
+* miscellaneous operations on integral/rational/finite quadratic forms
+  endowed with an isometry.
 
 ## Current applications of this project
 

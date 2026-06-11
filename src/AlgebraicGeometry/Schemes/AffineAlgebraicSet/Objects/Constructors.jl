@@ -3,7 +3,7 @@
 ########################################################
 
 @doc raw"""
-    algebraic_set(X::AffineScheme; is_reduced=false, check=true) -> AffineAlgebraicSet
+    algebraic_set(X::AffineScheme; is_reduced::Bool=false, check::Bool=true) -> AffineAlgebraicSet
 
 Convert `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
@@ -12,13 +12,13 @@ If `is_reduced` and `check` are set,
 check that `X` is actually geometrically reduced as claimed.
 """
 function algebraic_set(X::AffineScheme; is_reduced::Bool=false, check::Bool=true)
-  return AffineAlgebraicSet(X, is_reduced=is_reduced, check=check)
+  return AffineAlgebraicSet(X; is_reduced, check)
 end
 
 @doc raw"""
     algebraic_set(I::MPolyIdeal; is_radical::Bool=false, check::Bool=true)
 
-Return the affine algebraic set defined ``I``.
+Return the affine algebraic set defined by ``I``.
 
 If `is_radical` is set, assume that ``I`` is a radical ideal.
 ```jldoctest
@@ -33,7 +33,7 @@ defined by ideal (x^3 + y^2 + y + 1, x)
 """
 function algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; is_radical::Bool=false, check::Bool=true)
   X = spec(base_ring(I), I)
-  return algebraic_set(X, is_reduced=is_radical, check=check)
+  return algebraic_set(X; is_reduced=is_radical, check)
 end
 
 @doc raw"""
@@ -60,7 +60,7 @@ defined by ideal (x^5 + x^2*y^2 + x^2*y + x^2)
 """
 function algebraic_set(p::MPolyRingElem; is_radical::Bool =false, check::Bool=true)
   I = ideal(parent(p), p)
-  return algebraic_set(I, check=check, is_radical=is_radical)
+  return algebraic_set(I; check, is_radical)
 end
 
 ########################################################

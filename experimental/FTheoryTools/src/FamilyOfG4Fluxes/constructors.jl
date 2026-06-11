@@ -3,7 +3,7 @@
 ################
 
 @doc raw"""
-    family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
+    family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix)
 
 Given an F-theory model with a toric ambient space, we can 
 identify ambient space candidates of G4-fluxes. In terms of these
@@ -14,9 +14,17 @@ candidates, we can define a family of G4-fluxes as:
 
 For convenience we also allow to only provide ``\text{mat}_{\text{int}}``or ``\text{mat}_{\text{rat}}``. In this case, the shift is taken to be zero.
 
+!!! note "Completeness check"
+    The implemented algorithm is guaranteed to work only for toric ambient spaces
+    that are simplicial and **complete**. Verifying completeness can be very time 
+    consuming. To skip this check, pass the optional keyword argument 
+    `completeness_check=false`.
+
 # Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021), rng = Random.Xoshiro(1234))
 Hypersurface model over a concrete base
 
 julia> mat_int = zero_matrix(QQ, 37, 1);
@@ -29,35 +37,48 @@ julia> mat_rat[2,1] = 1;
 
 julia> shift = [zero(QQ) for k in 1:37];
 
-julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, check = false)
+julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, shift, completeness_check = false)
 Family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Transversality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
-function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix, offset::Vector{QQFieldElem}; check::Bool = true)
+function family_of_g4_fluxes(
+  m::AbstractFTheoryModel,
+  mat_int::QQMatrix,
+  mat_rat::QQMatrix,
+  offset::Vector{QQFieldElem};
+  completeness_check::Bool=true,
+)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Family of G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
   @req nrows(mat_int) == length(offset) "Number of rows of integral matrix and length offset must coincide"
-  n_gens = length(chosen_g4_flux_gens(m, check = check))
+  n_gens = length(chosen_g4_flux_gens(m; completeness_check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
   return FamilyOfG4Fluxes(m, mat_int, mat_rat, offset)
 end
 
-function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
-  return family_of_g4_fluxes(m, mat_int, mat_rat, fill(QQ(0), nrows(mat_int)), check = check)
+function family_of_g4_fluxes(
+  m::AbstractFTheoryModel,
+  mat_int::QQMatrix,
+  mat_rat::QQMatrix;
+  completeness_check::Bool=true,
+)
+  return family_of_g4_fluxes(
+    m, mat_int, mat_rat, fill(QQ(0), nrows(mat_int)); completeness_check
+  )
 end
-
 
 ################################################
 # 2: Equality and hash
 ################################################
 
 function Base.:(==)(gf1::FamilyOfG4Fluxes, gf2::FamilyOfG4Fluxes)
-  return model(gf1) === model(gf2) && mat_int(gf1) == mat_int(gf2) && mat_rat(gf1) == mat_rat(gf2) && offset(gf1) == offset(gf2)
+  return model(gf1) === model(gf2) && mat_int(gf1) == mat_int(gf2) &&
+         mat_rat(gf1) == mat_rat(gf2) && offset(gf1) == offset(gf2)
 end
 
 function Base.hash(gf::FamilyOfG4Fluxes, h::UInt)
@@ -69,7 +90,6 @@ function Base.hash(gf::FamilyOfG4Fluxes, h::UInt)
   return xor(h, b)
 end
 
-
 ################################################
 # 3: Display
 ################################################
@@ -80,7 +100,8 @@ function Base.show(io::IO, ::MIME"text/plain", gf::FamilyOfG4Fluxes)
   properties_string = ["Family of G4 fluxes:"]
 
   # Check for elementary quantization checks
-  if has_attribute(gf, :is_well_quantized) && get_attribute(gf, :is_well_quantized) !== nothing
+  if has_attribute(gf, :is_well_quantized) &&
+    get_attribute(gf, :is_well_quantized) !== nothing
     if is_well_quantized(gf)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
@@ -91,7 +112,8 @@ function Base.show(io::IO, ::MIME"text/plain", gf::FamilyOfG4Fluxes)
   end
 
   # Check for transversality checks
-  if has_attribute(gf, :passes_transversality_checks) && get_attribute(gf, :passes_transversality_checks) !== nothing
+  if has_attribute(gf, :passes_transversality_checks) &&
+    get_attribute(gf, :passes_transversality_checks) !== nothing
     if passes_transversality_checks(gf)
       push!(properties_string, "  - Transversality checks: satisfied")
     else
@@ -102,7 +124,8 @@ function Base.show(io::IO, ::MIME"text/plain", gf::FamilyOfG4Fluxes)
   end
 
   # Check for non-abelian gauge group breaking
-  if has_attribute(gf, :breaks_non_abelian_gauge_group) && get_attribute(gf, :breaks_non_abelian_gauge_group) !== nothing
+  if has_attribute(gf, :breaks_non_abelian_gauge_group) &&
+    get_attribute(gf, :breaks_non_abelian_gauge_group) !== nothing
     if breaks_non_abelian_gauge_group(gf)
       push!(properties_string, "  - Non-abelian gauge group: broken")
     else
@@ -120,7 +143,6 @@ function Base.show(io::IO, ::MIME"text/plain", gf::FamilyOfG4Fluxes)
       println(io, line) # Print all other lines with line break
     end
   end
-
 end
 
 # Terse and one line printing

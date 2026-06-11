@@ -12,7 +12,7 @@
 # For an m×n-matrix A with entries aᵢⱼ in a localized ring S = R[U⁻¹] 
 # this returns a pair of matrices (B, D) ∈ Rᵐˣⁿ × Uᵐˣᵐ where D is a 
 # diagonal matrix such that D ⋅ A = B
-function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
+function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatElem{T}}
   m = nrows(A)
   n = ncols(A)
   S = base_ring(A)
@@ -59,7 +59,7 @@ function clear_denominators(v::Vector{FreeModElem{RET}}) where {RET<:AbsLocalize
 end
 
 # generic solution to the syzygy problem (thought of over the base ring)
-function syz(A::MatrixElem)
+function syz(A::MatElem)
   R = base_ring(A)
   m = nrows(A)
   n = ncols(A)
@@ -96,13 +96,13 @@ end
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
 @doc raw"""
-    syz(A::MatrixElem)
+    syz(A::MatElem)
 
 For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
 ``L ∈ Rᵖˣᵐ`` whose rows generate the kernel of the homomorphism of 
 free modules given by ``A``.
 """
-function syz(A::MatrixElem{<:AbsLocalizedRingElem})
+function syz(A::MatElem{<:AbsLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(B)
   return transpose(transpose(D) * transpose(L))
@@ -113,7 +113,7 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
-function ann(b::MatrixType, A::MatrixType) where {T<:RingElem, MatrixType<:MatrixElem{T}}
+function ann(b::MatrixType, A::MatrixType) where {T<:RingElem, MatrixType<:MatElem{T}}
   R = base_ring(A)
   R === base_ring(b) || error("matrices must be defined over the same ring")
   nrows(b) == 1 || error("only matrices with one row are allowed!")
@@ -176,7 +176,7 @@ end
 function has_solution(
     A::MatrixType, b::MatrixType;
     check::Bool=true
-  ) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
+  ) where {T<:AbsLocalizedRingElem, MatrixType<:MatElem{T}}
   S = base_ring(A)
   R = base_ring(S)
   S === base_ring(b) || error("matrices must be defined over the same ring")
@@ -197,7 +197,7 @@ function has_solution(
     A::MatrixType, b::MatrixType, U::AbsMultSet;
     check::Bool=true
   ) where {
-    MatrixType<:MatrixElem
+    MatrixType<:MatElem
   }
   R = base_ring(A)
   R === base_ring(b) || error("matrices must be defined over the same ring")
@@ -224,7 +224,7 @@ end
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
 @doc raw"""
-    base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
+    base_ring_module(M::OFPModule{T}) where {T<:AbsLocalizedRingElem}
 
 For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 
 this returns a module ``M'`` over ``R`` such that ``M ≅ M'[U⁻¹]``.
@@ -438,7 +438,8 @@ function cokernel(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
-  return quo(codomain(f), representing_matrix(f))
+  I, inc = image(f)
+  return quo(codomain(f), I)
 end
 
 function image(
@@ -448,7 +449,7 @@ function image(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
-  return sub(codomain(f), representing_matrix(f))
+  return sub(codomain(f), images_of_generators(f))
 end
 
 function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
@@ -544,7 +545,7 @@ function kernel(
   ) where {
     T<:AbsLocalizedRingElem,
     DomType<:SubquoModule{T},
-    CodType<:ModuleFP{T}
+    CodType<:OFPModule{T}
   }
   F = ambient_free_module(domain(f))
   S = base_ring(F)
@@ -615,17 +616,6 @@ function (F::FreeMod{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
   rank(F) == rank(G) || error("modules does not have the same rank as the parent of the vector")
   c = Vector(a)
   return sum([a*e for (a, e) in zip(c, gens(F))])
-end
-
-function (M::SubquoModule{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocalizedRingElem}
-  F = ambient_free_module(M)
-  base_ring(parent(f)) == base_ring(base_ring(M)) && return M(F(f))
-  parent(f) == F || error("ambient free modules are not compatible")
-  (check && represents_element(f, M)) || error("not a representative of a module element")
-  v = coordinates(f, M) # This is not the cheapest way, but the only one for which 
-                        # the constructors in the module code are sufficiently generic.
-                        # Clean this up!
-  return sum([a*M[i] for (i, a) in v]; init=zero(M))
 end
 
 function base_ring_module(M::SubquoModule{T}) where {T<:AbsLocalizedRingElem}

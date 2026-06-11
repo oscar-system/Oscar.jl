@@ -12,6 +12,14 @@
     C = combinations(4, 5)
     @test length(C) == 0
 
+    C = combinations(Int16(4), Int16(3))
+    @test length(C) == 4
+    @test collect(C) == [[1, 2, 3],
+                         [1, 2, 4],
+                         [1, 3, 4],
+                         [2, 3, 4]]
+    @test eltype(C) === Combination{Int16}
+
     C = combinations('a':'d', 3)
     @test length(C) == 4
     @test collect(C) == [['a', 'b', 'c'],
@@ -43,6 +51,12 @@
 
   @test collect(combinations(0, 0)) == [Int[]]
 
+  @testset "inplace iteration" begin
+    Ci = combinations(5,3, inplace=true)
+    Cf = combinations(5,3)
+		@test all(splat(==), zip(Ci, Cf))
+  end
+
   @testset "ranking/unranking" begin
     @test Oscar.combination(0,0,1) == Combination([])
     @test Oscar.combination(3,3,1) == Combination(collect(1:3))
@@ -56,11 +70,7 @@
     @test length(c) == binomial(n,k)
     @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
     @test all(i->C[i] == c[i], 1:length(c))
-
   end
-
-
-
 
 
   @testset "wedge products" begin
@@ -89,5 +99,4 @@
     @test ind == I
     @test sign == -1
   end
-
 end

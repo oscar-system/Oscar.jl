@@ -1245,18 +1245,6 @@ function (phi::MPolyAnyMap{D, C})(I::MPolyQuoIdeal) where {D<:MPolyQuoRing, C<:R
   return ideal(S, phi.(gens(I)))
 end
 
-function complement_of_prime_ideal(P::MPolyQuoIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
-function complement_of_prime_ideal(P::MPolyQuoLocalizedIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
-function complement_of_prime_ideal(P::MPolyLocalizedIdeal)
-  return complement_of_prime_ideal(saturated_ideal(P))
-end
-
 radical(I::PrimeIdealSheafFromChart) = I
 
 # TODO: This function should be removed for ideal sheaves! 
@@ -2259,7 +2247,14 @@ function produce_non_radical_ideal_of_singular_locus(II::SingularLocusIdealSheaf
   return II.non_radical_ideals[U]::Ideal
 end
 
-is_one(II::SingularLocusIdealSheaf) = all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in affine_charts(scheme(II)))
+function is_one(II::SingularLocusIdealSheaf; covering::Covering=default_covering(scheme(II)))
+  if has_decomposition_info(covering)
+    return all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)
+                      + ideal(OO(U), decomposition_info(covering)[U])) 
+               for U in patches(covering))
+  end
+  return all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in patches(covering))
+end
 
 in_radical(J::AbsIdealSheaf, II::SingularLocusIdealSheaf) = all(all(radical_membership(g, produce_non_radical_ideal_of_singular_locus(II, U)) for g in gens(J(U))) for U in affine_charts(scheme(J)))
 

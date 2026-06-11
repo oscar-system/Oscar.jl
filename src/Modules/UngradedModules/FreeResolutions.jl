@@ -160,7 +160,7 @@ function _extend_free_resolution_to_the_left_by_zeros(cc::Hecke.ComplexOfMorphis
   if idx > first(r)
     for j = first(r):idx-1
       cod =  domain(first(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       pushfirst!(cc.maps, phi)
     end
   end
@@ -192,7 +192,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end
@@ -258,7 +258,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     error("Unsupported algorithm $algorithm")
   end
 
-  for j in 1:Singular.length(res)
+  slen = Singular.length(res)
+  slen =  slen > len_missing ? len_missing : slen #TODO check why the numbers may differ (Singular.jl)
+  for j in 1:slen
     cod = domain(first(cc.maps))
     I = SubModuleOfFreeModule(cod, res[j]) # convert to an Oscar module
     phi = is_graded(cod) ? graded_map(cod, gens(I); check=false) : hom(free_module(R, ngens(I)), cod, gens(I))
@@ -269,7 +271,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       return first(cc.maps)
     end
   end
-  if is_zero(res[Singular.length(res)+1])
+  if is_zero(res[slen+1]) #TODO check why this is defined (Singular.jl)
     cod = domain(first(cc.maps))
     pushfirst!(cc.maps, is_graded(cod) ? graded_map(cod, elem_type(cod)[]; check=false) : hom(free_module(R, 0), cod, elem_type(cod)[]))
     cc.complete = true
@@ -433,7 +435,9 @@ julia> B = [Z Z Z O; w*y w*z-x*y x*z-y^2 Z];
 
 julia> A = transpose(matrix(B));
 
-julia> M = graded_cokernel(A)
+julia> M = graded_cokernel(A);
+
+julia> M
 Graded subquotient of graded submodule of R^2 with 2 generators
   1: e[1]
   2: e[2]
@@ -483,10 +487,10 @@ degree: 0  1  2  3
  total: 2  4  4  2
 
 julia> matrix(map(FM2, 1))
-[1            0]
-[0   -x*z + y^2]
-[0   -w*z + x*y]
-[0          w*y]
+[0         w*y]
+[0   w*z - x*y]
+[0   x*z - y^2]
+[1           0]
 
 julia> FM3 = free_resolution(M, algorithm = :mres)
 Free resolution of M
@@ -530,7 +534,7 @@ function free_resolution(M::SubquoModule{T};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
@@ -575,7 +579,7 @@ function free_resolution(M::SubquoModule{T};
   end
 
   if length != 0
-    slen =  slen > length ? length : slen
+    slen =  slen > length ? length : slen #TODO check why the numbers may differ (Singular.jl)
   end
 
   #= Add maps from free resolution computation, start with second entry
@@ -612,11 +616,11 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
   if cc_complete == true
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
   end
-  if algorithm == :mres && !is_graded(cc[-1]) # TODO: include local case once :mres is available there
+  if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
     set_attribute!(cc, :minimal=>true)
   end
   cc.fill     = _extend_free_resolution
@@ -876,7 +880,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     end
     insert!(mp, 1, g)
   end
-  C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
+  C = Hecke.ComplexOfMorphisms(OFPModule, mp, check = false, seed = -2)
   C.fill = _extend_free_resolution_via_kernels
   C.complete = false
   if is_zero(domain(C.maps[begin]))
@@ -894,7 +898,7 @@ function _extend_free_resolution_via_kernels(cc::Hecke.ComplexOfMorphisms, idx::
   if idx < last(r)
     for j = last(r)-1:-1:idx
       cod =  codomain(last(cc.maps))
-      phi = identity_map(cod)
+      phi = id_hom(cod)
       push!(cc.maps, phi)
       cc.seed = idx-1
     end
@@ -1037,8 +1041,8 @@ julia> I = ideal(AL, minors(M, 3));
 
 julia> FI = free_resolution(I, length = 3)
 Free resolution of I
-AL^4 <---- AL^7 <---- AL^4 <---- 0
-0          1          2          3
+AL^4 <---- AL^3 <---- 0
+0          1          2
 
 ```
 """
@@ -1236,8 +1240,8 @@ julia> length(fr)
 ```
 """
 function length(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
+  ub = findfirst(i -> is_zero(F.C[i]), 1:first(map_range(F.C)))
   isnothing(ub) && return first(map_range(F.C))
-  return ub::Int
+  return ub-1::Int
 end
 

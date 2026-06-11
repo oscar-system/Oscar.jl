@@ -1,7 +1,7 @@
 @doc raw"""
     common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
 
-Return the common refinement of two polyhedral complexes. 
+Return the common refinement of two polyhedral complexes.
 
 # Examples
 ```jldoctest
@@ -74,3 +74,102 @@ function k_skeleton(PC::PolyhedralComplex{T}, k::Int) where {T<:scalar_types}
   )
   return PolyhedralComplex{T}(ksk, coefficient_field(PC))
 end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+# helper functions to ensure that point and ray vectors scale differently:
+# - point vectors represent points in space and should be scaled normally
+# - ray vectors represent directions and they should only be scaled by 0 or +/-1
+scale(
+  u::PointVector{<:scalar_types_extended}, c::scalar_types_extended
+) = u * c
+function scale(
+  u::RayVector{<:scalar_types_extended}, c::scalar_types_extended
+)
+  is_positive(c) && return u
+  is_negative(c) && return -u
+  return 0 * u
+end
+
+_empty_complex(cf, dim) = polyhedral_complex(
+  cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true
+)
+_origin_complex(cf, dim) = polyhedral_complex(
+  cf, incidence_matrix(1, 1, [[1]]), zero_matrix(cf, 1, dim); non_redundant=true
+)
+
+function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+
+  # if scalar is non-zero, multiple all vertices and rays by said scalar
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    coefficient_field(Sigma),
+    SigmaIncidence,
+    scale.(SigmaVertsAndRays, c),
+    SigmaRayIndices,
+    SigmaLineality;
+    non_redundant=true,
+  )
+end
+*(Sigma::PolyhedralComplex, c::scalar_types_extended) = c * Sigma
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralComplex)
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices,
+    SigmaLineality; non_redundant=true,
+  )
+end
+
+###############################################################################
+## Translation
+###############################################################################
+
+# helper functions to ensure that point and ray vectors are translated differently:
+# - point vectors represent points in space and should be translated normally
+# - ray vectors represent directions and they should not change at all
+function translate(
+  u::PointVector{<:scalar_types_extended}, v::AbstractVector{<:scalar_types_extended}
+)
+  return u + v
+end
+function translate(
+  u::RayVector{<:scalar_types_extended}, ::AbstractVector{<:scalar_types_extended}
+)
+  return u
+end
+function +(v::AbstractVector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
+  @req length(v) == ambient_dim(Sigma) "ambient dimension mismatch"
+  n_maximal_polyhedra(Sigma) == 0 &&
+    return _empty_complex(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    coefficient_field(Sigma),
+    SigmaIncidence,
+    translate.(SigmaVertsAndRays, Ref(v)),
+    SigmaRayIndices,
+    SigmaLineality;
+    non_redundant=true,
+  )
+end
++(Sigma::PolyhedralComplex, v::AbstractVector{<:scalar_types_extended}) = v + Sigma

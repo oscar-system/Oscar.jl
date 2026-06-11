@@ -2,19 +2,29 @@ module IntersectionTheory
 using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
-import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
-import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
+import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power,
+  pullback, canonical_bundle, graph, euler_characteristic, pullback
+import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual,
+  gens, hilbert_polynomial, hom, integral, rank, signature, partitions
+import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map,
+  fixed_points, number_of_fixed_points
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 import ..Oscar: IntegerUnion
 import ..Oscar: localization
+import ..Oscar: _homogeneous_components
 import ..AbstractAlgebra: polynomial
-
 
 export a_hat_genus
 export abstract_bundle
+export abstract_cayley_grassmannian
+export abstract_cayley_plane
+export abstract_curve
+export abstract_K3_surface
+export abstract_quadric
+export adams
+export cannibalistic
 export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
@@ -24,14 +34,15 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blow_up
-export blow_up_points
+export blowup
+export blowup_points
 export canonical_bundle
 export canonical_class
 export chern_character
 export chern_class
 export chern_number
 export chern_numbers
+export chi
 export chow_ring
 export complete_intersection
 export compose
@@ -50,6 +61,7 @@ export hom
 export identity_map
 export instanton_number
 export intersection_matrix
+export kernel_bundle
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
@@ -66,12 +78,20 @@ export pontryagin_class
 export product
 export projective_bundle
 export pullback
+export pullback_morphism
 export pushforward
+export pushforward_morphism
 export schubert_class
 export schubert_classes
 export schur_functor
+export section_class
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -84,10 +104,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
@@ -96,13 +118,12 @@ export TnBundleChern
 export TnRep
 export TnVariety
 
+include("types.jl")
+include("misc.jl")
 
-include("Types.jl")
-include("Misc.jl")
-
-include("Bott.jl")   # integration using Bott's formula
-include("Main.jl")   # basic constructors and functionality
-include("blowup.jl") # blow_up
+include("bott.jl")   # integration using Bott's formula
+include("main.jl")   # basic constructors and functionality
+include("blowup.jl") # blowup
 include("schubert.jl") # Schubert calculus
 include("kontsevich.jl") # Kontsevich moduli spaces
 # include("Moduli.jl") # moduli of matrices, twisted cubics
@@ -114,6 +135,13 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
+export abstract_cayley_grassmannian
+export abstract_cayley_plane
+export abstract_curve
+export abstract_K3_surface
+export abstract_quadric
+export adams
+export cannibalistic
 export flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
@@ -123,14 +151,15 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blow_up
-export blow_up_points
+export blowup
+export blowup_points
 export canonical_bundle
 export canonical_class
 export chern_character
 export chern_class
 export chern_number
 export chern_numbers
+export chi
 export chow_ring
 export complete_intersection
 export compose
@@ -149,6 +178,7 @@ export hom
 export identity_map
 export instanton_number
 export intersection_matrix
+export kernel_bundle
 export kontsevich_moduli_space
 export l_genus
 export lines_on_hypersurface
@@ -165,12 +195,20 @@ export pontryagin_class
 export product
 export projective_bundle
 export pullback
+export pullback_morphism
 export pushforward
+export pushforward_morphism
 export schubert_class
 export schubert_classes
 export schur_functor
+export section_class
 export total_segre_class
 export segre_class
+export set_point_class
+export set_tangent_bundle
+export set_polarization
+export set_tautological_bundles
+export set_structure_map
 export structure_map
 export tangent_bundle
 export tautological_bundles
@@ -183,10 +221,12 @@ export todd_class
 export top_chern_class
 export total_chern_class
 export total_pontryagin_class
+export trim!
 export trivial_line_bundle
 export zero_locus_section
 
 export MPolyDecRingOrQuo
+export MPolyDecRingOrQuoElem
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle

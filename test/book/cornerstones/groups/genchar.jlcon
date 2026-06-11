@@ -6,7 +6,7 @@ Generic character table SL3.n1
   with parameters (a, b, m, n)
 
 julia> T[4,4]
-(q + 1)*exp(2π𝑖((a*n)//(q - 1))) + exp(2π𝑖((-2*a*n)//(q - 1)))
+(q + 1)*E(q - 1)^(a*n) + E(q - 1)^(-2*a*n)
 
 julia> h = T[2] * T[2];
 

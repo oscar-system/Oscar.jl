@@ -103,7 +103,7 @@ function koszul_complex(v::FreeModElem; cached::Bool=true)
   return chain_complex(boundary_maps, seed=-1, check=false)
 end
 
-function koszul_complex(v::FreeModElem, M::ModuleFP; cached::Bool=true)
+function koszul_complex(v::FreeModElem, M::OFPModule; cached::Bool=true)
   K = koszul_complex(v, cached=cached)
   KM = tensor_product(K, M)
   return KM
@@ -130,7 +130,7 @@ function koszul_homology(v::FreeModElem, i::Int; cached::Bool=true)
   return homology(K, 1)
 end
 
-function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
+function koszul_homology(v::FreeModElem, M::OFPModule, i::Int; cached::Bool=true)
   F = parent(v)
   n = rank(F)
 
@@ -146,7 +146,7 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
     phi = wedge_multiplication_map(exterior_power(F, n-1)[1], exterior_power(F, n, cached=cached)[1], v)
     K = chain_complex([phi], check=false)
     KM = tensor_product(K, M)
-    return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
+    return first(cokernel(map(K, 1)))
   end
 
   ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]

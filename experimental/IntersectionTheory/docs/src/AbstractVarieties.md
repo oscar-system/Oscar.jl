@@ -4,7 +4,40 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Abstract Varieties
+# Abstract varieties
+
+An *abstract variety* $X$ of dimension $n$ is determined by its (numerical) Chow ring
+$\mathrm{N}^*(X)_{\mathbb Q} = \bigoplus^n_{c=0}\mathrm{N}^c(X)_{\mathbb Q}$,
+together with an integration map (degree map) $\int_X\colon \mathrm{N}^n(X)_{\mathbb Q}\to \mathbb Q$.
+
+Each Chow ring $\mathrm{N}^*(X)_{\mathbb Q}$ is given by finitely many generators and relations.
+That is, it is implemented as the quotient of a $\mathbb Z$-graded multivariate polynomial ring
+over $\mathbb Q$ modulo a homogeneous ideal. It has Krull dimension zero and is, thus, a
+finite-dimensional $\mathbb Q$-vector space. The Betti numbers
+$\beta_c(X) = \dim_{\mathbb Q} \mathrm{N}^c(X)_{\mathbb Q}$
+satisfy the relations $\beta_c(X) = \beta_{n-c}(X)$ for each $c$. In particular,
+$\beta_n = \beta_0 = 1$.
+
+To specify an integration map means to specify a point class, that is, a (unique) degree-$n$ element
+of the Chow ring that integrates to one. Additionally, an abstract variety may carry a tangent bundle, a
+polarization, tautological bundles, and a structure map to a base variety. See the setter
+functions in section [Some particular constructions](@ref).
+
+Abstract varieties can be constructed either from scratch by specifying a graded ring
+as above and a point class, or via specialized constructors for standard algebraic-geometric
+objects such as projective spaces, Grassmannians, flag varieties, complete intersections,
+and projective bundles.
+
+!!! warning
+    Recall from the introduction to this chapter that in many cases, there is no algorithm for
+    computing all generators of the Chow ring (see [Example: Cubic surfaces](@ref)). In addition note
+    that the constructor `abstract_variety` discussed below gives the expert user some freedom
+    when constructing an object of type `AbstractVariety`. It allows one, for example, to start from
+    the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+    In fact, not all applications require that we specify all relations. Thus, even in some truly meaningful
+    geometric cases, the symmetry condition on the Betti numbers may not be fulfilled for the implemented
+    ring. See section [Some Particular Constructions](@ref) for an example where the top-dimensional part
+    of the constructed ring is more than 1-dimensional.
 
 ## Types
 
@@ -12,16 +45,27 @@ The OSCAR type for abstract varieties is `AbstractVariety`.
 
 ## Constructors
 
+### General varieties
+
 ```@docs
 abstract_variety(n::Int, A::MPolyDecRingOrQuo)
 ```
 
-### Specialized Constructors
-
-
 ```@docs
 abstract_point(; base::Ring=QQ)
 ```
+
+```@docs
+abstract_curve(g::IntegerUnion; base::Ring = QQ)
+```
+
+### Flag bundles
+
+The concept of flag bundles provides fundamental classifying spaces in enumerative geometry.
+In Oscar, abstract flag bundles are constructed using the function `flag_bundle` which, in particular,
+allows one to implement abstract projective spaces, Grassmannians, flag varieties, and projective bundles.
+In addition, there are specialized constructors for the latter varieties some of which rely on
+different recipes for representing Chow rings  in terms of generators and relations.
 
 ```@docs
 abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
@@ -31,14 +75,8 @@ abstract_projective_space(n::Int; base::Ring = QQ, symbol::String = "h")
 abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::Ring = QQ, symbol::String = "c")
 ```
 
-```@docs 
-abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
-```
-
-### New Varieties From Given Varieties/Bundles
-
 ```@docs
-complete_intersection(X::AbstractVariety, degs::Int...)
+abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
 ```
 
 ```@docs
@@ -46,11 +84,17 @@ projective_bundle(F::AbstractBundle; symbol::String = "z")
 ```
 
 ```@docs
-abstract_hirzebruch_surface(n::Int)
+flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+```
+
+### Further standard varieties
+
+```@docs
+complete_intersection(X::AbstractVariety, degs::Int...)
 ```
 
 ```@docs
-flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+abstract_quadric(n::Int; base::Ring = QQ)
 ```
 
 ```@docs
@@ -61,10 +105,28 @@ zero_locus_section(F::AbstractBundle; class::Bool = false)
 degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
 ```
 
+### Special varieties
+
+```@docs
+abstract_K3_surface(g::IntegerUnion; base::Ring = QQ)
+```
+
+```@docs
+abstract_hirzebruch_surface(n::Int)
+```
+
+```@docs
+abstract_cayley_plane(; base::Ring = QQ)
+```
+
+```@docs
+abstract_cayley_grassmannian(; base::Ring = QQ)
+```
+
 !!! note
     Products and blow-ups are described elsewhere.
 
-## Underlying Data of an Abstract Variety
+## Underlying data of an abstract variety
 
 An abstract variety is made up from (a selection of) the data discussed here:
 
@@ -100,7 +162,7 @@ tautological_bundles(X::AbstractVariety)
 structure_map(X::AbstractVariety)
 ```
 
-## Further Data Associated to an Abstract Variety
+## Further data associated to an abstract variety
 
 
 ```@docs
@@ -153,32 +215,32 @@ euler_number(X::AbstractVariety)
 
 !!! note
     If `X` is of type `AbstractVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
-    Similarly for entering `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, and `pontryagin_class(X, k)`.
-    Moreover, `gens(X)` returns the generators of the Chow Ring of `X`.
+    Similarly for entering `chern_class(X, k)`, `todd_class(X)`, `total_pontryagin_class(X)`, and `pontryagin_class(X, k)`.
+    Moreover, `gens(X)` returns the generators of the Chow ring of `X`.
 
-## Operations on Abstract Varieties
+## Operations on abstract varieties
 
 ```@docs
 product(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 !!! note
-    Blow-Ups are described in their own section.
+    [Blow-Ups](@ref) are described in their own section.
 
-## Integrating Chow Ring Elements
+## Integrating Chow ring elements
 
 ```@julia
 integral(c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
-Given an element `c` of the Chow ring of an abstract variety `X`, say, return the integral of `c`.
+Given an element `c` of the Chow ring of an abstract variety, say, `X`, return the integral of `c`.
 
 !!! note
-    If the abstract variety has been given a point class, and `length(basis(X, dim(X)) == 1`,
+    If `X` has been given a point class, and the top Betti number of  `X` is 1,
     then the integral will be an element of the coefficient ring of the Chow ring.
-    That is, typically, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
-    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$.  If one of the conditions is not fulfilled, the 0-dimensional
-    part of `c` is returned.
+    That is, in the applications we discuss here, it will be a rational number (the degree of the 0-dimensional part
+    of `c`) or an element of a function field of type $\mathbb Q(t_1, \dots, t_r)$. If not both conditions on `X` are
+    fulfilled, the 0-dimensional part of `c` will be returned.
 
 
 ###### Examples
