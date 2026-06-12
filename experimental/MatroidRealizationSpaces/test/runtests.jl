@@ -147,6 +147,13 @@ end
     MD = matroid_from_revlex_basis_encoding(s,3,12)
     RS = realization_space(MD, char = 0, saturate = true)
     @test is_reduced(RS) == false
+
+    NF = non_fano_matroid()
+    RS0 = realization_space(NF, char=0, saturate=true)
+    @test iszero(defining_ideal(RS0)) == true
+
+    RSZ = realization_space(NF, saturate=true)
+    @test iszero(defining_ideal(RSZ)) == true
 end
 
 @testset "non simple matroid" begin
