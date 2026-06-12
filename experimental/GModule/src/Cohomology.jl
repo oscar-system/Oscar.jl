@@ -378,162 +378,6 @@ function show_induced_gmodule(io::IO, C::GModule)
              Lowercase(), base_ring(C))
 end
 
-#=
-  Ind C = C otimes_U Z[G]
-  Ind D = D otimes_V Z[H]
- 
-  U\\G = {g_i}, V\\H = {h_i}
-  Then c otimes g_i -> sum c otimes v_j h_j = sum c v_j otimes h_j
-  where the sum runs over all j s.th.
-  mHG(v_j h_j) = g_i
-=#
-"""
-  C V-module, U <= G
-  D U-module, V <= H
-  twist in H
-  mHG: H -> G (think of projection of Galois group(s)
-  mCD: C->D*twist U,V-linear
-
-  want
-
-  Ind C -> Ind D extending/ induced by mCD and mHG
-
-  We should have mHG(V) subset U, if not we demand
-  mHG(V^twist) subset U.
-
-Application: K/k fields and C and D completions at compatible places. Then
-Ind C, Ind D are products over all conjugate completions and mCD induces
-the "embedding" induced by k->K.
-
-"""
-function induce_hom_to_induced_mod(mCD, mHG, indC, indD; twist::Union{Nothing, Any}= nothing)
-#  global last_bad = (mCD, mHG, indC, indD, twist)
-
-  hU, gC = get_attribute(indC.M, :induce)
-  U = domain(hU)
-  iU = image(hU)[1]
-
-  hV, gD = get_attribute(indD.M, :induce)
-  V = domain(hV)
-  iV = image(hV)[1]
-
-  if isnothing(twist)
-    fl, twist = is_conjugate_with_data(codomain(hU), image(hV*mHG)[1], image(hU)[1])
-    @assert fl
-    twist = preimage(mHG, twist)
-  end
-
-  @assert issubgroup(image(hV*inner_automorphism(twist)*mHG)[1], image(hU)[1])[1]
-
-  H = domain(mHG)
-  G = codomain(mHG)
-
-  S = symmetric_group(length(gC))
-  ra = hom(G, S, [S([findfirst(x->x*inv(z*y) in iU, gC) for z = gC]) for y in gens(G)])
-
-  T = symmetric_group(length(gD))
-  rb = hom(H, T, [T([findfirst(x->x*inv(z*y) in iV, gD) for z = gD]) for y in gens(H)])
-
-  rmHG = hV *inner_automorphism(twist)*mHG
-#  @assert iU == image(rmHG)[1]
-  
-#  @show [findall(x->y*inv(x)*twist in iU, gC) for y in gD] 
-
-  function actC(g) #should be the U action on C (since D is lost...)
-    g = (indC.G(g))
-    @hassert :GaloisCohomology 5 has_preimage(hU, g)[1]
-    m = canonical_injection(indC.M, 1)*action(indC, g)*canonical_projection(indC.M, 1)
-    return m
-  end
-
-  function act(g) #should be the V action on D (since D is lost...)
-    g = (indD.G(hV(g)))
-    @hassert :GaloisCohomology 5 has_preimage(hV, g)[1]
-    m = canonical_injection(indD.M, 1)*action(indD, g)*canonical_projection(indD.M, 1)
-    return m
-  end
-
-  #check that mCD is H_Q linear...(same as below)
-  hom(gmodule(V, [actC(rmHG(g)) for g = gens(V)]), gmodule(V, [act(g) for g = gens(V)]), mCD)
-
-  if get_assert_level(:GaloisCohomology) > 4
-    for g = V #test V-linear on input...
-      @assert all(u->act(g)(mCD(u)) == mCD(actC(rmHG(g))(u)), gens(domain(mCD)))
-    end
-  end
-
-  I = zero_map(indC.M, indD.M)
-  pos_twist = findfirst(isequal(twist), gD)
-
-  for i=1:length(gC)
-    for j=1:length(gD)
-      if mHG(gD[j])*inv(gC[i]) in iU
-        @show i, j
-        @assert !is_zero(canonical_injection(indC.M, i)*action(indC, inv(gC[i]))*canonical_projection(indC.M, 1))
-        @assert !is_zero(canonical_injection(indD.M, pos_twist)*action(indD, inv(twist)*gD[j])*canonical_projection(indD.M, j))
-        I += action(indC, inv(gC[i]))*canonical_projection(indC.M, 1)*mCD*canonical_injection(indD.M, pos_twist)*action(indD, inv(twist)*gD[j])
-      end
-    end
-  end
-
-
-  # IndC = sum C otimes g_i for g_i = U\\G
-  # IndD = sum D otimes h_i for h_i = V\\H
-  #
-  # mCD : C -> D*twist which is isomorphic to D
-  # so need h_i s.th.
-  # IndC -> sum D otimes twist*h_i works
-  #  let J be s.th.  mHG(h_j^twist) = g_i*u
-  # Then C otimes g_i -> sum D otimes twist*u*h_j
-  # if twist*u*h_j = v*h_k then
-  # D otimes twist*u*h_j = Du otimes h_k..A
-
-
-  #=
-  II = [x for x = 1:length(gD) if mHG(inv(gD[x])) in iU]
-  @assert isone(gD[1]) && isone(gC[1])
-  v = [hV(preimage(rmHG, mHG(inv(gD[x])))) for x = II]
-
-  for i=1:length(gC)
-    m = gC[i]
-    
-    @show j = [x for x = 1:length(gD) if m*mHG(inv(gD[x]^twist)) in iU]
-   
-#    I += canonical_projection(indC.M, i)*mCD*sum(act(preimage(rmHG, m*mHG(inv(gD[x])^twist)))*canonical_injection(indD.M, x^rb(twist)) for x = j)
-
-    #  
-    pr = zero_map(codomain(mCD), indD.M)
-    for _x = 1:length(II)
-      x = II[_x]
-      @show v, v[_x]
-
-
-      h = preimage(mHG, m)
-   
-      @show k = findfirst(l->gD[x]*h*inv(gD[l]) in iV, 1:length(gD))
-      @show x^rb(gD[x]*h)
-      @show w = hV(preimage(rmHG, gD[x]*h*inv(gD[k])))
-      pr += act(v[_x]*w)*canonical_injection(indD.M, k)
-    end
-    I += canonical_projection(indC.M, i)*mCD*pr
-    #
-  end
-
-  =#
-
-  if get_assert_level(:GaloisCohomology) > 4
-    for g = gens(indD.G)
-      x = [(action(indC, mHG(g)) * I)(u) - (I*action(indD, g))(u) for u= gens(indC.M)]
-      if !all(iszero, x)
-        @show x
-        @assert all(iszero, x)
-      end
-    end
-  end
-    
-  return I
-end
-
 """
  D a G-module
  C a U-module, U<G  
@@ -872,6 +716,7 @@ export induce, is_consistent, istwo_cocycle, all_extensions
 export split_extension, extension_with_abelian_kernel
 export CoChain, MultGrp, MultGrpElem
 export is_stem_extension, is_central
+export free_res, change_group, change_module
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = rank(M)
@@ -1544,6 +1389,12 @@ function bar_res(ZG::GroupAlgebra; side = :left)
   return Cpx
 end
 
+@doc """
+    free_res(ZG::GroupAlgebra; side = :left)
+
+Compute a free resolution of the group algebra as left modules.
+The resolution can be extended.
+"""
 function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
   G = group(ZG)
 
@@ -3564,4 +3415,5 @@ export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
 export is_stem_extension, is_central
-export alternating_square, symmetric_square
+export alternating_square, symmetric_square, free_res, change_group
+export change_module
