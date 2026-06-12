@@ -331,7 +331,7 @@ function iterate_basis_reynolds(
   return FinGroupInvarRingBasisIterator{
     typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N)
   }(
-    R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N
+    R, d, k, :reynolds, reynolds, monomials, Vector{eltype(monomials)}(), N
   )
 end
 
@@ -349,7 +349,7 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
     return FinGroupInvarRingBasisIterator{
       typeof(IR),Nothing,typeof(dummy_mons),eltype(mons),typeof(N)
     }(
-      IR, d, k, false, nothing, dummy_mons, mons, N
+      IR, d, k, :linear_algebra, nothing, dummy_mons, mons, N
     )
   end
 
@@ -361,7 +361,7 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
     return FinGroupInvarRingBasisIterator{
       typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
     }(
-      IR, d, k, false, nothing, mons_iterator, mons, N
+      IR, d, k, :linear_algebra, nothing, mons_iterator, mons, N
     )
   end
 
@@ -397,7 +397,7 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   return FinGroupInvarRingBasisIterator{
     typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
   }(
-    IR, d, ncols(N), false, nothing, mons_iterator, mons, N
+    IR, d, ncols(N), :linear_algebra, nothing, mons_iterator, mons, N
   )
 end
 
@@ -432,21 +432,21 @@ function Base.show(io::IO, BI::FinGroupInvarRingBasisIterator)
 end
 
 function Base.iterate(BI::FinGroupInvarRingBasisIterator)
-  if BI.reynolds
+  if BI.method === :reynolds
     return iterate_reynolds(BI)
   end
   return iterate_linear_algebra(BI)
 end
 
 function Base.iterate(BI::FinGroupInvarRingBasisIterator, state)
-  if BI.reynolds
+  if BI.method === :reynolds
     return iterate_reynolds(BI, state)
   end
   return iterate_linear_algebra(BI, state)
 end
 
 function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
-  @assert BI.reynolds
+  @assert BI.method === :reynolds
   if BI.dim == 0
     return nothing
   end
@@ -477,7 +477,7 @@ function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
 end
 
 function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
-  @assert BI.reynolds
+  @assert BI.method === :reynolds
 
   B = state[1]
   monomial_state = state[2]
@@ -511,7 +511,7 @@ function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
 end
 
 function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
-  @assert !BI.reynolds
+  @assert BI.method === :linear_algebra
   if BI.dim == 0
     return nothing
   end
@@ -533,7 +533,7 @@ function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
 end
 
 function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
-  @assert !BI.reynolds
+  @assert BI.method === :linear_algebra
   if state > BI.dim
     return nothing
   end
