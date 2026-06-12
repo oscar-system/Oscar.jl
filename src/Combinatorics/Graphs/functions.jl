@@ -1212,8 +1212,7 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   error("unimplemented for either indistinguishable vertex or edge labels")
 end
 
-function _permute_nodes_and_labels(G::Graph{T}, p::PermGroupElem, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
-  @req "at least one label was not a labeling of $G" all(label in labelings(G), label)
+function _permute_nodes_and_labels(G::Graph{T}, p::Vector{Int}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
   new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
 
   for label in labels
@@ -2556,5 +2555,5 @@ The canonical hash is an isomorphism invariant of a graph.
 canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
 function on_graph(g::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
   @req degree(parent(p)) == n_vertices(g) "$p needs to be an element of the permutation group on the vertices"
-  return _permute_nodes_and_labels(g, p, labelings(g))
+  return _permute_nodes_and_labels(g, Vector(p), labelings(g))
 end
