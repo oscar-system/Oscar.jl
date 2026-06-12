@@ -124,17 +124,17 @@ function encode_type(::Type{T}) where T
   )
 end
 
-function is_string(s::DeserializerState)::Bool
+function node_is_string(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
   return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
 end
 
-function is_array(s::DeserializerState)::Bool
+function node_is_array(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
     return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
 end
 
-function is_object(s::DeserializerState)::Bool
+function node_is_object(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || return false
   s.obj isa AbstractDict && return true
 
@@ -149,7 +149,7 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)::Type
-  if is_string(s)
+  if node_is_string(s)
     str = load_json(s, String)
     uuid = tryparse(UUID, str)
     if !isnothing(uuid)
@@ -190,15 +190,15 @@ function decode_type(s::DeserializerState)::Type
 end
 
 ################################################################################
-# TypeParams Struct
+# TypeAndParams Struct
 @doc raw"""
-    TypeParams{T, S}
-    TypeParams(T::Type, params)
-    TypeParams(T::Type, pairs::Pair...)
+    TypeAndParams{T, S}
+    TypeAndParams(T::Type, params)
+    TypeAndParams(T::Type, pairs::Pair...)
 
 A container pairing a Julia type `T` with its contextual parameters `params`.
 
-`TypeParams` values are created by [`type_params`](@ref) and consumed by
+`TypeAndParams` values are created by [`type_params`](@ref) and consumed by
 `load_object`. The `params` field holds whatever context is needed to
 reconstruct an object of type `T`: a parent ring, a base field, a
 domain/codomain pair, etc.
@@ -208,11 +208,11 @@ Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
 
 See [`type_params`](@ref) for usage examples.
 """
-struct TypeParams{T, S}
+struct TypeAndParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, params)
+  function TypeAndParams(T::Type, params)
     if Base.issingletontype(T)
       return new{T, Nothing}(T, nothing)
     else
@@ -221,25 +221,25 @@ struct TypeParams{T, S}
   end
 end
 
-TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
+TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
-parameters(tp::TypeParams) = tp.params
-type(tp::TypeParams) = tp.type
+parameters(tp::TypeAndParams) = tp.params
+type(tp::TypeAndParams) = tp.type
 
-function Base.getindex(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
+function Base.getindex(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
   for (k, v) in tp.params
     k === key && return v
   end
-  error("key $key not found in TypeParams")
+  error("key $key not found in TypeAndParams")
 end
 
-Base.haskey(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
+Base.haskey(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
   any(k === key for (k, _) in tp.params)
 
 @doc raw"""
-    type_params(obj)
+    type_and_params(obj)
 
-Return a [`TypeParams`](@ref) value capturing the type and parent parameters of `obj`.
+Return a [`TypeAndParams`](@ref) value capturing the type and parent parameters of `obj`.
 
 This is useful when loading a file into the same context as a currently loaded object —
 pass the result directly to [`load`](@ref) so the deserialized object shares the same
@@ -263,7 +263,7 @@ defined by
 
 julia> save("phi.mrdi", phi)
 
-julia> tp = type_params(phi);
+julia> tp = type_and_params(phi);
 
 julia> phi_loaded = load("phi.mrdi", tp)
 Ring homomorphism
@@ -277,9 +277,9 @@ julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
 true
 ```
 """
-type_params(obj::T) where T = TypeParams(T, nothing)
+type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
-function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
+function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
   if is_terse(io)
     print(io, "Type parameters for $T")
   else
@@ -292,7 +292,7 @@ function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
   end
 end
 
-function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
+function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   if is_terse(io)
     print(io, "Type parameters for $T")
   else
@@ -335,7 +335,7 @@ function save_typed_object(s::SerializerState, x::T) where T
   if Base.issingletontype(T)
     save_object(s, encode_type(T), type_key)
   else
-    save_type_params(s, x, type_key)
+    save_type_and_params(s, x, type_key)
     save_object(s, x, :data)
   end
   if with_attrs(s)
@@ -358,18 +358,18 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
 end
 
 ################################################################################
-# (save | load) TypeParams
+# (save | load) TypeAndParams
 
-function save_type_params(s::SerializerState, obj::Any, key::Symbol)
+function save_type_and_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
-  save_type_params(s, obj)
+  save_type_and_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, obj::T) where T
-  save_type_params(s, type_params(obj))
+function save_type_and_params(s::SerializerState, obj::T) where T
+  save_type_and_params(s, type_and_params(obj))
 end
 
-function save_type_params(s::SerializerState, tp::TypeParams)
+function save_type_and_params(s::SerializerState, tp::TypeAndParams)
   save_data_dict(s) do
     T = type(tp)
     type_encoding = encode_type(T)
@@ -378,17 +378,18 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     end
     
     save_object(s, type_encoding, :name)
-    # params(tp) isa TypeParams if the type isa container type
-    if parameters(tp) isa TypeParams
-      save_type_params(s, parameters(tp), :params)
+
+    # params(tp) isa TypeAndParams if the type isa container type
+    if parameters(tp) isa TypeAndParams
+      save_type_and_params(s, parameters(tp), :params)
     else
       save_typed_object(s, parameters(tp), :params)
     end
   end
 end
 
-function save_type_params(s::SerializerState,
-                          ::TypeParams{T, Nothing}) where T
+function save_type_and_params(s::SerializerState,
+                              ::TypeAndParams{T, Nothing}) where T
   type_encoding = encode_type(T)
   if reverse_type_map[type_encoding] isa Dict
     save_data_dict(s) do
@@ -400,36 +401,31 @@ function save_type_params(s::SerializerState,
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{TypeParams{T, Nothing}, Nothing}) where T
-  save_object(s, encode_type(T))
-end
-
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
+function save_type_and_params(s::SerializerState,
+                              tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
   for param in parameters(tp)
-    save_type_params(s, param.second, Symbol(param.first))
+    save_type_and_params(s, param.second, Symbol(param.first))
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{<:TypeParams, <:Tuple})
+function save_type_and_params(s::SerializerState,
+                              tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
     for param in parameters(tp)
-      save_type_params(s, param)
+      save_type_and_params(s, param)
     end
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
+function save_type_and_params(s::SerializerState,
+                              tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in parameters(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
-        elseif !(param.second isa TypeParams)
+        elseif !(param.second isa TypeAndParams)
           if param.second isa Tuple
             save_data_array(s, Symbol(param.first)) do
               for entry in param.second
@@ -446,81 +442,81 @@ function save_type_params(s::SerializerState,
             save_typed_object(s, param.second, Symbol(param.first))
           end
         else
-          save_type_params(s, param.second, Symbol(param.first))
+          save_type_and_params(s, param.second, Symbol(param.first))
         end
       end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type, key::Symbol)
+function load_type_and_params(s::DeserializerState, T::Type, key::Symbol)
   load_node(s, key) do
-    load_type_params(s, T)
+    load_type_and_params(s, T)
   end
 end
 
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do _
     T = decode_type(s)
-    if is_string(s)
+    if node_is_string(s)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
-      return TypeParams(T, nothing)
+      return TypeAndParams(T, nothing)
     end
     haskey(s, type_key) && return load_typed_object(s)
-    return load_type_params(s, T)
+    return load_type_and_params(s, T)
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type)
-  if is_string(s)
+function load_type_and_params(s::DeserializerState, T::Type)
+  if node_is_string(s)
     val = load_json(s, String)
-    !isnothing(tryparse(UUID, val)) && return TypeParams(T, load_ref(s))
-    return TypeParams(T, nothing)
+    !isnothing(tryparse(UUID, val)) && return TypeAndParams(T, load_ref(s))
+    return TypeAndParams(T, nothing)
   end
   if haskey(s, :params)
     load_node(s, :params) do
-      if is_array(s)
+      if node_is_array(s)
         p = load_type_array_params(s)
-      elseif is_string(s) || haskey(s, :params)
+      elseif node_is_string(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           p = U()
         else
-          p = parameters(load_type_params(s, U))
+          p = parameters(load_type_and_params(s, U))
         end
-      # handle cases where type_params is a dict of params
+      # handle cases where type_and_params is a dict of params
       elseif !haskey(s, type_key)
         pairs_vec = Pair{Symbol, Any}[]
         for k in propertynames(s.obj)
           v = load_node(s, k) do
-            if is_array(s)
+            if node_is_array(s)
               return load_type_array_params(s)
             end
             if haskey(s, type_key)
               return load_typed_object(s)
             end
             U = decode_type(s)
-            if is_string(s)
+            if node_is_string(s)
               uuid_str = load_json(s, String)
               !isnothing(tryparse(UUID, uuid_str)) && return load_ref(s)
-              return TypeParams(U, nothing)
+              return TypeAndParams(U, nothing)
             end
-            return load_type_params(s, U)
+            return load_type_and_params(s, U)
           end
           push!(pairs_vec, k => v)
         end
-        return TypeParams(T, pairs_vec...)
+        return TypeAndParams(T, pairs_vec...)
       else
         p = load_typed_object(s)
       end
       # all types where the type T should be updated with a subtype i.e. T -> T{U}
       # need to implement their own method, see for example containers
-      return TypeParams(T, p)
+      return TypeAndParams(T, p)
     end
   elseif haskey(s, :_instance)
-    TypeParams(T, nothing)
+    TypeAndParams(T, nothing)
   else
-    return TypeParams(T, load_typed_object(s))
+    return TypeAndParams(T, load_typed_object(s))
   end
 end
 
@@ -535,11 +531,11 @@ end
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   if !isnothing(override_params)
-    tp = load_type_params(s, T, type_key)
-    tp = TypeParams(type(tp), override_params)
+    tp = load_type_and_params(s, T, type_key)
+    tp = TypeAndParams(type(tp), override_params)
   else
-    is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
-    tp = load_type_params(s, T, type_key)
+    node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
+    tp = load_type_and_params(s, T, type_key)
   end
   Base.issingletontype(type(tp)) && return type(tp)()
   obj = load_node(s, :data) do
@@ -555,18 +551,18 @@ function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams,
+function load_object(s::DeserializerState, tp::TypeAndParams,
                      key::Union{Symbol, Int})
   load_node(s, key) do
     load_object(s, tp)
   end
 end
 
-load_object(s::DeserializerState, tp::TypeParams{T, Nothing}) where T = load_object(s, T)
-load_object(s::DeserializerState, tp::TypeParams{Vector{T}, Nothing}) where T = load_object(s, Vector{T})
-load_object(s::DeserializerState, tp::TypeParams{Matrix{T}, Nothing}) where T = load_object(s, Matrix{T})
-load_object(s::DeserializerState, tp::TypeParams{Array{T, N}, Nothing}) where {T, N} = load_object(s, Array{T, N})
-load_object(s::DeserializerState, tp::TypeParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
+load_object(s::DeserializerState, tp::TypeAndParams{T, Nothing}) where T = load_object(s, T)
+load_object(s::DeserializerState, tp::TypeAndParams{Vector{T}, Nothing}) where T = load_object(s, Vector{T})
+load_object(s::DeserializerState, tp::TypeAndParams{Matrix{T}, Nothing}) where T = load_object(s, Matrix{T})
+load_object(s::DeserializerState, tp::TypeAndParams{Array{T, N}, Nothing}) where {T, N} = load_object(s, Array{T, N})
+load_object(s::DeserializerState, tp::TypeAndParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
 
 ################################################################################
 # serializing attributes
@@ -934,8 +930,8 @@ end
 """
     load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
     load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(io::IO, tp::TypeParams; with_attrs::Bool=true)
-    load(filename::String, tp::TypeParams; with_attrs::Bool=true)
+    load(io::IO, tp::TypeAndParams; with_attrs::Bool=true)
+    load(filename::String, tp::TypeAndParams; with_attrs::Bool=true)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
@@ -957,9 +953,9 @@ has the appropriate file extension, then the file will be decompressed on-the-fl
 
 See [`save`](@ref).
 
-## Using `TypeParams` directly
+## Using `TypeAndParams` directly
 
-Use [`type_params`](@ref) on an already-loaded object to capture its type and parent context,
+Use [`type_and_params`](@ref) on an already-loaded object to capture its type and parent context,
 then pass the result to `load` — the deserialized object will share the same parent ring,
 domain/codomain, or other context as the original.
 
@@ -972,7 +968,7 @@ x^2 - x + 1
 
 julia> save("p.mrdi", p)
 
-julia> p_loaded = load("p.mrdi", type_params(p))
+julia> p_loaded = load("p.mrdi", type_and_params(p))
 x^2 - x + 1
 
 julia> parent(p_loaded) === R
@@ -1015,7 +1011,7 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO, tp::TypeParams;
+function load(io::IO, tp::TypeAndParams;
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s
     Base.issingletontype(type(tp)) && return type(tp)()
@@ -1036,18 +1032,18 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
       Base.issingletontype(type) && return type()
       if isnothing(params)
         tp_inner = load_node(s, type_key) do
-          load_type_params(s, U)
+          load_type_and_params(s, U)
         end
         params = parameters(tp_inner)
       end
-      load_object(s, TypeParams(type, params), :data)
+      load_object(s, TypeAndParams(type, params), :data)
     else
       load_typed_object(s; override_params=params)
     end
   end
 end
 
-function load(filename::String, tp::TypeParams; kwargs...)
+function load(filename::String, tp::TypeAndParams; kwargs...)
   if endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
       return load(file, tp; kwargs...)
@@ -1091,14 +1087,14 @@ export save_object
 export SerializerState
 export serialize_with_id
 export set_key
-export TypeParams
-export type_params
+export TypeAndParams
+export type_and_params
 export with_attrs
 
 end # module Serialization
 
 using Oscar.Serialization
-import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: load_object, save_object, type_and_params
 import Oscar.Serialization: reset_global_serializer_state
 
 # FIXME: the following functions are exported by us but undocumented

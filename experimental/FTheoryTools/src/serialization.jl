@@ -120,25 +120,25 @@ function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceMo
       nothing
     end,
     if !isempty(explicit_model_sections(m))
-      (:explicit_model_sections => type_params(explicit_model_sections(m)))
+      (:explicit_model_sections => type_and_params(explicit_model_sections(m)))
     else
       nothing
     end,
     if !isempty(defining_classes(m))
-      (:defining_classes => type_params(defining_classes(m)))
+      (:defining_classes => type_and_params(defining_classes(m)))
     else
       nothing
     end,
     if !isempty(model_section_parametrization(m))
-      (:model_section_parametrization => type_params(model_section_parametrization(m)))
+      (:model_section_parametrization => type_and_params(model_section_parametrization(m)))
     else
       nothing
     end]
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
-  TypeParams(
+type_and_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
+  TypeAndParams(
     T, _fmodel_params(m)...
   )
 
@@ -178,20 +178,20 @@ end
 ###########################################################################
 
 function _maybe_load(
-  s::DeserializerState, ::Type{T}, key::Symbol, tp::TypeParams
+  s::DeserializerState, ::Type{T}, key::Symbol, tp::TypeAndParams
 ) where {S,T<:Dict{String,S}}
   if haskey(s, key)
     val = tp[key]
-    if val isa TypeParams
+    if val isa TypeAndParams
       return load_object(s, val, key)
     end
     dict_params = val isa Dict ? val : Dict(:key_params => nothing, :value_params => val)
-    return load_object(s, TypeParams(T, dict_params), key)
+    return load_object(s, TypeAndParams(T, dict_params), key)
   end
   return T()
 end
 
-function _load_common_parts(s::DeserializerState, tp::TypeParams)
+function _load_common_parts(s::DeserializerState, tp::TypeAndParams)
   # TODO: The following should eventually be handled by a serializatino upgrade script.
   # TODO: Discussed with Antony on slack today (August 22, 2025), and we decided to postpone.
   # TODO: This can/should/may be fixed after the OSCAR 1.5.0 release and the corresponding upgrade script.
@@ -202,7 +202,7 @@ function _load_common_parts(s::DeserializerState, tp::TypeParams)
       (:tate_polynomial_ring, :tate_polynomial),
     ) if haskey(tp, rk)
   ))
-  def_poly = load_object(s, TypeParams(MPolyDecRingElem, tp[ring_key]), poly_key)
+  def_poly = load_object(s, TypeAndParams(MPolyDecRingElem, tp[ring_key]), poly_key)
   @req coordinate_ring(tp[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
 
   explicit_model_sections = _maybe_load(
@@ -220,7 +220,7 @@ function _load_common_parts(s::DeserializerState, tp::TypeParams)
   return def_poly, explicit_model_sections, model_section_parametrization, defining_classes
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:WeierstrassModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:WeierstrassModel, <:Tuple{Vararg{Pair}}})
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   model = WeierstrassModel(
     explicit_model_sections,
@@ -233,7 +233,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:WeierstrassModel, <:
   return model
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:GlobalTateModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GlobalTateModel, <:Tuple{Vararg{Pair}}})
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   model = GlobalTateModel(
     explicit_model_sections,
@@ -246,11 +246,11 @@ function load_object(s::DeserializerState, tp::TypeParams{<:GlobalTateModel, <:T
   return model
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:HypersurfaceModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:HypersurfaceModel, <:Tuple{Vararg{Pair}}})
   def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   defining_equation_parametrization = load_object(
     s,
-    TypeParams(MPolyRingElem, tp[:hypersurface_equation_parametrization_ring]),
+    TypeAndParams(MPolyRingElem, tp[:hypersurface_equation_parametrization_ring]),
     :hypersurface_equation_parametrization,
   )
   model = HypersurfaceModel(

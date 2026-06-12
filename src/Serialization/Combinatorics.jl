@@ -161,7 +161,7 @@ end
 ## Phylogenetic Trees
 ###############################################################################
 @register_serialization_type PhylogeneticTree 
-type_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeParams(
+type_and_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeAndParams(
   PhylogeneticTree, T == QQFieldElem ? QQ : AbstractAlgebra.Floats{Float64}())
 
 function save_object(s::SerializerState, PT::PhylogeneticTree)
@@ -171,7 +171,7 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQField})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, QQField})
   inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, JSON.parse(s.obj; dicttype=Dict{String, Any}))
   end
@@ -179,7 +179,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQ
   return PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
   inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, load_json(s, Dict{String, Any}))
   end
