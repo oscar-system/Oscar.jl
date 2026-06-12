@@ -409,18 +409,19 @@ end
 function iterate_basis_orbit_sums(R::FinGroupInvarRing{T, <:PermGroup}, d::Int) where T
   @assert d >= 0 "Degree must be non-negative"
 
-  mons = monomials_of_degree(polynomial_ring(R), d)
-  exps = [AbstractAlgebra.exponent_vector(m, 1) for m in mons]
+  S = polynomial_ring(R)
+  # Generate all exponent vectors of monomials of degree d
+  exps = data.(collect(weak_compositions(d, ngens(S), inplace = false)))
 
   mon_orbits = orbits(gset(group(R), permuted, exps))
 
   k = length(mon_orbits)
-  N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
+  N = zero_matrix(base_ring(S), 0, 0)
 
   return FinGroupInvarRingBasisIterator{
-                                        typeof(R),Nothing,typeof(mons),eltype(mons),typeof(N), typeof(mon_orbits)
+                                        typeof(R),Nothing,Nothing,elem_type(S),typeof(N), typeof(mon_orbits)
   }(
-    R, d, k, :orbit_sums, nothing, mons, Vector{eltype(mons)}(), N, mon_orbits
+    R, d, k, :orbit_sums, nothing, nothing, elem_type(S)[], N, mon_orbits
   )
 end
 
