@@ -769,12 +769,12 @@ function save(filename::String, obj::Any;
       try
         if endswith(existing_main, ".gz")
           open(CodecZlib.GzipDecompressorStream, existing_main) do f
-            parsed = JSON3.read(f)
+            parsed = JSON.lazy(f)
             append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
           end
         else
           open(existing_main) do f
-            parsed = JSON3.read(f)
+            parsed = JSON.lazy(f)
             append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
           end
         end
@@ -797,12 +797,12 @@ function save(filename::String, obj::Any;
     try
       if compression == :gzip
         open(CodecZlib.GzipDecompressorStream, temp_file) do f
-          parsed = JSON3.read(f)
+          parsed = JSON.lazy(f)
           union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
         end
       else
         open(temp_file) do f
-          parsed = JSON3.read(f)
+          parsed = JSON.lazy(f)
           union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
         end
       end
