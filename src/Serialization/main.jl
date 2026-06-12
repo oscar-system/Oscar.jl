@@ -756,7 +756,13 @@ function save(filename::String, obj::Any;
               serializer::OscarSerializer=JSONSerializer(),
               kwargs...)
   if serializer isa MultiFileRefSerializer
-    prefix = abspath(filename)
+    prefix = if endswith(filename, ".mrdi.gz")
+      chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      chopsuffix(filename, ".mrdi")
+    else
+      filename
+    end
     main_ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
     main_file = prefix * main_ext
     prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
@@ -1002,9 +1008,17 @@ end
 
 function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
   if serializer isa MultiFileRefSerializer
-    prefix = abspath(filename)
-    main_gz = prefix * ".mrdi.gz"
-    main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    if endswith(filename, ".mrdi.gz")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi")
+    else
+      prefix = filename
+      main_gz = prefix * ".mrdi.gz"
+      main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    end
     compression = endswith(main_file, ".gz") ? :gzip : :none
     if compression == :gzip
       open(CodecZlib.GzipDecompressorStream, main_file) do file
