@@ -96,15 +96,15 @@ function compute_new_inequalities(
   inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
   sizehint!(inequalities, n)
   for i in n:-1:1
+    rhs = dot(highest_weight, operator_as_root(bir_sequence, i))
     lhs = zeros(QQ, n)
     for k in 1:i-1 #k<i
       lhs[k] = 0
     end
     lhs[i] = 1 #k=i
     for k in i+1:n #k>i
-      lhs[k] = dot(operator_as_weight(bir_sequence, k), operator_as_root(bir_sequence, i))
+      lhs[k] = rhs - maximum([dot(highest_weight - x * operator_as_weight(bir_sequence, k), operator_as_root(bir_sequence, i)) for x in 0:Int((dot(highest_weight, operator_as_root(bir_sequence, k))))])
     end
-    rhs = dot(highest_weight, operator_as_root(bir_sequence, i))
     push!(inequalities, (lhs, rhs))
   end
   return inequalities
