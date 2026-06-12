@@ -90,7 +90,7 @@ end
 
       # compression: main and ref files should be gzip compressed
       save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
-      gz_files = filter(f -> startswith(f, "original"), readdir(path))
+      gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
       @test "original.mrdi.gz" in gz_files
       @test all(f -> endswith(f, ".gz"), gz_files)
       Oscar.Serialization.reset_global_serializer_state()
