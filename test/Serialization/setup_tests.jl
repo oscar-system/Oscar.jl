@@ -25,7 +25,7 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     is_multi_file_ref_serializer = serializer isa Oscar.Serialization.MultiFileRefSerializer
 
     # save and load from a file
-    filename = is_multi_file_ref_serializer ? joinpath(path, "original") : joinpath(path, "original.json")
+    filename = is_multi_file_ref_serializer ? joinpath(path, "original") : joinpath(path, "original.mrdi")
     save(filename, original; serializer=serializer, kw...)
     loaded = load(filename; params=params, serializer=serializer, kw...)
 
