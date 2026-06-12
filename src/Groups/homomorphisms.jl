@@ -1708,10 +1708,22 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   return GAPGroupHomomorphism(G, G, GapObj(x))
 end
 
+# apply a group automorphism to a group element
+# (Note that that `x` need not have type `GAPGroupElem{T}`.)
 (f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem) where T <: GAPGroup = apply_automorphism(f, x, true)
-Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
-#Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
+Base.:^(x::GAPGroupElem, f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
+Base.:^(x::GAPGroupElem{AutomorphismGroup{T}}, y::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = conj(x, y)
 
+# apply a group automorphism to a group
+function (f::GAPGroupElem{AutomorphismGroup{T}})(H::GAPGroup) where T <: GAPGroup
+  return _as_subgroup_bare(domain(f), GAPWrap.Image(GapObj(f), GapObj(H)))
+end
+
+function Base.:^(H::GAPGroup, f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
+  return _as_subgroup_bare(domain(f), GAPWrap.Image(GapObj(f), GapObj(H)))
+end
+
+# coerce a group homomorphism to an element of an automorphism group
 function (A::AutomorphismGroup{<: GAPGroup})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
    @assert is_bijective(f) "f not in A"
