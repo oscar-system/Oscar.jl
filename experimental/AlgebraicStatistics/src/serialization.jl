@@ -1,5 +1,5 @@
-import Oscar.Serialization: save_object, load_object,
-  type_params, parameters, load_type_params, decode_type, node_is_string, node_is_array
+import Oscar.Serialization: save_object, load_object, TypeAndParams,
+  type_and_params, parameters, decode_type, node_is_string, node_is_array
 
 
 ################################################################################
@@ -91,31 +91,10 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GraphTransDict, <:R
   return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
-function load_type_and_params(s::DeserializerState, T::Type{GenDict})
-  tp = load_node(s, :params) do
-    key_tp = load_node(s, :key_params) do
-      if node_is_string(s)
-        S = decode_type(s)
-        return TypeAndParams(S, nothing)
-      end
-      load_type_and_params(s, decode_type(s))
-    end
-
-    value_tp = load_node(s, :value_params) do
-      load_type_and_params(s, decode_type(s))
-    end
-
-    S = type(key_tp)
-    return TypeAndParams(GenDict{S}, Dict(:key_params => parameters(key_tp), :value_params => parameters(value_tp)))
-  end
-  return tp
-end
-
-function load_object(s::DeserializerState, tp::TypeAndParams{GenDict{S}, <:Dict}) where S
+function load_object(s::DeserializerState, tp::TypeAndParams{GenDict, <:Tuple{<:Pair, <:Pair}})
   p = parameters(tp)
-  return GenDict(load_object(s, TypeAndParams(Dict{S, MPolyRingElem},
-                                           :key_params => p[:key_params],
-                                           :value_params => p[:value_params])))
+  S = Oscar.Serialization.type(tp[:key_params])
+  return GenDict(load_object(s, TypeAndParams(Dict{S, MPolyRingElem}, p)))
 end
 
 ################################################################################
