@@ -15,12 +15,10 @@ if isempty(indict)
 end
 
 for file in filelist
-    parts = split(file[1:end-4], "-")
-    timestamp = join(parts[3:5], "-")
-    platform = parts[6]
-    juliaVersion = parts[7]
-    subset = parts[8]    
-    commitHash = parts[9]
+    (timestr, platform, juliaVersion, subset, commitHash) = split(file[1:end-4], "_")[2:end]
+    # filenames on github must not contain colons so we convert to the correct timestamp format here
+    timestamp = Dates.format(DateTime(timestr, dateformat"yyyy-mm-ddTHH-MM-SSZ"),
+                             dateformat"yyyy-mm-ddTHH:MM:SS")
     commitAuthor = readchomp(`git show --no-patch --pretty=format:'%aN' $commitHash`)
     commitMessage = readchomp(`git show --no-patch --pretty=format:'%s' $commitHash`)
     if subset == "default"
