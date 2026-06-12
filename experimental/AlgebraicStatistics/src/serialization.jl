@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, parameters, load_type_params, decode_type, is_string, is_array
+  type_params, parameters, load_type_params, decode_type, node_is_string, node_is_array
 
 
 ################################################################################
@@ -49,7 +49,7 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Ring})
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
     key = load_node(s, 1) do
-      if is_array(s)
+      if node_is_array(s)
         return load_object(s, Edge)
       else
         return load_object(s, Int)
@@ -70,7 +70,7 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphDict, <:Dict})
   graph_gen_dict = Dict{Union{Int, Edge}, map_type}()
   load_array_node(s) do _
     key = load_node(s, 1) do
-      if is_array(s)
+      if node_is_array(s)
         return load_object(s, Edge)
       else
         return load_object(s, Int, 1)
@@ -94,7 +94,7 @@ end
 function load_type_and_params(s::DeserializerState, T::Type{GenDict})
   tp = load_node(s, :params) do
     key_tp = load_node(s, :key_params) do
-      if is_string(s)
+      if node_is_string(s)
         S = decode_type(s)
         return TypeAndParams(S, nothing)
       end

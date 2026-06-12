@@ -318,7 +318,7 @@ function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
     pairs_list = Pair{Symbol, Any}[]
     for k in propertynames(s.obj)
       tp = load_node(s, k) do
-        is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
+        node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
       end
       push!(pairs_list, k => tp)
     end
@@ -397,12 +397,12 @@ end
 function load_type_and_params(s::DeserializerState, T::Type{Dict})
   return load_node(s, :params) do
     key_tp = load_node(s, :key_params) do
-      is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
+      node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
     end
     S = type(key_tp)
 
     load_node(s, :value_params) do
-      if is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
+      if node_is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
         # Heterogeneous Dict{S, Any} — per-key type params stored as dict
         pairs_list = Pair[]
         for k in propertynames(s.obj)

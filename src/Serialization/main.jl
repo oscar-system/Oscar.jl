@@ -124,17 +124,17 @@ function encode_type(::Type{T}) where T
   )
 end
 
-function is_string(s::DeserializerState)::Bool
+function node_is_string(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
   return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
 end
 
-function is_array(s::DeserializerState)::Bool
+function node_is_array(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
     return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
 end
 
-function is_object(s::DeserializerState)::Bool
+function node_is_object(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || return false
   s.obj isa AbstractDict && return true
 
@@ -149,7 +149,7 @@ function decode_type(s::String)
 end
 
 function decode_type(s::DeserializerState)::Type
-  if is_string(s)
+  if node_is_string(s)
     str = load_json(s, String)
     uuid = tryparse(UUID, str)
     if !isnothing(uuid)
@@ -458,7 +458,7 @@ end
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do _
     T = decode_type(s)
-    if is_string(s)
+    if node_is_string(s)
       !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
       return TypeAndParams(T, nothing)
     end
@@ -468,16 +468,16 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_and_params(s::DeserializerState, T::Type)
-  if is_string(s)
+  if node_is_string(s)
     val = load_json(s, String)
     !isnothing(tryparse(UUID, val)) && return TypeAndParams(T, load_ref(s))
     return TypeAndParams(T, nothing)
   end
   if haskey(s, :params)
     load_node(s, :params) do
-      if is_array(s)
+      if node_is_array(s)
         p = load_type_array_params(s)
-      elseif is_string(s) || haskey(s, :params)
+      elseif node_is_string(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           p = U()
@@ -489,14 +489,14 @@ function load_type_and_params(s::DeserializerState, T::Type)
         pairs_vec = Pair{Symbol, Any}[]
         for k in propertynames(s.obj)
           v = load_node(s, k) do
-            if is_array(s)
+            if node_is_array(s)
               return load_type_array_params(s)
             end
             if haskey(s, type_key)
               return load_typed_object(s)
             end
             U = decode_type(s)
-            if is_string(s)
+            if node_is_string(s)
               uuid_str = load_json(s, String)
               !isnothing(tryparse(UUID, uuid_str)) && return load_ref(s)
               return TypeAndParams(U, nothing)
@@ -534,7 +534,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     tp = load_type_and_params(s, T, type_key)
     tp = TypeAndParams(type(tp), override_params)
   else
-    is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
+    node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
     tp = load_type_and_params(s, T, type_key)
   end
   Base.issingletontype(type(tp)) && return type(tp)()

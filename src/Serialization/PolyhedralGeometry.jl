@@ -117,7 +117,7 @@ function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFi
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, QQField})
-  if is_string(s)
+  if node_is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
   field = parameters(tp)
@@ -140,7 +140,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, QQFie
 end
 
 function load_object(s::DeserializerState, tp::TypeParams{<:LinearProgram, <:Tuple{Vararg{Pair}}})
-  if is_string(s)
+  if node_is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
   field = tp[:field]
