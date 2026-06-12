@@ -212,7 +212,9 @@ function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol=:default)
   @assert d >= 0 "Degree must be non-negative"
 
   if algorithm == :default
-    if is_modular(R)
+    if group(R) isa PermGroup
+      algorithm = :orbit_sums
+    elseif is_modular(R)
       algorithm = :linear_algebra
     else
       # Use the estimate in KS99, Section 17.2
@@ -236,10 +238,12 @@ function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol=:default)
     end
   end
 
-  if algorithm == :reynolds
+  if algorithm === :reynolds
     return iterate_basis_reynolds(R, d)
-  elseif algorithm == :linear_algebra
+  elseif algorithm === :linear_algebra
     return iterate_basis_linear_algebra(R, d)
+  elseif algorithm === :orbit_sums
+    return iterate_basis_orbit_sums(R, d)
   else
     error("Unsupported argument :$(algorithm) for algorithm")
   end
@@ -329,9 +333,9 @@ function iterate_basis_reynolds(
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
 
   return FinGroupInvarRingBasisIterator{
-    typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N)
+    typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N), Nothing
   }(
-    R, d, k, :reynolds, reynolds, monomials, Vector{eltype(monomials)}(), N
+    R, d, k, :reynolds, reynolds, monomials, Vector{eltype(monomials)}(), N, nothing
   )
 end
 
@@ -347,9 +351,9 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
     mons = elem_type(R)[]
     dummy_mons = monomials_of_degree(R, 0)
     return FinGroupInvarRingBasisIterator{
-      typeof(IR),Nothing,typeof(dummy_mons),eltype(mons),typeof(N)
+      typeof(IR),Nothing,typeof(dummy_mons),eltype(mons),typeof(N),Nothing
     }(
-      IR, d, k, :linear_algebra, nothing, dummy_mons, mons, N
+      IR, d, k, :linear_algebra, nothing, dummy_mons, mons, N, nothing
     )
   end
 
@@ -359,9 +363,9 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = monomials_of_degree(R, 0)
     return FinGroupInvarRingBasisIterator{
-      typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
+      typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N), Nothing
     }(
-      IR, d, k, :linear_algebra, nothing, mons_iterator, mons, N
+      IR, d, k, :linear_algebra, nothing, mons_iterator, mons, N, nothing
     )
   end
 
@@ -395,19 +399,38 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   N = kernel(M; side=:right)
 
   return FinGroupInvarRingBasisIterator{
-    typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
+    typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N), Nothing
   }(
-    IR, d, ncols(N), :linear_algebra, nothing, mons_iterator, mons, N
+    IR, d, ncols(N), :linear_algebra, nothing, mons_iterator, mons, N, nothing
   )
 end
+
+function iterate_basis_orbit_sums(R::FinGroupInvarRing{T, <:PermGroup}, d::Int) where T
+  @assert d >= 0 "Degree must be non-negative"
+
+  mons = monomials_of_degree(polynomial_ring(R), d)
+  exps = [AbstractAlgebra.exponent_vector(m, 1) for m in mons]
+
+  mon_orbits = orbits(gset(group(R), permuted, exps))
+
+  k = length(mon_orbits)
+  N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
+
+  return FinGroupInvarRingBasisIterator{
+                                        typeof(R),Nothing,typeof(mons),eltype(mons),typeof(N), typeof(mon_orbits)
+  }(
+    R, d, k, :orbit_sums, nothing, mons, Vector{eltype(mons)}(), N, mon_orbits
+  )
+end
+
 
 Base.eltype(
   ::Type{
     <:FinGroupInvarRingBasisIterator{
-      FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT
+      FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT
     },
   },
-) where {FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT} = PolyRingElemT
+) where {FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT} = PolyRingElemT
 
 Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
@@ -434,15 +457,21 @@ end
 function Base.iterate(BI::FinGroupInvarRingBasisIterator)
   if BI.method === :reynolds
     return iterate_reynolds(BI)
+  elseif BI.method === :linear_algebra
+    return iterate_linear_algebra(BI)
+  else
+    return iterate_orbit_sums(BI)
   end
-  return iterate_linear_algebra(BI)
 end
 
 function Base.iterate(BI::FinGroupInvarRingBasisIterator, state)
   if BI.method === :reynolds
     return iterate_reynolds(BI, state)
+  elseif BI.method === :linear_algebra
+    return iterate_linear_algebra(BI, state)
+  else
+    return iterate_orbit_sums(BI, state)
   end
-  return iterate_linear_algebra(BI, state)
 end
 
 function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
@@ -549,6 +578,22 @@ function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
   # Cancelling the leading coefficient is not mathematically necessary and
   # should be done with the ordering that is used for the printing
   return inv(AbstractAlgebra.leading_coefficient(f)) * f, state + 1
+end
+
+function iterate_orbit_sums(BI::FinGroupInvarRingBasisIterator, state::Union{Int, Nothing} = nothing)
+  @assert BI.method === :orbit_sums
+  s = isnothing(state) ? 1 : state
+  if s > BI.dim
+    return nothing
+  end
+
+  R = polynomial_ring(BI.R)
+  oneK = one(coefficient_ring(R))
+  F = MPolyBuildCtx(R)
+  for t in BI.orbits[s]
+    push_term!(F, oneK, t)
+  end
+  return finish(F), s + 1
 end
 
 ################################################################################

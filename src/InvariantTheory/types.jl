@@ -158,13 +158,13 @@ struct AllMonomials{PolyRingT}
 end
 
 struct FinGroupInvarRingBasisIterator{
-  FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT
+  FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT,OrbitsT
 }
   R::FinGroupInvarRingT
   degree::Int
   dim::Int
 
-  # method can be :reynolds or :linear_algebra
+  # method can be :reynolds, :linear_algebra or :orbit_sums
   method::Symbol
 
   # If we compute the basis twisted by a character, we cache the operator here
@@ -174,6 +174,8 @@ struct FinGroupInvarRingBasisIterator{
   monomials::IteratorT
   monomials_collected::Vector{PolyRingElemT}
   kernel::MatrixT # used if method == :linear_algebra
+
+  orbits::OrbitsT # used if method == :orbit_sums
 end
 
 abstract type VectorSpaceIterator{FieldT,IteratorT,ElemT} end
