@@ -788,32 +788,19 @@ function save(filename::String, obj::Any;
       end
     end
 
+    inner_serializer = MultiFileRefSerializer(prefix, compression)
     temp_file = tempname(prefix_dir)
     if compression == :gzip
       open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-        save(file, obj; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+        save(file, obj; serializer=inner_serializer, kwargs...)
       end
     else
       open(temp_file, "w") do file
-        save(file, obj; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+        save(file, obj; serializer=inner_serializer, kwargs...)
       end
     end
 
-    new_ref_basenames = Set{String}()
-    try
-      if compression == :gzip
-        open(CodecZlib.GzipDecompressorStream, temp_file) do f
-          parsed = JSON.lazy(f)
-          union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
-        end
-      else
-        open(temp_file) do f
-          parsed = JSON.lazy(f)
-          union!(new_ref_basenames, string.(get(parsed, :_ref_files, [])))
-        end
-      end
-    catch
-    end
+    new_ref_basenames = Set(inner_serializer.ref_files)
 
     Base.Filesystem.rename(temp_file, main_file)
 

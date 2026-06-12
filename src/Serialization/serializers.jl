@@ -26,9 +26,11 @@ end
 struct MultiFileRefSerializer <: MultiFileSerializer
   basepath::String
   compression::Symbol
+  ref_files::Vector{String}
 end
-MultiFileRefSerializer() = MultiFileRefSerializer("", :none)
-MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none)
+MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
+MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
@@ -185,7 +187,7 @@ function handle_refs(s::SerializerState{MultiFileRefSerializer})
   isempty(s.refs) && return nothing
   prefix = basepath(s.serializer)
   compression = s.serializer.compression
-  ref_files = String[]
+  ref_files = s.serializer.ref_files
   prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
   while !isempty(s.refs)
     id = pop!(s.refs)
