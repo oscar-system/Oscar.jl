@@ -34,13 +34,13 @@ function _node_map_to_dict(nm::Polymake.NodeMap{S,T}) where {S,T}
 end
 
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
-  isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
-  labelings_tp = Pair{Symbol, TypeParams}[]
+  isempty(labelings(g)) && return TypeAndParams(Graph{T}, nothing)
+  labelings_tp = Pair{Symbol, TypeAndParams}[]
   for l in labelings(g)
     push!(labelings_tp, l => type_params(_graph_maps_to_dict(g, l)))
   end
   
-  return TypeParams(Graph{T}, labelings_tp...)
+  return TypeAndParams(Graph{T}, labelings_tp...)
 end
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
@@ -78,7 +78,7 @@ function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{D
   return g(smallobj)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
+function load_object(s::DeserializerState, tp::TypeAndParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
   G = type(tp)
   g = load_node(s, :graph) do 
     G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any}))))
