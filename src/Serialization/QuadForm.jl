@@ -2,7 +2,7 @@
 # QuadSpace
 @register_serialization_type Hecke.QuadSpace uses_id
 
-type_params(V::Hecke.QuadSpace) = TypeParams(Hecke.QuadSpace, parent(gram_matrix(V)))
+type_and_params(V::Hecke.QuadSpace) = TypeAndParams(Hecke.QuadSpace, parent(gram_matrix(V)))
 
 function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))
@@ -19,7 +19,7 @@ end
 # ZZLat
 @register_serialization_type ZZLat
 
-type_params(L::ZZLat) = TypeParams(
+type_and_params(L::ZZLat) = TypeAndParams(
   ZZLat,
   :basis => parent(basis_matrix(L)),
   :ambient_space => ambient_space(L)
@@ -38,11 +38,11 @@ end
 ############################################################
 # QuadSpaceWithIsom
 @register_serialization_type QuadSpaceWithIsom                                                                                    
-type_params(QS::QuadSpaceWithIsom) = TypeParams(
+type_and_params(QS::QuadSpaceWithIsom) = TypeAndParams(
   QuadSpaceWithIsom,
   :quad_space => space(QS),
   :isom => parent(isometry(QS)),
-  :order => type_params(order_of_isometry(QS))
+  :order => type_and_params(order_of_isometry(QS))
 )
 
 function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
@@ -70,7 +70,7 @@ end
 # ZZLatWithIsom
 @register_serialization_type ZZLatWithIsom
 
-type_params(x::ZZLatWithIsom) = TypeParams(
+type_and_params(x::ZZLatWithIsom) = TypeAndParams(
   ZZLatWithIsom,
   :ambient_space => ambient_space(x),
   :basis => parent(basis_matrix(x))

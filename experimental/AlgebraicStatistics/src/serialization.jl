@@ -8,24 +8,24 @@ import Oscar.Serialization: save_object, load_object,
 @register_serialization_type GraphTransDict
 @register_serialization_type GenDict
 
-function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
+function type_and_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   if isempty(obj)
-    return TypeParams(
+    return TypeAndParams(
       T,
       nothing
     )
   end
   
-  value_params = type_params.(collect(values(obj)))
+  value_params = type_and_params.(collect(values(obj)))
   @req allequal(value_params) "Not all params of values in $obj are the same"
   
-  return TypeParams(
+  return TypeAndParams(
     T,
     first(value_params)
   )
 end
 
-type_params(D::GenDict) = TypeParams(GenDict, parameters(type_params(D.d)))
+type_and_params(D::GenDict) = TypeAndParams(GenDict, parameters(type_and_params(D.d)))
 
 function save_object(s::SerializerState, e::Edge)
   save_data_array(s) do
@@ -91,22 +91,22 @@ function load_object(s::DeserializerState, tp::TypeParams{GraphTransDict, <:Ring
   return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
-function load_type_params(s::DeserializerState, T::Type{GenDict})
+function load_type_and_params(s::DeserializerState, T::Type{GenDict})
   tp = load_node(s, :params) do
     key_tp = load_node(s, :key_params) do
       if is_string(s)
         S = decode_type(s)
-        return TypeParams(S, nothing)
+        return TypeAndParams(S, nothing)
       end
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
     value_tp = load_node(s, :value_params) do
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
-    S = key_tp.type
-    return TypeParams(GenDict{S}, Dict(:key_params => parameters(key_tp), :value_params => parameters(value_tp)))
+    S = type(key_tp)
+    return TypeAndParams(GenDict{S}, Dict(:key_params => parameters(key_tp), :value_params => parameters(value_tp)))
   end
   return tp
 end
@@ -124,8 +124,8 @@ end
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
 @register_serialization_type DiscreteGraphicalModel uses_id [:parameter_ring, :model_ring]
 
-function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
-  TypeParams(S, :graph_type => type_params(graph(GM)))
+function type_and_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
+  TypeParams(S, :graph_type => type_and_params(graph(GM)))
 end
 
 function save_object(s::SerializerState, M::GraphicalModel)
@@ -156,13 +156,13 @@ end
                                                         :model_ring,
                                                         :full_model_ring]
 
-type_params(pm::PhylogeneticModel) = TypeParams(
+type_and_params(pm::PhylogeneticModel) = TypeAndParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
-  :graph => type_params(graph(pm)),
-  :transition_matrix => type_params(transition_matrix(pm)),
-  :root_distribution => type_params(root_distribution(pm)),
-  :model_parameter => type_params(varnames(pm)),
+  :graph => type_and_params(graph(pm)),
+  :transition_matrix => type_and_params(transition_matrix(pm)),
+  :root_distribution => type_and_params(root_distribution(pm)),
+  :model_parameter => type_and_params(varnames(pm)),
 )
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
@@ -189,11 +189,11 @@ end
                                                                   :model_ring,
                                                                   :full_model_ring]
 
-type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
+type_and_params(pm::GroupBasedPhylogeneticModel) = TypeAndParams(
   GroupBasedPhylogeneticModel,
   :phylo_model => phylogenetic_model(pm),
   :group => parent(first(group(pm))),
-  :model_parameter => type_params(varnames(pm)),
+  :model_parameter => type_and_params(varnames(pm)),
 )
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
@@ -216,15 +216,15 @@ end
 # IndexedRing
 @register_serialization_type IndexedRing
 
-function type_params(IR::IndexedRing)
+function type_and_params(IR::IndexedRing)
   if isempty(IR.gen_to_index)
-    return TypeParams(IndexedRing,
+    return TypeAndParams(IndexedRing,
                :ring => base_ring(IR),
-               :index_type => TypeParams(Int, nothing))
+               :index_type => TypeAndParams(Int, nothing))
   end
-  return TypeParams(IndexedRing,
+  return TypeAndParams(IndexedRing,
                     :ring => base_ring(IR),
-                    :index_type => type_params(first(IR.gen_to_index).second))
+                    :index_type => type_and_params(first(IR.gen_to_index).second))
 end
 
 save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
@@ -243,7 +243,7 @@ end
 # Phylogenetic Networks
 @register_serialization_type PhylogeneticNetwork
 
-type_params(::PhylogeneticNetwork) = nothing
+type_and_params(::PhylogeneticNetwork) = nothing
 
 function save_object(s::SerializerState, pn::PhylogeneticNetwork)
   save_object(s, graph(pn))

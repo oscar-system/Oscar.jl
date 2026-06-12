@@ -29,24 +29,24 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeAndParams(T, coefficient_field(obj))
 
-function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
+function type_and_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
   field = p_dict["_coeff"]
   delete!(p_dict, "_coeff")
   params = Pair[]
   for (k, v) in p_dict
-    push!(params, Symbol(k) => type_params(v))
+    push!(params, Symbol(k) => type_and_params(v))
   end
-  return TypeParams(T, :field => field, params...)
+  return TypeAndParams(T, :field => field, params...)
 end
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeAndParams(T, coefficient_field(obj))
 
-function type_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
+function type_and_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
   par = parameters(type_params(feasible_region(obj)))
-  return TypeParams(T, par...)
+  return TypeAndParams(T, par...)
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}

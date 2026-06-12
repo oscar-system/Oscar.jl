@@ -2,8 +2,8 @@ using Oscar: _images, coefficient_map
 
 @register_serialization_type MPolyAnyMap
 
-function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
-  return TypeParams(
+function type_and_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
+  return TypeAndParams(
     MPolyAnyMap,
     :domain => domain(phi),
     :codomain => codomain(phi)
