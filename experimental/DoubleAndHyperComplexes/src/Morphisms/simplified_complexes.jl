@@ -467,7 +467,7 @@ function simplify(c::FreeResolution{T}) where T
   # `_extend_free_resolution`, then this suggests that we are in a
   # graded polynomial setting and we extend the minimized resolution 
   # via `mres`. Unfortunately, this decision can not be inferred from 
-  # the type parameter of `c`, because it comes out of `ModuleFP`, i.e. 
+  # the type parameter of `c`, because it comes out of `OFPModule`, i.e. 
   # without specifying the `elem_type` of the rings. 
   if c.C.fill == _extend_free_resolution
     result.fill = c.C.fill
@@ -496,7 +496,7 @@ function simplify(c::FreeResolution{T}) where T
         C.complete = true
         return first(C.maps)
       end
-      zip_map = get_attribute(C, :zip_map)::ModuleFPHom
+      zip_map = get_attribute(C, :zip_map)::OFPModuleHom
       @assert domain(zip_map) === c[k-1]
       @assert codomain(zip_map) === C[k-1]
       tmp = ComplexOfMorphisms(T, FreeModuleHom[map(c, k+1), map(c, k)]; typ=:chain, seed=k-1, check=true)
@@ -666,7 +666,7 @@ function simplify(
 end
 
 ### Helper functions
-function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
+function _make_free_module(M::OFPModule, g::Vector{T}) where {T<:OFPModuleElem}
   if is_graded(M)
     w = _degree_fast.(g)
     return graded_free_module(base_ring(M), w)
@@ -930,32 +930,28 @@ end
     simplify(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$. These maps are
-isomorphisms.
+with the identification map $N \to M$.
 The simplification is heuristical and includes steps like for example removing
 zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
-  res, aug = free_resolution(SimpleFreeResolution, M)
-  simp = simplify(res)
-  simp_to_orig = map_to_original_complex(simp)
-  orig_to_simp = map_from_original_complex(simp)
-  result, Z0_to_result = homology(simp, 0)
-  Z0, inc_Z0 = kernel(simp, 0)
-
-  result_to_M = hom(result, M, 
-                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
-  M_to_result = hom(M, result,
-                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
+  pres = presentation(M)
+  aug = map(pres, 0)
+  c = pres[0:1]
+  s = simplify(SimpleComplexWrapper(c))
+  result, to_result = cokernel(map(s, 1))
+  simp_to_orig = map_to_original_complex(s)
+  orig_to_simp = map_from_original_complex(s)
+  result_to_M = hom(result, M, elem_type(M)[aug(simp_to_orig[0](preimage(to_result, x))) for x in gens(result)]; check=false)
+  M_to_result = hom(M, result, elem_type(M)[to_result(orig_to_simp[0](preimage(aug, x))) for x in gens(M)]; check=false)
   set_attribute!(M_to_result, :inverse=>result_to_M)
   set_attribute!(result_to_M, :inverse=>M_to_result)
-  #return result, M_to_result, result_to_M
   return result, result_to_M
 end
 
 # Some special shortcuts
-function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:OFPModule}
   # try to find the boundary already computed
   und = underlying_complex(c)::HyperComplex
   if !isdefined(und, :boundary_cache) 
@@ -969,7 +965,7 @@ function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Chai
   return domain(inc), inc
 end
 
-function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:OFPModule}
   c = underlying_complex(simp)::HyperComplex
 
   if !isdefined(c, :kernel_cache) 
@@ -990,7 +986,7 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
   return domain(inc), inc
 end
 
-function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: OFPModule}
   c = underlying_complex(simp)::HyperComplex
   
   if !isdefined(c, :homology_cache) 
@@ -1006,7 +1002,7 @@ function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {C
   return H, pr
 end
 
-homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))
+homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: OFPModule} = homology(simp, 1, (i,))
 
 @doc raw"""
     homotopy_map(d::SimplifiedComplex, p::Int)

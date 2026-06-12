@@ -1983,6 +1983,11 @@ end
   R, (x,y) = QQ[:x,:y]
   F = free_module(R, 2)
 
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2015,6 +2020,11 @@ end
   I = ideal(R, [x^3+y^2+z^2, x*y])
   Q,_ = quo(R, I)
   F = free_module(Q, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2064,6 +2074,11 @@ end
   R, (x,y,z) = QQ[:x,:y,:z]
   L,_ =  localization(R, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(L, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2133,6 +2148,11 @@ end
   LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(LQ, 2)
 
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2170,4 +2190,32 @@ end
   S = SubquoModule(F, gens(F), [F[1]])
   # not a finite module over `QQ`
   @test_throws ErrorException vector_space_basis(S)
+end
+
+@testset "normal form different module orderings" begin
+  R, (x,y) = QQ[:x,:y]
+  F = free_module(R, 3)
+  M, _ = sub(F, [F[1]+F[3], F[2]])
+
+  v = (x^2+x)*F[1]
+  w = F[2]
+
+  # default ordering
+  GB = groebner_basis(M)
+  @test normal_form(v, GB) == (x^2+x)*F[1]
+  @test normal_form(w, GB) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB) == ((x^2+x)*F[1], one(R))
+
+  # another global ordering
+  ord = invlex(F)*deglex(R)
+  GB_ord = groebner_basis(M, ordering = ord)
+  @test normal_form(v, GB_ord) == -(x^2+x)*F[3]
+  @test normal_form(w, GB_ord) == zero(F)
+  @test Oscar.normal_form_with_unit(v, GB_ord) == (-(x^2+x)*F[3], one(R))
+
+  # local ordering
+  ord_loc = invlex(F)*negdeglex(R)
+  SB = standard_basis(M, ordering = ord_loc)
+  @test normal_form(v, SB) == -x*F[3]
+  @test normal_form(w, SB) == zero(F)
 end

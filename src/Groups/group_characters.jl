@@ -3987,7 +3987,7 @@ function _irr(rattbl::GAPGroupCharacterTableRational)
       push!(norms, 1)
     elseif info[i] != 0
       push!(res, galois_orbit_sum(tbl[i]))
-      push!(norms, length(info[i]))
+      push!(norms, length(info[i][1]))
     end
   end
   rattbl.irr = res

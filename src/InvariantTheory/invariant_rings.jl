@@ -54,24 +54,24 @@ end
 #
 ################################################################################
 
-function invariant_ring(M::Vector{<:MatrixElem})
+function invariant_ring(M::Vector{<:MatElem})
   return invariant_ring(base_ring(M[1]), M)
 end
 
-function invariant_ring(R::MPolyDecRing, M::Vector{<:MatrixElem})
+function invariant_ring(R::MPolyDecRing, M::Vector{<:MatElem})
   K = coefficient_ring(R)
   return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T}
+function invariant_ring(m::MatElem{T}, ms::MatElem{T}...) where {T}
   return invariant_ring([m, ms...])
 end
 
-function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T}
+function invariant_ring(R::MPolyDecRing, m::MatElem{T}, ms::MatElem{T}...) where {T}
   return invariant_ring(R, [m, ms...])
 end
 
-function invariant_ring(K::Field, M::Vector{<:MatrixElem})
+function invariant_ring(K::Field, M::Vector{<:MatElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
 
@@ -148,7 +148,7 @@ function Base.show(io::IO, RG::FinGroupInvarRing)
 end
 
 # Return a map performing the right action of M on the ring R.
-function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
+function right_action(R::MPolyRing{T}, M::MatElem{T}) where {T}
   @assert nvars(R) == ncols(M)
   @assert nrows(M) == ncols(M)
   n = nvars(R)
@@ -179,7 +179,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
 end
 
 right_action(R::MPolyRing{T}, M::MatGroupElem{T}) where {T} = right_action(R, matrix(M))
-right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
+right_action(f::MPolyRingElem{T}, M::MatElem{T}) where {T} =
   right_action(parent(f), M)(f)
 right_action(f::MPolyRingElem{T}, M::MatGroupElem{T}) where {T} =
   right_action(f, matrix(M))
@@ -207,7 +207,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
-    return nothing
+    return IR.reynolds_operator
   end
 
   actions = [right_action(polynomial_ring(IR), g) for g in group(IR)]
@@ -314,10 +314,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
-  if !isdefined(IR, :reynolds_operator)
-    reynolds_operator(IR)
-  end
-  return IR.reynolds_operator(f)
+  return reynolds_operator(IR)(f)
 end
 
 function reynolds_operator(IR::FinGroupInvarRing, f::MPolyRingElem)

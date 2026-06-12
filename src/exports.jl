@@ -136,9 +136,9 @@ export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export ModuleFP
-export ModuleFPElem
-export ModuleFPHom
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
@@ -1501,6 +1501,7 @@ export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
+export prism
 export product
 export proj
 export project_full
@@ -1521,6 +1522,7 @@ export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
 export projectivization
+export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
@@ -1706,6 +1708,8 @@ export simplify_light
 export simplify_with_same_ambient_free_module
 export singular_locus
 export singular_locus_reduced
+export slack_ideal
+export slack_ideal_non_saturated
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
