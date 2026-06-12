@@ -274,7 +274,7 @@ end
   V = hypersurface_complement(X, x)
   inc_V = inclusion_morphism(V, X)
 
-  kk, pr = quo(ZZ, 5)
+  kk, pr = residue_field(ZZ, 5)
   IA2_red, phi1 = base_change(pr, IA2)
   red_X, phi2, _ = base_change(pr, inc_X; codomain_map=phi1)
   X_red = domain(red_X)

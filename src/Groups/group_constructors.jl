@@ -791,14 +791,18 @@ end
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)
+  isdefined(G, :free_group) && return G.free_group
   gapG = GapObj(G)::GapObj
   gapF = GAPWrap.FreeGroupOfFpGroup(gapG)
   if gapF === gapG
     # G is itself a free group
-    return G
+    res = G
   else
-    return FPGroup(gapF)
+    # we have not yet created the Oscar object
+    res = fp_group(gapF)
   end
+  G.free_group = res
+  return res
 end
 
 function underlying_word(g::FPGroupElem)

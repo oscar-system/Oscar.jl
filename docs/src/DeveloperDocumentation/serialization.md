@@ -115,7 +115,7 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_type_params`, `load_type_params`
+2. `save_type_and_params`, `load_type_and_params`
 3. `save_object`, `load_object`
 
 
@@ -127,7 +127,7 @@ type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
 
 
-#### `save_type_params` / `load_type_params`
+#### `save_type_and_params` / `load_type_and_params`
 
 The serialization mechanism stores data in the format of a tree, with the
 exception that some nodes may point to a shared reference. The "data branch"
@@ -135,11 +135,11 @@ is anything that is a child node of a data node, whereas the "type branch" is
 any information that is stored in a node that is a child of a type node.
 
 These functions should also not be touched, however they expect an implementation
-of `type_params` whenever saving a type `T`. By default `type_params` will return
-`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+of `type_and_params` whenever saving a type `T`. By default `type_and_params` will return
+`nothing`. The `type_and_params` function does a shallow pass through an `obj` of type
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
-For example if `obj` is of type `RingElem` than it is expected that `type_params`
+For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
 #### `type_params` / `TypeParams`

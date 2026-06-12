@@ -34,13 +34,13 @@ function _node_map_to_dict(nm::Polymake.NodeMap{S,T}) where {S,T}
 end
 
 function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
-  isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
-  labelings_tp = Pair{Symbol, TypeParams}[]
+  isempty(labelings(g)) && return TypeAndParams(Graph{T}, nothing)
+  labelings_tp = Pair{Symbol, TypeAndParams}[]
   for l in labelings(g)
     push!(labelings_tp, l => type_params(_graph_maps_to_dict(g, l)))
   end
   
-  return TypeParams(Graph{T}, labelings_tp...)
+  return TypeAndParams(Graph{T}, labelings_tp...)
 end
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
@@ -78,7 +78,7 @@ function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{D
   return g(smallobj)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
+function load_object(s::DeserializerState, tp::TypeAndParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
   G = type(tp)
   g = load_node(s, :graph) do 
     G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any}))))
@@ -161,7 +161,7 @@ end
 ## Phylogenetic Trees
 ###############################################################################
 @register_serialization_type PhylogeneticTree 
-type_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeParams(
+type_and_params(::PhylogeneticTree{T}) where T <: Union{QQFieldElem, Float64} = TypeAndParams(
   PhylogeneticTree, T == QQFieldElem ? QQ : AbstractAlgebra.Floats{Float64}())
 
 function save_object(s::SerializerState, PT::PhylogeneticTree)
@@ -171,7 +171,7 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQField})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, QQField})
   inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, JSON.parse(s.obj; dicttype=Dict{String, Any}))
   end
@@ -179,7 +179,7 @@ function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, QQ
   return PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
   inner_object = load_node(s, :pm_tree) do
     load_from_polymake(Polymake.BigObject, load_json(s, Dict{String, Any}))
   end
