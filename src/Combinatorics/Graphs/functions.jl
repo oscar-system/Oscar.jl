@@ -1227,7 +1227,7 @@ function _permute_nodes_and_labels(G::Graph{T}, p::Vector{Int}, labels::Vector{S
     if !isnothing(graph_map.edge_map)
       new_edge_labels = Dict((permute(src(e)), permute(dst(e))) => graph_map.edge_map[e] for e in edges(G))
     end
-    label!(new_G, new_edge_labels, new_vertex_labels)
+    label!(new_G, new_edge_labels, new_vertex_labels; name=label)
   end
   return new_G
 end

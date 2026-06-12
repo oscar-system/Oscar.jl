@@ -456,8 +456,10 @@
 
       # labels are carried along
       GL = graph_from_labeled_edges(Directed, Dict((1, 2) => 10, (2, 3) => 20))
+      label!(GL, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
       HL = on_graph(GL, p)
       @test HL.label[2, 1] == 10
       @test HL.label[1, 3] == 20
+      @test HL.color[2] == GL.color[1]
     end
 end
