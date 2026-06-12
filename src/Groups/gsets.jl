@@ -385,7 +385,7 @@ function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
   # in O(1) because seeds is an IndexedSet, but the look-up in elements(Omega)
   # takes linear time.
   elts = elements(Omega)
-  if length(Omega.seeds) == length(elts)
+  if length(Omega.seeds)::Int == length(elts)
     return is_in_seeds
   end
   return omega in elts
