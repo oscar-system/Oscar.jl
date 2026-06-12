@@ -310,7 +310,7 @@ end
 @register_serialization_type NamedTuple
 
 function type_and_params(obj::T) where T <: NamedTuple
-  return TypeAndParams(T, (x.first => type_params(x.second) for x in pairs(obj))...)
+  return TypeAndParams(T, (x.first => type_and_params(x.second) for x in pairs(obj))...)
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})

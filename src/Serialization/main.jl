@@ -198,7 +198,7 @@ end
 
 A container pairing a Julia type `T` with its contextual parameters `params`.
 
-`TypeAndParams` values are created by [`type_params`](@ref) and consumed by
+`TypeAndParams` values are created by [`type_and_params`](@ref) and consumed by
 `load_object`. The `params` field holds whatever context is needed to
 reconstruct an object of type `T`: a parent ring, a base field, a
 domain/codomain pair, etc.
@@ -206,7 +206,7 @@ domain/codomain pair, etc.
 Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
 Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
 
-See [`type_params`](@ref) for usage examples.
+See [`type_and_params`](@ref) for usage examples.
 """
 struct TypeAndParams{T, S}
   type::Type{T}
