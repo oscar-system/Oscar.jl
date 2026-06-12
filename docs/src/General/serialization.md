@@ -56,7 +56,7 @@ The `filename` argument is used as a prefix directly — no extension is added o
 stripped. On overwrite, stale ref files from the previous save are removed
 automatically.
 
-```setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.mrdi"
 julia> Qx, x = QQ[:x];
 
 julia> F, a = number_field(x^2 + 2);
@@ -93,7 +93,7 @@ Specialized for `LinearProgram{QQFieldElem}`. Writes the LP data to an external
 the `.mrdi` file. The `basepath` argument is used as the filename prefix for the
 `.lp` file.
 
-```jldoctest setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+```jldoctest setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"-[-0-9a-f]*\.lp"
 julia> P = cube(3);
 
 julia> LP = linear_program(P, [3, -2, 4]; k=2, convention=:min);
