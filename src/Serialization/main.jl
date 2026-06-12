@@ -564,9 +564,6 @@ load_object(s::DeserializerState, tp::TypeAndParams{Matrix{T}, Nothing}) where T
 load_object(s::DeserializerState, tp::TypeAndParams{Array{T, N}, Nothing}) where {T, N} = load_object(s, Array{T, N})
 load_object(s::DeserializerState, tp::TypeAndParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
 
-# here for backwards compatibility
-load_object(s::DeserializerState, T::Type, params::Any) = load_object(s, TypeAndParams(T, params))
-
 ################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T
