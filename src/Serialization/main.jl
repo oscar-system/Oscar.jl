@@ -814,7 +814,7 @@ function save(filename::String, obj::Any;
 
     return nothing
   end
-  temp_file = tempname(pwd())
+  temp_file = tempname(dirname(abspath(filename)))
   
   if compression == :none
     open(temp_file, "w") do file
