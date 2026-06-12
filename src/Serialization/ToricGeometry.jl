@@ -34,7 +34,7 @@ function save_object(s::SerializerState, td::ToricDivisor)
   save_object(s, td.coeffs)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ToricDivisor, <:NormalToricVarietyType})
+function load_object(s::DeserializerState, tp::TypeAndParams{ToricDivisor, <:NormalToricVarietyType})
   tv = parameters(tp)
   coeffs = load_object(s, Vector{ZZRingElem})
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
@@ -59,7 +59,7 @@ function save_object(s::SerializerState, tdc::ToricDivisorClass)
   save_object(s, toric_divisor(tdc).coeffs)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ToricDivisorClass, <:NormalToricVarietyType})
+function load_object(s::DeserializerState, tp::TypeAndParams{ToricDivisorClass, <:NormalToricVarietyType})
   tv = parameters(tp)
   coeffs = load_object(s, Vector{ZZRingElem})
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
@@ -84,8 +84,8 @@ function save_object(s::SerializerState, cc::CohomologyClass)
   save_object(s, lift(polynomial(cc)))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{CohomologyClass, <:NormalToricVarietyType})
+function load_object(s::DeserializerState, tp::TypeAndParams{CohomologyClass, <:NormalToricVarietyType})
   tv = parameters(tp)
-  poly = load_object(s, TypeParams(MPolyDecRingElem, base_ring(cohomology_ring(tv))))
+  poly = load_object(s, TypeAndParams(MPolyDecRingElem, base_ring(cohomology_ring(tv))))
   return cohomology_class(tv, MPolyQuoRingElem(poly, cohomology_ring(tv)))
 end

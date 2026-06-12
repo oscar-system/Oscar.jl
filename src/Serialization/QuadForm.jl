@@ -8,9 +8,9 @@ function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:Hecke.QuadSpace, <:MatSpace})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:Hecke.QuadSpace, <:MatSpace})
   params = parameters(tp)
-  gram = load_object(s, TypeParams(MatElem, params))
+  gram = load_object(s, TypeAndParams(MatElem, params))
   F = base_ring(params)
   return quadratic_space(F, gram; cached=false)
 end
@@ -29,9 +29,9 @@ function save_object(s::SerializerState, L::ZZLat)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ZZLat, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{ZZLat, <:Tuple{Vararg{Pair}}})
   mat_space = tp[:basis]
-  B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
+  B = load_object(s, TypeAndParams(elem_type(mat_space), mat_space))
   return lattice(tp[:ambient_space], B; check=false)
 end
 
@@ -54,9 +54,9 @@ function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{QuadSpaceWithIsom, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{QuadSpaceWithIsom, <:Tuple{Vararg{Pair}}})
   mat_space = tp[:isom]
-  isom = load_object(s, TypeParams(elem_type(mat_space), mat_space), :isom)
+  isom = load_object(s, TypeAndParams(elem_type(mat_space), mat_space), :isom)
   order_type = type(tp[:order])
   if Base.issingletontype(order_type)
     n = order_type()
@@ -80,8 +80,8 @@ function save_object(s::SerializerState, L::ZZLatWithIsom)
   save_object(s, basis_matrix(L))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ZZLatWithIsom, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{ZZLatWithIsom, <:Tuple{Vararg{Pair}}})
   mat_space = tp[:basis]
-  B = load_object(s, TypeParams(elem_type(mat_space), mat_space))
+  B = load_object(s, TypeAndParams(elem_type(mat_space), mat_space))
   return lattice(tp[:ambient_space], B; check=false)
 end

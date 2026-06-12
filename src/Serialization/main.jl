@@ -190,7 +190,7 @@ function decode_type(s::DeserializerState)::Type
 end
 
 ################################################################################
-# TypeParams Struct
+# TypeAndParams Struct
 @doc raw"""
     TypeAndParams{T, S}
     TypeAndParams(T::Type, params)

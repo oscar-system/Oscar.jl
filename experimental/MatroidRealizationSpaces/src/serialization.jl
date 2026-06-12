@@ -24,13 +24,13 @@ function save_object(s::SerializerState, M::MatroidRealizationSpace)
 end
 
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MatroidRealizationSpace, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MatroidRealizationSpace, <:Tuple{Vararg{Pair}}})
   MS = tp[:matrix_space]
   R = tp[:ideal_ring]
   GR = tp[:ground_ring]
-  I = load_object(s, TypeParams(MPolyIdeal, R), :defining_ideal)
-  Ineqs = load_object(s, TypeParams(Vector{MPolyRingElem}, R), :inequations)
-  RMat = isnothing(MS) ? nothing : load_object(s, TypeParams(MatElem, MS), :realization_matrix)
+  I = load_object(s, TypeAndParams(MPolyIdeal, R), :defining_ideal)
+  Ineqs = load_object(s, TypeAndParams(Vector{MPolyRingElem}, R), :inequations)
+  RMat = isnothing(MS) ? nothing : load_object(s, TypeAndParams(MatElem, MS), :realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case the realization space is zero dimensional
@@ -67,13 +67,13 @@ function save_object(s::SerializerState, M::MatroidRealizationSpaceSelfProjectin
 end
 
 
-function load_object(s::DeserializerState, tp::TypeParams{<:MatroidRealizationSpaceSelfProjecting, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MatroidRealizationSpaceSelfProjecting, <:Tuple{Vararg{Pair}}})
   MS = tp[:matrix_space]
   R = tp[:ideal_ring]
   GR = tp[:ground_ring]
-  I = load_object(s, TypeParams(MPolyIdeal, R), :defining_ideal)
-  Ineqs = load_object(s, TypeParams(Vector{MPolyRingElem}, R), :inequations)
-  RMat = isnothing(MS) ? nothing : load_object(s, TypeParams(MatElem, MS), :selfprojecting_realization_matrix)
+  I = load_object(s, TypeAndParams(MPolyIdeal, R), :defining_ideal)
+  Ineqs = load_object(s, TypeAndParams(Vector{MPolyRingElem}, R), :inequations)
+  RMat = isnothing(MS) ? nothing : load_object(s, TypeAndParams(MatElem, MS), :selfprojecting_realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
   else #in this case R = QQ
@@ -115,7 +115,7 @@ function save_object(s::SerializerState, M::SelfProjectingMatroidRealizations)
 end
 
 
-function load_object(s::DeserializerState, tp::TypeParams{<:SelfProjectingMatroidRealizations, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:SelfProjectingMatroidRealizations, <:Tuple{Vararg{Pair}}})
   str = load_object(s, String, :name)
   m = load_object(s, Matroid, :matroid)
   rk = load_object(s, Int, :rank)
@@ -123,12 +123,12 @@ function load_object(s::DeserializerState, tp::TypeParams{<:SelfProjectingMatroi
   dimR = load_object(s, Int, :dim_r)
   dimS = load_object(s, Int, :dim_s)
   boo = load_object(s, Bool, :equality_of_realizationspaces)
-  RS = load_object(s, TypeParams(MatroidRealizationSpace,
+  RS = load_object(s, TypeAndParams(MatroidRealizationSpace,
     :ground_ring => tp[:ground_ring],
     :matrix_space => tp[:matrix_space_mrs],
     :ideal_ring => tp[:ideal_ring_rs]
   ), :realization_space)
-  RSSP = load_object(s, TypeParams(MatroidRealizationSpaceSelfProjecting,
+  RSSP = load_object(s, TypeAndParams(MatroidRealizationSpaceSelfProjecting,
     :ground_ring => tp[:ground_ring_s],
     :matrix_space => tp[:matrix_space_sp_mrs],
     :ideal_ring => tp[:ideal_ring_sprs]

@@ -30,7 +30,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
   save_data_basic(s, string(elem))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{fpFieldElem, fpField})
+function load_object(s::DeserializerState, tp::TypeAndParams{fpFieldElem, fpField})
   F = parameters(tp)
   load_node(s) do
     return F(parse(UInt64, load_json(s, String)))
@@ -58,7 +58,7 @@ function save_object(s::SerializerState, elem::FpFieldElem)
   save_data_basic(s, string(elem))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{FpFieldElem, FpField})
+function load_object(s::DeserializerState, tp::TypeAndParams{FpFieldElem, FpField})
   F = parameters(tp)
   load_node(s) do
     F(parse(ZZRingElem, load_json(s, String)))
@@ -81,10 +81,10 @@ function save_object(s::SerializerState, K::SimpleNumField)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:SimpleNumField, <:PolyRing})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:SimpleNumField, <:PolyRing})
   params = parameters(tp)
   var = load_object(s, Symbol, :var)
-  def_pol = load_object(s, TypeParams(PolyRingElem, params), :def_pol)
+  def_pol = load_object(s, TypeAndParams(PolyRingElem, params), :def_pol)
   K, _ = number_field(def_pol, var, cached=false)
   return K
 end
@@ -99,9 +99,9 @@ function save_object(s::SerializerState, K::fqPolyRepField)
   save_object(s, defining_polynomial(K))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:fqPolyRepField, <:PolyRing})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:fqPolyRepField, <:PolyRing})
   params = parameters(tp)
-  def_pol = load_object(s, TypeParams(PolyRingElem, params))
+  def_pol = load_object(s, TypeAndParams(PolyRingElem, params))
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end
@@ -124,9 +124,9 @@ function save_object(s::SerializerState, k::Hecke.RelSimpleNumFieldElem{AbsNonSi
   save_object(s, polynomial)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:SimNumFieldElemTypeUnion, <:Union{SimNumFieldTypeUnion, fqPolyRepField}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:SimNumFieldElemTypeUnion, <:Union{SimNumFieldTypeUnion, fqPolyRepField}})
   K = parameters(tp)
-  polynomial = load_object(s, TypeParams(PolyRingElem, parent(defining_polynomial(K))))
+  polynomial = load_object(s, TypeAndParams(PolyRingElem, parent(defining_polynomial(K))))
   loaded_terms = evaluate(polynomial, gen(K))
   return K(loaded_terms)
 end
@@ -150,9 +150,9 @@ function save_object(s::SerializerState, K::FqField)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FqField, <:PolyRing})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FqField, <:PolyRing})
   params = parameters(tp)
-  return finite_field(load_object(s, TypeParams(PolyRingElem, params)), cached=false)[1]::FqField
+  return finite_field(load_object(s, TypeAndParams(PolyRingElem, params)), cached=false)[1]::FqField
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
@@ -175,11 +175,11 @@ function save_object(s::SerializerState, k::FqFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FqFieldElem, FqField})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FqFieldElem, FqField})
   K = parameters(tp)
   load_node(s) do
     if absolute_degree(K) != 1
-      return K(load_object(s, TypeParams(PolyRingElem, parent(defining_polynomial(K)))))
+      return K(load_object(s, TypeAndParams(PolyRingElem, parent(defining_polynomial(K)))))
     end
     K(load_object(s, ZZRingElem))
   end::FqFieldElem
@@ -203,9 +203,9 @@ function save_object(s::SerializerState, K::NonSimpleNumField)
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:NonSimpleNumField, <:PolyRing})
+                     tp::TypeAndParams{<:NonSimpleNumField, <:PolyRing})
   params = parameters(tp)
-  def_pols = load_object(s, TypeParams(Vector{PolyRingElem}, params), :def_pols)
+  def_pols = load_object(s, TypeAndParams(Vector{PolyRingElem}, params), :def_pols)
   vars = load_node(s, :vars) do
     return map(Symbol, load_json(s, Vector{String}))
   end
@@ -225,7 +225,7 @@ function save_object(s::SerializerState, k::Union{AbsNonSimpleNumFieldElem, Heck
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem},
+                     tp::TypeAndParams{<:Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem},
                                     <:Union{AbsNonSimpleNumField, RelNonSimpleNumField}})
   K = parameters(tp)
   n = ngens(K)
@@ -233,7 +233,7 @@ function load_object(s::DeserializerState,
   poly_ring, _ = polynomial_ring(base_field(K), n; cached=false)
   poly_elem_type = elem_type
   load_node(s) do
-    polynomial = load_object(s, TypeParams(MPolyRingElem, poly_ring))
+    polynomial = load_object(s, TypeAndParams(MPolyRingElem, poly_ring))
   end
   polynomial = evaluate(polynomial, gens(K))
   return K(polynomial)
@@ -254,7 +254,7 @@ function save_object(s::SerializerState, ::FracField{T}) where T <: FracUnionTyp
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FracField, <:Ring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FracField, <:Ring})
   fraction_field(parameters(tp), cached=false)
 end
 
@@ -269,14 +269,14 @@ function save_object(s::SerializerState, f::FracElem)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FracElem, <:Ring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FracElem, <:Ring})
   parent_ring = parameters(tp)
   load_node(s) do
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
     return parent_ring(
-      load_object(s, TypeParams(coeff_type, base), 1),
-      load_object(s, TypeParams(coeff_type, base), 2)
+      load_object(s, TypeAndParams(coeff_type, base), 1),
+      load_object(s, TypeAndParams(coeff_type, base), 2)
     )
   end
 end
@@ -304,7 +304,7 @@ function save_object(s::SerializerState,
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:AbstractAlgebra.Generic.RationalFunctionField, <:Ring})
+                     tp::TypeAndParams{<:AbstractAlgebra.Generic.RationalFunctionField, <:Ring})
   R = parameters(tp)
   haskey(s, :symbol) && return rational_function_field(R, load_object(s, Symbol, :symbol), cached=false)[1]
 
@@ -322,7 +322,7 @@ function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunc
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:AbstractAlgebra.Generic.RationalFunctionFieldElem,
+                     tp::TypeAndParams{<:AbstractAlgebra.Generic.RationalFunctionFieldElem,
                                     <:AbstractAlgebra.Generic.RationalFunctionField})
   parent_ring = parameters(tp)
   base = base_ring(parent_ring.fraction_field)
@@ -330,11 +330,11 @@ function load_object(s::DeserializerState,
 
   return load_node(s) do
     loaded_num = load_node(s, 1) do
-      load_object(s, TypeParams(coeff_type, base))
+      load_object(s, TypeAndParams(coeff_type, base))
     end
 
     loaded_den = load_node(s, 2) do
-      load_object(s, TypeParams(coeff_type, base))
+      load_object(s, TypeAndParams(coeff_type, base))
     end
     parent_ring(loaded_num, loaded_den)
   end
@@ -363,7 +363,7 @@ function save_object(s::SerializerState, r::ArbFieldElem)
   @ccall Nemo.libflint.flint_free(c_str::Ptr{UInt8})::Nothing
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{ArbFieldElem, ArbField})
+function load_object(s::DeserializerState, tp::TypeAndParams{ArbFieldElem, ArbField})
   parent = parameters(tp)
   r = ArbFieldElem()
   load_node(s) do
@@ -396,10 +396,10 @@ function save_object(s::SerializerState, c::AcbFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{AcbFieldElem, AcbField})
+function load_object(s::DeserializerState, tp::TypeAndParams{AcbFieldElem, AcbField})
   parent = parameters(tp)
   (real_part, imag_part) = load_array_node(s; entry_type=ArbFieldElem) do _
-    load_object(s, TypeParams(ArbFieldElem, ArbField(precision(parent))))
+    load_object(s, TypeAndParams(ArbFieldElem, ArbField(precision(parent))))
   end
   return parent(real_part, imag_part)
 end
@@ -452,22 +452,22 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes, <:Field})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FieldEmbeddingTypes, <:Field})
   K = parameters(tp)
   if !is_simple(K)
-    data = load_object(s, TypeParams(Vector{AcbFieldElem}, AcbField()))
+    data = load_object(s, TypeAndParams(Vector{AcbFieldElem}, AcbField()))
   else
-    data = load_object(s, TypeParams(AcbFieldElem, AcbField()))
+    data = load_object(s, TypeAndParams(AcbFieldElem, AcbField()))
   end
   return complex_embedding(K, data)
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:FieldEmbeddingTypes, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FieldEmbeddingTypes, <:Tuple{Vararg{Pair}}})
   K = tp[:num_field]
   if !is_simple(K)
-    data = load_object(s, TypeParams(Vector{AcbFieldElem}, AcbField()))
+    data = load_object(s, TypeAndParams(Vector{AcbFieldElem}, AcbField()))
   else
-    data = load_object(s, TypeParams(AcbFieldElem, AcbField()))
+    data = load_object(s, TypeAndParams(AcbFieldElem, AcbField()))
   end
   return complex_embedding(K, tp[:base_field_emb], data)
 end
@@ -483,7 +483,7 @@ function save_object(s::SerializerState, E::EmbeddedNumField)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:EmbeddedNumField, <:FieldEmbeddingTypes})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:EmbeddedNumField, <:FieldEmbeddingTypes})
   E = parameters(tp)
   K = number_field(E)
   return Hecke.embedded_field(K, E)[1]
@@ -495,11 +495,11 @@ function save_object(s::SerializerState, f::EmbeddedNumFieldElem)
   save_object(s, data(f))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:EmbeddedNumFieldElem, <:EmbeddedNumField})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:EmbeddedNumFieldElem, <:EmbeddedNumField})
   E = parameters(tp)
   K = number_field(E)
   coeff_type = elem_type(K)
-  loaded_alg_elem = load_object(s, TypeParams(coeff_type, K))
+  loaded_alg_elem = load_object(s, TypeAndParams(coeff_type, K))
   return E(loaded_alg_elem)
 end
 
@@ -534,12 +534,12 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{QQBarFieldElem, QQBarField})
+function load_object(s::DeserializerState, tp::TypeAndParams{QQBarFieldElem, QQBarField})
   Qx, x = polynomial_ring(QQ, :x; cached=false)
-  min_poly = load_object(s, TypeParams(QQPolyRingElem, Qx), :minpoly)
+  min_poly = load_object(s, TypeAndParams(QQPolyRingElem, Qx), :minpoly)
   precision = load_object(s, Int, :precision)
   CC = AcbField(precision; cached = false)
-  approximation = load_object(s, TypeParams(AcbFieldElem, CC), :acb)
+  approximation = load_object(s, TypeAndParams(AcbFieldElem, CC), :acb)
   roots_min_poly = roots(QQBarField(), min_poly)
 
   try
@@ -581,7 +581,7 @@ function save_object(s::SerializerState, obj::PadicFieldElem)
   save_object(s, lift(QQ, obj))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{PadicFieldElem, PadicField})
+function load_object(s::DeserializerState, tp::TypeAndParams{PadicFieldElem, PadicField})
   parent_field = parameters(tp)
   rational_rep = load_object(s, QQFieldElem)
   return parent_field(rational_rep)

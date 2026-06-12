@@ -31,7 +31,7 @@ end
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
-load_object(s::DeserializerState, ::TypeParams{ZZRingElem, ZZRing}) = load_object(s, ZZRingElem)
+load_object(s::DeserializerState, ::TypeAndParams{ZZRingElem, ZZRing}) = load_object(s, ZZRingElem)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do
@@ -43,7 +43,7 @@ end
 # QQFieldElem
 @register_serialization_type QQFieldElem
 
-load_object(s::DeserializerState, ::TypeParams{QQFieldElem, QQField}) = load_object(s, QQFieldElem)
+load_object(s::DeserializerState, ::TypeAndParams{QQFieldElem, QQField}) = load_object(s, QQFieldElem)
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem})
   load_node(s) do

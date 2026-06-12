@@ -12,7 +12,7 @@ function save_object(s::SerializerState, x::TropicalSemiringElem)
   save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:TropicalSemiringElem, <:TropicalSemiring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalSemiringElem, <:TropicalSemiring})
   R = parameters(tp)
   load_node(s) do
     str = load_json(s, String)
@@ -33,9 +33,9 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
   save_object(s, tropical_polynomial(t))
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:TropicalHypersurface, <:MPolyRing})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalHypersurface, <:MPolyRing})
   params = parameters(tp)
-  polynomial = load_object(s, TypeParams(MPolyRingElem, params))
+  polynomial = load_object(s, TypeAndParams(MPolyRingElem, params))
   return tropical_hypersurface(polynomial)
 end
 
@@ -57,14 +57,14 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:TropicalCurve, <:Field})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, <:Field})
   params = parameters(tp)
   return tropical_curve(
-    load_object(s, TypeParams(PolyhedralComplex, params), :polyhedral_complex)
+    load_object(s, TypeAndParams(PolyhedralComplex, params), :polyhedral_complex)
   )
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:TropicalCurve, String})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, String})
   return tropical_curve(
     load_object(s, Graph{Undirected}, :graph)
   )
