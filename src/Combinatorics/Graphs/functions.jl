@@ -1212,25 +1212,32 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   error("unimplemented for either indistinguishable vertex or edge labels")
 end
 
+function _permute_nodes_and_labels(G::Graph{T}, p::PermGroupElem, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
+  @req "at least one label was not a labeling of $G" all(label in labelings(G), label)
+  new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
+
+  for label in labels
+    graph_map = _graph_maps(G)[label]
+    new_vertex_labels = nothing
+    new_edge_labels = nothing
+    permute = inv(perm(p))
+    if !isnothing(graph_map.vertex_map)
+      new_vertex_labels = Dict(permute(v) => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+    end
+
+    if !isnothing(graph_map.edge_map)
+      new_edge_labels = Dict((permute(src(e)), permute(dst(e))) => graph_map.edge_map[e] for e in edges(G))
+    end
+    label!(new_G, new_edge_labels, new_vertex_labels)
+  end
+  return new_G
+end
+
 function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwargs...) where T <: Union{Directed, Undirected}
   isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
 
   p = _canonical_perm(G; label=label, kwargs...)
-  new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
-
-  graph_map = _graph_maps(G)[label]
-  new_vertex_labels = nothing
-  new_edge_labels = nothing
-  permute = inv(perm(p))
-  if !isnothing(graph_map.vertex_map)
-    new_vertex_labels = Dict(permute(v) => graph_map.vertex_map[v] for v in 1:n_vertices(G))
-  end
-
-  if !isnothing(graph_map.edge_map)
-    new_edge_labels = Dict((permute(src(e)), permute(dst(e))) => graph_map.edge_map[e] for e in edges(G))
-  end
-  label!(new_G, new_edge_labels, new_vertex_labels)
-  return new_G
+  return _permute_nodes_and_label(G, p, [label])
 end
 
 
@@ -2547,3 +2554,7 @@ The canonical hash is an isomorphism invariant of a graph.
    The canonical hash depends on the version of Oscar.
 """
 canonical_hash(g::Graph{T}) where T<:Union{Directed,Undirected} = Polymake.graph.canonical_hash(Oscar.pm_object(g))
+function on_graph(g::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
+  @req degree(parent(p)) == n_vertices(g) "$p needs to be an element of the permutation group on the vertices"
+  return _permute_nodes_and_labels(g, p, labelings(g))
+end
