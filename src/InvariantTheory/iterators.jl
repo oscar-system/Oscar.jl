@@ -143,10 +143,11 @@ for the invariants in degree `d`.
 The optional argument `algorithm` specifies the algorithm to be used.
 If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
 Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+With `algorithm = :orbit_sums`, the invariants are constructed as sums of orbits of monomials; this is only possible if the underlying group is of type `PermGroup`.
 The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 When using the Reynolds operator, the basis is constructed element-by-element.
-With linear algebra, this is not possible and the basis will be constructed
+With linear algebra or orbit sums, this is not possible and the basis will be constructed
 all at once when calling the function.
 
 See also [`basis`](@ref).

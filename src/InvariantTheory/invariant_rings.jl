@@ -431,6 +431,7 @@ Given an invariant ring `IR` and an integer `d`, return a basis for the invarian
 The optional argument `algorithm` specifies the algorithm to be used.
 If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
 Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+With `algorithm = :orbit_sums`, the invariants are constructed as sums of orbits of monomials; this is only possible if the underlying group is of type `PermGroup`.
 The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
