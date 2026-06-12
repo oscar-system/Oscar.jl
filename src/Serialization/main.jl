@@ -827,11 +827,7 @@ function save(filename::String, obj::Any;
 
     return nothing
   end
-  @req !isdir(filename) "filename is a directory, if this was intended set the appropriate serializer "
-
-  dir_name = dirname(filename)
-  # julia dirname does not return "." for plain filenames without any slashes
-  temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+  temp_file = tempname(pwd())
   
   if compression == :none
     open(temp_file, "w") do file
