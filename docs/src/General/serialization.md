@@ -34,16 +34,15 @@ passed via the `serializer` keyword argument to `save` and `load`.
 The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
 (e.g. the parent ring of a polynomial) are stored inline under the `_refs` key.
 
-```julia
-R, x = QQ[:x]
-p = x^2 + 1
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, x = QQ[:x]
 
-# default: serializer=JSONSerializer() is implicit
-save("poly.mrdi", p)
-load("poly.mrdi"; params=R)
+julia> p = x^2 + 1
+x^2 + 1
 
-# disable inline refs (useful when the parent ring is already serialized elsewhere)
-save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false))
+julia> save("poly.mrdi", p)
+
+julia> save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false))
 ```
 
 ### MultiFileRefSerializer
@@ -57,27 +56,34 @@ The `filename` argument is used as a prefix directly — no extension is added o
 stripped. On overwrite, stale ref files from the previous save are removed
 automatically.
 
-```julia
-Qx, x = QQ[:x]
-F, a = number_field(x^2 + 2)
-R, (y, z) = F[:y, :z]
-p = a * y - z
+```setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> Qx, x = QQ[:x];
 
-save("polydata", p; serializer=Oscar.Serialization.MultiFileRefSerializer())
-# creates: polydata.mrdi  polydata_<UUID>.mrdi  ...
+julia> F, a = number_field(x^2 + 2);
 
-Oscar.reset_global_serializer_state()
-load("polydata"; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
-```
+julia> R, (y, z) = F[:y, :z];
 
-Gzip compression applies to main and all ref files:
+julia> p = a * y - z;
 
-```julia
-save("polydata", p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
-# creates: polydata.mrdi.gz  polydata_<UUID>.mrdi.gz  ...
+julia> poly_dir = mkdir("poly_dir"));
 
-Oscar.reset_global_serializer_state()
-load("polydata"; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
+julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer())
+
+julia> readdir(poly_dir)
+4-element Vector{String}:
+ "polydata.mrdi"
+ "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi"
+ "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi"
+ "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi"
+
+julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+
+julia> readdir(poly_dir)
+4-element Vector{String}:
+ "polydata.mrdi.gz"
+ "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi.gz"
+ "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi.gz"
+ "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi.gz"
 ```
 
 ### LPSerializer
@@ -87,15 +93,21 @@ Specialized for `LinearProgram{QQFieldElem}`. Writes the LP data to an external
 the `.mrdi` file. The `basepath` argument is used as the filename prefix for the
 `.lp` file.
 
-```julia
-P = cube(3)
-LP = linear_program(P, [3, -2, 4]; k=2, convention=:min)
+```jldoctest setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> P = cube(3);
 
-serializer = Oscar.Serialization.LPSerializer("/tmp/mydata/lp")
-save("/tmp/mydata/lp.mrdi", LP; serializer=serializer)
+julia> LP = linear_program(P, [3, -2, 4]; k=2, convention=:min);
 
-Oscar.reset_global_serializer_state()
-load("/tmp/mydata/lp.mrdi"; serializer=serializer)
+julia> lp_dir = mkdir("lp_dir")
+
+julia> serializer = Oscar.Serialization.LPSerializer(joinpath(lp_dir, "lp"));
+
+julia> save(joinpath(lp_dir, "lp.mrdi"), LP; serializer=serializer);
+
+julia> readdir(lp_dir)
+2-element Vector{String}:
+ "lp-10612199771096508645.lp"
+ "lp.mrdi"
 ```
 
 ## Objects that can be serialized
@@ -107,13 +119,13 @@ level objects. Such low level objects are various types of matrices, vectors
 and sets.
 
 ### Combinatorics
-```julia
+```jldoctest
 Graph
 SimplicialComplex
 ```
 
 ### Commutative Algebra
-```julia
+```jldoctest
 Ideal
 PolyRing
 PolyRingElem
@@ -122,7 +134,7 @@ MPolyRingElem
 ```
 
 ### Groups
-```julia
+```jldoctest
 FPGroup
 FinGenAbGroup
 PcGroup
@@ -132,7 +144,7 @@ SubPcGroup
 ```
 
 ### Polyhedral Geometry
-```julia
+```jldoctest
 Cone
 LinearProgram
 PolyhedralFan
@@ -142,13 +154,13 @@ SubdivisionOfPoints
 ```
 
 ### Toric Geometry
-```julia
+```jldoctest
 NormalToricVariety
 ToricDivisor
 ```
 
 ### Tropical Geometry
-```julia
+```jldoctest
 TropicalCurve
 TropicalHypersurface
 ```
