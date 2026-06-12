@@ -1103,9 +1103,9 @@ Coefficients iterator of 3*b[0,0,0,0]^2 - 2*a[0,0,0,0]*b[0,0,0,0] + c[0,0,0,0]*a
 
 julia> collect(cf)
 3-element Vector{ZZRingElem}:
- 3
+  3
  -2
- 1
+  1
 ```
 """
 coefficients(a::ActionPolyRingElem{T}) where {T} = ActionPolyCoeffs{typeof(a)}(a)
