@@ -60,10 +60,10 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     loaded = load(filename; params=params, kw...)
     @test loaded isa T
 
-    # test passing TypeParams
+    # test passing TypeAndParams
     save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename, Oscar.type_params(original); kw...)
+    loaded = load(filename, Oscar.type_and_params(original); kw...)
     @test loaded isa T
 
     # test schema

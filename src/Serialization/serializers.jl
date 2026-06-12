@@ -227,13 +227,13 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothin
 end
 
 function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
-  if is_object(s) && s.obj isa JSON.LazyValue
+  if node_is_object(s) && s.obj isa JSON.LazyValue
     d = Dict{Symbol, JSON.LazyValues}()
     foreach(s.obj) do (k,v)
       d[Symbol(k)] = v
     end
     s.obj = d
-  elseif is_array(s) && s.obj isa JSON.LazyValue
+  elseif node_is_array(s) && s.obj isa JSON.LazyValue
     a = JSON.LazyValues[]
     foreach(s.obj) do v
       push!(a, v)
@@ -245,7 +245,7 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
+  if node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
     return load_ref(s)
   end
 

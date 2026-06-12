@@ -2,8 +2,8 @@ using Oscar: _images, coefficient_map
 
 @register_serialization_type MPolyAnyMap
 
-function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
-  return TypeParams(
+function type_and_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
+  return TypeAndParams(
     MPolyAnyMap,
     :domain => domain(phi),
     :codomain => codomain(phi)
@@ -22,14 +22,14 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
 end
 
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:MPolyAnyMap, <:Tuple{Vararg{Pair}}})
+                     tp::TypeAndParams{<:MPolyAnyMap, <:Tuple{Vararg{Pair}}})
   d = tp[:domain]
   c = tp[:codomain]
   T = elem_type(c)
-  imgs = load_object(s, TypeParams(Vector{T}, c), :images)
+  imgs = load_object(s, TypeAndParams(Vector{T}, c), :images)
 
   if haskey(s, :coeff_map)
-    coeff_map = load_object(s, TypeParams(MPolyAnyMap, :domain => base_ring(d), :codomain => base_ring(c)), :coeff_map)
+    coeff_map = load_object(s, TypeAndParams(MPolyAnyMap, :domain => base_ring(d), :codomain => base_ring(c)), :coeff_map)
     return MPolyAnyMap(d, c, coeff_map, imgs)
   end
   return MPolyAnyMap(d, c, nothing, imgs)
