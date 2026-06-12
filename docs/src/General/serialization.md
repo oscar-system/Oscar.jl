@@ -119,13 +119,13 @@ level objects. Such low level objects are various types of matrices, vectors
 and sets.
 
 ### Combinatorics
-```jldoctest
+```julia
 Graph
 SimplicialComplex
 ```
 
 ### Commutative Algebra
-```jldoctest
+```julia
 Ideal
 PolyRing
 PolyRingElem
@@ -134,7 +134,7 @@ MPolyRingElem
 ```
 
 ### Groups
-```jldoctest
+```julia
 FPGroup
 FinGenAbGroup
 PcGroup
@@ -144,7 +144,7 @@ SubPcGroup
 ```
 
 ### Polyhedral Geometry
-```jldoctest
+```julia
 Cone
 LinearProgram
 PolyhedralFan
@@ -154,13 +154,13 @@ SubdivisionOfPoints
 ```
 
 ### Toric Geometry
-```jldoctest
+```julia
 NormalToricVariety
 ToricDivisor
 ```
 
 ### Tropical Geometry
-```jldoctest
+```julia
 TropicalCurve
 TropicalHypersurface
 ```
