@@ -109,6 +109,7 @@ maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 has_disjoint_automorphisms(G::Graph)
 disjoint_automorphisms(G::Graph)
+on_graph
 ```
 
 ### Edges

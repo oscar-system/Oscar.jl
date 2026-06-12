@@ -499,7 +499,7 @@ g1^-3*g2^2
 julia> exponent_vector(x)
 2-element Vector{ZZRingElem}:
  -3
- 2
+  2
 ```
 
 ```jldoctest
