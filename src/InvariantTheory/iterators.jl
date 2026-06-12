@@ -539,45 +539,27 @@ function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
   end
 end
 
-function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Union{Int, Nothing} = nothing)
   @assert BI.method === :linear_algebra
-  if BI.dim == 0
+  s = isnothing(state) ? 1 : state
+  if s > BI.dim
     return nothing
   end
 
   f = polynomial_ring(BI.R)()
   N = BI.kernel
   for i in 1:nrows(N)
-    if iszero(N[i, 1])
+    if iszero(N[i, s])
       continue
     end
-    f += N[i, 1] * BI.monomials_collected[i]
+    f += N[i, s] * BI.monomials_collected[i]
   end
   # Have to (should...) divide by the leading coefficient again:
   # The matrix was in echelon form, but the columns were not necessarily sorted
   # w.r.t. the monomial ordering.
   # Cancelling the leading coefficient is not mathematically necessary and
   # should be done with the ordering that is used for the printing
-  return inv(AbstractAlgebra.leading_coefficient(f)) * f, 2
-end
-
-function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
-  @assert BI.method === :linear_algebra
-  if state > BI.dim
-    return nothing
-  end
-
-  f = polynomial_ring(BI.R)()
-  N = BI.kernel
-  for i in 1:nrows(N)
-    if iszero(N[i, state])
-      continue
-    end
-    f += N[i, state] * BI.monomials_collected[i]
-  end
-  # Cancelling the leading coefficient is not mathematically necessary and
-  # should be done with the ordering that is used for the printing
-  return inv(AbstractAlgebra.leading_coefficient(f)) * f, state + 1
+  return inv(AbstractAlgebra.leading_coefficient(f)) * f, s + 1
 end
 
 function iterate_orbit_sums(BI::FinGroupInvarRingBasisIterator, state::Union{Int, Nothing} = nothing)
