@@ -812,8 +812,6 @@ function n_new_Sgens(
   den = denominator(t)
   if is_unit(den)
     # Unit denominator: polynomial ring hom avoids fraction-field JIT overhead.
-    # Prime divisors of f(x=num/den) equal those of f(x=num) since den is a unit.
-    # Note: a constant denominator is not enough, e.g. 2 is not a unit over ZZ.
     m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
     preSgens = unique!(elem_type(R)[m(f) for f in Sgens])
   else
