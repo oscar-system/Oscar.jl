@@ -163,7 +163,9 @@ struct FinGroupInvarRingBasisIterator{
   R::FinGroupInvarRingT
   degree::Int
   dim::Int
-  reynolds::Bool
+
+  # method can be :reynolds or :linear_algebra
+  method::Symbol
 
   # If we compute the basis twisted by a character, we cache the operator here
   # instead of in the invariant ring. Otherwise this is `nothing`.
@@ -171,7 +173,7 @@ struct FinGroupInvarRingBasisIterator{
 
   monomials::IteratorT
   monomials_collected::Vector{PolyRingElemT}
-  kernel::MatrixT # used iff reynolds == false
+  kernel::MatrixT # used if method == :linear_algebra
 end
 
 abstract type VectorSpaceIterator{FieldT,IteratorT,ElemT} end
