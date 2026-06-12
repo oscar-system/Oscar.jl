@@ -317,7 +317,7 @@ the children with `serialize_refs=false`.
 #### IPCSerializer
 
 Equivalent to `JSONSerializer(serialize_refs=false)` at present. Reserved for
-a future binary representation optimised for inter-process communication (IPC).
+future optimised representation for inter-process communication (IPC).
 
 #### LPSerializer
 
