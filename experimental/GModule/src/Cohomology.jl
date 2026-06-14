@@ -1395,11 +1395,23 @@ end
 Compute a free resolution of the group algebra as left modules.
 The resolution can be extended.
 """
-function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
+function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cached::Bool = true)
   G = group(ZG)
 
   @assert side in [:right, :left]
   is_left = side == :left
+
+  if cached
+    a = get_attribute(ZG, :free_res)
+    if isnothing(a) 
+      a = Dict{Symbol, Any}()
+      set_attribute!(ZG, :free_res => a)
+    else
+      if haskey(a, side)
+        return a[side]
+      end
+    end
+  end
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
     @vprint :GroupCohomology 2 "using pc-presentation ...\n"
@@ -1713,6 +1725,9 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left)
   #         from this H^2 <-> 2-Chain (in bar-complex)
   # does this even make sense on the ZG-level?
   set_attribute!(Cpx, :collect => (mFF, c))
+  if cached
+    get_attribute(ZG, :free_res)[side] = Cpx
+  end
   return Cpx
 end
 
@@ -1979,6 +1994,7 @@ z = z1 - ans
 =#
 
 #this is/ should be a special case for the hom(Complex, Complex, Map) in Hecke
+#ONLY for hom(FreeRes, GModule) and identical groups and resolutions
 function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorphisms{FinGenAbGroup}, mNM::Map)
   mp = Dict{Int, Map}()
   map = Hecke.ComplexOfMorphismsMap(fN, fM, mp)
@@ -1986,7 +2002,13 @@ function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorph
     #TODO: special case of M^n -> N^n via coordinates
     #      more important: the preimage!!!
     d = length(get_attribute(fN[i], :direct_product))
-    mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
+    if !isa(mNM, FinGenAbGroupHom)
+      mp[i] = map_from_func(fN[i], fM[i], 
+        x -> sum(canonical_injection(fM[i], j)(mNM(canonical_projection(fN[i], j)(x))) for j=1:d), 
+        y-> sum(canonical_injection(fN[i], j)(preimage(mNM, canonical_projection(fM[i], j)(y))) for j=1:d))
+    else
+      mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
+    end
     return mp[i]
   end
   map.fill = fill
