@@ -19,7 +19,15 @@ end
     quiver_representaion(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
 
 Returns quiver representaion corresponding to a directed graph, ambient dimension vector, and list of linear maps.
+
+#Example
 """
+```jldoctest
+julia> G = graph_from_edges(Directed, [[1,2]]); # underlying graph of quiver
+julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0])); # linear map on edge
+julia> Q = quiver_representation(G, [2,4], [A]) # produce quiver with ambient dimension vector [2,4]
+QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
+```
 function quiver_representation(quiver, ambient_dims,maps)
     return QuiverRepresentation(quiver, ambient_dims,maps)
 end
@@ -63,6 +71,10 @@ end
     quiver_grassmannian(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
 
 Return the coordinate ring of the moduli space of representations of the given quiver.
+```jldoctest
+julia> Qsr = quiver_grassmannian(Q,[1,2])
+QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, QQMPolyRingElem[x[(1, [1])]*x[(2, [3, 4])], x[(1, [2])]*x[(2, [3, 4])], x[(1, [1])]*x[(2, [2, 4])] - x[(1, [2])]*x[(2, [1, 4])], x[(1, [1])]*x[(2, [2, 3])] - x[(1, [2])]*x[(2, [1, 3])], x[(2, [1, 2])]*x[(2, [3, 4])] - x[(2, [1, 3])]*x[(2, [2, 4])] + x[(2, [1, 4])]*x[(2, [2, 3])]], [1, 2])
+```
 """
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #quiver rep data
