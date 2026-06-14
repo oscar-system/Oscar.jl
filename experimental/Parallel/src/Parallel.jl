@@ -43,7 +43,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
         remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project)))
       end
       asyncmap(wids) do wid
-        remotecall_eval(Main, wid, :(using Oscar))
+        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate(); using Oscar))
         remotecall_eval(Main, wid, init_expr)
       end
     else
