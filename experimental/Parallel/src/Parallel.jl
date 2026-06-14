@@ -39,11 +39,8 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     wp = WorkerPool(wids)
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     if !isnothing(project)
-      for wid in wids
-        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project)))
-      end
       asyncmap(wids) do wid
-        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate(); using Oscar))
+        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); using Oscar))
         remotecall_eval(Main, wid, init_expr)
       end
     else
@@ -52,7 +49,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
         remotecall_eval(Main, wid, init_expr)
       end
     end
-    return new(wp, wp.channel, wp.workers, wids, Dict{Int, RemoteChannel}())
+    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
   end
 end
 
