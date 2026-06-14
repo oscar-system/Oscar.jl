@@ -1380,11 +1380,8 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
   change_field = domain(GrpHom) != codomain(GrpHom)
   local h
 
-  if !change_field && I1.S != I2.S
-    unit_pro, unit_inj, comp = split_units(I1, I2)
-    @assert issurjective(unit_pro)
-  elseif !change_field
-    h = identity_hom(I1.data[8][1].M)
+  if !change_field && I1.S == I2.S
+    h = identity_map(I1.data[8][1].M)
   else
     mU_W1 = get_attribute(I1.data[7], :get_W)
     mU_W2 = get_attribute(I2.data[7], :get_W)
@@ -1554,7 +1551,7 @@ K/k and ZG = free_res(Gal(K))
   a : I_k -> I_K
   H : hom(ZG, I_K)[i]
 """
-function magic_inf(I_k, x, h, a, H)
+function magic_inf(I_k::GModule, x, h, a, H)
   X = zero(H)
   m = matrix(h)
   pro = canonical_projections(parent(x))
@@ -1697,8 +1694,7 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
 
     #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
-    @show :test4
-    hom(E, F[1], h)
+  # hom(E, F[1], h)
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
   @vtime :GaloisCohomology 2 q, _mq = simplify(q)
@@ -1733,7 +1729,7 @@ function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
     f = findfirst(isequal(minimum(I.S[i])), [x[1] for x = p])
     if !isnothing(f)
       kp = codomain(I.C[i])
-      C = gmodule(kp, absolute_base_field(kp); conductor = 1+p[f][2])
+      C = gmodule(kp, absolute_base_field(kp); conductor = p[f][2])
       J.D[i] = C[2]
       J.L[i] = C[3]
       D[i] = Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, J.C[i], mG, C[2]), E, (mU*Hecke.extend_easy(J.C[i], C[3], codomain(mU))))
@@ -1747,7 +1743,7 @@ function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
     #h: U -> F
-  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(D));
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(D))
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
   @vtime :GaloisCohomology 2 q, _mq = simplify(q)
@@ -2013,29 +2009,6 @@ end
 function Oscar.galois_group(A::ClassField)
   return permutation_group(codomain(A.quotientmap))
 end
-#                 a      b  
-#we have 1 --> A ---> B ---> C --> 1 and
-# c: G^n -> C a CoChain
-# want b : G^n -> B a CoChain lifting c,
-#all lifts are of the form b+a for a: G^n -> A
-# so we want a: G^n -> A s.th. d(b+a) = 0 or
-#   db = -da
-#
-# for n = 2, this should be done using tails and also using the H^2 maps
-# stored when computing H^2(A)
-function lift_chain(C::CoChain, a::Map, b::Map)
-  A = domain(a)
-  B = domain(b)
-  @assert codomain(a) == B
-  @assert codomain(b) == C.C
-  G = C.C.G
-  @assert istwo_cocycle(C)
-  tB = map_entries(pseudo_inv(b.module_map), C; parent = domain(b))
-  tBd = Oscar.GrpCoh.differential(tB)
-  @assert all(iszero, values(Oscar.GrpCoh.differential(tBd).d))
-  dtB = map_entries(pseudo_inv(a.module_map), tBd; parent = domain(a))
-
-end
 
 """
     induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true) -> Map
@@ -2048,17 +2021,20 @@ application of the function has to work, if `false` images
 of all generators of `I` will be computed, so the function call is expensive,
 but the application is cheap.
 """
-function induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true)
+function induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true, check::Bool = true)
   m0, inf = defining_modulus(mR)
-  lp = [x[1] for x = factor(minimum(m0))]
-  @assert issubset(lp, map(minimum, I.S))
+  if check
+    c = conductor(I)
+    for (p, v) = factor(minimum(m0))
+      @assert haskey(c, Int(p)) && c[Int(p)] >= v
+    end
+  end
 
   A = domain(mR)
   function idl(x)
     px = parent(x)
     x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
-    #the sign!!!
-    J = ideal(I, x; coprime = (m0, inf))
+    J = ideal(I, x; coprime = m0, sign = inf)
     return (preimage(mR, J))
   end
 
@@ -2100,8 +2076,8 @@ julia> [describe(x[1]) for x = b]
 """    
 function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleParent,Nothing} = nothing) 
 
-
   if !is_normal(A)
+    @vprint :GaloisCohomology 2 "abelian field is not relative normal, computing closure"
     A = normal_closure(A)
   end
   m0, m_inf = defining_modulus(A)
@@ -2120,13 +2096,73 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
 
   n = degree(Hecke.nf(zk))
 
-  qI = cohomology_group(idele_parent, 2)
-  q, mq = snf(qI[1])
-  a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
-  @assert order(q[1]) == n
-  @hassert :GaloisCohomology 1 Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idele_parent.mG)
-  qA = cohomology_group(gA, 2)
+  G = group(gA)
+  F = free_res(group_algebra(ZZ, G); side = :right)
+  hA = hom(F, gA)
+  hI = hom(F, idele_parent.data[1]) #need more caching, the class possibly..
+ 
+  m3 = kernel(map(hI, 2))
+  m2 = image(map(hI, 1))
+  q = quo(m3[1], m2[1])
+  s = snf(q[1])
+
+  gamma = image(m3[2], preimage(q[2], s[2](s[1][1])))
+
+  c = conductor(idele_parent)
+  mis = Int[]
+  val = Tuple{Int, Int}[]
+  for (p, k) = factor(minimum(m0))
+    if !haskey(c, Int(p))
+      push!(mis, Int(p))
+      push!(val, (Int(p), k))
+    else
+      if c[Int(p)] < k
+        push!(val, (Int(p), k))
+      end
+    end
+  end
+
+  id = identity_map(F[2])
+
+  if length(mis) > 0
+    @vprintln :GaloisCohomology 2 "need to add $mis primes..."
+    @vtime :GaloisCohomology 2 ip = add_prime(idele_parent, mis)
+    @vprintln :GaloisCohomology 2 "lifting cycle..."
+    phi = induce_hom(idele_parent, ip)
+    hII = hom(F, ip.data[1])
+    phi = change_module(hI, hII, phi)
+    hI = hII
+    gamma = phi[2](gamma)
+    idele_parent = ip
+  end
+
+  if length(val) > 0
+    @vprintln :GaloisCohomology 2 "fixing precision to $mis..."
+    @vtime :GaloisCohomology 2 ip = change_precision(idele_parent, val)
+    @vprint :GaloisCohomology 2 "lifting cycle..."
+    phi = induce_hom(ip, idele_parent)
+    hII = hom(F, ip.data[1])
+    mII = change_module(hII, hI, phi)
+    gamma = preimage(mII[2], gamma)
+    #this is not a chain...yet
+    #  0 -> k -> II -> I -> 0 is exact
+    # so we take preimages from I to II, then use the
+    # differential, then map to k, ...
+    co = map(hII, 2)(gamma)
+    if !iszero(co) #mostly false
+      k = kernel(hom(ip.data[1], idele_parent.data[1], phi))
+      hk = hom(F, k[1])
+      mkI = change_module(hk, hII, k[2].module_map)
+      co = preimage(mkI[3], co)
+      co = preimage(map(hk, 2), co)
+      co = mkI[2](co)
+      gamma -= co
+    end
+    idele_parent = ip
+    @assert iszero(map(hII, 2)(gamma))
+    hI = hII
+  end
 
   function idl(x)
     px = parent(x)
@@ -2135,10 +2171,13 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
     return mQ(preimage(mR, J))
   end
 
-  aa = map_entries(idl, a, parent = gA) 
+  @vprint :GaloisCohomology 2 "projecting to ray class group..."
+  @vtime :GaloisCohomology 4 phi = induce_hom(idele_parent, mR; do_map = true, check = false)
+  @vtime :GaloisCohomology 4 phi = change_module(hI, hA, phi*mQ)
+  @vtime :GaloisCohomology 4 aa = phi[2](gamma)
 
-  @hassert :GaloisCohomology 1 Oscar.GrpCoh.istwo_cocycle(aa)
-  return permutation_group(aa), (aa, gA)
+  @hassert :GaloisCohomology 2 is_zero(map(hA, 2)(aa))
+  return permutation_group(GrpCoh.two_chain(aa)), (aa, gA)
 end
 
 function Oscar.components(A::FinGenAbGroup)
@@ -2269,8 +2308,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   rt = coeff(mL(mkK(preimage(ml, l(preimage(mrl, gen(rl)))))), 0)
   f = map_coefficients(x->preimage(mrL, rL(x)), defining_polynomial(rl))
   rt = Hecke.refine_roots1(f, [rt])[1]
-#  setprecision!(ml, pr_ml)
-#  setprecision!(mL, pr_mL)
+  setprecision!(ml, pr_ml)
+  setprecision!(mL, pr_mL)
   return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
@@ -3122,11 +3161,9 @@ function global_fundamental_class(A::IdeleParent)
   #put together..
   #want x s.th. (n/d[2]) * x = d[1] mod d[2]
   #cannot use CRT as the d[2] are not necc. coprime
-  @show scale
   a = abelian_group([x[2] for x = scale])
-  @show b = abelian_group([n])
+  b = abelian_group([n])
   h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
-  @show matrix(h)
   p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
