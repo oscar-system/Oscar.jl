@@ -40,7 +40,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
     # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
     if !isnothing(project)
       for wid in wids
-        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate()))
+        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project)))
       end
       asyncmap(wids) do wid
         remotecall_eval(Main, wid, :(using Oscar))
