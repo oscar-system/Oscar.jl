@@ -436,7 +436,7 @@ Returns:
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false, conductor::Int = 0)
+function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false, conductor::Int = 0, extra::Int = 4)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
