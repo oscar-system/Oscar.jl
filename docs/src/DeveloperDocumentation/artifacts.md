@@ -111,7 +111,7 @@ obj_path = artifact"MyExample/example.mrdi"
 
 obj = load(obj_path)
 ```
-Note that an artifact may contain multiple files. We use `/example.mrdi` to specify exactly which file to load.
+Note that an artifact may contain multiple files. We append `/example.mrdi` to the artifact name to specify which file in the artifact is to be loaded.
 In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
 
 
