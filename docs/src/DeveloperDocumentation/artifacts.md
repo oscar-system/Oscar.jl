@@ -183,13 +183,13 @@ In `Oscar.jl` source files, the artifact string macro is already available and `
 
 ### General Rules
 
-Artifacts are immutable. Updating an artifact therefore requires:
+Artifacts are immutable: To "update" an artifact, you are therefore required to make a new version. Here are the steps to follow:
 
-- creating a new tarball with the updated data (we suggest appending a version tag to the artifact name _e.g._ `-v1`, `-v2` _etc._),
-- uploading the tarball to a stable hosting location,
-- recomputing the `sha256` and `git-tree-sha1`,
-- updating the corresponding entry in `Oscar.jl/Artifacts.toml`,
-- opening a pull request with the changes to `Oscar.jl/Artifacts.toml`.
+- create a new tarball with the updated data (we suggest appending a version tag to the artifact name _e.g._ `-v1`, `-v2` _etc._),
+- upload the tarball to a stable hosting location,
+- recompute the `sha256` and `git-tree-sha1`,
+- update the corresponding entry in `Oscar.jl/Artifacts.toml`,
+- open a pull request with the changes to `Oscar.jl/Artifacts.toml`.
 
 Once the pull request is merged, the updated artifact becomes available.
 
