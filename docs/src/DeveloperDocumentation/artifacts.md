@@ -208,4 +208,4 @@ Additional details are provided in the [Serialization documentation](https://doc
 
 ### GAP.jl
 
-`GAP.jl` uses artifacts to install [GAP](https://www.gap-system.org/) and GAP packages. Detailed maintainer information is provided in [`GAP.jl/README.maintainer.md`](https://github.com/oscar-system/GAP.jl/blob/master/README.maintainer.md).
+`GAP.jl` uses artifacts to install [GAP](https://www.gap-system.org/) packages. Detailed maintainer information is provided in [`GAP.jl/README.maintainer.md`](https://github.com/oscar-system/GAP.jl/blob/master/README.maintainer.md).
