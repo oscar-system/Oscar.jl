@@ -425,4 +425,66 @@
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
     end
+    @testset "cayley_graph" begin
+      G = symmetric_group(3)
+
+      # -- cayley_graph_index_map --
+      idx = cayley_graph_index_map(G)
+      @test length(idx) == order(G) == 6
+      @test idx[one(G)] == 1
+
+      # -- cayley_graph_vertex, 2-arg --
+      v = cayley_graph_vertex(G, one(G))
+      @test v == 1
+      v = cayley_graph_vertex(G, gen(G, 1))
+      @test v == idx[gen(G, 1)]
+
+      # -- cayley_graph_vertex, 3-arg (pre-computed) --
+      @test cayley_graph_vertex(G, one(G), idx) == 1
+      @test cayley_graph_vertex(G, gen(G, 2), idx) == idx[gen(G, 2)]
+
+      # -- Directed cayley_graph, right multiplication (default) --
+      gamma = cayley_graph(Directed, G, gens(G))
+      @test n_vertices(gamma) == order(G) == 6
+      @test n_edges(gamma) == order(G) * length(gens(G))
+      @test is_strongly_connected(gamma)
+
+      # -- Directed cayley_graph, left multiplication --
+      gamma_left = cayley_graph(Directed, G, gens(G); left=true)
+      @test n_vertices(gamma_left) == 6
+      @test n_edges(gamma_left) == 12
+      @test is_strongly_connected(gamma_left)
+
+      # -- Undirected cayley_graph --
+      gamma_und = cayley_graph(Undirected, G, gens(G))
+      @test n_vertices(gamma_und) == 6
+      @test n_edges(gamma_und) == 9
+      @test is_connected(gamma_und)
+
+      # -- Cyclic group Z6 --
+      Z6 = cyclic_group(6)
+      g = gen(Z6, 1)
+      cyc = cayley_graph(Directed, Z6, [g])
+      @test n_vertices(cyc) == 6
+      @test n_edges(cyc) == 6
+      @test is_strongly_connected(cyc)
+      cyc_und = cayley_graph(Undirected, Z6, [g])
+      @test n_vertices(cyc_und) == 6
+      @test n_edges(cyc_und) == 6
+      @test is_connected(cyc_und)
+
+      # -- Dihedral group D6 --
+      D6 = dihedral_group(PermGroup, 6)
+      gamma_d6 = cayley_graph(Directed, D6, gens(D6))
+      @test n_vertices(gamma_d6) == order(D6) == 12
+      @test is_strongly_connected(gamma_d6)
+
+      # -- Error cases --
+      @test_throws AssertionError cayley_graph(Directed, G, GroupElem[])
+      H = symmetric_group(4)
+      @test_throws AssertionError cayley_graph(Directed, G, [gen(H, 1)])
+      @test_throws AssertionError cayley_graph(Directed, G, [one(G)])
+    end
 end
+
+    
