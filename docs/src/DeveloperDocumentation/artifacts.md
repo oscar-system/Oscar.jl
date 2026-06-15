@@ -135,7 +135,7 @@ For historical reasons, some artifacts are currently hosted via GitHub release a
 [Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1). This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry.
 
 !!! warning
-    Ensure that existing files are never removed or renamed, as they may be required by older `Oscar.jl` releases.
+    Ensure that existing artifact files are never removed or renamed, as they may be required by older `Oscar.jl` releases.
 
 When debugging, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
 
