@@ -33,7 +33,7 @@ function _node_map_to_dict(nm::Polymake.NodeMap{S,T}) where {S,T}
   Dict{Int, Polymake.to_jl_type(T)}(k => v for (k, v) in enumerate(nm))
 end
 
-function type_params(g::Graph{T}) where T <: Union{Directed, Undirected}
+function type_and_params(g::Graph{T}) where T <: Union{Directed, Undirected}
   isempty(labelings(g)) && return TypeAndParams(Graph{T}, nothing)
   labelings_tp = Pair{Symbol, TypeAndParams}[]
   for l in labelings(g)
