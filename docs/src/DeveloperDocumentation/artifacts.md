@@ -14,7 +14,7 @@ This page explains what artifacts are, when to use them, and how to work with th
 
 Artifacts are content-addressed bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in `Oscar.jl/Artifacts.toml`. Artifacts are automatically downloaded, or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
 
-Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand. In the following, we shall ignore lazy artifacts.
+Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand.
 
 Artifacts allow to:
 
