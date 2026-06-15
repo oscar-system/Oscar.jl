@@ -135,7 +135,8 @@ Preferred options include:
 - other stable hosting solutions agreed upon by the maintainers.
 
 For historical reasons, some artifacts are currently hosted via GitHub release assets, for example at
-[Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1). This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry.
+[Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1).
+This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry.
 
 !!! warning
     Ensure that existing artifact files are never removed or renamed, as they may be required by older `Oscar.jl` releases.
