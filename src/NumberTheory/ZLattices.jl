@@ -213,12 +213,12 @@ function characteristic_vectors(L::ZZLat)
 end
 
 function _get_canonical_form(A, char_vectors_set, canonical_ordering)
-    p = length(char_vectors_set)
-    filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
-    can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
-    (H, U) = hnf_with_transform(can_char_vectors_set) 
-    U_inv = inv(U)
-    return transpose(U_inv)*A*U_inv
+  p = length(char_vectors_set)
+  filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
+  can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
+  (H, U) = hnf_with_transform(can_char_vectors_set) 
+  U_inv = inv(U)
+  return transpose(U_inv)*A*U_inv
 end
 
 function _get_edge_labeled_graph(cv_set, gram)
@@ -251,14 +251,9 @@ function _get_edge_labeled_graph(cv_set, gram)
 end
 
 function canonical_form(L::ZZLat)
-    gram = gram_matrix(L)
-    @info "canonical form algo start"
-    @info "char vectors time"
-    @time char_vectors_set = Oscar.characteristic_vectors(L)
-    @info "graph time"
-    @time graph = Oscar._get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
-    @info "can order time"
-    @time can_order = Oscar._canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
-    @info "---------------"
-    return Oscar._get_canonical_form(gram, char_vectors_set, can_order)
+  gram = gram_matrix(L)
+  char_vectors_set = Oscar.characteristic_vectors(L)
+  graph = Oscar._get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
+  can_order = Oscar._canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+  return Oscar._get_canonical_form(gram, char_vectors_set, can_order)
 end
