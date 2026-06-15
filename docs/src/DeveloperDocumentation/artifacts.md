@@ -37,7 +37,7 @@ As a rule of thumb, data stored directly in the `Oscar.jl` repository should not
 This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically proceeds as follows:
 
 - [ ] [Serializing the Data](@ref data_preparation)
-- [ ] [Hosting the Data (zip the data as tarball and upload it to a stable location)](@ref artifact_hosting)
+- [ ] [Hosting the Data (pack the data into a `gzip` compressed tarball, and upload it to a stable location)](@ref artifact_hosting)
 - [ ] [Registering the Artifact (add an entry to `Oscar.jl/Artifacts.toml` and open a pull request)](@ref artifact_registration)
 - [ ] [Using the Artifact (once the pull request has been merged)](@ref artifact_usage)
 
