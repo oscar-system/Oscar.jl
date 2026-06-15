@@ -181,7 +181,7 @@ In `Oscar.jl` source files, the artifact string macro is already available and `
 
 Artifacts are immutable. Updating an artifact therefore requires:
 
-- creating a new tarball with the updated data (it may be reasonable at append a version tag like `-v1`, `-v2` etc.),
+- creating a new tarball with the updated data (we suggest appending a version tag to the artifact name _e.g._ `-v1`, `-v2` _etc._),
 - uploading the tarball to a stable hosting location,
 - recomputing the `sha256` and `git-tree-sha1`,
 - updating the corresponding entry in `Oscar.jl/Artifacts.toml`,
