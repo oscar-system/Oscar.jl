@@ -69,6 +69,11 @@ end
 
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
+  if is_fine_graded(W) 
+    any(d[i] < 0 for i in 1:ngens(parent(d))) && return Vector{Int}[]
+    return Vector{Int}[[Int(d[i]) for i in 1:ngens(parent(d))]]
+  end
+
   D = W.D
   @check is_free(D) "Grading group must be free"
   h = hom(free_abelian_group(ngens(W)), D, W.d)
