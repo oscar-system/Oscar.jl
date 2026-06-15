@@ -211,3 +211,54 @@ function characteristic_vectors(L::ZZLat)
   @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
   return cvL
 end
+
+function _get_canonical_form(A, char_vectors_set, canonical_ordering)
+    p = length(char_vectors_set)
+    filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
+    can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
+    (H, U) = hnf_with_transform(can_char_vectors_set) 
+    U_inv = inv(U)
+    return transpose(U_inv)*A*U_inv
+end
+
+function _get_edge_labeled_graph(cv_set, gram)
+  p = length(cv_set)
+  res_graph = graph(Undirected, p+2);
+  max_w = QQ(0)
+  weightDict= Dict{Tuple{Int64, Int64}, QQFieldElem,}()
+  for i = 1:p 
+    for j = i+1:p
+
+      w = (cv_set[i]*gram*transpose(cv_set[j]))[1]
+      if w>max_w
+        max_w = w
+      end
+      add_edge!(res_graph, i, j)
+      merge!(weightDict, Dict((i, j) => w))
+    end
+    add_edge!(res_graph, i, p+1)
+  end
+  a = 1+max_w 
+  b = a + 1
+  for i = 1:p 
+    add_edge!(res_graph, i, p+2)
+    merge!(weightDict, Dict((i, p+2) => a))
+  end
+  add_edge!(res_graph, p+1, p+2)
+  merge!(weightDict, Dict((p+1, p+2) => b))
+  label!(res_graph, weightDict, nothing; name=:edge)
+  return res_graph
+end
+
+function canonical_form(L::ZZLat)
+    gram = gram_matrix(L)
+    @info "canonical form algo start"
+    @info "char vectors time"
+    @time char_vectors_set = Oscar.characteristic_vectors(L)
+    @info "graph time"
+    @time graph = Oscar._get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
+    @info "can order time"
+    @time can_order = Oscar._canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+    @info "---------------"
+    return Oscar._get_canonical_form(gram, char_vectors_set, can_order)
+end
