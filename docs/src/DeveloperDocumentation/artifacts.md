@@ -65,7 +65,7 @@ save("example.mrdi", obj)
 Create a compressed tarball, for example `example_data_v1.tar.gz`, containing the file `example.mrdi`.
 
 !!! note
-    Do not introduce an intermediate directory inside the tarball. If multiple files are included, place them directly in the archive.
+    For simplicity, do not introduce an intermediate directory inside the tarball: if multiple files are included, just place them directly in the top level of the archive.
 
 We host this very example tarball at [https://martinbies.github.io/Materials/Data/example\_data\_v1.tar.gz](https://martinbies.github.io/Materials/Data/example_data_v1.tar.gz). 
 
