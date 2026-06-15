@@ -249,7 +249,17 @@ function _get_edge_labeled_graph(cv_set, gram)
   label!(res_graph, weightDict, nothing; name=:edge)
   return res_graph
 end
+"""
+    canonical_form(L::ZZLat) -> ZZMatrix
+    
+Return the canonical form of ``L``. The form is canonical in the sense, that two isomorphic latticies would have the same canonical form.
 
+We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
+
+!!! note
+    We do not give any guarantees that the canonical form stays the same 
+    between different versions of Oscar.
+"""
 function canonical_form(L::ZZLat)
   gram = gram_matrix(L)
   char_vectors_set = Oscar.characteristic_vectors(L)
