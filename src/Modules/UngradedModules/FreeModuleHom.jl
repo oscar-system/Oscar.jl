@@ -609,7 +609,7 @@ represented as subquotient with no relations -> G)
 """
 @attr Tuple{<:SubquoModule, <:SubQuoHom} function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
-  s = sub_object(codomain(h), si)
+  s = image_module(h)
   phi = hom(s, codomain(h), si, check=false)
   return s, phi
 end
@@ -652,7 +652,7 @@ function lift(f::FreeModuleHom, g::FreeModuleHom)
   return h
 end
 
-@attr SubquoModule{T} function image_module(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T}
+@attr SubquoModule{T} function image_module(phi::FreeModuleHom{FreeMod{T}, <:OFPModule{T}, Nothing}) where {T}
   return sub_object(codomain(phi), images_of_generators(phi))
 end
 
