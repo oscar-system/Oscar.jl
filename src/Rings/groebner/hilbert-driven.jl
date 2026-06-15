@@ -119,7 +119,6 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     h = (Int32).([coeff(hilbert_numerator, i) for i in 0:degree(hilbert_numerator)+1])
   end
 
-  print("now std starts")
   singular_I_gens = singular_generators(I.gens, ordering)
   singular_ring = base_ring(singular_I_gens)
   J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
