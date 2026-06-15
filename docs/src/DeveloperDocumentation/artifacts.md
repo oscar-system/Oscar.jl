@@ -12,7 +12,7 @@ This page explains what artifacts are, when to use them, and how to work with th
 
 ## What Artifacts Are and When to Use Them
 
-Artifacts are content-addressed bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in the file `Artifacts.toml`.
+Artifacts are content-addressed bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in the file `Artifacts.toml` located in the `Oscar.jl` root directory.
 Artifacts are automatically downloaded, or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
 
 Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand.
