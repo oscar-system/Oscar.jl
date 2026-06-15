@@ -208,7 +208,7 @@ Additional details are provided in the [Serialization documentation](https://doc
 
 
 
-## Artifacts in Upstream Dependencies of `Oscar.jl`
+## Places to look for Inspiration: Artifacts in Upstream Dependencies of `Oscar.jl`
 
 ### GAP.jl
 
