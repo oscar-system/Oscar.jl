@@ -81,6 +81,7 @@ complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 petersen_graph()
 clebsch_graph()
+cayley_graph(::Type{T}, G::Group, generators::AbstractVector{<:GroupElem}; left::Bool = false) where {T <: Union{Directed, Undirected}}
 ```            
 
 ### Others
@@ -109,6 +110,9 @@ maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 has_disjoint_automorphisms(G::Graph)
 disjoint_automorphisms(G::Graph)
+cayley_graph_index_map(G::Group)
+cayley_graph_vertex(G::Group, g::GroupElem)
+cayley_graph_vertex(G::Group, g::GroupElem, index_map::Dict)
 ```
 
 ### Edges
