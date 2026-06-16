@@ -71,7 +71,11 @@ We host this particular example tarball at <https://martinbies.github.io/Materia
 
 #### Registering the Artifact
 
-Register the artifact by adding an entry to `Oscar.jl/Artifacts.toml`; see also [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/). The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl) can help automate parts of this workflow. The following text demonstrates the manual workflow.
+Register the artifact by adding an entry to `Artifacts.toml`; see also
+[Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
+The package [`ArtifactUtils.jl`](https://github.com/JuliaPackaging/ArtifactUtils.jl)
+can help automate parts of this workflow. The following text demonstrates the
+manual workflow.
 
 First, compute the `sha256` and the `git-tree-sha1`:
 
