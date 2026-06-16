@@ -159,7 +159,7 @@ Recall that creating an artifact typically involves the following steps:
 
 Registering refers to the final two steps. Once the change to `Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes publicly available.
 
-The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Oscar.jl/Artifacts.toml`. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
+The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Artifacts.toml`. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
 
 
 ### [Using the Artifact](@id artifact_usage)
