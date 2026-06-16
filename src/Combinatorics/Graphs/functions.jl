@@ -1830,7 +1830,7 @@ function complete_bipartite_graph(n::Int64, m::Int64)
   return Graph{Undirected}(bigobj.ADJACENCY)
 end
 
-# Cayley graph for a fineite `G` and generator `generator`
+# Cayley graph for a finite `G` and generator `generators`
 function _cayley_check(G::Group, generators::AbstractVector{<:GroupElem})
   @req !isempty(generators) "Generator set must be non-empty"
   @req all(s -> parent(s) === G, generators) "Generators must all belong to G"
