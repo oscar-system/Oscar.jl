@@ -174,7 +174,7 @@ model_data_path = artifact"FTM-1511-03209/1511-03209.mrdi"
 model = load(model_data_path)
 ```
 
-The string passed to `artifact"..."` is determined by the corresponding entry in `Oscar.jl/Artifacts.toml`.
+The string passed to `artifact"..."` is determined by the corresponding entry in `Artifacts.toml`.
 
 In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
 
