@@ -146,7 +146,8 @@ end
     s = "0******0******0**********0********0*******0*********************0*****************0*************0***********0***************************0*******************0*****************************0************0**0************0****"
     MD = matroid_from_revlex_basis_encoding(s,3,12)
     RS = realization_space(MD, char = 0, saturate = true)
-    @test is_reduced(RS) == false
+    I = defining_ideal(RS)
+    @test radical(I) != I
 
     NF = non_fano_matroid()
     RS0 = realization_space(NF, char=0, saturate=true)
