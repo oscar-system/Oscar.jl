@@ -109,14 +109,19 @@ You may, of course, replace `MyExample` in the above entry with any other string
 The artifact string macro is exported by `LazyArtifacts`. In a standalone Julia session, load it explicitly.
 
 ```julia
-using LazyArtifacts
+using Pkg.Artifacts
 
 obj_path = artifact"MyExample/example.mrdi"
 
 obj = load(obj_path)
 ```
-Note that an artifact may contain multiple files and subdirectories. We append `/example.mrdi` (an absolute path inside the artifact tarball) to the artifact name to specify which file in the artifact is to be loaded.
-In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
+
+Note that an artifact may contain multiple files and subdirectories. We append
+`/example.mrdi` (an absolute path inside the artifact tarball) to the artifact
+name to specify which file in the artifact is to be loaded.
+
+In `Oscar.jl` source files, the artifact string macro is already available and
+`using Pkg.Artifacts` is typically not required.
 
 
 ### [Serializing the Data](@id data_preparation)
@@ -164,19 +169,21 @@ The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrat
 
 ### [Using the Artifact](@id artifact_usage)
 
-Artifacts can be accessed via Julia's artifact system through the `artifact"..."` string macro. For example:
+Artifacts are accessed via Julia's artifact system using the `artifact"..."` string macro.
+
+The string before the first `/` refers to the artifact name as defined in `Artifacts.toml`.
+Any remaining path components refer to files or subdirectories inside the unpacked artifact. For example,
 
 ```julia
-using LazyArtifacts
+using Pkg.Artifacts
 
-model_data_path = artifact"FTM-1511-03209/1511-03209.mrdi"
-
-model = load(model_data_path)
+artifact"MyArtifact/data/example.mrdi"
 ```
 
-The string passed to `artifact"..."` is determined by the corresponding entry in `Artifacts.toml`.
+refers to the file `data/example.mrdi` contained in the artifact `MyArtifact`.
 
-In `Oscar.jl` source files, the artifact string macro is already available and `using LazyArtifacts` is typically not required.
+In `Oscar.jl` source files, the artifact string macro is already available and
+`using Pkg.Artifacts` is typically not required.
 
 
 
