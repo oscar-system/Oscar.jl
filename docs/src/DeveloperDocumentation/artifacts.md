@@ -90,7 +90,7 @@ println("git-tree-sha1: ", Tar.tree_hash(IOBuffer(inflate_gzip(filename))))
 
 Then add this information, together with the host location, to `Artifacts.toml`.
 
-In the case at hand, the corresponding entry to `Oscar.jl/Artifacts.toml` takes the following form:
+In the case at hand, the corresponding entry to `Artifacts.toml` takes the following form:
 
 ```toml
 [MyExample]
