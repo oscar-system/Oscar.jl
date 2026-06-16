@@ -157,7 +157,7 @@ Recall that creating an artifact typically involves the following steps:
 - adding a corresponding entry to `Artifacts.toml`,
 - opening a pull request with the change to `Artifacts.toml`.
 
-Registering refers to the final two steps. Once the change to `Oscar.jl/Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes publicly available.
+Registering refers to the final two steps. Once the change to `Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes publicly available.
 
 The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Oscar.jl/Artifacts.toml`. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
 
