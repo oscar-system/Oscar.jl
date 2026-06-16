@@ -1,141 +1,108 @@
 ```@meta
 CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Graphs
 
-## Introduction
-
-Graphs are a fundamental object within all of mathematics and computer science.
-A *graph* consists of two sets of data:
-
-- a finite set $V := \{1,\ldots,n\}$ of *vertices*; and
-- a finite set $E \subseteq V\times V$ of *edges*.
-
-There are three types of graphs, *directed*, *undirected* and *mixed*. For a *directed
-graph* the elements of $E$ are considered to be ordered pairs, for an
-*undirected graph* the elements of $E$ are unordered pairs or rather sets with
-two elements, a *mixed graph* has a *directed component* and an *undirected component*.
-
-The interface is modeled alongside the
-[Graphs.jl](https://juliagraphs.org/Graphs.jl/dev/) interface to
-allow for easier integration elsewhere.
-
-!!! warning
-    The mechanism for removing a vertex is slightly different in our
-    implementation compared to `Graphs.jl`: In `Graphs.jl` first
-    the vertex to be removed is swapped with the last vertex, then the last
-    vertex is removed. In our implementation, the vertex is removed and all
-    subsequent vertices have their labels changed. Hence edges can be different
-    in the two implementations after removing a vertex.
-
-## Construction
+## Constructors
 
 ```@docs
-graph(::Type{T}, nverts::Int64) where {T <: Union{Directed, Undirected}}
-dual_graph(p::Polyhedron)
-vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
-graph_from_adjacency_matrix
-graph_from_edges
-graph_from_labeled_edges
-induced_subgraph
-```
-
-### Modifying graphs
-```@docs
-add_edge!
-add_vertices!
-add_vertex!
-rem_edge!
-rem_vertex!
-rem_vertices!
-label!
-```
-
-## Auxiliary functions
-
-### Degrees
-```@docs
-degree(g::Graph, v::Int)
-indegree(g::Graph{Directed}, v::Int)
-outdegree(g::Graph{Directed}, v::Int)
-leaves(g::Graph{Directed})
-```
-
-### Connectivity
-```@docs
-is_connected(g::Graph{Undirected})
-connected_components(g::Graph{Undirected})
-connectivity(g::Graph{Undirected})
-is_weakly_connected(g::Graph{Directed})
-is_strongly_connected(g::Graph{Directed})
-weakly_connected_components(g::Graph{Directed})
-diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-```
-
-### Common Graph Constructions
-```@docs
+Graph(::Type{T}, n::Int) where {T<:Union{Directed, Undirected}}
+Graph(::Type{T}, A::MatElem) where {T<:Union{Directed, Undirected}}
+random_graph(n::Int, p::AbstractFloat, T::Type)
+empty_graph(::Type{T}, n::Int) where {T<:Union{Directed, Undirected}}
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 petersen_graph()
 clebsch_graph()
-cayley_graph(::Type{T}, G::Group, generators::AbstractVector{<:GroupElem};
-                 left::Bool = false) -> Graph{T} where {T <: Union{Directed, Undirected}}
+cayley_graph
+cayley_graph_index_map
+cayley_graph_vertex
 ```            
 
 ### Others
+
 ```@docs
-adjacency_matrix(g::Graph)
-all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-has_edge
-has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-laplacian_matrix(g::Graph)
-n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-n_leaves(graph::Graph{Directed})
-n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-shortest_path_dijkstra
-signed_incidence_matrix(g::Graph)
-is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
-is_isomorphic_with_permutation(G1::Graph, G2::Graph)
-is_bipartite(g::Graph{Undirected})
-is_acyclic(G::Graph{Directed})
+cartesian_product(g1::Graph, g2::Graph)
+complement(g::Graph)
+line_graph(g::Graph)
+induced_subgraph(g::Graph, v::Vector{Int})
+union(g1::Graph{T}, g2::Graph{T}) where {T<:Union{Directed, Undirected}}
+```
+
+## Properties
+
+```@docs
+n_vertices(g::Graph)
+n_edges(g::Graph)
+vertices(g::Graph)
+edges(g::Graph)
+is_directed(g::Graph{Directed})
+is_undirected(g::Graph{Undirected})
+neighbors(g::Graph{T}, v::Int) where {T<:Union{Directed, Undirected}}
+in_degree(g::Graph{T}, v::Int) where {T<:Union{Directed, Undirected}}
+out_degree(g::Graph{T}, v::Int) where {T<:Union{Directed, Undirected}}
+degree(g::Graph{T}, v::Int) where {T<:Union{Directed, Undirected}}
+is_adjacent(g::Graph, u::Int, v::Int)
+common_neighbors(g::Graph, u::Int, v::Int)
+```
+
+## Modifying the graph
+
+```@docs
+add_vertex!(g::Graph)
+add_vertices!(g::Graph, n::Int)
+add_edge!(g::Graph, u::Int, v::Int)
+add_edges!(g::Graph, edges::Vector)
+remove_vertex!(g::Graph, v::Int)
+remove_edge!(g::Graph, u::Int, v::Int)
+```
+
+## Algorithms
+
+```@docs
+connected_components(g::Graph{Undirected})
+is_connected(g::Graph{Undirected})
+is_bipartite(g::Graph)
+bipartition(g::Graph)
+dijkstra_shortest_path(g::Graph, source::Int)
+is_acyclic(g::Graph{Directed})
+topological_sort(g::Graph{Directed})
+is_strongly_connected(g::Graph{Directed})
+strongly_connected_components(g::Graph{Directed})
+girth(g::Graph)
+diameter(g::Graph)
+radius(g::Graph)
+center(g::Graph)
+is_tree(g::Graph)
+spanning_tree(g::Graph{Undirected})
+a_star(g::Graph, source::Int, target::Int)
+eulerian_trail(g::Graph{Undirected})
+eulerian_circuit(g::Graph{Undirected})
 maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 has_disjoint_automorphisms(G::Graph)
 disjoint_automorphisms(G::Graph)
-cayley_graph_index_map(G::Group) -> Dict
-cayley_graph_vertex(G::Group, g::GroupElem) -> Int
-cayley_graph_vertex(G::Group, g::GroupElem, index_map::Dict) -> Int
 ```
 
 ### Edges
+
 ```@docs
+src(e::Edge)
 dst(e::Edge)
 reverse(e::Edge)
-src(e::Edge)
 ```
 
-### Visualization
+### Auto-generated from Oscar
+
 ```@docs
-visualize(G::Graph{Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
-```
-
-## Saving and loading
-
-Objects of type `Graph` can be saved to a file and loaded with the methods
-`load` and `save`.  The file is in JSON format and contains the underlying
-polymake object. In particular, this file can now be read by both polymake and
-OSCAR.
-
-## Quantum Automorphisms
-```@docs
-quantum_automorphism_group(G::Graph{Undirected})
+is_regular(g::Graph)
+is_complete(g::Graph)
+is_biconnected(g::Graph)
+laplacian_matrix(g::Graph)
+is_vertex_transitive(g::Graph)
+is_edge_transitive(g::Graph)
+is_arc_transitive(g::Graph)
+is_distance_transitive(g::Graph)
+is_distance_regular(g::Graph)
 ```
