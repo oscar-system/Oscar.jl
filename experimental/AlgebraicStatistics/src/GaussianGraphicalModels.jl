@@ -657,7 +657,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
 end
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:MPolyRingElem};
-                               kwargs...)
+                               saturate::Bool=true, kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
   n = nrows(K)
@@ -666,9 +666,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
   K_mapped = map_entries(emb, K)
   phi = Oscar.flatten(R)
-  Ko = monomial_ordering(gens(codomain(phi))[1:ngens(base_ring(K))], :degrevlex)
-  So = monomial_ordering(gens(codomain(phi))[ngens(base_ring(K)) + 1:end], :degrevlex)
-  o = Ko * So
+  phi_inv = inverse(phi)
   
   trace_product = phi(trace(scv_matrix * K_mapped))
   detK = phi(det(K_mapped))
@@ -676,10 +674,13 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   
   l_eqs = matrix([derivative(detK, k) + detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
+  !saturate && return phi_inv(I)
+  
   I_sat = saturation(I, ideal(detK))
+  Ko = monomial_ordering(gens(codomain(phi))[1:ngens(base_ring(K))], :degrevlex)
+  So = monomial_ordering(gens(codomain(phi))[ngens(base_ring(K)) + 1:end], :degrevlex)
+  o = Ko * So
   gb = groebner_basis(I_sat; ordering=o, kwargs...)
-
-  phi_inv = inverse(phi)
   mo = monomial_ordering(gens(base_ring(K)), :degrevlex)
   return ideal(IdealGens([phi_inv(g) for g in gb], mo; isGB=true))
 end
