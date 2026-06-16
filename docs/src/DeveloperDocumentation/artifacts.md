@@ -155,7 +155,7 @@ Recall that creating an artifact typically involves the following steps:
 - packing these files into a compressed tarball (`.tar.gz`),
 - uploading the tarball to a stable hosting location,
 - adding a corresponding entry to `Artifacts.toml`,
-- opening a pull request with the change to `Oscar.jl/Artifacts.toml`.
+- opening a pull request with the change to `Artifacts.toml`.
 
 Registering refers to the final two steps. Once the change to `Oscar.jl/Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes publicly available.
 
