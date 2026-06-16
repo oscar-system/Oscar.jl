@@ -1781,6 +1781,156 @@ function complete_bipartite_graph(n::Int64, m::Int64)
     return Graph{Undirected}(bigobj.ADJACENCY)
 end
 
+# Cayley graph
+function _cayley_check(G::Group, generators::AbstractVector{<:GroupElem})
+  @req !isempty(generators) "Generator set must be non-empty"
+  @req all(s -> parent(s) === G, generators) "Generators must all belong to G"
+  @req !any(isone, generators) "Generators must not include the identity"
+end
+
+function _cayley_index_map(elems::Vector{<:GroupElem})
+  idx = Dict{eltype(elems),Int}()
+  sizehint!(idx, length(elems))
+  for (i, g) in enumerate(elems)
+    idx[g] = i
+  end
+  return idx
+end
+
+function _cayley_prepare(G::Group)
+  elems = collect(G)
+  return elems, _cayley_index_map(elems)
+end
+
+function _closed_generators(generators::AbstractVector{<:GroupElem})
+  closed = copy(generators)
+  for s in generators
+    si = inv(s)
+    !(si in generators) && push!(closed, si)
+  end
+  return closed
+end
+
+@doc raw"""
+    cayley_graph_index_map(G::Group) -> Dict
+
+Return a `Dict` mapping each element of $G$ to its 1-based vertex index in the
+Cayley graph of $G$, consistent with `collect(G)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> idx = cayley_graph_index_map(G);
+
+julia> idx[one(G)]
+1
+```
+"""
+function cayley_graph_index_map(G::Group)
+  return _cayley_prepare(G)[2]
+end
+
+@doc raw"""
+    cayley_graph_vertex(G::Group, g::GroupElem) -> Int
+    cayley_graph_vertex(G::Group, g::GroupElem, index_map::Dict) -> Int
+
+Return the vertex index of the element $g$ in the Cayley graph of $G$.
+
+The two-argument method enumerates all elements of $G$ to build the index map
+and has complexity $\mathcal{O}(|G|)$.  For repeated lookups on the same
+group, precompute the index map with [`cayley_graph_index_map`](@ref) and use
+the three-argument method instead.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> cayley_graph_vertex(G, one(G))
+1
+
+julia> idx = cayley_graph_index_map(G);
+
+julia> cayley_graph_vertex(G, one(G), idx)
+1
+```
+"""
+function cayley_graph_vertex(G::Group, g::GroupElem)
+  @req parent(g) === G "g must be an element of G"
+  return cayley_graph_vertex(G, g, cayley_graph_index_map(G))
+end
+
+function cayley_graph_vertex(::Group, g::GroupElem, index_map::Dict)
+  return index_map[g]
+end
+
+@doc raw"""
+    cayley_graph(::Type{T}, G::Group, generators::AbstractVector{<:GroupElem};
+                 left::Bool = false) -> Graph{T} where {T <: Union{Directed, Undirected}}
+
+Construct the Cayley graph of $G$ with respect to the generating set `generators`.
+The type parameter `T` controls whether the returned graph is directed or undirected.
+
+For the directed case (`T = Directed`), edges go from $g$ to $g \cdot s$
+for each generator $s \in$ `generators`.  If `left` is `true`, edges go from $g$
+to $s \cdot g$ instead.
+
+For the undirected case (`T = Undirected`), the generating set is automatically
+closed under inversion before constructing the graph.
+
+The vertices are in bijection with `collect(G)` (1-based indexing).
+The identity must not appear in `generators`, as it would create self-loops.
+
+See also [`cayley_graph_index_map`](@ref), [`cayley_graph_vertex`](@ref).
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> gamma = cayley_graph(Directed, G, gens(G))
+Directed graph with 6 nodes and the following edges:
+(1, 5)(1, 6)(2, 5)(2, 6)(3, 2)(3, 4)(4, 1)(4, 3)(5, 2)(5, 4)(6, 1)(6, 3)
+
+julia> n_vertices(gamma) == order(G)
+true
+
+julia> is_strongly_connected(gamma)
+true
+
+julia> gamma = cayley_graph(Undirected, G, gens(G))
+Undirected graph with 6 nodes and the following edges:
+(3, 2)(4, 1)(4, 3)(5, 1)(5, 2)(5, 4)(6, 1)(6, 2)(6, 3)
+
+julia> n_vertices(gamma) == order(G)
+true
+
+julia> is_connected(gamma)
+true
+```
+"""
+function cayley_graph(::Type{T}, G::Group, generators::AbstractVector{<:GroupElem};
+  left::Bool=false) where {T<:Union{Directed,Undirected}}
+  _cayley_check(G, generators)
+  elems, idx = _cayley_prepare(G)
+  n = length(elems)
+  gamma = Graph{T}(n)
+  if T === Undirected
+    closed = _closed_generators(generators)
+    for (i, g) in enumerate(elems), s in closed
+      j = idx[g * s]
+      i < j && add_edge!(gamma, i, j)
+    end
+  elseif left
+    for (i, g) in enumerate(elems), s in generators
+      add_edge!(gamma, i, idx[s * g])
+    end
+  else
+    for (i, g) in enumerate(elems), s in generators
+      add_edge!(gamma, i, idx[g * s])
+    end
+  end
+  return gamma
+end
 
 
 @doc raw"""

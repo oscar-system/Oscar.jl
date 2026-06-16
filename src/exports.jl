@@ -368,6 +368,9 @@ export cartier_divisor
 export castelnuovo_excess
 export catalan_solid
 export cauchy_ideal
+export cayley_graph
+export cayley_graph_index_map
+export cayley_graph_vertex
 export cellular_associated_primes
 export cellular_decomposition
 export cellular_decomposition_macaulay
@@ -1590,6 +1593,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations
