@@ -12,10 +12,13 @@ This page explains what artifacts are, when to use them, and how to work with th
 
 ## What Artifacts Are and When to Use Them
 
-Artifacts are content-addressed bundles managed by [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in the file `Artifacts.toml` located in the `Oscar.jl` root directory.
-Artifacts are automatically downloaded, or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
+Artifacts are content-addressed bundles managed by
+[Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in the file
+`Artifacts.toml` located in the `Oscar.jl` root directory. Artifacts are automatically downloaded,
+or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
 
-Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are installed only on demand.
+Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are
+installed only on demand.
 
 Artifacts allow to:
 
@@ -29,18 +32,20 @@ Artifacts should be used for data that does not belong directly in the `Oscar.jl
 - large datasets,
 - data not intended to be edited manually.
 
-As a rule of thumb, data stored directly in the `Oscar.jl` repository should not exceed the size of typical source files (around 100 KB). Small examples, test inputs, and simple hand-written data should remain in the `Oscar.jl` repository.
+As a rule of thumb, data stored directly in the `Oscar.jl` repository should not exceed the size of typical source files
+(around 100 KB). Small examples, test inputs, and simple hand-written data should remain in the `Oscar.jl` repository.
 
 
 
 ## Creating, Hosting and Using Artifacts
 
-This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically proceeds as follows:
+This section describes how to create, host, register, and use artifacts in the `Oscar.jl` repository. The workflow typically
+proceeds as follows:
 
-- [ ] [Serializing the Data](@ref data_preparation)
-- [ ] [Hosting the Data (pack the data into a `gzip` compressed tarball, and upload it to a stable location)](@ref artifact_hosting)
-- [ ] [Registering the Artifact (add an entry to Oscar's `Artifacts.toml` and open a pull request)](@ref artifact_registration)
-- [ ] [Using the Artifact (once the pull request has been merged)](@ref artifact_usage)
+- [ ] [Serialize the Data](@ref data_preparation)
+- [ ] [Host the Data (pack the data into a `gzip` compressed tarball, and upload it to a stable location)](@ref artifact_hosting)
+- [ ] [Register the Artifact (add an entry to Oscar's `Artifacts.toml` and open a pull request)](@ref artifact_registration)
+- [ ] [Use the Artifact (once the pull request has been merged)](@ref artifact_usage)
 
 We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifact-example).
 
@@ -51,7 +56,8 @@ The following example illustrates the complete workflow for creating, registerin
 
 #### Serializing the Data
 
-For this example we will use the [`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
+For this example we will use the
+[`.mrdi` file format to serialize our data](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
 (You may of course use the file format of your choice.)
 Here, the data is the number $2^{10}$.
 
@@ -126,28 +132,35 @@ In `Oscar.jl` source files, the artifact string macro is already available and
 
 ### [Serializing the Data](@id data_preparation)
 
-Creating artifacts requires that the corresponding data be serialized locally first. Details are provided in the [Serialization page](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
+Creating artifacts requires that the corresponding data be serialized locally first. Details are
+provided in the [Serialization page](https://docs.oscar-system.org/dev/DeveloperDocumentation/serialization/).
 
-We recommend the use of the `.mrdi` file format for serialization. However, this is not a strict requirement and you may use any file format that you see fit.
+We recommend the use of the `.mrdi` file format for serialization. However, this is not a strict
+requirement and you may use any file format that you see fit.
 
 
 ### [Hosting the Data](@id artifact_hosting)
 
-If you want create an artifact, the first decision is where it is to be safely stored: to ensure future accessibility, artifacts should be hosted at stable and persistent locations.
+If you want create an artifact, the first decision is where it is to be safely stored: to ensure future
+accessibility, artifacts should be hosted at stable and persistent locations.
 
 Preferred options include:
 
-- archival services such as [Zenodo](https://zenodo.org/communities/oscar/records?q=&l=list&p=1&s=10&sort=newest), in particular for long-term or publication-related data,
+- archival services such as [Zenodo](https://zenodo.org/communities/oscar/records?q=&l=list&p=1&s=10&sort=newest),
+in particular for long-term or publication-related data,
 - other stable hosting solutions agreed upon by the maintainers.
 
 For historical reasons, some artifacts are currently hosted via GitHub release assets, for example at
 [Oscar.jl/archive-tag-1](https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1).
-This approach should be used with care, as GitHub release assets are not intended to function as a long-term artifact registry.
+This approach should be used with care, as GitHub release assets are not intended to function as a
+long-term artifact registry.
 
 !!! warning
     Ensure that existing artifact files are never removed or renamed, as they may be required by older `Oscar.jl` releases.
 
-When debugging, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
+When debugging, contributors are encouraged to use temporary staging areas before publishing long-term artifact versions.
+In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact
+versions created during development.
 
 Data intended for querying may also be suitable for [OscarDB](https://docs.oscar-system.org/dev/Experimental/OscarDB/introduction/).
 
@@ -162,9 +175,11 @@ Recall that creating an artifact typically involves the following steps:
 - adding a corresponding entry to `Artifacts.toml`,
 - opening a pull request with the change to `Artifacts.toml`.
 
-Registering refers to the final two steps. Once the change to `Artifacts.toml` is merged into the `Oscar.jl` repository, the artifact becomes publicly available.
+Registering refers to the final two steps. Once the change to `Artifacts.toml` is merged into the `Oscar.jl` repository,
+the artifact becomes publicly available.
 
-The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Artifacts.toml`. Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
+The [end-to-end example](@ref end-to-end-artifact-example) explicitly demonstrates the required changes to `Artifacts.toml`.
+Additional information is available in [Julia's artifact documentation](https://pkgdocs.julialang.org/v1/artifacts/).
 
 
 ### [Using the Artifact](@id artifact_usage)
@@ -191,7 +206,8 @@ In `Oscar.jl` source files, the artifact string macro is already available and
 
 ### General Rules
 
-Artifacts are immutable: To "update" an artifact, you are therefore required to make a new version. Here are the steps to follow:
+Artifacts are immutable: To "update" an artifact, you are therefore required to make a new version.
+Here are the steps to follow:
 
 - create a new tarball with the updated data (we suggest appending a version tag to the artifact name _e.g._ `-v1`, `-v2` _etc._),
 - upload the tarball to a stable hosting location,
@@ -201,18 +217,27 @@ Artifacts are immutable: To "update" an artifact, you are therefore required to 
 
 Once the pull request is merged, the updated artifact becomes available.
 
-Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Artifacts.toml`.
+Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient.
+Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Artifacts.toml`.
 
 !!! warning
-    Any files referenced by the `Oscar.jl` master branch must not be modified, renamed, or deleted, as they may be required by earlier `Oscar.jl` releases.
+    Any files referenced by the `Oscar.jl` master branch must not be modified, renamed, or deleted, as they may be required
+    by earlier `Oscar.jl` releases.
 
-When repeatedly debugging or refining artifacts, contributors are encouraged to use temporary staging areas before publishing long-term versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or broken artifact versions created during development.
+When repeatedly debugging or refining artifacts, contributors are encouraged to use temporary staging areas before publishing
+long-term versions. In particular, publication-related Zenodo entries should typically not be cluttered with intermediate or
+broken artifact versions created during development.
 
 ### Serialization Upgrades
 
-Note that the chosen file format for serialization may be subject to development. In particular, the `.mrdi` file format, which we recommend for serialization, is under active development. Consequently, its standard evolves over time. Older files remain compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
+Note that the chosen file format for serialization may be subject to development. In particular, the `.mrdi` file format, which
+we recommend for serialization, is under active development. Consequently, its standard evolves over time. Older files remain
+compatible with newer OSCAR versions; however, loading older artifacts may require upgrade steps during deserialization. For
+large artifacts, these upgrades may become time consuming. It is therefore recommended to use the most recent serialization
+standard when creating artifacts and to periodically upgrade older artifacts if appropriate.
 
-Additional details are provided in the [Serialization documentation](https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/#Upgrades).
+Additional details are provided in the
+[Serialization documentation](https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/#Upgrades).
 
 
 
@@ -220,4 +245,5 @@ Additional details are provided in the [Serialization documentation](https://doc
 
 ### GAP.jl
 
-`GAP.jl` uses artifacts to install [GAP](https://www.gap-system.org/) packages. Detailed maintainer information is provided in [`GAP.jl/README.maintainer.md`](https://github.com/oscar-system/GAP.jl/blob/master/README.maintainer.md).
+`GAP.jl` uses artifacts to install [GAP](https://www.gap-system.org/) packages. Detailed maintainer information is provided
+in [`GAP.jl/README.maintainer.md`](https://github.com/oscar-system/GAP.jl/blob/master/README.maintainer.md).
