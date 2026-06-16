@@ -194,7 +194,7 @@ Artifacts are immutable: To "update" an artifact, you are therefore required to 
 
 Once the pull request is merged, the updated artifact becomes available.
 
-Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Oscar.jl/Artifacts.toml`.
+Updating an artifact on a hosting platform alone, for example by uploading a new version to Zenodo, is not sufficient. Any change to the artifact contents changes its hashes and therefore requires a corresponding update of `Artifacts.toml`.
 
 !!! warning
     Any files referenced by the `Oscar.jl` master branch must not be modified, renamed, or deleted, as they may be required by earlier `Oscar.jl` releases.
