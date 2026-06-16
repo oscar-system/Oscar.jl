@@ -39,7 +39,7 @@ This section describes how to create, host, register, and use artifacts in the `
 
 - [ ] [Serializing the Data](@ref data_preparation)
 - [ ] [Hosting the Data (pack the data into a `gzip` compressed tarball, and upload it to a stable location)](@ref artifact_hosting)
-- [ ] [Registering the Artifact (add an entry to `Oscar.jl/Artifacts.toml` and open a pull request)](@ref artifact_registration)
+- [ ] [Registering the Artifact (add an entry to Oscar's `Artifacts.toml` and open a pull request)](@ref artifact_registration)
 - [ ] [Using the Artifact (once the pull request has been merged)](@ref artifact_usage)
 
 We illustrate this workflow with an [end-to-end example](@ref end-to-end-artifact-example).
