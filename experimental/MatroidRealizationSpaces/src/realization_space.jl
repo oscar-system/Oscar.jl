@@ -31,6 +31,15 @@
   end
 end
 
+
+function Base.show(io::IO, RS::MatroidRealizationSpace)
+  if has_attribute(RS, :is_realizable) && !is_realizable(RS)
+    print(io, "Realization space of a non-realizable matroid")
+  else
+    print(io, "Matroid realization space")
+  end
+end
+
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
     if RS.char === nothing && RS.q === nothing
