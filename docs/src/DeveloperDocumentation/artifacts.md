@@ -189,7 +189,7 @@ Artifacts are immutable: To "update" an artifact, you are therefore required to 
 - create a new tarball with the updated data (we suggest appending a version tag to the artifact name _e.g._ `-v1`, `-v2` _etc._),
 - upload the tarball to a stable hosting location,
 - compute the `sha256` and `git-tree-sha1` of the tarball of the new version,
-- update the corresponding entry in `Oscar.jl/Artifacts.toml` (_i.e._ new filename, and the two new SHA hashes),
+- update the corresponding entry in `Artifacts.toml` (_i.e._ new filename, and the two new SHA hashes),
 - open a pull request with the changes to `Oscar.jl/Artifacts.toml`.
 
 Once the pull request is merged, the updated artifact becomes available.
