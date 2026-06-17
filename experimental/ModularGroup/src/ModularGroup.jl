@@ -1,6 +1,7 @@
 include("exports.jl")
 include("types.jl")
 
+# TODO make docstrings prettier; specify R and J matrices
 @doc raw"""
     modular_subgroup(s::PermGroupElem, t::PermGroupElem)
 
