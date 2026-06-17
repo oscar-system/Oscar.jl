@@ -117,7 +117,7 @@ function doit(
       push!(new_collected, pkgdocs)
     end
   end
-  sort!(new_collected; by = pkgdocs -> lowercase(replace(pkgdocs[1].first, "`" => "")))
+  sort!(new_collected; by = pkgdocs -> lowercase(replace(first(pkgdocs[1]), r"\W" => "")))
   for pkgdocs in new_collected
     append!(collected, pkgdocs)
   end
