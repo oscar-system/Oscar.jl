@@ -111,8 +111,7 @@ labelings(G::Graph)
 has_disjoint_automorphisms(G::Graph)
 disjoint_automorphisms(G::Graph)
 cayley_graph_index_map(G::Group)
-cayley_graph_vertex(G::Group, g::GroupElem)
-cayley_graph_vertex(G::Group, g::GroupElem, index_map::Dict)
+cayley_graph_vertex
 ```
 
 ### Edges
