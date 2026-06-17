@@ -33,9 +33,16 @@ end
 
 
 function Base.show(io::IO, RS::MatroidRealizationSpace)
-  if has_attribute(RS, :is_realizable) && !is_realizable(RS)
+  if RS.ambient_ring isa MPolyRing
+    # Backed by a genuine affine scheme (this is also how the schemes machinery
+    # displays such a space when it appears as a chart, e.g. in a blow-up):
+    # defer to the underlying scheme's terse show.
+    show(io, underlying_scheme(RS))
+  elseif has_attribute(RS, :is_realizable) && !is_realizable(RS)
     print(io, "Realization space of a non-realizable matroid")
   else
+    # ambient ring is a field or ZZ; underlying_scheme is not implemented for
+    # these, so the generic scheme show would error -- print a terse summary.
     print(io, "Matroid realization space")
   end
 end
