@@ -67,11 +67,18 @@ function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::
 end
 
 
+# allocation free getter and conversion in one go
+function _getindex(::Type{Int}, b::FinGenAbGroupElem, i::Int)
+  return unsafe_load(Nemo.mat_entry_ptr(b.coeff, 1, i))
+end
+
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
   if is_fine_graded(W) 
-    any(d[i] < 0 for i in 1:ngens(parent(d))) && return Vector{Int}[]
-    return Vector{Int}[[Int(d[i]) for i in 1:ngens(parent(d))]]
+    n = ngens(parent(d))
+    res = Int[_getindex(Int, d, i) for i in 1:n]
+    any(<(0), res) && return Vector{Int}[]
+    return [res]
   end
 
   D = W.D
