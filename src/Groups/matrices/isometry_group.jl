@@ -49,11 +49,10 @@ is chosen heuristically depending on the rank of `L`. By default,
   bacher_depth::Int=0,
   _set_nice_mono::Bool=true,
   _howell::Bool = true,
-  reduced::Bool = false,
   use_everything::Bool=false,
 )
   # G is represented w.r.t the basis of L
-  G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, _set_nice_mono, _howell, use_everything, reduced)
+  G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, _set_nice_mono, _howell, use_everything)
   Gamb = extend_to_ambient_space(L, G; check=false)
   if _set_nice_mono && is_definite(L) && rank(L) > 2
     set_order(Gamb, order(G))
@@ -69,6 +68,7 @@ function _direct_is_faster(L::ZZLat)
   # most of these values are just gut feeling and testing a few in detail
   # tested for 10 0000 lattices of rank 16-20 and smallish rank that the computations finish
   # a more thorough algorithm selection might be in order
+  return true
   Llll = lll(L)
   G = gram_matrix(Llll)
   diagG = abs.(diagonal(G))
@@ -124,8 +124,8 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
                                                redo::Bool=false,
                                                _set_nice_mono::Bool=true,
                                                try_small::Bool=true,
-                                               reduced::Bool=false,
                                                use_everything::Bool=false,
+                                               use_weyl::Bool=true
 )
   # look in the cache
   if !redo && isdefined(L, :automorphism_group_generators)
@@ -140,7 +140,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_weyl=true)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
@@ -157,7 +157,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   end
   
   if algorithm == :direct
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, reduced, use_everything)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if _set_nice_mono
