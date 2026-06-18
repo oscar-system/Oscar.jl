@@ -65,7 +65,7 @@ julia> R, (y, z) = F[:y, :z];
 
 julia> p = a * y - z;
 
-julia> poly_dir = mkdir("poly_dir"));
+julia> poly_dir = mkdir("poly_dir");
 
 julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer())
 
