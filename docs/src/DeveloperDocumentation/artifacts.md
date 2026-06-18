@@ -20,7 +20,7 @@ or updated when `Oscar.jl` is installed or updated, unless the required artifact
 Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are
 installed only on demand.
 
-Artifacts allow to:
+Artifacts allow us to:
 
 - keep the `Oscar.jl` repository small,
 - distribute data reproducibly,
