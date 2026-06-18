@@ -117,6 +117,96 @@ function graph(::Type{Mixed}, nverts::Int64)
 end
 
 @doc raw"""
+    graph(::Type{T}, G, L::Vector, act, rel; invt::Bool=false) where {T <: Union{Directed, Undirected}}
+
+Construct a graph from a group action and a relation, following the
+signature of the `Graph` function from the GAP package GRAPE.
+
+Given a group `G` acting on a set `S` via the function `act`, a list `L` of
+elements of `S`, and a boolean relation `rel` on `S`, this function constructs
+a graph whose vertices are the elements in the union of the orbits of `G` on
+`L` under `act`, and where two vertices `x` and `y` are adjacent if
+`rel(x, y)` returns `true`.
+
+If `invt` is `true`, it is assumed that `L` is invariant under the action of
+`G`, and `L` itself is used as the vertex set directly.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> act = (x, g) -> g(x);
+
+julia> rel = (x, y) -> x + y == 5;
+
+julia> graph(Directed, G, [1, 2, 3, 4], act, rel)
+Directed graph with 4 nodes and the following edges:
+(1, 4)(2, 3)(3, 2)(4, 1)
+
+julia> graph(Undirected, G, [1, 2, 3, 4], act, rel)
+Undirected graph with 4 nodes and the following edges:
+(1, 4)(2, 3)
+```
+"""
+function graph(::Type{T}, G, L::Vector, act, rel; invt::Bool=false) where {T <: Union{Directed, Undirected}}
+  # Compute vertex names: either L itself (if G-invariant) or the
+  # concatenation of the orbits of G on L under the action act.
+  if invt
+    vertexnames = copy(L)
+  else
+    vertexnames = _grape_graph_orbits(G, L, act)
+  end
+  n = length(vertexnames)
+  gamma = Graph{T}(n)
+  if T === Undirected
+    for i in 1:n
+      for j in (i + 1):n
+        if rel(vertexnames[i], vertexnames[j])
+          add_edge!(gamma, i, j)
+        end
+      end
+    end
+  else
+    for i in 1:n
+      for j in 1:n
+        i == j && continue
+        if rel(vertexnames[i], vertexnames[j])
+          add_edge!(gamma, i, j)
+        end
+      end
+    end
+  end
+  return gamma
+end
+
+function _grape_graph_orbits(G, L, act)
+  n = length(L)
+  visited = falses(n)
+  result = eltype(L)[]
+  for i in 1:n
+    if !visited[i]
+      push!(result, L[i])
+      visited[i] = true
+      stack = Int[i]
+      while !isempty(stack)
+        idx = popfirst!(stack)
+        x = L[idx]
+        for g in gens(G)
+          y = act(x, g)
+          j = findfirst(k -> isequal(L[k], y), 1:n)
+          if j !== nothing && !visited[j]
+            visited[j] = true
+            push!(result, L[j])
+            push!(stack, j)
+          end
+        end
+      end
+    end
+  end
+  return result
+end
+
+@doc raw"""
     graph_from_adjacency_matrix(::Type{T}, G) where {T <:Union{Directed, Undirected}}
 
 Return the graph with adjacency matrix `G`.
