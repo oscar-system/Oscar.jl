@@ -462,17 +462,17 @@
       @test HL.color[2] == GL.color[1]
     end
 
-    @test "permuted_nodes!" begin
+    @test "permute_nodes!" begin
+      p = perm(3, [2, 1, 3])  # (1,2)
       G = graph_from_edges(Directed, [[1, 2], [2, 3]])
-      Polymake.permuted_nodes!(G, [1, 2])
+      permute_nodes!(G, p)
       @test collect(edges(G)) == [ Edge(1, 3),  Edge(2, 1)]
-
+      permute_nodes!(G, p)
       label!(G, Dict((1, 2) => 10, (2, 3) => 20), nothing)
       label!(G, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
-      p = perm(3, [2, 1, 3])  # (1,2)
       permute_nodes!(G, p)
       @test G.label[2, 1] == 10
       @test G.label[1, 3] == 20
-      @test G.color[2] == GL.color[1]
+      @test G.color[2] == "red"
     end
 end
