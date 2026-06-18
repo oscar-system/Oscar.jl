@@ -14,9 +14,8 @@ This page explains what artifacts are, when to use them, and how to work with th
 
 Artifacts are content-addressed bundles managed by
 [Julia's artifact system](https://pkgdocs.julialang.org/v1/artifacts/) and declared in the file
-`Artifacts.toml` located in the `Oscar.jl` root directory. Artifacts are automatically downloaded,
+`Artifacts.toml` located in the `Oscar.jl` root directory. Normally, artifacts are downloaded automatically,
 or updated when `Oscar.jl` is installed or updated, unless the required artifact is already present locally.
-
 Julia also supports [lazy artifacts](https://docs.julialang.org/en/v1/stdlib/LazyArtifacts/), which are
 installed only on demand.
 
@@ -145,7 +144,6 @@ If you want create an artifact, the first decision is where it is to be safely s
 accessibility, artifacts should be hosted at stable and persistent locations.
 
 Preferred options include:
-
 - archival services such as [Zenodo](https://zenodo.org/communities/oscar/records?q=&l=list&p=1&s=10&sort=newest),
 in particular for long-term or publication-related data,
 - other stable hosting solutions agreed upon by the maintainers.
