@@ -462,7 +462,7 @@
       @test HL.color[2] == GL.color[1]
     end
 
-    @test "permuted_nodes!" begin
+    @test "permute_nodes!" begin
       G = graph_from_edges(Directed, [[1, 2], [2, 3]])
       Polymake.permuted_nodes!(G, [1, 2])
       @test collect(edges(G)) == [ Edge(1, 3),  Edge(2, 1)]
