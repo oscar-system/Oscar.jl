@@ -1446,6 +1446,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class

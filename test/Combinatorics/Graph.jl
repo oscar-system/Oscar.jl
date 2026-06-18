@@ -427,15 +427,14 @@
     end
 
     @testset "on_graph" begin
-      S3 = symmetric_group(3)
-      id = perm(S3, [1, 2, 3])
+      id = perm(3, [1, 2, 3])
 
       # identity permutation gives equal graph
       G = graph_from_edges(Directed, [[1, 2], [2, 3]])
       @test on_graph(G, id) == G
 
       # applying a permutation relabels edges
-      p = perm(S3, [2, 1, 3])  # (1,2)
+      p = perm(3, [2, 1, 3])  # (1,2)
       H = on_graph(G, p)
       @test n_vertices(H) == n_vertices(G)
       @test n_edges(H) == n_edges(G)
@@ -461,5 +460,19 @@
       @test HL.label[2, 1] == 10
       @test HL.label[1, 3] == 20
       @test HL.color[2] == GL.color[1]
+    end
+
+    @test "permuted_nodes!" begin
+      G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+      Polymake.permuted_nodes!(G, [1, 2])
+      @test collect(edges(G)) == [ Edge(1, 3),  Edge(2, 1)]
+
+      label!(G, Dict((1, 2) => 10, (2, 3) => 20), nothing)
+      label!(G, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
+      p = perm(3, [2, 1, 3])  # (1,2)
+      permute_nodes!(G, p)
+      @test G.label[2, 1] == 10
+      @test G.label[1, 3] == 20
+      @test G.color[2] == GL.color[1]
     end
 end

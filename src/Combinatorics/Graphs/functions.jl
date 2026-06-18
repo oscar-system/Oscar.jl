@@ -1212,6 +1212,34 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   error("unimplemented for either indistinguishable vertex or edge labels")
 end
 
+@doc raw"""
+    permute_nodes!(G::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
+
+Permute the nodes of `G` in place according to the permutation `p`
+
+```jldoctest
+julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:color)
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> p = perm(3, [2, 1, 3])
+(1,2)
+
+julia> permute_nodes!(G, p)
+
+julia> G
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 2) -> 1
+(2, 3) -> 4
+```
+"""
+function permute_nodes!(G::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
+  Polymake._permute_nodes!(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(Vector(p))))
+end
+
 function _permute_nodes_and_labels(G::Graph{T}, p::Vector{Int}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
   new_G = Graph{T}(Polymake._permute_nodes(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(p))))
 
@@ -2563,6 +2591,8 @@ result. Any labelings on `g` are carried along accordingly.
 
 The permutation `p` must be an element of the symmetric group on
 `n_vertices(g)` letters.
+
+See [`permute_nodes!`](@ref) for an in place alternative.
 
 # Examples
 ```jldoctest
