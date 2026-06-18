@@ -767,27 +767,6 @@ function save(filename::String, obj::Any;
     main_file = prefix * main_ext
     prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
 
-    old_ref_basenames = String[]
-    alt_ext = compression == :gzip ? ".mrdi" : ".mrdi.gz"
-    alt_main_file = prefix * alt_ext
-    existing_main = isfile(main_file) ? main_file : isfile(alt_main_file) ? alt_main_file : nothing
-    if !isnothing(existing_main)
-      try
-        if endswith(existing_main, ".gz")
-          open(CodecZlib.GzipDecompressorStream, existing_main) do f
-            parsed = JSON.lazy(f)
-            append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
-          end
-        else
-          open(existing_main) do f
-            parsed = JSON.lazy(f)
-            append!(old_ref_basenames, string.(get(parsed, :_ref_files, [])))
-          end
-        end
-      catch
-      end
-    end
-
     inner_serializer = MultiFileRefSerializer(prefix, compression)
     temp_file = tempname(prefix_dir)
     if compression == :gzip
@@ -799,19 +778,7 @@ function save(filename::String, obj::Any;
         save(file, obj; serializer=inner_serializer, kwargs...)
       end
     end
-
-    new_ref_basenames = Set(inner_serializer.ref_files)
-
     Base.Filesystem.rename(temp_file, main_file)
-
-    isfile(alt_main_file) && rm(alt_main_file)
-
-    for rf in old_ref_basenames
-      rf in new_ref_basenames && continue
-      rf_path = joinpath(prefix_dir, rf)
-      isfile(rf_path) && rm(rf_path)
-    end
-
     return nothing
   end
   temp_file = tempname(dirname(abspath(filename)))

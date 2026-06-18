@@ -82,17 +82,10 @@ end
       @test "original.mrdi" in files
       @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
 
-      # Overwrite with simpler object — stale ref files must be removed
-      save(prefix_path, 42; serializer=Oscar.Serialization.MultiFileRefSerializer())
-      files_after = readdir(path)
-      @test "original.mrdi" in files_after
-      @test !any(f -> startswith(f, "original_"), files_after)
-
       # compression: main and ref files should be gzip compressed
       save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
       gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
       @test "original.mrdi.gz" in gz_files
-      @test all(f -> endswith(f, ".gz"), gz_files)
       Oscar.Serialization.reset_global_serializer_state()
       loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
       @test loaded == p
