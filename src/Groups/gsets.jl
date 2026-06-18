@@ -308,6 +308,16 @@ function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false)
   return GSetByElements(G, on_indeterminates, Omega; closed = closed, check = false)
 end
 
+## action of automorphisms on group elements via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroupElem
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on subgroups via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroup
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
+end
+
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
 ## another situation:
