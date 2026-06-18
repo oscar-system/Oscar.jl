@@ -462,7 +462,7 @@
       @test HL.color[2] == GL.color[1]
     end
 
-    @test "permute_nodes!" begin
+    @testset "permute_nodes!" begin
       p = perm(3, [2, 1, 3])  # (1,2)
       G = graph_from_edges(Directed, [[1, 2], [2, 3]])
       permute_nodes!(G, p)
