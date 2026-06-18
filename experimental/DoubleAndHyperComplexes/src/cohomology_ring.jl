@@ -11,6 +11,7 @@ mutable struct DGAlgCohRing{T} <: NCRing
   graded_parts::Vector{SubquoModule{T}}
   volume_form::Tuple{Int, SubquoModuleElem{T}}
   vol_form_inc::SubQuoHom
+  simp_vol_form_inc::SubQuoHom
   small_gens::Dict{Int, Vector{SubquoModuleElem{T}}}
 
 @doc raw"""
@@ -145,7 +146,8 @@ Return the homogeneous component of `a` of cohomological degree `p`.
 """
 function graded_part(a::DGAlgCohRingElem, p::Int)
   A = parent(a)
-  is_zero(a) && return zero(graded_part(A, p))
+  # `is_zero` is expensive with integer coefficients.
+  #is_zero(a) && return zero(graded_part(A, p))
   if !isnothing(a.homog_elem)
     p == a.homog_deg || return zero(graded_part(A, p))
     return a.homog_elem
@@ -507,9 +509,12 @@ Use `set_volume_form!` to choose a volume form on a `DGAlgCohRing`.
 """
 function integral(a::DGAlgCohRingElem)
   A = parent(a)
-  inc = volume_form_inclusion(A)
+  inc = simplified_volume_form_inclusion(A)
+  s = simplified_cochain_complex(A)
   d, _ = A.volume_form # grabbing the field is OK as the previous call makes sure it's set
-  return preimage(inc, graded_part(a, d))[1]
+  to_s = map_from_original_complex(s)[d]
+  H = simplified_graded_part(A, d)
+  return preimage(inc, H(to_s(repres(graded_part(a, d))); check=false))[1]
 end
 
 function volume_form_inclusion(A::DGAlgCohRing)
@@ -521,6 +526,20 @@ function volume_form_inclusion(A::DGAlgCohRing)
     A.vol_form_inc = inc
   end
   return A.vol_form_inc
+end
+
+function simplified_volume_form_inclusion(A::DGAlgCohRing)
+  if !isdefined(A, :simp_vol_form_inc)
+    vol = volume_form(A)
+    d = degree(vol)
+    v = graded_part(vol, d)
+    s = simplified_cochain_complex(A)
+    to_s = map_from_original_complex(s)[d]
+    H = simplified_graded_part(A, d)
+    _, inc = sub(H, [H(to_s(repres(v)); check=false)])
+    A.simp_vol_form_inc = inc
+  end
+  return A.simp_vol_form_inc
 end
 
 function small_generating_set(A::DGAlgCohRing{T}, d::Int) where T
