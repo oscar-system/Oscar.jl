@@ -109,12 +109,12 @@ Specialized for `LinearProgram{QQFieldElem}`. Writes the LP data to an external
 the `.mrdi` file. The `basepath` argument is used as the filename prefix for the
 `.lp` file.
 
-```jldoctest setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.lp"
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.lp"
 julia> P = cube(3);
 
 julia> LP = linear_program(P, [3, -2, 4]; k=2, convention=:min);
 
-julia> lp_dir = mkdir("lp_dir")
+julia> lp_dir = mkdir("lp_dir");
 
 julia> serializer = Oscar.Serialization.LPSerializer(joinpath(lp_dir, "lp"));
 
