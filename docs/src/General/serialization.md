@@ -56,6 +56,8 @@ The `filename` argument is used as a prefix directly — no extension is added o
 stripped. On overwrite, stale ref files from the previous save are removed
 automatically.
 
+Without compression:
+
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.mrdi"
 julia> Qx, x = QQ[:x];
 
@@ -65,7 +67,7 @@ julia> R, (y, z) = F[:y, :z];
 
 julia> p = a * y - z;
 
-julia> poly_dir = mkdir("poly_dir"));
+julia> poly_dir = mkdir("poly_dir");
 
 julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer())
 
@@ -75,6 +77,20 @@ julia> readdir(poly_dir)
  "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi"
  "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi"
  "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi"
+```
+
+With `gzip` compression:
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.mrdi"
+julia> Qx, x = QQ[:x];
+
+julia> F, a = number_field(x^2 + 2);
+
+julia> R, (y, z) = F[:y, :z];
+
+julia> p = a * y - z;
+
+julia> poly_dir = mkdir("poly_dir");
 
 julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
 
