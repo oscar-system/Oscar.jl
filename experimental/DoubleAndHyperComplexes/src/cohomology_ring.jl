@@ -7,6 +7,7 @@ by implementing a method for the internal function `mul_cochains`.
 """
 mutable struct DGAlgCohRing{T} <: NCRing
   C::SimplicialCochainComplex
+  CS::SimplifiedComplex
   graded_parts::Vector{SubquoModule{T}}
   volume_form::Tuple{Int, SubquoModuleElem{T}}
   vol_form_inc::SubQuoHom
@@ -21,9 +22,11 @@ associated cohomology ring.
 """
   function DGAlgCohRing(C::SimplicialCochainComplex)
     T = elem_type(base_ring(C))
-    return new{T}(C)
+    return new{T}(C, simplify(C))
   end
 end
+
+simplified_cochain_complex(A::DGAlgCohRing) = A.CS
 
 @doc raw"""
     mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
@@ -66,6 +69,11 @@ function graded_parts(A::DGAlgCohRing)
   return A.graded_parts
 end
 
+function simplified_graded_part(A::DGAlgCohRing, i::Int)
+  H, _ = homology(simplified_cochain_complex(A), i)
+  return H
+end
+
 @doc raw"""
     graded_part(A::DGAlgCohRing, i::Int)
 
@@ -90,6 +98,7 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
   # to `nothing`. The field `.coeff` is not assigned if it's not needed. 
   homog_elem::Union{SubquoModuleElem{T}, Nothing}
   homog_deg::Union{Int, Nothing}
+  is_zero::Union{Nothing, Bool}
   coeff::Dict{Int, SubquoModuleElem{T}}
 
   # Constructor for homogeneous elements
@@ -98,7 +107,7 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
       p::Int, v::SubquoModuleElem{T}
     ) where {T}
     @assert parent(v) === graded_part(A, p)
-    return new{T}(A, v, p)
+    return new{T}(A, v, p, nothing)
   end
 
   # Constructor for mixed elements
@@ -108,14 +117,14 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
       check::Bool=true
     ) where {T}
     @check all(parent(v) === graded_part(A, p) for (p, v) in coeff) "degree/element incompatibility"
-    return new{T}(A, nothing, nothing, coeff)
+    return new{T}(A, nothing, nothing, nothing, coeff)
   end
 
   # Constructor for the zero
   function DGAlgCohRingElem(
       A::DGAlgCohRing{T}
     ) where {T}
-    return new{T}(A, nothing, nothing)
+    return new{T}(A, nothing, nothing, true)
   end
 end
 
@@ -163,12 +172,15 @@ function (A::DGAlgCohRing)(c::DGAlgCohRingElem)
 end
 
 function is_zero(a::DGAlgCohRingElem)
+  !isnothing(a.is_zero) && return a.is_zero::Bool
   if isnothing(a.homog_elem)
     !isdefined(a, :coeff) && return true
     isempty(a.coeff) && return true
-    return all(iszero(b) for (_, b) in a.coeff)
+    a.is_zero = all(iszero(b) for (_, b) in a.coeff)::Bool
+    return a.is_zero::Bool
   end
-  return is_zero(a.homog_elem)
+  a.is_zero = is_zero(a.homog_elem)
+  return a.is_zero::Bool
 end
 
 function deepcopy_internal(a::DGAlgCohRingElem, d::IdDict)
@@ -516,9 +528,10 @@ function small_generating_set(A::DGAlgCohRing{T}, d::Int) where T
     A.small_gens = Dict{Int, Vector{SubquoModuleElem{T}}}()
   end
   g = get!(A.small_gens, d) do
+    cs = simplified_cochain_complex(A)
+    phi = map_to_original_complex(cs)[d]
     Hd = graded_part(A, d)
-    M, iso = simplify(Hd)
-    return iso.(gens(M))
+    return [Hd(phi(repres(v)); check=false) for v in gens(simplified_graded_part(A, d))]
   end
   return elem_type(A)[DGAlgCohRingElem(A, d, v) for v in g]
 end

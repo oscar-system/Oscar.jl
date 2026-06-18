@@ -7,15 +7,16 @@
 struct SimplicialCochainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   R::Ring
   K::SimplicialComplex
+  face_cache::Dict{Int, Vector{Set{Int}}}
 
   function SimplicialCochainFactory(R::Ring, K::SimplicialComplex)
-    return new{FreeMod{elem_type(R)}}(R, K)
+    return new{FreeMod{elem_type(R)}}(R, K, Dict{Int, Vector{Set{Int}}}())
   end
 end
 
 ### Initializes the free modules over the ring of appropriate rank in the relevant degrees. 
 function (fac::SimplicialCochainFactory)(self::AbsHyperComplex, i::Tuple)
-  return FreeMod(fac.R, length(faces(fac.K, only(i))))
+  return FreeMod(fac.R, length(get_faces(fac, only(i))))
 end
 
 ### The complex is only computable in at most the dimension of the simplicial complex
@@ -77,7 +78,7 @@ function show_elem(io::IO, C::SimplicialCochainComplex, a::FreeModElem, p::Int)
   for (c, g) in coordinates(a)
     !fst && print(io, " + ")
     fst = false
-    print(io, g, "*", sort(collect(faces(simplicial_complex(C), p)[c])))
+    print(io, g, "*", sort(collect(get_faces(C, p)[c])))
   end
 end
 
@@ -89,7 +90,17 @@ function face_to_index_map(c::SimplicialCochainComplex, p::Int)
     c.face_to_index_map = Dict{Int, Dict{Set{Int}, Int}}()
   end
   return get!(c.face_to_index_map, p) do
-    Dict{Set{Int}, Int}(s => i for (i,s) in enumerate(faces(simplicial_complex(c), p)))
+    Dict{Set{Int}, Int}(s => i for (i,s) in enumerate(get_faces(c, p)))
+  end
+end
+
+function get_faces(C::AbsHyperComplex, i::Int)
+  return get_faces(chain_factory(C), i)
+end
+
+function get_faces(fac::SimplicialCochainFactory, i::Int)
+  return get!(fac.face_cache, i) do
+    faces(fac.K, i)
   end
 end
 
@@ -130,8 +141,8 @@ function mul_cochains(C::SimplicialCochainComplex, a::FreeModElem, p::Int, b::Fr
   mdict = multiplication_dict(C)
   for (ga, ca) in coordinates(a), (gb, cb) in coordinates(b)
     res = get!(mdict, (ga, p, gb, q)) do
-      sa = faces(K, p)[ga]
-      sb = faces(K, q)[gb]
+      sa = get_faces(C, p)[ga]
+      sb = get_faces(C, q)[gb]
       s = union(sa, sb)
       maximum(sa) == minimum(sb) && s in keys(f) && return gen(C[p+q], f[s])
       zero(C[p+q])
