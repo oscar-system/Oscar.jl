@@ -451,7 +451,7 @@
 
       # degree mismatch throws
       G2 = graph_from_edges(Directed, [[1, 2]])
-      @test_throws ArgumentError on_graph(G2, perm(S3, [2, 1, 3]))
+      @test_throws ArgumentError on_graph(G2, perm(3, [2, 1, 3]))
 
       # labels are carried along
       GL = graph_from_labeled_edges(Directed, Dict((1, 2) => 10, (2, 3) => 20))
