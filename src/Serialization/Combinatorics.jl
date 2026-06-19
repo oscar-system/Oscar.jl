@@ -6,17 +6,97 @@ using Oscar: create_gs2num
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
+function _graph_maps_to_dict(G::Graph{T}, label::Symbol) where T <: Union{Directed, Undirected}
+  gm = get_attribute(G, label)
+  dicts = Dict{Symbol, Any}()
+
+  if !isnothing(gm.edge_map)
+    em_dict = Dict()
+    for e in edges(G)
+      em_dict[src(e), dst(e)] = gm.edge_map[e]
+    end
+    dicts[:edge_map] = Dict{Tuple{Int, Int}, typeof(first(values(em_dict)))}(em_dict)
+  end
+
+  if !isnothing(gm.vertex_map)
+    vm_dict = Dict{Int, Any}()
+    for v in 1:n_vertices(G)
+      vm_dict[v] = gm.vertex_map[v]
+    end
+    dicts[:vertex_map] = vm = _pmdata_for_oscar(gm.vertex_map, QQ)
+  end
+
+  return dicts
+end
+
+function _node_map_to_dict(nm::Polymake.NodeMap{S,T}) where {S,T}
+  Dict{Int, Polymake.to_jl_type(T)}(k => v for (k, v) in enumerate(nm))
+end
+
+function type_and_params(g::Graph{T}) where T <: Union{Directed, Undirected}
+  isempty(labelings(g)) && return TypeParams(Graph{T}, nothing)
+  labelings_tp = Pair{Symbol, TypeParams}[]
+  for l in labelings(g)
+    push!(labelings_tp, l => type_params(_graph_maps_to_dict(g, l)))
+  end
+  
+  return TypeParams(Graph{T}, labelings_tp...)
+end
+
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
   smallobject = pm_object(g)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, smallobject)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-  save_data_json(s, jsonstr)
+
+  if isempty(labelings(g))
+    save_data_json(s, jsonstr)
+  else
+    save_data_dict(s) do
+      save_data_json(s, jsonstr, :graph)
+      labels_d = Dict{Symbol, Dict}()
+      for l in labelings(g)
+        gm = get_attribute(g, l)
+        if !isnothing(gm.edge_map)
+          em = Dict((src(e), dst(e)) => gm.edge_map[e] for e in edges(g))
+        else
+          em = nothing
+        end
+        # QQ has nothing to do with serialization, just how the pm functions was implemented
+        vm = _pmdata_for_oscar(gm.vertex_map, QQ)
+        
+        labels_d[l] = Dict(:edge_map => em, :vertex_map => vm)
+      end
+
+      save_object(s, labels_d, :labelings)
+    end
+  end
 end
 
 
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return g(smallobj)
+end
+
+function load_object(s::DeserializerState, tp::TypeParams{Graph{T}, <:Tuple{Vararg{Pair}}}) where T <: Union{Directed, Undirected}
+  G = type(tp)
+  g = load_node(s, :graph) do 
+    G(Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any}))))
+  end
+  load_node(s, :labelings) do
+    foreach(s.obj) do (label, _)
+      labelings_dict = load_object(s, tp[Symbol(label)], Symbol(label))
+      # getkey doesn't worj here?
+      em = haskey(labelings_dict, :edge_map) ? labelings_dict[:edge_map] : nothing
+
+      vm = nothing
+      if haskey(labelings_dict, :vertex_map)
+        vm = Dict(i => v for (i, v) in enumerate(labelings_dict[:vertex_map]))
+      end
+      label!(g, em, vm; name=Symbol(label))
+    end
+  end
+  return g
 end
 
 ###############################################################################
@@ -58,7 +138,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return IM
 end
 
@@ -73,7 +153,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   return K(bigobject)
 end
 
@@ -91,17 +171,17 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::QQField)
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, QQField})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, JSON.parse(s.obj; dicttype=Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
   return PhylogeneticTree{QQFieldElem}(inner_object, vertex_perm)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PhylogeneticTree}, params::AbstractAlgebra.Floats{Float64})
-  inner_object = load_node(s, :pm_tree) do _
-    load_from_polymake(Polymake.BigObject, Dict(s.obj))
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticTree, <:AbstractAlgebra.Floats{Float64}})
+  inner_object = load_node(s, :pm_tree) do
+    load_from_polymake(Polymake.BigObject, load_json(s, Dict{String, Any}))
   end
   vertex_perm = load_object(s, Vector{Int}, :vertex_perm)
   return PhylogeneticTree{Float64}(inner_object, vertex_perm)

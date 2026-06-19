@@ -10,6 +10,19 @@ using Oscar: _integer_variables
         @test n_vertices(G) == n_vertices(loaded)
         @test n_edges(G) == n_edges(loaded)
       end
+
+      label!(G, nothing, Dict(v => v for v in 1:n_vertices(G)); name=:l1)
+      label!(G, Dict((src(e), dst(e)) => "test" for e in edges(G)), nothing; name=:l2)
+      label!(G, Dict((src(e), dst(e)) => i/(i + 1) for (i, e) in enumerate(edges(G))), Dict(v => 1/v for v in 1:n_vertices(G)); name=:l3)
+      label!(G, Dict((src(e), dst(e)) => "test" for e in edges(G)), Dict{Int, Int}(); name=:l4)
+      test_save_load_roundtrip(path, G) do loaded
+        @test loaded.l1[1] == 1
+        @test loaded.l2[2, 1] == "test"
+        @test loaded.l3[1] isa Float64
+        @test loaded.l3[4, 3] isa Float64
+        @test iszero(loaded.l4[4])
+        @test loaded.l4[3, 1] == "test"
+      end
     end
 
     @testset "Matroid" begin
@@ -66,6 +79,23 @@ using Oscar: _integer_variables
         @test dim(c) == dim(loaded)
         @test c == loaded
         @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
+      end
+
+      let
+        Qx2, x2 = QQ[:x]
+        K2, r2 = number_field(x2^3 - 3x2^2 - 4x2 + 8, "r")
+        K2y, y2 = K2[:y]
+        L2, lq2 = number_field(y2^2 - (2 - r2^2)//2, "q")
+        emb2 = only(filter(Base.Fix1(is_positive, lq2), real_embeddings(L2)))
+        E2, eq2 = Hecke.embedded_field(L2, emb2)
+        verts = matrix(E2, [0 1 0; 1 0 0; 0 0 1; 1 1 0])
+        sd_small = convex_hull(E2, verts)
+        vertices(sd_small)
+        test_save_load_roundtrip(path, sd_small) do loaded
+          @test n_vertices(sd_small) == n_vertices(loaded)
+          @test dim(sd_small) == dim(loaded)
+          @test sd_small == loaded
+        end
       end
 
       d_hedron = dodecahedron()
