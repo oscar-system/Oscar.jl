@@ -61,7 +61,7 @@ function Base.:(==)(G::ModularGroup, H::ModularGroup)
 end
 
 function Base.hash(G::ModularGroup, h::UInt)
-  return hash(G.s, hash(G.t, h))
+  return hash((index(G), cycle_structure(G.s), cycle_structure(G.t), cycle_structure(G.s * G.t)), h)
 end
 
 function Base.show(io::IO, G::ModularGroup)
