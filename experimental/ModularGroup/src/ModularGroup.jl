@@ -126,7 +126,7 @@ function index(G::ModularGroup)
   return maximum([maximum(moved_points(G.s); init=1), maximum(moved_points(G.t); init=1)])::Int
 end
 
-const _SL2Z_FP_CACHE = Ref{Any}(nothing)
+const _SL2Z_FP_CACHE = Ref{Tuple{FPGroup, FPGroupElem, FPGroupElem}}()
 
 # cache the SL2Z presentation so that it can be reused consistently
 # (especially in testing)
