@@ -131,7 +131,7 @@ const _SL2Z_FP_CACHE = Ref{Tuple{FPGroup, FPGroupElem, FPGroupElem}}()
 # cache the SL2Z presentation so that it can be reused consistently
 # (especially in testing)
 function _SL2Z_fp()
-  if _SL2Z_FP_CACHE[] === nothing
+  if !isassigned(_SL2Z_FP_CACHE[])
     F = free_group(["S", "T"])
     S, T = gens(F)
 
