@@ -47,7 +47,7 @@ julia> save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serial
 
 ### MultiFileRefSerializer
 
-Splits refs into separate files alongside the main file, using the path as a
+Splits referenced objects into separate files alongside the main file, using the path as a
 prefix. Each referenced object is written to its own `<prefix>_<UUID>.mrdi`
 file. The main file is `<prefix>.mrdi`. Use this when objects share large
 sub-objects.
@@ -77,6 +77,9 @@ julia> readdir(poly_dir)
  "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi"
  "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi"
  "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi"
+ 
+julia> load(joinpath(poly_dir, "polydata"; serializer=Oscar.Serialization.MultiFileRefSerializer())
+_a*y - z
 ```
 
 With `gzip` compression:
