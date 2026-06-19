@@ -52,7 +52,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
   while d <= dmax
     @vprintln :FundamentalInvariants "--------------------------------------------------------------"
     @vprintln :FundamentalInvariants "Current maximal degree: $dmax"
-    @vprintln :FundamentalInvariants "Checking degree: $d"
+    @vprintln :FundamentalInvariants "Working in degree: $d"
     @vprintln :FundamentalInvariants "Number of invariants found: $(length(S))"
     if length(S) >= ngens(R) && total_degree(S[end]) == d - 2
       # We haven't added any invariants in the last round, so there is a chance
@@ -115,7 +115,9 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
     if group(RG) isa PermGroup
       # Orbit sums
       @vprintln :FundamentalInvariants "Generating invariants via orbit sums"
-      invs = (_cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :orbit_sums))
+      exps = [AbstractAlgebra.exponent_vector(m, 1) for m in mons]
+      mon_orbits = orbits(gset(group(RG), permuted, exps))
+      invs = (Rgraded([one(coefficient_ring(RG)) for _ in 1:length(orb)], elements(orb)) for orb in mon_orbits)
     elseif X * time_rey < time_lin_alg
       # Reynolds approach
       @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
