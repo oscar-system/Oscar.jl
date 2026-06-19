@@ -1178,6 +1178,7 @@ export link_subcomplex
 export load
 export load_lp
 export load_mps
+export local_glue_maps
 export local_schur_indices
 export localization
 export localized_ring
@@ -1851,6 +1852,7 @@ export underlying_quotient
 export underlying_word
 export undirected_component
 export uniform_matroid
+export unimodular_primitive_extensions
 export unit
 export unitary_group
 export units_of

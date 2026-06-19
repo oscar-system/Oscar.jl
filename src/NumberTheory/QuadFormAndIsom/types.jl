@@ -318,13 +318,11 @@ some orbits and stabilizers computations for some ``p``-subgroups of a given
 type.
 """
 struct ZZLatGluingCtx
-  modules::Vector{TorQuadModule}
   orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
 
   function ZZLatGluingCtx()
-    modules = TorQuadModule[]
     orb_and_stab = Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
-    return new(modules, orb_and_stab)
+    return new(orb_and_stab)
   end
 end
 
