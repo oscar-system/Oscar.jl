@@ -320,7 +320,7 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
 end
 
 function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
+  obj = JSON.parse(io)
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
     prefix = basepath(serializer)
