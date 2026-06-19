@@ -115,9 +115,9 @@ function j_right_action(G::ModularGroup)
 end
 
 function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
-  if !(isone(s^4) && isone((s^3*t)^3) && isone(s^2*t*s^-2*t^-1))
-    return false
-  end
+  isone(s^4) || return false
+  isone((s^3*t)^3 || return false
+  isone(s^2*t*s^-2*t^-1) || return false
   idx = maximum([maximum(moved_points(s); init=1), maximum(moved_points(t); init=1)])
   return is_transitive(permutation_group(idx, [s, t]))
 end
