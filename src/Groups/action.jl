@@ -538,11 +538,11 @@ function on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
 end
 
 @doc raw"""
-    on_subgroups(x::GapObj, g::GAPGroupElem) -> GapObj
-    on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup -> T
+    on_subgroups(x::GapObj, g::AutomorphismGroupElem) -> GapObj
+    on_subgroups(x::T, g::AutomorphismGroupElem) where T <: GAPGroup -> T
 
-Return the image of the group `x` under `g`. Note that `x` must
-be a subgroup of the domain of `g`.
+Return the image of the group `x` under the group automorphism `g`.
+Note that `x` must be a subgroup of the domain of `g`.
 
 # Examples
 ```jldoctest
@@ -556,7 +556,7 @@ Automorphism group of
 julia> H, _ = sub(C, [gens(C)[1]^4])
 (Sub-pc group of order 5, Hom: H -> C)
 
-julia> all(g -> on_subgroups(H, g) == H, S)
+julia> all(g -> on_subgroups(H, g) == H, gens(S))
 true
 ```
 """
@@ -564,7 +564,7 @@ function on_subgroups(x::GapObj, g::GAPGroupElem)
   return GAPWrap.Image(GapObj(g), x)
 end
 
-on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(x), g))
+on_subgroups(x::T, g::AutomorphismGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(x), g))
 
 
 @doc raw"""
@@ -672,11 +672,13 @@ function _stabilizer_generic(G::GAPGroup, pnt::Any, actfun::Function)
     GapObj(actfun)))
 end
 
+
 # natural stabilizers in permutation groups
 # Construct the arguments on the GAP side such that GAP's method selection
 # can choose the special method.
 # - stabilizer in a perm. group of an integer via `^`
 # - stabilizer in a perm. group of a vector of integers via `on_tuples`
+# - stabilizer in a perm. group of a vector of integers via `permuted`
 # - stabilizer in a perm. group of a set of integers via `on_sets`
 function stabilizer(G::PermGroup, pnt::T) where T <: IntegerUnion
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
@@ -689,6 +691,22 @@ function stabilizer(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) wh
     GapObj(pnt, recursive = true),
     GAP.Globals.OnTuples))  # Do not use GAPWrap.OnTuples!
 end
+
+# compute the stabilizer of a tuple acting by permuting entries
+function stabilizer_permuted(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T <: Oscar.IntegerUnion
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt, recursive = true),
+    GAP.Globals.Permuted))  # Do not use GAPWrap.Permuted!
+end
+
+# compute the stabilizer of a tuple acting by permuting entries
+function stabilizer_permuted(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T
+  pnt2 = map( x -> findfirst(isequal(x), unique(pnt)), pnt)
+  return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+    GapObj(pnt2, recursive = true),
+    GAP.Globals.Permuted))  # Do not use GAPWrap.Permuted!
+end
+
 
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerUnion
   return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
@@ -703,8 +721,16 @@ function stabilizer(G::PermGroup, pnt::T, actfun::Function) where T <: IntegerUn
 end
 
 function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actfun::Function) where T <: IntegerUnion
-  return actfun == on_tuples ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+  actfun == on_tuples && return stabilizer(G, pnt)
+  actfun == permuted && return  stabilizer_permuted(G, pnt)
+  return _stabilizer_generic(G, pnt, actfun)
 end
+
+function stabilizer(G::PermGroup, pnt::Union{Vector{T},Tuple{T,Vararg{T}}}, actfun::Function) where T
+  actfun == permuted && return  stabilizer_permuted(G, pnt)
+  return _stabilizer_generic(G, pnt, actfun)
+end
+
 
 function stabilizer(G::PermGroup, pnt::AbstractSet{T}, actfun::Function) where T <: IntegerUnion
   return actfun == on_sets ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)

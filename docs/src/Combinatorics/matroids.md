@@ -26,8 +26,8 @@ matroid_from_bases(bases::AbstractVector{T}, nelements::IntegerUnion; check::Boo
 matroid_from_nonbases(nonbases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType
 matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
 matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
-matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
-matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true)
+matroid_from_matrix_columns(A::MatElem; check::Bool=true)
+matroid_from_matrix_rows(A::MatElem, ; check::Bool=true)
 cycle_matroid
 bond_matroid(g::Graph)
 cocycle_matroid(g::Graph)
