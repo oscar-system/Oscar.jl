@@ -572,12 +572,10 @@ function iterate_orbit_sums(BI::FinGroupInvarRingBasisIterator, state::Union{Int
   end
 
   R = polynomial_ring(BI.R)
-  oneK = one(coefficient_ring(R))
-  F = MPolyBuildCtx(R)
-  for t in BI.orbits[s]
-    push_term!(F, oneK, t)
-  end
-  return finish(F), s + 1
+  K = coefficient_ring(R)
+  orb = elements(BI.orbits[s])
+  f = R([one(K) for _ in 1:length(orb)], orb)
+  return f, s + 1
 end
 
 ################################################################################
