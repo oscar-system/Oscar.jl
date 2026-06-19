@@ -340,6 +340,7 @@
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/artifacts.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/known_properties.md",
     "DeveloperDocumentation/gap_integration.md",
