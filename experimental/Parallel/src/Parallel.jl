@@ -1,5 +1,5 @@
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers, procs
-import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager, rmprocs
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
+import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager
 
 import .Serialization: put_type_and_params
 
