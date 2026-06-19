@@ -13,7 +13,7 @@
   @test (@inferred j_right_action(G)) == cperm([1,8,3], [2,4,6], [5,7,10])
 
   SL2Z, S, T = Oscar._SL2Z_fp()
-  actual_gens = word_gens(G)
+  actual_gens = @inferred word_gens(G)
   expected_gens = [
     S^-2,
     T^-2,
@@ -21,7 +21,7 @@
     S*T^2*S*T^2*S^-1,
     S*T^5*S^-1
   ]
-  @test (@inferred Set(actual_gens)) == Set(expected_gens)
+  @test Set(actual_gens) == Set(expected_gens)
 
   actual_mat_gens = gens(G)
   expected_mat_gens = [[-1 0; 0 -1],
