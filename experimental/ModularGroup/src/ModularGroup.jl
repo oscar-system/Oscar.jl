@@ -1,14 +1,21 @@
 include("exports.jl")
 include("types.jl")
 
+function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+  if !defines_coset_action_s_t(s, t)
+    throw(ArgumentError("s and t do not describe the action of the generators S and T on the cosets of a finite-index subgroup of SL(2,Z)"))
+  end
+  return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
+end
+
 # TODO make docstrings prettier; specify R and J matrices
 @doc raw"""
-    modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+    modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
 
 This function constructs a ModularGroup object corresponding to the finite-index subgroup
 of SL2(Z) described by the permutations s and t. This constructor tests if the given
-permutations actually describe the coset action of the matrices S = [0 -1; 1 0], T = [1 1; 0 1]
-by checking that they act transitively and satisfy the relations
+permutations actually describe the (right) coset action of the matrices S = [0 -1; 1 0],
+T = [1 1; 0 1] by checking that they act transitively and satisfy the relations
 s^4 = (s^3 * t)^3 = s^2 * t * s^-2 * t^-1 = 1.
 
 # Examples
@@ -19,15 +26,34 @@ julia> s = cperm([1,2], [3,4], [5,6], [7,8], [9,10])
 julia> t = cperm([1,4], [2,5,9,10,8], [3,7,6])
 (1,4)(2,5,9,10,8)(3,7,6)
 
-julia> G = modular_subgroup(s, t)
+julia> G = modular_subgroup_via_right_action(s, t)
 Modular subgroup of index 10
 ```
 """
-function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
-  if !defines_coset_action_s_t(s, t)
-    throw(ArgumentError("s and t do not describe the action of the generators S and T on the cosets of a finite-index subgroup of SL(2,Z)"))
-  end
-  return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
+function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
+  return modular_subgroup(s, t)
+end
+
+@doc raw"""
+    modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
+
+Same as modular_subgroup_via_right_action, but now the permutations describe the action on
+the left cosets.
+
+# Examples
+```jldoctest
+julia> s = cperm([1,2], [3,4], [5,6], [7,8], [9,10])
+(1,2)(3,4)(5,6)(7,8)(9,10)
+
+julia> t = cperm([1,4], [2,5,9,10,8], [3,7,6])
+(1,4)(2,5,9,10,8)(3,7,6)
+
+julia> G = modular_subgroup_via_left_action(s, t)
+Modular subgroup of index 10
+```
+"""
+function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
+  return modular_subgroup(s^-1, t^-1)
 end
 
 function Base.:(==)(G::ModularGroup, H::ModularGroup)
@@ -41,6 +67,15 @@ end
 function Base.show(io::IO, G::ModularGroup)
   idx = index(G)
   print(io, "Modular subgroup of index $(idx)")
+end
+
+function Base.print(io::IO, G::ModularGroup)
+  idx = index(G)
+  s = s_right_action(G)
+  t = t_right_action(G)
+  r = r_right_action(G)
+  j = j_right_action(G)
+  print(io, "ModularSubgroup(\n S : $(s)\n T : $(t)\n R : $(r)\n J : $(j) )")
 end
 
 @doc raw"""
@@ -180,6 +215,10 @@ end
 
 function coset_right_action_of(A::ZZMatrix, G::ModularGroup)
   return coset_action_of(A, G)
+end
+
+function coset_left_action_of(A::ZZMatrix, G::ModularGroup)
+  return coset_action_of(A, G)^-1
 end
 
 function Base.in(A::ZZMatrix, G::ModularGroup)

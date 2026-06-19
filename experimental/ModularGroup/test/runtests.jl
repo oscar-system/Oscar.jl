@@ -2,13 +2,13 @@
   s = @perm (2, 3)
   t = @perm (1, 2)
   S = symmetric_group(3)
-  G = modular_subgroup(S(s), S(t))
+  G = modular_subgroup_via_right_action(S(s), S(t))
 
   @test (@inferred index(G)) == 3
 
   s = cperm([1,2], [3,4], [5,6], [7,8], [9,10])
   t = cperm([1,4], [2,5,9,10,8], [3,7,6])
-  G = modular_subgroup(s, t)
+  G = modular_subgroup_via_right_action(s, t)
   @test (@inferred r_right_action(G)) == cperm([1,7,9,10,6], [2,3], [4,5,8])
   @test (@inferred j_right_action(G)) == cperm([1,8,3], [2,4,6], [5,7,10])
 

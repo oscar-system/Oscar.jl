@@ -1,7 +1,9 @@
+export coset_left_action_of
 export coset_right_action_of
 export is_word_elm_of
 export j_right_action
-export modular_subgroup
+export modular_subgroup_via_left_action
+export modular_subgroup_via_right_action
 export r_right_action
 export s_right_action
 export s_t_decomposition
