@@ -99,7 +99,7 @@ end
 @doc raw"""
     r_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix T on the right cosets of G.
+Returns the permutation describing the action of the matrix R on the right cosets of G.
 """
 function r_right_action(G::ModularGroup)
   return G.r
@@ -108,7 +108,7 @@ end
 @doc raw"""
     j_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix T on the right cosets of G.
+Returns the permutation describing the action of the matrix J on the right cosets of G.
 """
 function j_right_action(G::ModularGroup)
   return G.j
