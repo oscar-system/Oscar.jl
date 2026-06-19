@@ -35,7 +35,7 @@ The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
 (e.g. the parent ring of a polynomial) are stored inline under the `_refs` key.
 
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
-julia> R, x = QQ[:x]
+julia> R, x = QQ[:x];
 
 julia> p = x^2 + 1
 x^2 + 1
