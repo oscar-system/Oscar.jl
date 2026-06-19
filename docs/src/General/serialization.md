@@ -122,8 +122,8 @@ julia> save(joinpath(lp_dir, "lp.mrdi"), LP; serializer=serializer);
 
 julia> readdir(lp_dir)
 2-element Vector{String}:
- "lp_10612199771096508645.lp"
  "lp.mrdi"
+ "lp_10612199771096508645.lp"
 ```
 
 ## Objects that can be serialized
