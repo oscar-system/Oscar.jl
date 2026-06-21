@@ -8,15 +8,17 @@ function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
   return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1, nothing, nothing)
 end
 
-# TODO make docstrings prettier; specify R and J matrices
 @doc raw"""
     modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
 
-This function constructs a ModularGroup object corresponding to the finite-index subgroup
-of SL2(Z) described by the permutations s and t. This constructor tests if the given
-permutations actually describe the (right) coset action of the matrices S = [0 -1; 1 0],
-T = [1 1; 0 1] by checking that they act transitively and satisfy the relations
-s^4 = (s^3 * t)^3 = s^2 * t * s^-2 * t^-1 = 1.
+This function constructs a `ModularGroup` object corresponding to the finite-index subgroup
+of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``. This constructor tests if
+the given permutations actually describe the (right) coset action of the matrices
+```math
+S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix},
+```
+by checking that they act transitively and satisfy the relations
+``s^4 = (s^3 t)^3 = s^2 t s^{-2} t^{-1} = 1``.
 
 # Examples
 ```jldoctest
@@ -37,7 +39,7 @@ end
 @doc raw"""
     modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
 
-Same as modular_subgroup_via_right_action, but now the permutations describe the action on
+Same as `modular_subgroup_via_right_action`, but now the permutations describe the action on
 the left cosets.
 
 # Examples
@@ -83,7 +85,8 @@ end
 @doc raw"""
     s_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix S on the right cosets of G.
+Returns the permutation describing the action of the matrix ``S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}``
+on the right cosets of `G`.
 """
 function s_right_action(G::ModularGroup)
   return G.s
@@ -92,7 +95,8 @@ end
 @doc raw"""
     t_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix T on the right cosets of G.
+Returns the permutation describing the action of the matrix ``T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}``
+on the right cosets of `G`.
 """
 function t_right_action(G::ModularGroup)
   return G.t
@@ -101,7 +105,8 @@ end
 @doc raw"""
     r_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix R on the right cosets of G.
+Returns the permutation describing the action of the matrix ``R= \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}``
+on the right cosets of `G`.
 """
 function r_right_action(G::ModularGroup)
   return G.r
@@ -110,7 +115,8 @@ end
 @doc raw"""
     j_right_action(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix J on the right cosets of G.
+Returns the permutation describing the action of the matrix ``J= \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix}``
+on the right cosets of `G`.
 """
 function j_right_action(G::ModularGroup)
   return G.j
