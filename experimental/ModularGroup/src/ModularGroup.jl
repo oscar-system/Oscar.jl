@@ -61,7 +61,9 @@ function Base.:(==)(G::ModularGroup, H::ModularGroup)
 end
 
 function Base.hash(G::ModularGroup, h::UInt)
-  return hash((index(G), cycle_structure(G.s), cycle_structure(G.t), cycle_structure(G.s * G.t)), h)
+  s = s_right_action(G)
+  t = t_right_action(G)
+  return hash((index(G), cycle_structure(s), cycle_structure(t), cycle_structure(s * t)), h)
 end
 
 function Base.show(io::IO, G::ModularGroup)
@@ -123,7 +125,7 @@ function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
 end
 
 function index(G::ModularGroup)
-  return maximum([maximum(moved_points(G.s); init=1), maximum(moved_points(G.t); init=1)])::Int
+  return maximum([maximum(moved_points(s_right_action(G)); init=1), maximum(moved_points(t_right_action(G)); init=1)])::Int
 end
 
 const _SL2Z_FP_CACHE = Ref{Tuple{FPGroup, FPGroupElem, FPGroupElem}}()
@@ -148,9 +150,9 @@ end
 function word_gens(G::ModularGroup)
 
   SL2Z, _, _ = _SL2Z_fp()
-  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
+  P, _ = sub(symmetric_group(index(G)), [s_right_action(G), t_right_action(G)])
 
-  phi = hom(SL2Z, P, [G.s, G.t])
+  phi = hom(SL2Z, P, [s_right_action(G), t_right_action(G)])
 
   # TODO: might need to check whether this is efficient enough for large index
   Hperm, _ = stabilizer(P, 1)
@@ -208,8 +210,8 @@ function coset_action_of(A::ZZMatrix, G::ModularGroup)
      throw(ArgumentError("Matrix needs to be in SL(2, Z)"))
   end
   w = s_t_decomposition(A)
-  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
-  phi = hom(parent(w), P, [G.s, G.t])
+  P, _ = sub(symmetric_group(index(G)), [s_right_action(G), t_right_action(G)])
+  phi = hom(parent(w), P, [s_right_action(G), t_right_action(G)])
   return phi(w)
 end
 
@@ -229,8 +231,8 @@ function Base.in(A::ZZMatrix, G::ModularGroup)
 end
 
 function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
-  P, _ = sub(symmetric_group(index(G)), [G.s, G.t])
-  phi = hom(parent(w), P, [G.s, G.t])
+  P, _ = sub(symmetric_group(index(G)), [s_right_action(G), t_right_action(G)])
+  phi = hom(parent(w), P, [s_right_action(G), t_right_action(G)])
   return phi(w)(1) == 1
 end
 
