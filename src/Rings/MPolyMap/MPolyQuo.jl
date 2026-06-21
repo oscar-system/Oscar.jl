@@ -32,31 +32,46 @@ function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
   end
 end
 
+
 @doc raw"""
-    hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+    hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing)
 
-    hom(A::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
+    hom(A::MPolyQuoRing, S::NCRing, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing)
 
-Given a homomorphism `coeff_map` from `C` to `S`, where `C` is the 
-coefficient ring of the base ring of `A`, and given a vector `images` of `ngens(A)` 
-elements of `S`, return the homomorphism `A` $\to$ `S` whose restriction 
-to `C` is `coeff_map`, and which sends the `i`-th generator of `A` to the 
-`i`-th entry of `images`.
- 
-If no coefficient map is entered, invoke a canonical homomorphism from `C`
-to `S`, if such a homomorphism exists, and throw an error, otherwise.
+    hom(::Type{K}, A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing) where {K}
 
-!!! note
-    The function returns a well-defined homomorphism `A` $\to$ `S` iff the
-    given data defines a homomorphism `base_ring(A)` $\to$ `S` whose
-    kernel contains the modulus of `A`. This condition is checked by the 
-    function in case `check = true` (default).
+    hom(::Type{K}, A::MPolyQuoRing, S::NCRing, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing) where {K}
 
-!!! note
-    In case `check = true` (default), the function also checks the conditions below:
-    - If `S` is graded, the assigned images must be homogeneous with respect to the given grading.
-    - If `S` is noncommutative, the assigned images must pairwise commute. 
- 
+Create the ring homomorphism `f : A -> S` sending the `i`-th generator of `A`
+to `images[i]`. If `coeff_map` is supplied, coefficients are mapped using
+`coeff_map`; otherwise Oscar uses `nothing`.
+
+When `A = R/I` is a quotient, the defining relations of `I` must map to zero
+in `S` (this is checked when `check=true`).
+
+Grading behaviour and map kinds are as for `hom(::MPolyRing, ...)`:
+`HomUngraded`, `HomGraded`, `HomGradedToUngraded`, `HomUngradedToGraded`.
+Typed constructors `hom(::Type{K}, ...)` allow forcing the kind.
+
+For `HomGraded` maps, there is a group homomorphism `phi` and a shift
+`deg_shift` such that
+
+    degree(images[i]) == phi(degree(gen(A,i))) + deg_shift
+
+and each `images[i]` is homogeneous.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
@@ -75,29 +90,92 @@ defined by
   z -> s^3
 ```
 """
-function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+function hom(::Type{K}, R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing) where {K <: MPolyHomKind}
+
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
-  # Now coerce into S or throw an error if not possible
+
   imgs = _coerce(S, images)
+
+  K0 = _kind_for(R, S)
+  if K === HomGraded
+    @req K0 == HomGraded "HomGraded requested but domain/codomain are not both graded."
+  elseif K === HomGradedToUngraded
+    @req K0 == HomGradedToUngraded "HomGradedToUngraded requested but rings are not according to graded->ungraded."
+  elseif K === HomUngradedToGraded
+    @req K0 == HomUngradedToGraded "HomUngradedToGraded requested but rings are not according to ungraded->graded."
+  elseif K === HomUngraded
+    @req (K0 == HomUngraded || K0 == HomGraded) "HomUngraded requested but rings are mixed graded/ungraded."
+  else
+    error("Unknown map kind $K")
+  end
+
+  if K !== HomGraded
+    @req grading_group_hom === nothing "grading_group_hom is only allowed for HomGraded"
+    @req degree_shift === nothing "degree_shift is only allowed for HomGraded"
+  end
+
+  phi = nothing
+  deg_shift = nothing
+  if K === HomGraded
+    phi, deg_shift = _graded_data(R, S, imgs;
+                                  grading_group_hom = grading_group_hom,
+                                  degree_shift = degree_shift)
+  end
+
   @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
-    _check_homo(S, imgs)
+    if K === HomGraded
+      _check_homo(S, imgs)
+      for i in 1:n
+        @req degree(imgs[i]) == phi(degree(gen(R, i))) + deg_shift "Degree mismatch for image of generator $i"
+      end
+    end
   end
 
-  return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
+  f = MPolyAnyMap(K, R, S, coeff_map, copy(imgs)) # copy because of #655
+
+  if K === HomGraded
+    set_attribute!(f, :grading_group_hom => phi)
+    set_attribute!(f, :degree_shift => deg_shift)
+  end
+
+  return f
 end
 
-function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
-  n = ngens(R)
-  @req n == length(images) "Number of images must be $n"
-  # Now coerce into S or throw an error if not possible
-  imgs = _coerce(S, images)
-  @check begin
-    _check_imgs_quo(R, S, imgs)
-    _check_homo(S, imgs)
-  end
-  return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
+function hom(::Type{K}, R::MPolyQuoRing, S::NCRing, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing) where {K <: MPolyHomKind}
+  return hom(K, R, S, nothing, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
+end
+
+# Untyped constructors
+function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing)
+  K = _kind_for(R, S)
+  return hom(K, R, S, coeff_map, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
+end
+
+function hom(R::MPolyQuoRing, S::NCRing, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing)
+  return hom(R, S, nothing, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
 end
 
 ################################################################################
