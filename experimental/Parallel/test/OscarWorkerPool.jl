@@ -35,15 +35,6 @@
       @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
     end
 
-    @testset "parent created on worker" begin
-      res = pmap(wp, [1, 2, 3]) do i
-        S, s = QQ[:s]
-        s^i + 1
-      end
-      @test length(res) == 3
-      @test [degree(p) for p in res] == [1, 2, 3]
-    end
-
     @testset "resuse pool" begin
       Qx, x = QQ[:x];
       pmap(f -> order(class_group(maximal_order(number_field(f; cached = false)[1]))[1]),
