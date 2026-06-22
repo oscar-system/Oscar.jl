@@ -306,35 +306,28 @@ function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
   
   # Prepare type parameters
   for a in args
-    put_type_params(get_channel(wp, wid), a)
+    put_type_and_params(get_channel(wp, wid), a)
   end
   for a in kwargs
-    put_type_params(get_channel(wp, wid), a)
-  end
-  
-  local fut
-  try
-    fut = @async remotecall_fetch(f, wid, args...; kwargs...)
-  catch
-    put!(wp, wid)  # Return worker to pool on setup failure
-    rethrow()
+    put_type_and_params(get_channel(wp, wid), a)
   end
 
-  try 
-    if timedwait(()->istaskdone(fut), timeout * 60) == :timed_out      
-      # Add replacement worker
-      new_wid = first(addprocs(1))
-      push!(wp, new_wid)
-      throw(TimeoutException())
-    end
-  catch e
-    # remove problematic worker
-    rmprocs(wp, wid)
-    rethrow(e)
+  fut = @async remotecall_fetch(f, wid, args...; kwargs...)
+
+  # `timeout` is in minutes. The computation may be an uninterruptible C call
+  # (msolve / Singular / f4), so the only reliable way to stop it is to kill the
+  # worker process; we then drop it from the pool and spawn a replacement.
+  if timedwait(() -> istaskdone(fut), timeout * 60) == :timed_out
+    rmprocs(wid; waitfor=0)             # imported from Distributed; kills the process
+    delete!(wp.workers, wid)            # same Set object as wp.wp.workers
+    push!(wp, first(addprocs(1)))       # replacement runs `using Oscar` + init_expr
+    throw(TimeoutException())
   end
-    
-  put!(wp, wid)  # Return worker to pool on success
-  return fetch(fut) 
+
+  # Task finished in time: worker is healthy regardless of success/failure, so
+  # return it to the pool. `fetch` rethrows if the computation itself errored.
+  put!(wp, wid)
+  return fetch(fut)
 end
 
 # this is here so that setting batchsize still works
