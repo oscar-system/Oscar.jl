@@ -1,11 +1,11 @@
 export coset_left_action_of
 export coset_right_action_of
 export is_word_elm_of
-export j_right_action
+export j_right_perm
 export modular_subgroup_via_left_action
 export modular_subgroup_via_right_action
-export r_right_action
-export s_right_action
+export r_right_perm
+export s_right_perm
 export s_t_decomposition
-export t_right_action
+export t_right_perm
 export word_gens
