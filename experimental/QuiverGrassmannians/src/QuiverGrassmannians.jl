@@ -23,9 +23,15 @@ Returns quiver representaion corresponding to a directed graph, ambient dimensio
 #Example
 """
 ```jldoctest
-julia> G = graph_from_edges(Directed, [[1,2]]); # underlying graph of quiver
-julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0])); # linear map on edge
-julia> Q = quiver_representation(G, [2,4], [A]) # produce quiver with ambient dimension vector [2,4]
+julia> G = graph_from_edges(Directed, [[1,2]]) 
+Directed graph with 2 nodes and the following edges:
+(1, 2)
+julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0]))
+[1   0]
+[0   1]
+[0   0]
+[0   0]
+julia> Q = quiver_representation(G, [2,4], [A]) 
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
 ```
 function quiver_representation(quiver, ambient_dims,maps)
