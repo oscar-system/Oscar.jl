@@ -45,7 +45,7 @@ end
 type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeAndParams(T, coefficient_field(obj))
 
 function type_and_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
-  par = parameters(type_params(feasible_region(obj)))
+  par = parameters(type_and_params(feasible_region(obj)))
   return TypeAndParams(T, par...)
 end
 
