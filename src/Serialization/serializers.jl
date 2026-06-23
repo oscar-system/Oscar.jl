@@ -21,10 +21,14 @@ struct LPSerializer <: MultiFileSerializer
   basepath::String
 end
 
-struct DirSerializer <: MultiFileSerializer
+struct MultiFileRefSerializer <: MultiFileSerializer
   basepath::String
+  compression::Symbol
+  ref_files::Vector{String}
 end
-DirSerializer() = DirSerializer("")
+MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
+MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
@@ -177,17 +181,21 @@ end
 
 handle_refs(::SerializerState{IPCSerializer}) = nothing
 
-function handle_refs(s::SerializerState{DirSerializer})
+function handle_refs(s::SerializerState{MultiFileRefSerializer})
   isempty(s.refs) && return nothing
-  dir = basepath(s.serializer)
-  ref_files = String[]
+  prefix = basepath(s.serializer)
+  compression = s.serializer.compression
+  ref_files = s.serializer.ref_files
+  prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
   while !isempty(s.refs)
     id = pop!(s.refs)
-    push!(ref_files, string(id))
+    ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    fname = basename(prefix) * "_" * string(id) * ext
+    push!(ref_files, fname)
     ref_obj = global_serializer_state.id_to_obj[id]
-    ref_path = joinpath(dir, string(id) * ".mrdi")
-    temp_file = tempname(dir)
-    open(temp_file, "w") do file
+    ref_path = joinpath(prefix_dir, fname)
+    temp_file = tempname(prefix_dir)
+    write_ref_file = function(file)
       # Share s.refs so transitive refs accumulate in the outer while loop
       inner_s = SerializerState(
         JSONSerializer(; serialize_refs=false),
@@ -204,6 +212,15 @@ function handle_refs(s::SerializerState{DirSerializer})
           end
           save_object(inner_s, string(ref_id), :id)
         end
+      end
+    end
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        write_ref_file(file)
+      end
+    else
+      open(temp_file, "w") do file
+        write_ref_file(file)
       end
     end
     Base.Filesystem.rename(temp_file, ref_path)
@@ -343,23 +360,31 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::DirSerializer, with_attrs::Bool)
-  obj = JSON.lazy(io)
+function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
+  obj = JSON.parse(io; dicttype=Dict{Symbol, Any})
   ref_files = get(obj, :_ref_files, nothing)
   if !isnothing(ref_files)
-    dir = basepath(serializer)
-    foreach(ref_files) do fname
-      open(joinpath(dir, JSON.parse(fname, String) * ".mrdi")) do file
-        load(file)
+    prefix = basepath(serializer)
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+    for fname in ref_files
+      filepath = joinpath(prefix_dir, string(fname))
+      if endswith(filepath, ".gz")
+        open(CodecZlib.GzipDecompressorStream, filepath) do file
+          load(file)
+        end
+      else
+        open(filepath) do file
+          load(file)
+        end
       end
     end
   end
-  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_type_params to hang
+  # put_type_and_params to hang
   #obj = JSON3.read(io)
   str = readuntil(io, '}'; keep=true)
   while !JSON.isvalidjson(str)
