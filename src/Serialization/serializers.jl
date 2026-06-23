@@ -379,7 +379,7 @@ function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attr
       end
     end
   end
-  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
