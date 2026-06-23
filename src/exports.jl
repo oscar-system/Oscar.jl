@@ -1850,7 +1850,7 @@ export twist
 export twisting_sheaf
 export two_sided_ideal
 export type
-export type_params
+export type_and_params
 export underlying_gluing
 export underlying_module
 export underlying_presheaf
