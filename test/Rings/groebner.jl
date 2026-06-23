@@ -300,6 +300,13 @@ end
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
   @test haskey(I.gb, lex(R))
+  # Issue 6064
+  R, (a, b, c, x, y, z) = graded_polynomial_ring(QQ, [:a, :b, :c, :x, :y, :z], [2,2,2,1,1,1])
+  V = [x*y-a, x*z-b, y*z-c]
+  I = ideal(R,V)
+  G = groebner_basis(I, ordering=lex(R), algorithm=:hilbert)
+  @test is_groebner_basis(G, ordering=lex(R))
+  @test gens(G) == MPolyDecRingElem[c-y*z, b -x*z, a-x*y]
 end
 
 @testset "groebner basis modular" begin
