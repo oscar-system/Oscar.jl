@@ -361,12 +361,12 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
 end
 
 function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
-  obj = JSON.parse(io; dicttype=Dict{Symbol, Any})
-  ref_files = get(obj, :_ref_files, nothing)
+  obj = JSON.lazy(io)
+  ref_files = obj[:_ref_files][]
   if !isnothing(ref_files)
     prefix = basepath(serializer)
     prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
-    for fname in ref_files
+    foreach(ref_files) do fname
       filepath = joinpath(prefix_dir, string(fname))
       if endswith(filepath, ".gz")
         open(CodecZlib.GzipDecompressorStream, filepath) do file
