@@ -25,6 +25,111 @@ load
 type_params
 ```
 
+## Serializers
+
+OSCAR provides several serializers for different use cases. The serializer is
+passed via the `serializer` keyword argument to `save` and `load`.
+
+### JSONSerializer (default)
+
+The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
+(e.g. the parent ring of a polynomial) are stored inline under the `_refs` key.
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, x = QQ[:x];
+
+julia> p = x^2 + 1
+x^2 + 1
+
+julia> save("poly.mrdi", p)
+
+julia> save("poly.mrdi", p; serializer=Oscar.Serialization.JSONSerializer(serialize_refs=false))
+```
+
+### MultiFileRefSerializer
+
+Splits referenced objects into separate files alongside the main file, using the path as a
+prefix. Each referenced object is written to its own `<prefix>_<UUID>.mrdi`
+file. The main file is `<prefix>.mrdi`. Use this when objects share large
+sub-objects.
+
+The `filename` argument is used as a prefix directly — no extension is added or
+stripped. On overwrite, stale ref files from the previous save are removed
+automatically.
+
+Without compression:
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.mrdi"
+julia> Qx, x = QQ[:x];
+
+julia> F, a = number_field(x^2 + 2);
+
+julia> R, (y, z) = F[:y, :z];
+
+julia> p = a * y - z;
+
+julia> poly_dir = mkdir("poly_dir");
+
+julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer())
+
+julia> readdir(poly_dir)
+4-element Vector{String}:
+ "polydata.mrdi"
+ "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi"
+ "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi"
+ "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi"
+ 
+julia> load(joinpath(poly_dir, "polydata"); serializer=Oscar.Serialization.MultiFileRefSerializer())
+_a*y - z
+```
+
+With `gzip` compression:
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.mrdi"
+julia> Qx, x = QQ[:x];
+
+julia> F, a = number_field(x^2 + 2);
+
+julia> R, (y, z) = F[:y, :z];
+
+julia> p = a * y - z;
+
+julia> poly_dir = mkdir("poly_dir");
+
+julia> save(joinpath(poly_dir, "polydata"), p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+
+julia> readdir(poly_dir)
+4-element Vector{String}:
+ "polydata.mrdi.gz"
+ "polydata_52e4c5e2-ff94-4b1c-9832-a61d8a54331a.mrdi.gz"
+ "polydata_c8be128f-a28c-4d08-a67f-5e1c2ad9409d.mrdi.gz"
+ "polydata_f2bd8b4b-e6a7-4961-943b-1d68306889a2.mrdi.gz"
+```
+
+### LPSerializer
+
+Specialized for `LinearProgram{QQFieldElem}`. Writes the LP data to an external
+`.lp` file (the standard LP file format) and stores only a reference to it in
+the `.mrdi` file. The `basepath` argument is used as the filename prefix for the
+`.lp` file.
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current)), filter = r"_[-0-9a-f]*\.lp"
+julia> P = cube(3);
+
+julia> LP = linear_program(P, [3, -2, 4]; k=2, convention=:min);
+
+julia> lp_dir = mkdir("lp_dir");
+
+julia> serializer = Oscar.Serialization.LPSerializer(joinpath(lp_dir, "lp"));
+
+julia> save(joinpath(lp_dir, "lp.mrdi"), LP; serializer=serializer);
+
+julia> readdir(lp_dir)
+2-element Vector{String}:
+ "lp.mrdi"
+ "lp_10612199771096508645.lp"
+```
+
 ## Objects that can be serialized
 
 In this section we will list a selection of objects that may be (de-)serialized. 
