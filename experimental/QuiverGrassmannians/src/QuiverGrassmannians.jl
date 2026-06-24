@@ -82,6 +82,19 @@ end
 Return the data of the quiver Grassmannian parameterizing subrepresentations of a given quiver representation `Q` with subspace dimension vector `dims` on each node. Explicitly, the function returns a `QuiverGrassmannian` object, containing the underlying quiver representation, ambient ring, defining ideal equations, and the dimension vector.
 # Examples
 ```jldoctest
+julia> G = graph_from_edges(Directed, [[1,2]])
+Directed graph with 2 nodes and the following edges:
+(1, 2)
+
+julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0]))
+[1   0]
+[0   1]
+[0   0]
+[0   0]
+
+julia> Q = quiver_representation(G,[2,4],[A])
+QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
+
 julia> Qsr = quiver_grassmannian(Q,[1,2])
 QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, QQMPolyRingElem[x[(1, [1])]*x[(2, [3, 4])], x[(1, [2])]*x[(2, [3, 4])], x[(1, [1])]*x[(2, [2, 4])] - x[(1, [2])]*x[(2, [1, 4])], x[(1, [1])]*x[(2, [2, 3])] - x[(1, [2])]*x[(2, [1, 3])], x[(2, [1, 2])]*x[(2, [3, 4])] - x[(2, [1, 3])]*x[(2, [2, 4])] + x[(2, [1, 4])]*x[(2, [2, 3])]], [1, 2])
 ```
