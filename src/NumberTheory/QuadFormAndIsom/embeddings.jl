@@ -4,6 +4,7 @@
 #
 ###############################################################################
 
+# TODO: should we get rid definitely of `same_ambient` anyway ?
 function __direct_sum(
     A::TorQuadModule,
     B::TorQuadModule,
@@ -214,7 +215,6 @@ end
 #
 # If we glue along the trivial subgroups of `D_A` and `D_B`, one can drop the
 # glue map gamma as first input
-
 function _overlattice_with_graph(
   gamma::TorQuadModuleMap,
   HAinD::TorQuadModuleMap,
@@ -267,7 +267,6 @@ end
 #     Again, no input checks are performed so if $\gamma$ is not equivariant
 #     with respect to $fA$ and $fB$, then the outputs might not satisfy the
 #     expected conditions.
-
 function _equivariant_overlattice_with_graph(
   gamma::TorQuadModuleMap,
   HAinD::TorQuadModuleMap,
@@ -607,8 +606,6 @@ function _primitive_extensions_generic(
 
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
-  #
-  # TODO: Add a dedicated manager to take of this
   if !isempty(glue_order)
     _glue_order = sort!(unique!(deepcopy(glue_order)))
     @req all(>(0), _glue_order) "Orders of glue groups must be positive integers"
@@ -666,8 +663,6 @@ function _primitive_extensions_generic(
   # If we want an odd extension, then we consider M and N as odd lattices. In
   # particular, we forget about the quadratic forms on the discriminant groups
   # which we see as a finite bilinear module.
-  #
-  # TODO: Adapt methods to take of this internally
   if !even && is_even(M)
     qM, OqM, GM, fqM = _change_to_bilinear_module(qM, GM, fqM)
     if !isnothing(OqfM)
@@ -690,10 +685,6 @@ function _primitive_extensions_generic(
 
   # Depending the abelian group structure on qM and qN, if glue_order is not
   # know, we have restriction on the order of possible common subgroups.
-  #
-  # #TODO: we could improve more the collection of common anti-isometric
-  # subgroups of qM and qN by working with common abelian group substructures
-  # for each possible order.
   if isempty(_glue_order)
     _glue_order = _possible_glue_orders(qM, qN)
   end
@@ -840,6 +831,14 @@ end
 #
 ###############################################################################
 
+# Return a transversal for the `O`'-orbits of subgroups of the `p`-group `V`
+# whose type if given by `subtype` (type means the decreasing sequence of
+# valuations of elementary divisors for the `p`-group).
+# If `f` is not the identity, we take those subgroups which are preserved by
+# `f`
+#
+# The first version remembers only the subgroups and their stabilizers, the
+# second version remembers the respective embeddings too
 function _subgroups_orbit_representatives_and_stabilizers_primary_subtype(
   Vinq::TorQuadModuleMap,
   O::AutomorphismGroup{TorQuadModule},
@@ -996,6 +995,9 @@ end
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
+#
+# As before, the first version of the function remembers only groups and
+# the second version keeps track of the respective embeddings
 function _subgroups_orbit_representatives_and_stabilizers_elementary(
     Vinq::TorQuadModuleMap,
     G::AutomorphismGroup{TorQuadModule},
@@ -1154,6 +1156,15 @@ end
 #
 ###############################################################################
 
+# Make sure that the lattices in `Ms` have genus `G1` and that for every index
+# `i`, the `i`th group of `GMs`, if defined, has domain exactly the
+# discriminant group of the `i`th lattice in `Ms` (can be disabled by setting
+# `check=false`
+#
+# Return also the discriminant form of a lattice in `G1`, of the form
+# ``L^/vee / L`` for `L` in `G1`). If `Ms` is not empty, we choose `L` to be
+# first lattice in `Ms` (so we do not need to compute `representative(G1)` if
+# one has not been computed yet
 function __initialize_extension_data(
   G1::ZZGenus,
   Ms::Vector{ZZLat},
@@ -1179,6 +1190,11 @@ function __initialize_extension_data(
   return qM, GMs
 end
 
+# `Ms` is a list of lattices in `G1`; if empty, we replace it by a complete
+# list of representatives of lattices in `G1`.
+# Then, for every lattice in `Ms`, we make sure that `GMs` records a
+# classifying group; if not, we set it to be `image_in_Oq` by default
+# (so here we talk about global classifying group, not local)
 function __setup_classifying_groups(
   G1::ZZGenus,
   Ms::Vector{ZZLat},
@@ -1205,6 +1221,15 @@ end
 
 ### Helper for preparing the lattices to glue
 
+# Get the global classifying group for a lattice in input of
+# `primitive_extensions` or `primitive_embeddings`. It is either:
+# - `discriminant_action` if not `nothing`;
+# - or the representation of `lattice_action` of the discriminant group
+#   `q_L` of `L`, if not `nothing`;
+# - or the trivial group if `first` or `exist_only` is true;
+# - (backward compatibility) or the trivial group if `classification`
+#   has `emb` on the left or right (depending on the value of the symbol `side`;
+# - or the representation of the orthogonal group `O(L)` on `q_L` otherwise.
 function _get_classifying_group(
   L::ZZLat,
   discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing},
@@ -1233,7 +1258,7 @@ end
     primitive_extensions(M::ZZLat, G::ZZGenus[, Ns::Vector{ZZLat}]; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
 
 Given two integral $\mathbb Z$-lattices $M$ and $N$, return a boolean `T` and a
-transversal $V$ of the double cosets of primitive extensions
+transversal $V$ for the double cosets of primitive extensions
 $M \oplus N \subseteq L$, for the right and left actions of $O(M)$ and $O(N)$
 respectively.
 
@@ -1303,7 +1328,7 @@ Here is a list of currently supported keyword arguments:
 Alternatively, as second input, one can provide:
 - either a list `Ns::Vector{ZZLat}` of integral lattices,
 - or a genus `G::ZZGenus` of integral lattice, in which case one can also
-  provide a third output `Ns::Vector{ZZLat}` consisting of lattices in `G`
+  provide a third input `Ns::Vector{ZZLat}` consisting of lattices in `G`
   (the default is a complete set of representatives for the isometry classes
   in `G`).
 
@@ -1333,18 +1358,13 @@ keyword arguments:
     restriction on glue groups and local invariants of the primitive extensions
     are ignored if any of the above 3 keyword arguments is set to `true`.
 """
-function primitive_extensions(args...; kwargs...)
-  bool, results = _primitive_extensions(args...; kwargs...)
-  return bool, NTuple{3, ZZLat}[a[1:3] for a in results]
-end
+primitive_extensions
 
-function unimodular_primitive_extensions(
-  args...;
-  kwargs...
-)
-  return primitive_extensions(args...; unimodular=true, kwargs...)
-end
+primitive_extensions(args...; kwargs...) = _primitive_extensions(args...; kwargs...)
 
+unimodular_primitive_extensions(args...; kwargs...) = primitive_extensions(args...; unimodular=true, kwargs...)
+
+# (ZZLat, ZZLat) version
 function _primitive_extensions(
   M::ZZLat,
   N::ZZLat;
@@ -1361,6 +1381,10 @@ function _primitive_extensions(
 )
   @req is_integral(M) && is_integral(N) "Only available for integral lattices"
   both_even = is_even(M) && is_even(N)
+  # Check compatibility of parity condition
+  # The keyword argument `even` is not part of the doc since it belongs
+  # to the old interface and we want the function to be compatible with
+  # older versions
   if even && parity !== :odd
     !both_even && return false, NTuple{3, ZZLat}[]
     parity = :even
@@ -1370,6 +1394,8 @@ function _primitive_extensions(
     return false, NTuple{3, ZZLat}[]
   end
 
+  # The keyword argument `classification` is not part of the doc either
+  # for similar reasons as for `even`
   if classification === :first
     first = true
   elseif classification === :none
@@ -1380,9 +1406,13 @@ function _primitive_extensions(
   GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only; side=:left, classification)
   GNbar =  _get_classifying_group(N, left_discriminant_action, left_action, first, exist_only; side=:right, classification)
 
+  # Call the generic function which handle everything nicely
   return _primitive_extensions(genus(M), genus(N), parity, [M], [N]; GMs=Dict(1 => GMbar), GNs=Dict(1 => GNbar), first, exist_only, check=false, kwargs...)
 end
 
+# (ZZLat, Vector{ZZLat}) version
+# This was not available on the old interface so we do not need to take
+# care of keyword arguments like `even` or `classification` anymore
 function _primitive_extensions(
   M::ZZLat,
   Ns::Vector{ZZLat};
@@ -1399,6 +1429,11 @@ function _primitive_extensions(
   GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only)
   genusM = genus(M)
 
+  # A priori, the lattices in `Ns` could belong to different genera
+  # To simplify computations as much as possible, to gather them
+  # into genera and then run the generic function on each genus
+  # represented and with the sublist of `Ns` with the associated
+  # representatives
   D = Dict{ZZGenus, Vector{ZZLat}}()
   for N in Ns
     G = genus(N)
@@ -1411,6 +1446,7 @@ function _primitive_extensions(
 
   results = NTuple{3, ZZLat}[]
   for G in keys(D)
+    # Manage the parity compatibility each genus at a time
     both_even = is_even(GM) && is_even(G)
     if !both_even && parity === :even
       continue
@@ -1420,6 +1456,8 @@ function _primitive_extensions(
       _parity = parity
     end
     ok, tmp = _primitive_extensions(genusM, G, _parity, [M], D[G]; GMs=Dict(1 => GMbar), exist_only, first, check=false, kwargs...)
+    # If we ask only for a existence or a first extension and we found one with
+    # some lattices above, then we can already stop
     if ok && (exist_only || first)
       return ok, tmp
     end
@@ -1428,6 +1466,7 @@ function _primitive_extensions(
   return length(results) > 0, results
 end
 
+# (ZZLat, ZZGenus[, Vector{ZZLat}]) version
 function _primitive_extensions(
   M::ZZLat,
   G::ZZGenus,
@@ -1440,7 +1479,9 @@ function _primitive_extensions(
   kwargs...,
 )
   @req is_integral(M) && is_integral(G) "Only available for integral lattices"
+  # Make sure the lattices in input are in the given genus
   @req all(isequal(G)∘genus, lattices_left) "Input lattices not in the given genus"
+  # Check parity compatibility
   both_even = is_even(M) && is_even(G)
   if !both_even && parity === :even
     return false, NTuple{3, ZZLat}[]
@@ -1453,6 +1494,11 @@ function _primitive_extensions(
   return _primitive_extensions(genus(M), G, parity, [M], lattices_left; GMs=Dict(1 => GMbar), exist_only, first, check=false, kwargs...)
 end
 
+# In the case where the determinant of `G1` or `G2` is coprime to the
+# determinant of a primitive extension, i.e. we glue the full discriminant
+# group of one lattice (and it is anti-isometric to the product of some
+# `p`-Sylow of the discriminant group of the other lattice)
+# This applies then to unimodular primitive extensions also, for instance
 function _primitive_extensions_direct(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1471,9 +1517,7 @@ function _primitive_extensions_direct(
   results = NTuple{3, ZZLat}[]
   @assert parity in [:even, :odd, :both]
 
-  if unimodular
-    coprime_left = coprime_right = true
-  elseif coprime_left && coprime_right
+  if coprime_left && coprime_right
     unimodular = true
   end
 
@@ -1482,14 +1526,19 @@ function _primitive_extensions_direct(
     return false, results
   end
 
+  # `qM` (resp. `qN`) is the discriminant group of the first lattice in `Ms`
+  # (resp. `Ns`) if non-empty, otherwise of a representative of `G1` (resp.
+  # G2) computed on the spot if not yet stored
   qM, GMs = __initialize_extension_data(G1, Ms, GMs; check)
   qN, GNs = __initialize_extension_data(G2, Ns, GNs; check)
   as_bilinear_module = (parity !== :even)
 
   if unimodular
+    # then we need to glue both discriminant groups fully
     HM, HN = qM, qN
     HMinqM, HNinqN = id_hom(qM), id_hom(qN)
   elseif coprime_left
+    # we glue `qM` with the relevant p-Sylow subgroups of `qN`
     pds = prime_divisors(order(qM))
     gensHN = TorQuadModuleElem[]
     for p in pds
@@ -1499,6 +1548,7 @@ function _primitive_extensions_direct(
     HM, HMinqM = qM, id_hom(qM)
     HN, HNinqN = sub(qN, gensHN)
   else
+    # we glue `qN` with the relevant p-Sylow subgroups of `qM`
     @assert coprime_right
     pds = prime_divisors(order(qN))
     gensHM = TorQuadModuleElem[]
@@ -1510,8 +1560,17 @@ function _primitive_extensions_direct(
     HM, HMinqM = sub(qM, gensHM)
   end
   ok, phi = is_anti_isometric_with_anti_isometry(HM, HN; as_bilinear_module)
-  !ok && return false, results
+  !ok && return false, results # We cannot glue
 
+  # At that point we know that there is a good extension except if we want an
+  # odd extension, both `G1` and `G2` are even, and the first glue map `phi`
+  # respects quadratic forms (because the extension associated to `phi` is
+  # even). We need to check whether the associated glue groups of `phi` (which
+  # are uniquely determined) admits an isometry which does not preserve their
+  # quadratic form. If not, then there are no extensions. If yes, we perturb
+  # `phi` to give rise to an odd extension, and we set `as_bilinear_module` to
+  # `false` so that we have no risk to turning `phi` into an even glue map
+  # again
   if parity === :odd && both_even && is_anti_isometry(phi; as_bilinear_module=false)
     _O = orthogonal_group_bilinear(HN)
     genO = gens(_O)
@@ -1523,7 +1582,7 @@ function _primitive_extensions_direct(
     end
     # From now on we have a fixed anti-isometry of bilinear modules which
     # does not define an anti-isometry of quadratic modules, so we can
-    # consider everything quadratic now in order not to preserve this
+    # consider everything quadratic now in order to preserve this
     # property
     as_bilinear_module = false
     phi = phi * hom(genO[j])
@@ -1537,18 +1596,26 @@ function _primitive_extensions_direct(
   HNinD = HNinqN * qNinD
   if first
     L, _ = _overlattice_with_graph(phi, HMinD, HNinD)
-    @hassert :ZZLatWithIsom 1 genus(L) == G1
+    if parity === :even
+      @hassert :ZZLatWithIsom 1 is_even(L)
+    elseif parity === :odd
+      @hassert :ZZLatWithIsom 1 !is_even(L)
+    end
     M2, N2 = _as_sublattices(L, relations(HM), relations(HN))
     push!(results, (L, M2, N2))
     return true, results
   end
 
+  # Now we have a good glue map, and `first` and `exist_only` are
+  # `false, thus we have to compute all glue maps now
   Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
   Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
   lgm = ZZLatGluing[]
   dataM = NTuple{2, TorQuadModuleMap}[]
   dataN = NTuple{2, TorQuadModuleMap}[]
 
+  # Prepare an isometry between `qM` and the discriminant groups of
+  # every lattices in `Ms`
   for i in 1:length(Ms)
     GM = GMs[i]
     _qM = domain(GM)
@@ -1558,6 +1625,7 @@ function _primitive_extensions_direct(
     push!(dataM, (gamma, i0))
   end
 
+  # Same as above but for the right lattices
   for j in 1:length(Ns)
     GN = GNs[j]
     _qN = domain(GN)
@@ -1567,6 +1635,8 @@ function _primitive_extensions_direct(
     push!(dataN, (gamma, i1))
   end
 
+  # Now we pullback the glue maps to every pair of lattices `(M, N)` from
+  # `Ms` and `Ns` using that data just computed
   for i in 1:length(Ms), j in 1:length(Ns)
     GM = GMs[i]
     gammaM, i0 = dataM[i]
@@ -1578,6 +1648,10 @@ function _primitive_extensions_direct(
     push!(lgm, xMN)
   end
 
+  # We do not have to do orbit splitting for the glue groups which are uniquely
+  # determined, but we need all orbits of glue maps by changing `phi` with
+  # isometries of the glue group modulo the representation of the classifying
+  # groups
   for x in lgm
     D = _gluing_ambient(x; as_bilinear_module)
     for y in _all_glue_maps(x; as_bilinear_module)
@@ -1613,6 +1687,7 @@ function _primitive_extensions(
 )
   results = NTuple{3, ZZLat}[]
   @assert parity in [:even, :odd, :both]
+  # In these cases, we delegate to the previous function
   if unimodular || coprime_left || coprime_right
     return _primitive_extensions_direct(G1, G2, parity, Ms, Ns; coprime_left, coprime_right, unimodular, GMs, GNs, first, exist_only, check)
   end
@@ -1627,10 +1702,25 @@ function _primitive_extensions(
   as_bilinear_module = (parity !== :even)
   D = _gluing_ambient(qM, qN; as_bilinear_module)
 
+  # Now, we do first local gluings and we split orbits. It allows
+  # for faster decision time when `first` or `exist_only` are `true` and
+  # it allows to avoid redundant computations since local gluings
+  # are the same for all lattices in a given genus
   Fac = gluing_factory(qM, qN; parity, Ctx, vi)
+  # The keyword arguments give restrictions on the gluing so we
+  # initialize the gluing factory with these conditions
   init_gluing_factory!(Fac; kwargs...)
+  # It could be that the set of initial conditions give rise
+  # to incompatibility, i.e. we already know for sure that no primitive
+  # extensions satisfy the given conditions
   is_trivial(Fac) && return false, results
   parity = Fac.par
+
+  # Now, we iterate on the possible elementary divisors (if any provided
+  # as keyword arguments) or the possible glue orders for the glue groups.
+  # We keep track in `_glue_map_gen` of the good function to call depending
+  # on the type in `_iterator`, i.e. whether we iterate on elementary
+  # divisors or on orders
   if isdefined(Fac, :glue_elementary_divisors)
     _iterator = Fac.glue_elementary_divisors
     _glue_map_gen = Oscar._local_glue_maps_eldiv
@@ -1639,6 +1729,9 @@ function _primitive_extensions(
     _glue_map_gen = Oscar._local_glue_maps_ord
   end
 
+  # In case `exist_only` or `first` is `true`, we want to try to decide
+  # whether we can already conclude without having to do some more
+  # unnecessary computations. This is the goal of this function
   function _early_abort(_lgm)
     if exist_only || first
       for x in _lgm
@@ -1652,7 +1745,10 @@ function _primitive_extensions(
     return false, NTuple{3, ZZLat}[]
   end
 
-  need_setup = true
+  _dataM = Array{TorQuadModuleMap}(undef, 1, length(Ms))
+  _dataN = Array{TorQuadModuleMap}(undef, 1, length(Ns))
+  need_setup = true # To avoid repeating some routine
+  compute_iso = true
   for it in _iterator
     lgm = _glue_map_gen(Fac, it)
     ok, res = _early_abort(lgm)
@@ -1662,52 +1758,39 @@ function _primitive_extensions(
       Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
       need_setup = false
     end
-    # Propagate to lattices on the left
-    tmp = empty(lgm)
-    while !isempty(lgm)
-      x = pop!(lgm)
-      for j in 1:length(Ms)
-        GM = GMs[j]
-        _qM = domain(GM)
-        ok, gamma = is_isometric_with_isometry(_qM, qM)
+    if compute_iso
+      for i in 1:length(Ms)
+        _qM = domain(GMs[i])
+        ok, gammaM = is_isometric_with_isometry(_qM, qM)
         @assert ok
-        xM = _pullback_left(x, gamma; as_bilinear_module)
-        _tmp = _split_orbit_left_group(xM, GMs[j]; as_bilinear_module)
-        ok, res = _early_abort(_tmp)
-        ok && return ok, res
-        append!(tmp, _tmp)
+        _dataM[i] = gammaM
       end
-    end
-    union!(lgm, tmp)
-    empty!(tmp)
-
-    # Propagate to lattices on the right
-    while !isempty(lgm)
-      x = pop!(lgm)
       for j in 1:length(Ns)
-        GN = GNs[j]
-        _qN = domain(GN)
-        ok, gamma = is_isometric_with_isometry(_qN, qN)
+        _qN = domain(GNs[j])
+        ok, gammaN = is_isometric_with_isometry(_qN, qN)
         @assert ok
-        xMN = _pullback_right(x, gamma; as_bilinear_module)
-        _tmp = _split_orbit_right_group(xMN, GNs[j]; as_bilinear_module)
-        ok, res = _early_abort(_tmp)
-        ok && return ok, res
-        append!(tmp, _tmp)
+        _dataN[j] = gammaN
       end
+      compute_iso = false
     end
-    union!(lgm, tmp)
-    empty!(tmp)
 
-    # Compute all glue maps now
-    for x in lgm
-      D = _gluing_ambient(x; as_bilinear_module)
-      for y in _all_glue_maps(x; as_bilinear_module)
-        z = _overlattice(x, D; as_bilinear_module)
-        !test_overlattice(Fac, Base.first(z)) && continue
-        exist_only && return true, results
-        push!(results, z)
-        first && return true, results
+    for i in 1:length(Ms), j in 1:length(Ns), x in lgm
+      GM = GMs[i] # Global classifying group
+      gammaM = _dataM[i]
+      GN = GNs[j]
+      gammaN = _dataN[j]
+      xM = _pullback_left(x, gammaM; as_bilinear_module)
+      xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+      for y in xMs
+        xMN = _pullback_right(y, gammaN; as_bilinear_module)
+        xMNs = _split_orbit_right(y, GN; as_bilinear_module)
+        for z in xMNs
+          w = _overlattice(x; as_bilinear_module)
+          !test_overlattice(Fac, Base.first(w)) && continue
+          exist_only && return true, results
+          push!(results, w)
+          first && return true, results
+        end
       end
     end
   end
@@ -1730,6 +1813,8 @@ function _primitive_embeddings_in_unimodular(
   @assert is_unimodular(G1)
   results = NTuple{3, ZZLat}[]
 
+  # Only keep the genera of strictly smaller rank and with compatible signature
+  # and parity
   G2s = filter(<(rank(G1))∘rank, G2s)
   filter!(Base.Fix1(reduce, &)∘Base.Fix1(.>=, signature_pair(G1))∘signature_pair, G2s)
   if is_even(G1)
@@ -1758,6 +1843,7 @@ function _primitive_embeddings_in_unimodular(
     return false, NTuple{3, ZZLat}[]
   end
 
+  # Need to make sure all lattices in Ms belong to G2
   @assert all(isequal(G2)∘genus, Ms)
   for i in 1:length(Ms)
     if haskey(GMs, i)
@@ -1767,6 +1853,10 @@ function _primitive_embeddings_in_unimodular(
   return _primitive_embeddings_in_unimodular_safe(G1, G2, Ms; GMs, kwargs...)
 end
 
+# When we embed into a unimodular lattice, the genus of the complement is
+# uniquely determined (up to parity, so in fact there are up to two
+# possibilities). Once this has been determined, we can delegate to the
+# functions for computing unimodular primitive extensions
 function _primitive_embeddings_in_unimodular_safe(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1789,7 +1879,8 @@ function _primitive_embeddings_in_unimodular_safe(
   isempty(GKs) && return false, results
 
   for GK in GKs
-    ok, res = _primitive_extensions(G2, GK, parity, Ms; unimodular=true, GMs, first, exist_only, check=false)
+    ok, res = _primitive_extensions_direct(G2, GK, parity, Ms; unimodular=true, GMs, first, exist_only, check=false)
+    @assert all(isequal(G1)∘genus∘Base.first, res)
     if ok && (first || exist_only)
       return ok, res
     end
@@ -1800,6 +1891,13 @@ end
 
 ### Coprime det
 
+# As in the unimodular case, if the determinants of G1 and G2 are coprime,
+# then the genus of a complement after primitive embedding (up to parity)
+# is uniquely determined; we know the signature and the discriminant form.
+# Hence, we can find such a complement and then delegate the rest of the
+# computations to the function for computing primitive extensions
+# "coprime_left"
+# This is a safe function so we do not perform any test here
 function _primitive_embeddings_coprime_det_safe(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1819,12 +1917,14 @@ function _primitive_embeddings_coprime_det_safe(
   sign = signature_pair(G1) .- signature_pair(G2)
   q1 = discriminant_group(G1)
   q2 = discriminant_group(G2)
+  # q is up to parity the discriminant form a complement of G2 inside G1
   q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module=(par !== :even))
   GKs = _integer_genera(q, sign, par)
   isempty(GKs) && return false, results
 
   for GK in GKs
-    ok, res = _primitive_extensions(G2, GK, parity, Ms; coprime_left=true, GMs, first, exist_only, check=false)
+    ok, res = _primitive_extensions_direct(G2, GK, parity, Ms; coprime_left=true, GMs, first, exist_only, check=false)
+    @assert all(isequal(G1)∘genus∘Base.first, res)
     if ok && (first || exist_only)
       return ok, res
     end
@@ -1857,7 +1957,7 @@ function _primitive_embeddings(
     filter!(!is_even, G1s)
   end
   q2 = discriminant_group(representative(G2))
-  Ctx = ZZLatGluingCtx()
+  Ctx = ZZLatGluingCtx() # Use a context object since we fix G2 and change G1, so we can avoid duplicate computations
 
   for G1 in G1s
     if is_unimodular(G1)
@@ -1880,6 +1980,8 @@ function _primitive_embeddings(
   kwargs...,
 )
   results = NTuple{3, ZZLat}[]
+  # Make sure that the genera are compatible (we do exclude the case G1 == G2)
+  # and that G2, Ms and GMs are compatible
   if check
     if is_even(G1) && !is_even(G2)
       return false, results
@@ -1906,6 +2008,32 @@ function _primitive_embeddings(
   end
 end
 
+# The computations of primitive embeddings is done in several steps:
+# (0) We construct a lattice T of the same parity of G1 such that the discriminant
+#     group of T is anti-isometric to that of G1, T is unique in its genus and
+#     O(T) \to O(q_T) is surjective
+# (1) We compute primitive extensions of T and G2
+# (2) For each such primitive extension V, we compute primitive embeddings of V
+#     into some unimodular lattice W (unique in its genus)
+# (3) Get a primitive embedding of G2 into G1 by considering the complement of T
+#     in W
+# This function takes care of step (2) above
+# - G1 and G2 are from the original context, so we try to embed some lattices
+#   in G2 primitively into some lattices in G1
+# - `parity` records the parity of the unimodular primitive extensions we
+#   compute here
+# - `z` is the primitive extension V computed by the main algorithm; it is
+#   given by `(V, M, T, GV)` where M is in G2 and GV is the representation
+#   on the discriminant group `q_V` of V of the largest group of isometries
+#   of `V` preserving the primitive extension M\oplus T\subset V and such that
+#   the restriction to M is contained in the classifying group for M fixed by
+#   the context (if any; otherwise O(M) by default)
+# - GK is the genus of the complement of V into the unimodular lattices where
+#   we try to embed (precomputed by the main algorithm), and Ks is a known list
+#   of representatives of GK (in practice, either Ks consists of one
+#   representative when we try to decide whether we can embed V, or if we only
+#   want one embedding, or a complete non-redundant list of representatives for
+#   the isometry classes in GK when we want all possible embeddings)
 function _step_2_primitive_embeddings(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1918,18 +2046,18 @@ function _step_2_primitive_embeddings(
 )
   results = NTuple{3, ZZLat}[]
   V, M2, T2, GV = z
-  both_even = is_even(G2) && is_even(GK)
-  ok, resV = unimodular_primitive_extensions(V, GK, Ks; right_discriminant_action=GV, parity, first, exist_only=both_even ? false : exist_only)
-  ok && !both_even && exist_only && return true, true, results
+  # If both G2 and GK are even, and G1 is odd, we could again be in the case
+  # that we have a parity problem. In the other cases, we should be fine since
+  # in the case where everything is even, parity is set to :even and we treat
+  # all discriminant groups as quadratic modules
+  parity_issue = is_even(G2) && is_even(GK) && !is_even(G1)
+  ok, resV = unimodular_primitive_extensions(V, GK, Ks; right_discriminant_action=GV, parity, first=parity_issue ? false : first)
   for (S, V2, W2) in resV
     T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
     L = lll(orthogonal_submodule(S, T3))
-    if !both_even
-      @assert genus(L) == G1
-    else
-      genus(L) == G1 || continue
-    end
-    exist_only && return true, true, results
+    parity_issue && is_even(L) && continue
+    @assert genus(L) == G1
+    exist_only && return true, results
     M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
     @assert is_sublattice(L, M3)
     @assert is_primitive(L, M3)
@@ -1940,15 +2068,12 @@ function _step_2_primitive_embeddings(
     M3 = lattice_in_same_ambient_space(L, bM)
     N = lattice_in_same_ambient_space(L, bN)
     push!(results, (L, M3, N))
-    first && return true, true, results
+    first && return true, results
   end
-  if length(results) == 0
-    return !both_even, false, results
-  else
-    return false, true, results
-  end
+  return false, results
 end
 
+# Generic function
 function _primitive_embeddings_generic_safe(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1960,6 +2085,8 @@ function _primitive_embeddings_generic_safe(
   results = NTuple{3, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
   U = hyperbolic_plane_lattice()
+  # In the odd case, to be sure that T is unique in its genus and that
+  # O(T) surjects onto O(q_T), we might need to add two copies of U (2-adic issue)
   if is_even(G1)
     parity = :even
     T, _ = direct_sum(R, U; cached=false)
@@ -1969,18 +2096,30 @@ function _primitive_embeddings_generic_safe(
   end
   q1n = discriminant_group(T)
   signK = signature_pair(G1) .- signature_pair(G2)
+  # As always, we want our `TorQuadModule` to be meaningful, so they
+  # should be of the form L^\vee/L where L is in the given genus
   if isempty(Ms)
     q2 = discriminant_group(representative(G2))
   else
     q2 = discriminant_group(Base.first(Ms))
   end
 
-  if (first || exist_only) && isempty(Ms)
-    push!(Ms, representative(G2))
+  # In the case we only want existence, enough to consider 1 lattice
+  if (first || exist_only)
+    if isempty(Ms)
+      push!(Ms, representative(G2))
+    else
+      Ms = eltype(Ms)[Base.first(Ms)]
+    end
   end
 
+  # As in the code for primitive extensions, we do not compute
+  # all primitive extensions of q2 and q1n at once, but only do local
+  # computations (so up to O(q1) and O(q2), and only one glue map for each
+  # pair of anti-isometric groups), and we proceed iteratively on the
+  # possible orders of a glue group
   Fac = gluing_factory(q2, q1n; parity)
-  init_gluing_factory!(Fac)
+  init_gluing_factory!(Fac) # Not that here Fac is never trivial since there is the trivial gluing
   _order_list = sort!(collect(possible_glue_order(Fac)))
   as_bilinear_module = (Fac.par !== :even)
 
@@ -1988,43 +2127,52 @@ function _primitive_embeddings_generic_safe(
   for o in _order_list
     DKs = Dict{ZZGenus, Vector{ZZLat}}()
     lgm = _local_glue_maps_ord(Fac, o)
-    for x in lgm
-      qx = _form_over(x, parity)
+    for _x in lgm
+      qx = _form_over(_x, parity)
       qK = rescale(qx, -1; cached=false)
-      GKs = Set(_integer_genera(qK, signK, parity))
+      # Any gluing obtained by splitting a local gluing gives
+      # rise to the same discriminant group (up to parity) of a
+      # primitive extension. If for this local gluing, there are no
+      # possible complement, this will also hold for any other gluing
+      # obtained from that one
+      GKs = _integer_genera(qK, signK, parity)
       isempty(GKs) && continue
-      # At that point, we know that we have an extension
-      if need_setup
-        Ms, GMs = __setup_classifying_groups(G2, Ms, GMs)
-        need_setup = false
+
+      if exist_only && (!is_even(G2) || any(!is_even, GKs) || is_even(G1))
+        # In that situation, we know we have an embedding, so we can conclude
+        return true, results
       end
       for i in 1:length(Ms)
-        GM = GMs[i]
-        qM = domain(GM)
+        qM = discriminant_group(Ms[i])
         D = _gluing_ambient(qM, q1n; as_bilinear_module)
         _ok, phiM = is_isometric_with_isometry(qM, q2)
         @assert _ok
-        xM = _pullback_left(x, phiM; as_bilinear_module)
+        xM = _pullback_left(_x, phiM; as_bilinear_module)
         z = _overlattice_with_glue_stabilizer(xM, D; as_bilinear_module)
-        for GK in GKs
-          abort, ok, res = _step_2_primitive_embeddings(G1, G2, parity, z, GK, [representative(GK)]; first, exist_only)
-          if abort
+        # Except if we are in a critical case (like M, GK are even and G1 is odd), we can already
+        # produce a good primitive embedding, so we should be able to conclude now
+        if first || exist_only
+          for GK in GKs
+            ok, res = _step_2_primitive_embeddings(G1, G2, parity, z, GK, [representative(GK)]; first, exist_only)
             ok && return ok, res
-            delete!(GKs, GK)
-            continue
           end
         end
-        xMs = _split_orbit_left_group(xM, GM; as_bilinear_module)
-        for _x in xMs, y in _all_glue_maps(_x)
+        # At that step, either we have not been able to conclude (because of parity issues)
+        # or we want all embeddings
+        if need_setup
+          Ms, GMs = __setup_classifying_groups(G2, Ms, GMs)
+          need_setup = false
+        end
+        GM = GMs[i]
+        xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+        for y in xMs
           z = _overlattice_with_glue_stabilizer(y, D; as_bilinear_module)
           for GK in GKs
-            abort, ok, res = _step_2_primitive_embeddings(G1, G2, parity, z, GK, [representative(GK)]; first, exist_only)
-            abort && ok && return ok, res
             if !haskey(DKs, GK)
               DKs[GK] = representatives(GK)
             end
-            abort, ok, res =  _step_2_primitive_embeddings(G1, G2, parity, z, GK, DKs[GK]; first, exist_only)
-            abort && ok && return ok, res
+            ok, res =  _step_2_primitive_embeddings(G1, G2, parity, z, GK, DKs[GK]; first, exist_only)
+            ok && (first || exist_only) && return ok, res
             append!(results, res)
           end
         end
@@ -2039,7 +2187,7 @@ end
     primitive_embeddings(L::ZZLat, M::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
     primitive_embeddings(q::TorQuadModule, sign::NTuple{2, Int}, M::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
 
-Given a genus $G$ of integral $\mathbb Z$-lattice, and an integral
+Given a genus $G$ of integral $\mathbb Z$-lattices, and an integral
 $\mathbb Z$-lattice $M$, return a boolean `T` and a transversal $V$ for the
 double cosets of primitive embeddings $M \hookrightarrow L$ where $L$ is a
 lattice in $G$, for the right and left actions of $O(M)$ and $O(L)$
@@ -2138,13 +2286,15 @@ function primitive_embeddings(
   end
 
   @req is_integral(scale(G)) && is_integral(M) "Only available for integral lattices"
-  classification = (classification === :sub) ? :subsub : :embsub
 
+  # Compatibility with old interface
+  classification = (classification === :sub) ? :subsub : :embsub
   if classification === :first
     first = true
   elseif classification === :none
     exist_only = true
   end
+
   GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only; side=:left, classification)
 
   return _primitive_embeddings(G, genusM, [M]; GMs=Dict(1 => GMbar), check=false, first, exist_only)

@@ -54,10 +54,13 @@ possible_glue_order(Fac::ZZLatGluingFactory) = Fac.glue_order
 
 ### Gluing
 
+# Return all the data stored in the fields of `x`
 function _data(x::ZZLatGluing)
   return x.glue_map, x.inv_glue_map, x.glue_group_left, x.stabilizer_left, x.glue_group_right, x.stabilizer_right
 end
 
+# Return the glue map (i = 1) or its inverse (i = 2) for the associated
+# gluing `x`
 function glue_map(x::ZZLatGluing, i::Int)
   if isone(i)
     return x.glue_map
@@ -66,8 +69,11 @@ function glue_map(x::ZZLatGluing, i::Int)
   end
 end
 
+# Return the glue map of `x` and its inverse
 glue_maps(x::ZZLatGluing) = (glue_map(x, 1), glue_map(x, 2))
 
+# Return the left glue group (i = 1) or the right glue group (i = 2)
+# associated to `x`
 function glue_group(x::ZZLatGluing, i::Int)
   if isone(i)
     return x.glue_group_left
@@ -76,8 +82,12 @@ function glue_group(x::ZZLatGluing, i::Int)
   end
 end
 
+# Return the glue groups of `x`
 glue_groups(x::ZZLatGluing) = (glue_group(x, 1), glue_group(x, 2))
 
+# Return the stabilizer of the left glue group (i = 1) or of the
+# right glue group (i = 2) via their embedding in the associated
+# classifying group of `x`
 function stabilizer_glue_group(x::ZZLatGluing, i::Int)
   if isone(i)
     return x.stabilizer_left
@@ -138,7 +148,8 @@ function is_trivial(Fac::ZZLatGluingFactory)
 end
 
 # The type ZZLatGluing is symmetrical, we just reverse the order of the fields
-# to see it from right to left
+# to see it from right to left. Mathematically, we just inverse the gluing
+# and see it from right to left
 function Oscar.inv(x::ZZLatGluing)
   phi, iphi, i1, j1, i2, j2 = _data(x)
   return ZZLatGluing(iphi, phi, i2, j2, i1, j1)
@@ -147,7 +158,7 @@ end
 # Construct the torsion module D where we construct graphs of glue maps,
 # which is just the orthogonal direct sum of q1 and q2. Compute also
 # the embeddings O(q1), O(q2) -> O(D). Depending on par, q1 and q2, the
-# module D is considered as a bilinear or quadratic module.
+# module D is considered as a bilinear or quadratic module
 function _gluing_ambient(
     q1::TorQuadModule,
     q2::TorQuadModule;
@@ -157,6 +168,8 @@ function _gluing_ambient(
   return ZZLatGluingAmbient(x...)
 end
 
+# Same as before but we input a gluing, which remembers two discriminant
+# modules where we glue
 function _gluing_ambient(
   x::ZZLatGluing;
   as_bilinear_module::Bool=false,
@@ -167,7 +180,7 @@ end
 
 # Return all genera with given form, signature and parity conditions
 # There are at most 2 of them
-# par is either :even, or :odd, or :both
+# `par` is either :even, or :odd, or :both
 function _integer_genera(
   q::TorQuadModule,
   sign::NTuple{2, Int},
@@ -187,7 +200,7 @@ function _integer_genera(
   return GKs
 end
 
-# TO EXPORT
+# TODO: EXPORT ???
 @doc raw"""
     orthogonal_group_bilinear(T::TorQuadModule) -> AutomorphismGroup{TorQuadModule}
 
@@ -200,6 +213,10 @@ equal to the modulus of its bilinear form, then this is the same as calling
   return __orthogonal_group(T; as_bilinear_module=true)
 end
 
+# Forget about the quadratic form on `q`, if any. The difference with the Hecke
+# function is that we also record the same set of generators
+# TODO: Modify the Hecke version to specify whether to keep the same
+# generators and delete this version
 function __as_finite_bilinear_module(
   q::TorQuadModule,
 )
@@ -212,6 +229,9 @@ function __as_finite_bilinear_module(
   return qb
 end
 
+# If `q` is bilinear or `as_bilinear_module` is `true`, return the orthogonal
+# group of the associated torsion bilinear form, otherwise the orthogonal group
+# of the torsion quadratic form
 function __orthogonal_group(
   q::TorQuadModule;
   as_bilinear_module::Bool=false,
@@ -266,7 +286,7 @@ end
 # actual conditions consists of:
 # - a set of genera for the primitive extensions (optional: only if
 #   genus_over is not empty),
-# - a set of Gram matrix for the normal forms of the discriminant groups
+# - a set of Gram matrices for the normal forms of the discriminant groups
 #   of the primitive extensions (optional: only if form_over is not empty)
 # - a set of elementary divisors for the glue groups (optional: only if
 #   glue_elementary_divisors is not empty)
@@ -342,8 +362,9 @@ function init_gluing_conditions!(
   Fac.conditions_modules = (VMinqM, VNinqN)
 
   # For each primes of interest (i.e. the ones dividing the order of a
-  # potential common subgroup, we prepare a dictionary which assign to
-  # every potential list of elementary divisors, the local gluings
+  # potential common subgroup of the conditions modules) we prepare a
+  # dictionary which assign a list of gluings to every potential list of
+  # elementary divisors for the p-part of a glue group
   elG = Hecke._maximal_common_subgroup_snf(abelian_group(VM), abelian_group(VN))
   pds = isempty(elG) ? ZZRingElem[] : prime_divisors(last(elG))
   ged = Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}}(p => Dict{Vector{Int}, Vector{ZZLatGluing}}() for p in pds)
@@ -360,16 +381,16 @@ function init_gluing_conditions!(
   end
 
   k1 = prod(elG; init=ZZ(1))
-  _glue_order = Set(filter!(>(0), glue_order))
-  # Since any glue group lies in the group with elementary divisor
+  _glue_order = Set(filter(>(0), glue_order))
+  # Since any glue group lies in the group with elementary divisors
   # elG, any good glue order condition must divide k1
   for o in _glue_order
     !is_divisible_by(k1, o) && delete!(_glue_order, o)
   end
 
   _glue_elem_divs = Set{Vector{ZZRingElem}}()
-  # Since any glue group lies in the group with elementary divisor
-  # elG, any good glue elementary divisor condition must be in smith
+  # Since any glue group lies in the group with elementary divisors
+  # elG, any good glue elementary divisors condition must be in smith
   # normal form and must be compatible with elG
   for _v in glue_elementary_divisors
     if is_empty(_v)
@@ -394,7 +415,7 @@ function init_gluing_conditions!(
     end
   end
   _form_over = Set{TorQuadModule}()
-  # Any good primitive extension discriminant group condition must look
+  # Any good primitive extension discriminant group condition must look like
   # the discriminant group of an integral lattice with the correct parity
   for q in form_over
     !is_semi_regular(q) && continue
@@ -410,10 +431,11 @@ function init_gluing_conditions!(
   end
 
   # Each primitive extension genus condition and discriminant condition imposes
-  # some condition on the order of a glue group. For this, said conditions must
+  # some condition on the order of a glue group. For this, said condition must
   # be compatible with the initial discriminant groups of the problem: if they
   # are not, we discard them.
-  # If they are, we compare the induced glue order conditions with the initial:
+  # If they are, we compare the induced glue order conditions with the initial
+  # ones:
   #   - if there are no such initial conditions, we keep track of the induced
   #     ones;
   #   - if there are such initial conditions and the induced one is in the list,
@@ -501,6 +523,9 @@ function init_gluing_conditions!(
     end
   end
 
+  # If we allowed any parity for the primitive extensions but the initial
+  # conditions only allow for a certain parity, we update Fac.par to the
+  # correct value
   if Fac.par === :both
     _t = unique!(modulus_quadratic_form.(_form_over))
     if length(_t) == 1
@@ -517,14 +542,19 @@ function init_gluing_conditions!(
     Fac.glue_order = Set(divisors(k1))
   end
 
+  # Save the set of potential genera if any specified in input
   if !ignore_genus_over
     Fac.genus_over = _genus_over
   end
 
+  # Save the set of potential gram matrices of the normal forms of the
+  # discriminant form of a primitive extension if any specified in input
   if !ignore_form_over
     Fac.form_over = Set(gram_matrix_quadratic.(first.(normal_form.(_form_over))))
   end
 
+  # Save the set of potential elementary divisors of a glue group if
+  # any specified in input
   if !ignore_elem_divs
     Fac.glue_elementary_divisors = _glue_elem_divs
   end
@@ -554,15 +584,23 @@ end
 #
 ###############################################################################
 
-# Return a complete set of representatives for the O-orbits of p-groups of W
+# Return a complete set of representatives for the O-orbits of p-subgroups of W
 # whose reverse sequence of p-valuations of elementary divisors is given by
-# `subtype`. If `Fac` is decorated with a gluing context `Ctx` whose node
-# `i` knows the result of this function, we fetch it from there.
+# `subtype`
+#
+# If `Fac` is decorated with a gluing context `Ctx` whose node
+# `(i, bool, p, subtype)` exists, we fetch the output of this function from
+# there. Here `bool` mention whether we consider W as a quadratic module (in
+# some large scale computations, this may vary so we have to be careful that
+# the group `O` might differ for the same other inputs, depending on whether
+# we see W as a bilinear or quadratic modules)
+#
 # No checks are performed, so in fact here `O` should be one of the local
-# classifying groups of `Fac`, and the data stored at the `i`th node of
-# `Ctx` should have been computed with the same group `O`.
-# If `Ctx` exists and has an `i`th node, the result of the function is
-# automatically sent to the node if not already known.
+# classifying groups of `Fac`, it should match the value of `bool` (in the
+# sense above) and the data stored at the `(i, bool, p, subtype)` node of
+# `Ctx` should have been computed with this exact group `O`.
+# If `Ctx` exists but the node `(i, bool, p, subtype)` does not exist, the
+# function creates the node and automatically store the output there
 function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
   Fac::ZZLatGluingFactory,
   Winq::TorQuadModuleMap,
@@ -572,7 +610,6 @@ function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
   i::Int = -1,
 )
   W = domain(Winq)
-  # Whether Ctx has the current module at the `i`th node
   bool = Fac.par === :even
   if isdefined(Fac, :Ctx) && haskey(Fac.Ctx.orb_and_stab, (i, bool, p, subtype))
     # Retrieve known data
@@ -622,8 +659,9 @@ function _local_gluings_primary!(
   if isdefined(Fac, :Ctx)
     # If there is a gluing context `Ctx` and the factory registered
     # a node identification with one of the initial discriminant group,
-    # then we can fetch data there.
-    # Note: should only be used with matching classifying groups
+    # then we can fetch data there
+    # Note: should only be used with matching classifying groups and parity
+    # conditions
     vi = Fac.vertex_identification
     if vi[1] > 0
       flag1 = true
@@ -648,14 +686,64 @@ function _local_gluings_primary!(
   subs1 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Fac, W1inq1, O1, p, subtype, i1)
   subs2 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Fac, W2inq2, O2, p, subtype, i2)
 
-  for (H1inq1, stab1) in subs1
+  # Preparation to compute glue maps; we want to avoid some redundant computations
+  _data1 = Array{GAPGroupHomomorphism}(undef, 1, length(subs1))
+  _data2 = Array{GAPGroupHomomorphism}(undef, 1, length(subs2))
+
+  for i in 1:length(subs1)
+    H1inq1, s1 = subs1[i]
     H1 = domain(H1inq1)
-    for (H2inq2, stab2) in subs2
-      H2 = domain(H2inq2)
+    OH1 = __orthogonal_group(H1; as_bilinear_module)
+    imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1); check=false) for x in gens(domain(s1))]
+    act1 = hom(domain(s1), OH1, imOH1)
+    _, j1 = image(act1)
+    _data1[i] = j1
+  end
+
+  for j in 1:length(subs2)
+    H2inq2, s2 = subs2[j]
+    H2 = domain(H2inq2)
+    OH2 = __orthogonal_group(H2; as_bilinear_module)
+    imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(domain(s2))]
+    act2 = hom(domain(s2), OH2, imOH2)
+    _, j2 = image(act2)
+    _data2[j] = j2
+  end
+
+  # compute all glue maps for each pair of representatives of
+  # orbits of potential glue p-groups, up to the actions
+  # of O(q1) and O(q2)
+  for j in 1:length(subs2)
+    H2inq2, s2 = subs2[j]
+    j2 = _data2[j]
+    H2 = domain(H2inq2)
+    im2 = domain(j2)
+    OH2 = codomain(j2)
+    elH2 = elementary_divisors(H2)
+    if isone(order(H2)) || elH2[1] == elH2[end]
+      iso2 = isomorphism(PermGroup, OH2)
+    else
+      iso2 = id_hom(OH2)
+    end
+    OH22 = first(iso2(OH2))
+    im22 = first(iso2(im2))
+    for i in 1:length(subs1)
+      H1inq1, s1 = subs1[i]
+      j1 = _data1[i]
+      im1 = domain(j1)
+      H1 = domain(H1inq1)
       ok, phi = is_anti_isometric_with_anti_isometry(H1, H2; as_bilinear_module)
       !ok && continue
-      x = ZZLatGluing(phi, inv(phi), H1inq1, stab1, H2inq2, stab2)
-      push!(loc_glue_p, x)
+      iphi = inv(phi)
+      stab1gamma = elem_type(OH2)[OH2(iphi * hom(g) * phi; check=false) for g in gens(im1)]
+      S1, _ = sub(OH2, stab1gamma)
+      S2 = first(iso2(S1))
+      for _g in double_cosets(OH22, im22, S2)
+        g = hom(iso2\representative(_g))
+        psi = compose(phi, g)
+        x = ZZLatGluing(psi, inv(psi), H1inq1, s1, H2inq2, s2)
+        push!(loc_glue_p, x)
+      end
     end
   end
   ged[p][subtype] = loc_glue_p # Store known data
@@ -791,7 +879,6 @@ function local_glue_maps(
   return res
 end
 
-# TO EXPORT
 @doc raw"""
     local_glue_maps(
       q1::TorQuadModule,
@@ -822,7 +909,7 @@ The extra keyword arguments include conditions on the gluing. Currently:
     all glue groups inside `q2` are in its kernel. Set to be `nothing` by
     default.
   - `glue_exponent::IntegerUnion`: an integer; the exponent of the glue groups
-    divide this value. Set to be `nothing` by default.
+    divides this value. Set to be `nothing` by default.
   - `glue_order::AbstractVector{IntegerUnion}`: a list of integers; the order
     of the glue groups is in this list if not empty. Set to be empty by
     default.
@@ -858,6 +945,9 @@ function local_glue_maps(
   return Fac, res
 end
 
+# Construct the gluing factory attached to `q1` and `q2`, with the given
+# `parity`. Possibility to attach a gluing context `Ctx` and vertices
+# identifiers `vi`
 function gluing_factory(
   q1::TorQuadModule,
   q2::TorQuadModule;
@@ -873,7 +963,7 @@ function gluing_factory(
       Fac.par = :odd
     end
   else
-    @req parity in [:even, :odd, :both] "Wrong parity input"
+    @req parity in [:even, :odd, :both] "Non-supported parity input: $(parity)"
     Fac.par = parity
   end
 
@@ -890,11 +980,12 @@ end
 #
 ###############################################################################
 
-# Split the orbit of the left group of x by the action of O1, with the unique
-# glue map. Does not compute extra glue maps.
+# Split the orbit of x on the left under the action of O1. We first split the
+# orbit of the glue group and then for each new glue group, we split the
+# double coset of the (pullback of the) glue map.
 # If `as_bilinear_module == true`, consider all TorQuadModule as bilinear
 # modules.
-function _split_orbit_left_group(
+function _split_orbit_left(
   x::ZZLatGluing,
   O1::AutomorphismGroup{TorQuadModule};
   as_bilinear_module::Bool=false,
@@ -907,21 +998,29 @@ function _split_orbit_left_group(
   q1 = codomain(H1inq1)
   stab1 = domain(s1)
   Oq1 = codomain(s1)
-  if !is_subgroup(O1, Oq1)[1]
+  if !is_subgroup(O1, Oq1)[1] # TODO: try to find why this can happen
     O1, _ = sub(Oq1, elem_type(Oq1)[Oq1(matrix(g); check=false) for g in gens(O1)])
   end
-  elq1 = elementary_divisors(q1)
+
+  # Do some preparations; to split the double coset of glue map, we have
+  # to take into account the left action of `s2`
+  OH2 = __orthogonal_group(H2; as_bilinear_module)
+  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(domain(s2))]
+  act2 = hom(domain(s2), OH2, imOH2)
+  im2, _ = image(act2)
+
   # Check if q1 is a free module over some finite ring, in which case we
   # transform Oq1 into a permutation group
+  elq1 = elementary_divisors(q1)
   if isone(order(q1)) || elq1[1] == elq1[end]
     iso1 = isomorphism(PermGroup, Oq1)
   else
     iso1 = id_hom(Oq1)
   end
 
-  @vprintln :ZZLatWithIsom 1 "Split orbit of glue group"
+  @vprint :ZZLatWithIsom 1 "Split orbit of glue group"
   splits = double_cosets(codomain(iso1), first(iso1(stab1)), first(iso1(O1)))
-  @vprintln :ZZLatWithIsom 1 "    done: $(length(splits))"
+  @vprintln :ZZLatWithIsom 1 "                        done: $(length(splits))"
   for _h in splits
     h = hom(iso1\(representative(_h)))
     ih = inv(h)
@@ -929,13 +1028,39 @@ function _split_orbit_left_group(
     _H1, _H1inq1 = sub(q1, elem_type(q1)[h(H1inq1(a)) for a in gens(H1)])
     # Pullback of glue map
     _phi = hom(_H1, H2, elem_type(H2)[phi(H1(lift(ih(_H1inq1(a))))) for a in gens(_H1)])
-    @hassert :ZZLatWithIsom 1 is_anti_isometry(_phi; as_bilinear_module)
     _iphi = inv(_phi)
-    # Push stabilizer
+    @hassert :ZZLatWithIsom 1 is_anti_isometry(_phi; as_bilinear_module)
+    # Conjugate stabilizer
     _stab1, _ = Oscar._as_subgroup(Oq1, Oscar.GAPWrap.ConjugateSubgroup(GapObj(stab1), GapObj(Oq1(h))))
     # Intersect with the new classifying group O1
-    _stab1, _, j1 = intersect(_stab1, O1)
-    push!(res, ZZLatGluing(_phi, _iphi, _H1inq1, j1, H2inq2, s2))
+    __stab1, _, j1 = intersect(_stab1, O1)
+
+    # We now split the double coset of the glue map
+    _OH1 = __orthogonal_group(_H1; as_bilinear_module)
+    _imOH1 = elem_type(_OH1)[_OH1(restrict_automorphism(x, _H1inq1); check=false) for x in gens(_stab1)]
+    act1 = hom(_stab1, _OH1, _imOH1)
+    _ims1, _ = image(act1)
+    _imO1, _ = act1(__stab1)
+
+    # Same as before, if possible, use permutation groups (seems faster
+    # for double coset computations)
+    elH1 = elementary_divisors(H1)
+    if isone(order(H1)) || elH1[1] == elH1[end]
+      _iso1 = isomorphism(PermGroup, _ims1)
+    else
+      _iso1 = id_hom(_ims1)
+    end
+    # This is how s2 acts on the right glue group via the initial glue map _phi
+    # Then we intersect with the old clasisfying group stab1, get a group L1
+    # then we compute a transversal for the double cosets L1\_ims1/_imO1 to
+    # find double cosets of glue maps up to the action of s2 and O1
+    _im2phi, _ = sub(_OH1, elem_type(_OH1)[_OH1(_phi * hom(g) * _iphi; check=false) for g in gens(im2)])
+    L1, _ = intersect(_im2phi, _ims1)
+    for _g in double_cosets(codomain(_iso1), first(_iso1(L1)), first(_iso1(_imO1)))
+      psi =  hom(_iso1\(representative(_g))) * _phi
+      ipsi = inv(psi)
+      push!(res, ZZLatGluing(psi, ipsi, _H1inq1, j1, H2inq2, s2))
+    end
   end
   return res
 end
@@ -944,12 +1069,12 @@ end
 # (at no cost), split on the left, and invert the outputs back.
 # If `as_bilinear_module == true`, consider all TorQuadModule as bilinear
 # modules.
-function _split_orbit_right_group(
+function _split_orbit_right(
   x::ZZLatGluing,
   O2::AutomorphismGroup{TorQuadModule};
   as_bilinear_module::Bool=false,
 )
-  return inv.(_split_orbit_left_group(inv(x), O2; as_bilinear_module))
+  return inv.(_split_orbit_left(inv(x), O2; as_bilinear_module))
 end
 
 # For a gluing between subgroups of q1 and q2, and given an isometry
@@ -988,54 +1113,6 @@ function _pullback_right(
   as_bilinear_module::Bool=false,
 )
   return inv(_pullback_left(inv(x), f; as_bilinear_module))
-end
-
-# Given a glue map between representatives of orbits of glue groups, we compute
-# the representatives for the double cosets of glue maps between these glue groups,
-# up to the action of the given classifying groups.
-# If `as_bilinear_module == true`, consider all TorQuadModule as bilinear
-# modules.
-function _all_glue_maps(
-  x::ZZLatGluing;
-  as_bilinear_module::Bool=false,
-)
-  res = ZZLatGluing[]
-  phi, iphi, H1inq1, s1, H2inq2, s2 = _data(x)
-  q1 = codomain(H1inq1)
-  q2 = codomain(H2inq2)
-  H1 = domain(H1inq1)
-  H2 = domain(H2inq2)
-  stab1 = domain(s1)
-  stab2 = domain(s2)
-
-  OH1 = __orthogonal_group(H1; as_bilinear_module)
-  imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1); check=false) for x in gens(stab1)]
-  act1 = hom(stab1, OH1, imOH1)
-  im1, _ = image(act1)
-  OH2 = __orthogonal_group(H2; as_bilinear_module)
-  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(stab2)]
-  act2 = hom(stab2, OH2, imOH2)
-  im2, _ = image(act2)
-
-  elH2 = elementary_divisors(H2)
-  if isone(order(H2)) || elH2[1] == elH2[end]
-    iso2 = isomorphism(PermGroup, OH2)
-  else
-    iso2 = id_hom(OH2)
-  end
-  OH22 = first(iso2(OH2))
-  im22 = first(iso2(im2))
-
-  stab1gamma = elem_type(OH2)[OH2(iphi * hom(g) * phi; check=false) for g in gens(im1)]
-  S1, _ = sub(OH2, stab1gamma)
-  S2 = first(iso2(S1))
-  for _g in double_cosets(OH22, S2, im22)
-    g = hom(iso2\representative(_g))
-    phig = compose(phi, g)
-    iphig = compose(inv(g), iphi)
-    push!(res, ZZLatGluing(phig, iphig, H1inq1, s1, H2inq2, s2))
-  end
-  return res
 end
 
 # Given a glue map, return a representative for the isometry class of the
@@ -1123,4 +1200,52 @@ function __overlattice(
   # respective relations
   M, T = _as_sublattices(V, relations(q1), relations(q2))
   return V, M, T, GV
+end
+
+# Given a glue map between representatives of orbits of glue groups, we compute
+# the representatives for the double cosets of glue maps between these glue groups,
+# up to the action of the given classifying groups.
+# If `as_bilinear_module == true`, consider all TorQuadModule as bilinear
+# modules.
+function _all_glue_maps(
+  x::ZZLatGluing;
+  as_bilinear_module::Bool=false,
+)
+  res = ZZLatGluing[]
+  phi, iphi, H1inq1, s1, H2inq2, s2 = _data(x)
+  q1 = codomain(H1inq1)
+  q2 = codomain(H2inq2)
+  H1 = domain(H1inq1)
+  H2 = domain(H2inq2)
+  stab1 = domain(s1)
+  stab2 = domain(s2)
+
+  OH1 = __orthogonal_group(H1; as_bilinear_module)
+  imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1); check=false) for x in gens(stab1)]
+  act1 = hom(stab1, OH1, imOH1)
+  im1, _ = image(act1)
+  OH2 = __orthogonal_group(H2; as_bilinear_module)
+  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(stab2)]
+  act2 = hom(stab2, OH2, imOH2)
+  im2, _ = image(act2)
+
+  elH2 = elementary_divisors(H2)
+  if isone(order(H2)) || elH2[1] == elH2[end]
+    iso2 = isomorphism(PermGroup, OH2)
+  else
+    iso2 = id_hom(OH2)
+  end
+  OH22 = first(iso2(OH2))
+  im22 = first(iso2(im2))
+
+  stab1gamma = elem_type(OH2)[OH2(iphi * hom(g) * phi; check=false) for g in gens(im1)]
+  S1, _ = sub(OH2, stab1gamma)
+  S2 = first(iso2(S1))
+  for _g in double_cosets(OH22, S2, im22)
+    g = hom(iso2\representative(_g))
+    phig = compose(phi, g)
+    iphig = compose(inv(g), iphi)
+    push!(res, ZZLatGluing(phig, iphig, H1inq1, s1, H2inq2, s2))
+  end
+  return res
 end

@@ -998,7 +998,7 @@ function representatives_of_hermitian_type(
     E, b = cyclotomic_field_as_cm_extension(n)
   else
     Etemp, btemp = number_field(chi; cached=false)
-    #@req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
+    @req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
     Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)

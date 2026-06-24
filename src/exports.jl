@@ -1178,7 +1178,6 @@ export link_subcomplex
 export load
 export load_lp
 export load_mps
-export local_glue_maps
 export local_schur_indices
 export localization
 export localized_ring

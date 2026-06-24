@@ -313,9 +313,8 @@ end
 @doc raw"""
     ZZLatGluingCtx
 
-A context object which stores some `TorQuadModule` together with the results of
-some orbits and stabilizers computations for some ``p``-subgroups of a given
-type.
+A context object which stores the results of some orbits and stabilizers
+computations for some ``p``-subgroups of a given type.
 """
 struct ZZLatGluingCtx
   orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
@@ -329,9 +328,9 @@ end
 @doc raw"""
     ZZLatGluing
 
-Type for representatives for a double coset of glue maps between two
+Type for a representative of a double coset of glue maps between two
 discriminant forms ``q_1`` and ``q_2``, under the action some groups
-``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists:
+``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists of:
 - a glue map ``\gamma\colon H_1\to H_2``,
 - the inverse glue map of ``H_2\to H_1``,
 - the embedding ``H_1 \to q_1``,
@@ -355,10 +354,10 @@ end
 @doc raw"""
     ZZLatGluingFactory
 
-A factory object for local gluings computations. It stores two `TorQuadModule`
+A factory object for computations of glue maps. It stores two `TorQuadModule`
 and a subgroup of their orthogonal group (as finite bilinear module). A context
-object `ZZLatGluingCtx` can be added to it in the context of gluings where one
-of the two modules is fixed and the second varies, for instance.
+object `ZZLatGluingCtx` can be added to it to avoid some redundant computations
+on large scale project.
 """
 mutable struct ZZLatGluingFactory
   # Necessary input
