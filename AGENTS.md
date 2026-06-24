@@ -70,7 +70,7 @@ code formatting, naming conventions, use of Unicode, and related conventions.
 
 ## Commit messages and pull requests
 
-When writing commit messages, the first line "Brief summary" should not start with
+When writing commit messages, the title ("Brief summary") should not start with
 a "component: ..." prefix. Instead it typically is a verb ("Add/Fix/Change/...").
 In the body of the commit message, provide a brief prose summary
 of the purpose of the changes made. Do not specifically mention added tests, comments,
