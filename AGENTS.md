@@ -22,7 +22,7 @@
 ## For all changes
 
 - Add the AI tool as a Git co-author on all commits created by that tool.
-- Whenever a pull request is opened, you MUST disclose that the pull request was written with the assistance of generative AI.
+- Whenever a pull request is opened, you MUST disclose that the pull request was written with the assistance of generative AI; adding the AI tool as a Git co-author is sufficient for this purpose.
 
 ## Specific instructions for particular changes
 
