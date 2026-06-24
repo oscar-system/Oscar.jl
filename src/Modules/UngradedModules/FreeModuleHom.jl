@@ -506,45 +506,17 @@ function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   return I, inc
 end
 
-function _kernel_subquo_generators_via_modulo(F::FreeMod, G::FreeMod, g, rels)
-  return nothing
-end
-
-function _kernel_subquo_generators_via_modulo(
-    F::FreeMod{T},
-    G::FreeMod{T},
-    g::Vector{FreeModElem{T}},
-    rels::Vector{FreeModElem{T}}
-  ) where {T <: MPolyRingElem}
-  ordering = default_ordering(G)
-  SF = singular_module(G, ordering)
-  A = singular_generators(ModuleGens(g, G, SF))
-  B = singular_generators(ModuleGens(rels, G, SF))
-  K = Singular.modulo(A, B)
-  return elem_type(F)[v for v in oscar_generators(ModuleGens(F, K))]
-end
-
-function _kernel_subquo_generators_via_modulo(
-    F::FreeMod{T},
-    G::FreeMod{T},
-    g::Vector{FreeModElem{T}},
-    rels::Vector{FreeModElem{T}}
-  ) where {T <: MPolyQuoRingElem}
-  SF = singular_module(G)
-  A = singular_generators(ModuleGens(g, G, SF))
-  B = singular_generators(ModuleGens(rels, G, SF))
-  K = Singular.modulo(A, B)
-  return elem_type(F)[v for v in oscar_generators(ModuleGens(F, K))]
-end
-
-function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
-  all(_is_zero_representative_for_grading, images_of_generators(h)) && return sub(domain(h), gens(domain(h)))
-  F = domain(h)
+function _kernel_subquo_image_representatives(
+    h::FreeModuleHom{<:FreeMod, <:SubquoModule};
+    reduce_generators::Bool=true
+  )
   M = codomain(h)
   G = ambient_free_module(M)
-  # Prefer the given representative: reducing modulo the relations can be much
-  # more expensive than carrying the known grading data. Fall back to a reduced
-  # representative only when the current representative is not homogeneous.
+
+  if reduce_generators
+    return elem_type(G)[repres(simplify(v)) for v in images_of_generators(h)]
+  end
+
   graded_M = is_graded(M)
   g = elem_type(G)[]
   for v in images_of_generators(h)
@@ -554,10 +526,17 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
     end
     push!(g, r)
   end
-  rels = relations(M)
-  v = _kernel_subquo_generators_via_modulo(F, G, g, rels)
-  v !== nothing && return sub(F, filter!(!iszero, v))
+  return g
+end
 
+function _kernel_subquo_generators(
+    F::FreeMod,
+    G::FreeMod,
+    g,
+    rels,
+    h::FreeModuleHom,
+    graded_M::Bool
+  )
   g = vcat(g, rels)
   R = base_ring(G)
   H = FreeMod(R, length(g))
@@ -570,7 +549,59 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   phi = hom(H, G, g; check=false)
   K, _ = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]
+  return elem_type(F)[F(coordinates(v)[1:r]) for v in ambient_representatives_generators(K)]
+end
+
+function _kernel_subquo_generators_reduced(F::FreeMod, G::FreeMod, g, rels, h::FreeModuleHom)
+  g = vcat(g, rels)
+  R = base_ring(G)
+  H = FreeMod(R, length(g))
+  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
+  phi = hom(H, G, g)
+  K, _ = kernel(phi)
+  r = ngens(F)
+  return elem_type(F)[F(coordinates(v)[1:r]) for v in ambient_representatives_generators(K)]
+end
+
+_singular_module_for_kernel_subquo(G::FreeMod{<:MPolyRingElem}) = singular_module(G, default_ordering(G))
+_singular_module_for_kernel_subquo(G::FreeMod{<:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}) = singular_module(G)
+
+function _kernel_subquo_generators(
+    F::FreeMod{T},
+    G::FreeMod{T},
+    g::Vector{FreeModElem{T}},
+    rels::Vector{FreeModElem{T}},
+    _h::FreeModuleHom,
+    _graded_M::Bool
+  ) where {T <: Union{MPolyRingElem,
+                      MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}}
+  SF = _singular_module_for_kernel_subquo(G)
+  A = singular_generators(ModuleGens(g, G, SF))
+  B = singular_generators(ModuleGens(rels, G, SF))
+  K = Singular.modulo(A, B)
+  return elem_type(F)[v for v in oscar_generators(ModuleGens(F, K))]
+end
+
+function kernel(
+    h::FreeModuleHom{<:FreeMod, <:SubquoModule};
+    reduce_generators::Bool=true
+  )
+  if reduce_generators
+    is_zero(h) && return sub(domain(h), gens(domain(h)))
+  else
+    all(_is_zero_representative_for_grading, images_of_generators(h)) && return sub(domain(h), gens(domain(h)))
+  end
+  F = domain(h)
+  M = codomain(h)
+  G = ambient_free_module(M)
+  graded_M = is_graded(M)
+  rels = relations(M)
+  g = _kernel_subquo_image_representatives(h; reduce_generators=reduce_generators)
+  v = if reduce_generators
+    _kernel_subquo_generators_reduced(F, G, g, rels, h)
+  else
+    _kernel_subquo_generators(F, G, g, rels, h, graded_M)
+  end
   return sub(F, filter!(!iszero, v))
 end
 
@@ -712,4 +743,3 @@ end
 @attr SubquoModule{T} function image_module(phi::FreeModuleHom{FreeMod{T}, <:OFPModule{T}, Nothing}) where {T}
   return sub_object(codomain(phi), images_of_generators(phi))
 end
-

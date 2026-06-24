@@ -2235,3 +2235,19 @@ end
   @test normal_form(v, SB) == -x*F[3]
   @test normal_form(w, SB) == zero(F)
 end
+
+@testset "kernel to subquotient representative reduction option" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  F = free_module(R, 1)
+  A = R[x; y]
+  B = R[x^2; y^3; z^4]
+  M = SubquoModule(F, A, B)
+  G = free_module(R, 2)
+  phi = hom(G, M, [M[1], M[2]]; check=false)
+
+  K_reduced, _ = kernel(phi)
+  K_fast, _ = kernel(phi; reduce_generators=false)
+
+  @test all(r -> iszero(phi(r)), ambient_representatives_generators(K_reduced))
+  @test all(r -> iszero(phi(r)), ambient_representatives_generators(K_fast))
+end

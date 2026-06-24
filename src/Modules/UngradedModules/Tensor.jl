@@ -115,11 +115,13 @@ end
 ⊗(G::OFPModule...) = tensor_product(G..., task = :none)
 
 @doc raw"""
-    tensor_product(M::OFPModule...; task::Symbol = :none)
+    tensor_product(M::OFPModule...; task::Symbol = :none, minimal::Bool = true)
 
 Given a collection of modules, say, $M_1, \dots, M_n$ over a ring $R$, return $M_1\otimes_R \cdots \otimes_R M_n$.
 
 If `task = :map`, additionally return the map which sends a tuple $(m_1,\dots, m_n)$ of elements $m_i\in M_i$ to the pure tensor $m_1\otimes\dots\otimes m_n$.
+
+By default, `minimal = true`: each factor is first replaced by an improved presentation before the tensor product presentation is assembled. This preserves the traditional, reduced-generator behaviour used by generic code. Passing `minimal = false` skips this reduction and can be faster when the caller can tolerate the larger, unreduced tensor presentation.
 
 # Examples
 ```jldoctest
@@ -154,7 +156,7 @@ julia> t((M[1], M[2]))
 e[1] \otimes e[2]
 ```
 """
-function tensor_product(G::OFPModule...; task::Symbol = :none, minimal::Bool = false)
+function tensor_product(G::OFPModule...; task::Symbol = :none, minimal::Bool = true)
   @assert length(G) > 0 "list of modules must not be empty"
   gs = [is_graded(g) for g in G]
   if !all(gs) && !all(!x for x in gs)
