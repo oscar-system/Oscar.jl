@@ -5,7 +5,7 @@ Copyright (c) 2019-2026 The OSCAR Development Team
 See <https://www.oscar-system.org/contributors/> for a list of OSCAR
 Development Team members. Note that this list may occasionally be slightly
 outdated. Additional contributors may be found in the `git log` of the main
-> OSCAR repository and other related repositories.
+OSCAR repository and other related repositories.
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
