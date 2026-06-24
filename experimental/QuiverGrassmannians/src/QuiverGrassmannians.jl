@@ -2,6 +2,7 @@
 export QuiverRepresentation
 export QuiverGrassmannian
 export quiver_grassmannian
+export quiver_representation
 #Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
 
 struct QuiverRepresentation
@@ -16,26 +17,28 @@ struct QuiverRepresentation
 end
 
 @doc raw"""
-    quiver_representaion(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
+    quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
 
-Returns quiver representaion corresponding to a directed graph, ambient dimension vector, and list of linear maps.
+Returns `QuiverRepresentation` object corresponding to a directed graph `quiver`, ambient dimension vector `ambient_dims` corresponding to vertices, and list of linear maps `maps` corresponding to the edges of the graph.
 
-#Example
-"""
+# Examples
 ```jldoctest
-julia> G = graph_from_edges(Directed, [[1,2]]) 
+julia> G = graph_from_edges(Directed, [[1,2]])
 Directed graph with 2 nodes and the following edges:
 (1, 2)
+
 julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0]))
 [1   0]
 [0   1]
 [0   0]
 [0   0]
-julia> Q = quiver_representation(G, [2,4], [A]) 
+
+julia> Q = quiver_representation(G,[2,4],[A])
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
 ```
-function quiver_representation(quiver, ambient_dims,maps)
-    return QuiverRepresentation(quiver, ambient_dims,maps)
+"""
+function quiver_representation(quiver, ambient_dims, maps)
+    return QuiverRepresentation(quiver, ambient_dims, maps)
 end
 
 ####Internal functions for Quiver Grassmannian
@@ -74,9 +77,10 @@ end
 
 
 @doc raw"""
-    quiver_grassmannian(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
+     quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
 
-Return the coordinate ring of the moduli space of representations of the given quiver.
+Return the data of the quiver Grassmannian parameterizing subrepresentations of a given quiver representation `Q` with subspace dimension vector `dims` on each node. Explicitly, the function returns a `QuiverGrassmannian` object, containing the underlying quiver representation, ambient ring, defining ideal equations, and the dimension vector.
+# Examples
 ```jldoctest
 julia> Qsr = quiver_grassmannian(Q,[1,2])
 QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, QQMPolyRingElem[x[(1, [1])]*x[(2, [3, 4])], x[(1, [2])]*x[(2, [3, 4])], x[(1, [1])]*x[(2, [2, 4])] - x[(1, [2])]*x[(2, [1, 4])], x[(1, [1])]*x[(2, [2, 3])] - x[(1, [2])]*x[(2, [1, 3])], x[(2, [1, 2])]*x[(2, [3, 4])] - x[(2, [1, 3])]*x[(2, [2, 4])] + x[(2, [1, 4])]*x[(2, [2, 3])]], [1, 2])
