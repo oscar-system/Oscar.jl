@@ -126,17 +126,17 @@ end
 
 @register_serialization_type FPGroup uses_id
 
-function type_params(G::FPGroup)
+function type_and_params(G::FPGroup)
   F = free_group(G)
   if F === G
     # A full *free* group does not need type parameters.
-    return TypeParams(FPGroup, nothing)
+    return TypeAndParams(FPGroup, nothing)
   else
     # A group with relators needs the underlying free group
     # as a type parameter,
     # since the same free group object can be used for creating
     # several f.p. groups.
-    return TypeParams(FPGroup, F)
+    return TypeAndParams(FPGroup, F)
   end
 end
 
@@ -287,7 +287,7 @@ end
 
 function type_and_params(G::T) where T <: Union{SubFPGroup, SubPcGroup}
   # The subgroup needs a reference to its full group.
-  return TypeParams(T, G.full_group)
+  return TypeAndParams(T, G.full_group)
 end
 
 function save_object(s::SerializerState, G::SubFPGroup)
