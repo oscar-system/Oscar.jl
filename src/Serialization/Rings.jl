@@ -131,9 +131,9 @@ function save_object(s::SerializerState, R::MPolyDecRing)
   save_object(s, _grading(R))
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyDecRing, <:Tuple{Vararg{Pair}}})
-  ring = tp[:ring]
-  grading_group = tp[:grading_group]
+function load_object(s::DeserializerState, d::TypeAndParams{<:MPolyDecRing, <:Tuple{Vararg{Pair}}})
+  ring = d[:ring]
+  grading_group = d[:grading_group]
   grading = load_object(s, TypeAndParams(Vector{elem_type(grading_group)}, grading_group))
   return grade(ring, grading)[1]
 end
