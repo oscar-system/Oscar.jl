@@ -45,7 +45,7 @@ end
 type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeAndParams(T, coefficient_field(obj))
 
 function type_and_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
-  par = params(type_params(feasible_region(obj)))
+  par = params(type_and_params(feasible_region(obj)))
   return TypeAndParams(T, par...)
 end
 
@@ -110,7 +110,7 @@ function save_object(s::SerializerState, lp::LinearProgram{<:FieldElem})
 end
 
 function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
-  lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
+  lp_filename = basepath(s.serializer) * "_$(objectid(lp)).lp"
   save_lp(lp_filename, lp)
 
   save_object(s, basename(lp_filename))

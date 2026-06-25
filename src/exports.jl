@@ -1381,6 +1381,7 @@ export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
+export on_graph
 export on_indeterminates
 export on_lines
 export on_sets
@@ -1445,6 +1446,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1848,7 +1850,7 @@ export twist
 export twisting_sheaf
 export two_sided_ideal
 export type
-export type_params
+export type_and_params
 export underlying_gluing
 export underlying_module
 export underlying_presheaf

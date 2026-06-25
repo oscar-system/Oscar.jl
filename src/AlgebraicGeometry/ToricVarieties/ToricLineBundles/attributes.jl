@@ -324,21 +324,21 @@ Normal toric variety
 
 julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]))
 3-element Vector{ZZRingElem}:
- 0
+  0
  16
- 0
+  0
 
 julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = :chamber)
 3-element Vector{ZZRingElem}:
- 0
+  0
  16
- 0
+  0
 
 julia> sheaf_cohomology(toric_line_bundle(dP3, [1, 2, 3, 4]); algorithm = :local)
 3-element Vector{ZZRingElem}:
- 0
+  0
  16
- 0
+  0
 
 julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]))
 3-element Vector{ZZRingElem}:
