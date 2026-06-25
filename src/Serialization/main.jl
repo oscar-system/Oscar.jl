@@ -1070,7 +1070,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
         tp_inner = load_node(s, type_key) do
           load_type_and_params(s, U)
         end
-        params = params(tp_inner)
+        params = tp_inner.params
       end
       load_object(s, TypeAndParams(type, params), :data)
     else

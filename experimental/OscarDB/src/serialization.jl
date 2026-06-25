@@ -59,7 +59,7 @@ function save_object(s::SerializerState, tsc::TransitiveSimplicialComplex)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{TransitiveSimplicialComplex, PermGroup})
-  params = params(tp)
+  params = tp.params
   load_node(s) do
     TransitiveSimplicialComplex(
       load_object(s, String, :name),

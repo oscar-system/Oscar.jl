@@ -34,7 +34,7 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalHypersurface, <:MPolyRing})
-  params = params(tp)
+  params = tp.params
   polynomial = load_object(s, TypeAndParams(MPolyRingElem, params))
   return tropical_hypersurface(polynomial)
 end
@@ -58,7 +58,7 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, <:Field})
-  params = params(tp)
+  params = tp.params
   return tropical_curve(
     load_object(s, TypeAndParams(PolyhedralComplex, params), :polyhedral_complex)
   )

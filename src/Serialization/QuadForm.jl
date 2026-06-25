@@ -9,7 +9,7 @@ function save_object(s::SerializerState, V::Hecke.QuadSpace)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Hecke.QuadSpace, <:MatSpace})
-  params = params(tp)
+  params = tp.params
   gram = load_object(s, TypeAndParams(MatElem, params))
   F = base_ring(params)
   return quadratic_space(F, gram; cached=false)

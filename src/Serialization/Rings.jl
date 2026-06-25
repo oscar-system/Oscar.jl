@@ -97,25 +97,25 @@ function save_object(s::SerializerState, R::PolyRingUnionType)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyRing, <:Ring})
-  params = params(tp)
+  params = tp.params
   symbols = load_object(s, Vector{Symbol}, :symbols)
   return polynomial_ring(params, only(symbols); cached=false)[1]
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyRing, <:Ring})
-  params = params(tp)
+  params = tp.params
   symbols = load_object(s, Vector{Symbol}, :symbols)
   return polynomial_ring(params, symbols; cached=false)[1]
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:UniversalPolyRing, <:Ring})
-  params = params(tp)
+  params = tp.params
   symbols = load_object(s, Vector{Symbol}, :symbols)
   return universal_polynomial_ring(params, symbols; cached=false)[1]
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing, <:Ring})
-  params = params(tp)
+  params = tp.params
   symbols = load_object(s, Vector{Symbol}, :symbols)
   return laurent_polynomial_ring(params, symbols; cached=false)[1]
 end

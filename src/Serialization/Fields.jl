@@ -82,7 +82,7 @@ function save_object(s::SerializerState, K::SimpleNumField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:SimpleNumField, <:PolyRing})
-  params = params(tp)
+  params = tp.params
   var = load_object(s, Symbol, :var)
   def_pol = load_object(s, TypeAndParams(PolyRingElem, params), :def_pol)
   K, _ = number_field(def_pol, var, cached=false)
@@ -100,7 +100,7 @@ function save_object(s::SerializerState, K::fqPolyRepField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:fqPolyRepField, <:PolyRing})
-  params = params(tp)
+  params = tp.params
   def_pol = load_object(s, TypeAndParams(PolyRingElem, params))
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
@@ -151,7 +151,7 @@ function save_object(s::SerializerState, K::FqField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:FqField, <:PolyRing})
-  params = params(tp)
+  params = tp.params
   return finite_field(load_object(s, TypeAndParams(PolyRingElem, params)), cached=false)[1]::FqField
 end
 
@@ -204,7 +204,7 @@ end
 
 function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:NonSimpleNumField, <:PolyRing})
-  params = params(tp)
+  params = tp.params
   def_pols = load_object(s, TypeAndParams(Vector{PolyRingElem}, params), :def_pols)
   vars = load_node(s, :vars) do
     return map(Symbol, load_json(s, Vector{String}))
