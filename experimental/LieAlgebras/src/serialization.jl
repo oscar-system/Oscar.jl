@@ -5,7 +5,7 @@
 ###############################################################################
 
 using Oscar.Serialization
-import Oscar.Serialization: load_object, save_object, type_and_params, parameters
+import Oscar.Serialization: load_object, save_object, type_and_params, params
 
 const lie_algebra_serialization_attributes = [
   :is_abelian, :is_nilpotent, :is_perfect, :is_semisimple, :is_simple, :is_solvable

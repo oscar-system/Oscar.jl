@@ -1,5 +1,5 @@
 import Oscar.Serialization: save_object, load_object, TypeAndParams,
-  type_and_params, parameters, decode_type, node_is_string, node_is_array
+  type_and_params, params, decode_type, node_is_string, node_is_array
 
 
 ################################################################################
