@@ -69,10 +69,10 @@ end
 
 #Creat coordinate ring of Quiver Grassmannian
 struct QuiverGrassmannian#add types
-    quiver_representation
-    ambient_ring
-    defining_ideal
-    dimension_vector
+    quiver_representation::QuiverRepresentation
+    ambient_ring::MPolyRing
+    defining_ideal::MPolyIdeal
+    dimension_vector::Vector{Int64}
 end
 
 
@@ -134,5 +134,5 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
             append!(Gs,phiG)
         end
     end
-    return QuiverGrassmannian(Q,R,Gs,dims)
+    return QuiverGrassmannian(Q,R,ideal(Gs),dims)
 end
