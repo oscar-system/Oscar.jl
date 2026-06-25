@@ -316,7 +316,7 @@ end
 function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
   return load_node(s, :params) do
     pairs_list = Pair{Symbol, Any}[]
-    for k in propertynames(s.obj)
+    for k in keys(s.obj)
       tp = load_node(s, k) do
         node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
       end
@@ -405,7 +405,7 @@ function load_type_and_params(s::DeserializerState, T::Type{Dict})
       if node_is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
         # Heterogeneous Dict{S, Any} — per-key type params stored as dict
         pairs_list = Pair[]
-        for k in propertynames(s.obj)
+        for k in keys(s.obj)
           key = S <: Integer ? parse(Int, string(k)) : S(k)
           tp = load_node(s, Symbol(k)) do
             load_type_and_params(s, decode_type(s))
@@ -465,7 +465,7 @@ function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:Dict{S, U}, Nothing}) where {S <: Union{Symbol, String, Int}, U}
   T = type(tp)
   dict = Dict{S, U}()
-  for k in propertynames(s.obj)
+  for k in keys(s.obj)
     key = S <: Integer ? parse(S, string(k)) : S(k)
     dict[key] = load_object(s, U, k)
   end
@@ -489,7 +489,7 @@ function load_object(s::DeserializerState,
     # Heterogeneous Dict{S, Any} — per-key type params
     per_key_params = Dict(k => v for (k, v) in tp[:value_params])
     dict = Dict{S, Any}()
-    for k in propertynames(s.obj)
+    for k in keys(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
       dict[key] = load_object(s, per_key_params[key], k)
     end
@@ -497,7 +497,7 @@ function load_object(s::DeserializerState,
   else
     # Homogeneous Dict{S, U} — single value type
     pairs = Tuple{S, U}[]
-    for k in propertynames(s.obj)
+    for k in keys(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)
       push!(pairs, (key, load_object(s, tp[:value_params], k)))
     end
