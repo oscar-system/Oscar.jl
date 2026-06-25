@@ -43,7 +43,7 @@ function save_type_and_params(s::SerializerState,
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for (k, v) in parameters(tp)
+      for (k, v) in params(tp)
         if k == :dims
           save_object(s, v, k)
         else
@@ -63,10 +63,10 @@ function load_type_and_params(s::DeserializerState, T::Type{<: Union{Array, MatV
       sub_tp = load_node(s, :subtype_params) do
         load_type_and_params(s, decode_type(s))
       end
-      return TypeAndParams(T{type(sub_tp), dims}, parameters(sub_tp))
+      return TypeAndParams(T{type(sub_tp), dims}, params(sub_tp))
     else
       sub_tp = load_type_and_params(s, decode_type(s))
-      return TypeAndParams(T{type(sub_tp)}, parameters(sub_tp))
+      return TypeAndParams(T{type(sub_tp)}, params(sub_tp))
     end
   end
 end
@@ -123,7 +123,7 @@ end
 
 
 function load_object(s::DeserializerState, tp::TypeAndParams{Vector{T}}) where T
-  p = parameters(tp)
+  p = params(tp)
   elem_tp = p isa TypeAndParams ? p : TypeAndParams(T, p)
   isempty(s) && return T[]
   v = load_array_node(s; entry_type=T) do _
@@ -169,7 +169,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Matrix{S}}) where S
   T = type(tp)
-  p = parameters(tp)
+  p = params(tp)
   elem_tp = p isa TypeAndParams ? p : TypeAndParams(S, p)
   load_node(s) do
     if isempty(s)
@@ -214,7 +214,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{Array{S, N}}) where {S, N}
   T = type(tp)
-  p = parameters(tp)
+  p = params(tp)
   sub_tp = if p isa Tuple{Vararg{Pair}}
     tp[:subtype_params]
   elseif p isa TypeAndParams
@@ -250,7 +250,7 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams{T}) where T 
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
-      for param_tp in parameters(tp)
+      for param_tp in params(tp)
         save_type_and_params(s, param_tp)
       end
     end
@@ -264,7 +264,7 @@ function load_type_and_params(s::DeserializerState, T::Type{Tuple})
       load_type_and_params(s, decode_type(s))
     end
     tuple_types = Tuple(type(x) for x in tuple_params)
-    raw_params = Tuple(parameters(x) for x in tuple_params)
+    raw_params = Tuple(params(x) for x in tuple_params)
     return TypeAndParams(T{tuple_types...}, raw_params)
   end
 end
@@ -284,7 +284,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Tuple, <:Tuple})
   T = type(tp)
-  p = parameters(tp)
+  p = params(tp)
   entries = load_array_node(s) do i
     S = fieldtype(T, i)
     if serialize_with_id(S)
@@ -334,7 +334,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
   T = type(tp)
-  tp_values = Tuple(v for (_, v) in parameters(tp))
+  tp_values = Tuple(v for (_, v) in params(tp))
   return T(load_object(s, TypeAndParams(Tuple{Base.fieldtypes(T)...}, tp_values)))
 end
 
@@ -378,7 +378,7 @@ function save_type_and_params(
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
-      isempty(parameters(tp)) && save_object(s, encode_type(T), :value_params)
+      isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
       save_type_and_params(s, tp[:key_params], :key_params)
 
       if tp[:value_params] isa Tuple
@@ -447,7 +447,7 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:Dict{S, Any}, <:Dict}) where {S <: Union{Symbol, String, Int}}
   T = type(tp)
-  p = parameters(tp)
+  p = params(tp)
   dict = T()
   for k in keys(p)
     sk = S <: Symbol ? Symbol(k) : (S <: Int ? parse(Int, string(k)) : String(k))
@@ -531,7 +531,7 @@ function load_type_and_params(s::DeserializerState, T::Type{<: Set})
   !haskey(s, :params) && return TypeAndParams(T, nothing)
   return load_node(s, :params) do
     sub_tp = load_type_and_params(s, decode_type(s))
-    return TypeAndParams(T{type(sub_tp)}, parameters(sub_tp))
+    return TypeAndParams(T{type(sub_tp)}, params(sub_tp))
   end
 end
 
@@ -550,7 +550,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Set{T}}) where T
   S = type(tp)
-  p = parameters(tp)
+  p = params(tp)
   elem_tp = p isa TypeAndParams ? p : TypeAndParams(T, p)
   elems = load_array_node(s; entry_type=T) do _
     load_object(s, elem_tp)
@@ -579,7 +579,7 @@ function save_object(s::SerializerState, obj::SRow)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:SRow, <:NCRing})
-  ring = parameters(tp)
+  ring = params(tp)
   pos = Int[]
   entry_type = elem_type(ring)
   values = entry_type[]

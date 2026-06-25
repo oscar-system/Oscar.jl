@@ -13,7 +13,7 @@ function save_object(s::SerializerState, x::TropicalSemiringElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalSemiringElem, <:TropicalSemiring})
-  R = parameters(tp)
+  R = params(tp)
   load_node(s) do
     str = load_json(s, String)
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
@@ -34,7 +34,7 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalHypersurface, <:MPolyRing})
-  params = parameters(tp)
+  params = params(tp)
   polynomial = load_object(s, TypeAndParams(MPolyRingElem, params))
   return tropical_hypersurface(polynomial)
 end
@@ -43,7 +43,7 @@ end
 @register_serialization_type TropicalCurve uses_id
 
 type_and_params(t::TropicalCurve{M, true}) where M = TypeAndParams(TropicalCurve,
-                                                                   parameters(type_and_params(polyhedral_complex(t))))
+                                                                   params(type_and_params(polyhedral_complex(t))))
 # here to handle weird edge case
 type_and_params(t::TropicalCurve{M, false}) where M = TypeAndParams(TropicalCurve, "graph")
 
@@ -58,7 +58,7 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, <:Field})
-  params = parameters(tp)
+  params = params(tp)
   return tropical_curve(
     load_object(s, TypeAndParams(PolyhedralComplex, params), :polyhedral_complex)
   )

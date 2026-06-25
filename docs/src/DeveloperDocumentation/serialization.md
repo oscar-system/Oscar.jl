@@ -182,10 +182,10 @@ The corresponding `load_object` receives the deserialized base ring through
 the `TypeParams` argument:
 ```julia
 function load_object(s::DeserializerState, tp::TypeParams{<:FracField, <:Ring})
-  fraction_field(parameters(tp), cached=false)
+  fraction_field(params(tp), cached=false)
 end
 ```
-Here `parameters(tp)` returns the deserialized base ring. Note that `data`
+Here `params(tp)` returns the deserialized base ring. Note that `data`
 is empty for `FracField` — everything needed for reconstruction is in
 `type_params`.
 

@@ -204,7 +204,7 @@ reconstruct an object of type `T`: a parent ring, a base field, a
 domain/codomain pair, etc.
 
 Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
-Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
+Retrieve the raw parameters with `params(tp)` and the type with `type(tp)`.
 
 See [`type_and_params`](@ref) for usage examples.
 """
@@ -223,7 +223,7 @@ end
 
 TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
-parameters(tp::TypeAndParams) = tp.params
+params(tp::TypeAndParams) = tp.params
 type(tp::TypeAndParams) = tp.type
 
 function Base.getindex(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
@@ -285,7 +285,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
   else
     io = pretty(io)
     print(io, "Type parameters for $T")
-    for param in parameters(tp)
+    for param in params(tp)
       println(io, "")
       print(terse(io), Lowercase(), param)
     end
@@ -298,7 +298,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   else
     io = pretty(io)
     print(io, "Type parameters for $T ")
-    print(terse(io), Lowercase(), parameters(tp))
+    print(terse(io), Lowercase(), params(tp))
   end
 end
 
@@ -380,10 +380,10 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams)
     save_object(s, type_encoding, :name)
 
     # params(tp) isa TypeAndParams if the type isa container type
-    if parameters(tp) isa TypeAndParams
-      save_type_and_params(s, parameters(tp), :params)
+    if params(tp) isa TypeAndParams
+      save_type_and_params(s, params(tp), :params)
     else
-      save_typed_object(s, parameters(tp), :params)
+      save_typed_object(s, params(tp), :params)
     end
   end
 end
@@ -403,7 +403,7 @@ end
 
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
-  for param in parameters(tp)
+  for param in params(tp)
     save_type_and_params(s, param.second, Symbol(param.first))
   end
 end
@@ -411,7 +411,7 @@ end
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
-    for param in parameters(tp)
+    for param in params(tp)
       save_type_and_params(s, param)
     end
   end
@@ -422,7 +422,7 @@ function save_type_and_params(s::SerializerState,
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in parameters(tp)
+      for param in params(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeAndParams)
@@ -482,7 +482,7 @@ function load_type_and_params(s::DeserializerState, T::Type)
         if Base.issingletontype(U)
           p = U()
         else
-          p = parameters(load_type_and_params(s, U))
+          p = params(load_type_and_params(s, U))
         end
       # handle cases where type_and_params is a dict of params
       elseif !haskey(s, type_key)
@@ -1034,7 +1034,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
         tp_inner = load_node(s, type_key) do
           load_type_and_params(s, U)
         end
-        params = parameters(tp_inner)
+        params = params(tp_inner)
       end
       load_object(s, TypeAndParams(type, params), :data)
     else

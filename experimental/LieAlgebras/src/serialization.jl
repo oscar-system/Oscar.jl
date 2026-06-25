@@ -132,7 +132,7 @@ function save_object(s::SerializerState, x::LieAlgebraElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:LieAlgebraElem, <:LieAlgebra})
-  L = parameters(tp)
+  L = params(tp)
   R = coefficient_ring(L)
   return L(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end
@@ -227,7 +227,7 @@ function save_object(s::SerializerState, x::LieAlgebraModuleElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:LieAlgebraModuleElem, <:LieAlgebraModule})
-  V = parameters(tp)
+  V = params(tp)
   R = coefficient_ring(V)
   return V(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end

@@ -25,7 +25,7 @@ function type_and_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   )
 end
 
-type_and_params(D::GenDict) = TypeAndParams(GenDict, parameters(type_and_params(D.d)))
+type_and_params(D::GenDict) = TypeAndParams(GenDict, params(type_and_params(D.d)))
 
 function save_object(s::SerializerState, e::Edge)
   save_data_array(s) do
@@ -45,7 +45,7 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, Graph
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Ring})
-  R = parameters(tp)
+  R = params(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
     key = load_node(s, 1) do
@@ -63,7 +63,7 @@ end
 # might need to have more type specification in the future here
 # for now we know that the params are a dict with domain and codomain
 function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Dict})
-  d = parameters(tp)
+  d = params(tp)
   cdom = d[:codomain]
   dom = d[:domain]
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
@@ -82,7 +82,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Dict})
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{GraphTransDict, <:Ring})
-  R = parameters(tp)
+  R = params(tp)
   graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
   load_array_node(s) do _
     key = load_object(s, Tuple{Symbol, Edge}, 1)
@@ -92,7 +92,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GraphTransDict, <:R
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{GenDict, <:Tuple{<:Pair, <:Pair}})
-  p = parameters(tp)
+  p = params(tp)
   S = Oscar.Serialization.type(tp[:key_params])
   return GenDict(load_object(s, TypeAndParams(Dict{S, MPolyRingElem}, p)))
 end
