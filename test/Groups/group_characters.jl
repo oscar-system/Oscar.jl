@@ -746,7 +746,7 @@ X_3  1  1  1
 @testset "create character tables" begin
   @testset "library of character tables" begin
     @test character_table("J5") === nothing
-    @test_throws ErrorException character_table("A5mod2", 3)
+    @test_throws GAP.GAPError character_table("A5mod2", 3)
   end
 
   @test character_table(alternating_group(5), 2) === nothing
@@ -762,7 +762,7 @@ end
     @test triv == Oscar.class_function(X, GapObj(triv))
     @test triv == Oscar.class_function(X, GapObj([1 for i in 1:n]))
     @test_throws ArgumentError Oscar.class_function(X, GapObj([true]))
-    @test_throws ErrorException Oscar.class_function(X, GapObj([1 for i in 1:2*n]))
+    @test_throws GAP.GAPError Oscar.class_function(X, GapObj([1 for i in 1:2*n]))
   end
 end
 

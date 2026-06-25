@@ -126,7 +126,7 @@ end
    h = sub(g, [x^2])[1]
    @test_throws ArgumentError quo(h, [h(x^10)])
    n = normal_closure(h, sub(h, [h(x^10)])[1])[1]
-   @test_throws ErrorException quo(h, n)
+   @test_throws GAP.GAPError quo(h, n)
 
    h = sub(q2, [q2[2]^5])[1]
    @test_throws ArgumentError quo(h, [h[1]^2])

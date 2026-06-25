@@ -425,4 +425,54 @@
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
     end
+
+    @testset "on_graph" begin
+      id = perm(3, [1, 2, 3])
+
+      # identity permutation gives equal graph
+      G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+      @test on_graph(G, id) == G
+
+      # applying a permutation relabels edges
+      p = perm(3, [2, 1, 3])  # (1,2)
+      H = on_graph(G, p)
+      @test n_vertices(H) == n_vertices(G)
+      @test n_edges(H) == n_edges(G)
+      @test has_edge(H, 2, 1)
+      @test has_edge(H, 1, 3)
+      @test !has_edge(H, 1, 2)
+      @test !has_edge(H, 2, 3)
+
+      # applying an automorphism gives an isomorphic graph
+      K4 = complete_graph(4)
+      S4 = symmetric_group(4)
+      q = perm(S4, [2, 3, 4, 1])
+      @test is_isomorphic(K4, on_graph(K4, q))
+
+      # degree mismatch throws
+      G2 = graph_from_edges(Directed, [[1, 2]])
+      @test_throws ArgumentError on_graph(G2, perm(3, [2, 1, 3]))
+
+      # labels are carried along
+      GL = graph_from_labeled_edges(Directed, Dict((1, 2) => 10, (2, 3) => 20))
+      label!(GL, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
+      HL = on_graph(GL, p)
+      @test HL.label[2, 1] == 10
+      @test HL.label[1, 3] == 20
+      @test HL.color[2] == GL.color[1]
+    end
+
+    @testset "permute_nodes!" begin
+      p = perm(3, [2, 1, 3])  # (1,2)
+      G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+      permute_nodes!(G, p)
+      @test collect(edges(G)) == [ Edge(1, 3),  Edge(2, 1)]
+      permute_nodes!(G, p)
+      label!(G, Dict((1, 2) => 10, (2, 3) => 20), nothing)
+      label!(G, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
+      permute_nodes!(G, p)
+      @test G.label[2, 1] == 10
+      @test G.label[1, 3] == 20
+      @test G.color[2] == "red"
+    end
 end

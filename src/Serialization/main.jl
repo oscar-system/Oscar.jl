@@ -675,18 +675,24 @@ include("parallel.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
 
-Save an object `obj` to the given io stream
-respectively to the file `filename`. When used with `with_attrs=true` then the object will
-save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration, see
+Save an object `obj` to the given io stream respectively to the file `filename`.
+When used with `with_attrs=true` the object will save its attributes along with
+all the attributes of the types used in the object's struct. The attributes that
+will be saved are defined during type registration, see
 [`@register_serialization_type`](@ref).
 
-Setting the optional argument `compression` will compress the file using the given
-compression method. The `filename` must have the appropriate file extension for the
-chosen compression method.
+The optional `serializer` argument controls the output format and layout.
+The default `JSONSerializer` writes a single `.mrdi` file. Other serializers
+such as `MultiFileRefSerializer` (multi-file prefix-based) and `LPSerializer` (external LP
+file for linear programs) are available. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+Setting the optional argument `compression` will compress the file using the
+given compression method. The `filename` must have the appropriate file
+extension for the chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
@@ -745,19 +751,46 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
-  dir_name = dirname(filename)
-  # julia dirname does not return "." for plain filenames without any slashes
-  temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+function save(filename::String, obj::Any;
+              compression::Symbol=:none,
+              serializer::OscarSerializer=JSONSerializer(),
+              kwargs...)
+  if serializer isa MultiFileRefSerializer
+    prefix = if endswith(filename, ".mrdi.gz")
+      chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      chopsuffix(filename, ".mrdi")
+    else
+      filename
+    end
+    main_ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    main_file = prefix * main_ext
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+
+    inner_serializer = MultiFileRefSerializer(prefix, compression)
+    temp_file = tempname(prefix_dir)
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    else
+      open(temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    end
+    Base.Filesystem.rename(temp_file, main_file)
+    return nothing
+  end
+  temp_file = tempname(dirname(abspath(filename)))
   
   if compression == :none
     open(temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
     open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   else
     error("Unsupported compression method: $compression")
@@ -767,26 +800,29 @@ function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
-Load the object stored in the given io stream
-respectively in the file `filename`.
+Load the object stored in the given io stream respectively in the file `filename`.
 
-If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of rings this
-results in setting its parent, or in the case of a container of ring types such as
-`Vector` or `Tuple`, then the parent of the entries will be set using their
- `params`.
+If `params` is specified, then the root object of the loaded data will attempt a
+load using these parameters. In the case of rings this results in setting its
+parent, or in the case of a container of ring types such as `Vector` or `Tuple`,
+the parent of the entries will be set using their `params`.
 
-If a type `T` is given then attempt to load the root object of the data
-being loaded with this type; if this fails, an error is thrown.
+If a type `T` is given then attempt to load the root object of the data being
+loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
-If the file was created with setting the `compression` argument, and the filename
-has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+The optional `serializer` argument must match the one used when saving. Pass the
+same serializer instance (e.g. `MultiFileRefSerializer()` or `LPSerializer(basepath)`)
+that was used with `save`. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+If the file was created with `compression=:gzip` and the filename ends in `.gz`,
+the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
@@ -920,14 +956,36 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; kwargs...)
-  if endswith(filename, ".gz")
+function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
+  if serializer isa MultiFileRefSerializer
+    if endswith(filename, ".mrdi.gz")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi")
+    else
+      prefix = filename
+      main_gz = prefix * ".mrdi.gz"
+      main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    end
+    compression = endswith(main_file, ".gz") ? :gzip : :none
+    if compression == :gzip
+      open(CodecZlib.GzipDecompressorStream, main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+      end
+    else
+      open(main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix), kwargs...)
+      end
+    end
+  elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   else
     open(filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   end
 end

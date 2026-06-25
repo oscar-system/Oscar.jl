@@ -29,7 +29,7 @@ jobs:
     - name: Run python script
       uses: oscar-system/update-release-notes@v1
       with:
-        conffile: "dev/releases/config.toml"
+        conffile: "etc/release_config.toml"
         releasenotesfile: "CHANGELOG.md"
         version: ${{ inputs.version }}
 
