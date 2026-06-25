@@ -35,19 +35,18 @@ function get_lattice_points_of_weightspace(
   b_eq[1:m] = view(coefficients(weight), 1, :)
 
  
-  A_ineq = zero_matrix(QQ, 2n, n)
-  b_ineq = [zero(QQ) for _ in 1:2n]
+  A_ineq = zero_matrix(QQ, n + length(new_inequalities), n)
+  b_ineq = [zero(QQ) for _ in 1:(n + length(new_inequalities))]
   
   # non-negativity
   A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
 
   # TODO kommentar
-  for i in 1:n
-    A_ineq[n+i, :] = new_inequalities[i][1]
-    b_ineq[n+i] = new_inequalities[i][2]
+  for (i, ineq) in enumerate(new_inequalities)
+    A_ineq[n+i, :] = ineq[1]
+    b_ineq[n+i] = ineq[2]
   end
  
-
   sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
 end

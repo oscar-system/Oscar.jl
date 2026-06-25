@@ -370,12 +370,13 @@ function add_new_monomials!(
 
   new_monomials = Set{ZZMPolyRingElem}()
   # get monomials that are in the weightspace, sorted by monomial_ordering
+  lattice_points_of_weightspace = get_lattice_points_of_weightspace(
+    operators_as_roots(birational_seq), RootSpaceElem(highest_weight(V) - weight_w),
+    new_inequalities,
+  )
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
-    get_lattice_points_of_weightspace(
-      operators_as_roots(birational_seq), RootSpaceElem(highest_weight(V) - weight_w),
-      new_inequalities,
-    ),
+    lattice_points_of_weightspace,
   )
   if isempty(poss_mon_in_weightspace)
     if V isa SimpleModuleData
