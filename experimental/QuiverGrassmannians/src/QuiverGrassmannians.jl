@@ -96,7 +96,7 @@ julia> Q = quiver_representation(G,[2,4],[A])
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
 
 julia> Qsr = quiver_grassmannian(Q,[1,2])
-QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, QQMPolyRingElem[x[(1, [1])]*x[(2, [3, 4])], x[(1, [2])]*x[(2, [3, 4])], x[(1, [1])]*x[(2, [2, 4])] - x[(1, [2])]*x[(2, [1, 4])], x[(1, [1])]*x[(2, [2, 3])] - x[(1, [2])]*x[(2, [1, 3])], x[(2, [1, 2])]*x[(2, [3, 4])] - x[(2, [1, 3])]*x[(2, [2, 4])] + x[(2, [1, 4])]*x[(2, [2, 3])]], [1, 2])
+QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, Ideal with 5 generators, [1, 2])
 ```
 """
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
