@@ -1389,6 +1389,38 @@ function bar_res(ZG::GroupAlgebra; side = :left)
   return Cpx
 end
 
+function cyclic_res(ZG::GroupAlgebra; side = :left)
+  G = group(ZG)
+  @assert is_cyclic(G)
+
+  @assert side in [:right, :left]
+  is_left = side == :left
+
+  T = matrix(ZG, 1, 1, [one(ZG) - ZG(cyclic_generator(G))])
+  N = matrix(ZG, 1, 1, [sum(ZG(g) for g = G)])
+  @assert T*N == N*T == 0
+
+  F_0 = Generic.FreeModule(ZG, 1; is_row = is_left)
+  F_1 = Generic.FreeModule(ZG, 1; is_row = is_left)
+
+  Cpx = Hecke.ComplexOfMorphisms(typeof(F_0), [hom(F_1, F_0, T; is_left)]; check = false, typ = :chain)
+  function fill(::ComplexOfMorphisms, idx::Int)
+    i = idx
+    Fi1 = Cpx[i-1]
+    Fi = Generic.FreeModule(ZG, 1; is_row = is_left)
+    if isodd(i)
+      pushfirst!(Cpx.maps, hom(Fi, Fi1, T; is_left))
+      return first(Cpx.maps)
+    else
+      pushfirst!(Cpx.maps, hom(Fi, Fi1, N; is_left))
+      return first(Cpx.maps)
+    end
+  end
+
+  Cpx.fill = fill
+  return Cpx
+end
+
 @doc """
     free_res(ZG::GroupAlgebra; side = :left)
 
@@ -1641,7 +1673,29 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         collect(vcat(word(preimage(mFF, x)), word(preimage(mFF, y))), c)
         return c.T
       end
+      function from_2chain(c) # c:: G x G -> M
+        res = []
+        for i=1:length(R)
+          pos[i] == 0 && continue
+          z = c(one(G), one(G)) #should better be 0 in the unknown module
+          h = one(G)
+          for j = vcat((-1).*reverse(R[i][2]), R[i][1])
+            if j < 0
+              _n = c(mFF(FF[-j]), inv(mFF(FF[-j])))
+              z = action(z, ZG(inv(mFF(FF[-j])))) - _n + c(h, inv(mFF(FF[-j])))
+              h = h * inv(mFF(FF[-j]))
+            else
+              z = action(z, ZG(mFF(FF[j]))) + c(h, mFF(FF[j]))
+              h = h * mFF(FF[j])
+            end
+          end
+          @assert isone(h)
+          push!(res, z)
+        end
+        return res
+      end
       set_attribute!(Fr, :to_chain => to_2chain)
+      set_attribute!(Fr, :from_chain => from_2chain)
       #as above: a black-box chain c in M^r = hom(ZG^r, M)
       #is evaluated at (g, h) via
       # sum(to_chain(g, h)[i] * c[i])
@@ -1867,11 +1921,34 @@ function Oscar.hom(m::Map{FinGenAbGroup, FinGenAbGroup})
   return FinGenAbGroupHom(m)
 end
 
-function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int)
-  k, mk = kernel(map(C, i))
-  q, mq = quo(k, image(map(C, i-1))[1])
+function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bool = false, no_kernel::Bool = false)
+  if no_kernel
+    k = C[i]
+    mk = identity_map(k)
+  else
+    k, mk = kernel(map(C, i))
+  end
+  if i == 0
+    if tate
+      ZG, M = get_attribute(C, :hom)
+      N = sum(base_ring(ZG[0])(g) for g = group(base_ring(ZG[0])))
+      NN = canonical_projection(C[0], 1)*action(M, N)*canonical_injection(C[0], 1)
+      q, mq = quo(k, image(NN)[1])  
+    else
+      q, mq = quo(k, [zero(k)])
+    end
+  else
+    q, mq = quo(k, image(map(C, i-1))[1])
+  end
+
   s, ms = snf(q)
-  return s, hom(ms*pseudo_inv(mq)*mk)
+  mp = ms*pseudo_inv(mq)*mk
+  #do not turn into hom!
+  if i == 2
+    return s, mp, map_from_func(s, AllCoChains{2, PermGroupElem, FinGenAbGroupElem}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y)))
+  else
+    return s, mp
+  end
 end
 
 #TODO: from a -> A to index in hom-sequence?
@@ -1890,10 +1967,7 @@ function two_chain(a::FinGenAbGroupElem)
   end
 
   return CoChain{2, elem_type(G), elem_type(M.M)}(M, D, fill)
-
 end
-
-
 
 #TODO: ZG^r otimes M = M^r and the res otimes M - then we can do homology as well!
 
