@@ -11,7 +11,7 @@ end
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Hecke.QuadSpace, <:MatSpace})
   p = params(tp)
   gram = load_object(s, TypeAndParams(MatElem, p))
-  F = base_ring(params)
+  F = base_ring(p)
   return quadratic_space(F, gram; cached=false)
 end
 
