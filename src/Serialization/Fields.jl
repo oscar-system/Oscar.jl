@@ -82,9 +82,9 @@ function save_object(s::SerializerState, K::SimpleNumField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:SimpleNumField, <:PolyRing})
-  params = tp.params
+  p = params(tp)
   var = load_object(s, Symbol, :var)
-  def_pol = load_object(s, TypeAndParams(PolyRingElem, params), :def_pol)
+  def_pol = load_object(s, TypeAndParams(PolyRingElem, p), :def_pol)
   K, _ = number_field(def_pol, var, cached=false)
   return K
 end
