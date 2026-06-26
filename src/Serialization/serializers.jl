@@ -241,24 +241,14 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
+  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing, Dict{Symbol, <:JSON.LazyValues}, Vector{JSON.LazyValues}}
   key::Union{Symbol, Int, Nothing}
-  refs::Dict{UUID, Any}
+  refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
 end
 
-load_json(s::DeserializerState, ::Type{String}) = String(s.obj)
-load_json(s::DeserializerState, ::Type{Symbol}) = Symbol(s.obj)
-load_json(s::DeserializerState, ::Type{UUID}) = UUID(String(s.obj))
-load_json(s::DeserializerState, ::Type{Bool}) = Bool(s.obj)
-load_json(s::DeserializerState, ::Type{Vector{String}}) = String[String(x) for x in s.obj]
-
-function load_json(s::DeserializerState, ::Type{Dict{String, Any}})
-  return JSON.parse(JSON3.write(s.obj); dicttype=Dict{String, Any})
-end
-
 function load_json(s::DeserializerState, ::Type{T}) where T
-  return JSON.parse(JSON3.write(s.obj), T)
+  return JSON.parse(s.obj, T)
 end
 
 
@@ -278,12 +268,14 @@ function load_ref(s::DeserializerState)
 end
 
 function Base.isempty(s::DeserializerState)
-  return isempty(s.obj)
+  return iszero(length(s.obj))
 end
 
 function Base.haskey(s::DeserializerState, key::Symbol)::Bool
-  s.obj isa AbstractDict || return false
-  return haskey(s.obj, key)::Bool
+  !(s.obj isa JSON.LazyValue) && return false
+  obj = s.obj[]
+  obj isa String && return false
+  return haskey(obj, key)::Bool
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothing)
@@ -291,22 +283,41 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothin
   s.key = key
 end
 
+function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
+  if node_is_object(s) && s.obj isa JSON.LazyValue
+    d = Dict{Symbol, JSON.LazyValues}()
+    foreach(s.obj) do (k,v)
+      d[Symbol(k)] = v
+    end
+    s.obj = d
+  elseif node_is_array(s) && s.obj isa JSON.LazyValue
+    a = JSON.LazyValues[]
+    foreach(s.obj) do v
+      push!(a, v)
+    end
+    s.obj = a
+  end
+  s.obj = s.obj[key]
+end
+
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
-  if node_is_string(s) && !isnothing(tryparse(UUID, String(s.obj)))
+  if node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String)))
     return load_ref(s)
   end
 
   !isnothing(key) && set_key(s, key)
-  obj = s.obj
-  s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
+  lazy_obj = s.obj
+  if !isnothing(s.key)
+    set_state_level(s, s.key)
+  end
   s.key = nothing
   if isnothing(s.obj)
     result = nothing
   else
     result = f()
   end
-  s.obj = obj
+  s.obj = lazy_obj
   return result
 end
 
@@ -314,14 +325,14 @@ function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing;
                          entry_type::Type = Any)
   load_node(s, key) do
-    arr = s.obj
+    i = 1
     result = entry_type[]
-    sizehint!(result, length(arr))
-    for (i, v) in enumerate(arr)
+    sizehint!(result, length(s.obj))
+    foreach(s.obj) do v
       s.obj = v
       push!(result, f(i))
+      i += 1
     end
-    s.obj = arr
     return result
   end
 end
@@ -337,25 +348,25 @@ function serializer_open(
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
-  refs = Dict{UUID, Any}()
+  obj = JSON.lazy(io)
   refs_from_file = get(obj, :_refs, nothing)
+  refs = Dict{UUID,JSON.LazyValues}()
   if !isnothing(refs_from_file)
-    for (k, v) in refs_from_file
-      refs[UUID(string(k))] = v
+    foreach(refs_from_file) do (k,v)
+      refs[UUID(k)] = v
     end
   end
-
+  
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
-  obj = JSON3.read(io)
-  ref_files = get(obj, :_ref_files, nothing)
+  obj = JSON.lazy(io)
+  ref_files = obj[:_ref_files][]
   if !isnothing(ref_files)
     prefix = basepath(serializer)
     prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
-    for fname in ref_files
+    foreach(ref_files) do fname
       filepath = joinpath(prefix_dir, string(fname))
       if endswith(filepath, ".gz")
         open(CodecZlib.GzipDecompressorStream, filepath) do file
@@ -368,17 +379,18 @@ function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attr
       end
     end
   end
-  return DeserializerState(serializer, obj, nothing, Dict{UUID, Any}(), with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end
 
-function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
+function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_type_and_params to hang, so we parse into a plain Dict here
+  # put_type_and_params to hang
+  #obj = JSON3.read(io)
   str = readuntil(io, '}'; keep=true)
   while !JSON.isvalidjson(str)
     str *= readuntil(io, '}'; keep=true)
   end
-  obj = JSON.parse(str; dicttype=Dict{Symbol, Any})
+  obj = JSON.lazy(str)
 
-  return DeserializerState(serializer, obj, nothing, Dict{UUID, Any}(), with_attrs)
+  return DeserializerState(serializer, obj, nothing, Dict{UUID, JSON.LazyValues}(), with_attrs)
 end

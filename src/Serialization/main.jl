@@ -3,7 +3,6 @@ module Serialization
 using ..Oscar
 using UUIDs
 import JSON
-import JSON3
 import TranscodingStreams # for gzip
 import CodecZlib          # for gzip
 
@@ -60,11 +59,13 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(ns_dict::AbstractDict{Symbol, Any})
+function serialization_version_info(ns_dict::JSON.Object{String, Any})
   ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
+
+serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
 
 
 function version_number(v_number::String)
@@ -124,15 +125,21 @@ function encode_type(::Type{T}) where T
 end
 
 function node_is_string(s::DeserializerState)::Bool
-  return s.obj isa String
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+  return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
 end
 
 function node_is_array(s::DeserializerState)::Bool
-  return s.obj isa JSON3.Array || s.obj isa Vector
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+    return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
 end
 
 function node_is_object(s::DeserializerState)::Bool
-  return s.obj isa AbstractDict
+  s.obj isa JSON.LazyValue || return false
+  s.obj isa AbstractDict && return true
+
+  # I don't think we can get here now?
+  return JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT
 end
 
 function decode_type(s::String)
@@ -480,7 +487,7 @@ function load_type_and_params(s::DeserializerState, T::Type)
       # handle cases where type_and_params is a dict of params
       elseif !haskey(s, type_key)
         pairs_vec = Pair{Symbol, Any}[]
-        for k in keys(s.obj)
+        for k in propertynames(s.obj)
           v = load_node(s, k) do
             if node_is_array(s)
               return load_type_array_params(s)
@@ -573,7 +580,7 @@ function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do
-    for attr in keys(s.obj)
+    for attr in propertynames(s.obj)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -892,8 +899,8 @@ end
 
 function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
   s = deserializer_open(io, serializer, with_attrs)
-  if haskey(s.obj, :id)
-    id = UUID(s.obj[:id])
+  if :id in propertynames(s.obj)
+    id = JSON.parse(s.obj[:id], UUID)
     if haskey(global_serializer_state.id_to_obj, id)
       return global_serializer_state.id_to_obj[id]
     end
@@ -901,11 +908,11 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
 
   # handle different namespaces
   polymake_obj = load_node(s) do
-    @req haskey(s.obj, :_ns) "Namespace is missing"
+    @req :_ns in propertynames(s.obj) "Namespace is missing"
     outer_obj = s.obj
     load_node(s, :_ns) do
-      if haskey(s.obj, :polymake)
-        return load_from_polymake(JSON.parse(JSON3.write(outer_obj); dicttype=Dict{String, Any}))
+      if :polymake in propertynames(s.obj)
+        return load_from_polymake(JSON.parse(outer_obj; dicttype=Dict{String, Any}))
       end
     end
   end
@@ -914,7 +921,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 
   load_node(s, :_ns) do
-    @req haskey(s.obj, :Oscar) "Not an Oscar object"
+    @req :Oscar in propertynames(s.obj) "Not an Oscar object"
   end
 
   # deal with upgrades
@@ -923,7 +930,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
   current_version = version_number(string(get_oscar_serialization_version()[:Oscar][2]))
   if file_version < current_version
-    jsondict = upgrade(file_version, copy(s.obj))
+    jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
     jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str), serializer, with_attrs)
   end
