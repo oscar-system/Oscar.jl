@@ -136,15 +136,103 @@ In most cases these parameters are the parameters of the `obj` that uses referen
 For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
+#### `type_and_params` / `TypeAndParams`
+
+Many mathematical objects can only be interpreted in context. A polynomial
+without its ring, a group element without its group, a module element without
+its module — none of these can be reconstructed from their data alone. The
+`type_and_params` mechanism is how that context is captured and stored.
+
+`type_and_params` is a function you implement for your type. It returns a
+`TypeAndParams` object describing the contextual parameters needed to reconstruct
+an object. These parameters are stored in the `_type` branch of the serialized
+file (not in `data`).
+
+The distinction between `data` and `type_and_params` is:
+- **`data`** — what is unique to this particular instance (coefficients,
+  generators, matrices, etc.).
+- **`type_and_params`** — the context in which the instance lives (parent ring,
+  base field, ambient space, etc.). These are stored as `_refs` entries and
+  shared across all objects that reference the same context, so the context
+  is only written once per file.
+
+A useful heuristic: anything you would need to pass as an extra argument to
+the constructor *beyond* the raw data belongs in `type_and_params`. If calling
+`MyType(data_field_1, data_field_2)` is not enough and you also need
+`MyType(context, data_field_1, data_field_2)`, then `context` belongs in
+`type_and_params`.
+
+**When the default is enough:** For a singleton type like `ZZRing` that
+needs no context, the default implementation returning `nothing` is sufficient.
+
+**Single-parameter case:** For a type that lives over a single parent object,
+return a `TypeAndParams` with that parent as the sole parameter. For example
+`FracField` lives over its `base_ring`:
+```julia
+type_and_params(R::T) where T <: FracField = TypeAndParams(T, base_ring(R))
+```
+
+The corresponding `load_object` receives the deserialized base ring through
+the `TypeAndParams` argument:
+```julia
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FracField, <:Ring})
+  fraction_field(params(tp), cached=false)
+end
+```
+Here `params(tp)` returns the deserialized base ring.
+
+**Named-pair case:** For types that need multiple distinct contextual objects
+use keyword pairs. For example `MPolyLocalizedRingHom` (a ring homomorphism
+between localized rings) needs both domain and codomain:
+```julia
+type_and_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeAndParams(
+  T,
+  :domain   => domain(phi),
+  :codomain => codomain(phi),
+  :restricted_map_params => type_and_params(restricted_map(phi))
+)
+```
+
+`load_object` then dispatches on `Tuple{Vararg{Pair}}` and accesses
+named parameters via `tp[:key]`:
+```julia
+function load_object(s::DeserializerState,
+                     tp::TypeAndParams{<:MPolyLocalizedRingHom, <:Tuple{Vararg{Pair}}})
+  D = tp[:domain]
+  C = tp[:codomain]
+  restricted_map = load_object(s, tp[:restricted_map_params])
+  return hom(D, C, restricted_map)
+end
+```
+
+The rule: only include parameters in `type_and_params` that `load_object` actually
+needs for dispatch or reconstruction. If a type can be determined from a fixed
+concrete type at load time, it does not need to be in `type_and_params`.
+
+**Summary:** implement `type_and_params` whenever your type needs context to be
+reconstructed. The parameters you return will be serialized into the `_type`
+branch of the `mrdi` file, stored as shared `_refs` entries, and passed into
+`load_object` as the second argument. The `load_object` signature should
+match the type of the parameters:
+
+| `type_and_params` return | `load_object` signature |
+|---|---|
+| `TypeAndParams(T, nothing)` | `load_object(s, tp::TypeAndParams{T})` |
+| `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
+| `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
+
+```@docs
+TypeAndParams
+```
+
 #### `save_object` / `load_object`
 
 These functions should be the first functions to be overloaded when
 implementing the serialization of a new type.
-The functions `save_data_dict` and `save_data_array` are helpers functions
+The functions `save_data_dict` and `save_data_array` are helper functions
 that structure the serialization.
-
-The examples show how they can be used to save data using the structure
-of an array or dict. Each nested call to `save_data_dict` or `save_data_array`
+The examples below show how to use them to structure data
+as an array or dict. Each nested call to `save_data_dict` or `save_data_array`
 should be called with a key that can be passed as the second parameter.
 
 ##### Examples
@@ -178,7 +266,7 @@ This will result in a data format that looks like this.
 With the corresponding loading function similar to this.
 
 ```julia
-function load_object(s::DeserializerState, ::Type{<:NewType})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do i
     if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
@@ -223,12 +311,13 @@ This will result in a data format that looks like this.
 
 The corresponding loading function would look something like this.
 ```julia
-function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
-   obj1 = load_object(s, Obj1Type, params[1], :key1)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType, <:Tuple})
+   p = params(tp)
+   obj1 = load_object(s, TypeAndParams(Obj1Type, p[1]), :key1)
 
    (obj3, obj4) = load_array_node(s, :key2) do i
      if i == 1
-       load_object(s, Obj3Type, params[2])
+       load_object(s, TypeAndParams(Obj3Type, p[2]))
      else
        load_typed_object(s)
      end
@@ -259,7 +348,7 @@ function save_object(s::SerializerState, obj:NewType)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:NewType})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
   load_node(s, :key) do
     info = do_something(s.obj)
 
