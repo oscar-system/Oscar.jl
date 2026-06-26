@@ -21,7 +21,7 @@ General textbooks offering details on theory and algorithms include:
 ## Matrix implementations
 
 OSCAR does not rely on Julia's built-in matrix types for two independent
-reasons.
+reasons:
 
 * In empty matrices (with zero rows or columns), only the type of the matrix
   entries is known. For the algebraic types used throughout OSCAR, this
