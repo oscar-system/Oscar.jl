@@ -241,41 +241,9 @@ Base.haskey(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
 
 Return a [`TypeAndParams`](@ref) value capturing the type and parent parameters of `obj`.
 
-This is useful when loading a file into the same context as a currently loaded object —
-pass the result directly to [`load`](@ref) so the deserialized object shares the same
-     parent, ring, or domain/codomain as `obj`.
-
-# Examples
-
-Loading a ring homomorphism back into the same rings it was defined over:
-```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
-julia> R, (x, y) = QQ[:x, :y];
-
-julia> S, (a, b) = QQ[:a, :b];
-
-julia> phi = hom(R, S, [a + b, a - b])
-Ring homomorphism
-  from multivariate polynomial ring in 2 variables over QQ
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> a + b
-  y -> a - b
-
-julia> save("phi.mrdi", phi)
-
-julia> tp = type_and_params(phi);
-
-julia> phi_loaded = load("phi.mrdi", tp)
-Ring homomorphism
-  from multivariate polynomial ring in 2 variables over QQ
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> a + b
-  y -> a - b
-
-julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
-true
-```
+The result can be passed as the second argument to [`load`](@ref) to reconstruct a
+serialized object into the same context as `obj`. See the [`load`](@ref) docstring for
+details and examples.
 """
 type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
@@ -991,9 +959,16 @@ See [`save`](@ref).
 
 ## Using `TypeAndParams` directly
 
-Use [`type_and_params`](@ref) on an already-loaded object to capture its type and parent context,
-then pass the result to `load` — the deserialized object will share the same parent ring,
-domain/codomain, or other context as the original.
+Call [`type_and_params`](@ref) on an already-loaded object to capture its type and
+parent context, then pass the result as the second argument to `load`. The root object
+of the file is reconstructed using the supplied context (`TypeAndParams`) taken from a given
+loaded object instead of the one stored in the file.
+
+Because the context is taken from the supplied `TypeAndParams`, the type and parameters
+stored in the file's `_type` branch are not used for the root object. In particular, any
+UUID-based parameter references stored there (the file's `_refs` for the root's parent
+context) are ignored — the supplied parameters are used instead. Only the object's `data`
+branch is read from the file.
 
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> R, x = QQ[:x]
@@ -1009,6 +984,45 @@ x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
+```
+
+Loading a ring homomorphism back into the same rings it was defined over:
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, (x, y) = QQ[:x, :y];
+
+julia> S, (a, b) = QQ[:a, :b];
+
+julia> phi = hom(R, S, [a + b, a - b])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
+
+julia> save("phi.mrdi", phi)
+
+julia> U, (u, v) = QQ[:u, :v];
+
+julia> T, (z, w) = QQ[:z, :w];
+
+julia> psi = hom(U, T, [w,  - z])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> w
+  v -> -z
+
+julia> tp = type_and_params(psi)
+
+julia> load("phi.mrdi", type_and_params(psi))
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> z + w
+  v -> z - w
 ```
 
 # Examples
