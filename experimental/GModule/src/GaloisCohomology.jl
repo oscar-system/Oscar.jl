@@ -2378,7 +2378,7 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
         l, ml = completion(B.k, pp)
         setprecision!(ml, precision(codomain(mL)))
         mlL = induce_hom(ml, mL, B.mkK)
-        s = Hecke.Hecke.local_fundamental_class_serre(mlL)
+        s = Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
       @assert Oscar.GrpCoh.istwo_cocycle(can)
@@ -3055,7 +3055,7 @@ function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
   qr = restrict(C, mp)
-  s = Hecke.Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
+  s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
 #  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
   z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])
@@ -3088,7 +3088,12 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   #the induced module
   mu = cohomology_group(zz, 2)
   q, mq = snf(mu[1])
-  g = mu[2](mq(q[1]))
+  @show q
+  if ngens(q) == 0
+    g = mu[2](zero(mu[1]))
+  else
+    g = mu[2](mq(q[1]))
+  end
   #g is the (non-canonical) generator of H^2 of the induced module
   hg = map_entries(Inj*A.mq, g, parent = C)
   #hg is the (non-canonical) generator of H^2 of the induced module
@@ -3127,16 +3132,16 @@ function global_fundamental_class(A::IdeleParent)
   d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   G = C.G
   if d != order(G)
-    error("sorry - no can do(yet)")
+    error("sorry - no can do (yet)")
   end
 
   z = cohomology_group(C, 2)
 
   q, mq = snf(z[1])
   @assert ngens(q) == 1
-  g = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
+  gg = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
   #g is the non-canonical generator
-  @assert Oscar.GrpCoh.istwo_cocycle(g)
+  @assert Oscar.GrpCoh.istwo_cocycle(gg)
   n = order(q)
   g = mq(gen(q, 1))
 
@@ -3161,13 +3166,23 @@ function global_fundamental_class(A::IdeleParent)
   #put together..
   #want x s.th. (n/d[2]) * x = d[1] mod d[2]
   #cannot use CRT as the d[2] are not necc. coprime
+  @show scale
   a = abelian_group([x[2] for x = scale])
   b = abelian_group([n])
   h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
+    @show matrix(h)
   p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
-  return p[1]
+  return z[2](p[1] * g)
+end
+
+function Oscar.group(A::IdeleParent)
+  return domain(A.mG)
+end
+
+function Oscar.hom(C::ComplexOfMorphisms{Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, A::IdeleParent)
+  return hom(C, A.data[1])
 end
 
 function Oscar.cohomology_group(A::IdeleParent, i::Int)
@@ -3198,21 +3213,19 @@ function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
   while true
     prog = false
     for i=1:attempts
-      @show i
-      @time o = Oscar.orbit(q, rand(gens(q.M)))
+      o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        @time s, ms = sub(q.M, collect(o), false)
+        s, ms = sub(q.M, collect(o), false)
         if torsion_free_rank(s) == length(o)
-          @show :OK
-          @time q, _mq = quo(q, ms, false)
+          q, _mq = quo(q, ms, false)
           if first
             mq = _mq
             first = false
           else
-            @time mq = mq*_mq
+            mq = mq*_mq
           end
-          @time q, _mq = simplify(q)
-          @time mq = mq*inv(_mq)
+          q, _mq = simplify(q)
+          mq = mq*inv(_mq)
           prog = true
           break
         end
