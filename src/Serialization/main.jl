@@ -171,6 +171,23 @@ end
 
 ################################################################################
 # TypeAndParams Struct
+@doc raw"""
+    TypeAndParams{T, S}
+    TypeAndParams(T::Type, params)
+    TypeAndParams(T::Type, pairs::Pair...)
+
+A container pairing a Julia type `T` with its contextual parameters `params`.
+
+`TypeAndParams` values are created by [`type_and_params`](@ref) and consumed by
+`load_object`. The `params` field holds whatever context is needed to
+reconstruct an object of type `T`: a parent ring, a base field, a
+domain/codomain pair, etc.
+
+Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
+Retrieve the raw parameters with `params(tp)` and the type with `type(tp)`.
+
+See [`type_and_params`](@ref) for usage examples.
+"""
 struct TypeAndParams{T, S}
   type::Type{T}
   params::S
@@ -199,6 +216,15 @@ end
 Base.haskey(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
   any(k === key for (k, _) in tp.params)
 
+@doc raw"""
+    type_and_params(obj)
+
+Return a [`TypeAndParams`](@ref) value capturing the type and parent parameters of `obj`.
+
+The result can be passed as the second argument to [`load`](@ref) to reconstruct a
+serialized object into the same context as `obj`. See the [`load`](@ref) docstring for
+details and examples.
+"""
 type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
 function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
@@ -893,6 +919,8 @@ end
 """
     load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
     load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(io::IO, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
 Load the object stored in the given io stream respectively in the file `filename`.
 
@@ -916,6 +944,74 @@ If the file was created with `compression=:gzip` and the filename ends in `.gz`,
 the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
+
+## Using `TypeAndParams` directly
+
+Call [`type_and_params`](@ref) on an already-loaded object to capture its type and
+parent context, then pass the result as the second argument to `load`. The root object
+of the file is reconstructed using the supplied context (`TypeAndParams`) taken from a given
+loaded object instead of the one stored in the file.
+
+Because the context is taken from the supplied `TypeAndParams`, the type and parameters
+stored in the file's `_type` branch are not used for the root object. In particular, any
+UUID-based parameter references stored there (the file's `_refs` for the root's parent
+context) are ignored — the supplied parameters are used instead. Only the object's `data`
+branch is read from the file.
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("p.mrdi", p)
+
+julia> p_loaded = load("p.mrdi", type_and_params(p))
+x^2 - x + 1
+
+julia> parent(p_loaded) === R
+true
+```
+
+Loading a ring homomorphism back into the same rings it was defined over:
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, (x, y) = QQ[:x, :y];
+
+julia> S, (a, b) = QQ[:a, :b];
+
+julia> phi = hom(R, S, [a + b, a - b])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
+
+julia> save("phi.mrdi", phi)
+
+julia> U, (u, v) = QQ[:u, :v];
+
+julia> T, (z, w) = QQ[:z, :w];
+
+julia> psi = hom(U, T, [w,  - z])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> w
+  v -> -z
+
+julia> tp = type_and_params(psi);
+
+julia> load("phi.mrdi", type_and_params(psi))
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> z + w
+  v -> z - w
+```
 
 # Examples
 
