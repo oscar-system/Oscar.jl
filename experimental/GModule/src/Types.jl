@@ -96,3 +96,19 @@ end
 function image(A::GModuleHom)
   return sub(codomain(A), image(A.module_map)[2])
 end
+
+function from_chain(M::FinGenAbGroup, c::CoChain{2})
+  (zg, A) = get_attribute(M, :hom)
+  fc = get_attribute(zg, :from_chain)
+  d = fc((g,h) -> Oscar.GModuleElem(c.C, c(g,h)))
+  return sum(canonical_injection(M, i)(d[i].data) for i=1:length(d))
+end
+
+function *(a::Oscar.GModuleElem, g::GroupAlgebraElem)
+  return GModuleElem(parent(a), action(parent(a), g, a.data))
+end
+
+function Oscar.action(a::Oscar.GModuleElem, g::GroupAlgebraElem)
+  return Oscar.GModuleElem(parent(a), action(parent(a), g, a.data))
+end
+
