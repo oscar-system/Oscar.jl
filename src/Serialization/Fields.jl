@@ -100,8 +100,8 @@ function save_object(s::SerializerState, K::fqPolyRepField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:fqPolyRepField, <:PolyRing})
-  params = tp.params
-  def_pol = load_object(s, TypeAndParams(PolyRingElem, params))
+  p = params(tp)
+  def_pol = load_object(s, TypeAndParams(PolyRingElem, p))
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end
