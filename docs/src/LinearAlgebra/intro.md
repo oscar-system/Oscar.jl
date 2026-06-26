@@ -38,8 +38,7 @@ Instead, OSCAR makes use of several matrix implementations. Most exact dense
 matrix types, together with many associated operations, are provided by Nemo.jl,
 which in turn builds on the generic matrix interfaces of AbstractAlgebra.jl. In
 addition, OSCAR defines matrix types for specialized mathematical structures,
-and wraps matrix types provided
-by external libraries.
+and wraps matrix types provided by external libraries.
 
 Consequently, OSCAR uses different matrix implementations depending on the
 underlying mathematical structures and performance requirements. While these
