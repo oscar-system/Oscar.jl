@@ -73,7 +73,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Dict})
       if node_is_array(s)
         return load_object(s, Edge)
       else
-        return load_object(s, Int, 1)
+        return load_object(s, Int)
       end
     end
     graph_gen_dict[key] = load_object(s, TypeAndParams(Oscar.MPolyAnyMap, d), 2)
