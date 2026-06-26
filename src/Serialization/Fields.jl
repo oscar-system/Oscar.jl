@@ -151,8 +151,8 @@ function save_object(s::SerializerState, K::FqField)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:FqField, <:PolyRing})
-  params = tp.params
-  return finite_field(load_object(s, TypeAndParams(PolyRingElem, params)), cached=false)[1]::FqField
+  p = params(tp)
+  return finite_field(load_object(s, TypeAndParams(PolyRingElem, p)), cached=false)[1]::FqField
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqField})
