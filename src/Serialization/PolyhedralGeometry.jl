@@ -67,11 +67,13 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject, <:Union{QQField, AbstractAlgebra.Floats}})
   field = params(tp)
-  return load_from_polymake(tp.type{elem_type(field)}, load_json(s, Dict{String, Any}))
+  T = type(tp)
+  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject{S}, <:Union{QQField, AbstractAlgebra.Floats}}) where S <: Union{QQFieldElem, Float64}
-  return load_from_polymake(tp.type, load_json(s, Dict{String, Any}))
+  T = type(tp)
+  return load_from_polymake(T, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T <: PolyhedralObject

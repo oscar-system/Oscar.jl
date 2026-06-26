@@ -46,7 +46,7 @@ function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceEle
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:Union{RootSpaceElem,DualRootSpaceElem}, RootSystem})
-  T = tp.type
+  T = type(tp)
   R = params(tp)
   return T(R, load_object(s, Vector{QQFieldElem}))
 end

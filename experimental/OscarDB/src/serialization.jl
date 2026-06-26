@@ -59,7 +59,7 @@ function save_object(s::SerializerState, tsc::TransitiveSimplicialComplex)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{TransitiveSimplicialComplex, PermGroup})
-  params = tp.params
+  PG = params(tp)
   load_node(s) do
     TransitiveSimplicialComplex(
       load_object(s, String, :name),
@@ -68,7 +68,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{TransitiveSimplicia
       load_object(s, Int, :n_vertices),
       load_object(s, Vector{Int}, :f_vector),
       load_object(s, Vector{Int}, :betti_numbers),
-      params,
+      PG,
       load_object(s, String, :topological_type)
     )
   end
