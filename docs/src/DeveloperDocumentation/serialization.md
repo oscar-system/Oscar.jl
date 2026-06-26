@@ -142,31 +142,31 @@ In most cases these parameters are the parameters of the `obj` that uses referen
 For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
-#### `type_params` / `TypeParams`
+#### `type_and_params` / `TypeParams`
 
 Many mathematical objects can only be interpreted in context. A polynomial
 without its ring, a group element without its group, a module element without
 its module — none of these can be reconstructed from their data alone. The
-`type_params` mechanism is how that context is captured and stored.
+`type_and_params` mechanism is how that context is captured and stored.
 
-`type_params` is a function you implement for your type. It returns a
+`type_and_params` is a function you implement for your type. It returns a
 `TypeParams` object describing the contextual parameters needed to reconstruct
 an object. These parameters are stored in the `_type` branch of the serialized
 file (not in `data`).
 
-The distinction between `data` and `type_params` is:
+The distinction between `data` and `type_and_params` is:
 - **`data`** — what is unique to this particular instance (coefficients,
   generators, matrices, etc.).
-- **`type_params`** — the context in which the instance lives (parent ring,
+- **`type_and_params`** — the context in which the instance lives (parent ring,
   base field, ambient space, etc.). These are stored as `_refs` entries and
   shared across all objects that reference the same context, so the context
   is only written once per file.
 
 A useful heuristic: anything you would need to pass as an extra argument to
-the constructor *beyond* the raw data belongs in `type_params`. If calling
+the constructor *beyond* the raw data belongs in `type_and_params`. If calling
 `MyType(data_field_1, data_field_2)` is not enough and you also need
 `MyType(context, data_field_1, data_field_2)`, then `context` belongs in
-`type_params`.
+`type_and_params`.
 
 **When the default is enough:** For a singleton type like `ZZRing` that
 needs no context, the default implementation returning `nothing` is sufficient.
@@ -175,7 +175,7 @@ needs no context, the default implementation returning `nothing` is sufficient.
 return a `TypeParams` with that parent as the sole parameter. For example
 `FracField` lives over its `base_ring`:
 ```julia
-type_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
+type_and_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
 ```
 
 The corresponding `load_object` receives the deserialized base ring through
@@ -187,17 +187,17 @@ end
 ```
 Here `params(tp)` returns the deserialized base ring. Note that `data`
 is empty for `FracField` — everything needed for reconstruction is in
-`type_params`.
+`type_and_params`.
 
 **Named-pair case:** For types that need multiple distinct contextual objects
 use keyword pairs. For example `MPolyLocalizedRingHom` (a ring homomorphism
 between localized rings) needs both domain and codomain:
 ```julia
-type_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeParams(
+type_and_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeParams(
   T,
   :domain   => domain(phi),
   :codomain => codomain(phi),
-  :restricted_map_params => type_params(restricted_map(phi))
+  :restricted_map_params => type_and_params(restricted_map(phi))
 )
 ```
 
@@ -213,17 +213,17 @@ function load_object(s::DeserializerState,
 end
 ```
 
-The rule: only include parameters in `type_params` that `load_object` actually
+The rule: only include parameters in `type_and_params` that `load_object` actually
 needs for dispatch or reconstruction. If a type can be determined from a fixed
-concrete type at load time, it does not need to be in `type_params`.
+concrete type at load time, it does not need to be in `type_and_params`.
 
-**Summary:** implement `type_params` whenever your type needs context to be
+**Summary:** implement `type_and_params` whenever your type needs context to be
 reconstructed. The parameters you return will be serialized into the `_type`
 branch of the JSON, stored as shared `_refs` entries, and passed into
 `load_object` as the second argument. The `load_object` signature should
 match the type of the parameters:
 
-| `type_params` return | `load_object` signature |
+| `type_and_params` return | `load_object` signature |
 |---|---|
 | `TypeParams(T, nothing)` | `load_object(s, tp::TypeParams{T})` |
 | `TypeParams(T, parent_obj)` | `load_object(s, tp::TypeParams{T, ParentType})` |
@@ -296,14 +296,14 @@ end
 Do not call `save_typed_object` from within a `save_object` implementation.
 The serialization format is structured as two separate subtrees: a type tree
 and a data tree. All type information — including the types of nested objects —
-must be fully described in the type tree (via `type_params`) so that the
+must be fully described in the type tree (via `type_and_params`) so that the
 deserializer can resolve all types before touching the data tree. Embedding
 a `save_typed_object` call inside `save_object` breaks this invariant by
 writing type information into the data subtree, making the format harder to
 validate, upgrade, and parse generically.
 
 If a field of your type has a statically unknown type at load time, the
-correct approach is to expose that type through `type_params` rather than
+correct approach is to expose that type through `type_and_params` rather than
 inlining it into the data:
 
 ```julia
@@ -314,8 +314,8 @@ function save_object(s::SerializerState, obj::NewType)
   end
 end
 
-# Correct: type information goes through type_params
-type_params(obj::NewType) = TypeParams(typeof(obj), :field => type_params(obj.field))
+# Correct: type information goes through type_and_params
+type_and_params(obj::NewType) = TypeParams(typeof(obj), :field => type_and_params(obj.field))
 
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
@@ -346,7 +346,7 @@ function save_object(s::SerializerState, obj::NewType)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeParams{<:NewType})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
   load_node(s, :key) do
     info = do_something(load_json(s, String))
     if info
