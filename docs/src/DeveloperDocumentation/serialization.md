@@ -142,7 +142,7 @@ In most cases these parameters are the parameters of the `obj` that uses referen
 For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
-#### `type_and_params` / `TypeParams`
+#### `type_and_params` / `TypeAndParams`
 
 Many mathematical objects can only be interpreted in context. A polynomial
 without its ring, a group element without its group, a module element without
@@ -150,7 +150,7 @@ its module — none of these can be reconstructed from their data alone. The
 `type_and_params` mechanism is how that context is captured and stored.
 
 `type_and_params` is a function you implement for your type. It returns a
-`TypeParams` object describing the contextual parameters needed to reconstruct
+`TypeAndParams` object describing the contextual parameters needed to reconstruct
 an object. These parameters are stored in the `_type` branch of the serialized
 file (not in `data`).
 
@@ -172,16 +172,16 @@ the constructor *beyond* the raw data belongs in `type_and_params`. If calling
 needs no context, the default implementation returning `nothing` is sufficient.
 
 **Single-parameter case:** For a type that lives over a single parent object,
-return a `TypeParams` with that parent as the sole parameter. For example
+return a `TypeAndParams` with that parent as the sole parameter. For example
 `FracField` lives over its `base_ring`:
 ```julia
-type_and_params(R::T) where T <: FracField = TypeParams(T, base_ring(R))
+type_and_params(R::T) where T <: FracField = TypeAndParams(T, base_ring(R))
 ```
 
 The corresponding `load_object` receives the deserialized base ring through
-the `TypeParams` argument:
+the `TypeAndParams` argument:
 ```julia
-function load_object(s::DeserializerState, tp::TypeParams{<:FracField, <:Ring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:FracField, <:Ring})
   fraction_field(params(tp), cached=false)
 end
 ```
@@ -193,7 +193,7 @@ is empty for `FracField` — everything needed for reconstruction is in
 use keyword pairs. For example `MPolyLocalizedRingHom` (a ring homomorphism
 between localized rings) needs both domain and codomain:
 ```julia
-type_and_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeParams(
+type_and_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeAndParams(
   T,
   :domain   => domain(phi),
   :codomain => codomain(phi),
@@ -205,7 +205,7 @@ type_and_params(phi::T) where {T <: MPolyLocalizedRingHom} = TypeParams(
 named parameters via `tp[:key]`:
 ```julia
 function load_object(s::DeserializerState,
-                     tp::TypeParams{<:MPolyLocalizedRingHom, <:Tuple{Vararg{Pair}}})
+                     tp::TypeAndParams{<:MPolyLocalizedRingHom, <:Tuple{Vararg{Pair}}})
   D = tp[:domain]
   C = tp[:codomain]
   restricted_map = load_object(s, tp[:restricted_map_params])
@@ -225,12 +225,12 @@ match the type of the parameters:
 
 | `type_and_params` return | `load_object` signature |
 |---|---|
-| `TypeParams(T, nothing)` | `load_object(s, tp::TypeParams{T})` |
-| `TypeParams(T, parent_obj)` | `load_object(s, tp::TypeParams{T, ParentType})` |
-| `TypeParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeParams{T, <:Tuple{Vararg{Pair}}})` |
+| `TypeAndParams(T, nothing)` | `load_object(s, tp::TypeAndParams{T})` |
+| `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
+| `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
 
 ```@docs
-TypeParams
+TypeAndParams
 ```
 
 #### `save_object` / `load_object`
@@ -275,7 +275,7 @@ This will result in a data format that looks like this.
 With the corresponding loading function similar to this.
 
 ```julia
-function load_object(s::DeserializerState, tp::TypeParams{<:NewType})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do i
     if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
@@ -315,7 +315,7 @@ function save_object(s::SerializerState, obj::NewType)
 end
 
 # Correct: type information goes through type_and_params
-type_and_params(obj::NewType) = TypeParams(typeof(obj), :field => type_and_params(obj.field))
+type_and_params(obj::NewType) = TypeAndParams(typeof(obj), :field => type_and_params(obj.field))
 
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
