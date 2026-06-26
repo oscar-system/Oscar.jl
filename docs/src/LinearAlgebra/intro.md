@@ -54,7 +54,7 @@ The main topics covered in this section are:
 - [Matrix spaces](@ref "Matrix Spaces")
 - [Linear solving](@ref solving_chapter)
 - [Eigenvalues and -spaces](@ref "Eigenvalues and -spaces")
-- [Nemo matrices](@ref "Nemo matrices")
+- [Nemo matrices](@ref "Matrices")
 - [Generic matrix algebras](@ref "Generic matrix algebras")
 - [Sparse linear algebra](@ref)
 - [Modules](@ref "Finitely presented modules")
