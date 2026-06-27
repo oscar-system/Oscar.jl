@@ -64,8 +64,11 @@
      "Multivariate Polynomials" => [
         "AbstractAlgebra/mpolynomial.md",
      ],
-     "Modular Methods" => [
+     "Euclidean Rings" => [
          "AbstractAlgebra/euclidean_interface.md",
+     ],
+     "Modular Methods" => [
+         "Rings/modular.md",
      ],
      "Series Rings" => [
         "AbstractAlgebra/series.md",
@@ -98,6 +101,7 @@
      "AbstractAlgebra/matrix_spaces.md",
      "AbstractAlgebra/linear_solving.md",
      "LinearAlgebra/eigen.md",
+     "Nemo/matrix.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
      "Modules" => [
@@ -145,6 +149,7 @@
       "NumberTheory/QuadFormAndIsom/introduction.md",
       "NumberTheory/QuadFormAndIsom/spacewithisom.md",
       "NumberTheory/QuadFormAndIsom/latwithisom.md",
+      "NumberTheory/QuadFormAndIsom/torquadmodwithisom.md",
       "NumberTheory/QuadFormAndIsom/enumeration.md",
       "NumberTheory/QuadFormAndIsom/primembed.md",
       "NumberTheory/QuadFormAndIsom/fingrpact.md",
@@ -336,6 +341,7 @@
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
+    "DeveloperDocumentation/artifacts.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/known_properties.md",
     "DeveloperDocumentation/gap_integration.md",

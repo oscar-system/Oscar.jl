@@ -35,4 +35,5 @@ Similarly to the subgroups, the output consists of a pair (`Q`,`p`), where `Q` i
 
 ```@docs
 maximal_abelian_quotient
+maximal_supersolvable_quotient
 ```

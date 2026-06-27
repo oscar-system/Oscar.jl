@@ -1165,6 +1165,62 @@ end
 ## Boolean properties
 ###############################################################################
 @doc raw"""
+    contains(P::Polyhedron, v::AbstractVector)
+    contains(P::Polyhedron, v::RayVector)
+
+Check whether the point given by `v` is contained in the polyhedron `P`. If `v` is a
+ray vector, then check whether this ray is contained in the recession cone of `P`.
+
+See also [`contains_in_interior(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains points with non-negative entries:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains(PO,[1, 2])
+true
+
+julia> contains(PO,[1, -2])
+false
+```
+"""
+contains(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+contains(P::Polyhedron, v::RayVector) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([0; v]))::Bool
+
+@doc raw"""
+    contains_in_interior(P::Polyhedron, v::AbstractVector)
+    contains_in_interior(P::Polyhedron, v::RayVector)
+
+Check whether the point `v` is contained in the relative interior of the polyhedron `P`. If `v` is a
+ray vector, then check whether this ray is contained in the relative interior of the recession cone of `P`.
+
+See also [`contains(::Polyhedron, ::AbstractVector)`](@ref).
+
+# Examples
+The positive orthant only contains points with positive entries in its interior:
+```jldoctest
+julia> PO = polyhedron([-1 0; 0 -1], [0, 0]);
+
+julia> contains_in_interior(PO,[1, 2])
+true
+
+julia> contains_in_interior(PO,[1, 0])
+false
+```
+"""
+contains_in_interior(P::Polyhedron, v::AbstractVector) =
+  Polymake.polytope.contains_in_interior(pm_object(P), coefficient_field(P).([1; v]))::Bool
+
+# this cannot use Polymake.polytope.contains_in_interior directly because rays are always
+# on the x0>=0 homogenization facet (of the cone representing the polytope)
+contains_in_interior(P::Polyhedron, v::RayVector) =
+  contains_in_interior(recession_cone(P), v)
+
+@doc raw"""
     is_lattice_polytope(P::Polyhedron{QQFieldElem})
 
 Check whether `P` is a lattice polytope, i.e. it is bounded and has integral vertices.
@@ -1270,7 +1326,7 @@ false
 ```
 """
 Base.in(v::AbstractVector, P::Polyhedron) =
-  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
+  contains(P, v)
 
 @doc raw"""
     is_smooth(P::Polyhedron{QQFieldElem})

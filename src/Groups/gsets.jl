@@ -267,6 +267,22 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
+## action of permutations on sets of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{Set{T2}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on sets of tuples of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{<:Tuple{T2,Vararg{T2}}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_tuples, Omega; closed = closed, check = false)
+end
+
+## action of permutations on tuples of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:Set{<:IntegerUnion}
+  return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on vectors of positive integers
 ## action of matrices on vectors via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
@@ -290,6 +306,16 @@ end
 ## action of matrices on polynomials via `on_indeterminates`
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
   return GSetByElements(G, on_indeterminates, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on group elements via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroupElem
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on subgroups via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroup
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -350,10 +376,20 @@ end
 #      using what is called `RepresentativeAction` in GAP.
 
 function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
-    omega in Omega.seeds && return true
-    return omega in elements(Omega)
+  is_in_seeds = (omega in Omega.seeds)::Bool
+  is_in_seeds && return true
+  # If all elements of Omega are seeds, we don't need to check everything again.
+  # This prominently happens if Omega was computed as an orbit. In that case,
+  # Omega already knows its elements, so the following length check is cheap.
+  # This is not just a micro-optimization: looking up omega in Omega.seeds is
+  # in O(1) because seeds is an IndexedSet, but the look-up in elements(Omega)
+  # takes linear time.
+  elts = elements(Omega)
+  if length(Omega.seeds)::Int == length(elts)
+    return is_in_seeds
+  end
+  return omega in elts
 end
-
 
 #############################################################################
 ##

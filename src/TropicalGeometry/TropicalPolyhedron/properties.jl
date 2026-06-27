@@ -364,3 +364,11 @@ function Base.show(io::IO, P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
     print(io, "Max tropical point configuration in tropical projective torus of dimension $d")
   end
 end
+
+
+@doc raw"""
+     is_feasible(P::TropicalPolyhedron)
+
+Checks whether `P` is non-empty.
+"""
+is_feasible(P::TropicalPolyhedron) = pm_object(P).FEASIBLE::Bool
