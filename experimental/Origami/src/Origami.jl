@@ -3,16 +3,9 @@
 module OrigamiHelper
 
 using ..Oscar
-using LazyArtifacts
 
 function __init__()
-  GAP.Globals.ExtendPackageDirectories(
-    GapObj([
-        abspath(artifact"GAP_pkg_modulargroup"),
-        abspath(artifact"GAP_pkg_origami"),
-      ]; recursive=true),
-  )
-  # the packages get loaded in Oscar.__init__()
+  GAP.Packages.load("Origami")
 end
 
 end
