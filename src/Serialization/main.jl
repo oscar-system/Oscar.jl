@@ -1014,7 +1014,7 @@ defined by
   u -> w
   v -> -z
 
-julia> tp = type_and_params(psi)
+julia> tp = type_and_params(psi);
 
 julia> load("phi.mrdi", type_and_params(psi))
 Ring homomorphism
