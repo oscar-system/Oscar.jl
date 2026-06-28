@@ -3,7 +3,8 @@
 @doc raw"""
     action_s(o::Origami)
 
-For a given origami o this methods computes the origami S.o where S = [0 -1; 1 0] is one of the two generators of SL2(Z). 
+For a given origami ``O`` this methods computes the origami ``S \cdot O``, where
+``S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}`` is one of the two generators of ``{\rm SL}_2(\mathbb{Z})``. 
 
 # Examples
 ```jldoctest
@@ -23,7 +24,8 @@ end
 @doc raw"""
     action_t(o::Origami)
 
-For a given origami o this methods computes the origami T.o where T = [1 1; 0 1] is one of the two generators of SL2(Z). 
+For a given origami ``O`` this methods computes the origami ``T \cdot O``, where
+``T = \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}`` is one of the two generators of ``{\rm SL}_2(\mathbb{Z})``. 
 
 # Examples
 ```jldoctest
@@ -42,7 +44,8 @@ end
 @doc raw"""
     action_t_inv(o::Origami)
 
-For a given origami o this methods computes the origami T^-1.o where T = [1 1; 0 1] is one of the two generators of SL2(Z). 
+For a given origami ``O`` this methods computes the origami ``T^{-1} \cdot O``, where
+``T = \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}`` is one of the two generators of ``{\rm SL}_2(\mathbb{Z})``.
 
 # Examples
 ```jldoctest
@@ -62,7 +65,8 @@ end
 @doc raw"""
     action_s_inv(o::Origami)
 
-For a given origami o this methods computes the origami S^-1.o where S = [0 -1; 1 0] is one of the two generators of SL2(Z). 
+For a given origami ``O`` this methods computes the origami ``S^{-1} \cdot O``, where
+``S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}`` is one of the two generators of ``{\rm SL}_2(\mathbb{Z})``. 
 
 # Examples
 ```jldoctest
@@ -82,7 +86,7 @@ end
 @doc raw"""
     action_sl2(A::ZZMatrix,o::Origami)
 
-This function computes A.o, where A is a Matrix in SL2(Z) and o is an origami.
+This function computes ``A \cdot O``, where ``A`` is a matrix in ``{\rm SL}_2(\mathbb{Z})`` and ``O`` is an origami.
 
 # Examples
 ```jldoctest
