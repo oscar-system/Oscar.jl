@@ -326,9 +326,9 @@ function is_hyperelliptic(o::Origami)
   for sigma in L
     # fixpoints
     b =
-      length(setdiff(degree_list, moved_points(sigma))) +
-      length(setdiff(degree_list, moved_points(sigma * x))) +
-      length(setdiff(degree_list, moved_points(sigma * y)))
+      number_of_fixed_points(sigma) +
+      number_of_fixed_points(sigma * x) +
+      number_of_fixed_points(sigma * y)
 
     p1 = sigma * x^-1 * y^-1
     p2 = y * x * (x * y)^-1
