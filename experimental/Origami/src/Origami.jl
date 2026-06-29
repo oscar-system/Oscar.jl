@@ -19,7 +19,6 @@ include("special_origami.jl")
 include("generate.jl")
 include("homology_action.jl")
 include("cyclic_torus_covers.jl")
-include("homology.jl")
 include("normal_origami.jl")
 include("systoles.jl")
 
