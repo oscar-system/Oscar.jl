@@ -34,7 +34,8 @@ reasons:
   the rings used in OSCAR cannot be embedded into the real or complex numbers
   at all.
 
-Instead, OSCAR makes use of several matrix implementations. Most exact dense
+Instead, OSCAR makes use of several matrix implementations which are
+specifically designed to operate with OSCAR's exact data types. Most exact dense
 matrix types, together with many associated operations, are provided by Nemo.jl,
 which in turn builds on the generic matrix interfaces of AbstractAlgebra.jl. In
 addition, OSCAR defines matrix types for specialized mathematical structures,
