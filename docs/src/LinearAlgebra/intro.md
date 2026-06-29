@@ -23,7 +23,7 @@ General textbooks offering details on theory and algorithms include:
 OSCAR does not rely on Julia's built-in matrix types for two independent
 reasons:
 
-* In empty matrices (with zero rows or columns), only the type of the matrix
+* In matrices with zero rows or columns, only the Julia type of the matrix
   entries is known. For the algebraic types used throughout OSCAR, this
   information is generally insufficient to construct new elements, so
   operations such as `zero(T)` cannot always be implemented correctly.
