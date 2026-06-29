@@ -17,15 +17,15 @@ different mathematical scopes and algorithmic foundations.
   quotients of such rings and their localizations are discussed in the
   [Commutative Algebra](@ref modules_multivariate) chapter. They employ
   Gröbner basis methods and are designed for multivariate polynomial rings,
-  as well as quotients and locations thereof.
+  as well as quotients and localizations thereof.
 
 
 ## Scope and functionality of linear algebra modules
 
 The implementation described in this section is limited to finitely presented
-modules over Euclidean domains and fields.
+modules over fields and Euclidean domains.
 
-Free modules and vector spaces are available over Euclidean domains and fields,
+Free modules and vector spaces are available over fields and Euclidean domains,
 respectively. Submodule, quotient module and direct sum constructions can then
 be applied recursively to these.
 

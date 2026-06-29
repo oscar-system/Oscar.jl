@@ -38,6 +38,6 @@ includes both submodules and quotients of free modules.
     should therefore only be applied to modules over the rings listed above.
 
 !!! note
-    For simplicity of the presentation, many examples use modules over
+    For simplicity of the presentation, many examples below use modules over
     multivariate polynomial rings. The same functionality is generally available
     for modules over the other supported ring types.
