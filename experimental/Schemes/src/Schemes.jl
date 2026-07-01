@@ -3,6 +3,7 @@ include("CoveredScheme.jl")
 include("ProjectiveModules.jl")
 include("SpaceGerms.jl")
 include("Tjurina.jl")
+include("DeterminantalGerm.jl")
 
 include("Auxiliary.jl")
 include("critical_locus.jl")
@@ -32,6 +33,8 @@ export HypersurfaceGerm
 export MorphismFromRationalFunctions
 export SpaceGerm
 
+export DeterminantalGerm
+
 export ambient_germ
 export basis_representation
 export blow_up_along_minimal_supercone_coordinates
@@ -57,6 +60,7 @@ export strict_transform
 export strict_transform_with_index
 export total_transform
 export two_neighbor_step
+export underlying_space_germ
 
 export tjurina_algebra
 export tjurina_number
@@ -67,6 +71,14 @@ export sharper_determinacy_bound
 export is_contact_equivalent
 export tjurina_module
 
+export defining_matrix
+export determinantal_type
+export T1_GL_module
+export tjurina_GL_number
+export is_determinantally_rigid
+export is_EIDS
+export basis_versal_determinantal_unfolding
+export T1_SL_module
 
 # Deprecated after 0.15
 Base.@deprecate_binding base_glueing base_gluing
