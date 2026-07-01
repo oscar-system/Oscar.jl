@@ -3,7 +3,7 @@ module OscarDB
 using ..Oscar
 using ..Oscar.Serialization
 
-import Oscar.Serialization: load_object, save_object, type_and_params
+import Oscar.Serialization: load_object, save_object, type_and_params, parameters
 
 import Oscar:
   simplicial_complex,
