@@ -12,7 +12,7 @@ Return a (free) presentation of `M`.
 function presentation(SQ::SubquoModule;
                       minimal=false)
   if minimal
-    return _presentation_minimal(SQ)
+    return _presentation_minimal_cached(SQ)
   elseif is_graded(SQ)
     return _presentation_graded(SQ)
   else
@@ -94,7 +94,11 @@ function presentation(SQ::SubquoModule;
   =#
 end
 
-function _presentation_graded(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_minimal_cached(SQ::OFPModule{T}) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  return _presentation_minimal(SQ)
+end
+
+@attr Hecke.ComplexOfMorphisms function _presentation_graded(SQ::SubquoModule)
   #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
@@ -124,12 +128,18 @@ function _presentation_graded(SQ::SubquoModule)
   # At the same time, we can not just throw away zero 
   # generators, because other code relies on the 1:1-correspondence
   # of the generators in a presentation.
-  F0_to_SQ = graded_map(SQ, gens(SQ); check=false)
-  F0_to_SQ.generators_map_to_generators = true
-  F0 = domain(F0_to_SQ)
+  F0 = graded_free_module(R, degrees_of_generators(SQ; check=false))
+  zero_degree = zero(grading_group(R))
+  F0_to_SQ = graded_map(
+    F0, SQ, gens(SQ);
+    check=false,
+    hom_degree=zero_degree,
+    generators_map_to_generators=true
+  )
 
   K, inc_K = kernel(F0_to_SQ)
-  F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
+  F1 = graded_free_module(R, degrees_of_generators(K; check=false))
+  F1_to_F0 = graded_map(F1, F0, images_of_generators(inc_K); check=false, hom_degree=zero_degree)
   F1 = domain(F1_to_F0)
   #F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
   #F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
@@ -152,7 +162,7 @@ function _presentation_graded(SQ::SubquoModule)
   return M
 end
 
-function _presentation_simple(SQ::SubquoModule)
+@attr Hecke.ComplexOfMorphisms function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   F = ambient_free_module(SQ)
