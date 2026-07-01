@@ -41,7 +41,7 @@ jobs:
         group: [ 'short', 'long' ]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v3
         with:
@@ -66,7 +66,7 @@ jobs:
     timeout-minutes: 150
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v3
         with:
