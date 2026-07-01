@@ -105,6 +105,7 @@
      "AbstractAlgebra/matrix_algebras.md",
      "Hecke/manual/misc/sparse.md",
      "Modules" => [
+        "LinearAlgebra/module_introduction.md",
         "AbstractAlgebra/module.md",
         "AbstractAlgebra/free_module.md",
         "AbstractAlgebra/submodule.md",
