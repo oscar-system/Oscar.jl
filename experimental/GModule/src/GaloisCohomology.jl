@@ -664,6 +664,7 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert all(x->sigma(sigma(x)) == x, gens(M))
   @assert is_free(M) && torsion_free_rank(M) == ngens(M)
 
+  @assert matrix(hom(sigma*sigma - id_hom(M))) == 0
   K, mK = kernel(id_hom(M)+sigma)
   fl, mX = has_complement(mK)
   @assert fl
@@ -675,7 +676,6 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   S, mS = image(sigma -id_hom(M))
   fl, mSK = is_subgroup(S, K)
   @assert fl
-
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
@@ -707,6 +707,19 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert is_surjective(phi)
   A = vcat([preimage(mB, phi(k)).coeff for k = gens(_X)]...)
   h, t = hnf_with_transform(A)
+  #we need h to be diag 1 mod 2, problem is odd numbers on diag.
+  #needs fixing
+  for i=ncols(h):-1:1
+    if !isone(h[i,i])
+      for j=i-1:-1:1
+        if !iseven(h[j,i])
+          add_row!(h, -1, i, j)
+          add_row!(t, -1, i, j)
+        end
+      end
+    end
+  end
+  @assert t*A == h
   #t*A = h = diag(1) vcat 0
   x = [sum(t[i,j]*_X[j] for j=1:ngens(_X)) for i=1:ngens(_X)]
   sm1 = sigma - id_hom(M)
@@ -973,11 +986,7 @@ function get_W(k, mG, mU, E)
         im_psi[end] += mo
         @assert _sign(mU(im_psi[end]), ce) > 0
       end
-      @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
-      if _sign(mU(im_psi[end]), complex_places(k)[1]) < 0
-        im_psi[end] *= -1
-      end
       @assert sigma(im_psi[end]) == im_psi[end]
     end
     for i=1:length(y)
@@ -1618,15 +1627,24 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
     W2 = codomain(U_W2)
     @assert W2 == I.data[7].M
 
-    acC = hom(comp*action(E, G(I.data[7].G[1]))*pseudo_inv(comp))
+    acC = hom(comp*action(E, G(I.data[7].G[1]))*pseudo_inv(comp)) #comp conj on new units
     d1, d2 = debeerst(domain(comp), acC)
-
     #d1 is C2-invariant and positive, d2 are the C2-module generators
+    ng = copy(d1)
+    for x = d2
+      push!(ng, x)
+      push!(ng, acC(x))
+    end
+    hd12 = hom(domain(comp), domain(comp), ng)
+#    comp = hom(h*comp) #should give the new units sorted in 1d and 2d
+
+
     _, pro, inj = direct_product(domain(unit_inj), domain(comp); task = :both)
     #                                    = U_S            = V
+    # writes the large unit group as a direct product of Z[sigma] submodules
     hprodU = hom(pro[1]*unit_inj+pro[2]*comp)
     @assert is_bijective(hprodU)
-    comp_pro = pseudo_inv(hprodU)*pro[2]
+    comp_pro = inv(hprodU)*pro[2]
     # so U_T -> V, unit_pro is U_T -> U_S, the projection matching the
     # complement.
     # U_T        = U_S x V, U_S -> U_T is unit_inj, V -> U_T is comp
@@ -1643,7 +1661,7 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
    
     W2_1_dim = ngens(W2) - ngens(domain(U_W2))
     F = free_abelian_group(W2_1_dim + length(d1))
-    W, pro, inj = direct_product(V, F; task = :both)
+    W = direct_product(V, F; task = :none)
     #need U_T -> W and W -> W2, and W2 -> W and comp -> W
     # W2 -> W: (tor, Z^-) x 1dim x 2dim x conj  ->
     #          (tor, Z^-) x 1dim x 0 V1 x 2dim x 0 V2 x conj
@@ -1657,34 +1675,44 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
     dim2 = ngens(domain(U_W2)) - 2 - dim1
     v1 = length(d1)
     v2 = 2*length(d2)
+
     W2_W = hom(W2, W, vcat([W[i] for i=1:2+dim1],
                            [W[i+v1] for i=2+dim1+1:2+dim1+dim2],
-                           [W[i+v1+v2] for i=ngens(domain(mU))+1:ngens(W2)]))
+                           [W[i+v1+v2] for i=2+dim1+dim2+1:2+dim1+dim2+v2]))
     W_W2 = hom(W, W2, vcat([W2[i] for i=1:2+dim1], 
                            [zero(W2) for i=2+dim1+1:2+dim1+v1],
                            [W2[i-v1] for i=2+dim1+v1+1:2+dim1+v1+dim2],
+                           [zero(W2) for i=2+dim1+v1+dim2+1:2+dim1+v1+dim2+v2],
                            [W2[i-v1-v2] for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
                            [zero(W2) for i=1:v1]))
 
     C_W = hom(domain(comp), W, vcat([W[2+dim1+i] + W[2+dim1+v1+dim2+v2+dim1+i] for i=1:v1],
-                                    [W[i+2+dim1+v1+dim2+i] for i=1:v2]))
+                                    [W[2+dim1+v1+dim2+i] for i=1:v2]))
 
     U_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*C_W))
     acW = hom(W, W, vcat([zero(W) for i=1:2+dim1],
-               [W[i+v1+dim2+dim1] for i=2+dim1+1:2+dim1+v1],
+               [W[i+v1+dim2+v2+dim1] for i=2+dim1+1:2+dim1+v1],
                [zero(W) for i=2+dim1+v1+1:2+dim1+v1+dim2],
                [W[(isodd(i) ? i+1 : i-1)+2+dim1+v1+dim2] for i=1:v2],
                [zero(W) for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
                [W[2+dim1+i] for i=1:v1]))
                
-    mU_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*C_W))           
+    mU_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*inv(hd12)*C_W))           
     acW = hom(W_W2*action(I.data[7], I.data[7].G[1])*W2_W + acW)
     Et = gmodule(I.data[7].G, [acW])
+    if get_assert_level(:GaloisCohomology) > 2
+      @assert hom(acW*acW) == id_hom(W)
+      inv(acW)
+      is_consistent(Et)
+    end
   end
   set_attribute!(Et, :get_W => mU_W)
   fl, mG_inf = is_subgroup(group(Et), G)
   @assert fl
   iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mU_W)
+  if get_assert_level(:GaloisCohomology) > 2
+    hom(E, iEt[1], iEt[2])
+  end
 
     #maybe all downstream in seperate function? the block is there 3 times
   F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
@@ -1694,7 +1722,7 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
 
     #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
-  # hom(E, F[1], h)
+   hom(E, F[1], h)
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
   @vtime :GaloisCohomology 2 q, _mq = simplify(q)
@@ -3054,7 +3082,7 @@ function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   C = A.data[1]
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
-  qr = restrict(C, mp)
+#  qr = restrict(C, mp)
   s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
 #  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
@@ -3080,7 +3108,8 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   @assert domain(inj) == domain(mUp) 
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
  
-  tt = serre(A, A.S[t])
+  tt = serre(A, A.S[t]) # 1 2-chain on Gp with values in the abstract
+                        # (quotient of) the unit group.
   @assert tt.C.G == domain(mGp)
 
   I = domain(Inj)    
@@ -3088,7 +3117,6 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   #the induced module
   mu = cohomology_group(zz, 2)
   q, mq = snf(mu[1])
-  @show q
   if ngens(q) == 0
     g = mu[2](zero(mu[1]))
   else
@@ -3161,17 +3189,15 @@ function global_fundamental_class(A::IdeleParent)
     k = findfirst(k->k * preimage(z[2], s[2]) == divexact(n, d)*g, 1:d)
     #so (n/d) * k * g = res(g, G_p) = s[2]
     #   s[1] * k * (n/d) * g = canonical at P
-    push!(scale, ((s[1]*k) % d, d))
+    push!(scale, (k, s[1], d))
   end
   #put together..
   #want x s.th. (n/d[2]) * x = d[1] mod d[2]
   #cannot use CRT as the d[2] are not necc. coprime
-  @show scale
-  a = abelian_group([x[2] for x = scale])
+  a = abelian_group([x[3] for x = scale])
   b = abelian_group([n])
-  h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
-    @show matrix(h)
-  p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
+  h = hom(b, a, [sum(a[i] * scale[i][1] for i=1:length(scale))])
+  p = preimage(h, sum(a[i] * scale[i][2] for i=1:length(scale)))
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
   return z[2](p[1] * g)
