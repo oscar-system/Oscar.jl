@@ -136,7 +136,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -191,7 +191,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -298,7 +298,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -362,7 +362,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
