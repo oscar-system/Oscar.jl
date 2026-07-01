@@ -691,6 +691,29 @@ function f_vector(PC::PolyhedralComplex)
 end
 
 @doc raw"""
+    n_minimal_faces(PC::PolyhedralComplex)
+
+Return the number of minimal faces of `PC`.
+
+# Examples
+An infinite cylinder over a 2-cube.  The 2-cube has four vertices, which yields
+4 minimal faces of the cylinder.
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 1 1 0; 0 1 0];
+
+julia> IM = incidence_matrix([[1,2,3,4]]);
+
+julia> L = [0 0 1];
+
+julia> PC = polyhedral_complex(IM, VR, Int[], L);
+
+julia> n_minimal_faces(PC)
+4
+```
+"""
+n_minimal_faces(PC::PolyhedralComplex) = _n_vertices(PC)
+
+@doc raw"""
     n_rays(PC::PolyhedralComplex)
 
 Return the number of rays of `PC`.
