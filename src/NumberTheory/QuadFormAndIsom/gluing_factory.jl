@@ -620,13 +620,13 @@ function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
     _, WWinW = torsion_subgroup(W, p)
     WWinq = compose(WWinW, Winq)
     subs = Oscar.__subgroups_orbit_representatives_and_stabilizers_elementary(WWinq, O, p^(length(subtype)), p)
-    if isdefined(Fac, :Ctx)
+    if isdefined(Fac, :Ctx) && i > 0
       Fac.Ctx.orb_and_stab[(i, bool, p, subtype)] = subs
     end
   else
     # Non-elementary case
     subs = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Winq, O, p, subtype)
-    if isdefined(Fac, :Ctx)
+    if isdefined(Fac, :Ctx) && i > 0
       Fac.Ctx.orb_and_stab[(i, bool, p, subtype)] = subs
     end
   end

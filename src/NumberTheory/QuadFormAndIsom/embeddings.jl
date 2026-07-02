@@ -1571,21 +1571,23 @@ function _primitive_extensions_direct(
   # `phi` to give rise to an odd extension, and we set `as_bilinear_module` to
   # `false` so that we have no risk to turning `phi` into an even glue map
   # again
-  if parity === :odd && both_even && is_anti_isometry(phi; as_bilinear_module=false)
-    _O = orthogonal_group_bilinear(HN)
-    genO = gens(_O)
-    j = findfirst(!is_isometry∘hom, genO)
-    if isnothing(j)
-      # Whatever we do, the glue maps are going to be anti-isometries of quadratic
-      # modules
-      return false, results
+  if parity === :odd && both_even
+    if is_anti_isometry(phi; as_bilinear_module=false)
+      _O = orthogonal_group_bilinear(HN)
+      genO = gens(_O)
+      j = findfirst(!is_isometry∘hom, genO)
+      if isnothing(j)
+        # Whatever we do, the glue maps are going to be anti-isometries of quadratic
+        # modules
+        return false, results
+      end
+      # From now on we have a fixed anti-isometry of bilinear modules which
+      # does not define an anti-isometry of quadratic modules, so we can
+      # consider everything quadratic now in order to preserve this
+      # property
+      phi = phi * hom(genO[j])
     end
-    # From now on we have a fixed anti-isometry of bilinear modules which
-    # does not define an anti-isometry of quadratic modules, so we can
-    # consider everything quadratic now in order to preserve this
-    # property
     as_bilinear_module = false
-    phi = phi * hom(genO[j])
     @hassert :ZZLatWithIsom 1 !is_anti_isometry(phi; as_bilinear_module=false)
   end
   exist_only && return true, results
@@ -1621,8 +1623,10 @@ function _primitive_extensions_direct(
     _qM = domain(GM)
     ok, gamma = is_isometric_with_isometry(_qM, qM)
     @assert ok
-    _, i0 = sub(_qM, TorQuadModuleElem[gamma\(HMinqM(a)) for a in gens(HM)])
-    push!(dataM, (gamma, i0))
+    _imHM = TorQuadModuleElem[gamma\(HMinqM(a)) for a in gens(HM)]
+    _HM, i0 = sub(_qM, _imHM)
+    k0 = hom(_HM, HM, _HM.(lift.(_imHM)), gens(HM))
+    push!(dataM, (i0, k0))
   end
 
   # Same as above but for the right lattices
@@ -1631,18 +1635,20 @@ function _primitive_extensions_direct(
     _qN = domain(GN)
     ok, gamma = is_isometric_with_isometry(qN, _qN)
     @assert ok
-    _, i1 = sub(_qN, TorQuadModuleElem[gamma(HNinqN(a)) for a in gens(HN)])
-    push!(dataN, (gamma, i1))
+    _imHN = TorQuadModuleElem[gamma(HNinqN(a)) for a in gens(HN)]
+    _HN, i1 = sub(_qN, _imHN)
+    k1 = hom(HN, _HN, _HN.(lift.(_imHN)))
+    push!(dataN, (i1, k1))
   end
 
   # Now we pullback the glue maps to every pair of lattices `(M, N)` from
   # `Ms` and `Ns` using that data just computed
   for i in 1:length(Ms), j in 1:length(Ns)
     GM = GMs[i]
-    gammaM, i0 = dataM[i]
+    i0, k0 = dataM[i]
     GN = GNs[j]
-    gammaN, i1 = dataN[j]
-    psi = hom(domain(i0), domain(i1), TorQuadModuleElem[i1\(gammaN(phi(gammaM(i0(a))))) for a in gens(domain(i0))])
+    i1, k1 = dataN[j]
+    psi = k0 * phi * k1
     ipsi = inv(psi)
     xMN = ZZLatGluing(psi, ipsi, i0, id_hom(GM), i1, id_hom(GN))
     push!(lgm, xMN)
@@ -1655,7 +1661,7 @@ function _primitive_extensions_direct(
   for x in lgm
     D = _gluing_ambient(x; as_bilinear_module)
     for y in _all_glue_maps(x; as_bilinear_module)
-      z = _overlattice(x, D; as_bilinear_module)
+      z = _overlattice(y, D; as_bilinear_module)
       if parity === :even
         @hassert :ZZLatWithIsom 1 is_even(Base.first(z))
       elseif parity === :odd
@@ -1774,22 +1780,24 @@ function _primitive_extensions(
       compute_iso = false
     end
 
-    for i in 1:length(Ms), j in 1:length(Ns), x in lgm
+    for i in 1:length(Ms)
       GM = GMs[i] # Global classifying group
       gammaM = _dataM[i]
-      GN = GNs[j]
-      gammaN = _dataN[j]
-      xM = _pullback_left(x, gammaM; as_bilinear_module)
-      xMs = _split_orbit_left(xM, GM; as_bilinear_module)
-      for y in xMs
-        xMN = _pullback_right(y, gammaN; as_bilinear_module)
-        xMNs = _split_orbit_right(y, GN; as_bilinear_module)
-        for z in xMNs
-          w = _overlattice(x; as_bilinear_module)
-          !test_overlattice(Fac, Base.first(w)) && continue
-          exist_only && return true, results
-          push!(results, w)
-          first && return true, results
+      for x in lgm
+        xM = _pullback_left(x, gammaM; as_bilinear_module)
+        xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+        for y in xMs, j in 1:length(Ns)
+          GN = GNs[j]
+          gammaN = _dataN[j]
+          xMN = _pullback_right(y, gammaN; as_bilinear_module)
+          xMNs = _split_orbit_right(y, GN; as_bilinear_module)
+          for z in xMNs
+            w = _overlattice(x; as_bilinear_module)
+            !test_overlattice(Fac, Base.first(w)) && continue
+            exist_only && return true, results
+            push!(results, w)
+            first && return true, results
+          end
         end
       end
     end
@@ -1941,7 +1949,7 @@ function _primitive_embeddings(
 )
   res = NTuple{3, ZZLat}[]
   for G2 in G2s
-    append!(res, _primitive_embeddings(G1s, G2))
+    append!(res, last(_primitive_embeddings(G1s, G2)))
   end
   return res
 end
@@ -1956,16 +1964,16 @@ function _primitive_embeddings(
   if !is_even(G2)
     filter!(!is_even, G1s)
   end
-  q2 = discriminant_group(representative(G2))
-  Ctx = ZZLatGluingCtx() # Use a context object since we fix G2 and change G1, so we can avoid duplicate computations
+  Ctx = ZZLatGluingCtx() # Use a context object since we fix G2 and change G1,
+                         # so we can avoid duplicate computations
 
   for G1 in G1s
     if is_unimodular(G1)
-      append!(results, _primitive_embeddings_in_unimodular_safe(G1, G2))
+      append!(results, last(_primitive_embeddings_in_unimodular_safe(G1, G2)))
     elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
-      append!(results, _primitive_embeddings_coprime_det_safe(G1, G2))
+      append!(results, last(_primitive_embeddings_coprime_det_safe(G1, G2)))
     else
-      append!(results, _primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(1, -1)))
+      append!(results, last(_primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(1, -1))))
     end
   end
   return !isempty(results), results
@@ -2059,8 +2067,8 @@ function _step_2_primitive_embeddings(
     @assert genus(L) == G1
     exist_only && return true, results
     M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
-    @assert is_sublattice(L, M3)
-    @assert is_primitive(L, M3)
+    @hassert :ZZLatWithIsom 1 is_sublattice(L, M3)
+    @hassert :ZZLatWithIsom 1 is_primitive(L, M3)
     N = orthogonal_submodule(L, M3)
     bM = coordinates(basis_matrix(M3), L)
     bN = coordinates(basis_matrix(N), L)
@@ -2081,6 +2089,8 @@ function _primitive_embeddings_generic_safe(
   GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
   first::Bool=false,
   exist_only::Bool=false,
+  Ctx::Union{ZZLatGluingCtx, Nothing}=nothing,
+  vi::NTuple{2, Int}=(-1,-1),
 )
   results = NTuple{3, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
@@ -2118,7 +2128,7 @@ function _primitive_embeddings_generic_safe(
   # computations (so up to O(q1) and O(q2), and only one glue map for each
   # pair of anti-isometric groups), and we proceed iteratively on the
   # possible orders of a glue group
-  Fac = gluing_factory(q2, q1n; parity)
+  Fac = gluing_factory(q2, q1n; parity, Ctx, vi)
   init_gluing_factory!(Fac) # Not that here Fac is never trivial since there is the trivial gluing
   _order_list = sort!(collect(possible_glue_order(Fac)))
   as_bilinear_module = (Fac.par !== :even)
