@@ -1857,6 +1857,7 @@ export underlying_quotient
 export underlying_word
 export undirected_component
 export uniform_matroid
+export unimodular_primitive_extensions
 export unit
 export unitary_group
 export units_of

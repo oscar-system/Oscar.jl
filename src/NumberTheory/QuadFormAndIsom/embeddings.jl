@@ -4,20 +4,25 @@
 #
 ###############################################################################
 
+# TODO: should we get rid definitely of `same_ambient` anyway ?
 function __direct_sum(
     A::TorQuadModule,
     B::TorQuadModule,
-    same_ambient::Bool = false,
+    same_ambient::Bool = false;
+    as_bilinear_module::Bool=false,
   )
   if !same_ambient
-    return direct_sum(A, B; cached=false)
+    return direct_sum(A, B; cached=false, as_bilinear_module)
   end
 
   # Test that A and B have the same moduli and same ambient quadratic space
   @assert modulus_bilinear_form(A) == modulus_bilinear_form(B)
-  @assert modulus_quadratic_form(A) == modulus_quadratic_form(B)
+  @assert as_bilinear_module || modulus_quadratic_form(A) == modulus_quadratic_form(B)
   @assert ambient_space(cover(A)) === ambient_space(cover(B))
   V = ambient_space(cover(A))
+
+  mbf = modulus_bilinear_form(A)
+  mqf = as_bilinear_module ? mbf : modulus_quadratic_form(A)
 
   # Test that the modules are indeed in orthogonal direct sum
   # It should be used internally so we do not want to test that all the time
@@ -32,7 +37,7 @@ function __direct_sum(
   gensDB = Vector{QQFieldElem}[lift(b) for b in gens(B)]
   # D is A\oplus B, and we fix a set of generators given first the generators
   # of A and then the ones of B
-  D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=modulus_bilinear_form(A), modulus_qf=modulus_quadratic_form(A))
+  D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=mbf, modulus_qf=mqf)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
   AinD = hom(A, D, reduce(hcat, ZZMatrix[IA, zero_matrix(ZZ, ngens(A), ngens(B))]))
@@ -76,13 +81,14 @@ the respective covers of ``A`` and ``B``.
 function _direct_sum_with_embeddings_orthogonal_groups(
     A::TorQuadModule,
     B::TorQuadModule;
-    same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B)))
+    as_bilinear_module::Bool=false,
+    OA::AutomorphismGroup{TorQuadModule}=__orthogonal_group(A; as_bilinear_module),
+    OB::AutomorphismGroup{TorQuadModule}=__orthogonal_group(B; as_bilinear_module),
+    same_ambient::Bool=(ambient_space(cover(A)) === ambient_space(cover(B))),
   )
-  D, inj = __direct_sum(A, B, same_ambient)
+  D, inj = __direct_sum(A, B, same_ambient; as_bilinear_module)
   AinD, BinD = inj
   OD = orthogonal_group(D)
-  OA = orthogonal_group(A)
-  OB = orthogonal_group(B)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
 
@@ -118,7 +124,7 @@ function _get_V(
     p::IntegerUnion,
   )
   q = domain(f)
-  V, Vinq = kernel(hom(q, q, p*identity_matrix(ZZ, ngens(q)))) # TODO: remove once Hecke function implemented
+  V, Vinq = torsion_subgroup(q, p)
   fpV = restrict_endomorphism(f, Vinq; check=false)
   fpV = evaluate(mu, fpV)
   V, _ = kernel(fpV)
@@ -202,31 +208,18 @@ end
 # discriminant groups of $A$ and $B$ respectively. The third output of the
 # algorithm is the graph of $\gamma$ in $D$.
 #
-# The fourth and fifth inputs are optional isometries $f_A$ and $f_B$ of $A$
-# and $B$, respectively, to be extended along $\gamma$, assuming it to be an
-# $(f_A, f_B)$-equivariant gluing. The second output of the algorithm is
-# the extension $f_A\oplus f_B \in O(C)$ --- it is the identity by default.
-#
-# !!! note
-#     The isometries `fA` and `fB` are given in terms of their matrix
-#     representation on `A` and `B` respectively, not by their ambient
-#     representation. Similarly for the second output of the algorithm.
-#
 # !!! warning
 #     No sanity checks are performed: in particular, if $D_A$ and $D_B$ are not
-#     in orthogonal direct sum, if $\gamma$ is not a gluing, or if it is not
-#     $(f_A, f_B)$-equivariant, then the outputs might not satisfy the expected
-#     conditions.
+#     in orthogonal direct sum, or if $\gamma$ is not a gluing, then the outputs
+#     might not satisfy the expected conditions.
 #
-# If `same_ambient` is set to `true`, then the two lattices $A$ and $B$ are
-# considered as lying in the same ambient quadratic space.
-function _overlattice(
-    gamma::TorQuadModuleMap,
-    HAinD::TorQuadModuleMap,
-    HBinD::TorQuadModuleMap,
-    fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
-  )
+# If we glue along the trivial subgroups of `D_A` and `D_B`, one can drop the
+# glue map gamma as first input
+function _overlattice_with_graph(
+  gamma::TorQuadModuleMap,
+  HAinD::TorQuadModuleMap,
+  HBinD::TorQuadModuleMap,
+)
   HA = domain(HAinD)
   HB = domain(HBinD)
   A = relations(HA)
@@ -241,25 +234,14 @@ function _overlattice(
   _FakeB = hnf(Fakeglue)
   _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
   C = lattice(ambient_space(L), _B[end-rank(A)-rank(B)+1:end, :])
-  fC = block_diagonal_matrix(QQMatrix[fA, fB])
-  _B = coordinates(basis_matrix(C), L)
-  fC = _B*fC*inv(_B)
-  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
   _, graph = sub(D, D.(_glue))
-  return C, fC, graph
+  return C, graph
 end
 
-# Same as above where we glue along the trivial subgroups of `D_A` and `D_B`.
-# In that particular case, `D_A` and `D_B` are the discriminant groups of the
-# lattices considered (so HA = L^{\vee}/L for some lattice integral lattice L,
-# and same for HB), and D is the orthogonal direct sum of HA and HB in an
-# appropriate quadratic space.
-function _overlattice(
-    DAinD::TorQuadModuleMap,
-    DBinD::TorQuadModuleMap,
-    fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-    fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
-  )
+function _overlattice_with_graph(
+  DAinD::TorQuadModuleMap,
+  DBinD::TorQuadModuleMap,
+)
   DA = domain(DAinD)
   DB = domain(DBinD)
   zA, zAinDA = sub(DA, TorQuadModuleElem[])
@@ -267,7 +249,53 @@ function _overlattice(
   zAinD = compose(zAinDA, DAinD)
   zBinD = compose(zBinDB, DBinD)
   gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0))
-  return _overlattice(gamma, zAinD, zBinD, fA, fB)
+  return _overlattice_with_graph(gamma, zAinD, zBinD)
+end
+
+# Same as before, with the fourth and fifth inputs being optional isometries
+# $f_A$ and $f_B$ of $A$ and $B$, respectively, to be extended along $\gamma$,
+# assuming it to be an $(f_A, f_B)$-equivariant gluing. The second output of
+# the algorithm is the extension $f_A\oplus f_B \in O(C)$ --- it is the
+# identity by default.
+#
+# !!! note
+#     The isometries `fA` and `fB` are given in terms of their matrix
+#     representation on `A` and `B` respectively, not by their ambient
+#     representation. Similarly for the second output of the algorithm.
+#
+# !!! warning
+#     Again, no input checks are performed so if $\gamma$ is not equivariant
+#     with respect to $fA$ and $fB$, then the outputs might not satisfy the
+#     expected conditions.
+function _equivariant_overlattice_with_graph(
+  gamma::TorQuadModuleMap,
+  HAinD::TorQuadModuleMap,
+  HBinD::TorQuadModuleMap,
+  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
+  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
+)
+  C, graph = _overlattice_with_graph(gamma, HAinD, HBinD)
+  L = relations(codomain(HAinD))
+  fC = block_diagonal_matrix(QQMatrix[fA, fB])
+  _B = coordinates(basis_matrix(C), L)
+  fC = _B*fC*inv(_B)
+  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
+  return C, fC, graph
+end
+
+function _equivariant_overlattice_with_graph(
+  DAinD::TorQuadModuleMap,
+  DBinD::TorQuadModuleMap,
+  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
+  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
+)
+  C, graph = _overlattice_with_graph(DAinD, DBinD)
+  L = relations(codomain(DAinD))
+  fC = block_diagonal_matrix(QQMatrix[fA, fB])
+  _B = coordinates(basis_matrix(C), L)
+  fC = _B*fC*inv(_B)
+  @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
+  return C, fC, graph
 end
 
 ###############################################################################
@@ -275,46 +303,6 @@ end
 #  Generic primitive extensions method
 #
 ###############################################################################
-
-# Given a torsion quadratic module $q_M$, return the associated torsion
-# bilinear module. Here $G_M$ and $f_{q_M}$ are respectively a group of
-# isometries and an isometry of $q_M$, for the quadratic form. The function
-# also returns the associated group of isometries and isometry for the torsion
-# bilinear module associated to $q_M$.
-function _change_to_bilinear_module(
-    qM::TorQuadModule,
-    GM::AutomorphismGroup{TorQuadModule},
-    fqM::TorQuadModuleMap,
-  )
-  qM = Hecke._as_finite_bilinear_module(qM) # TODO: to be changed
-  OqM = orthogonal_group(qM)
-  GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check=false) for g in gens(GM)])
-  fqM = hom(qM, qM, matrix(fqM))
-  return qM, OqM, GM, fqM
-end
-
-# Given two torsion quadratic/bilinear modules $q_M$ and $q_N$, return the
-# list of possible orders for anti-isometric submodules of $q_M$ and $q_N$
-# respectively.
-#
-# One can choose a default value `glue_order`, useful in functions with keyword
-# arguments.
-#
-# TODO: To be removed once appropriate Hecke functions implemented
-function _possible_glue_orders(
-    qM::TorQuadModule,
-    qN::TorQuadModule,
-  )
-  _gcd = ZZ(1)
-  snM = reverse!(elementary_divisors(qM))
-  snN = reverse!(elementary_divisors(qN))
-  k = min(length(snM), length(snN))
-  for i in 1:k
-    mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
-  end
-  pos_ord = divisors(_gcd)
-  return pos_ord
-end
 
 # Given an abelian group isomorphism $\phi$ between two torsion
 # quadratic/bilinear modules $H_M$ and $H_N$, and given two isometries
@@ -413,6 +401,17 @@ function _fitting_isometries(
     map!(m -> solve(basis_matrix(N), basis_matrix(N)*m; side=:left), reporb, reporb)
   end
   return reporb
+end
+
+function _as_sublattices(
+  L::ZZLat,
+  M::ZZLat,
+  N::ZZLat,
+)
+  V = ambient_space(L)
+  M2 = lattice(V, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L) - degree(M))))
+  N2 = lattice(V, hcat(zero_matrix(QQ, rank(N), degree(L) - degree(N)), basis_matrix(N)))
+  return M2, N2
 end
 
 # We have a primitive extension `M\oplus N \to L`: we want to see M and N now
@@ -563,6 +562,9 @@ end
 #
 # This generic function is then called by the different methods for primitive
 # extensions later.
+#
+# TODO: Once the case of equivariant primitive extensions is transported on the
+# new gluing infrastructure, remove this.
 function _primitive_extensions_generic(
     M::ZZLat,
     N::ZZLat,
@@ -604,8 +606,6 @@ function _primitive_extensions_generic(
 
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
-  #
-  # TODO: Add a dedicated manager to take of this
   if !isempty(glue_order)
     _glue_order = sort!(unique!(deepcopy(glue_order)))
     @req all(>(0), _glue_order) "Orders of glue groups must be positive integers"
@@ -663,8 +663,6 @@ function _primitive_extensions_generic(
   # If we want an odd extension, then we consider M and N as odd lattices. In
   # particular, we forget about the quadratic forms on the discriminant groups
   # which we see as a finite bilinear module.
-  #
-  # TODO: Adapt methods to take of this internally
   if !even && is_even(M)
     qM, OqM, GM, fqM = _change_to_bilinear_module(qM, GM, fqM)
     if !isnothing(OqfM)
@@ -687,10 +685,6 @@ function _primitive_extensions_generic(
 
   # Depending the abelian group structure on qM and qN, if glue_order is not
   # know, we have restriction on the order of possible common subgroups.
-  #
-  # #TODO: we could improve more the collection of common anti-isometric
-  # subgroups of qM and qN by working with common abelian group substructures
-  # for each possible order.
   if isempty(_glue_order)
     _glue_order = _possible_glue_orders(qM, qN)
   end
@@ -807,7 +801,7 @@ function _primitive_extensions_generic(
           end
 
           for b in reporb
-            L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b)
+            L, fL, graph = _equivariant_overlattice_with_graph(phig, HMinD, HNinD, fM, b)
 
             if !isempty(Gs)
               any(isequal(genus(L)), Gs) || continue
@@ -837,20 +831,77 @@ end
 #
 ###############################################################################
 
+# Return a transversal for the `O`'-orbits of subgroups of the `p`-group `V`
+# whose type if given by `subtype` (type means the decreasing sequence of
+# valuations of elementary divisors for the `p`-group).
+# If `f` is not the identity, we take those subgroups which are preserved by
+# `f`
+#
+# The first version remembers only the subgroups and their stabilizers, the
+# second version remembers the respective embeddings too
+function _subgroups_orbit_representatives_and_stabilizers_primary_subtype(
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  p::ZZRingElem,
+  subtype::Vector{Int},
+  f::TorQuadModuleMap = id_hom(codomain(Vinq)),
+)
+  r1 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Vinq, O, p, subtype, f)
+  r = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[(x[1], domain(x[2])) for x in r1]
+  return r
+end
+
+function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  p::ZZRingElem,
+  subtype::Vector{Int},
+  f::TorQuadModuleMap = id_hom(codomain(Vinq)),
+)
+  res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
+
+  V = domain(Vinq)
+  q = codomain(Vinq)
+  A = abelian_group(V)
+  @assert is_snf(A)
+  flag = isone(matrix(f))
+
+  subs_it = Hecke._psubgroups(A, p; subtype=[subtype])
+
+  to_gap = get_attribute(O, :to_gap)
+  to_oscar = get_attribute(O, :to_oscar)
+  qgap = codomain(to_gap)
+  sgap = typeof(qgap)[]
+
+  for (H, i) in subs_it
+    Hgap, _ = sub(qgap, elem_type(qgap)[to_gap(Vinq(V(i(a)))) for a in gens(H)])
+    push!(sgap, Hgap)
+  end
+
+  m = gset(O, on_subgroups, sgap)
+  orbs = orbits(m)
+  for orb in orbs
+    _repgap = representative(orb)
+    _, rep = sub(q, TorQuadModuleElem[to_oscar(qgap(a)) for a in gens(_repgap)])
+    flag || is_invariant(f, rep) || continue
+    stab, jj = stabilizer(O, rep)
+    push!(res, (rep, jj))
+  end
+  return res
+end
+
 # Given the embedding of an `(O, f)`-stable finite quadratic submodule `V` of
 # `q`, compute representatives of `O`-orbits of `f`-stable submodules of `V` of
 # order `ord`. The stabilizers in `O` is also computed.
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
-#
-# TODO: Replace by dedicated function for p-group and subgroup types
 function _subgroups_orbit_representatives_and_stabilizers(
-    Vinq::TorQuadModuleMap,
-    O::AutomorphismGroup{TorQuadModule},
-    ord::IntegerUnion = -1,
-    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
-  )
+  Vinq::TorQuadModuleMap,
+  O::AutomorphismGroup{TorQuadModule},
+  ord::IntegerUnion = -1,
+  f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+)
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
@@ -944,6 +995,9 @@ end
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
+#
+# As before, the first version of the function remembers only groups and
+# the second version keeps track of the respective embeddings
 function _subgroups_orbit_representatives_and_stabilizers_elementary(
     Vinq::TorQuadModuleMap,
     G::AutomorphismGroup{TorQuadModule},
@@ -953,7 +1007,21 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     l::IntegerUnion = -1;
     algorithm::Symbol=:PermGroup,
   )
-  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+  r1 = __subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, G, ord, _p, f, l; algorithm)
+  r = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[(x[1], domain(x[2])) for x in r1]
+  return r
+end
+
+function __subgroups_orbit_representatives_and_stabilizers_elementary(
+    Vinq::TorQuadModuleMap,
+    G::AutomorphismGroup{TorQuadModule},
+    ord::IntegerUnion,
+    _p::IntegerUnion,
+    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+    l::IntegerUnion = -1;
+    algorithm::Symbol=:PermGroup,
+  )
+  res = Tuple{TorQuadModuleMap, GAPGroupHomomorphism}[]
   p = ZZ(_p)
 
   V = domain(Vinq)
@@ -976,14 +1044,14 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
   # and we return it, or if order(H0) > ord, there are no subgroups as wanted
   if order(H0) >= ord
     order(H0) > ord && return res
-    push!(res, (H0inq, G))
+    push!(res, (H0inq, id_hom(G)))
     return res
   end
   # Now the groups we look for should strictly contain H0.
   # If ord == order(V), then there is only V satisfying the given
   # conditions, and V is stabilized by the all G
   if ord == order(V)
-    push!(res, (Vinq, G))
+    push!(res, (Vinq, id_hom(G)))
     return res
   end
 
@@ -1018,11 +1086,11 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
       # We keep only f-stable subspaces
       is_invariant(f, orbqinq) || continue
       stabq_gen = elem_type(G)[GtoOVmodH0\(inc_stab(s)) for s in gens(stab)]
-      stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+      stabq, jj = sub(G, union!(stabq_gen, gens(satV)))
       # Stabilizers should preserve the actual subspaces, by definition. so if we
       # have lifted everything properly, this should hold..
       @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
-      push!(res, (orbqinq, stabq))
+      push!(res, (orbqinq, jj))
     end
     @vprint :ZZLatWithIsom 5 " done \r                                     \r"
     return res
@@ -1072,144 +1140,13 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(
     is_invariant(f, orbqinq) || continue
 
     stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
-    stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+    stabq, jj = sub(G, union!(stabq_gen, gens(satV)))
     # Stabilizers should preserve the actual subspaces, by definition. so if we
     # have lifted everything properly, this should hold..
     @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
-    push!(res, (orbqinq, stabq))
+    push!(res, (orbqinq, jj))
   end
   @vprint :ZZLatWithIsom 5 "   done \n"
-  return res
-end
-
-# Compute `O`-orbits of `f`-stable submodules of `ker(mu(f))` which are
-# isometric, as torsion quadratic modules, to `H`. It also computes the
-# stabilizers in `O` of such subgroups. If `H` is not given, then return
-# orbits of stable submodules of order `ordH`.
-#
-# The outputs are given by embeddings of such submodules in `q`.
-#
-# The code splits the computation into primary parts since they are orthogonal
-# to each others.
-#
-# TODO: Remove this old bad code within the new infrastructure
-function _classes_isomorphic_subgroups(
-    q::TorQuadModule,
-    O::AutomorphismGroup{TorQuadModule},
-    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
-    H::Union{Nothing, TorQuadModule}=nothing,
-    ordH::Union{Nothing, IntegerUnion}=nothing,
-    mu::PolyRingElem=zero(Hecke.Globals.Qx),
-  )
-  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
-
-  if isnothing(H)
-    @assert !isnothing(ordH)
-    @assert ordH > 0
-  else
-    ordH = order(H)
-  end
-
-  !is_divisible_by(order(q), ordH) && return res
-
-  if ordH == 1
-    _, j = sub(q, elem_type(q)[])
-    push!(res, (j, O))
-    return res
-  end
-
-  # Trivial case: we look for subgroups in a given primary part of q
-  ok, e, p = is_prime_power_with_data(ordH)
-  if ok
-    if (e == 1) || (!isnothing(H) && is_elementary(H, p))
-      _, Vinq = _get_V(f, mu, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
-    else
-      T, Tinq = kernel(evaluate(mu, f))
-      _, VinT = primary_part(T, p)
-      Vinq = compose(VinT, Tinq)
-      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
-    end
-    if !isnothing(H)
-      filter!(d -> is_isometric_with_isometry(domain(d[1]), H)[1], sors)
-    end
-    return sors
-  end
-
-  # We inspect each primary part of q and look for orbit representatives and
-  # stabilizers of isomorphic subgroups which will be isometric to the given
-  # primary part of H.
-  #
-  # First, we cut q as an orthogonal direct sum of its primary parts
-  pds = sort!(prime_divisors(order(q)))
-  blocks = TorQuadModuleMap[primary_part(q, pds[1])[2]]
-  ni = Int[ngens(domain(blocks[1]))]
-  for i in 2:length(pds)
-    _f = blocks[end]
-    _, j = has_complement(_f)
-    _T = domain(j)
-    __f = primary_part(_T, pds[i])[2]
-    push!(blocks, compose(__f, j))
-    push!(ni, ngens(domain(__f)))
-  end
-  D, inj, proj = Hecke._biproduct(domain.(blocks))
-  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
-  @hassert :ZZLatWithIsom 1 is_isometry(phi)
-
-  list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
-  # We collect the possible subgroups for each primary part, with the stabilizer
-  for i in 1:length(pds)
-    p = pds[i]
-    qpinq = blocks[i]
-    qp = domain(qpinq)
-    ordHp = p^valuation(ordH, p)
-    if !isnothing(H)
-      T, _ = primary_part(H, p)
-    end
-    Oqp, _ = restrict_automorphism_group(O, qpinq; check=false)
-    fqp = restrict_endomorphism(f, qpinq; check=false)
-    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(T, p))
-      _, j = _get_V(fqp, mu, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
-    else
-      _, Tpinqp = kernel(evaluate(mu, fqp))
-      sors = _subgroups_orbit_representatives_and_stabilizers(Tpinqp, Oqp, ordHp, fqp)
-    end
-    if !isnothing(H)
-      filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
-    end
-    is_empty(sors) && return res
-    push!(list_can, sors)
-  end
-
-  # We gather together: we do a big cartesian product, and we remember to
-  # reconstruct the stabilizer. Since primary parts do not talk to each other,
-  # we concatenate generators on an orthogonal direct sum of q into its primary
-  # parts (as we do for computations of orthogonal groups in the non split
-  # degenerate case)
-  for lis in Hecke.cartesian_product_iterator(list_can)
-    embs = TorQuadModuleMap[l[1] for l in lis]
-    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
-    H2, _, _proj = Hecke._biproduct(domain.(embs))
-    _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
-    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
-    genestab = ZZMatrix[]
-
-    for i in 1:length(ni)
-      nb = sum(ni[1:i-1])
-      na = sum(ni[(i+1):end])
-      Inb = identity_matrix(ZZ, nb)
-      Ina = identity_matrix(ZZ, na)
-      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
-    end
-
-    genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
-    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
-    stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check=false))
-    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
-    push!(res, (H2inq, stab))
-  end
-
   return res
 end
 
@@ -1219,19 +1156,118 @@ end
 #
 ###############################################################################
 
+# Make sure that the lattices in `Ms` have genus `G1` and that for every index
+# `i`, the `i`th group of `GMs`, if defined, has domain exactly the
+# discriminant group of the `i`th lattice in `Ms` (can be disabled by setting
+# `check=false`
+#
+# Return also the discriminant form of a lattice in `G1`, of the form
+# ``L^/vee / L`` for `L` in `G1`). If `Ms` is not empty, we choose `L` to be
+# first lattice in `Ms` (so we do not need to compute `representative(G1)` if
+# one has not been computed yet
+function __initialize_extension_data(
+  G1::ZZGenus,
+  Ms::Vector{ZZLat},
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}};
+  check::Bool=true,
+)
+  if check
+    @req all(isequal(G1)∘genus, Ms) "Lattices in first input list not in first input genus"
+    for i in 1:length(Ms)
+      if haskey(GMs, i)
+        @req domain(GMs[i]) === discriminant_group(Ms[i]) "Wrong domain for entry $i of GMs"
+      end
+    end
+  end
+
+  if !isempty(Ms)
+    qM = discriminant_group(Base.first(Ms))
+  else
+    GMs = empty(GMs)
+    qM = discriminant_group(representative(G1))
+  end
+
+  return qM, GMs
+end
+
+# `Ms` is a list of lattices in `G1`; if empty, we replace it by a complete
+# list of representatives of lattices in `G1`.
+# Then, for every lattice in `Ms`, we make sure that `GMs` records a
+# classifying group; if not, we set it to be `image_in_Oq` by default
+# (so here we talk about global classifying group, not local)
+function __setup_classifying_groups(
+  G1::ZZGenus,
+  Ms::Vector{ZZLat},
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}},
+)
+  if !isempty(Ms)
+    for i in 1:length(Ms)
+      if !haskey(GMs, i)
+        GMs[i] = first(image_in_Oq(Ms[i]))
+      end
+    end
+  else
+    Ms = representatives(G1)
+    if length(Ms) == 1
+      GMs[1] = first(image_in_Oq(only(Ms)))
+    else
+      for i in 1:length(Ms)
+        GMs[i] = first(image_in_Oq(Ms[i]))
+      end
+    end
+  end
+  return Ms, GMs
+end
+
+### Helper for preparing the lattices to glue
+
+# Get the global classifying group for a lattice in input of
+# `primitive_extensions` or `primitive_embeddings`. It is either:
+# - `discriminant_action` if not `nothing`;
+# - or the representation of `lattice_action` of the discriminant group
+#   `q_L` of `L`, if not `nothing`;
+# - or the trivial group if `first` or `exist_only` is true;
+# - (backward compatibility) or the trivial group if `classification`
+#   has `emb` on the left or right (depending on the value of the symbol `side`;
+# - or the representation of the orthogonal group `O(L)` on `q_L` otherwise.
+function _get_classifying_group(
+  L::ZZLat,
+  discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing},
+  lattice_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing},
+  first::Bool,
+  exist_only::Bool;
+  side::Symbol=:any,
+  classification::Symbol=:subsub,
+)
+  if !isnothing(discriminant_action)
+    GLbar = discriminant_action
+  elseif !isnothing(lattice_action)
+    GLbar, _ = image(discriminant_representation(L, lattice_action; full=false))
+  elseif first || exist_only || (classification === :embsub && side === :left) || (classification === :subemb && side === :right) || classification == :embemb
+    qL = discriminant_group(L)
+    GLbar = Oscar._orthogonal_group(qL, TorQuadModuleMap[id_hom(qL)]; check=false)
+  else
+    GLbar, _ = image_in_Oq(L)
+  end
+  return GLbar
+end
+
 @doc raw"""
-    primitive_extensions(
-      M::ZZLat,
-      N::ZZLat;
-      kwargs...,
-    ) -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
+    primitive_extensions(M::ZZLat, N::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
+    primitive_extensions(M::ZZLat, Ns::Vector{ZZLat}; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
+    primitive_extensions(M::ZZLat, G::ZZGenus[, Ns::Vector{ZZLat}]; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
 
 Given two integral $\mathbb Z$-lattices $M$ and $N$, return a boolean `T` and a
-list $V$ of representatives of double cosets of primitive extensions
+transversal $V$ for the double cosets of primitive extensions
 $M \oplus N \subseteq L$, for the right and left actions of $O(M)$ and $O(N)$
 respectively.
 
-Here is a complete list of currently supported keyword arguments:
+The first boolean in output is true if and only if such a primitive extension
+exists. Each element in the output list is given as a triple $(L, M_1, N_1)$
+where $M_1\subset L$ is isometric to $M$,  $N_1\subset L$ is isometric to $N$
+and $M_1\oplus N_1\subset L$ is a primitive extension.
+
+Here is a list of currently supported keyword arguments:
 - `right_action::MatGroup{QQFieldElem, QQMatrix}` -> replace the right
   action of $O(M)$ by a right action of the group generated by `right_action`
   and the kernel of $O(M) \to O(D_M)$.
@@ -1248,13 +1284,36 @@ Here is a complete list of currently supported keyword arguments:
   computed.
 - `exist_only::Bool` -> if set to `true`, return only whether a primitive
   extension exists together with an empty list.
+- `parity::Symbol` -> specify the parity of the primitive extensions in
+  output. Can be set to be `:odd` for odd extensions, `:even` for even
+  ones or `:both` for both. By default, the algorithm chooses the value
+  of `:parity` to be `:even` or `:odd` depending on the parity of the
+  inputs.
+- `glue_annihilator_left::TorQuadModuleMap` -> specify an abelian group
+  endomorphism $a_M$ of the discriminant group $D_M$ of $M$ such that the
+  glue group $H_M\subset D_M$ associated to each primitive extension in output
+  lies in the kernel of $a_M$. Set to be the zero endomorphism by default.
+- `glue_annihilator_right::TorQuadModuleMap` -> specify an abelian group
+  endomorphism $a_N$ of the discriminant group $D_N$ of $N$ such that the
+  glue group $H_N\subset D_N$ associated to each primitive extension in output
+  lies in the kernel of $a_N$. Set to be the zero map by default.
 - `glue_order::AbstractVector{IntegerUnion}` -> provide a list of possible
   orders for the glue groups associated to each primitive extension in output.
   If no such list is provided, then the algorithm assumes no restriction.
-- `form_over::Vector{TorQuadModule}` -> provide a list of possible discriminant
-  groups for the primitive extensions in output. If no such list is provided,
+- `glue_exponent::IntegerUnion` -> specify a positive integer $n$ such that
+  the glue groups associated to each primitive extension in output is of
+  $n$-torsion. If no value is specified, then the algorithm assumes no
+  restriction.
+- `glue_elementary_divisors::AbtractVector` -> provide a list of possible
+  elementary divisors for the glue groups associated to each primitive
+  extension in output. If no such list is specified, then the algorithm assumes
+  no restriction.
+- `form_over::AbstractVector{TorQuadModule}` -> provide a list of possible
+  discriminant groups for the primitive extensions in output. If no such list
+  is provided, then the algorithm assumes no restriction.
+- `genus_over::AbstractVector{ZZGenus}` -> provide a list of possible integer
+  genera for the primitive extensions in output. If no such list is provided,
   then the algorithm assumes no restriction.
-- `even::Bool` -> if set to `true`, return only even primitive extensions.
 
 !!! note
     If `right_action` is provided by the user, then the algorithm assumes that
@@ -1266,70 +1325,484 @@ Here is a complete list of currently supported keyword arguments:
     assumes without checking it, that the given group lies in the image of
     $O(M) \to O(D_M)$. Similarly for `left_discriminant_action`.
 
+Alternatively, as second input, one can provide:
+- either a list `Ns::Vector{ZZLat}` of integral lattices,
+- or a genus `G::ZZGenus` of integral lattice, in which case one can also
+  provide a third input `Ns::Vector{ZZLat}` consisting of lattices in `G`
+  (the default is a complete set of representatives for the isometry classes
+  in `G`).
+
+In these two cases, the list of possible keyword arguments is the same, at the
+exception of `left_action` and `left_discriminant_action` which are set to be
+maximal (i.e. given by the full orthogonal group of each lattices) by default.
+
+!!! note
+    Tracking several possible left discriminant actions for each of the
+    input lattices is possible but tedious. In general, if such actions have
+    to be considered, we advice to call the function individually on each
+    possible lattice as second input.
+
+In some cases, one can speed up the computations if one wants to compute
+special kinds of primitive extensions. We thus provide the following extra
+keyword arguments:
+- `unimodular::Bool` -> if set to `true`, compute only unimodular extensions.
+  Alternatively, one could use the alias function `unimodular_primitive_extensions`.
+- `coprime_left::Bool` -> if set to `true`, compute only primitive extensions
+  whose determinant is coprime to that of `M`.
+- `coprime_right::Bool` -> same as `coprime_left` but for the other inputs.
+
+!!! note
+    In all these cases, the order of the glue groups, their elementary divisors,
+    the genus and the discriminant form of the extensions are uniquely
+    determined by the input. Hence all the other keyword arguments providing
+    restriction on glue groups and local invariants of the primitive extensions
+    are ignored if any of the above 3 keyword arguments is set to `true`.
 """
-primitive_extensions(::ZZLat, ::ZZLat)
+primitive_extensions
 
-function primitive_extensions(
-    M::ZZLat,
-    N::ZZLat;
-    right_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
-    right_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
-    left_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
-    left_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
-    classification::Symbol=:subsub, # Keep for backward compatibility
-    first::Bool=false,
-    exist_only::Bool=false,
-    glue_order::AbstractVector{T}=Int[],
-    form_over::Vector{TorQuadModule}=TorQuadModule[],
-    even::Bool=(is_even(M) && is_even(N)),
-  ) where T <: Hecke.IntegerUnion
+primitive_extensions(args...; kwargs...) = _primitive_extensions(args...; kwargs...)
 
+unimodular_primitive_extensions(args...; kwargs...) = primitive_extensions(args...; unimodular=true, kwargs...)
+
+# (ZZLat, ZZLat) version
+function _primitive_extensions(
+  M::ZZLat,
+  N::ZZLat;
+  right_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
+  right_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
+  left_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
+  left_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
+  classification::Symbol=:subsub, # Keep for backward compatibility
+  even::Bool=(is_even(M) && is_even(N)), # Keep for backward compatibility
+  first::Bool=false,
+  exist_only::Bool=false,
+  parity::Symbol=:default,
+  kwargs...,
+)
   @req is_integral(M) && is_integral(N) "Only available for integral lattices"
-  results = Tuple{ZZLat, ZZLat, ZZLat}[]
-
-  if isnothing(right_discriminant_action)
-    if isnothing(right_action)
-      if classification == :embsub || classification == :embemb
-        qM = discriminant_group(M)
-        GMbar = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
-      else
-        GMbar, _ = image_in_Oq(M)
-      end
-    else
-      GMbar, _ = image(discriminant_representation(M, right_action; full=false))
-    end
-  else
-    GMbar = right_discriminant_action
+  both_even = is_even(M) && is_even(N)
+  # Check compatibility of parity condition
+  # The keyword argument `even` is not part of the doc since it belongs
+  # to the old interface and we want the function to be compatible with
+  # older versions
+  if even && parity !== :odd
+    !both_even && return false, NTuple{3, ZZLat}[]
+    parity = :even
+  elseif parity === :default
+    parity = both_even ? :even : :odd
+  elseif !both_even && parity === :even
+    return false, NTuple{3, ZZLat}[]
   end
 
-  if isnothing(left_discriminant_action)
-    if isnothing(left_action)
-      if classification == :subemb || classification == :embemb
-        qN = discriminant_group(N)
-        GNbar = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
-      else
-        GNbar, _ = image_in_Oq(N)
-      end
-    else
-      GNbar, _ = image(discriminant_representation(N, left_action; full=false))
-    end
-  else
-    GNbar = left_discriminant_action
-  end
-
-  if classification == :first
+  # The keyword argument `classification` is not part of the doc either
+  # for similar reasons as for `even`
+  if classification === :first
     first = true
-  elseif classification == :none
+  elseif classification === :none
     exist_only = true
   end
 
-  bool, res = _primitive_extensions_generic(M, N, GMbar, GNbar, (:plain, :plain); even, exist_only, first, glue_order, form_over)
+  # Handle global classifying groups
+  GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only; side=:left, classification)
+  GNbar =  _get_classifying_group(N, left_discriminant_action, left_action, first, exist_only; side=:right, classification)
 
-  for t in res
-    push!(results, lattice.(t))
+  # Call the generic function which handle everything nicely
+  return _primitive_extensions(genus(M), genus(N), parity, [M], [N]; GMs=Dict(1 => GMbar), GNs=Dict(1 => GNbar), first, exist_only, check=false, kwargs...)
+end
+
+# (ZZLat, Vector{ZZLat}) version
+# This was not available on the old interface so we do not need to take
+# care of keyword arguments like `even` or `classification` anymore
+function _primitive_extensions(
+  M::ZZLat,
+  Ns::Vector{ZZLat};
+  right_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
+  right_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
+  exist_only::Bool=false,
+  first::Bool=false,
+  parity::Symbol=:default,
+  kwargs...,
+)
+  @req is_integral(M) && all(is_integral, Ns) "Only available for integral lattices"
+
+  # Handle global classifying group
+  GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only)
+  genusM = genus(M)
+
+  # A priori, the lattices in `Ns` could belong to different genera
+  # To simplify computations as much as possible, to gather them
+  # into genera and then run the generic function on each genus
+  # represented and with the sublist of `Ns` with the associated
+  # representatives
+  D = Dict{ZZGenus, Vector{ZZLat}}()
+  for N in Ns
+    G = genus(N)
+    if haskey(D, G)
+      push!(D[G], N)
+    else
+      D[G] = N
+    end
   end
 
-  return bool, results
+  results = NTuple{3, ZZLat}[]
+  for G in keys(D)
+    # Manage the parity compatibility each genus at a time
+    both_even = is_even(GM) && is_even(G)
+    if !both_even && parity === :even
+      continue
+    elseif parity === :default
+      _parity = both_even ? :even : :odd
+    else
+      _parity = parity
+    end
+    ok, tmp = _primitive_extensions(genusM, G, _parity, [M], D[G]; GMs=Dict(1 => GMbar), exist_only, first, check=false, kwargs...)
+    # If we ask only for a existence or a first extension and we found one with
+    # some lattices above, then we can already stop
+    if ok && (exist_only || first)
+      return ok, tmp
+    end
+    append!(results, tmp)
+  end
+  return length(results) > 0, results
+end
+
+# (ZZLat, ZZGenus[, Vector{ZZLat}]) version
+function _primitive_extensions(
+  M::ZZLat,
+  G::ZZGenus,
+  lattices_left::Vector{ZZLat} = ZZLat[];
+  right_action::Union{MatGroup{QQFieldElem, QQMatrix}, Nothing}=nothing,
+  right_discriminant_action::Union{AutomorphismGroup{TorQuadModule}, Nothing}=nothing,
+  exist_only::Bool=false,
+  first::Bool=false,
+  parity::Symbol=:default,
+  kwargs...,
+)
+  @req is_integral(M) && is_integral(G) "Only available for integral lattices"
+  # Make sure the lattices in input are in the given genus
+  @req all(isequal(G)∘genus, lattices_left) "Input lattices not in the given genus"
+  # Check parity compatibility
+  both_even = is_even(M) && is_even(G)
+  if !both_even && parity === :even
+    return false, NTuple{3, ZZLat}[]
+  elseif parity === :default
+    parity = both_even ? :even : :odd
+  end
+
+  # Handle global classifying group
+  GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only)
+  return _primitive_extensions(genus(M), G, parity, [M], lattices_left; GMs=Dict(1 => GMbar), exist_only, first, check=false, kwargs...)
+end
+
+# In the case where the determinant of `G1` or `G2` is coprime to the
+# determinant of a primitive extension, i.e. we glue the full discriminant
+# group of one lattice (and it is anti-isometric to the product of some
+# `p`-Sylow of the discriminant group of the other lattice)
+# This applies then to unimodular primitive extensions also, for instance
+function _primitive_extensions_direct(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  parity::Symbol,
+  Ms::Vector{ZZLat} = ZZLat[],
+  Ns::Vector{ZZLat} = ZZLat[];
+  coprime_left::Bool=false,
+  coprime_right::Bool=false,
+  unimodular::Bool=false,
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  GNs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  first::Bool=false,
+  exist_only::Bool=false,
+  check::Bool=true,
+)
+  results = NTuple{3, ZZLat}[]
+  @assert parity in [:even, :odd, :both]
+
+  if coprime_left && coprime_right
+    unimodular = true
+  end
+
+  both_even = is_even(G1) && is_even(G2)
+  if !both_even && parity === :even
+    return false, results
+  end
+
+  # `qM` (resp. `qN`) is the discriminant group of the first lattice in `Ms`
+  # (resp. `Ns`) if non-empty, otherwise of a representative of `G1` (resp.
+  # G2) computed on the spot if not yet stored
+  qM, GMs = __initialize_extension_data(G1, Ms, GMs; check)
+  qN, GNs = __initialize_extension_data(G2, Ns, GNs; check)
+  as_bilinear_module = (parity !== :even)
+
+  if unimodular
+    # then we need to glue both discriminant groups fully
+    HM, HN = qM, qN
+    HMinqM, HNinqN = id_hom(qM), id_hom(qN)
+  elseif coprime_left
+    # we glue `qM` with the relevant p-Sylow subgroups of `qN`
+    pds = prime_divisors(order(qM))
+    gensHN = TorQuadModuleElem[]
+    for p in pds
+      _H, j = primary_part(qN, p)
+      append!(gensHN, j.(gens(_H)))
+    end
+    HM, HMinqM = qM, id_hom(qM)
+    HN, HNinqN = sub(qN, gensHN)
+  else
+    # we glue `qN` with the relevant p-Sylow subgroups of `qM`
+    @assert coprime_right
+    pds = prime_divisors(order(qN))
+    gensHM = TorQuadModuleElem[]
+    for p in pds
+      _H, j = primary_part(qM, p)
+      append!(gensHM, j.(gens(_H)))
+    end
+    HN, HNinqN = qN, id_hom(qN)
+    HM, HMinqM = sub(qM, gensHM)
+  end
+  ok, phi = is_anti_isometric_with_anti_isometry(HM, HN; as_bilinear_module)
+  !ok && return false, results # We cannot glue
+
+  # At that point we know that there is a good extension except if we want an
+  # odd extension, both `G1` and `G2` are even, and the first glue map `phi`
+  # respects quadratic forms (because the extension associated to `phi` is
+  # even). We need to check whether the associated glue groups of `phi` (which
+  # are uniquely determined) admits an isometry which does not preserve their
+  # quadratic form. If not, then there are no extensions. If yes, we perturb
+  # `phi` to give rise to an odd extension, and we set `as_bilinear_module` to
+  # `false` so that we have no risk to turning `phi` into an even glue map
+  # again
+  if parity === :odd && both_even
+    if is_anti_isometry(phi; as_bilinear_module=false)
+      _O = orthogonal_group_bilinear(HN)
+      genO = gens(_O)
+      j = findfirst(!is_isometry∘hom, genO)
+      if isnothing(j)
+        # Whatever we do, the glue maps are going to be anti-isometries of quadratic
+        # modules
+        return false, results
+      end
+      # From now on we have a fixed anti-isometry of bilinear modules which
+      # does not define an anti-isometry of quadratic modules, so we can
+      # consider everything quadratic now in order to preserve this
+      # property
+      phi = phi * hom(genO[j])
+    end
+    as_bilinear_module = false
+    @hassert :ZZLatWithIsom 1 !is_anti_isometry(phi; as_bilinear_module=false)
+  end
+  exist_only && return true, results
+
+  _, inj = direct_sum(qM, qN; cached=false, as_bilinear_module)
+  qMinD, qNinD = inj
+  HMinD = HMinqM * qMinD
+  HNinD = HNinqN * qNinD
+  if first
+    L, _ = _overlattice_with_graph(phi, HMinD, HNinD)
+    if parity === :even
+      @hassert :ZZLatWithIsom 1 is_even(L)
+    elseif parity === :odd
+      @hassert :ZZLatWithIsom 1 !is_even(L)
+    end
+    M2, N2 = _as_sublattices(L, relations(HM), relations(HN))
+    push!(results, (L, M2, N2))
+    return true, results
+  end
+
+  # Now we have a good glue map, and `first` and `exist_only` are
+  # `false, thus we have to compute all glue maps now
+  Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
+  Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
+  lgm = ZZLatGluing[]
+  dataM = NTuple{2, TorQuadModuleMap}[]
+  dataN = NTuple{2, TorQuadModuleMap}[]
+
+  # Prepare an isometry between `qM` and the discriminant groups of
+  # every lattices in `Ms`
+  for i in 1:length(Ms)
+    GM = GMs[i]
+    _qM = domain(GM)
+    ok, gamma = is_isometric_with_isometry(_qM, qM)
+    @assert ok
+    _imHM = TorQuadModuleElem[gamma\(HMinqM(a)) for a in gens(HM)]
+    _HM, i0 = sub(_qM, _imHM)
+    k0 = hom(_HM, HM, _HM.(lift.(_imHM)), gens(HM))
+    push!(dataM, (i0, k0))
+  end
+
+  # Same as above but for the right lattices
+  for j in 1:length(Ns)
+    GN = GNs[j]
+    _qN = domain(GN)
+    ok, gamma = is_isometric_with_isometry(qN, _qN)
+    @assert ok
+    _imHN = TorQuadModuleElem[gamma(HNinqN(a)) for a in gens(HN)]
+    _HN, i1 = sub(_qN, _imHN)
+    k1 = hom(HN, _HN, _HN.(lift.(_imHN)))
+    push!(dataN, (i1, k1))
+  end
+
+  # Now we pullback the glue maps to every pair of lattices `(M, N)` from
+  # `Ms` and `Ns` using that data just computed
+  for i in 1:length(Ms), j in 1:length(Ns)
+    GM = GMs[i]
+    i0, k0 = dataM[i]
+    GN = GNs[j]
+    i1, k1 = dataN[j]
+    psi = k0 * phi * k1
+    ipsi = inv(psi)
+    xMN = ZZLatGluing(psi, ipsi, i0, id_hom(GM), i1, id_hom(GN))
+    push!(lgm, xMN)
+  end
+
+  # We do not have to do orbit splitting for the glue groups which are uniquely
+  # determined, but we need all orbits of glue maps by changing `phi` with
+  # isometries of the glue group modulo the representation of the classifying
+  # groups
+  for x in lgm
+    D = _gluing_ambient(x; as_bilinear_module)
+    for y in _all_glue_maps(x; as_bilinear_module)
+      z = _overlattice(y, D; as_bilinear_module)
+      if parity === :even
+        @hassert :ZZLatWithIsom 1 is_even(Base.first(z))
+      elseif parity === :odd
+        @hassert :ZZLatWithIsom 1 !is_even(Base.first(z))
+      end
+      push!(results, z)
+    end
+  end
+  return !isempty(results), results
+end
+
+function _primitive_extensions(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  parity::Symbol,
+  Ms::Vector{ZZLat} = ZZLat[],
+  Ns::Vector{ZZLat} = ZZLat[];
+  coprime_left::Bool=false,
+  coprime_right::Bool=false,
+  unimodular::Bool=false,
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  GNs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  first::Bool=false,
+  exist_only::Bool=false,
+  check::Bool=true,
+  Ctx::Union{ZZLatGluingCtx, Nothing}=nothing,
+  vi::NTuple{2, Int}=(-1, -1),
+  kwargs...,
+)
+  results = NTuple{3, ZZLat}[]
+  @assert parity in [:even, :odd, :both]
+  # In these cases, we delegate to the previous function
+  if unimodular || coprime_left || coprime_right
+    return _primitive_extensions_direct(G1, G2, parity, Ms, Ns; coprime_left, coprime_right, unimodular, GMs, GNs, first, exist_only, check)
+  end
+
+  both_even = is_even(G1) && is_even(G2)
+  if !both_even && parity === :even
+    return false, results
+  end
+
+  qM, GMs = __initialize_extension_data(G1, Ms, GMs; check)
+  qN, GNs = __initialize_extension_data(G2, Ns, GNs; check)
+  as_bilinear_module = (parity !== :even)
+  D = _gluing_ambient(qM, qN; as_bilinear_module)
+
+  # Now, we do first local gluings and we split orbits. It allows
+  # for faster decision time when `first` or `exist_only` are `true` and
+  # it allows to avoid redundant computations since local gluings
+  # are the same for all lattices in a given genus
+  Fac = gluing_factory(qM, qN; parity, Ctx, vi)
+  # The keyword arguments give restrictions on the gluing so we
+  # initialize the gluing factory with these conditions
+  init_gluing_factory!(Fac; kwargs...)
+  # It could be that the set of initial conditions give rise
+  # to incompatibility, i.e. we already know for sure that no primitive
+  # extensions satisfy the given conditions
+  is_trivial(Fac) && return false, results
+  parity = Fac.par
+
+  # Now, we iterate on the possible elementary divisors (if any provided
+  # as keyword arguments) or the possible glue orders for the glue groups.
+  # We keep track in `_glue_map_gen` of the good function to call depending
+  # on the type in `_iterator`, i.e. whether we iterate on elementary
+  # divisors or on orders
+  if isdefined(Fac, :glue_elementary_divisors)
+    _iterator = Fac.glue_elementary_divisors
+    _glue_map_gen = Oscar._local_glue_maps_eldiv
+  else
+    _iterator = sort!(collect(possible_glue_order(Fac)))
+    _glue_map_gen = Oscar._local_glue_maps_ord
+  end
+
+  # In case `exist_only` or `first` is `true`, we want to try to decide
+  # whether we can already conclude without having to do some more
+  # unnecessary computations. This is the goal of this function
+  function _early_abort(_lgm)
+    if exist_only || first
+      for x in _lgm
+        z = _overlattice(x, D; as_bilinear_module)
+        if test_overlattice(Fac, Base.first(z))
+          exist_only && return true, NTuple{3, ZZLat}[]
+          first && return true, NTuple{3, ZZLat}[z]
+        end
+      end
+    end
+    return false, NTuple{3, ZZLat}[]
+  end
+
+  _dataM = Array{TorQuadModuleMap}(undef, 1, length(Ms))
+  _dataN = Array{TorQuadModuleMap}(undef, 1, length(Ns))
+  need_setup = true # To avoid repeating some routine
+  compute_iso = true
+  for it in _iterator
+    lgm = _glue_map_gen(Fac, it)
+    ok, res = _early_abort(lgm)
+    ok && return ok, res
+    if need_setup
+      Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
+      Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
+      need_setup = false
+    end
+    if compute_iso
+      for i in 1:length(Ms)
+        _qM = domain(GMs[i])
+        ok, gammaM = is_isometric_with_isometry(_qM, qM)
+        @assert ok
+        _dataM[i] = gammaM
+      end
+      for j in 1:length(Ns)
+        _qN = domain(GNs[j])
+        ok, gammaN = is_isometric_with_isometry(_qN, qN)
+        @assert ok
+        _dataN[j] = gammaN
+      end
+      compute_iso = false
+    end
+
+    for i in 1:length(Ms)
+      GM = GMs[i] # Global classifying group
+      gammaM = _dataM[i]
+      for x in lgm
+        xM = _pullback_left(x, gammaM; as_bilinear_module)
+        xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+        for y in xMs, j in 1:length(Ns)
+          GN = GNs[j]
+          gammaN = _dataN[j]
+          xMN = _pullback_right(y, gammaN; as_bilinear_module)
+          xMNs = _split_orbit_right(y, GN; as_bilinear_module)
+          for z in xMNs
+            w = _overlattice(x; as_bilinear_module)
+            !test_overlattice(Fac, Base.first(w)) && continue
+            exist_only && return true, results
+            push!(results, w)
+            first && return true, results
+          end
+        end
+      end
+    end
+  end
+  return !isempty(results), results
 end
 
 ###############################################################################
@@ -1338,29 +1811,409 @@ end
 #
 ###############################################################################
 
-@doc raw"""
-    primitive_embeddings(
-      G::ZZGenus,
-      M::ZZLat;
-      kwargs...,
-    ) -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
+### Unimodular top lattice
 
-Given a genus $G$ of integral $\mathbb Z$-lattice, and an integral
-$\mathbb Z$-lattice $M$, return a boolean `T` and a list $V$ of representatives
-of double cosets of primitive embeddings $M \hookrightarrow L$ where $L$ is a
+function _primitive_embeddings_in_unimodular(
+  G1::ZZGenus,
+  G2s::Vector{ZZGenus};
+  check::Bool=true,
+)
+  @assert is_unimodular(G1)
+  results = NTuple{3, ZZLat}[]
+
+  # Only keep the genera of strictly smaller rank and with compatible signature
+  # and parity
+  G2s = filter(<(rank(G1))∘rank, G2s)
+  filter!(Base.Fix1(reduce, &)∘Base.Fix1(.>=, signature_pair(G1))∘signature_pair, G2s)
+  if is_even(G1)
+    filter!(is_even, G2s)
+  end
+
+  for G2 in G2s
+    append!(results, _primitive_embeddings_in_unimodular_safe(G1, G2))
+  end
+  return !isempty(results), results
+end
+
+function _primitive_embeddings_in_unimodular(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[];
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  kwargs...,
+)
+  @assert is_unimodular(G1)
+  if is_even(G1) && !is_even(G2)
+    return false, NTuple{3, ZZLat}[]
+  elseif rank(G1) <= rank(G2)
+    return false, NTuple{3, ZZLat}[]
+  elseif !reduce(&, signature_pair(G2) .<= signature_pair(G1))
+    return false, NTuple{3, ZZLat}[]
+  end
+
+  # Need to make sure all lattices in Ms belong to G2
+  @assert all(isequal(G2)∘genus, Ms)
+  for i in 1:length(Ms)
+    if haskey(GMs, i)
+      @assert domain(GMs[i]) === discriminant_group(Ms[i])
+    end
+  end
+  return _primitive_embeddings_in_unimodular_safe(G1, G2, Ms; GMs, kwargs...)
+end
+
+# When we embed into a unimodular lattice, the genus of the complement is
+# uniquely determined (up to parity, so in fact there are up to two
+# possibilities). Once this has been determined, we can delegate to the
+# functions for computing unimodular primitive extensions
+function _primitive_embeddings_in_unimodular_safe(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[];
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  first::Bool=false,
+  exist_only::Bool=false,
+)
+  results = NTuple{3, ZZLat}[]
+  if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q = rescale(discriminant_group(G2), -1; cached=false)
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && return false, results
+
+  for GK in GKs
+    ok, res = _primitive_extensions_direct(G2, GK, parity, Ms; unimodular=true, GMs, first, exist_only, check=false)
+    @assert all(isequal(G1)∘genus∘Base.first, res)
+    if ok && (first || exist_only)
+      return ok, res
+    end
+    append!(results, res)
+  end
+  return !isempty(results), results
+end
+
+### Coprime det
+
+# As in the unimodular case, if the determinants of G1 and G2 are coprime,
+# then the genus of a complement after primitive embedding (up to parity)
+# is uniquely determined; we know the signature and the discriminant form.
+# Hence, we can find such a complement and then delegate the rest of the
+# computations to the function for computing primitive extensions
+# "coprime_left"
+# This is a safe function so we do not perform any test here
+function _primitive_embeddings_coprime_det_safe(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[];
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  first::Bool=false,
+  exist_only::Bool=false,
+)
+  results = NTuple{3, ZZLat}[]
+  if is_even(G1)
+    parity = :even
+    par = :even
+  else
+    parity = :odd
+    par = :both
+  end
+  sign = signature_pair(G1) .- signature_pair(G2)
+  q1 = discriminant_group(G1)
+  q2 = discriminant_group(G2)
+  # q is up to parity the discriminant form a complement of G2 inside G1
+  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module=(par !== :even))
+  GKs = _integer_genera(q, sign, par)
+  isempty(GKs) && return false, results
+
+  for GK in GKs
+    ok, res = _primitive_extensions_direct(G2, GK, parity, Ms; coprime_left=true, GMs, first, exist_only, check=false)
+    @assert all(isequal(G1)∘genus∘Base.first, res)
+    if ok && (first || exist_only)
+      return ok, res
+    end
+    append!(results, res)
+  end
+  return !isempty(results), results
+end
+
+### General case
+
+function _primitive_embeddings(
+  G1s::Vector{ZZGenus},
+  G2s::Vector{ZZGenus},
+)
+  res = NTuple{3, ZZLat}[]
+  for G2 in G2s
+    append!(res, last(_primitive_embeddings(G1s, G2)))
+  end
+  return res
+end
+
+function _primitive_embeddings(
+  G1s::Vector{ZZGenus},
+  G2::ZZGenus,
+)
+  results = NTuple{3, ZZLat}[]
+  G1s = filter(>(rank(G2))∘rank, G1s)
+  filter!(Base.Fix1(reduce, &)∘Base.Fix1(.<=, signature_pair(G2))∘signature_pair, G1s)
+  if !is_even(G2)
+    filter!(!is_even, G1s)
+  end
+  Ctx = ZZLatGluingCtx() # Use a context object since we fix G2 and change G1,
+                         # so we can avoid duplicate computations
+
+  for G1 in G1s
+    if is_unimodular(G1)
+      append!(results, last(_primitive_embeddings_in_unimodular_safe(G1, G2)))
+    elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
+      append!(results, last(_primitive_embeddings_coprime_det_safe(G1, G2)))
+    else
+      append!(results, last(_primitive_embeddings_generic_safe(G1, G2; Ctx, vi=(1, -1))))
+    end
+  end
+  return !isempty(results), results
+end
+
+function _primitive_embeddings(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[];
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  check::Bool=true,
+  kwargs...,
+)
+  results = NTuple{3, ZZLat}[]
+  # Make sure that the genera are compatible (we do exclude the case G1 == G2)
+  # and that G2, Ms and GMs are compatible
+  if check
+    if is_even(G1) && !is_even(G2)
+      return false, results
+    elseif rank(G1) <= rank(G2)
+      return false, results
+    elseif !reduce(&, signature_pair(G2) .<= signature_pair(G1))
+      return false, results
+    end
+
+    @assert all(isequal(G2)∘genus, Ms)
+    for i in 1:length(Ms)
+      if haskey(GMs, i)
+        @assert domain(GMs[i]) === discriminant_group(Ms[i])
+      end
+    end
+  end
+
+  if is_unimodular(G1)
+    return _primitive_embeddings_in_unimodular_safe(G1, G2, Ms; kwargs...)
+  elseif isone(gcd(numerator(det(G1)), numerator(det(G2))))
+    return _primitive_embeddings_coprime_det_safe(G1, G2, Ms; kwargs...)
+  else
+    return _primitive_embeddings_generic_safe(G1, G2, Ms; kwargs...)
+  end
+end
+
+# The computations of primitive embeddings is done in several steps:
+# (0) We construct a lattice T of the same parity of G1 such that the discriminant
+#     group of T is anti-isometric to that of G1, T is unique in its genus and
+#     O(T) \to O(q_T) is surjective
+# (1) We compute primitive extensions of T and G2
+# (2) For each such primitive extension V, we compute primitive embeddings of V
+#     into some unimodular lattice W (unique in its genus)
+# (3) Get a primitive embedding of G2 into G1 by considering the complement of T
+#     in W
+# This function takes care of step (2) above
+# - G1 and G2 are from the original context, so we try to embed some lattices
+#   in G2 primitively into some lattices in G1
+# - `parity` records the parity of the unimodular primitive extensions we
+#   compute here
+# - `z` is the primitive extension V computed by the main algorithm; it is
+#   given by `(V, M, T, GV)` where M is in G2 and GV is the representation
+#   on the discriminant group `q_V` of V of the largest group of isometries
+#   of `V` preserving the primitive extension M\oplus T\subset V and such that
+#   the restriction to M is contained in the classifying group for M fixed by
+#   the context (if any; otherwise O(M) by default)
+# - GK is the genus of the complement of V into the unimodular lattices where
+#   we try to embed (precomputed by the main algorithm), and Ks is a known list
+#   of representatives of GK (in practice, either Ks consists of one
+#   representative when we try to decide whether we can embed V, or if we only
+#   want one embedding, or a complete non-redundant list of representatives for
+#   the isometry classes in GK when we want all possible embeddings)
+function _step_2_primitive_embeddings(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  parity::Symbol,
+  z::Tuple{ZZLat, ZZLat, ZZLat, AutomorphismGroup{TorQuadModule}},
+  GK::ZZGenus,
+  Ks::Vector{ZZLat};
+  first::Bool=false,
+  exist_only::Bool=false,
+)
+  results = NTuple{3, ZZLat}[]
+  V, M2, T2, GV = z
+  # If both G2 and GK are even, and G1 is odd, we could again be in the case
+  # that we have a parity problem. In the other cases, we should be fine since
+  # in the case where everything is even, parity is set to :even and we treat
+  # all discriminant groups as quadratic modules
+  parity_issue = is_even(G2) && is_even(GK) && !is_even(G1)
+  ok, resV = unimodular_primitive_extensions(V, GK, Ks; right_discriminant_action=GV, parity, first=parity_issue ? false : first)
+  for (S, V2, W2) in resV
+    T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
+    L = lll(orthogonal_submodule(S, T3))
+    parity_issue && is_even(L) && continue
+    @assert genus(L) == G1
+    exist_only && return true, results
+    M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
+    @hassert :ZZLatWithIsom 1 is_sublattice(L, M3)
+    @hassert :ZZLatWithIsom 1 is_primitive(L, M3)
+    N = orthogonal_submodule(L, M3)
+    bM = coordinates(basis_matrix(M3), L)
+    bN = coordinates(basis_matrix(N), L)
+    L = integer_lattice(; gram=gram_matrix(L))
+    M3 = lattice_in_same_ambient_space(L, bM)
+    N = lattice_in_same_ambient_space(L, bN)
+    push!(results, (L, M3, N))
+    first && return true, results
+  end
+  return false, results
+end
+
+# Generic function
+function _primitive_embeddings_generic_safe(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[];
+  GMs::Dict{Int, AutomorphismGroup{TorQuadModule}}=Dict{Int, AutomorphismGroup{TorQuadModule}}(),
+  first::Bool=false,
+  exist_only::Bool=false,
+  Ctx::Union{ZZLatGluingCtx, Nothing}=nothing,
+  vi::NTuple{2, Int}=(-1,-1),
+)
+  results = NTuple{3, ZZLat}[]
+  R = rescale(representative(G1), -1; cached=false)
+  U = hyperbolic_plane_lattice()
+  # In the odd case, to be sure that T is unique in its genus and that
+  # O(T) surjects onto O(q_T), we might need to add two copies of U (2-adic issue)
+  if is_even(G1)
+    parity = :even
+    T, _ = direct_sum(R, U; cached=false)
+  else
+    parity = :both
+    T, _ = direct_sum(R, U, U; cached=false)
+  end
+  q1n = discriminant_group(T)
+  signK = signature_pair(G1) .- signature_pair(G2)
+  # As always, we want our `TorQuadModule` to be meaningful, so they
+  # should be of the form L^\vee/L where L is in the given genus
+  if isempty(Ms)
+    q2 = discriminant_group(representative(G2))
+  else
+    q2 = discriminant_group(Base.first(Ms))
+  end
+
+  # In the case we only want existence, enough to consider 1 lattice
+  if (first || exist_only)
+    if isempty(Ms)
+      push!(Ms, representative(G2))
+    else
+      Ms = eltype(Ms)[Base.first(Ms)]
+    end
+  end
+
+  # As in the code for primitive extensions, we do not compute
+  # all primitive extensions of q2 and q1n at once, but only do local
+  # computations (so up to O(q1) and O(q2), and only one glue map for each
+  # pair of anti-isometric groups), and we proceed iteratively on the
+  # possible orders of a glue group
+  Fac = gluing_factory(q2, q1n; parity, Ctx, vi)
+  init_gluing_factory!(Fac) # Not that here Fac is never trivial since there is the trivial gluing
+  _order_list = sort!(collect(possible_glue_order(Fac)))
+  as_bilinear_module = (Fac.par !== :even)
+
+  need_setup = true
+  for o in _order_list
+    DKs = Dict{ZZGenus, Vector{ZZLat}}()
+    lgm = _local_glue_maps_ord(Fac, o)
+    for _x in lgm
+      qx = _form_over(_x, parity)
+      qK = rescale(qx, -1; cached=false)
+      # Any gluing obtained by splitting a local gluing gives
+      # rise to the same discriminant group (up to parity) of a
+      # primitive extension. If for this local gluing, there are no
+      # possible complement, this will also hold for any other gluing
+      # obtained from that one
+      GKs = _integer_genera(qK, signK, parity)
+      isempty(GKs) && continue
+
+      if exist_only && (!is_even(G2) || any(!is_even, GKs) || is_even(G1))
+        # In that situation, we know we have an embedding, so we can conclude
+        return true, results
+      end
+      for i in 1:length(Ms)
+        qM = discriminant_group(Ms[i])
+        D = _gluing_ambient(qM, q1n; as_bilinear_module)
+        _ok, phiM = is_isometric_with_isometry(qM, q2)
+        @assert _ok
+        xM = _pullback_left(_x, phiM; as_bilinear_module)
+        z = _overlattice_with_glue_stabilizer(xM, D; as_bilinear_module)
+        # Except if we are in a critical case (like M, GK are even and G1 is odd), we can already
+        # produce a good primitive embedding, so we should be able to conclude now
+        if first || exist_only
+          for GK in GKs
+            ok, res = _step_2_primitive_embeddings(G1, G2, parity, z, GK, [representative(GK)]; first, exist_only)
+            ok && return ok, res
+          end
+        end
+        # At that step, either we have not been able to conclude (because of parity issues)
+        # or we want all embeddings
+        if need_setup
+          Ms, GMs = __setup_classifying_groups(G2, Ms, GMs)
+          need_setup = false
+        end
+        GM = GMs[i]
+        xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+        for y in xMs
+          z = _overlattice_with_glue_stabilizer(y, D; as_bilinear_module)
+          for GK in GKs
+            if !haskey(DKs, GK)
+              DKs[GK] = representatives(GK)
+            end
+            ok, res =  _step_2_primitive_embeddings(G1, G2, parity, z, GK, DKs[GK]; first, exist_only)
+            ok && (first || exist_only) && return ok, res
+            append!(results, res)
+          end
+        end
+      end
+    end
+  end
+  return !isempty(results), results
+end
+
+@doc raw"""
+    primitive_embeddings(G::ZZGenus, M::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
+    primitive_embeddings(L::ZZLat, M::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
+    primitive_embeddings(q::TorQuadModule, sign::NTuple{2, Int}, M::ZZLat; kwargs...) -> Bool, Vector{NTuple{3, ZZLat}}
+
+Given a genus $G$ of integral $\mathbb Z$-lattices, and an integral
+$\mathbb Z$-lattice $M$, return a boolean `T` and a transversal $V$ for the
+double cosets of primitive embeddings $M \hookrightarrow L$ where $L$ is a
 lattice in $G$, for the right and left actions of $O(M)$ and $O(L)$
 respectively.
 
-The second output $V$ consists of triples $(L, M_1, N)$ where $L$ is a lattice
-in $G$, $M_1$ is a primitive sublattice of $L$ isometric to $M$, and $N$ is
-the orthogonal complement of $M_1$ in $L$.
+The first boolean in output is true if and only if such a primitive embedding
+exists. Each element in the output list is given as a triple $(L, M_1, N)$
+where $L$ is a lattice in $G$, $M_1\subset L$ is a primitive sublattice of $L$
+isometric to $M$, and $N\subset L$ is the orthogonal complement of $M_1$ in
+$L$.
 
 Alternatively, one can also choose as first input:
 - a lattice $L$ representing $G$: one would therefore call
   `primitive_embeddings(L, M; kwargs...)`,
-- the discriminant form `q` and the signature pair `(p, n)` of $G$: one
-  would therefore call
-  `primitive_embeddings(q, (p, n), M; kwargs...)`.
+- the discriminant form `q` and the signature pair `sign` of $G$: one
+  would therefore call `primitive_embeddings(q, (p, n), M; kwargs...)`.
 
 !!! warning
     In the first alternative option above, if the genus $G$ consists of more
@@ -1415,7 +2268,7 @@ To be understood: There exists a unique class of primitive embedding of the
 root lattice $A_4$ into the root lattice $E_8$, and the orthogonal primitive
 sublattice is isometric to $A_4$.
 """
-primitive_embeddings(::ZZGenus, ::ZZLat)
+primitive_embeddings
 
 function primitive_embeddings(
   G::ZZGenus,
@@ -1426,215 +2279,43 @@ function primitive_embeddings(
   first::Bool=false,
   exist_only::Bool=false,
 )
-  @req is_integral(scale(G)) && is_integral(M) "Only available for integral lattices"
-
-  results = Tuple{ZZLat, ZZLat, ZZLat}[]
-
-  if isnothing(right_discriminant_action)
-    if isnothing(right_action)
-      if classification == :emb
-        qM = discriminant_group(M)
-        GMbar = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
-      else
-        GMbar, _ = image_in_Oq(M)
-      end
-    else
-      GMbar, _ = image(discriminant_representation(M, right_action; full=false))
-    end
-  else
-    GMbar = right_discriminant_action
+  # Take care of some corner cases
+  if rank(M) == rank(G)
+    genus(M) != G && return false, NTuple{3, ZZLat}[]
+    exist_only && return true, NTuple{3, ZZLat}[]
+    return true, NTuple{3, ZZLat}[(M, M, orthogonal_submodule(M, M))]
   end
 
-  if classification == :first
+  genusM = genus(M)
+  if is_even(G) && !is_even(M)
+    return false, NTuple{3, ZZLat}[]
+  elseif rank(G) < rank(M)
+    return false, NTuple{3, ZZLat}[]
+  elseif !reduce(&, signature_pair(genusM) .<= signature_pair(G))
+    return false, NTuple{3, ZZLat}[]
+  end
+
+  @req is_integral(scale(G)) && is_integral(M) "Only available for integral lattices"
+
+  # Compatibility with old interface
+  classification = (classification === :sub) ? :subsub : :embsub
+  if classification === :first
     first = true
-  elseif classification == :none
+  elseif classification === :none
     exist_only = true
   end
 
-  (iseven(G) && !iseven(M)) && return false, results
-  (rank(M) > rank(G)) && return false, results
+  GMbar =  _get_classifying_group(M, right_discriminant_action, right_action, first, exist_only; side=:left, classification)
 
-  even = is_even(G)
-  posL, _, negL = signature_tuple(G)
-  posM, _, negM = signature_tuple(M)
-  posN = posL - posM
-  negN = negL - negM
-
-  (posN < 0 || negN < 0) && return false, results
-
-  if rank(M) == rank(G)
-    genus(M) != G && return false, results
-    push!(results, (M, M, orthogonal_submodule(M, M)))
-    return true, results
-  end
-
-  # We can carry out the unimodular case apart thanks to Nikulin,
-  # Proposition 1.6.1 [Nik79]
-  #
-  # In the odd case, we need to consider several cases, i.e double odd,
-  # even-odd or odd-even.
-  #
-  # The complement can be even with discriminant form being
-  # qM(-1), or odd with discriminant form being bM(-1).
-  #
-  # Then for each possible form, we check which one defines a genus with the
-  # given signature pair and then we do our extension routine.
-  if is_unimodular(G)
-    q = discriminant_group(G)
-    qM = rescale(discriminant_group(M), -1; cached=false)
-    GKs = ZZGenus[]
-    if even
-      _G = try genus(qM, (posN, negN))
-           catch
-           nothing
-      end
-      !isnothing(_G) && push!(GKs, _G)
-    else
-      _Ge = try genus(qM, (posN, negN); parity=2)
-            catch
-            nothing
-      end
-      !isnothing(_Ge) && push!(GKs, _Ge)
-      _Go = try genus(qM, (posN, negN); parity=1)
-            catch
-            nothing
-      end
-      !isnothing(_Go) && push!(GKs, _Go)
-    end
-    is_empty(GKs) && return false, results
-    unique!(GKs)
-    orths = reduce(vcat, Vector{ZZLat}[representatives(GK) for GK in GKs])
-    # Now for each K in GK, we compute primitive extensions of M and K into a
-    # unimodular lattice in G
-    for K in orths
-      ok, pe = primitive_extensions(M, K; right_discriminant_action=GMbar, form_over=TorQuadModule[q], even, first, exist_only)
-      !ok && continue
-      exist_only && return true, results
-      if !isempty(pe)
-        append!(results, pe)
-        first && return true, results
-      end
-    end
-    return (length(results) > 0), results
-  end
-
-  # Now we go on the harder case, which relies on the previous one
-  # We follow the proof of Nikulin: we create `T` unique in its genus and with
-  # surjective O(T) -> O(qT), and such that qT and q are anti-isometric
-  # The easiest way to do this is to add a hyperbolic plane to a representative
-  # of the genus G, rescale by -1.
-  #
-  # In the odd case we need at least two copies of the hyperbolic plane because
-  # of the 2-adic signature
-  R = rescale(representative(G), -1; cached=false)
-  U = hyperbolic_plane_lattice()
-  if even
-    T, _ = direct_sum(R, U; cached=false)
-  else
-    T, _ = direct_sum(R, U, U; cached=false)
-  end
-
-  # The algorithm goes on with finding primitive extensions of M+T and then
-  # embedding such extensions in a big unimodular lattice (which we take
-  # unique in its genus)
-  _, Vs = primitive_extensions(M, T; even, right_discriminant_action=GMbar)
-  # GL is our big unimodular genus where we embed each of the V in Vs
-  # GL is taken odd in the odd case
-  if even
-    GL = genus(torsion_quadratic_module(QQ[0;]), (rank(G)+1, rank(G)+1))
-  else
-    GL = genus(torsion_quadratic_module(QQ[1;]), (rank(G)+2, rank(G)+2))
-  end
-  # M2 is M seen in V, and T2 is T seen in V
-  for (V, M2, T2) in Vs
-    resV = Tuple{ZZLat, ZZLat, ZZLat}[]
-
-    # We need to classify the primitive embeddings of V in GL up to the actions
-    # of O(T) and O(M) (for sublattices; otherwise only up to O(T))
-    #
-    # For this, we need the representation of the subgroup of isometries of V
-    # which preserves the primitive extension M\oplus T \subseteq V. This
-    # corresponds to the diagonal in \bar{O(T)}\times GM where GM is trivial
-    # for embedding classification, \bar{O(M)} otherwise.
-    #
-    # We use `_glue_stabilizers` which has been designed especially to compute
-    # such diagonal subgroup.
-
-    # The gram matrix of M and M2 are the same, so we can just transport
-    # the isometries in GMbar to the discriminant group of M2 with identical
-    # matrix representation
-    GM2bar = Oscar._orthogonal_group(discriminant_group(M2), matrix.(gens(GMbar)))
-    GVbar, _ = _glue_stabilizers(V, M2, T2; right_discriminant_action=GM2bar)
-    qV = domain(GVbar)
-    qK = rescale(qV, -1; cached=false) # Bilinear form of a complement of V in GL
-
-    GKs = ZZGenus[]
-    posK = signature_tuple(GL)[1] - signature_tuple(V)[1]
-    negK = signature_tuple(GL)[3] - signature_tuple(V)[3]
-    if even
-      _G = try genus(qK, (posK, negK))
-           catch
-           nothing
-      end
-      !isnothing(_G) && push!(GKs, _G)
-    else
-      _Ge = try genus(qK, (posK, negK); parity=2)
-            catch
-            nothing
-      end
-      !isnothing(_Ge) && push!(GKs, _Ge)
-      _Go = try genus(qK, (posK, negK); parity=1)
-            catch
-            nothing
-      end
-      !isnothing(_Go) && push!(GKs, _Go)
-    end
-    is_empty(GKs) && continue
-    unique!(GKs)
-    orths = reduce(vcat, Vector{ZZLat}[representatives(_GK) for _GK in GKs])
-    for K in orths
-      GKbar, _ = image_in_Oq(K)
-      ok, pe = _primitive_extensions_generic(V, K, GVbar, GKbar, (:plain, :plain); even, exist_only, first, form_over=[discriminant_group(GL)])
-      !ok && continue
-      classification == :none && return true, results
-      !isempty(pe) && append!(resV, Tuple{ZZLat, ZZLat, ZZLat}[lattice.(t) for t in pe])
-    end
-    isempty(resV) && continue
-
-    for (S, V2, W2) in resV
-      # This is T seen in S
-      T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
-      @hassert :ZZLatWithIsom 1 genus(T3) == genus(T)
-      # This is one of the lattice in G in which we embed primitively
-      L = orthogonal_submodule(S, T3)
-      @hassert :ZZLatWithIsom 1 genus(L) == G
-      # This is M seen in L
-      M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
-      @hassert :ZZLatWithIsom 1 is_sublattice(L, M3)
-      @hassert :ZZLatWithIsom 1 is_primitive(L, M3)
-      # And this is the orthogonal complement of M in L
-      N = orthogonal_submodule(L, M3)
-      # L, M3 and N live in a very big ambient space: we redescribed them in the
-      # rational span of L so that L has full rank and we keep only the
-      # necessary information about the embedding.
-      bM = solve(basis_matrix(L), basis_matrix(M3); side=:left)
-      bN = solve(basis_matrix(L), basis_matrix(N); side=:left)
-      L = integer_lattice(; gram = gram_matrix(L))
-      M3 = lattice_in_same_ambient_space(L, bM)
-      N = lattice_in_same_ambient_space(L, bN)
-      push!(results, (L, M3, N))
-      first && return true, results
-    end
-  end
-  return (length(results) > 0), results
+  return _primitive_embeddings(G, genusM, [M]; GMs=Dict(1 => GMbar), check=false, first, exist_only)
 end
 
 function primitive_embeddings(
-    L::ZZLat,
-    M::ZZLat;
-    check::Bool=false,
-    kwargs...,
-  )
+  L::ZZLat,
+  M::ZZLat;
+  check::Bool=false,
+  kwargs...,
+)
   G = genus(L)
   ok, reps = primitive_embeddings(G, M; kwargs...)
 
@@ -1649,11 +2330,11 @@ function primitive_embeddings(
 end
 
 function primitive_embeddings(
-    q::TorQuadModule,
-    sign::Tuple{Int, Int},
-    M::ZZLat;
-    kwargs...
-  )
+  q::TorQuadModule,
+  sign::Tuple{Int, Int},
+  M::ZZLat;
+  kwargs...
+)
   @req is_genus(q, sign) "Invariants define the empty genus"
   G = genus(q, sign)
   return primitive_embeddings(G, M; kwargs...)
@@ -2026,7 +2707,7 @@ function admissible_equivariant_primitive_extensions(
     union!(geneA, geneB)
 
     # We compute the overlattice in this context
-    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B))
+    C2, fC2, _ = _equivariant_overlattice_with_graph(qAinD, qBinD, isometry(A), isometry(B))
     C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
     # If not of the good type, we discard it
@@ -2165,7 +2846,7 @@ function admissible_equivariant_primitive_extensions(
 
       # We compute the overlattice in this context, keeping track whether we
       # work in a fixed ambient quadratic space
-      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B))
+      C2, fC2, extinD = _equivariant_overlattice_with_graph(phig, SAinD, SBinD, isometry(A), isometry(B))
       C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation=false, check)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
@@ -2437,7 +3118,7 @@ function _glue_stabilizers(
   actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check=false)) for x in gens(stabM)])
   actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check=false)) for x in gens(stabN)])
 
-  _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N))
+  _, _, graph = _equivariant_overlattice_with_graph(phi, HMinD, HNinD, isometry(M), isometry(N))
   disc, _stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
   qL, fqL = discriminant_group(L)
   OqL = orthogonal_group(qL)
@@ -2462,4 +3143,168 @@ function _glue_stabilizers(
   Mg = integer_lattice_with_isometry(M)
   Nh = integer_lattice_with_isometry(N)
   return _glue_stabilizers(Lf, Mg, Nh; kwargs...)
+end
+
+###############################################################################
+#
+#  To be removed at some point
+#
+###############################################################################
+
+# Compute `O`-orbits of `f`-stable submodules of `ker(mu(f))` which are
+# isometric, as torsion quadratic modules, to `H`. It also computes the
+# stabilizers in `O` of such subgroups. If `H` is not given, then return
+# orbits of stable submodules of order `ordH`.
+#
+# The outputs are given by embeddings of such submodules in `q`.
+#
+# The code splits the computation into primary parts since they are orthogonal
+# to each others.
+function _classes_isomorphic_subgroups(
+    q::TorQuadModule,
+    O::AutomorphismGroup{TorQuadModule},
+    f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
+    H::Union{Nothing, TorQuadModule}=nothing,
+    ordH::Union{Nothing, IntegerUnion}=nothing,
+    mu::PolyRingElem=zero(Hecke.Globals.Qx),
+  )
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+
+  if isnothing(H)
+    @assert !isnothing(ordH)
+    @assert ordH > 0
+  else
+    ordH = order(H)
+  end
+
+  !is_divisible_by(order(q), ordH) && return res
+
+  if ordH == 1
+    _, j = sub(q, elem_type(q)[])
+    push!(res, (j, O))
+    return res
+  end
+
+  # Trivial case: we look for subgroups in a given primary part of q
+  ok, e, p = is_prime_power_with_data(ordH)
+  if ok
+    if (e == 1) || (!isnothing(H) && is_elementary(H, p))
+      _, Vinq = _get_V(f, mu, p)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
+    else
+      T, Tinq = kernel(evaluate(mu, f))
+      _, VinT = primary_part(T, p)
+      Vinq = compose(VinT, Tinq)
+      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
+    end
+    if !isnothing(H)
+      filter!(d -> is_isometric_with_isometry(domain(d[1]), H)[1], sors)
+    end
+    return sors
+  end
+
+  # We inspect each primary part of q and look for orbit representatives and
+  # stabilizers of isomorphic subgroups which will be isometric to the given
+  # primary part of H.
+  #
+  # First, we cut q as an orthogonal direct sum of its primary parts
+  pds = sort!(prime_divisors(order(q)))
+  blocks = TorQuadModuleMap[primary_part(q, pds[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
+  for i in 2:length(pds)
+    _f = blocks[end]
+    _, j = has_complement(_f)
+    _T = domain(j)
+    __f = primary_part(_T, pds[i])[2]
+    push!(blocks, compose(__f, j))
+    push!(ni, ngens(domain(__f)))
+  end
+  D, inj, proj = Hecke._biproduct(domain.(blocks))
+  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
+  @hassert :ZZLatWithIsom 1 is_isometry(phi)
+
+  list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
+  # We collect the possible subgroups for each primary part, with the stabilizer
+  for i in 1:length(pds)
+    p = pds[i]
+    qpinq = blocks[i]
+    qp = domain(qpinq)
+    ordHp = p^valuation(ordH, p)
+    if !isnothing(H)
+      T, _ = primary_part(H, p)
+    end
+    Oqp, _ = restrict_automorphism_group(O, qpinq; check=false)
+    fqp = restrict_endomorphism(f, qpinq; check=false)
+    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(T, p))
+      _, j = _get_V(fqp, mu, p)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
+    else
+      _, Tpinqp = kernel(evaluate(mu, fqp))
+      sors = _subgroups_orbit_representatives_and_stabilizers(Tpinqp, Oqp, ordHp, fqp)
+    end
+    if !isnothing(H)
+      filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
+    end
+    is_empty(sors) && return res
+    push!(list_can, sors)
+  end
+
+  # We gather together: we do a big cartesian product, and we remember to
+  # reconstruct the stabilizer. Since primary parts do not talk to each other,
+  # we concatenate generators on an orthogonal direct sum of q into its primary
+  # parts (as we do for computations of orthogonal groups in the non split
+  # degenerate case)
+  for lis in Hecke.cartesian_product_iterator(list_can)
+    embs = TorQuadModuleMap[l[1] for l in lis]
+    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
+    H2, _, _proj = Hecke._biproduct(domain.(embs))
+    _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
+    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
+    genestab = ZZMatrix[]
+
+    for i in 1:length(ni)
+      nb = sum(ni[1:i-1])
+      na = sum(ni[(i+1):end])
+      Inb = identity_matrix(ZZ, nb)
+      Ina = identity_matrix(ZZ, na)
+      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
+    end
+
+    genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
+    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
+    stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check=false))
+    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
+    push!(res, (H2inq, stab))
+  end
+
+  return res
+end
+
+
+function _change_to_bilinear_module(
+    qM::TorQuadModule,
+    GM::AutomorphismGroup{TorQuadModule},
+    fqM::TorQuadModuleMap,
+  )
+  qM = Hecke._as_finite_bilinear_module(qM) # TODO: to be changed
+  OqM = orthogonal_group(qM)
+  GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check=false) for g in gens(GM)])
+  fqM = hom(qM, qM, matrix(fqM))
+  return qM, OqM, GM, fqM
+end
+
+
+function _possible_glue_orders(
+    qM::TorQuadModule,
+    qN::TorQuadModule,
+  )
+  _gcd = ZZ(1)
+  snM = reverse!(elementary_divisors(qM))
+  snN = reverse!(elementary_divisors(qN))
+  k = min(length(snM), length(snN))
+  for i in 1:k
+    mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
+  end
+  pos_ord = divisors(_gcd)
+  return pos_ord
 end
