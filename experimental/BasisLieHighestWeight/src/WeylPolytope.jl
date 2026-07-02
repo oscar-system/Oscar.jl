@@ -92,17 +92,19 @@ function compute_new_inequalities(
   bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
 )
   n = length(bir_sequence)
+  R = root_system(bir_sequence)
+  gram_mat = cartan_matrix(R) - identity_matrix(QQ, rank(R))
   inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
-  sizehint!(inequalities, n)
   for i in n:-1:1
-    rhs = dot(highest_weight, operator_as_root(bir_sequence, i))
+    bir_seq_i = operator_as_root(bir_sequence, i)
+    rhs = dot(coefficients(highest_weight), coefficients(bir_seq_i)) # maybe something with coroot?
     lhs = zeros(QQ, n)
     for k in 1:i-1 #k<i
       lhs[k] = 0
     end
     lhs[i] = 1 #k=i
     for k in i+1:n #k>i
-      lhs[k] = rhs - maximum([dot(highest_weight - x * operator_as_weight(bir_sequence, k), operator_as_root(bir_sequence, i)) for x in 0:Int((dot(highest_weight, operator_as_root(bir_sequence, k))))])
+      lhs[k] = dot(coefficients(bir_seq_i) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
     end
     push!(inequalities, (lhs, rhs))
   end
