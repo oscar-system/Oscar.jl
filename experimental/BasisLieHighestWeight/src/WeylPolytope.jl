@@ -16,7 +16,7 @@ All weights are given as coefficients to the simple roots $\alpha_i$.
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},
   weight::RootSpaceElem,
-  zero_coordinates::Vector{Int},
+  new_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
 )
   # calculate all integer solutions to the following linear program:
   # [       |                 |       ]       [   |   ]      [    |    ]
@@ -27,20 +27,26 @@ function get_lattice_points_of_weightspace(
   m = rank(root_system(weight))
 
   # equalities
-  A_eq = zero_matrix(QQ, m + length(zero_coordinates), n)
-  b_eq = [zero(QQ) for _ in 1:(m + length(zero_coordinates))]
+  A_eq = zero_matrix(QQ, m , n)
+  b_eq = [zero(QQ) for _ in 1:(m)]
   for i in 1:n
     A_eq[1:m, i] = transpose(coefficients(root_weights[i]))
   end
   b_eq[1:m] = view(coefficients(weight), 1, :)
-  for (j, i) in enumerate(zero_coordinates)
-    A_eq[m + j, i] = 1
-  end
 
+ 
+  A_ineq = zero_matrix(QQ, n + length(new_inequalities), n)
+  b_ineq = [zero(QQ) for _ in 1:(n + length(new_inequalities))]
+  
   # non-negativity
-  A_ineq = -identity_matrix(QQ, n)
-  b_ineq = [zero(QQ) for _ in 1:n]
+  A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
 
+  # TODO kommentar
+  for (i, ineq) in enumerate(new_inequalities)
+    A_ineq[n+i, :] = ineq[1]
+    b_ineq[n+i] = ineq[2]
+  end
+ 
   sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
 end
@@ -71,4 +77,36 @@ function compute_zero_coordinates(
     end
   end
   return zero_coordinates
+end
+
+function compute_max_of_coordinates(
+  bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
+)
+  n = length(bir_sequence)
+
+  zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
+  return [i in zero_coordinates ? 0 : typemax(Int) for i in 1:n]
+end
+
+function compute_new_inequalities(
+  bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
+)
+  n = length(bir_sequence)
+  R = root_system(bir_sequence)
+  gram_mat = cartan_matrix(R) - identity_matrix(QQ, rank(R))
+  inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
+  for i in n:-1:1
+    bir_seq_i = operator_as_root(bir_sequence, i)
+    rhs = dot(coefficients(highest_weight), coefficients(bir_seq_i)) # maybe something with coroot?
+    lhs = zeros(QQ, n)
+    for k in 1:i-1 #k<i
+      lhs[k] = 0
+    end
+    lhs[i] = 1 #k=i
+    for k in i+1:n #k>i
+      lhs[k] = dot(coefficients(bir_seq_i) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
+    end
+    push!(inequalities, (lhs, rhs))
+  end
+  return inequalities
 end
