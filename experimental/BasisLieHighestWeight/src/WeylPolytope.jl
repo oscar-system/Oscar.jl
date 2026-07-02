@@ -97,14 +97,14 @@ function compute_new_inequalities(
   inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
   for i in n:-1:1
     bir_seq_i = operator_as_root(bir_sequence, i)
-    rhs = dot(coefficients(highest_weight), coefficients(bir_seq_i)) # maybe something with coroot?
+    rhs = dot(coefficients(dual(bir_seq_i)), coefficients(highest_weight)) # maybe something with coroot?
     lhs = zeros(QQ, n)
     for k in 1:i-1 #k<i
       lhs[k] = 0
     end
     lhs[i] = 1 #k=i
     for k in i+1:n #k>i
-      lhs[k] = dot(coefficients(bir_seq_i) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
+      lhs[k] = dot(coefficients(dual(bir_seq_i)) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
     end
     push!(inequalities, (lhs, rhs))
   end
