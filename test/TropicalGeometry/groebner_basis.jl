@@ -46,6 +46,7 @@
             # this checks whether this is done by testing whether the groebner_basis calls below run without raising an error
             groebner_basis(I,nu,w)
             groebner_basis(I,nu2,w)
+            true
         end
     end
 
