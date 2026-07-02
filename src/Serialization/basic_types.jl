@@ -31,6 +31,14 @@ end
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
+function save_object(s::SerializerState, x::ZZRingElem)
+  if (1 - 2^53 <= x <= 2^53 -1 )
+    save_data_basic(s, Int(x))
+  else
+    save_data_basic(s, x)
+  end
+end
+
 load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s, T)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
@@ -77,9 +85,13 @@ end
 @register_serialization_type Float64
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
-  load_node(s) do str
-    parse(T, str)
-  end
+  load_node(s) do x
+    if x isa Integer
+      return T(x)
+    else
+      parse(T, x)
+    end
+  end::T
 end
 
 @register_serialization_type PosInf
