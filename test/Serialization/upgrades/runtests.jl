@@ -75,7 +75,7 @@
     ])
 
     # The main point is to test the relation between loaded objects.
-    loaded = load(joinpath(Main.serialization_upgrade_test_path, "version_1_7_0", "FPGroup-3", "0.mrdi"))
+    loaded = load(joinpath(Main.serialization_upgrade_test_path, "version_1_7_0", "Tuple-3", "0.mrdi"))
     @test length(loaded) == 6
     (F, U, G, H, P, S) = map(parent, loaded)
 
