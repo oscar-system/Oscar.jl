@@ -5,6 +5,15 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function copy(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+    copyG = Graph{T}(copy(pm_object(G)))
+    attrs = AbstractAlgebra._get_attributes(G)
+    if !isnothing(attrs)
+        copyG.__attrs = copy(attrs)
+    end
+    return copyG
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)
