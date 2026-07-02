@@ -21,7 +21,15 @@ push!(upgrade_scripts_set, UpgradeScript(
       dict[:data][:is_gb] = parse(Bool, dict[:data][:is_gb])
       dict[:data][:is_reduced] = parse(Bool, dict[:data][:is_reduced])
       dict[:data][:keep_ordering] = parse(Bool, dict[:data][:keep_ordering])
+
+      upgraded_ordering = upgrade_1_8_0(s, Dict(:_type => dict[:_type][:params][:ordering_type],
+                                                :data => dict[:data][:ordering]))
+      dict[:data][:ordering] = upgraded_ordering[:data]
     elseif type_name == "MonomialOrdering"
+      if haskey(dict[:data], :is_total)
+        dict[:data][:is_total] = parse(Bool, dict[:data][:is_total])
+      end
+    elseif type_name == "Orderings.SymbOrdering"
       if haskey(dict[:data], :is_total)
         dict[:data][:is_total] = parse(Bool, dict[:data][:is_total])
       end

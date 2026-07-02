@@ -73,9 +73,9 @@ function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
 end
 
-function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
-                     parent_ring::T) where T <: ModRingUnion
-  return parent_ring(load_object(s, ZZRingElem, ZZRing()))
+function load_object(s::DeserializerState, tp::TypeAndParams{<:ModRingElemUnion, <:ModRingUnion})
+  parent_ring = params(tp)
+  return parent_ring(load_object(s, ZZRingElem))
 end
 
 ################################################################################
@@ -96,24 +96,28 @@ function save_object(s::SerializerState, R::PolyRingUnionType)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:PolyRing}, params::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyRing, <:Ring})
+  R = params(tp)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  return polynomial_ring(params, only(symbols); cached=false)[1]
+  return polynomial_ring(R, only(symbols); cached=false)[1]
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyRing}, params::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyRing, <:Ring})
+  R = params(tp)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  return polynomial_ring(params, symbols; cached=false)[1]
+  return polynomial_ring(R, symbols; cached=false)[1]
 end
 
-function load_object(s::DeserializerState, ::Type{<:UniversalPolyRing}, params::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:UniversalPolyRing, <:Ring})
+  R = params(tp)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  return universal_polynomial_ring(params, symbols; cached=false)[1]
+  return universal_polynomial_ring(R, symbols; cached=false)[1]
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing}, params::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing, <:Ring})
+  R = params(tp)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  return laurent_polynomial_ring(params, symbols; cached=false)[1]
+  return laurent_polynomial_ring(R, symbols; cached=false)[1]
 end
 
 # with grading
@@ -127,9 +131,10 @@ function save_object(s::SerializerState, R::MPolyDecRing)
   save_object(s, _grading(R))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRing}, d::Dict)
+function load_object(s::DeserializerState, d::TypeAndParams{<:MPolyDecRing, <:Tuple{Vararg{Pair}}})
   ring = d[:ring]
-  grading = load_object(s, Vector{elem_type(d[:grading_group])}, d[:grading_group])
+  grading_group = d[:grading_group]
+  grading = load_object(s, TypeAndParams(Vector{elem_type(grading_group)}, grading_group))
   return grade(ring, grading)[1]
 end
 
@@ -142,30 +147,31 @@ end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  # we use this line instead of typeof(coeff(p, 1)) to catch the 0 polynomial
-  coeff_type = elem_type(coefficient_ring(p))
-  save_data_array(s) do
-    for i in 1:length(p)
-      save_data_array(s) do 
-        save_object(s, map(string, exponent_vector(p, i)))
-        save_object(s, coeff(p, i))
-      end
-    end
-  end
+  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
-  index = 0
-  save_data_array(s) do
-    for c in coefficients(p)
-      exponent_vector, index = iterate(exponent_vectors_gen, index)
-      save_data_array(s) do
-        save_object(s, map(string, exponent_vector))
-        save_object(s, c)
-      end
-    end
+  save_object(s, [(e, c) for (c, e) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))])
+end
+
+function load_object(s::DeserializerState,
+                     tp::TypeAndParams{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}, <:PolyRingUnionType})
+  parent_ring = params(tp)
+  coeff_ring = coefficient_ring(parent_ring)
+  polynomial = MPolyBuildCtx(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, TypeAndParams(Vector{Tuple{Vector{Int}, coeff_type}}, (nothing, coeff_ring)))
+
+  for (e, c) in exps_coeffs
+    push_term!(polynomial, c, e)
   end
+  return finish(polynomial)
+end
+
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyDecRingElem, <:MPolyDecRing})
+  parent_ring = params(tp)
+  poly = load_object(s, TypeAndParams(MPolyRingElem, forget_grading(parent_ring)))
+  return parent_ring(poly)
 end
 
 ################################################################################
@@ -174,78 +180,40 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  coeffs = coefficients(p)
-  exponent = 0
-  save_data_array(s) do
-    for coeff in coeffs
-      # collect only non trivial terms
-      if is_zero(coeff)
-        exponent += 1
-        continue
-      end
-      save_data_array(s) do
-        save_object(s, string(exponent))
-        save_object(s, coeff)
-      end
-      exponent += 1
-    end
-  end
+  save_object(s, [
+    (i - 1, c) for (i, c) in enumerate(coefficients(p))
+      if !is_zero(c) ])
 end
 
-function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
-                     parent_ring::PolyRing)
-  load_node(s) do terms
-    if isempty(terms)
-      return parent_ring(0)
-    end
-    # load exponents and account for shift
-    exponents = []
-    for i in 1:length(terms)
-      e = load_node(s, i) do _
-        load_object(s, Int, 1) + 1
-      end
-      push!(exponents, e)
-    end
-    degree = max(exponents...)
-    coeff_ring = coefficient_ring(parent_ring)
-    loaded_terms = Hecke.zeros_array(coeff_ring, degree)
-    coeff_type = elem_type(coeff_ring)
-    for (i, exponent) in enumerate(exponents)
-      load_node(s, i) do _
-        load_node(s, 2) do _
-          loaded_terms[exponent] = load_object(s, coeff_type, coeff_ring)
-        end
-      end
-    end
-    return parent_ring(loaded_terms)
-  end
+function save_object(s::SerializerState{IPCSerializer},
+                     p::PolyRingElem)
+  save_object(s, collect(coefficients(p)))
+end
+
+function load_object(s::DeserializerState{IPCSerializer},
+                     tp::TypeAndParams{<:PolyRingElem, <:PolyRing})
+  parent_ring = params(tp)
+  CR = coefficient_ring(parent_ring)
+  parent_ring(load_object(s, TypeAndParams(Vector{elem_type(CR)}, CR)))
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
-                     parent_ring::PolyRingUnionType)
-  load_node(s) do terms
-    exponents = [term[1] for term in terms]
-    coeff_ring = coefficient_ring(parent_ring)
-    polynomial = MPolyBuildCtx(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    for (i, e) in enumerate(exponents)
-      load_node(s, i) do _
-        c = load_object(s, coeff_type, coeff_ring, 2)
-        e_int = load_array_node(s, 1) do _
-          load_object(s, Int)
-        end
-        push_term!(polynomial, c, e_int)
-      end
-    end
-    return finish(polynomial)
+                     tp::TypeAndParams{<:PolyRingElem, <:PolyRing})
+  parent_ring = params(tp)
+  coeff_ring = coefficient_ring(parent_ring)
+  coeff_type = elem_type(coeff_ring)
+  exps_coeffs = load_object(s, TypeAndParams(Vector{Tuple{Int, coeff_type}}, (nothing, coeff_ring)))
+
+  isempty(exps_coeffs) && return parent_ring(0)
+
+  degree = max([e for (e, _) in exps_coeffs]...)
+  loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
+  for (e, c) in exps_coeffs
+    loaded_terms[e + 1] = c
   end
+  return parent_ring(loaded_terms)
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
-  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
-end
 
 ################################################################################
 # Polynomial Ideals
@@ -262,10 +230,11 @@ function save_object(s::SerializerState, I::Ideal)
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: Ideal}, parent_ring::NCRing)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:Ideal, <:NCRing})
+  parent_ring = params(tp)
   gens = elem_type(parent_ring)[]
   load_array_node(s) do _
-    push!(gens, load_object(s, elem_type(parent_ring), parent_ring))
+    push!(gens, load_object(s, TypeAndParams(elem_type(parent_ring), parent_ring)))
   end
   return ideal(parent_ring, gens)
 end
@@ -277,11 +246,7 @@ end
 
 @register_serialization_type IdealGens
 
-type_and_params(ig::IdealGens) = TypeAndParams(
-  IdealGens,
-  :base_ring => base_ring(ig),
-  :ordering_type => TypeAndParams(typeof(ordering(ig)), nothing)
-)
+type_and_params(ig::IdealGens) = TypeAndParams(IdealGens, base_ring(ig))
 
 function save_object(s::SerializerState, obj::IdealGens)
   save_data_dict(s) do
@@ -293,18 +258,10 @@ function save_object(s::SerializerState, obj::IdealGens)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:IdealGens}, params::Dict)
-  base_ring = params[:base_ring]
-  ordering_type = params[:ordering_type]
-
-  if ordering_type <: MonomialOrdering
-    ord = load_object(s, ordering_type, base_ring, :ordering)
-  else
-    ord = load_node(s, :ordering) do _
-      MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
-    end
-  end
-  generators = load_object(s, Vector{elem_type(base_ring)}, base_ring, :gens)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:IdealGens, <:MPolyRing})
+  base_ring = params(tp)
+  ord = load_object(s, TypeAndParams(MonomialOrdering, base_ring), :ordering)
+  generators = load_object(s, TypeAndParams(Vector{elem_type(base_ring)}, base_ring), :gens)
   is_gb = load_object(s, Bool, :is_gb)
   is_reduced = load_object(s, Bool, :is_reduced)
   keep_ordering = load_object(s, Bool, :keep_ordering)
@@ -336,13 +293,15 @@ function save_object(s::SerializerState, obj::SMatSpace)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::NCRing)
+function load_object(s::DeserializerState, tp::TypeAndParams{MatSpace, <:NCRing})
+  base_ring = params(tp)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)
 end
 
-function load_object(s::DeserializerState, ::Type{SMatSpace}, base_ring::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{SMatSpace, <:Ring})
+  base_ring = params(tp)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return SMatSpace(base_ring, nrows, ncols)
@@ -361,22 +320,24 @@ function save_object(s::SerializerState, obj::SMat)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatElem}, parent::MatSpace{T}) where T
-  m = load_object(s, Matrix{T}, base_ring(parent))
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MatElem, <:MatSpace{T}}) where T
+  parent = params(tp)
+  m = load_object(s, TypeAndParams(Matrix{T}, base_ring(parent)))
   if isempty(m)
     return parent()
   end
   return parent(m)
 end
 
-function load_object(s::DeserializerState, ::Type{<:SMat}, parent::SMatSpace{T}) where T
+function load_object(s::DeserializerState, tp::TypeAndParams{<:SMat, <:SMatSpace{T}}) where T
+  parent = params(tp)
   base = base_ring(parent)
   M = sparse_matrix(base)
 
   load_array_node(s) do _
     row_entries = Tuple{Int, T}[]
     load_array_node(s) do _
-      push!(row_entries, load_object(s, Tuple{Int, T}, (nothing, base)))
+      push!(row_entries, load_object(s, TypeAndParams(Tuple{Int, T}, (nothing, base))))
     end
     push!(M, sparse_row(base, row_entries))
   end
@@ -407,11 +368,12 @@ function save_object(s::SerializerState, R::AbsPowerSeriesUnionType)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SeriesRing}, base_ring::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:SeriesRing, <:Ring})
+  base_ring = params(tp)
   var = load_object(s, Symbol, :var)
   max_precision = load_object(s, Int, :max_precision)
   model = load_object(s, Symbol, :model)
-  
+
   return power_series_ring(base_ring, max_precision, var; cached=false, model=model)[1]
 end
 
@@ -468,36 +430,36 @@ function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
-                     parent_ring::RelPowerSeriesUnionType)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:RelPowerSeriesRingElem, <:RelPowerSeriesUnionType})
+  parent_ring = params(tp)
   valuation = load_object(s, Int, :valuation)
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
-  
-  load_node(s, :terms) do _
+
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
-      loaded_terms[e] = load_object(s, coeff_type, base, 2)
+      loaded_terms[e] = load_object(s, TypeAndParams(coeff_type, base), 2)
     end
   end
   return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
-                     parent_ring::AbsPowerSeriesUnionType)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:AbsPowerSeriesRingElem, <:AbsPowerSeriesUnionType})
+  parent_ring = params(tp)
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do _
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
-      loaded_terms[e + 1] = load_object(s, coeff_type, base, 2)
+      loaded_terms[e + 1] = load_object(s, TypeAndParams(coeff_type, base), 2)
     end
   end
   return parent_ring(loaded_terms, pol_length, precision)
@@ -518,7 +480,8 @@ function save_object(s::SerializerState, R::LaurentUnionType)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: LaurentUnionType}, base_ring::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:LaurentUnionType, <:Ring})
+  base_ring = params(tp)
   var = load_object(s, Symbol, :var)
   max_precision = load_object(s, Int, :max_precision)
 
@@ -557,28 +520,25 @@ function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZ
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
-                     parent_ring::LaurentUnionType)
-  terms = load_node(s, :terms) do terms_data
-    # reading all exponents before ...
-    # might be more efficient way ...
+                     tp::TypeAndParams{<:Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}, <:LaurentUnionType})
+  parent_ring = params(tp)
+  terms = load_node(s, :terms) do
     exponents = Int[]
-    for i in 1:length(terms_data)
-      load_node(s, i) do _
+    for i in 1:length(s.obj)
+      load_node(s, i) do
         push!(exponents, load_object(s, Int, 1))
       end
     end
-    
+
     highest_degree = max(exponents...)
     lowest_degree = min(exponents...)
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
-    # account for index shift
     loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
-      load_node(s, i) do _
-        loaded_terms[e] = load_object(s, coeff_type, base, 2)
+      load_node(s, i) do
+        loaded_terms[e] = load_object(s, TypeAndParams(coeff_type, base), 2)
       end
     end
     return loaded_terms
@@ -593,27 +553,19 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_and_params(A::MPolyQuoRing) = TypeAndParams(
-  MPolyQuoRing,
-  :base_ring => base_ring(A),
-  :ordering => typeof(ordering(A))
-)
+type_and_params(A::MPolyQuoRing) = TypeAndParams(MPolyQuoRing, base_ring(A))
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
-  save_data_dict(s) do # Saves stuff in a JSON dictionary. This opens a `{`, puts stuff 
-                       # inside there for the various keys and then closes it with `}`.
-                       # It's not using Julia Dicts.
+  save_data_dict(s) do
     save_object(s, modulus(A), :modulus)
     save_object(s, ordering(A), :ordering)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyQuoRing}, params::Dict)
-  R = params[:base_ring]
-  ordering_type = params[:ordering]
-  o = load_object(s, ordering_type, R, :ordering)
-  I = load_object(s, ideal_type(R), R, :modulus)
-
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoRing, <:MPolyRing})
+  R = params(tp)
+  o = load_object(s, TypeAndParams(MonomialOrdering, R), :ordering)
+  I = load_object(s, TypeAndParams(ideal_type(R), R), :modulus)
   return MPolyQuoRing(R, I, o)
 end
 
@@ -623,9 +575,10 @@ function save_object(s::SerializerState, a::MPolyQuoRingElem)
   save_object(s, lift(a))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyQuoRingElem}, Q::MPolyQuoRing)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoRingElem, <:MPolyQuoRing})
+  Q = params(tp)
   R = base_ring(Q)
-  rep = load_object(s, elem_type(R), R)
+  rep = load_object(s, TypeAndParams(elem_type(R), R))
   return Q(rep)
 end
 
@@ -641,8 +594,8 @@ function save_object(s::SerializerState, o::MonomialOrdering)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MonomialOrdering}, ring::MPolyRing)
-  # this will need to be changed to include other orderings, see below
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MonomialOrdering, <:MPolyRing})
+  ring = params(tp)
   ord = load_object(s, Orderings.SymbOrdering, :internal_ordering)
   result = MonomialOrdering(ring, ord)
   if haskey(s, :is_total)
@@ -677,8 +630,9 @@ function save_object(s::SerializerState, U::MPolyPowersOfElement)
   save_object(s, denominators(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyPowersOfElement}, R::MPolyRing)
-  dens = load_object(s, Vector{elem_type(R)}, R)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyPowersOfElement, <:MPolyRing})
+  R = params(tp)
+  dens = load_object(s, TypeAndParams(Vector{elem_type(R)}, R))
   return MPolyPowersOfElement(R, dens)
 end
 
@@ -691,8 +645,9 @@ function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
   save_object(s, prime_ideal(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal}, R::MPolyRing)
-  id = load_object(s, ideal_type(R), R)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyComplementOfPrimeIdeal, <:MPolyRing})
+  R = params(tp)
+  id = load_object(s, TypeAndParams(ideal_type(R), R))
   return MPolyComplementOfPrimeIdeal(id)
 end
 
@@ -704,13 +659,10 @@ function save_object(s::SerializerState, L::MPolyLocRing)
   save_object(s, inverted_set(L))
 end
 
-function load_object(
-    s::DeserializerState, 
-    ::Type{<:MPolyLocRing}, params::Dict
-  ) 
-  U = params[:mult_set_type]
-  R = params[:base_ring]
-  mult_set = load_object(s, U, R)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyLocRing, <:Tuple{Vararg{Pair}}})
+  U = type(tp[:mult_set_type])
+  R = tp[:base_ring]
+  mult_set = load_object(s, TypeAndParams(U, R))
   return MPolyLocRing(R, mult_set)
 end
 
@@ -725,11 +677,12 @@ function save_object(s::SerializerState, a::MPolyLocRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyLocRingElem}, parent::MPolyLocRing)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyLocRingElem, <:MPolyLocRing})
+  parent = params(tp)
   P = base_ring(parent)
   RET = elem_type(P)
-  num = load_object(s, RET, P, 1)
-  den = load_object(s, RET, P, 2)
+  num = load_object(s, TypeAndParams(RET, P), 1)
+  den = load_object(s, TypeAndParams(RET, P), 2)
   return parent(num, den; check=false)
 end
 
@@ -745,10 +698,10 @@ function save_object(s::SerializerState, L::MPolyQuoLocRing)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRing}, params::Dict)
-  R = params[:base_ring]::MPolyRing
-  L = params[:loc_ring]::MPolyLocRing
-  Q = params[:quo_ring]::MPolyQuoRing
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoLocRing, <:Tuple{Vararg{Pair}}})
+  R = tp[:base_ring]::MPolyRing
+  L = tp[:loc_ring]::MPolyLocRing
+  Q = tp[:quo_ring]::MPolyQuoRing
   return MPolyQuoLocRing(R, modulus(Q), inverted_set(L), Q, L)
 end
 
@@ -758,11 +711,12 @@ function save_object(s::SerializerState, a::MPolyQuoLocRingElem)
  save_object(s, [lifted_numerator(a), lifted_denominator(a)])
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRingElem}, parent::MPolyQuoLocRing)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoLocRingElem, <:MPolyQuoLocRing})
+  parent = params(tp)
   P = base_ring(parent)
   RET = elem_type(P)
-  num = load_object(s, RET, P, 1)
-  den = load_object(s, RET, P, 2)
+  num = load_object(s, TypeAndParams(RET, P), 1)
+  den = load_object(s, TypeAndParams(RET, P), 2)
   return parent(num, den; check=false)
 end
 
@@ -774,10 +728,11 @@ function save_object(s::SerializerState, U::MPolyComplementOfKPointIdeal)
   save_object(s, point_coordinates(U))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfKPointIdeal}, R::Ring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyComplementOfKPointIdeal, <:Ring})
+  R = params(tp)
   kk = coefficient_ring(R)
   T = elem_type(kk)
-  a = load_object(s, Vector{T}, kk)
+  a = load_object(s, TypeAndParams(Vector{T}, kk))
   return MPolyComplementOfKPointIdeal(R, a)
 end
 
@@ -791,11 +746,11 @@ function save_object(s::SerializerState, phi::MPolyLocalizedRingHom)
   save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyLocalizedRingHom} # RT is the type of the `restricted_map`
-  dom = params[:domain]
-  cod = params[:codomain]
-  rm_tp = params[:restricted_map_params]
-  res = load_object(s, MPolyAnyMap, rm_tp)
+function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where {T<:MPolyLocalizedRingHom}
+  dom = tp[:domain]
+  cod = tp[:codomain]
+  rm_tp = tp[:restricted_map_params]
+  res = load_object(s, rm_tp)
   return MPolyLocalizedRingHom(dom, cod, res; check=false)
 end
 
@@ -807,11 +762,11 @@ function save_object(s::SerializerState, phi::MPolyQuoLocalizedRingHom)
   save_object(s, restricted_map(phi))
 end
 
-function load_object(s::DeserializerState, ::Type{T}, params::Dict) where {T<:MPolyQuoLocalizedRingHom} # RT is the type of the `restricted_map`
-  dom = params[:domain]
-  cod = params[:codomain]
-  rm_tp = params[:restricted_map_params]
-  res = load_object(s, MPolyAnyMap, rm_tp)
+function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where {T<:MPolyQuoLocalizedRingHom}
+  dom = tp[:domain]
+  cod = tp[:codomain]
+  rm_tp = tp[:restricted_map_params]
+  res = load_object(s, rm_tp)
   return MPolyQuoLocalizedRingHom(dom, cod, res; check=false)
 end
 

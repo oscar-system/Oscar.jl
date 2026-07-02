@@ -22,6 +22,7 @@ Work on serialization is supported by the [MaRDI project](https://www.mardi4nfdi
 ```@docs
 save
 load
+type_and_params
 ```
 
 ## Serializers
