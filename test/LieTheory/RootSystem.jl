@@ -307,4 +307,21 @@
       @test result == @inferred dot(RootSpaceElem(w1), RootSpaceElem(w2))
     end
   end
+
+  @testset "coroot" begin
+    @testset "$Rname" for (Rname, R) in [
+      ("A5", root_system(:A, 5)),
+      ("B3", root_system(:B, 3)),
+      ("D4", root_system(:D, 4)),
+      ("F4", root_system(:F, 4)),
+      ("G2", root_system(:G, 2)),
+    ]
+      for i in 1:rank(R)
+        @test dual(simple_root(R,i)) == simple_coroot(R,i)
+      end
+      for i in roots(R)
+        @test dual(dual(i)) == i
+      end
+    end
+  end
 end
