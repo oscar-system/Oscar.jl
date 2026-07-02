@@ -283,6 +283,7 @@ function compute_monomials(
     sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
     # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
     for (ind_lambda_1, lambda_1) in enumerate(sub_weights)
+      break
       length(monomials) >= dim(V) && break
 
       lambda_2 = highest_weight(V) - lambda_1
@@ -374,17 +375,19 @@ function add_new_monomials!(
     operators_as_roots(birational_seq), RootSpaceElem(highest_weight(V) - weight_w),
     new_inequalities,
   )
+  # @show RootSpaceElem(highest_weight(V) - weight_w) length(lattice_points_of_weightspace) - dim_weightspace
+  # @show lattice_points_of_weightspace
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     lattice_points_of_weightspace,
   )
   if isempty(poss_mon_in_weightspace)
     if V isa SimpleModuleData
-      error(
+      @error(
         "The input seems to be invalid. Not enough monomials for weightspace $(highest_weight(V) - weight_w) in module with highest weight $(highest_weight(V))"
       )
     elseif V isa DemazureModuleData
-      error(
+      @error(
         "The input seems to be invalid. Not enough monomials for weightspace $((highest_weight(V) - weight_w) * weyl_group_elem(V)) in module with extremal weight $(highest_weight(V) * weyl_group_elem(V))"
       )
     else
@@ -500,6 +503,7 @@ function add_by_hand(
 
   # identify coordinates that are trivially zero because of the action on the generator
   new_inequalities = compute_new_inequalities(birational_seq, highest_weight(V))
+  # display(new_inequalities)
   # calculate new monomials
   new_monomials = Set{ZZMPolyRingElem}()
   for weight_w in weights_with_non_full_weightspace
