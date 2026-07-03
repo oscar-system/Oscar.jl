@@ -1375,7 +1375,8 @@ function dot(r1::DualRootSpaceElem, r2::DualRootSpaceElem)
 
   # return dot(coefficients(r1) * _bilinear_form_QQ_of_dual(root_system(r1)), coefficients(r2)) # currently the below is faster
   return only(
-    coefficients(r1) * _bilinear_form_QQ_of_dual(root_system(r1)) * transpose(coefficients(r2))
+    coefficients(r1) * _bilinear_form_QQ_of_dual(root_system(r1)) *
+    transpose(coefficients(r2)),
   )
 end
 
@@ -1573,7 +1574,7 @@ If `r` is a root, this is the coroot corresponding to `r`.
 function dual(r::RootSpaceElem)
   R = root_system(r)
   lr = dot(r, r)
-  coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r,i) for i in 1:rank(R)]
+  coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r, i) for i in 1:rank(R)]
   return DualRootSpaceElem(R, coeffs)
 end
 
@@ -1587,7 +1588,9 @@ If `r` is a coroot, this is the root corresponding to `r`.
 function dual(r::DualRootSpaceElem)
   R = root_system(r)
   lr = dot(r, r)
-  coeffs = [dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r,i) for i in 1:rank(R)]
+  coeffs = [
+    dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r, i) for i in 1:rank(R)
+  ]
   return RootSpaceElem(R, coeffs)
 end
 
