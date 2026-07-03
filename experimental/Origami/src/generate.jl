@@ -34,7 +34,7 @@ function compute_rays(equations, separatrix_count::Int)::Vector{Vector{Int}}
   neg_identity = -identity_matrix(ZZ, separatrix_count)
   cone = cone_from_inequalities(neg_identity, equations)
   ray_list = rays(cone)
-  return [[Int(x) for x in ray] for ray in rays(cone)]
+  return [[Int(x) for x in ray] for ray in ray_list]
 end
 
 # generate all possible linear combinations
@@ -283,20 +283,21 @@ end
 
 # so far only genus 2 & 3 supported
 # other strata may still be explored manually by using the read_cylinder_diagrams function
+# genus 3 still contains errors and is thus not available right now, but will hopefully be fixed soon.
 function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
   file_name = ""
   if stratum == [1, 1]
     file_name = "h11.dat"
   elseif stratum == [2]
     file_name = "h2.dat"
-  elseif stratum == [1, 1, 1, 1]
-    file_name = "h1111.dat"
-  elseif stratum == [4]
-    file_name = "h4.dat"
-  elseif stratum == [1, 1, 2] || stratum == [1, 2, 1] || stratum == [2, 1, 1]
-    file_name = "h112.dat"
-  elseif stratum == [2, 2]
-    file_name = "h22.dat"
+  # elseif stratum == [1, 1, 1, 1]
+  #   file_name = "h1111.dat"
+  # elseif stratum == [4]
+  #   file_name = "h4.dat"
+  # elseif stratum == [1, 1, 2] || stratum == [1, 2, 1] || stratum == [2, 1, 1]
+  #   file_name = "h112.dat"
+  # elseif stratum == [2, 2]
+  #   file_name = "h22.dat"
   else
     error("Stratum not supported!")
   end
